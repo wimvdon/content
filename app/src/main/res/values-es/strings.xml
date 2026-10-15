@@ -16,7 +16,6 @@
     <string name="action_add">Añadir</string>
     <string name="action_remove">Quitar</string>
     <string name="action_more">Más opciones</string>
-    <string name="action_refresh">Actualizar</string>
     <string name="action_open_feeds">Abrir feeds</string>
     <string name="action_mark_all_read">Marcar todo como leído</string>
     <string name="action_mark_unread">Marcar como no leído</string>
@@ -97,7 +96,10 @@
     <string name="action_undo">Deshacer</string>
     <string name="section_folders">Carpetas</string>
     <string name="folders_explanation">Pon los feeds en carpetas para leerlos juntos. En cuanto haya una carpeta, una barra al final de la lista cambia entre Inicio y tus carpetas.</string>
-    <string name="folder_home">Inicio</string>
+    <string name="folder_all">Todos</string>
+    <string name="feeds_all">Todos los artículos</string>
+    <string name="filter_unread">Sin leer</string>
+    <string name="filter_all">Todos</string>
     <string name="folder_new">Nueva carpeta</string>
     <string name="folder_edit">Editar carpeta</string>
     <string name="folder_edit_named">Editar %1$s</string>
@@ -117,7 +119,7 @@
     <string name="list_view_small">Pequeña</string>
     <string name="list_view_medium">Mediana</string>
     <string name="list_view_large">Grande</string>
-    <string name="feeds_page_title">Feeds y carpetas</string>
+    <string name="feeds_page_title">Gestionar feeds y carpetas</string>
     <string name="feeds_opml_title">Desde o hacia otro lector</string>
     <string name="reader_auto_dark_title">Oscuro automático</string>
     <string name="reader_auto_dark_summary">Página oscura cuando la app está oscura, también con Sepia o Tema</string>

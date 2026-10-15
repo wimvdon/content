@@ -77,17 +77,16 @@ and then (always before a release):
       Settings › Reader › Show images off hides them all.
 - [ ] **Save** sends to the app chosen in Settings › Save and share (Instapaper by default);
       **Share** opens the share menu or the chosen app. An uninstalled app falls back to the share menu.
-- [ ] **List:** swipe an article left and right: it becomes read, then unread. The filter
-      button in the top bar switches unread only / all. Settings › Article list › View: Small,
+- [ ] **List:** swipe an article left and right: it becomes read, then unread. Unread | All under the title switches unread only / all. Settings › Article list › View: Small,
       Medium and Large each look right, with and without pictures.
 - [ ] **Website icons:** after a refresh, feeds show their site's icon in the list, ☰ menu,
       Settings and reader; a feed without one shows its first letter.
-- [ ] **Navigation:** in a folder or feed, Back goes to Home; on Home, Back closes the app.
+- [ ] **Navigation:** in a folder or feed, Back goes to All; on All, Back closes the app.
       The Undo message after Mark all as read shows above the folder bar.
 - [ ] **Mark as read on scroll** on: scroll down the Unread list; the articles that leave the
       top of the screen are marked read (their dot goes) but stay until you refresh.
 - [ ] Import and export OPML (for example an Inoreader export); folders come along both ways.
-- [ ] **Feeds and folders** (☰ and top of Settings): create a folder, search an icon (e.g. *soccer*) and pick it, move feeds into it (they show under it); the bottom bar appears, its
+- [ ] **Manage feeds and folders** (☰ and top of Settings): create a folder, search an icon (e.g. *soccer*) and pick it, move feeds into it (they show under it); the bottom bar appears, its
       tabs show only that folder's articles; Mark all read (round button) only marks that
       section and Undo restores it; removing the folder keeps its feeds and hides the bar.
 - [ ] **Dark mode** and **Settings › Appearance**: switch Theme and Dynamic color. Text stays

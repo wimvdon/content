@@ -7,8 +7,8 @@ from another reader.
 
 ## Adding feeds
 
-Tap **Add feed** (on the empty screen, in the ☰ drawer, in the ⋮ menu or on the **Feeds and
-folders** page)
+Tap **Add feed** (on the empty screen or on the **Manage feeds and folders** page, ☰ › Manage
+feeds and folders)
 and type an address. Any of these work:
 
 - a feed address (`https://example.com/feed.xml`);
@@ -27,14 +27,14 @@ Until it is found, or when a site has none, the first letter of the feed's name 
 
 Export your feeds as an **OPML** file in your old reader (in Inoreader: Preferences ›
 Import/Export; Feedly, NetNewsWire and most others have the same), then tap **Import OPML** (on
-the empty start screen or on the **Feeds and folders** page) and pick the file. All feeds are added (feeds
+the empty start screen or on the **Manage feeds and folders** page) and pick the file. All feeds are added (feeds
 you already follow are skipped), in the same folders as in your old reader, and the app downloads
 their articles. **Export OPML** does the reverse, folders included. Read and starred states don't
 come along.
 
 ## Folders
 
-Open **☰ › Feeds and folders** (also reachable from the top of Settings). This page lists each
+Open **☰ › Manage feeds and folders** (also reachable from the top of Settings). This page lists each
 folder with its feeds under it, then the feeds outside folders. Tap **New folder**, give it a
 title and pick an icon: the whole Material Symbols set (over 4 000 icons) is there. Type in the
 search field to find one (icon names are in English, such as *news*, *car*, *soccer* or *food*);
@@ -42,26 +42,26 @@ with nothing typed, popular topics come first. Tap the pencil next to a folder t
 (its feeds stay, outside any folder). To put a feed in a folder, tap the folder button next to
 the feed and choose the folder.
 
-Once there is a folder, a floating bar appears at the bottom of the list: **Home** (every feed)
+Once there is a folder, a floating bar appears at the bottom of the list: **All** (every feed)
 and then each folder, with its icon and name. Tap one to see only its articles. The ☰ drawer lists the folders too, each with its feeds, and the feeds outside folders
 after them. A feed added while a folder is open goes into that folder.
 
 ## Reading the list
 
-- **☰** opens the drawer: **Home** (every feed), your folders with their feeds, the other feeds
-  (each with its number of unread articles), and **Settings**.
+- **☰** opens the drawer: **All articles** (every feed), your folders with their feeds, the other feeds
+  (each with its number of unread articles), **Manage feeds and folders** and **Settings**.
 - Articles are grouped under **Today**, **Yesterday** and then the date; the date stays at the
   top while you scroll through that day.
-- Under the title you see how many articles are unread. The **filter button** (three lines, top
-  right) switches between only unread articles (highlighted) and all articles. Articles you
-  open from the unread list stay in it until you switch feed, filter or refresh, so the list
-  doesn't jump.
+- Under the title you see how many articles are unread. Below it, **Unread | All** switches
+  between only unread articles and all articles (the chosen one is filled and has a check
+  mark). Articles you open from the unread list stay in it until you switch feed, filter or
+  refresh, so the list doesn't jump.
 - **Swipe** an article left or right to mark it as read, or as unread when it was read.
 - **Pull down** to download new articles. The app also does this once every time it starts. All
   feeds are downloaded first and then added at once, each article in its place by date.
-- **Back** inside a folder or feed returns to Home; back on Home closes the app.
+- **Back** inside a folder or feed returns to All; back on All closes the app.
 - The **Mark all as read** button at the bottom right (just ✓✓ once you scroll) marks everything in the section you are in as
-  read: all feeds on Home, the folder's feeds in a folder, or the one feed you opened. A message
+  read: all feeds on All, the folder's feeds in a folder, or the one feed you opened. A message
   says how many; **Undo** brings them back.
 - **Settings › Article list › View** chooses how big articles are in the list: **Small** (title
   only), **Medium** (title, start of the text and a small picture) or **Large** (a card with a
@@ -69,7 +69,7 @@ after them. A feed added while a folder is open goes into that folder.
 - **Mark as read on scroll** (in **Settings › Article list**, off by default): articles are
   marked as read once you scroll them off the top of the list. They stay in the unread list until
   you switch feed, filter or refresh, so you can scroll back to them.
-- If some feeds can't be downloaded, a message says how many; **Feeds and folders** shows why
+- If some feeds can't be downloaded, a message says how many; **Manage feeds and folders** shows why
   for each one.
 
 ## The reader
@@ -113,7 +113,7 @@ If the chosen app has been uninstalled, the button opens the share menu instead 
 
 ## Settings
 
-- **Feeds and folders** (at the top; the same page as in ☰): every feed with its address (or why
+- **Manage feeds and folders** (at the top; the same page as in ☰): every feed with its address (or why
   its last download failed), grouped by folder. Add or remove feeds (a removed feed's articles
   go too), create, edit and remove folders, put feeds in folders, and **Import OPML** /
   **Export OPML** to move your feeds between readers.

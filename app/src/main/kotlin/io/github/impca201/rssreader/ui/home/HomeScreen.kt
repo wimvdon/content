@@ -2,16 +2,9 @@ package io.github.impca201.rssreader.ui.home
 
 import android.text.format.DateUtils
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.IconToggleButton
-import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
-import androidx.compose.material3.TooltipAnchorPosition
-import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberSwipeToDismissBoxState
-import androidx.compose.material3.rememberTooltipState
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
@@ -44,8 +37,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -147,7 +138,7 @@ fun HomeScreen(
     val scope = rememberCoroutineScope()
     val selectedFeed = (state.selection as? FeedSelection.Single)?.let { s -> state.feeds.firstOrNull { it.url == s.feedUrl } }
     val selectedFolder = (state.selection as? FeedSelection.InFolder)?.let { s -> state.folders.firstOrNull { it.id == s.folderId } }
-    val title = selectedFeed?.title ?: selectedFolder?.title ?: stringResource(R.string.folder_home)
+    val title = selectedFeed?.title ?: selectedFolder?.title ?: stringResource(R.string.feeds_all)
     // The bottom bar's tab: the folder being viewed, or the folder of the feed being viewed.
     val sectionFolderId = selectedFolder?.id ?: selectedFeed?.folderId
     val showFolderBar = state.folders.isNotEmpty() && state.feeds.isNotEmpty()
@@ -165,10 +156,6 @@ fun HomeScreen(
                     actions.onSelect(it)
                     scope.launch { drawerState.close() }
                 },
-                onAddFeed = {
-                    scope.launch { drawerState.close() }
-                    actions.onAddFeed()
-                },
                 onOpenSettings = {
                     scope.launch { drawerState.close() }
                     actions.onOpenSettings()
@@ -181,7 +168,6 @@ fun HomeScreen(
         },
     ) {
         val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-        var menuOpen by remember { mutableStateOf(false) }
         Scaffold(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             // Messages appear above the folder bar, not on top of it.
@@ -210,40 +196,11 @@ fun HomeScreen(
                             Icon(painterResource(R.drawable.ic_menu), contentDescription = stringResource(R.string.action_open_feeds))
                         }
                     },
-                    actions = {
-                        if (state.feeds.isNotEmpty()) {
-                            UnreadToggle(state.unreadOnly, actions.onUnreadOnlyChange)
-                        }
-                        IconButton(onClick = { menuOpen = true }) {
-                            Icon(painterResource(R.drawable.ic_more_vert), contentDescription = stringResource(R.string.action_more))
-                        }
-                        DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
-                            if (state.feeds.isNotEmpty()) {
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.action_refresh)) },
-                                    leadingIcon = { Icon(painterResource(R.drawable.ic_refresh), contentDescription = null) },
-                                    enabled = !state.refreshing,
-                                    onClick = {
-                                        menuOpen = false
-                                        actions.onRefresh()
-                                    },
-                                )
-                            }
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.feeds_add)) },
-                                leadingIcon = { Icon(painterResource(R.drawable.ic_add), contentDescription = null) },
-                                onClick = {
-                                    menuOpen = false
-                                    actions.onAddFeed()
-                                },
-                            )
-                        }
-                    },
                     scrollBehavior = scrollBehavior,
                 )
             },
             floatingActionButton = {
-                // Marks everything in the section being viewed as read: Home, a folder or a feed.
+                // Marks everything in the section being viewed as read: All, a folder or a feed.
                 if (state.feeds.isNotEmpty() && unreadHere > 0) {
                     // With its label at the top of the list; just the icon once the list is scrolled.
                     ExtendedFloatingActionButton(
@@ -261,6 +218,14 @@ fun HomeScreen(
                     .fillMaxSize()
                     .padding(innerPadding),
             ) {
+            Column(Modifier.fillMaxSize()) {
+            if (state.feeds.isNotEmpty()) {
+                ReadFilter(
+                    unreadOnly = state.unreadOnly,
+                    onUnreadOnlyChange = actions.onUnreadOnlyChange,
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 8.dp),
+                )
+            }
             PullToRefreshBox(
                 isRefreshing = state.refreshing,
                 onRefresh = actions.onRefresh,
@@ -286,11 +251,12 @@ fun HomeScreen(
                     }
                 }
             }
+            }
             if (showFolderBar) {
                 FolderBar(
                     folders = state.folders,
                     selectedFolderId = sectionFolderId,
-                    onSelectHome = { actions.onSelect(FeedSelection.All) },
+                    onSelectAll = { actions.onSelect(FeedSelection.All) },
                     onSelectFolder = { actions.onSelect(FeedSelection.InFolder(it.id)) },
                     modifier =
                         Modifier
@@ -397,33 +363,6 @@ private fun DayHeader(day: LocalDate) {
                 .padding(start = 4.dp, top = 12.dp, bottom = 4.dp)
                 .semantics { heading() },
     )
-}
-
-/** Shows only unread articles when on; every article when off. */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun UnreadToggle(
-    unreadOnly: Boolean,
-    onChange: (Boolean) -> Unit,
-) {
-    val label = stringResource(R.string.action_show_unread)
-    TooltipBox(
-        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Below),
-        tooltip = { PlainTooltip { Text(label) } },
-        state = rememberTooltipState(),
-    ) {
-        IconToggleButton(
-            checked = unreadOnly,
-            onCheckedChange = onChange,
-            colors =
-                IconButtonDefaults.iconToggleButtonColors(
-                    checkedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                ),
-        ) {
-            Icon(painterResource(R.drawable.ic_filter_unread), contentDescription = label)
-        }
-    }
 }
 
 /** Swiping a row either way marks it read, or unread when it was read; the row springs back. */

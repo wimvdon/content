@@ -16,7 +16,6 @@
     <string name="action_add">Aggiungi</string>
     <string name="action_remove">Rimuovi</string>
     <string name="action_more">Altre opzioni</string>
-    <string name="action_refresh">Aggiorna</string>
     <string name="action_open_feeds">Apri feed</string>
     <string name="action_mark_all_read">Segna tutto come letto</string>
     <string name="action_mark_unread">Segna come non letto</string>
@@ -97,7 +96,10 @@
     <string name="action_undo">Annulla</string>
     <string name="section_folders">Cartelle</string>
     <string name="folders_explanation">Metti i feed in cartelle per leggerli insieme. Appena c\'è una cartella, una barra in fondo all\'elenco passa tra Home e le tue cartelle.</string>
-    <string name="folder_home">Home</string>
+    <string name="folder_all">Tutti</string>
+    <string name="feeds_all">Tutti gli articoli</string>
+    <string name="filter_unread">Non letti</string>
+    <string name="filter_all">Tutti</string>
     <string name="folder_new">Nuova cartella</string>
     <string name="folder_edit">Modifica cartella</string>
     <string name="folder_edit_named">Modifica %1$s</string>
@@ -117,7 +119,7 @@
     <string name="list_view_small">Piccola</string>
     <string name="list_view_medium">Media</string>
     <string name="list_view_large">Grande</string>
-    <string name="feeds_page_title">Feed e cartelle</string>
+    <string name="feeds_page_title">Gestisci feed e cartelle</string>
     <string name="feeds_opml_title">Da o verso un altro lettore</string>
     <string name="reader_auto_dark_title">Scuro automatico</string>
     <string name="reader_auto_dark_summary">Pagina scura quando l\'app è scura, anche con Seppia o Tema</string>
