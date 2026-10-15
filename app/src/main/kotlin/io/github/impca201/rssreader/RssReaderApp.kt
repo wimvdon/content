@@ -3,6 +3,7 @@ package io.github.impca201.rssreader
 import android.app.Application
 import android.content.Context
 import android.util.Log
+import io.github.impca201.rssreader.data.FullArticles
 import io.github.impca201.rssreader.data.LibraryRepository
 import io.github.impca201.rssreader.data.SettingsStore
 import io.github.impca201.rssreader.feed.FeedFetcher
@@ -10,6 +11,7 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import java.io.File
 
 class RssReaderApp : Application() {
     /** Process-wide scope for work that must outlive a single screen, such as a refresh. */
@@ -17,11 +19,14 @@ class RssReaderApp : Application() {
 
     val settings: SettingsStore by lazy { SettingsStore(this, appScope) }
 
-    val library: LibraryRepository by lazy {
+    private val fetcher: FeedFetcher by lazy {
         val version = runCatching { packageManager.getPackageInfo(packageName, 0).versionName }.getOrNull().orEmpty()
-        val fetcher = FeedFetcher(userAgent = "RSSReader/$version (Android)")
-        LibraryRepository(this, appScope, fetch = fetcher::fetch)
+        FeedFetcher(userAgent = "RSSReader/$version (Android)")
     }
+
+    val library: LibraryRepository by lazy { LibraryRepository(this, appScope, fetch = fetcher::fetch) }
+
+    val fullArticles: FullArticles by lazy { FullArticles(File(cacheDir, "articles"), fetch = fetcher::fetch) }
 
     /** The article list refreshes once per app start; later refreshes are pull-to-refresh. */
     var refreshedThisSession = false

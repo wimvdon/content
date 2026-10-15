@@ -16,6 +16,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
@@ -39,7 +40,10 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
@@ -55,6 +59,19 @@ import io.github.impca201.rssreader.data.ReaderStyle
 import io.github.impca201.rssreader.data.SaveTarget
 import io.github.impca201.rssreader.feed.Html
 
+/** Whether the reader shows the full article loaded from the website, and how far it got. */
+sealed interface FullTextState {
+    /** Showing the feed's text. */
+    data object Off : FullTextState
+
+    data object Loading : FullTextState
+
+    data class Shown(val html: String) : FullTextState
+
+    /** Loading failed; showing the feed's text. */
+    data object Failed : FullTextState
+}
+
 /** What the reader's buttons do. Implemented by the navigation, which talks to other apps. */
 class ReaderActions(
     val onBack: () -> Unit,
@@ -63,6 +80,8 @@ class ReaderActions(
     val onShare: () -> Unit,
     val onOpenInBrowser: () -> Unit,
     val onMarkUnread: () -> Unit,
+    /** Switches between the full article and the feed's text. */
+    val onToggleFullText: () -> Unit,
     val onOpenLink: (String) -> Unit,
 )
 
@@ -74,6 +93,7 @@ fun ReaderScreen(
     feedTitle: String?,
     style: ReaderStyle,
     saveTarget: SaveTarget,
+    fullText: FullTextState,
     snackbarHostState: SnackbarHostState,
     actions: ReaderActions,
 ) {
@@ -116,6 +136,15 @@ fun ReaderScreen(
                     }
                     DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
                         if (hasLink) {
+                            val showingFull = fullText is FullTextState.Shown || fullText is FullTextState.Loading
+                            DropdownMenuItem(
+                                text = { Text(stringResource(if (showingFull) R.string.reader_show_feed_text else R.string.reader_show_full)) },
+                                leadingIcon = { Icon(painterResource(R.drawable.ic_article), contentDescription = null) },
+                                onClick = {
+                                    menuOpen = false
+                                    actions.onToggleFullText()
+                                },
+                            )
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.action_open_in_browser)) },
                                 leadingIcon = { Icon(painterResource(R.drawable.ic_open_in_new), contentDescription = null) },
@@ -154,6 +183,7 @@ fun ReaderScreen(
         } else {
             ArticleBody(
                 article = article,
+                fullText = fullText,
                 feedTitle = feedTitle,
                 style = style,
                 onOpenLink = actions.onOpenLink,
@@ -189,6 +219,7 @@ fun ReaderScreen(
 @Composable
 private fun ArticleBody(
     article: Article,
+    fullText: FullTextState,
     feedTitle: String?,
     style: ReaderStyle,
     onOpenLink: (String) -> Unit,
@@ -197,11 +228,12 @@ private fun ArticleBody(
 ) {
     val linkColor = MaterialTheme.colorScheme.primary
     val openLink by rememberUpdatedState(onOpenLink)
+    val html = (fullText as? FullTextState.Shown)?.html ?: article.html
     val body =
-        remember(article.html, linkColor) {
+        remember(html, linkColor) {
             val links = TextLinkStyles(SpanStyle(color = linkColor, textDecoration = TextDecoration.Underline))
             AnnotatedString
-                .fromHtml(Html.clean(article.html), linkStyles = links) { link ->
+                .fromHtml(Html.clean(html), linkStyles = links) { link ->
                     (link as? LinkAnnotation.Url)?.let { openLink(it.url) }
                 }.trimmed()
         }
@@ -242,6 +274,27 @@ private fun ArticleBody(
             )
             if (meta.isNotEmpty()) {
                 Text(meta, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            when (fullText) {
+                FullTextState.Loading -> {
+                    val loading = stringResource(R.string.reader_loading_full)
+                    LinearProgressIndicator(
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .semantics { contentDescription = loading },
+                    )
+                }
+
+                FullTextState.Failed ->
+                    Text(
+                        text = stringResource(R.string.reader_full_failed),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                    )
+
+                else -> Unit
             }
             if (body.isNotEmpty()) {
                 SelectionContainer { Text(body, style = bodyStyle) }

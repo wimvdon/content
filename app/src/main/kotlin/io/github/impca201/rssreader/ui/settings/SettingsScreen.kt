@@ -48,6 +48,7 @@ import io.github.impca201.rssreader.ui.theme.AppearanceSettings
 import io.github.impca201.rssreader.ui.theme.CollapsibleSection
 import io.github.impca201.rssreader.ui.theme.SettingsFooter
 import io.github.impca201.rssreader.ui.theme.SettingsScaffold
+import io.github.impca201.rssreader.ui.theme.SwitchSetting
 import io.github.impca201.rssreader.ui.theme.rememberAppVersion
 
 data class SettingsState(
@@ -64,6 +65,7 @@ class SettingsActions(
     val onImportOpml: () -> Unit,
     val onExportOpml: () -> Unit,
     val onReaderStyleChange: (ReaderStyle) -> Unit,
+    val onFullArticlesChange: (Boolean) -> Unit,
     val onSaveTargetChange: (SaveTarget) -> Unit,
     val onGetInstapaper: () -> Unit,
     val onThemeModeChange: (ThemeMode) -> Unit,
@@ -84,7 +86,7 @@ fun SettingsScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) {
         item(key = "feeds") { FeedsSection(state, actions) }
-        item(key = "reader") { ReaderSection(state.settings.reader, actions.onReaderStyleChange) }
+        item(key = "reader") { ReaderSection(state.settings, actions) }
         item(key = "save") { SaveSection(state, actions) }
         item(key = "appearance") { AppearanceSection(state.settings, actions) }
         item(key = "footer") {
@@ -179,9 +181,10 @@ private fun FeedRow(
 
 @Composable
 private fun ReaderSection(
-    style: ReaderStyle,
-    onChange: (ReaderStyle) -> Unit,
+    settings: Settings,
+    actions: SettingsActions,
 ) {
+    val style = settings.reader
     CollapsibleSection(
         key = "reader",
         title = stringResource(R.string.section_reader),
@@ -193,7 +196,13 @@ private fun ReaderSection(
             ).joinToString(" · "),
         icon = painterResource(R.drawable.ic_text_format),
     ) {
-        ReaderStyleControls(style = style, onChange = onChange)
+        SwitchSetting(
+            title = stringResource(R.string.reader_full_articles_title),
+            summary = stringResource(R.string.reader_full_articles_summary),
+            checked = settings.fullArticles,
+            onCheckedChange = actions.onFullArticlesChange,
+        )
+        ReaderStyleControls(style = style, onChange = actions.onReaderStyleChange)
         Text(
             text = stringResource(R.string.reader_preview),
             style = readerBodyStyle(style),

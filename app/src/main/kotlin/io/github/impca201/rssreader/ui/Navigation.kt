@@ -30,15 +30,18 @@ import io.github.impca201.rssreader.R
 import io.github.impca201.rssreader.data.AddFeedResult
 import io.github.impca201.rssreader.data.Article
 import io.github.impca201.rssreader.data.FeedSelection
+import io.github.impca201.rssreader.data.FullArticle
 import io.github.impca201.rssreader.data.Library
 import io.github.impca201.rssreader.data.SaveTarget
 import io.github.impca201.rssreader.data.Settings
+import io.github.impca201.rssreader.data.needsFullText
 import io.github.impca201.rssreader.rssReaderApp
 import io.github.impca201.rssreader.ui.home.AddFeedDialog
 import io.github.impca201.rssreader.ui.home.HomeActions
 import io.github.impca201.rssreader.ui.home.HomeScreen
 import io.github.impca201.rssreader.ui.home.HomeState
 import io.github.impca201.rssreader.ui.home.errorRes
+import io.github.impca201.rssreader.ui.reader.FullTextState
 import io.github.impca201.rssreader.ui.reader.ReaderActions
 import io.github.impca201.rssreader.ui.reader.ReaderScreen
 import io.github.impca201.rssreader.ui.reader.ReaderTheme
@@ -265,6 +268,25 @@ fun RssReaderNavigation() {
 
                 is Screen.Reader -> {
                     val article = library.article(screen.articleKey)
+                    // The full article loads by itself when the setting is on and the feed only has a
+                    // summary; the reader's menu switches between the two (null: follow the setting).
+                    var fullTextChoice by rememberSaveable(screen.articleKey) { mutableStateOf<Boolean?>(null) }
+                    val isSummary = remember(article?.html) { article != null && needsFullText(article.html) }
+                    val wantFullText = article?.link != null && (fullTextChoice ?: (current.fullArticles && isSummary))
+                    var fullText by remember(screen.articleKey) { mutableStateOf<FullTextState>(FullTextState.Off) }
+                    LaunchedEffect(screen.articleKey, wantFullText) {
+                        val link = article?.link
+                        fullText =
+                            if (!wantFullText || link == null) {
+                                FullTextState.Off
+                            } else {
+                                fullText = FullTextState.Loading
+                                when (val loaded = app.fullArticles.load(link)) {
+                                    is FullArticle.Loaded -> FullTextState.Shown(loaded.html)
+                                    FullArticle.Failed -> FullTextState.Failed
+                                }
+                            }
+                    }
                     // Opening an article marks it as read.
                     LaunchedEffect(screen.articleKey) { app.appScope.launch { repository.setRead(screen.articleKey, true) } }
                     SystemBarsFollowTheme(current.reader.isDark(appDark))
@@ -274,6 +296,7 @@ fun RssReaderNavigation() {
                             feedTitle = article?.let { library.feed(it.feedUrl)?.title },
                             style = current.reader,
                             saveTarget = current.saveTarget,
+                            fullText = fullText,
                             snackbarHostState = snackbar,
                             actions =
                                 ReaderActions(
@@ -289,6 +312,7 @@ fun RssReaderNavigation() {
                                         pop()
                                     },
                                     onOpenLink = { url -> ExternalApps.openLink(context, url) },
+                                    onToggleFullText = { fullTextChoice = !wantFullText },
                                 ),
                         )
                     }
@@ -313,6 +337,7 @@ fun RssReaderNavigation() {
                                 onImportOpml = importOpml,
                                 onExportOpml = exportOpml,
                                 onReaderStyleChange = { style -> app.appScope.launch { app.settings.setReaderStyle(style) } },
+                                onFullArticlesChange = { enabled -> app.appScope.launch { app.settings.setFullArticles(enabled) } },
                                 onSaveTargetChange = { target -> app.appScope.launch { app.settings.setSaveTarget(target) } },
                                 onGetInstapaper = { ExternalApps.openStoreListing(context, ExternalApps.INSTAPAPER_PACKAGE) },
                                 onThemeModeChange = { mode -> app.appScope.launch { app.settings.setThemeMode(mode) } },

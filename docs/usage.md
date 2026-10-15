@@ -42,8 +42,14 @@ Tap an article to read it. It is marked as read. In the top bar:
 | Share | Shares the article's link with any app. |
 | ⋮ | **Open in browser** and **Mark as unread**. |
 
-Feeds often contain only the start of an article; **Read on website** at the end opens the full
-version. Images, videos and embedded content are not shown in the reader.
+**Full articles.** Many feeds contain only the start of an article. Then the reader fetches the
+whole article from the website by itself: a thin bar shows while it loads, and the text is
+replaced by the complete article (without the site's menus, ads and comments). If that fails, the
+feed's text stays and a line says so. ⋮ › **Show feed text** / **Show full article** switches
+between the two for the open article; **Settings › Reader › Load full articles** turns the
+automatic loading off. Full articles are kept for a while, so opening one again is instant.
+**Read on website** at the end always opens the original page. Images, videos and embedded content
+are not shown in the reader.
 
 ## Saving to Instapaper
 
@@ -60,10 +66,18 @@ version. Images, videos and embedded content are not shown in the reader.
 - **Feeds:** every feed with its address (or why its last download failed), remove a feed (its
   articles are removed too), add a feed, and **Import OPML** / **Export OPML** to move your feeds
   between readers.
-- **Reader:** the same text settings as **Aa**, with a preview.
+- **Reader:** **Load full articles**, and the same text settings as **Aa**, with a preview.
 - **Save for later:** see above.
 - **Appearance:** Theme (System, Light, Dark) and Dynamic color (wallpaper colours instead of
   the app's blue).
+
+## Backup and moving to a new phone
+
+The app uses Android's built-in backup. When **Backup by Google One** (or **Google backup**) is on
+in the phone's settings, Android backs up your feeds, read state and settings to your Google
+account about once a day, while the phone is charging and on Wi-Fi. Setting up a new phone with
+that backup, or copying data from the old phone, restores them when the app is installed again
+from the same source. Downloaded full articles are not backed up; they load again when needed.
 
 ## Language
 

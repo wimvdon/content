@@ -31,6 +31,7 @@ when the run fails.
 | `HtmlTest` | Clean-up for the reader, plain text, snippets, entities, escaping |
 | `FeedDiscoveryTest` | Address normalising (https, feed://), feed links in a page, common paths |
 | `FeedFinderTest` | Address → feed with a fake web: direct feed, linked feed, common path, no feed, errors |
+| `ArticleExtractorTest` | Finding the article in pages (with and without `<article>`, split sections), dropping menus, sidebars, comments, scripts and figures, unclosed paragraphs, entities, unsafe links, charsets, when a feed text counts as a summary |
 | `OpmlTest` | Import with folders and duplicates, export round trip, non-OPML files |
 | `LibraryTest` | Merging downloads (read state kept, duplicates, limits), sorting, Unread filter, counts, mark read, remove feed |
 | `LibraryCodecTest` | Storage round trip with tabs, line breaks and backslashes; damaged input |
@@ -58,6 +59,12 @@ and then (always before a release):
 - [ ] Add a feed by website address and by feed address; articles appear.
 - [ ] Open an article, change every text setting (font, size, spacing, background), go back: the
       list keeps its scroll position and the article shows as read.
+- [ ] Open an article from a summary-only feed (e.g. `theverge.com`): the full article loads.
+      ⋮ › Show feed text / Show full article switches; Settings › Reader › Load full articles off
+      stops it.
+- [ ] **Backup:** with a cable and `adb`, `adb shell bmgr backupnow io.github.impca201.rssreader`,
+      uninstall, reinstall, `adb shell bmgr restore io.github.impca201.rssreader` (or set up a
+      new phone from backup): feeds and settings come back.
 - [ ] **Save** with Instapaper installed sends the article to Instapaper; without it, the share
       menu opens.
 - [ ] Import and export OPML.

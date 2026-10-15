@@ -68,4 +68,6 @@ data class Settings(
     val reader: ReaderStyle = ReaderStyle(),
     val saveTarget: SaveTarget = SaveTarget.Instapaper,
     val unreadOnly: Boolean = true,
+    /** Load the whole article from its web page when the feed only has a summary. */
+    val fullArticles: Boolean = true,
 )

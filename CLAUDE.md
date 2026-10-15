@@ -24,7 +24,7 @@ are the safety net. Follow them every time.
 - Delete, skip, `@Ignore`, or weaken tests, lint checks, CI steps or workflows to make something
   pass. Don't add a lint baseline or disable a lint check. **Never remove the release workflow.**
 - Add Android permissions or network destinations beyond the ones in `PRIVACY.md` (only the feeds
-  and websites the user adds), analytics, crash reporting, ads or tracking. No background
+  and websites the user adds, and the pages of their articles), analytics, crash reporting, ads or tracking. No background
   downloads. Keep Android's block on unencrypted (`http://`) traffic.
 - Add new dependencies (libraries or Gradle plugins). Prefer what is already in
   `gradle/libs.versions.toml`. Use **DataStore** if the app needs to store data.

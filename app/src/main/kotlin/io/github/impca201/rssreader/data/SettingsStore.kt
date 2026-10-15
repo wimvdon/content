@@ -52,6 +52,8 @@ class SettingsStore(
 
     suspend fun setUnreadOnly(unreadOnly: Boolean) = edit { it[UNREAD_ONLY] = unreadOnly }
 
+    suspend fun setFullArticles(enabled: Boolean) = edit { it[FULL_ARTICLES] = enabled }
+
     private suspend fun edit(change: (MutablePreferences) -> Unit) {
         dataStore.edit(change)
     }
@@ -72,6 +74,7 @@ class SettingsStore(
                 ).withTextSize(p[READER_TEXT_SIZE] ?: defaults.reader.textSize),
             saveTarget = enumOr(p[SAVE_TARGET], defaults.saveTarget),
             unreadOnly = p[UNREAD_ONLY] ?: defaults.unreadOnly,
+            fullArticles = p[FULL_ARTICLES] ?: defaults.fullArticles,
         )
     }
 
@@ -89,5 +92,6 @@ class SettingsStore(
         val READER_BACKGROUND = stringPreferencesKey("reader_background")
         val SAVE_TARGET = stringPreferencesKey("save_target")
         val UNREAD_ONLY = booleanPreferencesKey("unread_only")
+        val FULL_ARTICLES = booleanPreferencesKey("full_articles")
     }
 }

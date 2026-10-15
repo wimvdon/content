@@ -2,6 +2,23 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-15: Full articles in the reader, Android backup
+
+- **Full articles:** for feeds that only carry a summary (under 1 500 characters of text), the
+  reader downloads the article's page and shows just the article, like a browser's reader view.
+  On by default (Settings › Reader › Load full articles), switchable per article. Asked for by the
+  owner. The extraction (`ArticleExtractor`) is our own small HTML reader with Readability-style
+  scoring, in plain Kotlin and unit tested. Rejected: jsoup + Readability4J (two new libraries for
+  one feature) and a WebView (runs the site's scripts, ads and trackers). Trade-off: some unusual
+  page layouts extract badly; the feed text and "Read on website" stay one tap away.
+- **Where full articles live:** files in the app's cache folder (300 most recent), not DataStore.
+  They can be downloaded again, Android may clear the cache when space runs low, and the cache is
+  never backed up, which keeps backups small.
+- **Backup:** Android's built-in Auto Backup and device-to-device transfer (`allowBackup` with
+  `data_extraction_rules.xml`) cover the feed list, articles, read state and settings. Nothing in
+  the app is secret, so nothing is excluded. Rejected: a key/value `BackupAgent` (more code, and
+  Auto Backup already handles DataStore files).
+
 ## 2026-10-15: RSS Reader, built from the template
 
 - **Identity:** app name "RSS Reader", application ID `io.github.impca201.rssreader` (the

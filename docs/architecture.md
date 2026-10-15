@@ -27,6 +27,8 @@ RssReaderApp ── SettingsStore ── DataStore "settings" (Preferences)
 | `feed/FeedFetcher.kt` | The only network code: HTTPS GET with timeouts, a 10 MB limit and at most 5 redirects. |
 | `feed/FeedParser.kt` | RSS 2.0/0.9x, RSS 1.0 (RDF) and Atom into `ParsedFeed`, with the platform XML parser (external entities off). Retries with HTML entities fixed. |
 | `feed/FeedFinder.kt`, `FeedDiscovery.kt` | From what the user typed to a feed: normalise the address, try it as a feed, then feeds the page links to, then common paths. |
+| `feed/ArticleExtractor.kt` | "Reader view": reads a web page with its own forgiving HTML reader, scores containers by their paragraphs (Readability-style) and returns the article as simple HTML. |
+| `data/FullArticles.kt` | Loads full articles for summary-only feeds and keeps them in the cache folder (300 most recent). |
 | `feed/FeedDates.kt`, `Html.kt`, `Opml.kt` | Date formats of real feeds; HTML clean-up, plain text and snippets; OPML read and write. |
 | `ui/Navigation.kt` | Back stack, wiring between screens and stores, Add feed dialog, OPML file pickers, Instapaper and share hand-offs. |
 | `ui/home/` | Article list with Unread/All filter, pull-to-refresh, loading placeholders, empty states; feed drawer; Add feed dialog. |
@@ -43,7 +45,9 @@ RssReaderApp ── SettingsStore ── DataStore "settings" (Preferences)
    and each feed keeps its newest 200 articles.
 3. Screens observe `StateFlow`s (`library`, `settings`, `refreshing`, `problems`) and call
    repository functions on the app scope; the new state flows back to the screens.
-4. Opening an article marks it read. Save hands the link to Instapaper with an `ACTION_SEND`
+4. Opening an article marks it read. If its feed text is short (under 1 500 characters) and
+   Load full articles is on, the reader fetches the article's page and shows the extracted article.
+5. Save hands the link to Instapaper with an `ACTION_SEND`
    intent aimed at its package; the share menu is the fallback.
 
 ## Patterns

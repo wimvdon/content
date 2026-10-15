@@ -76,6 +76,12 @@
     <string name="reader_preview">Good typography is invisible: you notice the story, not the letters.</string>
     <string name="reader_read_on_website">Read on website</string>
     <string name="reader_article_gone">This article is no longer available.</string>
+    <string name="reader_show_full">Show full article</string>
+    <string name="reader_show_feed_text">Show feed text</string>
+    <string name="reader_loading_full">Loading the full article…</string>
+    <string name="reader_full_failed">Couldn’t load the full article. Showing the feed’s text.</string>
+    <string name="reader_full_articles_title">Load full articles</string>
+    <string name="reader_full_articles_summary">When a feed only has a summary, get the whole article from the website</string>
     <string name="section_save">Save for later</string>
     <string name="save_explanation">Where the Save button in the reader sends an article.</string>
     <string name="save_target_instapaper" translatable="false">Instapaper</string>

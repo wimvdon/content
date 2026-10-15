@@ -75,6 +75,12 @@
     <string name="reader_preview">Goede typografie zie je niet: je merkt het verhaal op, niet de letters.</string>
     <string name="reader_read_on_website">Lezen op website</string>
     <string name="reader_article_gone">Dit artikel is niet meer beschikbaar.</string>
+    <string name="reader_show_full">Volledig artikel tonen</string>
+    <string name="reader_show_feed_text">Tekst uit feed tonen</string>
+    <string name="reader_loading_full">Volledig artikel laden…</string>
+    <string name="reader_full_failed">Het volledige artikel kon niet geladen worden. Je ziet de tekst uit de feed.</string>
+    <string name="reader_full_articles_title">Volledige artikels laden</string>
+    <string name="reader_full_articles_summary">Als een feed alleen een samenvatting heeft, het hele artikel van de website halen</string>
     <string name="section_save">Bewaren voor later</string>
     <string name="save_explanation">Waar de knop Bewaren in de lezer een artikel naartoe stuurt.</string>
     <string name="save_target_share">Deelmenu</string>

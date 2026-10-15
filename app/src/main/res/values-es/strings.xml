@@ -75,6 +75,12 @@
     <string name="reader_preview">La buena tipografía es invisible: notas la historia, no las letras.</string>
     <string name="reader_read_on_website">Leer en el sitio web</string>
     <string name="reader_article_gone">Este artículo ya no está disponible.</string>
+    <string name="reader_show_full">Mostrar el artículo completo</string>
+    <string name="reader_show_feed_text">Mostrar el texto del feed</string>
+    <string name="reader_loading_full">Cargando el artículo completo…</string>
+    <string name="reader_full_failed">No se pudo cargar el artículo completo. Se muestra el texto del feed.</string>
+    <string name="reader_full_articles_title">Cargar artículos completos</string>
+    <string name="reader_full_articles_summary">Si un feed solo tiene un resumen, traer el artículo entero del sitio web</string>
     <string name="section_save">Guardar para más tarde</string>
     <string name="save_explanation">Adónde envía un artículo el botón Guardar del lector.</string>
     <string name="save_target_share">Menú de compartir</string>

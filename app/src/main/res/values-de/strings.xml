@@ -75,6 +75,12 @@
     <string name="reader_preview">Gute Typografie ist unsichtbar: Du bemerkst die Geschichte, nicht die Buchstaben.</string>
     <string name="reader_read_on_website">Auf der Website lesen</string>
     <string name="reader_article_gone">Dieser Artikel ist nicht mehr verfügbar.</string>
+    <string name="reader_show_full">Ganzen Artikel anzeigen</string>
+    <string name="reader_show_feed_text">Text aus dem Feed anzeigen</string>
+    <string name="reader_loading_full">Ganzer Artikel wird geladen…</string>
+    <string name="reader_full_failed">Der ganze Artikel konnte nicht geladen werden. Du siehst den Text aus dem Feed.</string>
+    <string name="reader_full_articles_title">Ganze Artikel laden</string>
+    <string name="reader_full_articles_summary">Wenn ein Feed nur eine Zusammenfassung hat, den ganzen Artikel von der Website holen</string>
     <string name="section_save">Für später speichern</string>
     <string name="save_explanation">Wohin die Speichern-Schaltfläche in der Leseansicht einen Artikel schickt.</string>
     <string name="save_target_share">Teilen-Menü</string>

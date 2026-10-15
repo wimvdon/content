@@ -75,6 +75,12 @@
     <string name="reader_preview">Une bonne typographie est invisible : on remarque l\'histoire, pas les lettres.</string>
     <string name="reader_read_on_website">Lire sur le site</string>
     <string name="reader_article_gone">Cet article n\'est plus disponible.</string>
+    <string name="reader_show_full">Afficher l\'article complet</string>
+    <string name="reader_show_feed_text">Afficher le texte du flux</string>
+    <string name="reader_loading_full">Chargement de l\'article complet…</string>
+    <string name="reader_full_failed">Impossible de charger l\'article complet. Le texte du flux est affiché.</string>
+    <string name="reader_full_articles_title">Charger les articles complets</string>
+    <string name="reader_full_articles_summary">Quand un flux ne contient qu\'un résumé, récupérer l\'article entier sur le site</string>
     <string name="section_save">Enregistrer pour plus tard</string>
     <string name="save_explanation">Où le bouton Enregistrer du lecteur envoie un article.</string>
     <string name="save_target_share">Menu de partage</string>
