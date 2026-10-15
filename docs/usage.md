@@ -80,8 +80,8 @@ If the chosen app has been uninstalled, the button opens the share menu instead 
 ## Settings
 
 - **Feeds:** every feed with its address (or why its last download failed), remove a feed (its
-  articles are removed too), add a feed, **Import OPML** / **Export OPML** to move your feeds
-  between readers, and **Import from Inoreader**.
+  articles are removed too), add a feed, and **Import OPML** / **Export OPML** to move your
+  feeds between readers.
 - **Reader:** **Load full articles**, **Show images**, and the same text settings as **Aa**, with a preview.
 - **Save and share:** see above.
 - **Appearance:** Theme (System, Light, Dark) and Dynamic color (wallpaper colours instead of
