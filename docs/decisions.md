@@ -2,6 +2,12 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-15: Icon thicker, with more padding
+
+After using v0.0.1 the owner found the icon too thin and too tight in the launcher shape. The
+symbol is now about 44dp wide instead of 50dp (more white space around it) with thicker waves and
+dot (owner's pick "T3" from mockups).
+
 ## 2026-10-15: Settings screens make room for the keyboard
 
 The app targets Android 15+ and draws edge to edge, so the system no longer shrinks the screen when the keyboard opens. `SettingsScaffold` (shared design kit, same change in every app) now adds the keyboard to its content insets, so a focused text field scrolls into view instead of hiding behind the keyboard. Rejected: opting out of edge-to-edge (not possible for apps targeting Android 15+).
