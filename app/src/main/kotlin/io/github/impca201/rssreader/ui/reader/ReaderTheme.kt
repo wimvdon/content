@@ -40,7 +40,8 @@ private fun ColorScheme.sepia(): ColorScheme =
     )
 
 /**
- * The reader page's colours: the app's theme, sepia, or the app's dark colours. Everything on
+ * The reader page's colours: the app's theme, sepia, or the app's dark colours (also whenever
+ * the app is dark and Auto dark is on). Everything on
  * the reader screen (top bar, sheet, text) uses them, so it reads as one page.
  */
 @Composable
@@ -52,7 +53,7 @@ fun ReaderTheme(
 ) {
     val context = LocalContext.current
     val colors =
-        when (style.background) {
+        when (style.pageBackground(appDark)) {
             ReaderBackground.Default -> MaterialTheme.colorScheme
             ReaderBackground.Sepia -> appColorScheme(context, dark = false, dynamicColor = false).sepia()
             ReaderBackground.Dark ->

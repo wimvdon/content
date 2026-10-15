@@ -35,6 +35,8 @@ data class ReaderStyle(
     val textSize: Int = DEFAULT_TEXT_SIZE,
     val spacing: ReaderSpacing = ReaderSpacing.Normal,
     val background: ReaderBackground = ReaderBackground.Default,
+    /** Use the dark page whenever the app is dark, whatever [background] says (e.g. sepia by day). */
+    val autoDark: Boolean = false,
 ) {
     init {
         require(textSize in MIN_TEXT_SIZE..MAX_TEXT_SIZE) { "textSize out of range: $textSize" }
@@ -46,9 +48,12 @@ data class ReaderStyle(
 
     fun smaller(): ReaderStyle = withTextSize(textSize - 1)
 
+    /** The page colour actually shown, given whether the app's theme is dark. */
+    fun pageBackground(appDark: Boolean): ReaderBackground = if (autoDark && appDark) ReaderBackground.Dark else background
+
     /** True when the page is dark, given whether the app's theme is dark. */
     fun isDark(appDark: Boolean): Boolean =
-        when (background) {
+        when (pageBackground(appDark)) {
             ReaderBackground.Default -> appDark
             ReaderBackground.Sepia -> false
             ReaderBackground.Dark -> true

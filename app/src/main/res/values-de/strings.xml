@@ -137,6 +137,8 @@
     <string name="list_view_large">Groß</string>
     <string name="feeds_page_title">Feeds und Ordner</string>
     <string name="feeds_opml_title">Von oder zu einem anderen Reader</string>
+    <string name="reader_auto_dark_title">Automatisch dunkel</string>
+    <string name="reader_auto_dark_summary">Dunkle Seite, wenn die App dunkel ist, auch bei Sepia oder Design</string>
     <plurals name="feeds_count">
         <item quantity="one">%d Feed</item>
         <item quantity="other">%d Feeds</item>

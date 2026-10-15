@@ -38,7 +38,7 @@ when the run fails.
 | `LibraryCodecTest` | Storage round trip with folders, tabs, line breaks and backslashes; missing folders and unknown icons; damaged input |
 | `ScrollReadTest` | Mark as read on scroll: which articles have scrolled past (unread only, not the top one) |
 | `SiteIconTest` | Choosing a site's icon: largest size, apple-touch-icon, relative and http addresses, skipping SVG and inline icons, home page and favicon.ico fallback |
-| `SettingsTest` | Text size limits, reader and theme darkness, Save/Share targets (storage and the old Save setting), defaults |
+| `SettingsTest` | Text size limits, reader and theme darkness (and Auto dark), Save/Share targets (storage and the old Save setting), defaults |
 
 ## Strategy
 
@@ -62,6 +62,8 @@ and then (always before a release):
 - [ ] Add a feed by website address and by feed address; articles appear.
 - [ ] Open an article, change every text setting (font, size, spacing, background), go back: the
       list keeps its scroll position and the article shows as read.
+- [ ] In an article, tap the title: the page opens in the browser. Aa › Auto dark on, background
+      Sepia, phone in dark mode: the page is dark; in light mode: sepia.
 - [ ] Open an article from a summary-only feed (e.g. `theverge.com`): the full article loads.
       ⋮ › Show feed text / Show full article switches; Settings › Reader › Load full articles off
       stops it.
