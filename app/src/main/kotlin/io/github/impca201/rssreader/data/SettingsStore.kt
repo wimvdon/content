@@ -46,6 +46,7 @@ class SettingsStore(
             it[READER_TEXT_SIZE] = style.textSize
             it[READER_SPACING] = style.spacing.name
             it[READER_BACKGROUND] = style.background.name
+            it[READER_AUTO_DARK] = style.autoDark
         }
 
     suspend fun setSaveTarget(target: ShareTarget) = edit { it[SAVE_TARGET] = ShareTarget.encode(target) }
@@ -79,6 +80,7 @@ class SettingsStore(
                     font = enumOr(p[READER_FONT], defaults.reader.font),
                     spacing = enumOr(p[READER_SPACING], defaults.reader.spacing),
                     background = enumOr(p[READER_BACKGROUND], defaults.reader.background),
+                    autoDark = p[READER_AUTO_DARK] ?: defaults.reader.autoDark,
                 ).withTextSize(p[READER_TEXT_SIZE] ?: defaults.reader.textSize),
             saveTarget = ShareTarget.decode(p[SAVE_TARGET], defaults.saveTarget),
             shareTarget = ShareTarget.decode(p[SHARE_TARGET], defaults.shareTarget),
@@ -102,6 +104,7 @@ class SettingsStore(
         val READER_TEXT_SIZE = intPreferencesKey("reader_text_size")
         val READER_SPACING = stringPreferencesKey("reader_spacing")
         val READER_BACKGROUND = stringPreferencesKey("reader_background")
+        val READER_AUTO_DARK = booleanPreferencesKey("reader_auto_dark")
         val SAVE_TARGET = stringPreferencesKey("save_target")
         val SHARE_TARGET = stringPreferencesKey("share_target")
         val UNREAD_ONLY = booleanPreferencesKey("unread_only")

@@ -122,8 +122,8 @@ repositories:
   `#4FC3F7` → `#0091EA` → `#0D47A1` (sky to navy) on the white background; chosen by the owner
   over the shared "shape with a white detail" rule. Themed layer: the same symbol.
 - Seed `#0091EA` (azure), tertiary from the icon's sky blue.
-- Signature element: the reader page. Its font (Sans or Serif), text size, spacing and background
-  (Theme, Sepia or Dark) are set in one Text sheet that is also Settings › Reader; the whole
+- Signature element: the reader page. Its font (Sans or Serif), text size, spacing, background
+  (Theme, Sepia or Dark) and Auto dark (dark page whenever the app is dark) are set in one Text sheet that is also Settings › Reader; the whole
   screen, top bar and system bar icons included, takes the page colour.
 - Article titles in the reader are the hero text (bold, in the reader's font). Unread rows in the
   list use SemiBold titles and a primary dot; read rows use `onSurfaceVariant`.

@@ -137,6 +137,8 @@
     <string name="list_view_large">Grande</string>
     <string name="feeds_page_title">Feeds y carpetas</string>
     <string name="feeds_opml_title">Desde o hacia otro lector</string>
+    <string name="reader_auto_dark_title">Oscuro automático</string>
+    <string name="reader_auto_dark_summary">Página oscura cuando la app está oscura, también con Sepia o Tema</string>
     <plurals name="feeds_count">
         <item quantity="one">%d feed</item>
         <item quantity="many">%d feeds</item>

@@ -50,6 +50,9 @@ import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
 import io.github.impca201.rssreader.R
 import io.github.impca201.rssreader.data.Article
 import io.github.impca201.rssreader.data.Feed
@@ -278,6 +281,8 @@ private fun ArticleBody(
                     Text(feed.title, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
                 }
             }
+            // Tapping the title opens the article on its website, like "Read on website".
+            val openLabel = stringResource(R.string.action_open_in_browser)
             Text(
                 text = article.title,
                 style =
@@ -285,7 +290,18 @@ private fun ArticleBody(
                         fontFamily = style.font.fontFamily(),
                         fontWeight = FontWeight.Bold,
                     ),
-                modifier = Modifier.semantics { heading() },
+                modifier =
+                    Modifier
+                        .semantics { heading() }
+                        .then(
+                            if (article.link != null) {
+                                Modifier
+                                    .clip(MaterialTheme.shapes.small)
+                                    .clickable(onClickLabel = openLabel, role = Role.Button, onClick = onOpenInBrowser)
+                            } else {
+                                Modifier
+                            },
+                        ),
             )
             if (meta.isNotEmpty()) {
                 Text(meta, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)

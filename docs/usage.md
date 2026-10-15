@@ -69,11 +69,12 @@ after them. A feed added while a folder is open goes into that folder.
 
 ## The reader
 
-Tap an article to read it. It is marked as read. In the top bar:
+Tap an article to read it. It is marked as read. Tap the article's **title** to open it on its
+website (the same as **Read on website** at the end). In the top bar:
 
 | Button | What it does |
 |---|---|
-| **Aa** | Text settings: font (Sans or Serif), text size, spacing (Compact, Normal, Relaxed) and background (Theme, Sepia or Dark). Changes apply right away and are remembered for every article. |
+| **Aa** | Text settings: font (Sans or Serif), text size, spacing (Compact, Normal, Relaxed), background (Theme, Sepia or Dark) and **Auto dark** (the dark page whenever the app is dark, e.g. Sepia by day and dark at night). Changes apply right away and are remembered for every article. |
 | Bookmark | **Save**: sends the article to the app you chose (Instapaper by default), or opens the share menu (see below). |
 | Share | **Share**: the share menu, or straight to the app you chose. |
 | ⋮ | **Open in browser** and **Mark as unread**. |

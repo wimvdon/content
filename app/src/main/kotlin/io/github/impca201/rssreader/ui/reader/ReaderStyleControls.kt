@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.impca201.rssreader.R
 import io.github.impca201.rssreader.data.ReaderBackground
+import io.github.impca201.rssreader.ui.theme.SwitchSetting
 import io.github.impca201.rssreader.data.ReaderFont
 import io.github.impca201.rssreader.data.ReaderSpacing
 import io.github.impca201.rssreader.data.ReaderStyle
@@ -60,6 +61,12 @@ fun ReaderStyleControls(
             selected = style.background,
             optionLabel = { stringResource(it.labelRes()) },
             onSelect = { onChange(style.copy(background = it)) },
+        )
+        SwitchSetting(
+            title = stringResource(R.string.reader_auto_dark_title),
+            summary = stringResource(R.string.reader_auto_dark_summary),
+            checked = style.autoDark,
+            onCheckedChange = { onChange(style.copy(autoDark = it)) },
         )
     }
 }

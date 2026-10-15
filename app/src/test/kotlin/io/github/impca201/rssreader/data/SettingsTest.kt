@@ -28,6 +28,17 @@ class SettingsTest {
     }
 
     @Test
+    fun `auto dark turns sepia and theme pages dark when the app is dark`() {
+        val sepia = ReaderStyle(background = ReaderBackground.Sepia, autoDark = true)
+        assertTrue(sepia.isDark(appDark = true))
+        assertEquals(ReaderBackground.Dark, sepia.pageBackground(appDark = true))
+        assertFalse(sepia.isDark(appDark = false))
+        assertEquals(ReaderBackground.Sepia, sepia.pageBackground(appDark = false))
+        // Off: sepia stays sepia at night.
+        assertEquals(ReaderBackground.Sepia, sepia.copy(autoDark = false).pageBackground(appDark = true))
+    }
+
+    @Test
     fun `theme mode decides darkness unless it follows the system`() {
         assertTrue(Appearance(ThemeMode.System).isDark(systemDark = true))
         assertFalse(Appearance(ThemeMode.Light).isDark(systemDark = true))
@@ -58,5 +69,6 @@ class SettingsTest {
         assertEquals(ReaderBackground.Default, settings.reader.background)
         assertFalse(settings.markReadOnScroll)
         assertEquals(ListView.Medium, settings.listView)
+        assertFalse(settings.reader.autoDark)
     }
 }
