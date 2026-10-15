@@ -36,7 +36,7 @@ import io.github.impca201.rssreader.data.Folder
 import io.github.impca201.rssreader.ui.theme.Motion
 
 /**
- * The floating bar at the bottom, shown once there are folders: Home (every feed) and then each
+ * The floating bar at the bottom, shown once there are folders: All (every feed) and then each
  * folder, as icon and name like Material's navigation bar. Every tab keeps its size, so switching
  * only moves the highlight and nothing shifts.
  */
@@ -44,7 +44,7 @@ import io.github.impca201.rssreader.ui.theme.Motion
 fun FolderBar(
     folders: List<Folder>,
     selectedFolderId: String?,
-    onSelectHome: () -> Unit,
+    onSelectAll: () -> Unit,
     onSelectFolder: (Folder) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -63,10 +63,10 @@ fun FolderBar(
                     .selectableGroup(),
         ) {
             Tab(
-                icon = painterResource(R.drawable.ic_home),
-                label = stringResource(R.string.folder_home),
+                icon = painterResource(R.drawable.ic_rss_feed),
+                label = stringResource(R.string.folder_all),
                 selected = selectedFolderId == null,
-                onClick = onSelectHome,
+                onClick = onSelectAll,
             )
             folders.forEach { folder ->
                 Tab(

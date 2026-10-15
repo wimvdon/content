@@ -127,19 +127,22 @@ repositories:
   screen, top bar and system bar icons included, takes the page colour.
 - Article titles in the reader are the hero text (bold, in the reader's font). Unread rows in the
   list use SemiBold titles and a primary dot; read rows use `onSurfaceVariant`.
-- Feeds and folders is its own page (☰ and a link at the top of Settings), built with the
+- Manage feeds and folders is its own page (☰ and a link at the top of Settings), built with the
   settings scaffold. Settings sections: Article list, Reader, Save and share (integration), Appearance, footer.
 - Folder icons come from the whole Material Symbols set (outlined, rounded), picked with a search
   field and a grid in the folder dialog.
-- Folders: a floating pill bar at the bottom of the list (Home, then each folder: icon with its
+- Folders: a floating pill bar at the bottom of the list (All with the feed symbol, then each folder: icon with its
   name below, fixed-width tabs, the selected one on a `secondaryContainer` indicator, like the
   navigation bar). The Mark all read FAB sits above it and only marks the section shown.
 - Article list: three views (Small, Medium, Large card with a 16:9 picture). Unread rows sit on
   `surfaceContainer`, read rows on `surfaceContainerLow`; the feed name is in `primary`. Swiping
-  either way toggles read. The top bar shows the section and its unread count; the unread
-  filter is an icon toggle there, and Settings lives in the drawer only. Home uses a
+  either way toggles read. The top bar shows the section and its unread count, with no ⋮ menu (refresh is pull-down; adding
+  feeds lives on Manage feeds and folders). Under it, Unread | All is a connected button group
+  (selected half `primary` with a check, fully rounded; other half `secondaryContainer`; inner
+  corners 8dp, 2dp gap), hand-built until Material 3 ships it. Settings lives in the drawer only.
+  The All view uses a
   `MediumTopAppBar` that collapses on scroll; articles sit under sticky day headers (Today,
   Yesterday, date) in `primary` Title Small; Mark all as read is an extended FAB that shrinks to
   its icon when the list is scrolled. The drawer opens with the app's mark (feed symbol on a
   `primaryContainer` circle) and name.
-- Settings starts with a link card to Feeds and folders (a page, not a collapsible section).
+- Settings starts with a link card to Manage feeds and folders (a page, not a collapsible section).

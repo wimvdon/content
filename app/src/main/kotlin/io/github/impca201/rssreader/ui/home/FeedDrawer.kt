@@ -33,8 +33,8 @@ import io.github.impca201.rssreader.data.FeedSelection
 import io.github.impca201.rssreader.data.Folder
 
 /**
- * Home, then each folder with its feeds, then the feeds outside folders (each with its
- * unread count), then Add feed and Settings.
+ * All articles, then each folder with its feeds, then the feeds outside folders (each with its
+ * unread count), then Manage feeds and folders and Settings.
  */
 @Composable
 fun FeedDrawer(
@@ -43,7 +43,6 @@ fun FeedDrawer(
     selection: FeedSelection,
     unreadCounts: Map<FeedSelection, Int>,
     onSelect: (FeedSelection) -> Unit,
-    onAddFeed: () -> Unit,
     onOpenSettings: () -> Unit,
     onOpenFeeds: () -> Unit,
 ) {
@@ -78,8 +77,8 @@ fun FeedDrawer(
                 )
             }
             NavigationDrawerItem(
-                label = { Text(stringResource(R.string.folder_home)) },
-                icon = { Icon(painterResource(R.drawable.ic_home), contentDescription = null) },
+                label = { Text(stringResource(R.string.feeds_all)) },
+                icon = { Icon(painterResource(R.drawable.ic_rss_feed), contentDescription = null) },
                 badge = { UnreadBadge(unreadCounts[FeedSelection.All] ?: 0) },
                 selected = selection == FeedSelection.All,
                 onClick = { onSelect(FeedSelection.All) },
@@ -114,14 +113,8 @@ fun FeedDrawer(
             }
             HorizontalDivider(Modifier.padding(vertical = 12.dp, horizontal = 16.dp))
             NavigationDrawerItem(
-                label = { Text(stringResource(R.string.feeds_add)) },
-                icon = { Icon(painterResource(R.drawable.ic_add), contentDescription = null) },
-                selected = false,
-                onClick = onAddFeed,
-            )
-            NavigationDrawerItem(
                 label = { Text(stringResource(R.string.feeds_page_title)) },
-                icon = { Icon(painterResource(R.drawable.ic_rss_feed), contentDescription = null) },
+                icon = { Icon(painterResource(R.drawable.ic_manage_feeds), contentDescription = null) },
                 selected = false,
                 onClick = onOpenFeeds,
             )

@@ -2,6 +2,15 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-15: Unread | All as a connected button group; no ⋮ menu on the list
+
+The owner asked for Material 3's connected button group for Unread/All (instead of the icon
+toggle), and to drop the list's ⋮ menu: refresh is pull-down, and adding feeds belongs on the
+Manage feeds and folders page, which is now the drawer's single entry for feeds. Material 3 1.4
+(our Compose BOM) doesn't have the component yet, so `ReadFilter` builds it from `Surface`s
+following the spec; replace it with Material's `ToggleButton` group once it is stable. The
+folder bar's first tab is now "All" with the feed symbol (was "Home").
+
 ## 2026-10-15: Navigation review and a livelier list
 
 The owner found the design boring and asked for a navigation and Material 3 review. Changes:

@@ -16,7 +16,6 @@
     <string name="action_add">Toevoegen</string>
     <string name="action_remove">Verwijderen</string>
     <string name="action_more">Meer opties</string>
-    <string name="action_refresh">Vernieuwen</string>
     <string name="action_open_feeds">Feeds openen</string>
     <string name="action_mark_all_read">Alles als gelezen markeren</string>
     <string name="action_mark_unread">Als ongelezen markeren</string>
@@ -97,7 +96,10 @@
     <string name="action_undo">Ongedaan maken</string>
     <string name="section_folders">Mappen</string>
     <string name="folders_explanation">Zet feeds in mappen om ze samen te lezen. Zodra er een map is, wissel je met een balk onderaan de lijst tussen Home en je mappen.</string>
-    <string name="folder_home">Home</string>
+    <string name="folder_all">Alle</string>
+    <string name="feeds_all">Alle artikels</string>
+    <string name="filter_unread">Ongelezen</string>
+    <string name="filter_all">Alle</string>
     <string name="folder_new">Nieuwe map</string>
     <string name="folder_edit">Map bewerken</string>
     <string name="folder_edit_named">%1$s bewerken</string>
@@ -117,7 +119,7 @@
     <string name="list_view_small">Klein</string>
     <string name="list_view_medium">Middel</string>
     <string name="list_view_large">Groot</string>
-    <string name="feeds_page_title">Feeds en mappen</string>
+    <string name="feeds_page_title">Feeds en mappen beheren</string>
     <string name="feeds_opml_title">Van of naar een andere lezer</string>
     <string name="reader_auto_dark_title">Automatisch donker</string>
     <string name="reader_auto_dark_summary">Donkere pagina wanneer de app donker is, ook bij Sepia of Thema</string>

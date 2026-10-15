@@ -16,7 +16,6 @@
     <string name="action_add">Ajouter</string>
     <string name="action_remove">Supprimer</string>
     <string name="action_more">Plus d\'options</string>
-    <string name="action_refresh">Actualiser</string>
     <string name="action_open_feeds">Ouvrir les flux</string>
     <string name="action_mark_all_read">Tout marquer comme lu</string>
     <string name="action_mark_unread">Marquer comme non lu</string>
@@ -97,7 +96,10 @@
     <string name="action_undo">Annuler</string>
     <string name="section_folders">Dossiers</string>
     <string name="folders_explanation">Rangez vos flux dans des dossiers pour les lire ensemble. Dès qu\'il y a un dossier, une barre en bas de la liste passe de l\'accueil à vos dossiers.</string>
-    <string name="folder_home">Accueil</string>
+    <string name="folder_all">Tous</string>
+    <string name="feeds_all">Tous les articles</string>
+    <string name="filter_unread">Non lus</string>
+    <string name="filter_all">Tous</string>
     <string name="folder_new">Nouveau dossier</string>
     <string name="folder_edit">Modifier le dossier</string>
     <string name="folder_edit_named">Modifier %1$s</string>
@@ -117,7 +119,7 @@
     <string name="list_view_small">Petit</string>
     <string name="list_view_medium">Moyen</string>
     <string name="list_view_large">Grand</string>
-    <string name="feeds_page_title">Flux et dossiers</string>
+    <string name="feeds_page_title">Gérer les flux et dossiers</string>
     <string name="feeds_opml_title">Depuis ou vers un autre lecteur</string>
     <string name="reader_auto_dark_title">Sombre automatique</string>
     <string name="reader_auto_dark_summary">Page sombre dès que l\'app est sombre, même avec Sépia ou Thème</string>

@@ -16,7 +16,6 @@
     <string name="action_add">Hinzufügen</string>
     <string name="action_remove">Entfernen</string>
     <string name="action_more">Weitere Optionen</string>
-    <string name="action_refresh">Aktualisieren</string>
     <string name="action_open_feeds">Feeds öffnen</string>
     <string name="action_mark_all_read">Alle als gelesen markieren</string>
     <string name="action_mark_unread">Als ungelesen markieren</string>
@@ -97,7 +96,10 @@
     <string name="action_undo">Rückgängig</string>
     <string name="section_folders">Ordner</string>
     <string name="folders_explanation">Lege Feeds in Ordner, um sie zusammen zu lesen. Sobald es einen Ordner gibt, wechselst du mit einer Leiste unten in der Liste zwischen Start und deinen Ordnern.</string>
-    <string name="folder_home">Start</string>
+    <string name="folder_all">Alle</string>
+    <string name="feeds_all">Alle Artikel</string>
+    <string name="filter_unread">Ungelesen</string>
+    <string name="filter_all">Alle</string>
     <string name="folder_new">Neuer Ordner</string>
     <string name="folder_edit">Ordner bearbeiten</string>
     <string name="folder_edit_named">%1$s bearbeiten</string>
@@ -117,7 +119,7 @@
     <string name="list_view_small">Klein</string>
     <string name="list_view_medium">Mittel</string>
     <string name="list_view_large">Groß</string>
-    <string name="feeds_page_title">Feeds und Ordner</string>
+    <string name="feeds_page_title">Feeds und Ordner verwalten</string>
     <string name="feeds_opml_title">Von oder zu einem anderen Reader</string>
     <string name="reader_auto_dark_title">Automatisch dunkel</string>
     <string name="reader_auto_dark_summary">Dunkle Seite, wenn die App dunkel ist, auch bei Sepia oder Design</string>
