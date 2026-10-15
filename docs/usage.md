@@ -36,23 +36,29 @@ to change them, or the bin to remove a folder (its feeds stay, outside any folde
 in a folder, tap the folder button next to it in **Settings › Feeds** and choose the folder.
 
 Once there is a folder, a floating bar appears at the bottom of the list: **Home** (every feed)
-and then each folder, by its icon. Tap one to see only its articles; the selected one shows its
-title. The ☰ drawer lists the folders too, each with its feeds, and the feeds outside folders
+and then each folder, with its icon and name. Tap one to see only its articles. The ☰ drawer lists the folders too, each with its feeds, and the feeds outside folders
 after them. A feed added while a folder is open goes into that folder.
 
 ## Reading the list
 
-- **☰** opens the drawer: **All articles**, your folders with their feeds, and the other feeds,
-  each with its number of unread articles.
-- The **Unread** and **All** chips choose what the list shows. Articles you open from the Unread
-  list stay in it until you switch feed, filter or refresh, so the list doesn't jump.
-- **Pull down** to download new articles. The app also does this once every time it starts.
+- **☰** opens the drawer: **Home** (every feed), your folders with their feeds, the other feeds
+  (each with its number of unread articles), and **Settings**.
+- Under the title you see how many articles are unread. The **filter button** (three lines, top
+  right) switches between only unread articles (highlighted) and all articles. Articles you
+  open from the unread list stay in it until you switch feed, filter or refresh, so the list
+  doesn't jump.
+- **Swipe** an article left or right to mark it as read, or as unread when it was read.
+- **Pull down** to download new articles. The app also does this once every time it starts. All
+  feeds are downloaded first and then added at once, each article in its place by date.
 - The round **✓✓** button at the bottom right marks everything in the section you are in as
   read: all feeds on Home, the folder's feeds in a folder, or the one feed you opened. A message
   says how many; **Undo** brings them back.
-- **Mark as read on scroll** (in **Settings › Reader**, off by default): articles are marked as
-  read once you scroll them off the top of the list. They stay in the Unread list until you
-  switch feed, filter or refresh, so you can scroll back to them.
+- **Settings › Article list › View** chooses how big articles are in the list: **Small** (title
+  only), **Medium** (title, start of the text and a small picture) or **Large** (a card with a
+  wide picture).
+- **Mark as read on scroll** (in **Settings › Article list**, off by default): articles are
+  marked as read once you scroll them off the top of the list. They stay in the unread list until
+  you switch feed, filter or refresh, so you can scroll back to them.
 - If some feeds can't be downloaded, a message says how many; **Settings › Feeds** shows why for
   each one.
 
@@ -100,7 +106,8 @@ If the chosen app has been uninstalled, the button opens the share menu instead 
   articles are removed too), put a feed in a folder, add a feed, and **Import OPML** /
   **Export OPML** to move your feeds between readers.
 - **Folders:** create, rename, change the icon of, or remove folders.
-- **Reader:** **Load full articles**, **Show images**, **Mark as read on scroll**, and the same text settings as **Aa**, with a preview.
+- **Article list:** View (Small, Medium, Large) and **Mark as read on scroll**.
+- **Reader:** **Load full articles**, **Show images**, and the same text settings as **Aa**, with a preview.
 - **Save and share:** see above.
 - **Appearance:** Theme (System, Light, Dark) and Dynamic color (wallpaper colours instead of
   the app's blue).

@@ -54,8 +54,8 @@ fun FeedDrawer(
                         .semantics { heading() },
             )
             NavigationDrawerItem(
-                label = { Text(stringResource(R.string.feeds_all)) },
-                icon = { Icon(painterResource(R.drawable.ic_rss_feed), contentDescription = null) },
+                label = { Text(stringResource(R.string.folder_home)) },
+                icon = { Icon(painterResource(R.drawable.ic_home), contentDescription = null) },
                 badge = { UnreadBadge(unreadCounts[FeedSelection.All] ?: 0) },
                 selected = selection == FeedSelection.All,
                 onClick = { onSelect(FeedSelection.All) },

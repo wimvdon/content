@@ -1,17 +1,15 @@
 package io.github.impca201.rssreader.ui.home
 
 import androidx.annotation.DrawableRes
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.expandHorizontally
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
@@ -30,8 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.impca201.rssreader.R
@@ -41,7 +38,8 @@ import io.github.impca201.rssreader.ui.theme.Motion
 
 /**
  * The floating bar at the bottom, shown once there are folders: Home (every feed) and then each
- * folder. The selected tab shows its title; the others show their icon only.
+ * folder, as icon and name like Material's navigation bar. Every tab keeps its size, so switching
+ * only moves the highlight and nothing shifts.
  */
 @Composable
 fun FolderBar(
@@ -62,9 +60,8 @@ fun FolderBar(
             modifier =
                 Modifier
                     .horizontalScroll(rememberScrollState())
-                    .padding(6.dp)
+                    .padding(horizontal = 12.dp, vertical = 6.dp)
                     .selectableGroup(),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Tab(
                 icon = R.drawable.ic_home,
@@ -91,39 +88,46 @@ private fun Tab(
     selected: Boolean,
     onClick: () -> Unit,
 ) {
-    val background by animateColorAsState(
+    val indicator by animateColorAsState(
         if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
         Motion.fadeSpec(),
-        label = "tab",
+        label = "indicator",
     )
-    Row(
+    val contentColor by animateColorAsState(
+        if (selected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+        Motion.fadeSpec(),
+        label = "content",
+    )
+    Column(
         modifier =
             Modifier
-                .heightIn(min = 48.dp)
-                .clip(CircleShape)
-                .background(background)
+                .width(TAB_WIDTH)
+                .clip(MaterialTheme.shapes.large)
                 .selectable(selected = selected, role = Role.Tab, onClick = onClick)
-                .semantics { contentDescription = label }
-                .padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                .padding(vertical = 4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        Icon(
-            painterResource(icon),
-            contentDescription = null,
-            tint = if (selected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        AnimatedVisibility(visible = selected, enter = fadeIn() + expandHorizontally(), exit = fadeOut() + shrinkHorizontally()) {
-            Text(
-                label,
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+        Box(
+            Modifier
+                .size(width = 56.dp, height = 32.dp)
+                .background(indicator, CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(painterResource(icon), contentDescription = null, tint = contentColor)
         }
+        Text(
+            label,
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+            color = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
+
+private val TAB_WIDTH = 72.dp
 
 @DrawableRes
 fun FolderIcon.drawableRes(): Int =

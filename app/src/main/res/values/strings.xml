@@ -25,7 +25,6 @@
     <string name="action_share">Share</string>
     <string name="action_save_later">Save for later</string>
     <string name="feeds_title">Feeds</string>
-    <string name="feeds_all">All articles</string>
     <string name="feeds_add">Add feed</string>
     <string name="feeds_import">Import OPML</string>
     <string name="feeds_export">Export OPML</string>
@@ -43,7 +42,6 @@
     <string name="problem_server">The website had a problem. Try again later.</string>
     <string name="problem_too_large">This feed is too large.</string>
     <string name="problem_not_a_feed">This address no longer has a feed.</string>
-    <string name="filter_all">All</string>
     <string name="article_unread">Unread</string>
     <string name="home_no_feeds_title">No feeds yet</string>
     <string name="home_no_feeds_body">Add a website or feed you like, or import your feeds from another reader.</string>
@@ -131,13 +129,16 @@
     <string name="folder_icon_home">Home</string>
     <string name="setting_mark_read_on_scroll_title">Mark as read on scroll</string>
     <string name="setting_mark_read_on_scroll_summary">Articles you scroll past in the list are marked as read</string>
+    <string name="action_show_unread">Show only unread</string>
+    <string name="action_mark_read">Mark as read</string>
+    <string name="section_list">Article list</string>
+    <string name="setting_list_view">View</string>
+    <string name="list_view_small">Small</string>
+    <string name="list_view_medium">Medium</string>
+    <string name="list_view_large">Large</string>
     <plurals name="feeds_count">
         <item quantity="one">%d feed</item>
         <item quantity="other">%d feeds</item>
-    </plurals>
-    <plurals name="filter_unread">
-        <item quantity="one">Unread (%d)</item>
-        <item quantity="other">Unread (%d)</item>
     </plurals>
     <plurals name="import_added">
         <item quantity="one">Added %d feed</item>
@@ -146,6 +147,14 @@
     <plurals name="refresh_failed">
         <item quantity="one">%d feed couldn’t be refreshed</item>
         <item quantity="other">%d feeds couldn’t be refreshed</item>
+    </plurals>
+    <plurals name="home_subtitle_unread">
+        <item quantity="one">%d unread</item>
+        <item quantity="other">%d unread</item>
+    </plurals>
+    <plurals name="home_subtitle_all">
+        <item quantity="one">All articles · %d unread</item>
+        <item quantity="other">All articles · %d unread</item>
     </plurals>
     <plurals name="folders_count">
         <item quantity="one">%d folder</item>

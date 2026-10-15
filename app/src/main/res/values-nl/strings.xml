@@ -24,7 +24,6 @@
     <string name="action_share">Delen</string>
     <string name="action_save_later">Bewaren voor later</string>
     <string name="feeds_title">Feeds</string>
-    <string name="feeds_all">Alle artikels</string>
     <string name="feeds_add">Feed toevoegen</string>
     <string name="feeds_import">OPML importeren</string>
     <string name="feeds_export">OPML exporteren</string>
@@ -42,7 +41,6 @@
     <string name="problem_server">De website had een probleem. Probeer het later opnieuw.</string>
     <string name="problem_too_large">Deze feed is te groot.</string>
     <string name="problem_not_a_feed">Op dit adres staat geen feed meer.</string>
-    <string name="filter_all">Alle</string>
     <string name="article_unread">Ongelezen</string>
     <string name="home_no_feeds_title">Nog geen feeds</string>
     <string name="home_no_feeds_body">Voeg een website of feed toe die je leuk vindt, of importeer je feeds uit een andere lezer.</string>
@@ -130,13 +128,16 @@
     <string name="folder_icon_home">Huis</string>
     <string name="setting_mark_read_on_scroll_title">Als gelezen markeren bij scrollen</string>
     <string name="setting_mark_read_on_scroll_summary">Artikels waar je in de lijst voorbij scrolt, worden als gelezen gemarkeerd</string>
+    <string name="action_show_unread">Alleen ongelezen tonen</string>
+    <string name="action_mark_read">Als gelezen markeren</string>
+    <string name="section_list">Artikellijst</string>
+    <string name="setting_list_view">Weergave</string>
+    <string name="list_view_small">Klein</string>
+    <string name="list_view_medium">Middel</string>
+    <string name="list_view_large">Groot</string>
     <plurals name="feeds_count">
         <item quantity="one">%d feed</item>
         <item quantity="other">%d feeds</item>
-    </plurals>
-    <plurals name="filter_unread">
-        <item quantity="one">Ongelezen (%d)</item>
-        <item quantity="other">Ongelezen (%d)</item>
     </plurals>
     <plurals name="import_added">
         <item quantity="one">%d feed toegevoegd</item>
@@ -145,6 +146,14 @@
     <plurals name="refresh_failed">
         <item quantity="one">%d feed kon niet vernieuwd worden</item>
         <item quantity="other">%d feeds konden niet vernieuwd worden</item>
+    </plurals>
+    <plurals name="home_subtitle_unread">
+        <item quantity="one">%d ongelezen</item>
+        <item quantity="other">%d ongelezen</item>
+    </plurals>
+    <plurals name="home_subtitle_all">
+        <item quantity="one">Alle artikels · %d ongelezen</item>
+        <item quantity="other">Alle artikels · %d ongelezen</item>
     </plurals>
     <plurals name="folders_count">
         <item quantity="one">%d map</item>

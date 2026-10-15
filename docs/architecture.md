@@ -44,7 +44,8 @@ RssReaderApp ── SettingsStore ── DataStore "settings" (Preferences)
 
 1. On start the repository reads `library.txt`; the list shows stored articles at once.
 2. The first time the list appears after the app starts (and on pull-to-refresh), every feed is
-   downloaded, parsed and merged: new articles are added unread, known ones keep their read state,
+   downloaded and parsed, and then all results are merged in one update (`Library.mergeAll`), so
+   the list changes once, in date order. Dates in the future count as now. In the merge new articles are added unread, known ones keep their read state,
    and each feed keeps its newest 200 articles.
 3. Screens observe `StateFlow`s (`library`, `settings`, `refreshing`, `problems`) and call
    repository functions on the app scope; the new state flows back to the screens.

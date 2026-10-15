@@ -2,6 +2,21 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-15: Article list views, swipe, filter in the top bar; refresh merged at once
+
+Asked for by the owner after using v0.0.3:
+- Three list views (Small without picture, Medium as before, Large card) in a new Settings ›
+  Article list section, which also holds Mark as read on scroll.
+- Swiping an article either way toggles read (`SwipeToDismissBox`, springs back; also an
+  accessibility action).
+- The Unread/All chips became one icon toggle in the top bar, with the unread count under the
+  title: chips suit more than two options. Settings is only in the drawer, not also in ⋮.
+- The folder bar's tabs have a fixed width (icon with name below) so switching no longer makes
+  the bar change size and jump.
+- A refresh used to merge each feed as soon as it was downloaded, so articles popped up in the
+  middle of the list while reading. Now all feeds are downloaded first and merged in one update;
+  dates in the future are clamped to now so they can't stick to the top.
+
 ## 2026-10-15: Mark as read on scroll, off by default
 
 Asked for by the owner. An article counts as read once it has scrolled off the top of the list

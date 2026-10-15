@@ -167,7 +167,8 @@ data class Library(
                     link = item.link,
                     author = item.author,
                     html = item.html.take(MAX_HTML_LENGTH),
-                    publishedAt = item.publishedAt ?: old?.publishedAt,
+                    // A date in the future (a wrong clock or time zone) would stick to the top.
+                    publishedAt = (item.publishedAt ?: old?.publishedAt)?.coerceAtMost(now),
                     fetchedAt = old?.fetchedAt ?: now,
                     read = old?.read ?: false,
                     imageUrl = item.imageUrl ?: old?.imageUrl,
@@ -188,6 +189,15 @@ data class Library(
             articles = articles.filterNot { it.feedUrl == feedUrl } + feedArticles,
         )
     }
+
+    /**
+     * Merges the downloads of a whole refresh at once, so the list changes in one step and new
+     * articles take their place by date instead of appearing feed by feed.
+     */
+    fun mergeAll(
+        downloads: Map<String, ParsedFeed>,
+        now: Long,
+    ): Library = downloads.entries.fold(this) { library, (url, parsed) -> library.merge(url, parsed, now) }
 
     fun setRead(
         key: String,
