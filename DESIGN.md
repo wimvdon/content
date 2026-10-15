@@ -127,8 +127,11 @@ repositories:
   screen, top bar and system bar icons included, takes the page colour.
 - Article titles in the reader are the hero text (bold, in the reader's font). Unread rows in the
   list use SemiBold titles and a primary dot; read rows use `onSurfaceVariant`.
-- Manage feeds and folders is its own page (☰ and a link at the top of Settings), built with the
-  settings scaffold. Settings sections: Article list, Reader, Save and share (integration), Appearance, footer.
+- Manage feeds and folders is its own page (☰ and a link at the top of Settings): a large top app
+  bar over folder cards (`surfaceContainerHigh`, folder icon on a `secondaryContainer` circle) with
+  their feeds indented below (`surfaceContainer`), a drag handle at the end of each row, and the
+  dragged row lifted with a shadow. Tapping a row opens its edit dialog; Remove sits in the
+  dialog, in the error colour. Settings sections: Article list, Reader, Save and share (integration), Appearance, footer.
 - Folder icons come from the whole Material Symbols set (outlined, rounded), picked with a search
   field and a grid in the folder dialog.
 - Folders: a floating pill bar at the bottom of the list (All with the feed symbol, then each folder: icon with its

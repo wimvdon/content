@@ -12,6 +12,8 @@ data class Feed(
     val folderId: String? = null,
     /** The website's icon (favicon), once found. */
     val iconUrl: String? = null,
+    /** True when the user gave the feed its own name, which refreshes then keep. */
+    val renamed: Boolean = false,
 )
 
 /** A group of feeds with its own title and icon; it gets a tab in the bottom bar. */
@@ -90,6 +92,25 @@ data class Library(
         copy(
             folders = folders.filterNot { it.id == id },
             feeds = feeds.map { if (it.folderId == id) it.copy(folderId = null) else it },
+        )
+
+    /**
+     * Gives a feed the user's own name. A blank name goes back to the feed's own title, which
+     * the next refresh brings back.
+     */
+    fun renameFeed(
+        url: String,
+        title: String,
+    ): Library =
+        copy(
+            feeds =
+                feeds.map {
+                    when {
+                        it.url != url -> it
+                        title.isBlank() -> it.copy(renamed = false)
+                        else -> it.copy(title = title.trim(), renamed = true)
+                    }
+                },
         )
 
     /** Remembers the icon found for a feed's website. */
@@ -187,7 +208,7 @@ data class Library(
                 .take(MAX_ARTICLES_PER_FEED)
         val updatedFeed =
             feed.copy(
-                title = parsed.title.ifBlank { feed.title },
+                title = if (feed.renamed) feed.title else parsed.title.ifBlank { feed.title },
                 siteUrl = parsed.siteUrl ?: feed.siteUrl,
             )
         return copy(

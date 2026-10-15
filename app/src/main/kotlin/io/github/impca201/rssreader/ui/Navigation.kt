@@ -392,7 +392,13 @@ fun RssReaderNavigation() {
                                 onBack = ::pop,
                                 onAddFeed = { addDialogOpen = true },
                                 onRemoveFeed = { feed -> app.appScope.launch { repository.removeFeed(feed.url) } },
-                                onMoveFeed = { feed, folderId -> app.appScope.launch { repository.moveFeed(feed.url, folderId) } },
+                                onEditFeed = { feed, title, folderId ->
+                                    app.appScope.launch {
+                                        if (title.trim() != feed.title) repository.renameFeed(feed.url, title)
+                                        if (folderId != feed.folderId) repository.moveFeed(feed.url, folderId)
+                                    }
+                                },
+                                onArrange = { rows -> app.appScope.launch { repository.arrange(rows) } },
                                 onAddFolder = { title, icon -> app.appScope.launch { repository.addFolder(title, icon) } },
                                 onUpdateFolder = { folder -> app.appScope.launch { repository.updateFolder(folder.id, folder.title, folder.icon) } },
                                 onRemoveFolder = { folder -> app.appScope.launch { repository.removeFolder(folder.id) } },

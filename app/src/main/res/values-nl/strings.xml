@@ -26,7 +26,6 @@
     <string name="feeds_add">Feed toevoegen</string>
     <string name="feeds_import">OPML importeren</string>
     <string name="feeds_export">OPML exporteren</string>
-    <string name="feeds_remove">%1$s verwijderen</string>
     <string name="feeds_remove_title">Feed verwijderen?</string>
     <string name="feeds_remove_body">%1$s en de artikels ervan worden van deze telefoon verwijderd.</string>
     <string name="add_feed_body">Typ het adres van een website of feed.</string>
@@ -94,7 +93,6 @@
     <string name="feeds_opml_hint">Met een OPML-bestand verhuis je je feeds tussen feedlezers, zoals Inoreader of Feedly: exporteer ze daar, importeer ze hier.</string>
     <string name="action_save">Opslaan</string>
     <string name="action_undo">Ongedaan maken</string>
-    <string name="section_folders">Mappen</string>
     <string name="folders_explanation">Zet feeds in mappen om ze samen te lezen. Zodra er een map is, wissel je met een balk onderaan de lijst tussen Home en je mappen.</string>
     <string name="folder_all">Alle</string>
     <string name="feeds_all">Alle artikels</string>
@@ -102,17 +100,14 @@
     <string name="filter_all">Alle</string>
     <string name="folder_new">Nieuwe map</string>
     <string name="folder_edit">Map bewerken</string>
-    <string name="folder_edit_named">%1$s bewerken</string>
     <string name="folder_title">Titel</string>
     <string name="folder_icon_search">Iconen zoeken (in het Engels)</string>
     <string name="folder_icon_none_found">Geen icoon gevonden. Probeer een ander woord, zoals “news” of “car”.</string>
     <string name="folder_remove_title">Map verwijderen?</string>
     <string name="folder_remove_body">%1$s wordt verwijderd. De feeds erin blijven, buiten een map.</string>
-    <string name="folder_move_title">Map voor %1$s</string>
     <string name="folder_none">Geen map</string>
     <string name="setting_mark_read_on_scroll_title">Als gelezen markeren bij scrollen</string>
     <string name="setting_mark_read_on_scroll_summary">Artikels waar je in de lijst voorbij scrolt, worden als gelezen gemarkeerd</string>
-    <string name="action_show_unread">Alleen ongelezen tonen</string>
     <string name="action_mark_read">Als gelezen markeren</string>
     <string name="section_list">Artikellijst</string>
     <string name="setting_list_view">Weergave</string>
@@ -125,6 +120,13 @@
     <string name="reader_auto_dark_summary">Donkere pagina wanneer de app donker is, ook bij Sepia of Thema</string>
     <string name="day_today">Vandaag</string>
     <string name="day_yesterday">Gisteren</string>
+    <string name="feed_edit">Feed bewerken</string>
+    <string name="feed_name">Naam</string>
+    <string name="feed_name_hint">Laat leeg om de eigen naam van de feed te gebruiken</string>
+    <string name="feed_folder">Map</string>
+    <string name="feeds_drag_hint">Sleep aan de greep om feeds en mappen te herschikken of een feed naar een andere map te verplaatsen. Tik op een feed of map om de naam te wijzigen of te verwijderen.</string>
+    <string name="action_move_up">Omhoog</string>
+    <string name="action_move_down">Omlaag</string>
     <plurals name="feeds_count">
         <item quantity="one">%d feed</item>
         <item quantity="other">%d feeds</item>
