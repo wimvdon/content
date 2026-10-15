@@ -1,10 +1,22 @@
 package io.github.impca201.rssreader.ui.home
 
 import android.text.format.DateUtils
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animate
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.layout.offset
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.unit.IntOffset
+import kotlin.math.abs
+import kotlin.math.roundToInt
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
-import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
@@ -38,7 +50,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -103,6 +115,8 @@ data class HomeState(
     val refreshing: Boolean,
     /** False until the first articles have been downloaded. */
     val hasAnyArticles: Boolean,
+    /** False until the stored feeds have been read, so the empty state doesn't flash at start. */
+    val loaded: Boolean = true,
     /** Show each article's picture as a thumbnail. */
     val showImages: Boolean = true,
     val folders: List<Folder> = emptyList(),
@@ -146,6 +160,8 @@ fun HomeScreen(
 
     ModalNavigationDrawer(
         drawerState = drawerState,
+        // Opened with the ☰ button only: an edge swipe would fight with swiping articles.
+        gesturesEnabled = drawerState.isOpen,
         drawerContent = {
             FeedDrawer(
                 feeds = state.feeds,
@@ -202,14 +218,12 @@ fun HomeScreen(
             floatingActionButton = {
                 // Marks everything in the section being viewed as read: All, a folder or a feed.
                 if (state.feeds.isNotEmpty() && unreadHere > 0) {
-                    // With its label at the top of the list; just the icon once the list is scrolled.
-                    ExtendedFloatingActionButton(
-                        text = { Text(stringResource(R.string.action_mark_all_read)) },
-                        icon = { Icon(painterResource(R.drawable.ic_done_all), contentDescription = null) },
-                        expanded = scrollBehavior.state.collapsedFraction < 0.5f,
+                    FloatingActionButton(
                         onClick = actions.onMarkAllRead,
                         modifier = Modifier.padding(bottom = if (showFolderBar) FOLDER_BAR_SPACE else 0.dp),
-                    )
+                    ) {
+                        Icon(painterResource(R.drawable.ic_done_all), contentDescription = stringResource(R.string.action_mark_all_read))
+                    }
                 }
             },
         ) { innerPadding ->
@@ -223,7 +237,7 @@ fun HomeScreen(
                 ReadFilter(
                     unreadOnly = state.unreadOnly,
                     onUnreadOnlyChange = actions.onUnreadOnlyChange,
-                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 8.dp),
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
                 )
             }
             PullToRefreshBox(
@@ -233,6 +247,7 @@ fun HomeScreen(
             ) {
                 val content =
                     when {
+                        !state.loaded -> HomeContent.Loading
                         state.feeds.isEmpty() -> HomeContent.NoFeeds
                         !state.hasAnyArticles && state.refreshing -> HomeContent.Loading
                         state.articles.isEmpty() -> HomeContent.Empty
@@ -270,7 +285,7 @@ fun HomeScreen(
 }
 
 /** Room below the list and above the floating action button for the floating folder bar. */
-private val FOLDER_BAR_SPACE = 96.dp
+private val FOLDER_BAR_SPACE = 88.dp
 
 private enum class HomeContent { NoFeeds, Loading, Empty, Articles }
 
@@ -365,7 +380,10 @@ private fun DayHeader(day: LocalDate) {
     )
 }
 
-/** Swiping a row either way marks it read, or unread when it was read; the row springs back. */
+/**
+ * Swiping a row either way past [SWIPE_THRESHOLD] of its width marks it read, or unread when it
+ * was read; the row always springs back. A short vibration says when letting go will toggle.
+ */
 @Composable
 private fun SwipeToToggleRead(
     article: Article,
@@ -373,56 +391,75 @@ private fun SwipeToToggleRead(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
-    val state = rememberSwipeToDismissBoxState()
+    var offset by remember { mutableFloatStateOf(0f) }
+    var width by remember { mutableIntStateOf(0) }
     val scope = rememberCoroutineScope()
+    val haptics = LocalHapticFeedback.current
+    val toggle by rememberUpdatedState(onToggle)
+    val threshold = width * SWIPE_THRESHOLD
     val label = stringResource(if (article.read) R.string.action_mark_unread else R.string.action_mark_read)
-    SwipeToDismissBox(
-        state = state,
-        modifier =
-            modifier.semantics {
+    val dragState =
+        rememberDraggableState { delta ->
+            val before = abs(offset) >= threshold
+            offset = (offset + delta).coerceIn(-width.toFloat(), width.toFloat())
+            if (abs(offset) >= threshold != before) haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
+        }
+    Box(
+        modifier
+            .onSizeChanged { width = it.width }
+            .semantics {
                 customActions =
                     listOf(
                         CustomAccessibilityAction(label) {
-                            onToggle()
+                            toggle()
                             true
                         },
                     )
             },
-        onDismiss = {
-            onToggle()
-            scope.launch { state.reset() }
-        },
-        backgroundContent = {
-            val direction = state.dismissDirection
+    ) {
+        if (offset != 0f) {
+            val armed = abs(offset) >= threshold
             Row(
                 Modifier
-                    .fillMaxSize()
+                    .matchParentSize()
                     .clip(AppShapes.Item)
-                    .background(MaterialTheme.colorScheme.primaryContainer)
+                    .background(if (armed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primaryContainer)
                     .padding(horizontal = 24.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement =
-                    if (direction == SwipeToDismissBoxValue.EndToStart) Arrangement.End else Arrangement.Start,
+                horizontalArrangement = if (offset < 0) Arrangement.End else Arrangement.Start,
             ) {
-                if (direction != SwipeToDismissBoxValue.Settled) {
-                    Icon(
-                        painterResource(if (article.read) R.drawable.ic_mark_unread else R.drawable.ic_mark_read),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
-                    Text(
-                        label,
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.padding(horizontal = 12.dp),
-                    )
-                }
+                val tint = if (armed) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onPrimaryContainer
+                Icon(
+                    painterResource(if (article.read) R.drawable.ic_mark_unread else R.drawable.ic_mark_read),
+                    contentDescription = null,
+                    tint = tint,
+                )
+                Text(label, style = MaterialTheme.typography.labelLarge, color = tint, modifier = Modifier.padding(horizontal = 12.dp))
             }
-        },
-    ) {
-        content()
+        }
+        Box(
+            Modifier
+                .offset { IntOffset(offset.roundToInt(), 0) }
+                .draggable(
+                    state = dragState,
+                    orientation = Orientation.Horizontal,
+                    onDragStopped = {
+                        if (abs(offset) >= threshold) toggle()
+                        scope.launch {
+                            animate(offset, 0f, animationSpec = spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMediumLow)) { value, _ ->
+                                offset = value
+                            }
+                        }
+                    },
+                ),
+        ) {
+            content()
+        }
     }
 }
+
+/** How far (as part of the row's width) a swipe must go to toggle read. */
+private const val SWIPE_THRESHOLD = 0.3f
 
 @Composable
 private fun ArticleRow(

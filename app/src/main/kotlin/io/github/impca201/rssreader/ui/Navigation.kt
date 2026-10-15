@@ -250,6 +250,7 @@ fun RssReaderNavigation() {
                                 unreadCounts = unreadCounts,
                                 refreshing = refreshing,
                                 hasAnyArticles = library.articles.isNotEmpty(),
+                                loaded = libraryOrNull != null,
                                 showImages = current.showImages,
                             ),
                         snackbarHostState = snackbar,

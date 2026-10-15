@@ -49,7 +49,8 @@ each folder with its feeds under it, then the feeds outside folders ("No folder"
 - **Tap a folder** to change its title or icon, or remove it (its feeds stay, under "No folder").
 
 Once there is a folder, a floating bar appears at the bottom of the list: **All** (every feed)
-and then each folder, with its icon and name. Tap one to see only its articles. The ☰ drawer lists the folders too, each with its feeds, and the feeds outside folders
+and then each folder by its icon; the selected one also shows its name. Tap one to see only its
+articles. The ☰ drawer lists the folders too, each with its feeds, and the feeds outside folders
 after them. A feed added while a folder is open goes into that folder.
 
 ## Reading the list
@@ -62,11 +63,13 @@ after them. A feed added while a folder is open goes into that folder.
   between only unread articles and all articles (the chosen one is filled and has a check
   mark). Articles you open from the unread list stay in it until you switch feed, filter or
   refresh, so the list doesn't jump.
-- **Swipe** an article left or right to mark it as read, or as unread when it was read.
+- **Swipe** an article left or right past about a third of its width (you feel a short tick) to
+  mark it as read, or as unread when it was read. The ☰ menu opens with the ☰ button only, so
+  swiping never opens it by accident.
 - **Pull down** to download new articles. The app also does this once every time it starts. All
   feeds are downloaded first and then added at once, each article in its place by date.
 - **Back** inside a folder or feed returns to All; back on All closes the app.
-- The **Mark all as read** button at the bottom right (just ✓✓ once you scroll) marks everything in the section you are in as
+- The round **✓✓** (Mark all as read) button at the bottom right marks everything in the section you are in as
   read: all feeds on All, the folder's feeds in a folder, or the one feed you opened. A message
   says how many; **Undo** brings them back.
 - **Settings › Article list › View** chooses how big articles are in the list: **Small** (title
