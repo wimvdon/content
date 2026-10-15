@@ -2,6 +2,14 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-15: Icon without a box
+
+The owner chose the feed symbol on its own, with the blue gradient, over the first design (a
+gradient rounded square with a white symbol inside), after comparing mockups. Waves made shorter
+and thicker so it stays clear at small sizes. This departs from the shared icon rule in
+`DESIGN.md` ("one bold shape with one white detail inside"); recorded under "This app" there, and
+the master copy in the template should mention the exception.
+
 ## 2026-10-15: Full articles in the reader, Android backup
 
 - **Full articles:** for feeds that only carry a summary (under 1 500 characters of text), the

@@ -1,29 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- A rounded square with the white feed symbol (a dot and two waves) and a sky → azure → navy
-     gradient on the white background. Everything sits inside the 66dp adaptive-icon safe zone. -->
+<!-- The feed symbol (a dot and two round-ended waves) on its own, with a sky → azure → navy
+     gradient from top left to bottom right, on the white background. Inside the 66dp safe zone. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Badge -->
-    <path android:pathData="M43,29h22a14,14 0,0 1,14 14v22a14,14 0,0 1,-14 14h-22a14,14 0,0 1,-14 -14v-22a14,14 0,0 1,14 -14z">
+    <path android:pathData="M34.66,34.66A41.00,41.00 0 0,1 75.66,75.66A4.31733308202239,4.31733308202239 0 0,1 67.02,75.66A32.37,32.37 0 0,0 34.66,43.29A4.31733308202239,4.31733308202239 0 0,1 34.66,34.66Z M34.66,47.94A27.72,27.72 0 0,1 62.37,75.66A4.31733308202239,4.31733308202239 0 0,1 53.74,75.66A19.08,19.08 0 0,0 34.66,56.58A4.31733308202239,4.31733308202239 0 0,1 34.66,47.94Z M34.66,69.68A5.9778458058771555,5.9778458058771555 0 1,0 46.61,69.68A5.9778458058771555,5.9778458058771555 0 1,0 34.66,69.68Z">
         <aapt:attr name="android:fillColor">
             <gradient
                 android:type="linear"
-                android:startX="29"
-                android:startY="29"
-                android:endX="79"
-                android:endY="79">
+                android:startX="28"
+                android:startY="30"
+                android:endX="80"
+                android:endY="80">
                 <item android:offset="0" android:color="#FF4FC3F7" />
                 <item android:offset="0.5" android:color="#FF0091EA" />
                 <item android:offset="1" android:color="#FF0D47A1" />
             </gradient>
         </aapt:attr>
     </path>
-    <!-- Feed symbol: two quarter-circle waves with round ends, and a dot -->
-    <path
-        android:fillColor="#FFFFFFFF"
-        android:pathData="M40,37A31,31 0,0 1,71 68A3,3 0,0 1,65 68A25,25 0,0 0,40 43A3,3 0,0 1,40 37Z M40,47A21,21 0,0 1,61 68A3,3 0,0 1,55 68A15,15 0,0 0,40 53A3,3 0,0 1,40 47Z M39,64A5,5 0,1 0,49 64A5,5 0,1 0,39 64Z" />
 </vector>
