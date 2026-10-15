@@ -2,6 +2,48 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-15: RSS Reader, built from the template
+
+- **Identity:** app name "RSS Reader", application ID `io.github.impca201.rssreader` (the
+  `io.github.impca201.*` scheme of Tracker for Simkl and Snoozer). The ID can still change until
+  the first release; after that it never may. Debug builds are called "RSS Reader Dev", like the
+  sibling apps.
+- **Internet permission:** an RSS reader has to download feeds. The app only contacts the
+  addresses the user adds (or types), with no account, cookies, analytics or third-party services.
+  `PRIVACY.md` says so. Asked for by the owner ("build me a full RSS reader").
+- **HTTPS only:** `http://` and `feed://` addresses are upgraded to `https://`, and Android's default
+  block on unencrypted traffic stays on. Rejected: allowing cleartext traffic for all hosts, which
+  would let anyone on the same Wi-Fi change articles. Revisit if a feed the owner needs has no
+  HTTPS.
+- **No new libraries beyond the sibling apps':** DataStore (already in the catalog, as `CLAUDE.md`
+  asks) and `lifecycle-runtime-compose` (used by Snoozer and Tracker for Simkl, for
+  `collectAsStateWithLifecycle`). Downloads use `HttpURLConnection`, feeds and OPML the platform's
+  XML parser, article text Compose's `AnnotatedString.fromHtml`. Rejected: OkHttp, Room,
+  kotlinx.serialization, Coil and a WebView. They would add size and setup, and a WebView would
+  run the sites' scripts.
+- **Storage:** the whole library (feeds, articles, read state) is one immutable `Library` value
+  stored with DataStore in a small tab-separated text format (`LibraryCodec`, tested). At most 200
+  articles per feed and 200 000 characters per article keep it small. Rejected: Room (a database
+  and annotation processor for a few thousand rows) and a JSON library (a new dependency).
+- **Reader without images:** article HTML is cleaned (scripts, embeds, images, inline colours and
+  fonts removed) and shown as styled text, so the reader's font, size, spacing and sepia or dark
+  background always apply, and no tracking pixels load. "Read on website" opens the full page.
+  Images would need an image library (Coil); left for a later decision.
+- **Save sends to Instapaper:** the reader's Save button sends the link with an `ACTION_SEND`
+  intent aimed at the Instapaper app (`com.instapaper.android`), the same as choosing Instapaper in
+  the share menu. No Instapaper account or API key in this app. Settings › Save for later can
+  switch Save to the share menu; without Instapaper installed, the share menu opens. The manifest
+  declares Instapaper in `<queries>` (package visibility, not a permission) so Settings can tell
+  whether it is installed.
+- **Refresh only while the app is used:** once per app start and on pull-to-refresh. Rejected for
+  now: background refresh and new-article notifications (WorkManager, a new dependency, and
+  battery use).
+- **Languages:** English, Dutch, French, German, Spanish and Italian, like the sibling apps (the
+  template has only English and Dutch). French, Spanish and Italian plurals include `many`.
+- **Theme:** seed `#0091EA` (the icon's middle stop), tonal palette generated the same way as
+  Snoozer's (primary from the seed's chroma, neutrals at chroma 4/8, tertiary from the icon's sky
+  blue). Dynamic color off by default, per `DESIGN.md`.
+
 ## 2026-10-14: Shared design rules have their master copy in the template
 
 `DESIGN.md` was kept identical in the three sibling apps by hand, with no single place to start a change, and the copies had drifted (Snoozer was missing the Loading section; the Tracker for Simkl icon row was out of date in two apps). The android-app template (`wimvdon/android-app`) now holds the master copy; each app keeps a full copy so Claude sessions can read the rules without opening another repository, and only its "This app" section is its own. Rejected: keeping the file only in the template (sessions in an app would have to fetch it every time) and a shared library for the design kit (a new dependency and more setup than three small apps need). The design kit files (`ui/theme/`) stay in the apps.

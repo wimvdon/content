@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Matches the theme's background (ui/theme/Theme.kt), so the window never flashes. -->
+    <color name="window_background">#FFF9F9FC</color>
+    <color name="ic_launcher_background">#FFFFFFFF</color>
+</resources>

@@ -10,7 +10,7 @@
 # It refuses to publish when: not on main, the tag/release already exists, the new
 # version is not higher than the previous one, or nothing changed since the previous release.
 #
-# Signing uses four repository secrets (see README): ANDROID_KEYSTORE_BASE64,
+# Signing uses four repository secrets (see docs/installation.md): ANDROID_KEYSTORE_BASE64,
 # ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD. Without them a
 # publish fails; a "none" build falls back to a debug APK with a warning.
 name: Release
@@ -138,7 +138,7 @@ jobs:
           done
           if [ -n "$missing" ]; then
             if [ "$PUBLISH" = "true" ]; then
-              echo "::error title=Signing secrets missing::Add these repository secrets before releasing:$missing (see README, 'Using this template')."
+              echo "::error title=Signing secrets missing::Add these repository secrets before releasing:$missing (see docs/installation.md, 'Signing key')."
               exit 1
             fi
             echo "::warning title=Signing secrets missing::$missing not set. Building a DEBUG APK instead of a signed release."
@@ -247,12 +247,12 @@ jobs:
 
   # ---------------------------------------------------------------------------
   # OPTIONAL: upload to Google Play internal testing. Disabled until a Play
-  # Console app and a service account exist. To enable (see README, "Google Play"):
+  # Console app and a service account exist. To enable (see docs/installation.md, "Google Play"):
   #   1. Create the app in the Play Console with the same applicationId and upload
   #      the first AAB by hand (Play requires that).
   #   2. Create a service account with "Release to testing tracks" permission and
   #      add its JSON key as the repository secret PLAY_SERVICE_ACCOUNT_JSON.
-  #   3. Set PACKAGE_NAME below and uncomment this job.
+  #   3. Uncomment this job (PACKAGE_NAME below is already set).
   # ---------------------------------------------------------------------------
   # play-internal:
   #   name: Upload to Google Play (internal testing)
@@ -263,7 +263,7 @@ jobs:
   #   permissions:
   #     contents: read
   #   env:
-  #     PACKAGE_NAME: com.example.template
+  #     PACKAGE_NAME: io.github.impca201.rssreader
   #   steps:
   #     - uses: actions/checkout@v7
   #       with:
