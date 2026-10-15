@@ -28,7 +28,7 @@ python3 -m unittest discover -s scripts/tests
 
 ## Manual (on the phone)
 
-What automation can't check: how it looks and feels on a real device. For each pull request,
+What automation can't check: how it looks and feels on a real device. For each pull request (before or after it is merged: merging only waits for green CI),
 install the debug APK (see README, "Testing a pull request") and follow the steps in the pull request
 description. In addition, check every now and then (always before a release):
 
