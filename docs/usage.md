@@ -21,7 +21,8 @@ added (Android blocks unencrypted connections).
 
 After adding, the list switches to the new feed. The app also looks up the website's small icon
 (favicon) and shows it next to the feed's name in the list, the ☰ menu, Settings and the reader.
-Until it is found, or when a site has none, the first letter of the feed's name is shown.
+Until it is found, or when a site has none, the first letter of the feed's name is shown. Icons
+sit on a light tile, so dark logos stay visible in dark mode.
 
 ## Moving from another reader
 
@@ -35,7 +36,8 @@ come along.
 ## Folders
 
 Open **☰ › Manage feeds and folders** (also reachable from the top of Settings). This page lists
-each folder with its feeds under it, then the feeds outside folders ("No folder").
+each folder with its feeds under it, then the feeds outside folders ("No folder"; when every
+feed is in a folder, a note there says you can drag a feed onto it).
 
 - **New folder:** give it a title and pick an icon: the whole Material Symbols set (over 4 000
   icons) is there. Type in the search field to find one (icon names are in English, such as
@@ -44,9 +46,9 @@ each folder with its feeds under it, then the feeds outside folders ("No folder"
   move it there, or under "No folder" to take it out. Dragging a folder moves it with its feeds;
   while you drag it, the feeds are hidden. The order is the one the ☰ menu and the bottom bar
   use. (With a screen reader, use the row's Move up / Move down actions.)
-- **Tap a feed** to rename it, choose its folder or remove it. A name you give stays when the
+- **Tap a feed** (or its pen) to rename it, choose its folder or remove it. A name you give stays when the
   feed updates; clear the name to use the feed's own again.
-- **Tap a folder** to change its title or icon, or remove it (its feeds stay, under "No folder").
+- **Tap a folder** (or its pen) to change its title or icon, or remove it (its feeds stay, under "No folder").
 
 Once there is a folder, a floating bar appears at the bottom of the list: **All** (every feed)
 and then each folder by its icon; the selected one also shows its name. Tap one to see only its

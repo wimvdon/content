@@ -120,6 +120,7 @@
     <string name="reader_auto_dark_summary">Page sombre dès que l\'app est sombre, même avec Sépia ou Thème</string>
     <string name="day_today">Aujourd\'hui</string>
     <string name="day_yesterday">Hier</string>
+    <string name="folder_none_empty">Tous les flux sont dans un dossier. Faites glisser un flux ici pour le sortir de son dossier.</string>
     <string name="feed_edit">Modifier le flux</string>
     <string name="feed_name">Nom</string>
     <string name="feed_name_hint">Laissez vide pour utiliser le nom du flux</string>

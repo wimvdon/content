@@ -121,6 +121,7 @@
     <string name="reader_auto_dark_summary">Dark page whenever the app is dark, also with Sepia or Theme</string>
     <string name="day_today">Today</string>
     <string name="day_yesterday">Yesterday</string>
+    <string name="folder_none_empty">Every feed is in a folder. Drag a feed here to take it out of its folder.</string>
     <string name="feed_edit">Edit feed</string>
     <string name="feed_name">Name</string>
     <string name="feed_name_hint">Leave empty to use the feed\'s own name</string>

@@ -120,6 +120,7 @@
     <string name="reader_auto_dark_summary">Dunkle Seite, wenn die App dunkel ist, auch bei Sepia oder Design</string>
     <string name="day_today">Heute</string>
     <string name="day_yesterday">Gestern</string>
+    <string name="folder_none_empty">Jeder Feed ist in einem Ordner. Ziehe einen Feed hierher, um ihn aus seinem Ordner zu nehmen.</string>
     <string name="feed_edit">Feed bearbeiten</string>
     <string name="feed_name">Name</string>
     <string name="feed_name_hint">Leer lassen, um den Namen des Feeds zu verwenden</string>

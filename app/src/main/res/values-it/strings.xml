@@ -120,6 +120,7 @@
     <string name="reader_auto_dark_summary">Pagina scura quando l\'app è scura, anche con Seppia o Tema</string>
     <string name="day_today">Oggi</string>
     <string name="day_yesterday">Ieri</string>
+    <string name="folder_none_empty">Ogni feed è in una cartella. Trascina qui un feed per toglierlo dalla sua cartella.</string>
     <string name="feed_edit">Modifica feed</string>
     <string name="feed_name">Nome</string>
     <string name="feed_name_hint">Lascia vuoto per usare il nome del feed</string>
