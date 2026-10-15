@@ -28,6 +28,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -64,10 +65,12 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.impca201.rssreader.R
 import io.github.impca201.rssreader.data.Article
 import io.github.impca201.rssreader.data.Feed
+import io.github.impca201.rssreader.data.Folder
 import io.github.impca201.rssreader.data.FeedSelection
 import io.github.impca201.rssreader.feed.Html
 import io.github.impca201.rssreader.ui.theme.AppShapes
@@ -87,6 +90,7 @@ data class HomeState(
     val hasAnyArticles: Boolean,
     /** Show each article's picture as a thumbnail. */
     val showImages: Boolean = true,
+    val folders: List<Folder> = emptyList(),
 )
 
 class HomeActions(
@@ -111,13 +115,19 @@ fun HomeScreen(
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val selectedFeed = (state.selection as? FeedSelection.Single)?.let { s -> state.feeds.firstOrNull { it.url == s.feedUrl } }
-    val title = selectedFeed?.title ?: stringResource(R.string.feeds_all)
+    val selectedFolder = (state.selection as? FeedSelection.InFolder)?.let { s -> state.folders.firstOrNull { it.id == s.folderId } }
+    val title = selectedFeed?.title ?: selectedFolder?.title ?: stringResource(R.string.feeds_all)
+    // The bottom bar's tab: the folder being viewed, or the folder of the feed being viewed.
+    val sectionFolderId = selectedFolder?.id ?: selectedFeed?.folderId
+    val showFolderBar = state.folders.isNotEmpty() && state.feeds.isNotEmpty()
+    val unreadHere = state.unreadCounts[state.selection] ?: 0
 
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
             FeedDrawer(
                 feeds = state.feeds,
+                folders = state.folders,
                 selection = state.selection,
                 unreadCounts = state.unreadCounts,
                 onSelect = {
@@ -149,11 +159,6 @@ fun HomeScreen(
                         }
                     },
                     actions = {
-                        if (state.feeds.isNotEmpty()) {
-                            IconButton(onClick = actions.onMarkAllRead, enabled = (state.unreadCounts[state.selection] ?: 0) > 0) {
-                                Icon(painterResource(R.drawable.ic_done_all), contentDescription = stringResource(R.string.action_mark_all_read))
-                            }
-                        }
                         IconButton(onClick = { menuOpen = true }) {
                             Icon(painterResource(R.drawable.ic_more_vert), contentDescription = stringResource(R.string.action_more))
                         }
@@ -190,14 +195,27 @@ fun HomeScreen(
                     scrollBehavior = scrollBehavior,
                 )
             },
+            floatingActionButton = {
+                // Marks everything in the section being viewed as read: Home, a folder or a feed.
+                if (state.feeds.isNotEmpty() && unreadHere > 0) {
+                    FloatingActionButton(
+                        onClick = actions.onMarkAllRead,
+                        modifier = Modifier.padding(bottom = if (showFolderBar) FOLDER_BAR_SPACE else 0.dp),
+                    ) {
+                        Icon(painterResource(R.drawable.ic_done_all), contentDescription = stringResource(R.string.action_mark_all_read))
+                    }
+                }
+            },
         ) { innerPadding ->
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+            ) {
             PullToRefreshBox(
                 isRefreshing = state.refreshing,
                 onRefresh = actions.onRefresh,
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding),
+                modifier = Modifier.fillMaxSize(),
             ) {
                 val content =
                     when {
@@ -215,13 +233,29 @@ fun HomeScreen(
                         HomeContent.NoFeeds -> NoFeeds(actions.onAddFeed, actions.onImportOpml)
                         HomeContent.Loading -> ArticleSkeletons()
                         HomeContent.Empty -> AllCaughtUp(state.unreadOnly) { actions.onUnreadOnlyChange(false) }
-                        HomeContent.Articles -> ArticleList(state, actions)
+                        HomeContent.Articles -> ArticleList(state, actions, bottomSpace = if (showFolderBar) FOLDER_BAR_SPACE else 0.dp)
                     }
                 }
+            }
+            if (showFolderBar) {
+                FolderBar(
+                    folders = state.folders,
+                    selectedFolderId = sectionFolderId,
+                    onSelectHome = { actions.onSelect(FeedSelection.All) },
+                    onSelectFolder = { actions.onSelect(FeedSelection.InFolder(it.id)) },
+                    modifier =
+                        Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                )
+            }
             }
         }
     }
 }
+
+/** Room below the list and above the floating action button for the floating folder bar. */
+private val FOLDER_BAR_SPACE = 80.dp
 
 private enum class HomeContent { NoFeeds, Loading, Empty, Articles }
 
@@ -231,15 +265,17 @@ private const val SKELETON_ROWS = 6
 private fun ArticleList(
     state: HomeState,
     actions: HomeActions,
+    bottomSpace: Dp,
 ) {
     // A different feed starts at the top.
     val listState = rememberSaveable(state.selection, saver = LazyListState.Saver) { LazyListState() }
-    val showFeedName = state.selection == FeedSelection.All
+    val showFeedName = state.selection !is FeedSelection.Single
     val feedTitles = remember(state.feeds) { state.feeds.associate { it.url to it.title } }
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 24.dp),
+        // Room at the end for the floating action button (and the folder bar).
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 88.dp + bottomSpace),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         item(key = "filter") { UnreadFilter(state, actions.onUnreadOnlyChange) }

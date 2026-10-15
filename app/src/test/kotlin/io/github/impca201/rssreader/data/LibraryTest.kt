@@ -1,5 +1,6 @@
 package io.github.impca201.rssreader.data
 
+import io.github.impca201.rssreader.feed.Opml
 import io.github.impca201.rssreader.feed.ParsedFeed
 import io.github.impca201.rssreader.feed.ParsedItem
 import org.junit.Assert.assertEquals
@@ -126,5 +127,88 @@ class LibraryTest {
         val huge = ParsedItem("1", "T", null, null, "x".repeat(Library.MAX_HTML_LENGTH + 5), null)
         val merged = Library().addFeed(Feed(a, "A")).merge(a, ParsedFeed("T", null, listOf(huge)), now = 0)
         assertEquals(Library.MAX_HTML_LENGTH, merged.articles.single().html.length)
+    }
+
+    private val tech = Folder("tech", "Tech", FolderIcon.Tech)
+    private val withFolder = twoFeeds.addFolder(tech).moveFeed(a, "tech")
+
+    @Test
+    fun `folders can be added, edited and removed, keeping their feeds`() {
+        assertEquals(listOf(tech), withFolder.folders)
+        assertEquals("tech", withFolder.feed(a)!!.folderId)
+        assertSame(withFolder, withFolder.addFolder(Folder("tech", "Again")))
+        assertSame(withFolder, withFolder.addFolder(Folder("blank", "  ")))
+        val renamed = withFolder.updateFolder("tech", " Gadgets ", FolderIcon.Code)
+        assertEquals(Folder("tech", "Gadgets", FolderIcon.Code), renamed.folder("tech"))
+        val removed = withFolder.removeFolder("tech")
+        assertTrue(removed.folders.isEmpty())
+        assertEquals(2, removed.feeds.size)
+        assertNull(removed.feed(a)!!.folderId)
+    }
+
+    @Test
+    fun `a feed can't be moved into a folder that doesn't exist`() {
+        assertNull(twoFeeds.moveFeed(a, "nope").feed(a)!!.folderId)
+        assertNull(withFolder.moveFeed(a, null).feed(a)!!.folderId)
+        assertEquals(listOf(b), withFolder.feedsIn(null).map { it.url })
+    }
+
+    @Test
+    fun `a folder selection covers its feeds only`() {
+        val inTech = FeedSelection.InFolder("tech")
+        assertEquals(2, withFolder.unreadCount(inTech))
+        assertEquals(listOf("2", "1"), withFolder.articlesFor(inTech, unreadOnly = false).map { it.id })
+        val marked = withFolder.markAllRead(inTech)
+        assertEquals(0, marked.unreadCount(inTech))
+        assertEquals(1, marked.unreadCount(FeedSelection.All))
+        val counts = withFolder.unreadCounts()
+        assertEquals(3, counts[FeedSelection.All])
+        assertEquals(2, counts[inTech])
+        assertEquals(1, counts[FeedSelection.Single(b)])
+    }
+
+    @Test
+    fun `mark all read can be undone with the keys it reports`() {
+        val inTech = FeedSelection.InFolder("tech")
+        val keys = withFolder.unreadKeys(inTech)
+        assertEquals(setOf(Article.keyOf(a, "1"), Article.keyOf(a, "2")), keys)
+        assertEquals(withFolder, withFolder.markAllRead(inTech).setRead(keys, false))
+    }
+
+    @Test
+    fun `a removed feed or folder falls back to all articles`() {
+        assertEquals(FeedSelection.InFolder("tech"), withFolder.shown(FeedSelection.InFolder("tech")))
+        assertEquals(FeedSelection.All, withFolder.removeFolder("tech").shown(FeedSelection.InFolder("tech")))
+        assertEquals(FeedSelection.Single(b), withFolder.shown(FeedSelection.Single(b)))
+        assertEquals(FeedSelection.All, withFolder.removeFeed(b).shown(FeedSelection.Single(b)))
+    }
+
+    @Test
+    fun `import adds feeds into folders matched by title`() {
+        var ids = 0
+        val entries =
+            listOf(
+                Opml.Entry(a, "A again", folder = "News"),
+                Opml.Entry("https://c.example.com/feed", "C", folder = "tech"),
+                Opml.Entry("https://d.example.com/feed", "", folder = "News"),
+                Opml.Entry("https://e.example.com/feed", "E"),
+            )
+        val (imported, added) = withFolder.import(entries) { "new${ids++}" }
+        assertEquals(3, added)
+        // Known feeds stay as they are; "tech" matches the Tech folder; News is created once.
+        assertEquals("tech", imported.feed(a)!!.folderId)
+        assertEquals("tech", imported.feed("https://c.example.com/feed")!!.folderId)
+        assertEquals(listOf("Tech", "News"), imported.folders.map { it.title })
+        assertEquals("new0", imported.feed("https://d.example.com/feed")!!.folderId)
+        assertEquals("https://d.example.com/feed", imported.feed("https://d.example.com/feed")!!.title)
+        assertNull(imported.feed("https://e.example.com/feed")!!.folderId)
+    }
+
+    @Test
+    fun `export names each feed's folder`() {
+        assertEquals(
+            listOf(Opml.Entry(a, "Feed", "Tech"), Opml.Entry(b, "Feed", null)),
+            withFolder.toOpmlEntries(),
+        )
     }
 }

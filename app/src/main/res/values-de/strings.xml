@@ -95,6 +95,39 @@
     <string name="action_save_to">In %1$s speichern</string>
     <string name="action_share_to">Mit %1$s teilen</string>
     <string name="feeds_opml_hint">Mit einer OPML-Datei ziehst du deine Feeds zwischen Feedreadern wie Inoreader oder Feedly um: dort exportieren, hier importieren.</string>
+    <string name="action_save">Speichern</string>
+    <string name="action_undo">Rückgängig</string>
+    <string name="section_folders">Ordner</string>
+    <string name="folders_explanation">Lege Feeds in Ordner, um sie zusammen zu lesen. Sobald es einen Ordner gibt, wechselst du mit einer Leiste unten in der Liste zwischen Start und deinen Ordnern.</string>
+    <string name="folder_home">Start</string>
+    <string name="folder_new">Neuer Ordner</string>
+    <string name="folder_edit">Ordner bearbeiten</string>
+    <string name="folder_edit_named">%1$s bearbeiten</string>
+    <string name="folder_title">Titel</string>
+    <string name="folder_icon">Symbol</string>
+    <string name="folder_remove_title">Ordner entfernen?</string>
+    <string name="folder_remove_body">%1$s wird entfernt. Die Feeds darin bleiben, ohne Ordner.</string>
+    <string name="folder_move_title">Ordner für %1$s</string>
+    <string name="folder_none">Kein Ordner</string>
+    <string name="folder_icon_folder">Ordner</string>
+    <string name="folder_icon_star">Stern</string>
+    <string name="folder_icon_heart">Herz</string>
+    <string name="folder_icon_news">Nachrichten</string>
+    <string name="folder_icon_tech">Technik</string>
+    <string name="folder_icon_code">Code</string>
+    <string name="folder_icon_science">Wissenschaft</string>
+    <string name="folder_icon_work">Arbeit</string>
+    <string name="folder_icon_money">Geld</string>
+    <string name="folder_icon_sports">Sport</string>
+    <string name="folder_icon_games">Spiele</string>
+    <string name="folder_icon_music">Musik</string>
+    <string name="folder_icon_movies">Filme</string>
+    <string name="folder_icon_books">Bücher</string>
+    <string name="folder_icon_photos">Fotos</string>
+    <string name="folder_icon_food">Essen</string>
+    <string name="folder_icon_travel">Reisen</string>
+    <string name="folder_icon_nature">Natur</string>
+    <string name="folder_icon_home">Zuhause</string>
     <plurals name="feeds_count">
         <item quantity="one">%d Feed</item>
         <item quantity="other">%d Feeds</item>
@@ -110,5 +143,13 @@
     <plurals name="refresh_failed">
         <item quantity="one">%d Feed konnte nicht aktualisiert werden</item>
         <item quantity="other">%d Feeds konnten nicht aktualisiert werden</item>
+    </plurals>
+    <plurals name="folders_count">
+        <item quantity="one">%d Ordner</item>
+        <item quantity="other">%d Ordner</item>
+    </plurals>
+    <plurals name="marked_read">
+        <item quantity="one">%d Artikel als gelesen markiert</item>
+        <item quantity="other">%d Artikel als gelesen markiert</item>
     </plurals>
 </resources>

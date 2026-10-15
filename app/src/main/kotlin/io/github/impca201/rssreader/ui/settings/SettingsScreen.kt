@@ -35,6 +35,8 @@ import androidx.compose.ui.unit.dp
 import io.github.impca201.rssreader.R
 import io.github.impca201.rssreader.data.Feed
 import io.github.impca201.rssreader.data.FeedProblem
+import io.github.impca201.rssreader.data.Folder
+import io.github.impca201.rssreader.data.FolderIcon
 import io.github.impca201.rssreader.data.ReaderStyle
 import io.github.impca201.rssreader.data.ShareTarget
 import io.github.impca201.rssreader.data.Settings
@@ -55,6 +57,7 @@ import io.github.impca201.rssreader.ui.theme.rememberAppVersion
 data class SettingsState(
     val settings: Settings,
     val feeds: List<Feed>,
+    val folders: List<Folder>,
     val problems: Map<String, FeedProblem>,
     val shareApps: List<ExternalApps.ShareApp>,
 )
@@ -63,6 +66,10 @@ class SettingsActions(
     val onBack: () -> Unit,
     val onAddFeed: () -> Unit,
     val onRemoveFeed: (Feed) -> Unit,
+    val onMoveFeed: (Feed, String?) -> Unit,
+    val onAddFolder: (String, FolderIcon) -> Unit,
+    val onUpdateFolder: (Folder) -> Unit,
+    val onRemoveFolder: (Folder) -> Unit,
     val onImportOpml: () -> Unit,
     val onExportOpml: () -> Unit,
     val onReaderStyleChange: (ReaderStyle) -> Unit,
@@ -88,6 +95,15 @@ fun SettingsScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) {
         item(key = "feeds") { FeedsSection(state, actions) }
+        item(key = "folders") {
+            FoldersSection(
+                folders = state.folders,
+                feeds = state.feeds,
+                onAddFolder = actions.onAddFolder,
+                onUpdateFolder = actions.onUpdateFolder,
+                onRemoveFolder = actions.onRemoveFolder,
+            )
+        }
         item(key = "reader") { ReaderSection(state.settings, actions) }
         item(key = "save") {
             ShareTargetsSection(
@@ -111,6 +127,7 @@ private fun FeedsSection(
     actions: SettingsActions,
 ) {
     var confirmRemove by rememberSaveable { mutableStateOf<String?>(null) }
+    var moving by rememberSaveable { mutableStateOf<String?>(null) }
     CollapsibleSection(
         key = "feeds",
         title = stringResource(R.string.feeds_title),
@@ -123,7 +140,14 @@ private fun FeedsSection(
             SectionText(stringResource(R.string.home_no_feeds_body))
         }
         state.feeds.forEach { feed ->
-            FeedRow(feed, state.problems[feed.url], onRemove = { confirmRemove = feed.url })
+            FeedRow(
+                feed = feed,
+                folder = feed.folderId?.let { id -> state.folders.firstOrNull { it.id == id } },
+                problem = state.problems[feed.url],
+                // Moving to a folder only makes sense once there is one.
+                onMove = if (state.folders.isNotEmpty()) ({ moving = feed.url }) else null,
+                onRemove = { confirmRemove = feed.url },
+            )
         }
         FilledTonalButton(onClick = actions.onAddFeed, modifier = Modifier.fillMaxWidth()) {
             Icon(painterResource(R.drawable.ic_add), contentDescription = null)
@@ -138,6 +162,19 @@ private fun FeedsSection(
             }
         }
         SectionText(stringResource(R.string.feeds_opml_hint))
+    }
+
+    val movingFeed = moving?.let { url -> state.feeds.firstOrNull { it.url == url } }
+    if (movingFeed != null) {
+        MoveFeedDialog(
+            feed = movingFeed,
+            folders = state.folders,
+            onMove = { folderId ->
+                moving = null
+                actions.onMoveFeed(movingFeed, folderId)
+            },
+            onDismiss = { moving = null },
+        )
     }
 
     val feed = confirmRemove?.let { url -> state.feeds.firstOrNull { it.url == url } }
@@ -162,7 +199,9 @@ private fun FeedsSection(
 @Composable
 private fun FeedRow(
     feed: Feed,
+    folder: Folder?,
     problem: FeedProblem?,
+    onMove: (() -> Unit)?,
     onRemove: () -> Unit,
 ) {
     Row(
@@ -176,12 +215,17 @@ private fun FeedRow(
         Column(Modifier.weight(1f)) {
             Text(feed.title, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(
-                text = problem?.let { problemText(it) } ?: feed.url,
+                text = problem?.let { problemText(it) } ?: folder?.title ?: feed.url,
                 style = MaterialTheme.typography.bodySmall,
                 color = if (problem != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
+        }
+        if (onMove != null) {
+            IconButton(onClick = onMove) {
+                Icon(painterResource(R.drawable.ic_folder), contentDescription = stringResource(R.string.folder_move_title, feed.title))
+            }
         }
         IconButton(onClick = onRemove) {
             Icon(painterResource(R.drawable.ic_delete), contentDescription = stringResource(R.string.feeds_remove, feed.title))

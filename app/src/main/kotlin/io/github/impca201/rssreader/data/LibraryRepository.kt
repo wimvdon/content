@@ -33,6 +33,7 @@ import kotlinx.coroutines.sync.withPermit
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.util.UUID
 
 /** Why a feed could not be refreshed. */
 enum class FeedProblem { Offline, NotFound, ServerError, TooLarge, NotAFeed }
@@ -120,7 +121,11 @@ class LibraryRepository(
         return problem == null
     }
 
-    suspend fun addFeed(input: String): AddFeedResult =
+    /** Finds and adds the feed behind [input], in [folderId] when given (the folder being viewed). */
+    suspend fun addFeed(
+        input: String,
+        folderId: String? = null,
+    ): AddFeedResult =
         when (val result = FeedFinder(fetch).find(input)) {
             FindResult.InvalidAddress -> AddFeedResult.InvalidAddress
 
@@ -136,7 +141,7 @@ class LibraryRepository(
                         library
                     } else {
                         added = true
-                        library.addFeed(feed).merge(feed.url, result.feed, clock())
+                        library.addFeed(feed.copy(folderId = folderId?.takeIf { library.folder(it) != null })).merge(feed.url, result.feed, clock())
                     }
                 }
                 if (added) AddFeedResult.Added(feed) else AddFeedResult.AlreadyAdded
@@ -155,29 +160,67 @@ class LibraryRepository(
         store.updateData { it.setRead(key, read) }
     }
 
-    suspend fun markAllRead(selection: FeedSelection) {
-        store.updateData { it.markAllRead(selection) }
-    }
-
-    /** Adds the feeds of an OPML file and downloads them. Returns how many were new. */
+    /** Adds the feeds of an OPML file, with their folders. Returns how many were new. */
     suspend fun importOpml(bytes: ByteArray): Int {
         val entries = Opml.parse(bytes)
         var added = 0
         store.updateData { library ->
-            entries.fold(library) { current, entry ->
-                if (current.feed(entry.url) != null) {
-                    current
-                } else {
-                    added++
-                    current.addFeed(Feed(url = entry.url, title = entry.title.ifBlank { entry.url }))
-                }
-            }
+            val (updated, count) = library.import(entries) { newFolderId() }
+            added = count
+            updated
         }
         return added
     }
 
-    suspend fun exportOpml(title: String): String =
-        Opml.write(title, store.data.first().feeds.map { Opml.Entry(it.url, it.title) })
+    suspend fun exportOpml(title: String): String = Opml.write(title, store.data.first().toOpmlEntries())
+
+    /** Creates a folder and returns its id. */
+    suspend fun addFolder(
+        title: String,
+        icon: FolderIcon,
+    ): String {
+        val id = newFolderId()
+        store.updateData { it.addFolder(Folder(id, title, icon)) }
+        return id
+    }
+
+    suspend fun updateFolder(
+        id: String,
+        title: String,
+        icon: FolderIcon,
+    ) {
+        store.updateData { it.updateFolder(id, title, icon) }
+    }
+
+    suspend fun removeFolder(id: String) {
+        store.updateData { it.removeFolder(id) }
+    }
+
+    suspend fun moveFeed(
+        url: String,
+        folderId: String?,
+    ) {
+        store.updateData { it.moveFeed(url, folderId) }
+    }
+
+    /** Marks the selection as read and returns what was unread, for Undo. */
+    suspend fun markAllRead(selection: FeedSelection): Set<String> {
+        var keys: Set<String> = emptySet()
+        store.updateData { library ->
+            keys = library.unreadKeys(selection)
+            library.markAllRead(selection)
+        }
+        return keys
+    }
+
+    suspend fun setRead(
+        keys: Set<String>,
+        read: Boolean,
+    ) {
+        store.updateData { it.setRead(keys, read) }
+    }
+
+    private fun newFolderId(): String = UUID.randomUUID().toString()
 
     private fun FetchError.toProblem(): FeedProblem =
         when (this) {

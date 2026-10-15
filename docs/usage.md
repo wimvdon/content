@@ -25,17 +25,31 @@ After adding, the list switches to the new feed.
 Export your feeds as an **OPML** file in your old reader (in Inoreader: Preferences ›
 Import/Export; Feedly, NetNewsWire and most others have the same), then tap **Import OPML** (on
 the empty start screen or in **Settings › Feeds**) and pick the file. All feeds are added (feeds
-you already follow are skipped) and the app downloads their articles. **Export OPML** does the
-reverse. Read and starred states don't come along.
+you already follow are skipped), in the same folders as in your old reader, and the app downloads
+their articles. **Export OPML** does the reverse, folders included. Read and starred states don't
+come along.
+
+## Folders
+
+In **Settings › Folders**, tap **New folder**, give it a title and pick an icon. Tap the pencil
+to change them, or the bin to remove a folder (its feeds stay, outside any folder). To put a feed
+in a folder, tap the folder button next to it in **Settings › Feeds** and choose the folder.
+
+Once there is a folder, a floating bar appears at the bottom of the list: **Home** (every feed)
+and then each folder, by its icon. Tap one to see only its articles; the selected one shows its
+title. The ☰ drawer lists the folders too, each with its feeds, and the feeds outside folders
+after them. A feed added while a folder is open goes into that folder.
 
 ## Reading the list
 
-- **☰** opens the drawer: **All articles** and every feed, each with its number of unread
-  articles.
+- **☰** opens the drawer: **All articles**, your folders with their feeds, and the other feeds,
+  each with its number of unread articles.
 - The **Unread** and **All** chips choose what the list shows. Articles you open from the Unread
   list stay in it until you switch feed, filter or refresh, so the list doesn't jump.
 - **Pull down** to download new articles. The app also does this once every time it starts.
-- **✓✓** marks everything in the current list as read.
+- The round **✓✓** button at the bottom right marks everything in the section you are in as
+  read: all feeds on Home, the folder's feeds in a folder, or the one feed you opened. A message
+  says how many; **Undo** brings them back.
 - If some feeds can't be downloaded, a message says how many; **Settings › Feeds** shows why for
   each one.
 
@@ -80,8 +94,9 @@ If the chosen app has been uninstalled, the button opens the share menu instead 
 ## Settings
 
 - **Feeds:** every feed with its address (or why its last download failed), remove a feed (its
-  articles are removed too), add a feed, **Import OPML** / **Export OPML** to move your feeds
-  between readers, and **Import from Inoreader**.
+  articles are removed too), put a feed in a folder, add a feed, and **Import OPML** /
+  **Export OPML** to move your feeds between readers.
+- **Folders:** create, rename, change the icon of, or remove folders.
 - **Reader:** **Load full articles**, **Show images**, and the same text settings as **Aa**, with a preview.
 - **Save and share:** see above.
 - **Appearance:** Theme (System, Light, Dark) and Dynamic color (wallpaper colours instead of

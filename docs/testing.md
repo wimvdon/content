@@ -33,9 +33,9 @@ when the run fails.
 | `FeedFinderTest` | Address → feed with a fake web: direct feed, linked feed, common path, no feed, errors |
 | `ArticleExtractorTest` | Finding the article in pages (with and without `<article>`, split sections), dropping menus, sidebars, comments, scripts and figures, unclosed paragraphs, entities, unsafe links, charsets, when a feed text counts as a summary |
 | `ArticleBlocksTest` | Splitting articles into text, pictures (captions, srcset, lazy-loaded, tracking pixels skipped, https) and embeds (YouTube, Vimeo, videos, others); first picture; same picture in other sizes |
-| `OpmlTest` | Import with folders and duplicates, an Inoreader export, export round trip, non-OPML files |
-| `LibraryTest` | Merging downloads (read state kept, duplicates, limits), sorting, Unread filter, counts, mark read, remove feed |
-| `LibraryCodecTest` | Storage round trip with tabs, line breaks and backslashes; damaged input |
+| `OpmlTest` | Import with folders and duplicates, an Inoreader export with folders, export round trip with folders, non-OPML files |
+| `LibraryTest` | Merging downloads (read state kept, duplicates, limits), sorting, Unread filter, counts, mark read (and undo), remove feed; folders: add, edit, remove, move feeds, folder selection, OPML import into folders and export |
+| `LibraryCodecTest` | Storage round trip with folders, tabs, line breaks and backslashes; missing folders and unknown icons; damaged input |
 | `SettingsTest` | Text size limits, reader and theme darkness, Save/Share targets (storage and the old Save setting), defaults |
 
 ## Strategy
@@ -71,7 +71,10 @@ and then (always before a release):
       Settings › Reader › Show images off hides them all.
 - [ ] **Save** sends to the app chosen in Settings › Save and share (Instapaper by default);
       **Share** opens the share menu or the chosen app. An uninstalled app falls back to the share menu.
-- [ ] Import and export OPML (for example an Inoreader export).
+- [ ] Import and export OPML (for example an Inoreader export); folders come along both ways.
+- [ ] **Folders:** create a folder with an icon, move feeds into it; the bottom bar appears, its
+      tabs show only that folder's articles; Mark all read (round button) only marks that
+      section and Undo restores it; removing the folder keeps its feeds and hides the bar.
 - [ ] **Dark mode** and **Settings › Appearance**: switch Theme and Dynamic color. Text stays
       readable, status bar icons stay visible (also on sepia and dark reader pages).
 - [ ] **Rotation**: the screen keeps its state.

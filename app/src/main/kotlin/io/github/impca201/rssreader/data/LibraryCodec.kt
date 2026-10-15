@@ -9,12 +9,16 @@ object LibraryCodec {
     private const val HEADER = "rss-reader-library 1"
     private const val FEED = "F"
     private const val ARTICLE = "A"
+    private const val FOLDER = "D"
 
     fun encode(library: Library): String =
         buildString {
             append(HEADER).append('\n')
+            for (folder in library.folders) {
+                appendRecord(FOLDER, folder.id, folder.title, folder.icon.name)
+            }
             for (feed in library.feeds) {
-                appendRecord(FEED, feed.url, feed.title, feed.siteUrl.orEmpty())
+                appendRecord(FEED, feed.url, feed.title, feed.siteUrl.orEmpty(), feed.folderId.orEmpty())
             }
             for (a in library.articles) {
                 appendRecord(
@@ -38,23 +42,34 @@ object LibraryCodec {
         if (lines.firstOrNull() != HEADER) return Library()
         val feeds = mutableListOf<Feed>()
         val articles = mutableListOf<Article>()
+        val folders = mutableListOf<Folder>()
         for (line in lines.drop(1)) {
             val fields = line.split('\t').map(::unescape)
             when (fields.firstOrNull()) {
                 FEED -> decodeFeed(fields)?.let(feeds::add)
                 ARTICLE -> decodeArticle(fields)?.let(articles::add)
+                FOLDER -> decodeFolder(fields)?.let(folders::add)
             }
         }
         val feedUrls = feeds.map { it.url }.toSet()
+        val uniqueFolders = folders.distinctBy { it.id }
+        val folderIds = uniqueFolders.map { it.id }.toSet()
         return Library(
-            feeds = feeds.distinctBy { it.url },
+            feeds = feeds.distinctBy { it.url }.map { if (it.folderId != null && it.folderId !in folderIds) it.copy(folderId = null) else it },
             articles = articles.filter { it.feedUrl in feedUrls }.distinctBy { it.key },
+            folders = uniqueFolders,
         )
     }
 
     private fun decodeFeed(f: List<String>): Feed? {
         if (f.size < 4 || f[1].isEmpty()) return null
-        return Feed(url = f[1], title = f[2], siteUrl = f[3].ifEmpty { null })
+        // The folder field was added after the first release.
+        return Feed(url = f[1], title = f[2], siteUrl = f[3].ifEmpty { null }, folderId = f.getOrNull(4)?.ifEmpty { null })
+    }
+
+    private fun decodeFolder(f: List<String>): Folder? {
+        if (f.size < 4 || f[1].isEmpty() || f[2].isBlank()) return null
+        return Folder(id = f[1], title = f[2], icon = FolderIcon.entries.firstOrNull { it.name == f[3] } ?: FolderIcon.Folder)
     }
 
     private fun decodeArticle(f: List<String>): Article? {

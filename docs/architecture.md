@@ -20,7 +20,7 @@ RssReaderApp ── SettingsStore ── DataStore "settings" (Preferences)
 | Component | Responsibility |
 |---|---|
 | `RssReaderApp` | Application object: owns the stores and a process-wide coroutine scope, so a refresh survives leaving a screen. |
-| `data/Library.kt` | The whole state of the user's reading: `Feed`s and `Article`s with read state. Immutable; every change (merge a download, mark read, remove a feed) returns a new `Library`. Plain Kotlin, unit tested. |
+| `data/Library.kt` | The whole state of the user's reading: `Folder`s (title and icon), `Feed`s (each in at most one folder) and `Article`s with read state. Immutable; every change (merge a download, mark read, remove a feed) returns a new `Library`. Plain Kotlin, unit tested. |
 | `data/LibraryCodec.kt` | Turns a `Library` into a small tab-separated text format and back, tolerant of damaged lines. |
 | `data/LibraryRepository.kt` | Stores the `Library` with DataStore, refreshes all feeds (four at a time), adds feeds, imports and exports OPML, and remembers which feeds failed. |
 | `data/SettingsStore.kt`, `Settings.kt` | Theme, dynamic colour, reader style, Save target and the Unread filter, in Preferences DataStore. |
@@ -33,9 +33,9 @@ RssReaderApp ── SettingsStore ── DataStore "settings" (Preferences)
 | `data/FullArticles.kt` | Loads full articles for summary-only feeds and keeps them in the cache folder (300 most recent). |
 | `feed/FeedDates.kt`, `Html.kt`, `Opml.kt` | Date formats of real feeds; HTML clean-up, plain text and snippets; OPML read and write. |
 | `ui/Navigation.kt` | Back stack, wiring between screens and stores, Add feed dialog, OPML file pickers, Instapaper and share hand-offs. |
-| `ui/home/` | Article list with Unread/All filter, pull-to-refresh, loading placeholders, empty states; feed drawer; Add feed dialog. |
+| `ui/home/` | Article list with Unread/All filter, pull-to-refresh, loading placeholders, empty states, Mark all read button (for the section shown: All, a folder or a feed); floating folder bar (`FolderBar`); feed drawer grouped by folder; Add feed dialog. |
 | `ui/reader/` | Reader screen, Text sheet, reader colours (theme, sepia, dark). `ReaderStyleControls` is shared with Settings. |
-| `ui/settings/` | Settings screen built from the shared `SettingsKit`. |
+| `ui/settings/` | Settings screen built from the shared `SettingsKit`; folder editor and Move to folder dialog (`FolderSettings.kt`); Save and Share targets. |
 | `ui/theme/` | The app's palette and the shared design kit (see `DESIGN.md`). |
 | `ui/ExternalApps.kt` | Browser, share sheet, Instapaper and Play Store intents. |
 

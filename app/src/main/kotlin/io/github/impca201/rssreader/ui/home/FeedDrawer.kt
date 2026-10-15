@@ -23,11 +23,16 @@ import androidx.compose.ui.unit.dp
 import io.github.impca201.rssreader.R
 import io.github.impca201.rssreader.data.Feed
 import io.github.impca201.rssreader.data.FeedSelection
+import io.github.impca201.rssreader.data.Folder
 
-/** All articles, then every feed with its unread count, then Add feed and Settings. */
+/**
+ * All articles, then each folder with its feeds, then the feeds outside folders (each with its
+ * unread count), then Add feed and Settings.
+ */
 @Composable
 fun FeedDrawer(
     feeds: List<Feed>,
+    folders: List<Folder>,
     selection: FeedSelection,
     unreadCounts: Map<FeedSelection, Int>,
     onSelect: (FeedSelection) -> Unit,
@@ -55,7 +60,21 @@ fun FeedDrawer(
                 selected = selection == FeedSelection.All,
                 onClick = { onSelect(FeedSelection.All) },
             )
-            if (feeds.isNotEmpty()) {
+            for (folder in folders) {
+                val folderSelection = FeedSelection.InFolder(folder.id)
+                NavigationDrawerItem(
+                    label = { Text(folder.title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                    icon = { Icon(painterResource(folder.icon.drawableRes()), contentDescription = null) },
+                    badge = { UnreadBadge(unreadCounts[folderSelection] ?: 0) },
+                    selected = selection == folderSelection,
+                    onClick = { onSelect(folderSelection) },
+                )
+                for (feed in feeds.filter { it.folderId == folder.id }) {
+                    FeedItem(feed, selection, unreadCounts, onSelect, Modifier.padding(start = 24.dp))
+                }
+            }
+            val loose = feeds.filter { feed -> feed.folderId == null || folders.none { it.id == feed.folderId } }
+            if (loose.isNotEmpty()) {
                 Text(
                     text = stringResource(R.string.feeds_title),
                     style = MaterialTheme.typography.titleSmall,
@@ -66,14 +85,8 @@ fun FeedDrawer(
                             .semantics { heading() },
                 )
             }
-            for (feed in feeds) {
-                val feedSelection = FeedSelection.Single(feed.url)
-                NavigationDrawerItem(
-                    label = { Text(feed.title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                    badge = { UnreadBadge(unreadCounts[feedSelection] ?: 0) },
-                    selected = selection == feedSelection,
-                    onClick = { onSelect(feedSelection) },
-                )
+            for (feed in loose) {
+                FeedItem(feed, selection, unreadCounts, onSelect)
             }
             HorizontalDivider(Modifier.padding(vertical = 12.dp, horizontal = 16.dp))
             NavigationDrawerItem(
@@ -91,6 +104,24 @@ fun FeedDrawer(
             Spacer(Modifier.height(24.dp))
         }
     }
+}
+
+@Composable
+private fun FeedItem(
+    feed: Feed,
+    selection: FeedSelection,
+    unreadCounts: Map<FeedSelection, Int>,
+    onSelect: (FeedSelection) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val feedSelection = FeedSelection.Single(feed.url)
+    NavigationDrawerItem(
+        label = { Text(feed.title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+        badge = { UnreadBadge(unreadCounts[feedSelection] ?: 0) },
+        selected = selection == feedSelection,
+        onClick = { onSelect(feedSelection) },
+        modifier = modifier,
+    )
 }
 
 @Composable

@@ -2,6 +2,20 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-15: Folders, a floating folder bar and a Mark all read button
+
+- Feeds can be put in folders, each with a title and an icon from a fixed set of 19 (drawn in the
+  app, no icon library). A feed is in at most one folder. Asked for by the owner.
+- Once a folder exists, a floating bar at the bottom of the list switches between Home (all feeds)
+  and each folder. The bar only shows the selected tab's title, so many folders still fit; it
+  scrolls sideways when they don't. Rejected: Material's `NavigationBar` (fixed, at most five
+  items, not floating).
+- Mark all read moved from the top bar to a floating action button above the bar. It marks only
+  the section shown (Home, a folder, or one feed) and offers Undo.
+- Storage: folders are a new record type in `library.txt` and feeds got a folder field; older files
+  load unchanged. OPML import and export keep the folders (nested outlines), so moving from
+  Inoreader or Feedly keeps them too.
+
 ## 2026-10-15: Save and Share buttons send to any app; one OPML import
 
 - The Save and Share buttons each have a target in Settings › Save and share: one app, picked
