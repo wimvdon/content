@@ -37,6 +37,7 @@ when the run fails.
 | `LibraryTest` | Merging downloads (read state kept, duplicates, limits), sorting, Unread filter, counts, mark read (and undo), remove feed, a whole refresh merged at once, future dates; folders: add, edit, remove, move feeds, folder selection, OPML import into folders and export |
 | `LibraryCodecTest` | Storage round trip with folders, tabs, line breaks and backslashes; missing folders and unknown icons; damaged input |
 | `ScrollReadTest` | Mark as read on scroll: which articles have scrolled past (unread only, not the top one) |
+| `SiteIconTest` | Choosing a site's icon: largest size, apple-touch-icon, relative and http addresses, skipping SVG and inline icons, home page and favicon.ico fallback |
 | `SettingsTest` | Text size limits, reader and theme darkness, Save/Share targets (storage and the old Save setting), defaults |
 
 ## Strategy
@@ -75,6 +76,8 @@ and then (always before a release):
 - [ ] **List:** swipe an article left and right: it becomes read, then unread. The filter
       button in the top bar switches unread only / all. Settings › Article list › View: Small,
       Medium and Large each look right, with and without pictures.
+- [ ] **Website icons:** after a refresh, feeds show their site's icon in the list, ☰ menu,
+      Settings and reader; a feed without one shows its first letter.
 - [ ] **Mark as read on scroll** on: scroll down the Unread list; the articles that leave the
       top of the screen are marked read (their dot goes) but stay until you refresh.
 - [ ] Import and export OPML (for example an Inoreader export); folders come along both ways.

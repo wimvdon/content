@@ -16,9 +16,11 @@ import io.github.impca201.rssreader.feed.FindResult
 import io.github.impca201.rssreader.feed.NotAFeedException
 import io.github.impca201.rssreader.feed.Opml
 import io.github.impca201.rssreader.feed.ParsedFeed
+import io.github.impca201.rssreader.feed.SiteIcon
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -34,6 +36,7 @@ import kotlinx.coroutines.sync.withPermit
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.util.Collections
 import java.util.UUID
 
 /** Why a feed could not be refreshed. */
@@ -58,7 +61,7 @@ sealed interface AddFeedResult {
  */
 class LibraryRepository(
     context: Context,
-    scope: CoroutineScope,
+    private val scope: CoroutineScope,
     private val fetch: suspend (String) -> Fetched,
     private val clock: () -> Long = System::currentTimeMillis,
 ) {
@@ -101,12 +104,44 @@ class LibraryRepository(
                 }
             val downloads = results.mapNotNull { (url, result) -> result.getOrNull()?.let { url to it } }.toMap()
             if (downloads.isNotEmpty()) store.updateData { it.mergeAll(downloads, clock()) }
+            findMissingIcons()
             val problems = results.mapNotNull { (url, result) -> result.exceptionOrNull()?.let { url to (it as ProblemException).problem } }.toMap()
             _problems.value = problems
             return problems.size
         } finally {
             _refreshing.value = false
             refreshLock.unlock()
+        }
+    }
+
+    /** Feeds whose icon was looked for in this app session, so a site without one isn't asked every time. */
+    private val iconsTried: MutableSet<String> = Collections.synchronizedSet(HashSet())
+
+    /**
+     * Looks up the website icon of feeds that have none yet (a few at a time): the icon the home
+     * page announces, or else the site's /favicon.ico.
+     */
+    private suspend fun findMissingIcons() {
+        val feeds = store.data.first().feeds.filter { it.iconUrl == null && iconsTried.add(it.url) }
+        if (feeds.isEmpty()) return
+        val permits = Semaphore(PARALLEL_DOWNLOADS)
+        val found =
+            coroutineScope {
+                feeds
+                    .map { feed -> async { permits.withPermit { feed.url to findIcon(feed) } } }
+                    .awaitAll()
+            }.mapNotNull { (url, icon) -> icon?.let { url to it } }
+        if (found.isEmpty()) return
+        store.updateData { library -> found.fold(library) { lib, (url, icon) -> lib.setFeedIcon(url, icon) } }
+    }
+
+    private suspend fun findIcon(feed: Feed): String? {
+        val home = SiteIcon.homePage(feed.siteUrl, feed.url) ?: return null
+        return try {
+            val page = fetch(home)
+            SiteIcon.fromPage(page.bytes.decodeToString(), page.url) ?: SiteIcon.fallback(page.url)
+        } catch (_: FetchException) {
+            null
         }
     }
 
@@ -147,6 +182,8 @@ class LibraryRepository(
                         library.addFeed(feed.copy(folderId = folderId?.takeIf { library.folder(it) != null })).merge(feed.url, result.feed, clock())
                     }
                 }
+                // In the background: the dialog shouldn't wait for the website.
+                if (added) scope.launch { findMissingIcons() }
                 if (added) AddFeedResult.Added(feed) else AddFeedResult.AlreadyAdded
             }
         }

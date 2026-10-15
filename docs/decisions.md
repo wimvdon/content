@@ -2,6 +2,16 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-15: Website icons (favicons) from the sites themselves
+
+The owner asked for favicons so sources are recognisable. The app reads the icon a feed's
+website announces on its home page (the largest `apple-touch-icon` or `icon`; SVG skipped,
+since that would need another Coil module), or else uses `/favicon.ico`, and downloads it with
+Coil like other pictures. Looked up once per feed (after a refresh or when added) and stored with
+the feed. Rejected: Google's or DuckDuckGo's favicon services (simpler, but they would learn every
+site the user follows, a third party `PRIVACY.md` doesn't allow). Feeds without an icon show
+their first letter on a tinted square.
+
 ## 2026-10-15: Article list views, swipe, filter in the top bar; refresh merged at once
 
 Asked for by the owner after using v0.0.3:

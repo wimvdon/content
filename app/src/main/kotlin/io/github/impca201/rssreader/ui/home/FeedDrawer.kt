@@ -117,6 +117,7 @@ private fun FeedItem(
     val feedSelection = FeedSelection.Single(feed.url)
     NavigationDrawerItem(
         label = { Text(feed.title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+        icon = { FeedIcon(feed, FeedIconSize.Medium) },
         badge = { UnreadBadge(unreadCounts[feedSelection] ?: 0) },
         selected = selection == feedSelection,
         onClick = { onSelect(feedSelection) },

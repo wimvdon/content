@@ -229,4 +229,11 @@ class LibraryTest {
         val merged = Library().addFeed(Feed(a, "A")).merge(a, parsed(item("1", 5_000)), now = 1_000)
         assertEquals(1_000L, merged.articles.single().publishedAt)
     }
+
+    @Test
+    fun `a found icon is kept with its feed`() {
+        val withIcon = twoFeeds.setFeedIcon(a, "https://a.example.com/icon.png")
+        assertEquals("https://a.example.com/icon.png", withIcon.feed(a)!!.iconUrl)
+        assertNull(withIcon.feed(b)!!.iconUrl)
+    }
 }

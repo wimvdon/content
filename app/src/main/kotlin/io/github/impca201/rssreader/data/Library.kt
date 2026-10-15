@@ -10,6 +10,8 @@ data class Feed(
     val siteUrl: String? = null,
     /** The [Folder] it is in, or null. */
     val folderId: String? = null,
+    /** The website's icon (favicon), once found. */
+    val iconUrl: String? = null,
 )
 
 /** The pictures a folder can have, in the order the folder editor shows them. */
@@ -91,6 +93,12 @@ data class Library(
             folders = folders.filterNot { it.id == id },
             feeds = feeds.map { if (it.folderId == id) it.copy(folderId = null) else it },
         )
+
+    /** Remembers the icon found for a feed's website. */
+    fun setFeedIcon(
+        url: String,
+        iconUrl: String,
+    ): Library = copy(feeds = feeds.map { if (it.url == url) it.copy(iconUrl = iconUrl) else it })
 
     /** Puts a feed in a folder, or takes it out with null. Unknown folders count as none. */
     fun moveFeed(
