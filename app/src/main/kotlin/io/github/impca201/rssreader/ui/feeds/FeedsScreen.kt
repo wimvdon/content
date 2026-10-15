@@ -1,6 +1,7 @@
 package io.github.impca201.rssreader.ui.feeds
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
@@ -302,7 +303,22 @@ fun FeedsScreen(
                     }
 
                     ArrangedRow.Unfiled -> {
-                        Heading(stringResource(R.string.folder_none), rowModifier.padding(top = 8.dp))
+                        Column(rowModifier.padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Heading(stringResource(R.string.folder_none))
+                            if (rows.last() is ArrangedRow.Unfiled && state.feeds.isNotEmpty()) {
+                                // Nothing outside folders: say so, and where to drop a feed to change that.
+                                Text(
+                                    stringResource(R.string.folder_none_empty),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier =
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, AppShapes.Item)
+                                            .padding(16.dp),
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -420,6 +436,9 @@ private fun FolderLine(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+            IconButton(onClick = onClick) {
+                Icon(painterResource(R.drawable.ic_edit), contentDescription = stringResource(R.string.folder_edit))
+            }
             DragHandle(handleModifier)
         }
     }
@@ -457,6 +476,9 @@ private fun FeedLine(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
+            }
+            IconButton(onClick = onClick) {
+                Icon(painterResource(R.drawable.ic_edit), contentDescription = stringResource(R.string.feed_edit))
             }
             DragHandle(handleModifier)
         }

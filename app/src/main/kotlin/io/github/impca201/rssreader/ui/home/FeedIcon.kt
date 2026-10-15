@@ -2,6 +2,8 @@ package io.github.impca201.rssreader.ui.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -14,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -38,13 +41,22 @@ fun FeedIcon(
             .size(size)
             .clip(shape)
     if (feed?.iconUrl != null && !failed) {
-        AsyncImage(
-            model = feed.iconUrl,
-            contentDescription = null,
-            contentScale = ContentScale.Fit,
-            onError = { failed = true },
-            modifier = boxModifier,
-        )
+        // Site icons are made for light browser tabs: a light tile keeps dark logos visible in
+        // dark mode too, and gives every icon the same shape.
+        Box(
+            boxModifier
+                .background(ICON_TILE)
+                .padding(size / 10),
+            contentAlignment = Alignment.Center,
+        ) {
+            AsyncImage(
+                model = feed.iconUrl,
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                onError = { failed = true },
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
     } else {
         Box(
             boxModifier.background(MaterialTheme.colorScheme.tertiaryContainer),
@@ -59,6 +71,9 @@ fun FeedIcon(
         }
     }
 }
+
+/** Behind site icons in light and dark mode; Chrome uses a similar light tile for favicons. */
+private val ICON_TILE = Color(0xFFF4F4F4)
 
 /** Sizes used across the app. */
 object FeedIconSize {

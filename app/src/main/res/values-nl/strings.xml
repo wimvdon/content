@@ -120,6 +120,7 @@
     <string name="reader_auto_dark_summary">Donkere pagina wanneer de app donker is, ook bij Sepia of Thema</string>
     <string name="day_today">Vandaag</string>
     <string name="day_yesterday">Gisteren</string>
+    <string name="folder_none_empty">Elke feed zit in een map. Sleep een feed hierheen om hem uit zijn map te halen.</string>
     <string name="feed_edit">Feed bewerken</string>
     <string name="feed_name">Naam</string>
     <string name="feed_name_hint">Laat leeg om de eigen naam van de feed te gebruiken</string>

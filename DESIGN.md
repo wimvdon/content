@@ -129,7 +129,8 @@ repositories:
   list use SemiBold titles and a primary dot; read rows use `onSurfaceVariant`.
 - Manage feeds and folders is its own page (☰ and a link at the top of Settings): a large top app
   bar over folder cards (`surfaceContainerHigh`, folder icon on a `secondaryContainer` circle) with
-  their feeds indented below (`surfaceContainer`), a drag handle at the end of each row, and the
+  their feeds indented below (`surfaceContainer`), a pen button and a drag handle at the end of each row, an outlined note under
+  "No folder" when it is empty, and the
   dragged row lifted with a shadow. Tapping a row opens its edit dialog; Remove sits in the
   dialog, in the error colour. Settings sections: Article list, Reader, Save and share (integration), Appearance, footer.
 - Folder icons come from the whole Material Symbols set (outlined, rounded), picked with a search
@@ -137,6 +138,9 @@ repositories:
 - Folders: the floating pill bar of Tracker for Simkl at the bottom of the list (All with the feed
   symbol, then each folder's icon; the selected tab expands with spring motion to show its name on
   a `secondaryContainer` pill). The Mark all read FAB sits above it and only marks the section shown.
+- Site icons sit on a fixed light tile (`#F4F4F4`, rounded, 10% padding) in light and dark mode,
+  so logos drawn for light browser tabs keep their contrast; the letter fallback uses
+  `tertiaryContainer`.
 - Article list: three views (Small, Medium, Large card with a 16:9 picture). Unread rows sit on
   `surfaceContainer`, read rows on `surfaceContainerLow`; the feed name is in `primary`. Swiping
   either way past 30% of the width toggles read (haptic tick at the threshold, row springs

@@ -2,6 +2,15 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-15: Site icons on a light tile; pens and an empty "No folder" note on the manage page
+
+Many site icons are dark logos on a transparent background, made for light browser tabs, and
+vanished in dark mode. They now sit on a fixed light tile in both modes (as Chrome does), which
+also gives every icon the same shape. Rejected: tinting or inverting icons (breaks colourful
+logos) and per-icon brightness checks (decoding every icon for little gain). The manage page got
+a pen button per row (tapping the row still works) and a note under "No folder" when every feed
+is in a folder, which also shows where to drop a feed. Asked for by the owner.
+
 ## 2026-10-15: Swipe, folder bar and filter polish after using v0.1.1
 
 The owner found the swipe buggy, the Unread | All buttons jumpy and asked whether the folder bar

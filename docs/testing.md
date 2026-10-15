@@ -83,7 +83,8 @@ and then (always before a release):
       swipe does nothing; swiping never opens the ☰ menu. Unread | All under the title switches unread only / all. Settings › Article list › View: Small,
       Medium and Large each look right, with and without pictures.
 - [ ] **Website icons:** after a refresh, feeds show their site's icon in the list, ☰ menu,
-      Settings and reader; a feed without one shows its first letter.
+      manage page and reader, on a light tile; in dark mode dark logos are still visible; a feed
+      without one shows its first letter.
 - [ ] **Manage feeds and folders:** drag a feed into another folder and above another feed; drag
       a folder above another; the drawer and bottom bar follow the new order. Tap a feed, rename
       it, refresh: the name stays; clear it: the feed's own name comes back after a refresh.

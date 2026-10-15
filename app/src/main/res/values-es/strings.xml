@@ -120,6 +120,7 @@
     <string name="reader_auto_dark_summary">Página oscura cuando la app está oscura, también con Sepia o Tema</string>
     <string name="day_today">Hoy</string>
     <string name="day_yesterday">Ayer</string>
+    <string name="folder_none_empty">Todos los feeds están en una carpeta. Arrastra un feed aquí para sacarlo de su carpeta.</string>
     <string name="feed_edit">Editar feed</string>
     <string name="feed_name">Nombre</string>
     <string name="feed_name_hint">Déjalo vacío para usar el nombre del feed</string>
