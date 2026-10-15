@@ -32,7 +32,7 @@ import io.github.impca201.rssreader.data.Article
 import io.github.impca201.rssreader.data.FeedSelection
 import io.github.impca201.rssreader.data.FullArticle
 import io.github.impca201.rssreader.data.Library
-import io.github.impca201.rssreader.data.SaveTarget
+import io.github.impca201.rssreader.data.ShareTarget
 import io.github.impca201.rssreader.data.Settings
 import io.github.impca201.rssreader.data.needsFullText
 import io.github.impca201.rssreader.rssReaderApp
@@ -40,8 +40,6 @@ import io.github.impca201.rssreader.ui.home.AddFeedDialog
 import io.github.impca201.rssreader.ui.home.HomeActions
 import io.github.impca201.rssreader.ui.home.HomeScreen
 import io.github.impca201.rssreader.ui.home.HomeState
-import io.github.impca201.rssreader.ui.home.INOREADER_URL
-import io.github.impca201.rssreader.ui.home.InoreaderImportDialog
 import io.github.impca201.rssreader.ui.home.errorRes
 import io.github.impca201.rssreader.ui.reader.FullTextState
 import io.github.impca201.rssreader.ui.reader.ReaderActions
@@ -136,7 +134,6 @@ fun RssReaderNavigation() {
 
     // Add feed dialog, shared by the list, the drawer and Settings.
     var addDialogOpen by rememberSaveable { mutableStateOf(false) }
-    var inoreaderDialogOpen by rememberSaveable { mutableStateOf(false) }
     var addBusy by remember { mutableStateOf(false) }
     var addError by remember { mutableStateOf<String?>(null) }
 
@@ -183,23 +180,24 @@ fun RssReaderNavigation() {
         }
     }
 
-    // Instapaper may have been installed or removed while the app was in the background.
-    var instapaperInstalled by remember { mutableStateOf(ExternalApps.isInstapaperInstalled(context)) }
+    // Apps that accept shared links, for Settings › Save and share; apps may have been installed
+    // or removed while this app was in the background.
+    var shareApps by remember { mutableStateOf(emptyList<ExternalApps.ShareApp>()) }
     LifecycleResumeEffect(Unit) {
-        instapaperInstalled = ExternalApps.isInstapaperInstalled(context)
+        shareApps = ExternalApps.shareApps(context)
         onPauseOrDispose { }
     }
 
-    fun save(article: Article) {
+    /** Sends the article to the Save or Share button's app; the share menu when that app is gone. */
+    fun send(
+        article: Article,
+        target: ShareTarget,
+    ) {
         val link = article.link ?: return
-        when (current.saveTarget) {
-            SaveTarget.Instapaper ->
-                if (!ExternalApps.saveToInstapaper(context, article.title, link)) {
-                    showMessage(resources.getString(R.string.save_instapaper_missing_short))
-                    ExternalApps.share(context, article.title, link, resources.getString(R.string.action_share))
-                }
-
-            SaveTarget.ShareMenu -> ExternalApps.share(context, article.title, link, resources.getString(R.string.action_save_later))
+        val chooser = resources.getString(R.string.action_share)
+        if (!ExternalApps.send(context, target, article.title, link, chooser)) {
+            if (target is ShareTarget.App) showMessage(resources.getString(R.string.share_target_missing_short, target.label))
+            ExternalApps.share(context, article.title, link, chooser)
         }
     }
 
@@ -265,7 +263,6 @@ fun RssReaderNavigation() {
                                 onMarkAllRead = { app.appScope.launch { repository.markAllRead(shownSelection) } },
                                 onAddFeed = { addDialogOpen = true },
                                 onImportOpml = importOpml,
-                                onImportInoreader = { inoreaderDialogOpen = true },
                                 onOpenSettings = { push(Screen.Settings) },
                             ),
                     )
@@ -301,6 +298,7 @@ fun RssReaderNavigation() {
                             feedTitle = article?.let { library.feed(it.feedUrl)?.title },
                             style = current.reader,
                             saveTarget = current.saveTarget,
+                            shareTarget = current.shareTarget,
                             fullText = fullText,
                             showImages = current.showImages,
                             snackbarHostState = snackbar,
@@ -308,10 +306,8 @@ fun RssReaderNavigation() {
                                 ReaderActions(
                                     onBack = ::pop,
                                     onStyleChange = { style -> app.appScope.launch { app.settings.setReaderStyle(style) } },
-                                    onSave = { article?.let(::save) },
-                                    onShare = {
-                                        article?.link?.let { ExternalApps.share(context, article.title, it, resources.getString(R.string.action_share)) }
-                                    },
+                                    onSave = { article?.let { send(it, current.saveTarget) } },
+                                    onShare = { article?.let { send(it, current.shareTarget) } },
                                     onOpenInBrowser = { article?.link?.let { ExternalApps.openLink(context, it) } },
                                     onMarkUnread = {
                                         app.appScope.launch { repository.setRead(screen.articleKey, false) }
@@ -332,7 +328,7 @@ fun RssReaderNavigation() {
                                 settings = current,
                                 feeds = library.feeds,
                                 problems = problems,
-                                instapaperInstalled = instapaperInstalled,
+                                shareApps = shareApps,
                             ),
                         snackbarHostState = snackbar,
                         actions =
@@ -341,13 +337,12 @@ fun RssReaderNavigation() {
                                 onAddFeed = { addDialogOpen = true },
                                 onRemoveFeed = { feed -> app.appScope.launch { repository.removeFeed(feed.url) } },
                                 onImportOpml = importOpml,
-                                onImportInoreader = { inoreaderDialogOpen = true },
                                 onExportOpml = exportOpml,
                                 onReaderStyleChange = { style -> app.appScope.launch { app.settings.setReaderStyle(style) } },
                                 onFullArticlesChange = { enabled -> app.appScope.launch { app.settings.setFullArticles(enabled) } },
                                 onShowImagesChange = { enabled -> app.appScope.launch { app.settings.setShowImages(enabled) } },
                                 onSaveTargetChange = { target -> app.appScope.launch { app.settings.setSaveTarget(target) } },
-                                onGetInstapaper = { ExternalApps.openStoreListing(context, ExternalApps.INSTAPAPER_PACKAGE) },
+                                onShareTargetChange = { target -> app.appScope.launch { app.settings.setShareTarget(target) } },
                                 onThemeModeChange = { mode -> app.appScope.launch { app.settings.setThemeMode(mode) } },
                                 onDynamicColorChange = { enabled -> app.appScope.launch { app.settings.setDynamicColor(enabled) } },
                             ),
@@ -355,17 +350,6 @@ fun RssReaderNavigation() {
                 }
             }
         }
-    }
-
-    if (inoreaderDialogOpen) {
-        InoreaderImportDialog(
-            onOpenInoreader = { ExternalApps.openLink(context, INOREADER_URL) },
-            onChooseFile = {
-                inoreaderDialogOpen = false
-                importOpml()
-            },
-            onDismiss = { inoreaderDialogOpen = false },
-        )
     }
 
     if (addDialogOpen) {

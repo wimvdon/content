@@ -20,20 +20,13 @@ added (Android blocks unencrypted connections).
 
 After adding, the list switches to the new feed.
 
-## Moving from Inoreader
+## Moving from another reader
 
-Tap **Import from Inoreader** (on the empty start screen, or in **Settings › Feeds**) and follow
-the three steps:
-
-1. **Open Inoreader** opens inoreader.com in your browser; sign in.
-2. In Inoreader, go to **Preferences › Import/Export** and export your feeds as **OPML**. The file
-   goes to your downloads.
-3. Back in RSS Reader, tap **Choose file** and pick that file.
-
-All your feeds are added (folders are flattened; feeds you already follow are skipped) and the app
-downloads their articles. Your Inoreader account is not linked to the app, and read/starred
-states don't come along. The same works for any other reader that exports OPML: use **Import
-OPML**.
+Export your feeds as an **OPML** file in your old reader (in Inoreader: Preferences ›
+Import/Export; Feedly, NetNewsWire and most others have the same), then tap **Import OPML** (on
+the empty start screen or in **Settings › Feeds**) and pick the file. All feeds are added (feeds
+you already follow are skipped) and the app downloads their articles. **Export OPML** does the
+reverse. Read and starred states don't come along.
 
 ## Reading the list
 
@@ -53,8 +46,8 @@ Tap an article to read it. It is marked as read. In the top bar:
 | Button | What it does |
 |---|---|
 | **Aa** | Text settings: font (Sans or Serif), text size, spacing (Compact, Normal, Relaxed) and background (Theme, Sepia or Dark). Changes apply right away and are remembered for every article. |
-| Bookmark | **Save**: sends the article to Instapaper, or opens the share menu (see below). |
-| Share | Shares the article's link with any app. |
+| Bookmark | **Save**: sends the article to the app you chose (Instapaper by default), or opens the share menu (see below). |
+| Share | **Share**: the share menu, or straight to the app you chose. |
 | ⋮ | **Open in browser** and **Mark as unread**. |
 
 **Full articles.** Many feeds contain only the start of an article. Then the reader fetches the
@@ -72,15 +65,17 @@ Spotify and others) show as a card with a preview; tap it to watch or open it in
 browser. **Settings › Reader › Show images** turns pictures and previews off (for example to save
 data); embed cards stay, without preview.
 
-## Saving to Instapaper
+## Save and Share
 
-**Settings › Save for later** chooses what **Save** does:
+The reader has a **Save** button (bookmark) and a **Share** button. In **Settings › Save and
+share** you choose, for each, where it sends the article:
 
-- **Instapaper** (default): the article goes straight to the Instapaper app, which saves it to
-  your Instapaper account. If Instapaper isn't installed, Save opens the share menu instead and
-  the setting offers **Get Instapaper**.
-- **Share menu**: Save opens Android's share menu, so you can pick Pocket, a notes app or anything
-  else.
+- **an app**, picked from the apps on your phone that accept shared links: the article goes
+  straight there, without the share menu. Save is set to **Instapaper** by default.
+- **Share menu**: Android's share menu opens, so you pick an app each time. This is Share's
+  default.
+
+If the chosen app has been uninstalled, the button opens the share menu instead and says so.
 
 ## Settings
 
@@ -88,7 +83,7 @@ data); embed cards stay, without preview.
   articles are removed too), add a feed, **Import OPML** / **Export OPML** to move your feeds
   between readers, and **Import from Inoreader**.
 - **Reader:** **Load full articles**, **Show images**, and the same text settings as **Aa**, with a preview.
-- **Save for later:** see above.
+- **Save and share:** see above.
 - **Appearance:** Theme (System, Light, Dark) and Dynamic color (wallpaper colours instead of
   the app's blue).
 

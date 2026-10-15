@@ -52,7 +52,7 @@ import androidx.compose.ui.unit.dp
 import io.github.impca201.rssreader.R
 import io.github.impca201.rssreader.data.Article
 import io.github.impca201.rssreader.data.ReaderStyle
-import io.github.impca201.rssreader.data.SaveTarget
+import io.github.impca201.rssreader.data.ShareTarget
 import io.github.impca201.rssreader.feed.ArticleBlock
 import io.github.impca201.rssreader.feed.ArticleBlocks
 
@@ -89,7 +89,8 @@ fun ReaderScreen(
     article: Article?,
     feedTitle: String?,
     style: ReaderStyle,
-    saveTarget: SaveTarget,
+    saveTarget: ShareTarget,
+    shareTarget: ShareTarget,
     fullText: FullTextState,
     showImages: Boolean,
     snackbarHostState: SnackbarHostState,
@@ -120,13 +121,17 @@ fun ReaderScreen(
                             Icon(
                                 painterResource(R.drawable.ic_bookmark_add),
                                 contentDescription =
-                                    stringResource(
-                                        if (saveTarget == SaveTarget.Instapaper) R.string.action_save_instapaper else R.string.action_save_later,
-                                    ),
+                                    (saveTarget as? ShareTarget.App)?.let { stringResource(R.string.action_save_to, it.label) }
+                                        ?: stringResource(R.string.action_save_later),
                             )
                         }
                         IconButton(onClick = actions.onShare) {
-                            Icon(painterResource(R.drawable.ic_share), contentDescription = stringResource(R.string.action_share))
+                            Icon(
+                                painterResource(R.drawable.ic_share),
+                                contentDescription =
+                                    (shareTarget as? ShareTarget.App)?.let { stringResource(R.string.action_share_to, it.label) }
+                                        ?: stringResource(R.string.action_share),
+                            )
                         }
                     }
                     IconButton(onClick = { menuOpen = true }) {

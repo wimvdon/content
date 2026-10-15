@@ -4,12 +4,12 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.drawable.Drawable
 import androidx.core.net.toUri
+import io.github.impca201.rssreader.data.ShareTarget
 
-/** Hand-offs to other apps: browser, share sheet, Instapaper and the Play Store. */
+/** Hand-offs to other apps: browser, share sheet and direct sharing to one app. */
 object ExternalApps {
-    const val INSTAPAPER_PACKAGE = "com.instapaper.android"
-
     /** Opens a web page. Only http(s) and mailto links, so a feed can't start other apps. */
     fun openLink(
         context: Context,
@@ -29,31 +29,59 @@ object ExternalApps {
     ): Boolean = start(context, Intent.createChooser(shareIntent(title, url), chooserTitle))
 
     /**
-     * Sends the article to Instapaper through its share target, as if the user picked
-     * Instapaper in the share sheet. False when Instapaper is not installed.
+     * Sends the article where [target] says: the share sheet, or straight to one app's share
+     * target, as if picked in the share sheet. False when that app is not installed (any more).
      */
-    fun saveToInstapaper(
+    fun send(
         context: Context,
+        target: ShareTarget,
         title: String,
         url: String,
-    ): Boolean = start(context, shareIntent(title, url).setPackage(INSTAPAPER_PACKAGE))
+        chooserTitle: String,
+    ): Boolean =
+        when (target) {
+            ShareTarget.Sheet -> share(context, title, url, chooserTitle)
+            is ShareTarget.App -> {
+                val intent = shareIntent(title, url)
+                if (target.activityName != null) {
+                    intent.setClassName(target.packageName, target.activityName)
+                } else {
+                    intent.setPackage(target.packageName)
+                }
+                start(context, intent)
+            }
+        }
 
-    fun isInstapaperInstalled(context: Context): Boolean =
+    /** An app that accepts shared links, for the Save and Share button settings. */
+    class ShareApp(
+        val target: ShareTarget.App,
+        val icon: Drawable,
+    )
+
+    /** Every installed app that accepts shared text, by name. */
+    fun shareApps(context: Context): List<ShareApp> {
+        val pm = context.packageManager
+        return pm
+            .queryIntentActivities(shareIntent("", ""), 0)
+            .filter { it.activityInfo.packageName != context.packageName }
+            .map { info ->
+                ShareApp(
+                    target = ShareTarget.App(info.activityInfo.packageName, info.activityInfo.name, info.loadLabel(pm).toString()),
+                    icon = info.loadIcon(pm),
+                )
+            }.sortedBy { it.target.label.lowercase() }
+    }
+
+    fun isInstalled(
+        context: Context,
+        packageName: String,
+    ): Boolean =
         try {
-            context.packageManager.getPackageInfo(INSTAPAPER_PACKAGE, 0)
+            context.packageManager.getPackageInfo(packageName, 0)
             true
         } catch (_: PackageManager.NameNotFoundException) {
             false
         }
-
-    fun openStoreListing(
-        context: Context,
-        packageName: String,
-    ) {
-        val market = Intent(Intent.ACTION_VIEW, "market://details?id=$packageName".toUri())
-        val web = Intent(Intent.ACTION_VIEW, "https://play.google.com/store/apps/details?id=$packageName".toUri())
-        if (!start(context, market)) start(context, web)
-    }
 
     private fun shareIntent(
         title: String,

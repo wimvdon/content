@@ -35,10 +35,26 @@ class SettingsTest {
     }
 
     @Test
+    fun `save and share targets survive storage, and the old Save setting carries over`() {
+        val app = ShareTarget.App("com.example.notes", "com.example.notes.ShareActivity", "Notes")
+        assertEquals(app, ShareTarget.decode(ShareTarget.encode(app), ShareTarget.Sheet))
+        assertEquals(ShareTarget.Sheet, ShareTarget.decode(ShareTarget.encode(ShareTarget.Sheet), ShareTarget.Instapaper))
+        val noActivity = ShareTarget.App("com.example.notes", null, "Notes")
+        assertEquals(noActivity, ShareTarget.decode(ShareTarget.encode(noActivity), ShareTarget.Sheet))
+        // Values written by v0.0.1.
+        assertEquals(ShareTarget.Instapaper, ShareTarget.decode("Instapaper", ShareTarget.Sheet))
+        assertEquals(ShareTarget.Sheet, ShareTarget.decode("ShareMenu", ShareTarget.Instapaper))
+        // Nothing stored, or something unreadable: the default.
+        assertEquals(ShareTarget.Instapaper, ShareTarget.decode(null, ShareTarget.Instapaper))
+        assertEquals(ShareTarget.Sheet, ShareTarget.decode("garbage", ShareTarget.Sheet))
+    }
+
+    @Test
     fun `defaults match the design`() {
         val settings = Settings()
         assertFalse(settings.appearance.dynamicColor)
-        assertEquals(SaveTarget.Instapaper, settings.saveTarget)
+        assertEquals(ShareTarget.Instapaper, settings.saveTarget)
+        assertEquals(ShareTarget.Sheet, settings.shareTarget)
         assertEquals(ReaderBackground.Default, settings.reader.background)
     }
 }
