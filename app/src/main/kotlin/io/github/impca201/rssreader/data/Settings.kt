@@ -59,14 +59,58 @@ data class ReaderStyle(
     }
 }
 
-/** Where the reader's Save button sends an article. */
-enum class SaveTarget { Instapaper, ShareMenu }
+/** Where the reader's Save or Share button sends an article: the share menu, or straight to one app. */
+sealed interface ShareTarget {
+    data object Sheet : ShareTarget
+
+    /** A share target of another app; [activityName] picks one when the app has several. */
+    data class App(
+        val packageName: String,
+        val activityName: String?,
+        val label: String,
+    ) : ShareTarget
+
+    companion object {
+        const val INSTAPAPER_PACKAGE = "com.instapaper.android"
+
+        /** Save's default, as before this setting existed. */
+        val Instapaper: ShareTarget = App(INSTAPAPER_PACKAGE, null, "Instapaper")
+
+        private const val SEPARATOR = '\u001F'
+
+        fun encode(target: ShareTarget): String =
+            when (target) {
+                Sheet -> "sheet"
+                is App -> listOf("app", target.packageName, target.activityName.orEmpty(), target.label).joinToString(SEPARATOR.toString())
+            }
+
+        /** Reads a stored value; also the values of the old Save setting ("Instapaper", "ShareMenu"). */
+        fun decode(
+            text: String?,
+            default: ShareTarget,
+        ): ShareTarget =
+            when (text) {
+                null -> default
+                "sheet", "ShareMenu" -> Sheet
+                "Instapaper" -> Instapaper
+                else -> {
+                    val parts = text.split(SEPARATOR)
+                    if (parts.size == 4 && parts[0] == "app" && parts[1].isNotEmpty()) {
+                        App(parts[1], parts[2].ifEmpty { null }, parts[3].ifEmpty { parts[1] })
+                    } else {
+                        default
+                    }
+                }
+            }
+    }
+}
 
 /** Everything the user can set, as stored. */
 data class Settings(
     val appearance: Appearance = Appearance(),
     val reader: ReaderStyle = ReaderStyle(),
-    val saveTarget: SaveTarget = SaveTarget.Instapaper,
+    val saveTarget: ShareTarget = ShareTarget.Instapaper,
+    val shareTarget: ShareTarget = ShareTarget.Sheet,
     val unreadOnly: Boolean = true,
     /** Load the whole article from its web page when the feed only has a summary. */
     val fullArticles: Boolean = true,

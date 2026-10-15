@@ -48,7 +48,9 @@ class SettingsStore(
             it[READER_BACKGROUND] = style.background.name
         }
 
-    suspend fun setSaveTarget(target: SaveTarget) = edit { it[SAVE_TARGET] = target.name }
+    suspend fun setSaveTarget(target: ShareTarget) = edit { it[SAVE_TARGET] = ShareTarget.encode(target) }
+
+    suspend fun setShareTarget(target: ShareTarget) = edit { it[SHARE_TARGET] = ShareTarget.encode(target) }
 
     suspend fun setUnreadOnly(unreadOnly: Boolean) = edit { it[UNREAD_ONLY] = unreadOnly }
 
@@ -74,7 +76,8 @@ class SettingsStore(
                     spacing = enumOr(p[READER_SPACING], defaults.reader.spacing),
                     background = enumOr(p[READER_BACKGROUND], defaults.reader.background),
                 ).withTextSize(p[READER_TEXT_SIZE] ?: defaults.reader.textSize),
-            saveTarget = enumOr(p[SAVE_TARGET], defaults.saveTarget),
+            saveTarget = ShareTarget.decode(p[SAVE_TARGET], defaults.saveTarget),
+            shareTarget = ShareTarget.decode(p[SHARE_TARGET], defaults.shareTarget),
             unreadOnly = p[UNREAD_ONLY] ?: defaults.unreadOnly,
             fullArticles = p[FULL_ARTICLES] ?: defaults.fullArticles,
             showImages = p[SHOW_IMAGES] ?: defaults.showImages,
@@ -94,6 +97,7 @@ class SettingsStore(
         val READER_SPACING = stringPreferencesKey("reader_spacing")
         val READER_BACKGROUND = stringPreferencesKey("reader_background")
         val SAVE_TARGET = stringPreferencesKey("save_target")
+        val SHARE_TARGET = stringPreferencesKey("share_target")
         val UNREAD_ONLY = booleanPreferencesKey("unread_only")
         val FULL_ARTICLES = booleanPreferencesKey("full_articles")
         val SHOW_IMAGES = booleanPreferencesKey("show_images")

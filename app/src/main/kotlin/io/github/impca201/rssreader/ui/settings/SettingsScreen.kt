@@ -36,9 +36,10 @@ import io.github.impca201.rssreader.R
 import io.github.impca201.rssreader.data.Feed
 import io.github.impca201.rssreader.data.FeedProblem
 import io.github.impca201.rssreader.data.ReaderStyle
-import io.github.impca201.rssreader.data.SaveTarget
+import io.github.impca201.rssreader.data.ShareTarget
 import io.github.impca201.rssreader.data.Settings
 import io.github.impca201.rssreader.data.ThemeMode
+import io.github.impca201.rssreader.ui.ExternalApps
 import io.github.impca201.rssreader.ui.home.problemText
 import io.github.impca201.rssreader.ui.reader.ReaderStyleControls
 import io.github.impca201.rssreader.ui.reader.labelRes
@@ -55,7 +56,7 @@ data class SettingsState(
     val settings: Settings,
     val feeds: List<Feed>,
     val problems: Map<String, FeedProblem>,
-    val instapaperInstalled: Boolean,
+    val shareApps: List<ExternalApps.ShareApp>,
 )
 
 class SettingsActions(
@@ -63,13 +64,12 @@ class SettingsActions(
     val onAddFeed: () -> Unit,
     val onRemoveFeed: (Feed) -> Unit,
     val onImportOpml: () -> Unit,
-    val onImportInoreader: () -> Unit,
     val onExportOpml: () -> Unit,
     val onReaderStyleChange: (ReaderStyle) -> Unit,
     val onFullArticlesChange: (Boolean) -> Unit,
     val onShowImagesChange: (Boolean) -> Unit,
-    val onSaveTargetChange: (SaveTarget) -> Unit,
-    val onGetInstapaper: () -> Unit,
+    val onSaveTargetChange: (ShareTarget) -> Unit,
+    val onShareTargetChange: (ShareTarget) -> Unit,
     val onThemeModeChange: (ThemeMode) -> Unit,
     val onDynamicColorChange: (Boolean) -> Unit,
 )
@@ -89,7 +89,15 @@ fun SettingsScreen(
     ) {
         item(key = "feeds") { FeedsSection(state, actions) }
         item(key = "reader") { ReaderSection(state.settings, actions) }
-        item(key = "save") { SaveSection(state, actions) }
+        item(key = "save") {
+            ShareTargetsSection(
+                saveTarget = state.settings.saveTarget,
+                shareTarget = state.settings.shareTarget,
+                apps = state.shareApps,
+                onSaveTargetChange = actions.onSaveTargetChange,
+                onShareTargetChange = actions.onShareTargetChange,
+            )
+        }
         item(key = "appearance") { AppearanceSection(state.settings, actions) }
         item(key = "footer") {
             SettingsFooter("${stringResource(R.string.app_name)} ${rememberAppVersion()}")
@@ -128,9 +136,6 @@ private fun FeedsSection(
             OutlinedButton(onClick = actions.onExportOpml, enabled = state.feeds.isNotEmpty(), modifier = Modifier.weight(1f)) {
                 Text(stringResource(R.string.feeds_export))
             }
-        }
-        OutlinedButton(onClick = actions.onImportInoreader, modifier = Modifier.fillMaxWidth()) {
-            Text(stringResource(R.string.inoreader_title))
         }
         SectionText(stringResource(R.string.feeds_opml_hint))
     }
@@ -227,42 +232,6 @@ private fun ReaderSection(
 }
 
 @Composable
-private fun SaveSection(
-    state: SettingsState,
-    actions: SettingsActions,
-) {
-    val target = state.settings.saveTarget
-    CollapsibleSection(
-        key = "save",
-        title = stringResource(R.string.section_save),
-        summary = stringResource(target.labelRes()),
-        icon = painterResource(R.drawable.ic_bookmark_add),
-    ) {
-        SectionText(stringResource(R.string.save_explanation))
-        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-            SaveTarget.entries.forEachIndexed { index, option ->
-                SegmentedButton(
-                    selected = option == target,
-                    onClick = { actions.onSaveTargetChange(option) },
-                    shape = SegmentedButtonDefaults.itemShape(index, SaveTarget.entries.size),
-                ) { Text(stringResource(option.labelRes())) }
-            }
-        }
-        if (target == SaveTarget.Instapaper && !state.instapaperInstalled) {
-            Text(
-                text = stringResource(R.string.save_instapaper_missing),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.error,
-            )
-            FilledTonalButton(onClick = actions.onGetInstapaper, modifier = Modifier.fillMaxWidth()) {
-                Icon(painterResource(R.drawable.ic_open_in_new), contentDescription = null)
-                Text(stringResource(R.string.save_get_instapaper), modifier = Modifier.padding(start = 8.dp))
-            }
-        }
-    }
-}
-
-@Composable
 private fun AppearanceSection(
     settings: Settings,
     actions: SettingsActions,
@@ -299,11 +268,4 @@ private fun ThemeMode.labelRes(): Int =
         ThemeMode.System -> R.string.theme_system
         ThemeMode.Light -> R.string.theme_light
         ThemeMode.Dark -> R.string.theme_dark
-    }
-
-@StringRes
-private fun SaveTarget.labelRes(): Int =
-    when (this) {
-        SaveTarget.Instapaper -> R.string.save_target_instapaper
-        SaveTarget.ShareMenu -> R.string.save_target_share
     }

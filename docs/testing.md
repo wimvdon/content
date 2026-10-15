@@ -36,7 +36,7 @@ when the run fails.
 | `OpmlTest` | Import with folders and duplicates, an Inoreader export, export round trip, non-OPML files |
 | `LibraryTest` | Merging downloads (read state kept, duplicates, limits), sorting, Unread filter, counts, mark read, remove feed |
 | `LibraryCodecTest` | Storage round trip with tabs, line breaks and backslashes; damaged input |
-| `SettingsTest` | Text size limits, reader and theme darkness, defaults |
+| `SettingsTest` | Text size limits, reader and theme darkness, Save/Share targets (storage and the old Save setting), defaults |
 
 ## Strategy
 
@@ -69,10 +69,9 @@ and then (always before a release):
 - [ ] **Pictures:** list rows show thumbnails; the reader shows the picture above the title and
       pictures between paragraphs; a YouTube embed shows a card with a preview that opens YouTube.
       Settings › Reader › Show images off hides them all.
-- [ ] **Save** with Instapaper installed sends the article to Instapaper; without it, the share
-      menu opens.
-- [ ] Import and export OPML. **Import from Inoreader**: the steps open inoreader.com, and
-      Choose file imports the exported file.
+- [ ] **Save** sends to the app chosen in Settings › Save and share (Instapaper by default);
+      **Share** opens the share menu or the chosen app. An uninstalled app falls back to the share menu.
+- [ ] Import and export OPML (for example an Inoreader export).
 - [ ] **Dark mode** and **Settings › Appearance**: switch Theme and Dynamic color. Text stays
       readable, status bar icons stay visible (also on sepia and dark reader pages).
 - [ ] **Rotation**: the screen keeps its state.

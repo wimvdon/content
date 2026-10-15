@@ -2,6 +2,16 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-15: Save and Share buttons send to any app; one OPML import
+
+- The Save and Share buttons each have a target in Settings › Save and share: one app, picked
+  from the installed apps that accept shared text (the article goes straight there), or the share
+  menu. Save defaults to Instapaper (as before; the old setting carries over), Share to the share
+  menu. The manifest's `<queries>` now names the share intent instead of the Instapaper package,
+  so the list can be shown (package visibility, not a permission).
+- "Import from Inoreader" is gone: Import/Export OPML is universal and the hint names Inoreader
+  and Feedly as examples. Asked for by the owner.
+
 ## 2026-10-15: Pictures with Coil; embeds as cards
 
 The owner asked for article pictures as list thumbnails and reader hero, plus inline pictures and

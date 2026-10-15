@@ -4,9 +4,13 @@
     <!-- Downloads the feeds the user subscribes to. The only permission; see PRIVACY.md. -->
     <uses-permission android:name="android.permission.INTERNET" />
 
-    <!-- Lets Settings › Save for later tell whether Instapaper is installed. Not a permission. -->
+    <!-- Lets Settings › Save and share list the apps that accept shared links, so the Save and
+         Share buttons can send straight to one. Package visibility, not a permission. -->
     <queries>
-        <package android:name="com.instapaper.android" />
+        <intent>
+            <action android:name="android.intent.action.SEND" />
+            <data android:mimeType="text/plain" />
+        </intent>
     </queries>
 
     <application
