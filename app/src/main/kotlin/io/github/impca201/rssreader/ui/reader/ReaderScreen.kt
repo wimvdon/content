@@ -3,6 +3,7 @@ package io.github.impca201.rssreader.ui.reader
 import android.text.format.DateUtils
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -51,6 +52,9 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import io.github.impca201.rssreader.R
 import io.github.impca201.rssreader.data.Article
+import io.github.impca201.rssreader.data.Feed
+import io.github.impca201.rssreader.ui.home.FeedIcon
+import io.github.impca201.rssreader.ui.home.FeedIconSize
 import io.github.impca201.rssreader.data.ReaderStyle
 import io.github.impca201.rssreader.data.ShareTarget
 import io.github.impca201.rssreader.feed.ArticleBlock
@@ -87,7 +91,7 @@ class ReaderActions(
 @Composable
 fun ReaderScreen(
     article: Article?,
-    feedTitle: String?,
+    feed: Feed?,
     style: ReaderStyle,
     saveTarget: ShareTarget,
     shareTarget: ShareTarget,
@@ -188,7 +192,7 @@ fun ReaderScreen(
                 showImages = showImages,
                 article = article,
                 fullText = fullText,
-                feedTitle = feedTitle,
+                feed = feed,
                 style = style,
                 onOpenLink = actions.onOpenLink,
                 onOpenInBrowser = actions.onOpenInBrowser,
@@ -224,7 +228,7 @@ fun ReaderScreen(
 private fun ArticleBody(
     article: Article,
     fullText: FullTextState,
-    feedTitle: String?,
+    feed: Feed?,
     style: ReaderStyle,
     showImages: Boolean,
     onOpenLink: (String) -> Unit,
@@ -268,8 +272,11 @@ private fun ArticleBody(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             if (hero != null) HeroImage(hero)
-            if (feedTitle != null) {
-                Text(feedTitle, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+            if (feed != null) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FeedIcon(feed, FeedIconSize.Medium)
+                    Text(feed.title, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                }
             }
             Text(
                 text = article.title,

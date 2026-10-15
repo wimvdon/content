@@ -1,6 +1,6 @@
 # Privacy policy
 
-_Last updated: 2026-10-15 (full articles)_
+_Last updated: 2026-10-15 (website icons)_
 
 RSS Reader has no account, analytics, advertising or crash reporting, and no server of its own.
 
@@ -20,6 +20,10 @@ RSS Reader has no account, analytics, advertising or crash reporting, and no ser
   for YouTube videos i.ytimg.com. Those servers see your IP address, like any visit. Turn this off
   in Settings › Reader › Show images. Embedded videos and posts are not played inside the app;
   tapping one opens it in its app or your browser.
+- **Website icons.** Once per feed, the app loads the home page of the feed's website to find
+  the site's small icon (favicon), and then downloads that icon (from the site, or wherever the
+  site says it is, often its image server). If the site names none, its `/favicon.ico` is tried.
+  The icon is shown next to the feed's name. These servers see the same as for the feed.
 - **Links you open** (Read on website, links in articles) open in your browser, under the
   website's own privacy policy.
 - **Save and Share.** When you tap Save or Share, the article's title and link go to the app you
@@ -28,7 +32,7 @@ RSS Reader has no account, analytics, advertising or crash reporting, and no ser
 
 ## What the app stores on your device
 
-- Your feed list and folders, the downloaded articles and which ones you read.
+- Your feed list (with each feed's icon address) and folders, the downloaded articles and which ones you read.
 - Your settings (theme, text settings, full articles, pictures, Save and Share targets, the Unread filter, mark as read on scroll).
 - The text of full articles you opened, and recently shown pictures, in the app's cache (Android
   may clear it).

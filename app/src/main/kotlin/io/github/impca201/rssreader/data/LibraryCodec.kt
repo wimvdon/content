@@ -18,7 +18,7 @@ object LibraryCodec {
                 appendRecord(FOLDER, folder.id, folder.title, folder.icon.name)
             }
             for (feed in library.feeds) {
-                appendRecord(FEED, feed.url, feed.title, feed.siteUrl.orEmpty(), feed.folderId.orEmpty())
+                appendRecord(FEED, feed.url, feed.title, feed.siteUrl.orEmpty(), feed.folderId.orEmpty(), feed.iconUrl.orEmpty())
             }
             for (a in library.articles) {
                 appendRecord(
@@ -63,8 +63,14 @@ object LibraryCodec {
 
     private fun decodeFeed(f: List<String>): Feed? {
         if (f.size < 4 || f[1].isEmpty()) return null
-        // The folder field was added after the first release.
-        return Feed(url = f[1], title = f[2], siteUrl = f[3].ifEmpty { null }, folderId = f.getOrNull(4)?.ifEmpty { null })
+        // The folder and icon fields were added after the first release.
+        return Feed(
+            url = f[1],
+            title = f[2],
+            siteUrl = f[3].ifEmpty { null },
+            folderId = f.getOrNull(4)?.ifEmpty { null },
+            iconUrl = f.getOrNull(5)?.ifEmpty { null },
+        )
     }
 
     private fun decodeFolder(f: List<String>): Folder? {

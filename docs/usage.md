@@ -18,7 +18,9 @@ and type an address. Any of these work:
 Addresses are always opened over HTTPS. A site that only works over plain `http://` can't be
 added (Android blocks unencrypted connections).
 
-After adding, the list switches to the new feed.
+After adding, the list switches to the new feed. The app also looks up the website's small icon
+(favicon) and shows it next to the feed's name in the list, the ☰ menu, Settings and the reader.
+Until it is found, or when a site has none, the first letter of the feed's name is shown.
 
 ## Moving from another reader
 

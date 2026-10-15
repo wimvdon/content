@@ -43,21 +43,27 @@ object FeedDiscovery {
         html: String,
         pageUrl: String,
     ): List<String> =
-        linkTag
-            .findAll(html)
-            .mapNotNull { tag ->
-                val attributes =
-                    attribute.findAll(tag.value).associate { m ->
-                        val value = m.groups[3]?.value ?: m.groups[4]?.value ?: m.groups[5]?.value.orEmpty()
-                        m.groupValues[1].lowercase() to Html.decodeEntities(value.trim())
-                    }
-                val rel = attributes["rel"].orEmpty().lowercase().split(Regex("""\s+"""))
+        linkTags(html)
+            .mapNotNull { attributes ->
+                val rel = attributes.rel()
                 val type = attributes["type"].orEmpty().lowercase().substringBefore(';').trim()
                 val href = attributes["href"].orEmpty()
                 if ("alternate" in rel && type in feedTypes && href.isNotEmpty()) resolve(pageUrl, href) else null
             }.mapNotNull(::normalizeUrl)
             .distinct()
-            .toList()
+
+    /** The attributes of every `<link>` tag in a page (names in lower case, values decoded). */
+    internal fun linkTags(html: String): List<Map<String, String>> =
+        linkTag
+            .findAll(html)
+            .map { tag ->
+                attribute.findAll(tag.value).associate { m ->
+                    val value = m.groups[3]?.value ?: m.groups[4]?.value ?: m.groups[5]?.value.orEmpty()
+                    m.groupValues[1].lowercase() to Html.decodeEntities(value.trim())
+                }
+            }.toList()
+
+    internal fun Map<String, String>.rel(): List<String> = this["rel"].orEmpty().lowercase().split(Regex("""\s+"""))
 
     /** [commonPaths] on the page's site. */
     fun commonFeedUrls(pageUrl: String): List<String> {
@@ -66,7 +72,7 @@ object FeedDiscovery {
         return commonPaths.map { root + it }
     }
 
-    private fun resolve(
+    internal fun resolve(
         base: String,
         href: String,
     ): String? = runCatching { URI(base).resolve(URI(href)).toString() }.getOrNull()

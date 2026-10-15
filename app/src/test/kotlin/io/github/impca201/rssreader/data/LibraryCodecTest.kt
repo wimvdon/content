@@ -8,7 +8,7 @@ class LibraryCodecTest {
         Library(
             feeds =
                 listOf(
-                    Feed("https://a.example.com/feed", "Tabs\tand\nlines", "https://a.example.com"),
+                    Feed("https://a.example.com/feed", "Tabs\tand\nlines", "https://a.example.com", iconUrl = "https://a.example.com/icon.png"),
                     Feed("https://b.example.com/feed", "B", null, folderId = "f1"),
                 ),
             folders = listOf(Folder("f1", "Tech\tnews", FolderIcon.Tech), Folder("f2", "Empty")),

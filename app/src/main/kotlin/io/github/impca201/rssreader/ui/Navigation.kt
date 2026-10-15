@@ -314,7 +314,7 @@ fun RssReaderNavigation() {
                     ReaderTheme(style = current.reader, appearance = current.appearance, appDark = appDark) {
                         ReaderScreen(
                             article = article,
-                            feedTitle = article?.let { library.feed(it.feedUrl)?.title },
+                            feed = article?.let { library.feed(it.feedUrl) },
                             style = current.reader,
                             saveTarget = current.saveTarget,
                             shareTarget = current.shareTarget,

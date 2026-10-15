@@ -306,7 +306,7 @@ private fun ArticleList(
     // A different feed starts at the top.
     val listState = rememberSaveable(state.selection, saver = LazyListState.Saver) { LazyListState() }
     val showFeedName = state.selection !is FeedSelection.Single
-    val feedTitles = remember(state.feeds) { state.feeds.associate { it.url to it.title } }
+    val feedsByUrl = remember(state.feeds) { state.feeds.associateBy { it.url } }
     if (state.markReadOnScroll) {
         val articles by rememberUpdatedState(state.articles)
         val onScrolledPast by rememberUpdatedState(actions.onScrolledPast)
@@ -330,7 +330,7 @@ private fun ArticleList(
             SwipeToToggleRead(article, onToggle = { actions.onToggleRead(article) }, modifier = Modifier.animateItem()) {
                 ArticleRow(
                     article = article,
-                    feedTitle = if (showFeedName) feedTitles[article.feedUrl] else null,
+                    feed = if (showFeedName) feedsByUrl[article.feedUrl] else null,
                     view = state.listView,
                     showImage = state.showImages,
                     onClick = { actions.onOpenArticle(article) },
@@ -429,7 +429,7 @@ private fun SwipeToToggleRead(
 @Composable
 private fun ArticleRow(
     article: Article,
-    feedTitle: String?,
+    feed: Feed?,
     view: ListView,
     showImage: Boolean,
     onClick: () -> Unit,
@@ -455,7 +455,7 @@ private fun ArticleRow(
         when (view) {
             ListView.Small -> {
                 Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    MetaLine(article, feedTitle, time)
+                    MetaLine(article, feed, time)
                     ArticleTitle(article, MaterialTheme.typography.titleSmall, maxLines = 2)
                 }
             }
@@ -463,7 +463,7 @@ private fun ArticleRow(
             ListView.Medium -> {
                 Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        MetaLine(article, feedTitle, time)
+                        MetaLine(article, feed, time)
                         ArticleTitle(article, MaterialTheme.typography.titleMedium, maxLines = 3)
                         Snippet(snippet, maxLines = 2)
                     }
@@ -475,7 +475,7 @@ private fun ArticleRow(
                 Column {
                     if (image != null) LargePicture(image)
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        MetaLine(article, feedTitle, time)
+                        MetaLine(article, feed, time)
                         ArticleTitle(article, MaterialTheme.typography.titleLarge, maxLines = 3)
                         Snippet(snippet, maxLines = 3)
                     }
@@ -485,11 +485,11 @@ private fun ArticleRow(
     }
 }
 
-/** Unread dot, feed name and age. */
+/** Unread dot, feed icon and name, and age. */
 @Composable
 private fun MetaLine(
     article: Article,
-    feedTitle: String?,
+    feed: Feed?,
     time: String,
 ) {
     val unreadLabel = stringResource(R.string.article_unread)
@@ -502,9 +502,10 @@ private fun MetaLine(
                     .clearAndSetSemantics { contentDescription = unreadLabel },
             )
         }
-        if (feedTitle != null) {
+        if (feed != null) {
+            FeedIcon(feed, FeedIconSize.Small)
             Text(
-                text = feedTitle,
+                text = feed.title,
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.primary,
                 maxLines = 1,

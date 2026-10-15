@@ -45,6 +45,8 @@ import io.github.impca201.rssreader.data.ShareTarget
 import io.github.impca201.rssreader.data.Settings
 import io.github.impca201.rssreader.data.ThemeMode
 import io.github.impca201.rssreader.ui.ExternalApps
+import io.github.impca201.rssreader.ui.home.FeedIcon
+import io.github.impca201.rssreader.ui.home.FeedIconSize
 import io.github.impca201.rssreader.ui.home.problemText
 import io.github.impca201.rssreader.ui.reader.ReaderStyleControls
 import io.github.impca201.rssreader.ui.reader.labelRes
@@ -217,7 +219,9 @@ private fun FeedRow(
                 .background(MaterialTheme.colorScheme.surfaceContainer, AppShapes.Item)
                 .padding(start = 16.dp, top = 8.dp, bottom = 8.dp, end = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        FeedIcon(feed, FeedIconSize.Large)
         Column(Modifier.weight(1f)) {
             Text(feed.title, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(
