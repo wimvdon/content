@@ -53,6 +53,12 @@
     <string name="home_no_articles_title">Nog geen artikels</string>
     <string name="home_no_articles_body">Trek omlaag om naar nieuwe artikels te zoeken.</string>
     <string name="home_show_all">Alle artikels tonen</string>
+    <string name="inoreader_title">Importeren uit Inoreader</string>
+    <string name="inoreader_step1">Tik op Inoreader openen en meld je aan.</string>
+    <string name="inoreader_step2">Ga in Inoreader naar Voorkeuren › Importeren/Exporteren en exporteer je feeds als OPML. Het bestand komt in je downloads.</string>
+    <string name="inoreader_step3">Kom terug, tik op Bestand kiezen en kies het bestand dat je net downloadde.</string>
+    <string name="inoreader_open">Inoreader openen</string>
+    <string name="inoreader_choose_file">Bestand kiezen</string>
     <string name="import_failed">Dit bestand kon niet gelezen worden.</string>
     <string name="import_nothing_new">Geen nieuwe feeds in dit bestand.</string>
     <string name="export_done">Feeds geëxporteerd</string>

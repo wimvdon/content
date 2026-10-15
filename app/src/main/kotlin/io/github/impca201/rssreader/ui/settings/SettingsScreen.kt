@@ -63,6 +63,7 @@ class SettingsActions(
     val onAddFeed: () -> Unit,
     val onRemoveFeed: (Feed) -> Unit,
     val onImportOpml: () -> Unit,
+    val onImportInoreader: () -> Unit,
     val onExportOpml: () -> Unit,
     val onReaderStyleChange: (ReaderStyle) -> Unit,
     val onFullArticlesChange: (Boolean) -> Unit,
@@ -126,6 +127,9 @@ private fun FeedsSection(
             OutlinedButton(onClick = actions.onExportOpml, enabled = state.feeds.isNotEmpty(), modifier = Modifier.weight(1f)) {
                 Text(stringResource(R.string.feeds_export))
             }
+        }
+        OutlinedButton(onClick = actions.onImportInoreader, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.inoreader_title))
         }
         SectionText(stringResource(R.string.feeds_opml_hint))
     }

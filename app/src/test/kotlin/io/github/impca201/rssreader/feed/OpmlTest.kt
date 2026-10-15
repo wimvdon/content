@@ -29,6 +29,31 @@ class OpmlTest {
     }
 
     @Test
+    fun `reads an Inoreader export`() {
+        // Shape of Inoreader's "Export to OPML": folders as outlines, http addresses, extra attributes.
+        val opml =
+            """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <opml version="1.0">
+              <head><title>Subscriptions of Wim from Inoreader [https://www.inoreader.com]</title></head>
+              <body>
+                <outline text="News" title="News">
+                  <outline text="The Verge" title="The Verge" type="rss" xmlUrl="http://www.theverge.com/rss/index.xml" htmlUrl="https://www.theverge.com/"/>
+                </outline>
+                <outline text="Daring Fireball" title="Daring Fireball" type="rss" xmlUrl="https://daringfireball.net/feeds/main" htmlUrl="https://daringfireball.net/"/>
+              </body>
+            </opml>
+            """.trimIndent()
+        assertEquals(
+            listOf(
+                Opml.Entry("https://www.theverge.com/rss/index.xml", "The Verge"),
+                Opml.Entry("https://daringfireball.net/feeds/main", "Daring Fireball"),
+            ),
+            Opml.parse(opml.toByteArray()),
+        )
+    }
+
+    @Test
     fun `what it writes, it reads back`() {
         val entries = listOf(Opml.Entry("https://e.com/feed?a=1&b=2", "Tom & Jerry's \"news\""))
         val written = Opml.write("My feeds", entries)

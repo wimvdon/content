@@ -32,7 +32,7 @@ when the run fails.
 | `FeedDiscoveryTest` | Address normalising (https, feed://), feed links in a page, common paths |
 | `FeedFinderTest` | Address → feed with a fake web: direct feed, linked feed, common path, no feed, errors |
 | `ArticleExtractorTest` | Finding the article in pages (with and without `<article>`, split sections), dropping menus, sidebars, comments, scripts and figures, unclosed paragraphs, entities, unsafe links, charsets, when a feed text counts as a summary |
-| `OpmlTest` | Import with folders and duplicates, export round trip, non-OPML files |
+| `OpmlTest` | Import with folders and duplicates, an Inoreader export, export round trip, non-OPML files |
 | `LibraryTest` | Merging downloads (read state kept, duplicates, limits), sorting, Unread filter, counts, mark read, remove feed |
 | `LibraryCodecTest` | Storage round trip with tabs, line breaks and backslashes; damaged input |
 | `SettingsTest` | Text size limits, reader and theme darkness, defaults |
@@ -67,7 +67,8 @@ and then (always before a release):
       new phone from backup): feeds and settings come back.
 - [ ] **Save** with Instapaper installed sends the article to Instapaper; without it, the share
       menu opens.
-- [ ] Import and export OPML.
+- [ ] Import and export OPML. **Import from Inoreader**: the steps open inoreader.com, and
+      Choose file imports the exported file.
 - [ ] **Dark mode** and **Settings › Appearance**: switch Theme and Dynamic color. Text stays
       readable, status bar icons stay visible (also on sepia and dark reader pages).
 - [ ] **Rotation**: the screen keeps its state.

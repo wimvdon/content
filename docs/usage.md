@@ -20,6 +20,21 @@ added (Android blocks unencrypted connections).
 
 After adding, the list switches to the new feed.
 
+## Moving from Inoreader
+
+Tap **Import from Inoreader** (on the empty start screen, or in **Settings › Feeds**) and follow
+the three steps:
+
+1. **Open Inoreader** opens inoreader.com in your browser; sign in.
+2. In Inoreader, go to **Preferences › Import/Export** and export your feeds as **OPML**. The file
+   goes to your downloads.
+3. Back in RSS Reader, tap **Choose file** and pick that file.
+
+All your feeds are added (folders are flattened; feeds you already follow are skipped) and the app
+downloads their articles. Your Inoreader account is not linked to the app, and read/starred
+states don't come along. The same works for any other reader that exports OPML: use **Import
+OPML**.
+
 ## Reading the list
 
 - **☰** opens the drawer: **All articles** and every feed, each with its number of unread
@@ -64,8 +79,8 @@ are not shown in the reader.
 ## Settings
 
 - **Feeds:** every feed with its address (or why its last download failed), remove a feed (its
-  articles are removed too), add a feed, and **Import OPML** / **Export OPML** to move your feeds
-  between readers.
+  articles are removed too), add a feed, **Import OPML** / **Export OPML** to move your feeds
+  between readers, and **Import from Inoreader**.
 - **Reader:** **Load full articles**, and the same text settings as **Aa**, with a preview.
 - **Save for later:** see above.
 - **Appearance:** Theme (System, Light, Dark) and Dynamic color (wallpaper colours instead of

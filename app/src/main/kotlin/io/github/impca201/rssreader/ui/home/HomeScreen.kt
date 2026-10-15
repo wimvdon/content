@@ -92,6 +92,7 @@ class HomeActions(
     val onMarkAllRead: () -> Unit,
     val onAddFeed: () -> Unit,
     val onImportOpml: () -> Unit,
+    val onImportInoreader: () -> Unit,
     val onOpenSettings: () -> Unit,
 )
 
@@ -207,7 +208,7 @@ fun HomeScreen(
                     label = "home",
                 ) { shown ->
                     when (shown) {
-                        HomeContent.NoFeeds -> NoFeeds(actions.onAddFeed, actions.onImportOpml)
+                        HomeContent.NoFeeds -> NoFeeds(actions.onAddFeed, actions.onImportOpml, actions.onImportInoreader)
                         HomeContent.Loading -> ArticleSkeletons()
                         HomeContent.Empty -> AllCaughtUp(state.unreadOnly) { actions.onUnreadOnlyChange(false) }
                         HomeContent.Articles -> ArticleList(state, actions)
@@ -371,6 +372,7 @@ private fun ArticleSkeletons() {
 private fun NoFeeds(
     onAddFeed: () -> Unit,
     onImportOpml: () -> Unit,
+    onImportInoreader: () -> Unit,
 ) {
     EmptyState(
         title = stringResource(R.string.home_no_feeds_title),
@@ -381,6 +383,7 @@ private fun NoFeeds(
             Text(stringResource(R.string.feeds_add), modifier = Modifier.padding(start = 8.dp))
         }
         OutlinedButton(onClick = onImportOpml) { Text(stringResource(R.string.feeds_import)) }
+        TextButton(onClick = onImportInoreader) { Text(stringResource(R.string.inoreader_title)) }
     }
 }
 

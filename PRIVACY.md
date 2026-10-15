@@ -15,7 +15,7 @@ RSS Reader has no account, analytics, advertising or crash reporting, and no ser
   that article's web page to show the whole article (turn this off in Settings › Reader › Load
   full articles; you can also switch it per article). Only the article text is kept; the page's
   scripts, images and trackers are not loaded. The website sees the same as for its feed.
-- **Links you open** (Read on website, links in articles) open in your browser, under the
+- **Links you open** (Read on website, links in articles, Open Inoreader) open in your browser, under the
   website's own privacy policy.
 - **Save and Share.** When you tap Save or Share, the article's title and link go to the app you
   chose (Instapaper by default), under that app's privacy policy. Nothing is sent otherwise.
