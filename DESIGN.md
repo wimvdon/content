@@ -129,6 +129,8 @@ repositories:
   list use SemiBold titles and a primary dot; read rows use `onSurfaceVariant`.
 - Feeds and folders is its own page (☰ and a link at the top of Settings), built with the
   settings scaffold. Settings sections: Article list, Reader, Save and share (integration), Appearance, footer.
+- Folder icons come from the whole Material Symbols set (outlined, rounded), picked with a search
+  field and a grid in the folder dialog.
 - Folders: a floating pill bar at the bottom of the list (Home, then each folder: icon with its
   name below, fixed-width tabs, the selected one on a `secondaryContainer` indicator, like the
   navigation bar). The Mark all read FAB sits above it and only marks the section shown.

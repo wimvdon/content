@@ -60,6 +60,7 @@ rss-reader/
         │   │       ├── feeds/                 Feeds and folders page, folder dialogs
         │   │       ├── settings/              Settings screen, Save/Share targets
         │   │       └── theme/                 Theme.kt (palette) + shared design kit
+        │   ├── assets/                  material_symbols.txt (folder icons) and its licence
         │   └── res/
         │       ├── drawable/                  Launcher icon layers, Material icons
         │       ├── mipmap-anydpi/             Adaptive icon

@@ -14,14 +14,12 @@ data class Feed(
     val iconUrl: String? = null,
 )
 
-/** The pictures a folder can have, in the order the folder editor shows them. */
-enum class FolderIcon { Folder, Star, Heart, News, Tech, Code, Science, Work, Money, Sports, Games, Music, Movies, Books, Photos, Food, Travel, Nature, Home }
-
 /** A group of feeds with its own title and icon; it gets a tab in the bottom bar. */
 data class Folder(
     val id: String,
     val title: String,
-    val icon: FolderIcon = FolderIcon.Folder,
+    /** A Material Symbols name from [IconCatalog], such as "sports-soccer". */
+    val icon: String = IconCatalog.DEFAULT,
 )
 
 /**
@@ -83,7 +81,7 @@ data class Library(
     fun updateFolder(
         id: String,
         title: String,
-        icon: FolderIcon,
+        icon: String,
     ): Library =
         if (title.isBlank()) this else copy(folders = folders.map { if (it.id == id) it.copy(title = title.trim(), icon = icon) else it })
 

@@ -1,11 +1,15 @@
 package io.github.impca201.rssreader.ui.feeds
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -13,11 +17,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -45,8 +47,9 @@ import androidx.compose.ui.unit.dp
 import io.github.impca201.rssreader.R
 import io.github.impca201.rssreader.data.Feed
 import io.github.impca201.rssreader.data.Folder
-import io.github.impca201.rssreader.data.FolderIcon
-import io.github.impca201.rssreader.ui.home.drawableRes
+import io.github.impca201.rssreader.data.IconCatalog
+import io.github.impca201.rssreader.rssReaderApp
+import io.github.impca201.rssreader.ui.home.rememberFolderIconPainter
 import io.github.impca201.rssreader.ui.theme.AppShapes
 
 /** A folder's header on the Feeds and folders page: icon, title, number of feeds, edit and remove. */
@@ -66,7 +69,7 @@ internal fun FolderRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Icon(painterResource(folder.icon.drawableRes()), contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+        Icon(rememberFolderIconPainter(folder.icon), contentDescription = null, tint = MaterialTheme.colorScheme.primary)
         Column(Modifier.weight(1f)) {
             Text(folder.title, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(
@@ -86,50 +89,82 @@ internal fun FolderRow(
     }
 }
 
-/** New folder ([folder] null) or edit one: a title and an icon. */
-@OptIn(ExperimentalLayoutApi::class)
+/**
+ * New folder ([folder] null) or edit one: a title, and an icon from the whole Material Symbols
+ * set, searchable by English name or topic.
+ */
 @Composable
 internal fun FolderDialog(
     folder: Folder?,
-    onSave: (String, FolderIcon) -> Unit,
+    onSave: (title: String, icon: String) -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val catalog = LocalContext.current.rssReaderApp.iconCatalog
     var title by rememberSaveable { mutableStateOf(folder?.title.orEmpty()) }
-    var icon by rememberSaveable { mutableStateOf(folder?.icon ?: FolderIcon.Folder) }
+    var icon by rememberSaveable { mutableStateOf(folder?.icon ?: IconCatalog.DEFAULT) }
+    var query by rememberSaveable { mutableStateOf("") }
+    val results = remember(query) { catalog.search(query) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(if (folder == null) R.string.folder_new else R.string.folder_edit)) },
         text = {
-            Column(
-                Modifier.verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    // The chosen icon, next to the title it goes with.
+                    Box(
+                        Modifier
+                            .size(48.dp)
+                            .background(MaterialTheme.colorScheme.secondaryContainer, CircleShape),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(rememberFolderIconPainter(icon), contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer)
+                    }
+                    OutlinedTextField(
+                        value = title,
+                        onValueChange = { title = it.take(MAX_TITLE_LENGTH) },
+                        label = { Text(stringResource(R.string.folder_title)) },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                        modifier = Modifier.weight(1f),
+                    )
+                }
                 OutlinedTextField(
-                    value = title,
-                    onValueChange = { title = it.take(MAX_TITLE_LENGTH) },
-                    label = { Text(stringResource(R.string.folder_title)) },
+                    value = query,
+                    onValueChange = { query = it },
+                    label = { Text(stringResource(R.string.folder_icon_search)) },
+                    leadingIcon = { Icon(painterResource(R.drawable.ic_search), contentDescription = null) },
                     singleLine = true,
-                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                     modifier = Modifier.fillMaxWidth(),
                 )
-                Text(stringResource(R.string.folder_icon), style = MaterialTheme.typography.titleSmall)
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    FolderIcon.entries.forEach { option ->
-                        IconToggleButton(
-                            checked = option == icon,
-                            onCheckedChange = { icon = option },
-                            shape = CircleShape,
-                            colors =
-                                IconButtonDefaults.iconToggleButtonColors(
-                                    checkedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                    checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                                ),
-                            modifier = Modifier.size(48.dp),
-                        ) {
-                            Icon(painterResource(option.drawableRes()), contentDescription = stringResource(option.labelRes()))
+                if (results.isEmpty()) {
+                    Text(
+                        stringResource(R.string.folder_icon_none_found),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.height(ICON_GRID_HEIGHT),
+                    )
+                } else {
+                    LazyVerticalGrid(
+                        columns = GridCells.Adaptive(48.dp),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .height(ICON_GRID_HEIGHT),
+                    ) {
+                        items(results, key = { it.name }) { option ->
+                            IconToggleButton(
+                                checked = option.name == icon,
+                                onCheckedChange = { icon = option.name },
+                                shape = CircleShape,
+                                colors =
+                                    IconButtonDefaults.iconToggleButtonColors(
+                                        checkedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                        checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    ),
+                                modifier = Modifier.size(48.dp),
+                            ) {
+                                Icon(rememberFolderIconPainter(option.name), contentDescription = option.label)
+                            }
                         }
                     }
                 }
@@ -143,6 +178,8 @@ internal fun FolderDialog(
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
 }
+
+private val ICON_GRID_HEIGHT = 240.dp
 
 /** Picks the folder a feed is in, or none. */
 @Composable
@@ -173,7 +210,7 @@ fun MoveFeedDialog(
 @Composable
 private fun FolderChoice(
     label: String,
-    icon: FolderIcon?,
+    icon: String?,
     selected: Boolean,
     onClick: () -> Unit,
 ) {
@@ -187,33 +224,9 @@ private fun FolderChoice(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         RadioButton(selected = selected, onClick = null)
-        if (icon != null) Icon(painterResource(icon.drawableRes()), contentDescription = null)
+        if (icon != null) Icon(rememberFolderIconPainter(icon), contentDescription = null)
         Text(label, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 
 private const val MAX_TITLE_LENGTH = 40
-
-@StringRes
-private fun FolderIcon.labelRes(): Int =
-    when (this) {
-        FolderIcon.Folder -> R.string.folder_icon_folder
-        FolderIcon.Star -> R.string.folder_icon_star
-        FolderIcon.Heart -> R.string.folder_icon_heart
-        FolderIcon.News -> R.string.folder_icon_news
-        FolderIcon.Tech -> R.string.folder_icon_tech
-        FolderIcon.Code -> R.string.folder_icon_code
-        FolderIcon.Science -> R.string.folder_icon_science
-        FolderIcon.Work -> R.string.folder_icon_work
-        FolderIcon.Money -> R.string.folder_icon_money
-        FolderIcon.Sports -> R.string.folder_icon_sports
-        FolderIcon.Games -> R.string.folder_icon_games
-        FolderIcon.Music -> R.string.folder_icon_music
-        FolderIcon.Movies -> R.string.folder_icon_movies
-        FolderIcon.Books -> R.string.folder_icon_books
-        FolderIcon.Photos -> R.string.folder_icon_photos
-        FolderIcon.Food -> R.string.folder_icon_food
-        FolderIcon.Travel -> R.string.folder_icon_travel
-        FolderIcon.Nature -> R.string.folder_icon_nature
-        FolderIcon.Home -> R.string.folder_icon_home
-    }

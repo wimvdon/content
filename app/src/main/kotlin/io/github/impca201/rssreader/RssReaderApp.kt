@@ -8,6 +8,7 @@ import coil3.PlatformContext
 import coil3.SingletonImageLoader
 import coil3.request.crossfade
 import io.github.impca201.rssreader.data.FullArticles
+import io.github.impca201.rssreader.data.IconCatalog
 import io.github.impca201.rssreader.data.LibraryRepository
 import io.github.impca201.rssreader.data.SettingsStore
 import io.github.impca201.rssreader.feed.FeedFetcher
@@ -15,6 +16,7 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import java.io.File
 
 class RssReaderApp :
@@ -43,6 +45,17 @@ class RssReaderApp :
     val library: LibraryRepository by lazy { LibraryRepository(this, appScope, fetch = fetcher::fetch) }
 
     val fullArticles: FullArticles by lazy { FullArticles(File(cacheDir, "articles"), fetch = fetcher::fetch) }
+
+    /** Folder icons (Material Symbols), read from the assets the first time they are needed. */
+    val iconCatalog: IconCatalog by lazy {
+        IconCatalog.parse(assets.open("material_symbols.txt").bufferedReader().use { it.readText() })
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+        // Read the folder icons in the background now, so the first screen doesn't wait for them.
+        appScope.launch { iconCatalog }
+    }
 
     /** The article list refreshes once per app start; later refreshes are pull-to-refresh. */
     var refreshedThisSession = false

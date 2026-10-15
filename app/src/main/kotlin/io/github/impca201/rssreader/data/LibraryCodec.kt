@@ -15,7 +15,7 @@ object LibraryCodec {
         buildString {
             append(HEADER).append('\n')
             for (folder in library.folders) {
-                appendRecord(FOLDER, folder.id, folder.title, folder.icon.name)
+                appendRecord(FOLDER, folder.id, folder.title, folder.icon)
             }
             for (feed in library.feeds) {
                 appendRecord(FEED, feed.url, feed.title, feed.siteUrl.orEmpty(), feed.folderId.orEmpty(), feed.iconUrl.orEmpty())
@@ -75,7 +75,7 @@ object LibraryCodec {
 
     private fun decodeFolder(f: List<String>): Folder? {
         if (f.size < 4 || f[1].isEmpty() || f[2].isBlank()) return null
-        return Folder(id = f[1], title = f[2], icon = FolderIcon.entries.firstOrNull { it.name == f[3] } ?: FolderIcon.Folder)
+        return Folder(id = f[1], title = f[2], icon = IconCatalog.fromStored(f[3]))
     }
 
     private fun decodeArticle(f: List<String>): Article? {

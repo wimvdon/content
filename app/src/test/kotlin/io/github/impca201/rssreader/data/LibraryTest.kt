@@ -129,7 +129,7 @@ class LibraryTest {
         assertEquals(Library.MAX_HTML_LENGTH, merged.articles.single().html.length)
     }
 
-    private val tech = Folder("tech", "Tech", FolderIcon.Tech)
+    private val tech = Folder("tech", "Tech", "devices")
     private val withFolder = twoFeeds.addFolder(tech).moveFeed(a, "tech")
 
     @Test
@@ -138,8 +138,8 @@ class LibraryTest {
         assertEquals("tech", withFolder.feed(a)!!.folderId)
         assertSame(withFolder, withFolder.addFolder(Folder("tech", "Again")))
         assertSame(withFolder, withFolder.addFolder(Folder("blank", "  ")))
-        val renamed = withFolder.updateFolder("tech", " Gadgets ", FolderIcon.Code)
-        assertEquals(Folder("tech", "Gadgets", FolderIcon.Code), renamed.folder("tech"))
+        val renamed = withFolder.updateFolder("tech", " Gadgets ", "code")
+        assertEquals(Folder("tech", "Gadgets", "code"), renamed.folder("tech"))
         val removed = withFolder.removeFolder("tech")
         assertTrue(removed.folders.isEmpty())
         assertEquals(2, removed.feeds.size)

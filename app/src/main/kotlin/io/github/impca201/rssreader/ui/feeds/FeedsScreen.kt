@@ -34,7 +34,6 @@ import io.github.impca201.rssreader.R
 import io.github.impca201.rssreader.data.Feed
 import io.github.impca201.rssreader.data.FeedProblem
 import io.github.impca201.rssreader.data.Folder
-import io.github.impca201.rssreader.data.FolderIcon
 import io.github.impca201.rssreader.ui.home.FeedIcon
 import io.github.impca201.rssreader.ui.home.FeedIconSize
 import io.github.impca201.rssreader.ui.home.problemText
@@ -52,7 +51,7 @@ class FeedsActions(
     val onAddFeed: () -> Unit,
     val onRemoveFeed: (Feed) -> Unit,
     val onMoveFeed: (Feed, String?) -> Unit,
-    val onAddFolder: (String, FolderIcon) -> Unit,
+    val onAddFolder: (title: String, icon: String) -> Unit,
     val onUpdateFolder: (Folder) -> Unit,
     val onRemoveFolder: (Folder) -> Unit,
     val onImportOpml: () -> Unit,

@@ -217,7 +217,7 @@ class LibraryRepository(
     /** Creates a folder and returns its id. */
     suspend fun addFolder(
         title: String,
-        icon: FolderIcon,
+        icon: String,
     ): String {
         val id = newFolderId()
         store.updateData { it.addFolder(Folder(id, title, icon)) }
@@ -227,7 +227,7 @@ class LibraryRepository(
     suspend fun updateFolder(
         id: String,
         title: String,
-        icon: FolderIcon,
+        icon: String,
     ) {
         store.updateData { it.updateFolder(id, title, icon) }
     }

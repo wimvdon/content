@@ -33,6 +33,7 @@ RssReaderApp ── SettingsStore ── DataStore "settings" (Preferences)
 | `data/FullArticles.kt` | Loads full articles for summary-only feeds and keeps them in the cache folder (300 most recent). |
 | `data/ScrollRead.kt` | Mark as read on scroll: which list articles have scrolled off the top. |
 | `feed/SiteIcon.kt` | Picks a website's icon from its home page (`<link rel="icon">`, `apple-touch-icon`, largest first; no SVG), or `/favicon.ico`. The repository looks it up once per feed (after a refresh or adding a feed) and stores it with the feed. `ui/home/FeedIcon.kt` shows it with a letter fallback. |
+| `data/IconCatalog.kt` | Folder icons: the Material Symbols set in `assets/material_symbols.txt` (name, category, path data per icon; Apache 2.0, licence next to it), with search and the names of the icons folders had before. `RssReaderApp.iconCatalog` reads it once in the background; `ui/home/FolderIcons.kt` turns an icon into a vector. |
 | `feed/FeedDates.kt`, `Html.kt`, `Opml.kt` | Date formats of real feeds; HTML clean-up, plain text and snippets; OPML read and write. |
 | `ui/Navigation.kt` | Back stack, wiring between screens and stores, Add feed dialog, OPML file pickers, Instapaper and share hand-offs. |
 | `ui/home/` | Article list with Unread/All filter, pull-to-refresh, loading placeholders, empty states, Mark all read button (for the section shown: All, a folder or a feed); floating folder bar (`FolderBar`); feed drawer grouped by folder; Add feed dialog. |
