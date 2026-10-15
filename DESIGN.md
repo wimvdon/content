@@ -127,7 +127,8 @@ repositories:
   screen, top bar and system bar icons included, takes the page colour.
 - Article titles in the reader are the hero text (bold, in the reader's font). Unread rows in the
   list use SemiBold titles and a primary dot; read rows use `onSurfaceVariant`.
-- Settings sections: Feeds, Folders, Article list, Reader, Save and share (integration), Appearance, footer.
+- Feeds and folders is its own page (☰ and a link at the top of Settings), built with the
+  settings scaffold. Settings sections: Article list, Reader, Save and share (integration), Appearance, footer.
 - Folders: a floating pill bar at the bottom of the list (Home, then each folder: icon with its
   name below, fixed-width tabs, the selected one on a `secondaryContainer` indicator, like the
   navigation bar). The Mark all read FAB sits above it and only marks the section shown.

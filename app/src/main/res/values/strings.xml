@@ -136,6 +136,8 @@
     <string name="list_view_small">Small</string>
     <string name="list_view_medium">Medium</string>
     <string name="list_view_large">Large</string>
+    <string name="feeds_page_title">Feeds and folders</string>
+    <string name="feeds_opml_title">Move to or from another reader</string>
     <plurals name="feeds_count">
         <item quantity="one">%d feed</item>
         <item quantity="other">%d feeds</item>
@@ -155,6 +157,10 @@
     <plurals name="home_subtitle_all">
         <item quantity="one">All articles · %d unread</item>
         <item quantity="other">All articles · %d unread</item>
+    </plurals>
+    <plurals name="feeds_problem_count">
+        <item quantity="one">%d feed can\'t be downloaded</item>
+        <item quantity="other">%d feeds can\'t be downloaded</item>
     </plurals>
     <plurals name="folders_count">
         <item quantity="one">%d folder</item>

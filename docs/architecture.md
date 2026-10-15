@@ -6,7 +6,7 @@ RSS Reader is a single-activity Jetpack Compose app with no server and no accoun
 the feeds the user subscribes to, keeps them on the phone, and shows them in a list and a reader.
 
 ```
-MainActivity ─ RssReaderAppTheme ─ RssReaderNavigation (back stack: Home › Reader / Settings)
+MainActivity ─ RssReaderAppTheme ─ RssReaderNavigation (back stack: Home › Reader / Settings / Feeds)
                                         │ state ▲          │ clicks
                                         ▼       │          ▼
 RssReaderApp ── SettingsStore ── DataStore "settings" (Preferences)
@@ -37,7 +37,8 @@ RssReaderApp ── SettingsStore ── DataStore "settings" (Preferences)
 | `ui/Navigation.kt` | Back stack, wiring between screens and stores, Add feed dialog, OPML file pickers, Instapaper and share hand-offs. |
 | `ui/home/` | Article list with Unread/All filter, pull-to-refresh, loading placeholders, empty states, Mark all read button (for the section shown: All, a folder or a feed); floating folder bar (`FolderBar`); feed drawer grouped by folder; Add feed dialog. |
 | `ui/reader/` | Reader screen, Text sheet, reader colours (theme, sepia, dark). `ReaderStyleControls` is shared with Settings. |
-| `ui/settings/` | Settings screen built from the shared `SettingsKit`; folder editor and Move to folder dialog (`FolderSettings.kt`); Save and Share targets. |
+| `ui/feeds/` | Feeds and folders page: folders with their feeds, add/remove feeds, folder editor and Move to folder dialog (`FolderDialogs.kt`), OPML import/export. |
+| `ui/settings/` | Settings screen built from the shared `SettingsKit`: a link to Feeds and folders, Article list, Reader, Save and Share targets, Appearance. |
 | `ui/theme/` | The app's palette and the shared design kit (see `DESIGN.md`). |
 | `ui/ExternalApps.kt` | Browser, share sheet, Instapaper and Play Store intents. |
 

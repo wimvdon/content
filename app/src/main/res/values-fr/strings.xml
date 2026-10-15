@@ -135,6 +135,8 @@
     <string name="list_view_small">Petit</string>
     <string name="list_view_medium">Moyen</string>
     <string name="list_view_large">Grand</string>
+    <string name="feeds_page_title">Flux et dossiers</string>
+    <string name="feeds_opml_title">Depuis ou vers un autre lecteur</string>
     <plurals name="feeds_count">
         <item quantity="one">%d flux</item>
         <item quantity="many">%d flux</item>
@@ -159,6 +161,11 @@
         <item quantity="one">Tous les articles · %d non lu</item>
         <item quantity="many">Tous les articles · %d non lus</item>
         <item quantity="other">Tous les articles · %d non lus</item>
+    </plurals>
+    <plurals name="feeds_problem_count">
+        <item quantity="one">%d flux ne peut pas être téléchargé</item>
+        <item quantity="many">%d flux ne peuvent pas être téléchargés</item>
+        <item quantity="other">%d flux ne peuvent pas être téléchargés</item>
     </plurals>
     <plurals name="folders_count">
         <item quantity="one">%d dossier</item>

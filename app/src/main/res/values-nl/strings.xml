@@ -135,6 +135,8 @@
     <string name="list_view_small">Klein</string>
     <string name="list_view_medium">Middel</string>
     <string name="list_view_large">Groot</string>
+    <string name="feeds_page_title">Feeds en mappen</string>
+    <string name="feeds_opml_title">Van of naar een andere lezer</string>
     <plurals name="feeds_count">
         <item quantity="one">%d feed</item>
         <item quantity="other">%d feeds</item>
@@ -154,6 +156,10 @@
     <plurals name="home_subtitle_all">
         <item quantity="one">Alle artikels · %d ongelezen</item>
         <item quantity="other">Alle artikels · %d ongelezen</item>
+    </plurals>
+    <plurals name="feeds_problem_count">
+        <item quantity="one">%d feed kan niet gedownload worden</item>
+        <item quantity="other">%d feeds kunnen niet gedownload worden</item>
     </plurals>
     <plurals name="folders_count">
         <item quantity="one">%d map</item>

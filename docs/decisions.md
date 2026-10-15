@@ -2,6 +2,14 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-15: Feeds and folders get their own page
+
+Managing feeds and folders was two sections in Settings; with folders, the feeds belong under
+their folder, which a settings section can't show well. Asked for by the owner. The new page
+(☰ › Feeds and folders, and a link at the top of Settings) lists each folder with its feeds,
+then the feeds outside folders, with Add feed, New folder and OPML import/export. Settings keeps
+only how the app looks and behaves.
+
 ## 2026-10-15: Website icons (favicons) from the sites themselves
 
 The owner asked for favicons so sources are recognisable. The app reads the icon a feed's

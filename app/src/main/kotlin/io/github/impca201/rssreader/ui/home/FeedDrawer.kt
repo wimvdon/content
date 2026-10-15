@@ -26,7 +26,7 @@ import io.github.impca201.rssreader.data.FeedSelection
 import io.github.impca201.rssreader.data.Folder
 
 /**
- * All articles, then each folder with its feeds, then the feeds outside folders (each with its
+ * Home, then each folder with its feeds, then the feeds outside folders (each with its
  * unread count), then Add feed and Settings.
  */
 @Composable
@@ -38,6 +38,7 @@ fun FeedDrawer(
     onSelect: (FeedSelection) -> Unit,
     onAddFeed: () -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenFeeds: () -> Unit,
 ) {
     ModalDrawerSheet {
         Column(
@@ -94,6 +95,12 @@ fun FeedDrawer(
                 icon = { Icon(painterResource(R.drawable.ic_add), contentDescription = null) },
                 selected = false,
                 onClick = onAddFeed,
+            )
+            NavigationDrawerItem(
+                label = { Text(stringResource(R.string.feeds_page_title)) },
+                icon = { Icon(painterResource(R.drawable.ic_rss_feed), contentDescription = null) },
+                selected = false,
+                onClick = onOpenFeeds,
             )
             NavigationDrawerItem(
                 label = { Text(stringResource(R.string.menu_settings)) },
