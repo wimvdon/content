@@ -118,7 +118,7 @@ repositories:
 
 ## This app
 
-- Icon: the feed symbol on its own (a dot and two thick, round-ended waves), gradient
+- Icon: the feed symbol on its own (the classic proportions: a dot and two thick, round-ended waves), gradient
   `#4FC3F7` → `#0091EA` → `#0D47A1` (sky to navy) on the white background; chosen by the owner
   over the shared "shape with a white detail" rule. Themed layer: the same symbol.
 - Seed `#0091EA` (azure), tertiary from the icon's sky blue.

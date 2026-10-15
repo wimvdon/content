@@ -5,8 +5,8 @@ Newest first. Add an entry for every notable choice: what was decided, why, and 
 ## 2026-10-15: Icon without a box
 
 The owner chose the feed symbol on its own, with the blue gradient, over the first design (a
-gradient rounded square with a white symbol inside), after comparing mockups. Waves made shorter
-and thicker so it stays clear at small sizes. This departs from the shared icon rule in
+gradient rounded square with a white symbol inside), after comparing mockups, drawn with the proportions of the
+classic feed icon the owner supplied (thick waves, round ends) so it stays clear at small sizes. This departs from the shared icon rule in
 `DESIGN.md` ("one bold shape with one white detail inside"); recorded under "This app" there, and
 the master copy in the template should mention the exception.
 
