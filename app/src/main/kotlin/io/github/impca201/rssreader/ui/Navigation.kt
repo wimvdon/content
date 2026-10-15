@@ -5,7 +5,9 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -215,27 +217,18 @@ fun RssReaderNavigation() {
             when (screen) {
                 Screen.Home -> {
                     SystemBarsFollowTheme(appDark)
-                    // A removed feed can't stay selected.
-                    val shownSelection =
-                        (selection as? FeedSelection.Single)?.takeIf { library.feed(it.feedUrl) != null } ?: FeedSelection.All
+                    // A removed feed or folder can't stay selected.
+                    val shownSelection = library.shown(selection)
                     val articles =
                         remember(library, shownSelection, current.unreadOnly, readThisVisit) {
                             library.articlesFor(shownSelection, current.unreadOnly, keep = readThisVisit)
                         }
-                    val unreadCounts =
-                        remember(library) {
-                            buildMap {
-                                put(FeedSelection.All, library.unreadCount(FeedSelection.All))
-                                library.feeds.forEach { feed ->
-                                    val single = FeedSelection.Single(feed.url)
-                                    put(single, library.unreadCount(single))
-                                }
-                            }
-                        }
+                    val unreadCounts = remember(library) { library.unreadCounts() }
                     HomeScreen(
                         state =
                             HomeState(
                                 feeds = library.feeds,
+                                folders = library.folders,
                                 articles = articles,
                                 selection = shownSelection,
                                 unreadOnly = current.unreadOnly,
@@ -260,7 +253,21 @@ fun RssReaderNavigation() {
                                     push(Screen.Reader(article.key))
                                 },
                                 onRefresh = ::refresh,
-                                onMarkAllRead = { app.appScope.launch { repository.markAllRead(shownSelection) } },
+                                onMarkAllRead = {
+                                    app.appScope.launch {
+                                        val keys = repository.markAllRead(shownSelection)
+                                        if (keys.isEmpty()) return@launch
+                                        uiScope.launch {
+                                            val result =
+                                                snackbar.showSnackbar(
+                                                    resources.getQuantityString(R.plurals.marked_read, keys.size, keys.size),
+                                                    actionLabel = resources.getString(R.string.action_undo),
+                                                    duration = SnackbarDuration.Short,
+                                                )
+                                            if (result == SnackbarResult.ActionPerformed) app.appScope.launch { repository.setRead(keys, false) }
+                                        }
+                                    }
+                                },
                                 onAddFeed = { addDialogOpen = true },
                                 onImportOpml = importOpml,
                                 onOpenSettings = { push(Screen.Settings) },
@@ -327,6 +334,7 @@ fun RssReaderNavigation() {
                             SettingsState(
                                 settings = current,
                                 feeds = library.feeds,
+                                folders = library.folders,
                                 problems = problems,
                                 shareApps = shareApps,
                             ),
@@ -336,6 +344,10 @@ fun RssReaderNavigation() {
                                 onBack = ::pop,
                                 onAddFeed = { addDialogOpen = true },
                                 onRemoveFeed = { feed -> app.appScope.launch { repository.removeFeed(feed.url) } },
+                                onMoveFeed = { feed, folderId -> app.appScope.launch { repository.moveFeed(feed.url, folderId) } },
+                                onAddFolder = { title, icon -> app.appScope.launch { repository.addFolder(title, icon) } },
+                                onUpdateFolder = { folder -> app.appScope.launch { repository.updateFolder(folder.id, folder.title, folder.icon) } },
+                                onRemoveFolder = { folder -> app.appScope.launch { repository.removeFolder(folder.id) } },
                                 onImportOpml = importOpml,
                                 onExportOpml = exportOpml,
                                 onReaderStyleChange = { style -> app.appScope.launch { app.settings.setReaderStyle(style) } },
@@ -360,7 +372,9 @@ fun RssReaderNavigation() {
                 addBusy = true
                 addError = null
                 app.appScope.launch {
-                    val result = repository.addFeed(address)
+                    // Added to the folder being viewed, if any.
+                    val folderId = (library.shown(selection) as? FeedSelection.InFolder)?.folderId
+                    val result = repository.addFeed(address, folderId)
                     addBusy = false
                     val error = result.errorRes()
                     if (error != null) {
@@ -384,6 +398,18 @@ fun RssReaderNavigation() {
 
 private val SelectionSaver =
     Saver<FeedSelection, String>(
-        save = { if (it is FeedSelection.Single) it.feedUrl else "" },
-        restore = { if (it.isEmpty()) FeedSelection.All else FeedSelection.Single(it) },
+        save = {
+            when (it) {
+                FeedSelection.All -> ""
+                is FeedSelection.InFolder -> "folder:" + it.folderId
+                is FeedSelection.Single -> "feed:" + it.feedUrl
+            }
+        },
+        restore = {
+            when {
+                it.startsWith("folder:") -> FeedSelection.InFolder(it.removePrefix("folder:"))
+                it.startsWith("feed:") -> FeedSelection.Single(it.removePrefix("feed:"))
+                else -> FeedSelection.All
+            }
+        },
     )

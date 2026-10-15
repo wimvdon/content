@@ -55,9 +55,9 @@ rss-reader/
         │   │   └── ui/
         │   │       ├── MainActivity.kt, Navigation.kt   Entry, back stack, wiring
         │   │       ├── ExternalApps.kt        Browser, share, Instapaper, Play Store
-        │   │       ├── home/                  Article list, feed drawer, Add feed dialog, messages
+        │   │       ├── home/                  Article list, folder bar, feed drawer, Add feed dialog, messages
         │   │       ├── reader/                Reader screen, text settings, reader colours
-        │   │       ├── settings/              Settings screen
+        │   │       ├── settings/              Settings screen, folder editor, Save/Share targets
         │   │       └── theme/                 Theme.kt (palette) + shared design kit
         │   └── res/
         │       ├── drawable/                  Launcher icon layers, Material icons

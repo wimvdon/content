@@ -9,8 +9,9 @@ class LibraryCodecTest {
             feeds =
                 listOf(
                     Feed("https://a.example.com/feed", "Tabs\tand\nlines", "https://a.example.com"),
-                    Feed("https://b.example.com/feed", "B", null),
+                    Feed("https://b.example.com/feed", "B", null, folderId = "f1"),
                 ),
+            folders = listOf(Folder("f1", "Tech\tnews", FolderIcon.Tech), Folder("f2", "Empty")),
             articles =
                 listOf(
                     Article(
@@ -52,6 +53,18 @@ class LibraryCodecTest {
         val article = LibraryCodec.decode(old).articles.single()
         assertEquals(null, article.imageUrl)
         assertEquals("<p>x</p>", article.html)
+    }
+
+    @Test
+    fun `feeds in a folder that is missing from the file load without one`() {
+        val text =
+            "rss-reader-library 1\n" +
+                "D\tf1\tTech\tNoSuchIcon\n" +
+                "F\thttps://a.example.com/feed\tA\t\tf1\n" +
+                "F\thttps://b.example.com/feed\tB\t\tgone\n"
+        val decoded = LibraryCodec.decode(text)
+        assertEquals(listOf(Folder("f1", "Tech", FolderIcon.Folder)), decoded.folders)
+        assertEquals(listOf("f1", null), decoded.feeds.map { it.folderId })
     }
 
     @Test

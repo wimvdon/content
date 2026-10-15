@@ -6,7 +6,7 @@ import org.junit.Test
 
 class OpmlTest {
     @Test
-    fun `reads feeds from folders and skips duplicates and non-feeds`() {
+    fun `reads feeds with their folders and skips duplicates and non-feeds`() {
         val opml =
             """
             <?xml version="1.0"?>
@@ -21,15 +21,15 @@ class OpmlTest {
             """.trimIndent()
         assertEquals(
             listOf(
-                Opml.Entry("https://a.example.com/feed", "Blog A"),
-                Opml.Entry("https://b.example.com/rss", "Blog B"),
+                Opml.Entry("https://a.example.com/feed", "Blog A", folder = "Tech"),
+                Opml.Entry("https://b.example.com/rss", "Blog B", folder = "Tech"),
             ),
             Opml.parse(opml.toByteArray()),
         )
     }
 
     @Test
-    fun `reads an Inoreader export`() {
+    fun `reads an Inoreader export with its folders`() {
         // Shape of Inoreader's "Export to OPML": folders as outlines, http addresses, extra attributes.
         val opml =
             """
@@ -46,7 +46,7 @@ class OpmlTest {
             """.trimIndent()
         assertEquals(
             listOf(
-                Opml.Entry("https://www.theverge.com/rss/index.xml", "The Verge"),
+                Opml.Entry("https://www.theverge.com/rss/index.xml", "The Verge", folder = "News"),
                 Opml.Entry("https://daringfireball.net/feeds/main", "Daring Fireball"),
             ),
             Opml.parse(opml.toByteArray()),
@@ -55,7 +55,12 @@ class OpmlTest {
 
     @Test
     fun `what it writes, it reads back`() {
-        val entries = listOf(Opml.Entry("https://e.com/feed?a=1&b=2", "Tom & Jerry's \"news\""))
+        val entries =
+            listOf(
+                Opml.Entry("https://e.com/feed?a=1&b=2", "Tom & Jerry's \"news\""),
+                Opml.Entry("https://f.com/feed", "F", folder = "Fun & games"),
+                Opml.Entry("https://g.com/feed", "G", folder = "Fun & games"),
+            )
         val written = Opml.write("My feeds", entries)
         assertTrue(written.contains("xmlUrl=\"https://e.com/feed?a=1&amp;b=2\""))
         assertEquals(entries, Opml.parse(written.toByteArray()))

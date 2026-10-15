@@ -95,6 +95,39 @@
     <string name="action_save_to">Bewaren in %1$s</string>
     <string name="action_share_to">Delen met %1$s</string>
     <string name="feeds_opml_hint">Met een OPML-bestand verhuis je je feeds tussen feedlezers, zoals Inoreader of Feedly: exporteer ze daar, importeer ze hier.</string>
+    <string name="action_save">Opslaan</string>
+    <string name="action_undo">Ongedaan maken</string>
+    <string name="section_folders">Mappen</string>
+    <string name="folders_explanation">Zet feeds in mappen om ze samen te lezen. Zodra er een map is, wissel je met een balk onderaan de lijst tussen Home en je mappen.</string>
+    <string name="folder_home">Home</string>
+    <string name="folder_new">Nieuwe map</string>
+    <string name="folder_edit">Map bewerken</string>
+    <string name="folder_edit_named">%1$s bewerken</string>
+    <string name="folder_title">Titel</string>
+    <string name="folder_icon">Icoon</string>
+    <string name="folder_remove_title">Map verwijderen?</string>
+    <string name="folder_remove_body">%1$s wordt verwijderd. De feeds erin blijven, buiten een map.</string>
+    <string name="folder_move_title">Map voor %1$s</string>
+    <string name="folder_none">Geen map</string>
+    <string name="folder_icon_folder">Map</string>
+    <string name="folder_icon_star">Ster</string>
+    <string name="folder_icon_heart">Hart</string>
+    <string name="folder_icon_news">Nieuws</string>
+    <string name="folder_icon_tech">Technologie</string>
+    <string name="folder_icon_code">Code</string>
+    <string name="folder_icon_science">Wetenschap</string>
+    <string name="folder_icon_work">Werk</string>
+    <string name="folder_icon_money">Geld</string>
+    <string name="folder_icon_sports">Sport</string>
+    <string name="folder_icon_games">Games</string>
+    <string name="folder_icon_music">Muziek</string>
+    <string name="folder_icon_movies">Films</string>
+    <string name="folder_icon_books">Boeken</string>
+    <string name="folder_icon_photos">Foto\'s</string>
+    <string name="folder_icon_food">Eten</string>
+    <string name="folder_icon_travel">Reizen</string>
+    <string name="folder_icon_nature">Natuur</string>
+    <string name="folder_icon_home">Huis</string>
     <plurals name="feeds_count">
         <item quantity="one">%d feed</item>
         <item quantity="other">%d feeds</item>
@@ -110,5 +143,13 @@
     <plurals name="refresh_failed">
         <item quantity="one">%d feed kon niet vernieuwd worden</item>
         <item quantity="other">%d feeds konden niet vernieuwd worden</item>
+    </plurals>
+    <plurals name="folders_count">
+        <item quantity="one">%d map</item>
+        <item quantity="other">%d mappen</item>
+    </plurals>
+    <plurals name="marked_read">
+        <item quantity="one">%d artikel als gelezen gemarkeerd</item>
+        <item quantity="other">%d artikelen als gelezen gemarkeerd</item>
     </plurals>
 </resources>
