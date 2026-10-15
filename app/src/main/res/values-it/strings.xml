@@ -135,6 +135,8 @@
     <string name="list_view_small">Piccola</string>
     <string name="list_view_medium">Media</string>
     <string name="list_view_large">Grande</string>
+    <string name="feeds_page_title">Feed e cartelle</string>
+    <string name="feeds_opml_title">Da o verso un altro lettore</string>
     <plurals name="feeds_count">
         <item quantity="one">%d feed</item>
         <item quantity="many">%d feed</item>
@@ -159,6 +161,11 @@
         <item quantity="one">Tutti gli articoli · %d non letto</item>
         <item quantity="many">Tutti gli articoli · %d non letti</item>
         <item quantity="other">Tutti gli articoli · %d non letti</item>
+    </plurals>
+    <plurals name="feeds_problem_count">
+        <item quantity="one">Impossibile scaricare %d feed</item>
+        <item quantity="many">Impossibile scaricare %d feed</item>
+        <item quantity="other">Impossibile scaricare %d feed</item>
     </plurals>
     <plurals name="folders_count">
         <item quantity="one">%d cartella</item>

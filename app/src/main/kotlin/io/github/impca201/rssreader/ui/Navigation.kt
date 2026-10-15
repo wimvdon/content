@@ -9,8 +9,9 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -19,7 +20,6 @@ import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.platform.LocalContext
@@ -38,6 +38,9 @@ import io.github.impca201.rssreader.data.ShareTarget
 import io.github.impca201.rssreader.data.Settings
 import io.github.impca201.rssreader.data.needsFullText
 import io.github.impca201.rssreader.rssReaderApp
+import io.github.impca201.rssreader.ui.feeds.FeedsActions
+import io.github.impca201.rssreader.ui.feeds.FeedsScreen
+import io.github.impca201.rssreader.ui.feeds.FeedsState
 import io.github.impca201.rssreader.ui.home.AddFeedDialog
 import io.github.impca201.rssreader.ui.home.HomeActions
 import io.github.impca201.rssreader.ui.home.HomeScreen
@@ -64,17 +67,22 @@ sealed interface Screen {
 
     data object Settings : Screen
 
+    /** Feeds and folders. */
+    data object Feeds : Screen
+
     companion object {
         fun encode(screen: Screen): String =
             when (screen) {
                 Home -> "home"
                 Settings -> "settings"
+                Feeds -> "feeds"
                 is Reader -> "reader:" + screen.articleKey
             }
 
         fun decode(text: String): Screen =
             when {
                 text == "settings" -> Settings
+                text == "feeds" -> Feeds
                 text.startsWith("reader:") -> Reader(text.removePrefix("reader:"))
                 else -> Home
             }
@@ -283,6 +291,7 @@ fun RssReaderNavigation() {
                                 onAddFeed = { addDialogOpen = true },
                                 onImportOpml = importOpml,
                                 onOpenSettings = { push(Screen.Settings) },
+                                onOpenFeeds = { push(Screen.Feeds) },
                             ),
                     )
                 }
@@ -345,23 +354,16 @@ fun RssReaderNavigation() {
                         state =
                             SettingsState(
                                 settings = current,
-                                feeds = library.feeds,
-                                folders = library.folders,
-                                problems = problems,
+                                feedCount = library.feeds.size,
+                                folderCount = library.folders.size,
+                                problemCount = problems.size,
                                 shareApps = shareApps,
                             ),
                         snackbarHostState = snackbar,
                         actions =
                             SettingsActions(
                                 onBack = ::pop,
-                                onAddFeed = { addDialogOpen = true },
-                                onRemoveFeed = { feed -> app.appScope.launch { repository.removeFeed(feed.url) } },
-                                onMoveFeed = { feed, folderId -> app.appScope.launch { repository.moveFeed(feed.url, folderId) } },
-                                onAddFolder = { title, icon -> app.appScope.launch { repository.addFolder(title, icon) } },
-                                onUpdateFolder = { folder -> app.appScope.launch { repository.updateFolder(folder.id, folder.title, folder.icon) } },
-                                onRemoveFolder = { folder -> app.appScope.launch { repository.removeFolder(folder.id) } },
-                                onImportOpml = importOpml,
-                                onExportOpml = exportOpml,
+                                onOpenFeeds = { push(Screen.Feeds) },
                                 onReaderStyleChange = { style -> app.appScope.launch { app.settings.setReaderStyle(style) } },
                                 onFullArticlesChange = { enabled -> app.appScope.launch { app.settings.setFullArticles(enabled) } },
                                 onShowImagesChange = { enabled -> app.appScope.launch { app.settings.setShowImages(enabled) } },
@@ -371,6 +373,26 @@ fun RssReaderNavigation() {
                                 onShareTargetChange = { target -> app.appScope.launch { app.settings.setShareTarget(target) } },
                                 onThemeModeChange = { mode -> app.appScope.launch { app.settings.setThemeMode(mode) } },
                                 onDynamicColorChange = { enabled -> app.appScope.launch { app.settings.setDynamicColor(enabled) } },
+                            ),
+                    )
+                }
+
+                Screen.Feeds -> {
+                    SystemBarsFollowTheme(appDark)
+                    FeedsScreen(
+                        state = FeedsState(feeds = library.feeds, folders = library.folders, problems = problems),
+                        snackbarHostState = snackbar,
+                        actions =
+                            FeedsActions(
+                                onBack = ::pop,
+                                onAddFeed = { addDialogOpen = true },
+                                onRemoveFeed = { feed -> app.appScope.launch { repository.removeFeed(feed.url) } },
+                                onMoveFeed = { feed, folderId -> app.appScope.launch { repository.moveFeed(feed.url, folderId) } },
+                                onAddFolder = { title, icon -> app.appScope.launch { repository.addFolder(title, icon) } },
+                                onUpdateFolder = { folder -> app.appScope.launch { repository.updateFolder(folder.id, folder.title, folder.icon) } },
+                                onRemoveFolder = { folder -> app.appScope.launch { repository.removeFolder(folder.id) } },
+                                onImportOpml = importOpml,
+                                onExportOpml = exportOpml,
                             ),
                     )
                 }

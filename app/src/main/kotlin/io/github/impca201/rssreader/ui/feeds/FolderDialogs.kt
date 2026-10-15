@@ -1,4 +1,4 @@
-package io.github.impca201.rssreader.ui.settings
+package io.github.impca201.rssreader.ui.feeds
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
@@ -19,7 +19,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconToggleButton
@@ -31,9 +30,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -49,82 +48,10 @@ import io.github.impca201.rssreader.data.Folder
 import io.github.impca201.rssreader.data.FolderIcon
 import io.github.impca201.rssreader.ui.home.drawableRes
 import io.github.impca201.rssreader.ui.theme.AppShapes
-import io.github.impca201.rssreader.ui.theme.CollapsibleSection
 
-/** Folders: create, rename, change the icon, delete. Feeds are put in folders under Feeds. */
+/** A folder's header on the Feeds and folders page: icon, title, number of feeds, edit and remove. */
 @Composable
-fun FoldersSection(
-    folders: List<Folder>,
-    feeds: List<Feed>,
-    onAddFolder: (String, FolderIcon) -> Unit,
-    onUpdateFolder: (Folder) -> Unit,
-    onRemoveFolder: (Folder) -> Unit,
-) {
-    // "" while creating a folder, a folder's id while editing it, null when the dialog is closed.
-    var editing by rememberSaveable { mutableStateOf<String?>(null) }
-    var confirmRemove by rememberSaveable { mutableStateOf<String?>(null) }
-    CollapsibleSection(
-        key = "folders",
-        title = stringResource(R.string.section_folders),
-        summary = pluralStringResource(R.plurals.folders_count, folders.size, folders.size),
-        icon = painterResource(R.drawable.ic_folder),
-    ) {
-        if (folders.isEmpty()) {
-            Text(
-                stringResource(R.string.folders_explanation),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        folders.forEach { folder ->
-            FolderRow(
-                folder = folder,
-                feedCount = feeds.count { it.folderId == folder.id },
-                onEdit = { editing = folder.id },
-                onRemove = { confirmRemove = folder.id },
-            )
-        }
-        FilledTonalButton(onClick = { editing = "" }, modifier = Modifier.fillMaxWidth()) {
-            Icon(painterResource(R.drawable.ic_add), contentDescription = null)
-            Text(stringResource(R.string.folder_new), modifier = Modifier.padding(start = 8.dp))
-        }
-    }
-
-    editing?.let { id ->
-        val folder = folders.firstOrNull { it.id == id }
-        if (id.isEmpty() || folder != null) {
-            FolderDialog(
-                folder = folder,
-                onSave = { title, icon ->
-                    editing = null
-                    if (folder == null) onAddFolder(title, icon) else onUpdateFolder(folder.copy(title = title, icon = icon))
-                },
-                onDismiss = { editing = null },
-            )
-        }
-    }
-
-    val removing = confirmRemove?.let { id -> folders.firstOrNull { it.id == id } }
-    if (removing != null) {
-        AlertDialog(
-            onDismissRequest = { confirmRemove = null },
-            title = { Text(stringResource(R.string.folder_remove_title)) },
-            text = { Text(stringResource(R.string.folder_remove_body, removing.title)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    confirmRemove = null
-                    onRemoveFolder(removing)
-                }) { Text(stringResource(R.string.action_remove)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { confirmRemove = null }) { Text(stringResource(R.string.action_cancel)) }
-            },
-        )
-    }
-}
-
-@Composable
-private fun FolderRow(
+internal fun FolderRow(
     folder: Folder,
     feedCount: Int,
     onEdit: () -> Unit,
@@ -162,7 +89,7 @@ private fun FolderRow(
 /** New folder ([folder] null) or edit one: a title and an icon. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun FolderDialog(
+internal fun FolderDialog(
     folder: Folder?,
     onSave: (String, FolderIcon) -> Unit,
     onDismiss: () -> Unit,

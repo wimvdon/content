@@ -81,7 +81,7 @@ and then (always before a release):
 - [ ] **Mark as read on scroll** on: scroll down the Unread list; the articles that leave the
       top of the screen are marked read (their dot goes) but stay until you refresh.
 - [ ] Import and export OPML (for example an Inoreader export); folders come along both ways.
-- [ ] **Folders:** create a folder with an icon, move feeds into it; the bottom bar appears, its
+- [ ] **Feeds and folders** (☰ and top of Settings): create a folder with an icon, move feeds into it (they show under it); the bottom bar appears, its
       tabs show only that folder's articles; Mark all read (round button) only marks that
       section and Undo restores it; removing the folder keeps its feeds and hides the bar.
 - [ ] **Dark mode** and **Settings › Appearance**: switch Theme and Dynamic color. Text stays
