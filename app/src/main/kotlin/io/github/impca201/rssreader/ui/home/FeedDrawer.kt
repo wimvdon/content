@@ -65,7 +65,7 @@ fun FeedDrawer(
                 val folderSelection = FeedSelection.InFolder(folder.id)
                 NavigationDrawerItem(
                     label = { Text(folder.title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                    icon = { Icon(painterResource(folder.icon.drawableRes()), contentDescription = null) },
+                    icon = { Icon(rememberFolderIconPainter(folder.icon), contentDescription = null) },
                     badge = { UnreadBadge(unreadCounts[folderSelection] ?: 0) },
                     selected = selection == folderSelection,
                     onClick = { onSelect(folderSelection) },

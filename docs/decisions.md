@@ -2,6 +2,18 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-15: Folder icons from the whole Material Symbols set, with search
+
+The owner asked for many more folder icons ("just use an entire library with keyword search").
+The app now bundles the Material Symbols set (4 229 icons, outlined rounded style, Apache 2.0)
+as one text file in `assets/` (about 0.9 MB in the APK): name, category and SVG path data per
+icon, generated from the `@iconify-json/material-symbols` package. Icons are drawn as vectors
+from that path data, and the folder dialog searches names, categories and a few related words.
+Folders now store the icon's name; the 19 icons of v0.0.3 are mapped to their Material Symbols
+names. Rejected: `material-icons-extended` (a new library, the older icon set, and no search
+words) and the Material Symbols font (`.woff2` only, which Android can't load, and no names to
+search). Trade-off: search words are English.
+
 ## 2026-10-15: Feeds and folders get their own page
 
 Managing feeds and folders was two sections in Settings; with folders, the feeds belong under

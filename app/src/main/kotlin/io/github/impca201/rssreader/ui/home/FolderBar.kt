@@ -1,6 +1,5 @@
 package io.github.impca201.rssreader.ui.home
 
-import androidx.annotation.DrawableRes
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -25,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -33,7 +33,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.impca201.rssreader.R
 import io.github.impca201.rssreader.data.Folder
-import io.github.impca201.rssreader.data.FolderIcon
 import io.github.impca201.rssreader.ui.theme.Motion
 
 /**
@@ -64,14 +63,14 @@ fun FolderBar(
                     .selectableGroup(),
         ) {
             Tab(
-                icon = R.drawable.ic_home,
+                icon = painterResource(R.drawable.ic_home),
                 label = stringResource(R.string.folder_home),
                 selected = selectedFolderId == null,
                 onClick = onSelectHome,
             )
             folders.forEach { folder ->
                 Tab(
-                    icon = folder.icon.drawableRes(),
+                    icon = rememberFolderIconPainter(folder.icon),
                     label = folder.title,
                     selected = selectedFolderId == folder.id,
                     onClick = { onSelectFolder(folder) },
@@ -83,7 +82,7 @@ fun FolderBar(
 
 @Composable
 private fun Tab(
-    @DrawableRes icon: Int,
+    icon: Painter,
     label: String,
     selected: Boolean,
     onClick: () -> Unit,
@@ -114,7 +113,7 @@ private fun Tab(
                 .background(indicator, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(painterResource(icon), contentDescription = null, tint = contentColor)
+            Icon(icon, contentDescription = null, tint = contentColor)
         }
         Text(
             label,
@@ -128,27 +127,3 @@ private fun Tab(
 }
 
 private val TAB_WIDTH = 72.dp
-
-@DrawableRes
-fun FolderIcon.drawableRes(): Int =
-    when (this) {
-        FolderIcon.Folder -> R.drawable.ic_folder
-        FolderIcon.Star -> R.drawable.ic_star
-        FolderIcon.Heart -> R.drawable.ic_heart
-        FolderIcon.News -> R.drawable.ic_news
-        FolderIcon.Tech -> R.drawable.ic_tech
-        FolderIcon.Code -> R.drawable.ic_code
-        FolderIcon.Science -> R.drawable.ic_science
-        FolderIcon.Work -> R.drawable.ic_work
-        FolderIcon.Money -> R.drawable.ic_money
-        FolderIcon.Sports -> R.drawable.ic_sports
-        FolderIcon.Games -> R.drawable.ic_games
-        FolderIcon.Music -> R.drawable.ic_music
-        FolderIcon.Movies -> R.drawable.ic_movies
-        FolderIcon.Books -> R.drawable.ic_books
-        FolderIcon.Photos -> R.drawable.ic_photos
-        FolderIcon.Food -> R.drawable.ic_food
-        FolderIcon.Travel -> R.drawable.ic_travel
-        FolderIcon.Nature -> R.drawable.ic_nature
-        FolderIcon.Home -> R.drawable.ic_home
-    }

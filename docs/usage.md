@@ -36,7 +36,9 @@ come along.
 
 Open **☰ › Feeds and folders** (also reachable from the top of Settings). This page lists each
 folder with its feeds under it, then the feeds outside folders. Tap **New folder**, give it a
-title and pick an icon. Tap the pencil next to a folder to change them, or the bin to remove it
+title and pick an icon: the whole Material Symbols set (over 4 000 icons) is there. Type in the
+search field to find one (icon names are in English, such as *news*, *car*, *soccer* or *food*);
+with nothing typed, popular topics come first. Tap the pencil next to a folder to change them, or the bin to remove it
 (its feeds stay, outside any folder). To put a feed in a folder, tap the folder button next to
 the feed and choose the folder.
 

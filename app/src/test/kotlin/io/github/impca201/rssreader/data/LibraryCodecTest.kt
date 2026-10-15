@@ -11,7 +11,7 @@ class LibraryCodecTest {
                     Feed("https://a.example.com/feed", "Tabs\tand\nlines", "https://a.example.com", iconUrl = "https://a.example.com/icon.png"),
                     Feed("https://b.example.com/feed", "B", null, folderId = "f1"),
                 ),
-            folders = listOf(Folder("f1", "Tech\tnews", FolderIcon.Tech), Folder("f2", "Empty")),
+            folders = listOf(Folder("f1", "Tech\tnews", "devices"), Folder("f2", "Empty")),
             articles =
                 listOf(
                     Article(
@@ -59,11 +59,12 @@ class LibraryCodecTest {
     fun `feeds in a folder that is missing from the file load without one`() {
         val text =
             "rss-reader-library 1\n" +
-                "D\tf1\tTech\tNoSuchIcon\n" +
+                "D\tf1\tTech\tSports\n" +
                 "F\thttps://a.example.com/feed\tA\t\tf1\n" +
                 "F\thttps://b.example.com/feed\tB\t\tgone\n"
         val decoded = LibraryCodec.decode(text)
-        assertEquals(listOf(Folder("f1", "Tech", FolderIcon.Folder)), decoded.folders)
+        // Icons stored by v0.0.3 (a fixed list) become their Material Symbols names.
+        assertEquals(listOf(Folder("f1", "Tech", "sports-soccer")), decoded.folders)
         assertEquals(listOf("f1", null), decoded.feeds.map { it.folderId })
     }
 
