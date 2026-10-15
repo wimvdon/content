@@ -29,7 +29,7 @@ RSS Reader has no account, analytics, advertising or crash reporting, and no ser
 ## What the app stores on your device
 
 - Your feed list and folders, the downloaded articles and which ones you read.
-- Your settings (theme, text settings, full articles, Save target, the Unread filter).
+- Your settings (theme, text settings, full articles, pictures, Save and Share targets, the Unread filter, mark as read on scroll).
 - The text of full articles you opened, and recently shown pictures, in the app's cache (Android
   may clear it).
 

@@ -128,6 +128,8 @@
     <string name="folder_icon_travel">Reisen</string>
     <string name="folder_icon_nature">Natur</string>
     <string name="folder_icon_home">Zuhause</string>
+    <string name="setting_mark_read_on_scroll_title">Beim Scrollen als gelesen markieren</string>
+    <string name="setting_mark_read_on_scroll_summary">Artikel, an denen du in der Liste vorbeiscrollst, werden als gelesen markiert</string>
     <plurals name="feeds_count">
         <item quantity="one">%d Feed</item>
         <item quantity="other">%d Feeds</item>

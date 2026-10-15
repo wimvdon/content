@@ -116,4 +116,6 @@ data class Settings(
     val fullArticles: Boolean = true,
     /** Show article pictures, thumbnails and embed previews (they are downloaded from the sites). */
     val showImages: Boolean = true,
+    /** Mark articles as read once they scroll off the top of the list. */
+    val markReadOnScroll: Boolean = false,
 )

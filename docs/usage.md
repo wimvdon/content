@@ -50,6 +50,9 @@ after them. A feed added while a folder is open goes into that folder.
 - The round **✓✓** button at the bottom right marks everything in the section you are in as
   read: all feeds on Home, the folder's feeds in a folder, or the one feed you opened. A message
   says how many; **Undo** brings them back.
+- **Mark as read on scroll** (in **Settings › Reader**, off by default): articles are marked as
+  read once you scroll them off the top of the list. They stay in the Unread list until you
+  switch feed, filter or refresh, so you can scroll back to them.
 - If some feeds can't be downloaded, a message says how many; **Settings › Feeds** shows why for
   each one.
 
@@ -97,7 +100,7 @@ If the chosen app has been uninstalled, the button opens the share menu instead 
   articles are removed too), put a feed in a folder, add a feed, and **Import OPML** /
   **Export OPML** to move your feeds between readers.
 - **Folders:** create, rename, change the icon of, or remove folders.
-- **Reader:** **Load full articles**, **Show images**, and the same text settings as **Aa**, with a preview.
+- **Reader:** **Load full articles**, **Show images**, **Mark as read on scroll**, and the same text settings as **Aa**, with a preview.
 - **Save and share:** see above.
 - **Appearance:** Theme (System, Light, Dark) and Dynamic color (wallpaper colours instead of
   the app's blue).

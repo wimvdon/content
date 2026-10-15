@@ -45,6 +45,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -72,6 +75,8 @@ import io.github.impca201.rssreader.data.Article
 import io.github.impca201.rssreader.data.Feed
 import io.github.impca201.rssreader.data.Folder
 import io.github.impca201.rssreader.data.FeedSelection
+import io.github.impca201.rssreader.data.ScrollRead
+import kotlinx.coroutines.flow.distinctUntilChanged
 import io.github.impca201.rssreader.feed.Html
 import io.github.impca201.rssreader.ui.theme.AppShapes
 import io.github.impca201.rssreader.ui.theme.Motion
@@ -91,6 +96,7 @@ data class HomeState(
     /** Show each article's picture as a thumbnail. */
     val showImages: Boolean = true,
     val folders: List<Folder> = emptyList(),
+    val markReadOnScroll: Boolean = false,
 )
 
 class HomeActions(
@@ -99,6 +105,8 @@ class HomeActions(
     val onOpenArticle: (Article) -> Unit,
     val onRefresh: () -> Unit,
     val onMarkAllRead: () -> Unit,
+    /** Articles that scrolled off the top, with Mark as read on scroll on. */
+    val onScrolledPast: (Set<String>) -> Unit,
     val onAddFeed: () -> Unit,
     val onImportOpml: () -> Unit,
     val onOpenSettings: () -> Unit,
@@ -271,6 +279,19 @@ private fun ArticleList(
     val listState = rememberSaveable(state.selection, saver = LazyListState.Saver) { LazyListState() }
     val showFeedName = state.selection !is FeedSelection.Single
     val feedTitles = remember(state.feeds) { state.feeds.associate { it.url to it.title } }
+    if (state.markReadOnScroll) {
+        val articles by rememberUpdatedState(state.articles)
+        val onScrolledPast by rememberUpdatedState(actions.onScrolledPast)
+        LaunchedEffect(listState) {
+            // Item 0 is the Unread/All filter, so the first article is item 1.
+            snapshotFlow { listState.firstVisibleItemIndex - 1 }
+                .distinctUntilChanged()
+                .collect { first ->
+                    val keys = ScrollRead.scrolledPast(articles, first)
+                    if (keys.isNotEmpty()) onScrolledPast(keys)
+                }
+        }
+    }
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize(),

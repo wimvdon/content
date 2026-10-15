@@ -75,6 +75,7 @@ class SettingsActions(
     val onReaderStyleChange: (ReaderStyle) -> Unit,
     val onFullArticlesChange: (Boolean) -> Unit,
     val onShowImagesChange: (Boolean) -> Unit,
+    val onMarkReadOnScrollChange: (Boolean) -> Unit,
     val onSaveTargetChange: (ShareTarget) -> Unit,
     val onShareTargetChange: (ShareTarget) -> Unit,
     val onThemeModeChange: (ThemeMode) -> Unit,
@@ -261,6 +262,12 @@ private fun ReaderSection(
             summary = stringResource(R.string.reader_show_images_summary),
             checked = settings.showImages,
             onCheckedChange = actions.onShowImagesChange,
+        )
+        SwitchSetting(
+            title = stringResource(R.string.setting_mark_read_on_scroll_title),
+            summary = stringResource(R.string.setting_mark_read_on_scroll_summary),
+            checked = settings.markReadOnScroll,
+            onCheckedChange = actions.onMarkReadOnScrollChange,
         )
         ReaderStyleControls(style = style, onChange = actions.onReaderStyleChange)
         Text(

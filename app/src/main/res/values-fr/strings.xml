@@ -128,6 +128,8 @@
     <string name="folder_icon_travel">Voyage</string>
     <string name="folder_icon_nature">Nature</string>
     <string name="folder_icon_home">Maison</string>
+    <string name="setting_mark_read_on_scroll_title">Marquer comme lu en défilant</string>
+    <string name="setting_mark_read_on_scroll_summary">Les articles que tu dépasses en faisant défiler la liste sont marqués comme lus</string>
     <plurals name="feeds_count">
         <item quantity="one">%d flux</item>
         <item quantity="many">%d flux</item>
