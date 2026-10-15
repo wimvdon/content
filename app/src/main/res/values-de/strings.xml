@@ -26,7 +26,6 @@
     <string name="feeds_add">Feed hinzufügen</string>
     <string name="feeds_import">OPML importieren</string>
     <string name="feeds_export">OPML exportieren</string>
-    <string name="feeds_remove">%1$s entfernen</string>
     <string name="feeds_remove_title">Feed entfernen?</string>
     <string name="feeds_remove_body">%1$s und seine Artikel werden von diesem Telefon entfernt.</string>
     <string name="add_feed_body">Gib die Adresse einer Website oder eines Feeds ein.</string>
@@ -94,7 +93,6 @@
     <string name="feeds_opml_hint">Mit einer OPML-Datei ziehst du deine Feeds zwischen Feedreadern wie Inoreader oder Feedly um: dort exportieren, hier importieren.</string>
     <string name="action_save">Speichern</string>
     <string name="action_undo">Rückgängig</string>
-    <string name="section_folders">Ordner</string>
     <string name="folders_explanation">Lege Feeds in Ordner, um sie zusammen zu lesen. Sobald es einen Ordner gibt, wechselst du mit einer Leiste unten in der Liste zwischen Start und deinen Ordnern.</string>
     <string name="folder_all">Alle</string>
     <string name="feeds_all">Alle Artikel</string>
@@ -102,17 +100,14 @@
     <string name="filter_all">Alle</string>
     <string name="folder_new">Neuer Ordner</string>
     <string name="folder_edit">Ordner bearbeiten</string>
-    <string name="folder_edit_named">%1$s bearbeiten</string>
     <string name="folder_title">Titel</string>
     <string name="folder_icon_search">Symbole suchen (auf Englisch)</string>
     <string name="folder_icon_none_found">Kein Symbol gefunden. Versuche ein anderes Wort, etwa “news” oder “car”.</string>
     <string name="folder_remove_title">Ordner entfernen?</string>
     <string name="folder_remove_body">%1$s wird entfernt. Die Feeds darin bleiben, ohne Ordner.</string>
-    <string name="folder_move_title">Ordner für %1$s</string>
     <string name="folder_none">Kein Ordner</string>
     <string name="setting_mark_read_on_scroll_title">Beim Scrollen als gelesen markieren</string>
     <string name="setting_mark_read_on_scroll_summary">Artikel, an denen du in der Liste vorbeiscrollst, werden als gelesen markiert</string>
-    <string name="action_show_unread">Nur Ungelesene zeigen</string>
     <string name="action_mark_read">Als gelesen markieren</string>
     <string name="section_list">Artikelliste</string>
     <string name="setting_list_view">Ansicht</string>
@@ -125,6 +120,13 @@
     <string name="reader_auto_dark_summary">Dunkle Seite, wenn die App dunkel ist, auch bei Sepia oder Design</string>
     <string name="day_today">Heute</string>
     <string name="day_yesterday">Gestern</string>
+    <string name="feed_edit">Feed bearbeiten</string>
+    <string name="feed_name">Name</string>
+    <string name="feed_name_hint">Leer lassen, um den Namen des Feeds zu verwenden</string>
+    <string name="feed_folder">Ordner</string>
+    <string name="feeds_drag_hint">Ziehe am Griff, um Feeds und Ordner neu anzuordnen oder einen Feed in einen anderen Ordner zu verschieben. Tippe auf einen Feed oder Ordner, um ihn umzubenennen oder zu entfernen.</string>
+    <string name="action_move_up">Nach oben</string>
+    <string name="action_move_down">Nach unten</string>
     <plurals name="feeds_count">
         <item quantity="one">%d Feed</item>
         <item quantity="other">%d Feeds</item>

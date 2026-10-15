@@ -243,6 +243,18 @@ class LibraryRepository(
         store.updateData { it.moveFeed(url, folderId) }
     }
 
+    suspend fun renameFeed(
+        url: String,
+        title: String,
+    ) {
+        store.updateData { it.renameFeed(url, title) }
+    }
+
+    /** Stores the order (and folders) the user dragged feeds and folders into. */
+    suspend fun arrange(rows: List<FeedArrangement.Row>) {
+        store.updateData { FeedArrangement.apply(it, rows) }
+    }
+
     /** Marks the selection as read and returns what was unread, for Undo. */
     suspend fun markAllRead(selection: FeedSelection): Set<String> {
         var keys: Set<String> = emptySet()

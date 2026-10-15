@@ -22,7 +22,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -38,7 +37,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -50,44 +48,9 @@ import io.github.impca201.rssreader.data.Folder
 import io.github.impca201.rssreader.data.IconCatalog
 import io.github.impca201.rssreader.rssReaderApp
 import io.github.impca201.rssreader.ui.home.rememberFolderIconPainter
-import io.github.impca201.rssreader.ui.theme.AppShapes
-
-/** A folder's header on the Feeds and folders page: icon, title, number of feeds, edit and remove. */
-@Composable
-internal fun FolderRow(
-    folder: Folder,
-    feedCount: Int,
-    onEdit: () -> Unit,
-    onRemove: () -> Unit,
-) {
-    Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surfaceContainer, AppShapes.Item)
-                .padding(start = 16.dp, top = 8.dp, bottom = 8.dp, end = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        Icon(rememberFolderIconPainter(folder.icon), contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-        Column(Modifier.weight(1f)) {
-            Text(folder.title, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(
-                pluralStringResource(R.plurals.feeds_count, feedCount, feedCount),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        Row {
-            IconButton(onClick = onEdit) {
-                Icon(painterResource(R.drawable.ic_edit), contentDescription = stringResource(R.string.folder_edit_named, folder.title))
-            }
-            IconButton(onClick = onRemove) {
-                Icon(painterResource(R.drawable.ic_delete), contentDescription = stringResource(R.string.feeds_remove, folder.title))
-            }
-        }
-    }
-}
+import androidx.compose.foundation.selection.selectableGroup
+import io.github.impca201.rssreader.ui.home.FeedIcon
+import io.github.impca201.rssreader.ui.home.FeedIconSize
 
 /**
  * New folder ([folder] null) or edit one: a title, and an icon from the whole Material Symbols
@@ -98,6 +61,8 @@ internal fun FolderDialog(
     folder: Folder?,
     onSave: (title: String, icon: String) -> Unit,
     onDismiss: () -> Unit,
+    /** Shown as Remove when editing an existing folder. */
+    onRemove: (() -> Unit)? = null,
 ) {
     val catalog = LocalContext.current.rssReaderApp.iconCatalog
     var title by rememberSaveable { mutableStateOf(folder?.title.orEmpty()) }
@@ -175,36 +140,86 @@ internal fun FolderDialog(
                 Text(stringResource(R.string.action_save))
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
+        dismissButton = { RemoveAndCancel(onRemove, onDismiss) },
     )
 }
 
 private val ICON_GRID_HEIGHT = 240.dp
 
-/** Picks the folder a feed is in, or none. */
+/**
+ * Edit a feed: its name (blank brings back the feed's own title), its folder, or remove it.
+ * Shows why its last download failed, if it did.
+ */
 @Composable
-fun MoveFeedDialog(
+internal fun FeedDialog(
     feed: Feed,
     folders: List<Folder>,
-    onMove: (String?) -> Unit,
+    problem: String?,
+    onSave: (title: String, folderId: String?) -> Unit,
+    onRemove: () -> Unit,
     onDismiss: () -> Unit,
 ) {
+    var title by rememberSaveable { mutableStateOf(feed.title) }
+    var folderId by rememberSaveable { mutableStateOf(feed.folderId?.takeIf { id -> folders.any { it.id == id } }) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.folder_move_title, feed.title)) },
+        icon = { FeedIcon(feed, FeedIconSize.Large) },
+        title = { Text(stringResource(R.string.feed_edit)) },
         text = {
-            LazyColumn(Modifier.heightIn(max = 420.dp)) {
-                item(key = "none") {
-                    FolderChoice(stringResource(R.string.folder_none), null, selected = feed.folderId == null) { onMove(null) }
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it.take(MAX_FEED_TITLE_LENGTH) },
+                    label = { Text(stringResource(R.string.feed_name)) },
+                    supportingText = { Text(stringResource(R.string.feed_name_hint)) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Text(
+                    feed.url,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (problem != null) {
+                    Text(problem, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
                 }
-                items(folders, key = { it.id }) { folder ->
-                    FolderChoice(folder.title, folder.icon, selected = feed.folderId == folder.id) { onMove(folder.id) }
+                if (folders.isNotEmpty()) {
+                    Text(stringResource(R.string.feed_folder), style = MaterialTheme.typography.titleSmall)
+                    LazyColumn(Modifier.heightIn(max = 240.dp).selectableGroup()) {
+                        item(key = "none") {
+                            FolderChoice(stringResource(R.string.folder_none), null, selected = folderId == null) { folderId = null }
+                        }
+                        items(folders, key = { it.id }) { folder ->
+                            FolderChoice(folder.title, folder.icon, selected = folderId == folder.id) { folderId = folder.id }
+                        }
+                    }
                 }
             }
         },
-        confirmButton = {},
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
+        confirmButton = {
+            TextButton(onClick = { onSave(title, folderId) }) { Text(stringResource(R.string.action_save)) }
+        },
+        dismissButton = { RemoveAndCancel(onRemove, onDismiss) },
     )
+}
+
+/** Remove (in the error colour, when there is something to remove) and Cancel. */
+@Composable
+private fun RemoveAndCancel(
+    onRemove: (() -> Unit)?,
+    onDismiss: () -> Unit,
+) {
+    Row {
+        if (onRemove != null) {
+            TextButton(onClick = onRemove) {
+                Text(stringResource(R.string.action_remove), color = MaterialTheme.colorScheme.error)
+            }
+        }
+        TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
+    }
 }
 
 @Composable
@@ -230,3 +245,4 @@ private fun FolderChoice(
 }
 
 private const val MAX_TITLE_LENGTH = 40
+private const val MAX_FEED_TITLE_LENGTH = 80

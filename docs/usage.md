@@ -34,13 +34,19 @@ come along.
 
 ## Folders
 
-Open **☰ › Manage feeds and folders** (also reachable from the top of Settings). This page lists each
-folder with its feeds under it, then the feeds outside folders. Tap **New folder**, give it a
-title and pick an icon: the whole Material Symbols set (over 4 000 icons) is there. Type in the
-search field to find one (icon names are in English, such as *news*, *car*, *soccer* or *food*);
-with nothing typed, popular topics come first. Tap the pencil next to a folder to change them, or the bin to remove it
-(its feeds stay, outside any folder). To put a feed in a folder, tap the folder button next to
-the feed and choose the folder.
+Open **☰ › Manage feeds and folders** (also reachable from the top of Settings). This page lists
+each folder with its feeds under it, then the feeds outside folders ("No folder").
+
+- **New folder:** give it a title and pick an icon: the whole Material Symbols set (over 4 000
+  icons) is there. Type in the search field to find one (icon names are in English, such as
+  *news*, *car*, *soccer* or *food*); with nothing typed, popular topics come first.
+- **Drag** the grip (⋮⋮) at the right of a row to reorder. Drop a feed under another folder to
+  move it there, or under "No folder" to take it out. Dragging a folder moves it with its feeds;
+  while you drag it, the feeds are hidden. The order is the one the ☰ menu and the bottom bar
+  use. (With a screen reader, use the row's Move up / Move down actions.)
+- **Tap a feed** to rename it, choose its folder or remove it. A name you give stays when the
+  feed updates; clear the name to use the feed's own again.
+- **Tap a folder** to change its title or icon, or remove it (its feeds stay, under "No folder").
 
 Once there is a folder, a floating bar appears at the bottom of the list: **All** (every feed)
 and then each folder, with its icon and name. Tap one to see only its articles. The ☰ drawer lists the folders too, each with its feeds, and the feeds outside folders
@@ -114,8 +120,8 @@ If the chosen app has been uninstalled, the button opens the share menu instead 
 ## Settings
 
 - **Manage feeds and folders** (at the top; the same page as in ☰): every feed with its address (or why
-  its last download failed), grouped by folder. Add or remove feeds (a removed feed's articles
-  go too), create, edit and remove folders, put feeds in folders, and **Import OPML** /
+  its last download failed), grouped by folder. Add, rename, reorder (drag) or remove feeds (a
+  removed feed's articles go too), create, edit, reorder and remove folders, put feeds in folders, and **Import OPML** /
   **Export OPML** to move your feeds between readers.
 - **Article list:** View (Small, Medium, Large) and **Mark as read on scroll**.
 - **Reader:** **Load full articles**, **Show images**, and the same text settings as **Aa**, with a preview.

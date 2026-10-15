@@ -26,7 +26,6 @@
     <string name="feeds_add">Aggiungi feed</string>
     <string name="feeds_import">Importa OPML</string>
     <string name="feeds_export">Esporta OPML</string>
-    <string name="feeds_remove">Rimuovi %1$s</string>
     <string name="feeds_remove_title">Rimuovere il feed?</string>
     <string name="feeds_remove_body">%1$s e i suoi articoli verranno rimossi da questo telefono.</string>
     <string name="add_feed_body">Scrivi l\'indirizzo di un sito o di un feed.</string>
@@ -94,7 +93,6 @@
     <string name="feeds_opml_hint">Con un file OPML sposti i tuoi feed tra lettori di feed, come Inoreader o Feedly: esportali lì e importali qui.</string>
     <string name="action_save">Salva</string>
     <string name="action_undo">Annulla</string>
-    <string name="section_folders">Cartelle</string>
     <string name="folders_explanation">Metti i feed in cartelle per leggerli insieme. Appena c\'è una cartella, una barra in fondo all\'elenco passa tra Home e le tue cartelle.</string>
     <string name="folder_all">Tutti</string>
     <string name="feeds_all">Tutti gli articoli</string>
@@ -102,17 +100,14 @@
     <string name="filter_all">Tutti</string>
     <string name="folder_new">Nuova cartella</string>
     <string name="folder_edit">Modifica cartella</string>
-    <string name="folder_edit_named">Modifica %1$s</string>
     <string name="folder_title">Titolo</string>
     <string name="folder_icon_search">Cerca icone (in inglese)</string>
     <string name="folder_icon_none_found">Nessuna icona trovata. Prova un\'altra parola, come “news” o “car”.</string>
     <string name="folder_remove_title">Rimuovere la cartella?</string>
     <string name="folder_remove_body">%1$s verrà rimossa. I suoi feed restano, fuori da ogni cartella.</string>
-    <string name="folder_move_title">Cartella per %1$s</string>
     <string name="folder_none">Nessuna cartella</string>
     <string name="setting_mark_read_on_scroll_title">Segna come letto scorrendo</string>
     <string name="setting_mark_read_on_scroll_summary">Gli articoli che superi scorrendo l\'elenco vengono segnati come letti</string>
-    <string name="action_show_unread">Mostra solo non letti</string>
     <string name="action_mark_read">Segna come letto</string>
     <string name="section_list">Elenco articoli</string>
     <string name="setting_list_view">Vista</string>
@@ -125,6 +120,13 @@
     <string name="reader_auto_dark_summary">Pagina scura quando l\'app è scura, anche con Seppia o Tema</string>
     <string name="day_today">Oggi</string>
     <string name="day_yesterday">Ieri</string>
+    <string name="feed_edit">Modifica feed</string>
+    <string name="feed_name">Nome</string>
+    <string name="feed_name_hint">Lascia vuoto per usare il nome del feed</string>
+    <string name="feed_folder">Cartella</string>
+    <string name="feeds_drag_hint">Trascina la maniglia per riordinare feed e cartelle o spostare un feed in un\'altra cartella. Tocca un feed o una cartella per rinominarlo o rimuoverlo.</string>
+    <string name="action_move_up">Sposta su</string>
+    <string name="action_move_down">Sposta giù</string>
     <plurals name="feeds_count">
         <item quantity="one">%d feed</item>
         <item quantity="many">%d feed</item>

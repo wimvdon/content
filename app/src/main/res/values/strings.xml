@@ -27,7 +27,6 @@
     <string name="feeds_add">Add feed</string>
     <string name="feeds_import">Import OPML</string>
     <string name="feeds_export">Export OPML</string>
-    <string name="feeds_remove">Remove %1$s</string>
     <string name="feeds_remove_title">Remove feed?</string>
     <string name="feeds_remove_body">%1$s and its articles will be removed from this phone.</string>
     <string name="add_feed_body">Type the address of a website or feed.</string>
@@ -95,7 +94,6 @@
     <string name="feeds_opml_hint">OPML files move your feeds between feed readers, such as Inoreader or Feedly: export them there, import them here.</string>
     <string name="action_save">Save</string>
     <string name="action_undo">Undo</string>
-    <string name="section_folders">Folders</string>
     <string name="folders_explanation">Put feeds in folders to read them together. Once there is a folder, a bar at the bottom of the list switches between Home and your folders.</string>
     <string name="folder_all">All</string>
     <string name="feeds_all">All articles</string>
@@ -103,17 +101,14 @@
     <string name="filter_all">All</string>
     <string name="folder_new">New folder</string>
     <string name="folder_edit">Edit folder</string>
-    <string name="folder_edit_named">Edit %1$s</string>
     <string name="folder_title">Title</string>
     <string name="folder_icon_search">Search icons (in English)</string>
     <string name="folder_icon_none_found">No icon found. Try another word, such as “news” or “car”.</string>
     <string name="folder_remove_title">Remove folder?</string>
     <string name="folder_remove_body">%1$s will be removed. Its feeds stay, outside any folder.</string>
-    <string name="folder_move_title">Folder for %1$s</string>
     <string name="folder_none">No folder</string>
     <string name="setting_mark_read_on_scroll_title">Mark as read on scroll</string>
     <string name="setting_mark_read_on_scroll_summary">Articles you scroll past in the list are marked as read</string>
-    <string name="action_show_unread">Show only unread</string>
     <string name="action_mark_read">Mark as read</string>
     <string name="section_list">Article list</string>
     <string name="setting_list_view">View</string>
@@ -126,6 +121,13 @@
     <string name="reader_auto_dark_summary">Dark page whenever the app is dark, also with Sepia or Theme</string>
     <string name="day_today">Today</string>
     <string name="day_yesterday">Yesterday</string>
+    <string name="feed_edit">Edit feed</string>
+    <string name="feed_name">Name</string>
+    <string name="feed_name_hint">Leave empty to use the feed\'s own name</string>
+    <string name="feed_folder">Folder</string>
+    <string name="feeds_drag_hint">Drag the handle to reorder feeds and folders or move a feed into another folder. Tap a feed or folder to rename or remove it.</string>
+    <string name="action_move_up">Move up</string>
+    <string name="action_move_down">Move down</string>
     <plurals name="feeds_count">
         <item quantity="one">%d feed</item>
         <item quantity="other">%d feeds</item>

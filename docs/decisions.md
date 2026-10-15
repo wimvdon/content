@@ -2,6 +2,16 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-15: Drag and drop on the manage page; renaming feeds
+
+Asked for by the owner. Feeds and folders are reordered and feeds moved between folders by
+dragging a handle, built on `LazyColumn` with our own small drag logic (`FeedArrangement`, unit
+tested) instead of a reorder library: no new dependency. A folder is dragged on its own with
+the other folders collapsed, so it can't land in the middle of another folder's feeds. Screen
+reader users get Move up / Move down actions. Feeds can be renamed; the `renamed` flag keeps a
+refresh from overwriting the user's name, and clearing the name returns to the feed's own.
+Rows open an edit dialog on tap (name, folder, remove) instead of carrying three icon buttons.
+
 ## 2026-10-15: Unread | All as a connected button group; no ⋮ menu on the list
 
 The owner asked for Material 3's connected button group for Unread/All (instead of the icon

@@ -236,4 +236,14 @@ class LibraryTest {
         assertEquals("https://a.example.com/icon.png", withIcon.feed(a)!!.iconUrl)
         assertNull(withIcon.feed(b)!!.iconUrl)
     }
+
+    @Test
+    fun `a renamed feed keeps its name through refreshes until the name is cleared`() {
+        val renamed = twoFeeds.renameFeed(a, "  My A  ")
+        assertEquals("My A", renamed.feed(a)!!.title)
+        val refreshed = renamed.merge(a, parsed(item("9", 500)), now = 1_000)
+        assertEquals("My A", refreshed.feed(a)!!.title)
+        val cleared = refreshed.renameFeed(a, " ").merge(a, parsed(item("9", 500)), now = 1_000)
+        assertEquals("Feed", cleared.feed(a)!!.title)
+    }
 }
