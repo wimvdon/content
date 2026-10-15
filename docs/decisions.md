@@ -61,6 +61,10 @@ Newest first. Add an entry for every notable choice: what was decided, why, and 
   Snoozer's (primary from the seed's chroma, neutrals at chroma 4/8, tertiary from the icon's sky
   blue). Dynamic color off by default, per `DESIGN.md`.
 
+## 2026-10-15: Phone testing doesn't block merging
+
+The owner can't review code and can't always test a pull request on the device right away, so pull requests waited for a manual test that adds little over CI. Green CI (unit tests, lint, builds) is now enough to merge; the owner tests afterwards with the steps from the pull request and always before a release, and problems are fixed in a new pull request. Merging to `main` does not reach users: releases stay manual. Rejected: keeping the phone test as a merge gate (pull requests pile up and go stale).
+
 ## 2026-10-14: Shared design rules have their master copy in the template
 
 `DESIGN.md` was kept identical in the three sibling apps by hand, with no single place to start a change, and the copies had drifted (Snoozer was missing the Loading section; the Tracker for Simkl icon row was out of date in two apps). The android-app template (`wimvdon/android-app`) now holds the master copy; each app keeps a full copy so Claude sessions can read the rules without opening another repository, and only its "This app" section is its own. Rejected: keeping the file only in the template (sessions in an app would have to fetch it every time) and a shared library for the design kit (a new dependency and more setup than three small apps need). The design kit files (`ui/theme/`) stay in the apps.

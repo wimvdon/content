@@ -52,8 +52,8 @@ flaky. Add them only if a decision in `decisions.md` says so.
 
 ## Manual checks on the phone
 
-For each pull request, install the debug APK (see [installation.md](installation.md), "Testing a
-pull request") and follow the steps in the pull request description. In addition, check every now
+For each pull request (before or after it is merged: merging only waits for green CI), install the
+debug APK (see [installation.md](installation.md), "Testing a pull request") and follow the steps in the pull request description. In addition, check every now
 and then (always before a release):
 
 - [ ] Add a feed by website address and by feed address; articles appear.

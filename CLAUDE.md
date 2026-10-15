@@ -19,6 +19,11 @@ are the safety net. Follow them every time.
    phone to test it** (step by step, with what they should see). The owner tests by installing
    the debug APK from the pull request's CI run (Checks → CI → Artifacts). It installs as a
    separate app, "RSS Reader Dev" (`io.github.impca201.rssreader.debug`), next to the released one.
+4. **Testing on the phone does not block merging.** The owner doesn't review code, so green CI is
+   what a pull request needs to be merged. The owner tries the change afterwards with the test steps
+   from the description (the debug APK stays on the pull request's CI run, and every push to
+   `main` builds a new one) and always before a release. A problem found then is fixed in a new
+   pull request.
 
 ## Never do these without asking first (and saying why)
 - Delete, skip, `@Ignore`, or weaken tests, lint checks, CI steps or workflows to make something
