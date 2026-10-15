@@ -50,6 +50,8 @@ after them. A feed added while a folder is open goes into that folder.
 
 - **☰** opens the drawer: **Home** (every feed), your folders with their feeds, the other feeds
   (each with its number of unread articles), and **Settings**.
+- Articles are grouped under **Today**, **Yesterday** and then the date; the date stays at the
+  top while you scroll through that day.
 - Under the title you see how many articles are unread. The **filter button** (three lines, top
   right) switches between only unread articles (highlighted) and all articles. Articles you
   open from the unread list stay in it until you switch feed, filter or refresh, so the list
@@ -57,7 +59,8 @@ after them. A feed added while a folder is open goes into that folder.
 - **Swipe** an article left or right to mark it as read, or as unread when it was read.
 - **Pull down** to download new articles. The app also does this once every time it starts. All
   feeds are downloaded first and then added at once, each article in its place by date.
-- The round **✓✓** button at the bottom right marks everything in the section you are in as
+- **Back** inside a folder or feed returns to Home; back on Home closes the app.
+- The **Mark all as read** button at the bottom right (just ✓✓ once you scroll) marks everything in the section you are in as
   read: all feeds on Home, the folder's feeds in a folder, or the one feed you opened. A message
   says how many; **Undo** brings them back.
 - **Settings › Article list › View** chooses how big articles are in the list: **Small** (title

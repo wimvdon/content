@@ -121,6 +121,8 @@
     <string name="feeds_opml_title">Van of naar een andere lezer</string>
     <string name="reader_auto_dark_title">Automatisch donker</string>
     <string name="reader_auto_dark_summary">Donkere pagina wanneer de app donker is, ook bij Sepia of Thema</string>
+    <string name="day_today">Vandaag</string>
+    <string name="day_yesterday">Gisteren</string>
     <plurals name="feeds_count">
         <item quantity="one">%d feed</item>
         <item quantity="other">%d feeds</item>

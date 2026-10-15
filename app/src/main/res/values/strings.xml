@@ -122,6 +122,8 @@
     <string name="feeds_opml_title">Move to or from another reader</string>
     <string name="reader_auto_dark_title">Auto dark</string>
     <string name="reader_auto_dark_summary">Dark page whenever the app is dark, also with Sepia or Theme</string>
+    <string name="day_today">Today</string>
+    <string name="day_yesterday">Yesterday</string>
     <plurals name="feeds_count">
         <item quantity="one">%d feed</item>
         <item quantity="other">%d feeds</item>

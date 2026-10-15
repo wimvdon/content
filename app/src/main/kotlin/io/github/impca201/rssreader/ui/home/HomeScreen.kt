@@ -17,6 +17,11 @@ import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import io.github.impca201.rssreader.data.ListView
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.heading
+import io.github.impca201.rssreader.data.ArticleDays
+import java.time.LocalDate
+import java.time.ZoneId
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -42,7 +47,7 @@ import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -54,7 +59,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberDrawerState
@@ -175,13 +180,14 @@ fun HomeScreen(
             )
         },
     ) {
-        val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+        val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
         var menuOpen by remember { mutableStateOf(false) }
         Scaffold(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-            snackbarHost = { SnackbarHost(snackbarHostState) },
+            // Messages appear above the folder bar, not on top of it.
+            snackbarHost = { SnackbarHost(snackbarHostState, Modifier.padding(bottom = if (showFolderBar) FOLDER_BAR_SPACE else 0.dp)) },
             topBar = {
-                TopAppBar(
+                MediumTopAppBar(
                     title = {
                         Column {
                             Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -239,12 +245,14 @@ fun HomeScreen(
             floatingActionButton = {
                 // Marks everything in the section being viewed as read: Home, a folder or a feed.
                 if (state.feeds.isNotEmpty() && unreadHere > 0) {
-                    FloatingActionButton(
+                    // With its label at the top of the list; just the icon once the list is scrolled.
+                    ExtendedFloatingActionButton(
+                        text = { Text(stringResource(R.string.action_mark_all_read)) },
+                        icon = { Icon(painterResource(R.drawable.ic_done_all), contentDescription = null) },
+                        expanded = scrollBehavior.state.collapsedFraction < 0.5f,
                         onClick = actions.onMarkAllRead,
                         modifier = Modifier.padding(bottom = if (showFolderBar) FOLDER_BAR_SPACE else 0.dp),
-                    ) {
-                        Icon(painterResource(R.drawable.ic_done_all), contentDescription = stringResource(R.string.action_mark_all_read))
-                    }
+                    )
                 }
             },
         ) { innerPadding ->
@@ -312,14 +320,27 @@ private fun ArticleList(
     val listState = rememberSaveable(state.selection, saver = LazyListState.Saver) { LazyListState() }
     val showFeedName = state.selection !is FeedSelection.Single
     val feedsByUrl = remember(state.feeds) { state.feeds.associateBy { it.url } }
+    val days = remember(state.articles) { ArticleDays.group(state.articles, ZoneId.systemDefault()) }
+    // Where each list item is: a date header, or how many articles come before it.
+    val articlesBefore =
+        remember(days) {
+            buildList {
+                var count = 0
+                days.forEach { (_, articles) ->
+                    add(count)
+                    articles.forEach { _ -> add(count++) }
+                }
+            }
+        }
     if (state.markReadOnScroll) {
         val articles by rememberUpdatedState(state.articles)
+        val positions by rememberUpdatedState(articlesBefore)
         val onScrolledPast by rememberUpdatedState(actions.onScrolledPast)
         LaunchedEffect(listState) {
             snapshotFlow { listState.firstVisibleItemIndex }
                 .distinctUntilChanged()
                 .collect { first ->
-                    val keys = ScrollRead.scrolledPast(articles, first)
+                    val keys = ScrollRead.scrolledPast(articles, positions.getOrElse(first) { articles.size })
                     if (keys.isNotEmpty()) onScrolledPast(keys)
                 }
         }
@@ -328,21 +349,54 @@ private fun ArticleList(
         state = listState,
         modifier = Modifier.fillMaxSize(),
         // Room at the end for the floating action button (and the folder bar).
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 88.dp + bottomSpace),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 88.dp + bottomSpace),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        items(state.articles, key = { it.key }) { article ->
-            SwipeToToggleRead(article, onToggle = { actions.onToggleRead(article) }, modifier = Modifier.animateItem()) {
-                ArticleRow(
-                    article = article,
-                    feed = if (showFeedName) feedsByUrl[article.feedUrl] else null,
-                    view = state.listView,
-                    showImage = state.showImages,
-                    onClick = { actions.onOpenArticle(article) },
-                )
+        days.forEach { (day, articles) ->
+            stickyHeader(key = "day:$day") { DayHeader(day) }
+            items(articles, key = { it.key }) { article ->
+                SwipeToToggleRead(article, onToggle = { actions.onToggleRead(article) }, modifier = Modifier.animateItem()) {
+                    ArticleRow(
+                        article = article,
+                        feed = if (showFeedName) feedsByUrl[article.feedUrl] else null,
+                        view = state.listView,
+                        showImage = state.showImages,
+                        onClick = { actions.onOpenArticle(article) },
+                    )
+                }
             }
         }
     }
+}
+
+/** "Today", "Yesterday", or the date, above that day's articles; stays at the top while scrolling. */
+@Composable
+private fun DayHeader(day: LocalDate) {
+    val context = LocalContext.current
+    val today = LocalDate.now()
+    val label =
+        when (day) {
+            today -> stringResource(R.string.day_today)
+            today.minusDays(1) -> stringResource(R.string.day_yesterday)
+            else -> {
+                val millis = day.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                val flags =
+                    DateUtils.FORMAT_SHOW_WEEKDAY or DateUtils.FORMAT_SHOW_DATE or
+                        if (day.year == today.year) DateUtils.FORMAT_NO_YEAR else DateUtils.FORMAT_SHOW_YEAR
+                DateUtils.formatDateTime(context, millis, flags)
+            }
+        }
+    Text(
+        text = label,
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.primary,
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(start = 4.dp, top = 12.dp, bottom = 4.dp)
+                .semantics { heading() },
+    )
 }
 
 /** Shows only unread articles when on; every article when off. */

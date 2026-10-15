@@ -39,6 +39,7 @@ when the run fails.
 | `ScrollReadTest` | Mark as read on scroll: which articles have scrolled past (unread only, not the top one) |
 | `SiteIconTest` | Choosing a site's icon: largest size, apple-touch-icon, relative and http addresses, skipping SVG and inline icons, home page and favicon.ico fallback |
 | `IconCatalogTest` | Reading the icon file, search order (name, words, categories, related words), suggestions, old icon names, and that the bundled file has every suggested and migrated icon |
+| `ArticleDaysTest` | Grouping the list by local day, time zones |
 | `SettingsTest` | Text size limits, reader and theme darkness (and Auto dark), Save/Share targets (storage and the old Save setting), defaults |
 
 ## Strategy
@@ -81,6 +82,8 @@ and then (always before a release):
       Medium and Large each look right, with and without pictures.
 - [ ] **Website icons:** after a refresh, feeds show their site's icon in the list, ☰ menu,
       Settings and reader; a feed without one shows its first letter.
+- [ ] **Navigation:** in a folder or feed, Back goes to Home; on Home, Back closes the app.
+      The Undo message after Mark all as read shows above the folder bar.
 - [ ] **Mark as read on scroll** on: scroll down the Unread list; the articles that leave the
       top of the screen are marked read (their dot goes) but stay until you refresh.
 - [ ] Import and export OPML (for example an Inoreader export); folders come along both ways.

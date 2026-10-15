@@ -2,6 +2,17 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-15: Navigation review and a livelier list
+
+The owner found the design boring and asked for a navigation and Material 3 review. Changes:
+Back inside a folder or feed returns to Home before leaving the app (Material's "back to the
+start destination"); snackbars sit above the folder bar instead of on it; Mark all as read is an
+extended FAB with its label, shrinking to the icon when scrolled (clearer than an icon alone);
+Home has a collapsing medium top app bar; articles are grouped under sticky day headers; the
+drawer starts with the app's mark. Kept: the drawer for all destinations plus the folder bar as
+a shortcut (the drawer also holds single feeds, Feeds and folders and Settings, which the bar
+can't).
+
 ## 2026-10-15: Folder icons from the whole Material Symbols set, with search
 
 The owner asked for many more folder icons ("just use an entire library with keyword search").
