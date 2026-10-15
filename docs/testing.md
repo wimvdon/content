@@ -34,7 +34,7 @@ when the run fails.
 | `ArticleExtractorTest` | Finding the article in pages (with and without `<article>`, split sections), dropping menus, sidebars, comments, scripts and figures, unclosed paragraphs, entities, unsafe links, charsets, when a feed text counts as a summary |
 | `ArticleBlocksTest` | Splitting articles into text, pictures (captions, srcset, lazy-loaded, tracking pixels skipped, https) and embeds (YouTube, Vimeo, videos, others); first picture; same picture in other sizes |
 | `OpmlTest` | Import with folders and duplicates, an Inoreader export with folders, export round trip with folders, non-OPML files |
-| `LibraryTest` | Merging downloads (read state kept, duplicates, limits), sorting, Unread filter, counts, mark read (and undo), remove feed; folders: add, edit, remove, move feeds, folder selection, OPML import into folders and export |
+| `LibraryTest` | Merging downloads (read state kept, duplicates, limits), sorting, Unread filter, counts, mark read (and undo), remove feed, a whole refresh merged at once, future dates; folders: add, edit, remove, move feeds, folder selection, OPML import into folders and export |
 | `LibraryCodecTest` | Storage round trip with folders, tabs, line breaks and backslashes; missing folders and unknown icons; damaged input |
 | `ScrollReadTest` | Mark as read on scroll: which articles have scrolled past (unread only, not the top one) |
 | `SettingsTest` | Text size limits, reader and theme darkness, Save/Share targets (storage and the old Save setting), defaults |
@@ -72,6 +72,9 @@ and then (always before a release):
       Settings › Reader › Show images off hides them all.
 - [ ] **Save** sends to the app chosen in Settings › Save and share (Instapaper by default);
       **Share** opens the share menu or the chosen app. An uninstalled app falls back to the share menu.
+- [ ] **List:** swipe an article left and right: it becomes read, then unread. The filter
+      button in the top bar switches unread only / all. Settings › Article list › View: Small,
+      Medium and Large each look right, with and without pictures.
 - [ ] **Mark as read on scroll** on: scroll down the Unread list; the articles that leave the
       top of the screen are marked read (their dot goes) but stay until you refresh.
 - [ ] Import and export OPML (for example an Inoreader export); folders come along both ways.

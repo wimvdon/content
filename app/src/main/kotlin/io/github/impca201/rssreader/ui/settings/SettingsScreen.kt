@@ -1,5 +1,6 @@
 package io.github.impca201.rssreader.ui.settings
 
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -37,6 +39,7 @@ import io.github.impca201.rssreader.data.Feed
 import io.github.impca201.rssreader.data.FeedProblem
 import io.github.impca201.rssreader.data.Folder
 import io.github.impca201.rssreader.data.FolderIcon
+import io.github.impca201.rssreader.data.ListView
 import io.github.impca201.rssreader.data.ReaderStyle
 import io.github.impca201.rssreader.data.ShareTarget
 import io.github.impca201.rssreader.data.Settings
@@ -76,6 +79,7 @@ class SettingsActions(
     val onFullArticlesChange: (Boolean) -> Unit,
     val onShowImagesChange: (Boolean) -> Unit,
     val onMarkReadOnScrollChange: (Boolean) -> Unit,
+    val onListViewChange: (ListView) -> Unit,
     val onSaveTargetChange: (ShareTarget) -> Unit,
     val onShareTargetChange: (ShareTarget) -> Unit,
     val onThemeModeChange: (ThemeMode) -> Unit,
@@ -105,6 +109,7 @@ fun SettingsScreen(
                 onRemoveFolder = actions.onRemoveFolder,
             )
         }
+        item(key = "list") { ListSection(state.settings, actions) }
         item(key = "reader") { ReaderSection(state.settings, actions) }
         item(key = "save") {
             ShareTargetsSection(
@@ -234,6 +239,54 @@ private fun FeedRow(
     }
 }
 
+/** How the article list looks and behaves. */
+@Composable
+private fun ListSection(
+    settings: Settings,
+    actions: SettingsActions,
+) {
+    CollapsibleSection(
+        key = "list",
+        title = stringResource(R.string.section_list),
+        summary = stringResource(settings.listView.labelRes()),
+        icon = painterResource(R.drawable.ic_view_medium),
+    ) {
+        Text(stringResource(R.string.setting_list_view), style = MaterialTheme.typography.titleSmall)
+        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+            ListView.entries.forEachIndexed { index, view ->
+                SegmentedButton(
+                    selected = settings.listView == view,
+                    onClick = { actions.onListViewChange(view) },
+                    shape = SegmentedButtonDefaults.itemShape(index, ListView.entries.size),
+                    icon = { Icon(painterResource(view.iconRes()), contentDescription = null, modifier = Modifier.size(SegmentedButtonDefaults.IconSize)) },
+                ) { Text(stringResource(view.labelRes())) }
+            }
+        }
+        SwitchSetting(
+            title = stringResource(R.string.setting_mark_read_on_scroll_title),
+            summary = stringResource(R.string.setting_mark_read_on_scroll_summary),
+            checked = settings.markReadOnScroll,
+            onCheckedChange = actions.onMarkReadOnScrollChange,
+        )
+    }
+}
+
+@StringRes
+private fun ListView.labelRes(): Int =
+    when (this) {
+        ListView.Small -> R.string.list_view_small
+        ListView.Medium -> R.string.list_view_medium
+        ListView.Large -> R.string.list_view_large
+    }
+
+@DrawableRes
+private fun ListView.iconRes(): Int =
+    when (this) {
+        ListView.Small -> R.drawable.ic_view_small
+        ListView.Medium -> R.drawable.ic_view_medium
+        ListView.Large -> R.drawable.ic_view_large
+    }
+
 @Composable
 private fun ReaderSection(
     settings: Settings,
@@ -262,12 +315,6 @@ private fun ReaderSection(
             summary = stringResource(R.string.reader_show_images_summary),
             checked = settings.showImages,
             onCheckedChange = actions.onShowImagesChange,
-        )
-        SwitchSetting(
-            title = stringResource(R.string.setting_mark_read_on_scroll_title),
-            summary = stringResource(R.string.setting_mark_read_on_scroll_summary),
-            checked = settings.markReadOnScroll,
-            onCheckedChange = actions.onMarkReadOnScrollChange,
         )
         ReaderStyleControls(style = style, onChange = actions.onReaderStyleChange)
         Text(

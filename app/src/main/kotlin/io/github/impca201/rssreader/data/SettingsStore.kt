@@ -60,6 +60,8 @@ class SettingsStore(
 
     suspend fun setMarkReadOnScroll(enabled: Boolean) = edit { it[MARK_READ_ON_SCROLL] = enabled }
 
+    suspend fun setListView(view: ListView) = edit { it[LIST_VIEW] = view.name }
+
     private suspend fun edit(change: (MutablePreferences) -> Unit) {
         dataStore.edit(change)
     }
@@ -84,6 +86,7 @@ class SettingsStore(
             fullArticles = p[FULL_ARTICLES] ?: defaults.fullArticles,
             showImages = p[SHOW_IMAGES] ?: defaults.showImages,
             markReadOnScroll = p[MARK_READ_ON_SCROLL] ?: defaults.markReadOnScroll,
+            listView = enumOr(p[LIST_VIEW], defaults.listView),
         )
     }
 
@@ -105,5 +108,6 @@ class SettingsStore(
         val FULL_ARTICLES = booleanPreferencesKey("full_articles")
         val SHOW_IMAGES = booleanPreferencesKey("show_images")
         val MARK_READ_ON_SCROLL = booleanPreferencesKey("mark_read_on_scroll")
+        val LIST_VIEW = stringPreferencesKey("list_view")
     }
 }

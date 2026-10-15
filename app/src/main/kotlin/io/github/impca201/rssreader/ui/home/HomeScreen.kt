@@ -1,6 +1,22 @@
 package io.github.impca201.rssreader.ui.home
 
 import android.text.format.DateUtils
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.IconToggleButton
+import androidx.compose.material3.PlainTooltip
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.TooltipAnchorPosition
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.material3.rememberTooltipState
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
+import io.github.impca201.rssreader.data.ListView
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -26,8 +42,6 @@ import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -97,12 +111,15 @@ data class HomeState(
     val showImages: Boolean = true,
     val folders: List<Folder> = emptyList(),
     val markReadOnScroll: Boolean = false,
+    val listView: ListView = ListView.Medium,
 )
 
 class HomeActions(
     val onSelect: (FeedSelection) -> Unit,
     val onUnreadOnlyChange: (Boolean) -> Unit,
     val onOpenArticle: (Article) -> Unit,
+    /** Swiped either way: read becomes unread and the other way round. */
+    val onToggleRead: (Article) -> Unit,
     val onRefresh: () -> Unit,
     val onMarkAllRead: () -> Unit,
     /** Articles that scrolled off the top, with Mark as read on scroll on. */
@@ -124,7 +141,7 @@ fun HomeScreen(
     val scope = rememberCoroutineScope()
     val selectedFeed = (state.selection as? FeedSelection.Single)?.let { s -> state.feeds.firstOrNull { it.url == s.feedUrl } }
     val selectedFolder = (state.selection as? FeedSelection.InFolder)?.let { s -> state.folders.firstOrNull { it.id == s.folderId } }
-    val title = selectedFeed?.title ?: selectedFolder?.title ?: stringResource(R.string.feeds_all)
+    val title = selectedFeed?.title ?: selectedFolder?.title ?: stringResource(R.string.folder_home)
     // The bottom bar's tab: the folder being viewed, or the folder of the feed being viewed.
     val sectionFolderId = selectedFolder?.id ?: selectedFeed?.folderId
     val showFolderBar = state.folders.isNotEmpty() && state.feeds.isNotEmpty()
@@ -160,13 +177,32 @@ fun HomeScreen(
             snackbarHost = { SnackbarHost(snackbarHostState) },
             topBar = {
                 TopAppBar(
-                    title = { Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                    title = {
+                        Column {
+                            Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            if (state.feeds.isNotEmpty()) {
+                                Text(
+                                    if (state.unreadOnly) {
+                                        pluralStringResource(R.plurals.home_subtitle_unread, unreadHere, unreadHere)
+                                    } else {
+                                        pluralStringResource(R.plurals.home_subtitle_all, unreadHere, unreadHere)
+                                    },
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                )
+                            }
+                        }
+                    },
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
                             Icon(painterResource(R.drawable.ic_menu), contentDescription = stringResource(R.string.action_open_feeds))
                         }
                     },
                     actions = {
+                        if (state.feeds.isNotEmpty()) {
+                            UnreadToggle(state.unreadOnly, actions.onUnreadOnlyChange)
+                        }
                         IconButton(onClick = { menuOpen = true }) {
                             Icon(painterResource(R.drawable.ic_more_vert), contentDescription = stringResource(R.string.action_more))
                         }
@@ -188,14 +224,6 @@ fun HomeScreen(
                                 onClick = {
                                     menuOpen = false
                                     actions.onAddFeed()
-                                },
-                            )
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.menu_settings)) },
-                                leadingIcon = { Icon(painterResource(R.drawable.ic_settings), contentDescription = null) },
-                                onClick = {
-                                    menuOpen = false
-                                    actions.onOpenSettings()
                                 },
                             )
                         }
@@ -263,7 +291,7 @@ fun HomeScreen(
 }
 
 /** Room below the list and above the floating action button for the floating folder bar. */
-private val FOLDER_BAR_SPACE = 80.dp
+private val FOLDER_BAR_SPACE = 96.dp
 
 private enum class HomeContent { NoFeeds, Loading, Empty, Articles }
 
@@ -283,8 +311,7 @@ private fun ArticleList(
         val articles by rememberUpdatedState(state.articles)
         val onScrolledPast by rememberUpdatedState(actions.onScrolledPast)
         LaunchedEffect(listState) {
-            // Item 0 is the Unread/All filter, so the first article is item 1.
-            snapshotFlow { listState.firstVisibleItemIndex - 1 }
+            snapshotFlow { listState.firstVisibleItemIndex }
                 .distinctUntilChanged()
                 .collect { first ->
                     val keys = ScrollRead.scrolledPast(articles, first)
@@ -299,53 +326,113 @@ private fun ArticleList(
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 88.dp + bottomSpace),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        item(key = "filter") { UnreadFilter(state, actions.onUnreadOnlyChange) }
         items(state.articles, key = { it.key }) { article ->
-            ArticleRow(
-                article = article,
-                feedTitle = if (showFeedName) feedTitles[article.feedUrl] else null,
-                showImage = state.showImages,
-                onClick = { actions.onOpenArticle(article) },
-                modifier = Modifier.animateItem(),
-            )
+            SwipeToToggleRead(article, onToggle = { actions.onToggleRead(article) }, modifier = Modifier.animateItem()) {
+                ArticleRow(
+                    article = article,
+                    feedTitle = if (showFeedName) feedTitles[article.feedUrl] else null,
+                    view = state.listView,
+                    showImage = state.showImages,
+                    onClick = { actions.onOpenArticle(article) },
+                )
+            }
         }
     }
 }
 
+/** Shows only unread articles when on; every article when off. */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun UnreadFilter(
-    state: HomeState,
-    onUnreadOnlyChange: (Boolean) -> Unit,
+private fun UnreadToggle(
+    unreadOnly: Boolean,
+    onChange: (Boolean) -> Unit,
 ) {
-    val unread = state.unreadCounts[state.selection] ?: 0
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(bottom = 4.dp)) {
-        FilterChip(
-            selected = state.unreadOnly,
-            onClick = { onUnreadOnlyChange(true) },
-            label = { Text(pluralStringResource(R.plurals.filter_unread, unread, unread)) },
-            leadingIcon = if (state.unreadOnly) checkIcon() else null,
-        )
-        FilterChip(
-            selected = !state.unreadOnly,
-            onClick = { onUnreadOnlyChange(false) },
-            label = { Text(stringResource(R.string.filter_all)) },
-            leadingIcon = if (!state.unreadOnly) checkIcon() else null,
-        )
+    val label = stringResource(R.string.action_show_unread)
+    TooltipBox(
+        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Below),
+        tooltip = { PlainTooltip { Text(label) } },
+        state = rememberTooltipState(),
+    ) {
+        IconToggleButton(
+            checked = unreadOnly,
+            onCheckedChange = onChange,
+            colors =
+                IconButtonDefaults.iconToggleButtonColors(
+                    checkedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                ),
+        ) {
+            Icon(painterResource(R.drawable.ic_filter_unread), contentDescription = label)
+        }
     }
 }
 
-private fun checkIcon(): @Composable () -> Unit =
-    {
-        Icon(painterResource(R.drawable.ic_check), contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize))
+/** Swiping a row either way marks it read, or unread when it was read; the row springs back. */
+@Composable
+private fun SwipeToToggleRead(
+    article: Article,
+    onToggle: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
+    val state = rememberSwipeToDismissBoxState()
+    val scope = rememberCoroutineScope()
+    val label = stringResource(if (article.read) R.string.action_mark_unread else R.string.action_mark_read)
+    SwipeToDismissBox(
+        state = state,
+        modifier =
+            modifier.semantics {
+                customActions =
+                    listOf(
+                        CustomAccessibilityAction(label) {
+                            onToggle()
+                            true
+                        },
+                    )
+            },
+        onDismiss = {
+            onToggle()
+            scope.launch { state.reset() }
+        },
+        backgroundContent = {
+            val direction = state.dismissDirection
+            Row(
+                Modifier
+                    .fillMaxSize()
+                    .clip(AppShapes.Item)
+                    .background(MaterialTheme.colorScheme.primaryContainer)
+                    .padding(horizontal = 24.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement =
+                    if (direction == SwipeToDismissBoxValue.EndToStart) Arrangement.End else Arrangement.Start,
+            ) {
+                if (direction != SwipeToDismissBoxValue.Settled) {
+                    Icon(
+                        painterResource(if (article.read) R.drawable.ic_mark_unread else R.drawable.ic_mark_read),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
+                    Text(
+                        label,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.padding(horizontal = 12.dp),
+                    )
+                }
+            }
+        },
+    ) {
+        content()
     }
+}
 
 @Composable
 private fun ArticleRow(
     article: Article,
     feedTitle: String?,
+    view: ListView,
     showImage: Boolean,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     val time =
         remember(article.sortTime) {
@@ -358,55 +445,129 @@ private fun ArticleRow(
                 ).toString()
         }
     val snippet = remember(article.html) { Html.snippet(article.html) }
-    val unreadLabel = stringResource(R.string.article_unread)
+    val image = article.imageUrl?.takeIf { showImage && view != ListView.Small }
     Surface(
         onClick = onClick,
         shape = AppShapes.Item,
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        modifier = modifier.fillMaxWidth(),
+        color = if (article.read) MaterialTheme.colorScheme.surfaceContainerLow else MaterialTheme.colorScheme.surfaceContainer,
+        modifier = Modifier.fillMaxWidth(),
     ) {
-        Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (!article.read) {
-                        Box(
-                            Modifier
-                                .size(8.dp)
-                                .background(MaterialTheme.colorScheme.primary, CircleShape)
-                                .clearAndSetSemantics { contentDescription = unreadLabel },
-                        )
-                    }
-                    Text(
-                        text = listOfNotNull(feedTitle, time).joinToString(" · "),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-                Text(
-                    text = article.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = if (article.read) FontWeight.Normal else FontWeight.SemiBold,
-                    color = if (article.read) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                if (snippet.isNotEmpty()) {
-                    Text(
-                        text = snippet,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                    )
+        when (view) {
+            ListView.Small -> {
+                Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    MetaLine(article, feedTitle, time)
+                    ArticleTitle(article, MaterialTheme.typography.titleSmall, maxLines = 2)
                 }
             }
-            if (showImage && article.imageUrl != null) {
-                Thumbnail(article.imageUrl, Modifier.padding(top = 20.dp))
+
+            ListView.Medium -> {
+                Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        MetaLine(article, feedTitle, time)
+                        ArticleTitle(article, MaterialTheme.typography.titleMedium, maxLines = 3)
+                        Snippet(snippet, maxLines = 2)
+                    }
+                    if (image != null) Thumbnail(image, Modifier.padding(top = 20.dp))
+                }
+            }
+
+            ListView.Large -> {
+                Column {
+                    if (image != null) LargePicture(image)
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        MetaLine(article, feedTitle, time)
+                        ArticleTitle(article, MaterialTheme.typography.titleLarge, maxLines = 3)
+                        Snippet(snippet, maxLines = 3)
+                    }
+                }
             }
         }
     }
+}
+
+/** Unread dot, feed name and age. */
+@Composable
+private fun MetaLine(
+    article: Article,
+    feedTitle: String?,
+    time: String,
+) {
+    val unreadLabel = stringResource(R.string.article_unread)
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (!article.read) {
+            Box(
+                Modifier
+                    .size(8.dp)
+                    .background(MaterialTheme.colorScheme.primary, CircleShape)
+                    .clearAndSetSemantics { contentDescription = unreadLabel },
+            )
+        }
+        if (feedTitle != null) {
+            Text(
+                text = feedTitle,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false),
+            )
+        }
+        Text(
+            text = time,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+        )
+    }
+}
+
+@Composable
+private fun ArticleTitle(
+    article: Article,
+    style: TextStyle,
+    maxLines: Int,
+) {
+    Text(
+        text = article.title,
+        style = style,
+        fontWeight = if (article.read) FontWeight.Normal else FontWeight.SemiBold,
+        color = if (article.read) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+        maxLines = maxLines,
+        overflow = TextOverflow.Ellipsis,
+    )
+}
+
+@Composable
+private fun Snippet(
+    snippet: String,
+    maxLines: Int,
+) {
+    if (snippet.isEmpty()) return
+    Text(
+        text = snippet,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        maxLines = maxLines,
+        overflow = TextOverflow.Ellipsis,
+    )
+}
+
+/** The Large view's picture across the card. Disappears when it can't be loaded. */
+@Composable
+private fun LargePicture(url: String) {
+    var failed by remember(url) { mutableStateOf(false) }
+    if (failed) return
+    AsyncImage(
+        model = url,
+        contentDescription = null,
+        contentScale = ContentScale.Crop,
+        onError = { failed = true },
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .aspectRatio(16f / 9f)
+                .background(MaterialTheme.colorScheme.surfaceContainerHighest),
+    )
 }
 
 /** The article's picture, square, beside the text. Disappears when it can't be loaded. */

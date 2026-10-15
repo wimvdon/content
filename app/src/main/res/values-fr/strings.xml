@@ -24,7 +24,6 @@
     <string name="action_share">Partager</string>
     <string name="action_save_later">Enregistrer pour plus tard</string>
     <string name="feeds_title">Flux</string>
-    <string name="feeds_all">Tous les articles</string>
     <string name="feeds_add">Ajouter un flux</string>
     <string name="feeds_import">Importer un OPML</string>
     <string name="feeds_export">Exporter en OPML</string>
@@ -42,7 +41,6 @@
     <string name="problem_server">Le site a rencontré un problème. Réessayez plus tard.</string>
     <string name="problem_too_large">Ce flux est trop volumineux.</string>
     <string name="problem_not_a_feed">Cette adresse ne contient plus de flux.</string>
-    <string name="filter_all">Tous</string>
     <string name="article_unread">Non lu</string>
     <string name="home_no_feeds_title">Aucun flux pour l\'instant</string>
     <string name="home_no_feeds_body">Ajoutez un site ou un flux que vous aimez, ou importez vos flux depuis un autre lecteur.</string>
@@ -130,15 +128,17 @@
     <string name="folder_icon_home">Maison</string>
     <string name="setting_mark_read_on_scroll_title">Marquer comme lu en défilant</string>
     <string name="setting_mark_read_on_scroll_summary">Les articles que tu dépasses en faisant défiler la liste sont marqués comme lus</string>
+    <string name="action_show_unread">Afficher les non lus seulement</string>
+    <string name="action_mark_read">Marquer comme lu</string>
+    <string name="section_list">Liste d\'articles</string>
+    <string name="setting_list_view">Affichage</string>
+    <string name="list_view_small">Petit</string>
+    <string name="list_view_medium">Moyen</string>
+    <string name="list_view_large">Grand</string>
     <plurals name="feeds_count">
         <item quantity="one">%d flux</item>
         <item quantity="many">%d flux</item>
         <item quantity="other">%d flux</item>
-    </plurals>
-    <plurals name="filter_unread">
-        <item quantity="one">Non lu (%d)</item>
-        <item quantity="many">Non lus (%d)</item>
-        <item quantity="other">Non lus (%d)</item>
     </plurals>
     <plurals name="import_added">
         <item quantity="one">%d flux ajouté</item>
@@ -149,6 +149,16 @@
         <item quantity="one">%d flux n\'a pas pu être actualisé</item>
         <item quantity="many">%d flux n\'ont pas pu être actualisés</item>
         <item quantity="other">%d flux n\'ont pas pu être actualisés</item>
+    </plurals>
+    <plurals name="home_subtitle_unread">
+        <item quantity="one">%d non lu</item>
+        <item quantity="many">%d non lus</item>
+        <item quantity="other">%d non lus</item>
+    </plurals>
+    <plurals name="home_subtitle_all">
+        <item quantity="one">Tous les articles · %d non lu</item>
+        <item quantity="many">Tous les articles · %d non lus</item>
+        <item quantity="other">Tous les articles · %d non lus</item>
     </plurals>
     <plurals name="folders_count">
         <item quantity="one">%d dossier</item>

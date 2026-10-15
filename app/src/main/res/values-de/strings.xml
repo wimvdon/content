@@ -24,7 +24,6 @@
     <string name="action_share">Teilen</string>
     <string name="action_save_later">Für später speichern</string>
     <string name="feeds_title">Feeds</string>
-    <string name="feeds_all">Alle Artikel</string>
     <string name="feeds_add">Feed hinzufügen</string>
     <string name="feeds_import">OPML importieren</string>
     <string name="feeds_export">OPML exportieren</string>
@@ -42,7 +41,6 @@
     <string name="problem_server">Die Website hatte ein Problem. Versuche es später erneut.</string>
     <string name="problem_too_large">Dieser Feed ist zu groß.</string>
     <string name="problem_not_a_feed">Unter dieser Adresse gibt es keinen Feed mehr.</string>
-    <string name="filter_all">Alle</string>
     <string name="article_unread">Ungelesen</string>
     <string name="home_no_feeds_title">Noch keine Feeds</string>
     <string name="home_no_feeds_body">Füge eine Website oder einen Feed hinzu, den du magst, oder importiere deine Feeds aus einem anderen Reader.</string>
@@ -130,13 +128,16 @@
     <string name="folder_icon_home">Zuhause</string>
     <string name="setting_mark_read_on_scroll_title">Beim Scrollen als gelesen markieren</string>
     <string name="setting_mark_read_on_scroll_summary">Artikel, an denen du in der Liste vorbeiscrollst, werden als gelesen markiert</string>
+    <string name="action_show_unread">Nur Ungelesene zeigen</string>
+    <string name="action_mark_read">Als gelesen markieren</string>
+    <string name="section_list">Artikelliste</string>
+    <string name="setting_list_view">Ansicht</string>
+    <string name="list_view_small">Klein</string>
+    <string name="list_view_medium">Mittel</string>
+    <string name="list_view_large">Groß</string>
     <plurals name="feeds_count">
         <item quantity="one">%d Feed</item>
         <item quantity="other">%d Feeds</item>
-    </plurals>
-    <plurals name="filter_unread">
-        <item quantity="one">Ungelesen (%d)</item>
-        <item quantity="other">Ungelesen (%d)</item>
     </plurals>
     <plurals name="import_added">
         <item quantity="one">%d Feed hinzugefügt</item>
@@ -145,6 +146,14 @@
     <plurals name="refresh_failed">
         <item quantity="one">%d Feed konnte nicht aktualisiert werden</item>
         <item quantity="other">%d Feeds konnten nicht aktualisiert werden</item>
+    </plurals>
+    <plurals name="home_subtitle_unread">
+        <item quantity="one">%d ungelesen</item>
+        <item quantity="other">%d ungelesen</item>
+    </plurals>
+    <plurals name="home_subtitle_all">
+        <item quantity="one">Alle Artikel · %d ungelesen</item>
+        <item quantity="other">Alle Artikel · %d ungelesen</item>
     </plurals>
     <plurals name="folders_count">
         <item quantity="one">%d Ordner</item>

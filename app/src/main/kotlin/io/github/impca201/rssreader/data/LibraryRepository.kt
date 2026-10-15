@@ -15,6 +15,7 @@ import io.github.impca201.rssreader.feed.Fetched
 import io.github.impca201.rssreader.feed.FindResult
 import io.github.impca201.rssreader.feed.NotAFeedException
 import io.github.impca201.rssreader.feed.Opml
+import io.github.impca201.rssreader.feed.ParsedFeed
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -82,8 +83,9 @@ class LibraryRepository(
     private val refreshLock = Mutex()
 
     /**
-     * Downloads every feed (a few at a time) and merges the results. Returns the number of
-     * feeds that failed. A refresh that is already running is not started twice.
+     * Downloads every feed (a few at a time) and then merges all results at once, so the list
+     * changes in one step, in date order. Returns the number of feeds that failed. A refresh that
+     * is already running is not started twice.
      */
     suspend fun refreshAll(): Int {
         if (!refreshLock.tryLock()) return 0
@@ -91,35 +93,36 @@ class LibraryRepository(
             _refreshing.value = true
             val feeds = store.data.first().feeds
             val permits = Semaphore(PARALLEL_DOWNLOADS)
-            val failures =
+            val results =
                 coroutineScope {
                     feeds
-                        .map { feed -> async { permits.withPermit { refresh(feed.url) } } }
+                        .map { feed -> async { permits.withPermit { feed.url to download(feed.url) } } }
                         .awaitAll()
                 }
-            return failures.count { !it }
+            val downloads = results.mapNotNull { (url, result) -> result.getOrNull()?.let { url to it } }.toMap()
+            if (downloads.isNotEmpty()) store.updateData { it.mergeAll(downloads, clock()) }
+            val problems = results.mapNotNull { (url, result) -> result.exceptionOrNull()?.let { url to (it as ProblemException).problem } }.toMap()
+            _problems.value = problems
+            return problems.size
         } finally {
             _refreshing.value = false
             refreshLock.unlock()
         }
     }
 
-    /** Returns true when the feed was refreshed. */
-    private suspend fun refresh(url: String): Boolean {
-        val problem =
-            try {
-                val fetched = fetch(url)
-                val parsed = FeedParser.parse(fetched.bytes, fetched.url)
-                store.updateData { it.merge(url, parsed, clock()) }
-                null
-            } catch (e: FetchException) {
-                e.error.toProblem()
-            } catch (_: NotAFeedException) {
-                FeedProblem.NotAFeed
-            }
-        _problems.update { if (problem == null) it - url else it + (url to problem) }
-        return problem == null
-    }
+    private class ProblemException(
+        val problem: FeedProblem,
+    ) : Exception()
+
+    private suspend fun download(url: String): Result<ParsedFeed> =
+        try {
+            val fetched = fetch(url)
+            Result.success(FeedParser.parse(fetched.bytes, fetched.url))
+        } catch (e: FetchException) {
+            Result.failure(ProblemException(e.error.toProblem()))
+        } catch (_: NotAFeedException) {
+            Result.failure(ProblemException(FeedProblem.NotAFeed))
+        }
 
     /** Finds and adds the feed behind [input], in [folderId] when given (the folder being viewed). */
     suspend fun addFeed(

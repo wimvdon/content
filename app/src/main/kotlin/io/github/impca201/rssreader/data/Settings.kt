@@ -14,6 +14,9 @@ data class Appearance(
         }
 }
 
+/** How big each article is in the list: title only, with a thumbnail, or a card with a large picture. */
+enum class ListView { Small, Medium, Large }
+
 enum class ReaderFont { Sans, Serif }
 
 /** Line height as a multiple of the text size. */
@@ -118,4 +121,5 @@ data class Settings(
     val showImages: Boolean = true,
     /** Mark articles as read once they scroll off the top of the list. */
     val markReadOnScroll: Boolean = false,
+    val listView: ListView = ListView.Medium,
 )

@@ -74,7 +74,7 @@ class LibraryTest {
     @Test
     fun `merge keeps only the newest articles of a feed`() {
         val many = (1..Library.MAX_ARTICLES_PER_FEED + 10).map { item("$it", it.toLong()) }
-        val merged = Library().addFeed(Feed(a, "A")).merge(a, parsed(*many.toTypedArray()), now = 0)
+        val merged = Library().addFeed(Feed(a, "A")).merge(a, parsed(*many.toTypedArray()), now = 1_000)
         assertEquals(Library.MAX_ARTICLES_PER_FEED, merged.articles.size)
         assertNull(merged.article(Article.keyOf(a, "1")))
     }
@@ -210,5 +210,23 @@ class LibraryTest {
             listOf(Opml.Entry(a, "Feed", "Tech"), Opml.Entry(b, "Feed", null)),
             withFolder.toOpmlEntries(),
         )
+    }
+
+    @Test
+    fun `a whole refresh is merged at once, newest first across feeds`() {
+        val library = Library().addFeed(Feed(a, "A")).addFeed(Feed(b, "B"))
+        val merged =
+            library.mergeAll(
+                mapOf(a to parsed(item("1", 100), item("3", 300)), b to parsed(item("2", 200))),
+                now = 1_000,
+            )
+        assertEquals(listOf("3", "2", "1"), merged.articlesFor(FeedSelection.All, unreadOnly = false).map { it.id })
+        assertSame(library, library.mergeAll(emptyMap(), now = 1_000))
+    }
+
+    @Test
+    fun `dates in the future count as now`() {
+        val merged = Library().addFeed(Feed(a, "A")).merge(a, parsed(item("1", 5_000)), now = 1_000)
+        assertEquals(1_000L, merged.articles.single().publishedAt)
     }
 }

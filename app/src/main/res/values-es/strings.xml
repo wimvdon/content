@@ -24,7 +24,6 @@
     <string name="action_share">Compartir</string>
     <string name="action_save_later">Guardar para más tarde</string>
     <string name="feeds_title">Feeds</string>
-    <string name="feeds_all">Todos los artículos</string>
     <string name="feeds_add">Añadir feed</string>
     <string name="feeds_import">Importar OPML</string>
     <string name="feeds_export">Exportar OPML</string>
@@ -42,7 +41,6 @@
     <string name="problem_server">El sitio web tuvo un problema. Inténtalo más tarde.</string>
     <string name="problem_too_large">Este feed es demasiado grande.</string>
     <string name="problem_not_a_feed">Esta dirección ya no tiene un feed.</string>
-    <string name="filter_all">Todos</string>
     <string name="article_unread">No leído</string>
     <string name="home_no_feeds_title">Aún no hay feeds</string>
     <string name="home_no_feeds_body">Añade un sitio web o feed que te guste, o importa tus feeds desde otro lector.</string>
@@ -130,15 +128,17 @@
     <string name="folder_icon_home">Casa</string>
     <string name="setting_mark_read_on_scroll_title">Marcar como leído al desplazarse</string>
     <string name="setting_mark_read_on_scroll_summary">Los artículos que dejas atrás al desplazarte por la lista se marcan como leídos</string>
+    <string name="action_show_unread">Mostrar solo no leídos</string>
+    <string name="action_mark_read">Marcar como leído</string>
+    <string name="section_list">Lista de artículos</string>
+    <string name="setting_list_view">Vista</string>
+    <string name="list_view_small">Pequeña</string>
+    <string name="list_view_medium">Mediana</string>
+    <string name="list_view_large">Grande</string>
     <plurals name="feeds_count">
         <item quantity="one">%d feed</item>
         <item quantity="many">%d feeds</item>
         <item quantity="other">%d feeds</item>
-    </plurals>
-    <plurals name="filter_unread">
-        <item quantity="one">No leído (%d)</item>
-        <item quantity="many">No leídos (%d)</item>
-        <item quantity="other">No leídos (%d)</item>
     </plurals>
     <plurals name="import_added">
         <item quantity="one">%d feed añadido</item>
@@ -149,6 +149,16 @@
         <item quantity="one">No se pudo actualizar %d feed</item>
         <item quantity="many">No se pudieron actualizar %d feeds</item>
         <item quantity="other">No se pudieron actualizar %d feeds</item>
+    </plurals>
+    <plurals name="home_subtitle_unread">
+        <item quantity="one">%d sin leer</item>
+        <item quantity="many">%d sin leer</item>
+        <item quantity="other">%d sin leer</item>
+    </plurals>
+    <plurals name="home_subtitle_all">
+        <item quantity="one">Todos los artículos · %d sin leer</item>
+        <item quantity="many">Todos los artículos · %d sin leer</item>
+        <item quantity="other">Todos los artículos · %d sin leer</item>
     </plurals>
     <plurals name="folders_count">
         <item quantity="one">%d carpeta</item>
