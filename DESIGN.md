@@ -137,4 +137,9 @@ repositories:
 - Article list: three views (Small, Medium, Large card with a 16:9 picture). Unread rows sit on
   `surfaceContainer`, read rows on `surfaceContainerLow`; the feed name is in `primary`. Swiping
   either way toggles read. The top bar shows the section and its unread count; the unread
-  filter is an icon toggle there, and Settings lives in the drawer only.
+  filter is an icon toggle there, and Settings lives in the drawer only. Home uses a
+  `MediumTopAppBar` that collapses on scroll; articles sit under sticky day headers (Today,
+  Yesterday, date) in `primary` Title Small; Mark all as read is an extended FAB that shrinks to
+  its icon when the list is scrolled. The drawer opens with the app's mark (feed symbol on a
+  `primaryContainer` circle) and name.
+- Settings starts with a link card to Feeds and folders (a page, not a collapsible section).

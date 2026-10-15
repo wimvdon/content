@@ -227,6 +227,11 @@ fun RssReaderNavigation() {
                     SystemBarsFollowTheme(appDark)
                     // A removed feed or folder can't stay selected.
                     val shownSelection = library.shown(selection)
+                    // Back from a folder or a feed goes to Home first; back on Home leaves the app.
+                    BackHandler(enabled = backStack.size == 1 && shownSelection != FeedSelection.All) {
+                        selection = FeedSelection.All
+                        readThisVisit = emptySet()
+                    }
                     val articles =
                         remember(library, shownSelection, current.unreadOnly, readThisVisit) {
                             library.articlesFor(shownSelection, current.unreadOnly, keep = readThisVisit)

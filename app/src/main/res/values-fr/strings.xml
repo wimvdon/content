@@ -121,6 +121,8 @@
     <string name="feeds_opml_title">Depuis ou vers un autre lecteur</string>
     <string name="reader_auto_dark_title">Sombre automatique</string>
     <string name="reader_auto_dark_summary">Page sombre dès que l\'app est sombre, même avec Sépia ou Thème</string>
+    <string name="day_today">Aujourd\'hui</string>
+    <string name="day_yesterday">Hier</string>
     <plurals name="feeds_count">
         <item quantity="one">%d flux</item>
         <item quantity="many">%d flux</item>

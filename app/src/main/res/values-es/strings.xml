@@ -121,6 +121,8 @@
     <string name="feeds_opml_title">Desde o hacia otro lector</string>
     <string name="reader_auto_dark_title">Oscuro automático</string>
     <string name="reader_auto_dark_summary">Página oscura cuando la app está oscura, también con Sepia o Tema</string>
+    <string name="day_today">Hoy</string>
+    <string name="day_yesterday">Ayer</string>
     <plurals name="feeds_count">
         <item quantity="one">%d feed</item>
         <item quantity="many">%d feeds</item>
