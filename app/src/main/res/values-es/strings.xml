@@ -87,6 +87,12 @@
     <string name="reader_full_failed">No se pudo cargar el artículo completo. Se muestra el texto del feed.</string>
     <string name="reader_full_articles_title">Cargar artículos completos</string>
     <string name="reader_full_articles_summary">Si un feed solo tiene un resumen, traer el artículo entero del sitio web</string>
+    <string name="reader_show_images_title">Mostrar imágenes</string>
+    <string name="reader_show_images_summary">Imágenes en los artículos y como miniatura en la lista; se cargan desde los sitios web</string>
+    <string name="embed_youtube">Ver en YouTube</string>
+    <string name="embed_vimeo">Ver en Vimeo</string>
+    <string name="embed_video">Reproducir vídeo</string>
+    <string name="embed_other">Abrir contenido insertado</string>
     <string name="section_save">Guardar para más tarde</string>
     <string name="save_explanation">Adónde envía un artículo el botón Guardar del lector.</string>
     <string name="save_target_share">Menú de compartir</string>

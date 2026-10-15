@@ -32,6 +32,7 @@ when the run fails.
 | `FeedDiscoveryTest` | Address normalising (https, feed://), feed links in a page, common paths |
 | `FeedFinderTest` | Address → feed with a fake web: direct feed, linked feed, common path, no feed, errors |
 | `ArticleExtractorTest` | Finding the article in pages (with and without `<article>`, split sections), dropping menus, sidebars, comments, scripts and figures, unclosed paragraphs, entities, unsafe links, charsets, when a feed text counts as a summary |
+| `ArticleBlocksTest` | Splitting articles into text, pictures (captions, srcset, lazy-loaded, tracking pixels skipped, https) and embeds (YouTube, Vimeo, videos, others); first picture; same picture in other sizes |
 | `OpmlTest` | Import with folders and duplicates, an Inoreader export, export round trip, non-OPML files |
 | `LibraryTest` | Merging downloads (read state kept, duplicates, limits), sorting, Unread filter, counts, mark read, remove feed |
 | `LibraryCodecTest` | Storage round trip with tabs, line breaks and backslashes; damaged input |
@@ -65,6 +66,9 @@ and then (always before a release):
 - [ ] **Backup:** with a cable and `adb`, `adb shell bmgr backupnow io.github.impca201.rssreader`,
       uninstall, reinstall, `adb shell bmgr restore io.github.impca201.rssreader` (or set up a
       new phone from backup): feeds and settings come back.
+- [ ] **Pictures:** list rows show thumbnails; the reader shows the picture above the title and
+      pictures between paragraphs; a YouTube embed shows a card with a preview that opens YouTube.
+      Settings › Reader › Show images off hides them all.
 - [ ] **Save** with Instapaper installed sends the article to Instapaper; without it, the share
       menu opens.
 - [ ] Import and export OPML. **Import from Inoreader**: the steps open inoreader.com, and

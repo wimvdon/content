@@ -182,6 +182,51 @@ class FeedParserTest {
     }
 
     @Test
+    fun `finds item pictures in Media RSS, enclosures and the text`() {
+        val feed =
+            parse(
+                """
+                <rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/"><channel><title>T</title>
+                  <item><title>Media</title><link>https://e.com/1</link>
+                    <media:content url="https://e.com/small.jpg" medium="image" width="300"/>
+                    <media:content url="https://e.com/big.jpg" medium="image" width="1200"/>
+                    <media:content url="https://e.com/clip.mp4" medium="video"/>
+                  </item>
+                  <item><title>Group</title><link>https://e.com/2</link>
+                    <media:group><media:thumbnail url="http://e.com/thumb.jpg"/></media:group>
+                  </item>
+                  <item><title>Enclosure</title><link>https://e.com/3</link>
+                    <enclosure url="https://e.com/podcast.mp3" type="audio/mpeg"/>
+                    <enclosure url="https://e.com/cover.png" type="image/png"/>
+                  </item>
+                  <item><title>Text</title><link>https://e.com/posts/4</link>
+                    <description><![CDATA[<p>Hi <img src="pic.webp"></p>]]></description>
+                  </item>
+                  <item><title>None</title><link>https://e.com/5</link><description>Just text</description></item>
+                </channel></rss>
+                """.trimIndent(),
+            )
+        assertEquals(
+            listOf("https://e.com/big.jpg", "https://e.com/thumb.jpg", "https://e.com/cover.png", "https://e.com/posts/pic.webp", null),
+            feed.items.map { it.imageUrl },
+        )
+    }
+
+    @Test
+    fun `finds Atom enclosure pictures`() {
+        val feed =
+            parse(
+                """
+                <feed xmlns="http://www.w3.org/2005/Atom"><title>T</title>
+                  <entry><id>1</id><title>A</title><link href="https://e.com/a"/>
+                    <link rel="enclosure" type="image/jpeg" href="/img/a.jpg"/></entry>
+                </feed>
+                """.trimIndent(),
+            )
+        assertEquals("https://e.com/img/a.jpg", feed.items.single().imageUrl)
+    }
+
+    @Test
     fun `keeps a missing date empty`() {
         val feed = parse("<rss><channel><title>T</title><item><title>A</title><link>https://e.com/a</link></item></channel></rss>")
         assertNull(feed.items.single().publishedAt)

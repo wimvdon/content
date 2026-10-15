@@ -23,6 +23,7 @@ class LibraryCodecTest {
                         publishedAt = 1_700_000_000_000,
                         fetchedAt = 1_700_000_100_000,
                         read = true,
+                        imageUrl = "https://a.example.com/1.jpg",
                     ),
                     Article(
                         feedUrl = "https://b.example.com/feed",
@@ -40,6 +41,17 @@ class LibraryCodecTest {
     @Test
     fun `a library survives encoding and decoding`() {
         assertEquals(library, LibraryCodec.decode(LibraryCodec.encode(library)))
+    }
+
+    @Test
+    fun `files from before pictures existed still load`() {
+        val old =
+            "rss-reader-library 1\n" +
+                "F\thttps://a.example.com/feed\tA\t\n" +
+                "A\thttps://a.example.com/feed\t1\tTitle\thttps://a.example.com/1\t\t\t5\t1\t<p>x</p>\n"
+        val article = LibraryCodec.decode(old).articles.single()
+        assertEquals(null, article.imageUrl)
+        assertEquals("<p>x</p>", article.html)
     }
 
     @Test

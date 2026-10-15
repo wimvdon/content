@@ -244,6 +244,7 @@ fun RssReaderNavigation() {
                                 unreadCounts = unreadCounts,
                                 refreshing = refreshing,
                                 hasAnyArticles = library.articles.isNotEmpty(),
+                                showImages = current.showImages,
                             ),
                         snackbarHostState = snackbar,
                         actions =
@@ -301,6 +302,7 @@ fun RssReaderNavigation() {
                             style = current.reader,
                             saveTarget = current.saveTarget,
                             fullText = fullText,
+                            showImages = current.showImages,
                             snackbarHostState = snackbar,
                             actions =
                                 ReaderActions(
@@ -343,6 +345,7 @@ fun RssReaderNavigation() {
                                 onExportOpml = exportOpml,
                                 onReaderStyleChange = { style -> app.appScope.launch { app.settings.setReaderStyle(style) } },
                                 onFullArticlesChange = { enabled -> app.appScope.launch { app.settings.setFullArticles(enabled) } },
+                                onShowImagesChange = { enabled -> app.appScope.launch { app.settings.setShowImages(enabled) } },
                                 onSaveTargetChange = { target -> app.appScope.launch { app.settings.setSaveTarget(target) } },
                                 onGetInstapaper = { ExternalApps.openStoreListing(context, ExternalApps.INSTAPAPER_PACKAGE) },
                                 onThemeModeChange = { mode -> app.appScope.launch { app.settings.setThemeMode(mode) } },

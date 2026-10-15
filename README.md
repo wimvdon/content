@@ -42,6 +42,7 @@ OPML and tap **Import OPML**.
 | Language | Kotlin 2.4, coroutines, `StateFlow` |
 | UI | Jetpack Compose, Material 3 (dynamic colour optional) |
 | Networking | `HttpURLConnection` (HTTPS only), the platform XML parser for RSS, Atom and OPML |
+| Pictures | Coil 3 with OkHttp (thumbnails, hero and inline pictures, video previews) |
 | Storage | Jetpack DataStore (settings; feeds and articles in a small text file) |
 | Build | Gradle 9.8 (Kotlin DSL, version catalog), AGP 9.4, R8 |
 | CI/CD | GitHub Actions: tests, lint and a debug APK on every pull request; signed releases; Dependabot |

@@ -87,6 +87,12 @@
     <string name="reader_full_failed">Der ganze Artikel konnte nicht geladen werden. Du siehst den Text aus dem Feed.</string>
     <string name="reader_full_articles_title">Ganze Artikel laden</string>
     <string name="reader_full_articles_summary">Wenn ein Feed nur eine Zusammenfassung hat, den ganzen Artikel von der Website holen</string>
+    <string name="reader_show_images_title">Bilder anzeigen</string>
+    <string name="reader_show_images_summary">Bilder in Artikeln und als Vorschau in der Liste; sie werden von den Websites geladen</string>
+    <string name="embed_youtube">Auf YouTube ansehen</string>
+    <string name="embed_vimeo">Auf Vimeo ansehen</string>
+    <string name="embed_video">Video abspielen</string>
+    <string name="embed_other">Eingebetteten Inhalt öffnen</string>
     <string name="section_save">Für später speichern</string>
     <string name="save_explanation">Wohin die Speichern-Schaltfläche in der Leseansicht einen Artikel schickt.</string>
     <string name="save_target_share">Teilen-Menü</string>

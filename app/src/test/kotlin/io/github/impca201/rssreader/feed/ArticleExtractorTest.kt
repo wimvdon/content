@@ -44,7 +44,9 @@ class ArticleExtractorTest {
         assertTrue(article.contains("<a href=\"https://example.com/more\">a <b>relative</b> link</a>"))
         assertTrue(article.contains("<em>emphasis</em>"))
         assertTrue(article.contains("<li>One point</li><li>Another point</li>"))
-        listOf("Home", "Sidebar", "comment", "Copyright", "track()", "not text", "Caption", "color: red").forEach {
+        // Pictures stay, with absolute addresses and their captions.
+        assertTrue(article.contains("<figure><img src=\"https://example.com/posts/x.jpg\"><figcaption>Caption</figcaption></figure>"))
+        listOf("Home", "Sidebar", "comment", "Copyright", "track()", "not text", "color: red").forEach {
             assertFalse("should not contain $it", article.contains(it))
         }
     }
@@ -96,6 +98,24 @@ class ArticleExtractorTest {
         val article = ArticleExtractor.extract(html, "https://example.com/")!!
         assertFalse(article.contains("href"))
         assertTrue(article.contains("Click Top"))
+    }
+
+    @Test
+    fun `keeps video embeds and drops other iframes`() {
+        val html =
+            page(
+                """
+                <article><p>$paragraph</p>
+                  <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0" width="560"></iframe>
+                  <iframe src="https://ads.example.net/slot/123"></iframe>
+                  <video poster="/poster.jpg"><source src="/clip.mp4" type="video/mp4"></video>
+                  <p>$paragraph</p><p>$paragraph</p></article>
+                """,
+            )
+        val article = ArticleExtractor.extract(html, "https://example.com/a/")!!
+        assertTrue(article.contains("<iframe src=\"https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0\"></iframe>"))
+        assertFalse(article.contains("ads.example.net"))
+        assertTrue(article.contains("<video src=\"https://example.com/clip.mp4\" poster=\"https://example.com/poster.jpg\"></video>"))
     }
 
     @Test

@@ -57,6 +57,13 @@ class LibraryTest {
     }
 
     @Test
+    fun `merge takes the item's picture and keeps a known one when the feed drops it`() {
+        val withPicture = Library().addFeed(Feed(a, "A")).merge(a, parsed(item("1").copy(imageUrl = "https://x/1.jpg")), now = 1)
+        assertEquals("https://x/1.jpg", withPicture.articles.single().imageUrl)
+        assertEquals("https://x/1.jpg", withPicture.merge(a, parsed(item("1")), now = 2).articles.single().imageUrl)
+    }
+
+    @Test
     fun `merge ignores duplicate items and unknown feeds`() {
         val merged = Library().addFeed(Feed(a, "A")).merge(a, parsed(item("1"), item("1")), now = 1)
         assertEquals(1, merged.articles.size)

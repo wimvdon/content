@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -45,19 +44,17 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import io.github.impca201.rssreader.R
 import io.github.impca201.rssreader.data.Article
 import io.github.impca201.rssreader.data.ReaderStyle
 import io.github.impca201.rssreader.data.SaveTarget
-import io.github.impca201.rssreader.feed.Html
+import io.github.impca201.rssreader.feed.ArticleBlock
+import io.github.impca201.rssreader.feed.ArticleBlocks
 
 /** Whether the reader shows the full article loaded from the website, and how far it got. */
 sealed interface FullTextState {
@@ -94,6 +91,7 @@ fun ReaderScreen(
     style: ReaderStyle,
     saveTarget: SaveTarget,
     fullText: FullTextState,
+    showImages: Boolean,
     snackbarHostState: SnackbarHostState,
     actions: ReaderActions,
 ) {
@@ -182,6 +180,7 @@ fun ReaderScreen(
             )
         } else {
             ArticleBody(
+                showImages = showImages,
                 article = article,
                 fullText = fullText,
                 feedTitle = feedTitle,
@@ -222,6 +221,7 @@ private fun ArticleBody(
     fullText: FullTextState,
     feedTitle: String?,
     style: ReaderStyle,
+    showImages: Boolean,
     onOpenLink: (String) -> Unit,
     onOpenInBrowser: () -> Unit,
     modifier: Modifier = Modifier,
@@ -229,14 +229,16 @@ private fun ArticleBody(
     val linkColor = MaterialTheme.colorScheme.primary
     val openLink by rememberUpdatedState(onOpenLink)
     val html = (fullText as? FullTextState.Shown)?.html ?: article.html
-    val body =
-        remember(html, linkColor) {
-            val links = TextLinkStyles(SpanStyle(color = linkColor, textDecoration = TextDecoration.Underline))
-            AnnotatedString
-                .fromHtml(Html.clean(html), linkStyles = links) { link ->
-                    (link as? LinkAnnotation.Url)?.let { openLink(it.url) }
-                }.trimmed()
+    val baseUrl = article.link ?: article.feedUrl
+    val hero = article.imageUrl?.takeIf { showImages }
+    val blocks =
+        remember(html, baseUrl, hero, showImages) {
+            ArticleBlocks
+                .split(html, baseUrl)
+                // The hero already shows this picture; without pictures, keep only text and embeds.
+                .filterNot { it is ArticleBlock.Image && (!showImages || ArticleBlocks.isSameImage(it.url, hero)) }
         }
+    val links = TextLinkStyles(SpanStyle(color = linkColor, textDecoration = TextDecoration.Underline))
     val bodyStyle = readerBodyStyle(style)
     val context = LocalContext.current
     val date =
@@ -260,6 +262,7 @@ private fun ArticleBody(
                     .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            if (hero != null) HeroImage(hero)
             if (feedTitle != null) {
                 Text(feedTitle, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
             }
@@ -296,8 +299,12 @@ private fun ArticleBody(
 
                 else -> Unit
             }
-            if (body.isNotEmpty()) {
-                SelectionContainer { Text(body, style = bodyStyle) }
+            for (block in blocks) {
+                when (block) {
+                    is ArticleBlock.Text -> TextBlock(block.html, bodyStyle, links) { openLink(it) }
+                    is ArticleBlock.Image -> InlineImage(block.url, block.caption)
+                    is ArticleBlock.Embed -> EmbedCard(block, showThumbnail = showImages, onOpen = { openLink(block.url) })
+                }
             }
             if (article.link != null) {
                 OutlinedButton(onClick = onOpenInBrowser, modifier = Modifier.padding(top = 8.dp)) {
@@ -307,12 +314,4 @@ private fun ArticleBody(
             }
         }
     }
-}
-
-/** Html → AnnotatedString keeps the leading and trailing line breaks of block elements. */
-private fun AnnotatedString.trimmed(): AnnotatedString {
-    val start = indexOfFirst { !it.isWhitespace() }
-    if (start < 0) return AnnotatedString("")
-    val end = indexOfLast { !it.isWhitespace() } + 1
-    return subSequence(start, end)
 }

@@ -29,7 +29,7 @@ are the safety net. Follow them every time.
 - Delete, skip, `@Ignore`, or weaken tests, lint checks, CI steps or workflows to make something
   pass. Don't add a lint baseline or disable a lint check. **Never remove the release workflow.**
 - Add Android permissions or network destinations beyond the ones in `PRIVACY.md` (only the feeds
-  and websites the user adds, and the pages of their articles), analytics, crash reporting, ads or tracking. No background
+  and websites the user adds, the pages of their articles, and the pictures those contain), analytics, crash reporting, ads or tracking. No background
   downloads. Keep Android's block on unencrypted (`http://`) traffic.
 - Add new dependencies (libraries or Gradle plugins). Prefer what is already in
   `gradle/libs.versions.toml`. Use **DataStore** if the app needs to store data.
@@ -44,7 +44,7 @@ Secrets, keystores (`*.jks`, `*.keystore`), `keystore.properties`, passwords or 
 - **Every logic change gets new or updated unit tests** (`app/src/test/`). Keep logic in plain
   Kotlin classes without Android types (no `Context`, `View`, Compose) so it runs on the JVM
   (`data/Library.kt`, `feed/`). Composables only display state and forward clicks. HTTP only in
-  `feed/FeedFetcher.kt`.
+  `feed/FeedFetcher.kt`, and for pictures through Coil (`RssReaderApp.newImageLoader`).
 - **All user-visible text goes in `app/src/main/res/values/strings.xml`**, never hard-coded. In
   Compose, read strings with `stringResource` or `LocalResources`, not `LocalContext`.
   Add the translation to **every** `values-xx/strings.xml` (currently: `nl`, `fr`, `de`, `es`, `it`),

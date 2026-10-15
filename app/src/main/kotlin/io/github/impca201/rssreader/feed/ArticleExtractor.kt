@@ -4,8 +4,8 @@ import java.net.URI
 
 /**
  * Finds the article in a web page and returns it as simple HTML (paragraphs, headings, lists,
- * quotes, links and text styles), the way "reader view" in browsers does: menus, headers,
- * sidebars, comments, ads and scripts are left out. Plain Kotlin with its own forgiving HTML
+ * quotes, links, text styles, pictures and embedded videos), the way "reader view" in browsers
+ * does: menus, headers, sidebars, comments, ads and scripts are left out. Plain Kotlin with its own forgiving HTML
  * reader, so it needs no library and runs in unit tests.
  */
 object ArticleExtractor {
@@ -15,7 +15,7 @@ object ArticleExtractor {
     private val voidTags = setOf("area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr")
     private val rawTextTags = setOf("script", "style", "noscript", "template", "svg", "math", "textarea", "iframe", "object", "select", "canvas")
     private val droppedTags =
-        rawTextTags + setOf("nav", "header", "footer", "aside", "form", "button", "figure", "picture", "video", "audio", "dialog", "menu")
+        (rawTextTags - "iframe") + setOf("nav", "header", "footer", "aside", "form", "button", "audio", "dialog", "menu")
 
     /** Tags whose start closes an open <p> (HTML's implied end tags). */
     private val closesParagraph =
@@ -29,6 +29,15 @@ object ArticleExtractor {
         setOf(
             "p", "br", "h1", "h2", "h3", "h4", "h5", "h6", "ul", "ol", "li", "blockquote", "pre", "code",
             "em", "i", "strong", "b", "u", "s", "sub", "sup", "a", "hr", "dl", "dt", "dd",
+            "figure", "figcaption", "img", "iframe", "video",
+        )
+
+    /** Embedded players worth a card in the reader; other iframes are usually ads or widgets. */
+    private val knownEmbeds =
+        Regex(
+            "youtube\\.com|youtube-nocookie\\.com|youtu\\.be|vimeo\\.com|twitter\\.com|x\\.com|instagram\\.com|" +
+                "spotify\\.com|soundcloud\\.com|codepen\\.io|dailymotion\\.com|tiktok\\.com|bsky\\.app",
+            RegexOption.IGNORE_CASE,
         )
     private val blockTags = setOf("p", "h1", "h2", "h3", "h4", "h5", "h6", "ul", "ol", "li", "blockquote", "pre", "hr", "dl", "dt", "dd", "div", "section", "article", "main", "td", "tr", "table")
 
@@ -251,6 +260,34 @@ object ArticleExtractor {
 
             tag == "br" || tag == "hr" -> out.append("<$tag>")
 
+            tag == "img" -> {
+                out.append("<img")
+                for (name in listOf("src", "data-src", "data-lazy-src")) {
+                    element.attributes[name]?.let { resolve(pageUrl, it) }?.let { out.attr(name, it) }
+                }
+                for (name in listOf("srcset", "data-srcset")) {
+                    element.attributes[name]?.let { resolveSrcset(pageUrl, it) }?.let { out.attr(name, it) }
+                }
+                for (name in listOf("width", "height", "alt")) element.attributes[name]?.let { out.attr(name, it) }
+                out.append('>')
+            }
+
+            tag == "iframe" -> {
+                val src = (element.attributes["src"] ?: element.attributes["data-src"])?.let { resolve(pageUrl, it) }
+                if (src != null && knownEmbeds.containsMatchIn(src)) out.append("<iframe").attr("src", src).append("></iframe>")
+            }
+
+            tag == "video" -> {
+                val src =
+                    (element.attributes["src"] ?: findDescendant(element, "source")?.attributes?.get("src"))
+                        ?.let { resolve(pageUrl, it) }
+                if (src != null) {
+                    out.append("<video").attr("src", src)
+                    element.attributes["poster"]?.let { resolve(pageUrl, it) }?.let { out.attr("poster", it) }
+                    out.append("></video>")
+                }
+            }
+
             tag == "a" -> {
                 val href = element.attributes["href"]?.let { resolve(pageUrl, it) }
                 if (href == null) {
@@ -269,6 +306,34 @@ object ArticleExtractor {
                 out.append('<').append(tag).append('>').append(inner).append("</").append(tag).append('>')
             }
         }
+    }
+
+    private fun StringBuilder.attr(
+        name: String,
+        value: String,
+    ): StringBuilder = append(' ').append(name).append("=\"").append(Html.escape(value)).append('"')
+
+    private fun resolveSrcset(
+        base: String,
+        srcset: String,
+    ): String =
+        srcset.split(',').mapNotNull { part ->
+            val pieces = part.trim().split(Regex("""\s+"""), limit = 2)
+            val url = pieces.firstOrNull()?.let { resolve(base, it) } ?: return@mapNotNull null
+            if (pieces.size > 1) "$url ${pieces[1]}" else url
+        }.joinToString(", ")
+
+    private fun findDescendant(
+        element: Element,
+        tag: String,
+    ): Element? {
+        for (child in element.children) {
+            if (child is Element) {
+                if (child.tag == tag) return child
+                findDescendant(child, tag)?.let { return it }
+            }
+        }
+        return null
     }
 
     private fun resolve(

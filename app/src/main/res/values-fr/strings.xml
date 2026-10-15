@@ -87,6 +87,12 @@
     <string name="reader_full_failed">Impossible de charger l\'article complet. Le texte du flux est affiché.</string>
     <string name="reader_full_articles_title">Charger les articles complets</string>
     <string name="reader_full_articles_summary">Quand un flux ne contient qu\'un résumé, récupérer l\'article entier sur le site</string>
+    <string name="reader_show_images_title">Afficher les images</string>
+    <string name="reader_show_images_summary">Images dans les articles et en vignette dans la liste ; elles sont chargées depuis les sites</string>
+    <string name="embed_youtube">Regarder sur YouTube</string>
+    <string name="embed_vimeo">Regarder sur Vimeo</string>
+    <string name="embed_video">Lire la vidéo</string>
+    <string name="embed_other">Ouvrir le contenu intégré</string>
     <string name="section_save">Enregistrer pour plus tard</string>
     <string name="save_explanation">Où le bouton Enregistrer du lecteur envoie un article.</string>
     <string name="save_target_share">Menu de partage</string>
