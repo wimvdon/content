@@ -58,6 +58,8 @@ class SettingsStore(
 
     suspend fun setShowImages(enabled: Boolean) = edit { it[SHOW_IMAGES] = enabled }
 
+    suspend fun setMarkReadOnScroll(enabled: Boolean) = edit { it[MARK_READ_ON_SCROLL] = enabled }
+
     private suspend fun edit(change: (MutablePreferences) -> Unit) {
         dataStore.edit(change)
     }
@@ -81,6 +83,7 @@ class SettingsStore(
             unreadOnly = p[UNREAD_ONLY] ?: defaults.unreadOnly,
             fullArticles = p[FULL_ARTICLES] ?: defaults.fullArticles,
             showImages = p[SHOW_IMAGES] ?: defaults.showImages,
+            markReadOnScroll = p[MARK_READ_ON_SCROLL] ?: defaults.markReadOnScroll,
         )
     }
 
@@ -101,5 +104,6 @@ class SettingsStore(
         val UNREAD_ONLY = booleanPreferencesKey("unread_only")
         val FULL_ARTICLES = booleanPreferencesKey("full_articles")
         val SHOW_IMAGES = booleanPreferencesKey("show_images")
+        val MARK_READ_ON_SCROLL = booleanPreferencesKey("mark_read_on_scroll")
     }
 }

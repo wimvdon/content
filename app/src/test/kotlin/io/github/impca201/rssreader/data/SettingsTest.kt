@@ -56,5 +56,6 @@ class SettingsTest {
         assertEquals(ShareTarget.Instapaper, settings.saveTarget)
         assertEquals(ShareTarget.Sheet, settings.shareTarget)
         assertEquals(ReaderBackground.Default, settings.reader.background)
+        assertFalse(settings.markReadOnScroll)
     }
 }

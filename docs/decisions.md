@@ -2,6 +2,13 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-15: Mark as read on scroll, off by default
+
+Asked for by the owner. An article counts as read once it has scrolled off the top of the list
+(not merely shown), and stays in the Unread list until it changes, like opened articles, so
+scrolling back still finds it. Off by default so nothing is marked read without the user choosing
+it.
+
 ## 2026-10-15: Folders, a floating folder bar and a Mark all read button
 
 - Feeds can be put in folders, each with a title and an icon from a fixed set of 19 (drawn in the

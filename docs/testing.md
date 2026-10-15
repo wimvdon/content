@@ -36,6 +36,7 @@ when the run fails.
 | `OpmlTest` | Import with folders and duplicates, an Inoreader export with folders, export round trip with folders, non-OPML files |
 | `LibraryTest` | Merging downloads (read state kept, duplicates, limits), sorting, Unread filter, counts, mark read (and undo), remove feed; folders: add, edit, remove, move feeds, folder selection, OPML import into folders and export |
 | `LibraryCodecTest` | Storage round trip with folders, tabs, line breaks and backslashes; missing folders and unknown icons; damaged input |
+| `ScrollReadTest` | Mark as read on scroll: which articles have scrolled past (unread only, not the top one) |
 | `SettingsTest` | Text size limits, reader and theme darkness, Save/Share targets (storage and the old Save setting), defaults |
 
 ## Strategy
@@ -71,6 +72,8 @@ and then (always before a release):
       Settings › Reader › Show images off hides them all.
 - [ ] **Save** sends to the app chosen in Settings › Save and share (Instapaper by default);
       **Share** opens the share menu or the chosen app. An uninstalled app falls back to the share menu.
+- [ ] **Mark as read on scroll** on: scroll down the Unread list; the articles that leave the
+      top of the screen are marked read (their dot goes) but stay until you refresh.
 - [ ] Import and export OPML (for example an Inoreader export); folders come along both ways.
 - [ ] **Folders:** create a folder with an icon, move feeds into it; the bottom bar appears, its
       tabs show only that folder's articles; Mark all read (round button) only marks that

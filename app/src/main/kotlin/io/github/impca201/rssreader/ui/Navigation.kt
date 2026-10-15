@@ -229,6 +229,7 @@ fun RssReaderNavigation() {
                             HomeState(
                                 feeds = library.feeds,
                                 folders = library.folders,
+                                markReadOnScroll = current.markReadOnScroll,
                                 articles = articles,
                                 selection = shownSelection,
                                 unreadOnly = current.unreadOnly,
@@ -267,6 +268,11 @@ fun RssReaderNavigation() {
                                             if (result == SnackbarResult.ActionPerformed) app.appScope.launch { repository.setRead(keys, false) }
                                         }
                                     }
+                                },
+                                onScrolledPast = { keys ->
+                                    // Kept in the Unread list until it changes, like opened articles.
+                                    readThisVisit = readThisVisit + keys
+                                    app.appScope.launch { repository.setRead(keys, true) }
                                 },
                                 onAddFeed = { addDialogOpen = true },
                                 onImportOpml = importOpml,
@@ -353,6 +359,7 @@ fun RssReaderNavigation() {
                                 onReaderStyleChange = { style -> app.appScope.launch { app.settings.setReaderStyle(style) } },
                                 onFullArticlesChange = { enabled -> app.appScope.launch { app.settings.setFullArticles(enabled) } },
                                 onShowImagesChange = { enabled -> app.appScope.launch { app.settings.setShowImages(enabled) } },
+                                onMarkReadOnScrollChange = { enabled -> app.appScope.launch { app.settings.setMarkReadOnScroll(enabled) } },
                                 onSaveTargetChange = { target -> app.appScope.launch { app.settings.setSaveTarget(target) } },
                                 onShareTargetChange = { target -> app.appScope.launch { app.settings.setShareTarget(target) } },
                                 onThemeModeChange = { mode -> app.appScope.launch { app.settings.setThemeMode(mode) } },
