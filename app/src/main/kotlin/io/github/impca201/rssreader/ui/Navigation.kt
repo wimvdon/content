@@ -40,6 +40,8 @@ import io.github.impca201.rssreader.ui.home.AddFeedDialog
 import io.github.impca201.rssreader.ui.home.HomeActions
 import io.github.impca201.rssreader.ui.home.HomeScreen
 import io.github.impca201.rssreader.ui.home.HomeState
+import io.github.impca201.rssreader.ui.home.INOREADER_URL
+import io.github.impca201.rssreader.ui.home.InoreaderImportDialog
 import io.github.impca201.rssreader.ui.home.errorRes
 import io.github.impca201.rssreader.ui.reader.FullTextState
 import io.github.impca201.rssreader.ui.reader.ReaderActions
@@ -134,6 +136,7 @@ fun RssReaderNavigation() {
 
     // Add feed dialog, shared by the list, the drawer and Settings.
     var addDialogOpen by rememberSaveable { mutableStateOf(false) }
+    var inoreaderDialogOpen by rememberSaveable { mutableStateOf(false) }
     var addBusy by remember { mutableStateOf(false) }
     var addError by remember { mutableStateOf<String?>(null) }
 
@@ -261,6 +264,7 @@ fun RssReaderNavigation() {
                                 onMarkAllRead = { app.appScope.launch { repository.markAllRead(shownSelection) } },
                                 onAddFeed = { addDialogOpen = true },
                                 onImportOpml = importOpml,
+                                onImportInoreader = { inoreaderDialogOpen = true },
                                 onOpenSettings = { push(Screen.Settings) },
                             ),
                     )
@@ -335,6 +339,7 @@ fun RssReaderNavigation() {
                                 onAddFeed = { addDialogOpen = true },
                                 onRemoveFeed = { feed -> app.appScope.launch { repository.removeFeed(feed.url) } },
                                 onImportOpml = importOpml,
+                                onImportInoreader = { inoreaderDialogOpen = true },
                                 onExportOpml = exportOpml,
                                 onReaderStyleChange = { style -> app.appScope.launch { app.settings.setReaderStyle(style) } },
                                 onFullArticlesChange = { enabled -> app.appScope.launch { app.settings.setFullArticles(enabled) } },
@@ -347,6 +352,17 @@ fun RssReaderNavigation() {
                 }
             }
         }
+    }
+
+    if (inoreaderDialogOpen) {
+        InoreaderImportDialog(
+            onOpenInoreader = { ExternalApps.openLink(context, INOREADER_URL) },
+            onChooseFile = {
+                inoreaderDialogOpen = false
+                importOpml()
+            },
+            onDismiss = { inoreaderDialogOpen = false },
+        )
     }
 
     if (addDialogOpen) {

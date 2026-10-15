@@ -2,6 +2,14 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-15: Import from Inoreader through its OPML export
+
+The owner asked for an Inoreader import. It is a guided dialog: open inoreader.com, export the
+feeds as OPML there, pick the file here (the existing OPML import). Chosen by the owner over
+signing in with Inoreader's API, which would need a registered Inoreader app (client ID and
+secret), an OAuth sign-in screen and inoreader.com as a new network destination. Trade-off:
+read and starred states are not imported, only the feeds.
+
 ## 2026-10-15: Icon without a box
 
 The owner chose the feed symbol on its own, with the blue gradient, over the first design (a

@@ -53,6 +53,12 @@
     <string name="home_no_articles_title">Aucun article pour l\'instant</string>
     <string name="home_no_articles_body">Tirez vers le bas pour chercher de nouveaux articles.</string>
     <string name="home_show_all">Afficher tous les articles</string>
+    <string name="inoreader_title">Importer depuis Inoreader</string>
+    <string name="inoreader_step1">Touchez Ouvrir Inoreader et connectez-vous.</string>
+    <string name="inoreader_step2">Dans Inoreader, allez dans Préférences › Importer/Exporter et exportez vos flux en OPML. Le fichier est enregistré dans vos téléchargements.</string>
+    <string name="inoreader_step3">Revenez ici, touchez Choisir le fichier et sélectionnez le fichier téléchargé.</string>
+    <string name="inoreader_open">Ouvrir Inoreader</string>
+    <string name="inoreader_choose_file">Choisir le fichier</string>
     <string name="import_failed">Impossible de lire ce fichier.</string>
     <string name="import_nothing_new">Aucun nouveau flux dans ce fichier.</string>
     <string name="export_done">Flux exportés</string>

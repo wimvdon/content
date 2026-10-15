@@ -54,6 +54,12 @@
     <string name="home_no_articles_title">No articles yet</string>
     <string name="home_no_articles_body">Pull down to check for new articles.</string>
     <string name="home_show_all">Show all articles</string>
+    <string name="inoreader_title">Import from Inoreader</string>
+    <string name="inoreader_step1">Tap Open Inoreader and sign in to your account.</string>
+    <string name="inoreader_step2">In Inoreader, go to Preferences › Import/Export and export your feeds as OPML. The file is saved to your downloads.</string>
+    <string name="inoreader_step3">Come back here, tap Choose file and pick the file you just downloaded.</string>
+    <string name="inoreader_open">Open Inoreader</string>
+    <string name="inoreader_choose_file">Choose file</string>
     <string name="import_failed">Couldn’t read this file.</string>
     <string name="import_nothing_new">No new feeds in this file.</string>
     <string name="export_done">Feeds exported</string>
