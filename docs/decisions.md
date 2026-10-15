@@ -2,6 +2,17 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-15: Swipe, folder bar and filter polish after using v0.1.1
+
+The owner found the swipe buggy, the Unread | All buttons jumpy and asked whether the folder bar
+followed Tracker for Simkl. Changes: the swipe is our own small `draggable` that only slides the
+row and springs back (no dismiss state to get stuck in), with a haptic tick at 30%; the drawer
+no longer opens by swiping, which fought with swiping rows (it opens with ☰). The folder bar now
+is Tracker for Simkl's floating pill (selected tab expands to show its name, spring motion), the
+Unread | All halves have fixed equal widths and spring motion, the FAB is icon-only again, and
+the list shows loading placeholders until the stored feeds are read, so "No feeds yet" no longer
+flashes at start.
+
 ## 2026-10-15: Drag and drop on the manage page; renaming feeds
 
 Asked for by the owner. Feeds and folders are reordered and feeds moved between folders by
