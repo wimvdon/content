@@ -1,6 +1,7 @@
 # Rules for Claude Code sessions in this repository
 
-The owner is **not a developer and does not review code**. CI, tests, lint and these rules
+RSS Reader, an Android app built from the `android-app` template (a private repository). The
+owner is **not a developer and does not review code**. CI, tests, lint and these rules
 are the safety net. Follow them every time.
 
 ## Workflow
@@ -16,7 +17,8 @@ are the safety net. Follow them every time.
 3. **Write the pull request description in plain language** (fill in `.github/pull_request_template.md`):
    what changed and why, in words a non-developer understands, and **exactly what to tap on the
    phone to test it** (step by step, with what they should see). The owner tests by installing
-   the debug APK from the pull request's CI run (Checks → CI → Artifacts).
+   the debug APK from the pull request's CI run (Checks → CI → Artifacts). It installs as a
+   separate app, "RSS Reader Dev" (`io.github.impca201.rssreader.debug`), next to the released one.
 4. **Testing on the phone does not block merging.** The owner doesn't review code, so green CI is
    what a pull request needs to be merged. The owner tries the change afterwards with the test steps
    from the description (the debug APK stays on the pull request's CI run, and every push to
@@ -26,11 +28,13 @@ are the safety net. Follow them every time.
 ## Never do these without asking first (and saying why)
 - Delete, skip, `@Ignore`, or weaken tests, lint checks, CI steps or workflows to make something
   pass. Don't add a lint baseline or disable a lint check. **Never remove the release workflow.**
-- Add Android permissions, network access, analytics, crash reporting, ads or tracking.
+- Add Android permissions or network destinations beyond the ones in `PRIVACY.md` (only the feeds
+  and websites the user adds, and the pages of their articles), analytics, crash reporting, ads or tracking. No background
+  downloads. Keep Android's block on unencrypted (`http://`) traffic.
 - Add new dependencies (libraries or Gradle plugins). Prefer what is already in
   `gradle/libs.versions.toml`. Use **DataStore** if the app needs to store data.
-- Change the `applicationId` or the signing setup of an app that has already been released
-  (phones will refuse to update it).
+- Change the `applicationId` (`appId` in `app/build.gradle.kts`) or the signing setup once the
+  app is released: phones would refuse to update it.
 
 ## Never commit
 Secrets, keystores (`*.jks`, `*.keystore`), `keystore.properties`, passwords or API keys.
@@ -38,10 +42,13 @@ Secrets, keystores (`*.jks`, `*.keystore`), `keystore.properties`, passwords or 
 ## Code rules
 - Kotlin + Jetpack Compose + Material 3, single `app` module, mainstream libraries only.
 - **Every logic change gets new or updated unit tests** (`app/src/test/`). Keep logic in plain
-  Kotlin classes without Android types (no `Context`, `View`, Compose) so it runs on the JVM.
-  Composables only display state and forward clicks.
-- **All user-visible text goes in `app/src/main/res/values/strings.xml`**, never hard-coded.
-  Add the translation to **every** `values-xx/strings.xml` (currently: `values-nl`).
+  Kotlin classes without Android types (no `Context`, `View`, Compose) so it runs on the JVM
+  (`data/Library.kt`, `feed/`). Composables only display state and forward clicks. HTTP only in
+  `feed/FeedFetcher.kt`.
+- **All user-visible text goes in `app/src/main/res/values/strings.xml`**, never hard-coded. In
+  Compose, read strings with `stringResource` or `LocalResources`, not `LocalContext`.
+  Add the translation to **every** `values-xx/strings.xml` (currently: `nl`, `fr`, `de`, `es`, `it`),
+  using the shared wording in `DESIGN.md`.
 - Dependency versions live only in `gradle/libs.versions.toml`.
 - Versions are automatic (git tags / release workflow). Don't edit `versionName`/`versionCode`.
 
@@ -49,11 +56,14 @@ Secrets, keystores (`*.jks`, `*.keystore`), `keystore.properties`, passwords or 
 - Behaviour change → update `docs/` and, if it touches data or permissions, `PRIVACY.md`.
 - Notable decision (new library, architecture choice, minSdk change, …) → add a dated entry to
   `docs/decisions.md`.
-- Structure and conventions: `docs/architecture.md`. What is tested and how: `docs/testing.md`.
-- Look and feel: `DESIGN.md` is the **master copy** of the design language shared by the apps
-  built from this template (Tracker for Simkl, Time Tracker for Notion, Snoozer). After changing
-  it, copy every section except "This app" unchanged into `DESIGN.md` of all three apps.
+- Structure: `docs/structure.md`. Design and flow: `docs/architecture.md`. What is tested and how:
+  `docs/testing.md`. User guide: `docs/usage.md`. Building and releasing: `docs/installation.md`.
+- `DESIGN.md`: only its "This app" section belongs to this repository. The other sections are
+  copied from the master copy in the android-app template (`wimvdon/android-app`): change a
+  shared rule there first, then copy it unchanged to every app (Tracker for Simkl, Time Tracker
+  for Notion, Snoozer, RSS Reader). The design kit in `ui/theme/` (all files except `Theme.kt`)
+  is identical in every app apart from the package line.
 
 ## Releasing (only when the owner asks)
 Actions → Release → Run workflow on `main` → choose `patch`, `minor` or `major`.
-See README "Making a release".
+See `docs/installation.md`, "Making a release".

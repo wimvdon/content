@@ -6,10 +6,10 @@ plugins {
 }
 
 // ---------------------------------------------------------------------------
-// App identity: the ONE place to change the package / application ID.
-// (Also move the Kotlin sources in app/src/*/kotlin/ to the matching folder.)
+// App identity: the ONE place to change the package / application ID. Once the app is
+// released it must never change again (phones would treat it as a different app).
 // ---------------------------------------------------------------------------
-val appId = "com.example.template"
+val appId = "io.github.impca201.rssreader"
 
 // ---------------------------------------------------------------------------
 // Versioning
@@ -91,7 +91,8 @@ android {
 
     buildTypes {
         debug {
-            // Lets a pull request's debug APK be installed next to the released app.
+            // Lets a pull request's debug APK be installed next to the released app, as
+            // "RSS Reader Dev" (src/debug/res).
             applicationIdSuffix = ".debug"
         }
         release {
@@ -112,6 +113,7 @@ android {
     }
 
     androidResources {
+        localeFilters += listOf("en", "nl", "fr", "de", "es", "it")
         // Builds the per-app language list from the values-xx folders (see res/resources.properties).
         generateLocaleConfig = true
     }
@@ -130,6 +132,8 @@ android {
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.datastore.preferences)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)

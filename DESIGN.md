@@ -1,12 +1,11 @@
 # Design
 
-Master copy of the design language shared by the apps built from this template: Tracker for
-Simkl, Time Tracker for Notion and Snoozer. Each app keeps a copy of this file in its own
-repository, with its own "This app" section at the end.
+RSS Reader is built from the android-app template and follows the design language of its sibling
+apps (Tracker for Simkl, Time Tracker for Notion and Snoozer).
 
-To change a shared rule: change it here first, then copy every section except "This app"
-unchanged into `DESIGN.md` of all three apps. A new app made from this template follows these
-rules too: copy this file into it and fill in "This app".
+The shared rules (every section except "This app") have their master copy in `DESIGN.md` of
+the android-app template (`wimvdon/android-app`). Change them there first, then copy them
+unchanged to every app. Only the "This app" section belongs to this repository.
 
 ## Icons
 
@@ -119,5 +118,13 @@ repositories:
 
 ## This app
 
-Each app replaces this section with its own rules: the seed colour of its theme and its
-signature element.
+- Icon: the feed symbol on its own (the classic proportions: a dot and two thick, round-ended waves), gradient
+  `#4FC3F7` → `#0091EA` → `#0D47A1` (sky to navy) on the white background; chosen by the owner
+  over the shared "shape with a white detail" rule. Themed layer: the same symbol.
+- Seed `#0091EA` (azure), tertiary from the icon's sky blue.
+- Signature element: the reader page. Its font (Sans or Serif), text size, spacing and background
+  (Theme, Sepia or Dark) are set in one Text sheet that is also Settings › Reader; the whole
+  screen, top bar and system bar icons included, takes the page colour.
+- Article titles in the reader are the hero text (bold, in the reader's font). Unread rows in the
+  list use SemiBold titles and a primary dot; read rows use `onSurfaceVariant`.
+- Settings sections: Feeds, Reader, Save for later (integration), Appearance, footer.

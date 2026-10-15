@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- What Android may back up to the user's Google account / copy to a new phone.
-     The template stores nothing yet; update this (and PRIVACY.md) when the app stores data. -->
+<!-- What Android may back up to the user's Google account / copy to a new phone: the feed list,
+     read state, downloaded articles and settings. Nothing secret is stored (see PRIVACY.md). Full
+     articles live in the cache folder, which Android never backs up. -->
 <data-extraction-rules>
     <cloud-backup />
     <device-transfer />

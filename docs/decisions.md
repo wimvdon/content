@@ -2,6 +2,73 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-15: Icon without a box
+
+The owner chose the feed symbol on its own, with the blue gradient, over the first design (a
+gradient rounded square with a white symbol inside), after comparing mockups, drawn with the proportions of the
+classic feed icon the owner supplied (thick waves, round ends) so it stays clear at small sizes. This departs from the shared icon rule in
+`DESIGN.md` ("one bold shape with one white detail inside"); recorded under "This app" there, and
+the master copy in the template should mention the exception.
+
+## 2026-10-15: Full articles in the reader, Android backup
+
+- **Full articles:** for feeds that only carry a summary (under 1 500 characters of text), the
+  reader downloads the article's page and shows just the article, like a browser's reader view.
+  On by default (Settings › Reader › Load full articles), switchable per article. Asked for by the
+  owner. The extraction (`ArticleExtractor`) is our own small HTML reader with Readability-style
+  scoring, in plain Kotlin and unit tested. Rejected: jsoup + Readability4J (two new libraries for
+  one feature) and a WebView (runs the site's scripts, ads and trackers). Trade-off: some unusual
+  page layouts extract badly; the feed text and "Read on website" stay one tap away.
+- **Where full articles live:** files in the app's cache folder (300 most recent), not DataStore.
+  They can be downloaded again, Android may clear the cache when space runs low, and the cache is
+  never backed up, which keeps backups small.
+- **Backup:** Android's built-in Auto Backup and device-to-device transfer (`allowBackup` with
+  `data_extraction_rules.xml`) cover the feed list, articles, read state and settings. Nothing in
+  the app is secret, so nothing is excluded. Rejected: a key/value `BackupAgent` (more code, and
+  Auto Backup already handles DataStore files).
+
+## 2026-10-15: RSS Reader, built from the template
+
+- **Identity:** app name "RSS Reader", application ID `io.github.impca201.rssreader` (the
+  `io.github.impca201.*` scheme of Tracker for Simkl and Snoozer). The ID can still change until
+  the first release; after that it never may. Debug builds are called "RSS Reader Dev", like the
+  sibling apps.
+- **Internet permission:** an RSS reader has to download feeds. The app only contacts the
+  addresses the user adds (or types), with no account, cookies, analytics or third-party services.
+  `PRIVACY.md` says so. Asked for by the owner ("build me a full RSS reader").
+- **HTTPS only:** `http://` and `feed://` addresses are upgraded to `https://`, and Android's default
+  block on unencrypted traffic stays on. Rejected: allowing cleartext traffic for all hosts, which
+  would let anyone on the same Wi-Fi change articles. Revisit if a feed the owner needs has no
+  HTTPS.
+- **No new libraries beyond the sibling apps':** DataStore (already in the catalog, as `CLAUDE.md`
+  asks) and `lifecycle-runtime-compose` (used by Snoozer and Tracker for Simkl, for
+  `collectAsStateWithLifecycle`). Downloads use `HttpURLConnection`, feeds and OPML the platform's
+  XML parser, article text Compose's `AnnotatedString.fromHtml`. Rejected: OkHttp, Room,
+  kotlinx.serialization, Coil and a WebView. They would add size and setup, and a WebView would
+  run the sites' scripts.
+- **Storage:** the whole library (feeds, articles, read state) is one immutable `Library` value
+  stored with DataStore in a small tab-separated text format (`LibraryCodec`, tested). At most 200
+  articles per feed and 200 000 characters per article keep it small. Rejected: Room (a database
+  and annotation processor for a few thousand rows) and a JSON library (a new dependency).
+- **Reader without images:** article HTML is cleaned (scripts, embeds, images, inline colours and
+  fonts removed) and shown as styled text, so the reader's font, size, spacing and sepia or dark
+  background always apply, and no tracking pixels load. "Read on website" opens the full page.
+  Images would need an image library (Coil); left for a later decision.
+- **Save sends to Instapaper:** the reader's Save button sends the link with an `ACTION_SEND`
+  intent aimed at the Instapaper app (`com.instapaper.android`), the same as choosing Instapaper in
+  the share menu. No Instapaper account or API key in this app. Settings › Save for later can
+  switch Save to the share menu; without Instapaper installed, the share menu opens. The manifest
+  declares Instapaper in `<queries>` (package visibility, not a permission) so Settings can tell
+  whether it is installed.
+- **Refresh only while the app is used:** once per app start and on pull-to-refresh. Rejected for
+  now: background refresh and new-article notifications (WorkManager, a new dependency, and
+  battery use).
+- **Languages:** English, Dutch, French, German, Spanish and Italian, like the sibling apps (the
+  template has only English and Dutch). French, Spanish and Italian plurals include `many`.
+- **Theme:** seed `#0091EA` (the icon's middle stop), tonal palette generated the same way as
+  Snoozer's (primary from the seed's chroma, neutrals at chroma 4/8, tertiary from the icon's sky
+  blue). Dynamic color off by default, per `DESIGN.md`.
+
 ## 2026-10-15: Phone testing doesn't block merging
 
 The owner can't review code and can't always test a pull request on the device right away, so pull requests waited for a manual test that adds little over CI. Green CI (unit tests, lint, builds) is now enough to merge; the owner tests afterwards with the steps from the pull request and always before a release, and problems are fixed in a new pull request. Merging to `main` does not reach users: releases stay manual. Rejected: keeping the phone test as a merge gate (pull requests pile up and go stale).

@@ -1,6 +1,15 @@
 # Testing
 
-## Automatic (CI, on every pull request and push to `main`)
+## Running the tests
+
+```sh
+./gradlew testDebugUnitTest lintDebug assembleDebug assembleRelease
+python3 -m unittest discover -s scripts/tests
+```
+
+## What CI runs
+
+On every pull request and push to `main`:
 
 | Check | Command | Catches |
 |---|---|---|
@@ -13,40 +22,68 @@
 Reports (test results, lint HTML) are attached to every CI run as the `reports` artifact, also
 when the run fails.
 
-Run all of it locally before pushing:
-```sh
-./gradlew testDebugUnitTest lintDebug assembleDebug assembleRelease
-python3 -m unittest discover -s scripts/tests
-```
+## What is covered
 
-### Writing unit tests
-- Every logic change gets a test. Put logic in plain Kotlin classes (no Android types) and test
-  them with JUnit in `app/src/test/kotlin/`, mirroring the package. See `TapCounterTest`.
-- Test names describe behaviour in words: `` fun `tap stops at the maximum`() ``.
-- No device tests (instrumented/UI tests) are set up: they need an emulator, which makes CI slow and
-  flaky. Add them only if a decision in `decisions.md` says so.
+| Test | Covers |
+|---|---|
+| `FeedParserTest` | RSS 2.0, RSS 1.0, Atom (relative links, xml:base, xhtml/text content), namespaced look-alike elements, HTML entities, ids for items without guid or link, rejecting web pages, no external entities |
+| `FeedDatesTest` | RFC 822 and ISO 8601 variants, time zones, invalid dates |
+| `HtmlTest` | Clean-up for the reader, plain text, snippets, entities, escaping |
+| `FeedDiscoveryTest` | Address normalising (https, feed://), feed links in a page, common paths |
+| `FeedFinderTest` | Address → feed with a fake web: direct feed, linked feed, common path, no feed, errors |
+| `ArticleExtractorTest` | Finding the article in pages (with and without `<article>`, split sections), dropping menus, sidebars, comments, scripts and figures, unclosed paragraphs, entities, unsafe links, charsets, when a feed text counts as a summary |
+| `OpmlTest` | Import with folders and duplicates, export round trip, non-OPML files |
+| `LibraryTest` | Merging downloads (read state kept, duplicates, limits), sorting, Unread filter, counts, mark read, remove feed |
+| `LibraryCodecTest` | Storage round trip with tabs, line breaks and backslashes; damaged input |
+| `SettingsTest` | Text size limits, reader and theme darkness, defaults |
 
-## Manual (on the phone)
+## Strategy
 
-What automation can't check: how it looks and feels on a real device. For each pull request (before or after it is merged: merging only waits for green CI),
-install the debug APK (see README, "Testing a pull request") and follow the steps in the pull request
-description. In addition, check every now and then (always before a release):
+Everything that decides something is plain Kotlin and tested on the JVM. Network code
+(`FeedFetcher`), DataStore wiring and Compose screens are thin and checked by hand on the phone.
+No device tests (instrumented/UI tests) are set up: they need an emulator, which makes CI slow and
+flaky. Add them only if a decision in `decisions.md` says so.
 
-- [ ] The app starts, and the changed screen looks right.
-- [ ] **Dark mode**: switch the phone's dark theme on/off. Text stays readable.
-- [ ] **Rotation** (if auto-rotate is on): the screen still works and keeps its state (e.g. the tap count).
-- [ ] **Language**: Settings → System → Languages → App languages → this app → Nederlands.
+### Writing tests
+- Every logic change gets a test, in `app/src/test/kotlin/`, mirroring the package.
+- Test names describe behaviour in words: `` fun `merge keeps read state of known articles`() ``.
+- Network-dependent logic takes the download as a function (see `FeedFinder`), so tests pass a
+  fake.
+
+## Manual checks on the phone
+
+For each pull request (before or after it is merged: merging only waits for green CI), install the
+debug APK (see [installation.md](installation.md), "Testing a pull request") and follow the steps in the pull request description. In addition, check every now
+and then (always before a release):
+
+- [ ] Add a feed by website address and by feed address; articles appear.
+- [ ] Open an article, change every text setting (font, size, spacing, background), go back: the
+      list keeps its scroll position and the article shows as read.
+- [ ] Open an article from a summary-only feed (e.g. `theverge.com`): the full article loads.
+      ⋮ › Show feed text / Show full article switches; Settings › Reader › Load full articles off
+      stops it.
+- [ ] **Backup:** with a cable and `adb`, `adb shell bmgr backupnow io.github.impca201.rssreader`,
+      uninstall, reinstall, `adb shell bmgr restore io.github.impca201.rssreader` (or set up a
+      new phone from backup): feeds and settings come back.
+- [ ] **Save** with Instapaper installed sends the article to Instapaper; without it, the share
+      menu opens.
+- [ ] Import and export OPML.
+- [ ] **Dark mode** and **Settings › Appearance**: switch Theme and Dynamic color. Text stays
+      readable, status bar icons stay visible (also on sepia and dark reader pages).
+- [ ] **Rotation**: the screen keeps its state.
+- [ ] **Language**: Settings › System › Languages › App languages › RSS Reader › each language.
       All text is translated.
-- [ ] **Large text**: Settings → Display → Font size at maximum. Nothing is cut off.
-- [ ] **Back** gesture/button behaves as expected.
+- [ ] **Large text**: Settings › Display › Font size at maximum. Nothing is cut off.
+- [ ] **Back** gesture/button behaves as expected (also with the drawer and Text sheet open).
+- [ ] **No connection**: pull to refresh shows how many feeds failed; stored articles still open.
 - [ ] After a release: install the release APK over the previous release. It updates without
-      losing data.
+      losing feeds.
 
 ## Reading a crash from a release build
 Release builds are minified, so stack traces show short names like `a.b.c`. Download
-`<app>-<version>-mapping.txt` from the matching GitHub Release and decode the trace with R8's
+`rss-reader-<version>-mapping.txt` from the matching GitHub Release and decode the trace with R8's
 `retrace` (Android SDK `cmdline-tools/latest/bin/retrace`):
 ```sh
-retrace <app>-<version>-mapping.txt stacktrace.txt
+retrace rss-reader-<version>-mapping.txt stacktrace.txt
 ```
 Or ask Claude Code to do it: give it the stack trace and the version.

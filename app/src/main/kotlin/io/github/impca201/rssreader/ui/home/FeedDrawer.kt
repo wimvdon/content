@@ -1,0 +1,99 @@
+package io.github.impca201.rssreader.ui.home
+
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import io.github.impca201.rssreader.R
+import io.github.impca201.rssreader.data.Feed
+import io.github.impca201.rssreader.data.FeedSelection
+
+/** All articles, then every feed with its unread count, then Add feed and Settings. */
+@Composable
+fun FeedDrawer(
+    feeds: List<Feed>,
+    selection: FeedSelection,
+    unreadCounts: Map<FeedSelection, Int>,
+    onSelect: (FeedSelection) -> Unit,
+    onAddFeed: () -> Unit,
+    onOpenSettings: () -> Unit,
+) {
+    ModalDrawerSheet {
+        Column(
+            Modifier
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 12.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.app_name),
+                style = MaterialTheme.typography.titleLarge,
+                modifier =
+                    Modifier
+                        .padding(start = 16.dp, top = 24.dp, bottom = 16.dp)
+                        .semantics { heading() },
+            )
+            NavigationDrawerItem(
+                label = { Text(stringResource(R.string.feeds_all)) },
+                icon = { Icon(painterResource(R.drawable.ic_rss_feed), contentDescription = null) },
+                badge = { UnreadBadge(unreadCounts[FeedSelection.All] ?: 0) },
+                selected = selection == FeedSelection.All,
+                onClick = { onSelect(FeedSelection.All) },
+            )
+            if (feeds.isNotEmpty()) {
+                Text(
+                    text = stringResource(R.string.feeds_title),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier =
+                        Modifier
+                            .padding(start = 16.dp, top = 16.dp, bottom = 8.dp)
+                            .semantics { heading() },
+                )
+            }
+            for (feed in feeds) {
+                val feedSelection = FeedSelection.Single(feed.url)
+                NavigationDrawerItem(
+                    label = { Text(feed.title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                    badge = { UnreadBadge(unreadCounts[feedSelection] ?: 0) },
+                    selected = selection == feedSelection,
+                    onClick = { onSelect(feedSelection) },
+                )
+            }
+            HorizontalDivider(Modifier.padding(vertical = 12.dp, horizontal = 16.dp))
+            NavigationDrawerItem(
+                label = { Text(stringResource(R.string.feeds_add)) },
+                icon = { Icon(painterResource(R.drawable.ic_add), contentDescription = null) },
+                selected = false,
+                onClick = onAddFeed,
+            )
+            NavigationDrawerItem(
+                label = { Text(stringResource(R.string.menu_settings)) },
+                icon = { Icon(painterResource(R.drawable.ic_settings), contentDescription = null) },
+                selected = false,
+                onClick = onOpenSettings,
+            )
+            Spacer(Modifier.height(24.dp))
+        }
+    }
+}
+
+@Composable
+private fun UnreadBadge(count: Int) {
+    if (count > 0) Text(count.toString(), style = MaterialTheme.typography.labelLarge)
+}
