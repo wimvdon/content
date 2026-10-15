@@ -28,6 +28,7 @@ object LibraryCodec {
                     a.fetchedAt.toString(),
                     if (a.read) "1" else "0",
                     a.html,
+                    a.imageUrl.orEmpty(),
                 )
             }
         }
@@ -68,6 +69,8 @@ object LibraryCodec {
             fetchedAt = f[7].toLongOrNull() ?: return null,
             read = f[8] == "1",
             html = f[9],
+            // Added after the first release; older files have no picture field.
+            imageUrl = f.getOrNull(10)?.ifEmpty { null },
         )
     }
 

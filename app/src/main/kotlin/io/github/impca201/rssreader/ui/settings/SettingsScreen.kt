@@ -67,6 +67,7 @@ class SettingsActions(
     val onExportOpml: () -> Unit,
     val onReaderStyleChange: (ReaderStyle) -> Unit,
     val onFullArticlesChange: (Boolean) -> Unit,
+    val onShowImagesChange: (Boolean) -> Unit,
     val onSaveTargetChange: (SaveTarget) -> Unit,
     val onGetInstapaper: () -> Unit,
     val onThemeModeChange: (ThemeMode) -> Unit,
@@ -205,6 +206,12 @@ private fun ReaderSection(
             summary = stringResource(R.string.reader_full_articles_summary),
             checked = settings.fullArticles,
             onCheckedChange = actions.onFullArticlesChange,
+        )
+        SwitchSetting(
+            title = stringResource(R.string.reader_show_images_title),
+            summary = stringResource(R.string.reader_show_images_summary),
+            checked = settings.showImages,
+            onCheckedChange = actions.onShowImagesChange,
         )
         ReaderStyleControls(style = style, onChange = actions.onReaderStyleChange)
         Text(

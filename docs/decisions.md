@@ -2,6 +2,19 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-15: Pictures with Coil; embeds as cards
+
+The owner asked for article pictures as list thumbnails and reader hero, plus inline pictures and
+embedded content. Added **Coil 3 + OkHttp** (the same versions Tracker for Simkl uses) to load
+and cache pictures; writing our own loader (downsampling, memory and disk cache) would be more
+code and more bugs. The reader stays native: the article is split into text, picture and embed
+blocks (`ArticleBlocks`, tested) so the reader's font, size, spacing and sepia/dark page still
+apply. Embedded players (YouTube, Vimeo, posts) are cards with a preview that open the content
+in its app or the browser. Chosen by the owner over a WebView reader, which would play embeds
+inline but run the sites' and players' scripts. Picture addresses are upgraded to https like
+feeds; tracking pixels are skipped. Settings › Reader › Show images (on by default) turns
+pictures off. Coil's caches live in the cache folder, so they are never backed up.
+
 ## 2026-10-15: Icon thicker, with more padding
 
 After using v0.0.1 the owner found the icon too thin and too tight in the launcher shape. The

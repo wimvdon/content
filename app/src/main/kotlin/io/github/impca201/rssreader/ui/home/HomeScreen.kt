@@ -52,6 +52,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import coil3.compose.AsyncImage
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
@@ -82,6 +85,8 @@ data class HomeState(
     val refreshing: Boolean,
     /** False until the first articles have been downloaded. */
     val hasAnyArticles: Boolean,
+    /** Show each article's picture as a thumbnail. */
+    val showImages: Boolean = true,
 )
 
 class HomeActions(
@@ -243,6 +248,7 @@ private fun ArticleList(
             ArticleRow(
                 article = article,
                 feedTitle = if (showFeedName) feedTitles[article.feedUrl] else null,
+                showImage = state.showImages,
                 onClick = { actions.onOpenArticle(article) },
                 modifier = Modifier.animateItem(),
             )
@@ -281,6 +287,7 @@ private fun checkIcon(): @Composable () -> Unit =
 private fun ArticleRow(
     article: Article,
     feedTitle: String?,
+    showImage: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -302,44 +309,72 @@ private fun ArticleRow(
         color = MaterialTheme.colorScheme.surfaceContainerLow,
         modifier = modifier.fillMaxWidth(),
     ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (!article.read) {
-                    Box(
-                        Modifier
-                            .size(8.dp)
-                            .background(MaterialTheme.colorScheme.primary, CircleShape)
-                            .clearAndSetSemantics { contentDescription = unreadLabel },
+        Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (!article.read) {
+                        Box(
+                            Modifier
+                                .size(8.dp)
+                                .background(MaterialTheme.colorScheme.primary, CircleShape)
+                                .clearAndSetSemantics { contentDescription = unreadLabel },
+                        )
+                    }
+                    Text(
+                        text = listOfNotNull(feedTitle, time).joinToString(" · "),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
                 Text(
-                    text = listOfNotNull(feedTitle, time).joinToString(" · "),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
+                    text = article.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = if (article.read) FontWeight.Normal else FontWeight.SemiBold,
+                    color = if (article.read) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                    maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
                 )
+                if (snippet.isNotEmpty()) {
+                    Text(
+                        text = snippet,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
-            Text(
-                text = article.title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = if (article.read) FontWeight.Normal else FontWeight.SemiBold,
-                color = if (article.read) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis,
-            )
-            if (snippet.isNotEmpty()) {
-                Text(
-                    text = snippet,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
+            if (showImage && article.imageUrl != null) {
+                Thumbnail(article.imageUrl, Modifier.padding(top = 20.dp))
             }
         }
     }
 }
+
+/** The article's picture, square, beside the text. Disappears when it can't be loaded. */
+@Composable
+private fun Thumbnail(
+    url: String,
+    modifier: Modifier = Modifier,
+) {
+    var failed by remember(url) { mutableStateOf(false) }
+    if (failed) return
+    AsyncImage(
+        model = url,
+        contentDescription = null,
+        contentScale = ContentScale.Crop,
+        onError = { failed = true },
+        modifier =
+            modifier
+                .size(THUMBNAIL_SIZE)
+                .clip(MaterialTheme.shapes.medium)
+                .background(MaterialTheme.colorScheme.surfaceContainerHighest),
+    )
+}
+
+private val THUMBNAIL_SIZE = 76.dp
 
 @Composable
 private fun ArticleSkeletons() {

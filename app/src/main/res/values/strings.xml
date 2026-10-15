@@ -88,6 +88,12 @@
     <string name="reader_full_failed">Couldn’t load the full article. Showing the feed’s text.</string>
     <string name="reader_full_articles_title">Load full articles</string>
     <string name="reader_full_articles_summary">When a feed only has a summary, get the whole article from the website</string>
+    <string name="reader_show_images_title">Show images</string>
+    <string name="reader_show_images_summary">Pictures in articles and as thumbnails in the list; they load from the websites</string>
+    <string name="embed_youtube">Watch on YouTube</string>
+    <string name="embed_vimeo">Watch on Vimeo</string>
+    <string name="embed_video">Play video</string>
+    <string name="embed_other">Open embedded content</string>
     <string name="section_save">Save for later</string>
     <string name="save_explanation">Where the Save button in the reader sends an article.</string>
     <string name="save_target_instapaper" translatable="false">Instapaper</string>

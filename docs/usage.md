@@ -63,8 +63,14 @@ replaced by the complete article (without the site's menus, ads and comments). I
 feed's text stays and a line says so. ⋮ › **Show feed text** / **Show full article** switches
 between the two for the open article; **Settings › Reader › Load full articles** turns the
 automatic loading off. Full articles are kept for a while, so opening one again is instant.
-**Read on website** at the end always opens the original page. Images, videos and embedded content
-are not shown in the reader.
+**Read on website** at the end always opens the original page. 
+
+**Pictures and videos.** The list shows each article's picture as a thumbnail. In the reader the
+picture appears above the title, and the pictures inside the article appear between the
+paragraphs, with their captions. Embedded videos and posts (YouTube, Vimeo, X, Instagram,
+Spotify and others) show as a card with a preview; tap it to watch or open it in its app or the
+browser. **Settings › Reader › Show images** turns pictures and previews off (for example to save
+data); embed cards stay, without preview.
 
 ## Saving to Instapaper
 
@@ -81,7 +87,7 @@ are not shown in the reader.
 - **Feeds:** every feed with its address (or why its last download failed), remove a feed (its
   articles are removed too), add a feed, **Import OPML** / **Export OPML** to move your feeds
   between readers, and **Import from Inoreader**.
-- **Reader:** **Load full articles**, and the same text settings as **Aa**, with a preview.
+- **Reader:** **Load full articles**, **Show images**, and the same text settings as **Aa**, with a preview.
 - **Save for later:** see above.
 - **Appearance:** Theme (System, Light, Dark) and Dynamic color (wallpaper colours instead of
   the app's blue).

@@ -29,6 +29,8 @@ data class ParsedItem(
     val author: String?,
     val html: String,
     val publishedAt: Long?,
+    /** The article's picture, shown as list thumbnail and reader hero image. */
+    val imageUrl: String? = null,
 )
 
 /** The document is not an RSS or Atom feed (for example a web page). */
@@ -44,6 +46,8 @@ object FeedParser {
     private const val CONTENT_NS = "http://purl.org/rss/1.0/modules/content/"
     private const val DC_NS = "http://purl.org/dc/elements/1.1/"
     private const val XHTML_NS = "http://www.w3.org/1999/xhtml"
+    private const val MEDIA_NS = "http://search.yahoo.com/mrss/"
+    private const val ITUNES_NS = "http://www.itunes.com/dtds/podcast-1.0.dtd"
 
     /** Namespaces of plain RSS elements: none, or RSS 1.0's. */
     private val rssNamespaces = setOf(null, "", RSS1_NS)
@@ -148,6 +152,7 @@ object FeedParser {
                             ?.ifEmpty { null },
                     html = html,
                     publishedAt = date,
+                    imageUrl = itemImage(item, html, link ?: linkBase),
                 )
             }
         return ParsedFeed(
@@ -184,6 +189,7 @@ object FeedParser {
                     author = entry.child("author", atomNamespaces)?.childText("name", atomNamespaces) ?: feedAuthor,
                     html = html,
                     publishedAt = date,
+                    imageUrl = itemImage(entry, html, link ?: entryBase),
                 )
             }
         return ParsedFeed(
@@ -191,6 +197,40 @@ object FeedParser {
             siteUrl = alternateLink(feed)?.let { resolve(feedBase, it) },
             items = items,
         )
+    }
+
+    /**
+     * The item's picture: Media RSS (media:content, media:thumbnail, also inside media:group), an
+     * image enclosure, an iTunes image, or else the first picture in its text.
+     */
+    private fun itemImage(
+        item: Element,
+        html: String,
+        base: String,
+    ): String? {
+        val media = item.children("group", setOf(MEDIA_NS)).flatMap { it.childElements() } + item.childElements()
+        val candidates =
+            media.filter { it.namespaceURI == MEDIA_NS && (it.localName == "content" || it.localName == "thumbnail") }
+                .filter { el ->
+                    el.localName == "thumbnail" ||
+                        el.getAttribute("medium") == "image" ||
+                        el.getAttribute("type").startsWith("image/") ||
+                        IMAGE_FILE.containsMatchIn(el.getAttribute("url"))
+                }.sortedByDescending { it.getAttribute("width").toIntOrNull() ?: 0 }
+                .map { it.getAttribute("url") } +
+                item.childElements()
+                    .filter { (it.localName == "enclosure" || (it.localName == "link" && it.getAttribute("rel") == "enclosure")) }
+                    .filter { it.getAttribute("type").startsWith("image/") || IMAGE_FILE.containsMatchIn(it.getAttribute("url") + it.getAttribute("href")) }
+                    .map { it.getAttribute("url").ifEmpty { it.getAttribute("href") } } +
+                item.children("image", setOf(ITUNES_NS)).map { it.getAttribute("href") }
+        return candidates.firstNotNullOfOrNull { ArticleBlocks.imageUrl(it, base) } ?: ArticleBlocks.firstImage(html, base)
+    }
+
+    private val IMAGE_FILE = Regex("""\.(jpe?g|png|webp|gif|avif)(\?|$)""", RegexOption.IGNORE_CASE)
+
+    private fun Element.childElements(): List<Element> {
+        val nodes = childNodes
+        return (0 until nodes.length).mapNotNull { nodes.item(it) as? Element }
     }
 
     /** The text of an Atom text construct (type text, html or xhtml), as HTML. */

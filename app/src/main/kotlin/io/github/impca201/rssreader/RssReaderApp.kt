@@ -3,6 +3,10 @@ package io.github.impca201.rssreader
 import android.app.Application
 import android.content.Context
 import android.util.Log
+import coil3.ImageLoader
+import coil3.PlatformContext
+import coil3.SingletonImageLoader
+import coil3.request.crossfade
 import io.github.impca201.rssreader.data.FullArticles
 import io.github.impca201.rssreader.data.LibraryRepository
 import io.github.impca201.rssreader.data.SettingsStore
@@ -13,7 +17,19 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import java.io.File
 
-class RssReaderApp : Application() {
+class RssReaderApp :
+    Application(),
+    SingletonImageLoader.Factory {
+    /**
+     * Pictures in articles and the list (Coil, with its OkHttp network layer). Kept in memory and
+     * in the cache folder, which Android may clear and never backs up.
+     */
+    override fun newImageLoader(context: PlatformContext): ImageLoader =
+        ImageLoader
+            .Builder(context)
+            .crossfade(true)
+            .build()
+
     /** Process-wide scope for work that must outlive a single screen, such as a refresh. */
     val appScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default + LoggingExceptionHandler)
 

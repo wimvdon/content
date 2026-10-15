@@ -70,4 +70,6 @@ data class Settings(
     val unreadOnly: Boolean = true,
     /** Load the whole article from its web page when the feed only has a summary. */
     val fullArticles: Boolean = true,
+    /** Show article pictures, thumbnails and embed previews (they are downloaded from the sites). */
+    val showImages: Boolean = true,
 )

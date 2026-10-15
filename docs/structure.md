@@ -40,14 +40,17 @@ rss-reader/
         │   │   │   ├── LibraryCodec.kt        Library ⇄ text for storage
         │   │   │   ├── LibraryRepository.kt   DataStore, refresh, add feed, OPML
         │   │   │   ├── Settings.kt            Theme, reader style, Save target (plain Kotlin)
-        │   │   │   └── SettingsStore.kt       Preferences DataStore
+        │   │   │   ├── SettingsStore.kt       Preferences DataStore
+│   │   │   └── FullArticles.kt        Full articles for summary-only feeds, cached
         │   │   ├── feed/
         │   │   │   ├── FeedFetcher.kt         HTTPS downloads
         │   │   │   ├── FeedParser.kt          RSS / RDF / Atom parser, safe XML parser
         │   │   │   ├── FeedFinder.kt          Address → feed (with discovery)
         │   │   │   ├── FeedDiscovery.kt       Address normalising, <link rel="alternate">
         │   │   │   ├── FeedDates.kt           RFC 822 and ISO 8601 dates
-        │   │   │   ├── Html.kt                Clean-up, plain text, snippets, entities
+        │   │   │   ├── ArticleBlocks.kt       Article → text, picture and embed blocks
+│   │   │   ├── ArticleExtractor.kt    Reader view for full articles
+│   │   │   ├── Html.kt                Clean-up, plain text, snippets, entities
         │   │   │   └── Opml.kt                OPML import and export
         │   │   └── ui/
         │   │       ├── MainActivity.kt, Navigation.kt   Entry, back stack, wiring
