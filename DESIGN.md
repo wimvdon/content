@@ -1,7 +1,7 @@
 # Design
 
 RSS Reader is built from the android-app template and follows the design language of its sibling
-apps (Tracker for Simkl, Time Tracker for Notion and Snoozer).
+apps (Tracker for Simkl, Time Tracker for Notion, Snoozer and Noter for Notion).
 
 The shared rules (every section except "This app") have their master copy in `DESIGN.md` of
 the android-app template (`wimvdon/android-app`). Change them there first, then copy them
@@ -20,6 +20,8 @@ unchanged to every app. Only the "This app" section belongs to this repository.
 | Tracker for Simkl | TV screen with a checkmark | `#3D7BFF` → `#7A5CFF` → `#D15CE6` |
 | Time Tracker for Notion | Stopwatch dial with a hand | `#FF8A3D` → `#F04438` → `#C81E5A` |
 | Snoozer | Nine-lobed "cookie" (the home screen toggle) with a bell | `#22C3B4` → `#3E7BDA` → `#4E5BB0` |
+| RSS Reader | The feed symbol on its own (owner's choice, see its "This app") | `#4FC3F7` → `#0091EA` → `#0D47A1` |
+| Noter for Notion | Sticky note on a 3D box with a folded corner | `#FFC94D` → `#F5A623` → `#E8710A` |
 
 ## Colour
 
@@ -40,19 +42,47 @@ unchanged to every app. Only the "This app" section belongs to this repository.
 - Icons come from Material's Rounded set; direction-dependent icons use `AutoMirrored`.
 - Cards and grouped surfaces use the `surfaceContainer*` roles.
 - Components keep Material's shape scale (`MaterialTheme.shapes`). App-level containers use
-  `AppShapes`: `Group` (24dp) for grouped settings and banners, `Item` (20dp) for rows in a list.
+  `AppShapes`: `Group` (24dp) for banners and grouped content, `Item` (20dp) for tiles and
+  highlighted rows.
+
+## Navigation and structure
+
+Follows Material 3's split between destinations and actions:
+
+- Top-level destinations (two to five) sit in Material's `NavigationBar`, docked at the bottom
+  edge. On wide windows an app may switch to a `NavigationRail` with the same destinations in
+  the same order. Floating bars (M3 Expressive's floating toolbar) are for actions on the
+  current screen, never for switching sections.
+- Tabs are only for peer views of the same content. Chips filter or sort a collection; they are
+  not navigation and not general buttons.
+- Every other page is a child page: a top app bar with a back arrow, no navigation bar.
+- One FAB at most, for the screen's main action (add, start). Destructive actions never sit in
+  a FAB or next to routine actions without separation, and ask for confirmation or offer Undo.
+- Lists are lists: `ListItem` rows (or rows with the same paddings), separated by spacing or
+  dividers. A card is for a unit that stands on its own (a poster, a banner, a running timer),
+  not for every row or section.
+- Content keeps a readable width on wide windows (about 640dp for lists and settings).
 
 ## Settings screen
 
-Built from `ui/theme/SettingsKit.kt`, so every app's settings look and behave the same:
+Built from `ui/theme/SettingsKit.kt`, so every app's settings look and behave the same. It
+follows the Android and Material 3 settings pattern: one scrolling list, grouped by headers.
 
 - `SettingsScaffold`: a large top app bar ("Settings") that collapses on scroll, with a back
-  button, over a list of sections.
-- Every section is a `CollapsibleSection` card: icon, title and the current value as summary;
-  tap to expand. Sections start collapsed, except one the user still has to fill in (no API key
-  or workspace yet).
-- Inside a section: `SwitchSetting` rows (the whole row is the switch), segmented buttons for a
-  single choice, `CollapsibleSubsection` for longer instructions.
+  button, over one list, at most 640dp wide.
+- `SettingsSection`: a section header (Title Small in the primary colour) above its rows. No
+  cards and no collapsing: every setting is visible and one tap away.
+- Rows inside a section:
+  - `SwitchSetting`: a `ListItem` with a switch; the whole row is the switch and the change
+    applies at once (no Save button).
+  - `SettingItem`: a `ListItem` that opens something (a page, a dialog, another app), with a
+    chevron or "opens elsewhere" icon when it leaves the screen.
+  - `ExpandableSetting`: a row that shows longer instructions below it (setup steps most people
+    read once).
+  - `SettingsBlock`: anything else (a text field, segmented buttons for a single choice among
+    two to four options, an explanation, a button), lined up with the rows' text.
+- A choice among more than four options, or with long labels, opens a dialog with radio buttons
+  from a `SettingItem` that shows the current value.
 - Sections in this order, leaving out what an app does not have:
   1. Connection (account, API key, sync)
   2. The app's own features
@@ -103,9 +133,8 @@ English, Dutch, German, French, Spanish and Italian).
 
 ## Shared design kit
 
-These files live in each app (the template does not include them). They are identical in the
-three apps apart from their package (and `R` import) lines. Copy a change to the other two
-repositories:
+These files live in each app (the template does not include them). They are identical in every
+app apart from their package (and `R` import) lines. Copy a change to the other repositories:
 
 - `ui/theme/Motion.kt`: motion tokens, the shared-axis transition and `rememberReducedMotion()`.
 - `ui/theme/Shapes.kt`: `AppShapes`.
@@ -132,12 +161,12 @@ repositories:
   their feeds indented below (`surfaceContainer`), a pen button and a drag handle at the end of each row, an outlined note under
   "No folder" when it is empty, and the
   dragged row lifted with a shadow. Tapping a row opens its edit dialog; Remove sits in the
-  dialog, in the error colour. Settings sections: Article list, Reader, Save and share (integration), Appearance, footer.
+  dialog, in the error colour. Settings sections: Feeds, Article list, Reader, Save and share (integration), Appearance, footer.
 - Folder icons come from the whole Material Symbols set (outlined, rounded), picked with a search
   field and a grid in the folder dialog.
-- Folders: the floating pill bar of Tracker for Simkl at the bottom of the list (All with the feed
-  symbol, then each folder's icon; the selected tab expands with spring motion to show its name on
-  a `secondaryContainer` pill). The Mark all read FAB sits above it and only marks the section shown.
+- Folders: scrollable primary tabs under the top app bar (All with the feed symbol, then each
+  folder with its icon and name). Folders are peer views of one article list, so tabs, not a
+  navigation bar. The Mark all read FAB only marks the section shown.
 - Site icons sit on a fixed light tile (`#F4F4F4`, rounded, 10% padding) in light and dark mode,
   so logos drawn for light browser tabs keep their contrast; the letter fallback uses
   `tertiaryContainer`.
@@ -146,10 +175,11 @@ repositories:
   either way past 30% of the width toggles read (haptic tick at the threshold, row springs
   back); the drawer opens from the ☰ button only. The top bar shows the section and its unread count, with no ⋮ menu (refresh is pull-down; adding
   feeds lives on Manage feeds and folders). Under it, Unread | All is a connected button group
-  (selected half `primary` with a check, fully rounded; other half `secondaryContainer`; inner
-  corners 8dp, 2dp gap), hand-built until Material 3 ships it. Settings lives in the drawer only.
+  at the normal 40dp button height (48dp touch target), as wide as its labels with equal halves,
+  16dp from the top bar or tabs (selected half `primary` with a check, fully rounded; other half
+  `secondaryContainer`; inner corners 8dp, 2dp gap), hand-built until Material 3 ships it. Settings lives in the drawer only.
   The All view uses a
   `MediumTopAppBar` that collapses on scroll; articles sit under sticky day headers (Today,
   Yesterday, date) in `primary` Title Small; Mark all as read is an icon-only FAB. The drawer opens with the app's mark (feed symbol on a
   `primaryContainer` circle) and name.
-- Settings starts with a link card to Manage feeds and folders (a page, not a collapsible section).
+- Settings starts with a Feeds section whose row opens Manage feeds and folders.

@@ -220,8 +220,9 @@ fun ReaderScreen(
                 onChange = actions.onStyleChange,
                 modifier =
                     Modifier
-                        .padding(horizontal = 24.dp, vertical = 16.dp)
+                        .padding(vertical = 8.dp)
                         .navigationBarsPadding(),
+                horizontalPadding = 24.dp,
             )
         }
     }
