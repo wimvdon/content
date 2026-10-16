@@ -1,0 +1,12 @@
+// Publishes the built web app (dist/) as a Cloudflare Worker with static assets, for Workers
+// Builds (build command `npm run build`, deploy command `npx wrangler deploy`, root `web`).
+{
+  "name": "rss-reader-web",
+  "compatibility_date": "2026-10-01",
+  "send_metrics": false,
+  "observability": { "enabled": false },
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  }
+}

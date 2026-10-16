@@ -22,19 +22,20 @@ Both can be set when building (environment variables) or in the app's Settings:
 | `VITE_PROXY_URL` | The feed loader's address, e.g. `https://rss-reader-feeds.<you>.workers.dev` |
 | `VITE_GOOGLE_CLIENT_ID` | The Google Cloud OAuth client ID of type "Web application" (docs/sync.md, step 5) |
 
-## Deploying (Cloudflare Pages)
+## Deploying (Cloudflare Workers)
 
-Once, in the Cloudflare dashboard (free plan):
+It is published as a Worker with static assets (`wrangler.jsonc`), next to the feed loader:
 
-1. Workers & Pages › Create › Pages › Connect to Git › this repository.
-2. Build settings: root directory `web`, build command `npm run build`, output directory `dist`.
-3. Environment variables: `VITE_PROXY_URL` and `VITE_GOOGLE_CLIENT_ID` (above).
-4. Deploy. The site gets an address like `https://rss-reader.pages.dev`; it must match
-   `ALLOWED_ORIGINS` in `../worker/wrangler.toml` and the Google client's Authorized JavaScript
+1. Workers & Pages › Create › Import a repository › this repository, name `rss-reader-web`.
+2. Root directory `web`, build command `npm run build`, deploy command `npx wrangler deploy`.
+3. The feed loader's address is in `.env.production` (`VITE_PROXY_URL`); the Google client ID
+   goes in the app's Settings or in a build variable `VITE_GOOGLE_CLIENT_ID`.
+4. The site's address (`https://rss-reader-web.<account>.workers.dev`) must be in
+   `ALLOWED_ORIGINS` in `../worker/wrangler.toml` and in the Google client's Authorized JavaScript
    origins.
 
-Every push to `main` then publishes the new version. Any static host with https works too:
-upload the contents of `dist/` after `npm run build`.
+Every push to `main` then publishes the new version; pull requests get a preview build. Any
+static host with https works too: upload the contents of `dist/` after `npm run build`.
 
 ## Developing
 
