@@ -47,6 +47,9 @@ rss-reader/
         │   │   │   ├── Settings.kt            Theme, reader style, Save target (plain Kotlin)
         │   │   │   ├── SettingsStore.kt       Preferences DataStore
 │   │   │   └── FullArticles.kt        Full articles for summary-only feeds, cached
+        │   │   ├── instapaper/
+        │   │   │   ├── Instapaper.kt          Simple API: check an account, save a link (OkHttp)
+        │   │   │   └── InstapaperStore.kt     The signed-in account (DataStore, not backed up)
         │   │   ├── sync/
         │   │   │   ├── SyncDocument.kt        The sync file: folders, feeds, read marks (plain Kotlin)
         │   │   │   ├── SyncMerge.kt           Three-way merge with the last synced file (plain Kotlin)

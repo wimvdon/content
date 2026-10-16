@@ -23,6 +23,9 @@ export interface Settings {
   unreadOnly: boolean;
   theme: Theme;
   fullArticles: boolean;
+  /** Instapaper account for the Save button (this browser only; not synced). */
+  instapaperUsername: string;
+  instapaperPassword: string;
 }
 
 export type SyncStatus = { kind: "idle" } | { kind: "syncing" } | { kind: "failed"; problem: SyncProblem };
@@ -47,6 +50,8 @@ const defaults: Settings = {
   unreadOnly: true,
   theme: "system",
   fullArticles: true,
+  instapaperUsername: "",
+  instapaperPassword: "",
 };
 
 const PARALLEL = 4;

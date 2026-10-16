@@ -1,6 +1,14 @@
 package io.github.impca201.rssreader.ui.settings
 
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -51,6 +59,7 @@ fun ShareTargetsSection(
     apps: List<ExternalApps.ShareApp>,
     onSaveTargetChange: (ShareTarget) -> Unit,
     onShareTargetChange: (ShareTarget) -> Unit,
+    instapaper: InstapaperState,
 ) {
     val sheet = stringResource(R.string.share_target_sheet)
     SettingsSection(title = stringResource(R.string.section_save)) {
@@ -61,8 +70,83 @@ fun ShareTargetsSection(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        TargetRow(stringResource(R.string.setting_save_button), saveTarget, apps, onSaveTargetChange)
-        TargetRow(stringResource(R.string.setting_share_button), shareTarget, apps, onShareTargetChange)
+        val account = instapaper.username != null
+        TargetRow(stringResource(R.string.setting_save_button), saveTarget, apps, onSaveTargetChange, account)
+        TargetRow(stringResource(R.string.setting_share_button), shareTarget, apps, onShareTargetChange, account)
+        InstapaperAccountRow(instapaper)
+    }
+}
+
+/** The Instapaper account and what it can do, for Settings. */
+class InstapaperState(
+    /** Signed in as, or null. */
+    val username: String?,
+    val busy: Boolean,
+    @param:StringRes val error: Int?,
+    val onSignIn: (username: String, password: String) -> Unit,
+    val onSignOut: () -> Unit,
+)
+
+/** Sign in to save straight to Instapaper (Simple API), or who is signed in with Sign out. */
+@Composable
+private fun InstapaperAccountRow(state: InstapaperState) {
+    var dialog by rememberSaveable { mutableStateOf(false) }
+    ListItem(
+        headlineContent = { Text(stringResource(R.string.instapaper_account)) },
+        supportingContent = {
+            Text(
+                if (state.username != null) {
+                    stringResource(R.string.instapaper_signed_in, state.username)
+                } else {
+                    stringResource(R.string.instapaper_account_summary)
+                },
+            )
+        },
+        trailingContent = {
+            if (state.username != null) {
+                TextButton(onClick = state.onSignOut) { Text(stringResource(R.string.instapaper_sign_out)) }
+            } else {
+                TextButton(onClick = { dialog = true }) { Text(stringResource(R.string.instapaper_sign_in)) }
+            }
+        },
+    )
+    // Closes by itself once signed in.
+    if (dialog && state.username == null) {
+        var username by rememberSaveable { mutableStateOf("") }
+        var password by rememberSaveable { mutableStateOf("") }
+        AlertDialog(
+            onDismissRequest = { dialog = false },
+            title = { Text(stringResource(R.string.instapaper_account)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = username,
+                        onValueChange = { username = it },
+                        label = { Text(stringResource(R.string.instapaper_username)) },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        label = { Text(stringResource(R.string.instapaper_password)) },
+                        singleLine = true,
+                        visualTransformation = PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(onDone = { if (username.isNotBlank()) state.onSignIn(username.trim(), password) }),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    if (state.error != null) Text(stringResource(state.error), color = MaterialTheme.colorScheme.error)
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { state.onSignIn(username.trim(), password) }, enabled = username.isNotBlank() && !state.busy) {
+                    Text(stringResource(R.string.instapaper_sign_in))
+                }
+            },
+            dismissButton = { TextButton(onClick = { dialog = false }) { Text(stringResource(R.string.action_cancel)) } },
+        )
     }
 }
 
@@ -72,18 +156,20 @@ private fun TargetRow(
     target: ShareTarget,
     apps: List<ExternalApps.ShareApp>,
     onChange: (ShareTarget) -> Unit,
+    instapaperAccount: Boolean,
 ) {
     var choosing by rememberSaveable { mutableStateOf(false) }
     val sheet = stringResource(R.string.share_target_sheet)
+    val instapaperLabel = stringResource(R.string.instapaper_target)
     val missing = target is ShareTarget.App && apps.isNotEmpty() && apps.none { it.target.packageName == target.packageName }
     ListItem(
         headlineContent = { Text(title) },
         supportingContent = {
             Column {
-                Text(target.label(sheet))
+                Text(target.label(sheet, instapaperLabel))
                 if (missing) {
                     Text(
-                        stringResource(R.string.share_target_missing, target.label(sheet)),
+                        stringResource(R.string.share_target_missing, target.label(sheet, instapaperLabel)),
                         color = MaterialTheme.colorScheme.error,
                     )
                 }
@@ -97,6 +183,14 @@ private fun TargetRow(
             title = { Text(title) },
             text = {
                 LazyColumn(Modifier.heightIn(max = 420.dp)) {
+                    if (instapaperAccount) {
+                        item(key = "instapaper-account") {
+                            Choice(stringResource(R.string.instapaper_target), null, selected = target == ShareTarget.InstapaperAccount, iconRes = R.drawable.ic_bookmark_add) {
+                                onChange(ShareTarget.InstapaperAccount)
+                                choosing = false
+                            }
+                        }
+                    }
                     item(key = "sheet") {
                         Choice(sheet, null, selected = target == ShareTarget.Sheet) {
                             onChange(ShareTarget.Sheet)
@@ -126,6 +220,7 @@ private fun Choice(
     label: String,
     app: ExternalApps.ShareApp?,
     selected: Boolean,
+    @DrawableRes iconRes: Int = R.drawable.ic_share,
     onClick: () -> Unit,
 ) {
     Row(
@@ -142,16 +237,20 @@ private fun Choice(
             val bitmap = remember(app) { app.icon.toBitmap(96, 96).asImageBitmap() }
             Image(bitmap, contentDescription = null, modifier = Modifier.size(32.dp))
         } else {
-            Icon(painterResource(R.drawable.ic_share), contentDescription = null, modifier = Modifier.size(32.dp).padding(4.dp))
+            Icon(painterResource(iconRes), contentDescription = null, modifier = Modifier.size(32.dp).padding(4.dp))
         }
         Text(label, style = MaterialTheme.typography.bodyLarge)
         Spacer(Modifier.weight(1f))
     }
 }
 
-/** What the setting shows: the app's name, or "Share menu". */
-fun ShareTarget.label(sheet: String): String =
+/** What the setting shows: the app's name, "Share menu", or the Instapaper account. */
+fun ShareTarget.label(
+    sheet: String,
+    instapaperAccount: String,
+): String =
     when (this) {
         ShareTarget.Sheet -> sheet
+        ShareTarget.InstapaperAccount -> instapaperAccount
         is ShareTarget.App -> label
     }

@@ -2,6 +2,19 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-16: Instapaper: Save to the account with the Simple API
+
+Save can now go straight to the user's Instapaper account instead of the Instapaper app, with
+Instapaper's free Simple API (email or username and password, over https; no app key). Android
+checks the account when signing in and reports whether each save worked; the account lives in
+its own DataStore file that Android backup leaves out. The web app posts to the same API from
+the browser; Instapaper's API doesn't allow web pages to read its answer, so the web app says
+"Sent" rather than "Saved". The Full API (list, archive, star, folders, highlights) needs an
+OAuth consumer key that Instapaper hands out after a manual review, and its bookmark methods
+have historically been limited to paying subscribers, so it is not built until the owner has a
+key. Rejected: routing the web app's saves through the feed loader (the password would pass our
+Worker).
+
 ## 2026-10-16: The web app: static React site, feeds through the Worker
 
 The web app is a static site in `web/` (React, TypeScript, Vite, Tailwind with shadcn-style

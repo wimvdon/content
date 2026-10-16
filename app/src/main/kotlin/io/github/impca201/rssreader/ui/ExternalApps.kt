@@ -41,6 +41,8 @@ object ExternalApps {
     ): Boolean =
         when (target) {
             ShareTarget.Sheet -> share(context, title, url, chooserTitle)
+            // Not an app: the caller saves through the API (Navigation.send).
+            ShareTarget.InstapaperAccount -> false
             is ShareTarget.App -> {
                 val intent = shareIntent(title, url)
                 if (target.activityName != null) {
