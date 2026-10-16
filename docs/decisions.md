@@ -2,6 +2,31 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-16: Web app loads feeds through a small Cloudflare Worker; sync is pluggable
+
+Browsers block a web page from loading most feeds and article pages (CORS), so the planned web
+app loads them through a small, stateless Cloudflare Worker: it only fetches the feed or page it
+is asked for and passes it back, keeps nothing, logs nothing, and refuses anything that isn't a
+GET for a feed or page. Pictures load directly (browsers don't block those). It stays small
+enough for anyone to run their own copy, and the web app can be pointed at another copy. The
+Android app, including a Play Store release, keeps loading feeds directly and never uses it. Sync goes through one interface with Google Drive
+(the hidden app folder) as the first provider and room for others (for example Dropbox,
+OneDrive or WebDAV/Nextcloud) using the same file format. Rejected: a Google Apps Script proxy
+(ties feed loading to Google while sync should not depend on one provider), a browser extension
+(too much for the goal, and little use on phones), public CORS proxies and RSS-to-JSON services
+(a stranger sees every feed, limits, unreliable).
+
+## 2026-10-16: One brand, each platform's own design language
+
+For a planned web app and a possible iOS app, the owner chose a shared brand with a native design
+language per platform, rather than Material 3 everywhere: Material on Android, Apple's guidelines
+on iOS, and shadcn/ui (Radix with Tailwind) on the web, themed with the app's seed colour. Shared
+code is the logic, not the screens. Rejected: Material 3 on every platform (an iOS app would feel
+like a port), Compose Multiplatform for the web UI (it brings the Android look along), Fluent 2
+(looks like Microsoft), Carbon and Primer (made for business and developer tools). Recorded in
+this app's section of `DESIGN.md`; if other apps from the template get web versions, it moves
+to the template's shared rules.
+
 ## 2026-10-16: The home header scrolls away as one block
 
 The owner wanted more room for articles and found the header's scrolling wonky: the medium top
