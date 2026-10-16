@@ -2,6 +2,18 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-16: The home header scrolls away as one block
+
+The owner wanted more room for articles and found the header's scrolling wonky: the medium top
+app bar only shrank to a small bar, the tabs and Unread | All never moved, and pulling down at the
+top went to pull-to-refresh instead of opening the bar again. The app bar, the folder tabs and
+Unread | All now form one header that slides away while scrolling down and comes back as soon as
+you scroll up, using Material's own "enter always" scroll behaviour (it also snaps the header
+fully in or out when you let go). A new section starts with the header in view. The order stays
+app bar, tabs, filter: Material 3 attaches primary tabs directly under the top app bar, and a
+filter for the content sits below them. Rejected: putting Unread | All in the app bar (its labels
+don't fit next to a long title) and above the tabs (it would split the tabs from the app bar).
+
 ## 2026-10-16: Material 3 audit: settings list, folder tabs, normal-sized Unread | All
 
 An audit against Material 3 (owner's request) changed three things. Settings are one list with

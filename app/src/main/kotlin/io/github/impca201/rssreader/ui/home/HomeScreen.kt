@@ -36,6 +36,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -62,7 +63,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.MediumTopAppBar
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberDrawerState
@@ -79,6 +80,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import coil3.compose.AsyncImage
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -182,45 +184,58 @@ fun HomeScreen(
             )
         },
     ) {
-        val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+        val hasArticles = state.articles.isNotEmpty()
+        // The whole header slides away while scrolling down and returns when scrolling up.
+        val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(canScroll = { hasArticles })
+        // Another section, or a list with nothing left to scroll, shows the header again.
+        LaunchedEffect(state.selection, hasArticles) { scrollBehavior.state.heightOffset = 0f }
         Scaffold(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             snackbarHost = { SnackbarHost(snackbarHostState) },
             topBar = {
-                Column {
-                MediumTopAppBar(
-                    title = {
-                        Column {
-                            Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            if (state.feeds.isNotEmpty()) {
-                                Text(
-                                    if (state.unreadOnly) {
-                                        pluralStringResource(R.plurals.home_subtitle_unread, unreadHere, unreadHere)
-                                    } else {
-                                        pluralStringResource(R.plurals.home_subtitle_all, unreadHere, unreadHere)
-                                    },
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    maxLines = 1,
-                                )
+                CollapsingHeader(scrollBehavior) {
+                    TopAppBar(
+                        title = {
+                            Column {
+                                Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                if (state.feeds.isNotEmpty()) {
+                                    Text(
+                                        if (state.unreadOnly) {
+                                            pluralStringResource(R.plurals.home_subtitle_unread, unreadHere, unreadHere)
+                                        } else {
+                                            pluralStringResource(R.plurals.home_subtitle_all, unreadHere, unreadHere)
+                                        },
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1,
+                                    )
+                                }
                             }
-                        }
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                            Icon(painterResource(R.drawable.ic_menu), contentDescription = stringResource(R.string.action_open_feeds))
-                        }
-                    },
-                    scrollBehavior = scrollBehavior,
-                )
-                if (showFolderTabs) {
-                    FolderTabs(
-                        folders = state.folders,
-                        selectedFolderId = sectionFolderId,
-                        onSelectAll = { actions.onSelect(FeedSelection.All) },
-                        onSelectFolder = { actions.onSelect(FeedSelection.InFolder(it.id)) },
+                        },
+                        navigationIcon = {
+                            IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                                Icon(painterResource(R.drawable.ic_menu), contentDescription = stringResource(R.string.action_open_feeds))
+                            }
+                        },
+                        windowInsets = WindowInsets(0),
+                        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent, scrolledContainerColor = Color.Transparent),
                     )
-                }
+                    if (showFolderTabs) {
+                        FolderTabs(
+                            folders = state.folders,
+                            selectedFolderId = sectionFolderId,
+                            onSelectAll = { actions.onSelect(FeedSelection.All) },
+                            onSelectFolder = { actions.onSelect(FeedSelection.InFolder(it.id)) },
+                        )
+                    }
+                    if (state.feeds.isNotEmpty()) {
+                        ReadFilter(
+                            unreadOnly = state.unreadOnly,
+                            onUnreadOnlyChange = actions.onUnreadOnlyChange,
+                            // Room around the filter so the header doesn't feel cramped.
+                            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 12.dp),
+                        )
+                    }
                 }
             },
             floatingActionButton = {
@@ -237,15 +252,6 @@ fun HomeScreen(
                     .fillMaxSize()
                     .padding(innerPadding),
             ) {
-            Column(Modifier.fillMaxSize()) {
-            if (state.feeds.isNotEmpty()) {
-                ReadFilter(
-                    unreadOnly = state.unreadOnly,
-                    onUnreadOnlyChange = actions.onUnreadOnlyChange,
-                    // Room around the filter so the header doesn't feel cramped.
-                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 12.dp),
-                )
-            }
             PullToRefreshBox(
                 isRefreshing = state.refreshing,
                 onRefresh = actions.onRefresh,
@@ -271,7 +277,6 @@ fun HomeScreen(
                         HomeContent.Articles -> ArticleList(state, actions)
                     }
                 }
-            }
             }
             }
         }
