@@ -26,6 +26,11 @@ rss-reader/
 ├── gradle/
 │   ├── libs.versions.toml            Version catalog (every dependency version)
 │   └── wrapper/                      Gradle wrapper
+├── web/                              The web app (static site; see web/README.md)
+│   ├── src/lib/                      Feeds, library, sync, Drive, storage (plain TypeScript, tested)
+│   ├── src/components/               Screens: sidebar, article list, reader, dialogs; ui/ = shadcn-style parts
+│   └── test/                         Vitest tests
+├── worker/                           Feed loader for the web app (Cloudflare Worker; see worker/README.md)
 └── app/
     ├── build.gradle.kts              App ID, versioning, signing, languages, lint, dependencies
     ├── proguard-rules.pro            Stack trace settings for release builds

@@ -1,4 +1,5 @@
-# Checks every change: unit tests, lint, debug + release builds.
+# Checks every change: unit tests, lint, debug + release builds of the Android app, and the
+# web app and its feed loader (Cloudflare Worker).
 # The debug APK is attached to each run so a pull request can be tested on a phone.
 name: CI
 
@@ -84,3 +85,38 @@ jobs:
             app/build/test-results/
           retention-days: 14
           if-no-files-found: ignore
+
+  web:
+    name: Web app and feed loader
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: |
+            web/package-lock.json
+            worker/package-lock.json
+
+      - name: Feed loader tests and type check
+        working-directory: worker
+        run: |
+          npm ci
+          npm test
+          npm run typecheck
+
+      - name: Web app tests, lint and build
+        working-directory: web
+        run: |
+          npm ci
+          npm test
+          npm run lint
+          npm run build

@@ -1,6 +1,6 @@
 # Privacy policy
 
-_Last updated: 2026-10-16 (sync with Google Drive)_
+_Last updated: 2026-10-16 (web app)_
 
 RSS Reader has no account, analytics, advertising or crash reporting, and no server of its own.
 Sync, if you turn it on, uses your own Google Drive.
@@ -62,6 +62,29 @@ None. The app only downloads feeds and articles, and syncs, while you use it.
 
 The app also declares that it looks for apps that accept shared links, so Settings › Save and
 share can list them. This is not a permission and reveals nothing to those apps.
+
+## The web app
+
+The web version (built from `web/`, published by the owner, for example on Cloudflare Pages)
+runs in your browser and keeps your feed list, articles, read state and settings in the
+browser's storage on that device (IndexedDB). There is no account and no analytics.
+
+- **Feeds and article pages** go through the owner's feed loader (a Cloudflare Worker, built
+  from `worker/`), because browsers don't let a web page load most feeds directly. It loads
+  only the address the web app asks for and passes it back; it stores nothing, logs nothing and
+  is used only by the web app. Cloudflare runs it, so Cloudflare sees which feed or page is
+  loaded and your IP address, under Cloudflare's privacy policy. It keeps a copy of a feed for at
+  most five minutes in Cloudflare's cache, shared by everyone reading that feed. The Android app
+  never uses it.
+- **Pictures and website icons** load directly from the websites, without telling them which
+  page you came from.
+- **Videos** from YouTube (through youtube-nocookie.com) and Vimeo can play inside articles;
+  those services then see your IP address.
+- **Sync** works as described above: the web app reads and writes the same
+  `rss-reader-sync.json` in your Google Drive's hidden app folder, after you click Connect
+  (Google's sign-in script comes from accounts.google.com). The sign-in lasts about an hour per
+  browser tab.
+- Removing the site's data in your browser deletes everything the web app stored.
 
 If this changes, this file will be updated **before** the change is released.
 

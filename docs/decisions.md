@@ -2,6 +2,21 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-16: The web app: static React site, feeds through the Worker
+
+The web app is a static site in `web/` (React, TypeScript, Vite, Tailwind with shadcn-style
+parts on Radix primitives, as chosen for the web in `DESIGN.md`), hosted on Cloudflare Pages
+next to the feed loader Worker in `worker/`. It keeps its library in IndexedDB and syncs through
+the same Drive file and three-way merge as Android (ported to TypeScript, with tests that read
+the Android app's file), signing in with Google Identity Services. Its feed parser gives the same
+article ids as Android so read marks match. Full articles use Mozilla's Readability; article HTML
+is cleaned with DOMPurify; folder icons are the Android app's Material Symbols file, copied in at
+build time. The Worker passes only feeds and pages (no pictures), only for the web app's origin,
+logs nothing and is rate limited. Both live in this repository so the shared sync format changes
+in one place, with their own CI job. Rejected: Compose Multiplatform for the web (Android look on
+the web), a service worker for offline use (more moving parts; the app opens offline from its
+stored library anyway once loaded), our own server.
+
 ## 2026-10-16: Sync through the user's own Google Drive, three-way merge, no clocks
 
 Feeds, folders and read marks sync through one JSON file in Google Drive's hidden app folder

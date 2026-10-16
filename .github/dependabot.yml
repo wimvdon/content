@@ -26,3 +26,15 @@ updates:
         update-types: [minor, patch]
     commit-message:
       prefix: ci
+
+  - package-ecosystem: npm
+    directories: [/web, /worker]
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      npm-minor-and-patch:
+        update-types: [minor, patch]
+    commit-message:
+      prefix: deps
