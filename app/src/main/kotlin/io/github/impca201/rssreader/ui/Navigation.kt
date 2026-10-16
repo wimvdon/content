@@ -40,7 +40,10 @@ import io.github.impca201.rssreader.data.ShareTarget
 import io.github.impca201.rssreader.data.Settings
 import io.github.impca201.rssreader.data.needsFullText
 import io.github.impca201.rssreader.rssReaderApp
+import io.github.impca201.rssreader.instapaper.InstapaperAccount
+import io.github.impca201.rssreader.instapaper.InstapaperResult
 import io.github.impca201.rssreader.sync.GoogleAuth
+import io.github.impca201.rssreader.ui.settings.InstapaperState
 import io.github.impca201.rssreader.sync.SyncService
 import io.github.impca201.rssreader.ui.feeds.FeedsActions
 import io.github.impca201.rssreader.ui.feeds.FeedsScreen
@@ -112,6 +115,9 @@ fun RssReaderNavigation() {
     val refreshing by repository.refreshing.collectAsStateWithLifecycle()
     val problems by repository.problems.collectAsStateWithLifecycle()
     val syncStatus by app.sync.status.collectAsStateWithLifecycle()
+    val instapaperAccount by app.instapaperAccount.account.collectAsStateWithLifecycle()
+    var instapaperBusy by remember { mutableStateOf(false) }
+    var instapaperError by remember { mutableStateOf<Int?>(null) }
     val current = settings ?: Settings()
     val library = libraryOrNull ?: Library()
     val snackbar = remember { SnackbarHostState() }
@@ -236,6 +242,18 @@ fun RssReaderNavigation() {
         target: ShareTarget,
     ) {
         val link = article.link ?: return
+        if (target == ShareTarget.InstapaperAccount) {
+            val account = instapaperAccount
+            if (account == null) {
+                showMessage(resources.getString(R.string.instapaper_needs_sign_in))
+                return
+            }
+            app.appScope.launch {
+                val result = app.instapaper.add(account, link, article.title)
+                showMessage(resources.getString(if (result == InstapaperResult.Ok) R.string.instapaper_saved else result.messageRes()))
+            }
+            return
+        }
         val chooser = resources.getString(R.string.action_share)
         if (!ExternalApps.send(context, target, article.title, link, chooser)) {
             if (target is ShareTarget.App) showMessage(resources.getString(R.string.share_target_missing_short, target.label))
@@ -397,6 +415,35 @@ fun RssReaderNavigation() {
                                 problemCount = problems.size,
                                 shareApps = shareApps,
                                 syncStatus = syncStatus,
+                                instapaper =
+                                    InstapaperState(
+                                        username = instapaperAccount?.username,
+                                        busy = instapaperBusy,
+                                        error = instapaperError,
+                                        onSignIn = { username, password ->
+                                            instapaperBusy = true
+                                            instapaperError = null
+                                            uiScope.launch {
+                                                val account = InstapaperAccount(username, password)
+                                                val result = app.instapaper.authenticate(account)
+                                                if (result == InstapaperResult.Ok) {
+                                                    app.instapaperAccount.signIn(account)
+                                                    // Signing in is for Save: it goes to the account from now on.
+                                                    app.settings.setSaveTarget(ShareTarget.InstapaperAccount)
+                                                } else {
+                                                    instapaperError = result.messageRes()
+                                                }
+                                                instapaperBusy = false
+                                            }
+                                        },
+                                        onSignOut = {
+                                            app.appScope.launch {
+                                                app.instapaperAccount.signOut()
+                                                if (current.saveTarget == ShareTarget.InstapaperAccount) app.settings.setSaveTarget(ShareTarget.Instapaper)
+                                                if (current.shareTarget == ShareTarget.InstapaperAccount) app.settings.setShareTarget(ShareTarget.Sheet)
+                                            }
+                                        },
+                                    ),
                             ),
                         snackbarHostState = snackbar,
                         actions =
@@ -497,3 +544,14 @@ private val SelectionSaver =
             }
         },
     )
+
+/** What to tell the user when Instapaper said no. */
+private fun InstapaperResult.messageRes(): Int =
+    when (this) {
+        InstapaperResult.Ok -> R.string.instapaper_saved
+        InstapaperResult.WrongPassword -> R.string.instapaper_wrong_password
+        InstapaperResult.RateLimited -> R.string.instapaper_busy
+        InstapaperResult.BadRequest -> R.string.instapaper_bad_request
+        InstapaperResult.Offline -> R.string.instapaper_offline
+        InstapaperResult.ServerError -> R.string.instapaper_server
+    }

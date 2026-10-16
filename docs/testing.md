@@ -41,6 +41,7 @@ when the run fails.
 | `JsonTest` | JSON round trip (escapes, emoji, numbers, nesting), whitespace, broken text |
 | `SyncDocumentTest` | Sync file round trip, other or newer files left alone, broken entries skipped, taking folders, feeds and read marks from the library, pruning old read marks |
 | `SyncMergeTest` | Three-way merge: changes and removals from either side, this device wins but an edit beats a removal, order from the side that reordered, first sync without base, unread again; articles not here yet; applying the result to the library; syncing twice changes nothing |
+| `InstapaperTest` | Instapaper's answers (saved, wrong password, too many, errors) and the fields sent |
 | `GoogleDriveTest` | Finding the sync file in a Drive answer, the upload into the app folder |
 | `SiteIconTest` | Choosing a site's icon: largest size, apple-touch-icon, relative and http addresses, skipping SVG and inline icons, home page and favicon.ico fallback |
 | `IconCatalogTest` | Reading the icon file, search order (name, words, categories, related words), suggestions, old icon names, and that the bundled file has every suggested and migrated icon |
@@ -85,6 +86,10 @@ and then (always before a release):
       Google's screen; after allowing, "Last synced just now". On a second phone (or after
       Disconnect + clearing data), Connect brings the same feeds, folders and read marks. Rename a
       feed, read an article, wait 5 seconds; Sync now on the other phone shows the change.
+- [ ] **Instapaper account:** Settings › Save and share › Instapaper account › Sign in with a wrong
+      password: "Wrong email or password"; with the right one: "Signed in as …" and the Save
+      button becomes "Instapaper (your account)". Save in an article: "Saved to Instapaper" and
+      it is in Instapaper's Unread list. Sign out: Save goes back to the Instapaper app.
 - [ ] **Save** sends to the app chosen in Settings › Save and share (Instapaper by default);
       **Share** opens the share menu or the chosen app. An uninstalled app falls back to the share menu.
 - [ ] **List:** at app start the list shows loading placeholders, never "No feeds yet" first.

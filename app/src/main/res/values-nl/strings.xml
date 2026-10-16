@@ -175,4 +175,19 @@
     <string name="sync_failed_server">Google Drive had een probleem. Probeer het later opnieuw.</string>
     <string name="sync_failed_file">Het synchronisatiebestand komt van een nieuwere versie van RSS Reader. Werk de app bij.</string>
     <string name="sync_connect_failed">Verbinden met Google Drive is mislukt</string>
+    <string name="instapaper_account">Instapaper-account</string>
+    <string name="instapaper_account_summary">Meld je aan om artikelen rechtstreeks in Instapaper te bewaren, zonder de Instapaper-app.</string>
+    <string name="instapaper_signed_in">Aangemeld als %1$s</string>
+    <string name="instapaper_sign_in">Aanmelden</string>
+    <string name="instapaper_sign_out">Afmelden</string>
+    <string name="instapaper_username">E-mail of gebruikersnaam</string>
+    <string name="instapaper_password">Wachtwoord (als je er een hebt)</string>
+    <string name="instapaper_target">Instapaper (je account)</string>
+    <string name="instapaper_needs_sign_in">Meld je eerst aan bij Instapaper in Instellingen › Bewaren en delen</string>
+    <string name="instapaper_saved">Bewaard in Instapaper</string>
+    <string name="instapaper_wrong_password">Verkeerd e-mailadres of wachtwoord</string>
+    <string name="instapaper_busy">Instapaper is druk. Probeer het straks opnieuw.</string>
+    <string name="instapaper_bad_request">Instapaper kon deze link niet bewaren</string>
+    <string name="instapaper_offline">Instapaper is niet bereikbaar. Controleer je verbinding.</string>
+    <string name="instapaper_server">Instapaper had een probleem. Probeer het later opnieuw.</string>
 </resources>

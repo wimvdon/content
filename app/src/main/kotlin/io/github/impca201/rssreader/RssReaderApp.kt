@@ -21,6 +21,8 @@ import io.github.impca201.rssreader.sync.GoogleAuth
 import io.github.impca201.rssreader.sync.GoogleDrive
 import io.github.impca201.rssreader.sync.SyncManager
 import io.github.impca201.rssreader.sync.SyncService
+import io.github.impca201.rssreader.instapaper.Instapaper
+import io.github.impca201.rssreader.instapaper.InstapaperStore
 import okhttp3.OkHttpClient
 import java.io.File
 
@@ -51,9 +53,15 @@ class RssReaderApp :
 
     val googleAuth: GoogleAuth by lazy { GoogleAuth(this) }
 
+    /** HTTP for sync and Instapaper (feeds use FeedFetcher, pictures Coil). */
+    private val http: OkHttpClient by lazy { OkHttpClient() }
+
+    val instapaperAccount: InstapaperStore by lazy { InstapaperStore(this, appScope) }
+
+    val instapaper: Instapaper by lazy { Instapaper(http) }
+
     /** Sync with the user's own storage (Google Drive's hidden app folder). See sync/. */
     val sync: SyncManager by lazy {
-        val http = OkHttpClient()
         SyncManager(this, appScope, library, settings, provider = { service ->
             when (service) {
                 SyncService.None -> null

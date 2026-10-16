@@ -321,12 +321,16 @@ export function SettingsDialog({ open, onOpenChange }: Props) {
   const { settings, syncStatus } = useApp();
   const [proxy, setProxy] = useState(settings.proxyUrl);
   const [clientId, setClientId] = useState(settings.googleClientId);
+  const [instaUser, setInstaUser] = useState(settings.instapaperUsername);
+  const [instaPassword, setInstaPassword] = useState(settings.instapaperPassword);
   useEffect(() => {
     if (open) {
       setProxy(settings.proxyUrl);
       setClientId(settings.googleClientId);
+      setInstaUser(settings.instapaperUsername);
+      setInstaPassword(settings.instapaperPassword);
     }
-  }, [open, settings.proxyUrl, settings.googleClientId]);
+  }, [open, settings.proxyUrl, settings.googleClientId, settings.instapaperUsername, settings.instapaperPassword]);
   const connected = settings.syncService === "googleDrive";
   const statusText =
     syncStatus.kind === "syncing"
@@ -363,6 +367,20 @@ export function SettingsDialog({ open, onOpenChange }: Props) {
         <section className="space-y-2">
           <h3 className="text-sm font-medium text-primary">{t("reader")}</h3>
           <SwitchRow title={t("fullArticles")} summary={t("fullArticlesSummary")} checked={settings.fullArticles} onChange={(v) => app.updateSettings({ fullArticles: v })} />
+        </section>
+        <section className="space-y-3">
+          <h3 className="text-sm font-medium text-primary">Instapaper</h3>
+          <p className="text-sm text-muted-foreground">{t("instapaperHint")}</p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="insta-user">{t("instapaperUser")}</Label>
+              <Input id="insta-user" autoComplete="username" value={instaUser} onChange={(e) => setInstaUser(e.target.value)} onBlur={() => app.updateSettings({ instapaperUsername: instaUser.trim() })} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="insta-password">{t("instapaperPassword")}</Label>
+              <Input id="insta-password" type="password" autoComplete="current-password" value={instaPassword} onChange={(e) => setInstaPassword(e.target.value)} onBlur={() => app.updateSettings({ instapaperPassword: instaPassword })} />
+            </div>
+          </div>
         </section>
         <section className="space-y-2">
           <h3 className="text-sm font-medium text-primary">{t("appearance")}</h3>

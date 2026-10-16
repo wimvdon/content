@@ -175,4 +175,19 @@
     <string name="sync_failed_server">Google Drive hatte ein Problem. Versuche es später noch einmal.</string>
     <string name="sync_failed_file">Die Sync-Datei stammt von einer neueren Version von RSS Reader. Aktualisiere die App.</string>
     <string name="sync_connect_failed">Verbindung mit Google Drive fehlgeschlagen</string>
+    <string name="instapaper_account">Instapaper-Konto</string>
+    <string name="instapaper_account_summary">Melde dich an, um Artikel direkt in Instapaper zu speichern, ohne die Instapaper-App.</string>
+    <string name="instapaper_signed_in">Angemeldet als %1$s</string>
+    <string name="instapaper_sign_in">Anmelden</string>
+    <string name="instapaper_sign_out">Abmelden</string>
+    <string name="instapaper_username">E-Mail oder Benutzername</string>
+    <string name="instapaper_password">Passwort (falls vorhanden)</string>
+    <string name="instapaper_target">Instapaper (dein Konto)</string>
+    <string name="instapaper_needs_sign_in">Melde dich zuerst unter Einstellungen › Speichern und teilen bei Instapaper an</string>
+    <string name="instapaper_saved">In Instapaper gespeichert</string>
+    <string name="instapaper_wrong_password">Falsche E-Mail oder falsches Passwort</string>
+    <string name="instapaper_busy">Instapaper ist ausgelastet. Versuche es gleich noch einmal.</string>
+    <string name="instapaper_bad_request">Instapaper konnte diesen Link nicht speichern</string>
+    <string name="instapaper_offline">Instapaper ist nicht erreichbar. Prüfe deine Verbindung.</string>
+    <string name="instapaper_server">Instapaper hatte ein Problem. Versuche es später noch einmal.</string>
 </resources>

@@ -62,6 +62,8 @@ export default function App() {
       } else if (e.key === "m" && openArticle) {
         const current = library.articles.find((a) => articleKey(a) === articleKey(openArticle));
         if (current) app.setRead(new Set([articleKey(current)]), !current.read);
+      } else if (e.key === "s" && openArticle) {
+        (document.querySelector('[aria-label="' + CSS.escape(t("saveToInstapaper")) + '"]') as HTMLButtonElement | null)?.click();
       } else if (e.key === "o" && openArticle?.link) {
         window.open(openArticle.link, "_blank", "noopener,noreferrer");
       } else if (e.key === "r") {
