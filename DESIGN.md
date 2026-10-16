@@ -185,3 +185,19 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   Yesterday, date) in `primary` Title Small; Mark all as read is an icon-only FAB. The drawer opens with the app's mark (feed symbol on a
   `primaryContainer` circle) and name.
 - Settings starts with a Feeds section whose row opens Manage feeds and folders.
+
+### Other platforms (planned)
+
+RSS Reader may get a web app and later an iOS app. The brand is shared; the design language is
+each platform's own, so no app feels like a port.
+
+- Shared on every platform: the icon, the seed colour and tertiary sky blue, the wording (Unread |
+  All, folders, Mark all read, Save, Share), the flows (folders as peer views of one article list,
+  swipe or a quick action to toggle read, the reader page with its Text settings) and the tone.
+- Android: Material 3, everything above.
+- Web: [shadcn/ui](https://ui.shadcn.com) (Radix primitives with Tailwind), themed with the seed
+  colour; a neutral look that copies neither Android nor iOS. Wide screens use three panes:
+  folders and feeds in a sidebar, the article list, the open article.
+- iOS: Apple's Human Interface Guidelines with standard SwiftUI parts (navigation bar, tab bar or
+  sidebar, swipe actions, sheets).
+- Shared code is the logic (feeds, library, read state, sync), not the screens.

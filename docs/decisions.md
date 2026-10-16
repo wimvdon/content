@@ -2,6 +2,17 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-16: One brand, each platform's own design language
+
+For a planned web app and a possible iOS app, the owner chose a shared brand with a native design
+language per platform, rather than Material 3 everywhere: Material on Android, Apple's guidelines
+on iOS, and shadcn/ui (Radix with Tailwind) on the web, themed with the app's seed colour. Shared
+code is the logic, not the screens. Rejected: Material 3 on every platform (an iOS app would feel
+like a port), Compose Multiplatform for the web UI (it brings the Android look along), Fluent 2
+(looks like Microsoft), Carbon and Primer (made for business and developer tools). Recorded in
+this app's section of `DESIGN.md`; if other apps from the template get web versions, it moves
+to the template's shared rules.
+
 ## 2026-10-16: The home header scrolls away as one block
 
 The owner wanted more room for articles and found the header's scrolling wonky: the medium top
