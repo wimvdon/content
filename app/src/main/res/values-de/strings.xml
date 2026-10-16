@@ -47,7 +47,7 @@
     <string name="home_caught_up_body">Keine ungelesenen Artikel. Zieh nach unten, um nach neuen zu suchen.</string>
     <string name="home_no_articles_title">Noch keine Artikel</string>
     <string name="home_no_articles_body">Zieh nach unten, um nach neuen Artikeln zu suchen.</string>
-    <string name="home_show_all">Alle Artikel anzeigen</string>
+    <string name="home_show_all">Alle anzeigen</string>
     <string name="import_failed">Diese Datei konnte nicht gelesen werden.</string>
     <string name="import_nothing_new">Keine neuen Feeds in dieser Datei.</string>
     <string name="export_done">Feeds exportiert</string>

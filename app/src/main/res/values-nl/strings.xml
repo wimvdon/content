@@ -47,7 +47,7 @@
     <string name="home_caught_up_body">Geen ongelezen artikels. Trek omlaag om naar nieuwe te zoeken.</string>
     <string name="home_no_articles_title">Nog geen artikels</string>
     <string name="home_no_articles_body">Trek omlaag om naar nieuwe artikels te zoeken.</string>
-    <string name="home_show_all">Alle artikels tonen</string>
+    <string name="home_show_all">Alles tonen</string>
     <string name="import_failed">Dit bestand kon niet gelezen worden.</string>
     <string name="import_nothing_new">Geen nieuwe feeds in dit bestand.</string>
     <string name="export_done">Feeds geëxporteerd</string>

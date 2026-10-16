@@ -48,7 +48,7 @@
     <string name="home_caught_up_body">No unread articles. Pull down to check for new ones.</string>
     <string name="home_no_articles_title">No articles yet</string>
     <string name="home_no_articles_body">Pull down to check for new articles.</string>
-    <string name="home_show_all">Show all articles</string>
+    <string name="home_show_all">Show all</string>
     <string name="import_failed">Couldn’t read this file.</string>
     <string name="import_nothing_new">No new feeds in this file.</string>
     <string name="export_done">Feeds exported</string>

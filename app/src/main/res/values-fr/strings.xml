@@ -47,7 +47,7 @@
     <string name="home_caught_up_body">Aucun article non lu. Tirez vers le bas pour en chercher de nouveaux.</string>
     <string name="home_no_articles_title">Aucun article pour l\'instant</string>
     <string name="home_no_articles_body">Tirez vers le bas pour chercher de nouveaux articles.</string>
-    <string name="home_show_all">Afficher tous les articles</string>
+    <string name="home_show_all">Tout afficher</string>
     <string name="import_failed">Impossible de lire ce fichier.</string>
     <string name="import_nothing_new">Aucun nouveau flux dans ce fichier.</string>
     <string name="export_done">Flux exportés</string>

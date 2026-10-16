@@ -1,4 +1,4 @@
-import { CheckCheck, Menu, RefreshCw } from "lucide-react";
+import { CheckCheck, Menu, Newspaper, RefreshCw, Rss, type LucideIcon } from "lucide-react";
 import { useMemo } from "react";
 import { app, useApp } from "@/lib/app";
 import { snippet } from "@/lib/html";
@@ -88,16 +88,20 @@ export function ArticleList({
         {!loaded || (refreshing && library.articles.length === 0) ? (
           <Skeletons />
         ) : library.feeds.length === 0 ? (
-          <Empty title={t("noFeedsTitle")} text={t("noFeedsText")}>
+          <Empty icon={Rss} title={t("noFeedsTitle")} text={t("noFeedsText")}>
             <Button onClick={onAddFeed}>{t("addFeed")}</Button>
             <Button variant="outline" onClick={onImport}>
               {t("importOpml")}
             </Button>
           </Empty>
         ) : articles.length === 0 ? (
-          <Empty title={t("caughtUpTitle")} text={settings.unreadOnly ? t("caughtUpText") : t("nothingHere")}>
+          <Empty
+            icon={settings.unreadOnly ? CheckCheck : Newspaper}
+            title={settings.unreadOnly ? t("caughtUpTitle") : t("noArticlesTitle")}
+            text={settings.unreadOnly ? t("caughtUpText") : t("nothingHere")}
+          >
             {settings.unreadOnly ? (
-              <Button variant="tonal" onClick={() => app.setUnreadOnly(false)}>
+              <Button onClick={() => app.setUnreadOnly(false)}>
                 {t("showAll")}
               </Button>
             ) : null}
@@ -154,9 +158,23 @@ function Row({ article, feed, open, onOpen }: { article: Article; feed: Feed | u
   );
 }
 
-function Empty({ title, text, children }: { title: string; text: string; children?: React.ReactNode }) {
+/** Same layout as the Android app's EmptyState: icon in a circle, title, one sentence, buttons. */
+function Empty({
+  icon: Icon,
+  title,
+  text,
+  children,
+}: {
+  icon: LucideIcon;
+  title: string;
+  text: string;
+  children?: React.ReactNode;
+}) {
   return (
     <div className="mx-auto flex max-w-sm flex-col items-center gap-3 px-6 py-16 text-center">
+      <div className="mb-1 flex size-18 items-center justify-center rounded-full bg-accent text-accent-foreground">
+        <Icon className="size-9" aria-hidden="true" />
+      </div>
       <h2 className="text-lg font-semibold">{title}</h2>
       <p className="text-sm text-muted-foreground">{text}</p>
       <div className="flex flex-wrap justify-center gap-2 pt-2">{children}</div>

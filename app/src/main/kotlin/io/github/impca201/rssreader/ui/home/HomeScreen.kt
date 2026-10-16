@@ -45,9 +45,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -62,7 +60,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -90,7 +87,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.impca201.rssreader.R
@@ -102,6 +98,7 @@ import io.github.impca201.rssreader.data.ScrollRead
 import kotlinx.coroutines.flow.distinctUntilChanged
 import io.github.impca201.rssreader.feed.Html
 import io.github.impca201.rssreader.ui.theme.AppShapes
+import io.github.impca201.rssreader.ui.theme.EmptyState
 import io.github.impca201.rssreader.ui.theme.Motion
 import io.github.impca201.rssreader.ui.theme.SkeletonLine
 import kotlinx.coroutines.launch
@@ -657,7 +654,8 @@ private fun NoFeeds(
     onImportOpml: () -> Unit,
 ) {
     EmptyState(
-        title = stringResource(R.string.home_no_feeds_title),
+        painterResource(R.drawable.ic_rss_feed),
+        stringResource(R.string.home_no_feeds_title),
         body = stringResource(R.string.home_no_feeds_body),
     ) {
         Button(onClick = onAddFeed) {
@@ -674,42 +672,10 @@ private fun AllCaughtUp(
     onShowAll: () -> Unit,
 ) {
     EmptyState(
-        title = stringResource(if (unreadOnly) R.string.home_caught_up_title else R.string.home_no_articles_title),
+        painterResource(if (unreadOnly) R.drawable.ic_done_all else R.drawable.ic_article),
+        stringResource(if (unreadOnly) R.string.home_caught_up_title else R.string.home_no_articles_title),
         body = stringResource(if (unreadOnly) R.string.home_caught_up_body else R.string.home_no_articles_body),
     ) {
-        if (unreadOnly) TextButton(onClick = onShowAll) { Text(stringResource(R.string.home_show_all)) }
-    }
-}
-
-@Composable
-private fun EmptyState(
-    title: String,
-    body: String,
-    buttons: @Composable () -> Unit,
-) {
-    // Scrollable so pull-to-refresh works on empty screens too.
-    Column(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
-    ) {
-        Icon(
-            painterResource(R.drawable.ic_rss_feed),
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(48.dp).padding(top = 48.dp),
-        )
-        Text(title, style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
-        Text(
-            body,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
-        buttons()
+        if (unreadOnly) Button(onClick = onShowAll) { Text(stringResource(R.string.home_show_all)) }
     }
 }
