@@ -55,6 +55,15 @@ with its icon and name; swipe the tabs sideways when they don't fit. Tap one to 
 articles. The ☰ drawer lists the folders too, each with its feeds, and the feeds outside folders
 after them. A feed added while a folder is open goes into that folder.
 
+## Sync between devices
+
+Settings › **Sync** › **Connect** links the app to your Google Drive. Google asks once whether
+RSS Reader may use its own hidden folder there (it can't see your other files). From then on
+your feeds, folders and read articles stay the same on every phone where you connect, and in the
+web app. The app syncs when it starts, a few seconds after a change and when you tap
+**Sync now**; the line under Google Drive says when it last did, or what went wrong.
+**Disconnect** stops syncing on this phone. See [sync.md](sync.md) for how it works.
+
 ## Reading the list
 
 - **☰** opens the drawer: **All articles** (every feed), your folders with their feeds, the other feeds

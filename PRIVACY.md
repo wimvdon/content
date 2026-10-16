@@ -1,8 +1,9 @@
 # Privacy policy
 
-_Last updated: 2026-10-15 (website icons)_
+_Last updated: 2026-10-16 (sync with Google Drive)_
 
 RSS Reader has no account, analytics, advertising or crash reporting, and no server of its own.
+Sync, if you turn it on, uses your own Google Drive.
 
 ## What the app sends, and to whom
 
@@ -24,6 +25,16 @@ RSS Reader has no account, analytics, advertising or crash reporting, and no ser
   the site's small icon (favicon), and then downloads that icon (from the site, or wherever the
   site says it is, often its image server). If the site names none, its `/favicon.ico` is tried.
   The icon is shown next to the feed's name. These servers see the same as for the feed.
+- **Sync with Google Drive (off unless you connect it).** In Settings › Sync › Connect, Google
+  asks whether RSS Reader may use its own hidden folder in your Google Drive (`drive.appdata`).
+  RSS Reader can't see your other files. While the app is open (at start, a few seconds after a
+  change, and on Sync now) it reads and writes one file there, `rss-reader-sync.json`, with your
+  feed list (addresses, names, folders, website and icon addresses), your folders, and which
+  articles you read in the last 120 days (feed address, article id and date). Article texts and
+  settings are not in it. The file goes to Google (www.googleapis.com) under Google's privacy
+  policy and your Google account; Google also sees your IP address. Disconnect stops syncing;
+  the file stays in your Drive until you remove the app's data there (Google Drive › Settings ›
+  Manage apps) or revoke access in your Google account.
 - **Links you open** (Read on website, links in articles) open in your browser, under the
   website's own privacy policy.
 - **Save and Share.** When you tap Save or Share, the article's title and link go to the app you
@@ -33,6 +44,7 @@ RSS Reader has no account, analytics, advertising or crash reporting, and no ser
 ## What the app stores on your device
 
 - Your feed list (with each feed's icon address) and folders, the downloaded articles and which ones you read.
+- If sync is on: a copy of the sync file as last synced, to merge changes.
 - Your settings (theme, text settings, full articles, pictures, Save and Share targets, the Unread filter, mark as read on scroll).
 - The text of full articles you opened, and recently shown pictures, in the app's cache (Android
   may clear it).
@@ -42,11 +54,11 @@ include the feed list, articles, read state and settings, not the cache. Removin
 
 ## Background activity
 
-None. The app only downloads feeds and articles while you use it.
+None. The app only downloads feeds and articles, and syncs, while you use it.
 
 ## Permissions
 
-- **Internet:** to download feeds and articles.
+- **Internet:** to download feeds and articles, and to sync.
 
 The app also declares that it looks for apps that accept shared links, so Settings › Save and
 share can list them. This is not a permission and reveals nothing to those apps.

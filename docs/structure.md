@@ -42,6 +42,14 @@ rss-reader/
         │   │   │   ├── Settings.kt            Theme, reader style, Save target (plain Kotlin)
         │   │   │   ├── SettingsStore.kt       Preferences DataStore
 │   │   │   └── FullArticles.kt        Full articles for summary-only feeds, cached
+        │   │   ├── sync/
+        │   │   │   ├── SyncDocument.kt        The sync file: folders, feeds, read marks (plain Kotlin)
+        │   │   │   ├── SyncMerge.kt           Three-way merge with the last synced file (plain Kotlin)
+        │   │   │   ├── Json.kt                Small JSON reader and writer (plain Kotlin)
+        │   │   │   ├── SyncProvider.kt        Where the file lives; problems; services
+        │   │   │   ├── GoogleDrive.kt         The file in Drive's hidden app folder (OkHttp)
+        │   │   │   ├── GoogleAuth.kt          Google's authorization screen (drive.appdata)
+        │   │   │   └── SyncManager.kt         When to sync, base file, status
         │   │   ├── feed/
         │   │   │   ├── FeedFetcher.kt         HTTPS downloads
         │   │   │   ├── FeedParser.kt          RSS / RDF / Atom parser, safe XML parser

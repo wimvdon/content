@@ -2,6 +2,8 @@ package io.github.impca201.rssreader.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
+import android.app.Activity
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -38,6 +40,8 @@ import io.github.impca201.rssreader.data.ShareTarget
 import io.github.impca201.rssreader.data.Settings
 import io.github.impca201.rssreader.data.needsFullText
 import io.github.impca201.rssreader.rssReaderApp
+import io.github.impca201.rssreader.sync.GoogleAuth
+import io.github.impca201.rssreader.sync.SyncService
 import io.github.impca201.rssreader.ui.feeds.FeedsActions
 import io.github.impca201.rssreader.ui.feeds.FeedsScreen
 import io.github.impca201.rssreader.ui.feeds.FeedsState
@@ -107,6 +111,7 @@ fun RssReaderNavigation() {
     val libraryOrNull by repository.library.collectAsStateWithLifecycle()
     val refreshing by repository.refreshing.collectAsStateWithLifecycle()
     val problems by repository.problems.collectAsStateWithLifecycle()
+    val syncStatus by app.sync.status.collectAsStateWithLifecycle()
     val current = settings ?: Settings()
     val library = libraryOrNull ?: Library()
     val snackbar = remember { SnackbarHostState() }
@@ -182,8 +187,35 @@ fun RssReaderNavigation() {
     val importOpml = { importLauncher.launch(arrayOf("text/x-opml", "text/xml", "application/xml", "application/octet-stream", "*/*")) }
     val exportOpml = { exportLauncher.launch(OPML_FILE_NAME) }
 
+    // Sync with Google Drive: Connect asks Google for access to the app's hidden Drive folder,
+    // showing Google's approval screen the first time.
+    fun finishConnect(result: GoogleAuth.Result?) {
+        if (result is GoogleAuth.Result.Token) {
+            app.appScope.launch {
+                app.settings.setSyncService(SyncService.GoogleDrive)
+                app.sync.sync()
+            }
+        } else {
+            showMessage(resources.getString(R.string.sync_connect_failed))
+        }
+    }
+    val approvalLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) finishConnect(app.googleAuth.fromIntent(result.data))
+        }
+    val connectSync = {
+        uiScope.launch {
+            when (val result = runCatching { app.googleAuth.authorize() }.getOrNull()) {
+                is GoogleAuth.Result.NeedsApproval -> approvalLauncher.launch(IntentSenderRequest.Builder(result.intent.intentSender).build())
+                else -> finishConnect(result)
+            }
+        }
+        Unit
+    }
+
     // Fresh articles once per app start, as soon as the stored library is known.
     LaunchedEffect(libraryOrNull != null) {
+        if (libraryOrNull != null) app.sync.start()
         if (libraryOrNull != null && !app.refreshedThisSession && library.feeds.isNotEmpty()) {
             app.refreshedThisSession = true
             refresh()
@@ -364,6 +396,7 @@ fun RssReaderNavigation() {
                                 folderCount = library.folders.size,
                                 problemCount = problems.size,
                                 shareApps = shareApps,
+                                syncStatus = syncStatus,
                             ),
                         snackbarHostState = snackbar,
                         actions =
@@ -379,6 +412,9 @@ fun RssReaderNavigation() {
                                 onShareTargetChange = { target -> app.appScope.launch { app.settings.setShareTarget(target) } },
                                 onThemeModeChange = { mode -> app.appScope.launch { app.settings.setThemeMode(mode) } },
                                 onDynamicColorChange = { enabled -> app.appScope.launch { app.settings.setDynamicColor(enabled) } },
+                                onConnectSync = connectSync,
+                                onSyncNow = { app.appScope.launch { app.sync.sync() } },
+                                onDisconnectSync = { app.appScope.launch { app.sync.disconnect() } },
                             ),
                     )
                 }

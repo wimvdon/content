@@ -161,4 +161,18 @@
         <item quantity="one">%d artikel als gelezen gemarkeerd</item>
         <item quantity="other">%d artikelen als gelezen gemarkeerd</item>
     </plurals>
+    <string name="section_sync">Synchronisatie</string>
+    <string name="sync_google_drive">Google Drive</string>
+    <string name="sync_off_summary">Houd je feeds, mappen en gelezen artikelen gelijk op al je apparaten en in de web-app. Bewaard in een verborgen map van je eigen Drive.</string>
+    <string name="sync_connect">Verbinden</string>
+    <string name="sync_now">Nu synchroniseren</string>
+    <string name="sync_disconnect">Ontkoppelen</string>
+    <string name="sync_syncing">Bezig met synchroniseren…</string>
+    <string name="sync_last">Laatst gesynchroniseerd %1$s</string>
+    <string name="sync_never">Nog niet gesynchroniseerd</string>
+    <string name="sync_failed_offline">Google Drive is niet bereikbaar. Controleer je verbinding.</string>
+    <string name="sync_failed_approval">Google Drive heeft opnieuw je toestemming nodig. Tik op Verbinden.</string>
+    <string name="sync_failed_server">Google Drive had een probleem. Probeer het later opnieuw.</string>
+    <string name="sync_failed_file">Het synchronisatiebestand komt van een nieuwere versie van RSS Reader. Werk de app bij.</string>
+    <string name="sync_connect_failed">Verbinden met Google Drive is mislukt</string>
 </resources>
