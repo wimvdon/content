@@ -2,6 +2,18 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-16: Material 3 audit: settings list, folder tabs, normal-sized Unread | All
+
+An audit against Material 3 (owner's request) changed three things. Settings are one list with
+section headers instead of collapsed cards, from the shared `SettingsKit.kt` (see the template's
+decision log). The floating folder bar copied Tracker for Simkl's floating navigation pill, but
+Material 3 keeps floating bars for actions and uses tabs for peer views of the same content, so
+folders are now scrollable tabs under the top app bar (they fit any number of folders, which a
+navigation bar doesn't). Unread | All is back to the normal button height and as wide as its
+labels; the earlier "more padding" request meant room around it, so it now has 16dp above it.
+Rejected: a docked navigation bar for folders (at most five items, and folders aren't app
+sections) and filter chips (they would look like extra filters next to Unread | All).
+
 ## 2026-10-15: Site icons on a light tile; pens and an empty "No folder" note on the manage page
 
 Many site icons are dark logos on a transparent background, made for light browser tabs, and

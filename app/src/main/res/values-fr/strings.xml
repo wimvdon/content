@@ -5,6 +5,7 @@
     <string name="menu_settings">Paramètres</string>
     <string name="section_expanded">Développé</string>
     <string name="section_collapsed">Réduit</string>
+    <string name="section_feeds">Flux</string>
     <string name="section_appearance">Apparence</string>
     <string name="setting_theme_title">Thème</string>
     <string name="theme_system">Système</string>

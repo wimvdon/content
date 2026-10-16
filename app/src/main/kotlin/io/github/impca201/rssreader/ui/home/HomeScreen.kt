@@ -90,7 +90,6 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.impca201.rssreader.R
 import io.github.impca201.rssreader.data.Article
@@ -153,9 +152,9 @@ fun HomeScreen(
     val selectedFeed = (state.selection as? FeedSelection.Single)?.let { s -> state.feeds.firstOrNull { it.url == s.feedUrl } }
     val selectedFolder = (state.selection as? FeedSelection.InFolder)?.let { s -> state.folders.firstOrNull { it.id == s.folderId } }
     val title = selectedFeed?.title ?: selectedFolder?.title ?: stringResource(R.string.feeds_all)
-    // The bottom bar's tab: the folder being viewed, or the folder of the feed being viewed.
+    // The selected folder tab: the folder being viewed, or the folder of the feed being viewed.
     val sectionFolderId = selectedFolder?.id ?: selectedFeed?.folderId
-    val showFolderBar = state.folders.isNotEmpty() && state.feeds.isNotEmpty()
+    val showFolderTabs = state.folders.isNotEmpty() && state.feeds.isNotEmpty()
     val unreadHere = state.unreadCounts[state.selection] ?: 0
 
     ModalNavigationDrawer(
@@ -186,9 +185,9 @@ fun HomeScreen(
         val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
         Scaffold(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-            // Messages appear above the folder bar, not on top of it.
-            snackbarHost = { SnackbarHost(snackbarHostState, Modifier.padding(bottom = if (showFolderBar) FOLDER_BAR_SPACE else 0.dp)) },
+            snackbarHost = { SnackbarHost(snackbarHostState) },
             topBar = {
+                Column {
                 MediumTopAppBar(
                     title = {
                         Column {
@@ -214,14 +213,20 @@ fun HomeScreen(
                     },
                     scrollBehavior = scrollBehavior,
                 )
+                if (showFolderTabs) {
+                    FolderTabs(
+                        folders = state.folders,
+                        selectedFolderId = sectionFolderId,
+                        onSelectAll = { actions.onSelect(FeedSelection.All) },
+                        onSelectFolder = { actions.onSelect(FeedSelection.InFolder(it.id)) },
+                    )
+                }
+                }
             },
             floatingActionButton = {
                 // Marks everything in the section being viewed as read: All, a folder or a feed.
                 if (state.feeds.isNotEmpty() && unreadHere > 0) {
-                    FloatingActionButton(
-                        onClick = actions.onMarkAllRead,
-                        modifier = Modifier.padding(bottom = if (showFolderBar) FOLDER_BAR_SPACE else 0.dp),
-                    ) {
+                    FloatingActionButton(onClick = actions.onMarkAllRead) {
                         Icon(painterResource(R.drawable.ic_done_all), contentDescription = stringResource(R.string.action_mark_all_read))
                     }
                 }
@@ -237,7 +242,8 @@ fun HomeScreen(
                 ReadFilter(
                     unreadOnly = state.unreadOnly,
                     onUnreadOnlyChange = actions.onUnreadOnlyChange,
-                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
+                    // Room around the filter so the header doesn't feel cramped.
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 12.dp),
                 )
             }
             PullToRefreshBox(
@@ -262,30 +268,15 @@ fun HomeScreen(
                         HomeContent.NoFeeds -> NoFeeds(actions.onAddFeed, actions.onImportOpml)
                         HomeContent.Loading -> ArticleSkeletons()
                         HomeContent.Empty -> AllCaughtUp(state.unreadOnly) { actions.onUnreadOnlyChange(false) }
-                        HomeContent.Articles -> ArticleList(state, actions, bottomSpace = if (showFolderBar) FOLDER_BAR_SPACE else 0.dp)
+                        HomeContent.Articles -> ArticleList(state, actions)
                     }
                 }
             }
-            }
-            if (showFolderBar) {
-                FolderBar(
-                    folders = state.folders,
-                    selectedFolderId = sectionFolderId,
-                    onSelectAll = { actions.onSelect(FeedSelection.All) },
-                    onSelectFolder = { actions.onSelect(FeedSelection.InFolder(it.id)) },
-                    modifier =
-                        Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
-                )
             }
             }
         }
     }
 }
-
-/** Room below the list and above the floating action button for the floating folder bar. */
-private val FOLDER_BAR_SPACE = 88.dp
 
 private enum class HomeContent { NoFeeds, Loading, Empty, Articles }
 
@@ -295,7 +286,6 @@ private const val SKELETON_ROWS = 6
 private fun ArticleList(
     state: HomeState,
     actions: HomeActions,
-    bottomSpace: Dp,
 ) {
     // A different feed starts at the top.
     val listState = rememberSaveable(state.selection, saver = LazyListState.Saver) { LazyListState() }
@@ -329,8 +319,8 @@ private fun ArticleList(
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize(),
-        // Room at the end for the floating action button (and the folder bar).
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 88.dp + bottomSpace),
+        // Room at the end for the floating action button.
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 88.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         days.forEach { (day, articles) ->

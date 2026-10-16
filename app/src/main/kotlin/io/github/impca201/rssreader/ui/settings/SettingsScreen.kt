@@ -3,6 +3,7 @@ package io.github.impca201.rssreader.ui.settings
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,7 +16,7 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.Surface
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import io.github.impca201.rssreader.R
 import io.github.impca201.rssreader.data.ListView
@@ -37,7 +39,8 @@ import io.github.impca201.rssreader.ui.reader.labelRes
 import io.github.impca201.rssreader.ui.reader.readerBodyStyle
 import io.github.impca201.rssreader.ui.theme.AppShapes
 import io.github.impca201.rssreader.ui.theme.AppearanceSettings
-import io.github.impca201.rssreader.ui.theme.CollapsibleSection
+import io.github.impca201.rssreader.ui.theme.SettingsBlock
+import io.github.impca201.rssreader.ui.theme.SettingsSection
 import io.github.impca201.rssreader.ui.theme.SettingsFooter
 import io.github.impca201.rssreader.ui.theme.SettingsScaffold
 import io.github.impca201.rssreader.ui.theme.SwitchSetting
@@ -66,7 +69,7 @@ class SettingsActions(
     val onDynamicColorChange: (Boolean) -> Unit,
 )
 
-/** Everything that can be set, in collapsible sections in the order DESIGN.md gives. */
+/** Everything that can be set, as one list of sections in the order DESIGN.md gives. */
 @Composable
 fun SettingsScreen(
     state: SettingsState,
@@ -79,7 +82,7 @@ fun SettingsScreen(
         onBack = actions.onBack,
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) {
-        item(key = "feeds") { FeedsLink(state, actions.onOpenFeeds) }
+        item(key = "feeds") { FeedsSection(state, actions.onOpenFeeds) }
         item(key = "list") { ListSection(state.settings, actions) }
         item(key = "reader") { ReaderSection(state.settings, actions) }
         item(key = "save") {
@@ -100,40 +103,33 @@ fun SettingsScreen(
 
 /** Opens the Feeds and folders page; shows how many there are, and failing feeds in red. */
 @Composable
-private fun FeedsLink(
+private fun FeedsSection(
     state: SettingsState,
     onOpen: () -> Unit,
 ) {
-    Surface(
-        onClick = onOpen,
-        shape = AppShapes.Group,
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Row(
-            Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            Icon(painterResource(R.drawable.ic_rss_feed), contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-            Column(Modifier.weight(1f)) {
-                Text(stringResource(R.string.feeds_page_title), style = MaterialTheme.typography.titleMedium)
-                val counts =
-                    listOf(
-                        pluralStringResource(R.plurals.feeds_count, state.feedCount, state.feedCount),
-                        pluralStringResource(R.plurals.folders_count, state.folderCount, state.folderCount),
-                    ).joinToString(" · ")
-                Text(counts, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                if (state.problemCount > 0) {
+    SettingsSection(title = stringResource(R.string.section_feeds)) {
+        ListItem(
+            headlineContent = { Text(stringResource(R.string.feeds_page_title)) },
+            supportingContent = {
+                Column {
                     Text(
-                        pluralStringResource(R.plurals.feeds_problem_count, state.problemCount, state.problemCount),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.error,
+                        listOf(
+                            pluralStringResource(R.plurals.feeds_count, state.feedCount, state.feedCount),
+                            pluralStringResource(R.plurals.folders_count, state.folderCount, state.folderCount),
+                        ).joinToString(" · "),
                     )
+                    if (state.problemCount > 0) {
+                        Text(
+                            pluralStringResource(R.plurals.feeds_problem_count, state.problemCount, state.problemCount),
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
                 }
-            }
-            Icon(painterResource(R.drawable.ic_chevron_right), contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
+            },
+            leadingContent = { Icon(painterResource(R.drawable.ic_rss_feed), contentDescription = null) },
+            trailingContent = { Icon(painterResource(R.drawable.ic_chevron_right), contentDescription = null) },
+            modifier = Modifier.clickable(role = Role.Button, onClick = onOpen),
+        )
     }
 }
 
@@ -143,13 +139,9 @@ private fun ListSection(
     settings: Settings,
     actions: SettingsActions,
 ) {
-    CollapsibleSection(
-        key = "list",
-        title = stringResource(R.string.section_list),
-        summary = stringResource(settings.listView.labelRes()),
-        icon = painterResource(R.drawable.ic_view_medium),
-    ) {
-        Text(stringResource(R.string.setting_list_view), style = MaterialTheme.typography.titleSmall)
+    SettingsSection(title = stringResource(R.string.section_list)) {
+        SettingsBlock {
+        Text(stringResource(R.string.setting_list_view), style = MaterialTheme.typography.bodyLarge)
         SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
             ListView.entries.forEachIndexed { index, view ->
                 SegmentedButton(
@@ -159,6 +151,7 @@ private fun ListSection(
                     icon = { Icon(painterResource(view.iconRes()), contentDescription = null, modifier = Modifier.size(SegmentedButtonDefaults.IconSize)) },
                 ) { Text(stringResource(view.labelRes())) }
             }
+        }
         }
         SwitchSetting(
             title = stringResource(R.string.setting_mark_read_on_scroll_title),
@@ -191,17 +184,7 @@ private fun ReaderSection(
     actions: SettingsActions,
 ) {
     val style = settings.reader
-    CollapsibleSection(
-        key = "reader",
-        title = stringResource(R.string.section_reader),
-        summary =
-            listOf(
-                stringResource(style.font.labelRes()),
-                stringResource(R.string.reader_text_size_value, style.textSize),
-                stringResource(style.background.labelRes()),
-            ).joinToString(" · "),
-        icon = painterResource(R.drawable.ic_text_format),
-    ) {
+    SettingsSection(title = stringResource(R.string.section_reader)) {
         SwitchSetting(
             title = stringResource(R.string.reader_full_articles_title),
             summary = stringResource(R.string.reader_full_articles_summary),
@@ -215,6 +198,7 @@ private fun ReaderSection(
             onCheckedChange = actions.onShowImagesChange,
         )
         ReaderStyleControls(style = style, onChange = actions.onReaderStyleChange)
+        SettingsBlock {
         Text(
             text = stringResource(R.string.reader_preview),
             style = readerBodyStyle(style),
@@ -224,6 +208,7 @@ private fun ReaderSection(
                     .background(MaterialTheme.colorScheme.surfaceContainerHighest, AppShapes.Item)
                     .padding(16.dp),
         )
+        }
     }
 }
 
@@ -232,12 +217,7 @@ private fun AppearanceSection(
     settings: Settings,
     actions: SettingsActions,
 ) {
-    CollapsibleSection(
-        key = "appearance",
-        title = stringResource(R.string.section_appearance),
-        summary = stringResource(settings.appearance.themeMode.labelRes()),
-        icon = painterResource(R.drawable.ic_palette),
-    ) {
+    SettingsSection(title = stringResource(R.string.section_appearance)) {
         AppearanceSettings(
             themeLabel = stringResource(R.string.setting_theme_title),
             themeOptions = ThemeMode.entries.map { stringResource(it.labelRes()) },

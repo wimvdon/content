@@ -50,8 +50,8 @@ feed is in a folder, a note there says you can drag a feed onto it).
   feed updates; clear the name to use the feed's own again.
 - **Tap a folder** (or its pen) to change its title or icon, or remove it (its feeds stay, under "No folder").
 
-Once there is a folder, a floating bar appears at the bottom of the list: **All** (every feed)
-and then each folder by its icon; the selected one also shows its name. Tap one to see only its
+Once there is a folder, tabs appear under the title: **All** (every feed) and then each folder
+with its icon and name; swipe the tabs sideways when they don't fit. Tap one to see only its
 articles. The ☰ drawer lists the folders too, each with its feeds, and the feeds outside folders
 after them. A feed added while a folder is open goes into that folder.
 
@@ -124,7 +124,7 @@ If the chosen app has been uninstalled, the button opens the share menu instead 
 
 ## Settings
 
-- **Manage feeds and folders** (at the top; the same page as in ☰): every feed with its address (or why
+- **Feeds › Manage feeds and folders** (at the top; the same page as in ☰): every feed with its address (or why
   its last download failed), grouped by folder. Add, rename, reorder (drag) or remove feeds (a
   removed feed's articles go too), create, edit, reorder and remove folders, put feeds in folders, and **Import OPML** /
   **Export OPML** to move your feeds between readers.

@@ -5,6 +5,7 @@
     <string name="menu_settings">Ajustes</string>
     <string name="section_expanded">Desplegado</string>
     <string name="section_collapsed">Contraído</string>
+    <string name="section_feeds">Feeds</string>
     <string name="section_appearance">Apariencia</string>
     <string name="setting_theme_title">Tema</string>
     <string name="theme_system">Sistema</string>

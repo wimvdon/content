@@ -2,9 +2,11 @@ package io.github.impca201.rssreader.ui.reader
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -19,6 +21,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.impca201.rssreader.R
@@ -37,8 +40,10 @@ fun ReaderStyleControls(
     style: ReaderStyle,
     onChange: (ReaderStyle) -> Unit,
     modifier: Modifier = Modifier,
+    horizontalPadding: Dp = 16.dp,
 ) {
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    Column(modifier) {
+    Column(Modifier.padding(horizontal = horizontalPadding, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Choice(
             label = stringResource(R.string.reader_font),
             options = ReaderFont.entries,
@@ -62,12 +67,16 @@ fun ReaderStyleControls(
             optionLabel = { stringResource(it.labelRes()) },
             onSelect = { onChange(style.copy(background = it)) },
         )
-        SwitchSetting(
-            title = stringResource(R.string.reader_auto_dark_title),
-            summary = stringResource(R.string.reader_auto_dark_summary),
-            checked = style.autoDark,
-            onCheckedChange = { onChange(style.copy(autoDark = it)) },
-        )
+    }
+        // A list row brings its own 16dp side padding.
+        Box(Modifier.padding(horizontal = horizontalPadding - 16.dp)) {
+            SwitchSetting(
+                title = stringResource(R.string.reader_auto_dark_title),
+                summary = stringResource(R.string.reader_auto_dark_summary),
+                checked = style.autoDark,
+                onCheckedChange = { onChange(style.copy(autoDark = it)) },
+            )
+        }
     }
 }
 

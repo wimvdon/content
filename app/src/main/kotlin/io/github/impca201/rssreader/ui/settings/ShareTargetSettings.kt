@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -36,7 +37,8 @@ import androidx.core.graphics.drawable.toBitmap
 import io.github.impca201.rssreader.R
 import io.github.impca201.rssreader.data.ShareTarget
 import io.github.impca201.rssreader.ui.ExternalApps
-import io.github.impca201.rssreader.ui.theme.CollapsibleSection
+import io.github.impca201.rssreader.ui.theme.SettingsBlock
+import io.github.impca201.rssreader.ui.theme.SettingsSection
 
 /**
  * Where the reader's Save and Share buttons send an article: the share menu, or straight to one
@@ -51,17 +53,14 @@ fun ShareTargetsSection(
     onShareTargetChange: (ShareTarget) -> Unit,
 ) {
     val sheet = stringResource(R.string.share_target_sheet)
-    CollapsibleSection(
-        key = "save",
-        title = stringResource(R.string.section_save),
-        summary = listOf(saveTarget.label(sheet), shareTarget.label(sheet)).distinct().joinToString(" · "),
-        icon = painterResource(R.drawable.ic_bookmark_add),
-    ) {
-        Text(
-            stringResource(R.string.save_explanation),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+    SettingsSection(title = stringResource(R.string.section_save)) {
+        SettingsBlock {
+            Text(
+                stringResource(R.string.save_explanation),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         TargetRow(stringResource(R.string.setting_save_button), saveTarget, apps, onSaveTargetChange)
         TargetRow(stringResource(R.string.setting_share_button), shareTarget, apps, onShareTargetChange)
     }
@@ -77,23 +76,21 @@ private fun TargetRow(
     var choosing by rememberSaveable { mutableStateOf(false) }
     val sheet = stringResource(R.string.share_target_sheet)
     val missing = target is ShareTarget.App && apps.isNotEmpty() && apps.none { it.target.packageName == target.packageName }
-    Column(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .clickable(role = Role.Button) { choosing = true }
-                .padding(vertical = 4.dp),
-    ) {
-        Text(title, style = MaterialTheme.typography.bodyLarge)
-        Text(target.label(sheet), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
-        if (missing) {
-            Text(
-                stringResource(R.string.share_target_missing, target.label(sheet)),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.error,
-            )
-        }
-    }
+    ListItem(
+        headlineContent = { Text(title) },
+        supportingContent = {
+            Column {
+                Text(target.label(sheet))
+                if (missing) {
+                    Text(
+                        stringResource(R.string.share_target_missing, target.label(sheet)),
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            }
+        },
+        modifier = Modifier.clickable(role = Role.Button) { choosing = true },
+    )
     if (choosing) {
         AlertDialog(
             onDismissRequest = { choosing = false },
