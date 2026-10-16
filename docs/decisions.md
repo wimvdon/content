@@ -2,6 +2,19 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-16: Web app loads feeds through a small Cloudflare Worker; sync is pluggable
+
+Browsers block a web page from loading most feeds and article pages (CORS), so the planned web
+app loads them through a small, stateless Cloudflare Worker: it only fetches the feed or page it
+is asked for and passes it back, keeps nothing, logs nothing, and refuses anything that isn't a
+GET for a feed, page or picture. It stays small enough for anyone to run their own copy. The
+Android app keeps loading feeds directly. Sync goes through one interface with Google Drive
+(the hidden app folder) as the first provider and room for others (for example Dropbox,
+OneDrive or WebDAV/Nextcloud) using the same file format. Rejected: a Google Apps Script proxy
+(ties feed loading to Google while sync should not depend on one provider), a browser extension
+(too much for the goal, and little use on phones), public CORS proxies and RSS-to-JSON services
+(a stranger sees every feed, limits, unreliable).
+
 ## 2026-10-16: One brand, each platform's own design language
 
 For a planned web app and a possible iOS app, the owner chose a shared brand with a native design
