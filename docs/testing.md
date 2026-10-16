@@ -18,6 +18,7 @@ On every pull request and push to `main`:
 | Lint | `./gradlew lintDebug` | Android API misuse, missing translations, accessibility, hard-coded text, … (errors fail the build) |
 | Debug build | `./gradlew assembleDebug` | Compile errors; produces the APK to test on the phone |
 | Release build | `./gradlew assembleRelease` | Problems caused by R8 minification / resource shrinking |
+| Web app and feed loader | `npm test`, `npm run lint`, `npm run build` in `web/`; `npm test`, `npm run typecheck` in `worker/` | Parser ids that match Android, reading the Android app's sync file, merge, OPML, HTML cleaning; the Worker's origin check, address rules, redirects, size and type limits |
 
 Reports (test results, lint HTML) are attached to every CI run as the `reports` artifact, also
 when the run fails.

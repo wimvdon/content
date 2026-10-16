@@ -53,6 +53,15 @@ Secrets, keystores (`*.jks`, `*.keystore`), `keystore.properties`, passwords or 
 - Dependency versions live only in `gradle/libs.versions.toml`.
 - Versions are automatic (git tags / release workflow). Don't edit `versionName`/`versionCode`.
 
+## Web app and feed loader
+- `web/` is the web app (React, TypeScript, Vite, Tailwind, shadcn-style parts in
+  `src/components/ui/`), `worker/` the Cloudflare Worker that loads feeds for it. The Android
+  rules above apply in spirit: logic in `web/src/lib/` with Vitest tests, all text in
+  `web/src/lib/i18n.ts` in every language, no analytics or tracking, new npm packages only after
+  asking. The sync file format is shared with Android (`docs/sync.md`): change both together.
+- Before finishing a change there, run in that folder: `npm ci`, `npm test`, `npm run build`
+  (web, also `npm run lint`) or `npm run typecheck` (worker).
+
 ## Keep docs in sync
 - Behaviour change → update `docs/` and, if it touches data or permissions, `PRIVACY.md`.
 - Notable decision (new library, architecture choice, minSdk change, …) → add a dated entry to
