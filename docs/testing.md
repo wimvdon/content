@@ -80,7 +80,9 @@ and then (always before a release):
       **Share** opens the share menu or the chosen app. An uninstalled app falls back to the share menu.
 - [ ] **List:** at app start the list shows loading placeholders, never "No feeds yet" first.
       Swipe an article left and right past a third: a tick, it becomes read, then unread; a short
-      swipe does nothing; swiping never opens the ☰ menu. Unread | All under the title switches unread only / all. Settings › Article list › View: Small,
+      swipe does nothing; swiping never opens the ☰ menu. Unread | All under the title switches unread only / all.
+      Scroll down: the title, folder tabs and Unread | All slide away together; scroll up a
+      little: they come back; pulling down at the very top refreshes. Settings › Article list › View: Small,
       Medium and Large each look right, with and without pictures.
 - [ ] **Website icons:** after a refresh, feeds show their site's icon in the list, ☰ menu,
       manage page and reader, on a light tile; in dark mode dark logos are still visible; a feed

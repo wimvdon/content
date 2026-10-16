@@ -178,8 +178,10 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   at the normal 40dp button height (48dp touch target), as wide as its labels with equal halves,
   16dp from the top bar or tabs (selected half `primary` with a check, fully rounded; other half
   `secondaryContainer`; inner corners 8dp, 2dp gap), hand-built until Material 3 ships it. Settings lives in the drawer only.
-  The All view uses a
-  `MediumTopAppBar` that collapses on scroll; articles sit under sticky day headers (Today,
+  The header (a small `TopAppBar`, the folder tabs, Unread | All, in that order: the app bar,
+  then tabs attached to it, then the filter for the content) is one block that slides away
+  while scrolling down and comes back as soon as you scroll up (Material's "enter always"),
+  turning `surfaceContainer` once articles pass under it; articles sit under sticky day headers (Today,
   Yesterday, date) in `primary` Title Small; Mark all as read is an icon-only FAB. The drawer opens with the app's mark (feed symbol on a
   `primaryContainer` circle) and name.
 - Settings starts with a Feeds section whose row opens Manage feeds and folders.

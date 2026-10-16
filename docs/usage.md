@@ -65,6 +65,8 @@ after them. A feed added while a folder is open goes into that folder.
   between only unread articles and all articles (the chosen one is filled and has a check
   mark). Articles you open from the unread list stay in it until you switch feed, filter or
   refresh, so the list doesn't jump.
+- Scrolling down slides the title, the folder tabs and **Unread | All** out of the way, so you see
+  more articles; scroll up a little and they come straight back.
 - **Swipe** an article left or right past about a third of its width (you feel a short tick) to
   mark it as read, or as unread when it was read. The ☰ menu opens with the ☰ button only, so
   swiping never opens it by accident.
