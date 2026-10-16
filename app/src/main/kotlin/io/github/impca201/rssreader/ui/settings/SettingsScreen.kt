@@ -33,6 +33,7 @@ import io.github.impca201.rssreader.data.ReaderStyle
 import io.github.impca201.rssreader.data.ShareTarget
 import io.github.impca201.rssreader.data.Settings
 import io.github.impca201.rssreader.data.ThemeMode
+import io.github.impca201.rssreader.sync.SyncStatus
 import io.github.impca201.rssreader.ui.ExternalApps
 import io.github.impca201.rssreader.ui.reader.ReaderStyleControls
 import io.github.impca201.rssreader.ui.reader.labelRes
@@ -53,6 +54,7 @@ data class SettingsState(
     /** Feeds whose last download failed. */
     val problemCount: Int,
     val shareApps: List<ExternalApps.ShareApp>,
+    val syncStatus: SyncStatus = SyncStatus.Idle,
 )
 
 class SettingsActions(
@@ -67,6 +69,9 @@ class SettingsActions(
     val onShareTargetChange: (ShareTarget) -> Unit,
     val onThemeModeChange: (ThemeMode) -> Unit,
     val onDynamicColorChange: (Boolean) -> Unit,
+    val onConnectSync: () -> Unit,
+    val onSyncNow: () -> Unit,
+    val onDisconnectSync: () -> Unit,
 )
 
 /** Everything that can be set, as one list of sections in the order DESIGN.md gives. */
@@ -83,6 +88,16 @@ fun SettingsScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) {
         item(key = "feeds") { FeedsSection(state, actions.onOpenFeeds) }
+        item(key = "sync") {
+            SyncSection(
+                service = state.settings.syncService,
+                status = state.syncStatus,
+                lastSyncedAt = state.settings.lastSyncedAt,
+                onConnect = actions.onConnectSync,
+                onSyncNow = actions.onSyncNow,
+                onDisconnect = actions.onDisconnectSync,
+            )
+        }
         item(key = "list") { ListSection(state.settings, actions) }
         item(key = "reader") { ReaderSection(state.settings, actions) }
         item(key = "save") {

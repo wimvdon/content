@@ -161,7 +161,7 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   their feeds indented below (`surfaceContainer`), a pen button and a drag handle at the end of each row, an outlined note under
   "No folder" when it is empty, and the
   dragged row lifted with a shadow. Tapping a row opens its edit dialog; Remove sits in the
-  dialog, in the error colour. Settings sections: Feeds, Article list, Reader, Save and share (integration), Appearance, footer.
+  dialog, in the error colour. Settings sections: Feeds, Sync (Google Drive with Connect, or the last sync with Sync now and Disconnect), Article list, Reader, Save and share (integration), Appearance, footer.
 - Folder icons come from the whole Material Symbols set (outlined, rounded), picked with a search
   field and a grid in the folder dialog.
 - Folders: scrollable primary tabs under the top app bar (All with the feed symbol, then each

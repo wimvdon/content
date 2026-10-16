@@ -2,6 +2,20 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-16: Sync through the user's own Google Drive, three-way merge, no clocks
+
+Feeds, folders and read marks sync through one JSON file in Google Drive's hidden app folder
+(`drive.appdata`: the app sees only its own file, and Google requires no paid security audit for
+it). Sign-in uses Google's authorization API from `play-services-auth` (new dependency, approved
+by the owner); Drive is called over the existing OkHttp, and the JSON is read and written by a
+small plain-Kotlin reader so the logic stays unit-testable without a new library. Changes are
+found by comparing with the file as last synced (three-way merge), not by timestamps, so wrong
+clocks on a device can't lose changes. Article texts are not synced (each device downloads its
+feeds), which keeps the file small. Sync runs only while the app is open. Rejected: Firebase or
+our own server (an account and a server to run), kotlinx.serialization (a compiler plugin for one
+small file), timestamp "last writer wins" (device clocks differ), full Drive access (sees all
+files, needs an audit).
+
 ## 2026-10-16: Web app loads feeds through a small Cloudflare Worker; sync is pluggable
 
 Browsers block a web page from loading most feeds and article pages (CORS), so the planned web

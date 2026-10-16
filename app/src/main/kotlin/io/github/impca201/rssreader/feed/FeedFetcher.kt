@@ -9,7 +9,8 @@ import java.net.URI
 import java.net.URL
 
 /**
- * Downloads feeds and web pages over HTTPS. The only network code in the app: it fetches
+ * Downloads feeds and web pages over HTTPS. The app's only network code apart from pictures (Coil)
+ * and sync (sync/GoogleDrive.kt): it fetches
  * exactly the addresses the user subscribed to (or typed), sends no cookies or identifiers,
  * and follows at most [MAX_REDIRECTS] redirects.
  */

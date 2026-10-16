@@ -85,6 +85,25 @@ class LibraryRepository(
 
     private val refreshLock = Mutex()
 
+    /** Articles read on other devices (see sync/): when they arrive here, they arrive as read. */
+    @Volatile
+    var knownRead: Set<String> = emptySet()
+
+    /**
+     * Changes the stored library in one step and returns a value computed with it, for sync:
+     * nothing else can change the library in between.
+     */
+    suspend fun <T> update(change: (Library) -> Pair<Library, T>): T {
+        var result: T? = null
+        store.updateData { library ->
+            val (updated, value) = change(library)
+            result = value
+            updated
+        }
+        @Suppress("UNCHECKED_CAST")
+        return result as T
+    }
+
     /**
      * Downloads every feed (a few at a time) and then merges all results at once, so the list
      * changes in one step, in date order. Returns the number of feeds that failed. A refresh that
@@ -103,7 +122,7 @@ class LibraryRepository(
                         .awaitAll()
                 }
             val downloads = results.mapNotNull { (url, result) -> result.getOrNull()?.let { url to it } }.toMap()
-            if (downloads.isNotEmpty()) store.updateData { it.mergeAll(downloads, clock()) }
+            if (downloads.isNotEmpty()) store.updateData { it.mergeAll(downloads, clock(), knownRead) }
             findMissingIcons()
             val problems = results.mapNotNull { (url, result) -> result.exceptionOrNull()?.let { url to (it as ProblemException).problem } }.toMap()
             _problems.value = problems
@@ -179,7 +198,7 @@ class LibraryRepository(
                         library
                     } else {
                         added = true
-                        library.addFeed(feed.copy(folderId = folderId?.takeIf { library.folder(it) != null })).merge(feed.url, result.feed, clock())
+                        library.addFeed(feed.copy(folderId = folderId?.takeIf { library.folder(it) != null })).merge(feed.url, result.feed, clock(), knownRead)
                     }
                 }
                 // In the background: the dialog shouldn't wait for the website.

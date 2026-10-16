@@ -169,4 +169,18 @@
         <item quantity="many">%d artículos marcados como leídos</item>
         <item quantity="other">%d artículos marcados como leídos</item>
     </plurals>
+    <string name="section_sync">Sincronización</string>
+    <string name="sync_google_drive">Google Drive</string>
+    <string name="sync_off_summary">Mantén tus feeds, carpetas y artículos leídos iguales en todos tus dispositivos y en la app web. Se guardan en una carpeta oculta de tu propio Drive.</string>
+    <string name="sync_connect">Conectar</string>
+    <string name="sync_now">Sincronizar ahora</string>
+    <string name="sync_disconnect">Desconectar</string>
+    <string name="sync_syncing">Sincronizando…</string>
+    <string name="sync_last">Última sincronización %1$s</string>
+    <string name="sync_never">Aún sin sincronizar</string>
+    <string name="sync_failed_offline">No se pudo acceder a Google Drive. Revisa tu conexión.</string>
+    <string name="sync_failed_approval">Google Drive necesita tu permiso de nuevo. Toca Conectar.</string>
+    <string name="sync_failed_server">Google Drive tuvo un problema. Inténtalo más tarde.</string>
+    <string name="sync_failed_file">El archivo de sincronización es de una versión más reciente de RSS Reader. Actualiza la app.</string>
+    <string name="sync_connect_failed">No se pudo conectar con Google Drive</string>
 </resources>

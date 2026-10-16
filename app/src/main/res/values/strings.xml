@@ -162,4 +162,18 @@
         <item quantity="one">%d article marked as read</item>
         <item quantity="other">%d articles marked as read</item>
     </plurals>
+    <string name="section_sync">Sync</string>
+    <string name="sync_google_drive">Google Drive</string>
+    <string name="sync_off_summary">Keep your feeds, folders and read articles the same on all your devices and the web app. Stored in a hidden folder of your own Drive.</string>
+    <string name="sync_connect">Connect</string>
+    <string name="sync_now">Sync now</string>
+    <string name="sync_disconnect">Disconnect</string>
+    <string name="sync_syncing">Syncing…</string>
+    <string name="sync_last">Last synced %1$s</string>
+    <string name="sync_never">Not synced yet</string>
+    <string name="sync_failed_offline">Couldn’t reach Google Drive. Check your connection.</string>
+    <string name="sync_failed_approval">Google Drive needs your permission again. Tap Connect.</string>
+    <string name="sync_failed_server">Google Drive had a problem. Try again later.</string>
+    <string name="sync_failed_file">The sync file is from a newer version of RSS Reader. Update the app.</string>
+    <string name="sync_connect_failed">Couldn’t connect to Google Drive</string>
 </resources>

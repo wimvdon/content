@@ -173,12 +173,14 @@ data class Library(
     /**
      * Applies a freshly downloaded copy of a feed: new articles are added as unread, known ones
      * get the new title and text but keep their read state. Articles that left the feed are
-     * kept, up to [MAX_ARTICLES_PER_FEED] per feed (the newest ones).
+     * kept, up to [MAX_ARTICLES_PER_FEED] per feed (the newest ones). New articles whose key is in
+     * [knownRead] (read on another device, see sync/) arrive as read.
      */
     fun merge(
         feedUrl: String,
         parsed: ParsedFeed,
         now: Long,
+        knownRead: Set<String> = emptySet(),
     ): Library {
         val feed = feed(feedUrl) ?: return this
         val existing = articles.filter { it.feedUrl == feedUrl }.associateBy { it.id }
@@ -197,7 +199,7 @@ data class Library(
                     // A date in the future (a wrong clock or time zone) would stick to the top.
                     publishedAt = (item.publishedAt ?: old?.publishedAt)?.coerceAtMost(now),
                     fetchedAt = old?.fetchedAt ?: now,
-                    read = old?.read ?: false,
+                    read = old?.read ?: (Article.keyOf(feedUrl, item.id) in knownRead),
                     imageUrl = item.imageUrl ?: old?.imageUrl,
                 )
             }
@@ -224,7 +226,8 @@ data class Library(
     fun mergeAll(
         downloads: Map<String, ParsedFeed>,
         now: Long,
-    ): Library = downloads.entries.fold(this) { library, (url, parsed) -> library.merge(url, parsed, now) }
+        knownRead: Set<String> = emptySet(),
+    ): Library = downloads.entries.fold(this) { library, (url, parsed) -> library.merge(url, parsed, now, knownRead) }
 
     fun setRead(
         key: String,

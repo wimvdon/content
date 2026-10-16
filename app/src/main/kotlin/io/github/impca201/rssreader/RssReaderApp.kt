@@ -17,6 +17,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import io.github.impca201.rssreader.sync.GoogleAuth
+import io.github.impca201.rssreader.sync.GoogleDrive
+import io.github.impca201.rssreader.sync.SyncManager
+import io.github.impca201.rssreader.sync.SyncService
+import okhttp3.OkHttpClient
 import java.io.File
 
 class RssReaderApp :
@@ -43,6 +48,19 @@ class RssReaderApp :
     }
 
     val library: LibraryRepository by lazy { LibraryRepository(this, appScope, fetch = fetcher::fetch) }
+
+    val googleAuth: GoogleAuth by lazy { GoogleAuth(this) }
+
+    /** Sync with the user's own storage (Google Drive's hidden app folder). See sync/. */
+    val sync: SyncManager by lazy {
+        val http = OkHttpClient()
+        SyncManager(this, appScope, library, settings, provider = { service ->
+            when (service) {
+                SyncService.None -> null
+                SyncService.GoogleDrive -> GoogleDrive(http, token = googleAuth::token, onUnauthorized = googleAuth::forget)
+            }
+        })
+    }
 
     val fullArticles: FullArticles by lazy { FullArticles(File(cacheDir, "articles"), fetch = fetcher::fetch) }
 

@@ -246,4 +246,18 @@ class LibraryTest {
         val cleared = refreshed.renameFeed(a, " ").merge(a, parsed(item("9", 500)), now = 1_000)
         assertEquals("Feed", cleared.feed(a)!!.title)
     }
+
+    @Test
+    fun `new articles read on another device arrive as read`() {
+        val key = Article.keyOf(a, "2")
+        val library = Library().addFeed(Feed(a, "A")).merge(a, parsed(item("1", 100), item("2", 200)), now = 5, knownRead = setOf(key))
+        assertFalse(library.article(Article.keyOf(a, "1"))!!.read)
+        assertTrue(library.article(key)!!.read)
+    }
+
+    @Test
+    fun `known read leaves articles already here alone`() {
+        val library = twoFeeds.mergeAll(mapOf(a to parsed(item("1", 100))), now = 2_000, knownRead = setOf(Article.keyOf(a, "1")))
+        assertFalse(library.article(Article.keyOf(a, "1"))!!.read)
+    }
 }

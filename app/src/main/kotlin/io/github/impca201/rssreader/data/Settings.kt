@@ -1,5 +1,7 @@
 package io.github.impca201.rssreader.data
 
+import io.github.impca201.rssreader.sync.SyncService
+
 enum class ThemeMode { System, Light, Dark }
 
 data class Appearance(
@@ -127,4 +129,8 @@ data class Settings(
     /** Mark articles as read once they scroll off the top of the list. */
     val markReadOnScroll: Boolean = false,
     val listView: ListView = ListView.Medium,
+    /** Where feeds, folders and read articles are synced, if anywhere. */
+    val syncService: SyncService = SyncService.None,
+    /** When the last sync succeeded, or null. */
+    val lastSyncedAt: Long? = null,
 )
