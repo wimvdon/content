@@ -26,3 +26,4 @@ dist-ssr
 # Copied from app/src/main/assets when building.
 public/material_symbols.txt
 public/material_symbols_LICENSE.txt
+.wrangler/

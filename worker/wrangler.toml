@@ -1,5 +1,6 @@
 # Cloudflare Worker that loads feeds and article pages for the web app (see README.md).
-name = "rss-reader-feeds"
+# Must match the Worker's name in Cloudflare (Workers Builds refuses a different one).
+name = "rss-reader-worker"
 main = "src/index.ts"
 compatibility_date = "2026-10-01"
 workers_dev = true
@@ -10,8 +11,8 @@ send_metrics = false
 enabled = false
 
 [vars]
-# The web app's address(es); change to yours. Local development is allowed by default.
-ALLOWED_ORIGINS = "https://rss-reader-worker.wim-d57.workers.dev,http://localhost:5173"
+# The web app's address(es): only pages there may use this Worker. Local development too.
+ALLOWED_ORIGINS = "https://rss-reader-web.wim-d57.workers.dev,https://rss-reader-worker.wim-d57.workers.dev,http://localhost:5173"
 
 # 120 requests per minute per IP address (a full refresh of 100 feeds fits).
 [[ratelimits]]
