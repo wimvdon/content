@@ -11,7 +11,7 @@ enabled = false
 
 [vars]
 # The web app's address(es); change to yours. Local development is allowed by default.
-ALLOWED_ORIGINS = "rss-reader.wim-d57.workers.dev,http://localhost:5173"
+ALLOWED_ORIGINS = "https://rss-reader-worker.wim-d57.workers.dev,http://localhost:5173"
 
 # 120 requests per minute per IP address (a full refresh of 100 feeds fits).
 [[ratelimits]]
