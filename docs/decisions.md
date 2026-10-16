@@ -7,8 +7,9 @@ Newest first. Add an entry for every notable choice: what was decided, why, and 
 Browsers block a web page from loading most feeds and article pages (CORS), so the planned web
 app loads them through a small, stateless Cloudflare Worker: it only fetches the feed or page it
 is asked for and passes it back, keeps nothing, logs nothing, and refuses anything that isn't a
-GET for a feed, page or picture. It stays small enough for anyone to run their own copy. The
-Android app keeps loading feeds directly. Sync goes through one interface with Google Drive
+GET for a feed or page. Pictures load directly (browsers don't block those). It stays small
+enough for anyone to run their own copy, and the web app can be pointed at another copy. The
+Android app, including a Play Store release, keeps loading feeds directly and never uses it. Sync goes through one interface with Google Drive
 (the hidden app folder) as the first provider and room for others (for example Dropbox,
 OneDrive or WebDAV/Nextcloud) using the same file format. Rejected: a Google Apps Script proxy
 (ties feed loading to Google while sync should not depend on one provider), a browser extension
