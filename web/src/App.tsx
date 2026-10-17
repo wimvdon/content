@@ -164,14 +164,6 @@ export default function App() {
           ) : null}
         </div>
       ) : null}
-      {!settings.proxyUrl && state.loaded ? (
-        <div className="fixed right-4 bottom-4 z-40 max-w-xs rounded-xl border bg-card p-4 text-sm shadow-lg">
-          <p>{t("needsProxy")}</p>
-          <Button size="sm" className="mt-2" onClick={() => setDialog("settings")}>
-            {t("settings")}
-          </Button>
-        </div>
-      ) : null}
     </div>
   );
 }

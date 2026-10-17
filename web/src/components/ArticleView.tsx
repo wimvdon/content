@@ -23,7 +23,7 @@ export function ArticleView({ article, onBack, onMessage }: { article: Article; 
   const feed = library.feeds.find((f) => f.url === article.feedUrl);
   const current = library.articles.find((a) => articleKey(a) === articleKey(article)) ?? article;
   const link = article.link;
-  const canLoad = !!link && !!settings.proxyUrl;
+  const canLoad = !!link;
   const [useFull, setUseFull] = useState(() => settings.fullArticles && canLoad && needsFullText(article.html, link));
   const [full, setFull] = useState<Full | null>(() => {
     const known = link ? cachedNow(link) : null;
@@ -40,7 +40,7 @@ export function ArticleView({ article, onBack, onMessage }: { article: Article; 
     (async () => {
       let html = await cached(link);
       if (!html) {
-        const page = await fetchViaProxy(settings.proxyUrl, link);
+        const page = await fetchViaProxy(link);
         html = extractArticle(page.text, page.url);
         if (html) void keep(link, html);
       }
@@ -49,7 +49,7 @@ export function ArticleView({ article, onBack, onMessage }: { article: Article; 
     return () => {
       cancelled = true;
     };
-  }, [useFull, link, loaded, settings.proxyUrl]);
+  }, [useFull, link, loaded]);
   const fullHtml = useFull ? loaded?.html : undefined;
 
   const base = article.link ?? feed?.siteUrl ?? article.feedUrl;

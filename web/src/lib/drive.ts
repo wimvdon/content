@@ -8,7 +8,7 @@ export const SCOPE = "https://www.googleapis.com/auth/drive.appdata";
 export const FILE_NAME = "rss-reader-sync.json";
 const API = "https://www.googleapis.com";
 
-export type SyncProblem = "offline" | "needsApproval" | "server" | "unreadableFile" | "notConfigured";
+export type SyncProblem = "offline" | "needsApproval" | "server" | "unreadableFile";
 
 export class SyncError extends Error {
   readonly problem: SyncProblem;
@@ -113,7 +113,6 @@ export class GoogleAuth {
   }
 
   private async request(prompt: "" | "none"): Promise<string> {
-    if (!this.clientId) throw new SyncError("notConfigured");
     await loadScript();
     return new Promise<string>((resolve, reject) => {
       const client = window.google!.accounts.oauth2.initTokenClient({
