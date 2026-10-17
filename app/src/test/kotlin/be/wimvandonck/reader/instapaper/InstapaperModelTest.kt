@@ -318,6 +318,8 @@ class InstapaperModelTest {
         val folders = listOf(1L, 2L, 3L).map { InstapaperFolder(it, "F$it", it.toInt()) }
         assertEquals(listOf(2L to 1, 1L to 2, 3L to 3), reorderedPositions(folders, 1, -1))
         assertEquals(listOf(1L to 1, 3L to 2, 2L to 3), reorderedPositions(folders, 1, 1))
+        // A folder dragged two places at once.
+        assertEquals(listOf(2L to 1, 3L to 2, 1L to 3), reorderedPositions(folders, 0, 2))
         assertNull(reorderedPositions(folders, 0, -1))
         assertNull(reorderedPositions(folders, 2, 1))
         assertNull(reorderedPositions(folders, 5, 1))

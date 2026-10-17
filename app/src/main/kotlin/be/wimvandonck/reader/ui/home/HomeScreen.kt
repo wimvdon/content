@@ -111,6 +111,7 @@ import be.wimvandonck.reader.ui.theme.EmptyState
 import be.wimvandonck.reader.ui.theme.Motion
 import be.wimvandonck.reader.ui.theme.SkeletonLine
 import kotlinx.coroutines.launch
+import be.wimvandonck.reader.ui.theme.readableWidth
 
 /** What the article list shows. */
 data class HomeState(
@@ -373,7 +374,7 @@ private fun ArticleList(
     }
     LazyColumn(
         state = listState,
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().readableWidth(),
         // Room at the end for the floating action button.
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 88.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -521,7 +522,7 @@ private fun SavedList(
     val listState = rememberSaveable(home.view, saver = LazyListState.Saver) { LazyListState() }
     LazyColumn(
         state = listState,
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().readableWidth(),
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {

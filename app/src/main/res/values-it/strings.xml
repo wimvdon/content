@@ -124,6 +124,7 @@
     <string name="feed_name_hint">Lascia vuoto per usare il nome del feed</string>
     <string name="feed_folder">Cartella</string>
     <string name="feeds_drag_hint">Trascina un feed su una cartella per spostarlo lì.</string>
+    <string name="action_reorder">Riordina</string>
     <string name="action_move_up">Sposta su</string>
     <string name="action_move_down">Sposta giù</string>
     <plurals name="feeds_count">

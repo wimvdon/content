@@ -71,8 +71,10 @@ import be.wimvandonck.reader.ui.home.FeedIcon
 import be.wimvandonck.reader.ui.home.FeedIconSize
 import be.wimvandonck.reader.ui.home.problemText
 import be.wimvandonck.reader.ui.home.rememberFolderIconPainter
+import be.wimvandonck.reader.ui.theme.DragHandle
 import be.wimvandonck.reader.ui.theme.AppShapes
 import kotlinx.coroutines.launch
+import be.wimvandonck.reader.ui.theme.readableWidth
 
 data class FeedsState(
     val feeds: List<Feed>,
@@ -224,7 +226,8 @@ fun FeedsScreen(
             modifier =
                 Modifier
                     .fillMaxSize()
-                    .padding(innerPadding),
+                    .padding(innerPadding)
+                    .readableWidth(),
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
@@ -488,17 +491,6 @@ private fun FeedLine(
             }
             DragHandle(handleModifier)
         }
-    }
-}
-
-/** The grip to drag a row by; screen readers use the row's Move up / Move down actions instead. */
-@Composable
-private fun DragHandle(modifier: Modifier) {
-    Box(
-        modifier.size(48.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(painterResource(R.drawable.ic_drag_handle), contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 

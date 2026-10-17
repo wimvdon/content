@@ -148,7 +148,7 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
       in All articles). Tapping one opens it in the reader, with the full article from its website.
 - [ ] In the reader: like, archive (the article leaves Unread but stays open), move back to Unread,
       move to a folder, add and remove a tag, and delete (asks first) each change it in Instapaper.
-- [ ] **Manage feeds and folders** › Instapaper: create, move up and down, and delete folders;
+- [ ] **Manage feeds and folders** › Instapaper: create, drag by the handle to reorder, and delete folders;
       rename tags.
 - [ ] **Sign out** returns Settings to "Sign in", and Save goes back to the chosen app.
 - [ ] `https://rss-reader-web.wim-d57.workers.dev/.well-known/assetlinks.json` shows the JSON file.

@@ -125,6 +125,7 @@
     <string name="feed_name_hint">Leave empty to use the feed\'s own name</string>
     <string name="feed_folder">Folder</string>
     <string name="feeds_drag_hint">Drag a feed onto a folder to move it there.</string>
+    <string name="action_reorder">Reorder</string>
     <string name="action_move_up">Move up</string>
     <string name="action_move_down">Move down</string>
     <plurals name="feeds_count">
