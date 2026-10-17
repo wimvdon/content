@@ -2,6 +2,10 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-17: Feeds and Instapaper as two destinations
+
+Instapaper sat in the ☰ drawer under the feeds, with its own title but no tabs, so the two felt neither clearly apart nor alike. The owner asked for better separation and cohesion, Instapaper's lists treated like feed folders, and whether a navigation bar was needed. Material 3 puts two to five top-level destinations in a navigation bar and peer views of one destination in tabs, so: signed in to Instapaper, a navigation bar has Feeds and Instapaper (a navigation rail on windows 600dp and wider); each has tabs for its peer views (Feeds: All and the folders; Instapaper: Unread, Liked, Archive, its folders and Tags, with chips for the tag); and the ☰ drawer lists only the shown destination's places, as Gmail keeps its labels in the drawer next to its bottom bar. The web app's sidebar gets a Feeds | Instapaper switch and shows one destination's places at a time. Rejected: a tab per tag (tags come and go, and a long row of tags hides the folders), dropping the drawer (single feeds and Manage need a place), and a bar without Instapaper (one destination needs no bar).
+
 ## 2026-10-17: File an article in Instapaper right after saving it
 
 The owner wanted to tag a feed article or put it in a folder as soon as it is saved, instead of finding it again under Instapaper. Save now opens a sheet (Android) or dialog (web) titled "Saved to Instapaper" with the folders as chips (Unread selected) and the same tag editor as a saved article's Tags. Every tap applies at once, like the reader's own Move and Tags; Done or closing leaves the rest as it is. Rejected: a snackbar with an action (it disappears before you decide) and asking before saving (saving should stay one tap).
