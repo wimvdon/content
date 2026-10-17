@@ -73,7 +73,11 @@ function loadScript(): Promise<void> {
 
 const TOKEN_KEY = "rss-reader-drive-token";
 
-/** Google sign-in for Drive. Tokens last about an hour and are kept for this browser tab only. */
+/**
+ * Google sign-in for Drive. Google's tokens last about an hour; the token is kept in this browser
+ * (localStorage), so reopening the page within that hour syncs straight away. Google can only give
+ * a new token through its popup, so that only happens on a click (Connect), never by itself.
+ */
 export class GoogleAuth {
   private readonly clientId: string;
 
@@ -83,7 +87,7 @@ export class GoogleAuth {
 
   private cached(): string | null {
     try {
-      const raw = sessionStorage.getItem(TOKEN_KEY);
+      const raw = localStorage.getItem(TOKEN_KEY);
       if (!raw) return null;
       const { token, expires } = JSON.parse(raw) as { token: string; expires: number };
       return Date.now() < expires - 60_000 ? token : null;
@@ -94,25 +98,25 @@ export class GoogleAuth {
 
   forget(): void {
     try {
-      sessionStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(TOKEN_KEY);
     } catch {
       // Storage blocked; nothing to forget.
     }
   }
 
-  /** A token without showing anything; throws needsApproval when the user must click Connect. */
+  /** The kept token, without showing anything; throws needsApproval when the user must click Connect. */
   async token(): Promise<string> {
     const cached = this.cached();
     if (cached) return cached;
-    return this.request("none");
+    throw new SyncError("needsApproval");
   }
 
   /** Shows Google's screen (call from a click). */
   async connect(): Promise<string> {
-    return this.request("");
+    return this.request();
   }
 
-  private async request(prompt: "" | "none"): Promise<string> {
+  private async request(): Promise<string> {
     await loadScript();
     return new Promise<string>((resolve, reject) => {
       const client = window.google!.accounts.oauth2.initTokenClient({
@@ -124,7 +128,7 @@ export class GoogleAuth {
             return;
           }
           try {
-            sessionStorage.setItem(TOKEN_KEY, JSON.stringify({ token: r.access_token, expires: Date.now() + (r.expires_in ?? 3600) * 1000 }));
+            localStorage.setItem(TOKEN_KEY, JSON.stringify({ token: r.access_token, expires: Date.now() + (r.expires_in ?? 3600) * 1000 }));
           } catch {
             // Keep it in memory only.
           }
@@ -132,7 +136,7 @@ export class GoogleAuth {
         },
         error_callback: () => reject(new SyncError("needsApproval")),
       });
-      client.requestAccessToken({ prompt });
+      client.requestAccessToken({ prompt: "" });
     });
   }
 }

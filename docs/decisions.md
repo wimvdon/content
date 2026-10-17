@@ -2,6 +2,16 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-17: Web: Google's popup only on a click
+
+The web app showed Google's sign-in popup every time it was opened. Its Drive sign-in was kept only
+for the open tab, and every sync without one asked Google for a new one; in a browser Google can
+only hand one out through its popup, even when nothing has to be approved. The sign-in (about an
+hour) is now kept in the browser's local storage, and only a click on Connect asks Google; a sync
+without a valid sign-in stops with "needs your permission again". Rejected: a long-lived sign-in
+kept by the feed loader Worker (no popup at all, but our server would hold a key to the user's
+Drive app folder and need a client secret).
+
 ## 2026-10-17: Sign in with Instapaper (OAuth 2), through the feed loader Worker
 
 Reader can now sign in to the user's Instapaper account (API v2): Save goes straight to the account, and a screen manages Unread, Archive, Liked, folders and tags. Details: `docs/instapaper.md`. Choices:

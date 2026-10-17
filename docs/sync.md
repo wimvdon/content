@@ -27,6 +27,11 @@ Coming back and the minute skip a sync when the last one was less than ten secon
 always syncs first, so a read mark made a few seconds ago on another device is there when you pull
 down. One sync is two or three requests to Drive, far below Google's limits.
 
+In the web app, Google's sign-in lasts about an hour and is kept in the browser, so reopening the
+page within that hour syncs straight away. A browser can only get a new sign-in through Google's
+popup, so the web app never asks for one by itself: when it has expired, sync waits and Settings ›
+Sync says to click **Connect**.
+
 ## The sync file
 
 `rss-reader-sync.json`, UTF-8 JSON:

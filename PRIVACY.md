@@ -97,8 +97,9 @@ browser's storage on that device (IndexedDB). There is no account and no analyti
   a card opens the video or post on its own website in a new tab.
 - **Sync** works as described above: the web app reads and writes the same
   `rss-reader-sync.json` in your Google Drive's hidden app folder, after you click Connect
-  (Google's sign-in script comes from accounts.google.com). The sign-in lasts about an hour per
-  browser tab.
+  (Google's sign-in script comes from accounts.google.com). The sign-in lasts about an hour and is
+  kept in this browser (its local storage), so reopening the page within that hour syncs without
+  asking; after that, sync waits until you click Connect again. Disconnect deletes it.
 - **Instapaper** (off unless you sign in, in Settings › Instapaper): the page's sign-in leaves for
   Instapaper's own website and returns to the web app, which swaps the one-time code for an access
   token through the feed loader. The token is kept in the browser's storage (IndexedDB), never in the
