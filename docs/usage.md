@@ -170,10 +170,14 @@ there and you come back to the app (or the web page) signed in; Reader never see
 Signed in:
 
 - **Save** (the bookmark button in the reader) saves the article to your Instapaper account.
-- Settings › Instapaper › **Saved articles** (the web app: **Instapaper** in the sidebar) shows
-  Unread, Archive, Liked, your folders and your tags. On each article: like, archive (or move back
-  to Unread), move to a folder, add or remove tags, delete for good (asks first), or open it on its
-  website. **Manage folders** creates, reorders and deletes folders; **Manage tags** renames tags.
+- The ☰ menu (the web app: the sidebar) gets an **Instapaper** section under your feeds: Unread,
+  Liked, Archive, your Instapaper folders and your tags. Each shows its saved articles in the same
+  list as feed articles, and they open in the same reader (the whole article loads from its
+  website, like a feed's). Saved articles have no read state and are not in All articles: you
+  archive them yourself. In the reader: like (♥), archive (or move back to Unread), and in ⋮ move
+  to a folder, tags (add or remove) and delete for good (asks first).
+- **Manage feeds and folders** has an Instapaper part: create, reorder and delete Instapaper folders
+  (a deleted folder's articles go back to Unread) and rename tags.
 - **Sign out** removes the sign-in from this device.
 
 Until Instapaper has approved Reader, only the owner's own account works; other accounts see

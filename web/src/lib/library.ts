@@ -1,4 +1,5 @@
 import type { ParsedFeed } from "./feedParser";
+import type { View as InstapaperView } from "./instapaper";
 
 /** The user's feeds, folders and articles, like the Android app's data/Library.kt. Immutable. */
 
@@ -37,7 +38,12 @@ export interface Library {
   articles: Article[];
 }
 
-export type Selection = { kind: "all" } | { kind: "folder"; folderId: string } | { kind: "feed"; feedUrl: string };
+/** What the list shows: feed articles, or one of the user's Instapaper lists (instapaperLibrary.ts). */
+export type Selection =
+  | { kind: "all" }
+  | { kind: "folder"; folderId: string }
+  | { kind: "feed"; feedUrl: string }
+  | { kind: "instapaper"; view: InstapaperView };
 
 export const MAX_ARTICLES_PER_FEED = 200;
 export const MAX_HTML_LENGTH = 200_000;
@@ -161,6 +167,8 @@ export function includes(lib: Library, selection: Selection, a: Article): boolea
       return lib.feeds.find((f) => f.url === a.feedUrl)?.folderId === selection.folderId;
     case "feed":
       return a.feedUrl === selection.feedUrl;
+    case "instapaper":
+      return false;
   }
 }
 

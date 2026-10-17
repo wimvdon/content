@@ -11,8 +11,15 @@ import {
   InstapaperError,
   newState,
   parseCallback,
+  reorderedPositions,
+  type Bookmark,
+  type Folder as InstapaperFolder,
   type Session as InstapaperSession,
+  type Tag as InstapaperTag,
+  type View as InstapaperView,
 } from "./instapaper";
+import { applyChange, patchBookmark, sameView, type Change } from "./instapaperLibrary";
+import { problemText } from "./instapaperText";
 import * as L from "./library";
 import { importOpml, parseOpml, writeOpml } from "./opml";
 import { fetchViaProxy, FetchError } from "./proxy";
@@ -52,7 +59,25 @@ export interface State {
   instapaper: InstapaperSession | null;
   /** The result of coming back from Instapaper's sign-in page, shown once. */
   instapaperNotice: "signedIn" | "failed" | null;
+  /** Instapaper's folders and tags, for the sidebar and Manage; read again after every change. */
+  instapaperFolders: InstapaperFolder[];
+  instapaperTags: InstapaperTag[];
+  /** The Instapaper list shown when an Instapaper section is selected. */
+  instapaperList: InstapaperList;
+  /** The saved article open in the reader; it stays there when a change takes it out of the list. */
+  instapaperOpen: Bookmark | null;
 }
+
+export interface InstapaperList {
+  view: InstapaperView | null;
+  items: Bookmark[];
+  total: number;
+  loading: boolean;
+  problem: string | null;
+}
+
+const emptyInstapaperList: InstapaperList = { view: null, items: [], total: 0, loading: false, problem: null };
+const INSTAPAPER_PAGE = 25;
 
 const INSTAPAPER_STATE_KEY = "instapaper-sign-in-state";
 
@@ -80,6 +105,10 @@ class AppStore {
     syncStatus: { kind: "idle" },
     instapaper: null,
     instapaperNotice: null,
+    instapaperFolders: [],
+    instapaperTags: [],
+    instapaperList: emptyInstapaperList,
+    instapaperOpen: null,
   };
   private listeners = new Set<() => void>();
   private knownRead = new Set<string>();
@@ -113,6 +142,7 @@ class AppStore {
     const merged = { ...defaultSettings, ...settings, readerStyle: readerStyleOf(settings?.readerStyle) };
     this.knownRead = new Set(Object.keys((base && S.decode(base)?.read) || {}));
     this.set({ loaded: true, library: library ?? L.emptyLibrary(), settings: merged, instapaper: instapaper?.token ? instapaper : null });
+    void this.loadInstapaperSides();
     if (location.pathname === CALLBACK_PATH) await this.finishInstapaperSignIn(location.search);
     this.syncWhileVisible();
     if (merged.syncService !== "none") await this.sync();
@@ -162,6 +192,7 @@ class AppStore {
 
   select(selection: L.Selection) {
     this.set({ selection, readThisVisit: new Set() });
+    if (selection.kind === "instapaper") void this.loadInstapaperList(selection.view);
   }
 
   setUnreadOnly(unreadOnly: boolean) {
@@ -172,6 +203,11 @@ class AppStore {
   private fetch = (url: string) => fetchViaProxy(url);
 
   async refresh() {
+    const selection = this.state.selection;
+    if (selection.kind === "instapaper") {
+      void this.loadInstapaperSides();
+      void this.loadInstapaperList(selection.view);
+    }
     if (this.state.refreshing) return;
     this.set({ refreshing: true, readThisVisit: new Set() });
     // Read marks and feeds from other devices first, so they apply to the new articles.
@@ -261,6 +297,11 @@ class AppStore {
 
   /** Opening an article marks it read; it stays in the Unread list until the list changes. */
   open(article: L.Article) {
+    if (article.feedUrl === "instapaper") {
+      // Saved articles have no read state; the reader keeps this one even if it leaves the list.
+      this.set({ instapaperOpen: this.state.instapaperList.items.find((b) => String(b.id) === article.id) ?? null });
+      return;
+    }
     const key = L.articleKey(article);
     this.set({ readThisVisit: new Set([...this.state.readThisVisit, key]) });
     if (!article.read) this.setRead(new Set([key]), true);
@@ -316,6 +357,7 @@ class AppStore {
       const session = await exchangeCode(answer.code);
       await save("instapaper", session);
       this.set({ instapaper: session, instapaperNotice: "signedIn" });
+      void this.loadInstapaperSides();
       this.syncSoon();
     } catch {
       this.set({ instapaperNotice: "failed" });
@@ -335,8 +377,132 @@ class AppStore {
   private async setInstapaper(session: InstapaperSession | null) {
     if (session) await save("instapaper", session).catch(() => undefined);
     else await remove("instapaper").catch(() => undefined);
-    this.set({ instapaper: session });
+    if (session) {
+      this.set({ instapaper: session });
+      void this.loadInstapaperSides();
+      return;
+    }
+    this.set({ instapaper: null, instapaperFolders: [], instapaperTags: [], instapaperList: emptyInstapaperList, instapaperOpen: null });
+    if (this.state.selection.kind === "instapaper") this.select({ kind: "all" });
   }
+
+  // Instapaper's lists, folders and tags, shown like the feeds (instapaperLibrary.ts).
+
+  /** Reads the folders and tags again (their counts change with every move). */
+  async loadInstapaperSides() {
+    if (!this.state.instapaper) return;
+    try {
+      const [folders, tags] = await this.withInstapaper(async (api) => [await api.folders(), await api.tags()] as const);
+      this.set({ instapaperFolders: folders, instapaperTags: tags });
+    } catch {
+      // The list shows Instapaper's problems; the sidebar keeps what it had.
+    }
+  }
+
+  /** Loads a list from the start, or the next page of the list already shown. */
+  async loadInstapaperList(view: InstapaperView, more = false) {
+    const current = this.state.instapaperList;
+    const offset = more && current.view && sameView(current.view, view) ? current.items.length : 0;
+    this.set({ instapaperList: { ...(offset ? current : emptyInstapaperList), view, loading: true, problem: null } });
+    const showing = () => {
+      const s = this.state.selection;
+      return s.kind === "instapaper" && sameView(s.view, view);
+    };
+    try {
+      const page = await this.withInstapaper((api) => api.list(view, offset, INSTAPAPER_PAGE));
+      if (!showing()) return;
+      const before = this.state.instapaperList.items;
+      const items = offset ? [...before, ...page.bookmarks.filter((b) => !before.some((c) => c.id === b.id))] : page.bookmarks;
+      this.set({ instapaperList: { view, items, total: page.total, loading: false, problem: null } });
+    } catch (e) {
+      if (showing()) this.set({ instapaperList: { ...this.state.instapaperList, loading: false, problem: problemText(e) } });
+    }
+  }
+
+  /** Runs one change to a saved article and updates the list, the open article and the sidebar's counts. */
+  private async changeBookmark(id: number, run: (api: InstapaperApi) => Promise<Change>): Promise<boolean> {
+    try {
+      const change = await this.withInstapaper(run);
+      const list = this.state.instapaperList;
+      const items = list.view ? applyChange(list.view, list.items, id, change) : list.items;
+      const open = this.state.instapaperOpen;
+      this.set({
+        instapaperList: { ...list, items, total: Math.max(0, list.total - (list.items.length - items.length)), problem: null },
+        instapaperOpen: open && open.id === id ? patchBookmark(open, change) : open,
+      });
+      void this.loadInstapaperSides();
+      return true;
+    } catch (e) {
+      this.set({ instapaperList: { ...this.state.instapaperList, problem: problemText(e) } });
+      return false;
+    }
+  }
+
+  archiveBookmark = (b: Bookmark, archived: boolean) =>
+    this.changeBookmark(b.id, async (api) => {
+      await api.move(b.id, archived ? "archive" : "home");
+      return { kind: "archived", archived };
+    });
+
+  likeBookmark = (b: Bookmark, liked: boolean) =>
+    this.changeBookmark(b.id, async (api) => ({ kind: "liked", liked: (await api.like(b.id, liked)).liked }));
+
+  /** Into a folder, or back to Unread (null). */
+  moveBookmark = (b: Bookmark, folderId: number | null) =>
+    this.changeBookmark(b.id, async (api) => {
+      await api.move(b.id, folderId ?? "home");
+      return { kind: "moved", folderId };
+    });
+
+  tagBookmark = (b: Bookmark, add: string[], removeIds: number[]) =>
+    this.changeBookmark(b.id, async (api) => ({ kind: "tags", tags: await api.setTags(b.id, add, removeIds) }));
+
+  deleteBookmark = (b: Bookmark) =>
+    this.changeBookmark(b.id, async (api) => {
+      await api.remove(b.id);
+      return { kind: "deleted" };
+    });
+
+  /** Folder and tag management (Manage feeds and folders). Each returns what went wrong, or null. */
+  private async manageInstapaper(run: (api: InstapaperApi) => Promise<void>): Promise<string | null> {
+    try {
+      await this.withInstapaper(run);
+      return null;
+    } catch (e) {
+      return problemText(e);
+    } finally {
+      void this.loadInstapaperSides();
+    }
+  }
+
+  createInstapaperFolder = (title: string) =>
+    this.manageInstapaper(async (api) => {
+      const created = await api.createFolder(title);
+      this.set({ instapaperFolders: [...this.state.instapaperFolders, created].sort((a, b) => a.position - b.position) });
+    });
+
+  /** Its articles go back to Unread at Instapaper. */
+  deleteInstapaperFolder = (id: number) =>
+    this.manageInstapaper(async (api) => {
+      await api.deleteFolder(id);
+      this.set({ instapaperFolders: this.state.instapaperFolders.filter((f) => f.id !== id) });
+      const s = this.state.selection;
+      if (s.kind === "instapaper" && s.view.kind === "folder" && s.view.id === id) this.select({ kind: "instapaper", view: { kind: "home" } });
+    });
+
+  moveInstapaperFolder = (index: number, delta: number) =>
+    this.manageInstapaper(async (api) => {
+      const order = reorderedPositions(this.state.instapaperFolders, index, delta);
+      if (order) this.set({ instapaperFolders: await api.reorderFolders(order) });
+    });
+
+  renameInstapaperTag = (tag: InstapaperTag, name: string) =>
+    this.manageInstapaper(async (api) => {
+      const renamed = await api.renameTag(tag.id, name);
+      this.set({ instapaperTags: this.state.instapaperTags.map((x) => (x.id === tag.id ? renamed : x)) });
+      const s = this.state.selection;
+      if (s.kind === "instapaper" && s.view.kind === "tag" && s.view.name === tag.name) this.select({ kind: "instapaper", view: { kind: "tag", name: renamed.name } });
+    });
 
   /** Runs one Instapaper call. A token Instapaper no longer accepts signs the user out, so they can sign in again. */
   async withInstapaper<T>(run: (api: InstapaperApi) => Promise<T>): Promise<T> {

@@ -31,10 +31,12 @@ import be.wimvandonck.reader.R
 import be.wimvandonck.reader.data.Feed
 import be.wimvandonck.reader.data.FeedSelection
 import be.wimvandonck.reader.data.Folder
+import be.wimvandonck.reader.instapaper.InstapaperView
 
 /**
  * All articles, then each folder with its feeds, then the feeds outside folders (each with its
- * unread count), then Manage feeds and folders and Settings.
+ * unread count), then Instapaper when signed in (Unread, Liked, Archive, its folders and tags),
+ * then Manage feeds and folders and Settings.
  */
 @Composable
 fun FeedDrawer(
@@ -45,7 +47,12 @@ fun FeedDrawer(
     onSelect: (FeedSelection) -> Unit,
     onOpenSettings: () -> Unit,
     onOpenFeeds: () -> Unit,
+    instapaper: InstapaperHome? = null,
+    onSelectInstapaper: (InstapaperView) -> Unit = {},
 ) {
+    // While an Instapaper list is shown, no feed section is selected.
+    @Suppress("NAME_SHADOWING")
+    val selection: FeedSelection? = selection.takeIf { instapaper?.view == null }
     ModalDrawerSheet {
         Column(
             Modifier
@@ -111,6 +118,7 @@ fun FeedDrawer(
             for (feed in loose) {
                 FeedItem(feed, selection, unreadCounts, onSelect)
             }
+            if (instapaper != null) InstapaperSection(instapaper, onSelectInstapaper)
             HorizontalDivider(Modifier.padding(vertical = 12.dp, horizontal = 16.dp))
             NavigationDrawerItem(
                 label = { Text(stringResource(R.string.feeds_page_title)) },
@@ -130,9 +138,49 @@ fun FeedDrawer(
 }
 
 @Composable
+private fun InstapaperSection(
+    instapaper: InstapaperHome,
+    onSelect: (InstapaperView) -> Unit,
+) {
+    @Composable
+    fun item(
+        view: InstapaperView,
+        label: String,
+        icon: Int,
+    ) = NavigationDrawerItem(
+        label = { Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+        icon = { Icon(painterResource(icon), contentDescription = null) },
+        selected = instapaper.view == view,
+        onClick = { onSelect(view) },
+    )
+    SectionHeading(stringResource(R.string.section_instapaper))
+    item(InstapaperView.Home, stringResource(R.string.filter_unread), R.drawable.ic_article)
+    item(InstapaperView.Liked, stringResource(R.string.instapaper_liked), R.drawable.ic_favorite)
+    item(InstapaperView.Archive, stringResource(R.string.instapaper_archive_list), R.drawable.ic_archive)
+    for (folder in instapaper.folders) item(InstapaperView.InFolder(folder.id), folder.title, R.drawable.ic_folder)
+    if (instapaper.tags.isNotEmpty()) {
+        SectionHeading(stringResource(R.string.instapaper_tags))
+        for (tag in instapaper.tags) item(InstapaperView.WithTag(tag.name), tag.name, R.drawable.ic_label)
+    }
+}
+
+@Composable
+private fun SectionHeading(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier =
+            Modifier
+                .padding(start = 16.dp, top = 16.dp, bottom = 8.dp)
+                .semantics { heading() },
+    )
+}
+
+@Composable
 private fun FeedItem(
     feed: Feed,
-    selection: FeedSelection,
+    selection: FeedSelection?,
     unreadCounts: Map<FeedSelection, Int>,
     onSelect: (FeedSelection) -> Unit,
     modifier: Modifier = Modifier,

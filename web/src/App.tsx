@@ -3,23 +3,23 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArticleList } from "./components/ArticleList";
 import { ArticleView } from "./components/ArticleView";
 import { AddFeedDialog, ManageDialog, SettingsDialog } from "./components/Dialogs";
-import { InstapaperDialog } from "./components/InstapaperDialog";
 import { Sidebar } from "./components/Sidebar";
 import { Button } from "./components/ui/button";
 import { app, useApp } from "./lib/app";
 import { plural, t } from "./lib/i18n";
+import { bookmarkArticle } from "./lib/instapaperLibrary";
 import { articleKey, articlesFor, type Article } from "./lib/library";
 
 /** Three panes on wide screens (feeds, list, article); one at a time on phones. */
 export default function App() {
   const state = useApp();
-  const { settings, library, selection, readThisVisit, instapaperNotice } = state;
+  const { settings, library, selection, readThisVisit, instapaperNotice, instapaperList } = state;
   // The open article belongs to the section it was opened in: another section closes it.
   const [opened, setOpened] = useState<{ article: Article; selection: typeof selection } | null>(null);
   const openArticle = opened?.selection === selection ? opened.article : null;
   const setOpenArticle = useCallback((article: Article | null) => setOpened(article ? { article, selection } : null), [selection]);
   const [drawer, setDrawer] = useState(false);
-  const [dialog, setDialog] = useState<"add" | "manage" | "settings" | "instapaper" | null>(null);
+  const [dialog, setDialog] = useState<"add" | "manage" | "settings" | null>(null);
   const [message, setMessage] = useState<{ text: string; undo?: () => void } | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -56,7 +56,10 @@ export default function App() {
     setOpenArticle(a);
   }, [setOpenArticle]);
 
-  const visible = useMemo(() => articlesFor(library, selection, settings.unreadOnly, readThisVisit), [library, selection, settings.unreadOnly, readThisVisit]);
+  const visible = useMemo(
+    () => (selection.kind === "instapaper" ? instapaperList.items.map(bookmarkArticle) : articlesFor(library, selection, settings.unreadOnly, readThisVisit)),
+    [library, selection, settings.unreadOnly, readThisVisit, instapaperList.items],
+  );
 
   // Keyboard: j/k next and previous, m read/unread, o open on the website, r refresh.
   useEffect(() => {
@@ -104,10 +107,6 @@ export default function App() {
         setDrawer(false);
         setDialog("settings");
       }}
-      onInstapaper={() => {
-        setDrawer(false);
-        setDialog("instapaper");
-      }}
     />
   );
 
@@ -149,7 +148,6 @@ export default function App() {
         onImport={() => fileInput.current?.click()}
       />
       <SettingsDialog open={dialog === "settings"} onOpenChange={(o) => setDialog(o ? "settings" : null)} />
-      <InstapaperDialog open={dialog === "instapaper"} onOpenChange={(o) => setDialog(o ? "instapaper" : null)} />
       <input
         ref={fileInput}
         type="file"

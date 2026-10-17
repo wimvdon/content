@@ -90,6 +90,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import be.wimvandonck.reader.R
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.CircularProgressIndicator
+import be.wimvandonck.reader.ui.instapaper.messageRes
+import be.wimvandonck.reader.instapaper.InstapaperView
+import be.wimvandonck.reader.instapaper.InstapaperUiState
+import be.wimvandonck.reader.instapaper.InstapaperTag
+import be.wimvandonck.reader.instapaper.InstapaperLists
+import be.wimvandonck.reader.instapaper.InstapaperFolder
+import be.wimvandonck.reader.instapaper.InstapaperBookmark
 import be.wimvandonck.reader.data.Article
 import be.wimvandonck.reader.data.Feed
 import be.wimvandonck.reader.data.Folder
@@ -120,6 +129,17 @@ data class HomeState(
     val folders: List<Folder> = emptyList(),
     val markReadOnScroll: Boolean = false,
     val listView: ListView = ListView.Medium,
+    /** Instapaper in the drawer and, when one of its lists is chosen, in the list. Null when signed out. */
+    val instapaper: InstapaperHome? = null,
+)
+
+/** The signed-in Instapaper account as the home screen shows it. */
+data class InstapaperHome(
+    val folders: List<InstapaperFolder>,
+    val tags: List<InstapaperTag>,
+    /** The chosen Instapaper list, or null while a feed section is shown. */
+    val view: InstapaperView?,
+    val list: InstapaperUiState,
 )
 
 class HomeActions(
@@ -136,6 +156,9 @@ class HomeActions(
     val onImportOpml: () -> Unit,
     val onOpenSettings: () -> Unit,
     val onOpenFeeds: () -> Unit,
+    val onSelectInstapaper: (InstapaperView) -> Unit = {},
+    val onOpenSaved: (InstapaperBookmark) -> Unit = {},
+    val onLoadMoreSaved: () -> Unit = {},
 )
 
 /** The article list, with the feeds in a navigation drawer. */
@@ -150,7 +173,15 @@ fun HomeScreen(
     val scope = rememberCoroutineScope()
     val selectedFeed = (state.selection as? FeedSelection.Single)?.let { s -> state.feeds.firstOrNull { it.url == s.feedUrl } }
     val selectedFolder = (state.selection as? FeedSelection.InFolder)?.let { s -> state.folders.firstOrNull { it.id == s.folderId } }
-    val title = selectedFeed?.title ?: selectedFolder?.title ?: stringResource(R.string.feeds_all)
+    // An Instapaper list replaces the feed sections: its own title, no folder tabs, filter or Mark all read.
+    val saved = state.instapaper?.takeIf { it.view != null }
+    val savedView = saved?.view
+    val title =
+        if (saved != null && savedView != null) {
+            instapaperViewTitle(savedView, saved.folders)
+        } else {
+            selectedFeed?.title ?: selectedFolder?.title ?: stringResource(R.string.feeds_all)
+        }
     // The selected folder tab: the folder being viewed, or the folder of the feed being viewed.
     val sectionFolderId = selectedFolder?.id ?: selectedFeed?.folderId
     val showFolderTabs = state.folders.isNotEmpty() && state.feeds.isNotEmpty()
@@ -178,14 +209,19 @@ fun HomeScreen(
                     scope.launch { drawerState.close() }
                     actions.onOpenFeeds()
                 },
+                instapaper = state.instapaper,
+                onSelectInstapaper = {
+                    actions.onSelectInstapaper(it)
+                    scope.launch { drawerState.close() }
+                },
             )
         },
     ) {
-        val hasArticles = state.articles.isNotEmpty()
+        val hasArticles = saved?.list?.items?.isNotEmpty() ?: state.articles.isNotEmpty()
         // The whole header slides away while scrolling down and returns when scrolling up.
         val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(canScroll = { hasArticles })
         // Another section, or a list with nothing left to scroll, shows the header again.
-        LaunchedEffect(state.selection, hasArticles) { scrollBehavior.state.heightOffset = 0f }
+        LaunchedEffect(state.selection, savedView, hasArticles) { scrollBehavior.state.heightOffset = 0f }
         Scaffold(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -195,7 +231,14 @@ fun HomeScreen(
                         title = {
                             Column {
                                 Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                if (state.feeds.isNotEmpty()) {
+                                if (savedView != null) {
+                                    Text(
+                                        stringResource(R.string.section_instapaper),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1,
+                                    )
+                                } else if (state.feeds.isNotEmpty()) {
                                     Text(
                                         if (state.unreadOnly) {
                                             pluralStringResource(R.plurals.home_subtitle_unread, unreadHere, unreadHere)
@@ -217,7 +260,7 @@ fun HomeScreen(
                         windowInsets = WindowInsets(0),
                         colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent, scrolledContainerColor = Color.Transparent),
                     )
-                    if (showFolderTabs) {
+                    if (showFolderTabs && savedView == null) {
                         FolderTabs(
                             folders = state.folders,
                             selectedFolderId = sectionFolderId,
@@ -225,7 +268,7 @@ fun HomeScreen(
                             onSelectFolder = { actions.onSelect(FeedSelection.InFolder(it.id)) },
                         )
                     }
-                    if (state.feeds.isNotEmpty()) {
+                    if (state.feeds.isNotEmpty() && savedView == null) {
                         ReadFilter(
                             unreadOnly = state.unreadOnly,
                             onUnreadOnlyChange = actions.onUnreadOnlyChange,
@@ -237,7 +280,7 @@ fun HomeScreen(
             },
             floatingActionButton = {
                 // Marks everything in the section being viewed as read: All, a folder or a feed.
-                if (state.feeds.isNotEmpty() && unreadHere > 0) {
+                if (state.feeds.isNotEmpty() && unreadHere > 0 && savedView == null) {
                     FloatingActionButton(onClick = actions.onMarkAllRead) {
                         Icon(painterResource(R.drawable.ic_done_all), contentDescription = stringResource(R.string.action_mark_all_read))
                     }
@@ -249,6 +292,15 @@ fun HomeScreen(
                     .fillMaxSize()
                     .padding(innerPadding),
             ) {
+            if (saved != null) {
+                PullToRefreshBox(
+                    isRefreshing = saved.list.loading && saved.list.items.isNotEmpty(),
+                    onRefresh = actions.onRefresh,
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    SavedList(saved, state.listView, actions)
+                }
+            } else {
             PullToRefreshBox(
                 isRefreshing = state.refreshing,
                 onRefresh = actions.onRefresh,
@@ -274,6 +326,7 @@ fun HomeScreen(
                         HomeContent.Articles -> ArticleList(state, actions)
                     }
                 }
+            }
             }
             }
         }
@@ -453,6 +506,63 @@ private fun SwipeToToggleRead(
 /** How far (as part of the row's width) a swipe must go to toggle read. */
 private const val SWIPE_THRESHOLD = 0.3f
 
+/**
+ * An Instapaper list: its saved articles with the same rows as feed articles (without the unread
+ * dot or swiping: archiving is an action in the reader), newest saved first, a page at a time.
+ */
+@Composable
+private fun SavedList(
+    home: InstapaperHome,
+    view: ListView,
+    actions: HomeActions,
+) {
+    val list = home.list
+    // Another list starts at the top.
+    val listState = rememberSaveable(home.view, saver = LazyListState.Saver) { LazyListState() }
+    LazyColumn(
+        state = listState,
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        items(list.items, key = { "saved:${it.id}" }) { bookmark ->
+            ArticleRow(
+                article = InstapaperLists.article(bookmark),
+                feed = bookmark.host.takeIf { it.isNotEmpty() }?.let { Feed(url = it, title = it) },
+                view = view,
+                showImage = false,
+                showUnreadDot = false,
+                onClick = { actions.onOpenSaved(bookmark) },
+                modifier = Modifier.animateItem(),
+            )
+        }
+        item(key = "footer") {
+            Box(Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
+                when {
+                    list.loading || list.loadingMore -> CircularProgressIndicator()
+                    list.problem != null -> Text(stringResource(list.problem.messageRes()), color = MaterialTheme.colorScheme.error)
+                    list.items.isEmpty() -> Text(stringResource(R.string.instapaper_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    list.canLoadMore -> FilledTonalButton(onClick = actions.onLoadMoreSaved) { Text(stringResource(R.string.instapaper_load_more)) }
+                }
+            }
+        }
+    }
+}
+
+/** An Instapaper list's name: Unread, Liked, Archive, or the folder's or tag's name. */
+@Composable
+fun instapaperViewTitle(
+    view: InstapaperView,
+    folders: List<InstapaperFolder>,
+): String =
+    when (view) {
+        InstapaperView.Home -> stringResource(R.string.filter_unread)
+        InstapaperView.Liked -> stringResource(R.string.instapaper_liked)
+        InstapaperView.Archive -> stringResource(R.string.instapaper_archive_list)
+        is InstapaperView.InFolder -> folders.firstOrNull { it.id == view.folderId }?.title.orEmpty()
+        is InstapaperView.WithTag -> view.name
+    }
+
 @Composable
 private fun ArticleRow(
     article: Article,
@@ -460,6 +570,8 @@ private fun ArticleRow(
     view: ListView,
     showImage: Boolean,
     onClick: () -> Unit,
+    showUnreadDot: Boolean = true,
+    modifier: Modifier = Modifier,
 ) {
     val time =
         remember(article.sortTime) {
@@ -477,12 +589,12 @@ private fun ArticleRow(
         onClick = onClick,
         shape = AppShapes.Item,
         color = if (article.read) MaterialTheme.colorScheme.surfaceContainerLow else MaterialTheme.colorScheme.surfaceContainer,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
     ) {
         when (view) {
             ListView.Small -> {
                 Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    MetaLine(article, feed, time)
+                    MetaLine(article, feed, time, showUnreadDot)
                     ArticleTitle(article, MaterialTheme.typography.titleSmall, maxLines = 2)
                 }
             }
@@ -490,7 +602,7 @@ private fun ArticleRow(
             ListView.Medium -> {
                 Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        MetaLine(article, feed, time)
+                        MetaLine(article, feed, time, showUnreadDot)
                         ArticleTitle(article, MaterialTheme.typography.titleMedium, maxLines = 3)
                         Snippet(snippet, maxLines = 2)
                     }
@@ -502,7 +614,7 @@ private fun ArticleRow(
                 Column {
                     if (image != null) LargePicture(image)
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        MetaLine(article, feed, time)
+                        MetaLine(article, feed, time, showUnreadDot)
                         ArticleTitle(article, MaterialTheme.typography.titleLarge, maxLines = 3)
                         Snippet(snippet, maxLines = 3)
                     }
@@ -518,10 +630,11 @@ private fun MetaLine(
     article: Article,
     feed: Feed?,
     time: String,
+    showUnreadDot: Boolean,
 ) {
     val unreadLabel = stringResource(R.string.article_unread)
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        if (!article.read) {
+        if (showUnreadDot && !article.read) {
             Box(
                 Modifier
                     .size(8.dp)

@@ -76,7 +76,6 @@ class SettingsActions(
     val onDisconnectSync: () -> Unit,
     val onInstapaperSignIn: () -> Unit,
     val onInstapaperSignOut: () -> Unit,
-    val onOpenInstapaper: () -> Unit,
 )
 
 /** Everything that can be set, as one list of sections in the order DESIGN.md gives. */
@@ -108,7 +107,6 @@ fun SettingsScreen(
                 state = state.instapaper,
                 onSignIn = actions.onInstapaperSignIn,
                 onSignOut = actions.onInstapaperSignOut,
-                onOpen = actions.onOpenInstapaper,
             )
         }
         item(key = "list") { ListSection(state.settings, actions) }

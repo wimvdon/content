@@ -82,7 +82,11 @@ work means no battery use when the app is closed.
 
 `instapaper/` holds everything about the user's Instapaper account, in plain Kotlin where possible:
 `InstapaperClient` (API v2 over OkHttp, with pure parsing helpers), `InstapaperAuth` (sign-in address,
-callback parsing, token swap through the Worker), `InstapaperModel` (the saved-articles screen's logic,
-tested on the JVM) and `InstapaperAccount` (the token in its own DataStore file). The screens in
-`ui/instapaper/` and `ui/settings/InstapaperSettings.kt` only show state and forward clicks. See
+callback parsing, token swap through the Worker), `InstapaperModel` (one list at a time, the folders and
+tags, the article open in the reader and every change, tested on the JVM), `InstapaperLists` (a
+saved article as a list/reader `Article`, which list it belongs in after a change) and
+`InstapaperAccount` (the token in its own DataStore file). The navigation keeps one model per
+sign-in: the drawer (`FeedDrawer`) and the home list show its lists, the reader its open article
+with `ui/reader/SavedArticleControls.kt`, and Manage feeds and folders its folders and tags
+(`ui/feeds/InstapaperManage.kt`). `ui/settings/InstapaperSettings.kt` signs in and out. See
 `instapaper.md`.
