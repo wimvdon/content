@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArticleList } from "./components/ArticleList";
 import { ArticleView } from "./components/ArticleView";
 import { AddFeedDialog, ManageDialog, SettingsDialog } from "./components/Dialogs";
+import { InstapaperDialog } from "./components/InstapaperDialog";
 import { Sidebar } from "./components/Sidebar";
 import { Button } from "./components/ui/button";
 import { app, useApp } from "./lib/app";
@@ -12,13 +13,13 @@ import { articleKey, articlesFor, type Article } from "./lib/library";
 /** Three panes on wide screens (feeds, list, article); one at a time on phones. */
 export default function App() {
   const state = useApp();
-  const { settings, library, selection, readThisVisit } = state;
+  const { settings, library, selection, readThisVisit, instapaperNotice } = state;
   // The open article belongs to the section it was opened in: another section closes it.
   const [opened, setOpened] = useState<{ article: Article; selection: typeof selection } | null>(null);
   const openArticle = opened?.selection === selection ? opened.article : null;
   const setOpenArticle = useCallback((article: Article | null) => setOpened(article ? { article, selection } : null), [selection]);
   const [drawer, setDrawer] = useState(false);
-  const [dialog, setDialog] = useState<"add" | "manage" | "settings" | null>(null);
+  const [dialog, setDialog] = useState<"add" | "manage" | "settings" | "instapaper" | null>(null);
   const [message, setMessage] = useState<{ text: string; undo?: () => void } | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -40,6 +41,15 @@ export default function App() {
     const timer = setTimeout(() => setMessage(null), 6000);
     return () => clearTimeout(timer);
   }, [message]);
+
+  // Coming back from Instapaper's sign-in page: say how it went, then let it fade like the other messages.
+  useEffect(() => {
+    if (!instapaperNotice) return;
+    const timer = setTimeout(() => app.clearInstapaperNotice(), 6000);
+    return () => clearTimeout(timer);
+  }, [instapaperNotice]);
+  const shown: { text: string; undo?: () => void } | null =
+    message ?? (instapaperNotice ? { text: t(instapaperNotice === "signedIn" ? "instapaperSignedIn" : "instapaperSignInFailed") } : null);
 
   const open = useCallback((a: Article) => {
     app.open(a);
@@ -94,6 +104,10 @@ export default function App() {
         setDrawer(false);
         setDialog("settings");
       }}
+      onInstapaper={() => {
+        setDrawer(false);
+        setDialog("instapaper");
+      }}
     />
   );
 
@@ -135,6 +149,7 @@ export default function App() {
         onImport={() => fileInput.current?.click()}
       />
       <SettingsDialog open={dialog === "settings"} onOpenChange={(o) => setDialog(o ? "settings" : null)} />
+      <InstapaperDialog open={dialog === "instapaper"} onOpenChange={(o) => setDialog(o ? "instapaper" : null)} />
       <input
         ref={fileInput}
         type="file"
@@ -146,16 +161,16 @@ export default function App() {
           e.target.value = "";
         }}
       />
-      {message ? (
+      {shown ? (
         <div role="status" className="fixed bottom-4 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-xl bg-foreground px-4 py-3 text-sm text-background shadow-lg">
-          <span>{message.text}</span>
-          {message.undo ? (
+          <span>{shown.text}</span>
+          {shown.undo ? (
             <Button
               size="sm"
               variant="ghost"
               className="text-primary hover:bg-white/10"
               onClick={() => {
-                message.undo?.();
+                shown.undo?.();
                 setMessage(null);
               }}
             >

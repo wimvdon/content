@@ -301,7 +301,7 @@ function FolderDialog({ folder, onClose }: { folder: Folder | "new" | null; onCl
 }
 
 export function SettingsDialog({ open, onOpenChange }: Props) {
-  const { settings, syncStatus } = useApp();
+  const { settings, syncStatus, instapaper } = useApp();
   const connected = settings.syncService === "googleDrive";
   const statusText =
     syncStatus.kind === "syncing"
@@ -333,6 +333,21 @@ export function SettingsDialog({ open, onOpenChange }: Props) {
                 {t("disconnect")}
               </Button>
             ) : null}
+          </div>
+        </section>
+        <section className="space-y-2">
+          <h3 className="text-sm font-medium text-primary">{t("instapaper")}</h3>
+          <p className="text-sm text-muted-foreground">
+            {instapaper ? t("instapaperSignedInAs").replace("{name}", instapaper.username || "Instapaper") : t("instapaperSummary")}
+          </p>
+          <div className="flex flex-wrap gap-2 pt-1">
+            {instapaper ? (
+              <Button variant="ghost" onClick={() => void app.disconnectInstapaper()}>
+                {t("instapaperSignOut")}
+              </Button>
+            ) : (
+              <Button onClick={() => app.connectInstapaper()}>{t("instapaperSignIn")}</Button>
+            )}
           </div>
         </section>
         <section className="space-y-2">

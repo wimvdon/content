@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, Rss, Settings as SettingsIcon, SlidersHorizontal } from "lucide-react";
+import { Bookmark, ChevronDown, ChevronRight, Rss, Settings as SettingsIcon, SlidersHorizontal } from "lucide-react";
 import { useState } from "react";
 import { app, useApp } from "@/lib/app";
 import { t } from "@/lib/i18n";
@@ -8,8 +8,8 @@ import { FolderIcon } from "./FolderIcon";
 import { cn } from "./ui/cn";
 
 /** All articles, the folders with their feeds, the other feeds, and the way to Manage and Settings. */
-export function Sidebar({ onNavigate, onManage, onSettings }: { onNavigate: () => void; onManage: () => void; onSettings: () => void }) {
-  const { library, selection } = useApp();
+export function Sidebar({ onNavigate, onManage, onSettings, onInstapaper }: { onNavigate: () => void; onManage: () => void; onSettings: () => void; onInstapaper: () => void }) {
+  const { library, selection, instapaper } = useApp();
   const counts = unreadByFeed(library);
   const total = library.feeds.reduce((n, f) => n + (counts.get(f.url) ?? 0), 0);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
@@ -83,6 +83,7 @@ export function Sidebar({ onNavigate, onManage, onSettings }: { onNavigate: () =
         ))}
       </div>
       <div className="border-t p-2">
+        {instapaper ? <Row selected={false} onClick={onInstapaper} icon={<Bookmark className="size-5" />} label={t("instapaper")} /> : null}
         <Row selected={false} onClick={onManage} icon={<SlidersHorizontal className="size-5" />} label={t("manageFeeds")} />
         <Row selected={false} onClick={onSettings} icon={<SettingsIcon className="size-5" />} label={t("settings")} />
       </div>
