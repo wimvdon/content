@@ -38,9 +38,8 @@ export function Sidebar({ onNavigate, onManage, onSettings }: { onNavigate: () =
   return (
     <nav className="flex h-full flex-col" aria-label={t("feeds")}>
       <div className="flex items-center gap-3 px-4 py-4">
-        <span className="inline-flex size-9 items-center justify-center rounded-full bg-accent text-primary">
-          <Rss className="size-5" />
-        </span>
+        {/* The app's logo, the same as the Android launcher icon and the favicon. */}
+        <img src="/icon.svg" alt="" className="size-9 rounded-full border" />
         <span className="text-lg font-semibold">Reader</span>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-2">
