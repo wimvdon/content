@@ -50,7 +50,6 @@ const defaults: Settings = {
 };
 
 const PARALLEL = 4;
-const CHANGE_DELAY_MS = 5_000;
 
 class AppStore {
   private state: State = {
@@ -94,8 +93,21 @@ class AppStore {
     const merged = { ...defaults, ...settings, readerStyle: readerStyleOf(settings?.readerStyle) };
     this.knownRead = new Set(Object.keys((base && S.decode(base)?.read) || {}));
     this.set({ loaded: true, library: library ?? L.emptyLibrary(), settings: merged });
+    this.syncWhileVisible();
     if (merged.syncService !== "none") await this.sync();
     if (this.state.library.feeds.length > 0) await this.refresh();
+  }
+
+  /** Syncs while the page is visible: when it comes back, and every minute (like Android). */
+  private syncWhileVisible() {
+    const due = () => document.visibilityState === "visible" && void this.syncIfDue();
+    document.addEventListener("visibilitychange", due);
+    setInterval(due, S.VISIBLE_INTERVAL_MS);
+  }
+
+  /** Syncs unless the last sync was only seconds ago. */
+  syncIfDue(): Promise<void> {
+    return S.syncDue(this.state.settings.lastSyncedAt, Date.now()) ? this.sync() : Promise.resolve();
   }
 
   // Library changes: stored at once, synced a few seconds later.
@@ -112,7 +124,7 @@ class AppStore {
     if (this.state.settings.syncService === "none") return;
     if (S.encode(S.documentOf(before)) === S.encode(S.documentOf(after))) return;
     if (this.syncTimer) clearTimeout(this.syncTimer);
-    this.syncTimer = setTimeout(() => void this.sync(), CHANGE_DELAY_MS);
+    this.syncTimer = setTimeout(() => void this.sync(), S.CHANGE_DELAY_MS);
   }
 
   updateSettings(patch: Partial<Settings>) {
@@ -135,6 +147,8 @@ class AppStore {
   async refresh() {
     if (this.state.refreshing) return;
     this.set({ refreshing: true, readThisVisit: new Set() });
+    // Read marks and feeds from other devices first, so they apply to the new articles.
+    await this.syncIfDue();
     const feeds = [...this.state.library.feeds];
     const results = new Map<string, ReturnType<typeof parseFeed>>();
     const problems = new Map<string, FetchError["kind"] | "notAFeed">();

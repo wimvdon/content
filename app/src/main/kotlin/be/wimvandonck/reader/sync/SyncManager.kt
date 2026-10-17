@@ -10,6 +10,7 @@ import be.wimvandonck.reader.data.LibraryRepository
 import be.wimvandonck.reader.data.SettingsStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -36,8 +37,9 @@ sealed interface SyncStatus {
 }
 
 /**
- * Syncs feeds, folders and read articles with the chosen service while the app is in use: when
- * it starts, a few seconds after a change, and on request. Never in the background.
+ * Syncs feeds, folders and read articles with the chosen service while the app is in use: when it
+ * comes on screen and every minute while it stays there ([whileVisible]), a few seconds after a
+ * change, on refresh, and on request. Never in the background.
  */
 class SyncManager(
     context: Context,
@@ -68,39 +70,58 @@ class SyncManager(
     fun start() {
         if (started) return
         started = true
-        scope.launch {
-            library.knownRead = base()?.read?.keys.orEmpty()
-            sync()
-        }
+        // The first sync comes from whileVisible, which runs as soon as the app is on screen.
+        scope.launch { library.knownRead = base()?.read?.keys.orEmpty() }
         scope.launch {
             library.library
                 .filterNotNull()
                 .map { SyncDocument.of(it) }
                 .distinctUntilChanged()
                 .drop(1)
-                .debounce(CHANGE_DELAY_MS)
+                .debounce(SyncTiming.CHANGE_DELAY_MS)
                 .collect { sync() }
         }
     }
 
     /** Syncs now, if a service is chosen. */
     suspend fun sync() {
+        lock.withLock { syncLocked() }
+    }
+
+    /** Syncs unless the last sync was only seconds ago (see [SyncTiming.isDue]). */
+    suspend fun syncIfDue() {
+        lock.withLock {
+            if (SyncTiming.isDue(settings.settings.filterNotNull().first().lastSyncedAt, clock())) syncLocked()
+        }
+    }
+
+    /**
+     * Syncs while the app is on screen: now (unless it just did) and every minute. Call it from a
+     * coroutine that is cancelled when the app leaves the screen. A sync that has started runs on in
+     * the app's scope, so leaving never cuts one off halfway.
+     */
+    suspend fun whileVisible(): Nothing {
+        while (true) {
+            scope.launch { syncIfDue() }.join()
+            delay(SyncTiming.VISIBLE_INTERVAL_MS)
+        }
+    }
+
+    private suspend fun syncLocked() {
         val service = settings.settings.filterNotNull().first().syncService
         val target = provider(service) ?: return
-        lock.withLock {
-            _status.value = SyncStatus.Syncing
-            _status.value =
-                try {
-                    syncWith(target)
-                    settings.setLastSyncedAt(clock())
-                    SyncStatus.Idle
-                } catch (e: SyncException) {
-                    SyncStatus.Failed(e.problem)
-                } catch (e: IOException) {
-                    // Storage on this device failed.
-                    SyncStatus.Failed(SyncProblem.ServerError)
-                }
-        }
+        _status.value = SyncStatus.Syncing
+        _status.value =
+            try {
+                syncWith(target)
+                settings.setLastSyncedAt(clock())
+                SyncStatus.Idle
+            } catch (e: SyncException) {
+                SyncStatus.Failed(e.problem)
+            } catch (e: IOException) {
+                // Storage on this device failed.
+                SyncStatus.Failed(SyncProblem.ServerError)
+            }
     }
 
     /** Stops syncing and forgets the base, so connecting again merges everything fresh. */
@@ -133,9 +154,6 @@ class SyncManager(
         if (newFeeds) scope.launch { library.refreshAll() }
     }
 
-    private companion object {
-        const val CHANGE_DELAY_MS = 5_000L
-    }
 }
 
 private object TextSerializer : Serializer<String> {

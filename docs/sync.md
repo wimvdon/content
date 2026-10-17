@@ -12,9 +12,19 @@ app. The data lives in the user's own storage; there is no Reader server.
 
 ## When it syncs
 
-Only while the app is in use: when it starts, about five seconds after a change (a feed added,
-renamed, moved or removed, a folder changed, an article read or unread), and with **Sync now** in
-Settings. Never in the background.
+Only while the app (or the web page) is on screen, never in the background:
+
+- when it comes on screen, and then every minute while it stays there, so read marks and feeds
+  from other devices come in;
+- about two seconds after a change (a feed added, renamed, moved or removed, a folder changed,
+  an article read or unread; a row of changes, such as marking while scrolling, goes as one);
+- on refresh (pull down, or the refresh button), before the feeds are downloaded, so articles
+  read elsewhere arrive already read;
+- with **Sync now** in Settings.
+
+Coming back, refreshing and the minute skip a sync when the last one was less than ten seconds
+ago (`SyncTiming` on Android, the same constants in `web/src/lib/sync.ts`). One sync is two or
+three requests to Drive, far below Google's limits.
 
 ## The sync file
 

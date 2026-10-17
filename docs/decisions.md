@@ -2,6 +2,17 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-17: Sync every minute while the app is on screen
+
+The owner asked for sync as often as Google allows, at least on marking as read and on refresh.
+Marking as read already synced (five seconds after the last change), but other devices' changes
+only came in when the app started. Now both apps sync when they come on screen and every minute
+while they stay there, on refresh (before downloading, so articles read elsewhere arrive read),
+and two seconds after a change. A sync within the last ten seconds is not repeated. One sync is
+two or three Drive requests, so a minute is far below Google's per-user limits. Rejected: syncing
+on every single read mark (the two-second wait already sends a row of them as one), syncing in
+the background (no background work, see `CLAUDE.md`), and Drive's push notifications (they need a
+server to receive them).
 ## 2026-10-17: The web app's addresses are built in
 
 The feed loader's address and the Google client ID were settings in the web app (filled in from

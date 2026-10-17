@@ -31,6 +31,20 @@ export const FORMAT = "rss-reader-sync";
 export const VERSION = 1;
 export const KEEP_READ_MS = 120 * 24 * 60 * 60 * 1000;
 
+/** When sync runs while the app is open, the same as the Android app's SyncTiming. */
+export const CHANGE_DELAY_MS = 2_000;
+/** While the page is visible it syncs this often, so changes from other devices come in. */
+export const VISIBLE_INTERVAL_MS = 60_000;
+/** Coming back, refreshing or the next minute skips sync when it ran this recently. */
+export const MIN_GAP_MS = 10_000;
+
+/** True when a sync is worth doing: never synced, or not within the last MIN_GAP_MS. */
+export function syncDue(lastSyncedAt: number | null, now: number): boolean {
+  if (lastSyncedAt === null) return true;
+  const since = now - lastSyncedAt;
+  return since < 0 || since >= MIN_GAP_MS;
+}
+
 export const emptyDocument = (): SyncDocument => ({ folders: [], feeds: [], read: {} });
 
 export const feedUrlOf = (key: string) => key.split(" ")[0];

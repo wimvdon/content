@@ -44,6 +44,7 @@ when the run fails.
 | `SyncDocumentTest` | Sync file round trip, other or newer files left alone, broken entries skipped, taking folders, feeds and read marks from the library, pruning old read marks |
 | `SyncMergeTest` | Three-way merge: changes and removals from either side, this device wins but an edit beats a removal, order from the side that reordered, first sync without base, unread again; articles not here yet; applying the result to the library; syncing twice changes nothing |
 | `GoogleDriveTest` | Finding the sync file in a Drive answer, the upload into the app folder |
+| `SyncTimingTest` | When a sync is due: never synced, or more than ten seconds ago (also when the clock went back) |
 | `SyncProblemTest` | Google refusing an app it doesn't know shows "not set up" instead of "offline" |
 | `SiteIconTest` | Choosing a site's icon: largest size, apple-touch-icon, relative and http addresses, skipping SVG and inline icons, home page and favicon.ico fallback |
 | `IconCatalogTest` | Reading the icon file, search order (name, words, categories, related words), suggestions, old icon names, and that the bundled file has every suggested and migrated icon |
@@ -87,7 +88,8 @@ and then (always before a release):
 - [ ] **Sync** (needs the Google Cloud setup in `docs/sync.md`): Settings › Sync › Connect shows
       Google's screen; after allowing, "Last synced just now". On a second phone (or after
       Disconnect + clearing data), Connect brings the same feeds, folders and read marks. Rename a
-      feed, read an article, wait 5 seconds; Sync now on the other phone shows the change.
+      feed, read an article, wait 2 seconds; on the other phone, refresh (or wait a minute with the
+      app open) and the change shows.
 - [ ] **Save** sends to the app chosen in Settings › Save and share (Instapaper by default);
       **Share** opens the share menu or the chosen app. An uninstalled app falls back to the share menu.
 - [ ] **List:** at app start the list shows loading placeholders, never "No feeds yet" first.
