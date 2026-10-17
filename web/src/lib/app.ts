@@ -66,6 +66,8 @@ export interface State {
   instapaperList: InstapaperList;
   /** The saved article open in the reader; it stays there when a change takes it out of the list. */
   instapaperOpen: Bookmark | null;
+  /** The article just saved from a feed, while the dialog to file it (folder and tags) is open. */
+  instapaperJustSaved: Bookmark | null;
 }
 
 export interface InstapaperList {
@@ -109,6 +111,7 @@ class AppStore {
     instapaperTags: [],
     instapaperList: emptyInstapaperList,
     instapaperOpen: null,
+    instapaperJustSaved: null,
   };
   private listeners = new Set<() => void>();
   private knownRead = new Set<string>();
@@ -382,7 +385,7 @@ class AppStore {
       void this.loadInstapaperSides();
       return;
     }
-    this.set({ instapaper: null, instapaperFolders: [], instapaperTags: [], instapaperList: emptyInstapaperList, instapaperOpen: null });
+    this.set({ instapaper: null, instapaperFolders: [], instapaperTags: [], instapaperList: emptyInstapaperList, instapaperOpen: null, instapaperJustSaved: null });
     if (this.state.selection.kind === "instapaper") this.select({ kind: "all" });
   }
 
@@ -426,9 +429,11 @@ class AppStore {
       const list = this.state.instapaperList;
       const items = list.view ? applyChange(list.view, list.items, id, change) : list.items;
       const open = this.state.instapaperOpen;
+      const justSaved = this.state.instapaperJustSaved;
       this.set({
         instapaperList: { ...list, items, total: Math.max(0, list.total - (list.items.length - items.length)), problem: null },
         instapaperOpen: open && open.id === id ? patchBookmark(open, change) : open,
+        instapaperJustSaved: justSaved && justSaved.id === id ? patchBookmark(justSaved, change) : justSaved,
       });
       void this.loadInstapaperSides();
       return true;
@@ -437,6 +442,16 @@ class AppStore {
       return false;
     }
   }
+
+  /** Saves a feed article and keeps it as `instapaperJustSaved`, so it can be filed at once. Throws when Instapaper refuses. */
+  saveToInstapaper = async (url: string, title: string) => {
+    const bookmark = await this.withInstapaper((api) => api.save(url, title));
+    this.set({ instapaperJustSaved: bookmark?.id ? bookmark : null });
+    void this.loadInstapaperSides();
+  };
+
+  /** The dialog for the article just saved was closed. */
+  closeJustSaved = () => this.set({ instapaperJustSaved: null });
 
   archiveBookmark = (b: Bookmark, archived: boolean) =>
     this.changeBookmark(b.id, async (api) => {

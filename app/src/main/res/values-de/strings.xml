@@ -208,5 +208,7 @@
     <string name="instapaper_remove_tag">Tag entfernen</string>
     <string name="action_close">Schließen</string>
     <string name="instapaper_tags">Tags</string>
+    <string name="instapaper_folder">Ordner</string>
+    <string name="action_done">Fertig</string>
     <string name="instapaper_folders">Ordner</string>
 </resources>

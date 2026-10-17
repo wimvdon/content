@@ -38,6 +38,7 @@ import be.wimvandonck.reader.ui.feeds.InstapaperManageState
 import be.wimvandonck.reader.ui.feeds.InstapaperManageActions
 import kotlinx.coroutines.flow.flowOf
 import be.wimvandonck.reader.data.Feed
+import be.wimvandonck.reader.ui.reader.JustSavedSheet
 import be.wimvandonck.reader.ui.reader.SavedArticle
 import be.wimvandonck.reader.ui.home.InstapaperHome
 import be.wimvandonck.reader.instapaper.InstapaperView
@@ -292,13 +293,20 @@ fun RssReaderNavigation() {
         }
     }
 
-    /** Saves the article to the signed-in Instapaper account. */
+    /** Saves the article to the signed-in Instapaper account, then offers to file it (folder and tags). */
     fun saveToInstapaper(article: Article) {
         val link = article.link ?: return
         uiScope.launch {
             try {
-                app.instapaper.save(link, article.title)
-                showMessage(resources.getString(R.string.instapaper_saved))
+                val model = instapaper
+                if (model != null) {
+                    model.save(link, article.title)
+                    // The sheet says it was saved; a message is only needed when there is no sheet.
+                    if (model.state.value.justSaved == null) showMessage(resources.getString(R.string.instapaper_saved))
+                } else {
+                    app.instapaper.save(link, article.title)
+                    showMessage(resources.getString(R.string.instapaper_saved))
+                }
             } catch (e: InstapaperException) {
                 showMessage(resources.getString(e.problem.messageRes()))
             }
@@ -573,6 +581,20 @@ fun RssReaderNavigation() {
                 }
             }
         }
+    }
+
+    // Right after Save: file the new saved article (folder and tags) without leaving the article.
+    val justSaved = instapaperUi?.justSaved
+    if (instapaper != null && justSaved != null) {
+        JustSavedSheet(
+            bookmark = justSaved,
+            folders = instapaperUi?.folders.orEmpty(),
+            tags = instapaperUi?.tags.orEmpty(),
+            onMove = { folderId -> instapaper.moveTo(justSaved, folderId) },
+            onAddTag = { name -> instapaper.addTag(justSaved, name) },
+            onRemoveTag = { tag -> instapaper.removeTag(justSaved, tag) },
+            onDismiss = instapaper::closeJustSaved,
+        )
     }
 
     if (addDialogOpen) {

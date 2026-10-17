@@ -127,10 +127,10 @@ class InstapaperAccount(
     suspend fun save(
         url: String,
         title: String?,
-    ) {
+    ): InstapaperBookmark? {
         val session = (state.value as? InstapaperState.SignedIn)?.session ?: throw InstapaperException(InstapaperProblem.SignedOut)
         try {
-            InstapaperClient(http, session.token).save(url, title)
+            return InstapaperClient(http, session.token).save(url, title)
         } catch (e: InstapaperException) {
             if (e.problem == InstapaperProblem.SignedOut) signOut()
             throw e

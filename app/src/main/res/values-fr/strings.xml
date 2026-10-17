@@ -216,5 +216,7 @@
     <string name="instapaper_remove_tag">Retirer l’étiquette</string>
     <string name="action_close">Fermer</string>
     <string name="instapaper_tags">Étiquettes</string>
+    <string name="instapaper_folder">Dossier</string>
+    <string name="action_done">OK</string>
     <string name="instapaper_folders">Dossiers</string>
 </resources>
