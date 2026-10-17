@@ -22,9 +22,10 @@ Only while the app (or the web page) is on screen, never in the background:
   read elsewhere arrive already read;
 - with **Sync now** in Settings.
 
-Coming back, refreshing and the minute skip a sync when the last one was less than ten seconds
-ago (`SyncTiming` on Android, the same constants in `web/src/lib/sync.ts`). One sync is two or
-three requests to Drive, far below Google's limits.
+Coming back and the minute skip a sync when the last one was less than ten seconds ago
+(`SyncTiming` on Android, the same constants in `web/src/lib/sync.ts`). A refresh never skips: it
+always syncs first, so a read mark made a few seconds ago on another device is there when you pull
+down. One sync is two or three requests to Drive, far below Google's limits.
 
 ## The sync file
 
