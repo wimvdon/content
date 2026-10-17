@@ -54,6 +54,8 @@ class SavedArticle(
     val onArchive: () -> Unit,
     /** Into a folder, or back to Unread when null. */
     val onMove: (Long?) -> Unit,
+    /** Into a new folder with this name, made on the spot. */
+    val onMoveToNewFolder: (String) -> Unit,
     val onAddTag: (String) -> Unit,
     val onRemoveTag: (InstapaperTag) -> Unit,
     val onDelete: () -> Unit,
@@ -163,6 +165,10 @@ private fun MoveDialog(
             Column(Modifier.verticalScroll(rememberScrollState())) {
                 option(null, stringResource(R.string.filter_unread))
                 saved.folders.forEach { option(it.id, it.title) }
+                NewFolder(Modifier.padding(top = 8.dp)) { title ->
+                    onDismiss()
+                    saved.onMoveToNewFolder(title)
+                }
             }
         },
         confirmButton = {},
@@ -259,6 +265,7 @@ fun JustSavedSheet(
     folders: List<InstapaperFolder>,
     tags: List<InstapaperTag>,
     onMove: (Long?) -> Unit,
+    onMoveToNewFolder: (String) -> Unit,
     onAddTag: (String) -> Unit,
     onRemoveTag: (InstapaperTag) -> Unit,
     onDismiss: () -> Unit,
@@ -291,9 +298,47 @@ fun JustSavedSheet(
                     )
                 }
             }
+            NewFolder(onCreate = onMoveToNewFolder)
             Text(stringResource(R.string.instapaper_tags), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
             TagsEditor(bookmark, tags, onAddTag, onRemoveTag)
             Button(onClick = onDismiss, modifier = Modifier.align(Alignment.End)) { Text(stringResource(R.string.action_done)) }
         }
+    }
+}
+
+/**
+ * "New folder" under a list of folders: a tap shows a field for its name, and adding makes the
+ * folder and puts the article in it ([onCreate] gets the name).
+ */
+@Composable
+private fun NewFolder(
+    modifier: Modifier = Modifier,
+    onCreate: (String) -> Unit,
+) {
+    var open by rememberSaveable { mutableStateOf(false) }
+    var name by rememberSaveable { mutableStateOf("") }
+    if (!open) {
+        TextButton(onClick = { open = true }, modifier = modifier) {
+            Icon(painterResource(R.drawable.ic_add), contentDescription = null, modifier = Modifier.size(18.dp))
+            Text(stringResource(R.string.folder_new), modifier = Modifier.padding(start = 8.dp))
+        }
+    } else {
+        OutlinedTextField(
+            value = name,
+            onValueChange = { name = it },
+            label = { Text(stringResource(R.string.folder_new)) },
+            singleLine = true,
+            trailingIcon = {
+                IconButton(
+                    onClick = {
+                        onCreate(name.trim())
+                        name = ""
+                        open = false
+                    },
+                    enabled = name.isNotBlank(),
+                ) { Icon(painterResource(R.drawable.ic_add), contentDescription = stringResource(R.string.action_add)) }
+            },
+            modifier = modifier.fillMaxWidth(),
+        )
     }
 }

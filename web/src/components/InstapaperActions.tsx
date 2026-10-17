@@ -101,6 +101,12 @@ function MoveDialog({ bookmark: b, open, onClose }: { bookmark: Bookmark; open: 
         {option(null, t("unread"), <Inbox />)}
         {instapaperFolders.map((f) => option(f.id, f.title, <FolderInput />))}
       </div>
+      <NewFolder
+        onCreate={(title) => {
+          onClose();
+          void app.moveBookmarkToNewFolder(b, title);
+        }}
+      />
     </Dialog>
   );
 }
@@ -205,6 +211,7 @@ export function JustSavedDialog() {
               {chip(null, t("unread"))}
               {instapaperFolders.map((f) => chip(f.id, f.title))}
             </div>
+            <NewFolder onCreate={(title) => void app.moveBookmarkToNewFolder(b, title)} />
           </section>
           <section className="space-y-2">
             <h3 className="text-sm font-medium text-primary">{t("instapaperTags")}</h3>
@@ -213,5 +220,37 @@ export function JustSavedDialog() {
         </div>
       ) : null}
     </Dialog>
+  );
+}
+
+/** "New folder" under a list of folders: shows a field for its name; adding makes the folder and moves the article into it. */
+function NewFolder({ onCreate }: { onCreate: (title: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  if (!open) {
+    return (
+      <Button variant="ghost" className="mt-2" onClick={() => setOpen(true)}>
+        <Plus />
+        {t("newFolder")}
+      </Button>
+    );
+  }
+  return (
+    <form
+      className="mt-2 flex gap-2"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (!name.trim()) return;
+        onCreate(name.trim());
+        setName("");
+        setOpen(false);
+      }}
+    >
+      <Input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder={t("newFolder")} aria-label={t("newFolder")} maxLength={60} />
+      <Button type="submit" variant="tonal" disabled={!name.trim()}>
+        <Plus />
+        {t("add")}
+      </Button>
+    </form>
   );
 }

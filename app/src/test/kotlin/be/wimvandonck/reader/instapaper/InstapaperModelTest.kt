@@ -293,6 +293,24 @@ class InstapaperModelTest {
     }
 
     @Test
+    fun `an article can be moved into a folder made on the spot`() {
+        service.lists[InstapaperView.Home] = listOf(bookmark(1), bookmark(2))
+        val model = model()
+        model.start()
+        model.open(bookmark(1))
+        model.moveToNewFolder(bookmark(1), "  Recipes ")
+        assertTrue("createFolder Recipes" in service.calls)
+        assertTrue("move 1 9" in service.calls)
+        assertTrue(model.state.value.folders.any { it.id == 9L && it.title == "Recipes" })
+        assertEquals(9L, model.state.value.open?.folderId)
+        // It left Unread.
+        assertEquals(listOf(2L), model.state.value.items.map { it.id })
+
+        model.moveToNewFolder(bookmark(2), " ")
+        assertEquals("a blank name makes no folder", 1, service.calls.count { it.startsWith("createFolder") })
+    }
+
+    @Test
     fun `creates, reorders and deletes folders`() {
         val model = model()
         model.start()
