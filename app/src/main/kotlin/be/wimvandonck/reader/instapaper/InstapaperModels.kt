@@ -77,10 +77,11 @@ interface InstapaperService {
         limit: Int,
     ): InstapaperPage
 
+    /** Returns the new saved article, or null when Instapaper's answer doesn't describe it. */
     suspend fun save(
         url: String,
         title: String?,
-    )
+    ): InstapaperBookmark?
 
     /** [section] is "archive", "home" or a folder id. */
     suspend fun move(

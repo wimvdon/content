@@ -85,8 +85,8 @@ export function ArticleView({ article, onBack, onMessage }: { article: Article; 
     if (!address || saving) return;
     setSaving(true);
     try {
-      await app.withInstapaper((api) => api.save(address, article.title));
-      onMessage(t("instapaperSaved"));
+      // The dialog to file it (folder and tags) says it was saved.
+      await app.saveToInstapaper(address, article.title);
     } catch (e) {
       onMessage(problemText(e));
     } finally {

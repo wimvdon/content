@@ -2,6 +2,7 @@ package be.wimvandonck.reader.instapaper
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -35,8 +36,10 @@ private class FakeService : InstapaperService {
         return InstapaperPage(all.drop(offset).take(limit), all.size)
     }
 
-    override suspend fun save(url: String, title: String?) {
+    override suspend fun save(url: String, title: String?): InstapaperBookmark? {
         calls += "save $url"
+        check()
+        return bookmark(42)
     }
 
     override suspend fun move(id: Long, section: String) {
@@ -258,6 +261,35 @@ class InstapaperModelTest {
         assertEquals(30, model.state.value.items.size)
         assertEquals((1L..30L).toList(), model.state.value.items.map { it.id })
         assertFalse(model.state.value.canLoadMore)
+    }
+
+    @Test
+    fun `an article saved from a feed can be filed at once, then the sheet closes`() {
+        val model = model()
+        model.start()
+        assertTrue(runBlocking { model.save("https://a.example/42", "Title") })
+        assertEquals(42L, model.state.value.justSaved?.id)
+
+        model.moveTo(model.state.value.justSaved!!, 2)
+        assertTrue("move 42 2" in service.calls)
+        assertEquals(2L, model.state.value.justSaved?.folderId)
+
+        service.tagsAfter = listOf(InstapaperTag(1, "Cooking"))
+        model.addTag(model.state.value.justSaved!!, "Cooking")
+        assertEquals(listOf("Cooking"), model.state.value.justSaved?.tags?.map { it.name })
+
+        model.closeJustSaved()
+        assertNull(model.state.value.justSaved)
+    }
+
+    @Test
+    fun `a refused save signs out and tells the caller`() {
+        val model = model()
+        service.failure = InstapaperException(InstapaperProblem.SignedOut)
+        val thrown = runCatching { runBlocking { model.save("https://a.example/42", null) } }.exceptionOrNull()
+        assertEquals(InstapaperProblem.SignedOut, (thrown as? InstapaperException)?.problem)
+        assertEquals(1, signedOut)
+        assertNull(model.state.value.justSaved)
     }
 
     @Test

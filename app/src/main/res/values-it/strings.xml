@@ -216,5 +216,7 @@
     <string name="instapaper_remove_tag">Rimuovi tag</string>
     <string name="action_close">Chiudi</string>
     <string name="instapaper_tags">Tag</string>
+    <string name="instapaper_folder">Cartella</string>
+    <string name="action_done">Fine</string>
     <string name="instapaper_folders">Cartelle</string>
 </resources>

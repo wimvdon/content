@@ -2,6 +2,10 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-17: File an article in Instapaper right after saving it
+
+The owner wanted to tag a feed article or put it in a folder as soon as it is saved, instead of finding it again under Instapaper. Save now opens a sheet (Android) or dialog (web) titled "Saved to Instapaper" with the folders as chips (Unread selected) and the same tag editor as a saved article's Tags. Every tap applies at once, like the reader's own Move and Tags; Done or closing leaves the rest as it is. Rejected: a snackbar with an action (it disappears before you decide) and asking before saving (saving should stay one tap).
+
 ## 2026-10-17: One way to reorder, shared with the sibling apps
 
 A design review of the sibling apps found four ways to put a list in order. The rule is now shared (`DESIGN.md`, "Reordering"): a drag handle at the end of each row, from `ui/theme/Reorder.kt`, which every app copies. Reader's feeds and folders already worked that way; the Instapaper folders on Manage feeds and folders had up and down arrows and now have the same handle (screen readers keep Move up and Move down). The article lists and Manage feeds and folders keep a readable width (640dp, `Layout.kt`) on tablets and in landscape, as the shared rule asks. Rejected: keeping the arrows for the short Instapaper list (two ways to do the same thing on one page).

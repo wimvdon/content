@@ -216,5 +216,7 @@
     <string name="instapaper_remove_tag">Quitar etiqueta</string>
     <string name="action_close">Cerrar</string>
     <string name="instapaper_tags">Etiquetas</string>
+    <string name="instapaper_folder">Carpeta</string>
+    <string name="action_done">Listo</string>
     <string name="instapaper_folders">Carpetas</string>
 </resources>

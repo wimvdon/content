@@ -20,6 +20,8 @@ data class InstapaperUiState(
     val problem: InstapaperProblem? = null,
     /** The saved article open in the reader. */
     val open: InstapaperBookmark? = null,
+    /** The article just saved from a feed, while the sheet to file it (folder and tags) is open. */
+    val justSaved: InstapaperBookmark? = null,
 ) {
     val canLoadMore: Boolean get() = !loading && !loadingMore && items.size < total
 }
@@ -71,6 +73,29 @@ class InstapaperModel(
             }
         }
     }
+
+    /**
+     * Saves a feed article and keeps it as [InstapaperUiState.justSaved], so it can be put in a folder
+     * and tagged at once. Throws when Instapaper refuses (the caller says why); returns whether it was saved.
+     */
+    suspend fun save(
+        url: String,
+        title: String?,
+    ): Boolean {
+        val bookmark =
+            try {
+                api.save(url, title)
+            } catch (e: InstapaperException) {
+                if (e.problem == InstapaperProblem.SignedOut) onSignedOut()
+                throw e
+            }
+        if (bookmark != null) mutable.update { it.copy(justSaved = bookmark) }
+        refreshSides()
+        return true
+    }
+
+    /** The sheet for the article just saved was closed. */
+    fun closeJustSaved() = mutable.update { it.copy(justSaved = null) }
 
     /** The saved article opened in the reader; it stays there when a change takes it out of the list. */
     fun open(bookmark: InstapaperBookmark) = mutable.update { it.copy(open = bookmark) }
@@ -196,6 +221,7 @@ class InstapaperModel(
                 items = items,
                 total = (s.total - (s.items.size - items.size)).coerceAtLeast(0),
                 open = if (s.open?.id == bookmark.id) InstapaperLists.patch(s.open, change) else s.open,
+                justSaved = if (s.justSaved?.id == bookmark.id) InstapaperLists.patch(s.justSaved, change) else s.justSaved,
             )
         }
         refreshSides()

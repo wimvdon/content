@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArticleList } from "./components/ArticleList";
 import { ArticleView } from "./components/ArticleView";
 import { AddFeedDialog, ManageDialog, SettingsDialog } from "./components/Dialogs";
+import { JustSavedDialog } from "./components/InstapaperActions";
 import { Sidebar } from "./components/Sidebar";
 import { Button } from "./components/ui/button";
 import { app, useApp } from "./lib/app";
@@ -148,6 +149,7 @@ export default function App() {
         onImport={() => fileInput.current?.click()}
       />
       <SettingsDialog open={dialog === "settings"} onOpenChange={(o) => setDialog(o ? "settings" : null)} />
+      <JustSavedDialog />
       <input
         ref={fileInput}
         type="file"

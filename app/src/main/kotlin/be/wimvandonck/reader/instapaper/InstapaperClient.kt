@@ -25,12 +25,12 @@ class InstapaperClient(
     override suspend fun save(
         url: String,
         title: String?,
-    ) {
+    ): InstapaperBookmark? {
         val body = buildMap<String, Any?> {
             put("url", url)
             if (!title.isNullOrBlank()) put("title", title)
         }
-        call("POST", "/bookmarks", Json.write(body))
+        return parseBookmark(runCatching { Json.parse(call("POST", "/bookmarks", Json.write(body))) }.getOrNull())
     }
 
     override suspend fun move(

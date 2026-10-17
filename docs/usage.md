@@ -169,7 +169,9 @@ there and you come back to the app (or the web page) signed in; Reader never see
 
 Signed in:
 
-- **Save** (the bookmark button in the reader) saves the article to your Instapaper account.
+- **Save** (the bookmark button in the reader) saves the article to your Instapaper account. A
+  sheet (a dialog on the web) opens at once: tap a folder to file it there and add tags, then
+  **Done**. Close it to leave the article in Unread.
 - The ☰ menu (the web app: the sidebar) gets an **Instapaper** section under your feeds: Unread,
   Liked, Archive, your Instapaper folders and your tags. Each shows its saved articles in the same
   list as feed articles, and they open in the same reader (the whole article loads from its
@@ -190,4 +192,4 @@ Until Instapaper has approved Reader, only the owner's own account works; other 
 | "No feed found at this address" | Try the site's feed address instead; look for an RSS or feed link on the site. |
 | "Couldn't connect" | Check the internet connection and pull down to try again. |
 | A feed shows only short summaries | That is what the site publishes; tap **Read on website**. |
-| Not sure Save worked | Instapaper shows a short "Saved" message; open Instapaper to see the article. |
+| Not sure Save worked | The "Saved to Instapaper" sheet opens; open Instapaper to see the article. |

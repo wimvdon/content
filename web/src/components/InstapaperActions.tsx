@@ -107,6 +107,14 @@ function MoveDialog({ bookmark: b, open, onClose }: { bookmark: Bookmark; open: 
 
 /** The article's tags: remove one, add one (new names become new tags), or pick one the account has. */
 function TagsDialog({ bookmark: b, open, onClose }: { bookmark: Bookmark; open: boolean; onClose: () => void }) {
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()} title={t("instapaperTags")} closeLabel={t("close")}>
+      <TagsEditor bookmark={b} />
+    </Dialog>
+  );
+}
+
+function TagsEditor({ bookmark: b }: { bookmark: Bookmark }) {
   const { instapaperTags } = useApp();
   const [name, setName] = useState("");
   const has = (n: string) => b.tags.some((x) => x.name.toLowerCase() === n.toLowerCase());
@@ -116,44 +124,94 @@ function TagsDialog({ bookmark: b, open, onClose }: { bookmark: Bookmark; open: 
   };
   const others = instapaperTags.filter((x) => !has(x.name));
   return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()} title={t("instapaperTags")} closeLabel={t("close")}>
-      <div className="space-y-4">
+    <div className="space-y-4">
+      <div className="flex flex-wrap gap-1.5">
+        {b.tags.length === 0 ? <p className="text-sm text-muted-foreground">{t("instapaperEmpty")}</p> : null}
+        {b.tags.map((x) => (
+          <span key={x.id} className="inline-flex items-center gap-1 rounded-full bg-accent px-3 py-1 text-sm text-accent-foreground">
+            {x.name}
+            <button type="button" className="cursor-pointer rounded-full hover:bg-background/60" aria-label={`${t("instapaperRemoveTag")}: ${x.name}`} title={t("instapaperRemoveTag")} onClick={() => void app.tagBookmark(b, [], [x.id])}>
+              <X className="size-3.5" />
+            </button>
+          </span>
+        ))}
+      </div>
+      <form
+        className="flex gap-2"
+        onSubmit={(e) => {
+          e.preventDefault();
+          add(name);
+          setName("");
+        }}
+      >
+        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("instapaperAddTag")} aria-label={t("instapaperAddTag")} maxLength={60} />
+        <Button type="submit" variant="tonal" disabled={!name.trim()}>
+          <Plus />
+          {t("add")}
+        </Button>
+      </form>
+      {others.length > 0 ? (
         <div className="flex flex-wrap gap-1.5">
-          {b.tags.length === 0 ? <p className="text-sm text-muted-foreground">{t("instapaperEmpty")}</p> : null}
-          {b.tags.map((x) => (
-            <span key={x.id} className="inline-flex items-center gap-1 rounded-full bg-accent px-3 py-1 text-sm text-accent-foreground">
+          {others.map((x) => (
+            <button key={x.id} type="button" onClick={() => add(x.name)} className="inline-flex cursor-pointer items-center gap-1 rounded-full border px-3 py-1 text-sm hover:bg-muted">
+              <Plus className="size-3.5" />
               {x.name}
-              <button type="button" className="cursor-pointer rounded-full hover:bg-background/60" aria-label={`${t("instapaperRemoveTag")}: ${x.name}`} title={t("instapaperRemoveTag")} onClick={() => void app.tagBookmark(b, [], [x.id])}>
-                <X className="size-3.5" />
-              </button>
-            </span>
+            </button>
           ))}
         </div>
-        <form
-          className="flex gap-2"
-          onSubmit={(e) => {
-            e.preventDefault();
-            add(name);
-            setName("");
-          }}
-        >
-          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("instapaperAddTag")} aria-label={t("instapaperAddTag")} maxLength={60} />
-          <Button type="submit" variant="tonal" disabled={!name.trim()}>
-            <Plus />
-            {t("add")}
-          </Button>
-        </form>
-        {others.length > 0 ? (
-          <div className="flex flex-wrap gap-1.5">
-            {others.map((x) => (
-              <button key={x.id} type="button" onClick={() => add(x.name)} className="inline-flex cursor-pointer items-center gap-1 rounded-full border px-3 py-1 text-sm hover:bg-muted">
-                <Plus className="size-3.5" />
-                {x.name}
-              </button>
-            ))}
-          </div>
-        ) : null}
-      </div>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * Opens right after a feed article is saved to Instapaper: put it in a folder and tag it at once.
+ * Every choice applies straight away; closing leaves the article as it is (in Unread).
+ */
+export function JustSavedDialog() {
+  const { instapaperJustSaved: b, instapaperFolders } = useApp();
+  const chip = (folderId: number | null, label: string) => {
+    const selected = (b?.folder_id ?? null) === folderId;
+    return (
+      <button
+        key={folderId ?? "home"}
+        type="button"
+        role="radio"
+        aria-checked={selected}
+        onClick={() => b && !selected && void app.moveBookmark(b, folderId)}
+        className={cn(
+          "inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm",
+          selected ? "border-transparent bg-accent font-medium text-accent-foreground" : "hover:bg-muted",
+        )}
+      >
+        {folderId === null ? <Inbox className="size-4" /> : <FolderInput className="size-4" />}
+        {label}
+      </button>
+    );
+  };
+  return (
+    <Dialog
+      open={b !== null}
+      onOpenChange={(o) => !o && app.closeJustSaved()}
+      title={t("instapaperSaved")}
+      closeLabel={t("close")}
+      footer={<Button onClick={app.closeJustSaved}>{t("done")}</Button>}
+    >
+      {b ? (
+        <div className="space-y-5">
+          <section className="space-y-2">
+            <h3 className="text-sm font-medium text-primary">{t("folder")}</h3>
+            <div role="radiogroup" aria-label={t("folder")} className="flex flex-wrap gap-1.5">
+              {chip(null, t("unread"))}
+              {instapaperFolders.map((f) => chip(f.id, f.title))}
+            </div>
+          </section>
+          <section className="space-y-2">
+            <h3 className="text-sm font-medium text-primary">{t("instapaperTags")}</h3>
+            <TagsEditor bookmark={b} />
+          </section>
+        </div>
+      ) : null}
     </Dialog>
   );
 }

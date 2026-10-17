@@ -208,5 +208,7 @@
     <string name="instapaper_remove_tag">Tag verwijderen</string>
     <string name="action_close">Sluiten</string>
     <string name="instapaper_tags">Tags</string>
+    <string name="instapaper_folder">Map</string>
+    <string name="action_done">Klaar</string>
     <string name="instapaper_folders">Mappen</string>
 </resources>

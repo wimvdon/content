@@ -12,6 +12,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.heading
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Button
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -165,65 +171,129 @@ private fun MoveDialog(
 }
 
 /** The article's tags (tap one to remove it), a new one to type, and the account's other tags to add. */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun TagsDialog(
     saved: SavedArticle,
     onDismiss: () -> Unit,
 ) {
-    val b = saved.bookmark
-    var name by rememberSaveable { mutableStateOf("") }
-    val others = saved.tags.filter { tag -> b.tags.none { it.name.equals(tag.name, ignoreCase = true) } }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.instapaper_tags)) },
         text = {
-            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    b.tags.forEach { tag ->
-                        InputChip(
-                            selected = true,
-                            onClick = { saved.onRemoveTag(tag) },
-                            label = { Text(tag.name) },
-                            trailingIcon = {
-                                Icon(
-                                    painterResource(R.drawable.ic_close),
-                                    contentDescription = stringResource(R.string.instapaper_remove_tag),
-                                    modifier = Modifier.size(18.dp),
-                                )
-                            },
-                        )
-                    }
-                }
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text(stringResource(R.string.instapaper_add_tag)) },
-                    singleLine = true,
-                    trailingIcon = {
-                        IconButton(
-                            onClick = {
-                                saved.onAddTag(name)
-                                name = ""
-                            },
-                            enabled = name.isNotBlank(),
-                        ) { Icon(painterResource(R.drawable.ic_add), contentDescription = stringResource(R.string.instapaper_add_tag)) }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                if (others.isNotEmpty()) {
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        others.forEach { tag ->
-                            AssistChip(
-                                onClick = { saved.onAddTag(tag.name) },
-                                label = { Text(tag.name) },
-                                leadingIcon = { Icon(painterResource(R.drawable.ic_add), contentDescription = null, modifier = Modifier.size(18.dp)) },
-                            )
-                        }
-                    }
-                }
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                TagsEditor(saved.bookmark, saved.tags, saved.onAddTag, saved.onRemoveTag)
             }
         },
         confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_close)) } },
     )
+}
+
+/** The tags of [bookmark] as removable chips, a field for a new one, and [allTags] it doesn't have yet to add with a tap. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun TagsEditor(
+    bookmark: InstapaperBookmark,
+    allTags: List<InstapaperTag>,
+    onAddTag: (String) -> Unit,
+    onRemoveTag: (InstapaperTag) -> Unit,
+) {
+    var name by rememberSaveable { mutableStateOf("") }
+    val others = allTags.filter { tag -> bookmark.tags.none { it.name.equals(tag.name, ignoreCase = true) } }
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        if (bookmark.tags.isNotEmpty()) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                bookmark.tags.forEach { tag ->
+                    InputChip(
+                        selected = true,
+                        onClick = { onRemoveTag(tag) },
+                        label = { Text(tag.name) },
+                        trailingIcon = {
+                            Icon(
+                                painterResource(R.drawable.ic_close),
+                                contentDescription = stringResource(R.string.instapaper_remove_tag),
+                                modifier = Modifier.size(18.dp),
+                            )
+                        },
+                    )
+                }
+            }
+        }
+        OutlinedTextField(
+            value = name,
+            onValueChange = { name = it },
+            label = { Text(stringResource(R.string.instapaper_add_tag)) },
+            singleLine = true,
+            trailingIcon = {
+                IconButton(
+                    onClick = {
+                        onAddTag(name)
+                        name = ""
+                    },
+                    enabled = name.isNotBlank(),
+                ) { Icon(painterResource(R.drawable.ic_add), contentDescription = stringResource(R.string.instapaper_add_tag)) }
+            },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        if (others.isNotEmpty()) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                others.forEach { tag ->
+                    AssistChip(
+                        onClick = { onAddTag(tag.name) },
+                        label = { Text(tag.name) },
+                        leadingIcon = { Icon(painterResource(R.drawable.ic_add), contentDescription = null, modifier = Modifier.size(18.dp)) },
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Opens right after a feed article is saved to Instapaper: put it in a folder and tag it at once.
+ * Every tap applies straight away; closing the sheet leaves the article as it is (in Unread).
+ */
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+@Composable
+fun JustSavedSheet(
+    bookmark: InstapaperBookmark,
+    folders: List<InstapaperFolder>,
+    tags: List<InstapaperTag>,
+    onMove: (Long?) -> Unit,
+    onAddTag: (String) -> Unit,
+    onRemoveTag: (InstapaperTag) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(
+            Modifier
+                .verticalScroll(rememberScrollState())
+                .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Text(
+                stringResource(R.string.instapaper_saved),
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.semantics { heading() },
+            )
+            Text(stringResource(R.string.instapaper_folder), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FilterChip(
+                    selected = bookmark.folderId == null,
+                    onClick = { if (bookmark.folderId != null) onMove(null) },
+                    label = { Text(stringResource(R.string.filter_unread)) },
+                )
+                folders.forEach { folder ->
+                    FilterChip(
+                        selected = bookmark.folderId == folder.id,
+                        onClick = { if (bookmark.folderId != folder.id) onMove(folder.id) },
+                        label = { Text(folder.title) },
+                        leadingIcon = { Icon(painterResource(R.drawable.ic_folder), contentDescription = null, modifier = Modifier.size(18.dp)) },
+                    )
+                }
+            }
+            Text(stringResource(R.string.instapaper_tags), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+            TagsEditor(bookmark, tags, onAddTag, onRemoveTag)
+            Button(onClick = onDismiss, modifier = Modifier.align(Alignment.End)) { Text(stringResource(R.string.action_done)) }
+        }
+    }
 }
