@@ -146,7 +146,7 @@ fun RssReaderNavigation() {
         readThisVisit = emptySet()
         app.appScope.launch {
             // Read marks and feeds from other devices first, so they apply to the new articles.
-            app.sync.syncIfDue()
+            app.sync.sync()
             val failed = repository.refreshAll()
             if (failed > 0) showMessage(resources.getQuantityString(R.plurals.refresh_failed, failed, failed))
         }
