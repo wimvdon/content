@@ -331,6 +331,10 @@ private fun ArticleBody(
             for (block in blocks) {
                 when (block) {
                     is ArticleBlock.Text -> TextBlock(block.html, bodyStyle, links) { openLink(it) }
+                    is ArticleBlock.Heading -> HeadingBlock(block, bodyStyle, links) { openLink(it) }
+                    is ArticleBlock.Quote -> QuoteBlock(block, bodyStyle, links) { openLink(it) }
+                    is ArticleBlock.Code -> CodeBlock(block, bodyStyle)
+                    is ArticleBlock.ListBlock -> ListBlockView(block, bodyStyle, links) { openLink(it) }
                     is ArticleBlock.Image -> InlineImage(block.url, block.caption)
                     is ArticleBlock.Embed -> EmbedCard(block, showThumbnail = showImages, onOpen = { openLink(block.url) })
                 }

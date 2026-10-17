@@ -69,6 +69,47 @@ class ArticleExtractorTest {
     }
 
     @Test
+    fun `a div per paragraph becomes a paragraph`() {
+        val html =
+            page(
+                """
+                <div class="article-body">
+                  <div class="paragraph">One. $paragraph</div>
+                  <div class="paragraph">Two, with <a href="/x">a link</a>. $paragraph</div>
+                  <div class="paragraph"><span>Three.</span> $paragraph<br>Same paragraph.</div>
+                </div>
+                """,
+            )
+        val article = ArticleExtractor.extract(html, "https://example.com/")!!
+        assertTrue(article, article.contains("<p>One. $paragraph</p>"))
+        assertTrue(article, article.contains("<p>Two, with <a href=\"https://example.com/x\">a link</a>. $paragraph</p>"))
+        assertTrue(article, article.contains("<p>Three. $paragraph<br>Same paragraph.</p>"))
+        val blocks = ArticleBlocks.split(article, "https://example.com/")
+        assertEquals(3, blocks.size)
+    }
+
+    @Test
+    fun `utility class names don't hide the article`() {
+        val html =
+            page(
+                """
+                <div class="relative overflow-hidden shadow-lg">
+                  <div class="text-lg leading-7 md:hidden-none">
+                    <p>$paragraph</p><p>$paragraph</p>
+                    <p class="md:hidden">Visible on phones. $paragraph</p>
+                    <p class="hidden">Hidden everywhere. $paragraph</p>
+                    <div class="share-buttons"><p>Share this article with friends on every network there is.</p></div>
+                  </div>
+                </div>
+                """,
+            )
+        val article = ArticleExtractor.extract(html, "https://example.com/")!!
+        assertTrue(article.contains("Visible on phones."))
+        assertFalse(article.contains("Hidden everywhere."))
+        assertFalse(article.contains("Share this"))
+    }
+
+    @Test
     fun `keeps sections split over sibling containers`() {
         val html =
             page(
@@ -82,6 +123,55 @@ class ArticleExtractorTest {
         val article = ArticleExtractor.extract(html, "https://example.com/")!!
         assertTrue(article.contains("First part"))
         assertTrue(article.contains("Second part"))
+    }
+
+    @Test
+    fun `keeps every paragraph when each sits in boxes of its own (VRT NWS)`() {
+        val body =
+            (1..8).joinToString("") { n -> """<div class=""><div class="flex flex-col gap-4"><p>Body $n. $paragraph</p></div></div>""" }
+        val html =
+            page(
+                """
+                <article class="grid"><div class="min-w-0"><div class="flex flex-col"><div class="flex flex-col gap-3">
+                  <div class="pb-4"><div class="flex flex-col">
+                    <h1>Title</h1>
+                    <div class="order-5 prose-article-body-r"><p>Lead paragraph. $paragraph $paragraph</p></div>
+                  </div></div>
+                  <div class="pb-4"><div class="bg-primary"><div class="prose-article-body-m">
+                    <ul class="prose-article-body-r"><li>Summary one. $paragraph</li><li>Summary two. $paragraph</li><li>Summary three. $paragraph</li></ul>
+                  </div></div></div>
+                  $body
+                </div></div></div></article>
+                """,
+            )
+        val article = ArticleExtractor.extract(html, "https://example.com/")!!
+        assertTrue(article.contains("Lead paragraph"))
+        for (n in 1..8) assertTrue("Body $n is missing", article.contains("Body $n."))
+    }
+
+    @Test
+    fun `joins an article split into look-alike containers with ads in between (Ars Technica)`() {
+        fun part(name: String) =
+            """
+            <div class="my-2.5 mx-auto"><div class="relative">
+              <div class="post-content post-content-double"><p>$name. $paragraph</p><p>$paragraph</p><p>$paragraph</p></div>
+            </div><div class="hidden lg:block"><div class="ad ad--rail"></div></div></div>
+            <div class="ad-wrapper"><div class="ad ad--mid-content"><p>Advertisement text that is long enough to count.</p></div></div>
+            """
+        val html = page("<main><article class=\"double-column\">${part("First part")}${part("Second part")}${part("Third part")}</article></main>")
+        val article = ArticleExtractor.extract(html, "https://example.com/")!!
+        assertTrue(article.contains("First part"))
+        assertTrue(article.contains("Second part"))
+        assertTrue(article.contains("Third part"))
+        assertFalse(article.contains("Advertisement"))
+    }
+
+    @Test
+    fun `keeps words that a site puts in buttons inside the text`() {
+        val html = page("""<article><p>At 280 <button type="button">light years</button> from here. $paragraph $paragraph $paragraph</p><button>Share</button></article>""")
+        val article = ArticleExtractor.extract(html, "https://example.com/")!!
+        assertTrue(article.contains("At 280 light years from here."))
+        assertFalse(article.contains("Share"))
     }
 
     @Test
