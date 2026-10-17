@@ -55,6 +55,9 @@ Secrets, keystores (`*.jks`, `*.keystore`), `keystore.properties`, passwords or 
 - Versions are automatic (git tags / release workflow). Don't edit `versionName`/`versionCode`.
 
 ## Web app and feed loader
+- **Paused since 2026-10-17** (`docs/decisions.md`): their CI job and npm updates are commented
+  out and Cloudflare no longer needs to build them. Don't change `web/` or `worker/` unless the
+  owner asks to resume; the sync format in `docs/sync.md` stays the same, so they still fit.
 - `web/` is the web app (React, TypeScript, Vite, Tailwind, shadcn-style parts in
   `src/components/ui/`), `worker/` the Cloudflare Worker that loads feeds for it. The Android
   rules above apply in spirit: logic in `web/src/lib/` with Vitest tests, all text in
