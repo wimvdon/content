@@ -5,6 +5,7 @@ Newest first. Add an entry for every notable choice: what was decided, why, and 
 ## 2026-10-17: File an article in Instapaper right after saving it
 
 The owner wanted to tag a feed article or put it in a folder as soon as it is saved, instead of finding it again under Instapaper. Save now opens a sheet (Android) or dialog (web) titled "Saved to Instapaper" with the folders as chips (Unread selected) and the same tag editor as a saved article's Tags. Every tap applies at once, like the reader's own Move and Tags; Done or closing leaves the rest as it is. Rejected: a snackbar with an action (it disappears before you decide) and asking before saving (saving should stay one tap).
+
 ## 2026-10-17: The real logo in the drawer and the web app
 
 The ☰ drawer and the web app's sidebar opened with a generated mark (a plain feed symbol on a tinted circle), and the web app's favicon drew the feed symbol with other proportions than the Android icon. The owner asked for the real logo everywhere: both headers now show the launcher icon (its foreground on white, in a circle), and the web favicon uses the same symbol and gradient as the Android icon. Rejected: tinting the logo with the theme (it would no longer be the logo).
