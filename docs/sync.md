@@ -1,7 +1,7 @@
 # Sync
 
-Reader can keep feeds, folders and read articles the same on every device and in the web
-app. The data lives in the user's own storage; there is no Reader server.
+Reader can keep feeds, folders, read articles and settings (with the Instapaper sign-in) the
+same on every device and in the web app. The data lives in the user's own storage; there is no Reader server.
 
 ## Services
 
@@ -39,7 +39,7 @@ Sync says to click **Connect**.
 ```json
 {
   "format": "rss-reader-sync",
-  "version": 1,
+  "version": 2,
   "folders": [{ "id": "…uuid…", "title": "News", "icon": "newspaper" }],
   "feeds": [
     {
@@ -51,7 +51,8 @@ Sync says to click **Connect**.
       "iconUrl": "https://example.com/icon.png or null"
     }
   ],
-  "read": { "https://example.com/feed.xml <article id>": 1760000000000 }
+  "read": { "https://example.com/feed.xml <article id>": 1760000000000 },
+  "settings": { "theme": "dark", "reader.textSize": "20", "instapaper.token": "…" }
 }
 ```
 
@@ -64,6 +65,27 @@ Sync says to click **Connect**.
   `hash:` + the hex of Java's `String.hashCode` of `title|date|first 500 characters of the text`
   (see `FeedParser.fallbackId`). The web app computes the same ids.
 - Articles themselves are not synced: every device downloads them from the feeds.
+- `settings` (added in version 2) maps shared names to text values (`SyncSettings` on Android,
+  `web/src/lib/syncSettings.ts`). Each app reads the names it knows and keeps the others, so
+  Android-only settings survive a sync from the web:
+
+  | Name | Values | Apps |
+  |---|---|---|
+  | `theme` | `system`, `light`, `dark` | both |
+  | `dynamicColor` | `true`, `false` | Android |
+  | `reader.font` | `sans`, `serif` | both |
+  | `reader.textSize` | `14` to `28` | both |
+  | `reader.spacing` | `compact`, `normal`, `relaxed` | both |
+  | `reader.background` | `default`, `sepia`, `dark` | both |
+  | `reader.autoDark` | `true`, `false` | both |
+  | `unreadOnly` | `true`, `false` | both |
+  | `fullArticles` | `true`, `false` | both |
+  | `showImages` | `true`, `false` | Android |
+  | `markReadOnScroll` | `true`, `false` | both |
+  | `listView` | `small`, `medium`, `large` | Android |
+  | `instapaper.token`, `instapaper.username`, `instapaper.userId` | the Instapaper sign-in; absent when signed out | both |
+
+  Not synced: the Save and Share targets (each phone has its own apps) and the sync choice itself.
 - A reader that finds a higher `version` leaves the file alone and asks to update the app.
 
 ## Merging
@@ -77,8 +99,13 @@ current file and merges three ways (`sync/SyncMerge.kt`):
 - The order comes from the side that reordered.
 - Read marks: an article read or unread on one side follows that side. Articles a device doesn't
   have yet count as unchanged; when they arrive they arrive already read.
+- Settings: per name, a change on one side wins; both changed, this device wins. A removed name
+  (Instapaper signed out) is a change too, so signing out on one device signs out everywhere.
 - Without a file (the first device), the device's library becomes the file. Without a base (a
-  device connecting for the first time), both sides are combined.
+  device connecting for the first time), both sides are combined. A device that has no synced
+  settings in its base (new, or last synced before settings were in the file) takes the file's
+  settings, keeping its own only for names the file doesn't have, so its defaults never overwrite
+  the user's choices.
 
 ## Google Cloud setup (owner)
 

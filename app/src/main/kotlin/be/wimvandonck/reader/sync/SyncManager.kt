@@ -8,15 +8,19 @@ import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.dataStoreFile
 import be.wimvandonck.reader.data.LibraryRepository
 import be.wimvandonck.reader.data.SettingsStore
+import be.wimvandonck.reader.instapaper.InstapaperAccount
+import be.wimvandonck.reader.instapaper.InstapaperState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -37,7 +41,7 @@ sealed interface SyncStatus {
 }
 
 /**
- * Syncs feeds, folders and read articles with the chosen service while the app is in use: when it
+ * Syncs feeds, folders, read articles and settings (with the Instapaper sign-in) with the chosen service while the app is in use: when it
  * comes on screen and every minute while it stays there ([whileVisible]), a few seconds after a
  * change, on refresh, and on request. Never in the background.
  */
@@ -46,6 +50,7 @@ class SyncManager(
     private val scope: CoroutineScope,
     private val library: LibraryRepository,
     private val settings: SettingsStore,
+    private val instapaper: InstapaperAccount,
     private val provider: (SyncService) -> SyncProvider?,
     private val clock: () -> Long = System::currentTimeMillis,
 ) {
@@ -73,9 +78,12 @@ class SyncManager(
         // The first sync comes from whileVisible, which runs as soon as the app is on screen.
         scope.launch { library.knownRead = base()?.read?.keys.orEmpty() }
         scope.launch {
-            library.library
-                .filterNotNull()
-                .map { SyncDocument.of(it) }
+            // A change to the library, a synced setting or the Instapaper sign-in.
+            combine(
+                library.library.filterNotNull().map { SyncDocument.of(it) },
+                settings.settings.filterNotNull(),
+                instapaper.state.filter { it != InstapaperState.Loading },
+            ) { doc, s, account -> doc.copy(settings = SyncSettings.of(s, (account as? InstapaperState.SignedIn)?.session)) }
                 .distinctUntilChanged()
                 .drop(1)
                 .debounce(SyncTiming.CHANGE_DELAY_MS)
@@ -141,9 +149,11 @@ class SyncManager(
         val remote = remoteText?.let { SyncDocument.decode(it) ?: throw SyncException(SyncProblem.UnreadableFile) }
         // Without a file there is nothing to merge with: this device's library becomes the file.
         val base = if (remote == null) null else base()
+        val localSettings =
+            SyncSettings.of(settings.settings.filterNotNull().first(), instapaper.session(), base?.settings.orEmpty())
         val (merged, newFeeds) =
             library.update { current ->
-                val local = SyncMerge.localDocument(current, base)
+                val local = SyncMerge.localDocument(current, base).copy(settings = localSettings)
                 val merged = if (remote == null) local else SyncMerge.merge(base, local, remote)
                 SyncMerge.apply(current, merged) to (merged to SyncMerge.hasNewFeeds(current, merged))
             }
@@ -151,6 +161,9 @@ class SyncManager(
         if (out != remote) target.write(SyncDocument.encode(out))
         baseStore.updateData { SyncDocument.encode(out) }
         library.knownRead = out.read.keys
+        settings.applySynced(out.settings)
+        val session = SyncSettings.instapaperOf(out.settings)
+        if (session != instapaper.session()) instapaper.setSession(session)
         if (newFeeds) scope.launch { library.refreshAll() }
     }
 

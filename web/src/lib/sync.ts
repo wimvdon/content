@@ -25,10 +25,13 @@ export interface SyncDocument {
   feeds: SyncFeed[];
   /** Read article key → the article's date in ms. */
   read: Record<string, number>;
+  /** Shared setting name → text value (syncSettings.ts). */
+  settings: Record<string, string>;
 }
 
 export const FORMAT = "rss-reader-sync";
-export const VERSION = 1;
+// 2 added settings; older apps leave such a file alone and ask to be updated.
+export const VERSION = 2;
 export const KEEP_READ_MS = 120 * 24 * 60 * 60 * 1000;
 
 /** When sync runs while the app is open, the same as the Android app's SyncTiming. */
@@ -45,7 +48,7 @@ export function syncDue(lastSyncedAt: number | null, now: number): boolean {
   return since < 0 || since >= MIN_GAP_MS;
 }
 
-export const emptyDocument = (): SyncDocument => ({ folders: [], feeds: [], read: {} });
+export const emptyDocument = (): SyncDocument => ({ folders: [], feeds: [], read: {}, settings: {} });
 
 export const feedUrlOf = (key: string) => key.split(" ")[0];
 
@@ -56,6 +59,7 @@ export function documentOf(lib: Library): SyncDocument {
     folders: lib.folders.map((f) => ({ id: f.id, title: f.title, icon: f.icon })),
     feeds: lib.feeds.map((f) => ({ url: f.url, title: f.title, renamed: f.renamed, folderId: f.folderId, siteUrl: f.siteUrl, iconUrl: f.iconUrl })),
     read,
+    settings: {},
   };
 }
 
@@ -68,6 +72,7 @@ export function encode(doc: SyncDocument): string {
     folders: doc.folders.map((f) => ({ id: f.id, title: f.title, icon: f.icon })),
     feeds: doc.feeds.map((f) => ({ url: f.url, title: f.title, renamed: f.renamed, folderId: f.folderId, siteUrl: f.siteUrl, iconUrl: f.iconUrl })),
     read,
+    settings: Object.fromEntries(Object.keys(doc.settings).sort().map((k) => [k, doc.settings[k]])),
   });
 }
 
@@ -101,7 +106,9 @@ export function decode(text: string): SyncDocument | null {
   }
   const read: Record<string, number> = {};
   if (isObject(root.read)) for (const [k, v] of Object.entries(root.read)) if (typeof v === "number") read[k] = Math.trunc(v);
-  return { folders, feeds, read };
+  const settings: Record<string, string> = {};
+  if (isObject(root.settings)) for (const [k, v] of Object.entries(root.settings)) if (typeof v === "string") settings[k] = v;
+  return { folders, feeds, read, settings };
 }
 
 export function pruned(doc: SyncDocument, keepSince: number): SyncDocument {
@@ -118,7 +125,19 @@ export function merge(base: SyncDocument | null, local: SyncDocument, remote: Sy
   const feeds = mergeRecords(b.feeds, local.feeds, remote.feeds, (f) => f.url).map((f) =>
     f.folderId && !folderIds.has(f.folderId) ? { ...f, folderId: null } : f,
   );
-  return { folders, feeds, read: mergeRead(b.read, local.read, remote.read) };
+  // A device without synced settings yet takes the file's, so its defaults don't overwrite them.
+  const settings = Object.keys(b.settings).length === 0 ? { ...local.settings, ...remote.settings } : mergeSettings(b.settings, local.settings, remote.settings);
+  return { folders, feeds, read: mergeRead(b.read, local.read, remote.read), settings };
+}
+
+/** Per setting: a change in this browser wins, otherwise the other devices' value (or its removal). */
+function mergeSettings(base: Record<string, string>, local: Record<string, string>, remote: Record<string, string>): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const k of new Set([...Object.keys(base), ...Object.keys(local), ...Object.keys(remote)])) {
+    const value = local[k] === base[k] ? remote[k] : local[k];
+    if (value !== undefined) out[k] = value;
+  }
+  return out;
 }
 
 function same<T>(a: T | undefined, b: T | undefined): boolean {

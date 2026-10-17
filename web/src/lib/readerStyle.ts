@@ -39,19 +39,19 @@ export function pageBackground(style: ReaderStyle, appDark: boolean): ReaderBack
   return style.autoDark && appDark ? "dark" : style.background;
 }
 
-/** A stored style, with anything missing or unknown replaced by the default. */
-export function readerStyleOf(saved: unknown): ReaderStyle {
+/** A stored style, with anything missing or unknown replaced by fallback (the default style). */
+export function readerStyleOf(saved: unknown, fallback: ReaderStyle = defaultReaderStyle): ReaderStyle {
   const s = (saved && typeof saved === "object" ? saved : {}) as Partial<Record<keyof ReaderStyle, unknown>>;
-  const pick = <T extends string>(value: unknown, options: readonly T[], fallback: T): T =>
-    options.includes(value as T) ? (value as T) : fallback;
+  const pick = <T extends string>(value: unknown, options: readonly T[], otherwise: T): T =>
+    options.includes(value as T) ? (value as T) : otherwise;
   return withTextSize(
     {
-      font: pick(s.font, ["sans", "serif"], defaultReaderStyle.font),
-      textSize: DEFAULT_TEXT_SIZE,
-      spacing: pick(s.spacing, ["compact", "normal", "relaxed"], defaultReaderStyle.spacing),
-      background: pick(s.background, ["default", "sepia", "dark"], defaultReaderStyle.background),
-      autoDark: typeof s.autoDark === "boolean" ? s.autoDark : defaultReaderStyle.autoDark,
+      font: pick(s.font, ["sans", "serif"], fallback.font),
+      textSize: fallback.textSize,
+      spacing: pick(s.spacing, ["compact", "normal", "relaxed"], fallback.spacing),
+      background: pick(s.background, ["default", "sepia", "dark"], fallback.background),
+      autoDark: typeof s.autoDark === "boolean" ? s.autoDark : fallback.autoDark,
     },
-    typeof s.textSize === "number" && Number.isFinite(s.textSize) ? s.textSize : DEFAULT_TEXT_SIZE,
+    typeof s.textSize === "number" && Number.isFinite(s.textSize) ? s.textSize : fallback.textSize,
   );
 }

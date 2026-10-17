@@ -59,8 +59,10 @@ after them. A feed added while a folder is open goes into that folder.
 
 Settings › **Sync** › **Connect** links the app to your Google Drive. Google asks once whether
 Reader may use its own hidden folder there (it can't see your other files). From then on
-your feeds, folders and read articles stay the same on every phone where you connect, and in the
-web app. The app syncs while it is on screen: when you open it, every minute, a
+your feeds, folders, read articles and settings stay the same on every phone where you connect,
+and in the web app. Signed in to Instapaper on one, you are signed in on all of them (and signing
+out signs out everywhere). The Save and Share apps stay per phone. A phone connecting for the first
+time takes the settings you already have. The app syncs while it is on screen: when you open it, every minute, a
 couple of seconds after you read an article or change a feed, when you refresh, and when you tap
 **Sync now**; the line under Google Drive says when it last did, or what went wrong.
 **Disconnect** stops syncing on this phone. See [sync.md](sync.md) for how it works.

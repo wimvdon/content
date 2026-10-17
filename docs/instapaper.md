@@ -16,7 +16,8 @@ in, Save works as before: Instapaper's app or the share menu (see `usage.md`).
 3. The app checks `state`, then asks the feed loader (`POST /instapaper/token`) to swap the code for
    an access token. That swap needs the **client secret**, which can't live in an app or in the web
    bundle, so only the Worker has it.
-4. The token never expires. It is kept on the device, and Instapaper refusing it (401) signs the
+4. The token never expires. It is kept on the device and, with Drive sync on, in the sync file
+   (`docs/sync.md`), so signing in once signs in every device. Instapaper refusing it (401) signs the
    user out.
 
 One callback address serves both apps:

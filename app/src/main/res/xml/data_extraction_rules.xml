@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- What Android may back up to the user's Google account / copy to a new phone: the feed list,
      read state, downloaded articles and settings. The Instapaper sign-in (datastore/instapaper) is
-     a secret and stays on this phone. Full articles live in the cache folder, which Android never
+     a secret and stays out of backups (it reaches other devices only through the user's own Drive
+     sync file). Full articles live in the cache folder, which Android never
      backs up. -->
 <data-extraction-rules>
     <cloud-backup>

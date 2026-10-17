@@ -58,7 +58,7 @@ class RssReaderApp :
     /** Sync with the user's own storage (Google Drive's hidden app folder). See sync/. */
     val sync: SyncManager by lazy {
         val http = OkHttpClient()
-        SyncManager(this, appScope, library, settings, provider = { service ->
+        SyncManager(this, appScope, library, settings, instapaper, provider = { service ->
             when (service) {
                 SyncService.None -> null
                 SyncService.GoogleDrive -> GoogleDrive(http, token = googleAuth::token, onUnauthorized = googleAuth::forget)

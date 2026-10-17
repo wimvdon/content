@@ -26,6 +26,7 @@ import { fetchViaProxy, FetchError } from "./proxy";
 import { defaultReaderStyle, readerStyleOf, type ReaderStyle } from "./readerStyle";
 import { load, remove, save } from "./storage";
 import * as S from "./sync";
+import * as SS from "./syncSettings";
 
 /** Everything the web app shows, kept in one place; components subscribe with useApp(). */
 
@@ -54,7 +55,7 @@ export interface State {
   refreshing: boolean;
   problems: Map<string, FetchError["kind"] | "notAFeed">;
   syncStatus: SyncStatus;
-  /** The Instapaper account, when signed in. Kept in this browser only, never in the sync file. */
+  /** The Instapaper account, when signed in. Kept in this browser, and in the sync file when Drive sync is on. */
   instapaper: InstapaperSession | null;
   /** The result of coming back from Instapaper's sign-in page, shown once. */
   instapaperNotice: "signedIn" | "failed" | null;
@@ -80,7 +81,7 @@ const INSTAPAPER_PAGE = 25;
 
 const INSTAPAPER_STATE_KEY = "instapaper-sign-in-state";
 
-const defaults: Settings = {
+export const defaultSettings: Settings = {
   syncService: "none",
   lastSyncedAt: null,
   unreadOnly: true,
@@ -96,7 +97,7 @@ class AppStore {
   private state: State = {
     loaded: false,
     library: L.emptyLibrary(),
-    settings: defaults,
+    settings: defaultSettings,
     selection: { kind: "all" },
     readThisVisit: new Set(),
     refreshing: false,
@@ -138,7 +139,7 @@ class AppStore {
       load<string>("syncBase").catch(() => undefined),
       load<InstapaperSession>("instapaper").catch(() => undefined),
     ]);
-    const merged = { ...defaults, ...settings, readerStyle: readerStyleOf(settings?.readerStyle) };
+    const merged = { ...defaultSettings, ...settings, readerStyle: readerStyleOf(settings?.readerStyle) };
     this.knownRead = new Set(Object.keys((base && S.decode(base)?.read) || {}));
     this.set({ loaded: true, library: library ?? L.emptyLibrary(), settings: merged, instapaper: instapaper?.token ? instapaper : null });
     void this.loadInstapaperSides();
@@ -171,16 +172,22 @@ class AppStore {
   }
 
   private scheduleSync(before: L.Library, after: L.Library) {
+    if (S.encode(S.documentOf(before)) !== S.encode(S.documentOf(after))) this.syncSoon();
+  }
+
+  /** Syncs a moment after the last of a row of changes. */
+  private syncSoon() {
     if (this.state.settings.syncService === "none") return;
-    if (S.encode(S.documentOf(before)) === S.encode(S.documentOf(after))) return;
     if (this.syncTimer) clearTimeout(this.syncTimer);
     this.syncTimer = setTimeout(() => void this.sync(), S.CHANGE_DELAY_MS);
   }
 
-  updateSettings(patch: Partial<Settings>) {
-    const settings = { ...this.state.settings, ...patch };
+  updateSettings(patch: Partial<Settings>, syncSoon = true) {
+    const before = this.state.settings;
+    const settings = { ...before, ...patch };
     this.set({ settings });
     void save("settings", settings).catch(() => undefined);
+    if (syncSoon && !sameValues(SS.syncedSettings(before, null), SS.syncedSettings(settings, null))) this.syncSoon();
   }
 
   select(selection: L.Selection) {
@@ -351,6 +358,7 @@ class AppStore {
       await save("instapaper", session);
       this.set({ instapaper: session, instapaperNotice: "signedIn" });
       void this.loadInstapaperSides();
+      this.syncSoon();
     } catch {
       this.set({ instapaperNotice: "failed" });
     }
@@ -361,7 +369,19 @@ class AppStore {
   }
 
   async disconnectInstapaper() {
-    await remove("instapaper").catch(() => undefined);
+    await this.setInstapaper(null);
+    this.syncSoon();
+  }
+
+  /** Signs in or out in this browser, for example because another device did (sync). */
+  private async setInstapaper(session: InstapaperSession | null) {
+    if (session) await save("instapaper", session).catch(() => undefined);
+    else await remove("instapaper").catch(() => undefined);
+    if (session) {
+      this.set({ instapaper: session });
+      void this.loadInstapaperSides();
+      return;
+    }
     this.set({ instapaper: null, instapaperFolders: [], instapaperTags: [], instapaperList: emptyInstapaperList, instapaperOpen: null });
     if (this.state.selection.kind === "instapaper") this.select({ kind: "all" });
   }
@@ -542,7 +562,7 @@ class AppStore {
       const baseText = remote ? await load<string>("syncBase").catch(() => undefined) : undefined;
       const base = baseText ? S.decode(baseText) : null;
       const current = this.state.library;
-      const local = S.localDocument(current, base);
+      const local = { ...S.localDocument(current, base), settings: SS.syncedSettings(this.state.settings, this.state.instapaper, base?.settings) };
       const merged = remote ? S.merge(base, local, remote) : local;
       const newFeeds = S.hasNewFeeds(current, merged);
       this.updateLibrary(() => S.apply(this.state.library, merged), false);
@@ -551,13 +571,24 @@ class AppStore {
       if (!remote || S.encode(remote) !== outText) await target.write(outText);
       await save("syncBase", outText);
       this.knownRead = new Set(Object.keys(out.read));
-      this.updateSettings({ lastSyncedAt: Date.now() });
+      this.updateSettings({ ...SS.applySynced(this.state.settings, out.settings), lastSyncedAt: Date.now() }, false);
+      const session = SS.instapaperOf(out.settings);
+      if (!sameSession(session, this.state.instapaper)) await this.setInstapaper(session);
       this.set({ syncStatus: { kind: "idle" } });
       if (newFeeds) void this.refresh();
     } catch (e) {
       this.set({ syncStatus: { kind: "failed", problem: e instanceof SyncError ? e.problem : "server" } });
     }
   }
+}
+
+function sameValues(a: Record<string, string>, b: Record<string, string>): boolean {
+  const keys = Object.keys(a);
+  return keys.length === Object.keys(b).length && keys.every((k) => a[k] === b[k]);
+}
+
+function sameSession(a: InstapaperSession | null, b: InstapaperSession | null): boolean {
+  return a === b || (!!a && !!b && a.token === b.token && a.username === b.username && a.userId === b.userId);
 }
 
 function size(link: HTMLLinkElement): number {
