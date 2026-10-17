@@ -35,7 +35,7 @@ export const KEEP_READ_MS = 120 * 24 * 60 * 60 * 1000;
 export const CHANGE_DELAY_MS = 2_000;
 /** While the page is visible it syncs this often, so changes from other devices come in. */
 export const VISIBLE_INTERVAL_MS = 60_000;
-/** Coming back, refreshing or the next minute skips sync when it ran this recently. */
+/** Coming back or the next minute skips sync when it ran this recently. A refresh never does. */
 export const MIN_GAP_MS = 10_000;
 
 /** True when a sync is worth doing: never synced, or not within the last MIN_GAP_MS. */
