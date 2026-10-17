@@ -172,8 +172,10 @@ Signed in:
 - **Save** (the bookmark button in the reader) saves the article to your Instapaper account. A
   sheet (a dialog on the web) opens at once: tap a folder to file it there and add tags, then
   **Done**. Close it to leave the article in Unread.
-- The ☰ menu (the web app: the sidebar) gets an **Instapaper** section under your feeds: Unread,
-  Liked, Archive, your Instapaper folders and your tags. Each shows its saved articles in the same
+- A bar at the bottom (on a tablet: at the side) switches between **Feeds** and **Instapaper**
+  (the web app: a Feeds | Instapaper switch at the top of the sidebar). On Instapaper, tabs under
+  the title show Unread, Liked, Archive, your Instapaper folders and **Tags** (chips under it pick
+  the tag); the ☰ menu then lists the same places. Each shows its saved articles in the same
   list as feed articles, and they open in the same reader (the whole article loads from its
   website, like a feed's). Saved articles have no read state and are not in All articles: you
   archive them yourself. In the reader: like (♥), archive (or move back to Unread), and in ⋮ move

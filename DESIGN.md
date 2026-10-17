@@ -242,9 +242,20 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   dialog, in the error colour. Settings sections: Feeds, Sync (Google Drive with Connect, or the last sync with Sync now and Disconnect), Article list, Reader, Save and share (integration), Appearance, footer.
 - Folder icons come from the whole Material Symbols set (outlined, rounded), picked with a search
   field and a grid in the folder dialog.
-- Folders: scrollable primary tabs under the top app bar (All with the feed symbol, then each
-  folder with its icon and name). Folders are peer views of one article list, so tabs, not a
-  navigation bar. The Mark all read FAB only marks the section shown.
+- Destinations: signed in to Instapaper, the app has two top-level destinations, Feeds (feed
+  symbol) and Instapaper (bookmarks, filled when selected, outlined otherwise), in Material's
+  docked `NavigationBar`; on windows 600dp and wider in a `NavigationRail` at the side, in the
+  same order. Without Instapaper there is one destination and no bar. Switching back returns
+  to the list last shown there; Back on Instapaper goes to Feeds.
+- Each destination has scrollable primary tabs under the top app bar for its peer views. Feeds:
+  All (feed symbol), then each folder with its icon and name. Instapaper: Unread, Liked,
+  Archive, each Instapaper folder, then Tags; under Tags a row of filter chips picks the tag
+  (tags come and go too often for a tab each). The Mark all read FAB and Unread | All are on
+  Feeds only; the FAB only marks the section shown.
+- The ☰ drawer lists only the shown destination's places (Feeds: All articles, the folders with
+  their feeds, the other feeds; Instapaper: Unread, Liked, Archive, its folders and tags), then
+  Manage feeds and folders and Settings. The web app's sidebar does the same, with a
+  Feeds | Instapaper switch (the connected button group) at the top.
 - Site icons sit on a fixed light tile (`#F4F4F4`, rounded, 10% padding) in light and dark mode,
   so logos drawn for light browser tabs keep their contrast; the letter fallback uses
   `tertiaryContainer`.
