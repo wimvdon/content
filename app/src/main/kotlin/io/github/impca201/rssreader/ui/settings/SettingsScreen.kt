@@ -172,7 +172,7 @@ private fun ListSection(
         }
         SwitchSetting(
             title = stringResource(R.string.setting_mark_read_on_scroll_title),
-            summary = stringResource(R.string.setting_mark_read_on_scroll_summary),
+            summary = null,
             checked = settings.markReadOnScroll,
             onCheckedChange = actions.onMarkReadOnScrollChange,
         )

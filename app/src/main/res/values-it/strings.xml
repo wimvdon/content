@@ -12,7 +12,7 @@
     <string name="theme_light">Chiaro</string>
     <string name="theme_dark">Scuro</string>
     <string name="setting_dynamic_color_title">Colori dinamici</string>
-    <string name="setting_dynamic_color_summary">Usa i colori dello sfondo invece del blu dell\'app</string>
+    <string name="setting_dynamic_color_summary">Usa i colori dello sfondo</string>
     <string name="loading">Caricamento…</string>
     <string name="action_add">Aggiungi</string>
     <string name="action_remove">Rimuovi</string>
@@ -29,7 +29,6 @@
     <string name="feeds_export">Esporta OPML</string>
     <string name="feeds_remove_title">Rimuovere il feed?</string>
     <string name="feeds_remove_body">%1$s e i suoi articoli verranno rimossi da questo telefono.</string>
-    <string name="add_feed_body">Scrivi l\'indirizzo di un sito o di un feed.</string>
     <string name="add_feed_label">Indirizzo del sito o del feed</string>
     <string name="add_feed_invalid">Non sembra un indirizzo web.</string>
     <string name="add_feed_no_feed">Nessun feed trovato a questo indirizzo.</string>
@@ -44,7 +43,7 @@
     <string name="home_no_feeds_title">Ancora nessun feed</string>
     <string name="home_no_feeds_body">Aggiungi un sito o un feed che ti piace, oppure importa i tuoi feed da un altro lettore.</string>
     <string name="home_caught_up_title">Sei in pari</string>
-    <string name="home_caught_up_body">Nessun articolo da leggere. Trascina verso il basso per cercarne di nuovi.</string>
+    <string name="home_caught_up_body">Trascina verso il basso per cercare nuovi articoli.</string>
     <string name="home_no_articles_title">Ancora nessun articolo</string>
     <string name="home_no_articles_body">Trascina verso il basso per cercare nuovi articoli.</string>
     <string name="home_show_all">Mostra tutto</string>
@@ -77,13 +76,12 @@
     <string name="reader_full_articles_title">Carica articoli completi</string>
     <string name="reader_full_articles_summary">Se un feed ha solo un riassunto, scarica l\'articolo intero dal sito</string>
     <string name="reader_show_images_title">Mostra immagini</string>
-    <string name="reader_show_images_summary">Immagini negli articoli e come miniatura nell\'elenco; vengono caricate dai siti</string>
+    <string name="reader_show_images_summary">Negli articoli e nell’elenco; vengono caricate dai siti</string>
     <string name="embed_youtube">Guarda su YouTube</string>
     <string name="embed_vimeo">Guarda su Vimeo</string>
     <string name="embed_video">Riproduci video</string>
     <string name="embed_other">Apri contenuto incorporato</string>
     <string name="section_save">Salva e condividi</string>
-    <string name="save_explanation">Scegli dove i pulsanti Salva e Condividi della lettura inviano un articolo: direttamente a un\'app o al menu di condivisione.</string>
     <string name="setting_save_button">Pulsante Salva</string>
     <string name="setting_share_button">Pulsante Condividi</string>
     <string name="share_target_sheet">Menu di condivisione</string>
@@ -91,10 +89,10 @@
     <string name="share_target_missing_short">%1$s non è installato</string>
     <string name="action_save_to">Salva in %1$s</string>
     <string name="action_share_to">Condividi con %1$s</string>
-    <string name="feeds_opml_hint">Con un file OPML sposti i tuoi feed tra lettori di feed, come Inoreader o Feedly: esportali lì e importali qui.</string>
+    <string name="feeds_opml_hint">Sposta i tuoi feed da o verso un altro lettore, come Feedly.</string>
     <string name="action_save">Salva</string>
     <string name="action_undo">Annulla</string>
-    <string name="folders_explanation">Metti i feed in cartelle per leggerli insieme. Appena c\'è una cartella, una barra in fondo all\'elenco passa tra Home e le tue cartelle.</string>
+    <string name="folders_explanation">Metti i feed in cartelle per leggerli insieme.</string>
     <string name="folder_all">Tutti</string>
     <string name="feeds_all">Tutti gli articoli</string>
     <string name="filter_unread">Non letti</string>
@@ -108,7 +106,6 @@
     <string name="folder_remove_body">%1$s verrà rimossa. I suoi feed restano, fuori da ogni cartella.</string>
     <string name="folder_none">Nessuna cartella</string>
     <string name="setting_mark_read_on_scroll_title">Segna come letto scorrendo</string>
-    <string name="setting_mark_read_on_scroll_summary">Gli articoli che superi scorrendo l\'elenco vengono segnati come letti</string>
     <string name="action_mark_read">Segna come letto</string>
     <string name="section_list">Elenco articoli</string>
     <string name="setting_list_view">Vista</string>
@@ -118,7 +115,7 @@
     <string name="feeds_page_title">Gestisci feed e cartelle</string>
     <string name="feeds_opml_title">Da o verso un altro lettore</string>
     <string name="reader_auto_dark_title">Scuro automatico</string>
-    <string name="reader_auto_dark_summary">Pagina scura quando l\'app è scura, anche con Seppia o Tema</string>
+    <string name="reader_auto_dark_summary">Pagina scura quando l’app è scura</string>
     <string name="day_today">Oggi</string>
     <string name="day_yesterday">Ieri</string>
     <string name="folder_none_empty">Ogni feed è in una cartella. Trascina qui un feed per toglierlo dalla sua cartella.</string>
@@ -126,7 +123,7 @@
     <string name="feed_name">Nome</string>
     <string name="feed_name_hint">Lascia vuoto per usare il nome del feed</string>
     <string name="feed_folder">Cartella</string>
-    <string name="feeds_drag_hint">Trascina la maniglia per riordinare feed e cartelle o spostare un feed in un\'altra cartella. Tocca un feed o una cartella per rinominarlo o rimuoverlo.</string>
+    <string name="feeds_drag_hint">Trascina un feed su una cartella per spostarlo lì.</string>
     <string name="action_move_up">Sposta su</string>
     <string name="action_move_down">Sposta giù</string>
     <plurals name="feeds_count">
@@ -171,7 +168,7 @@
     </plurals>
     <string name="section_sync">Sincronizzazione</string>
     <string name="sync_google_drive">Google Drive</string>
-    <string name="sync_off_summary">Mantieni feed, cartelle e articoli letti uguali su tutti i tuoi dispositivi e nell’app web. Salvati in una cartella nascosta del tuo Drive.</string>
+    <string name="sync_off_summary">Gli stessi feed e articoli letti su tutti i tuoi dispositivi. Salvati in una cartella nascosta del tuo Drive.</string>
     <string name="sync_connect">Connetti</string>
     <string name="sync_now">Sincronizza ora</string>
     <string name="sync_disconnect">Disconnetti</string>
@@ -184,7 +181,7 @@
     <string name="sync_failed_file">Il file di sincronizzazione viene da una versione più recente di RSS Reader. Aggiorna l’app.</string>
     <string name="sync_connect_failed">Impossibile connettersi a Google Drive</string>
     <string name="instapaper_account">Account Instapaper</string>
-    <string name="instapaper_account_summary">Accedi per salvare gli articoli direttamente in Instapaper, senza l’app Instapaper.</string>
+    <string name="instapaper_account_summary">Salva gli articoli direttamente in Instapaper, senza l’app</string>
     <string name="instapaper_signed_in">Accesso eseguito come %1$s</string>
     <string name="instapaper_sign_in">Accedi</string>
     <string name="instapaper_sign_out">Esci</string>

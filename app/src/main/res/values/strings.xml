@@ -13,7 +13,7 @@
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
     <string name="setting_dynamic_color_title">Dynamic color</string>
-    <string name="setting_dynamic_color_summary">Use colors from your wallpaper instead of the app’s blue</string>
+    <string name="setting_dynamic_color_summary">Use colors from your wallpaper</string>
     <string name="loading">Loading…</string>
     <string name="action_add">Add</string>
     <string name="action_remove">Remove</string>
@@ -30,7 +30,6 @@
     <string name="feeds_export">Export OPML</string>
     <string name="feeds_remove_title">Remove feed?</string>
     <string name="feeds_remove_body">%1$s and its articles will be removed from this phone.</string>
-    <string name="add_feed_body">Type the address of a website or feed.</string>
     <string name="add_feed_label">Website or feed address</string>
     <string name="add_feed_invalid">That doesn’t look like a web address.</string>
     <string name="add_feed_no_feed">No feed found at this address.</string>
@@ -45,7 +44,7 @@
     <string name="home_no_feeds_title">No feeds yet</string>
     <string name="home_no_feeds_body">Add a website or feed you like, or import your feeds from another reader.</string>
     <string name="home_caught_up_title">All caught up</string>
-    <string name="home_caught_up_body">No unread articles. Pull down to check for new ones.</string>
+    <string name="home_caught_up_body">Pull down to check for new articles.</string>
     <string name="home_no_articles_title">No articles yet</string>
     <string name="home_no_articles_body">Pull down to check for new articles.</string>
     <string name="home_show_all">Show all</string>
@@ -78,13 +77,12 @@
     <string name="reader_full_articles_title">Load full articles</string>
     <string name="reader_full_articles_summary">When a feed only has a summary, get the whole article from the website</string>
     <string name="reader_show_images_title">Show images</string>
-    <string name="reader_show_images_summary">Pictures in articles and as thumbnails in the list; they load from the websites</string>
+    <string name="reader_show_images_summary">In articles and the list; they load from the websites</string>
     <string name="embed_youtube">Watch on YouTube</string>
     <string name="embed_vimeo">Watch on Vimeo</string>
     <string name="embed_video">Play video</string>
     <string name="embed_other">Open embedded content</string>
     <string name="section_save">Save and share</string>
-    <string name="save_explanation">Choose where the reader\'s Save and Share buttons send an article: straight to one app, or the share menu.</string>
     <string name="setting_save_button">Save button</string>
     <string name="setting_share_button">Share button</string>
     <string name="share_target_sheet">Share menu</string>
@@ -92,10 +90,10 @@
     <string name="share_target_missing_short">%1$s isn\'t installed</string>
     <string name="action_save_to">Save to %1$s</string>
     <string name="action_share_to">Share to %1$s</string>
-    <string name="feeds_opml_hint">OPML files move your feeds between feed readers, such as Inoreader or Feedly: export them there, import them here.</string>
+    <string name="feeds_opml_hint">Move your feeds from or to another reader, such as Feedly.</string>
     <string name="action_save">Save</string>
     <string name="action_undo">Undo</string>
-    <string name="folders_explanation">Put feeds in folders to read them together. Once there is a folder, a bar at the bottom of the list switches between Home and your folders.</string>
+    <string name="folders_explanation">Put feeds in folders to read them together.</string>
     <string name="folder_all">All</string>
     <string name="feeds_all">All articles</string>
     <string name="filter_unread">Unread</string>
@@ -109,7 +107,6 @@
     <string name="folder_remove_body">%1$s will be removed. Its feeds stay, outside any folder.</string>
     <string name="folder_none">No folder</string>
     <string name="setting_mark_read_on_scroll_title">Mark as read on scroll</string>
-    <string name="setting_mark_read_on_scroll_summary">Articles you scroll past in the list are marked as read</string>
     <string name="action_mark_read">Mark as read</string>
     <string name="section_list">Article list</string>
     <string name="setting_list_view">View</string>
@@ -119,7 +116,7 @@
     <string name="feeds_page_title">Manage feeds and folders</string>
     <string name="feeds_opml_title">Move to or from another reader</string>
     <string name="reader_auto_dark_title">Auto dark</string>
-    <string name="reader_auto_dark_summary">Dark page whenever the app is dark, also with Sepia or Theme</string>
+    <string name="reader_auto_dark_summary">Dark page when the app is dark</string>
     <string name="day_today">Today</string>
     <string name="day_yesterday">Yesterday</string>
     <string name="folder_none_empty">Every feed is in a folder. Drag a feed here to take it out of its folder.</string>
@@ -127,7 +124,7 @@
     <string name="feed_name">Name</string>
     <string name="feed_name_hint">Leave empty to use the feed\'s own name</string>
     <string name="feed_folder">Folder</string>
-    <string name="feeds_drag_hint">Drag the handle to reorder feeds and folders or move a feed into another folder. Tap a feed or folder to rename or remove it.</string>
+    <string name="feeds_drag_hint">Drag a feed onto a folder to move it there.</string>
     <string name="action_move_up">Move up</string>
     <string name="action_move_down">Move down</string>
     <plurals name="feeds_count">
@@ -164,7 +161,7 @@
     </plurals>
     <string name="section_sync">Sync</string>
     <string name="sync_google_drive">Google Drive</string>
-    <string name="sync_off_summary">Keep your feeds, folders and read articles the same on all your devices and the web app. Stored in a hidden folder of your own Drive.</string>
+    <string name="sync_off_summary">Same feeds and read articles on all your devices. Stored in a hidden folder in your Drive.</string>
     <string name="sync_connect">Connect</string>
     <string name="sync_now">Sync now</string>
     <string name="sync_disconnect">Disconnect</string>
@@ -177,7 +174,7 @@
     <string name="sync_failed_file">The sync file is from a newer version of RSS Reader. Update the app.</string>
     <string name="sync_connect_failed">Couldn’t connect to Google Drive</string>
     <string name="instapaper_account">Instapaper account</string>
-    <string name="instapaper_account_summary">Sign in to save articles straight to Instapaper, without the Instapaper app.</string>
+    <string name="instapaper_account_summary">Save articles straight to Instapaper, without its app</string>
     <string name="instapaper_signed_in">Signed in as %1$s</string>
     <string name="instapaper_sign_in">Sign in</string>
     <string name="instapaper_sign_out">Sign out</string>

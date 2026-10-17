@@ -45,7 +45,6 @@ import androidx.core.graphics.drawable.toBitmap
 import io.github.impca201.rssreader.R
 import io.github.impca201.rssreader.data.ShareTarget
 import io.github.impca201.rssreader.ui.ExternalApps
-import io.github.impca201.rssreader.ui.theme.SettingsBlock
 import io.github.impca201.rssreader.ui.theme.SettingsSection
 
 /**
@@ -63,13 +62,6 @@ fun ShareTargetsSection(
 ) {
     val sheet = stringResource(R.string.share_target_sheet)
     SettingsSection(title = stringResource(R.string.section_save)) {
-        SettingsBlock {
-            Text(
-                stringResource(R.string.save_explanation),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
         val account = instapaper.username != null
         TargetRow(stringResource(R.string.setting_save_button), saveTarget, apps, onSaveTargetChange, account)
         TargetRow(stringResource(R.string.setting_share_button), shareTarget, apps, onShareTargetChange, account)
