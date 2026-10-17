@@ -55,7 +55,7 @@ data class InstapaperPage(
     val total: Int,
 )
 
-/** The signed-in account. The token never expires; it stays on this phone only. */
+/** The signed-in account. The token never expires; with Drive sync on it is shared with the other devices. */
 data class InstapaperSession(
     val token: String,
     val userId: Long?,

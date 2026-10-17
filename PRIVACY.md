@@ -1,6 +1,6 @@
 # Privacy policy
 
-_Last updated: 2026-10-17 (optional sign-in with Instapaper)_
+_Last updated: 2026-10-17 (settings and the Instapaper sign-in are in the sync file)_
 
 Reader has no account, analytics, advertising or crash reporting, and no server of its own.
 Sync, if you turn it on, uses your own Google Drive.
@@ -30,8 +30,13 @@ Sync, if you turn it on, uses your own Google Drive.
   Reader can't see your other files. While the app is on screen (when it opens, every minute,
   a few seconds after a change, on refresh, and on Sync now; never in the background) it reads and writes one file there, `rss-reader-sync.json`, with your
   feed list (addresses, names, folders, website and icon addresses), your folders, and which
-  articles you read in the last 120 days (feed address, article id and date). Article texts and
-  settings are not in it. The file goes to Google (www.googleapis.com) under Google's privacy
+  articles you read in the last 120 days (feed address, article id and date), your settings
+  (theme, text settings, full articles, pictures, list view, the Unread filter, mark as read on
+  scroll; not the Save and Share targets) and, if you signed in to Instapaper, that sign-in (the
+  access token and your Instapaper user name), so your other devices are signed in too. Anyone
+  who can open your Google account's data for Reader could use that token to read and change
+  your Instapaper articles, as with any device you are signed in on. Signing out of Instapaper
+  removes it from the file. Article texts are not in it. The file goes to Google (www.googleapis.com) under Google's privacy
   policy and your Google account; Google also sees your IP address. Disconnect stops syncing;
   the file stays in your Drive until you remove the app's data there (Google Drive › Settings ›
   Manage apps) or revoke access in your Google account.
@@ -61,7 +66,8 @@ Sync, if you turn it on, uses your own Google Drive.
 - The text of full articles you opened, and recently shown pictures, in the app's cache (Android
   may clear it).
 - If you signed in to Instapaper: the access token and your Instapaper user name, in a file of
-  their own (`datastore/instapaper`) that Android's backup and phone-to-phone transfer leave out.
+  their own (`datastore/instapaper`) that Android's backup and phone-to-phone transfer leave out
+  (with Drive sync on, they are also in the sync file, see above).
 
 Android's own backup (to your Google account, if you turned that on) and phone-to-phone transfer
 include the feed list, articles, read state and settings, not the cache and not the Instapaper sign-in. Removing a feed deletes its articles; uninstalling the app deletes everything.
@@ -102,8 +108,8 @@ browser's storage on that device (IndexedDB). There is no account and no analyti
   asking; after that, sync waits until you click Connect again. Disconnect deletes it.
 - **Instapaper** (off unless you sign in, in Settings › Instapaper): the page's sign-in leaves for
   Instapaper's own website and returns to the web app, which swaps the one-time code for an access
-  token through the feed loader. The token is kept in the browser's storage (IndexedDB), never in the
-  sync file. Saving and managing your articles goes through the feed loader to www.instapaper.com;
+  token through the feed loader. The token is kept in the browser's storage (IndexedDB) and, with
+  Drive sync on, in the sync file like on Android. Saving and managing your articles goes through the feed loader to www.instapaper.com;
   the loader passes the token on, and keeps and logs nothing.
 - Removing the site's data in your browser deletes everything the web app stored.
 

@@ -22,7 +22,25 @@ object SyncMerge {
         val feeds =
             mergeRecords(b.feeds, local.feeds, remote.feeds) { it.url }
                 .map { if (it.folderId != null && it.folderId !in folderIds) it.copy(folderId = null) else it }
-        return SyncDocument(folders, feeds, mergeRead(b.read, local.read, remote.read))
+        // A device that has no synced settings yet (it never synced, or synced before settings
+        // were in the file) takes the file's, so its defaults don't overwrite the user's choices.
+        val settings =
+            if (b.settings.isEmpty()) local.settings + remote.settings else mergeSettings(b.settings, local.settings, remote.settings)
+        return SyncDocument(folders, feeds, mergeRead(b.read, local.read, remote.read), settings)
+    }
+
+    /** Per setting: a change on this device wins, otherwise the other devices' value (or its removal). */
+    private fun mergeSettings(
+        base: Map<String, String>,
+        local: Map<String, String>,
+        remote: Map<String, String>,
+    ): Map<String, String> {
+        val result = HashMap<String, String>()
+        for (k in (base.keys + local.keys + remote.keys)) {
+            val value = if (local[k] == base[k]) remote[k] else local[k]
+            if (value != null) result[k] = value
+        }
+        return result
     }
 
     /** Three-way merge of keyed records, keeping the order of the side that reordered. */

@@ -125,4 +125,27 @@ class SyncMergeTest {
         assertEquals(doc, merged)
         assertEquals(library, SyncMerge.apply(library, merged))
     }
+
+    @Test
+    fun `settings merge per setting, this device winning a setting both changed`() {
+        val b = base.copy(settings = mapOf("theme" to "system", "fullArticles" to "true", "showImages" to "true", "instapaper.token" to "t"))
+        val local = b.copy(settings = b.settings + ("theme" to "dark"))
+        val remote = b.copy(settings = b.settings + mapOf("theme" to "light", "fullArticles" to "false") - "instapaper.token")
+        val merged = SyncMerge.merge(b, local, remote).settings
+        assertEquals("dark", merged["theme"])
+        assertEquals("false", merged["fullArticles"])
+        assertEquals("true", merged["showImages"])
+        assertFalse("signed out elsewhere", "instapaper.token" in merged)
+    }
+
+    @Test
+    fun `a device without synced settings takes the file's instead of its defaults`() {
+        val local = base.copy(settings = mapOf("theme" to "system", "listView" to "medium"))
+        val remote = base.copy(settings = mapOf("theme" to "dark", "instapaper.token" to "t"))
+        assertEquals(
+            mapOf("theme" to "dark", "listView" to "medium", "instapaper.token" to "t"),
+            SyncMerge.merge(base, local, remote).settings,
+        )
+        assertEquals(mapOf("theme" to "dark", "listView" to "medium", "instapaper.token" to "t"), SyncMerge.merge(null, local, remote).settings)
+    }
 }

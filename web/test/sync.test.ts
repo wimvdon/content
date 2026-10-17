@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { emptyLibrary, mergeFeed, addFeed, newFeed, type Library } from "../src/lib/library";
 import * as S from "../src/lib/sync";
+import * as SS from "../src/lib/syncSettings";
+import { defaultSettings } from "../src/lib/app";
+import { defaultReaderStyle } from "../src/lib/readerStyle";
 
 const feed = (url: string, title = url, folderId: string | null = null): S.SyncFeed => ({ url, title, renamed: false, folderId, siteUrl: null, iconUrl: null });
 
@@ -11,15 +14,16 @@ const base: S.SyncDocument = {
   ],
   feeds: [feed("a", "a", "f1"), feed("b"), feed("c")],
   read: { "a 1": 10 },
+  settings: {},
 };
 
 describe("sync file", () => {
   it("reads the Android app's file and writes the same text", () => {
     // Written by the Android app's SyncDocument.encode.
     const android =
-      '{"format":"rss-reader-sync","version":1,"folders":[{"id":"f1","title":"News","icon":"newspaper"}],' +
+      '{"format":"rss-reader-sync","version":2,"folders":[{"id":"f1","title":"News","icon":"newspaper"}],' +
       '"feeds":[{"url":"https://a.example/feed","title":"A","renamed":true,"folderId":"f1","siteUrl":"https://a.example","iconUrl":null}],' +
-      '"read":{"https://a.example/feed 1":100,"https://a.example/feed 2":200}}';
+      '"read":{"https://a.example/feed 1":100,"https://a.example/feed 2":200},"settings":{"reader.textSize":"20","theme":"dark"}}';
     const doc = S.decode(android)!;
     expect(doc.feeds[0].renamed).toBe(true);
     expect(doc.read["https://a.example/feed 2"]).toBe(200);
@@ -28,7 +32,7 @@ describe("sync file", () => {
 
   it("leaves other or newer files alone and skips broken entries", () => {
     expect(S.decode("nope")).toBeNull();
-    expect(S.decode('{"format":"rss-reader-sync","version":2}')).toBeNull();
+    expect(S.decode('{"format":"rss-reader-sync","version":3}')).toBeNull();
     const doc = S.decode('{"format":"rss-reader-sync","version":1,"folders":[{"id":"","title":"x"}],"feeds":[{"url":"a","folderId":"gone"},{}],"read":{"a 1":5,"a 2":"x"}}')!;
     expect(doc.folders).toEqual([]);
     expect(doc.feeds).toEqual([feed("a")]);
@@ -96,7 +100,7 @@ describe("library", () => {
   });
 
   it("applies the merged document and syncing twice changes nothing", () => {
-    const merged: S.SyncDocument = { folders: [], feeds: [feed("a", "Feed"), feed("new")], read: { "a 2": 101 } };
+    const merged: S.SyncDocument = { folders: [], feeds: [feed("a", "Feed"), feed("new")], read: { "a 2": 101 }, settings: {} };
     const applied = S.apply(lib, merged);
     expect(applied.feeds.map((f) => f.url)).toEqual(["a", "new"]);
     expect(applied.articles.find((x) => x.id === "2")!.read).toBe(true);
@@ -115,5 +119,49 @@ describe("sync timing", () => {
     expect(S.syncDue(now - S.MIN_GAP_MS, now)).toBe(true);
     expect(S.syncDue(now - S.VISIBLE_INTERVAL_MS, now)).toBe(true);
     expect(S.syncDue(now + 5_000, now)).toBe(true);
+  });
+});
+
+describe("synced settings", () => {
+  const settings = { ...defaultSettings, theme: "dark" as const, fullArticles: false, readerStyle: { ...defaultReaderStyle, font: "sans" as const, textSize: 22 } };
+
+  it("go into the file and back, and files without them still read", () => {
+    const doc = { ...S.emptyDocument(), settings: { theme: "dark", "reader.textSize": "20" } };
+    const text = S.encode(doc);
+    expect(text).toContain('"version":2');
+    expect(S.decode(text)).toEqual(doc);
+    expect(S.decode('{"format":"rss-reader-sync","version":1}')!.settings).toEqual({});
+    expect(S.decode('{"format":"rss-reader-sync","version":2,"settings":{"theme":"light","bad":5}}')!.settings).toEqual({ theme: "light" });
+  });
+
+  it("use the same names and values as the Android app and come back the same", () => {
+    const values = SS.syncedSettings(settings, null);
+    expect(values).toMatchObject({ theme: "dark", "reader.font": "sans", "reader.textSize": "22", "reader.background": "default", fullArticles: "false" });
+    expect(SS.applySynced(defaultSettings, values)).toEqual(settings);
+  });
+
+  it("keep Android-only names and ignore bad values", () => {
+    const values = SS.syncedSettings(settings, null, { showImages: "false", theme: "light" });
+    expect(values.showImages).toBe("false");
+    expect(values.theme).toBe("dark");
+    const applied = SS.applySynced(settings, { theme: "purple", "reader.textSize": "99", fullArticles: "yes" });
+    expect(applied.theme).toBe("dark");
+    expect(applied.readerStyle.textSize).toBe(28);
+    expect(applied.fullArticles).toBe(false);
+  });
+
+  it("carry the Instapaper sign-in", () => {
+    const session = { token: "t", username: "me@example.com", userId: 42 };
+    expect(SS.instapaperOf(SS.syncedSettings(settings, session))).toEqual(session);
+    expect(SS.instapaperOf(SS.syncedSettings(settings, null))).toBeNull();
+  });
+
+  it("merge per setting; a device without synced settings takes the file's", () => {
+    const b = { ...base, settings: { theme: "system", fullArticles: "true", "instapaper.token": "t" } };
+    const local = { ...b, settings: { ...b.settings, theme: "dark" } };
+    const remote = { ...b, settings: { theme: "light", fullArticles: "false" } };
+    expect(S.merge(b, local, remote).settings).toEqual({ theme: "dark", fullArticles: "false" });
+    const fresh = { ...base, settings: { theme: "system", listView: "medium" } };
+    expect(S.merge(null, fresh, { ...base, settings: { theme: "dark" } }).settings).toEqual({ theme: "dark", listView: "medium" });
   });
 });
