@@ -8,7 +8,7 @@ object SyncTiming {
     /** While the app is on screen, it syncs this often, so changes from other devices come in. */
     const val VISIBLE_INTERVAL_MS = 60_000L
 
-    /** Coming back, refreshing or the next minute skips sync when it ran this recently. */
+    /** Coming back or the next minute skips sync when it ran this recently. A refresh never does. */
     const val MIN_GAP_MS = 10_000L
 
     /** True when a sync is worth doing: never synced, or not within the last [MIN_GAP_MS]. */
