@@ -1,8 +1,10 @@
-import { CheckCheck, Menu, Newspaper, RefreshCw, Rss, type LucideIcon } from "lucide-react";
+import { Bookmark, CheckCheck, Menu, Newspaper, RefreshCw, Rss, type LucideIcon } from "lucide-react";
 import { useMemo, useRef } from "react";
 import { app, useApp } from "@/lib/app";
 import { snippet } from "@/lib/html";
 import { dayLabel, plural, t } from "@/lib/i18n";
+import type { View } from "@/lib/instapaper";
+import { bookmarkArticle, hostOf, viewTitle } from "@/lib/instapaperLibrary";
 import { articleKey, articlesFor, sortTime, unreadKeys, type Article, type Feed } from "@/lib/library";
 import { scrolledPast } from "@/lib/scrollRead";
 import { FeedIcon } from "./FeedIcon";
@@ -10,21 +12,22 @@ import { Button } from "./ui/button";
 import { cn } from "./ui/cn";
 import { Segmented } from "./ui/segmented";
 
-export function ArticleList({
-  openKey,
-  onOpen,
-  onMenu,
-  onAddFeed,
-  onImport,
-  onUndo,
-}: {
+type ListProps = {
   openKey: string | null;
   onOpen: (a: Article) => void;
   onMenu: () => void;
   onAddFeed: () => void;
   onImport: () => void;
   onUndo: (keys: Set<string>) => void;
-}) {
+};
+
+/** The articles of the chosen feed, folder or All articles, or of an Instapaper list. */
+export function ArticleList(props: ListProps) {
+  const { selection } = useApp();
+  return selection.kind === "instapaper" ? <InstapaperArticles view={selection.view} openKey={props.openKey} onOpen={props.onOpen} onMenu={props.onMenu} /> : <FeedArticles {...props} />;
+}
+
+function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo }: ListProps) {
   const { library, selection, settings, readThisVisit, refreshing, loaded, problems } = useApp();
   const articles = useMemo(
     () => articlesFor(library, selection, settings.unreadOnly, readThisVisit),
@@ -140,7 +143,68 @@ export function ArticleList({
   );
 }
 
-function Row({ article, feed, open, onOpen }: { article: Article; feed: Feed | undefined; open: boolean; onOpen: () => void }) {
+/**
+ * An Instapaper list: the saved articles with the same rows as feed articles, without read state
+ * (archiving is an action in the reader), newest saved first, a page at a time.
+ */
+function InstapaperArticles({ view, openKey, onOpen, onMenu }: { view: View; openKey: string | null; onOpen: (a: Article) => void; onMenu: () => void }) {
+  const { instapaperList: list, instapaperFolders } = useApp();
+  const title = viewTitle(view, instapaperFolders, { home: t("unread"), liked: t("instapaperLiked"), archive: t("instapaperArchiveList") });
+  const items = list.items;
+  return (
+    <section className="flex h-full min-w-0 flex-col" aria-label={title}>
+      <header className="flex items-center gap-1 px-2 pt-2 pb-1">
+        <Button variant="ghost" size="icon" className="lg:hidden" onClick={onMenu} aria-label={t("openFeeds")}>
+          <Menu />
+        </Button>
+        <div className="min-w-0 flex-1 px-2">
+          <h1 className="truncate text-xl font-semibold">{title}</h1>
+          <p className="text-xs text-muted-foreground">{t("instapaper")}</p>
+        </div>
+        <Button variant="ghost" size="icon" onClick={() => void app.refresh()} disabled={list.loading} aria-label={t("refresh")} title={t("refresh") + " (r)"}>
+          <RefreshCw className={cn(list.loading && "animate-spin")} />
+        </Button>
+      </header>
+      <div className="min-h-0 flex-1 overflow-y-auto px-2 pt-2 pb-6" role="feed" aria-busy={list.loading}>
+        {list.problem ? (
+          <p role="alert" className="px-3 pb-2 text-sm text-destructive">
+            {list.problem}
+          </p>
+        ) : null}
+        {list.loading && items.length === 0 ? (
+          <Skeletons />
+        ) : items.length === 0 && !list.problem ? (
+          <Empty icon={Bookmark} title={title} text={t("instapaperEmpty")} />
+        ) : (
+          <ul className="space-y-1">
+            {items.map((b) => {
+              const article = bookmarkArticle(b);
+              const host = hostOf(b.url);
+              return (
+                <li key={b.id}>
+                  <Row article={article} feed={host ? siteOf(host) : undefined} open={openKey === articleKey(article)} onOpen={() => onOpen(article)} noReadState />
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        {items.length > 0 && items.length < list.total ? (
+          <div className="flex justify-center pt-3">
+            <Button variant="tonal" onClick={() => void app.loadInstapaperList(view, true)} disabled={list.loading}>
+              {t("instapaperLoadMore")}
+            </Button>
+          </div>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
+/** The website of a saved article, shown where a feed's name goes (with its first letter as icon). */
+const siteOf = (host: string): Feed => ({ url: host, title: host, siteUrl: null, folderId: null, iconUrl: null, renamed: false });
+
+function Row({ article, feed, open, onOpen, noReadState }: { article: Article; feed: Feed | undefined; open: boolean; onOpen: () => void; noReadState?: boolean }) {
+  const unread = !article.read && !noReadState;
   const text = useMemo(() => snippet(article.html, 160), [article.html]);
   return (
     <button
@@ -150,7 +214,7 @@ function Row({ article, feed, open, onOpen }: { article: Article; feed: Feed | u
       aria-current={open ? "true" : undefined}
       className={cn(
         "flex w-full cursor-pointer gap-3 rounded-xl p-3 text-left transition-colors",
-        open ? "bg-accent" : article.read ? "hover:bg-muted" : "bg-card hover:bg-muted",
+        open ? "bg-accent" : unread || noReadState ? "bg-card hover:bg-muted" : "hover:bg-muted",
       )}
     >
       <div className="min-w-0 flex-1">
@@ -161,8 +225,8 @@ function Row({ article, feed, open, onOpen }: { article: Article; feed: Feed | u
           </div>
         ) : null}
         <div className="flex items-start gap-2">
-          {!article.read ? <span className="mt-2 size-2 shrink-0 rounded-full bg-unread" aria-label={t("unread")} /> : null}
-          <h3 className={cn("line-clamp-3 text-[0.95rem] leading-snug", article.read ? "text-muted-foreground" : "font-semibold")}>{article.title}</h3>
+          {unread ? <span className="mt-2 size-2 shrink-0 rounded-full bg-unread" aria-label={t("unread")} /> : null}
+          <h3 className={cn("line-clamp-3 text-[0.95rem] leading-snug", unread || noReadState ? "font-semibold" : "text-muted-foreground")}>{article.title}</h3>
         </div>
         {text ? <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{text}</p> : null}
       </div>

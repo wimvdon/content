@@ -1,15 +1,19 @@
-import { Bookmark, ChevronDown, ChevronRight, Rss, Settings as SettingsIcon, SlidersHorizontal } from "lucide-react";
+import { Archive, ChevronDown, ChevronRight, Folder as FolderGlyph, Heart, Inbox, Rss, Settings as SettingsIcon, SlidersHorizontal, Tag as TagGlyph } from "lucide-react";
 import { useState } from "react";
 import { app, useApp } from "@/lib/app";
 import { t } from "@/lib/i18n";
+import type { View } from "@/lib/instapaper";
 import { unreadByFeed, type Selection } from "@/lib/library";
 import { FeedIcon } from "./FeedIcon";
 import { FolderIcon } from "./FolderIcon";
 import { cn } from "./ui/cn";
 
-/** All articles, the folders with their feeds, the other feeds, and the way to Manage and Settings. */
-export function Sidebar({ onNavigate, onManage, onSettings, onInstapaper }: { onNavigate: () => void; onManage: () => void; onSettings: () => void; onInstapaper: () => void }) {
-  const { library, selection, instapaper } = useApp();
+/**
+ * All articles, the folders with their feeds, the other feeds, then Instapaper (Unread, Liked,
+ * Archive, its folders and tags) when signed in, and the way to Manage and Settings.
+ */
+export function Sidebar({ onNavigate, onManage, onSettings }: { onNavigate: () => void; onManage: () => void; onSettings: () => void }) {
+  const { library, selection, instapaper, instapaperFolders, instapaperTags } = useApp();
   const counts = unreadByFeed(library);
   const total = library.feeds.reduce((n, f) => n + (counts.get(f.url) ?? 0), 0);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
@@ -19,6 +23,17 @@ export function Sidebar({ onNavigate, onManage, onSettings, onInstapaper }: { on
   };
   const isSelected = (s: Selection) => JSON.stringify(s) === JSON.stringify(selection);
   const loose = library.feeds.filter((f) => !f.folderId);
+  const toggle = (id: string) => setCollapsed((c) => (c.has(id) ? new Set([...c].filter((x) => x !== id)) : new Set([...c, id])));
+  const instapaperRow = (view: View, icon: React.ReactNode, label: string, count?: number, key?: string) => (
+    <Row
+      key={key}
+      selected={isSelected({ kind: "instapaper", view })}
+      onClick={() => select({ kind: "instapaper", view })}
+      icon={icon}
+      label={label}
+      count={count}
+    />
+  );
 
   return (
     <nav className="flex h-full flex-col" aria-label={t("feeds")}>
@@ -42,7 +57,7 @@ export function Sidebar({ onNavigate, onManage, onSettings, onInstapaper }: { on
                   className="rounded-full p-1.5 text-muted-foreground hover:bg-muted"
                   aria-label={open ? t("collapse") : t("expand")}
                   aria-expanded={open}
-                  onClick={() => setCollapsed((c) => (c.has(folder.id) ? new Set([...c].filter((x) => x !== folder.id)) : new Set([...c, folder.id])))}
+                  onClick={() => toggle(folder.id)}
                 >
                   {open ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
                 </button>
@@ -81,15 +96,55 @@ export function Sidebar({ onNavigate, onManage, onSettings, onInstapaper }: { on
             count={counts.get(feed.url) ?? 0}
           />
         ))}
+        {instapaper ? (
+          <section aria-label={t("instapaper")} className="mt-3 border-t pt-2">
+            <h2 className="px-3 pt-1 pb-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">{t("instapaper")}</h2>
+            {instapaperRow({ kind: "home" }, <Inbox />, t("unread"))}
+            {instapaperRow({ kind: "liked" }, <Heart />, t("instapaperLiked"))}
+            {instapaperRow({ kind: "archive" }, <Archive />, t("instapaperArchiveList"))}
+            {instapaperFolders.map((folder) => instapaperRow({ kind: "folder", id: folder.id }, <FolderGlyph />, folder.title, folder.count, `f${folder.id}`))}
+            {instapaperTags.length > 0 ? (
+              <div className="mt-1">
+                <div className="flex items-center">
+                  <button
+                    type="button"
+                    className="rounded-full p-1.5 text-muted-foreground hover:bg-muted"
+                    aria-label={collapsed.has(TAGS) ? t("expand") : t("collapse")}
+                    aria-expanded={!collapsed.has(TAGS)}
+                    onClick={() => toggle(TAGS)}
+                  >
+                    {collapsed.has(TAGS) ? <ChevronRight className="size-4" /> : <ChevronDown className="size-4" />}
+                  </button>
+                  <span className="px-3 py-2 text-sm text-muted-foreground">{t("instapaperTags")}</span>
+                </div>
+                {collapsed.has(TAGS)
+                  ? null
+                  : instapaperTags.map((tag) => (
+                      <Row
+                        key={`t${tag.id}`}
+                        className="pl-9"
+                        selected={isSelected({ kind: "instapaper", view: { kind: "tag", name: tag.name } })}
+                        onClick={() => select({ kind: "instapaper", view: { kind: "tag", name: tag.name } })}
+                        icon={<TagGlyph />}
+                        label={tag.name}
+                        count={tag.count}
+                      />
+                    ))}
+              </div>
+            ) : null}
+          </section>
+        ) : null}
       </div>
       <div className="border-t p-2">
-        {instapaper ? <Row selected={false} onClick={onInstapaper} icon={<Bookmark className="size-5" />} label={t("instapaper")} /> : null}
         <Row selected={false} onClick={onManage} icon={<SlidersHorizontal className="size-5" />} label={t("manageFeeds")} />
         <Row selected={false} onClick={onSettings} icon={<SettingsIcon className="size-5" />} label={t("settings")} />
       </div>
     </nav>
   );
 }
+
+/** The collapse key of the Instapaper tags (folder ids are UUIDs, so it can't clash). */
+const TAGS = "instapaper-tags";
 
 function Row({
   selected,

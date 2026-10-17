@@ -6,6 +6,7 @@ import { searchIcons } from "@/lib/icons";
 import type { Feed, Folder } from "@/lib/library";
 import { FeedIcon } from "./FeedIcon";
 import { FolderIcon, SymbolSvg } from "./FolderIcon";
+import { InstapaperManage } from "./InstapaperManage";
 import { useIcons } from "./useIcons";
 import { Button } from "./ui/button";
 import { cn } from "./ui/cn";
@@ -72,7 +73,7 @@ const addErrors: Record<string, Key> = {
 };
 
 export function ManageDialog({ open, onOpenChange, onAddFeed, onImport }: Props & { onAddFeed: () => void; onImport: () => void }) {
-  const { library } = useApp();
+  const { library, instapaper } = useApp();
   const [editFeed, setEditFeed] = useState<Feed | null>(null);
   const [editFolder, setEditFolder] = useState<Folder | "new" | null>(null);
   const exportOpml = () => {
@@ -162,6 +163,7 @@ export function ManageDialog({ open, onOpenChange, onAddFeed, onImport }: Props 
               </ul>
             </section>
           ))}
+          {instapaper ? <InstapaperManage /> : null}
         </div>
       </Dialog>
       <EditFeedDialog key={editFeed?.url ?? ""} feed={editFeed} folders={library.folders} onClose={() => setEditFeed(null)} />

@@ -4,11 +4,13 @@ import { app, useApp } from "@/lib/app";
 import { extractArticle, needsFullText } from "@/lib/fullArticle";
 import { cached, cachedNow, keep } from "@/lib/fullArticleStore";
 import { formatDateTime, t } from "@/lib/i18n";
+import { hostOf, isInstapaperArticle } from "@/lib/instapaperLibrary";
 import { problemText } from "@/lib/instapaperText";
 import { articleKey, sortTime, type Article } from "@/lib/library";
 import { fetchViaProxy } from "@/lib/proxy";
 import { sanitizeArticle } from "@/lib/sanitize";
 import { FeedIcon } from "./FeedIcon";
+import { InstapaperActions } from "./InstapaperActions";
 import { pageClass, textStyle, useAppDark } from "./readerPage";
 import { ReaderStyleControls } from "./ReaderStyleControls";
 import { Button } from "./ui/button";
@@ -20,9 +22,16 @@ type Full = { link: string; html: string | null };
 
 /** The parent gives each article its own key, so this state starts fresh for every article. */
 export function ArticleView({ article, onBack, onMessage }: { article: Article; onBack: () => void; onMessage: (text: string) => void }) {
-  const { library, settings, instapaper } = useApp();
+  const { library, settings, instapaper, instapaperOpen } = useApp();
   const [saving, setSaving] = useState(false);
-  const feed = library.feeds.find((f) => f.url === article.feedUrl);
+  // A saved Instapaper article: no read state, its website instead of a feed, Instapaper's actions.
+  const saved = isInstapaperArticle(article) && instapaperOpen && String(instapaperOpen.id) === article.id ? instapaperOpen : null;
+  const site = hostOf(article.link);
+  const feed = isInstapaperArticle(article)
+    ? site
+      ? { url: site, title: site, siteUrl: null, folderId: null, iconUrl: null, renamed: false }
+      : undefined
+    : library.feeds.find((f) => f.url === article.feedUrl);
   const current = library.articles.find((a) => articleKey(a) === articleKey(article)) ?? article;
   const link = article.link;
   const canLoad = !!link;
@@ -107,18 +116,22 @@ export function ArticleView({ article, onBack, onMessage }: { article: Article; 
             <FileText />
           </Button>
         ) : null}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => app.setRead(new Set([articleKey(current)]), !current.read)}
-          aria-label={current.read ? t("markUnread") : t("markRead")}
-          title={(current.read ? t("markUnread") : t("markRead")) + " (m)"}
-        >
-          {current.read ? <Circle /> : <CircleCheck />}
-        </Button>
+        {saved ? (
+          <InstapaperActions bookmark={saved} onDeleted={onBack} />
+        ) : isInstapaperArticle(article) ? null : (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => app.setRead(new Set([articleKey(current)]), !current.read)}
+            aria-label={current.read ? t("markUnread") : t("markRead")}
+            title={(current.read ? t("markUnread") : t("markRead")) + " (m)"}
+          >
+            {current.read ? <Circle /> : <CircleCheck />}
+          </Button>
+        )}
         {article.link ? (
           <>
-            {instapaper ? (
+            {instapaper && !isInstapaperArticle(article) ? (
               <Button variant="ghost" size="icon" onClick={() => void saveToInstapaper()} disabled={saving} aria-label={t("saveToInstapaper")} title={t("saveToInstapaper")}>
                 <BookmarkPlus />
               </Button>
@@ -147,6 +160,15 @@ export function ArticleView({ article, onBack, onMessage }: { article: Article; 
           </div>
           <h1 className={cn("text-3xl leading-tight font-bold", style.font === "serif" ? "font-serif" : "font-sans")}>{article.title}</h1>
           {article.author ? <p className="mt-2 text-sm text-muted-foreground">{article.author}</p> : null}
+          {saved && saved.tags.length > 0 ? (
+            <ul className="mt-3 flex flex-wrap gap-1.5" aria-label={t("instapaperTags")}>
+              {saved.tags.map((tag) => (
+                <li key={tag.id} className="rounded-full bg-muted px-2.5 py-0.5 text-xs text-muted-foreground">
+                  {tag.name}
+                </li>
+              ))}
+            </ul>
+          ) : null}
           {showHero ? <img src={article.imageUrl!} alt="" referrerPolicy="no-referrer" className="mt-6 w-full rounded-xl bg-muted object-cover" onError={(e) => (e.currentTarget.style.display = "none")} /> : null}
           {useFull && !loaded ? <p className="mt-6 text-sm text-muted-foreground">{t("loadingFull")}</p> : null}
           {useFull && loaded && !loaded.html ? <p className="mt-6 text-sm text-muted-foreground">{t("fullFailed")}</p> : null}
