@@ -41,14 +41,29 @@ object ArticleExtractor {
         )
     private val blockTags = setOf("p", "h1", "h2", "h3", "h4", "h5", "h6", "ul", "ol", "li", "blockquote", "pre", "hr", "dl", "dt", "dd", "div", "section", "article", "main", "td", "tr", "table")
 
+    /**
+     * Words in class names and ids that mark page parts outside the article. They are matched as
+     * whole parts of a name ("share-buttons", "sidebar_left"), so utility classes such as
+     * "overflow-hidden", "shadow" or "text-lg" don't count.
+     */
     private val unlikely =
         Regex(
-            "comment|sidebar|footer|footnote|masthead|menu|nav|share|social|related|recommend|promo|sponsor|advert|" +
-                "\\bad\\b|\\bads\\b|banner|subscribe|newsletter|signup|cookie|consent|popup|modal|breadcrumb|pagination|" +
-                "author-bio|byline|tags|toolbar|skip|hidden|print-only|outbrain|taboola|disqus",
+            "(?:^|[-_])(comments?|sidebar|footer|footnotes?|masthead|menu|nav|navbar|navigation|share|sharing|social|" +
+                "related|recommended|recommendations?|promo|sponsor(?:ed)?|advert(?:isement)?|ads?|banner|subscribe|" +
+                "newsletter|signup|cookies?|consent|popup|modal|breadcrumbs?|pagination|author-bio|byline|tags|toolbar|" +
+                "skip|print-only|outbrain|taboola|disqus|sr-only|visually-hidden)(?:$|[-_])",
             RegexOption.IGNORE_CASE,
         )
-    private val likely = Regex("article|content|entry|post|story|main|body|text|prose|blog", RegexOption.IGNORE_CASE)
+    private val likely =
+        Regex(
+            // "text" only after another word ("article-text"): Tailwind's text-lg, text-gray-500, … aren't articles.
+            "(?:^|[-_])(article|content|entry|post|story|main|body|prose|blog)(?:$|[-_])|[-_]text(?:$|[-_])",
+            RegexOption.IGNORE_CASE,
+        )
+
+    /** The class names and id of an element, one by one; responsive variants ("md:hidden") are left out. */
+    private fun names(element: Element): List<String> =
+        element.classAndId.split(Regex("""\s+""")).filter { it.isNotEmpty() && ':' !in it }
 
     private class Element(
         val tag: String,
@@ -161,8 +176,10 @@ object ArticleExtractor {
         if (element.attributes["hidden"] != null || element.attributes["aria-hidden"] == "true") return true
         val role = element.attributes["role"].orEmpty()
         if (role in setOf("navigation", "complementary", "banner", "contentinfo", "dialog", "menu")) return true
-        val names = element.classAndId
-        return unlikely.containsMatchIn(names) && !likely.containsMatchIn(names)
+        val names = names(element)
+        // Only "hidden" on its own hides an element everywhere (Tailwind, Bootstrap's d-none).
+        if (names.any { it == "hidden" || it == "d-none" }) return true
+        return names.any { unlikely.containsMatchIn(it) } && names.none { likely.containsMatchIn(it) }
     }
 
     private fun bestCandidate(root: Element): Element? {
@@ -180,7 +197,7 @@ object ArticleExtractor {
         val best =
             candidates.maxByOrNull { candidate ->
                 val weight =
-                    (if (likely.containsMatchIn(candidate.classAndId)) 25 else 0) +
+                    (if (names(candidate).any { likely.containsMatchIn(it) }) 25 else 0) +
                         (if (candidate.tag in setOf("article", "main")) 25 else 0)
                 (candidate.score + weight) * (1 - linkDensity(candidate))
             } ?: return null
@@ -254,8 +271,15 @@ object ArticleExtractor {
         val tag = element.tag
         when {
             tag !in keptTags -> {
-                serialize(element, out, pageUrl)
-                if (tag in blockTags) out.append("<br>")
+                // A container holding only text and inline elements is a paragraph (sites that
+                // use a <div> per paragraph); one holding blocks just passes them on.
+                if (tag in blockTags && !hasBlockDescendant(element)) {
+                    val inner = StringBuilder()
+                    serialize(element, inner, pageUrl)
+                    if (Html.toPlainText(inner.toString()).isNotEmpty()) out.append("<p>").append(inner.trim()).append("</p>")
+                } else {
+                    serialize(element, out, pageUrl)
+                }
             }
 
             tag == "br" || tag == "hr" -> out.append("<$tag>")
@@ -307,6 +331,14 @@ object ArticleExtractor {
             }
         }
     }
+
+    /** Elements that make their own block in the result. */
+    private val blockLike = blockTags + setOf("figure", "figcaption")
+
+    private fun hasBlockDescendant(element: Element): Boolean =
+        element.children.any { child ->
+            child is Element && (child.tag in blockLike || hasBlockDescendant(child))
+        }
 
     private fun StringBuilder.attr(
         name: String,

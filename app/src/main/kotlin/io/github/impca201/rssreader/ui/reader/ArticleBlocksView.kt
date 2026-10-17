@@ -1,6 +1,19 @@
 package io.github.impca201.rssreader.ui.reader
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.em
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -65,6 +78,7 @@ fun TextBlock(
     html: String,
     style: TextStyle,
     links: TextLinkStyles,
+    modifier: Modifier = Modifier,
     onOpenLink: (String) -> Unit,
 ) {
     val open by rememberUpdatedState(onOpenLink)
@@ -74,7 +88,98 @@ fun TextBlock(
                 .fromHtml(html, linkStyles = links) { link -> (link as? LinkAnnotation.Url)?.let { open(it.url) } }
                 .trimmed()
         }
-    if (text.isNotEmpty()) SelectionContainer { Text(text, style = style) }
+    if (text.isNotEmpty()) SelectionContainer { Text(text, style = style, modifier = modifier) }
+}
+
+/** A heading inside the article: bolder and, for h1 to h3, larger than the text. */
+@Composable
+fun HeadingBlock(
+    block: ArticleBlock.Heading,
+    style: TextStyle,
+    links: TextLinkStyles,
+    onOpenLink: (String) -> Unit,
+) {
+    val scale =
+        when (block.level) {
+            1, 2 -> 1.3f
+            3 -> 1.15f
+            else -> 1f
+        }
+    TextBlock(
+        block.html,
+        style.copy(fontSize = style.fontSize * scale, fontWeight = FontWeight.Bold, lineHeight = 1.3.em),
+        links,
+        Modifier.padding(top = 8.dp).semantics { heading() },
+        onOpenLink,
+    )
+}
+
+/** A quote: its paragraphs beside a bar in the theme colour. */
+@Composable
+fun QuoteBlock(
+    block: ArticleBlock.Quote,
+    style: TextStyle,
+    links: TextLinkStyles,
+    onOpenLink: (String) -> Unit,
+) {
+    val barColor = MaterialTheme.colorScheme.primary
+    Column(
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .drawBehind { drawRect(barColor, size = Size(3.dp.toPx(), size.height)) }
+                .padding(start = 16.dp),
+    ) {
+        for (paragraph in block.paragraphs) {
+            TextBlock(paragraph, style.copy(fontStyle = FontStyle.Italic, color = MaterialTheme.colorScheme.onSurfaceVariant), links, onOpenLink = onOpenLink)
+        }
+    }
+}
+
+/** Code or other preformatted text: monospace, its own line breaks, scrolls sideways. */
+@Composable
+fun CodeBlock(
+    block: ArticleBlock.Code,
+    style: TextStyle,
+) {
+    SelectionContainer {
+        Text(
+            block.text,
+            style = style.copy(fontFamily = FontFamily.Monospace, fontSize = style.fontSize * 0.85f, lineHeight = 1.4.em),
+            softWrap = false,
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .clip(MaterialTheme.shapes.small)
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                    .horizontalScroll(rememberScrollState())
+                    .padding(12.dp),
+        )
+    }
+}
+
+/** A list: each item behind its bullet or number, nested items further in. */
+@Composable
+fun ListBlockView(
+    block: ArticleBlock.ListBlock,
+    style: TextStyle,
+    links: TextLinkStyles,
+    onOpenLink: (String) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        for (item in block.items) {
+            Row(Modifier.padding(start = (20 * (item.depth - 1)).dp)) {
+                Text(
+                    item.marker,
+                    style = style,
+                    textAlign = TextAlign.End,
+                    modifier = Modifier.width(28.dp).padding(end = 8.dp).clearAndSetSemantics {},
+                )
+                TextBlock(item.html, style, links, Modifier.weight(1f), onOpenLink)
+            }
+        }
+    }
 }
 
 /** A picture inside the article, full width, with its caption. */

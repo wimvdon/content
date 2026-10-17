@@ -97,8 +97,8 @@ class ArticleBlocksTest {
     }
 
     @Test
-    fun `text without content is dropped and neighbouring text is joined`() {
-        val blocks = ArticleBlocks.split("<p>One</p><img src=\"https://x.com/1x1.gif\" width=\"1\"><p>Two</p><p>   </p>", base)
-        assertEquals(listOf(ArticleBlock.Text("<p>One</p><p>Two</p><p>   </p>")), blocks)
+    fun `text without content is dropped, and a tracking pixel doesn't split a paragraph`() {
+        val blocks = ArticleBlocks.split("<p>One</p><img src=\"https://x.com/1x1.gif\" width=\"1\"><p>Two and <img src=\"https://x.com/p.gif\" height=\"1\">three</p><p>   </p>", base)
+        assertEquals(listOf(ArticleBlock.Text("One"), ArticleBlock.Text("Two and three")), blocks)
     }
 }

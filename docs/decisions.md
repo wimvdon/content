@@ -2,6 +2,19 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-17: The reader lays out article text itself
+
+Full articles sometimes lost their paragraphs and layout: Compose's HTML conversion puts a single
+line break between paragraphs and drops list bullets and quote bars, and the extractor turned a
+`<div>` per paragraph into a line break. Article text is now split into blocks first
+(`feed/TextLayout.kt`: paragraphs, headings, lists with bullets, numbers and nesting, quotes,
+code), and the reader spaces and draws each block itself; only the text inside a block still
+goes through Compose's HTML conversion (links, bold, italics). The extractor makes a paragraph of
+every container that holds only text, and matches "unlikely" class names as whole name parts, so
+utility classes like `overflow-hidden` no longer remove the article. Rejected: a WebView (heavy,
+and it would bring the site's scripts back), an HTML library such as jsoup (a new dependency for
+what a small splitter does).
+
 ## 2026-10-16: Shared empty state on Android, same layout on the web
 
 A Material 3 audit of the sibling apps found empty screens drawn differently in each app. Here the empty list's feed icon never showed: it was 48dp tall with 48dp of padding inside, which left nothing to draw. Android now uses the shared `ui/theme/EmptyState.kt` (`DESIGN.md`, "Empty and setup states"): an icon in a circle that fits the state (feed, all read, article), a title, one sentence and buttons. The web app's `Empty` got the same icon circle, and its empty list without the Unread filter now says "No articles yet" instead of "All caught up". "Show all articles" became "Show all", as on the web. Rejected: fixing only the padding (the three empty states would still differ between the apps).

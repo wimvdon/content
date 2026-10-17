@@ -69,6 +69,47 @@ class ArticleExtractorTest {
     }
 
     @Test
+    fun `a div per paragraph becomes a paragraph`() {
+        val html =
+            page(
+                """
+                <div class="article-body">
+                  <div class="paragraph">One. $paragraph</div>
+                  <div class="paragraph">Two, with <a href="/x">a link</a>. $paragraph</div>
+                  <div class="paragraph"><span>Three.</span> $paragraph<br>Same paragraph.</div>
+                </div>
+                """,
+            )
+        val article = ArticleExtractor.extract(html, "https://example.com/")!!
+        assertTrue(article, article.contains("<p>One. $paragraph</p>"))
+        assertTrue(article, article.contains("<p>Two, with <a href=\"https://example.com/x\">a link</a>. $paragraph</p>"))
+        assertTrue(article, article.contains("<p>Three. $paragraph<br>Same paragraph.</p>"))
+        val blocks = ArticleBlocks.split(article, "https://example.com/")
+        assertEquals(3, blocks.size)
+    }
+
+    @Test
+    fun `utility class names don't hide the article`() {
+        val html =
+            page(
+                """
+                <div class="relative overflow-hidden shadow-lg">
+                  <div class="text-lg leading-7 md:hidden-none">
+                    <p>$paragraph</p><p>$paragraph</p>
+                    <p class="md:hidden">Visible on phones. $paragraph</p>
+                    <p class="hidden">Hidden everywhere. $paragraph</p>
+                    <div class="share-buttons"><p>Share this article with friends on every network there is.</p></div>
+                  </div>
+                </div>
+                """,
+            )
+        val article = ArticleExtractor.extract(html, "https://example.com/")!!
+        assertTrue(article.contains("Visible on phones."))
+        assertFalse(article.contains("Hidden everywhere."))
+        assertFalse(article.contains("Share this"))
+    }
+
+    @Test
     fun `keeps sections split over sibling containers`() {
         val html =
             page(
