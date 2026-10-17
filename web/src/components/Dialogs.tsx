@@ -69,7 +69,6 @@ const addErrors: Record<string, Key> = {
   notFound: "errorNotFound",
   server: "errorServer",
   tooLarge: "errorTooLarge",
-  noProxy: "errorNoProxy",
 };
 
 export function ManageDialog({ open, onOpenChange, onAddFeed, onImport }: Props & { onAddFeed: () => void; onImport: () => void }) {
@@ -321,7 +320,7 @@ export function SettingsDialog({ open, onOpenChange }: Props) {
           <p className={cn("text-sm", syncStatus.kind === "failed" ? "text-destructive" : "text-muted-foreground")}>{connected || syncStatus.kind === "failed" ? statusText : t("syncSummary")}</p>
           <div className="flex flex-wrap gap-2 pt-1">
             {!connected || (syncStatus.kind === "failed" && syncStatus.problem === "needsApproval") ? (
-              <Button onClick={() => void app.connectGoogleDrive()} disabled={!settings.googleClientId}>
+              <Button onClick={() => void app.connectGoogleDrive()}>
                 {t("connect")}
               </Button>
             ) : (
@@ -360,7 +359,6 @@ export function SettingsDialog({ open, onOpenChange }: Props) {
             ]}
           />
         </section>
-        <ConnectionFields />
         <p className="text-xs text-muted-foreground">
           Reader ·{" "}
           <a className="underline" href="https://github.com/wimvdon/rss-reader/blob/main/PRIVACY.md" target="_blank" rel="noopener noreferrer">
@@ -372,32 +370,9 @@ export function SettingsDialog({ open, onOpenChange }: Props) {
   );
 }
 
-/** The feed loader and Google client addresses; the dialog mounts this anew each time it opens. */
-function ConnectionFields() {
-  const { settings } = useApp();
-  const [proxy, setProxy] = useState(settings.proxyUrl);
-  const [clientId, setClientId] = useState(settings.googleClientId);
-  return (
-    <section className="space-y-3">
-      <h3 className="text-sm font-medium text-primary">{t("connections")}</h3>
-      <div className="space-y-1.5">
-        <Label htmlFor="proxy">{t("proxyUrl")}</Label>
-        <Input id="proxy" value={proxy} onChange={(e) => setProxy(e.target.value)} onBlur={() => app.updateSettings({ proxyUrl: proxy.trim() })} placeholder="https://rss-reader-feeds.example.workers.dev" />
-        <p className="text-xs text-muted-foreground">{t("proxyHint")}</p>
-      </div>
-      <div className="space-y-1.5">
-        <Label htmlFor="client">{t("googleClientId")}</Label>
-        <Input id="client" value={clientId} onChange={(e) => setClientId(e.target.value)} onBlur={() => app.updateSettings({ googleClientId: clientId.trim() })} placeholder="1234-abc.apps.googleusercontent.com" />
-        <p className="text-xs text-muted-foreground">{t("googleClientIdHint")}</p>
-      </div>
-    </section>
-  );
-}
-
 const syncProblems: Record<string, Key> = {
   offline: "syncOffline",
   needsApproval: "syncNeedsApproval",
   server: "syncServer",
   unreadableFile: "syncUnreadable",
-  notConfigured: "syncNotConfigured",
 };

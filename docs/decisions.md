@@ -2,6 +2,14 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-17: The web app's addresses are built in
+
+The feed loader's address and the Google client ID were settings in the web app (filled in from
+the build), with a Connections section that only made sense to a developer. Both are public, so
+they are now constants in `web/src/lib/config.ts` and Settings no longer shows them. Rejected:
+keeping them as build variables (`.env.production`), which added a step without a benefit for a
+single published site.
+
 ## 2026-10-17: New name "Reader" and package `be.wimvandonck.reader`
 
 The owner renamed the app to Reader and asked for a package name under `be.wimvandonck`. The

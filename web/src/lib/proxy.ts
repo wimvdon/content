@@ -1,6 +1,8 @@
 /** Loads feeds and pages through the Cloudflare Worker (worker/), because browsers block most of them otherwise. */
 
-export type FetchProblem = "offline" | "notFound" | "server" | "tooLarge" | "noProxy";
+import { PROXY_URL } from "./config";
+
+export type FetchProblem = "offline" | "notFound" | "server" | "tooLarge";
 
 export class FetchError extends Error {
   readonly kind: FetchProblem;
@@ -16,11 +18,10 @@ export interface Fetched {
   url: string;
 }
 
-export async function fetchViaProxy(proxyUrl: string, url: string): Promise<Fetched> {
-  if (!proxyUrl) throw new FetchError("noProxy");
+export async function fetchViaProxy(url: string): Promise<Fetched> {
   let response: Response;
   try {
-    response = await fetch(`${proxyUrl.replace(/\/$/, "")}/?url=${encodeURIComponent(url)}`);
+    response = await fetch(`${PROXY_URL}/?url=${encodeURIComponent(url)}`);
   } catch {
     throw new FetchError("offline");
   }
