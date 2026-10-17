@@ -170,6 +170,33 @@ describe("/instapaper/api", () => {
     expect(calls.map((c) => c.init?.method)).toEqual(["POST", "POST", "POST", "DELETE", "DELETE"]);
   });
 
+  it("manages folders and tags", async () => {
+    const { fetcher, calls } = upstream(() => jsonResponse({ ok: true }));
+    const ask = (path: string, method: string, body?: unknown) =>
+      handle(apiRequest(path, { method, headers: BEARER, body: body === undefined ? undefined : JSON.stringify(body) }), env, fetcher);
+
+    expect((await ask("/folders", "GET")).status).toBe(200);
+    expect((await ask("/folders", "POST", { title: "Recipes" })).status).toBe(200);
+    expect((await ask("/folders/reorder", "POST", { order: [{ folder_id: 9, position: 1 }] })).status).toBe(200);
+    expect((await ask("/folders/9", "DELETE")).status).toBe(200);
+    expect((await ask("/tags", "GET")).status).toBe(200);
+    expect((await ask("/tags", "POST", { name: "Cooking" })).status).toBe(200);
+    expect((await ask("/tags/4", "POST", { name: "Baking" })).status).toBe(200);
+    expect((await ask("/bookmarks/7/tags", "POST", { add_tags: [{ name: "Cooking" }] })).status).toBe(200);
+
+    expect(calls.map((c) => c.init?.method + " " + c.input.replace(API_BASE, ""))).toEqual([
+      "GET /folders",
+      "POST /folders",
+      "POST /folders/reorder",
+      "DELETE /folders/9",
+      "GET /tags",
+      "POST /tags",
+      "POST /tags/4",
+      "POST /bookmarks/7/tags",
+    ]);
+    expect(JSON.parse(String(calls[2].init?.body))).toEqual({ order: [{ folder_id: 9, position: 1 }] });
+  });
+
   it("passes Instapaper's own errors on", async () => {
     const { fetcher } = upstream(() => jsonResponse({ error: { code: 401, message: "Authentication failed" } }, 401));
     const response = await handle(apiRequest("/bookmarks", { headers: BEARER }), env, fetcher);
@@ -201,9 +228,12 @@ describe("/instapaper/api", () => {
   it("refuses everything outside the list of calls", async () => {
     const { fetcher, calls } = upstream(() => jsonResponse({}));
     const ask = (path: string, method = "GET") => handle(apiRequest(path, { method, headers: BEARER }), env, fetcher);
-    expect((await ask("/folders")).status).toBe(404);
+    expect((await ask("/account")).status).toBe(404);
+    expect((await ask("/highlights")).status).toBe(404);
     expect((await ask("/bookmarks/7/parse")).status).toBe(404);
-    expect((await ask("/bookmarks/7/tags", "POST")).status).toBe(404);
+    expect((await ask("/folders/abc", "DELETE")).status).toBe(404);
+    expect((await ask("/folders/reorder", "GET")).status).toBe(405);
+    expect((await ask("/tags/7", "DELETE")).status).toBe(405);
     expect((await ask("/bookmarks/abc")).status).toBe(404);
     expect((await ask("/bookmarks/../account")).status).toBe(404);
     expect((await ask("/bookmarks", "DELETE")).status).toBe(405);

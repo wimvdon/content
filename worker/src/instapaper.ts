@@ -19,7 +19,10 @@ const LIST_PARAMS = ["section", "folder_id", "tag", "limit", "offset", "since"];
 
 type Fetcher = (input: string, init?: RequestInit) => Promise<Response>;
 
-/** The Instapaper calls the web app may make: list and save, delete, move (archive or home), like. */
+/**
+ * The Instapaper calls the web app may make: bookmarks (list, save, delete, move to the archive, home
+ * or a folder, like, tag), folders (list, create, delete, reorder) and tags (list, create, rename).
+ */
 const API_ROUTES: { method: string; path: RegExp }[] = [
   { method: "GET", path: /^\/bookmarks$/ },
   { method: "POST", path: /^\/bookmarks$/ },
@@ -27,6 +30,14 @@ const API_ROUTES: { method: string; path: RegExp }[] = [
   { method: "POST", path: /^\/bookmarks\/\d+\/move$/ },
   { method: "POST", path: /^\/bookmarks\/\d+\/like$/ },
   { method: "DELETE", path: /^\/bookmarks\/\d+\/like$/ },
+  { method: "POST", path: /^\/bookmarks\/\d+\/tags$/ },
+  { method: "GET", path: /^\/folders$/ },
+  { method: "POST", path: /^\/folders$/ },
+  { method: "POST", path: /^\/folders\/reorder$/ },
+  { method: "DELETE", path: /^\/folders\/\d+$/ },
+  { method: "GET", path: /^\/tags$/ },
+  { method: "POST", path: /^\/tags$/ },
+  { method: "POST", path: /^\/tags\/\d+$/ },
 ];
 
 export async function handleInstapaper(request: Request, env: Env, fetcher: Fetcher, url: URL): Promise<Response> {
