@@ -2,6 +2,18 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-17: Sign in with Instapaper (OAuth 2), through the feed loader Worker
+
+Reader can now sign in to the user's Instapaper account (API v2): Save goes straight to the account, and a screen manages Unread, Archive, Liked, folders and tags. Details: `docs/instapaper.md`. Choices:
+
+- **The Worker swaps the code for a token.** Instapaper's token request needs the client secret, and its docs offer no PKCE. A secret can't live in a public repository, an APK or a web bundle, so `worker/src/instapaper.ts` holds it as a Worker secret (`POST /instapaper/token`). This bends two earlier rules: the Android app now uses the Worker (for that swap only), and "no Reader server" now has one exception, a stateless pass-through that stores and logs nothing. `PRIVACY.md` says so. The redirect address is fixed in the Worker, so the endpoint can't be pointed at another address.
+- **The web app's Instapaper calls go through the Worker** because Instapaper's API sends no CORS headers (checked with a preflight request). The Worker forwards an allowlist of calls only (bookmarks, folders, tags), refuses anything else, and never follows a redirect with the token. Android calls Instapaper directly.
+- **One callback address for both apps**, an Android App Link on the web app's own address, because Instapaper accepts only http(s) callbacks (no custom URL scheme). The cost: debug builds can't verify the link (different key and package), so sign-in is tried with a released build.
+- **The token never expires**, so there is no refresh code. It is stored in its own DataStore file on Android, excluded from backups and phone transfers, and in the browser's IndexedDB on the web. It is never in the Drive sync file.
+- **Folders and tags** were added after checking Instapaper's TypeScript SDK and the documentation: the published OpenAPI file listed bookmarks only, but the documentation and the live API have folders and tags.
+
+Rejected: a personal access token pasted into the app (works only for the account that owns the Instapaper application, so useless to other people), a custom URL scheme callback (not allowed), the client secret in the app or the web bundle (extractable from a public build), an encrypted token store (needs a new dependency; the backup exclusion keeps the token on the phone), Instapaper's parsed article text (needs a separate Instaparser key for other accounts; Reader's own full-article reader opens the saved link instead), and highlights (a separate feature).
+
 ## 2026-10-17: A refresh always syncs
 
 A refresh skipped its sync when the last one was under ten seconds ago. Pulling down right after switching devices could therefore miss a read mark made a few seconds earlier elsewhere, and the next automatic sync was up to a minute away. Refresh now always syncs first (Android `SyncManager.sync()`, web `AppStore.sync()`); coming back to the app and the one-minute timer keep the ten-second gap so they don't sync twice in a row. Google Drive is not the limit here: reading the file by its id returns what the last upload wrote. Rejected: dropping the gap everywhere (starting the app would sync twice), remembering the Drive file id between syncs (two devices that create the file at the same moment would each keep their own copy; looking it up every time makes them settle on the newest one), and checking the file's version every few seconds (more code and Drive traffic than a refresh that always syncs needs; it can be added if waiting for the minute timer still feels too slow).

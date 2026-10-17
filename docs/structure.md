@@ -84,3 +84,8 @@ rss-reader/
             ├── data/                          Library, codec and settings tests
             └── feed/                          Parser, dates, HTML, discovery, finder, OPML tests
 ```
+
+Instapaper: `app/src/main/kotlin/be/wimvandonck/reader/instapaper/` (client, sign-in, list logic,
+account), `ui/instapaper/` and `ui/settings/InstapaperSettings.kt` (screens), `web/src/lib/instapaper.ts`
+and `web/src/components/InstapaperDialog.tsx` (web), `worker/src/instapaper.ts` (token swap and the web
+app's calls). See `docs/instapaper.md`.

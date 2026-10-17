@@ -42,6 +42,9 @@ import be.wimvandonck.reader.data.Library
 import be.wimvandonck.reader.data.ShareTarget
 import be.wimvandonck.reader.data.Settings
 import be.wimvandonck.reader.data.needsFullText
+import be.wimvandonck.reader.instapaper.InstapaperException
+import be.wimvandonck.reader.instapaper.InstapaperNotice
+import be.wimvandonck.reader.instapaper.InstapaperState
 import be.wimvandonck.reader.rssReaderApp
 import be.wimvandonck.reader.sync.GoogleAuth
 import be.wimvandonck.reader.sync.SyncService
@@ -53,6 +56,8 @@ import be.wimvandonck.reader.ui.home.HomeActions
 import be.wimvandonck.reader.ui.home.HomeScreen
 import be.wimvandonck.reader.ui.home.HomeState
 import be.wimvandonck.reader.ui.home.errorRes
+import be.wimvandonck.reader.ui.instapaper.InstapaperScreen
+import be.wimvandonck.reader.ui.instapaper.messageRes
 import be.wimvandonck.reader.ui.reader.FullTextState
 import be.wimvandonck.reader.ui.reader.ReaderActions
 import be.wimvandonck.reader.ui.reader.ReaderScreen
@@ -77,12 +82,16 @@ sealed interface Screen {
     /** Feeds and folders. */
     data object Feeds : Screen
 
+    /** The user's Instapaper account. */
+    data object Instapaper : Screen
+
     companion object {
         fun encode(screen: Screen): String =
             when (screen) {
                 Home -> "home"
                 Settings -> "settings"
                 Feeds -> "feeds"
+                Instapaper -> "instapaper"
                 is Reader -> "reader:" + screen.articleKey
             }
 
@@ -90,6 +99,7 @@ sealed interface Screen {
             when {
                 text == "settings" -> Settings
                 text == "feeds" -> Feeds
+                text == "instapaper" -> Instapaper
                 text.startsWith("reader:") -> Reader(text.removePrefix("reader:"))
                 else -> Home
             }
@@ -115,6 +125,8 @@ fun RssReaderNavigation() {
     val refreshing by repository.refreshing.collectAsStateWithLifecycle()
     val problems by repository.problems.collectAsStateWithLifecycle()
     val syncStatus by app.sync.status.collectAsStateWithLifecycle()
+    val instapaperState by app.instapaper.state.collectAsStateWithLifecycle()
+    val instapaperNotice by app.instapaper.notice.collectAsStateWithLifecycle()
     val current = settings ?: Settings()
     val library = libraryOrNull ?: Library()
     val snackbar = remember { SnackbarHostState() }
@@ -227,6 +239,13 @@ fun RssReaderNavigation() {
         }
     }
 
+    // Coming back from Instapaper's sign-in page: say how it went, once.
+    LaunchedEffect(instapaperNotice) {
+        val notice = instapaperNotice ?: return@LaunchedEffect
+        showMessage(resources.getString(if (notice == InstapaperNotice.SignedIn) R.string.instapaper_sign_in_done else R.string.instapaper_sign_in_failed))
+        app.instapaper.clearNotice()
+    }
+
     // Sync while the app is on screen: when it comes back and every minute (SyncManager).
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     LaunchedEffect(lifecycle, libraryOrNull != null) {
@@ -251,6 +270,19 @@ fun RssReaderNavigation() {
         if (!ExternalApps.send(context, target, article.title, link, chooser)) {
             if (target is ShareTarget.App) showMessage(resources.getString(R.string.share_target_missing_short, target.label))
             ExternalApps.share(context, article.title, link, chooser)
+        }
+    }
+
+    /** Saves the article to the signed-in Instapaper account. */
+    fun saveToInstapaper(article: Article) {
+        val link = article.link ?: return
+        uiScope.launch {
+            try {
+                app.instapaper.save(link, article.title)
+                showMessage(resources.getString(R.string.instapaper_saved))
+            } catch (e: InstapaperException) {
+                showMessage(resources.getString(e.problem.messageRes()))
+            }
         }
     }
 
@@ -374,7 +406,8 @@ fun RssReaderNavigation() {
                             article = article,
                             feed = article?.let { library.feed(it.feedUrl) },
                             style = current.reader,
-                            saveTarget = current.saveTarget,
+                            // Signed in to Instapaper, Save goes straight to the account.
+                            saveTarget = if (instapaperState is InstapaperState.SignedIn) ShareTarget.Instapaper else current.saveTarget,
                             shareTarget = current.shareTarget,
                             fullText = fullText,
                             showImages = current.showImages,
@@ -383,7 +416,11 @@ fun RssReaderNavigation() {
                                 ReaderActions(
                                     onBack = ::pop,
                                     onStyleChange = { style -> app.appScope.launch { app.settings.setReaderStyle(style) } },
-                                    onSave = { article?.let { send(it, current.saveTarget) } },
+                                    onSave = {
+                                        article?.let {
+                                            if (instapaperState is InstapaperState.SignedIn) saveToInstapaper(it) else send(it, current.saveTarget)
+                                        }
+                                    },
                                     onShare = { article?.let { send(it, current.shareTarget) } },
                                     onOpenInBrowser = { article?.link?.let { ExternalApps.openLink(context, it) } },
                                     onMarkUnread = {
@@ -408,6 +445,7 @@ fun RssReaderNavigation() {
                                 problemCount = problems.size,
                                 shareApps = shareApps,
                                 syncStatus = syncStatus,
+                                instapaper = instapaperState,
                             ),
                         snackbarHostState = snackbar,
                         actions =
@@ -426,8 +464,32 @@ fun RssReaderNavigation() {
                                 onConnectSync = connectSync,
                                 onSyncNow = { app.appScope.launch { app.sync.sync() } },
                                 onDisconnectSync = { app.appScope.launch { app.sync.disconnect() } },
+                                onInstapaperSignIn = { uiScope.launch { ExternalApps.openLink(context, app.instapaper.begin()) } },
+                                onInstapaperSignOut = { app.appScope.launch { app.instapaper.signOut() } },
+                                onOpenInstapaper = { push(Screen.Instapaper) },
                             ),
                     )
+                }
+
+                Screen.Instapaper -> {
+                    SystemBarsFollowTheme(appDark)
+                    when (val account = instapaperState) {
+                        is InstapaperState.SignedIn -> {
+                            val modelScope = rememberCoroutineScope()
+                            val model = remember(account.session.token) { app.instapaper.newModel(account.session, modelScope) }
+                            InstapaperScreen(
+                                model = model,
+                                snackbarHostState = snackbar,
+                                onBack = ::pop,
+                                onOpenLink = { url -> ExternalApps.openLink(context, url) },
+                            )
+                        }
+
+                        // Signed out (here or on the other screen): nothing to show.
+                        InstapaperState.SignedOut -> LaunchedEffect(Unit) { pop() }
+
+                        InstapaperState.Loading -> Unit
+                    }
                 }
 
                 Screen.Feeds -> {

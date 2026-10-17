@@ -77,3 +77,12 @@ RssReaderApp ── SettingsStore ── DataStore "settings" (Preferences)
 See [decisions.md](decisions.md): no database or JSON library is needed for a few thousand
 articles; no image or HTTP library keeps the app small and the privacy story simple; no background
 work means no battery use when the app is closed.
+
+## Instapaper
+
+`instapaper/` holds everything about the user's Instapaper account, in plain Kotlin where possible:
+`InstapaperClient` (API v2 over OkHttp, with pure parsing helpers), `InstapaperAuth` (sign-in address,
+callback parsing, token swap through the Worker), `InstapaperModel` (the saved-articles screen's logic,
+tested on the JVM) and `InstapaperAccount` (the token in its own DataStore file). The screens in
+`ui/instapaper/` and `ui/settings/InstapaperSettings.kt` only show state and forward clicks. See
+`instapaper.md`.

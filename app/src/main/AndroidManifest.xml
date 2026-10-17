@@ -25,10 +25,23 @@
         <activity
             android:name=".ui.MainActivity"
             android:exported="true"
+            android:launchMode="singleTask"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- Where Instapaper sends the user back after signing in. Verified against
+                 https://rss-reader-web.wim-d57.workers.dev/.well-known/assetlinks.json (web/public). -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="rss-reader-web.wim-d57.workers.dev"
+                    android:path="/instapaper/callback" />
             </intent-filter>
         </activity>
     </application>

@@ -1,9 +1,10 @@
-import { ALargeSmall, ArrowLeft, Circle, CircleCheck, ExternalLink, FileText, Share2 } from "lucide-react";
+import { ALargeSmall, ArrowLeft, BookmarkPlus, Circle, CircleCheck, ExternalLink, FileText, Share2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { app, useApp } from "@/lib/app";
 import { extractArticle, needsFullText } from "@/lib/fullArticle";
 import { cached, cachedNow, keep } from "@/lib/fullArticleStore";
 import { formatDateTime, t } from "@/lib/i18n";
+import { problemText } from "@/lib/instapaperText";
 import { articleKey, sortTime, type Article } from "@/lib/library";
 import { fetchViaProxy } from "@/lib/proxy";
 import { sanitizeArticle } from "@/lib/sanitize";
@@ -19,7 +20,8 @@ type Full = { link: string; html: string | null };
 
 /** The parent gives each article its own key, so this state starts fresh for every article. */
 export function ArticleView({ article, onBack, onMessage }: { article: Article; onBack: () => void; onMessage: (text: string) => void }) {
-  const { library, settings } = useApp();
+  const { library, settings, instapaper } = useApp();
+  const [saving, setSaving] = useState(false);
   const feed = library.feeds.find((f) => f.url === article.feedUrl);
   const current = library.articles.find((a) => articleKey(a) === articleKey(article)) ?? article;
   const link = article.link;
@@ -69,6 +71,20 @@ export function ArticleView({ article, onBack, onMessage }: { article: Article; 
     }
   };
 
+  const saveToInstapaper = async () => {
+    const address = article.link;
+    if (!address || saving) return;
+    setSaving(true);
+    try {
+      await app.withInstapaper((api) => api.save(address, article.title));
+      onMessage(t("instapaperSaved"));
+    } catch (e) {
+      onMessage(problemText(e));
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <article className="flex h-full min-w-0 flex-col" aria-label={article.title}>
       <div className="flex items-center gap-1 border-b px-2 py-2">
@@ -102,6 +118,11 @@ export function ArticleView({ article, onBack, onMessage }: { article: Article; 
         </Button>
         {article.link ? (
           <>
+            {instapaper ? (
+              <Button variant="ghost" size="icon" onClick={() => void saveToInstapaper()} disabled={saving} aria-label={t("saveToInstapaper")} title={t("saveToInstapaper")}>
+                <BookmarkPlus />
+              </Button>
+            ) : null}
             <Button variant="ghost" size="icon" onClick={() => void share()} aria-label={t("share")} title={t("share")}>
               <Share2 />
             </Button>

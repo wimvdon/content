@@ -3,6 +3,16 @@ import { GOOGLE_CLIENT_ID } from "./config";
 import { findFeed } from "./discovery";
 import { GoogleAuth, GoogleDrive, SyncError, type SyncProblem, type SyncProvider } from "./drive";
 import { parseFeed } from "./feedParser";
+import {
+  authorizeUrl,
+  CALLBACK_PATH,
+  exchangeCode,
+  InstapaperApi,
+  InstapaperError,
+  newState,
+  parseCallback,
+  type Session as InstapaperSession,
+} from "./instapaper";
 import * as L from "./library";
 import { importOpml, parseOpml, writeOpml } from "./opml";
 import { fetchViaProxy, FetchError } from "./proxy";
@@ -37,7 +47,13 @@ export interface State {
   refreshing: boolean;
   problems: Map<string, FetchError["kind"] | "notAFeed">;
   syncStatus: SyncStatus;
+  /** The Instapaper account, when signed in. Kept in this browser only, never in the sync file. */
+  instapaper: InstapaperSession | null;
+  /** The result of coming back from Instapaper's sign-in page, shown once. */
+  instapaperNotice: "signedIn" | "failed" | null;
 }
+
+const INSTAPAPER_STATE_KEY = "instapaper-sign-in-state";
 
 const defaults: Settings = {
   syncService: "none",
@@ -61,6 +77,8 @@ class AppStore {
     refreshing: false,
     problems: new Map(),
     syncStatus: { kind: "idle" },
+    instapaper: null,
+    instapaperNotice: null,
   };
   private listeners = new Set<() => void>();
   private knownRead = new Set<string>();
@@ -85,14 +103,16 @@ class AppStore {
   async init() {
     if (this.started) return;
     this.started = true;
-    const [library, settings, base] = await Promise.all([
+    const [library, settings, base, instapaper] = await Promise.all([
       load<L.Library>("library").catch(() => undefined),
       load<Partial<Settings>>("settings").catch(() => undefined),
       load<string>("syncBase").catch(() => undefined),
+      load<InstapaperSession>("instapaper").catch(() => undefined),
     ]);
     const merged = { ...defaults, ...settings, readerStyle: readerStyleOf(settings?.readerStyle) };
     this.knownRead = new Set(Object.keys((base && S.decode(base)?.read) || {}));
-    this.set({ loaded: true, library: library ?? L.emptyLibrary(), settings: merged });
+    this.set({ loaded: true, library: library ?? L.emptyLibrary(), settings: merged, instapaper: instapaper?.token ? instapaper : null });
+    if (location.pathname === CALLBACK_PATH) await this.finishInstapaperSignIn(location.search);
     this.syncWhileVisible();
     if (merged.syncService !== "none") await this.sync();
     if (this.state.library.feeds.length > 0) await this.refresh();
@@ -266,6 +286,54 @@ class AppStore {
   }
 
   exportOpml = () => writeOpml("Reader", this.state.library);
+
+  // Instapaper (docs/instapaper.md). Sign-in happens on Instapaper's own page; the token stays in this browser.
+
+  /** From a click: leaves for Instapaper's sign-in page, which sends the user back to CALLBACK_PATH. */
+  connectInstapaper() {
+    const state = newState();
+    sessionStorage.setItem(INSTAPAPER_STATE_KEY, state);
+    location.assign(authorizeUrl(state));
+  }
+
+  private async finishInstapaperSignIn(search: string) {
+    const answer = parseCallback(search);
+    const expected = sessionStorage.getItem(INSTAPAPER_STATE_KEY);
+    sessionStorage.removeItem(INSTAPAPER_STATE_KEY);
+    history.replaceState(null, "", "/");
+    if (answer.kind !== "code" || !expected || answer.state !== expected) {
+      this.set({ instapaperNotice: "failed" });
+      return;
+    }
+    try {
+      const session = await exchangeCode(answer.code);
+      await save("instapaper", session);
+      this.set({ instapaper: session, instapaperNotice: "signedIn" });
+    } catch {
+      this.set({ instapaperNotice: "failed" });
+    }
+  }
+
+  clearInstapaperNotice() {
+    this.set({ instapaperNotice: null });
+  }
+
+  async disconnectInstapaper() {
+    await remove("instapaper").catch(() => undefined);
+    this.set({ instapaper: null });
+  }
+
+  /** Runs one Instapaper call. A token Instapaper no longer accepts signs the user out, so they can sign in again. */
+  async withInstapaper<T>(run: (api: InstapaperApi) => Promise<T>): Promise<T> {
+    const session = this.state.instapaper;
+    if (!session) throw new InstapaperError("auth");
+    try {
+      return await run(new InstapaperApi(session.token));
+    } catch (e) {
+      if (e instanceof InstapaperError && e.problem === "auth") await this.disconnectInstapaper();
+      throw e;
+    }
+  }
 
   // Sync, the same way as the Android app (docs/sync.md).
 

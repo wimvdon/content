@@ -131,3 +131,18 @@ Release builds are minified, so stack traces show short names like `a.b.c`. Down
 retrace rss-reader-<version>-mapping.txt stacktrace.txt
 ```
 Or ask Claude Code to do it: give it the stack trace and the version.
+
+## Instapaper (by hand, on the released app and the web app)
+
+Sign-in needs the real Instapaper, the Worker's secret and a verified App Link, so it can't be tested
+in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
+
+- [ ] Settings › Instapaper › **Sign in** opens Instapaper; approving returns to the app (Android) or
+      the page (web) with "Signed in to Instapaper", and Settings shows your user name.
+- [ ] **Save** in the reader saves the article; it appears in Instapaper's Unread list.
+- [ ] **Saved articles**: Unread, Archive, Liked, a folder and a tag each show the right items.
+- [ ] Archive, move back to Unread, like, unlike, move to a folder, add and remove a tag, and delete
+      (asks first) each change the article in Instapaper too.
+- [ ] **Manage folders**: create, move up and down, delete. **Manage tags**: rename.
+- [ ] **Sign out** returns Settings to "Sign in", and Save goes back to the chosen app.
+- [ ] `https://rss-reader-web.wim-d57.workers.dev/.well-known/assetlinks.json` shows the JSON file.
