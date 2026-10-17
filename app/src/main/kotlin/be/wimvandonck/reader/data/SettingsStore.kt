@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import be.wimvandonck.reader.sync.SyncService
+import be.wimvandonck.reader.sync.SyncSettings
 import java.io.IOException
 
 private val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
@@ -64,6 +65,27 @@ class SettingsStore(
     suspend fun setMarkReadOnScroll(enabled: Boolean) = edit { it[MARK_READ_ON_SCROLL] = enabled }
 
     suspend fun setListView(view: ListView) = edit { it[LIST_VIEW] = view.name }
+
+    /** Takes the synced settings from another device (see SyncSettings); the rest stays as it is. */
+    suspend fun applySynced(values: Map<String, String>) =
+        edit { prefs ->
+            val current = read(prefs)
+            val s = SyncSettings.applyTo(current, values)
+            if (s != current) {
+                prefs[THEME_MODE] = s.appearance.themeMode.name
+                prefs[DYNAMIC_COLOR] = s.appearance.dynamicColor
+                prefs[READER_FONT] = s.reader.font.name
+                prefs[READER_TEXT_SIZE] = s.reader.textSize
+                prefs[READER_SPACING] = s.reader.spacing.name
+                prefs[READER_BACKGROUND] = s.reader.background.name
+                prefs[READER_AUTO_DARK] = s.reader.autoDark
+                prefs[UNREAD_ONLY] = s.unreadOnly
+                prefs[FULL_ARTICLES] = s.fullArticles
+                prefs[SHOW_IMAGES] = s.showImages
+                prefs[MARK_READ_ON_SCROLL] = s.markReadOnScroll
+                prefs[LIST_VIEW] = s.listView.name
+            }
+        }
 
     suspend fun setSyncService(service: SyncService) =
         edit {

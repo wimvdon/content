@@ -22,13 +22,14 @@ data class SyncFeed(
 
 /**
  * The sync file shared by every device and the web app: folders and feeds in the user's order,
- * and the read articles (article key → the article's date, used to forget old ones). The format
- * is documented in docs/sync.md.
+ * the read articles (article key → the article's date, used to forget old ones) and the settings
+ * (shared name → text value, see [SyncSettings]). The format is documented in docs/sync.md.
  */
 data class SyncDocument(
     val folders: List<SyncFolder> = emptyList(),
     val feeds: List<SyncFeed> = emptyList(),
     val read: Map<String, Long> = emptyMap(),
+    val settings: Map<String, String> = emptyMap(),
 ) {
     /** Leaves out read marks of removed feeds and of articles older than [keepSince]. */
     fun pruned(keepSince: Long): SyncDocument {
@@ -38,7 +39,9 @@ data class SyncDocument(
 
     companion object {
         const val FORMAT = "rss-reader-sync"
-        const val VERSION = 1L
+        // 2 added settings. Older apps leave a version 2 file alone and ask to be updated, rather
+        // than writing it back without the settings.
+        const val VERSION = 2L
 
         /** Read marks older than this are dropped from the file (feeds rarely go back further). */
         const val KEEP_READ_MS = 120L * 24 * 60 * 60 * 1000
@@ -72,6 +75,7 @@ data class SyncDocument(
                             )
                         },
                     "read" to doc.read.toSortedMap(),
+                    "settings" to doc.settings.toSortedMap(),
                 ),
             )
 
@@ -111,7 +115,13 @@ data class SyncDocument(
                     val time = (v as? Number)?.toLong() ?: return@mapNotNull null
                     key to time
                 }.toMap()
-            return SyncDocument(folders, feeds, read)
+            val settings =
+                (root["settings"] as? Map<*, *>).orEmpty().entries.mapNotNull { (k, v) ->
+                    val key = k as? String ?: return@mapNotNull null
+                    val value = v as? String ?: return@mapNotNull null
+                    key to value
+                }.toMap()
+            return SyncDocument(folders, feeds, read, settings)
         }
     }
 }

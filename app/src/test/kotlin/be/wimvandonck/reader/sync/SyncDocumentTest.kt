@@ -6,6 +6,7 @@ import be.wimvandonck.reader.data.Folder
 import be.wimvandonck.reader.data.Library
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SyncDocumentTest {
@@ -32,7 +33,20 @@ class SyncDocumentTest {
     fun `leaves alone files that aren't sync files or are newer`() {
         assertNull(SyncDocument.decode("not json"))
         assertNull(SyncDocument.decode("""{"format":"other","version":1}"""))
-        assertNull(SyncDocument.decode("""{"format":"rss-reader-sync","version":2}"""))
+        assertNull(SyncDocument.decode("""{"format":"rss-reader-sync","version":3}"""))
+    }
+
+    @Test
+    fun `settings go into the file and back, and files without them still read`() {
+        val doc = SyncDocument(settings = mapOf("theme" to "dark", "reader.textSize" to "20"))
+        val text = SyncDocument.encode(doc)
+        assertTrue(text.contains("\"version\":2"))
+        assertEquals(doc, SyncDocument.decode(text))
+        assertEquals(emptyMap<String, String>(), SyncDocument.decode("""{"format":"rss-reader-sync","version":1}""")!!.settings)
+        assertEquals(
+            mapOf("theme" to "light"),
+            SyncDocument.decode("""{"format":"rss-reader-sync","version":2,"settings":{"theme":"light","bad":5}}""")!!.settings,
+        )
     }
 
     @Test
@@ -75,5 +89,15 @@ class SyncDocumentTest {
     @Test
     fun `article keys give their feed`() {
         assertEquals(b, SyncDocument.feedUrlOf("$b x y"))
+    }
+
+    @Test
+    fun `writes exactly the text the web app writes for the same file`() {
+        // The same text is checked in web/test/sync.test.ts.
+        val web =
+            """{"format":"rss-reader-sync","version":2,"folders":[{"id":"f1","title":"News","icon":"newspaper"}],""" +
+                """"feeds":[{"url":"https://a.example/feed","title":"A","renamed":true,"folderId":"f1","siteUrl":"https://a.example","iconUrl":null}],""" +
+                """"read":{"https://a.example/feed 1":100,"https://a.example/feed 2":200},"settings":{"reader.textSize":"20","theme":"dark"}}"""
+        assertEquals(web, SyncDocument.encode(SyncDocument.decode(web)!!))
     }
 }

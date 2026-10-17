@@ -21,7 +21,10 @@ import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import java.io.IOException
 
-/** The token is kept in its own file, which data_extraction_rules.xml keeps out of backups and phone transfers. */
+/**
+ * The token is kept in its own file, which data_extraction_rules.xml keeps out of backups and phone
+ * transfers. With Drive sync on, it is also in the sync file, so other devices sign in too.
+ */
 private val Context.instapaperDataStore: DataStore<Preferences> by preferencesDataStore(name = "instapaper")
 
 sealed interface InstapaperState {
@@ -89,6 +92,22 @@ class InstapaperAccount(
                 InstapaperNotice.Failed
             }
     }
+
+    /** Takes over the sign-in from another device through sync, or signs out when it was signed out there. */
+    suspend fun setSession(session: InstapaperSession?) {
+        if (session == null) {
+            signOut()
+            return
+        }
+        dataStore.edit { prefs ->
+            prefs[TOKEN] = session.token
+            prefs[USERNAME] = session.username
+            if (session.userId != null) prefs[USER_ID] = session.userId else prefs.remove(USER_ID)
+        }
+    }
+
+    /** The signed-in account once read from storage, or null. */
+    suspend fun session(): InstapaperSession? = (state.first { it != InstapaperState.Loading } as? InstapaperState.SignedIn)?.session
 
     suspend fun signOut() {
         dataStore.edit { prefs ->

@@ -2,6 +2,21 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-17: Settings and the Instapaper sign-in are synced
+
+The owner asked for settings, including everything Instapaper, to sync through Google Drive. The
+sync file (version 2) has a `settings` table of shared names and text values (`docs/sync.md`),
+merged per setting like the rest: a change on one side wins, this device wins a clash. A device
+whose base has no settings yet takes the file's, so a new phone's defaults don't overwrite the
+user's choices. Each app keeps names it doesn't know, so Android-only settings survive the web app.
+The Instapaper token is in the table too, so signing in once signs in every device and signing
+out signs out everywhere; it stays out of Android's backups as before, and only reaches devices
+through the user's own Drive folder that only Reader can open (`PRIVACY.md` says so). The
+version goes to 2 so that an older app asks to be updated instead of writing the file back
+without settings. Not synced: the Save and Share targets (they name apps on one phone).
+Rejected: per-setting timestamps (the base already tells which side changed), syncing the
+Save/Share targets, and keeping the token out of the file (the owner wants one sign-in).
+
 ## 2026-10-17: Web: Google's popup only on a click
 
 The web app showed Google's sign-in popup every time it was opened. Its Drive sign-in was kept only
