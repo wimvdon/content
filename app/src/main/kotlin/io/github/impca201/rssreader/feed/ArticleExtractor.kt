@@ -1,34 +1,23 @@
 package io.github.impca201.rssreader.feed
 
+import net.dankito.readability4j.extended.Readability4JExtended
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
+import org.jsoup.nodes.Element
+import org.jsoup.nodes.TextNode
 import java.net.URI
 
 /**
  * Finds the article in a web page and returns it as simple HTML (paragraphs, headings, lists,
  * quotes, links, text styles, pictures and embedded videos), the way "reader view" in browsers
- * does: menus, headers, sidebars, comments, ads and scripts are left out. Plain Kotlin with its own forgiving HTML
- * reader, so it needs no library and runs in unit tests.
+ * does: menus, headers, sidebars, comments, ads and scripts are left out. Finding the article is
+ * Readability4J, a port of Firefox Reader View's Readability, on jsoup; this object prepares the
+ * page for it and turns its result into the reader's simple HTML (only the tags below, absolute
+ * links, known video players). Plain Kotlin, so it runs in unit tests.
  */
 object ArticleExtractor {
     /** Below this many characters of text the page is not treated as an article. */
     const val MIN_TEXT_LENGTH = 250
-
-    /** How many levels above a paragraph its score counts. */
-    private const val ANCESTOR_LEVELS = 5
-
-    /** A look-alike container counts as part of the article from this share of the best one's score. */
-    private const val SAME_KIND_SHARE = 0.2
-
-    private val voidTags = setOf("area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr")
-    private val rawTextTags = setOf("script", "style", "noscript", "template", "svg", "math", "textarea", "iframe", "object", "select", "canvas")
-    private val droppedTags =
-        (rawTextTags - "iframe") + setOf("nav", "header", "footer", "aside", "form", "button", "audio", "dialog", "menu")
-
-    /** Tags whose start closes an open <p> (HTML's implied end tags). */
-    private val closesParagraph =
-        setOf(
-            "p", "div", "ul", "ol", "dl", "table", "blockquote", "pre", "h1", "h2", "h3", "h4", "h5", "h6",
-            "section", "article", "header", "footer", "aside", "nav", "figure", "hr", "form", "main",
-        )
 
     /** Tags kept in the result; other elements are replaced by their content. */
     private val keptTags =
@@ -36,6 +25,13 @@ object ArticleExtractor {
             "p", "br", "h1", "h2", "h3", "h4", "h5", "h6", "ul", "ol", "li", "blockquote", "pre", "code",
             "em", "i", "strong", "b", "u", "s", "sub", "sup", "a", "hr", "dl", "dt", "dd",
             "figure", "figcaption", "img", "iframe", "video",
+        )
+
+    /** Never part of what the reader shows, wherever Readability leaves them. */
+    private val droppedTags =
+        setOf(
+            "script", "style", "noscript", "template", "svg", "math", "textarea", "object", "select", "canvas",
+            "nav", "header", "footer", "aside", "form", "button", "input", "audio", "dialog", "menu",
         )
 
     /** Embedded players worth a card in the reader; other iframes are usually ads or widgets. */
@@ -47,272 +43,119 @@ object ArticleExtractor {
         )
     private val blockTags = setOf("p", "h1", "h2", "h3", "h4", "h5", "h6", "ul", "ol", "li", "blockquote", "pre", "hr", "dl", "dt", "dd", "div", "section", "article", "main", "td", "tr", "table")
 
-    /**
-     * Words in class names and ids that mark page parts outside the article. They are matched as
-     * whole parts of a name ("share-buttons", "sidebar_left"), so utility classes such as
-     * "overflow-hidden", "shadow" or "text-lg" don't count.
-     */
-    private val unlikely =
-        Regex(
-            "(?:^|[-_])(comments?|sidebar|footer|footnotes?|masthead|menu|nav|navbar|navigation|share|sharing|social|" +
-                "related|recommended|recommendations?|promo|sponsor(?:ed)?|advert(?:isement)?|ads?|banner|subscribe|" +
-                "newsletter|signup|cookies?|consent|popup|modal|breadcrumbs?|pagination|author-bio|byline|tags|toolbar|" +
-                "skip|print-only|outbrain|taboola|disqus|sr-only|visually-hidden)(?:$|[-_])",
-            RegexOption.IGNORE_CASE,
-        )
-    private val likely =
-        Regex(
-            // "text" only after another word ("article-text"): Tailwind's text-lg, text-gray-500, … aren't articles.
-            "(?:^|[-_])(article|content|entry|post|story|main|body|prose|blog)(?:$|[-_])|[-_]text(?:$|[-_])",
-            RegexOption.IGNORE_CASE,
-        )
-
-    /** The class names and id of an element, one by one; responsive variants ("md:hidden") are left out. */
-    private fun names(element: Element): List<String> =
-        element.classAndId.split(Regex("""\s+""")).filter { it.isNotEmpty() && ':' !in it }
-
-    private class Element(
-        val tag: String,
-        val attributes: Map<String, String>,
-        val parent: Element?,
-    ) {
-        val children = mutableListOf<Any>() // Element or String
-        var score = 0.0
-
-        /** Characters of paragraph text anywhere inside. */
-        var paragraphText = 0
-        val classAndId: String get() = (attributes["class"].orEmpty() + " " + attributes["id"].orEmpty())
-    }
+    /** Elements whose content is running text: a button in there is a word of it (a glossary term). */
+    private val textTags = listOf("p", "li", "dd", "td", "h1", "h2", "h3", "h4", "h5", "h6")
 
     /** The article of [html] (downloaded from [pageUrl]) as simple HTML, or null when none is found. */
     fun extract(
         html: String,
         pageUrl: String,
     ): String? {
-        val root = parse(html)
-        prune(root)
-        val best = bestCandidate(root) ?: return null
+        val document = Jsoup.parse(html, pageUrl)
+        document.outputSettings().prettyPrint(false)
+        val titles = listOfNotNull(document.selectFirst("meta[property=og:title]")?.attr("content"), document.title())
+        // Readability drops buttons, also the ones some sites put around words of the text.
+        document.select(textTags.joinToString(", ") { "$it button" }).forEach { it.unwrap() }
+        // What the page hides is not part of what a reader sees.
+        document.select("[hidden], [aria-hidden=true], [style~=(?i)display:\\s*none], .hidden, .d-none").remove()
+        divsToParagraphs(document)
+        joinSplitText(document)
+        val article =
+            try {
+                Readability4JExtended(pageUrl, document).parse()
+            } catch (_: Exception) {
+                // A page Readability can't handle has no article for the reader.
+                null
+            }
+        val content = article?.articleContent ?: return null
+        // The reader shows the title above the article already.
+        content.select("h1, h2").firstOrNull { heading -> (titles + listOfNotNull(article.title)).any { isTitle(heading.text(), it) } }?.remove()
+        dropPageDetails(content, pageUrl)
         val out = StringBuilder()
-        serialize(best, out, pageUrl)
+        serialize(content, out, pageUrl)
         val result = out.toString().replace(Regex("""(\s*<br>\s*){3,}"""), "<br><br>").trim()
         return result.takeIf { Html.toPlainText(it).length >= MIN_TEXT_LENGTH }
     }
 
-    // ---- Reading HTML into a tree -------------------------------------------------------------
+    /** Elements that start a block of their own; a `<div>` without any inside is a paragraph. */
+    private val blockSelector =
+        "p, div, section, article, main, header, footer, aside, nav, ul, ol, dl, table, blockquote, pre, figure, form, hr, " +
+            "h1, h2, h3, h4, h5, h6"
 
-    private val tagPattern = Regex("""<(/?)([a-zA-Z][a-zA-Z0-9:-]*)((?:\s+[^\s/>"'=]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+))?)*)\s*(/?)>""")
-    private val attributePattern = Regex("""([^\s/>"'=]+)(?:\s*=\s*("([^"]*)"|'([^']*)'|([^\s>]+)))?""")
-
-    private fun parse(html: String): Element {
-        val root = Element("#root", emptyMap(), null)
-        var current = root
-        var i = 0
-        val text = html.replace(Regex("""<!--.*?-->""", RegexOption.DOT_MATCHES_ALL), "")
-        while (i < text.length) {
-            val lt = text.indexOf('<', i)
-            if (lt < 0) {
-                current.children += text.substring(i)
-                break
-            }
-            if (lt > i) current.children += text.substring(i, lt)
-            val match = tagPattern.matchAt(text, lt)
-            if (match == null) {
-                // A "<" that doesn't start a tag (or a doctype / processing instruction).
-                val end = text.indexOf('>', lt)
-                if (text.startsWith("<!", lt) || text.startsWith("<?", lt)) {
-                    i = if (end < 0) text.length else end + 1
-                } else {
-                    current.children += "<"
-                    i = lt + 1
-                }
-                continue
-            }
-            i = match.range.last + 1
-            val closing = match.groupValues[1] == "/"
-            val tag = match.groupValues[2].lowercase()
-            if (closing) {
-                var e: Element? = current
-                while (e != null && e.tag != tag) e = e.parent
-                if (e != null && e.parent != null) current = e.parent
-                continue
-            }
-            if (tag in closesParagraph) current = closeOpen(current, "p")
-            if (tag == "li") current = closeOpen(current, "li", stopAt = setOf("ul", "ol"))
-            val element = Element(tag, attributes(match.groupValues[3]), current)
-            current.children += element
-            if (tag in rawTextTags) {
-                // Skip everything up to the matching end tag without reading it as HTML.
-                val end = text.indexOf("</$tag", i, ignoreCase = true)
-                i = if (end < 0) text.length else (text.indexOf('>', end).takeIf { it >= 0 } ?: text.length - 1) + 1
-            } else if (tag !in voidTags && match.groupValues[4] != "/") {
-                current = element
-            }
+    /**
+     * Sites that write a `<div>` per paragraph: such a div becomes a `<p>` here, so that Readability
+     * keeps its links and bold words inside the paragraph instead of splitting it around them.
+     */
+    private fun divsToParagraphs(document: Document) {
+        for (div in document.body().select("div")) {
+            if (div.select(blockSelector).size == 1 && div.text().length >= PARAGRAPH_LENGTH) div.tagName("p")
         }
-        return root
-    }
-
-    /** Closes an open [tag] element (and anything inside it) if one is open below [stopAt]. */
-    private fun closeOpen(
-        current: Element,
-        tag: String,
-        stopAt: Set<String> = emptySet(),
-    ): Element {
-        var e: Element? = current
-        while (e != null && e.tag != tag) {
-            if (e.tag in stopAt || e.tag in setOf("div", "td", "blockquote", "#root")) return current
-            e = e.parent
-        }
-        return e?.parent ?: current
-    }
-
-    private fun attributes(text: String): Map<String, String> =
-        attributePattern.findAll(text).associate { m ->
-            m.groupValues[1].lowercase() to Html.decodeEntities(m.groups[3]?.value ?: m.groups[4]?.value ?: m.groups[5]?.value.orEmpty())
-        }
-
-    // ---- Finding the article ------------------------------------------------------------------
-
-    /** Elements whose content is running text: a button in there is a word of it (a glossary term). */
-    private val textTags = setOf("p", "li", "dd", "td", "h1", "h2", "h3", "h4", "h5", "h6")
-
-    /** Removes what is never part of an article. */
-    private fun prune(
-        element: Element,
-        inText: Boolean = false,
-    ) {
-        element.children.removeAll { child ->
-            child is Element && !(child.tag == "button" && inText) && (child.tag in droppedTags || isUnlikely(child))
-        }
-        for (child in element.children.filterIsInstance<Element>()) prune(child, inText || child.tag in textTags)
-    }
-
-    private fun isUnlikely(element: Element): Boolean {
-        if (element.tag in setOf("body", "article", "main", "#root")) return false
-        if (element.attributes["hidden"] != null || element.attributes["aria-hidden"] == "true") return true
-        val role = element.attributes["role"].orEmpty()
-        if (role in setOf("navigation", "complementary", "banner", "contentinfo", "dialog", "menu")) return true
-        val names = names(element)
-        // Only "hidden" on its own hides an element everywhere (Tailwind, Bootstrap's d-none).
-        if (names.any { it == "hidden" || it == "d-none" }) return true
-        return names.any { unlikely.containsMatchIn(it) } && names.none { likely.containsMatchIn(it) }
-    }
-
-    private fun bestCandidate(root: Element): Element? {
-        val paragraphs = mutableListOf<Element>()
-        collect(root) { if (it.tag in setOf("p", "pre", "td", "blockquote") || it.tag == "div" && hasOwnText(it)) paragraphs += it }
-        for (p in paragraphs) {
-            val text = textOf(p)
-            if (text.length < 25) continue
-            generateSequence(p.parent) { it.parent }.forEach { it.paragraphText += text.length }
-            val score = 1 + text.count { it == ',' } + minOf(text.length / 100, 3)
-            // Up to five levels up, less the further away (as Readability does): sites that wrap
-            // every paragraph in boxes of its own still have one container that collects them all.
-            var ancestor = p.parent
-            var level = 0
-            while (ancestor != null && ancestor.tag != "#root" && level < ANCESTOR_LEVELS) {
-                ancestor.score += score / if (level == 0) 1.0 else if (level == 1) 2.0 else level * 3.0
-                ancestor = ancestor.parent
-                level++
-            }
-        }
-        val candidates = mutableListOf<Element>()
-        collect(root) { if (it.score > 0) candidates += it }
-        var best =
-            candidates.maxByOrNull { candidate ->
-                val weight =
-                    (if (names(candidate).any { likely.containsMatchIn(it) }) 25 else 0) +
-                        (if (candidate.tag in setOf("article", "main")) 25 else 0)
-                (candidate.score + weight) * (1 - linkDensity(candidate))
-            } ?: return null
-        // A small box with an article-like class name (often just the lead paragraph) can outscore
-        // the container of the whole text: use the nearest ancestor that holds clearly more of it.
-        val small = best
-        generateSequence(small.parent) { it.parent }
-            .take(ANCESTOR_LEVELS)
-            .firstOrNull { it.tag != "#root" && it.paragraphText >= small.paragraphText * 3 && linkDensity(it) < 0.5 }
-            ?.let { best = it }
-        best = withSameKindParts(root, best)
-        // Text split over sibling containers (e.g. one <div> per section): use the parent instead.
-        val parent = best.parent
-        if (parent != null && parent.tag != "#root") {
-            val siblingsWithText =
-                parent.children.filterIsInstance<Element>().count { it !== best && it.score >= best.score * 0.3 }
-            if (siblingsWithText > 0) return parent
-        }
-        return best
     }
 
     /**
-     * Articles split into several identical containers with ads or videos in between (several
-     * `<div class="post-content">` on WordPress sites such as Ars Technica): the smallest element
-     * holding [best] and its look-alikes that also hold text, or [best] itself when there are none.
+     * Articles split into look-alike containers with ads or videos in between (several
+     * `<div class="post-content">` on some WordPress sites): Readability keeps only one of them,
+     * so the text of the others moves into the first. Only containers that each hold several real
+     * paragraphs count, so a list of teaser cards stays as it is.
      */
-    private fun withSameKindParts(
-        root: Element,
-        best: Element,
-    ): Element {
-        val className = best.attributes["class"]?.trim().orEmpty()
-        if (className.isEmpty()) return best
-        val parts = mutableListOf<Element>()
-        collect(root) {
-            if (it !== best && it.tag == best.tag && it.attributes["class"]?.trim() == className &&
-                it.score >= best.score * SAME_KIND_SHARE && linkDensity(it) < 0.5
-            ) {
-                parts += it
+    private fun joinSplitText(document: Document) {
+        val parts =
+            document.body().select("div[class], section[class]").filter { element ->
+                element.children().count { it.normalName() == "p" && it.text().length >= PARAGRAPH_LENGTH } >= 2
             }
+        val group =
+            parts
+                .groupBy { it.normalName() + " " + it.className().trim() }
+                .values
+                .filter { it.size >= 2 && it.none { a -> it.any { b -> a !== b && b.parents().contains(a) } } }
+                .maxByOrNull { group -> group.sumOf { it.text().length } }
+                ?: return
+        val first = group.first()
+        for (part in group.drop(1)) {
+            first.appendChildren(part.childNodes().toList())
+            part.remove()
         }
-        var common = best
-        for (part in parts) {
-            while (!common.contains(part)) common = common.parent ?: return best
-        }
-        return if (common.tag == "#root") best else common
     }
 
-    private fun Element.contains(other: Element): Boolean {
-        var e: Element? = other
-        while (e != null) {
-            if (e === this) return true
-            e = e.parent
-        }
-        return false
-    }
+    /** From this many characters a paragraph counts as real text. */
+    private const val PARAGRAPH_LENGTH = 80
 
-    private fun hasOwnText(element: Element): Boolean = element.children.any { it is String && it.isNotBlank() && it.trim().length > 25 }
-
-    private fun collect(
-        element: Element,
-        action: (Element) -> Unit,
+    /**
+     * Short lines about the page rather than the article: a byline with its date (a `<time>`) or a
+     * link to the page itself ("54 comments").
+     */
+    private fun dropPageDetails(
+        content: Element,
+        pageUrl: String,
     ) {
-        for (child in element.children) {
-            if (child is Element) {
-                action(child)
-                collect(child, action)
-            }
+        val page = pageUrl.substringBefore('#')
+        val details =
+            content.select("time") +
+                content.select("a[href]").filter { link ->
+                    val href = link.absUrl("href")
+                    href.substringBefore('#') == page && '#' in href
+                }
+        for (detail in details) {
+            val block = (listOf(detail) + detail.parents()).firstOrNull { it.normalName() in detailBlocks } ?: detail
+            if (block !== content && block.text().length < PARAGRAPH_LENGTH) block.remove() else if (block === content) detail.remove()
         }
     }
 
-    private fun textOf(element: Element): String =
-        buildString { appendText(element, this) }.let { Html.decodeEntities(it).replace(Regex("""\s+"""), " ").trim() }
+    private val detailBlocks = setOf("p", "div", "li", "ul", "section", "header", "footer", "span")
 
-    private fun appendText(
-        element: Element,
-        out: StringBuilder,
-    ) {
-        for (child in element.children) {
-            when (child) {
-                is String -> out.append(child)
-                is Element -> appendText(child, out.append(' '))
-            }
-        }
+    /** Whether [heading] is the page's [title], which often ends in the site's name ("Title | Site"). */
+    private fun isTitle(
+        heading: String,
+        title: String,
+    ): Boolean {
+        fun String.normalized() = lowercase().replace(Regex("""[^\p{L}\p{N}]+"""), " ").trim()
+        val h = heading.normalized()
+        val t = title.normalized()
+        return h.isNotEmpty() && (h == t || h.length >= MIN_TITLE_LENGTH && t.startsWith("$h "))
     }
 
-    private fun linkDensity(element: Element): Double {
-        val total = textOf(element).length
-        if (total == 0) return 1.0
-        var links = 0
-        collect(element) { if (it.tag == "a") links += textOf(it).length }
-        return (links.toDouble() / total).coerceAtMost(1.0)
-    }
+    /** Shorter headings only count as the title when they match it exactly. */
+    private const val MIN_TITLE_LENGTH = 10
 
     // ---- Writing the result -------------------------------------------------------------------
 
@@ -321,9 +164,9 @@ object ArticleExtractor {
         out: StringBuilder,
         pageUrl: String,
     ) {
-        for (child in element.children) {
+        for (child in element.childNodes()) {
             when (child) {
-                is String -> out.append(Html.escape(Html.decodeEntities(child)))
+                is TextNode -> out.append(Html.escape(child.wholeText))
                 is Element -> serializeElement(child, out, pageUrl)
             }
         }
@@ -334,8 +177,10 @@ object ArticleExtractor {
         out: StringBuilder,
         pageUrl: String,
     ) {
-        val tag = element.tag
+        val tag = element.normalName()
         when {
+            tag in droppedTags -> return
+
             tag !in keptTags -> {
                 // A container holding only text and inline elements is a paragraph (sites that
                 // use a <div> per paragraph); one holding blocks just passes them on.
@@ -353,33 +198,33 @@ object ArticleExtractor {
             tag == "img" -> {
                 out.append("<img")
                 for (name in listOf("src", "data-src", "data-lazy-src")) {
-                    element.attributes[name]?.let { resolve(pageUrl, it) }?.let { out.attr(name, it) }
+                    element.attrOrNull(name)?.let { resolve(pageUrl, it) }?.let { out.attr(name, it) }
                 }
                 for (name in listOf("srcset", "data-srcset")) {
-                    element.attributes[name]?.let { resolveSrcset(pageUrl, it) }?.let { out.attr(name, it) }
+                    element.attrOrNull(name)?.let { resolveSrcset(pageUrl, it) }?.let { out.attr(name, it) }
                 }
-                for (name in listOf("width", "height", "alt")) element.attributes[name]?.let { out.attr(name, it) }
+                for (name in listOf("width", "height", "alt")) element.attrOrNull(name)?.let { out.attr(name, it) }
                 out.append('>')
             }
 
             tag == "iframe" -> {
-                val src = (element.attributes["src"] ?: element.attributes["data-src"])?.let { resolve(pageUrl, it) }
+                val src = (element.attrOrNull("src") ?: element.attrOrNull("data-src"))?.let { resolve(pageUrl, it) }
                 if (src != null && knownEmbeds.containsMatchIn(src)) out.append("<iframe").attr("src", src).append("></iframe>")
             }
 
             tag == "video" -> {
                 val src =
-                    (element.attributes["src"] ?: findDescendant(element, "source")?.attributes?.get("src"))
+                    (element.attrOrNull("src") ?: element.selectFirst("source[src]")?.attr("src"))
                         ?.let { resolve(pageUrl, it) }
                 if (src != null) {
                     out.append("<video").attr("src", src)
-                    element.attributes["poster"]?.let { resolve(pageUrl, it) }?.let { out.attr("poster", it) }
+                    element.attrOrNull("poster")?.let { resolve(pageUrl, it) }?.let { out.attr("poster", it) }
                     out.append("></video>")
                 }
             }
 
             tag == "a" -> {
-                val href = element.attributes["href"]?.let { resolve(pageUrl, it) }
+                val href = element.attrOrNull("href")?.let { resolve(pageUrl, it) }
                 if (href == null) {
                     serialize(element, out, pageUrl)
                 } else {
@@ -398,13 +243,13 @@ object ArticleExtractor {
         }
     }
 
+    private fun Element.attrOrNull(name: String): String? = if (hasAttr(name)) attr(name) else null
+
     /** Elements that make their own block in the result. */
     private val blockLike = blockTags + setOf("figure", "figcaption")
 
     private fun hasBlockDescendant(element: Element): Boolean =
-        element.children.any { child ->
-            child is Element && (child.tag in blockLike || hasBlockDescendant(child))
-        }
+        element.children().any { child -> child.normalName() in blockLike || hasBlockDescendant(child) }
 
     private fun StringBuilder.attr(
         name: String,
@@ -420,19 +265,6 @@ object ArticleExtractor {
             val url = pieces.firstOrNull()?.let { resolve(base, it) } ?: return@mapNotNull null
             if (pieces.size > 1) "$url ${pieces[1]}" else url
         }.joinToString(", ")
-
-    private fun findDescendant(
-        element: Element,
-        tag: String,
-    ): Element? {
-        for (child in element.children) {
-            if (child is Element) {
-                if (child.tag == tag) return child
-                findDescendant(child, tag)?.let { return it }
-            }
-        }
-        return null
-    }
 
     private fun resolve(
         base: String,

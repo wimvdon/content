@@ -106,7 +106,8 @@ website (the same as **Read on website** at the end). In the top bar:
 | Share | **Share**: the share menu, or straight to the app you chose. |
 | ⋮ | **Open in browser** and **Mark as unread**. |
 
-**Full articles.** Many feeds contain only the start of an article. Then the reader fetches the
+**Full articles.** Many feeds contain only the start of an article, or a few paragraphs with a
+"Read full article" link. Then the reader fetches the
 whole article from the website by itself: a thin bar shows while it loads, and the text is
 replaced by the complete article (without the site's menus, ads and comments). If that fails, the
 feed's text stays and a line says so. ⋮ › **Show feed text** / **Show full article** switches

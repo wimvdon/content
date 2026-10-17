@@ -43,6 +43,12 @@ class ArticleBlocksTest {
     }
 
     @Test
+    fun `a caption written twice in a row shows once`() {
+        val blocks = ArticleBlocks.split("<p>The bell. Credit: A. Photographer</p><p>The bell.  Credit: A. Photographer</p><p>Text</p>", base)
+        assertEquals(listOf(ArticleBlock.Text("The bell. Credit: A. Photographer"), ArticleBlock.Text("Text")), blocks)
+    }
+
+    @Test
     fun `recognises Vimeo, plain videos and other embeds`() {
         assertEquals(EmbedKind.Vimeo, ArticleBlocks.embedFor("https://player.vimeo.com/video/76979871", base)?.kind)
         assertEquals("https://vimeo.com/76979871", ArticleBlocks.embedFor("https://player.vimeo.com/video/76979871", base)?.url)

@@ -90,7 +90,8 @@ object ArticleBlocks {
         }
         addText(html.substring(last))
         blocks += TextLayout.blocks(Html.clean(text.toString()))
-        return blocks
+        // Pages that write a caption twice (once for a hidden picture viewer) show it once.
+        return blocks.filterIndexed { i, block -> i == 0 || block !is ArticleBlock.Text || !sameText(block, blocks[i - 1]) }
     }
 
     /** The article's picture: the first real image in [html]. */
@@ -230,4 +231,9 @@ object ArticleBlocks {
 
     /** Parts of addresses that belong to tracking pixels and share buttons, not pictures. */
     private val TRACKERS = listOf("feeds.feedburner.com/~r/", "/~ff/", "stats.wordpress.com", "pixel.wp.com", "/pixel.", "doubleclick.net")
+
+    private fun sameText(
+        block: ArticleBlock.Text,
+        previous: ArticleBlock,
+    ): Boolean = previous is ArticleBlock.Text && Html.toPlainText(previous.html) == Html.toPlainText(block.html)
 }

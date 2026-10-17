@@ -41,11 +41,13 @@ class FullArticlesTest {
     @Test
     fun `articles kept by an older version of the extractor are extracted again and removed`() {
         val dir = folder.newFolder("articles")
-        // How the cache named articles before the extractor got a version.
-        val old = File(dir, "0123456789abcdef.html").apply { writeText("<p>Cut-off text</p>") }
+        // How the cache named articles before the extractor got a version, and with an older version.
+        val unversioned = File(dir, "0123456789abcdef.html").apply { writeText("<p>Cut-off text</p>") }
+        val old = File(dir, "v2-0123456789abcdef.html").apply { writeText("<p>Cut-off text</p>") }
         val result = runBlocking { articles(dir).load(link) }
         assertEquals(1, downloads)
         assertTrue((result as FullArticle.Loaded).html.contains("A sentence of the article"))
+        assertFalse(unversioned.exists())
         assertFalse(old.exists())
     }
 

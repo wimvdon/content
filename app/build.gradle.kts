@@ -140,6 +140,9 @@ dependencies {
     implementation(libs.okhttp)
     // Google's authorization screen for sync with the app's hidden Google Drive folder (see docs/sync.md).
     implementation(libs.play.services.auth)
+    // Reader view for full articles: Firefox Reader View's algorithm, on a current jsoup (see docs/decisions.md).
+    implementation(libs.readability4j)
+    implementation(libs.jsoup)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
