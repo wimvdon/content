@@ -1,13 +1,13 @@
 # Sync
 
-RSS Reader can keep feeds, folders and read articles the same on every device and in the web
-app. The data lives in the user's own storage; there is no RSS Reader server.
+Reader can keep feeds, folders and read articles the same on every device and in the web
+app. The data lives in the user's own storage; there is no Reader server.
 
 ## Services
 
 | Service | Where the file is | Status |
 |---|---|---|
-| Google Drive | The hidden app folder (`appDataFolder`), scope `drive.appdata`: only RSS Reader can see the file, and RSS Reader can see nothing else in the Drive | Android and web |
+| Google Drive | The hidden app folder (`appDataFolder`), scope `drive.appdata`: only Reader can see the file, and Reader can see nothing else in the Drive | Android and web |
 | Others (Dropbox, OneDrive, WebDAV/Nextcloud) | One file in the service's app folder | Not built yet: implement `SyncProvider` (read and write one text file) |
 
 ## When it syncs
@@ -66,22 +66,40 @@ current file and merges three ways (`sync/SyncMerge.kt`):
 
 ## Google Cloud setup (owner)
 
-Google only lets the app use Drive once it is registered:
+Google only lets the app and the web app use Drive once they are registered in a Google Cloud
+project. Everything below is in the [Google Cloud console](https://console.cloud.google.com),
+signed in with your Google account. It is free.
 
-1. In the [Google Cloud console](https://console.cloud.google.com), create a project (for example
-   "RSS Reader").
-2. APIs & Services › Library: enable the **Google Drive API**.
-3. APIs & Services › OAuth consent screen (Google Auth Platform › Branding): app name "RSS
-   Reader", your email, the privacy policy link (`PRIVACY.md` on GitHub). Data access: add the
-   scope `.../auth/drive.appdata`. Audience: External; while testing, add your Google account as a
-   test user. Publishing to everyone needs Google's (free) verification of this screen.
-4. Clients › Create client › **Android**, twice:
-   - package `io.github.impca201.rssreader` with the SHA-1 of the release signing key (Play
-     Console › App integrity, or `keytool -list -v -keystore <release keystore>`);
-   - package `io.github.impca201.rssreader.debug` with the SHA-1 of the debug key that built the
-     test APK.
-5. Clients › Create client › **Web application** for the web app, with its address under
-   Authorized JavaScript origins (for example `https://rss-reader.pages.dev`). Its client ID goes
-   into the web app's settings (see `web/README.md`).
+1. **Project.** At the top, open the project picker. Use the existing project if you made one
+   before (for example "RSS Reader"); otherwise New project, name "Reader", Create, and select it.
+2. **Drive API.** Menu › APIs & Services › Library, search "Google Drive API", open it, Enable.
+3. **Consent screen.** Menu › Google Auth Platform (or APIs & Services › OAuth consent screen):
+   - Branding: app name "Reader", your email as support and developer contact. App home page and
+     privacy policy: `https://github.com/wimvdon/rss-reader` and
+     `https://github.com/wimvdon/rss-reader/blob/main/PRIVACY.md`.
+   - Audience: External. While the app is in "Testing", only the Google accounts listed under
+     **Test users** can connect: add your own (and anyone else who uses it). Publishing to
+     everyone needs Google's (free) verification of this screen.
+   - Data access: Add or remove scopes, find `.../auth/drive.appdata` ("See, create, and delete
+     its own configuration data in your Google Drive"), tick it, Update, Save.
+4. **Android app.** Google Auth Platform › Clients › Create client › Application type
+   **Android**:
+   - Package name: `be.wimvandonck.reader`
+   - SHA-1 certificate fingerprint: the one at the top of the summary page of the latest run of
+     **Actions › Release** ("Signing key SHA-1", it looks like `AB:CD:…`).
+   - Create. Nothing has to be copied back: Google recognises the app by these two.
+   Clients made for the old package `io.github.impca201.rssreader` can be deleted.
+5. **Web app.** Clients › Create client › Application type **Web application**, name "Reader
+   web". Under Authorized JavaScript origins, Add URI:
+   `https://rss-reader-web.wim-d57.workers.dev` (no slash at the end). Leave Authorized redirect
+   URIs empty. Create, and copy the **Client ID** (ending in `.apps.googleusercontent.com`; not
+   the client secret, which isn't needed) into `web/.env.production` as `VITE_GOOGLE_CLIENT_ID`,
+   or into the web app's Settings.
+
+Changes in Google Cloud can take a few minutes, sometimes longer, to take effect.
+
+**Test builds don't sync.** The debug APKs from pull requests are signed with a key CI makes up
+on every run, so Google can't recognise them: sync shows "Google doesn't recognise this version
+of the app yet". Try sync with the released app (from Releases), whose key stays the same.
 
 No secret goes into the Android app: Google recognises it by package name and signing key.

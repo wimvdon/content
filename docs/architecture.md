@@ -2,7 +2,7 @@
 
 ## Overview
 
-RSS Reader is a single-activity Jetpack Compose app with no server and no account. It downloads
+Reader is a single-activity Jetpack Compose app with no server and no account. It downloads
 the feeds the user subscribes to, keeps them on the phone, and shows them in a list and a reader.
 
 ```
@@ -38,7 +38,7 @@ RssReaderApp ── SettingsStore ── DataStore "settings" (Preferences)
 | `ui/Navigation.kt` | Back stack, wiring between screens and stores, Add feed dialog, OPML file pickers, Instapaper and share hand-offs. |
 | `ui/home/` | Article list with Unread/All filter, pull-to-refresh, loading placeholders, empty states, Mark all read button (for the section shown: All, a folder or a feed); folder tabs (`FolderTabs`); a header (top app bar, tabs, Unread | All) that slides away on scroll (`HomeHeader`); feed drawer grouped by folder; Add feed dialog. |
 | `ui/reader/` | Reader screen, Text sheet, reader colours (theme, sepia, dark). `ReaderStyleControls` is shared with Settings. |
-| `web/` | The web app (see `web/README.md`): `src/lib/` holds the logic (feed parser with Android-compatible ids, library, sync merge, Google Drive, IndexedDB storage, feed loading through the Worker, Readability, DOMPurify) and `src/lib/app.ts` the state the screens subscribe to; `src/components/` the screens. |
+| `web/` | The web app (see `web/README.md`): `src/lib/` holds the logic (feed parser with Android-compatible ids, library, sync merge, Google Drive, IndexedDB storage, feed loading through the Worker, Readability with a full-article cache, DOMPurify with embed cards, reader text settings, mark as read on scroll) and `src/lib/app.ts` the state the screens subscribe to; `src/components/` the screens. |
 | `worker/` | The Cloudflare Worker the web app loads feeds and pages through (CORS): one address per request, https and public hosts only, feeds and pages only, the web app's origin only, rate limited, nothing stored or logged. |
 | `sync/` | Sync with the user's own storage (see `docs/sync.md`): `SyncDocument` (the shared JSON file), `SyncMerge` (three-way merge with the last synced file, applied to the `Library` in one DataStore update), `SyncProvider` with `GoogleDrive` (Drive's hidden app folder over OkHttp, token from `GoogleAuth`), and `SyncManager` (syncs at start, five seconds after a change and on request; keeps the base file; tells `LibraryRepository` which new articles were already read elsewhere). |
 | `data/FeedArrangement.kt` | The manage page as a flat list of folder headers and feeds: which moves are allowed while dragging, and turning the dragged order back into folder order, feed order and each feed's folder. |

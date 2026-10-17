@@ -9,7 +9,7 @@ plugins {
 // App identity: the ONE place to change the package / application ID. Once the app is
 // released it must never change again (phones would treat it as a different app).
 // ---------------------------------------------------------------------------
-val appId = "io.github.impca201.rssreader"
+val appId = "be.wimvandonck.reader"
 
 // ---------------------------------------------------------------------------
 // Versioning
@@ -92,7 +92,7 @@ android {
     buildTypes {
         debug {
             // Lets a pull request's debug APK be installed next to the released app, as
-            // "RSS Reader Dev" (src/debug/res).
+            // "Reader Dev" (src/debug/res).
             applicationIdSuffix = ".debug"
         }
         release {

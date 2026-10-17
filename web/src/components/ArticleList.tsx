@@ -1,9 +1,10 @@
 import { CheckCheck, Menu, Newspaper, RefreshCw, Rss, type LucideIcon } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { app, useApp } from "@/lib/app";
 import { snippet } from "@/lib/html";
 import { dayLabel, plural, t } from "@/lib/i18n";
 import { articleKey, articlesFor, sortTime, unreadKeys, type Article, type Feed } from "@/lib/library";
+import { scrolledPast } from "@/lib/scrollRead";
 import { FeedIcon } from "./FeedIcon";
 import { Button } from "./ui/button";
 import { cn } from "./ui/cn";
@@ -39,6 +40,20 @@ export function ArticleList({
         : t("allArticles");
   const days = useMemo(() => groupByDay(articles), [articles]);
   const showFeedName = selection.kind !== "feed";
+
+  // Mark as read on scroll: once per frame, the unread articles that scrolled off the top.
+  const frame = useRef(0);
+  const onScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    if (!settings.markReadOnScroll || frame.current) return;
+    const list = e.currentTarget;
+    frame.current = requestAnimationFrame(() => {
+      frame.current = 0;
+      const top = list.getBoundingClientRect().top;
+      const rows = Array.from(list.querySelectorAll<HTMLElement>("[data-key]"));
+      const first = rows.findIndex((row) => row.getBoundingClientRect().bottom > top);
+      app.markScrolledPast(scrolledPast(articles, first === -1 ? rows.length : first));
+    });
+  };
 
   return (
     <section className="flex h-full min-w-0 flex-col" aria-label={title}>
@@ -84,7 +99,7 @@ export function ArticleList({
           {problems.size > 0 ? <span className="text-xs text-destructive">{plural("feedsFailed", problems.size)}</span> : null}
         </div>
       ) : null}
-      <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-6" role="feed" aria-busy={refreshing}>
+      <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-6" role="feed" aria-busy={refreshing} onScroll={onScroll}>
         {!loaded || (refreshing && library.articles.length === 0) ? (
           <Skeletons />
         ) : library.feeds.length === 0 ? (

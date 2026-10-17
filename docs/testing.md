@@ -18,7 +18,7 @@ On every pull request and push to `main`:
 | Lint | `./gradlew lintDebug` | Android API misuse, missing translations, accessibility, hard-coded text, … (errors fail the build) |
 | Debug build | `./gradlew assembleDebug` | Compile errors; produces the APK to test on the phone |
 | Release build | `./gradlew assembleRelease` | Problems caused by R8 minification / resource shrinking |
-| Web app and feed loader (paused, not run in CI) | `npm test`, `npm run lint`, `npm run build` in `web/`; `npm test`, `npm run typecheck` in `worker/` | Parser ids that match Android, reading the Android app's sync file, merge, OPML, HTML cleaning; the Worker's origin check, address rules, redirects, size and type limits |
+| Web app and feed loader | `npm test`, `npm run lint`, `npm run build` in `web/`; `npm test`, `npm run typecheck` in `worker/` | Parser ids that match Android, reading the Android app's sync file, merge, OPML, HTML cleaning, embed cards, when to load the full article, the full-article cache, reader text settings, mark as read on scroll; the Worker's origin check, address rules, redirects, size and type limits |
 
 Reports (test results, lint HTML) are attached to every CI run as the `reports` artifact, also
 when the run fails.
@@ -44,6 +44,7 @@ when the run fails.
 | `SyncDocumentTest` | Sync file round trip, other or newer files left alone, broken entries skipped, taking folders, feeds and read marks from the library, pruning old read marks |
 | `SyncMergeTest` | Three-way merge: changes and removals from either side, this device wins but an edit beats a removal, order from the side that reordered, first sync without base, unread again; articles not here yet; applying the result to the library; syncing twice changes nothing |
 | `GoogleDriveTest` | Finding the sync file in a Drive answer, the upload into the app folder |
+| `SyncProblemTest` | Google refusing an app it doesn't know shows "not set up" instead of "offline" |
 | `SiteIconTest` | Choosing a site's icon: largest size, apple-touch-icon, relative and http addresses, skipping SVG and inline icons, home page and favicon.ico fallback |
 | `IconCatalogTest` | Reading the icon file, search order (name, words, categories, related words), suggestions, old icon names, and that the bundled file has every suggested and migrated icon |
 | `ArticleDaysTest` | Grouping the list by local day, time zones |
@@ -77,8 +78,8 @@ and then (always before a release):
 - [ ] Open an article from a summary-only feed (e.g. `theverge.com`): the full article loads.
       ⋮ › Show feed text / Show full article switches; Settings › Reader › Load full articles off
       stops it.
-- [ ] **Backup:** with a cable and `adb`, `adb shell bmgr backupnow io.github.impca201.rssreader`,
-      uninstall, reinstall, `adb shell bmgr restore io.github.impca201.rssreader` (or set up a
+- [ ] **Backup:** with a cable and `adb`, `adb shell bmgr backupnow be.wimvandonck.reader`,
+      uninstall, reinstall, `adb shell bmgr restore be.wimvandonck.reader` (or set up a
       new phone from backup): feeds and settings come back.
 - [ ] **Pictures:** list rows show thumbnails; the reader shows the picture above the title and
       pictures between paragraphs; a YouTube embed shows a card with a preview that opens YouTube.
@@ -112,7 +113,7 @@ and then (always before a release):
 - [ ] **Dark mode** and **Settings › Appearance**: switch Theme and Dynamic color. Text stays
       readable, status bar icons stay visible (also on sepia and dark reader pages).
 - [ ] **Rotation**: the screen keeps its state.
-- [ ] **Language**: Settings › System › Languages › App languages › RSS Reader › each language.
+- [ ] **Language**: Settings › System › Languages › App languages › Reader › each language.
       All text is translated.
 - [ ] **Large text**: Settings › Display › Font size at maximum. Nothing is cut off.
 - [ ] **Back** gesture/button behaves as expected (also with the drawer and Text sheet open).

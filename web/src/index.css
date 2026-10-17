@@ -36,6 +36,20 @@
   --unread: oklch(0.72 0.14 240);
 }
 
+/* The reader's sepia page (Settings › Reader › Background), the Android app's sepia colours. */
+.sepia {
+  --background: #f6eedc;
+  --foreground: #3d2f1e;
+  --card: #fbf5e8;
+  --muted: #ede2c9;
+  --muted-foreground: #6f5c45;
+  --border: #e0d2b4;
+  --primary: #8a4b12;
+  --accent: #f1d9b5;
+  --accent-foreground: #4a2800;
+  --unread: #8a4b12;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -104,17 +118,44 @@ body {
   text-decoration: underline;
   text-underline-offset: 2px;
 }
-.article img,
-.article video,
-.article iframe {
+.article img {
   max-width: 100%;
   height: auto;
   border-radius: 0.5rem;
   margin-inline: auto;
 }
-.article iframe {
-  aspect-ratio: 16 / 9;
+/* Embedded videos and posts: a card that opens them in a new tab (lib/embeds.ts). */
+.article a.embed {
+  display: block;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: var(--card);
+  color: var(--foreground);
+  text-decoration: none;
+}
+.article a.embed:hover {
+  background: var(--muted);
+}
+.article a.embed img {
   width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 0;
+}
+.article .embed-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.75em 1em;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.article .embed-play::before {
+  content: "\25B6\FE0E";
+  color: var(--primary);
 }
 .article figcaption {
   font-family: var(--font-sans);

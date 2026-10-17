@@ -2,7 +2,7 @@
   "name": "rss-reader-worker",
   "private": true,
   "type": "module",
-  "description": "Loads feeds and article pages for the RSS Reader web app (browsers block them otherwise).",
+  "description": "Loads feeds and article pages for the Reader web app (browsers block them otherwise).",
   "scripts": {
     "test": "vitest run",
     "typecheck": "tsc --noEmit",

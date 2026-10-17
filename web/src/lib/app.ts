@@ -5,6 +5,7 @@ import { parseFeed } from "./feedParser";
 import * as L from "./library";
 import { importOpml, parseOpml, writeOpml } from "./opml";
 import { fetchViaProxy, FetchError } from "./proxy";
+import { defaultReaderStyle, readerStyleOf, type ReaderStyle } from "./readerStyle";
 import { load, remove, save } from "./storage";
 import * as S from "./sync";
 
@@ -23,6 +24,8 @@ export interface Settings {
   unreadOnly: boolean;
   theme: Theme;
   fullArticles: boolean;
+  readerStyle: ReaderStyle;
+  markReadOnScroll: boolean;
 }
 
 export type SyncStatus = { kind: "idle" } | { kind: "syncing" } | { kind: "failed"; problem: SyncProblem };
@@ -47,6 +50,8 @@ const defaults: Settings = {
   unreadOnly: true,
   theme: "system",
   fullArticles: true,
+  readerStyle: defaultReaderStyle,
+  markReadOnScroll: false,
 };
 
 const PARALLEL = 4;
@@ -91,7 +96,7 @@ class AppStore {
       load<Partial<Settings>>("settings").catch(() => undefined),
       load<string>("syncBase").catch(() => undefined),
     ]);
-    const merged = { ...defaults, ...settings };
+    const merged = { ...defaults, ...settings, readerStyle: readerStyleOf(settings?.readerStyle) };
     // Addresses set when building win over empty saved ones.
     if (!merged.proxyUrl) merged.proxyUrl = defaults.proxyUrl;
     if (!merged.googleClientId) merged.googleClientId = defaults.googleClientId;
@@ -228,6 +233,13 @@ class AppStore {
     if (!article.read) this.setRead(new Set([key]), true);
   }
 
+  /** Mark as read on scroll: the articles stay in the Unread list until the list changes. */
+  markScrolledPast(keys: Set<string>) {
+    if (keys.size === 0) return;
+    this.set({ readThisVisit: new Set([...this.state.readThisVisit, ...keys]) });
+    this.setRead(keys, true);
+  }
+
   markAllRead(): Set<string> {
     const keys = L.unreadKeys(this.state.library, this.state.selection);
     this.setRead(keys, true);
@@ -247,7 +259,7 @@ class AppStore {
     return added;
   }
 
-  exportOpml = () => writeOpml("RSS Reader", this.state.library);
+  exportOpml = () => writeOpml("Reader", this.state.library);
 
   // Sync, the same way as the Android app (docs/sync.md).
 

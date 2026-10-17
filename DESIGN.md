@@ -1,6 +1,6 @@
 # Design
 
-RSS Reader is built from the android-app template and follows the design language of its sibling
+Reader is built from the android-app template and follows the design language of its sibling
 apps (Tracker for Simkl, Time Tracker for Notion, Snoozer and Noter for Notion).
 
 The shared rules (every section except "This app") have their master copy in `DESIGN.md` of
@@ -238,7 +238,7 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
 
 ### Other platforms (planned)
 
-RSS Reader may get a web app and later an iOS app. The brand is shared; the design language is
+Reader may get a web app and later an iOS app. The brand is shared; the design language is
 each platform's own, so no app feels like a port.
 
 - Shared on every platform: the icon, the seed colour and tertiary sky blue, the wording (Unread |

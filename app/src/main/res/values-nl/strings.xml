@@ -170,6 +170,7 @@
     <string name="sync_failed_offline">Google Drive is niet bereikbaar. Controleer je verbinding.</string>
     <string name="sync_failed_approval">Google Drive heeft opnieuw je toestemming nodig. Tik op Verbinden.</string>
     <string name="sync_failed_server">Google Drive had een probleem. Probeer het later opnieuw.</string>
-    <string name="sync_failed_file">Het synchronisatiebestand komt van een nieuwere versie van RSS Reader. Werk de app bij.</string>
+    <string name="sync_failed_file">Het synchronisatiebestand komt van een nieuwere versie van Reader. Werk de app bij.</string>
+    <string name="sync_failed_setup">Google herkent deze versie van de app nog niet, dus ze kan Drive niet gebruiken.</string>
     <string name="sync_connect_failed">Verbinden met Google Drive is mislukt</string>
 </resources>

@@ -58,7 +58,7 @@ after them. A feed added while a folder is open goes into that folder.
 ## Sync between devices
 
 Settings › **Sync** › **Connect** links the app to your Google Drive. Google asks once whether
-RSS Reader may use its own hidden folder there (it can't see your other files). From then on
+Reader may use its own hidden folder there (it can't see your other files). From then on
 your feeds, folders and read articles stay the same on every phone where you connect, and in the
 web app. The app syncs when it starts, a few seconds after a change and when you tap
 **Sync now**; the line under Google Drive says when it last did, or what went wrong.
@@ -157,7 +157,7 @@ from the same source. Downloaded full articles are not backed up; they load agai
 ## Language
 
 The app follows the phone's language. To choose another one for this app only: Android
-**Settings › System › Languages › App languages › RSS Reader**.
+**Settings › System › Languages › App languages › Reader**.
 
 ## Common problems
 

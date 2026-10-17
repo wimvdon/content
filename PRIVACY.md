@@ -1,8 +1,8 @@
 # Privacy policy
 
-_Last updated: 2026-10-16 (web app)_
+_Last updated: 2026-10-17 (new name Reader; Instapaper sign-in removed; videos on the web open as cards)_
 
-RSS Reader has no account, analytics, advertising or crash reporting, and no server of its own.
+Reader has no account, analytics, advertising or crash reporting, and no server of its own.
 Sync, if you turn it on, uses your own Google Drive.
 
 ## What the app sends, and to whom
@@ -26,8 +26,8 @@ Sync, if you turn it on, uses your own Google Drive.
   site says it is, often its image server). If the site names none, its `/favicon.ico` is tried.
   The icon is shown next to the feed's name. These servers see the same as for the feed.
 - **Sync with Google Drive (off unless you connect it).** In Settings › Sync › Connect, Google
-  asks whether RSS Reader may use its own hidden folder in your Google Drive (`drive.appdata`).
-  RSS Reader can't see your other files. While the app is open (at start, a few seconds after a
+  asks whether Reader may use its own hidden folder in your Google Drive (`drive.appdata`).
+  Reader can't see your other files. While the app is open (at start, a few seconds after a
   change, and on Sync now) it reads and writes one file there, `rss-reader-sync.json`, with your
   feed list (addresses, names, folders, website and icon addresses), your folders, and which
   articles you read in the last 120 days (feed address, article id and date). Article texts and
@@ -65,8 +65,8 @@ share can list them. This is not a permission and reveals nothing to those apps.
 
 ## The web app
 
-The web version (built from `web/`, published by the owner, for example on Cloudflare Pages)
-runs in your browser and keeps your feed list, articles, read state and settings in the
+The web version (built from `web/`, published by the owner on Cloudflare at
+`https://rss-reader-web.wim-d57.workers.dev`) runs in your browser and keeps your feed list, articles, read state and settings in the
 browser's storage on that device (IndexedDB). There is no account and no analytics.
 
 - **Feeds and article pages** go through the owner's feed loader (a Cloudflare Worker, built
@@ -78,8 +78,9 @@ browser's storage on that device (IndexedDB). There is no account and no analyti
   never uses it.
 - **Pictures and website icons** load directly from the websites, without telling them which
   page you came from.
-- **Videos** from YouTube (through youtube-nocookie.com) and Vimeo can play inside articles;
-  those services then see your IP address.
+- **Embedded videos and posts** show as a card; nothing plays inside the page. YouTube cards
+  show the video's preview picture from i.ytimg.com, which then sees your IP address. Clicking
+  a card opens the video or post on its own website in a new tab.
 - **Sync** works as described above: the web app reads and writes the same
   `rss-reader-sync.json` in your Google Drive's hidden app folder, after you click Connect
   (Google's sign-in script comes from accounts.google.com). The sign-in lasts about an hour per

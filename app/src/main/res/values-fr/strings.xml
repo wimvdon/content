@@ -178,6 +178,7 @@
     <string name="sync_failed_offline">Impossible de joindre Google Drive. Vérifiez votre connexion.</string>
     <string name="sync_failed_approval">Google Drive a de nouveau besoin de votre autorisation. Appuyez sur Connecter.</string>
     <string name="sync_failed_server">Google Drive a rencontré un problème. Réessayez plus tard.</string>
-    <string name="sync_failed_file">Le fichier de synchronisation vient d’une version plus récente de RSS Reader. Mettez l’app à jour.</string>
+    <string name="sync_failed_file">Le fichier de synchronisation vient d’une version plus récente de Reader. Mettez l’app à jour.</string>
+    <string name="sync_failed_setup">Google ne reconnaît pas encore cette version de l’app ; elle ne peut pas utiliser Drive.</string>
     <string name="sync_connect_failed">Impossible de se connecter à Google Drive</string>
 </resources>

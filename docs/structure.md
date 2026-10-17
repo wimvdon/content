@@ -27,7 +27,7 @@ rss-reader/
 │   ├── libs.versions.toml            Version catalog (every dependency version)
 │   └── wrapper/                      Gradle wrapper
 ├── web/                              The web app (static site; see web/README.md)
-│   ├── src/lib/                      Feeds, library, sync, Drive, storage (plain TypeScript, tested)
+│   ├── src/lib/                      Feeds, library, sync, Drive, storage, full articles, embeds, reader style (plain TypeScript, tested)
 │   ├── src/components/               Screens: sidebar, article list, reader, dialogs; ui/ = shadcn-style parts
 │   └── test/                         Vitest tests
 ├── worker/                           Feed loader for the web app (Cloudflare Worker; see worker/README.md)
@@ -35,10 +35,10 @@ rss-reader/
     ├── build.gradle.kts              App ID, versioning, signing, languages, lint, dependencies
     ├── proguard-rules.pro            Stack trace settings for release builds
     └── src/
-        ├── debug/res/values/strings.xml   "RSS Reader Dev" name for debug builds
+        ├── debug/res/values/strings.xml   "Reader Dev" name for debug builds
         ├── main/
         │   ├── AndroidManifest.xml   Internet permission, Instapaper package visibility, activity
-        │   ├── kotlin/io/github/impca201/rssreader/
+        │   ├── kotlin/be/wimvandonck/reader/
         │   │   ├── RssReaderApp.kt            Application: stores, background scope
         │   │   ├── data/
         │   │   │   ├── Library.kt             Feeds, articles, read state, merge (plain Kotlin)
@@ -80,7 +80,7 @@ rss-reader/
         │       ├── values/ values-night/      Strings (English), colours, window theme
         │       ├── values-nl|de|fr|es|it/     Translations
         │       └── xml/                       Backup rules
-        └── test/kotlin/io/github/impca201/rssreader/
+        └── test/kotlin/be/wimvandonck/reader/
             ├── data/                          Library, codec and settings tests
             └── feed/                          Parser, dates, HTML, discovery, finder, OPML tests
 ```

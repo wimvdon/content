@@ -1,6 +1,6 @@
 # Rules for Claude Code sessions in this repository
 
-RSS Reader, an Android app built from the `android-app` template (a private repository). The
+Reader, an Android app built from the `android-app` template (a private repository). The
 owner is **not a developer and does not review code**. CI, tests, lint and these rules
 are the safety net. Follow them every time.
 
@@ -18,7 +18,7 @@ are the safety net. Follow them every time.
    what changed and why, in words a non-developer understands, and **exactly what to tap on the
    phone to test it** (step by step, with what they should see). The owner tests by installing
    the debug APK from the pull request's CI run (Checks → CI → Artifacts). It installs as a
-   separate app, "RSS Reader Dev" (`io.github.impca201.rssreader.debug`), next to the released one.
+   separate app, "Reader Dev" (`be.wimvandonck.reader.debug`), next to the released one.
 4. **Testing on the phone does not block merging.** The owner doesn't review code, so green CI is
    what a pull request needs to be merged. The owner tries the change afterwards with the test steps
    from the description (the debug APK stays on the pull request's CI run, and every push to
@@ -54,9 +54,6 @@ Secrets, keystores (`*.jks`, `*.keystore`), `keystore.properties`, passwords or 
 - Versions are automatic (git tags / release workflow). Don't edit `versionName`/`versionCode`.
 
 ## Web app and feed loader
-- **Paused since 2026-10-17** (`docs/decisions.md`): their CI job and npm updates are commented
-  out and Cloudflare no longer needs to build them. Don't change `web/` or `worker/` unless the
-  owner asks to resume; the sync format in `docs/sync.md` stays the same, so they still fit.
 - `web/` is the web app (React, TypeScript, Vite, Tailwind, shadcn-style parts in
   `src/components/ui/`), `worker/` the Cloudflare Worker that loads feeds for it. The Android
   rules above apply in spirit: logic in `web/src/lib/` with Vitest tests, all text in
@@ -74,7 +71,7 @@ Secrets, keystores (`*.jks`, `*.keystore`), `keystore.properties`, passwords or 
 - `DESIGN.md`: only its "This app" section belongs to this repository. The other sections are
   copied from the master copy in the android-app template (`wimvdon/android-app`): change a
   shared rule there first, then copy it unchanged to every app (Tracker for Simkl, Time Tracker
-  for Notion, Snoozer, RSS Reader). The design kit in `ui/theme/` (all files except `Theme.kt`)
+  for Notion, Snoozer, Reader). The design kit in `ui/theme/` (all files except `Theme.kt`)
   is identical in every app apart from the package line.
 
 ## Releasing (only when the owner asks)

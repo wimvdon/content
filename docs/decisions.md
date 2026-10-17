@@ -2,6 +2,50 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-17: New name "Reader" and package `be.wimvandonck.reader`
+
+The owner renamed the app to Reader and asked for a package name under `be.wimvandonck`. The
+application ID and the Kotlin package are now `be.wimvandonck.reader` (debug builds
+`be.wimvandonck.reader.debug`, "Reader Dev"). Android treats a new application ID as a different
+app: phones with the old RSS Reader (up to v0.3.4) don't update to it but install Reader next to
+it, with an empty library (sync or OPML brings the feeds over). Google Cloud's Android client
+had to be made again for the new package anyway. The repository, the APK file names
+(`rss-reader-…`), the sync file (`rss-reader-sync.json`) and the Cloudflare names stay, so
+nothing that stores or links them breaks. The shared design table in `DESIGN.md` still says
+"RSS Reader" until it changes in the template. Rejected: keeping the old ID (the owner's
+explicit choice) and moving data over from the old app (it can't read another app's storage).
+
+## 2026-10-17: Sync says when Google doesn't know this build
+
+Drive sync didn't work and the app said "Couldn't reach Google Drive", whatever Google's reason.
+Google refuses an app whose package name and signing key it doesn't know (DEVELOPER_ERROR), which
+is the usual setup problem; that now shows as its own message. The release workflow prints the
+signing key's SHA-1 on its summary page, so the owner can register it without `keytool`
+(`docs/sync.md`, step by step). Debug APKs from CI get a new key on every run and can't be
+registered. Rejected: signing debug builds with the release key, or a fixed debug key as a
+secret (changes the signing setup, for test builds only).
+
+## 2026-10-17: No Instapaper account sign-in
+
+The owner didn't ask for the Instapaper login of 2026-10-16 and wants saving tackled later, so
+it is removed again (Android and web): Save goes to the chosen app (Instapaper by default) or the
+share menu, as before. On the web there is no Save button for now; Share stays.
+
+## 2026-10-17: The web app is back and finished
+
+The owner asked to finish the web app, so the pause below is lifted the same day: its CI job and
+its npm updates run again. It now matches the Android app: teasers that link to their article
+load the full article (same rule and threshold), the reader switches between feed text and full
+article and keeps the last 100 full articles in IndexedDB, Aa text settings (font, size,
+spacing, background, Auto dark), mark as read on scroll, and embedded videos and posts as a card
+that opens them in a new tab. The cards replace the YouTube and Vimeo players that played inside
+the page, so the web app no longer loads those players at all. The Google client ID is built in
+(`web/.env.production`). The Cloudflare builds were never switched off, as the pause entry
+assumed: they fail within a second on every push, with no log on GitHub, which points to their
+settings in the Cloudflare dashboard, not to the code (the same build passes in CI). Rejected:
+playing videos inside the page (third-party players, unlike Android), a Show images setting and
+list sizes (the owner doesn't want them on the web).
+
 ## 2026-10-17: Readability4J finds the article (new dependencies: Readability4J, jsoup)
 
 The owner asked for a proven reader-view engine instead of more rules of our own, and for no

@@ -13,7 +13,10 @@ import { articleKey, articlesFor, type Article } from "./lib/library";
 export default function App() {
   const state = useApp();
   const { settings, library, selection, readThisVisit } = state;
-  const [openArticle, setOpenArticle] = useState<Article | null>(null);
+  // The open article belongs to the section it was opened in: another section closes it.
+  const [opened, setOpened] = useState<{ article: Article; selection: typeof selection } | null>(null);
+  const openArticle = opened?.selection === selection ? opened.article : null;
+  const setOpenArticle = useCallback((article: Article | null) => setOpened(article ? { article, selection } : null), [selection]);
   const [drawer, setDrawer] = useState(false);
   const [dialog, setDialog] = useState<"add" | "manage" | "settings" | null>(null);
   const [message, setMessage] = useState<{ text: string; undo?: () => void } | null>(null);
@@ -38,13 +41,10 @@ export default function App() {
     return () => clearTimeout(timer);
   }, [message]);
 
-  // A different section closes the article.
-  useEffect(() => setOpenArticle(null), [selection]);
-
   const open = useCallback((a: Article) => {
     app.open(a);
     setOpenArticle(a);
-  }, []);
+  }, [setOpenArticle]);
 
   const visible = useMemo(() => articlesFor(library, selection, settings.unreadOnly, readThisVisit), [library, selection, settings.unreadOnly, readThisVisit]);
 
@@ -121,13 +121,13 @@ export default function App() {
       </main>
       <div className={`min-w-0 flex-1 ${openArticle ? "block" : "hidden lg:block"}`}>
         {openArticle ? (
-          <ArticleView article={openArticle} onBack={() => setOpenArticle(null)} onMessage={(text) => setMessage({ text })} />
+          <ArticleView key={articleKey(openArticle)} article={openArticle} onBack={() => setOpenArticle(null)} onMessage={(text) => setMessage({ text })} />
         ) : (
           <div className="flex h-full items-center justify-center p-8 text-center text-sm text-muted-foreground">{t("pickArticle")}</div>
         )}
       </div>
 
-      <AddFeedDialog open={dialog === "add"} onOpenChange={(o) => setDialog(o ? "add" : null)} folderId={selection.kind === "folder" ? selection.folderId : null} />
+      <AddFeedDialog key={dialog === "add" ? "open" : "closed"} open={dialog === "add"} onOpenChange={(o) => setDialog(o ? "add" : null)} folderId={selection.kind === "folder" ? selection.folderId : null} />
       <ManageDialog
         open={dialog === "manage"}
         onOpenChange={(o) => setDialog(o ? "manage" : null)}
