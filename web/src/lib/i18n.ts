@@ -98,12 +98,6 @@ const en = {
   needsProxy: "To load feeds, set the feed loader address (your Cloudflare Worker) in Settings.",
   today: "Today",
   yesterday: "Yesterday",
-  saveToInstapaper: "Save to Instapaper",
-  sentToInstapaper: "Sent to Instapaper",
-  instapaperOffline: "Couldn’t reach Instapaper. Check your connection.",
-  instapaperHint: "Your Instapaper account, for the Save button in articles. Kept in this browser only. Instapaper doesn’t let web pages check the password, so a wrong one fails silently.",
-  instapaperUser: "Email or username",
-  instapaperPassword: "Password (if you have one)",
 };
 
 export type Key = keyof typeof en;
@@ -159,7 +153,6 @@ const nl: Pack = {
     undo: "Ongedaan maken", pickArticle: "Kies een artikel om het hier te lezen.",
     needsProxy: "Stel het adres van de feedlader (je Cloudflare Worker) in bij Instellingen om feeds te laden.",
     today: "Vandaag", yesterday: "Gisteren",
-    saveToInstapaper: "Bewaren in Instapaper", sentToInstapaper: "Verstuurd naar Instapaper", instapaperOffline: "Instapaper is niet bereikbaar. Controleer je verbinding.", instapaperHint: "Je Instapaper-account, voor de knop Bewaren bij artikelen. Alleen in deze browser bewaard. Instapaper laat webpagina’s het wachtwoord niet controleren, dus een verkeerd wachtwoord mislukt zonder melding.", instapaperUser: "E-mail of gebruikersnaam", instapaperPassword: "Wachtwoord (als je er een hebt)",
   },
   plurals: {
     unreadCount: ["{n} ongelezen artikel", "{n} ongelezen artikelen"],
@@ -210,7 +203,6 @@ const fr: Pack = {
     undo: "Annuler", pickArticle: "Choisissez un article pour le lire ici.",
     needsProxy: "Pour charger les flux, indiquez l’adresse du chargeur de flux (votre Cloudflare Worker) dans les Paramètres.",
     today: "Aujourd’hui", yesterday: "Hier",
-    saveToInstapaper: "Enregistrer dans Instapaper", sentToInstapaper: "Envoyé à Instapaper", instapaperOffline: "Impossible de joindre Instapaper. Vérifiez votre connexion.", instapaperHint: "Votre compte Instapaper, pour le bouton Enregistrer des articles. Gardé dans ce navigateur uniquement. Instapaper ne permet pas aux pages web de vérifier le mot de passe : un mot de passe erroné échoue sans message.", instapaperUser: "E-mail ou nom d’utilisateur", instapaperPassword: "Mot de passe (si vous en avez un)",
   },
   plurals: {
     unreadCount: ["{n} article non lu", "{n} articles non lus"],
@@ -261,7 +253,6 @@ const de: Pack = {
     undo: "Rückgängig", pickArticle: "Wähle einen Artikel, um ihn hier zu lesen.",
     needsProxy: "Um Feeds zu laden, gib in den Einstellungen die Adresse des Feed-Laders (deinen Cloudflare Worker) ein.",
     today: "Heute", yesterday: "Gestern",
-    saveToInstapaper: "In Instapaper speichern", sentToInstapaper: "An Instapaper gesendet", instapaperOffline: "Instapaper ist nicht erreichbar. Prüfe deine Verbindung.", instapaperHint: "Dein Instapaper-Konto für die Speichern-Taste bei Artikeln. Nur in diesem Browser gespeichert. Instapaper lässt Webseiten das Passwort nicht prüfen, ein falsches schlägt also ohne Meldung fehl.", instapaperUser: "E-Mail oder Benutzername", instapaperPassword: "Passwort (falls vorhanden)",
   },
   plurals: {
     unreadCount: ["{n} ungelesener Artikel", "{n} ungelesene Artikel"],
@@ -312,7 +303,6 @@ const es: Pack = {
     undo: "Deshacer", pickArticle: "Elige un artículo para leerlo aquí.",
     needsProxy: "Para cargar feeds, indica la dirección del cargador de feeds (tu Cloudflare Worker) en Ajustes.",
     today: "Hoy", yesterday: "Ayer",
-    saveToInstapaper: "Guardar en Instapaper", sentToInstapaper: "Enviado a Instapaper", instapaperOffline: "No se pudo acceder a Instapaper. Revisa tu conexión.", instapaperHint: "Tu cuenta de Instapaper, para el botón Guardar de los artículos. Se guarda solo en este navegador. Instapaper no deja que las páginas web comprueben la contraseña, así que una incorrecta falla sin aviso.", instapaperUser: "Correo o nombre de usuario", instapaperPassword: "Contraseña (si tienes una)",
   },
   plurals: {
     unreadCount: ["{n} artículo sin leer", "{n} artículos sin leer"],
@@ -363,7 +353,6 @@ const it: Pack = {
     undo: "Annulla", pickArticle: "Scegli un articolo per leggerlo qui.",
     needsProxy: "Per caricare i feed, imposta l’indirizzo del caricatore di feed (il tuo Cloudflare Worker) nelle Impostazioni.",
     today: "Oggi", yesterday: "Ieri",
-    saveToInstapaper: "Salva in Instapaper", sentToInstapaper: "Inviato a Instapaper", instapaperOffline: "Impossibile raggiungere Instapaper. Controlla la connessione.", instapaperHint: "Il tuo account Instapaper, per il pulsante Salva negli articoli. Conservato solo in questo browser. Instapaper non permette alle pagine web di verificare la password, quindi una sbagliata fallisce senza avviso.", instapaperUser: "Email o nome utente", instapaperPassword: "Password (se ne hai una)",
   },
   plurals: {
     unreadCount: ["{n} articolo non letto", "{n} articoli non letti"],

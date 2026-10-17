@@ -1,6 +1,6 @@
 # Privacy policy
 
-_Last updated: 2026-10-16 (Instapaper account)_
+_Last updated: 2026-10-16 (web app)_
 
 RSS Reader has no account, analytics, advertising or crash reporting, and no server of its own.
 Sync, if you turn it on, uses your own Google Drive.
@@ -35,12 +35,6 @@ Sync, if you turn it on, uses your own Google Drive.
   policy and your Google account; Google also sees your IP address. Disconnect stops syncing;
   the file stays in your Drive until you remove the app's data there (Google Drive › Settings ›
   Manage apps) or revoke access in your Google account.
-- **Instapaper account (off unless you sign in).** In Settings › Save and share › Instapaper
-  account you can sign in with your Instapaper email (or username) and password. The app checks
-  them with Instapaper and then, each time you tap Save, sends the article's link and title with
-  your account to Instapaper (www.instapaper.com, over https) under Instapaper's privacy policy.
-  Your email and password stay on this phone: they are not in Android's backup or phone-to-phone
-  transfer, and not in the sync file. Sign out deletes them.
 - **Links you open** (Read on website, links in articles) open in your browser, under the
   website's own privacy policy.
 - **Save and Share.** When you tap Save or Share, the article's title and link go to the app you
@@ -51,8 +45,6 @@ Sync, if you turn it on, uses your own Google Drive.
 
 - Your feed list (with each feed's icon address) and folders, the downloaded articles and which ones you read.
 - If sync is on: a copy of the sync file as last synced, to merge changes.
-- If you signed in to Instapaper: your Instapaper email (or username) and password, left out of
-  backups.
 - Your settings (theme, text settings, full articles, pictures, Save and Share targets, the Unread filter, mark as read on scroll).
 - The text of full articles you opened, and recently shown pictures, in the app's cache (Android
   may clear it).
@@ -92,9 +84,6 @@ browser's storage on that device (IndexedDB). There is no account and no analyti
   `rss-reader-sync.json` in your Google Drive's hidden app folder, after you click Connect
   (Google's sign-in script comes from accounts.google.com). The sign-in lasts about an hour per
   browser tab.
-- **Instapaper**, if you fill in your account in the web app's Settings: the Save button sends
-  the article's link and title with your account straight from your browser to Instapaper
-  (www.instapaper.com). The account is kept in this browser only.
 - Removing the site's data in your browser deletes everything the web app stored.
 
 If this changes, this file will be updated **before** the change is released.

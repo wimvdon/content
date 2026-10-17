@@ -69,15 +69,9 @@ data class ReaderStyle(
     }
 }
 
-/**
- * Where the reader's Save or Share button sends an article: the share menu, straight to one app,
- * or to the user's Instapaper account (see instapaper/).
- */
+/** Where the reader's Save or Share button sends an article: the share menu, or straight to one app. */
 sealed interface ShareTarget {
     data object Sheet : ShareTarget
-
-    /** Saved through Instapaper's API with the account signed in under Settings; no app needed. */
-    data object InstapaperAccount : ShareTarget
 
     /** A share target of another app; [activityName] picks one when the app has several. */
     data class App(
@@ -97,7 +91,6 @@ sealed interface ShareTarget {
         fun encode(target: ShareTarget): String =
             when (target) {
                 Sheet -> "sheet"
-                InstapaperAccount -> "instapaper-account"
                 is App -> listOf("app", target.packageName, target.activityName.orEmpty(), target.label).joinToString(SEPARATOR.toString())
             }
 
@@ -109,7 +102,6 @@ sealed interface ShareTarget {
             when (text) {
                 null -> default
                 "sheet", "ShareMenu" -> Sheet
-                "instapaper-account" -> InstapaperAccount
                 "Instapaper" -> Instapaper
                 else -> {
                     val parts = text.split(SEPARATOR)

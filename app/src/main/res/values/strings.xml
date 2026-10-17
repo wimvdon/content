@@ -173,19 +173,4 @@
     <string name="sync_failed_server">Google Drive had a problem. Try again later.</string>
     <string name="sync_failed_file">The sync file is from a newer version of RSS Reader. Update the app.</string>
     <string name="sync_connect_failed">Couldn’t connect to Google Drive</string>
-    <string name="instapaper_account">Instapaper account</string>
-    <string name="instapaper_account_summary">Save articles straight to Instapaper, without its app</string>
-    <string name="instapaper_signed_in">Signed in as %1$s</string>
-    <string name="instapaper_sign_in">Sign in</string>
-    <string name="instapaper_sign_out">Sign out</string>
-    <string name="instapaper_username">Email or username</string>
-    <string name="instapaper_password">Password (if you have one)</string>
-    <string name="instapaper_target">Instapaper (your account)</string>
-    <string name="instapaper_needs_sign_in">Sign in to Instapaper in Settings › Save and share first</string>
-    <string name="instapaper_saved">Saved to Instapaper</string>
-    <string name="instapaper_wrong_password">Wrong email or password</string>
-    <string name="instapaper_busy">Instapaper is busy. Try again in a while.</string>
-    <string name="instapaper_bad_request">Instapaper couldn’t save this link</string>
-    <string name="instapaper_offline">Couldn’t reach Instapaper. Check your connection.</string>
-    <string name="instapaper_server">Instapaper had a problem. Try again later.</string>
 </resources>

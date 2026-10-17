@@ -134,12 +134,6 @@ share** you choose, for each, where it sends the article:
 
 If the chosen app has been uninstalled, the button opens the share menu instead and says so.
 
-**Instapaper account.** Under **Instapaper account › Sign in**, type your Instapaper email (or
-username) and password. Save then goes straight to your account, without the Instapaper app,
-and says "Saved to Instapaper" (or what went wrong). **Sign out** removes the account from the
-phone and Save goes back to the Instapaper app. The web app has the same Save button once you
-fill in your account in its Settings.
-
 ## Settings
 
 - **Feeds › Manage feeds and folders** (at the top; the same page as in ☰): every feed with its address (or why

@@ -1,10 +1,9 @@
-import { ArrowLeft, BookmarkPlus, Circle, CircleCheck, ExternalLink, FileText, Share2 } from "lucide-react";
+import { ArrowLeft, Circle, CircleCheck, ExternalLink, FileText, Share2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { app, useApp } from "@/lib/app";
 import { extractArticle, isSummary } from "@/lib/fullArticle";
 import { formatDateTime, t } from "@/lib/i18n";
 import { articleKey, sortTime, type Article } from "@/lib/library";
-import { saveToInstapaper } from "@/lib/instapaper";
 import { fetchViaProxy } from "@/lib/proxy";
 import { sanitizeArticle } from "@/lib/sanitize";
 import { FeedIcon } from "./FeedIcon";
@@ -65,16 +64,6 @@ export function ArticleView({ article, onBack, onMessage }: { article: Article; 
     }
   };
 
-  const save = async () => {
-    if (!article.link) return;
-    try {
-      await saveToInstapaper(settings.instapaperUsername, settings.instapaperPassword, article.link, article.title);
-      onMessage(t("sentToInstapaper"));
-    } catch {
-      onMessage(t("instapaperOffline"));
-    }
-  };
-
   return (
     <article className="flex h-full min-w-0 flex-col" aria-label={article.title}>
       <div className="flex items-center gap-1 border-b px-2 py-2">
@@ -98,11 +87,6 @@ export function ArticleView({ article, onBack, onMessage }: { article: Article; 
         </Button>
         {article.link ? (
           <>
-            {settings.instapaperUsername ? (
-              <Button variant="ghost" size="icon" onClick={() => void save()} aria-label={t("saveToInstapaper")} title={t("saveToInstapaper") + " (s)"}>
-                <BookmarkPlus />
-              </Button>
-            ) : null}
             <Button variant="ghost" size="icon" onClick={() => void share()} aria-label={t("share")} title={t("share")}>
               <Share2 />
             </Button>

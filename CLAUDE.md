@@ -44,9 +44,8 @@ Secrets, keystores (`*.jks`, `*.keystore`), `keystore.properties`, passwords or 
 - **Every logic change gets new or updated unit tests** (`app/src/test/`). Keep logic in plain
   Kotlin classes without Android types (no `Context`, `View`, Compose) so it runs on the JVM
   (`data/Library.kt`, `feed/`). Composables only display state and forward clicks. HTTP only in
-  `feed/FeedFetcher.kt`, for pictures through Coil (`RssReaderApp.newImageLoader`), for sync in
-  `sync/GoogleDrive.kt` (Google Drive's hidden app folder, see `docs/sync.md`), and for saving to
-  Instapaper in `instapaper/Instapaper.kt`.
+  `feed/FeedFetcher.kt`, for pictures through Coil (`RssReaderApp.newImageLoader`), and for sync in
+  `sync/GoogleDrive.kt` (Google Drive's hidden app folder, see `docs/sync.md`).
 - **All user-visible text goes in `app/src/main/res/values/strings.xml`**, never hard-coded. In
   Compose, read strings with `stringResource` or `LocalResources`, not `LocalContext`.
   Add the translation to **every** `values-xx/strings.xml` (currently: `nl`, `fr`, `de`, `es`, `it`),

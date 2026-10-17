@@ -55,7 +55,6 @@ data class SettingsState(
     val problemCount: Int,
     val shareApps: List<ExternalApps.ShareApp>,
     val syncStatus: SyncStatus = SyncStatus.Idle,
-    val instapaper: InstapaperState,
 )
 
 class SettingsActions(
@@ -108,7 +107,6 @@ fun SettingsScreen(
                 apps = state.shareApps,
                 onSaveTargetChange = actions.onSaveTargetChange,
                 onShareTargetChange = actions.onShareTargetChange,
-                instapaper = state.instapaper,
             )
         }
         item(key = "appearance") { AppearanceSection(state.settings, actions) }

@@ -1,12 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- What Android may back up to the user's Google account / copy to a new phone: the feed list,
-     read state, downloaded articles and settings. Full articles live in the cache folder, which
-     Android never backs up. The Instapaper account (email and password) stays on this phone. -->
+     read state, downloaded articles and settings. Nothing secret is stored (see PRIVACY.md). Full
+     articles live in the cache folder, which Android never backs up. -->
 <data-extraction-rules>
-    <cloud-backup>
-        <exclude domain="file" path="datastore/instapaper.preferences_pb" />
-    </cloud-backup>
-    <device-transfer>
-        <exclude domain="file" path="datastore/instapaper.preferences_pb" />
-    </device-transfer>
+    <cloud-backup />
+    <device-transfer />
 </data-extraction-rules>

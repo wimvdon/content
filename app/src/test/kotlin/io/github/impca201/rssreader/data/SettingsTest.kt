@@ -50,7 +50,6 @@ class SettingsTest {
         val app = ShareTarget.App("com.example.notes", "com.example.notes.ShareActivity", "Notes")
         assertEquals(app, ShareTarget.decode(ShareTarget.encode(app), ShareTarget.Sheet))
         assertEquals(ShareTarget.Sheet, ShareTarget.decode(ShareTarget.encode(ShareTarget.Sheet), ShareTarget.Instapaper))
-        assertEquals(ShareTarget.InstapaperAccount, ShareTarget.decode(ShareTarget.encode(ShareTarget.InstapaperAccount), ShareTarget.Sheet))
         val noActivity = ShareTarget.App("com.example.notes", null, "Notes")
         assertEquals(noActivity, ShareTarget.decode(ShareTarget.encode(noActivity), ShareTarget.Sheet))
         // Values written by v0.0.1.
