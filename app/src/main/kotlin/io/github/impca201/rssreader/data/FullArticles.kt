@@ -65,19 +65,27 @@ class FullArticles(
             }
         }
 
-    /** Keeps the most recently used [MAX_FILES] articles. */
+    /** Keeps the most recently used [MAX_FILES] articles, and none from an older extractor. */
     private fun trim() {
-        val files = cacheDir.listFiles()?.sortedByDescending { it.lastModified() } ?: return
-        files.drop(MAX_FILES).forEach { it.delete() }
+        val (current, old) = cacheDir.listFiles()?.partition { it.name.startsWith(PREFIX) } ?: return
+        old.forEach { it.delete() }
+        current.sortedByDescending { it.lastModified() }.drop(MAX_FILES).forEach { it.delete() }
     }
 
     private fun name(link: String): String =
-        MessageDigest
-            .getInstance("SHA-256")
-            .digest(link.toByteArray())
-            .joinToString("") { "%02x".format(it) } + ".html"
+        PREFIX +
+            MessageDigest
+                .getInstance("SHA-256")
+                .digest(link.toByteArray())
+                .joinToString("") { "%02x".format(it) } + ".html"
 
     private companion object {
         const val MAX_FILES = 300
+
+        /**
+         * Starts the names of cached articles. Raise the number when [ArticleExtractor] finds
+         * articles differently, so articles kept from before are extracted again.
+         */
+        const val PREFIX = "v2-"
     }
 }

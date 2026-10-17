@@ -4,8 +4,30 @@ import java.net.URI
 
 /** One piece of an article as the reader shows it. */
 sealed interface ArticleBlock {
-    /** Text with simple formatting, as HTML (already cleaned for the reader). */
+    /** A paragraph with simple formatting (links, bold, italics, line breaks), as cleaned HTML. */
     data class Text(val html: String) : ArticleBlock
+
+    /** A heading inside the article, h1 to h6. */
+    data class Heading(
+        val level: Int,
+        val html: String,
+    ) : ArticleBlock
+
+    /** A quote, one or more paragraphs. */
+    data class Quote(val paragraphs: List<String>) : ArticleBlock
+
+    /** Preformatted text (code), with its line breaks. */
+    data class Code(val text: String) : ArticleBlock
+
+    /** A list; nested lists are items with a larger [ListItem.depth]. */
+    data class ListBlock(val items: List<ListItem>) : ArticleBlock
+
+    /** One paragraph of a list item; [marker] is "•", "1." and so on, or empty for its later paragraphs. */
+    data class ListItem(
+        val html: String,
+        val marker: String,
+        val depth: Int,
+    )
 
     data class Image(
         val url: String,
@@ -44,19 +66,30 @@ object ArticleBlocks {
         baseUrl: String,
     ): List<ArticleBlock> {
         val blocks = mutableListOf<ArticleBlock>()
+        // Text between pictures that turn out to be nothing (tracking pixels) is read as one run.
+        val text = StringBuilder()
+        fun addText(segment: String) {
+            text.append(segment)
+        }
+        fun add(block: ArticleBlock) {
+            blocks += TextLayout.blocks(Html.clean(text.toString()))
+            text.setLength(0)
+            blocks += block
+        }
         var last = 0
         for (m in special.findAll(html)) {
-            addText(html.substring(last, m.range.first), blocks)
+            addText(html.substring(last, m.range.first))
             last = m.range.last + 1
             val tag = m.value.substringAfter('<').takeWhile { it.isLetter() }.lowercase()
             when (tag) {
-                "figure" -> blocks += figureBlocks(m.value, baseUrl)
-                "iframe" -> embedFor(attributes(m.value)["src"], baseUrl)?.let(blocks::add)
-                "video" -> videoBlock(m.value, baseUrl)?.let(blocks::add)
-                else -> imageFor(m.value, baseUrl)?.let { blocks += ArticleBlock.Image(it, null) }
+                "figure" -> figureBlocks(m.value, baseUrl).forEach(::add)
+                "iframe" -> embedFor(attributes(m.value)["src"], baseUrl)?.let(::add)
+                "video" -> videoBlock(m.value, baseUrl)?.let(::add)
+                else -> imageFor(m.value, baseUrl)?.let { add(ArticleBlock.Image(it, null)) }
             }
         }
-        addText(html.substring(last), blocks)
+        addText(html.substring(last))
+        blocks += TextLayout.blocks(Html.clean(text.toString()))
         return blocks
     }
 
@@ -99,20 +132,6 @@ object ArticleBlocks {
             resolved.startsWith("http://", ignoreCase = true) -> "https://" + resolved.substring(7)
             resolved.startsWith("//") -> "https:$resolved"
             else -> null
-        }
-    }
-
-    private fun addText(
-        segment: String,
-        blocks: MutableList<ArticleBlock>,
-    ) {
-        val cleaned = Html.clean(segment)
-        if (Html.toPlainText(cleaned).isEmpty()) return
-        val previous = blocks.lastOrNull()
-        if (previous is ArticleBlock.Text) {
-            blocks[blocks.lastIndex] = ArticleBlock.Text(previous.html + cleaned)
-        } else {
-            blocks += ArticleBlock.Text(cleaned)
         }
     }
 

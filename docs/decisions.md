@@ -2,6 +2,34 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-17: The extractor finds the whole article on modern news sites
+
+After the reader got its own text layout, full articles still lost most of their paragraphs on
+real sites. Tested on saved pages from VRT NWS, Ars Technica, The Verge and 9to5Google:
+paragraph scores only counted one and two levels up, so on sites that wrap every paragraph in
+boxes of its own (VRT NWS) no container collected the text, and the 3-line summary, or only the
+lead, won; sites that split the text over several identical containers with ads in between
+(Ars Technica's `post-content`) kept only one of them. Scores now count five levels up (as
+Readability does), list items no longer score as paragraphs (Readability doesn't either), the
+extractor moves up from a small winning box to the nearest ancestor holding at least three times
+as much paragraph text, and joins look-alike containers. Glossary words that VRT NWS puts in
+buttons inside a paragraph are kept. Cached full articles get a version in their file name, so
+articles cut off by the old extractor are loaded again after an update. Rejected: a library such
+as jsoup or Readability4J (a new dependency; the problem was the scoring, not the HTML reading).
+
+## 2026-10-17: The reader lays out article text itself
+
+Full articles sometimes lost their paragraphs and layout: Compose's HTML conversion puts a single
+line break between paragraphs and drops list bullets and quote bars, and the extractor turned a
+`<div>` per paragraph into a line break. Article text is now split into blocks first
+(`feed/TextLayout.kt`: paragraphs, headings, lists with bullets, numbers and nesting, quotes,
+code), and the reader spaces and draws each block itself; only the text inside a block still
+goes through Compose's HTML conversion (links, bold, italics). The extractor makes a paragraph of
+every container that holds only text, and matches "unlikely" class names as whole name parts, so
+utility classes like `overflow-hidden` no longer remove the article. Rejected: a WebView (heavy,
+and it would bring the site's scripts back), an HTML library such as jsoup (a new dependency for
+what a small splitter does).
+
 ## 2026-10-17: Less help text
 
 The owner found the app over-explanatory; the shared rule is in `DESIGN.md` ("Wording"): help text only says what the screen can't. Removed: the paragraph above the Save and Share rows, the sentence above the address field in Add feed, and the subtitle under "Mark as read on scroll". Shortened: the feeds-screen hints (only the non-obvious "drag a feed onto a folder" stays), the OPML hint, the sync, images, auto-dark and Instapaper summaries, the caught-up text and the Dynamic color line. The web app's sync summary matches. Kept: consequences, privacy notes and setup steps. Rejected: removing every hint (the remaining ones say something the screen doesn't).

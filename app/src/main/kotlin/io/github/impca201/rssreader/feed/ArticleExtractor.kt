@@ -12,6 +12,12 @@ object ArticleExtractor {
     /** Below this many characters of text the page is not treated as an article. */
     const val MIN_TEXT_LENGTH = 250
 
+    /** How many levels above a paragraph its score counts. */
+    private const val ANCESTOR_LEVELS = 5
+
+    /** A look-alike container counts as part of the article from this share of the best one's score. */
+    private const val SAME_KIND_SHARE = 0.2
+
     private val voidTags = setOf("area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr")
     private val rawTextTags = setOf("script", "style", "noscript", "template", "svg", "math", "textarea", "iframe", "object", "select", "canvas")
     private val droppedTags =
@@ -41,14 +47,29 @@ object ArticleExtractor {
         )
     private val blockTags = setOf("p", "h1", "h2", "h3", "h4", "h5", "h6", "ul", "ol", "li", "blockquote", "pre", "hr", "dl", "dt", "dd", "div", "section", "article", "main", "td", "tr", "table")
 
+    /**
+     * Words in class names and ids that mark page parts outside the article. They are matched as
+     * whole parts of a name ("share-buttons", "sidebar_left"), so utility classes such as
+     * "overflow-hidden", "shadow" or "text-lg" don't count.
+     */
     private val unlikely =
         Regex(
-            "comment|sidebar|footer|footnote|masthead|menu|nav|share|social|related|recommend|promo|sponsor|advert|" +
-                "\\bad\\b|\\bads\\b|banner|subscribe|newsletter|signup|cookie|consent|popup|modal|breadcrumb|pagination|" +
-                "author-bio|byline|tags|toolbar|skip|hidden|print-only|outbrain|taboola|disqus",
+            "(?:^|[-_])(comments?|sidebar|footer|footnotes?|masthead|menu|nav|navbar|navigation|share|sharing|social|" +
+                "related|recommended|recommendations?|promo|sponsor(?:ed)?|advert(?:isement)?|ads?|banner|subscribe|" +
+                "newsletter|signup|cookies?|consent|popup|modal|breadcrumbs?|pagination|author-bio|byline|tags|toolbar|" +
+                "skip|print-only|outbrain|taboola|disqus|sr-only|visually-hidden)(?:$|[-_])",
             RegexOption.IGNORE_CASE,
         )
-    private val likely = Regex("article|content|entry|post|story|main|body|text|prose|blog", RegexOption.IGNORE_CASE)
+    private val likely =
+        Regex(
+            // "text" only after another word ("article-text"): Tailwind's text-lg, text-gray-500, … aren't articles.
+            "(?:^|[-_])(article|content|entry|post|story|main|body|prose|blog)(?:$|[-_])|[-_]text(?:$|[-_])",
+            RegexOption.IGNORE_CASE,
+        )
+
+    /** The class names and id of an element, one by one; responsive variants ("md:hidden") are left out. */
+    private fun names(element: Element): List<String> =
+        element.classAndId.split(Regex("""\s+""")).filter { it.isNotEmpty() && ':' !in it }
 
     private class Element(
         val tag: String,
@@ -57,6 +78,9 @@ object ArticleExtractor {
     ) {
         val children = mutableListOf<Any>() // Element or String
         var score = 0.0
+
+        /** Characters of paragraph text anywhere inside. */
+        var paragraphText = 0
         val classAndId: String get() = (attributes["class"].orEmpty() + " " + attributes["id"].orEmpty())
     }
 
@@ -148,12 +172,18 @@ object ArticleExtractor {
 
     // ---- Finding the article ------------------------------------------------------------------
 
+    /** Elements whose content is running text: a button in there is a word of it (a glossary term). */
+    private val textTags = setOf("p", "li", "dd", "td", "h1", "h2", "h3", "h4", "h5", "h6")
+
     /** Removes what is never part of an article. */
-    private fun prune(element: Element) {
+    private fun prune(
+        element: Element,
+        inText: Boolean = false,
+    ) {
         element.children.removeAll { child ->
-            child is Element && (child.tag in droppedTags || isUnlikely(child))
+            child is Element && !(child.tag == "button" && inText) && (child.tag in droppedTags || isUnlikely(child))
         }
-        element.children.filterIsInstance<Element>().forEach(::prune)
+        for (child in element.children.filterIsInstance<Element>()) prune(child, inText || child.tag in textTags)
     }
 
     private fun isUnlikely(element: Element): Boolean {
@@ -161,29 +191,47 @@ object ArticleExtractor {
         if (element.attributes["hidden"] != null || element.attributes["aria-hidden"] == "true") return true
         val role = element.attributes["role"].orEmpty()
         if (role in setOf("navigation", "complementary", "banner", "contentinfo", "dialog", "menu")) return true
-        val names = element.classAndId
-        return unlikely.containsMatchIn(names) && !likely.containsMatchIn(names)
+        val names = names(element)
+        // Only "hidden" on its own hides an element everywhere (Tailwind, Bootstrap's d-none).
+        if (names.any { it == "hidden" || it == "d-none" }) return true
+        return names.any { unlikely.containsMatchIn(it) } && names.none { likely.containsMatchIn(it) }
     }
 
     private fun bestCandidate(root: Element): Element? {
         val paragraphs = mutableListOf<Element>()
-        collect(root) { if (it.tag in setOf("p", "pre", "td", "li", "blockquote") || it.tag == "div" && hasOwnText(it)) paragraphs += it }
+        collect(root) { if (it.tag in setOf("p", "pre", "td", "blockquote") || it.tag == "div" && hasOwnText(it)) paragraphs += it }
         for (p in paragraphs) {
             val text = textOf(p)
             if (text.length < 25) continue
+            generateSequence(p.parent) { it.parent }.forEach { it.paragraphText += text.length }
             val score = 1 + text.count { it == ',' } + minOf(text.length / 100, 3)
-            p.parent?.let { it.score += score }
-            p.parent?.parent?.let { it.score += score / 2.0 }
+            // Up to five levels up, less the further away (as Readability does): sites that wrap
+            // every paragraph in boxes of its own still have one container that collects them all.
+            var ancestor = p.parent
+            var level = 0
+            while (ancestor != null && ancestor.tag != "#root" && level < ANCESTOR_LEVELS) {
+                ancestor.score += score / if (level == 0) 1.0 else if (level == 1) 2.0 else level * 3.0
+                ancestor = ancestor.parent
+                level++
+            }
         }
         val candidates = mutableListOf<Element>()
         collect(root) { if (it.score > 0) candidates += it }
-        val best =
+        var best =
             candidates.maxByOrNull { candidate ->
                 val weight =
-                    (if (likely.containsMatchIn(candidate.classAndId)) 25 else 0) +
+                    (if (names(candidate).any { likely.containsMatchIn(it) }) 25 else 0) +
                         (if (candidate.tag in setOf("article", "main")) 25 else 0)
                 (candidate.score + weight) * (1 - linkDensity(candidate))
             } ?: return null
+        // A small box with an article-like class name (often just the lead paragraph) can outscore
+        // the container of the whole text: use the nearest ancestor that holds clearly more of it.
+        val small = best
+        generateSequence(small.parent) { it.parent }
+            .take(ANCESTOR_LEVELS)
+            .firstOrNull { it.tag != "#root" && it.paragraphText >= small.paragraphText * 3 && linkDensity(it) < 0.5 }
+            ?.let { best = it }
+        best = withSameKindParts(root, best)
         // Text split over sibling containers (e.g. one <div> per section): use the parent instead.
         val parent = best.parent
         if (parent != null && parent.tag != "#root") {
@@ -192,6 +240,41 @@ object ArticleExtractor {
             if (siblingsWithText > 0) return parent
         }
         return best
+    }
+
+    /**
+     * Articles split into several identical containers with ads or videos in between (several
+     * `<div class="post-content">` on WordPress sites such as Ars Technica): the smallest element
+     * holding [best] and its look-alikes that also hold text, or [best] itself when there are none.
+     */
+    private fun withSameKindParts(
+        root: Element,
+        best: Element,
+    ): Element {
+        val className = best.attributes["class"]?.trim().orEmpty()
+        if (className.isEmpty()) return best
+        val parts = mutableListOf<Element>()
+        collect(root) {
+            if (it !== best && it.tag == best.tag && it.attributes["class"]?.trim() == className &&
+                it.score >= best.score * SAME_KIND_SHARE && linkDensity(it) < 0.5
+            ) {
+                parts += it
+            }
+        }
+        var common = best
+        for (part in parts) {
+            while (!common.contains(part)) common = common.parent ?: return best
+        }
+        return if (common.tag == "#root") best else common
+    }
+
+    private fun Element.contains(other: Element): Boolean {
+        var e: Element? = other
+        while (e != null) {
+            if (e === this) return true
+            e = e.parent
+        }
+        return false
     }
 
     private fun hasOwnText(element: Element): Boolean = element.children.any { it is String && it.isNotBlank() && it.trim().length > 25 }
@@ -254,8 +337,15 @@ object ArticleExtractor {
         val tag = element.tag
         when {
             tag !in keptTags -> {
-                serialize(element, out, pageUrl)
-                if (tag in blockTags) out.append("<br>")
+                // A container holding only text and inline elements is a paragraph (sites that
+                // use a <div> per paragraph); one holding blocks just passes them on.
+                if (tag in blockTags && !hasBlockDescendant(element)) {
+                    val inner = StringBuilder()
+                    serialize(element, inner, pageUrl)
+                    if (Html.toPlainText(inner.toString()).isNotEmpty()) out.append("<p>").append(inner.trim()).append("</p>")
+                } else {
+                    serialize(element, out, pageUrl)
+                }
             }
 
             tag == "br" || tag == "hr" -> out.append("<$tag>")
@@ -307,6 +397,14 @@ object ArticleExtractor {
             }
         }
     }
+
+    /** Elements that make their own block in the result. */
+    private val blockLike = blockTags + setOf("figure", "figcaption")
+
+    private fun hasBlockDescendant(element: Element): Boolean =
+        element.children.any { child ->
+            child is Element && (child.tag in blockLike || hasBlockDescendant(child))
+        }
 
     private fun StringBuilder.attr(
         name: String,
