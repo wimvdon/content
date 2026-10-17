@@ -8,8 +8,9 @@ export function FeedIcon({ feed, className = "size-5" }: { feed: Feed | undefine
   const letter = (feed?.title.trim()[0] ?? "?").toUpperCase();
   if (feed?.iconUrl && !failed) {
     return (
-      <span className={cn("inline-flex shrink-0 items-center justify-center rounded-md bg-[#f4f4f4] p-[10%]", className)}>
-        <img src={feed.iconUrl} alt="" className="size-full object-contain" referrerPolicy="no-referrer" loading="lazy" onError={() => setFailed(true)} />
+      // The picture fills 80% of the tile; a percentage padding would be a share of the whole row.
+      <span className={cn("inline-flex shrink-0 items-center justify-center rounded-md bg-[#f4f4f4]", className)}>
+        <img src={feed.iconUrl} alt="" className="size-[80%] object-contain" referrerPolicy="no-referrer" loading="lazy" onError={() => setFailed(true)} />
       </span>
     );
   }
