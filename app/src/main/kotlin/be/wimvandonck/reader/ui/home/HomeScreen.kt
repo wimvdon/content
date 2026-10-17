@@ -54,6 +54,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationBar
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -158,6 +164,9 @@ class HomeActions(
     val onOpenSettings: () -> Unit,
     val onOpenFeeds: () -> Unit,
     val onSelectInstapaper: (InstapaperView) -> Unit = {},
+    /** The navigation bar's destinations (shown when signed in to Instapaper). */
+    val onShowFeeds: () -> Unit = {},
+    val onShowInstapaper: () -> Unit = {},
     val onOpenSaved: (InstapaperBookmark) -> Unit = {},
     val onLoadMoreSaved: () -> Unit = {},
 )
@@ -187,6 +196,7 @@ fun HomeScreen(
     val sectionFolderId = selectedFolder?.id ?: selectedFeed?.folderId
     val showFolderTabs = state.folders.isNotEmpty() && state.feeds.isNotEmpty()
     val unreadHere = state.unreadCounts[state.selection] ?: 0
+    val wide = with(LocalDensity.current) { LocalWindowInfo.current.containerSize.width.toDp() } >= WIDE_WINDOW
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -223,118 +233,175 @@ fun HomeScreen(
         val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(canScroll = { hasArticles })
         // Another section, or a list with nothing left to scroll, shows the header again.
         LaunchedEffect(state.selection, savedView, hasArticles) { scrollBehavior.state.heightOffset = 0f }
-        Scaffold(
-            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-            snackbarHost = { SnackbarHost(snackbarHostState) },
-            topBar = {
-                CollapsingHeader(scrollBehavior) {
-                    TopAppBar(
-                        title = {
-                            Column {
-                                Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                if (savedView != null) {
-                                    Text(
-                                        stringResource(R.string.section_instapaper),
-                                        style = MaterialTheme.typography.labelMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        maxLines = 1,
-                                    )
-                                } else if (state.feeds.isNotEmpty()) {
-                                    Text(
-                                        if (state.unreadOnly) {
-                                            pluralStringResource(R.plurals.home_subtitle_unread, unreadHere, unreadHere)
-                                        } else {
-                                            pluralStringResource(R.plurals.home_subtitle_all, unreadHere, unreadHere)
-                                        },
-                                        style = MaterialTheme.typography.labelMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        maxLines = 1,
-                                    )
-                                }
-                            }
-                        },
-                        navigationIcon = {
-                            IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                                Icon(painterResource(R.drawable.ic_menu), contentDescription = stringResource(R.string.action_open_feeds))
-                            }
-                        },
-                        windowInsets = WindowInsets(0),
-                        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent, scrolledContainerColor = Color.Transparent),
+        // On wide windows the destinations move to a navigation rail at the side, in the same order.
+        Row(Modifier.fillMaxSize()) {
+            if (state.instapaper != null && wide) {
+                NavigationRail(Modifier.padding(top = 8.dp)) {
+                    NavigationRailItem(
+                        selected = savedView == null,
+                        onClick = { if (savedView != null) actions.onShowFeeds() },
+                        icon = { DestinationIcon(instapaper = false, selected = savedView == null) },
+                        label = { Text(stringResource(R.string.feeds_title)) },
                     )
-                    if (showFolderTabs && savedView == null) {
-                        FolderTabs(
-                            folders = state.folders,
-                            selectedFolderId = sectionFolderId,
-                            onSelectAll = { actions.onSelect(FeedSelection.All) },
-                            onSelectFolder = { actions.onSelect(FeedSelection.InFolder(it.id)) },
-                        )
-                    }
-                    if (state.feeds.isNotEmpty() && savedView == null) {
-                        ReadFilter(
-                            unreadOnly = state.unreadOnly,
-                            onUnreadOnlyChange = actions.onUnreadOnlyChange,
-                            // Room around the filter so the header doesn't feel cramped.
-                            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 12.dp),
-                        )
-                    }
+                    NavigationRailItem(
+                        selected = savedView != null,
+                        onClick = { if (savedView == null) actions.onShowInstapaper() },
+                        icon = { DestinationIcon(instapaper = true, selected = savedView != null) },
+                        label = { Text(stringResource(R.string.section_instapaper)) },
+                    )
                 }
-            },
-            floatingActionButton = {
-                // Marks everything in the section being viewed as read: All, a folder or a feed.
-                if (state.feeds.isNotEmpty() && unreadHere > 0 && savedView == null) {
-                    FloatingActionButton(onClick = actions.onMarkAllRead) {
-                        Icon(painterResource(R.drawable.ic_done_all), contentDescription = stringResource(R.string.action_mark_all_read))
+            }
+            Scaffold(
+                modifier = Modifier.weight(1f).nestedScroll(scrollBehavior.nestedScrollConnection),
+                snackbarHost = { SnackbarHost(snackbarHostState) },
+                topBar = {
+                    CollapsingHeader(scrollBehavior) {
+                        TopAppBar(
+                            title = {
+                                Column {
+                                    Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                    if (savedView == null && state.feeds.isNotEmpty()) {
+                                        Text(
+                                            if (state.unreadOnly) {
+                                                pluralStringResource(R.plurals.home_subtitle_unread, unreadHere, unreadHere)
+                                            } else {
+                                                pluralStringResource(R.plurals.home_subtitle_all, unreadHere, unreadHere)
+                                            },
+                                            style = MaterialTheme.typography.labelMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            maxLines = 1,
+                                        )
+                                    }
+                                }
+                            },
+                            navigationIcon = {
+                                IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                                    Icon(painterResource(R.drawable.ic_menu), contentDescription = stringResource(R.string.action_open_feeds))
+                                }
+                            },
+                            windowInsets = WindowInsets(0),
+                            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent, scrolledContainerColor = Color.Transparent),
+                        )
+                        if (saved != null && savedView != null) {
+                            InstapaperTabRow(
+                                folders = saved.folders,
+                                tags = saved.tags,
+                                view = savedView,
+                                onSelect = actions.onSelectInstapaper,
+                            )
+                        }
+                        if (showFolderTabs && savedView == null) {
+                            FolderTabs(
+                                folders = state.folders,
+                                selectedFolderId = sectionFolderId,
+                                onSelectAll = { actions.onSelect(FeedSelection.All) },
+                                onSelectFolder = { actions.onSelect(FeedSelection.InFolder(it.id)) },
+                            )
+                        }
+                        if (state.feeds.isNotEmpty() && savedView == null) {
+                            ReadFilter(
+                                unreadOnly = state.unreadOnly,
+                                onUnreadOnlyChange = actions.onUnreadOnlyChange,
+                                // Room around the filter so the header doesn't feel cramped.
+                                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 12.dp),
+                            )
+                        }
                     }
-                }
-            },
-        ) { innerPadding ->
-            Box(
-                Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-            ) {
-            if (saved != null) {
+                },
+                bottomBar = {
+                    // Feeds and Instapaper are the app's two top-level destinations; without Instapaper there is only one.
+                    if (state.instapaper != null && !wide) {
+                        NavigationBar {
+                            NavigationBarItem(
+                                selected = savedView == null,
+                                onClick = { if (savedView != null) actions.onShowFeeds() },
+                                icon = { DestinationIcon(instapaper = false, selected = savedView == null) },
+                                label = { Text(stringResource(R.string.feeds_title)) },
+                            )
+                            NavigationBarItem(
+                                selected = savedView != null,
+                                onClick = { if (savedView == null) actions.onShowInstapaper() },
+                                icon = { DestinationIcon(instapaper = true, selected = savedView != null) },
+                                label = { Text(stringResource(R.string.section_instapaper)) },
+                            )
+                        }
+                    }
+                },
+                floatingActionButton = {
+                    // Marks everything in the section being viewed as read: All, a folder or a feed.
+                    if (state.feeds.isNotEmpty() && unreadHere > 0 && savedView == null) {
+                        FloatingActionButton(onClick = actions.onMarkAllRead) {
+                            Icon(painterResource(R.drawable.ic_done_all), contentDescription = stringResource(R.string.action_mark_all_read))
+                        }
+                    }
+                },
+            ) { innerPadding ->
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                ) {
+                if (saved != null) {
+                    PullToRefreshBox(
+                        isRefreshing = saved.list.loading && saved.list.items.isNotEmpty(),
+                        onRefresh = actions.onRefresh,
+                        modifier = Modifier.fillMaxSize(),
+                    ) {
+                        SavedList(saved, state.listView, actions)
+                    }
+                } else {
                 PullToRefreshBox(
-                    isRefreshing = saved.list.loading && saved.list.items.isNotEmpty(),
+                    isRefreshing = state.refreshing,
                     onRefresh = actions.onRefresh,
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    SavedList(saved, state.listView, actions)
-                }
-            } else {
-            PullToRefreshBox(
-                isRefreshing = state.refreshing,
-                onRefresh = actions.onRefresh,
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                val content =
-                    when {
-                        !state.loaded -> HomeContent.Loading
-                        state.feeds.isEmpty() -> HomeContent.NoFeeds
-                        !state.hasAnyArticles && state.refreshing -> HomeContent.Loading
-                        state.articles.isEmpty() -> HomeContent.Empty
-                        else -> HomeContent.Articles
-                    }
-                AnimatedContent(
-                    targetState = content,
-                    transitionSpec = { fadeIn(Motion.fadeSpec()) togetherWith fadeOut(Motion.fadeSpec()) },
-                    label = "home",
-                ) { shown ->
-                    when (shown) {
-                        HomeContent.NoFeeds -> NoFeeds(actions.onAddFeed, actions.onImportOpml)
-                        HomeContent.Loading -> ArticleSkeletons()
-                        HomeContent.Empty -> AllCaughtUp(state.unreadOnly) { actions.onUnreadOnlyChange(false) }
-                        HomeContent.Articles -> ArticleList(state, actions)
+                    val content =
+                        when {
+                            !state.loaded -> HomeContent.Loading
+                            state.feeds.isEmpty() -> HomeContent.NoFeeds
+                            !state.hasAnyArticles && state.refreshing -> HomeContent.Loading
+                            state.articles.isEmpty() -> HomeContent.Empty
+                            else -> HomeContent.Articles
+                        }
+                    AnimatedContent(
+                        targetState = content,
+                        transitionSpec = { fadeIn(Motion.fadeSpec()) togetherWith fadeOut(Motion.fadeSpec()) },
+                        label = "home",
+                    ) { shown ->
+                        when (shown) {
+                            HomeContent.NoFeeds -> NoFeeds(actions.onAddFeed, actions.onImportOpml)
+                            HomeContent.Loading -> ArticleSkeletons()
+                            HomeContent.Empty -> AllCaughtUp(state.unreadOnly) { actions.onUnreadOnlyChange(false) }
+                            HomeContent.Articles -> ArticleList(state, actions)
+                        }
                     }
                 }
-            }
-            }
+                }
+                }
             }
         }
     }
 }
 
 private enum class HomeContent { NoFeeds, Loading, Empty, Articles }
+
+/** From this width the destinations sit in a navigation rail instead of a bar (Material's medium window). */
+private val WIDE_WINDOW = 600.dp
+
+/** A destination's icon: Instapaper's filled when selected and outlined otherwise; the feed symbol has one form. */
+@Composable
+private fun DestinationIcon(
+    instapaper: Boolean,
+    selected: Boolean,
+) {
+    val icon =
+        when {
+            !instapaper -> R.drawable.ic_rss_feed
+            selected -> R.drawable.ic_bookmarks
+            else -> R.drawable.ic_bookmarks_outline
+        }
+    Icon(painterResource(icon), contentDescription = null)
+}
 
 private const val SKELETON_ROWS = 6
 

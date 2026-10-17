@@ -37,9 +37,9 @@ import be.wimvandonck.reader.data.Folder
 import be.wimvandonck.reader.instapaper.InstapaperView
 
 /**
- * All articles, then each folder with its feeds, then the feeds outside folders (each with its
- * unread count), then Instapaper when signed in (Unread, Liked, Archive, its folders and tags),
- * then Manage feeds and folders and Settings.
+ * The places of the destination shown in the navigation bar: for Feeds, All articles, each folder
+ * with its feeds and the feeds outside folders (each with its unread count); for Instapaper,
+ * Unread, Liked, Archive, its folders and tags. Then Manage feeds and folders and Settings.
  */
 @Composable
 fun FeedDrawer(
@@ -85,42 +85,46 @@ fun FeedDrawer(
                     modifier = Modifier.semantics { heading() },
                 )
             }
-            NavigationDrawerItem(
-                label = { Text(stringResource(R.string.feeds_all)) },
-                icon = { Icon(painterResource(R.drawable.ic_rss_feed), contentDescription = null) },
-                badge = { UnreadBadge(unreadCounts[FeedSelection.All] ?: 0) },
-                selected = selection == FeedSelection.All,
-                onClick = { onSelect(FeedSelection.All) },
-            )
-            for (folder in folders) {
-                val folderSelection = FeedSelection.InFolder(folder.id)
+            // Only the places of the destination shown (Feeds or Instapaper, see the navigation bar).
+            if (instapaper?.view != null) {
+                InstapaperSection(instapaper, onSelectInstapaper)
+            } else {
                 NavigationDrawerItem(
-                    label = { Text(folder.title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                    icon = { Icon(rememberFolderIconPainter(folder.icon), contentDescription = null) },
-                    badge = { UnreadBadge(unreadCounts[folderSelection] ?: 0) },
-                    selected = selection == folderSelection,
-                    onClick = { onSelect(folderSelection) },
+                    label = { Text(stringResource(R.string.feeds_all)) },
+                    icon = { Icon(painterResource(R.drawable.ic_rss_feed), contentDescription = null) },
+                    badge = { UnreadBadge(unreadCounts[FeedSelection.All] ?: 0) },
+                    selected = selection == FeedSelection.All,
+                    onClick = { onSelect(FeedSelection.All) },
                 )
-                for (feed in feeds.filter { it.folderId == folder.id }) {
-                    FeedItem(feed, selection, unreadCounts, onSelect, Modifier.padding(start = 24.dp))
+                for (folder in folders) {
+                    val folderSelection = FeedSelection.InFolder(folder.id)
+                    NavigationDrawerItem(
+                        label = { Text(folder.title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        icon = { Icon(rememberFolderIconPainter(folder.icon), contentDescription = null) },
+                        badge = { UnreadBadge(unreadCounts[folderSelection] ?: 0) },
+                        selected = selection == folderSelection,
+                        onClick = { onSelect(folderSelection) },
+                    )
+                    for (feed in feeds.filter { it.folderId == folder.id }) {
+                        FeedItem(feed, selection, unreadCounts, onSelect, Modifier.padding(start = 24.dp))
+                    }
+                }
+                val loose = feeds.filter { feed -> feed.folderId == null || folders.none { it.id == feed.folderId } }
+                if (loose.isNotEmpty()) {
+                    Text(
+                        text = stringResource(R.string.feeds_title),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier =
+                            Modifier
+                                .padding(start = 16.dp, top = 16.dp, bottom = 8.dp)
+                                .semantics { heading() },
+                    )
+                }
+                for (feed in loose) {
+                    FeedItem(feed, selection, unreadCounts, onSelect)
                 }
             }
-            val loose = feeds.filter { feed -> feed.folderId == null || folders.none { it.id == feed.folderId } }
-            if (loose.isNotEmpty()) {
-                Text(
-                    text = stringResource(R.string.feeds_title),
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier =
-                        Modifier
-                            .padding(start = 16.dp, top = 16.dp, bottom = 8.dp)
-                            .semantics { heading() },
-                )
-            }
-            for (feed in loose) {
-                FeedItem(feed, selection, unreadCounts, onSelect)
-            }
-            if (instapaper != null) InstapaperSection(instapaper, onSelectInstapaper)
             HorizontalDivider(Modifier.padding(vertical = 12.dp, horizontal = 16.dp))
             NavigationDrawerItem(
                 label = { Text(stringResource(R.string.feeds_page_title)) },
@@ -155,7 +159,6 @@ private fun InstapaperSection(
         selected = instapaper.view == view,
         onClick = { onSelect(view) },
     )
-    SectionHeading(stringResource(R.string.section_instapaper))
     item(InstapaperView.Home, stringResource(R.string.filter_unread), R.drawable.ic_article)
     item(InstapaperView.Liked, stringResource(R.string.instapaper_liked), R.drawable.ic_favorite)
     item(InstapaperView.Archive, stringResource(R.string.instapaper_archive_list), R.drawable.ic_archive)
