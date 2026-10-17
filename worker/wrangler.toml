@@ -14,6 +14,12 @@ enabled = false
 # The web app's address(es): only pages there may use this Worker. Local development too.
 ALLOWED_ORIGINS = "https://rss-reader-web.wim-d57.workers.dev,https://rss-reader-worker.wim-d57.workers.dev,http://localhost:5173"
 
+# Instapaper sign-in (docs/instapaper.md). The client ID is public. The client secret is NOT here:
+# set it as a Worker secret named INSTAPAPER_CLIENT_SECRET.
+INSTAPAPER_CLIENT_ID = "94f820c94dc04d0386c71d7b0c26bd80"
+# Must equal a callback URI registered with the Instapaper application, character for character.
+INSTAPAPER_REDIRECT_URI = "https://rss-reader-web.wim-d57.workers.dev/instapaper/callback"
+
 # 120 requests per minute per IP address (a full refresh of 100 feeds fits).
 [[ratelimits]]
 name = "LIMITER"

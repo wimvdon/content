@@ -3,11 +3,20 @@
  * (CORS), so the web app asks this Worker: GET /?url=<https address>. It fetches that one
  * address and passes the answer back. It stores nothing and logs nothing, answers only the web
  * app's own address(es), and only passes feeds and web pages, up to MAX_BYTES.
+ *
+ * Instapaper sign-in and the web app's Instapaper calls live in instapaper.ts (/instapaper/...).
  */
+
+import { handleInstapaper } from "./instapaper";
 
 export interface Env {
   /** Comma-separated web app origins, e.g. "https://rss-reader.pages.dev,http://localhost:5173". */
   ALLOWED_ORIGINS: string;
+  /** The Instapaper application's client ID (public) and the callback address it is registered with. */
+  INSTAPAPER_CLIENT_ID?: string;
+  INSTAPAPER_REDIRECT_URI?: string;
+  /** The client secret. Only ever a Worker secret, never in this repository. */
+  INSTAPAPER_CLIENT_SECRET?: string;
   /** Optional Cloudflare rate limiting binding (see wrangler.toml). */
   LIMITER?: { limit(options: { key: string }): Promise<{ success: boolean }> };
 }
@@ -29,6 +38,8 @@ export default {
 };
 
 export async function handle(request: Request, env: Env, fetcher: Fetcher): Promise<Response> {
+  const requestUrl = new URL(request.url);
+  if (requestUrl.pathname.startsWith("/instapaper/")) return handleInstapaper(request, env, fetcher, requestUrl);
   const origin = request.headers.get("Origin");
   const allowed = (env.ALLOWED_ORIGINS ?? "")
     .split(",")
