@@ -2,6 +2,10 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-17: The real logo in the drawer and the web app
+
+The ☰ drawer and the web app's sidebar opened with a generated mark (a plain feed symbol on a tinted circle), and the web app's favicon drew the feed symbol with other proportions than the Android icon. The owner asked for the real logo everywhere: both headers now show the launcher icon (its foreground on white, in a circle), and the web favicon uses the same symbol and gradient as the Android icon. Rejected: tinting the logo with the theme (it would no longer be the logo).
+
 ## 2026-10-17: One way to reorder, shared with the sibling apps
 
 A design review of the sibling apps found four ways to put a list in order. The rule is now shared (`DESIGN.md`, "Reordering"): a drag handle at the end of each row, from `ui/theme/Reorder.kt`, which every app copies. Reader's feeds and folders already worked that way; the Instapaper folders on Manage feeds and folders had up and down arrows and now have the same handle (screen readers keep Move up and Move down). The article lists and Manage feeds and folders keep a readable width (640dp, `Layout.kt`) on tablets and in landscape, as the shared rule asks. Rejected: keeping the arrows for the short Instapaper list (two ways to do the same thing on one page).

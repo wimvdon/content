@@ -260,8 +260,9 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   then tabs attached to it, then the filter for the content) is one block that slides away
   while scrolling down and comes back as soon as you scroll up (Material's "enter always"),
   turning `surfaceContainer` once articles pass under it; articles sit under sticky day headers (Today,
-  Yesterday, date) in `primary` Title Small; Mark all as read is an icon-only FAB. The drawer opens with the app's mark (feed symbol on a
-  `primaryContainer` circle) and name.
+  Yesterday, date) in `primary` Title Small; Mark all as read is an icon-only FAB. The drawer opens with the app's logo (the
+  launcher icon: its feed symbol on white, in a circle with an `outlineVariant` edge) and name; the
+  web app's sidebar and favicon use the same logo.
 - Settings starts with a Feeds section whose row opens Manage feeds and folders.
 
 ### Other platforms (planned)
