@@ -18,8 +18,28 @@ sealed interface FullArticle {
     data object Failed : FullArticle
 }
 
-/** True when an article's feed text looks like a summary, so the full text is worth loading. */
-fun needsFullText(feedHtml: String): Boolean = Html.toPlainText(feedHtml).length < FULL_TEXT_THRESHOLD
+/**
+ * True when an article's feed text looks like a summary, so the full text is worth loading: it is
+ * short, or it links to the article itself ("Read full article", "Continue reading"), which feeds
+ * do under a teaser of a few paragraphs.
+ */
+fun needsFullText(
+    feedHtml: String,
+    link: String? = null,
+): Boolean = Html.toPlainText(feedHtml).length < FULL_TEXT_THRESHOLD || link != null && linksTo(feedHtml, link)
+
+private val hrefs = Regex("""<a\b[^>]*\bhref\s*=\s*["']([^"']+)["']""", RegexOption.IGNORE_CASE)
+
+/** Whether [html] has a link to [link] (ignoring http/https, "www.", a #fragment and a trailing slash). */
+private fun linksTo(
+    html: String,
+    link: String,
+): Boolean {
+    fun String.normalized() =
+        Html.decodeEntities(trim()).substringBefore('#').removeSuffix("/").substringAfter("://").removePrefix("www.").lowercase()
+    val target = link.normalized()
+    return target.isNotEmpty() && hrefs.findAll(html).any { it.groupValues[1].normalized() == target }
+}
 
 /** Feed texts shorter than this (in characters of text) count as summaries. */
 const val FULL_TEXT_THRESHOLD = 1500
@@ -86,6 +106,6 @@ class FullArticles(
          * Starts the names of cached articles. Raise the number when [ArticleExtractor] finds
          * articles differently, so articles kept from before are extracted again.
          */
-        const val PREFIX = "v2-"
+        const val PREFIX = "v3-"
     }
 }

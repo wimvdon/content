@@ -11,6 +11,9 @@ class ArticleExtractorTest {
     private val paragraph =
         "This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text."
 
+    /** More paragraphs of the article: like Firefox, Readability only drops comments and the like from real-length articles. */
+    private val moreParagraphs = "<p>More. $paragraph</p>".repeat(4)
+
     private fun page(body: String) =
         """
         <!DOCTYPE html>
@@ -32,6 +35,7 @@ class ArticleExtractorTest {
                     <p>Second: <a href="/more">a <b>relative</b> link</a>, and <em>emphasis</em>. $paragraph</p>
                     <figure><img src="x.jpg"><figcaption>Caption</figcaption></figure>
                     <ul><li>One point<li>Another point</ul>
+                    $moreParagraphs
                     <script>track()</script>
                   </article>
                   <div id="comments"><p>A comment that should not be in the article, even if it is long enough.</p></div>
@@ -58,13 +62,13 @@ class ArticleExtractorTest {
                 """
                 <div class="menu"><a href="/a">Link one</a><a href="/b">Link two</a></div>
                 <div class="content-wrapper"><div class="post-body">
-                  <p>$paragraph</p><p>$paragraph</p><p>$paragraph</p>
+                  <p>$paragraph</p><p>$paragraph</p><p>$paragraph</p>$moreParagraphs
                 </div></div>
                 <div class="related"><p>Related story with a long enough title to be a paragraph, really.</p></div>
                 """,
             )
         val article = ArticleExtractor.extract(html, "https://example.com/")!!
-        assertEquals(3, Regex("<p>").findAll(article).count())
+        assertEquals(7, Regex("<p>").findAll(article).count())
         assertFalse(article.contains("Related"))
     }
 
@@ -98,7 +102,8 @@ class ArticleExtractorTest {
                     <p>$paragraph</p><p>$paragraph</p>
                     <p class="md:hidden">Visible on phones. $paragraph</p>
                     <p class="hidden">Hidden everywhere. $paragraph</p>
-                    <div class="share-buttons"><p>Share this article with friends on every network there is.</p></div>
+                    $moreParagraphs
+                    <div class="share-buttons"><a href="https://facebook.com/share">Share this on Facebook</a> <a href="https://x.com/share">Share this on X</a> <button>Copy link</button></div>
                   </div>
                 </div>
                 """,
@@ -175,6 +180,27 @@ class ArticleExtractorTest {
     }
 
     @Test
+    fun `drops the repeated title, the byline and the comments link`() {
+        val html =
+            """
+            <html><head><title>The real title | Example News</title><meta property="og:title" content="The real title"></head>
+            <body><article>
+              <h1>The real title</h1>
+              <div class="meta"><a href="/authors/jo">Jo Writer</a> – <time datetime="2026-10-15">Oct 15, 2026</time></div>
+              <p>$paragraph</p>$moreParagraphs
+              <h2>A heading inside the article</h2>
+              <p>$paragraph</p>
+              <p><a href="https://example.com/2026/story#comments">54 Comments</a></p>
+            </article></body></html>
+            """.trimIndent()
+        val article = ArticleExtractor.extract(html, "https://example.com/2026/story")!!
+        assertFalse(article, article.contains("The real title"))
+        assertFalse(article, article.contains("Jo Writer"))
+        assertFalse(article, article.contains("Comments"))
+        assertTrue(article, article.contains("<h2>A heading inside the article</h2>"))
+    }
+
+    @Test
     fun `closes paragraphs that the page leaves open and decodes entities once`() {
         val html = page("<article><p>Caf&eacute; &amp; more. $paragraph $paragraph<p>Next &lt;tag&gt;. $paragraph</article>")
         val article = ArticleExtractor.extract(html, "https://example.com/")!!
@@ -226,5 +252,15 @@ class ArticleExtractorTest {
     fun `only short feed texts count as summaries`() {
         assertTrue(needsFullText("<p>A short summary.</p>"))
         assertFalse(needsFullText("<p>${"word ".repeat(400)}</p>"))
+    }
+
+    @Test
+    fun `a long teaser that links to its own article counts as a summary`() {
+        val link = "https://example.com/2026/10/story/"
+        val teaser = "<p>${"word ".repeat(400)}</p><p><a href=\"$link\">Read full article</a></p><p><a href=\"$link#comments\">Comments</a></p>"
+        assertTrue(needsFullText(teaser, link))
+        assertTrue(needsFullText(teaser.replace("https://example.com", "http://www.example.com"), link))
+        // Links elsewhere don't make a long text a summary.
+        assertFalse(needsFullText("<p>${"word ".repeat(400)}</p><p><a href=\"https://example.com/other\">More</a></p>", link))
     }
 }

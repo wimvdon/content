@@ -2,6 +2,26 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-17: Readability4J finds the article (new dependencies: Readability4J, jsoup)
+
+The owner asked for a proven reader-view engine instead of more rules of our own, and for no
+rules for single publications. Full articles now go through Readability4J
+(`net.dankito.readability4j`, Apache 2.0), the Kotlin port of Mozilla's Readability that Firefox
+Reader View uses, on a current jsoup (pinned to the latest release; Readability4J itself asks for
+an old one). Readability4J's last release is from 2021, but the algorithm is stable and Android
+RSS readers such as Feeder and Read You use it. Around it, a few generic steps make up for what
+this older Readability lacks: glossary words in buttons inside text are kept, hidden parts are
+removed, a `<div>` holding only text becomes a `<p>` (so its links stay inside the paragraph),
+look-alike containers that each hold several paragraphs are joined (split articles), and after
+extraction the heading that repeats the page title and short byline and comment-link lines are
+dropped; the reader shows a caption written twice in a row once. slf4j, which Readability4J logs
+through, has no backend in the app, so `proguard-rules.pro` tells R8 not to look for one. Feed
+texts that link to their own article ("Read full article") now count as summaries whatever their
+length, so feeds that send a teaser of a few paragraphs (Ars Technica) load the full article.
+Rejected: running Mozilla's Readability.js in a WebView or JavaScript engine (heavy, and it brings
+a browser engine back into reading), Crux (pulls in an older OkHttp and Klaxon for features we
+don't use), and keeping our own scorer (each new site needed new rules).
+
 ## 2026-10-17: The web app and its feed loader are paused
 
 The owner put the web version on hold. Its code in `web/` and `worker/` stays, so it can be
