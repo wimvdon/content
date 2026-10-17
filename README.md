@@ -27,7 +27,8 @@ A simple, private RSS and Atom feed reader for Android.
 
 There is also a **web app** (`web/`) with the same feeds, folders and read articles, synced
 with the phone through your own Google Drive (`docs/sync.md`); see `web/README.md` and
-`worker/README.md` to publish it.
+`worker/README.md` to publish it. Work on it is **paused**: the code stays, but it is no longer
+checked or built (`docs/decisions.md`).
 
 English, Dutch, French, German, Spanish and Italian. Android 12+. See the
 [privacy policy](PRIVACY.md).

@@ -27,14 +27,15 @@ updates:
     commit-message:
       prefix: ci
 
-  - package-ecosystem: npm
-    directories: [/web, /worker]
-    schedule:
-      interval: weekly
-      day: monday
-    open-pull-requests-limit: 5
-    groups:
-      npm-minor-and-patch:
-        update-types: [minor, patch]
-    commit-message:
-      prefix: deps
+  # Paused with the web app (docs/decisions.md, 2026-10-17); remove the "# " to resume.
+  # - package-ecosystem: npm
+  #   directories: [/web, /worker]
+  #   schedule:
+  #     interval: weekly
+  #     day: monday
+  #   open-pull-requests-limit: 5
+  #   groups:
+  #     npm-minor-and-patch:
+  #       update-types: [minor, patch]
+  #   commit-message:
+  #     prefix: deps

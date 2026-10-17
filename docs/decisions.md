@@ -2,6 +2,16 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-17: The web app and its feed loader are paused
+
+The owner put the web version on hold. Its code in `web/` and `worker/` stays, so it can be
+picked up again, but its CI job (`.github/workflows/ci.yml`) and its npm updates
+(`.github/dependabot.yml`) are commented out; removing the `# ` in front of them turns them back
+on. The Cloudflare builds of `rss-reader-web` and `rss-reader-worker` are set up in the
+Cloudflare dashboard, not in this repository, and are switched off there. Android doesn't use
+either, and the sync format (`docs/sync.md`) doesn't change, so the web app still fits when it
+resumes. Rejected: deleting the folders (the work would have to be redone).
+
 ## 2026-10-17: The extractor finds the whole article on modern news sites
 
 After the reader got its own text layout, full articles still lost most of their paragraphs on
