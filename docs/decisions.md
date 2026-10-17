@@ -2,6 +2,10 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-16: Shared empty state on Android, same layout on the web
+
+A Material 3 audit of the sibling apps found empty screens drawn differently in each app. Here the empty list's feed icon never showed: it was 48dp tall with 48dp of padding inside, which left nothing to draw. Android now uses the shared `ui/theme/EmptyState.kt` (`DESIGN.md`, "Empty and setup states"): an icon in a circle that fits the state (feed, all read, article), a title, one sentence and buttons. The web app's `Empty` got the same icon circle, and its empty list without the Unread filter now says "No articles yet" instead of "All caught up". "Show all articles" became "Show all", as on the web. Rejected: fixing only the padding (the three empty states would still differ between the apps).
+
 ## 2026-10-16: Instapaper: Save to the account with the Simple API
 
 Save can now go straight to the user's Instapaper account instead of the Instapaper app, with

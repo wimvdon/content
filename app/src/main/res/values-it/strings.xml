@@ -47,7 +47,7 @@
     <string name="home_caught_up_body">Nessun articolo da leggere. Trascina verso il basso per cercarne di nuovi.</string>
     <string name="home_no_articles_title">Ancora nessun articolo</string>
     <string name="home_no_articles_body">Trascina verso il basso per cercare nuovi articoli.</string>
-    <string name="home_show_all">Mostra tutti gli articoli</string>
+    <string name="home_show_all">Mostra tutto</string>
     <string name="import_failed">Impossibile leggere questo file.</string>
     <string name="import_nothing_new">Nessun nuovo feed in questo file.</string>
     <string name="export_done">Feed esportati</string>
