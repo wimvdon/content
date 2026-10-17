@@ -12,7 +12,7 @@
     <string name="theme_light">Clair</string>
     <string name="theme_dark">Sombre</string>
     <string name="setting_dynamic_color_title">Couleurs dynamiques</string>
-    <string name="setting_dynamic_color_summary">Utiliser les couleurs du fond d\'écran au lieu du bleu de l\'app</string>
+    <string name="setting_dynamic_color_summary">Utiliser les couleurs du fond d’écran</string>
     <string name="loading">Chargement…</string>
     <string name="action_add">Ajouter</string>
     <string name="action_remove">Supprimer</string>
@@ -29,7 +29,6 @@
     <string name="feeds_export">Exporter en OPML</string>
     <string name="feeds_remove_title">Supprimer le flux ?</string>
     <string name="feeds_remove_body">%1$s et ses articles seront supprimés de ce téléphone.</string>
-    <string name="add_feed_body">Saisissez l\'adresse d\'un site ou d\'un flux.</string>
     <string name="add_feed_label">Adresse du site ou du flux</string>
     <string name="add_feed_invalid">Cela ne ressemble pas à une adresse web.</string>
     <string name="add_feed_no_feed">Aucun flux trouvé à cette adresse.</string>
@@ -44,7 +43,7 @@
     <string name="home_no_feeds_title">Aucun flux pour l\'instant</string>
     <string name="home_no_feeds_body">Ajoutez un site ou un flux que vous aimez, ou importez vos flux depuis un autre lecteur.</string>
     <string name="home_caught_up_title">Vous êtes à jour</string>
-    <string name="home_caught_up_body">Aucun article non lu. Tirez vers le bas pour en chercher de nouveaux.</string>
+    <string name="home_caught_up_body">Tirez vers le bas pour chercher de nouveaux articles.</string>
     <string name="home_no_articles_title">Aucun article pour l\'instant</string>
     <string name="home_no_articles_body">Tirez vers le bas pour chercher de nouveaux articles.</string>
     <string name="home_show_all">Tout afficher</string>
@@ -77,13 +76,12 @@
     <string name="reader_full_articles_title">Charger les articles complets</string>
     <string name="reader_full_articles_summary">Quand un flux ne contient qu\'un résumé, récupérer l\'article entier sur le site</string>
     <string name="reader_show_images_title">Afficher les images</string>
-    <string name="reader_show_images_summary">Images dans les articles et en vignette dans la liste ; elles sont chargées depuis les sites</string>
+    <string name="reader_show_images_summary">Dans les articles et la liste ; chargées depuis les sites</string>
     <string name="embed_youtube">Regarder sur YouTube</string>
     <string name="embed_vimeo">Regarder sur Vimeo</string>
     <string name="embed_video">Lire la vidéo</string>
     <string name="embed_other">Ouvrir le contenu intégré</string>
     <string name="section_save">Enregistrer et partager</string>
-    <string name="save_explanation">Choisissez où les boutons Enregistrer et Partager du lecteur envoient un article : directement vers une app, ou le menu de partage.</string>
     <string name="setting_save_button">Bouton Enregistrer</string>
     <string name="setting_share_button">Bouton Partager</string>
     <string name="share_target_sheet">Menu de partage</string>
@@ -91,10 +89,10 @@
     <string name="share_target_missing_short">%1$s n\'est pas installé</string>
     <string name="action_save_to">Enregistrer dans %1$s</string>
     <string name="action_share_to">Partager avec %1$s</string>
-    <string name="feeds_opml_hint">Un fichier OPML permet de transférer vos flux d\'un lecteur à l\'autre, comme Inoreader ou Feedly : exportez-les là-bas, importez-les ici.</string>
+    <string name="feeds_opml_hint">Transférez vos flux depuis ou vers un autre lecteur, comme Feedly.</string>
     <string name="action_save">Enregistrer</string>
     <string name="action_undo">Annuler</string>
-    <string name="folders_explanation">Rangez vos flux dans des dossiers pour les lire ensemble. Dès qu\'il y a un dossier, une barre en bas de la liste passe de l\'accueil à vos dossiers.</string>
+    <string name="folders_explanation">Rangez vos flux dans des dossiers pour les lire ensemble.</string>
     <string name="folder_all">Tous</string>
     <string name="feeds_all">Tous les articles</string>
     <string name="filter_unread">Non lus</string>
@@ -108,7 +106,6 @@
     <string name="folder_remove_body">%1$s sera supprimé. Ses flux restent, hors dossier.</string>
     <string name="folder_none">Aucun dossier</string>
     <string name="setting_mark_read_on_scroll_title">Marquer comme lu en défilant</string>
-    <string name="setting_mark_read_on_scroll_summary">Les articles que vous dépassez en faisant défiler la liste sont marqués comme lus</string>
     <string name="action_mark_read">Marquer comme lu</string>
     <string name="section_list">Liste d\'articles</string>
     <string name="setting_list_view">Affichage</string>
@@ -118,7 +115,7 @@
     <string name="feeds_page_title">Gérer les flux et dossiers</string>
     <string name="feeds_opml_title">Depuis ou vers un autre lecteur</string>
     <string name="reader_auto_dark_title">Sombre automatique</string>
-    <string name="reader_auto_dark_summary">Page sombre dès que l\'app est sombre, même avec Sépia ou Thème</string>
+    <string name="reader_auto_dark_summary">Page sombre quand l’app est sombre</string>
     <string name="day_today">Aujourd\'hui</string>
     <string name="day_yesterday">Hier</string>
     <string name="folder_none_empty">Tous les flux sont dans un dossier. Faites glisser un flux ici pour le sortir de son dossier.</string>
@@ -126,7 +123,7 @@
     <string name="feed_name">Nom</string>
     <string name="feed_name_hint">Laissez vide pour utiliser le nom du flux</string>
     <string name="feed_folder">Dossier</string>
-    <string name="feeds_drag_hint">Faites glisser la poignée pour réorganiser les flux et dossiers ou déplacer un flux dans un autre dossier. Touchez un flux ou un dossier pour le renommer ou le supprimer.</string>
+    <string name="feeds_drag_hint">Faites glisser un flux sur un dossier pour l’y ranger.</string>
     <string name="action_move_up">Monter</string>
     <string name="action_move_down">Descendre</string>
     <plurals name="feeds_count">
@@ -171,7 +168,7 @@
     </plurals>
     <string name="section_sync">Synchronisation</string>
     <string name="sync_google_drive">Google Drive</string>
-    <string name="sync_off_summary">Gardez vos flux, dossiers et articles lus identiques sur tous vos appareils et dans l’app web. Stockés dans un dossier masqué de votre propre Drive.</string>
+    <string name="sync_off_summary">Les mêmes flux et articles lus sur tous vos appareils. Stockés dans un dossier masqué de votre Drive.</string>
     <string name="sync_connect">Connecter</string>
     <string name="sync_now">Synchroniser</string>
     <string name="sync_disconnect">Déconnecter</string>
@@ -184,7 +181,7 @@
     <string name="sync_failed_file">Le fichier de synchronisation vient d’une version plus récente de RSS Reader. Mettez l’app à jour.</string>
     <string name="sync_connect_failed">Impossible de se connecter à Google Drive</string>
     <string name="instapaper_account">Compte Instapaper</string>
-    <string name="instapaper_account_summary">Connectez-vous pour enregistrer les articles directement dans Instapaper, sans l’app Instapaper.</string>
+    <string name="instapaper_account_summary">Enregistrer les articles directement dans Instapaper, sans l’app</string>
     <string name="instapaper_signed_in">Connecté en tant que %1$s</string>
     <string name="instapaper_sign_in">Se connecter</string>
     <string name="instapaper_sign_out">Se déconnecter</string>

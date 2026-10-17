@@ -12,7 +12,7 @@
     <string name="theme_light">Licht</string>
     <string name="theme_dark">Donker</string>
     <string name="setting_dynamic_color_title">Dynamische kleuren</string>
-    <string name="setting_dynamic_color_summary">Kleuren van je achtergrond gebruiken in plaats van het blauw van de app</string>
+    <string name="setting_dynamic_color_summary">Kleuren van je achtergrond gebruiken</string>
     <string name="loading">Laden…</string>
     <string name="action_add">Toevoegen</string>
     <string name="action_remove">Verwijderen</string>
@@ -29,7 +29,6 @@
     <string name="feeds_export">OPML exporteren</string>
     <string name="feeds_remove_title">Feed verwijderen?</string>
     <string name="feeds_remove_body">%1$s en de artikels ervan worden van deze telefoon verwijderd.</string>
-    <string name="add_feed_body">Typ het adres van een website of feed.</string>
     <string name="add_feed_label">Adres van website of feed</string>
     <string name="add_feed_invalid">Dat lijkt geen webadres.</string>
     <string name="add_feed_no_feed">Geen feed gevonden op dit adres.</string>
@@ -44,7 +43,7 @@
     <string name="home_no_feeds_title">Nog geen feeds</string>
     <string name="home_no_feeds_body">Voeg een website of feed toe die je leuk vindt, of importeer je feeds uit een andere lezer.</string>
     <string name="home_caught_up_title">Helemaal bij</string>
-    <string name="home_caught_up_body">Geen ongelezen artikels. Trek omlaag om naar nieuwe te zoeken.</string>
+    <string name="home_caught_up_body">Trek omlaag om naar nieuwe artikels te zoeken.</string>
     <string name="home_no_articles_title">Nog geen artikels</string>
     <string name="home_no_articles_body">Trek omlaag om naar nieuwe artikels te zoeken.</string>
     <string name="home_show_all">Alles tonen</string>
@@ -77,13 +76,12 @@
     <string name="reader_full_articles_title">Volledige artikels laden</string>
     <string name="reader_full_articles_summary">Als een feed alleen een samenvatting heeft, het hele artikel van de website halen</string>
     <string name="reader_show_images_title">Afbeeldingen tonen</string>
-    <string name="reader_show_images_summary">Afbeeldingen in artikels en als miniatuur in de lijst; ze komen van de websites</string>
+    <string name="reader_show_images_summary">In artikels en de lijst; ze komen van de websites</string>
     <string name="embed_youtube">Bekijken op YouTube</string>
     <string name="embed_vimeo">Bekijken op Vimeo</string>
     <string name="embed_video">Video afspelen</string>
     <string name="embed_other">Ingesloten inhoud openen</string>
     <string name="section_save">Bewaren en delen</string>
-    <string name="save_explanation">Kies waar de knoppen Bewaren en Delen in de lezer een artikel naartoe sturen: rechtstreeks naar één app, of het deelmenu.</string>
     <string name="setting_save_button">Knop Bewaren</string>
     <string name="setting_share_button">Knop Delen</string>
     <string name="share_target_sheet">Deelmenu</string>
@@ -91,10 +89,10 @@
     <string name="share_target_missing_short">%1$s is niet geïnstalleerd</string>
     <string name="action_save_to">Bewaren in %1$s</string>
     <string name="action_share_to">Delen met %1$s</string>
-    <string name="feeds_opml_hint">Met een OPML-bestand verhuis je je feeds tussen feedlezers, zoals Inoreader of Feedly: exporteer ze daar, importeer ze hier.</string>
+    <string name="feeds_opml_hint">Verhuis je feeds van of naar een andere lezer, zoals Feedly.</string>
     <string name="action_save">Opslaan</string>
     <string name="action_undo">Ongedaan maken</string>
-    <string name="folders_explanation">Zet feeds in mappen om ze samen te lezen. Zodra er een map is, wissel je met een balk onderaan de lijst tussen Home en je mappen.</string>
+    <string name="folders_explanation">Zet feeds in mappen om ze samen te lezen.</string>
     <string name="folder_all">Alle</string>
     <string name="feeds_all">Alle artikels</string>
     <string name="filter_unread">Ongelezen</string>
@@ -108,7 +106,6 @@
     <string name="folder_remove_body">%1$s wordt verwijderd. De feeds erin blijven, buiten een map.</string>
     <string name="folder_none">Geen map</string>
     <string name="setting_mark_read_on_scroll_title">Als gelezen markeren bij scrollen</string>
-    <string name="setting_mark_read_on_scroll_summary">Artikels waar je in de lijst voorbij scrolt, worden als gelezen gemarkeerd</string>
     <string name="action_mark_read">Als gelezen markeren</string>
     <string name="section_list">Artikellijst</string>
     <string name="setting_list_view">Weergave</string>
@@ -118,7 +115,7 @@
     <string name="feeds_page_title">Feeds en mappen beheren</string>
     <string name="feeds_opml_title">Van of naar een andere lezer</string>
     <string name="reader_auto_dark_title">Automatisch donker</string>
-    <string name="reader_auto_dark_summary">Donkere pagina wanneer de app donker is, ook bij Sepia of Thema</string>
+    <string name="reader_auto_dark_summary">Donkere pagina wanneer de app donker is</string>
     <string name="day_today">Vandaag</string>
     <string name="day_yesterday">Gisteren</string>
     <string name="folder_none_empty">Elke feed zit in een map. Sleep een feed hierheen om hem uit zijn map te halen.</string>
@@ -126,7 +123,7 @@
     <string name="feed_name">Naam</string>
     <string name="feed_name_hint">Laat leeg om de eigen naam van de feed te gebruiken</string>
     <string name="feed_folder">Map</string>
-    <string name="feeds_drag_hint">Sleep aan de greep om feeds en mappen te herschikken of een feed naar een andere map te verplaatsen. Tik op een feed of map om de naam te wijzigen of te verwijderen.</string>
+    <string name="feeds_drag_hint">Sleep een feed naar een map om hem daarin te zetten.</string>
     <string name="action_move_up">Omhoog</string>
     <string name="action_move_down">Omlaag</string>
     <plurals name="feeds_count">
@@ -163,7 +160,7 @@
     </plurals>
     <string name="section_sync">Synchronisatie</string>
     <string name="sync_google_drive">Google Drive</string>
-    <string name="sync_off_summary">Houd je feeds, mappen en gelezen artikelen gelijk op al je apparaten en in de web-app. Bewaard in een verborgen map van je eigen Drive.</string>
+    <string name="sync_off_summary">Dezelfde feeds en gelezen artikelen op al je apparaten. Bewaard in een verborgen map in je Drive.</string>
     <string name="sync_connect">Verbinden</string>
     <string name="sync_now">Nu synchroniseren</string>
     <string name="sync_disconnect">Ontkoppelen</string>
@@ -176,7 +173,7 @@
     <string name="sync_failed_file">Het synchronisatiebestand komt van een nieuwere versie van RSS Reader. Werk de app bij.</string>
     <string name="sync_connect_failed">Verbinden met Google Drive is mislukt</string>
     <string name="instapaper_account">Instapaper-account</string>
-    <string name="instapaper_account_summary">Meld je aan om artikelen rechtstreeks in Instapaper te bewaren, zonder de Instapaper-app.</string>
+    <string name="instapaper_account_summary">Artikelen rechtstreeks in Instapaper bewaren, zonder de app</string>
     <string name="instapaper_signed_in">Aangemeld als %1$s</string>
     <string name="instapaper_sign_in">Aanmelden</string>
     <string name="instapaper_sign_out">Afmelden</string>
