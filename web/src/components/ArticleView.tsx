@@ -1,57 +1,61 @@
-import { ArrowLeft, BookmarkPlus, Circle, CircleCheck, ExternalLink, FileText, Share2 } from "lucide-react";
+import { ALargeSmall, ArrowLeft, Circle, CircleCheck, ExternalLink, FileText, Share2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { app, useApp } from "@/lib/app";
-import { extractArticle, isSummary } from "@/lib/fullArticle";
+import { extractArticle, needsFullText } from "@/lib/fullArticle";
+import { cached, cachedNow, keep } from "@/lib/fullArticleStore";
 import { formatDateTime, t } from "@/lib/i18n";
 import { articleKey, sortTime, type Article } from "@/lib/library";
-import { saveToInstapaper } from "@/lib/instapaper";
 import { fetchViaProxy } from "@/lib/proxy";
 import { sanitizeArticle } from "@/lib/sanitize";
 import { FeedIcon } from "./FeedIcon";
+import { pageClass, textStyle, useAppDark } from "./readerPage";
+import { ReaderStyleControls } from "./ReaderStyleControls";
 import { Button } from "./ui/button";
+import { cn } from "./ui/cn";
+import { Dialog } from "./ui/dialog";
 
-type Full = { state: "idle" } | { state: "loading" } | { state: "done"; html: string } | { state: "failed" };
+/** The full article for one address: loaded, or failed (no answer yet means it is loading). */
+type Full = { link: string; html: string | null };
 
-/** Full texts loaded in this session, so going back to an article doesn't load it again. */
-const fullCache = new Map<string, string>();
-
+/** The parent gives each article its own key, so this state starts fresh for every article. */
 export function ArticleView({ article, onBack, onMessage }: { article: Article; onBack: () => void; onMessage: (text: string) => void }) {
   const { library, settings } = useApp();
   const feed = library.feeds.find((f) => f.url === article.feedUrl);
   const current = library.articles.find((a) => articleKey(a) === articleKey(article)) ?? article;
-  const wantsFull = settings.fullArticles && !!article.link && isSummary(article.html);
-  const [useFull, setUseFull] = useState(wantsFull);
-  const [full, setFull] = useState<Full>({ state: "idle" });
+  const link = article.link;
+  const canLoad = !!link && !!settings.proxyUrl;
+  const [useFull, setUseFull] = useState(() => settings.fullArticles && canLoad && needsFullText(article.html, link));
+  const [full, setFull] = useState<Full | null>(() => {
+    const known = link ? cachedNow(link) : null;
+    return link && known ? { link, html: known } : null;
+  });
+  const [textOpen, setTextOpen] = useState(false);
+  const appDark = useAppDark(settings.theme);
+  const style = settings.readerStyle;
 
+  const loaded = full && full.link === link ? full : null;
   useEffect(() => {
-    setUseFull(wantsFull);
-    setFull(article.link && fullCache.has(article.link) ? { state: "done", html: fullCache.get(article.link)! } : { state: "idle" });
-  }, [article, wantsFull]);
-
-  useEffect(() => {
-    if (!useFull || full.state !== "idle" || !article.link) return;
-    const link = article.link;
+    if (!useFull || !link || loaded) return;
     let cancelled = false;
-    setFull({ state: "loading" });
-    fetchViaProxy(settings.proxyUrl, link)
-      .then((page) => {
-        const html = extractArticle(page.text, page.url);
-        if (cancelled) return;
-        if (html) {
-          fullCache.set(link, html);
-          setFull({ state: "done", html });
-        } else setFull({ state: "failed" });
-      })
-      .catch(() => !cancelled && setFull({ state: "failed" }));
+    (async () => {
+      let html = await cached(link);
+      if (!html) {
+        const page = await fetchViaProxy(settings.proxyUrl, link);
+        html = extractArticle(page.text, page.url);
+        if (html) void keep(link, html);
+      }
+      if (!cancelled) setFull({ link, html });
+    })().catch(() => !cancelled && setFull({ link, html: null }));
     return () => {
       cancelled = true;
     };
-  }, [useFull, full.state, article.link, settings.proxyUrl]);
+  }, [useFull, link, loaded, settings.proxyUrl]);
+  const fullHtml = useFull ? loaded?.html : undefined;
 
   const base = article.link ?? feed?.siteUrl ?? article.feedUrl;
   const html = useMemo(
-    () => sanitizeArticle(useFull && full.state === "done" ? full.html : article.html, base),
-    [useFull, full, article.html, base],
+    () => sanitizeArticle(fullHtml ?? article.html, base),
+    [fullHtml, article.html, base],
   );
   const showHero = article.imageUrl && !html.includes(article.imageUrl);
 
@@ -65,16 +69,6 @@ export function ArticleView({ article, onBack, onMessage }: { article: Article; 
     }
   };
 
-  const save = async () => {
-    if (!article.link) return;
-    try {
-      await saveToInstapaper(settings.instapaperUsername, settings.instapaperPassword, article.link, article.title);
-      onMessage(t("sentToInstapaper"));
-    } catch {
-      onMessage(t("instapaperOffline"));
-    }
-  };
-
   return (
     <article className="flex h-full min-w-0 flex-col" aria-label={article.title}>
       <div className="flex items-center gap-1 border-b px-2 py-2">
@@ -82,8 +76,18 @@ export function ArticleView({ article, onBack, onMessage }: { article: Article; 
           <ArrowLeft />
         </Button>
         <div className="flex-1" />
-        {article.link && settings.proxyUrl ? (
-          <Button variant={useFull ? "tonal" : "ghost"} size="icon" onClick={() => setUseFull(!useFull)} aria-pressed={useFull} aria-label={t("fullArticle")} title={t("fullArticle")}>
+        <Button variant="ghost" size="icon" onClick={() => setTextOpen(true)} aria-label={t("textSettings")} title={t("textSettings")}>
+          <ALargeSmall />
+        </Button>
+        {canLoad ? (
+          <Button
+            variant={useFull ? "tonal" : "ghost"}
+            size="icon"
+            onClick={() => setUseFull(!useFull)}
+            aria-pressed={useFull}
+            aria-label={useFull ? t("showFeedText") : t("showFull")}
+            title={useFull ? t("showFeedText") : t("showFull")}
+          >
             <FileText />
           </Button>
         ) : null}
@@ -98,11 +102,6 @@ export function ArticleView({ article, onBack, onMessage }: { article: Article; 
         </Button>
         {article.link ? (
           <>
-            {settings.instapaperUsername ? (
-              <Button variant="ghost" size="icon" onClick={() => void save()} aria-label={t("saveToInstapaper")} title={t("saveToInstapaper") + " (s)"}>
-                <BookmarkPlus />
-              </Button>
-            ) : null}
             <Button variant="ghost" size="icon" onClick={() => void share()} aria-label={t("share")} title={t("share")}>
               <Share2 />
             </Button>
@@ -114,7 +113,10 @@ export function ArticleView({ article, onBack, onMessage }: { article: Article; 
           </>
         ) : null}
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <Dialog open={textOpen} onOpenChange={setTextOpen} title={t("textSettings")} closeLabel={t("close")}>
+        <ReaderStyleControls />
+      </Dialog>
+      <div className={cn("min-h-0 flex-1 overflow-y-auto bg-background text-foreground", pageClass(style, appDark))}>
         <div className="mx-auto max-w-2xl px-5 py-8">
           <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
             <FeedIcon feed={feed} className="size-5" />
@@ -122,12 +124,12 @@ export function ArticleView({ article, onBack, onMessage }: { article: Article; 
             <span aria-hidden="true">·</span>
             <time dateTime={new Date(sortTime(article)).toISOString()}>{formatDateTime(sortTime(article))}</time>
           </div>
-          <h1 className="font-serif text-3xl leading-tight font-bold">{article.title}</h1>
+          <h1 className={cn("text-3xl leading-tight font-bold", style.font === "serif" ? "font-serif" : "font-sans")}>{article.title}</h1>
           {article.author ? <p className="mt-2 text-sm text-muted-foreground">{article.author}</p> : null}
           {showHero ? <img src={article.imageUrl!} alt="" referrerPolicy="no-referrer" className="mt-6 w-full rounded-xl bg-muted object-cover" onError={(e) => (e.currentTarget.style.display = "none")} /> : null}
-          {useFull && full.state === "loading" ? <p className="mt-6 text-sm text-muted-foreground">{t("loadingFull")}</p> : null}
-          {useFull && full.state === "failed" ? <p className="mt-6 text-sm text-muted-foreground">{t("fullFailed")}</p> : null}
-          <div className="article mt-6" dangerouslySetInnerHTML={{ __html: html }} />
+          {useFull && !loaded ? <p className="mt-6 text-sm text-muted-foreground">{t("loadingFull")}</p> : null}
+          {useFull && loaded && !loaded.html ? <p className="mt-6 text-sm text-muted-foreground">{t("fullFailed")}</p> : null}
+          <div className="article mt-6" style={textStyle(style)} dangerouslySetInnerHTML={{ __html: html }} />
           {article.link ? (
             <div className="mt-10 border-t pt-6">
               <Button variant="tonal" asChild>

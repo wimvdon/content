@@ -178,21 +178,7 @@
     <string name="sync_failed_offline">Impossible de joindre Google Drive. Vérifiez votre connexion.</string>
     <string name="sync_failed_approval">Google Drive a de nouveau besoin de votre autorisation. Appuyez sur Connecter.</string>
     <string name="sync_failed_server">Google Drive a rencontré un problème. Réessayez plus tard.</string>
-    <string name="sync_failed_file">Le fichier de synchronisation vient d’une version plus récente de RSS Reader. Mettez l’app à jour.</string>
+    <string name="sync_failed_file">Le fichier de synchronisation vient d’une version plus récente de Reader. Mettez l’app à jour.</string>
+    <string name="sync_failed_setup">Google ne reconnaît pas encore cette version de l’app ; elle ne peut pas utiliser Drive.</string>
     <string name="sync_connect_failed">Impossible de se connecter à Google Drive</string>
-    <string name="instapaper_account">Compte Instapaper</string>
-    <string name="instapaper_account_summary">Enregistrer les articles directement dans Instapaper, sans l’app</string>
-    <string name="instapaper_signed_in">Connecté en tant que %1$s</string>
-    <string name="instapaper_sign_in">Se connecter</string>
-    <string name="instapaper_sign_out">Se déconnecter</string>
-    <string name="instapaper_username">E-mail ou nom d’utilisateur</string>
-    <string name="instapaper_password">Mot de passe (si vous en avez un)</string>
-    <string name="instapaper_target">Instapaper (votre compte)</string>
-    <string name="instapaper_needs_sign_in">Connectez-vous d’abord à Instapaper dans Paramètres › Enregistrer et partager</string>
-    <string name="instapaper_saved">Enregistré dans Instapaper</string>
-    <string name="instapaper_wrong_password">E-mail ou mot de passe incorrect</string>
-    <string name="instapaper_busy">Instapaper est occupé. Réessayez dans un moment.</string>
-    <string name="instapaper_bad_request">Instapaper n’a pas pu enregistrer ce lien</string>
-    <string name="instapaper_offline">Impossible de joindre Instapaper. Vérifiez votre connexion.</string>
-    <string name="instapaper_server">Instapaper a rencontré un problème. Réessayez plus tard.</string>
 </resources>

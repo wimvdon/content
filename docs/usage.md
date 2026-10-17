@@ -58,7 +58,7 @@ after them. A feed added while a folder is open goes into that folder.
 ## Sync between devices
 
 Settings › **Sync** › **Connect** links the app to your Google Drive. Google asks once whether
-RSS Reader may use its own hidden folder there (it can't see your other files). From then on
+Reader may use its own hidden folder there (it can't see your other files). From then on
 your feeds, folders and read articles stay the same on every phone where you connect, and in the
 web app. The app syncs when it starts, a few seconds after a change and when you tap
 **Sync now**; the line under Google Drive says when it last did, or what went wrong.
@@ -134,12 +134,6 @@ share** you choose, for each, where it sends the article:
 
 If the chosen app has been uninstalled, the button opens the share menu instead and says so.
 
-**Instapaper account.** Under **Instapaper account › Sign in**, type your Instapaper email (or
-username) and password. Save then goes straight to your account, without the Instapaper app,
-and says "Saved to Instapaper" (or what went wrong). **Sign out** removes the account from the
-phone and Save goes back to the Instapaper app. The web app has the same Save button once you
-fill in your account in its Settings.
-
 ## Settings
 
 - **Feeds › Manage feeds and folders** (at the top; the same page as in ☰): every feed with its address (or why
@@ -163,7 +157,7 @@ from the same source. Downloaded full articles are not backed up; they load agai
 ## Language
 
 The app follows the phone's language. To choose another one for this app only: Android
-**Settings › System › Languages › App languages › RSS Reader**.
+**Settings › System › Languages › App languages › Reader**.
 
 ## Common problems
 

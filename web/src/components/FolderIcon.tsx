@@ -1,16 +1,6 @@
 import { Folder as FolderGlyph } from "lucide-react";
-import { useEffect, useState } from "react";
-import { loadIcons, type SymbolIcon } from "@/lib/icons";
-
-let cache: Map<string, SymbolIcon> | null = null;
-
-export function useIcons(): Map<string, SymbolIcon> | null {
-  const [icons, setIcons] = useState(cache);
-  useEffect(() => {
-    if (!icons) void loadIcons().then((m) => setIcons((cache = m)));
-  }, [icons]);
-  return icons;
-}
+import type { SymbolIcon } from "@/lib/icons";
+import { useIcons } from "./useIcons";
 
 export function SymbolSvg({ icon, className = "size-5" }: { icon: SymbolIcon; className?: string }) {
   return (

@@ -178,21 +178,7 @@
     <string name="sync_failed_offline">Impossibile raggiungere Google Drive. Controlla la connessione.</string>
     <string name="sync_failed_approval">Google Drive ha di nuovo bisogno del tuo permesso. Tocca Connetti.</string>
     <string name="sync_failed_server">Google Drive ha avuto un problema. Riprova più tardi.</string>
-    <string name="sync_failed_file">Il file di sincronizzazione viene da una versione più recente di RSS Reader. Aggiorna l’app.</string>
+    <string name="sync_failed_file">Il file di sincronizzazione viene da una versione più recente di Reader. Aggiorna l’app.</string>
+    <string name="sync_failed_setup">Google non riconosce ancora questa versione dell’app, quindi non può usare Drive.</string>
     <string name="sync_connect_failed">Impossibile connettersi a Google Drive</string>
-    <string name="instapaper_account">Account Instapaper</string>
-    <string name="instapaper_account_summary">Salva gli articoli direttamente in Instapaper, senza l’app</string>
-    <string name="instapaper_signed_in">Accesso eseguito come %1$s</string>
-    <string name="instapaper_sign_in">Accedi</string>
-    <string name="instapaper_sign_out">Esci</string>
-    <string name="instapaper_username">Email o nome utente</string>
-    <string name="instapaper_password">Password (se ne hai una)</string>
-    <string name="instapaper_target">Instapaper (il tuo account)</string>
-    <string name="instapaper_needs_sign_in">Accedi prima a Instapaper in Impostazioni › Salva e condividi</string>
-    <string name="instapaper_saved">Salvato in Instapaper</string>
-    <string name="instapaper_wrong_password">Email o password errata</string>
-    <string name="instapaper_busy">Instapaper è occupato. Riprova tra poco.</string>
-    <string name="instapaper_bad_request">Instapaper non ha potuto salvare questo link</string>
-    <string name="instapaper_offline">Impossibile raggiungere Instapaper. Controlla la connessione.</string>
-    <string name="instapaper_server">Instapaper ha avuto un problema. Riprova più tardi.</string>
 </resources>

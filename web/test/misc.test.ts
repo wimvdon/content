@@ -5,6 +5,11 @@ import { emptyLibrary, articlesFor, setRead, removeFolder, addFolder, addFeed, n
 import { importOpml, parseOpml, writeOpml } from "../src/lib/opml";
 import { FetchError } from "../src/lib/proxy";
 import { sanitizeArticle } from "../src/lib/sanitize";
+import { embedFor, videoEmbed } from "../src/lib/embeds";
+import { needsFullText, touch } from "../src/lib/fullArticle";
+import { articleKey, type Article } from "../src/lib/library";
+import { defaultReaderStyle, MAX_TEXT_SIZE, MIN_TEXT_SIZE, pageBackground, readerStyleOf, withTextSize } from "../src/lib/readerStyle";
+import { scrolledPast } from "../src/lib/scrollRead";
 
 describe("discovery", () => {
   it("normalizes addresses", () => {
@@ -64,7 +69,7 @@ describe("opml", () => {
     ]);
     const [lib, added] = importOpml(emptyLibrary(), entries, () => "id1");
     expect(added).toBe(2);
-    expect(parseOpml(writeOpml("RSS Reader", lib))).toEqual(entries);
+    expect(parseOpml(writeOpml("Reader", lib))).toEqual(entries);
     expect(parseOpml("<html/>")).toEqual([]);
   });
 });
@@ -72,7 +77,7 @@ describe("opml", () => {
 describe("sanitize", () => {
   it("removes scripts and handlers, fixes links and pictures", () => {
     const html = sanitizeArticle(
-      '<p onclick="x()">Hi <a href="/more">more</a></p><script>alert(1)</script><img src="http://a.example/p.jpg"><img src="data:image/png;base64,xx"><iframe src="https://evil.example/"></iframe><iframe src="https://www.youtube.com/embed/abc"></iframe>',
+      '<p onclick="x()">Hi <a href="/more">more</a></p><script>alert(1)</script><img src="http://a.example/p.jpg"><img src="data:image/png;base64,xx">',
       "https://a.example/post",
     );
     expect(html).not.toContain("<script");
@@ -81,8 +86,91 @@ describe("sanitize", () => {
     expect(html).toContain('target="_blank"');
     expect(html).toContain('src="https://a.example/p.jpg"');
     expect(html).not.toContain("data:");
-    expect(html).not.toContain("evil.example");
-    expect(html).toContain("youtube-nocookie.com/embed/abc");
+  });
+
+  it("shows players and embeds as cards that open in a new tab, never inside the page", () => {
+    const html = sanitizeArticle(
+      '<iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ"><p>fallback</p></iframe><iframe src="//player.vimeo.com/video/123"></iframe>' +
+        '<iframe src="https://posts.example/embed/9"></iframe><iframe src="javascript:alert(1)"></iframe><video poster="/p.jpg"><source src="/v.mp4"></video>',
+      "https://a.example/post",
+    );
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    expect(doc.querySelector("iframe, video, source")).toBeNull();
+    expect(html).not.toContain("javascript:");
+    const cards = Array.from(doc.querySelectorAll("a.embed")).map((a) => [a.getAttribute("href"), a.querySelector("img")?.getAttribute("src") ?? null, a.getAttribute("target")]);
+    expect(cards).toEqual([
+      ["https://www.youtube.com/watch?v=dQw4w9WgXcQ", "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg", "_blank"],
+      ["https://vimeo.com/123", null, "_blank"],
+      ["https://posts.example/embed/9", null, "_blank"],
+      ["https://a.example/v.mp4", "https://a.example/p.jpg", "_blank"],
+    ]);
+    expect(doc.querySelector("a.embed img")?.getAttribute("referrerpolicy")).toBe("no-referrer");
+  });
+});
+
+describe("embeds", () => {
+  it("finds YouTube and Vimeo videos in their player addresses", () => {
+    expect(embedFor("https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?rel=0", "https://a.example/")?.url).toBe("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+    expect(embedFor("https://youtu.be/dQw4w9WgXcQ", "https://a.example/")?.kind).toBe("youtube");
+    expect(embedFor("https://vimeo.com/video/42", "https://a.example/")).toEqual({ kind: "vimeo", url: "https://vimeo.com/42", thumbnailUrl: null });
+    expect(embedFor("http://posts.example/1", "https://a.example/")).toEqual({ kind: "other", url: "https://posts.example/1", thumbnailUrl: null });
+    expect(embedFor("", "https://a.example/")).toBeNull();
+    expect(videoEmbed(null, "/p.jpg", "https://a.example/")).toBeNull();
+  });
+});
+
+describe("full articles", () => {
+  const long = "<p>" + "word ".repeat(400) + "</p>";
+
+  it("loads the page for short texts and for teasers that link to their article", () => {
+    expect(needsFullText("<p>Short summary.</p>", "https://a.example/post")).toBe(true);
+    expect(needsFullText(long, "https://a.example/post")).toBe(false);
+    expect(needsFullText(long + '<a href="http://www.a.example/post/#more">Read full article</a>', "https://a.example/post")).toBe(true);
+    expect(needsFullText(long + '<a href="https://a.example/other">Elsewhere</a>', "https://a.example/post")).toBe(false);
+    expect(needsFullText(long, null)).toBe(false);
+  });
+
+  it("keeps the most recently opened articles", () => {
+    let index = {};
+    const removed: string[] = [];
+    for (const [i, link] of ["a", "b", "c", "a", "d"].entries()) {
+      const result = touch(index, link, i, 3);
+      index = result.index;
+      removed.push(...result.removed);
+    }
+    expect(Object.keys(index).sort()).toEqual(["a", "c", "d"]);
+    expect(removed).toEqual(["b"]);
+  });
+});
+
+describe("reader style", () => {
+  it("keeps text sizes in range and repairs stored styles", () => {
+    expect(withTextSize(defaultReaderStyle, 99).textSize).toBe(MAX_TEXT_SIZE);
+    expect(withTextSize(defaultReaderStyle, 1).textSize).toBe(MIN_TEXT_SIZE);
+    expect(readerStyleOf(undefined)).toEqual(defaultReaderStyle);
+    expect(readerStyleOf({ font: "sans", textSize: 40, spacing: "wide", background: "sepia", autoDark: "yes" })).toEqual({
+      ...defaultReaderStyle,
+      font: "sans",
+      textSize: MAX_TEXT_SIZE,
+      background: "sepia",
+    });
+  });
+
+  it("uses the dark page when Auto dark is on and the app is dark", () => {
+    const sepia = { ...defaultReaderStyle, background: "sepia" as const };
+    expect(pageBackground(sepia, true)).toBe("sepia");
+    expect(pageBackground({ ...sepia, autoDark: true }, true)).toBe("dark");
+    expect(pageBackground({ ...sepia, autoDark: true }, false)).toBe("sepia");
+  });
+});
+
+describe("mark as read on scroll", () => {
+  it("marks the unread articles above the first one on screen", () => {
+    const article = (id: string, read: boolean) => ({ feedUrl: "f", id, title: id, link: null, html: "", imageUrl: null, author: null, publishedAt: null, fetchedAt: 0, read }) as unknown as Article;
+    const list = [article("1", false), article("2", true), article("3", false), article("4", false)];
+    expect([...scrolledPast(list, 3)]).toEqual([articleKey(list[0]), articleKey(list[2])]);
+    expect(scrolledPast(list, 0).size).toBe(0);
+    expect(scrolledPast(list, -1).size).toBe(0);
   });
 });
 

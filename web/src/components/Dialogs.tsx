@@ -1,30 +1,27 @@
 import { ArrowDown, ArrowUp, Pencil, Plus, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { app, useApp, type Theme } from "@/lib/app";
 import { formatRelative, t, type Key } from "@/lib/i18n";
 import { searchIcons } from "@/lib/icons";
 import type { Feed, Folder } from "@/lib/library";
 import { FeedIcon } from "./FeedIcon";
-import { FolderIcon, SymbolSvg, useIcons } from "./FolderIcon";
+import { FolderIcon, SymbolSvg } from "./FolderIcon";
+import { useIcons } from "./useIcons";
 import { Button } from "./ui/button";
 import { cn } from "./ui/cn";
 import { Dialog } from "./ui/dialog";
 import { Input, Label, Select } from "./ui/input";
 import { Segmented } from "./ui/segmented";
+import { ReaderStyleControls } from "./ReaderStyleControls";
 import { SwitchRow } from "./ui/switch";
 
 type Props = { open: boolean; onOpenChange: (open: boolean) => void };
 
+/** Opened with a new key each time (App), so the address starts empty. */
 export function AddFeedDialog({ open, onOpenChange, folderId }: Props & { folderId: string | null }) {
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  useEffect(() => {
-    if (open) {
-      setInput("");
-      setError(null);
-    }
-  }, [open]);
   const add = async () => {
     setBusy(true);
     setError(null);
@@ -168,21 +165,15 @@ export function ManageDialog({ open, onOpenChange, onAddFeed, onImport }: Props 
           ))}
         </div>
       </Dialog>
-      <EditFeedDialog feed={editFeed} folders={library.folders} onClose={() => setEditFeed(null)} />
-      <FolderDialog folder={editFolder} onClose={() => setEditFolder(null)} />
+      <EditFeedDialog key={editFeed?.url ?? ""} feed={editFeed} folders={library.folders} onClose={() => setEditFeed(null)} />
+      <FolderDialog key={editFolder === "new" ? "new" : (editFolder?.id ?? "")} folder={editFolder} onClose={() => setEditFolder(null)} />
     </>
   );
 }
 
 function EditFeedDialog({ feed, folders, onClose }: { feed: Feed | null; folders: Folder[]; onClose: () => void }) {
-  const [title, setTitle] = useState("");
-  const [folderId, setFolderId] = useState("");
-  useEffect(() => {
-    if (feed) {
-      setTitle(feed.title);
-      setFolderId(feed.folderId ?? "");
-    }
-  }, [feed]);
+  const [title, setTitle] = useState(feed?.title ?? "");
+  const [folderId, setFolderId] = useState(feed?.folderId ?? "");
   if (!feed) return null;
   const save = () => {
     if (title.trim() !== feed.title) app.renameFeed(feed.url, title);
@@ -240,16 +231,9 @@ function EditFeedDialog({ feed, folders, onClose }: { feed: Feed | null; folders
 
 function FolderDialog({ folder, onClose }: { folder: Folder | "new" | null; onClose: () => void }) {
   const icons = useIcons();
-  const [title, setTitle] = useState("");
-  const [icon, setIcon] = useState("folder");
+  const [title, setTitle] = useState(folder && folder !== "new" ? folder.title : "");
+  const [icon, setIcon] = useState(folder && folder !== "new" ? folder.icon : "folder");
   const [query, setQuery] = useState("");
-  useEffect(() => {
-    if (folder) {
-      setTitle(folder === "new" ? "" : folder.title);
-      setIcon(folder === "new" ? "folder" : folder.icon);
-      setQuery("");
-    }
-  }, [folder]);
   if (!folder) return null;
   const save = () => {
     if (folder === "new") app.addFolder(title, icon);
@@ -319,18 +303,6 @@ function FolderDialog({ folder, onClose }: { folder: Folder | "new" | null; onCl
 
 export function SettingsDialog({ open, onOpenChange }: Props) {
   const { settings, syncStatus } = useApp();
-  const [proxy, setProxy] = useState(settings.proxyUrl);
-  const [clientId, setClientId] = useState(settings.googleClientId);
-  const [instaUser, setInstaUser] = useState(settings.instapaperUsername);
-  const [instaPassword, setInstaPassword] = useState(settings.instapaperPassword);
-  useEffect(() => {
-    if (open) {
-      setProxy(settings.proxyUrl);
-      setClientId(settings.googleClientId);
-      setInstaUser(settings.instapaperUsername);
-      setInstaPassword(settings.instapaperPassword);
-    }
-  }, [open, settings.proxyUrl, settings.googleClientId, settings.instapaperUsername, settings.instapaperPassword]);
   const connected = settings.syncService === "googleDrive";
   const statusText =
     syncStatus.kind === "syncing"
@@ -367,20 +339,13 @@ export function SettingsDialog({ open, onOpenChange }: Props) {
         <section className="space-y-2">
           <h3 className="text-sm font-medium text-primary">{t("reader")}</h3>
           <SwitchRow title={t("fullArticles")} summary={t("fullArticlesSummary")} checked={settings.fullArticles} onChange={(v) => app.updateSettings({ fullArticles: v })} />
-        </section>
-        <section className="space-y-3">
-          <h3 className="text-sm font-medium text-primary">Instapaper</h3>
-          <p className="text-sm text-muted-foreground">{t("instapaperHint")}</p>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <Label htmlFor="insta-user">{t("instapaperUser")}</Label>
-              <Input id="insta-user" autoComplete="username" value={instaUser} onChange={(e) => setInstaUser(e.target.value)} onBlur={() => app.updateSettings({ instapaperUsername: instaUser.trim() })} />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="insta-password">{t("instapaperPassword")}</Label>
-              <Input id="insta-password" type="password" autoComplete="current-password" value={instaPassword} onChange={(e) => setInstaPassword(e.target.value)} onBlur={() => app.updateSettings({ instapaperPassword: instaPassword })} />
-            </div>
+          <div className="pt-2">
+            <ReaderStyleControls preview />
           </div>
+        </section>
+        <section className="space-y-2">
+          <h3 className="text-sm font-medium text-primary">{t("articleList")}</h3>
+          <SwitchRow title={t("markReadOnScroll")} checked={settings.markReadOnScroll} onChange={(v) => app.updateSettings({ markReadOnScroll: v })} />
         </section>
         <section className="space-y-2">
           <h3 className="text-sm font-medium text-primary">{t("appearance")}</h3>
@@ -395,27 +360,37 @@ export function SettingsDialog({ open, onOpenChange }: Props) {
             ]}
           />
         </section>
-        <section className="space-y-3">
-          <h3 className="text-sm font-medium text-primary">{t("connections")}</h3>
-          <div className="space-y-1.5">
-            <Label htmlFor="proxy">{t("proxyUrl")}</Label>
-            <Input id="proxy" value={proxy} onChange={(e) => setProxy(e.target.value)} onBlur={() => app.updateSettings({ proxyUrl: proxy.trim() })} placeholder="https://rss-reader-feeds.example.workers.dev" />
-            <p className="text-xs text-muted-foreground">{t("proxyHint")}</p>
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="client">{t("googleClientId")}</Label>
-            <Input id="client" value={clientId} onChange={(e) => setClientId(e.target.value)} onBlur={() => app.updateSettings({ googleClientId: clientId.trim() })} placeholder="1234-abc.apps.googleusercontent.com" />
-            <p className="text-xs text-muted-foreground">{t("googleClientIdHint")}</p>
-          </div>
-        </section>
+        <ConnectionFields />
         <p className="text-xs text-muted-foreground">
-          RSS Reader ·{" "}
+          Reader ·{" "}
           <a className="underline" href="https://github.com/wimvdon/rss-reader/blob/main/PRIVACY.md" target="_blank" rel="noopener noreferrer">
             {t("privacy")}
           </a>
         </p>
       </div>
     </Dialog>
+  );
+}
+
+/** The feed loader and Google client addresses; the dialog mounts this anew each time it opens. */
+function ConnectionFields() {
+  const { settings } = useApp();
+  const [proxy, setProxy] = useState(settings.proxyUrl);
+  const [clientId, setClientId] = useState(settings.googleClientId);
+  return (
+    <section className="space-y-3">
+      <h3 className="text-sm font-medium text-primary">{t("connections")}</h3>
+      <div className="space-y-1.5">
+        <Label htmlFor="proxy">{t("proxyUrl")}</Label>
+        <Input id="proxy" value={proxy} onChange={(e) => setProxy(e.target.value)} onBlur={() => app.updateSettings({ proxyUrl: proxy.trim() })} placeholder="https://rss-reader-feeds.example.workers.dev" />
+        <p className="text-xs text-muted-foreground">{t("proxyHint")}</p>
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="client">{t("googleClientId")}</Label>
+        <Input id="client" value={clientId} onChange={(e) => setClientId(e.target.value)} onBlur={() => app.updateSettings({ googleClientId: clientId.trim() })} placeholder="1234-abc.apps.googleusercontent.com" />
+        <p className="text-xs text-muted-foreground">{t("googleClientIdHint")}</p>
+      </div>
+    </section>
   );
 }
 

@@ -26,7 +26,7 @@ export function Sidebar({ onNavigate, onManage, onSettings }: { onNavigate: () =
         <span className="inline-flex size-9 items-center justify-center rounded-full bg-accent text-primary">
           <Rss className="size-5" />
         </span>
-        <span className="text-lg font-semibold">RSS Reader</span>
+        <span className="text-lg font-semibold">Reader</span>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-2">
         <Row selected={isSelected({ kind: "all" })} onClick={() => select({ kind: "all" })} icon={<Rss className="size-5" />} label={t("allArticles")} count={total} />

@@ -1,6 +1,6 @@
-# RSS Reader on the web
+# Reader on the web
 
-The web version of RSS Reader: the same feeds, folders and read articles as the Android app,
+The web version of Reader: the same feeds, folders and read articles as the Android app,
 synced through your own Google Drive (see `../docs/sync.md`). It is a static site (HTML,
 JavaScript, CSS): it runs entirely in the browser and keeps its data there (IndexedDB).
 
@@ -8,14 +8,20 @@ JavaScript, CSS): it runs entirely in the browser and keeps its data there (Inde
   (`DESIGN.md`, "Other platforms"). Three panes on wide screens; one at a time on phones.
 - Feeds and article pages load through the feed loader in `../worker/` (browsers block most
   feeds otherwise). Pictures load directly.
-- Full articles for summary-only feeds use Mozilla's Readability (Firefox Reader View).
-- Article HTML is cleaned with DOMPurify before it is shown.
+- Full articles for feeds that send a summary or a teaser use Mozilla's Readability (Firefox
+  Reader View); the reader switches between the feed's text and the full article, and keeps the
+  last 100 full articles in the browser.
+- Text settings (Aa, also in Settings): font, size, spacing, background (theme, sepia, dark) and
+  Auto dark, as in the Android app. Settings › Article list › Mark as read on scroll.
+- Article HTML is cleaned with DOMPurify before it is shown. Video players and other embeds
+  become a card that opens them in a new tab; nothing plays inside the page.
 - Keyboard: `j`/`k` next/previous article, `m` read/unread, `o` open on the website, `r` refresh.
 - Languages: English, Dutch, French, German, Spanish, Italian (the browser's language).
 
 ## Settings it needs
 
-Both can be set when building (environment variables) or in the app's Settings:
+Both are set for the published site in `.env.production` (they are not secrets), and can be
+changed in the app's Settings:
 
 | Variable | What |
 |---|---|
@@ -28,8 +34,7 @@ It is published as a Worker with static assets (`wrangler.jsonc`), next to the f
 
 1. Workers & Pages › Create › Import a repository › this repository, name `rss-reader-web`.
 2. Root directory `web`, build command `npm run build`, deploy command `npx wrangler deploy`.
-3. The feed loader's address is in `.env.production` (`VITE_PROXY_URL`); the Google client ID
-   goes in the app's Settings or in a build variable `VITE_GOOGLE_CLIENT_ID`.
+3. The feed loader's address and the Google client ID are in `.env.production`.
 4. The site's address (`https://rss-reader-web.<account>.workers.dev`) must be in
    `ALLOWED_ORIGINS` in `../worker/wrangler.toml` and in the Google client's Authorized JavaScript
    origins.

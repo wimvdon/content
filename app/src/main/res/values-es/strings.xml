@@ -178,21 +178,7 @@
     <string name="sync_failed_offline">No se pudo acceder a Google Drive. Revisa tu conexión.</string>
     <string name="sync_failed_approval">Google Drive necesita tu permiso de nuevo. Toca Conectar.</string>
     <string name="sync_failed_server">Google Drive tuvo un problema. Inténtalo más tarde.</string>
-    <string name="sync_failed_file">El archivo de sincronización es de una versión más reciente de RSS Reader. Actualiza la app.</string>
+    <string name="sync_failed_file">El archivo de sincronización es de una versión más reciente de Reader. Actualiza la app.</string>
+    <string name="sync_failed_setup">Google aún no reconoce esta versión de la app, así que no puede usar Drive.</string>
     <string name="sync_connect_failed">No se pudo conectar con Google Drive</string>
-    <string name="instapaper_account">Cuenta de Instapaper</string>
-    <string name="instapaper_account_summary">Guardar artículos directamente en Instapaper, sin la app</string>
-    <string name="instapaper_signed_in">Sesión iniciada como %1$s</string>
-    <string name="instapaper_sign_in">Iniciar sesión</string>
-    <string name="instapaper_sign_out">Cerrar sesión</string>
-    <string name="instapaper_username">Correo o nombre de usuario</string>
-    <string name="instapaper_password">Contraseña (si tienes una)</string>
-    <string name="instapaper_target">Instapaper (tu cuenta)</string>
-    <string name="instapaper_needs_sign_in">Primero inicia sesión en Instapaper en Ajustes › Guardar y compartir</string>
-    <string name="instapaper_saved">Guardado en Instapaper</string>
-    <string name="instapaper_wrong_password">Correo o contraseña incorrectos</string>
-    <string name="instapaper_busy">Instapaper está ocupado. Inténtalo dentro de un rato.</string>
-    <string name="instapaper_bad_request">Instapaper no pudo guardar este enlace</string>
-    <string name="instapaper_offline">No se pudo acceder a Instapaper. Revisa tu conexión.</string>
-    <string name="instapaper_server">Instapaper tuvo un problema. Inténtalo más tarde.</string>
 </resources>
