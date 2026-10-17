@@ -145,6 +145,21 @@ class InstapaperModel(
             mutable.update { it.copy(folders = (it.folders + folder).sortedBy(InstapaperFolder::position)) }
         }
 
+    /** Makes folder [title] and moves [bookmark] into it, from Move to folder (or the sheet after saving). */
+    fun moveToNewFolder(
+        bookmark: InstapaperBookmark,
+        title: String,
+    ) {
+        val clean = title.trim()
+        if (clean.isEmpty()) return
+        change(bookmark) {
+            val folder = api.createFolder(clean)
+            mutable.update { it.copy(folders = (it.folders + folder).sortedBy(InstapaperFolder::position)) }
+            api.move(bookmark.id, folder.id.toString())
+            BookmarkChange.Moved(folder.id)
+        }
+    }
+
     fun deleteFolder(folder: InstapaperFolder) =
         act {
             api.deleteFolder(folder.id)

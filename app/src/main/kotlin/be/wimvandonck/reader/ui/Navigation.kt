@@ -489,6 +489,7 @@ fun RssReaderNavigation() {
                                         onLike = { instapaper.toggleLike(bookmark) },
                                         onArchive = { instapaper.toggleArchive(bookmark) },
                                         onMove = { folderId -> instapaper.moveTo(bookmark, folderId) },
+                                        onMoveToNewFolder = { title -> instapaper.moveToNewFolder(bookmark, title) },
                                         onAddTag = { name -> instapaper.addTag(bookmark, name) },
                                         onRemoveTag = { tag -> instapaper.removeTag(bookmark, tag) },
                                         onDelete = {
@@ -591,6 +592,7 @@ fun RssReaderNavigation() {
             folders = instapaperUi?.folders.orEmpty(),
             tags = instapaperUi?.tags.orEmpty(),
             onMove = { folderId -> instapaper.moveTo(justSaved, folderId) },
+            onMoveToNewFolder = { title -> instapaper.moveToNewFolder(justSaved, title) },
             onAddTag = { name -> instapaper.addTag(justSaved, name) },
             onRemoveTag = { tag -> instapaper.removeTag(justSaved, tag) },
             onDismiss = instapaper::closeJustSaved,

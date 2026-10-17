@@ -2,6 +2,10 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-17: A new folder while moving an article
+
+Moving a saved article to a folder only offered the folders that already existed; making one meant going to Manage feeds and folders first. Move to folder and the sheet after Save now end with **New folder**: a tap shows a field for the name, and adding makes the folder in Instapaper and moves the article into it in one step. Rejected: a separate dialog for the name (one more step) and creating the folder without moving the article (the point is to file it).
+
 ## 2026-10-17: File an article in Instapaper right after saving it
 
 The owner wanted to tag a feed article or put it in a folder as soon as it is saved, instead of finding it again under Instapaper. Save now opens a sheet (Android) or dialog (web) titled "Saved to Instapaper" with the folders as chips (Unread selected) and the same tag editor as a saved article's Tags. Every tap applies at once, like the reader's own Move and Tags; Done or closing leaves the rest as it is. Rejected: a snackbar with an action (it disappears before you decide) and asking before saving (saving should stay one tap).

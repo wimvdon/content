@@ -177,7 +177,8 @@ Signed in:
   list as feed articles, and they open in the same reader (the whole article loads from its
   website, like a feed's). Saved articles have no read state and are not in All articles: you
   archive them yourself. In the reader: like (♥), archive (or move back to Unread), and in ⋮ move
-  to a folder, tags (add or remove) and delete for good (asks first).
+  to a folder (or **New folder**: name it and the article goes straight in), tags (add or remove) and
+  delete for good (asks first). The sheet after Save has **New folder** too.
 - **Manage feeds and folders** has an Instapaper part: create, reorder and delete Instapaper folders
   (a deleted folder's articles go back to Unread) and rename tags.
 - **Sign out** removes the sign-in from this device.

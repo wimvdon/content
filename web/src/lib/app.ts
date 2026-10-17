@@ -469,6 +469,17 @@ class AppStore {
       return { kind: "moved", folderId };
     });
 
+  /** Makes folder `title` and moves the article into it (Move to folder, or the dialog after saving). */
+  moveBookmarkToNewFolder = (b: Bookmark, title: string) => {
+    const name = title.trim();
+    if (!name) return Promise.resolve(false);
+    return this.changeBookmark(b.id, async (api) => {
+      const folder = await api.createFolder(name);
+      await api.move(b.id, folder.id);
+      return { kind: "moved", folderId: folder.id };
+    });
+  };
+
   tagBookmark = (b: Bookmark, add: string[], removeIds: number[]) =>
     this.changeBookmark(b.id, async (api) => ({ kind: "tags", tags: await api.setTags(b.id, add, removeIds) }));
 
