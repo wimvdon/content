@@ -2,6 +2,11 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-17: The web app is not paused
+
+The pause recorded further down ("The web app and its feed loader are paused") no longer applies. The owner is working on the web app again, and the repository already reflects it: the `web` job in
+`.github/workflows/ci.yml` runs the tests, lint and build of the web app and the feed loader on every change, and Dependabot checks the npm packages in `web/` and `worker/` again. The README no longer calls the web app paused. The Cloudflare builds of `rss-reader-web` and `rss-reader-worker` are set up in the Cloudflare dashboard, not in this repository, so this entry says nothing about them. The sync format (`docs/sync.md`) is shared with Android and did not change. Rejected: deleting the earlier entry (the log keeps its history, and this entry replaces it).
+
 ## 2026-10-17: Sync every minute while the app is on screen
 
 The owner asked for sync as often as Google allows, at least on marking as read and on refresh.
