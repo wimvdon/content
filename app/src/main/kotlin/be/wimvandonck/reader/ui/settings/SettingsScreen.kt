@@ -33,6 +33,7 @@ import be.wimvandonck.reader.data.ReaderStyle
 import be.wimvandonck.reader.data.ShareTarget
 import be.wimvandonck.reader.data.Settings
 import be.wimvandonck.reader.data.ThemeMode
+import be.wimvandonck.reader.instapaper.InstapaperState
 import be.wimvandonck.reader.sync.SyncStatus
 import be.wimvandonck.reader.ui.ExternalApps
 import be.wimvandonck.reader.ui.reader.ReaderStyleControls
@@ -55,6 +56,7 @@ data class SettingsState(
     val problemCount: Int,
     val shareApps: List<ExternalApps.ShareApp>,
     val syncStatus: SyncStatus = SyncStatus.Idle,
+    val instapaper: InstapaperState = InstapaperState.Loading,
 )
 
 class SettingsActions(
@@ -72,6 +74,9 @@ class SettingsActions(
     val onConnectSync: () -> Unit,
     val onSyncNow: () -> Unit,
     val onDisconnectSync: () -> Unit,
+    val onInstapaperSignIn: () -> Unit,
+    val onInstapaperSignOut: () -> Unit,
+    val onOpenInstapaper: () -> Unit,
 )
 
 /** Everything that can be set, as one list of sections in the order DESIGN.md gives. */
@@ -96,6 +101,14 @@ fun SettingsScreen(
                 onConnect = actions.onConnectSync,
                 onSyncNow = actions.onSyncNow,
                 onDisconnect = actions.onDisconnectSync,
+            )
+        }
+        item(key = "instapaper") {
+            InstapaperSection(
+                state = state.instapaper,
+                onSignIn = actions.onInstapaperSignIn,
+                onSignOut = actions.onInstapaperSignOut,
+                onOpen = actions.onOpenInstapaper,
             )
         }
         item(key = "list") { ListSection(state.settings, actions) }

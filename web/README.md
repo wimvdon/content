@@ -26,6 +26,7 @@ Both are public (every visitor's browser sees them), so they are built in, in
 | Constant | What |
 |---|---|
 | `PROXY_URL` | The feed loader's address (`../worker/`) |
+| `INSTAPAPER_CLIENT_ID`, `INSTAPAPER_REDIRECT_URI` | The Instapaper application's public client ID and its callback address (`docs/instapaper.md`) |
 | `GOOGLE_CLIENT_ID` | The Google Cloud OAuth client ID of type "Web application" (docs/sync.md, step 5) |
 
 ## Deploying (Cloudflare Workers)

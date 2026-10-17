@@ -63,18 +63,21 @@ private class FakeService : InstapaperService {
 
     override suspend fun folders(): List<InstapaperFolder> = folders
 
+    // Like the real server: what is created, deleted or reordered is what the next reading returns.
     override suspend fun createFolder(title: String): InstapaperFolder {
         calls += "createFolder $title"
-        return InstapaperFolder(9, title, 3)
+        return InstapaperFolder(9, title, 3).also { folders = folders + it }
     }
 
     override suspend fun deleteFolder(id: Long) {
         calls += "deleteFolder $id"
+        folders = folders.filterNot { it.id == id }
     }
 
     override suspend fun reorderFolders(order: List<Pair<Long, Int>>): List<InstapaperFolder> {
         calls += "reorder $order"
-        return order.sortedBy { it.second }.map { (id, position) -> InstapaperFolder(id, "F$id", position) }
+        folders = order.sortedBy { it.second }.map { (id, position) -> InstapaperFolder(id, "F$id", position) }
+        return folders
     }
 
     override suspend fun tags(): List<InstapaperTag> = tags

@@ -1,6 +1,6 @@
 # Privacy policy
 
-_Last updated: 2026-10-17 (sync while the app is on screen: every minute and on refresh)_
+_Last updated: 2026-10-17 (optional sign-in with Instapaper)_
 
 Reader has no account, analytics, advertising or crash reporting, and no server of its own.
 Sync, if you turn it on, uses your own Google Drive.
@@ -35,11 +35,23 @@ Sync, if you turn it on, uses your own Google Drive.
   policy and your Google account; Google also sees your IP address. Disconnect stops syncing;
   the file stays in your Drive until you remove the app's data there (Google Drive › Settings ›
   Manage apps) or revoke access in your Google account.
+- **Instapaper (off unless you sign in).** Settings › Instapaper › Sign in opens Instapaper's own
+  page in your browser, where you approve Reader; Reader never sees your Instapaper password.
+  Instapaper then sends back a one-time code, which the app gives to the owner's feed loader (a
+  Cloudflare Worker, built from `worker/`). The loader adds Reader's client secret, swaps the code
+  for an access token at Instapaper, hands the token back and keeps nothing: it stores and logs
+  nothing, and Cloudflare sees your IP address, under Cloudflare's privacy policy. With the token the
+  app talks to www.instapaper.com (the Android app directly, the web app through the feed loader,
+  because browsers aren't allowed to call Instapaper): it sends the title and link of an article
+  you save, and reads and changes your saved list (archive, like, delete, move to a folder, tags,
+  folders), under Instapaper's privacy policy. Signing out deletes the token from your device; it
+  stays valid at Instapaper until you revoke it there.
 - **Links you open** (Read on website, links in articles) open in your browser, under the
   website's own privacy policy.
 - **Save and Share.** When you tap Save or Share, the article's title and link go to the app you
   chose in Settings (Instapaper for Save by default) or picked in the share menu, under that app's
-  privacy policy. Nothing is sent otherwise.
+  privacy policy. Signed in to Instapaper (see above), Save sends them to your Instapaper account
+  instead. Nothing is sent otherwise.
 
 ## What the app stores on your device
 
@@ -48,9 +60,11 @@ Sync, if you turn it on, uses your own Google Drive.
 - Your settings (theme, text settings, full articles, pictures, Save and Share targets, the Unread filter, mark as read on scroll).
 - The text of full articles you opened, and recently shown pictures, in the app's cache (Android
   may clear it).
+- If you signed in to Instapaper: the access token and your Instapaper user name, in a file of
+  their own (`datastore/instapaper`) that Android's backup and phone-to-phone transfer leave out.
 
 Android's own backup (to your Google account, if you turned that on) and phone-to-phone transfer
-include the feed list, articles, read state and settings, not the cache. Removing a feed deletes its articles; uninstalling the app deletes everything.
+include the feed list, articles, read state and settings, not the cache and not the Instapaper sign-in. Removing a feed deletes its articles; uninstalling the app deletes everything.
 
 ## Background activity
 
@@ -75,7 +89,7 @@ browser's storage on that device (IndexedDB). There is no account and no analyti
   is used only by the web app. Cloudflare runs it, so Cloudflare sees which feed or page is
   loaded and your IP address, under Cloudflare's privacy policy. It keeps a copy of a feed for at
   most five minutes in Cloudflare's cache, shared by everyone reading that feed. The Android app
-  never uses it.
+  uses it only to finish signing in to Instapaper (see above).
 - **Pictures and website icons** load directly from the websites, without telling them which
   page you came from.
 - **Embedded videos and posts** show as a card; nothing plays inside the page. YouTube cards
@@ -85,6 +99,11 @@ browser's storage on that device (IndexedDB). There is no account and no analyti
   `rss-reader-sync.json` in your Google Drive's hidden app folder, after you click Connect
   (Google's sign-in script comes from accounts.google.com). The sign-in lasts about an hour per
   browser tab.
+- **Instapaper** (off unless you sign in, in Settings › Instapaper): the page's sign-in leaves for
+  Instapaper's own website and returns to the web app, which swaps the one-time code for an access
+  token through the feed loader. The token is kept in the browser's storage (IndexedDB), never in the
+  sync file. Saving and managing your articles goes through the feed loader to www.instapaper.com;
+  the loader passes the token on, and keeps and logs nothing.
 - Removing the site's data in your browser deletes everything the web app stored.
 
 If this changes, this file will be updated **before** the change is released.

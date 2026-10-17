@@ -12,7 +12,7 @@ What it does, and doesn't:
 - At most 120 requests per minute per IP address (`LIMITER`).
 - Stores nothing and logs nothing (`observability` off). Cloudflare's cache keeps a feed for 5
   minutes so many readers of one feed cost one download.
-- The Android app never uses it.
+- The Android app never uses it, except to finish signing in to Instapaper (`POST /instapaper/token`).
 
 ## Deploying
 
@@ -35,3 +35,19 @@ npm test
 npm run typecheck
 npx wrangler dev
 ```
+
+## Instapaper
+
+`src/instapaper.ts` answers `/instapaper/...` (details in `docs/instapaper.md`):
+
+- `POST /instapaper/token` with `{"code": "..."}` swaps the one-time sign-in code for an access token.
+  It adds the client secret and the fixed redirect address, and returns only the token and user.
+  Web and Android both use it (Android sends no `Origin`; the code is one-time and the redirect
+  address can't be chosen by the caller).
+- `/instapaper/api/...` forwards a short list of Instapaper calls for the web app (browsers can't call
+  Instapaper). Only the web app's own addresses are answered; everything else is refused.
+
+Set once: the client ID and redirect address are in `wrangler.toml`. The client secret is **not**; add
+it as a Worker secret, never in the repository: Cloudflare dashboard › this Worker › Settings ›
+Variables and Secrets › Add › type **Secret** › `INSTAPAPER_CLIENT_SECRET` (or
+`npx wrangler secret put INSTAPAPER_CLIENT_SECRET`).

@@ -12,6 +12,7 @@ import be.wimvandonck.reader.data.IconCatalog
 import be.wimvandonck.reader.data.LibraryRepository
 import be.wimvandonck.reader.data.SettingsStore
 import be.wimvandonck.reader.feed.FeedFetcher
+import be.wimvandonck.reader.instapaper.InstapaperAccount
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -50,6 +51,9 @@ class RssReaderApp :
     val library: LibraryRepository by lazy { LibraryRepository(this, appScope, fetch = fetcher::fetch) }
 
     val googleAuth: GoogleAuth by lazy { GoogleAuth(this) }
+
+    /** The user's Instapaper account (sign-in, saving, and the saved list). See instapaper/. */
+    val instapaper: InstapaperAccount by lazy { InstapaperAccount(this, appScope, OkHttpClient()) }
 
     /** Sync with the user's own storage (Google Drive's hidden app folder). See sync/. */
     val sync: SyncManager by lazy {

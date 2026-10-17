@@ -103,7 +103,7 @@ website (the same as **Read on website** at the end). In the top bar:
 | Button | What it does |
 |---|---|
 | **Aa** | Text settings: font (Sans or Serif), text size, spacing (Compact, Normal, Relaxed), background (Theme, Sepia or Dark) and **Auto dark** (the dark page whenever the app is dark, e.g. Sepia by day and dark at night). Changes apply right away and are remembered for every article. |
-| Bookmark | **Save**: sends the article to the app you chose (Instapaper by default), or opens the share menu (see below). |
+| Bookmark | **Save**: sends the article to the app you chose (Instapaper by default), or opens the share menu (see below). Signed in to Instapaper, it saves straight to your account. |
 | Share | **Share**: the share menu, or straight to the app you chose. |
 | ⋮ | **Open in browser** and **Mark as unread**. |
 
@@ -159,6 +159,23 @@ from the same source. Downloaded full articles are not backed up; they load agai
 
 The app follows the phone's language. To choose another one for this app only: Android
 **Settings › System › Languages › App languages › Reader**.
+
+## Instapaper account
+
+Settings › **Instapaper** › **Sign in** opens Instapaper's own page in your browser. Approve Reader
+there and you come back to the app (or the web page) signed in; Reader never sees your password.
+
+Signed in:
+
+- **Save** (the bookmark button in the reader) saves the article to your Instapaper account.
+- Settings › Instapaper › **Saved articles** (the web app: **Instapaper** in the sidebar) shows
+  Unread, Archive, Liked, your folders and your tags. On each article: like, archive (or move back
+  to Unread), move to a folder, add or remove tags, delete for good (asks first), or open it on its
+  website. **Manage folders** creates, reorders and deletes folders; **Manage tags** renames tags.
+- **Sign out** removes the sign-in from this device.
+
+Until Instapaper has approved Reader, only the owner's own account works; other accounts see
+"Instapaper hasn't approved Reader for your account yet." Setup and details: `instapaper.md`.
 
 ## Common problems
 
