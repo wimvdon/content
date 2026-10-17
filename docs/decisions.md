@@ -2,6 +2,10 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-17: A refresh always syncs
+
+A refresh skipped its sync when the last one was under ten seconds ago. Pulling down right after switching devices could therefore miss a read mark made a few seconds earlier elsewhere, and the next automatic sync was up to a minute away. Refresh now always syncs first (Android `SyncManager.sync()`, web `AppStore.sync()`); coming back to the app and the one-minute timer keep the ten-second gap so they don't sync twice in a row. Google Drive is not the limit here: reading the file by its id returns what the last upload wrote. Rejected: dropping the gap everywhere (starting the app would sync twice), remembering the Drive file id between syncs (two devices that create the file at the same moment would each keep their own copy; looking it up every time makes them settle on the newest one), and checking the file's version every few seconds (more code and Drive traffic than a refresh that always syncs needs; it can be added if waiting for the minute timer still feels too slow).
+
 ## 2026-10-17: The web app is not paused
 
 The pause recorded further down ("The web app and its feed loader are paused") no longer applies. The owner is working on the web app again, and the repository already reflects it: the `web` job in
