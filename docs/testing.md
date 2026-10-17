@@ -18,7 +18,7 @@ On every pull request and push to `main`:
 | Lint | `./gradlew lintDebug` | Android API misuse, missing translations, accessibility, hard-coded text, … (errors fail the build) |
 | Debug build | `./gradlew assembleDebug` | Compile errors; produces the APK to test on the phone |
 | Release build | `./gradlew assembleRelease` | Problems caused by R8 minification / resource shrinking |
-| Web app and feed loader | `npm test`, `npm run lint`, `npm run build` in `web/`; `npm test`, `npm run typecheck` in `worker/` | Parser ids that match Android, reading the Android app's sync file, merge, the Google sign-in kept in the browser and never asked for without a click, OPML, HTML cleaning, embed cards, when to load the full article, the full-article cache, reader text settings, mark as read on scroll; the Worker's origin check, address rules, redirects, size and type limits |
+| Web app and feed loader | `npm test`, `npm run lint`, `npm run build` in `web/`; `npm test`, `npm run typecheck` in `worker/` | Parser ids that match Android, reading the Android app's sync file, merge, the Google sign-in kept in the browser and never asked for without a click, OPML, HTML cleaning, embed cards, Instapaper's lists in the reader, when to load the full article, the full-article cache, reader text settings, mark as read on scroll; the Worker's origin check, address rules, redirects, size and type limits |
 
 Reports (test results, lint HTML) are attached to every CI run as the `reports` artifact, also
 when the run fails.
@@ -43,6 +43,8 @@ when the run fails.
 | `JsonTest` | JSON round trip (escapes, emoji, numbers, nesting), whitespace, broken text |
 | `SyncDocumentTest` | Sync file round trip, other or newer files left alone, broken entries skipped, taking folders, feeds and read marks from the library, pruning old read marks |
 | `SyncMergeTest` | Three-way merge: changes and removals from either side, this device wins but an edit beats a removal, order from the side that reordered, first sync without base, unread again; articles not here yet; applying the result to the library; syncing twice changes nothing |
+| `InstapaperListsTest` | A saved article as a list/reader article (no read state, safe links), which Instapaper list it belongs in, a change updating the list |
+| `InstapaperModelTest` | Lists, paging, archive, like, move, tags, delete, folders and tags management; the article open in the reader following changes |
 | `GoogleDriveTest` | Finding the sync file in a Drive answer, the upload into the app folder |
 | `SyncTimingTest` | When a sync is due: never synced, or more than ten seconds ago (also when the clock went back) |
 | `SyncProblemTest` | Google refusing an app it doesn't know shows "not set up" instead of "offline" |
@@ -140,9 +142,12 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
 - [ ] Settings › Instapaper › **Sign in** opens Instapaper; approving returns to the app (Android) or
       the page (web) with "Signed in to Instapaper", and Settings shows your user name.
 - [ ] **Save** in the reader saves the article; it appears in Instapaper's Unread list.
-- [ ] **Saved articles**: Unread, Archive, Liked, a folder and a tag each show the right items.
-- [ ] Archive, move back to Unread, like, unlike, move to a folder, add and remove a tag, and delete
-      (asks first) each change the article in Instapaper too.
-- [ ] **Manage folders**: create, move up and down, delete. **Manage tags**: rename.
+- [ ] The ☰ menu (web: the sidebar) has an **Instapaper** section: Unread, Liked, Archive, your
+      folders and tags each show the right saved articles in the normal list (no unread dot, not
+      in All articles). Tapping one opens it in the reader, with the full article from its website.
+- [ ] In the reader: like, archive (the article leaves Unread but stays open), move back to Unread,
+      move to a folder, add and remove a tag, and delete (asks first) each change it in Instapaper.
+- [ ] **Manage feeds and folders** › Instapaper: create, move up and down, and delete folders;
+      rename tags.
 - [ ] **Sign out** returns Settings to "Sign in", and Save goes back to the chosen app.
 - [ ] `https://rss-reader-web.wim-d57.workers.dev/.well-known/assetlinks.json` shows the JSON file.

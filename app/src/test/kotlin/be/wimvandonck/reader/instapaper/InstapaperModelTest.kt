@@ -173,12 +173,34 @@ class InstapaperModelTest {
         assertTrue(model.state.value.items.isEmpty())
 
         model.select(InstapaperView.Archive)
-        model.moveTo(model.state.value.items[0], 1L)
-        val moved = model.state.value.items[0]
+        val archived = model.state.value.items[0]
+        model.open(archived)
+        model.moveTo(archived, 1L)
+        // No longer archived, so out of the Archive list; the reader keeps it, changed.
+        assertTrue(model.state.value.items.isEmpty())
+        val moved = model.state.value.open!!
         assertEquals(1L, moved.folderId)
         assertFalse(moved.archived)
         model.moveTo(moved, null)
         assertTrue("move 2 home" in service.calls)
+        assertNull(model.state.value.open!!.folderId)
+    }
+
+    @Test
+    fun `the open article follows changes and is gone once deleted`() {
+        service.lists[InstapaperView.Home] = listOf(bookmark(1), bookmark(2))
+        val model = model()
+        model.start()
+        val first = model.state.value.items[0]
+        model.open(first)
+        model.toggleArchive(first)
+        assertEquals(listOf(2L), model.state.value.items.map { it.id })
+        assertTrue(model.state.value.open!!.archived)
+        model.toggleLike(model.state.value.open!!)
+        assertTrue(model.state.value.open!!.liked)
+        model.delete(model.state.value.open!!)
+        assertNull(model.state.value.open)
+        assertEquals(1, model.state.value.total)
     }
 
     @Test

@@ -34,6 +34,14 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import be.wimvandonck.reader.R
+import be.wimvandonck.reader.ui.feeds.InstapaperManageState
+import be.wimvandonck.reader.ui.feeds.InstapaperManageActions
+import kotlinx.coroutines.flow.flowOf
+import be.wimvandonck.reader.data.Feed
+import be.wimvandonck.reader.ui.reader.SavedArticle
+import be.wimvandonck.reader.ui.home.InstapaperHome
+import be.wimvandonck.reader.instapaper.InstapaperView
+import be.wimvandonck.reader.instapaper.InstapaperLists
 import be.wimvandonck.reader.data.AddFeedResult
 import be.wimvandonck.reader.data.Article
 import be.wimvandonck.reader.data.FeedSelection
@@ -56,7 +64,6 @@ import be.wimvandonck.reader.ui.home.HomeActions
 import be.wimvandonck.reader.ui.home.HomeScreen
 import be.wimvandonck.reader.ui.home.HomeState
 import be.wimvandonck.reader.ui.home.errorRes
-import be.wimvandonck.reader.ui.instapaper.InstapaperScreen
 import be.wimvandonck.reader.ui.instapaper.messageRes
 import be.wimvandonck.reader.ui.reader.FullTextState
 import be.wimvandonck.reader.ui.reader.ReaderActions
@@ -82,16 +89,12 @@ sealed interface Screen {
     /** Feeds and folders. */
     data object Feeds : Screen
 
-    /** The user's Instapaper account. */
-    data object Instapaper : Screen
-
     companion object {
         fun encode(screen: Screen): String =
             when (screen) {
                 Home -> "home"
                 Settings -> "settings"
                 Feeds -> "feeds"
-                Instapaper -> "instapaper"
                 is Reader -> "reader:" + screen.articleKey
             }
 
@@ -99,7 +102,6 @@ sealed interface Screen {
             when {
                 text == "settings" -> Settings
                 text == "feeds" -> Feeds
-                text == "instapaper" -> Instapaper
                 text.startsWith("reader:") -> Reader(text.removePrefix("reader:"))
                 else -> Home
             }
@@ -138,6 +140,19 @@ fun RssReaderNavigation() {
     // another feed, the other filter, or a refresh. Otherwise rows would jump away.
     var readThisVisit by rememberSaveable { mutableStateOf(setOf<String>()) }
 
+    // Instapaper, shown like the feeds: one model per sign-in, with the folders and tags for the
+    // drawer and the list chosen there (null while a feed section is shown).
+    val signedIn = instapaperState as? InstapaperState.SignedIn
+    val instapaper = remember(signedIn?.session?.token) { signedIn?.let { app.instapaper.newModel(it.session, app.appScope).also { m -> m.start() } } }
+    val instapaperUi by (instapaper?.state ?: flowOf(null)).collectAsStateWithLifecycle(null)
+    var chosenView by rememberSaveable(stateSaver = InstapaperViewSaver) { mutableStateOf<InstapaperView?>(null) }
+    val instapaperView = chosenView.takeIf { instapaper != null }
+    // After a sign-in on this device or another, or the app coming back, show the chosen list.
+    LaunchedEffect(instapaper) {
+        val view = chosenView
+        if (instapaper != null && view != null && instapaper.state.value.view != view) instapaper.select(view)
+    }
+
     fun push(screen: Screen) {
         if (backStack.last() != screen) backStack.add(screen)
     }
@@ -155,6 +170,10 @@ fun RssReaderNavigation() {
     }
 
     fun refresh() {
+        if (instapaperView != null) {
+            instapaper?.refresh()
+            return
+        }
         readThisVisit = emptySet()
         app.appScope.launch {
             // Read marks and feeds from other devices first, so they apply to the new articles.
@@ -302,9 +321,10 @@ fun RssReaderNavigation() {
                     SystemBarsFollowTheme(appDark)
                     // A removed feed or folder can't stay selected.
                     val shownSelection = library.shown(selection)
-                    // Back from a folder or a feed goes to Home first; back on Home leaves the app.
-                    BackHandler(enabled = backStack.size == 1 && shownSelection != FeedSelection.All) {
+                    // Back from a folder, a feed or an Instapaper list goes to Home first; back on Home leaves the app.
+                    BackHandler(enabled = backStack.size == 1 && (shownSelection != FeedSelection.All || instapaperView != null)) {
                         selection = FeedSelection.All
+                        chosenView = null
                         readThisVisit = emptySet()
                     }
                     val articles =
@@ -327,14 +347,28 @@ fun RssReaderNavigation() {
                                 hasAnyArticles = library.articles.isNotEmpty(),
                                 loaded = libraryOrNull != null,
                                 showImages = current.showImages,
+                                instapaper =
+                                    instapaperUi?.let { ui ->
+                                        InstapaperHome(folders = ui.folders, tags = ui.tags, view = instapaperView, list = ui)
+                                    },
                             ),
                         snackbarHostState = snackbar,
                         actions =
                             HomeActions(
                                 onSelect = {
                                     selection = it
+                                    chosenView = null
                                     readThisVisit = emptySet()
                                 },
+                                onSelectInstapaper = { view ->
+                                    chosenView = view
+                                    instapaper?.select(view)
+                                },
+                                onOpenSaved = { bookmark ->
+                                    instapaper?.open(bookmark)
+                                    push(Screen.Reader(InstapaperLists.article(bookmark).key))
+                                },
+                                onLoadMoreSaved = { instapaper?.loadMore() },
                                 onUnreadOnlyChange = {
                                     readThisVisit = emptySet()
                                     app.appScope.launch { app.settings.setUnreadOnly(it) }
@@ -378,7 +412,10 @@ fun RssReaderNavigation() {
                 }
 
                 is Screen.Reader -> {
-                    val article = library.article(screen.articleKey)
+                    // A saved Instapaper article ("instapaper <id>") comes from the Instapaper model.
+                    val savedKey = screen.articleKey.startsWith(InstapaperLists.FEED + " ")
+                    val bookmark = if (savedKey) instapaperUi?.open?.takeIf { InstapaperLists.article(it).key == screen.articleKey } else null
+                    val article = if (savedKey) bookmark?.let(InstapaperLists::article) else library.article(screen.articleKey)
                     // The full article loads by itself when the setting is on and the feed only has a
                     // summary; the reader's menu switches between the two (null: follow the setting).
                     var fullTextChoice by rememberSaveable(screen.articleKey) { mutableStateOf<Boolean?>(null) }
@@ -398,13 +435,18 @@ fun RssReaderNavigation() {
                                 }
                             }
                     }
-                    // Opening an article marks it as read.
-                    LaunchedEffect(screen.articleKey) { app.appScope.launch { repository.setRead(screen.articleKey, true) } }
+                    // Opening an article marks it as read; saved Instapaper articles have no read state.
+                    LaunchedEffect(screen.articleKey) { if (!savedKey) app.appScope.launch { repository.setRead(screen.articleKey, true) } }
                     SystemBarsFollowTheme(current.reader.isDark(appDark))
                     ReaderTheme(style = current.reader, appearance = current.appearance, appDark = appDark) {
                         ReaderScreen(
                             article = article,
-                            feed = article?.let { library.feed(it.feedUrl) },
+                            feed =
+                                if (savedKey) {
+                                    bookmark?.host?.takeIf { it.isNotEmpty() }?.let { Feed(url = it, title = it) }
+                                } else {
+                                    article?.let { library.feed(it.feedUrl) }
+                                },
                             style = current.reader,
                             // Signed in to Instapaper, Save goes straight to the account.
                             saveTarget = if (instapaperState is InstapaperState.SignedIn) ShareTarget.Instapaper else current.saveTarget,
@@ -430,6 +472,25 @@ fun RssReaderNavigation() {
                                     onOpenLink = { url -> ExternalApps.openLink(context, url) },
                                     onToggleFullText = { fullTextChoice = !wantFullText },
                                 ),
+                            saved =
+                                if (bookmark != null && instapaper != null && instapaperUi != null) {
+                                    SavedArticle(
+                                        bookmark = bookmark,
+                                        folders = instapaperUi?.folders.orEmpty(),
+                                        tags = instapaperUi?.tags.orEmpty(),
+                                        onLike = { instapaper.toggleLike(bookmark) },
+                                        onArchive = { instapaper.toggleArchive(bookmark) },
+                                        onMove = { folderId -> instapaper.moveTo(bookmark, folderId) },
+                                        onAddTag = { name -> instapaper.addTag(bookmark, name) },
+                                        onRemoveTag = { tag -> instapaper.removeTag(bookmark, tag) },
+                                        onDelete = {
+                                            instapaper.delete(bookmark)
+                                            pop()
+                                        },
+                                    )
+                                } else {
+                                    null
+                                },
                         )
                     }
                 }
@@ -466,36 +527,20 @@ fun RssReaderNavigation() {
                                 onDisconnectSync = { app.appScope.launch { app.sync.disconnect() } },
                                 onInstapaperSignIn = { uiScope.launch { ExternalApps.openLink(context, app.instapaper.begin()) } },
                                 onInstapaperSignOut = { app.appScope.launch { app.instapaper.signOut() } },
-                                onOpenInstapaper = { push(Screen.Instapaper) },
                             ),
                     )
-                }
-
-                Screen.Instapaper -> {
-                    SystemBarsFollowTheme(appDark)
-                    when (val account = instapaperState) {
-                        is InstapaperState.SignedIn -> {
-                            val modelScope = rememberCoroutineScope()
-                            val model = remember(account.session.token) { app.instapaper.newModel(account.session, modelScope) }
-                            InstapaperScreen(
-                                model = model,
-                                snackbarHostState = snackbar,
-                                onBack = ::pop,
-                                onOpenLink = { url -> ExternalApps.openLink(context, url) },
-                            )
-                        }
-
-                        // Signed out (here or on the other screen): nothing to show.
-                        InstapaperState.SignedOut -> LaunchedEffect(Unit) { pop() }
-
-                        InstapaperState.Loading -> Unit
-                    }
                 }
 
                 Screen.Feeds -> {
                     SystemBarsFollowTheme(appDark)
                     FeedsScreen(
-                        state = FeedsState(feeds = library.feeds, folders = library.folders, problems = problems),
+                        state =
+                            FeedsState(
+                                feeds = library.feeds,
+                                folders = library.folders,
+                                problems = problems,
+                                instapaper = instapaperUi?.let { InstapaperManageState(it.folders, it.tags) },
+                            ),
                         snackbarHostState = snackbar,
                         actions =
                             FeedsActions(
@@ -514,6 +559,15 @@ fun RssReaderNavigation() {
                                 onRemoveFolder = { folder -> app.appScope.launch { repository.removeFolder(folder.id) } },
                                 onImportOpml = importOpml,
                                 onExportOpml = exportOpml,
+                                instapaper =
+                                    instapaper?.let { model ->
+                                        InstapaperManageActions(
+                                            onCreateFolder = model::createFolder,
+                                            onDeleteFolder = model::deleteFolder,
+                                            onMoveFolder = model::moveFolder,
+                                            onRenameTag = model::renameTag,
+                                        )
+                                    },
                             ),
                     )
                 }
@@ -552,6 +606,30 @@ fun RssReaderNavigation() {
         )
     }
 }
+
+private val InstapaperViewSaver =
+    Saver<InstapaperView?, String>(
+        save = {
+            when (it) {
+                null -> ""
+                InstapaperView.Home -> "home"
+                InstapaperView.Liked -> "liked"
+                InstapaperView.Archive -> "archive"
+                is InstapaperView.InFolder -> "folder:" + it.folderId
+                is InstapaperView.WithTag -> "tag:" + it.name
+            }
+        },
+        restore = {
+            when {
+                it == "home" -> InstapaperView.Home
+                it == "liked" -> InstapaperView.Liked
+                it == "archive" -> InstapaperView.Archive
+                it.startsWith("folder:") -> it.removePrefix("folder:").toLongOrNull()?.let(InstapaperView::InFolder)
+                it.startsWith("tag:") -> InstapaperView.WithTag(it.removePrefix("tag:"))
+                else -> null
+            }
+        },
+    )
 
 private val SelectionSaver =
     Saver<FeedSelection, String>(

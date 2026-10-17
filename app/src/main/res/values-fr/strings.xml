@@ -182,7 +182,7 @@
     <string name="sync_failed_setup">Google ne reconnaît pas encore cette version de l’app ; elle ne peut pas utiliser Drive.</string>
     <string name="sync_connect_failed">Impossible de se connecter à Google Drive</string>
     <string name="section_instapaper">Instapaper</string>
-    <string name="instapaper_summary">Enregistrez des articles dans votre propre compte Instapaper et gérez votre liste ici.</string>
+    <string name="instapaper_summary">Enregistrez des articles dans votre propre compte Instapaper. Vos articles enregistrés, dossiers et étiquettes apparaissent dans le menu ☰.</string>
     <string name="instapaper_sign_in">Se connecter avec Instapaper</string>
     <string name="instapaper_signed_in_as">Connecté en tant que %1$s</string>
     <string name="instapaper_sign_out">Se déconnecter</string>
@@ -213,4 +213,7 @@
     <string name="instapaper_add_tag">Ajouter une étiquette</string>
     <string name="instapaper_rename_tag">Renommer l’étiquette</string>
     <string name="instapaper_remove_tag">Retirer l’étiquette</string>
+    <string name="action_close">Fermer</string>
+    <string name="instapaper_tags">Étiquettes</string>
+    <string name="instapaper_folders">Dossiers</string>
 </resources>

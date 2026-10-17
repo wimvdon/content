@@ -1,8 +1,10 @@
 # Instapaper
 
 Reader can sign in to the user's own Instapaper account (Instapaper API v2, OAuth 2). Signed in,
-**Save** sends the article straight to the account, and a saved-articles screen shows Unread,
-Archive, Liked, folders and tags, with archive, like, delete, move to a folder and tags. Not signed
+**Save** sends the article straight to the account, and the account's Unread, Liked, Archive,
+folders and tags appear in the ☰ menu (web: the sidebar) next to the feeds. Their saved articles
+show in the same list and reader as feed articles (without read state; archiving is an action), and
+Manage feeds and folders manages the Instapaper folders and tags. Not signed
 in, Save works as before: Instapaper's app or the share menu (see `usage.md`).
 
 ## How sign-in works
@@ -30,9 +32,9 @@ One callback address serves both apps:
 |---|---|
 | Token swap, and the web app's Instapaper calls | `worker/src/instapaper.ts` (tests in `worker/test/instapaper.test.ts`) |
 | Web: client, sign-in helpers | `web/src/lib/instapaper.ts` |
-| Web: screen | `web/src/components/InstapaperDialog.tsx`; Save button in `ArticleView.tsx`; sign-in in Settings |
+| Web: lists and reader | `web/src/lib/instapaperLibrary.ts` (tested), `Sidebar.tsx`, `ArticleList.tsx`, `InstapaperActions.tsx` in the reader, `InstapaperManage.tsx` in Manage; Save in `ArticleView.tsx`; sign-in in Settings |
 | Android: client, sign-in helpers, list logic | `app/src/main/kotlin/be/wimvandonck/reader/instapaper/` |
-| Android: screens | `ui/instapaper/`, `ui/settings/InstapaperSettings.kt` |
+| Android: lists and reader | `instapaper/InstapaperLists.kt` (tested), `ui/home/` (drawer and list), `ui/reader/SavedArticleControls.kt`, `ui/feeds/InstapaperManage.kt`, `ui/settings/InstapaperSettings.kt` |
 | Android: App Link and backup exclusion | `AndroidManifest.xml`, `res/xml/data_extraction_rules.xml` |
 | App Link proof for the website | `web/public/.well-known/assetlinks.json` |
 

@@ -18,13 +18,15 @@ data class InstapaperUiState(
     val folders: List<InstapaperFolder> = emptyList(),
     val tags: List<InstapaperTag> = emptyList(),
     val problem: InstapaperProblem? = null,
+    /** The saved article open in the reader. */
+    val open: InstapaperBookmark? = null,
 ) {
     val canLoadMore: Boolean get() = !loading && !loadingMore && items.size < total
 }
 
 /**
- * Everything the Instapaper screen does: show one list at a time, and change bookmarks, folders and
- * tags. Plain Kotlin on top of [InstapaperService], so it runs in unit tests. After a change the
+ * Instapaper in the app: one list at a time (shown like a feed's articles), the folders and tags for
+ * the drawer and Manage, and the changes to saved articles, folders and tags. Plain Kotlin on top of [InstapaperService], so it runs in unit tests. After a change the
  * list is updated in place, without reading it again.
  */
 class InstapaperModel(
@@ -41,6 +43,9 @@ class InstapaperModel(
         refreshSides()
         load()
     }
+
+    /** Reads the folders, tags and the shown list again (pull to refresh). */
+    fun refresh() = start()
 
     fun select(view: InstapaperView) {
         mutable.update { it.copy(view = view, items = emptyList(), total = 0, loading = true, loadingMore = false, problem = null) }
@@ -67,55 +72,45 @@ class InstapaperModel(
         }
     }
 
+    /** The saved article opened in the reader; it stays there when a change takes it out of the list. */
+    fun open(bookmark: InstapaperBookmark) = mutable.update { it.copy(open = bookmark) }
+
     fun toggleArchive(bookmark: InstapaperBookmark) =
-        act {
+        change(bookmark) {
             api.move(bookmark.id, if (bookmark.archived) "home" else "archive")
-            when (mutable.value.view) {
-                InstapaperView.Home, InstapaperView.Archive, is InstapaperView.InFolder -> drop(bookmark.id)
-                else -> patch(bookmark.id) { it.copy(archived = !bookmark.archived) }
-            }
-            refreshSides()
+            BookmarkChange.Archived(!bookmark.archived)
         }
 
-    fun toggleLike(bookmark: InstapaperBookmark) =
-        act {
-            val liked = api.like(bookmark.id, !bookmark.liked)
-            if (mutable.value.view == InstapaperView.Liked && !liked) drop(bookmark.id) else patch(bookmark.id) { it.copy(liked = liked) }
-        }
+    fun toggleLike(bookmark: InstapaperBookmark) = change(bookmark) { BookmarkChange.Liked(api.like(bookmark.id, !bookmark.liked)) }
 
     /** Moves to a folder, or back to Unread when [folderId] is null. */
     fun moveTo(
         bookmark: InstapaperBookmark,
         folderId: Long?,
-    ) = act {
+    ) = change(bookmark) {
         api.move(bookmark.id, folderId?.toString() ?: "home")
-        when (mutable.value.view) {
-            InstapaperView.Home, is InstapaperView.InFolder -> drop(bookmark.id)
-            else -> patch(bookmark.id) { it.copy(folderId = folderId, archived = false) }
-        }
-        refreshSides()
+        BookmarkChange.Moved(folderId)
     }
 
     fun delete(bookmark: InstapaperBookmark) =
-        act {
+        change(bookmark) {
             api.delete(bookmark.id)
-            drop(bookmark.id)
-            refreshSides()
+            BookmarkChange.Deleted
         }
 
     fun addTag(
         bookmark: InstapaperBookmark,
         name: String,
-    ) = act {
+    ) {
         val clean = name.trim()
-        if (clean.isEmpty() || bookmark.tags.any { it.name.equals(clean, ignoreCase = true) }) return@act
-        setTags(bookmark, api.setTags(bookmark.id, listOf(clean), emptyList()))
+        if (clean.isEmpty() || bookmark.tags.any { it.name.equals(clean, ignoreCase = true) }) return
+        change(bookmark) { BookmarkChange.Tagged(api.setTags(bookmark.id, listOf(clean), emptyList())) }
     }
 
     fun removeTag(
         bookmark: InstapaperBookmark,
         tag: InstapaperTag,
-    ) = act { setTags(bookmark, api.setTags(bookmark.id, emptyList(), listOf(tag.id))) }
+    ) = change(bookmark) { BookmarkChange.Tagged(api.setTags(bookmark.id, emptyList(), listOf(tag.id))) }
 
     fun createFolder(title: String) =
         act {
@@ -189,19 +184,20 @@ class InstapaperModel(
             null
         }
 
-    private fun drop(id: Long) = mutable.update { it.copy(items = it.items.filterNot { b -> b.id == id }, total = (it.total - 1).coerceAtLeast(0)) }
-
-    private fun patch(
-        id: Long,
-        change: (InstapaperBookmark) -> InstapaperBookmark,
-    ) = mutable.update { it.copy(items = it.items.map { b -> if (b.id == id) change(b) else b }) }
-
-    private fun setTags(
+    /** Runs one change and updates the list, the open article and (counts change) the folders and tags. */
+    private fun change(
         bookmark: InstapaperBookmark,
-        tags: List<InstapaperTag>,
-    ) {
-        val view = mutable.value.view
-        if (view is InstapaperView.WithTag && tags.none { it.name == view.name }) drop(bookmark.id) else patch(bookmark.id) { it.copy(tags = tags) }
+        call: suspend () -> BookmarkChange,
+    ) = act {
+        val change = call()
+        mutable.update { s ->
+            val items = InstapaperLists.apply(s.view, s.items, bookmark.id, change)
+            s.copy(
+                items = items,
+                total = (s.total - (s.items.size - items.size)).coerceAtLeast(0),
+                open = if (s.open?.id == bookmark.id) InstapaperLists.patch(s.open, change) else s.open,
+            )
+        }
         refreshSides()
     }
 }

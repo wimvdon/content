@@ -102,8 +102,11 @@ fun ReaderScreen(
     showImages: Boolean,
     snackbarHostState: SnackbarHostState,
     actions: ReaderActions,
+    /** A saved Instapaper article: its buttons replace Save and Mark as unread. */
+    saved: SavedArticle? = null,
 ) {
     var showStyleSheet by rememberSaveable { mutableStateOf(false) }
+    var savedDialog by rememberSaveable { mutableStateOf<SavedDialog?>(null) }
     var menuOpen by remember { mutableStateOf(false) }
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val hasLink = article?.link != null
@@ -123,8 +126,9 @@ fun ReaderScreen(
                     IconButton(onClick = { showStyleSheet = true }) {
                         Icon(painterResource(R.drawable.ic_text_format), contentDescription = stringResource(R.string.reader_text_settings))
                     }
+                    if (saved != null) SavedArticleButtons(saved)
                     if (hasLink) {
-                        IconButton(onClick = actions.onSave) {
+                        if (saved == null) IconButton(onClick = actions.onSave) {
                             Icon(
                                 painterResource(R.drawable.ic_bookmark_add),
                                 contentDescription =
@@ -164,14 +168,21 @@ fun ReaderScreen(
                                 },
                             )
                         }
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.action_mark_unread)) },
-                            leadingIcon = { Icon(painterResource(R.drawable.ic_mark_unread), contentDescription = null) },
-                            onClick = {
+                        if (saved != null) {
+                            SavedArticleMenuItems(onOpen = {
                                 menuOpen = false
-                                actions.onMarkUnread()
-                            },
-                        )
+                                savedDialog = it
+                            })
+                        } else {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.action_mark_unread)) },
+                                leadingIcon = { Icon(painterResource(R.drawable.ic_mark_unread), contentDescription = null) },
+                                onClick = {
+                                    menuOpen = false
+                                    actions.onMarkUnread()
+                                },
+                            )
+                        }
                     }
                 },
                 scrollBehavior = scrollBehavior,
@@ -203,6 +214,9 @@ fun ReaderScreen(
             )
         }
     }
+
+    val dialog = savedDialog
+    if (saved != null && dialog != null) SavedArticleDialog(saved, dialog, onDismiss = { savedDialog = null })
 
     if (showStyleSheet) {
         ModalBottomSheet(

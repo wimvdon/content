@@ -2,6 +2,20 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-17: Instapaper lives in the reader's own navigation
+
+The first Instapaper version had its own screen (Android) and dialog (web). The owner wanted the
+saved articles, folders and tags next to the feeds and folders, opening like feed articles, and
+managed like the feeds. Now the ☰ menu / sidebar has an Instapaper section (Unread, Liked, Archive,
+folders, tags), its lists use the article list's rows, a saved article opens in the reader (which
+loads the full article from the website, as for feeds) with like, archive, move, tags and delete,
+and Manage feeds and folders manages the Instapaper folders and tags. The owner chose: saved
+articles have no read state (archiving stays a deliberate action) and stay out of All articles.
+The list logic is shared in spirit (`InstapaperLists` on Android, `instapaperLibrary.ts` on the web,
+both tested): an article leaves a list when a change means it no longer belongs there (archived
+out of Unread, moved out of Archive), and the reader keeps it open. Rejected: marking a saved
+article read (or archiving it) by opening it, and mixing saved articles into All articles.
+
 ## 2026-10-17: Web: Google's popup only on a click
 
 The web app showed Google's sign-in popup every time it was opened. Its Drive sign-in was kept only
