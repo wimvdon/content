@@ -148,7 +148,7 @@ class AppStore {
     if (this.state.refreshing) return;
     this.set({ refreshing: true, readThisVisit: new Set() });
     // Read marks and feeds from other devices first, so they apply to the new articles.
-    await this.syncIfDue();
+    await this.sync();
     const feeds = [...this.state.library.feeds];
     const results = new Map<string, ReturnType<typeof parseFeed>>();
     const problems = new Map<string, FetchError["kind"] | "notAFeed">();
