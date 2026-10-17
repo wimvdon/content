@@ -124,6 +124,7 @@
     <string name="feed_name_hint">Leer lassen, um den Namen des Feeds zu verwenden</string>
     <string name="feed_folder">Ordner</string>
     <string name="feeds_drag_hint">Zieh einen Feed auf einen Ordner, um ihn dorthin zu verschieben.</string>
+    <string name="action_reorder">Neu anordnen</string>
     <string name="action_move_up">Nach oben</string>
     <string name="action_move_down">Nach unten</string>
     <plurals name="feeds_count">

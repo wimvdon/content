@@ -124,6 +124,7 @@
     <string name="feed_name_hint">Laat leeg om de eigen naam van de feed te gebruiken</string>
     <string name="feed_folder">Map</string>
     <string name="feeds_drag_hint">Sleep een feed naar een map om hem daarin te zetten.</string>
+    <string name="action_reorder">Volgorde wijzigen</string>
     <string name="action_move_up">Omhoog</string>
     <string name="action_move_down">Omlaag</string>
     <plurals name="feeds_count">

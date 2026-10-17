@@ -30,6 +30,8 @@ import androidx.compose.ui.unit.dp
 import be.wimvandonck.reader.R
 import be.wimvandonck.reader.instapaper.InstapaperFolder
 import be.wimvandonck.reader.instapaper.InstapaperTag
+import be.wimvandonck.reader.ui.theme.DragHandle
+import be.wimvandonck.reader.ui.theme.ReorderableColumn
 
 /** Instapaper's folders and tags, for Manage feeds and folders. Null when signed out. */
 data class InstapaperManageState(
@@ -66,21 +68,20 @@ fun InstapaperManageSection(
             modifier = Modifier.semantics { heading() },
         )
         Text(stringResource(R.string.instapaper_folders), style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 8.dp))
-        state.folders.forEachIndexed { index, folder ->
+        ReorderableColumn(
+            items = state.folders,
+            key = { it.id },
+            onMove = { from, to -> actions.onMoveFolder(state.folders[from], to - from) },
+        ) { folder ->
             ListItem(
                 headlineContent = { Text(folder.title) },
                 leadingContent = { Icon(painterResource(R.drawable.ic_folder), contentDescription = null) },
                 trailingContent = {
                     androidx.compose.foundation.layout.Row {
-                        IconButton(onClick = { actions.onMoveFolder(folder, -1) }, enabled = index > 0) {
-                            Icon(painterResource(R.drawable.ic_arrow_upward), contentDescription = stringResource(R.string.action_move_up))
-                        }
-                        IconButton(onClick = { actions.onMoveFolder(folder, 1) }, enabled = index < state.folders.lastIndex) {
-                            Icon(painterResource(R.drawable.ic_arrow_downward), contentDescription = stringResource(R.string.action_move_down))
-                        }
                         IconButton(onClick = { deleting = folder.id }) {
                             Icon(painterResource(R.drawable.ic_delete), contentDescription = stringResource(R.string.instapaper_delete_folder))
                         }
+                        DragHandle(handleModifier)
                     }
                 },
                 colors = rowColors,

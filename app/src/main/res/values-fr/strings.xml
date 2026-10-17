@@ -124,6 +124,7 @@
     <string name="feed_name_hint">Laissez vide pour utiliser le nom du flux</string>
     <string name="feed_folder">Dossier</string>
     <string name="feeds_drag_hint">Faites glisser un flux sur un dossier pour l’y ranger.</string>
+    <string name="action_reorder">Réorganiser</string>
     <string name="action_move_up">Monter</string>
     <string name="action_move_down">Descendre</string>
     <plurals name="feeds_count">
