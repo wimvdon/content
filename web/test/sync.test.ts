@@ -105,3 +105,15 @@ describe("library", () => {
     expect(S.apply(applied, S.merge(doc, doc, doc))).toEqual(applied);
   });
 });
+
+describe("sync timing", () => {
+  it("syncs when never synced, or when the last sync is more than a few seconds ago", () => {
+    const now = 1_000_000;
+    expect(S.syncDue(null, now)).toBe(true);
+    expect(S.syncDue(now, now)).toBe(false);
+    expect(S.syncDue(now - S.MIN_GAP_MS + 1, now)).toBe(false);
+    expect(S.syncDue(now - S.MIN_GAP_MS, now)).toBe(true);
+    expect(S.syncDue(now - S.VISIBLE_INTERVAL_MS, now)).toBe(true);
+    expect(S.syncDue(now + 5_000, now)).toBe(true);
+  });
+});

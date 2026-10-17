@@ -28,8 +28,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleResumeEffect
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import be.wimvandonck.reader.R
 import be.wimvandonck.reader.data.AddFeedResult
 import be.wimvandonck.reader.data.Article
@@ -142,6 +145,8 @@ fun RssReaderNavigation() {
     fun refresh() {
         readThisVisit = emptySet()
         app.appScope.launch {
+            // Read marks and feeds from other devices first, so they apply to the new articles.
+            app.sync.syncIfDue()
             val failed = repository.refreshAll()
             if (failed > 0) showMessage(resources.getQuantityString(R.plurals.refresh_failed, failed, failed))
         }
@@ -220,6 +225,12 @@ fun RssReaderNavigation() {
             app.refreshedThisSession = true
             refresh()
         }
+    }
+
+    // Sync while the app is on screen: when it comes back and every minute (SyncManager).
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    LaunchedEffect(lifecycle, libraryOrNull != null) {
+        if (libraryOrNull != null) lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) { app.sync.whileVisible() }
     }
 
     // Apps that accept shared links, for Settings › Save and share; apps may have been installed

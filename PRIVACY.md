@@ -1,6 +1,6 @@
 # Privacy policy
 
-_Last updated: 2026-10-17 (new name Reader; Instapaper sign-in removed; videos on the web open as cards)_
+_Last updated: 2026-10-17 (sync while the app is on screen: every minute and on refresh)_
 
 Reader has no account, analytics, advertising or crash reporting, and no server of its own.
 Sync, if you turn it on, uses your own Google Drive.
@@ -27,8 +27,8 @@ Sync, if you turn it on, uses your own Google Drive.
   The icon is shown next to the feed's name. These servers see the same as for the feed.
 - **Sync with Google Drive (off unless you connect it).** In Settings › Sync › Connect, Google
   asks whether Reader may use its own hidden folder in your Google Drive (`drive.appdata`).
-  Reader can't see your other files. While the app is open (at start, a few seconds after a
-  change, and on Sync now) it reads and writes one file there, `rss-reader-sync.json`, with your
+  Reader can't see your other files. While the app is on screen (when it opens, every minute,
+  a few seconds after a change, on refresh, and on Sync now; never in the background) it reads and writes one file there, `rss-reader-sync.json`, with your
   feed list (addresses, names, folders, website and icon addresses), your folders, and which
   articles you read in the last 120 days (feed address, article id and date). Article texts and
   settings are not in it. The file goes to Google (www.googleapis.com) under Google's privacy
