@@ -13,6 +13,13 @@ two or three Drive requests, so a minute is far below Google's per-user limits. 
 on every single read mark (the two-second wait already sends a row of them as one), syncing in
 the background (no background work, see `CLAUDE.md`), and Drive's push notifications (they need a
 server to receive them).
+## 2026-10-17: The web app's addresses are built in
+
+The feed loader's address and the Google client ID were settings in the web app (filled in from
+the build), with a Connections section that only made sense to a developer. Both are public, so
+they are now constants in `web/src/lib/config.ts` and Settings no longer shows them. Rejected:
+keeping them as build variables (`.env.production`), which added a step without a benefit for a
+single published site.
 
 ## 2026-10-17: New name "Reader" and package `be.wimvandonck.reader`
 

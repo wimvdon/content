@@ -18,15 +18,15 @@ JavaScript, CSS): it runs entirely in the browser and keeps its data there (Inde
 - Keyboard: `j`/`k` next/previous article, `m` read/unread, `o` open on the website, `r` refresh.
 - Languages: English, Dutch, French, German, Spanish, Italian (the browser's language).
 
-## Settings it needs
+## Addresses it uses
 
-Both are set for the published site in `.env.production` (they are not secrets), and can be
-changed in the app's Settings:
+Both are public (every visitor's browser sees them), so they are built in, in
+`src/lib/config.ts`, and are not settings:
 
-| Variable | What |
+| Constant | What |
 |---|---|
-| `VITE_PROXY_URL` | The feed loader's address, e.g. `https://rss-reader-feeds.<you>.workers.dev` |
-| `VITE_GOOGLE_CLIENT_ID` | The Google Cloud OAuth client ID of type "Web application" (docs/sync.md, step 5) |
+| `PROXY_URL` | The feed loader's address (`../worker/`) |
+| `GOOGLE_CLIENT_ID` | The Google Cloud OAuth client ID of type "Web application" (docs/sync.md, step 5) |
 
 ## Deploying (Cloudflare Workers)
 
@@ -34,7 +34,7 @@ It is published as a Worker with static assets (`wrangler.jsonc`), next to the f
 
 1. Workers & Pages › Create › Import a repository › this repository, name `rss-reader-web`.
 2. Root directory `web`, build command `npm run build`, deploy command `npx wrangler deploy`.
-3. The feed loader's address and the Google client ID are in `.env.production`.
+3. The feed loader's address and the Google client ID are in `src/lib/config.ts`.
 4. The site's address (`https://rss-reader-web.<account>.workers.dev`) must be in
    `ALLOWED_ORIGINS` in `../worker/wrangler.toml` and in the Google client's Authorized JavaScript
    origins.

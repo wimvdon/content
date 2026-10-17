@@ -103,8 +103,7 @@ signed in with your Google account. It is free.
    web". Under Authorized JavaScript origins, Add URI:
    `https://rss-reader-web.wim-d57.workers.dev` (no slash at the end). Leave Authorized redirect
    URIs empty. Create, and copy the **Client ID** (ending in `.apps.googleusercontent.com`; not
-   the client secret, which isn't needed) into `web/.env.production` as `VITE_GOOGLE_CLIENT_ID`,
-   or into the web app's Settings.
+   the client secret, which isn't needed) into `web/src/lib/config.ts` as `GOOGLE_CLIENT_ID`.
 
 Changes in Google Cloud can take a few minutes, sometimes longer, to take effect.
 

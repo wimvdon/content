@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { GOOGLE_CLIENT_ID } from "./config";
 import { findFeed } from "./discovery";
 import { GoogleAuth, GoogleDrive, SyncError, type SyncProblem, type SyncProvider } from "./drive";
 import { parseFeed } from "./feedParser";
@@ -15,10 +16,6 @@ export type Theme = "system" | "light" | "dark";
 export type SyncService = "none" | "googleDrive";
 
 export interface Settings {
-  /** The Cloudflare Worker that loads feeds (worker/). */
-  proxyUrl: string;
-  /** Google's OAuth client ID for this web app (docs/sync.md). */
-  googleClientId: string;
   syncService: SyncService;
   lastSyncedAt: number | null;
   unreadOnly: boolean;
@@ -43,8 +40,6 @@ export interface State {
 }
 
 const defaults: Settings = {
-  proxyUrl: import.meta.env.VITE_PROXY_URL ?? "",
-  googleClientId: import.meta.env.VITE_GOOGLE_CLIENT_ID ?? "",
   syncService: "none",
   lastSyncedAt: null,
   unreadOnly: true,
@@ -96,9 +91,6 @@ class AppStore {
       load<string>("syncBase").catch(() => undefined),
     ]);
     const merged = { ...defaults, ...settings, readerStyle: readerStyleOf(settings?.readerStyle) };
-    // Addresses set when building win over empty saved ones.
-    if (!merged.proxyUrl) merged.proxyUrl = defaults.proxyUrl;
-    if (!merged.googleClientId) merged.googleClientId = defaults.googleClientId;
     this.knownRead = new Set(Object.keys((base && S.decode(base)?.read) || {}));
     this.set({ loaded: true, library: library ?? L.emptyLibrary(), settings: merged });
     this.syncWhileVisible();
@@ -150,10 +142,10 @@ class AppStore {
     this.set({ readThisVisit: new Set() });
   }
 
-  private fetch = (url: string) => fetchViaProxy(this.state.settings.proxyUrl, url);
+  private fetch = (url: string) => fetchViaProxy(url);
 
   async refresh() {
-    if (this.state.refreshing || !this.state.settings.proxyUrl) return;
+    if (this.state.refreshing) return;
     this.set({ refreshing: true, readThisVisit: new Set() });
     // Read marks and feeds from other devices first, so they apply to the new articles.
     await this.syncIfDue();
@@ -279,13 +271,13 @@ class AppStore {
 
   private provider(): SyncProvider | null {
     if (this.state.settings.syncService !== "googleDrive") return null;
-    if (!this.auth) this.auth = new GoogleAuth(this.state.settings.googleClientId);
+    if (!this.auth) this.auth = new GoogleAuth(GOOGLE_CLIENT_ID);
     return new GoogleDrive(this.auth);
   }
 
   /** From a click: shows Google's screen, then syncs. */
   async connectGoogleDrive() {
-    this.auth = new GoogleAuth(this.state.settings.googleClientId);
+    this.auth = new GoogleAuth(GOOGLE_CLIENT_ID);
     try {
       await this.auth.connect();
     } catch (e) {
