@@ -134,6 +134,7 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.browser)
     // Article pictures: hero images, list thumbnails, inline images (see docs/decisions.md).
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)

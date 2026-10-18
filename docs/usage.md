@@ -133,7 +133,7 @@ website (the same as **Read on website** at the end). In the top bar:
 | **Aa** | Text settings: font (Sans or Serif), text size, spacing (Compact, Normal, Relaxed), background (Theme, Sepia or Dark) and **Auto dark** (the dark page whenever the app is dark, e.g. Sepia by day and dark at night). Changes apply right away and are remembered for every article. |
 | Bookmark | **Save**: keeps the article in **Saved** (by default), or sends it to the app you chose or the share menu (see below). Signed in to Instapaper, it saves straight to your account. |
 | Share | **Share**: the share menu, or straight to the app you chose. |
-| ⋮ | **Open in browser** and **Mark as unread**. |
+| ⋮ | **Open in browser** and **Mark as unread**. Open in browser, and links in an article, open in a tab of your browser on top of Reader, with a **Save** button (bookmark with a plus) in its toolbar: it saves the page shown to Saved and opens the save sheet in Reader. |
 
 **Full articles.** Many feeds contain only the start of an article, or a few paragraphs with a
 "Read full article" link. Then the reader fetches the

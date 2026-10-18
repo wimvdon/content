@@ -68,6 +68,11 @@ RssReaderApp ── SettingsStore ── DataStore "settings" (Preferences)
    `RssReaderApp.sharedLink`. `Navigation` saves it like the Save button once Saved is ready
    (`saveLink`), which opens the save sheet (`JustSavedSheet`). Reader leaves itself out of its own
    share menu (`EXTRA_EXCLUDE_COMPONENTS`).
+7. Web links open in a custom tab (#95, `ExternalApps.openInTab`, AndroidX Browser) with a Save
+   action button. Its `PendingIntent` (mutable, so the browser can add the page shown as the data)
+   goes to `MainActivity` with `ACTION_SAVE_FROM_TAB` and the link and title Reader opened;
+   `SharedLink.fromTab` keeps that title only while the tab still shows that page. From there it
+   takes the same path as a share (`RssReaderApp.sharedLink`, `saveLink`, `JustSavedSheet`).
 
 ## Patterns
 

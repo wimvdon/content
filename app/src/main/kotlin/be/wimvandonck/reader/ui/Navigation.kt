@@ -530,12 +530,12 @@ fun RssReaderNavigation() {
                                         }
                                     },
                                     onShare = { article?.let { send(it, current.shareTarget) } },
-                                    onOpenInBrowser = { article?.link?.let { ExternalApps.openLink(context, it) } },
+                                    onOpenInBrowser = { article?.let { a -> a.link?.let { ExternalApps.openInTab(context, it, a.title) } } },
                                     onMarkUnread = {
                                         app.appScope.launch { repository.setRead(screen.articleKey, false) }
                                         pop()
                                     },
-                                    onOpenLink = { url -> ExternalApps.openLink(context, url) },
+                                    onOpenLink = { url -> ExternalApps.openInTab(context, url, null) },
                                     onToggleFullText = { fullTextChoice = !wantFullText },
                                 ),
                             saved =

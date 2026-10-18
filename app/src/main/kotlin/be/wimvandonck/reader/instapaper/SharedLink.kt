@@ -13,6 +13,21 @@ data class SharedLink(
         private val LINK = Regex("""https?://[^\s<>"]+""", RegexOption.IGNORE_CASE)
 
         /**
+         * The page a custom tab's Save button was tapped on (#95): [current] is the tab's page (the
+         * browser adds it), [opened] and [openedTitle] the link Reader opened. The title is only
+         * used while the tab still shows that page. Null when [current] is not a web link.
+         */
+        fun fromTab(
+            current: String?,
+            opened: String?,
+            openedTitle: String?,
+        ): SharedLink? {
+            val url = current?.trim()?.takeIf { LINK.matchEntire(it) != null } ?: return null
+            val title = openedTitle?.trim()?.takeIf { it.isNotEmpty() && url == opened?.trim() }
+            return SharedLink(url, title)
+        }
+
+        /**
          * Reads a share (Android's send action with text): the first web link in [text], else in
          * [subject]. Apps send "Title" as the subject and the link as the text, or "Title link" in
          * the text; the title is the subject, else the text without the link when that is one
