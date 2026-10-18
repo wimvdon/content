@@ -206,8 +206,10 @@ on every device.
 - The ☰ drawer (the web app: the sidebar) has a **Saved** section under Feeds: Saved,
   Liked, your Instapaper folders, your tags and, last, Archive. On an Instapaper list, tabs under the title
   show the same places, with **Tags** (chips under it pick the tag). Each shows its saved articles in the same
-  list as feed articles, and they open in the same reader (the whole article loads from its
-  website, like a feed's). Saved articles have no read state and are not in All articles: you
+  list as feed articles, and they open in the same reader. An article saved from one of your feeds
+  looks just like it did there (the feed's name and icon, picture and text), with the same choice
+  in the reader between the feed's text and the full article; others show the website's icon and
+  Instapaper's description, and the full article loads from the website, like a feed's. Saved articles have no read state and are not in All articles: you
   archive them yourself. In the reader: like (♥), archive (or move back to Saved), and in ⋮ move
   to a folder (signed in) (or **New folder**: name it and the article goes straight in), tags (add or remove) and
   delete for good (asks first). The sheet after Save has **New folder** too.

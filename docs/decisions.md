@@ -2,6 +2,20 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-18: Saved articles show like the feed article they came from
+
+The owner found that saved cards looked different from feed cards (no website icon) and asked that
+saved articles use the same engine as feeds, signed in or not (#87). A saved article is now matched
+with the feed article of the same address (ignoring http(s), www., a trailing slash and the #part)
+while the library still has it: its card and reader use that article's text, author and picture,
+under its feed's name and icon, so the reader's "feed text or full article" works exactly as for a
+feed. Without a match, the card shows Instapaper's description and picture (Android now reads the
+picture too, like the web), under a feed of the same website if the user follows one, else the
+website with its `/favicon.ico`. Rejected: storing a copy of the feed text with each saved article
+(more data on the device and in Instapaper's description, while the library already has it), and
+Instapaper's own parsed text as the "short" version (its API needs a separate paid key for accounts
+other than the owner's; see `instapaper.md`).
+
 ## 2026-10-18: Search results in one list, ranked, with chips; search on the web too
 
 The owner asked to mix feed and saved results, ranked by relevance and labelled, with filter chips

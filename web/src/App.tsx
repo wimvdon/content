@@ -70,7 +70,7 @@ export default function App() {
   }, [setOpenArticle]);
 
   const visible = useMemo(
-    () => (selection.kind === "instapaper" ? instapaperList.items.map(bookmarkArticle) : articlesFor(library, selection, settings.unreadOnly, readThisVisit)),
+    () => (selection.kind === "instapaper" ? instapaperList.items.map((b) => bookmarkArticle(b, library)) : articlesFor(library, selection, settings.unreadOnly, readThisVisit)),
     [library, selection, settings.unreadOnly, readThisVisit, instapaperList.items],
   );
 

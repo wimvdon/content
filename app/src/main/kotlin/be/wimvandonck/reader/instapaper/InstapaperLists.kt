@@ -1,7 +1,10 @@
 package be.wimvandonck.reader.instapaper
 
 import be.wimvandonck.reader.data.Article
+import be.wimvandonck.reader.data.Feed
+import be.wimvandonck.reader.data.Library
 import be.wimvandonck.reader.feed.Html
+import java.net.URI
 
 /** What happened to a saved article. */
 sealed interface BookmarkChange {
@@ -28,19 +31,71 @@ object InstapaperLists {
 
     fun isSaved(article: Article): Boolean = article.feedUrl == FEED
 
-    /** A saved article as the list and the reader show it. The reader loads the page for the full text. */
-    fun article(bookmark: InstapaperBookmark): Article =
-        Article(
+    /**
+     * A saved article as the list and the reader show it, the same way as a feed article. When
+     * [library] still has the feed article with the same address, its text, author and picture are
+     * used (so the reader shows the feed's text, or the full article, like for a feed); otherwise
+     * Instapaper's description and picture. The reader loads the page for the full text.
+     */
+    fun article(
+        bookmark: InstapaperBookmark,
+        library: Library? = null,
+    ): Article {
+        val fromFeed = library?.let { feedArticle(bookmark, it) }
+        return Article(
             feedUrl = FEED,
             id = bookmark.id.toString(),
-            title = bookmark.title.ifEmpty { bookmark.url.orEmpty() },
+            title = bookmark.title.ifEmpty { fromFeed?.title ?: bookmark.url.orEmpty() },
             link = bookmark.link,
-            author = null,
-            html = if (bookmark.description.isBlank()) "" else "<p>${Html.escape(bookmark.description)}</p>",
+            author = fromFeed?.author,
+            html = fromFeed?.html ?: if (bookmark.description.isBlank()) "" else "<p>${Html.escape(bookmark.description)}</p>",
             publishedAt = bookmark.time * 1000,
             fetchedAt = bookmark.time * 1000,
             read = false,
+            imageUrl = fromFeed?.imageUrl ?: bookmark.imageUrl,
         )
+    }
+
+    /** The feed article with the same address as a saved article, while the library still has it. */
+    fun feedArticle(
+        bookmark: InstapaperBookmark,
+        library: Library,
+    ): Article? {
+        val address = addressKey(bookmark.url) ?: return null
+        return library.articles.firstOrNull { addressKey(it.link) == address }
+    }
+
+    /**
+     * Where a saved article comes from, shown above its title like a feed: the feed it was saved
+     * from, else a feed of the same website, else the website itself with its icon (favicon).
+     */
+    fun source(
+        bookmark: InstapaperBookmark,
+        library: Library?,
+    ): Feed? {
+        val host = bookmark.host.ifEmpty { return null }
+        if (library != null) {
+            feedArticle(bookmark, library)?.let { article -> library.feed(article.feedUrl)?.let { return it } }
+            library.feeds.firstOrNull { hostOf(it.siteUrl) == host || hostOf(it.url) == host }?.let { return it }
+        }
+        return Feed(url = host, title = host, iconUrl = "https://${bookmark.url?.let(::hostWithWww) ?: host}/favicon.ico")
+    }
+
+    /** An address without what doesn't change the page (http(s), www., a trailing slash, the #part). */
+    fun addressKey(url: String?): String? {
+        if (url.isNullOrBlank()) return null
+        return url
+            .trim()
+            .substringBefore('#')
+            .replaceFirst(Regex("^https?://", RegexOption.IGNORE_CASE), "")
+            .replaceFirst(Regex("^www\\.", RegexOption.IGNORE_CASE), "")
+            .trimEnd('/')
+            .lowercase()
+    }
+
+    private fun hostOf(url: String?): String = url?.let { runCatching { URI(it).host.orEmpty().removePrefix("www.") }.getOrDefault("") }.orEmpty()
+
+    private fun hostWithWww(url: String): String? = runCatching { URI(url).host }.getOrNull()?.takeIf { it.isNotEmpty() }
 
     /** Whether a saved article belongs in a list: Unread holds what is in no folder and not archived. */
     fun inView(

@@ -78,6 +78,14 @@ class InstapaperClientTest {
     }
 
     @Test
+    fun `keeps a saved article's picture only when it is https`() {
+        fun image(url: String?) = InstapaperClient.parseBookmark(mapOf("id" to 1L, "image" to url))?.imageUrl
+        assertEquals("https://a.example/p.jpg", image("https://a.example/p.jpg"))
+        assertNull(image("http://a.example/p.jpg"))
+        assertNull(image(null))
+    }
+
+    @Test
     fun `reads folders in the user's order, and tags`() {
         val folders = InstapaperClient.parseFolderList("""{"folders": [{"id": 2, "title": "B", "position": 2}, {"id": 1, "title": "A", "position": 1}]}""")
         assertEquals(listOf(InstapaperFolder(1, "A", 1), InstapaperFolder(2, "B", 2)), folders)

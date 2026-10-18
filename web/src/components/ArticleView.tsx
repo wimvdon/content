@@ -4,7 +4,7 @@ import { app, useApp } from "@/lib/app";
 import { extractArticle, needsFullText } from "@/lib/fullArticle";
 import { cached, cachedNow, keep } from "@/lib/fullArticleStore";
 import { formatDateTime, t } from "@/lib/i18n";
-import { hostOf, isInstapaperArticle } from "@/lib/instapaperLibrary";
+import { hostOf, isInstapaperArticle, siteOf, sourceOf } from "@/lib/instapaperLibrary";
 import { problemText } from "@/lib/instapaperText";
 import { articleKey, sortTime, type Article } from "@/lib/library";
 import { fetchViaProxy } from "@/lib/proxy";
@@ -24,13 +24,15 @@ type Full = { link: string; html: string | null };
 export function ArticleView({ article, onBack, onMessage }: { article: Article; onBack: () => void; onMessage: (text: string) => void }) {
   const { library, settings, instapaper, instapaperOpen } = useApp();
   const [saving, setSaving] = useState(false);
-  // A saved Instapaper article: no read state, its website instead of a feed, Instapaper's actions.
+  // A saved article: no read state, the feed it came from (or its website) above it, Saved's actions.
   const saved = isInstapaperArticle(article) && instapaperOpen && String(instapaperOpen.id) === article.id ? instapaperOpen : null;
   const site = hostOf(article.link);
   const feed = isInstapaperArticle(article)
-    ? site
-      ? { url: site, title: site, siteUrl: null, folderId: null, iconUrl: null, renamed: false }
-      : undefined
+    ? saved
+      ? sourceOf(saved, library)
+      : site
+        ? siteOf(site)
+        : undefined
     : library.feeds.find((f) => f.url === article.feedUrl);
   const current = library.articles.find((a) => articleKey(a) === articleKey(article)) ?? article;
   const link = article.link;

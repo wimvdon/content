@@ -8,6 +8,11 @@ show in the same list and reader as feed articles (without read state; archiving
 Signing in also opens the user's Reader account, which syncs the library (`docs/account.md`). Not signed
 in, the same **Saved** section works on the phone or in the browser itself (`LocalSaved`, see below).
 
+Saved articles show in lists, Search and the reader like the feed article with the same address when
+the library still has it (`InstapaperLists.article`/`source`, web `bookmarkArticle`/`sourceOf`): the
+feed's text, picture, name and icon, and the same choice between that text and the full article.
+Otherwise they show Instapaper's description and picture under their website's icon.
+
 In the app this section is called **Saved**, with or without an account, and its first list (Instapaper's
 Unread, "home") is called **Saved** too, so it isn't mixed up with unread feed articles.
 

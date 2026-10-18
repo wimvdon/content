@@ -4,7 +4,7 @@ import { app, useApp } from "@/lib/app";
 import { snippet } from "@/lib/html";
 import { dayLabel, plural, t } from "@/lib/i18n";
 import type { View } from "@/lib/instapaper";
-import { bookmarkArticle, hostOf, siteOf, viewTitle } from "@/lib/instapaperLibrary";
+import { bookmarkArticle, sourceOf, viewTitle } from "@/lib/instapaperLibrary";
 import { articleKey, articlesFor, sortTime, unreadKeys, type Article, type Feed } from "@/lib/library";
 import { scrolledPast } from "@/lib/scrollRead";
 import { FeedIcon } from "./FeedIcon";
@@ -166,7 +166,7 @@ function InstapaperArticles({
   onMenu: () => void;
   onSearch: () => void;
 }) {
-  const { instapaperList: list, instapaperFolders } = useApp();
+  const { instapaperList: list, instapaperFolders, library } = useApp();
   const title = viewTitle(view, instapaperFolders, { home: t("saved"), liked: t("instapaperLiked"), archive: t("instapaperArchiveList") });
   const items = list.items;
   return (
@@ -197,11 +197,10 @@ function InstapaperArticles({
         ) : (
           <ul className="space-y-1">
             {items.map((b) => {
-              const article = bookmarkArticle(b);
-              const host = hostOf(b.url);
+              const article = bookmarkArticle(b, library);
               return (
                 <li key={b.id}>
-                  <Row article={article} feed={host ? siteOf(host) : undefined} open={openKey === articleKey(article)} onOpen={() => onOpen(article)} noReadState />
+                  <Row article={article} feed={sourceOf(b, library)} open={openKey === articleKey(article)} onOpen={() => onOpen(article)} noReadState />
                 </li>
               );
             })}

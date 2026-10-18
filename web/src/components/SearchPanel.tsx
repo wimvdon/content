@@ -2,7 +2,7 @@ import { ArrowLeft, Check, Loader2, Search, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { app, useApp } from "@/lib/app";
 import { t } from "@/lib/i18n";
-import { bookmarkArticle, hostOf, siteOf } from "@/lib/instapaperLibrary";
+import { bookmarkArticle, sourceOf } from "@/lib/instapaperLibrary";
 import { articleKey, type Article } from "@/lib/library";
 import { indexArticles, mix, searchArticles, searchSaved, type SavedArticles, type SearchFilter } from "@/lib/search";
 import { Empty, Row } from "./ArticleList";
@@ -119,13 +119,12 @@ export function SearchPanel({ openKey, onOpen, onClose }: { openKey: string | nu
                   </li>
                 );
               }
-              const article = bookmarkArticle(hit.bookmark);
-              const host = hostOf(hit.bookmark.url);
+              const article = bookmarkArticle(hit.bookmark, library);
               return (
                 <li key={`saved:${hit.bookmark.id}`}>
                   <Row
                     article={article}
-                    feed={host ? siteOf(host) : undefined}
+                    feed={sourceOf(hit.bookmark, library)}
                     open={openKey === articleKey(article)}
                     onOpen={() => {
                       app.openSaved(hit.bookmark);
