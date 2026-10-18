@@ -94,6 +94,7 @@ and then (always before a release):
       without refreshing. Rename a feed: the same. Delete synced data: both say to sign in again.
 - [ ] **Save** sends to the app chosen in Settings › Save and share (Instapaper by default);
       **Share** opens the share menu or the chosen app. An uninstalled app falls back to the share menu.
+      Signed in to Instapaper, Settings › Save and share has no Save button row (Save goes to the account).
 - [ ] **List:** at app start the list shows loading placeholders, never "No feeds yet" first.
       Swipe an article left and right past a third: a tick, it becomes read, then unread; a short
       swipe does nothing; swiping never opens the ☰ menu. Unread | All under the title switches unread only / all.
