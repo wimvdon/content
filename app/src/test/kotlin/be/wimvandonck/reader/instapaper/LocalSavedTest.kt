@@ -154,4 +154,69 @@ class LocalSavedTest {
         assertEquals(emptyList<InstapaperFolder>(), model.state.value.folders)
         assertEquals(null, model.state.value.problem)
     }
+    @Test
+    fun `signing in copies the saved articles to the account with their like, archive and tags, newest on top`() =
+        runBlocking {
+            val a = save("https://a.example/1", "One")
+            val b = save("https://a.example/2")
+            saved.setTags(a.id, listOf("Travel"), emptyList())
+            saved.like(a.id, true)
+            saved.move(b.id, "archive")
+            val account = FakeAccount()
+            val upload = saved.uploadTo(account)
+            assertEquals(LocalUpload(2, null), upload)
+            // Moved, not copied: nothing is left on the phone.
+            assertEquals(LocalSavedData(nextId = storage.data.nextId), storage.data)
+            val one = account.list(InstapaperView.Liked, 0, 50).bookmarks.single()
+            assertEquals("https://a.example/1", one.url)
+            assertEquals("One", one.title)
+            assertEquals(listOf("Travel"), one.tags.map { it.name })
+            assertFalse(one.archived)
+            val two = account.list(InstapaperView.Archive, 0, 50).bookmarks.single()
+            // An article without a title gets the one Instapaper finds, not its address.
+            assertEquals(listOf("https://a.example/1" to "One", "https://a.example/2" to null), account.titles)
+            assertEquals("https://a.example/2", two.url)
+        }
+
+    @Test
+    fun `a copy that stops halfway keeps the rest on the phone and goes on the next time`() =
+        runBlocking {
+            save("https://a.example/1")
+            save("https://a.example/2")
+            save("https://a.example/3")
+            val account = FakeAccount(answers = 1)
+            assertEquals(LocalUpload(1, InstapaperProblem.RateLimited), saved.uploadTo(account))
+            assertEquals(listOf("https://a.example/2", "https://a.example/3"), storage.data.bookmarks.map { it.url })
+            account.answers = Int.MAX_VALUE
+            assertEquals(LocalUpload(2, null), saved.uploadTo(account))
+            assertEquals(emptyList<InstapaperBookmark>(), storage.data.bookmarks)
+            // Oldest first, so the newest is on top in the account too.
+            assertEquals(listOf("https://a.example/3", "https://a.example/2", "https://a.example/1"), account.list(InstapaperView.Home, 0, 50).bookmarks.map { it.url })
+            assertEquals(LocalUpload(0, null), saved.uploadTo(account))
+        }
+}
+
+/** The Instapaper account for the copy: another [LocalSaved] in memory, which stops answering after [answers] saves. */
+private class FakeAccount(
+    var answers: Int = Int.MAX_VALUE,
+    private val inner: LocalSaved = LocalSaved(MemoryStorage(), clock()),
+) : InstapaperService by inner {
+    val titles = mutableListOf<Pair<String, String?>>()
+
+    override suspend fun save(
+        url: String,
+        title: String?,
+    ): InstapaperBookmark? {
+        if (answers-- <= 0) throw InstapaperException(InstapaperProblem.RateLimited)
+        titles += url to title
+        return inner.save(url, title)
+    }
+
+    private companion object {
+        /** A clock that ticks a second on every reading, so saves keep their order. */
+        fun clock(): () -> Long {
+            var now = 0L
+            return { (now++) * 1000 }
+        }
+    }
 }

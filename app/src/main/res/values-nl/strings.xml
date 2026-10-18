@@ -224,4 +224,8 @@
     <string name="saved_manage_title">Tags</string>
     <string name="saved_manage_empty">Tags die je aan bewaarde artikelen toevoegt, verschijnen hier, zodat je ze kunt hernoemen.</string>
     <string name="share_target_saved">Bewaard, in deze app</string>
+    <plurals name="saved_copied">
+        <item quantity="one">%d artikel dat op deze telefoon bewaard was, staat nu in Instapaper</item>
+        <item quantity="other">%d artikels die op deze telefoon bewaard waren, staan nu in Instapaper</item>
+    </plurals>
 </resources>

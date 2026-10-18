@@ -19,6 +19,7 @@ import {
 } from "./instapaper";
 import { applyChange, patchBookmark, sameView, type Change } from "./instapaperLibrary";
 import { problemText } from "./instapaperText";
+import { LocalSaved, localSavedOf, type SavedService } from "./localSaved";
 import * as L from "./library";
 import { importOpml, parseOpml, writeOpml } from "./opml";
 import { fetchViaProxy, FetchError } from "./proxy";
@@ -56,6 +57,8 @@ export interface State {
   instapaper: InstapaperSession | null;
   /** The result of coming back from Instapaper's sign-in page, shown once. */
   instapaperNotice: "signedIn" | "failed" | null;
+  /** How many articles saved in this browser were just copied to the account, shown once; 0 when none. */
+  savedCopied: number;
   /** Instapaper's folders and tags, for the sidebar and Manage; read again after every change. */
   instapaperFolders: InstapaperFolder[];
   instapaperTags: InstapaperTag[];
@@ -103,6 +106,7 @@ class AppStore {
     syncStatus: { kind: "idle" },
     instapaper: null,
     instapaperNotice: null,
+    savedCopied: 0,
     instapaperFolders: [],
     instapaperTags: [],
     instapaperList: emptyInstapaperList,
@@ -116,6 +120,13 @@ class AppStore {
   /** A sync was asked for while one was running: it runs once more afterwards. */
   private syncAgain = false;
   private live: LiveUpdates | null = null;
+  /** Saved without an account: the articles saved in this browser (docs/instapaper.md). */
+  private localSaved = new LocalSaved({
+    read: async () => localSavedOf(await load("saved").catch(() => undefined)),
+    write: (data) => save("saved", data),
+  });
+  /** The copy of `localSaved` to the account that is running, so no article is sent twice. */
+  private copying: Promise<void> | null = null;
 
   subscribe = (listener: () => void) => {
     this.listeners.add(listener);
@@ -150,6 +161,7 @@ class AppStore {
     });
     void this.loadInstapaperSides();
     if (location.pathname === CALLBACK_PATH) await this.finishInstapaperSignIn(location.search);
+    else void this.copyLocalSaved();
     this.syncWhileVisible();
     if (this.accountKey()) await this.sync();
     if (this.state.library.feeds.length > 0) await this.refresh();
@@ -396,6 +408,7 @@ class AppStore {
       await this.setInstapaper(session);
       this.set({ instapaperNotice: "signedIn" });
       this.updateLive();
+      void this.copyLocalSaved();
       void this.sync();
     } catch {
       this.set({ instapaperNotice: "failed" });
@@ -404,6 +417,29 @@ class AppStore {
 
   clearInstapaperNotice() {
     this.set({ instapaperNotice: null });
+  }
+
+  /**
+   * Signed in, copies the articles saved in this browser to the account and shows them there. What
+   * didn't make it (offline, too many requests) is tried again the next time the app opens.
+   */
+  private copyLocalSaved(): Promise<void> {
+    const session = this.state.instapaper;
+    if (!session || this.copying) return this.copying ?? Promise.resolve();
+    this.copying = (async () => {
+      const upload = await this.localSaved.uploadTo(new InstapaperApi(session.token));
+      if (upload.problem === "auth") await this.disconnectInstapaper();
+      if (upload.copied === 0 || this.state.instapaper?.token !== session.token) return;
+      this.set({ savedCopied: upload.copied });
+      void this.loadInstapaperSides();
+      const s = this.state.selection;
+      if (s.kind === "instapaper") void this.loadInstapaperList(s.view);
+    })().finally(() => (this.copying = null));
+    return this.copying;
+  }
+
+  clearSavedCopied() {
+    this.set({ savedCopied: 0 });
   }
 
   /** Signs out of Instapaper and the account in this browser; the library stays here. */
@@ -454,15 +490,16 @@ class AppStore {
       void this.loadInstapaperSides();
       return;
     }
+    // Back to the articles saved in this browser, which have no folders.
     this.set({ instapaper: null, instapaperFolders: [], instapaperTags: [], instapaperList: emptyInstapaperList, instapaperOpen: null, instapaperJustSaved: null });
-    if (this.state.selection.kind === "instapaper") this.select({ kind: "all" });
+    void this.loadInstapaperSides();
+    if (this.state.selection.kind === "instapaper") this.select({ kind: "instapaper", view: { kind: "home" } });
   }
 
   // Instapaper's lists, folders and tags, shown like the feeds (instapaperLibrary.ts).
 
   /** Reads the folders and tags again (their counts change with every move). */
   async loadInstapaperSides() {
-    if (!this.state.instapaper) return;
     try {
       const [folders, tags] = await this.withInstapaper(async (api) => [await api.folders(), await api.tags()] as const);
       this.set({ instapaperFolders: folders, instapaperTags: tags });
@@ -492,7 +529,7 @@ class AppStore {
   }
 
   /** Runs one change to a saved article and updates the list, the open article and the sidebar's counts. */
-  private async changeBookmark(id: number, run: (api: InstapaperApi) => Promise<Change>): Promise<boolean> {
+  private async changeBookmark(id: number, run: (api: SavedService) => Promise<Change>): Promise<boolean> {
     try {
       const change = await this.withInstapaper(run);
       const list = this.state.instapaperList;
@@ -559,7 +596,7 @@ class AppStore {
     });
 
   /** Folder and tag management (Manage feeds and folders). Each returns what went wrong, or null. */
-  private async manageInstapaper(run: (api: InstapaperApi) => Promise<void>): Promise<string | null> {
+  private async manageInstapaper(run: (api: SavedService) => Promise<void>): Promise<string | null> {
     try {
       await this.withInstapaper(run);
       return null;
@@ -599,10 +636,13 @@ class AppStore {
       if (s.kind === "instapaper" && s.view.kind === "tag" && s.view.name === tag.name) this.select({ kind: "instapaper", view: { kind: "tag", name: renamed.name } });
     });
 
-  /** Runs one Instapaper call. A token Instapaper no longer accepts signs the user out, so they can sign in again. */
-  async withInstapaper<T>(run: (api: InstapaperApi) => Promise<T>): Promise<T> {
+  /**
+   * Runs one call on Saved: Instapaper when signed in, else the articles saved in this browser. A
+   * token Instapaper no longer accepts signs the user out, so they can sign in again.
+   */
+  async withInstapaper<T>(run: (api: SavedService) => Promise<T>): Promise<T> {
     const session = this.state.instapaper;
-    if (!session) throw new InstapaperError("auth");
+    if (!session) return run(this.localSaved);
     try {
       return await run(new InstapaperApi(session.token));
     } catch (e) {

@@ -230,4 +230,9 @@
     <string name="saved_manage_title">Étiquettes</string>
     <string name="saved_manage_empty">Les étiquettes ajoutées aux articles enregistrés apparaissent ici, pour les renommer.</string>
     <string name="share_target_saved">Enregistrés, dans cette app</string>
+    <plurals name="saved_copied">
+        <item quantity="one">%d article enregistré sur ce téléphone copié dans Instapaper</item>
+        <item quantity="many">%d articles enregistrés sur ce téléphone copiés dans Instapaper</item>
+        <item quantity="other">%d articles enregistrés sur ce téléphone copiés dans Instapaper</item>
+    </plurals>
 </resources>

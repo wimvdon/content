@@ -63,7 +63,8 @@ devices stay the same.
 - **Save and Share.** By default Save keeps the article's title and link in the app's own Saved list
   on your phone; nothing is sent. When you set Save or Share to an app in Settings, or pick one in the
   share menu, the title and link go to that app, under its privacy policy. Signed in to Instapaper
-  (see above), Save sends them to your Instapaper account instead. Nothing is sent otherwise.
+  (see above), Save sends them to your Instapaper account instead, and signing in sends the ones saved
+  on the device before (see below). Nothing is sent otherwise.
 
 ## What the app stores on your device
 
@@ -71,7 +72,9 @@ devices stay the same.
 - If you are signed in: a copy of the synced document as last synced, to merge changes.
 - Your settings (theme, text settings, full articles, pictures, Save and Share targets, the Unread filter, mark as read on scroll).
 - Articles you saved without an Instapaper account: their address, title, when you saved them,
-  whether you liked or archived them, and their tags (`datastore/saved`). They are not sent anywhere.
+  whether you liked or archived them, and their tags (`datastore/saved`; on the web, the browser's
+  storage). They are not sent anywhere until you sign in to Instapaper: then they are copied to your
+  Instapaper account and removed from the device.
 - The text of full articles you opened, and recently shown pictures, in the app's cache (Android
   may clear it).
 - If you signed in to Instapaper: the access token, your Instapaper user name and this device's

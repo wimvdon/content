@@ -15,7 +15,7 @@ import { articleKey, articlesFor, type Article } from "./lib/library";
 /** Three panes on wide screens (feeds, list, article); one at a time on phones. */
 export default function App() {
   const state = useApp();
-  const { settings, library, selection, readThisVisit, instapaperNotice, instapaperList } = state;
+  const { settings, library, selection, readThisVisit, instapaperNotice, savedCopied, instapaperList } = state;
   // The open article belongs to the section it was opened in: another section closes it.
   const [opened, setOpened] = useState<{ article: Article; selection: typeof selection } | null>(null);
   const openArticle = opened?.selection === selection ? opened.article : null;
@@ -50,8 +50,16 @@ export default function App() {
     const timer = setTimeout(() => app.clearInstapaperNotice(), 6000);
     return () => clearTimeout(timer);
   }, [instapaperNotice]);
+  // Articles saved in this browser that were copied to Instapaper after signing in: say so once.
+  useEffect(() => {
+    if (!savedCopied) return;
+    const timer = setTimeout(() => app.clearSavedCopied(), 6000);
+    return () => clearTimeout(timer);
+  }, [savedCopied]);
   const shown: { text: string; undo?: () => void } | null =
-    message ?? (instapaperNotice ? { text: t(instapaperNotice === "signedIn" ? "instapaperSignedIn" : "instapaperSignInFailed") } : null);
+    message ??
+    (instapaperNotice ? { text: t(instapaperNotice === "signedIn" ? "instapaperSignedIn" : "instapaperSignInFailed") } : null) ??
+    (savedCopied ? { text: plural("savedCopied", savedCopied) } : null);
 
   const open = useCallback((a: Article) => {
     app.open(a);

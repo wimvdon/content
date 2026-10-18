@@ -10,7 +10,7 @@ import { ManageFeedsIcon, ManageInstapaperIcon } from "./ManageIcons";
 import { cn } from "./ui/cn";
 
 /**
- * The app's navigation: Feeds and, when signed in, Instapaper as two sections that fold open and
+ * The app's navigation: Feeds and Saved (Instapaper when signed in, else this browser) as two sections that fold open and
  * shut (remembered in this browser). Feeds: All articles, the folders with their feeds, the other
  * feeds. Saved (Instapaper): Saved, Liked, its folders, its tags and Archive. Then the ways to manage each,
  * and Settings. The same everywhere in the app, like the Android drawer.
@@ -107,7 +107,7 @@ export function Sidebar({
             />
           ))}
         </Section>
-        {instapaper ? (
+        {(
           <Section id={INSTAPAPER} title={t("saved")} open={!collapsed.has(INSTAPAPER)} onToggle={toggle}>
             {instapaperRow({ kind: "home" }, <Inbox />, t("saved"))}
             {instapaperRow({ kind: "liked" }, <Heart />, t("instapaperLiked"))}
@@ -137,11 +137,11 @@ export function Sidebar({
             <div className="mx-3 my-2 h-px bg-border" />
             {instapaperRow({ kind: "archive" }, <Archive />, t("instapaperArchiveList"))}
           </Section>
-        ) : null}
+        )}
       </div>
       <div className="border-t p-2">
         <Row selected={false} onClick={onManage} icon={<ManageFeedsIcon />} label={t("manageFeeds")} />
-        {instapaper ? <Row selected={false} onClick={onManageInstapaper} icon={<ManageInstapaperIcon />} label={t("manageInstapaper")} /> : null}
+        <Row selected={false} onClick={onManageInstapaper} icon={<ManageInstapaperIcon />} label={instapaper ? t("manageInstapaper") : t("manageTags")} />
         <Row selected={false} onClick={onSettings} icon={<SettingsIcon className="size-5" />} label={t("settings")} />
       </div>
     </nav>

@@ -196,13 +196,14 @@ The app follows the phone's language. To choose another one for this app only: A
 ## Saved articles
 
 **Saved** works with or without an Instapaper account. Without one, your saved articles stay on
-this phone (they are part of the phone's backup but don't sync), and there are no folders. Signed
-in, they are your Instapaper articles, with Instapaper's folders, on every device.
+this phone or in this browser (on the phone they are part of the phone's backup) but don't sync,
+and there are no folders. Signed in, they are your Instapaper articles, with Instapaper's folders,
+on every device.
 
 - **Save** (the bookmark button in the reader) saves the article. A sheet (a dialog on the web)
   opens at once: **Like** and **Archive** it, tap a folder to file it there (signed in) and add
   tags, then **Done**. Close it to leave the article in Saved.
-- The ☰ drawer (the web app: the sidebar, signed in) has a **Saved** section under Feeds: Saved,
+- The ☰ drawer (the web app: the sidebar) has a **Saved** section under Feeds: Saved,
   Liked, your Instapaper folders, your tags and, last, Archive. On an Instapaper list, tabs under the title
   show the same places, with **Tags** (chips under it pick the tag). Each shows its saved articles in the same
   list as feed articles, and they open in the same reader (the whole article loads from its
@@ -214,8 +215,10 @@ in, they are your Instapaper articles, with Instapaper's folders, on every devic
   folders (a deleted folder's articles go back to Saved) and rename tags. Signed out it is
   **☰ › Manage tags**, to rename the tags of the articles saved on the phone.
 
-Signing in shows your Instapaper articles instead of the ones saved on the phone; those stay on the
-phone (they aren't copied to Instapaper) and come back when you sign out.
+Signing in to Instapaper **copies the articles saved on this phone (or in this browser) to your
+Instapaper account**, with their likes, tags and archive, and a message says how many. They then
+live in Instapaper only. If the copy stops halfway (no connection, Instapaper busy), the rest is
+copied the next time you open the app.
 
 ## Instapaper account
 

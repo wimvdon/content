@@ -230,4 +230,9 @@
     <string name="saved_manage_title">Tag</string>
     <string name="saved_manage_empty">I tag che aggiungi agli articoli salvati compaiono qui, per rinominarli.</string>
     <string name="share_target_saved">Salvati, in questa app</string>
+    <plurals name="saved_copied">
+        <item quantity="one">%d articolo salvato su questo telefono copiato in Instapaper</item>
+        <item quantity="many">%d articoli salvati su questo telefono copiati in Instapaper</item>
+        <item quantity="other">%d articoli salvati su questo telefono copiati in Instapaper</item>
+    </plurals>
 </resources>

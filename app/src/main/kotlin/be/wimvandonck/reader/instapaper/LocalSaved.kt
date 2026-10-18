@@ -10,6 +10,12 @@ data class LocalSavedData(
     val nextId: Long = 1,
 )
 
+/** What [LocalSaved.uploadTo] did: how many articles it copied, and why it stopped early (null when all are copied). */
+data class LocalUpload(
+    val copied: Int,
+    val problem: InstapaperProblem?,
+)
+
 /** Where [LocalSaved] keeps its data: a DataStore file in the app ([LocalSavedStore]), in memory in tests. */
 interface LocalSavedStorage {
     suspend fun read(): LocalSavedData
@@ -20,7 +26,7 @@ interface LocalSavedStorage {
 
 /**
  * Saved articles without an account: the same lists, likes, archive and tags as Instapaper, kept
- * on this phone and not synced. There are no folders (moving to one is refused). Plain Kotlin,
+ * on this phone and not synced; signing in copies them to Instapaper ([uploadTo]). There are no folders (moving to one is refused). Plain Kotlin,
  * unit tested; the Saved screen uses it through [InstapaperModel] like the real account.
  */
 class LocalSaved(
@@ -139,6 +145,38 @@ class LocalSaved(
             )
         }
         return result!!
+    }
+
+    /**
+     * Copies the articles saved on this phone to the Instapaper account [remote] after signing in,
+     * with their like, archive and tags, oldest first so the newest ends on top. Each one is removed
+     * here once it is in the account, so a copy that stops halfway (offline, too many requests)
+     * goes on where it left off the next time.
+     */
+    suspend fun uploadTo(remote: InstapaperService): LocalUpload {
+        var copied = 0
+        for (local in storage.read().bookmarks.sortedBy { it.time }) {
+            try {
+                copyOne(local, remote)
+            } catch (e: InstapaperException) {
+                return LocalUpload(copied, e.problem)
+            }
+            if (local.url != null) copied++
+            storage.update { data -> data.copy(bookmarks = data.bookmarks.filterNot { it.id == local.id }).withoutUnusedTags() }
+        }
+        return LocalUpload(copied, null)
+    }
+
+    private suspend fun copyOne(
+        local: InstapaperBookmark,
+        remote: InstapaperService,
+    ) {
+        val url = local.url ?: return
+        val saved = remote.save(url, local.title.takeIf { it != url }) ?: return
+        if (local.liked && !saved.liked) remote.like(saved.id, true)
+        val names = local.tags.map { it.name }.filter { name -> saved.tags.none { it.name.equals(name, ignoreCase = true) } }
+        if (names.isNotEmpty()) remote.setTags(saved.id, names, emptyList())
+        if (local.archived) remote.move(saved.id, "archive")
     }
 
     private suspend fun change(

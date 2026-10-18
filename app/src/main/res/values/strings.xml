@@ -225,4 +225,8 @@
     <string name="saved_manage_title">Tags</string>
     <string name="saved_manage_empty">Tags you add to saved articles show here, so you can rename them.</string>
     <string name="share_target_saved">Saved, in this app</string>
+    <plurals name="saved_copied">
+        <item quantity="one">Copied %d article saved on this phone to Instapaper</item>
+        <item quantity="other">Copied %d articles saved on this phone to Instapaper</item>
+    </plurals>
 </resources>

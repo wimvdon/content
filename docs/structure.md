@@ -88,7 +88,8 @@ rss-reader/
 Instapaper: `app/src/main/kotlin/be/wimvandonck/reader/instapaper/` (client, sign-in, list logic,
 account), `ui/reader/SavedArticleControls.kt`, `ui/feeds/InstapaperManage.kt`, `ui/home/` (drawer and
 list) and `ui/settings/AccountSettings.kt` (screens), `web/src/lib/instapaper.ts`,
-`web/src/lib/instapaperLibrary.ts`, `web/src/components/InstapaperActions.tsx` and
+`web/src/lib/instapaperLibrary.ts`, `web/src/lib/localSaved.ts` (Saved without an account),
+`web/src/components/InstapaperActions.tsx` and
 `InstapaperManage.tsx` (web), `worker/src/instapaper.ts` (token swap and the web
 app's calls). See `docs/instapaper.md`.
 

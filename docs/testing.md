@@ -45,6 +45,7 @@ when the run fails.
 | `SyncMergeTest` | Three-way merge: changes and removals from either side, this device wins but an edit beats a removal, order from the side that reordered, first sync without base, unread again; articles not here yet; applying the result to the library; syncing twice changes nothing; settings per setting, and a device without synced settings taking the file's |
 | `InstapaperListsTest` | A saved article as a list/reader article (no read state, safe links), which Instapaper list it belongs in, a change updating the list |
 | `SavedSearchTest` | Search in saved articles: Unread, folders, then Archive; page by page up to 100 per list, no doubles; keeps what it has when Instapaper stops answering; title, website, description and tags, title matches first |
+| `LocalSavedTest` | Saved without an account: newest first, saving again brings an article back, like, archive, delete, no folders, tags shared by name and renamed (joined), storage round trip; copying to Instapaper on sign-in with like, tags and archive, oldest first, and going on after a copy stopped halfway (the web app's `test/localSaved.test.ts` checks the same) |
 | `InstapaperModelTest` | Lists, paging, archive, like, move, tags, delete, folders and tags management; the article open in the reader following changes |
 | `AccountSyncTest` | One sync with the account: the first device's library becomes the document, nothing saved when nothing changed, another device's save in between merged in (with the right base), newer documents left alone; reading the server's answers and problems; the live connection's address, messages and retry delays; the stored base with its version |
 | `SyncSettingsTest` | Settings to shared names and back, Save/Share targets not synced, unknown names kept, bad values ignored, the Instapaper sign-in of older versions dropped |
@@ -166,8 +167,10 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
       move to a folder, add and remove a tag, and delete (asks first) each change it in Instapaper.
 - [ ] **☰ › Manage Instapaper**: create, drag by the handle to reorder, and delete folders;
       rename tags.
-- [ ] **Sign out** returns Settings to "Sign in", and Saved shows the articles saved on the phone again.
-- [ ] Signed out (Android): **Save** keeps the article in **Saved**; the sheet offers Like, Archive and
+- [ ] **Sign out** returns Settings to "Sign in", and Saved shows the (empty) list saved on the phone again.
+- [ ] Signing in with articles saved on the phone (or in the browser) says "Copied N articles…" and
+      shows them in Instapaper, with their likes, tags and archive; Saved on the phone is then empty.
+- [ ] Signed out (Android and web): **Save** keeps the article in **Saved**; the sheet offers Like, Archive and
       tags but no folders; Saved, Liked, Tags and Archive show it; ⋮ in the reader has no Move to folder;
       ☰ › **Manage tags** renames a tag; the articles are still there after restarting the app.
 - [ ] `https://rss-reader-web.wim-d57.workers.dev/.well-known/assetlinks.json` shows the JSON file.
