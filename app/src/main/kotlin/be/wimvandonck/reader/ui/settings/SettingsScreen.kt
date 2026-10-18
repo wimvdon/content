@@ -97,6 +97,8 @@ fun SettingsScreen(
                 apps = state.shareApps,
                 onSaveTargetChange = actions.onSaveTargetChange,
                 onShareTargetChange = actions.onShareTargetChange,
+                // Signed in to Instapaper, Save goes straight to the account.
+                showSaveTarget = state.instapaper !is InstapaperState.SignedIn,
             )
         }
         item(key = "appearance") { AppearanceSection(state.settings, actions) }

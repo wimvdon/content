@@ -46,8 +46,14 @@ class InstapaperModel(
         load()
     }
 
-    /** Reads the folders, tags and the shown list again (pull to refresh). */
-    fun refresh() = start()
+    /**
+     * Reads the folders, tags and the shown list again (pull to refresh). The list stays on screen
+     * and counts as loading until the new one is in, so the refresh indicator stays put meanwhile.
+     */
+    fun refresh() {
+        mutable.update { it.copy(loading = true, problem = null) }
+        start()
+    }
 
     fun select(view: InstapaperView) {
         mutable.update { it.copy(view = view, items = emptyList(), total = 0, loading = true, loadingMore = false, problem = null) }
