@@ -2,6 +2,16 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-18: The drawer opens the section you're in
+
+With Feeds and Instapaper both open, the ☰ drawer grew long (every folder and feed, then every
+Instapaper folder and tag). The owner asked for the sections to fold by themselves depending on
+where you are. The section being shown is now open and the other folded shut; moving to the other
+section turns it round. Folding by hand still works and lasts until you move. The drawer keeps
+both sections, so it still looks the same everywhere. Rejected: remembering the folds (the drawer
+would stay long once both were opened) and dropping the other section (the drawer would change
+with the destination again).
+
 ## 2026-10-18: Unread | All is no longer synced
 
 Unread | All was a synced setting, so switching it on one device switched the list on every other

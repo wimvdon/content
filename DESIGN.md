@@ -248,7 +248,8 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
 - Navigation: the ☰ drawer is the app's one top-level navigation, the same wherever the app is
   (no navigation bar or rail). Feeds and, signed in, Instapaper are sections in it; each header
   (Title Small in `primary`, a fold arrow, the unread count while folded) folds its section open
-  and shut. Back from an Instapaper list or a feed section goes to All articles.
+  and shut. The section being shown is open and the other folded shut whenever you move between
+  them, so the drawer stays short. Back from an Instapaper list or a feed section goes to All articles.
 - Feeds and Instapaper each have scrollable primary tabs under the top app bar for their peer views. Feeds:
   All (feed symbol), then each folder with its icon and name. Instapaper: Unread, Liked,
   Archive, each Instapaper folder, then Tags; under Tags a row of filter chips picks the tag
