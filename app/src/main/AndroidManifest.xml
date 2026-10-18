@@ -32,6 +32,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- Links shared from other apps are saved to Saved, with the sheet to file them (#97). -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+
             <!-- Where Instapaper sends the user back after signing in. Verified against
                  https://rss-reader-web.wim-d57.workers.dev/.well-known/assetlinks.json (web/public). -->
             <intent-filter android:autoVerify="true">

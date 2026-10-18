@@ -221,6 +221,8 @@
     <string name="section_saved">Saved</string>
     <string name="saved_list">Saved</string>
     <string name="saved_done">Saved</string>
+    <!-- A share from another app without a web link (#97). -->
+    <string name="share_no_link">No link to save</string>
     <string name="saved_delete_body">Delete this saved article for good? This can’t be undone.</string>
     <string name="menu_manage_saved">Manage tags</string>
     <string name="saved_manage_title">Tags</string>

@@ -1,6 +1,7 @@
 package be.wimvandonck.reader.ui
 
 import android.content.ActivityNotFoundException
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -20,13 +21,19 @@ object ExternalApps {
         return start(context, Intent(Intent.ACTION_VIEW, url.toUri()))
     }
 
-    /** The system share sheet with the article's link. */
+    /** The system share sheet with the article's link, without Reader itself (it takes shares, #97). */
     fun share(
         context: Context,
         title: String,
         url: String,
         chooserTitle: String,
-    ): Boolean = start(context, Intent.createChooser(shareIntent(title, url), chooserTitle))
+    ): Boolean =
+        start(
+            context,
+            Intent
+                .createChooser(shareIntent(title, url), chooserTitle)
+                .putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, arrayOf(ComponentName(context, MainActivity::class.java))),
+        )
 
     /**
      * Sends the article where [target] says: the share sheet, or straight to one app's share

@@ -95,7 +95,9 @@ None. The app only downloads feeds and articles, and syncs, while you use it.
 - **Internet:** to download feeds and articles, and to sync.
 
 The app also declares that it looks for apps that accept shared links, so Settings › Save and
-share can list them. This is not a permission and reveals nothing to those apps.
+share can list them. This is not a permission and reveals nothing to those apps. Reader itself
+accepts links shared from other apps; it saves them to Saved exactly like its Save button, and
+only when you pick Reader in the share menu.
 
 ## The web app
 

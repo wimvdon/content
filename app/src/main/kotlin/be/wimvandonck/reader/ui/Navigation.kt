@@ -320,28 +320,41 @@ fun RssReaderNavigation() {
         }
     }
 
-    /**
-     * Saves the article to Saved (the signed-in Instapaper account, or this phone), then offers to
-     * file it (like, archive, folder and tags).
-     */
-    fun saveToInstapaper(article: Article) {
-        val link = article.link ?: return
+    /** Saves [link] to Saved, the signed-in Instapaper account or this phone, then offers to file it. */
+    fun saveLink(
+        link: String,
+        title: String?,
+    ) {
         uiScope.launch {
             try {
                 val model = instapaper
                 if (model != null) {
-                    model.save(link, article.title)
+                    model.save(link, title)
                     // The sheet says it was saved; a message is only needed when there is no sheet.
                     val done = if (model.state.value.account) R.string.instapaper_saved else R.string.saved_done
                     if (model.state.value.justSaved == null) showMessage(resources.getString(done))
                 } else {
-                    app.instapaper.save(link, article.title)
+                    app.instapaper.save(link, title)
                     showMessage(resources.getString(R.string.instapaper_saved))
                 }
             } catch (e: InstapaperException) {
                 showMessage(resources.getString(e.problem.messageRes()))
             }
         }
+    }
+
+    /** Saves the article to Saved, then offers to file it (like, archive, folder and tags). */
+    fun saveToInstapaper(article: Article) {
+        saveLink(article.link ?: return, article.title)
+    }
+
+    // A link shared to Reader from another app (#97) is saved the same way, once Saved is ready.
+    val sharedLink by app.sharedLink.collectAsStateWithLifecycle()
+    LaunchedEffect(sharedLink, instapaper) {
+        val shared = sharedLink ?: return@LaunchedEffect
+        if (instapaper == null) return@LaunchedEffect
+        app.sharedLink.value = null
+        saveLink(shared.url, shared.title)
     }
 
     BackHandler(enabled = backStack.size > 1) { pop() }
