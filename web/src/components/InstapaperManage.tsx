@@ -4,27 +4,36 @@ import { app, useApp } from "@/lib/app";
 import { t } from "@/lib/i18n";
 import type { Tag } from "@/lib/instapaper";
 import { Button } from "./ui/button";
+import { Dialog } from "./ui/dialog";
 import { Input } from "./ui/input";
 
+/** Manage Instapaper: its own page, apart from the feeds' folders (Manage feeds). */
+export function InstapaperManageDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange} title={t("instapaperManageTitle")} closeLabel={t("close")} wide>
+      <InstapaperManage />
+    </Dialog>
+  );
+}
+
 /**
- * Instapaper's folders and tags in Manage feeds and folders, next to the feeds' own folders:
- * create, reorder and delete folders; rename tags (Instapaper creates tags when they are added).
+ * Instapaper's folders and tags: create, reorder and delete folders; rename tags (Instapaper
+ * creates tags when they are added to an article).
  */
-export function InstapaperManage() {
+function InstapaperManage() {
   const { instapaperFolders: folders, instapaperTags: tags } = useApp();
   const [title, setTitle] = useState("");
   const [problem, setProblem] = useState<string | null>(null);
   const run = (work: Promise<string | null>) => void work.then(setProblem);
   return (
-    <section className="space-y-3 rounded-xl bg-muted/50 p-3" aria-label={t("instapaper")}>
-      <h3 className="px-1 text-sm font-medium text-primary">{t("instapaper")}</h3>
+    <section className="space-y-4">
       {problem ? (
         <p role="alert" className="px-1 text-sm text-destructive">
           {problem}
         </p>
       ) : null}
       <div>
-        <p className="px-1 pb-1 text-sm font-medium">{t("instapaperFolders")}</p>
+        <h3 className="px-1 pb-1 text-sm font-medium text-primary">{t("instapaperFolders")}</h3>
         <ul>
           {folders.map((folder, index) => (
             <li key={folder.id} className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-card">
@@ -62,7 +71,7 @@ export function InstapaperManage() {
       </div>
       {tags.length > 0 ? (
         <div>
-          <p className="px-1 pb-1 text-sm font-medium">{t("instapaperTags")}</p>
+          <h3 className="px-1 pb-1 text-sm font-medium text-primary">{t("instapaperTags")}</h3>
           <ul className="space-y-1">
             {tags.map((tag) => (
               <TagRow key={tag.id} tag={tag} onProblem={setProblem} />

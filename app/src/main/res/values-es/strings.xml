@@ -5,7 +5,6 @@
     <string name="menu_settings">Ajustes</string>
     <string name="section_expanded">Desplegado</string>
     <string name="section_collapsed">Contraído</string>
-    <string name="section_feeds">Feeds</string>
     <string name="section_appearance">Apariencia</string>
     <string name="setting_theme_title">Tema</string>
     <string name="theme_system">Sistema</string>
@@ -112,7 +111,7 @@
     <string name="list_view_small">Pequeña</string>
     <string name="list_view_medium">Mediana</string>
     <string name="list_view_large">Grande</string>
-    <string name="feeds_page_title">Gestionar feeds y carpetas</string>
+    <string name="feeds_page_title">Feeds y carpetas</string>
     <string name="feeds_opml_title">Desde o hacia otro lector</string>
     <string name="reader_auto_dark_title">Oscuro automático</string>
     <string name="reader_auto_dark_summary">Página oscura cuando la app está oscura</string>
@@ -152,42 +151,23 @@
         <item quantity="many">Todos los artículos · %d sin leer</item>
         <item quantity="other">Todos los artículos · %d sin leer</item>
     </plurals>
-    <plurals name="feeds_problem_count">
-        <item quantity="one">No se puede descargar %d feed</item>
-        <item quantity="many">No se pueden descargar %d feeds</item>
-        <item quantity="other">No se pueden descargar %d feeds</item>
-    </plurals>
-    <plurals name="folders_count">
-        <item quantity="one">%d carpeta</item>
-        <item quantity="many">%d carpetas</item>
-        <item quantity="other">%d carpetas</item>
-    </plurals>
     <plurals name="marked_read">
         <item quantity="one">%d artículo marcado como leído</item>
         <item quantity="many">%d artículos marcados como leídos</item>
         <item quantity="other">%d artículos marcados como leídos</item>
     </plurals>
-    <string name="section_sync">Sincronización</string>
-    <string name="sync_google_drive">Google Drive</string>
-    <string name="sync_off_summary">Los mismos feeds y artículos leídos en todos tus dispositivos. Se guardan en una carpeta oculta de tu Drive.</string>
-    <string name="sync_connect">Conectar</string>
     <string name="sync_now">Sincronizar ahora</string>
-    <string name="sync_disconnect">Desconectar</string>
     <string name="sync_syncing">Sincronizando…</string>
     <string name="sync_last">Última sincronización %1$s</string>
     <string name="sync_never">Aún sin sincronizar</string>
-    <string name="sync_failed_offline">No se pudo acceder a Google Drive. Revisa tu conexión.</string>
-    <string name="sync_failed_approval">Google Drive necesita tu permiso de nuevo. Toca Conectar.</string>
-    <string name="sync_failed_server">Google Drive tuvo un problema. Inténtalo más tarde.</string>
-    <string name="sync_failed_file">El archivo de sincronización es de una versión más reciente de Reader. Actualiza la app.</string>
-    <string name="sync_failed_setup">Google aún no reconoce esta versión de la app, así que no puede usar Drive.</string>
-    <string name="sync_connect_failed">No se pudo conectar con Google Drive</string>
+    <string name="sync_failed_offline">No se pudo conectar con el servidor de Reader. Comprueba tu conexión.</string>
+    <string name="sync_failed_server">El servidor de Reader tuvo un problema. Inténtalo más tarde.</string>
+    <string name="sync_failed_file">Tus datos sincronizados son de una versión más reciente de Reader. Actualiza la app.</string>
+    <string name="sync_failed_setup">La sincronización aún no está disponible en el servidor de Reader.</string>
     <string name="section_instapaper">Instapaper</string>
-    <string name="instapaper_summary">Guarda artículos en tu propia cuenta de Instapaper. Tus artículos guardados, carpetas y etiquetas aparecen en el menú ☰.</string>
     <string name="instapaper_sign_in">Iniciar sesión con Instapaper</string>
     <string name="instapaper_signed_in_as">Sesión iniciada como %1$s</string>
     <string name="instapaper_sign_out">Cerrar sesión</string>
-    <string name="instapaper_open">Artículos guardados</string>
     <string name="instapaper_sign_in_done">Sesión iniciada en Instapaper</string>
     <string name="instapaper_sign_in_failed">No se pudo iniciar sesión en Instapaper. Inténtalo de nuevo.</string>
     <string name="instapaper_saved">Guardado en Instapaper</string>
@@ -206,8 +186,6 @@
     <string name="instapaper_move_to">Mover a carpeta</string>
     <string name="instapaper_empty">Aún no hay nada aquí.</string>
     <string name="instapaper_load_more">Cargar más</string>
-    <string name="instapaper_manage_folders">Gestionar carpetas</string>
-    <string name="instapaper_manage_tags">Gestionar etiquetas</string>
     <string name="instapaper_delete_folder">Eliminar carpeta</string>
     <string name="instapaper_delete_folder_note">Los artículos de una carpeta eliminada vuelven a Sin leer.</string>
     <string name="instapaper_tag_name">Nombre de la etiqueta</string>
@@ -219,4 +197,17 @@
     <string name="instapaper_folder">Carpeta</string>
     <string name="action_done">Listo</string>
     <string name="instapaper_folders">Carpetas</string>
+    <string name="section_account">Cuenta</string>
+    <string name="account_summary">Inicia sesión con Instapaper para tener los mismos feeds, artículos leídos y ajustes en todos tus dispositivos, y para guardar artículos en Instapaper.</string>
+    <string name="sync_no_account">La sincronización está desactivada para este inicio de sesión. Vuelve a iniciar sesión para activarla.</string>
+    <string name="sync_failed_signed_out">Se cerró la sesión de este dispositivo en tu cuenta. Vuelve a iniciar sesión.</string>
+    <string name="account_delete_data">Eliminar datos sincronizados</string>
+    <string name="account_delete_confirm">¿Eliminar tus feeds, artículos leídos y ajustes del servidor de Reader? Se quedan en este dispositivo y se cierra tu sesión en todas partes.</string>
+    <string name="account_deleted">Datos sincronizados eliminados</string>
+    <string name="action_delete">Eliminar</string>
+    <string name="menu_manage_feeds">Gestionar feeds</string>
+    <string name="menu_manage_instapaper">Gestionar Instapaper</string>
+    <string name="instapaper_manage_title">Carpetas y etiquetas de Instapaper</string>
+    <string name="action_collapse">Contraer</string>
+    <string name="action_expand">Expandir</string>
 </resources>

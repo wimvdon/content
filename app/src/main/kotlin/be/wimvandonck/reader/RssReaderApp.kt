@@ -18,10 +18,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import be.wimvandonck.reader.sync.GoogleAuth
-import be.wimvandonck.reader.sync.GoogleDrive
 import be.wimvandonck.reader.sync.SyncManager
-import be.wimvandonck.reader.sync.SyncService
 import okhttp3.OkHttpClient
 import java.io.File
 
@@ -50,21 +47,13 @@ class RssReaderApp :
 
     val library: LibraryRepository by lazy { LibraryRepository(this, appScope, fetch = fetcher::fetch) }
 
-    val googleAuth: GoogleAuth by lazy { GoogleAuth(this) }
+    private val http: OkHttpClient by lazy { OkHttpClient() }
 
     /** The user's Instapaper account (sign-in, saving, and the saved list). See instapaper/. */
-    val instapaper: InstapaperAccount by lazy { InstapaperAccount(this, appScope, OkHttpClient()) }
+    val instapaper: InstapaperAccount by lazy { InstapaperAccount(this, appScope, http) }
 
-    /** Sync with the user's own storage (Google Drive's hidden app folder). See sync/. */
-    val sync: SyncManager by lazy {
-        val http = OkHttpClient()
-        SyncManager(this, appScope, library, settings, instapaper, provider = { service ->
-            when (service) {
-                SyncService.None -> null
-                SyncService.GoogleDrive -> GoogleDrive(http, token = googleAuth::token, onUnauthorized = googleAuth::forget)
-            }
-        })
-    }
+    /** Sync with the user's Reader account, which signing in with Instapaper opens. See sync/ and docs/account.md. */
+    val sync: SyncManager by lazy { SyncManager(this, appScope, library, settings, instapaper, http) }
 
     val fullArticles: FullArticles by lazy { FullArticles(File(cacheDir, "articles"), fetch = fetcher::fetch) }
 

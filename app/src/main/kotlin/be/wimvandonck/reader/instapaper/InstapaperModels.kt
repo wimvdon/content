@@ -55,11 +55,15 @@ data class InstapaperPage(
     val total: Int,
 )
 
-/** The signed-in account. The token never expires; with Drive sync on it is shared with the other devices. */
+/**
+ * The signed-in account. The token never expires. [accountKey] opens the user's Reader account
+ * (sync, docs/account.md); it is null when the server has no accounts.
+ */
 data class InstapaperSession(
     val token: String,
     val userId: Long?,
     val username: String,
+    val accountKey: String? = null,
 )
 
 enum class InstapaperProblem { SignedOut, NotApproved, RateLimited, Offline, ServerError, Invalid }

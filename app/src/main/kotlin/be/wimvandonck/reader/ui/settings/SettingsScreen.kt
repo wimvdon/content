@@ -3,10 +3,6 @@ package be.wimvandonck.reader.ui.settings
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -16,16 +12,12 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import be.wimvandonck.reader.R
 import be.wimvandonck.reader.data.ListView
@@ -50,10 +42,6 @@ import be.wimvandonck.reader.ui.theme.rememberAppVersion
 
 data class SettingsState(
     val settings: Settings,
-    val feedCount: Int,
-    val folderCount: Int,
-    /** Feeds whose last download failed. */
-    val problemCount: Int,
     val shareApps: List<ExternalApps.ShareApp>,
     val syncStatus: SyncStatus = SyncStatus.Idle,
     val instapaper: InstapaperState = InstapaperState.Loading,
@@ -61,7 +49,6 @@ data class SettingsState(
 
 class SettingsActions(
     val onBack: () -> Unit,
-    val onOpenFeeds: () -> Unit,
     val onReaderStyleChange: (ReaderStyle) -> Unit,
     val onFullArticlesChange: (Boolean) -> Unit,
     val onShowImagesChange: (Boolean) -> Unit,
@@ -71,11 +58,10 @@ class SettingsActions(
     val onShareTargetChange: (ShareTarget) -> Unit,
     val onThemeModeChange: (ThemeMode) -> Unit,
     val onDynamicColorChange: (Boolean) -> Unit,
-    val onConnectSync: () -> Unit,
+    val onSignIn: () -> Unit,
     val onSyncNow: () -> Unit,
-    val onDisconnectSync: () -> Unit,
-    val onInstapaperSignIn: () -> Unit,
-    val onInstapaperSignOut: () -> Unit,
+    val onSignOut: () -> Unit,
+    val onDeleteAccountData: () -> Unit,
 )
 
 /** Everything that can be set, as one list of sections in the order DESIGN.md gives. */
@@ -91,22 +77,15 @@ fun SettingsScreen(
         onBack = actions.onBack,
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) {
-        item(key = "feeds") { FeedsSection(state, actions.onOpenFeeds) }
-        item(key = "sync") {
-            SyncSection(
-                service = state.settings.syncService,
+        item(key = "account") {
+            AccountSection(
+                state = state.instapaper,
                 status = state.syncStatus,
                 lastSyncedAt = state.settings.lastSyncedAt,
-                onConnect = actions.onConnectSync,
+                onSignIn = actions.onSignIn,
                 onSyncNow = actions.onSyncNow,
-                onDisconnect = actions.onDisconnectSync,
-            )
-        }
-        item(key = "instapaper") {
-            InstapaperSection(
-                state = state.instapaper,
-                onSignIn = actions.onInstapaperSignIn,
-                onSignOut = actions.onInstapaperSignOut,
+                onSignOut = actions.onSignOut,
+                onDeleteData = actions.onDeleteAccountData,
             )
         }
         item(key = "list") { ListSection(state.settings, actions) }
@@ -124,38 +103,6 @@ fun SettingsScreen(
         item(key = "footer") {
             SettingsFooter("${stringResource(R.string.app_name)} ${rememberAppVersion()}")
         }
-    }
-}
-
-/** Opens the Feeds and folders page; shows how many there are, and failing feeds in red. */
-@Composable
-private fun FeedsSection(
-    state: SettingsState,
-    onOpen: () -> Unit,
-) {
-    SettingsSection(title = stringResource(R.string.section_feeds)) {
-        ListItem(
-            headlineContent = { Text(stringResource(R.string.feeds_page_title)) },
-            supportingContent = {
-                Column {
-                    Text(
-                        listOf(
-                            pluralStringResource(R.plurals.feeds_count, state.feedCount, state.feedCount),
-                            pluralStringResource(R.plurals.folders_count, state.folderCount, state.folderCount),
-                        ).joinToString(" · "),
-                    )
-                    if (state.problemCount > 0) {
-                        Text(
-                            pluralStringResource(R.plurals.feeds_problem_count, state.problemCount, state.problemCount),
-                            color = MaterialTheme.colorScheme.error,
-                        )
-                    }
-                }
-            },
-            leadingContent = { Icon(painterResource(R.drawable.ic_rss_feed), contentDescription = null) },
-            trailingContent = { Icon(painterResource(R.drawable.ic_chevron_right), contentDescription = null) },
-            modifier = Modifier.clickable(role = Role.Button, onClick = onOpen),
-        )
     }
 }
 

@@ -2,6 +2,49 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-18: Sync through a Reader account, signed in with Instapaper
+
+Google Drive sync was unreliable: read marks went missing and arrived late. Three causes: Drive has
+no "save only if unchanged", so two devices saving at once lost one's changes; a change made while
+a sync ran (the web app) was overwritten or waited a minute; and other devices only looked every
+minute (and the web app's Google sign-in lasted an hour). The owner chose an account instead, with
+Instapaper as the first way to sign in, so there is no Reader password system to build.
+
+- **Identity:** the feed loader already swaps Instapaper's sign-in code, and Instapaper's answer
+  names the user. At that moment it gives the device a key to that user's account. The account id is
+  an HMAC of the Instapaper user id, so other sign-in methods can map to an account later.
+- **Storage:** one Cloudflare Durable Object (SQLite-backed, on the free plan) per account. It runs
+  one request at a time, so a save carries the version it was based on and is refused (`409`) when
+  another device saved first; the device merges again. It also holds a WebSocket per open device
+  (hibernating, so quiet connections cost nothing) and tells them at once when the document changes:
+  changes now arrive within a second or two. Nothing to create in the dashboard; only the secret.
+  Rejected: D1 (works, but needs a database created by hand and has no live connection), Workers KV
+  (changes take up to a minute to reach other locations, so syncs would fight) and polling every few
+  seconds (costs requests all day).
+- **Encryption:** server-side, AES-256-GCM with a key per account derived from the `ACCOUNT_KEY`
+  secret, on top of Cloudflare's own. This is what comparable apps do. End-to-end encryption
+  (a passphrase on every device, lost passphrase means lost data) was judged too much for a feed
+  list and read marks, also later.
+- **Same format and merge:** the document is the sync file of `docs/sync.md` and the three-way merge
+  is unchanged; only where it lives changed. The Instapaper token is no longer in it: each device
+  signs in itself.
+- **Drive removed** (no users yet), with Google Sign-In (`play-services-auth`) and the Google Cloud
+  setup. Also fixed: a change made during a sync is synced right after it, and the web app merges
+  with the library as it is at that moment. A change syncs after one second instead of two.
+- **Privacy:** Reader now keeps data on the owner's server; `PRIVACY.md` says what, how and how to
+  delete it (Settings › Account › Delete synced data).
+
+## 2026-10-18: One navigation drawer with Feeds and Instapaper as sections
+
+The navigation bar (Feeds | Instapaper) made the ☰ drawer change with the destination shown, while
+the drawer is the app's top-level navigation and should stay the same (owner's review). The bar and
+rail are gone; the drawer (and the web sidebar) shows Feeds and Instapaper as sections whose header
+folds them open and shut. Managing is split and named after what it manages: Manage feeds ("Feeds and
+folders") and Manage Instapaper ("Instapaper folders and tags"), both in the drawer. Settings now
+follows the shared order: Account first (sign-in and sync together), then the app's own sections;
+the Feeds row in Settings is gone, as managing lives in the drawer. Rejected: keeping the bar and a
+fixed drawer (two navigations for the same places).
+
 ## 2026-10-17: A new folder while moving an article
 
 Moving a saved article to a folder only offered the folders that already existed; making one meant going to Manage feeds and folders first. Move to folder and the sheet after Save now end with **New folder**: a tap shows a field for the name, and adding makes the folder in Instapaper and moves the article into it in one step. Rejected: a separate dialog for the name (one more step) and creating the folder without moving the article (the point is to file it).

@@ -5,7 +5,6 @@
     <string name="menu_settings">Paramètres</string>
     <string name="section_expanded">Développé</string>
     <string name="section_collapsed">Réduit</string>
-    <string name="section_feeds">Flux</string>
     <string name="section_appearance">Apparence</string>
     <string name="setting_theme_title">Thème</string>
     <string name="theme_system">Système</string>
@@ -112,7 +111,7 @@
     <string name="list_view_small">Petit</string>
     <string name="list_view_medium">Moyen</string>
     <string name="list_view_large">Grand</string>
-    <string name="feeds_page_title">Gérer les flux et dossiers</string>
+    <string name="feeds_page_title">Flux et dossiers</string>
     <string name="feeds_opml_title">Depuis ou vers un autre lecteur</string>
     <string name="reader_auto_dark_title">Sombre automatique</string>
     <string name="reader_auto_dark_summary">Page sombre quand l’app est sombre</string>
@@ -152,42 +151,23 @@
         <item quantity="many">Tous les articles · %d non lus</item>
         <item quantity="other">Tous les articles · %d non lus</item>
     </plurals>
-    <plurals name="feeds_problem_count">
-        <item quantity="one">%d flux ne peut pas être téléchargé</item>
-        <item quantity="many">%d flux ne peuvent pas être téléchargés</item>
-        <item quantity="other">%d flux ne peuvent pas être téléchargés</item>
-    </plurals>
-    <plurals name="folders_count">
-        <item quantity="one">%d dossier</item>
-        <item quantity="many">%d dossiers</item>
-        <item quantity="other">%d dossiers</item>
-    </plurals>
     <plurals name="marked_read">
         <item quantity="one">%d article marqué comme lu</item>
         <item quantity="many">%d articles marqués comme lus</item>
         <item quantity="other">%d articles marqués comme lus</item>
     </plurals>
-    <string name="section_sync">Synchronisation</string>
-    <string name="sync_google_drive">Google Drive</string>
-    <string name="sync_off_summary">Les mêmes flux et articles lus sur tous vos appareils. Stockés dans un dossier masqué de votre Drive.</string>
-    <string name="sync_connect">Connecter</string>
     <string name="sync_now">Synchroniser</string>
-    <string name="sync_disconnect">Déconnecter</string>
     <string name="sync_syncing">Synchronisation…</string>
     <string name="sync_last">Dernière synchronisation %1$s</string>
     <string name="sync_never">Pas encore synchronisé</string>
-    <string name="sync_failed_offline">Impossible de joindre Google Drive. Vérifiez votre connexion.</string>
-    <string name="sync_failed_approval">Google Drive a de nouveau besoin de votre autorisation. Appuyez sur Connecter.</string>
-    <string name="sync_failed_server">Google Drive a rencontré un problème. Réessayez plus tard.</string>
-    <string name="sync_failed_file">Le fichier de synchronisation vient d’une version plus récente de Reader. Mettez l’app à jour.</string>
-    <string name="sync_failed_setup">Google ne reconnaît pas encore cette version de l’app ; elle ne peut pas utiliser Drive.</string>
-    <string name="sync_connect_failed">Impossible de se connecter à Google Drive</string>
+    <string name="sync_failed_offline">Impossible de joindre le serveur de Reader. Vérifiez votre connexion.</string>
+    <string name="sync_failed_server">Le serveur de Reader a rencontré un problème. Réessayez plus tard.</string>
+    <string name="sync_failed_file">Vos données synchronisées viennent d’une version plus récente de Reader. Mettez l’app à jour.</string>
+    <string name="sync_failed_setup">La synchronisation n’est pas encore disponible sur le serveur de Reader.</string>
     <string name="section_instapaper">Instapaper</string>
-    <string name="instapaper_summary">Enregistrez des articles dans votre propre compte Instapaper. Vos articles enregistrés, dossiers et étiquettes apparaissent dans le menu ☰.</string>
     <string name="instapaper_sign_in">Se connecter avec Instapaper</string>
     <string name="instapaper_signed_in_as">Connecté en tant que %1$s</string>
     <string name="instapaper_sign_out">Se déconnecter</string>
-    <string name="instapaper_open">Articles enregistrés</string>
     <string name="instapaper_sign_in_done">Connecté à Instapaper</string>
     <string name="instapaper_sign_in_failed">La connexion à Instapaper a échoué. Réessayez.</string>
     <string name="instapaper_saved">Enregistré dans Instapaper</string>
@@ -206,8 +186,6 @@
     <string name="instapaper_move_to">Déplacer vers un dossier</string>
     <string name="instapaper_empty">Rien ici pour l’instant.</string>
     <string name="instapaper_load_more">Charger plus</string>
-    <string name="instapaper_manage_folders">Gérer les dossiers</string>
-    <string name="instapaper_manage_tags">Gérer les étiquettes</string>
     <string name="instapaper_delete_folder">Supprimer le dossier</string>
     <string name="instapaper_delete_folder_note">Les articles d’un dossier supprimé retournent dans Non lus.</string>
     <string name="instapaper_tag_name">Nom de l’étiquette</string>
@@ -219,4 +197,17 @@
     <string name="instapaper_folder">Dossier</string>
     <string name="action_done">OK</string>
     <string name="instapaper_folders">Dossiers</string>
+    <string name="section_account">Compte</string>
+    <string name="account_summary">Connectez-vous avec Instapaper pour garder vos flux, articles lus et paramètres identiques sur tous vos appareils, et pour enregistrer des articles dans Instapaper.</string>
+    <string name="sync_no_account">La synchronisation est désactivée pour cette connexion. Reconnectez-vous pour l’activer.</string>
+    <string name="sync_failed_signed_out">Cet appareil a été déconnecté de votre compte. Reconnectez-vous.</string>
+    <string name="account_delete_data">Supprimer les données synchronisées</string>
+    <string name="account_delete_confirm">Supprimer vos flux, articles lus et paramètres du serveur de Reader ? Ils restent sur cet appareil, et vous êtes déconnecté partout.</string>
+    <string name="account_deleted">Données synchronisées supprimées</string>
+    <string name="action_delete">Supprimer</string>
+    <string name="menu_manage_feeds">Gérer les flux</string>
+    <string name="menu_manage_instapaper">Gérer Instapaper</string>
+    <string name="instapaper_manage_title">Dossiers et étiquettes Instapaper</string>
+    <string name="action_collapse">Réduire</string>
+    <string name="action_expand">Développer</string>
 </resources>

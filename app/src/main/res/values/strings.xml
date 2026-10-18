@@ -6,7 +6,6 @@
     <string name="menu_settings">Settings</string>
     <string name="section_expanded">Expanded</string>
     <string name="section_collapsed">Collapsed</string>
-    <string name="section_feeds">Feeds</string>
     <string name="section_appearance">Appearance</string>
     <string name="setting_theme_title">Theme</string>
     <string name="theme_system">System</string>
@@ -113,7 +112,7 @@
     <string name="list_view_small">Small</string>
     <string name="list_view_medium">Medium</string>
     <string name="list_view_large">Large</string>
-    <string name="feeds_page_title">Manage feeds and folders</string>
+    <string name="feeds_page_title">Feeds and folders</string>
     <string name="feeds_opml_title">Move to or from another reader</string>
     <string name="reader_auto_dark_title">Auto dark</string>
     <string name="reader_auto_dark_summary">Dark page when the app is dark</string>
@@ -148,39 +147,22 @@
         <item quantity="one">All articles · %d unread</item>
         <item quantity="other">All articles · %d unread</item>
     </plurals>
-    <plurals name="feeds_problem_count">
-        <item quantity="one">%d feed can\'t be downloaded</item>
-        <item quantity="other">%d feeds can\'t be downloaded</item>
-    </plurals>
-    <plurals name="folders_count">
-        <item quantity="one">%d folder</item>
-        <item quantity="other">%d folders</item>
-    </plurals>
     <plurals name="marked_read">
         <item quantity="one">%d article marked as read</item>
         <item quantity="other">%d articles marked as read</item>
     </plurals>
-    <string name="section_sync">Sync</string>
-    <string name="sync_google_drive">Google Drive</string>
-    <string name="sync_off_summary">Same feeds and read articles on all your devices. Stored in a hidden folder in your Drive.</string>
-    <string name="sync_connect">Connect</string>
     <string name="sync_now">Sync now</string>
-    <string name="sync_disconnect">Disconnect</string>
     <string name="sync_syncing">Syncing…</string>
     <string name="sync_last">Last synced %1$s</string>
     <string name="sync_never">Not synced yet</string>
-    <string name="sync_failed_offline">Couldn’t reach Google Drive. Check your connection.</string>
-    <string name="sync_failed_approval">Google Drive needs your permission again. Tap Connect.</string>
-    <string name="sync_failed_server">Google Drive had a problem. Try again later.</string>
-    <string name="sync_failed_file">The sync file is from a newer version of Reader. Update the app.</string>
-    <string name="sync_failed_setup">Google doesn’t recognise this version of the app yet, so it can’t use Drive.</string>
-    <string name="sync_connect_failed">Couldn’t connect to Google Drive</string>
+    <string name="sync_failed_offline">Couldn’t reach Reader’s server. Check your connection.</string>
+    <string name="sync_failed_server">Reader’s server had a problem. Try again later.</string>
+    <string name="sync_failed_file">Your synced data is from a newer version of Reader. Update the app.</string>
+    <string name="sync_failed_setup">Sync isn’t available on Reader’s server yet.</string>
     <string name="section_instapaper">Instapaper</string>
-    <string name="instapaper_summary">Save articles to your own Instapaper account. Your saved articles, folders and tags appear in the ☰ menu.</string>
     <string name="instapaper_sign_in">Sign in with Instapaper</string>
     <string name="instapaper_signed_in_as">Signed in as %1$s</string>
     <string name="instapaper_sign_out">Sign out</string>
-    <string name="instapaper_open">Saved articles</string>
     <string name="instapaper_sign_in_done">Signed in to Instapaper</string>
     <string name="instapaper_sign_in_failed">Signing in to Instapaper didn’t work. Try again.</string>
     <string name="instapaper_saved">Saved to Instapaper</string>
@@ -199,8 +181,6 @@
     <string name="instapaper_move_to">Move to folder</string>
     <string name="instapaper_empty">Nothing here yet.</string>
     <string name="instapaper_load_more">Load more</string>
-    <string name="instapaper_manage_folders">Manage folders</string>
-    <string name="instapaper_manage_tags">Manage tags</string>
     <string name="instapaper_delete_folder">Delete folder</string>
     <string name="instapaper_delete_folder_note">Articles in a deleted folder move back to Unread.</string>
     <string name="instapaper_tag_name">Tag name</string>
@@ -212,4 +192,17 @@
     <string name="instapaper_folder">Folder</string>
     <string name="action_done">Done</string>
     <string name="instapaper_folders">Folders</string>
+    <string name="section_account">Account</string>
+    <string name="account_summary">Sign in with Instapaper to keep your feeds, read articles and settings the same on all your devices, and to save articles to Instapaper.</string>
+    <string name="sync_no_account">Sync is off for this sign-in. Sign in again to turn it on.</string>
+    <string name="sync_failed_signed_out">This device was signed out of your account. Sign in again.</string>
+    <string name="account_delete_data">Delete synced data</string>
+    <string name="account_delete_confirm">Delete your feeds, read articles and settings from Reader’s server? They stay on this device, and you are signed out everywhere.</string>
+    <string name="account_deleted">Synced data deleted</string>
+    <string name="action_delete">Delete</string>
+    <string name="menu_manage_feeds">Manage feeds</string>
+    <string name="menu_manage_instapaper">Manage Instapaper</string>
+    <string name="instapaper_manage_title">Instapaper folders and tags</string>
+    <string name="action_collapse">Collapse</string>
+    <string name="action_expand">Expand</string>
 </resources>

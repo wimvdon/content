@@ -16,7 +16,8 @@ import java.security.SecureRandom
  * Signing in with Instapaper (OAuth 2, authorization code flow). The user approves Reader on
  * Instapaper's own page, which sends them back to [REDIRECT_URI] (an Android App Link that opens
  * this app). The one-time code is swapped for a token by the feed loader Worker, because that swap
- * needs the client secret, which can't live in an app (worker/src/instapaper.ts).
+ * needs the client secret, which can't live in an app (worker/src/instapaper.ts). Its answer also
+ * holds this device's key to the user's Reader account (sync, worker/src/account.ts).
  */
 object InstapaperAuth {
     /** The Instapaper application's client ID is public; the secret lives only in the Worker. */
@@ -79,7 +80,8 @@ object InstapaperAuth {
         val token = map["access_token"] as? String ?: return null
         if (token.isEmpty()) return null
         val user = map["user"] as? Map<*, *>
-        return InstapaperSession(token, (user?.get("id") as? Number)?.toLong(), (user?.get("username") as? String).orEmpty())
+        val accountKey = ((map["account"] as? Map<*, *>)?.get("key") as? String)?.takeIf { it.isNotEmpty() }
+        return InstapaperSession(token, (user?.get("id") as? Number)?.toLong(), (user?.get("username") as? String).orEmpty(), accountKey)
     }
 
     /** Swaps the one-time code for a session, through the Worker. */

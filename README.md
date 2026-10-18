@@ -26,8 +26,8 @@ A simple, private RSS and Atom feed reader for Android.
 - **Real use case:** add `theverge.com`, pull down in the morning to get the new articles, read a
   few in sepia with a serif font, and tap **Save** on a long one to read it later in Instapaper.
 
-There is also a **web app** (`web/`) with the same feeds, folders and read articles, synced
-with the phone through your own Google Drive (`docs/sync.md`); see `web/README.md` and
+There is also a **web app** (`web/`) with the same feeds, folders and read articles. Signing in
+with Instapaper turns on sync between the phone and the web app (`docs/account.md`); see `web/README.md` and
 `worker/README.md` to publish it. Its tests, lint and build run in CI with the Android app's.
 
 English, Dutch, French, German, Spanish and Italian. Android 12+. See the

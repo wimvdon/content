@@ -135,13 +135,13 @@ describe("synced settings", () => {
   });
 
   it("use the same names and values as the Android app and come back the same", () => {
-    const values = SS.syncedSettings(settings, null);
+    const values = SS.syncedSettings(settings);
     expect(values).toMatchObject({ theme: "dark", "reader.font": "sans", "reader.textSize": "22", "reader.background": "default", fullArticles: "false" });
     expect(SS.applySynced(defaultSettings, values)).toEqual(settings);
   });
 
   it("keep Android-only names and ignore bad values", () => {
-    const values = SS.syncedSettings(settings, null, { showImages: "false", theme: "light" });
+    const values = SS.syncedSettings(settings, { showImages: "false", theme: "light" });
     expect(values.showImages).toBe("false");
     expect(values.theme).toBe("dark");
     const applied = SS.applySynced(settings, { theme: "purple", "reader.textSize": "99", fullArticles: "yes" });
@@ -150,10 +150,9 @@ describe("synced settings", () => {
     expect(applied.fullArticles).toBe(false);
   });
 
-  it("carry the Instapaper sign-in", () => {
-    const session = { token: "t", username: "me@example.com", userId: 42 };
-    expect(SS.instapaperOf(SS.syncedSettings(settings, session))).toEqual(session);
-    expect(SS.instapaperOf(SS.syncedSettings(settings, null))).toBeNull();
+  it("drop the Instapaper sign-in that older versions synced", () => {
+    const values = SS.syncedSettings(settings, { "instapaper.token": "t", "instapaper.username": "me" });
+    expect(Object.keys(values).some((k) => k.startsWith("instapaper."))).toBe(false);
   });
 
   it("merge per setting; a device without synced settings takes the file's", () => {

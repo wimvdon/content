@@ -234,28 +234,29 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   screen, top bar and system bar icons included, takes the page colour.
 - Article titles in the reader are the hero text (bold, in the reader's font). Unread rows in the
   list use SemiBold titles and a primary dot; read rows use `onSurfaceVariant`.
-- Manage feeds and folders is its own page (☰ and a link at the top of Settings): a large top app
+- Manage feeds ("Feeds and folders") is its own page (☰): a large top app
   bar over folder cards (`surfaceContainerHigh`, folder icon on a `secondaryContainer` circle) with
   their feeds indented below (`surfaceContainer`), a pen button and a drag handle at the end of each row, an outlined note under
   "No folder" when it is empty, and the
   dragged row lifted with a shadow. Tapping a row opens its edit dialog; Remove sits in the
-  dialog, in the error colour. Settings sections: Feeds, Sync (Google Drive with Connect, or the last sync with Sync now and Disconnect), Article list, Reader, Save and share (integration), Appearance, footer.
+  dialog, in the error colour. Manage Instapaper ("Instapaper folders and tags") is a page of its own
+  too (☰, when signed in). Settings sections: Account (Sign in with Instapaper; signed in, who, the
+  last sync or what went wrong, Sync now, Sign out and Delete synced data in the error colour, which
+  asks first), Article list, Reader, Save and share (integration), Appearance, footer.
 - Folder icons come from the whole Material Symbols set (outlined, rounded), picked with a search
   field and a grid in the folder dialog.
-- Destinations: signed in to Instapaper, the app has two top-level destinations, Feeds (feed
-  symbol) and Instapaper (bookmarks, filled when selected, outlined otherwise), in Material's
-  docked `NavigationBar`; on windows 600dp and wider in a `NavigationRail` at the side, in the
-  same order. Without Instapaper there is one destination and no bar. Switching back returns
-  to the list last shown there; Back on Instapaper goes to Feeds.
-- Each destination has scrollable primary tabs under the top app bar for its peer views. Feeds:
+- Navigation: the ☰ drawer is the app's one top-level navigation, the same wherever the app is
+  (no navigation bar or rail). Feeds and, signed in, Instapaper are sections in it; each header
+  (Title Small in `primary`, a fold arrow, the unread count while folded) folds its section open
+  and shut. Back from an Instapaper list or a feed section goes to All articles.
+- Feeds and Instapaper each have scrollable primary tabs under the top app bar for their peer views. Feeds:
   All (feed symbol), then each folder with its icon and name. Instapaper: Unread, Liked,
   Archive, each Instapaper folder, then Tags; under Tags a row of filter chips picks the tag
   (tags come and go too often for a tab each). The Mark all read FAB and Unread | All are on
   Feeds only; the FAB only marks the section shown.
-- The ☰ drawer lists only the shown destination's places (Feeds: All articles, the folders with
-  their feeds, the other feeds; Instapaper: Unread, Liked, Archive, its folders and tags), then
-  Manage feeds and folders and Settings. The web app's sidebar does the same, with a
-  Feeds | Instapaper switch (the connected button group) at the top.
+- The ☰ drawer: the Feeds section (All articles, the folders with their feeds, the other feeds),
+  the Instapaper section (Unread, Liked, Archive, its folders and tags), then Manage feeds, Manage
+  Instapaper and Settings. The web app's sidebar is the same, with the same folding sections.
 - Site icons sit on a fixed light tile (`#F4F4F4`, rounded, 10% padding) in light and dark mode,
   so logos drawn for light browser tabs keep their contrast; the letter fallback uses
   `tertiaryContainer`.
@@ -263,7 +264,7 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   `surfaceContainer`, read rows on `surfaceContainerLow`; the feed name is in `primary`. Swiping
   either way past 30% of the width toggles read (haptic tick at the threshold, row springs
   back); the drawer opens from the ☰ button only. The top bar shows the section and its unread count, with no ⋮ menu (refresh is pull-down; adding
-  feeds lives on Manage feeds and folders). Under it, Unread | All is a connected button group
+  feeds lives on Manage feeds). Under it, Unread | All is a connected button group
   at the normal 40dp button height (48dp touch target), as wide as its labels with equal halves,
   16dp from the top bar or tabs (selected half `primary` with a check, fully rounded; other half
   `secondaryContainer`; inner corners 8dp, 2dp gap), hand-built until Material 3 ships it. Settings lives in the drawer only.
@@ -274,7 +275,7 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   Yesterday, date) in `primary` Title Small; Mark all as read is an icon-only FAB. The drawer opens with the app's logo (the
   launcher icon: its feed symbol on white, in a circle with an `outlineVariant` edge) and name; the
   web app's sidebar and favicon use the same logo.
-- Settings starts with a Feeds section whose row opens Manage feeds and folders.
+- Settings starts with Account; managing feeds and Instapaper lives in the drawer, not in Settings.
 
 ### Other platforms (planned)
 

@@ -80,8 +80,6 @@ data class FeedsState(
     val feeds: List<Feed>,
     val folders: List<Folder>,
     val problems: Map<String, FeedProblem>,
-    /** Instapaper's folders and tags, when signed in. */
-    val instapaper: InstapaperManageState? = null,
 )
 
 class FeedsActions(
@@ -95,7 +93,6 @@ class FeedsActions(
     val onRemoveFolder: (Folder) -> Unit,
     val onImportOpml: () -> Unit,
     val onExportOpml: () -> Unit,
-    val instapaper: InstapaperManageActions? = null,
 )
 
 /**
@@ -327,9 +324,6 @@ fun FeedsScreen(
                         }
                     }
                 }
-            }
-            if (state.instapaper != null && actions.instapaper != null) {
-                item(key = "instapaper") { InstapaperManageSection(state.instapaper, actions.instapaper) }
             }
             item(key = "opml") {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 24.dp)) {

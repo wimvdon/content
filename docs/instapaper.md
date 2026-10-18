@@ -4,7 +4,8 @@ Reader can sign in to the user's own Instapaper account (Instapaper API v2, OAut
 **Save** sends the article straight to the account, and the account's Unread, Liked, Archive,
 folders and tags appear in the ☰ menu (web: the sidebar) next to the feeds. Their saved articles
 show in the same list and reader as feed articles (without read state; archiving is an action), and
-Manage feeds and folders manages the Instapaper folders and tags. Not signed
+☰ › Manage Instapaper (web: Manage Instapaper in the sidebar) manages its folders and tags.
+Signing in also opens the user's Reader account, which syncs the library (`docs/account.md`). Not signed
 in, Save works as before: Instapaper's app or the share menu (see `usage.md`).
 
 ## How sign-in works
@@ -16,9 +17,9 @@ in, Save works as before: Instapaper's app or the share menu (see `usage.md`).
 3. The app checks `state`, then asks the feed loader (`POST /instapaper/token`) to swap the code for
    an access token. That swap needs the **client secret**, which can't live in an app or in the web
    bundle, so only the Worker has it.
-4. The token never expires. It is kept on the device and, with Drive sync on, in the sync file
-   (`docs/sync.md`), so signing in once signs in every device. Instapaper refusing it (401) signs the
-   user out.
+4. The token never expires. It is kept on the device only; each device signs in itself. The
+   Worker's answer also holds this device's key to the user's Reader account (`docs/account.md`),
+   kept next to the token. Instapaper refusing the token (401) signs the user out of both.
 
 One callback address serves both apps:
 `https://rss-reader-web.wim-d57.workers.dev/instapaper/callback`.

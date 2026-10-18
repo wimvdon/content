@@ -1,40 +1,31 @@
 # Sync
 
-Reader can keep feeds, folders, read articles and settings (with the Instapaper sign-in) the
-same on every device and in the web app. The data lives in the user's own storage; there is no Reader server.
-
-## Services
-
-| Service | Where the file is | Status |
-|---|---|---|
-| Google Drive | The hidden app folder (`appDataFolder`), scope `drive.appdata`: only Reader can see the file, and Reader can see nothing else in the Drive | Android and web |
-| Others (Dropbox, OneDrive, WebDAV/Nextcloud) | One file in the service's app folder | Not built yet: implement `SyncProvider` (read and write one text file) |
+Reader keeps feeds, folders, read articles and settings the same on every device and in the web
+app through the user's **Reader account**, which signing in with Instapaper opens
+(`docs/account.md`). The account's feed loader stores one sync document per account, encrypted.
 
 ## When it syncs
 
 Only while the app (or the web page) is on screen, never in the background:
 
-- when it comes on screen, and then every minute while it stays there, so read marks and feeds
-  from other devices come in;
-- about two seconds after a change (a feed added, renamed, moved or removed, a folder changed,
-  an article read or unread; a row of changes, such as marking while scrolling, goes as one);
-- on refresh (pull down, or the refresh button), before the feeds are downloaded, so articles
-  read elsewhere arrive already read;
-- with **Sync now** in Settings.
+- when it comes on screen;
+- **at once when another device saves**: while on screen, the app keeps a live connection to the
+  account (a WebSocket), which says when the document changed;
+- about a second after a change (a feed added, renamed, moved or removed, a folder changed, an
+  article read or unread, a synced setting; a row of changes, such as marking while scrolling, goes
+  as one). A change made while a sync runs is synced right after it;
+- on refresh (pull down, or the refresh button), before the feeds are downloaded, so articles read
+  elsewhere arrive already read;
+- every minute, but only while the live connection is down;
+- with **Sync now** in Settings › Account.
 
 Coming back and the minute skip a sync when the last one was less than ten seconds ago
-(`SyncTiming` on Android, the same constants in `web/src/lib/sync.ts`). A refresh never skips: it
-always syncs first, so a read mark made a few seconds ago on another device is there when you pull
-down. One sync is two or three requests to Drive, far below Google's limits.
-
-In the web app, Google's sign-in lasts about an hour and is kept in the browser, so reopening the
-page within that hour syncs straight away. A browser can only get a new sign-in through Google's
-popup, so the web app never asks for one by itself: when it has expired, sync waits and Settings ›
-Sync says to click **Connect**.
+(`SyncTiming` on Android, the same constants in `web/src/lib/sync.ts`). A refresh never skips. A
+sync that finds nothing new costs one small request (`304 Not Modified`).
 
 ## The sync file
 
-`rss-reader-sync.json`, UTF-8 JSON:
+The account's document (it was `rss-reader-sync.json` in Google Drive before), UTF-8 JSON:
 
 ```json
 {
@@ -52,7 +43,7 @@ Sync says to click **Connect**.
     }
   ],
   "read": { "https://example.com/feed.xml <article id>": 1760000000000 },
-  "settings": { "theme": "dark", "reader.textSize": "20", "instapaper.token": "…" }
+  "settings": { "theme": "dark", "reader.textSize": "20" }
 }
 ```
 
@@ -83,15 +74,20 @@ Sync says to click **Connect**.
   | `showImages` | `true`, `false` | Android |
   | `markReadOnScroll` | `true`, `false` | both |
   | `listView` | `small`, `medium`, `large` | Android |
-  | `instapaper.token`, `instapaper.username`, `instapaper.userId` | the Instapaper sign-in; absent when signed out | both |
 
-  Not synced: the Save and Share targets (each phone has its own apps) and the sync choice itself.
+  Not synced: the Save and Share targets (each phone has its own apps) and the Instapaper sign-in
+  (each device signs in itself, and that sign-in is the account). Older versions synced it as
+  `instapaper.token`, `instapaper.username` and `instapaper.userId`; those names are dropped.
 - A reader that finds a higher `version` leaves the file alone and asks to update the app.
 
 ## Merging
 
-Each device keeps the file as it last wrote or read it (the *base*). On sync it reads the
-current file and merges three ways (`sync/SyncMerge.kt`):
+Each device keeps the document as it last saved or read it (the *base*), with the account's version
+of it. On sync it reads the account's document and merges three ways (`sync/SyncMerge.kt`), then
+saves the result with the version it read (`sync/SyncRound.kt`, `syncRound` in
+`web/src/lib/sync.ts`). When another device saved in between, the account refuses (`409`) and
+returns that device's document; the device merges again, with what it already merged as the base,
+and saves again (at most four tries per sync). So two devices never overwrite each other's changes.
 
 - Whatever differs from the base on one side is a change on that side, and is kept.
 - When both sides changed the same feed or folder, this device wins, except that an edit beats a
@@ -99,49 +95,9 @@ current file and merges three ways (`sync/SyncMerge.kt`):
 - The order comes from the side that reordered.
 - Read marks: an article read or unread on one side follows that side. Articles a device doesn't
   have yet count as unchanged; when they arrive they arrive already read.
-- Settings: per name, a change on one side wins; both changed, this device wins. A removed name
-  (Instapaper signed out) is a change too, so signing out on one device signs out everywhere.
-- Without a file (the first device), the device's library becomes the file. Without a base (a
-  device connecting for the first time), both sides are combined. A device that has no synced
+- Settings: per name, a change on one side wins; both changed, this device wins.
+- Without a document (the first device), the device's library becomes the document. Without a
+  base (a device signing in), both sides are combined. A device that has no synced
   settings in its base (new, or last synced before settings were in the file) takes the file's
   settings, keeping its own only for names the file doesn't have, so its defaults never overwrite
   the user's choices.
-
-## Google Cloud setup (owner)
-
-Google only lets the app and the web app use Drive once they are registered in a Google Cloud
-project. Everything below is in the [Google Cloud console](https://console.cloud.google.com),
-signed in with your Google account. It is free.
-
-1. **Project.** At the top, open the project picker. Use the existing project if you made one
-   before (for example "RSS Reader"); otherwise New project, name "Reader", Create, and select it.
-2. **Drive API.** Menu › APIs & Services › Library, search "Google Drive API", open it, Enable.
-3. **Consent screen.** Menu › Google Auth Platform (or APIs & Services › OAuth consent screen):
-   - Branding: app name "Reader", your email as support and developer contact. App home page and
-     privacy policy: `https://github.com/wimvdon/rss-reader` and
-     `https://github.com/wimvdon/rss-reader/blob/main/PRIVACY.md`.
-   - Audience: External. While the app is in "Testing", only the Google accounts listed under
-     **Test users** can connect: add your own (and anyone else who uses it). Publishing to
-     everyone needs Google's (free) verification of this screen.
-   - Data access: Add or remove scopes, find `.../auth/drive.appdata` ("See, create, and delete
-     its own configuration data in your Google Drive"), tick it, Update, Save.
-4. **Android app.** Google Auth Platform › Clients › Create client › Application type
-   **Android**:
-   - Package name: `be.wimvandonck.reader`
-   - SHA-1 certificate fingerprint: the one at the top of the summary page of the latest run of
-     **Actions › Release** ("Signing key SHA-1", it looks like `AB:CD:…`).
-   - Create. Nothing has to be copied back: Google recognises the app by these two.
-   Clients made for the old package `io.github.impca201.rssreader` can be deleted.
-5. **Web app.** Clients › Create client › Application type **Web application**, name "Reader
-   web". Under Authorized JavaScript origins, Add URI:
-   `https://rss-reader-web.wim-d57.workers.dev` (no slash at the end). Leave Authorized redirect
-   URIs empty. Create, and copy the **Client ID** (ending in `.apps.googleusercontent.com`; not
-   the client secret, which isn't needed) into `web/src/lib/config.ts` as `GOOGLE_CLIENT_ID`.
-
-Changes in Google Cloud can take a few minutes, sometimes longer, to take effect.
-
-**Test builds don't sync.** The debug APKs from pull requests are signed with a key CI makes up
-on every run, so Google can't recognise them: sync shows "Google doesn't recognise this version
-of the app yet". Try sync with the released app (from Releases), whose key stays the same.
-
-No secret goes into the Android app: Google recognises it by package name and signing key.

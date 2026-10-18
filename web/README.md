@@ -1,8 +1,9 @@
 # Reader on the web
 
 The web version of Reader: the same feeds, folders and read articles as the Android app,
-synced through your own Google Drive (see `../docs/sync.md`). It is a static site (HTML,
-JavaScript, CSS): it runs entirely in the browser and keeps its data there (IndexedDB).
+synced through the Reader account that signing in with Instapaper opens (see
+`../docs/account.md` and `../docs/sync.md`). It is a static site (HTML, JavaScript, CSS): it runs
+in the browser and keeps its data there (IndexedDB).
 
 - Design: shadcn/ui style (Radix primitives with Tailwind), themed with the app's colours
   (`DESIGN.md`, "Other platforms"). Three panes on wide screens; one at a time on phones.
@@ -27,7 +28,6 @@ Both are public (every visitor's browser sees them), so they are built in, in
 |---|---|
 | `PROXY_URL` | The feed loader's address (`../worker/`) |
 | `INSTAPAPER_CLIENT_ID`, `INSTAPAPER_REDIRECT_URI` | The Instapaper application's public client ID and its callback address (`docs/instapaper.md`) |
-| `GOOGLE_CLIENT_ID` | The Google Cloud OAuth client ID of type "Web application" (docs/sync.md, step 5) |
 
 ## Deploying (Cloudflare Workers)
 
@@ -35,10 +35,9 @@ It is published as a Worker with static assets (`wrangler.jsonc`), next to the f
 
 1. Workers & Pages › Create › Import a repository › this repository, name `rss-reader-web`.
 2. Root directory `web`, build command `npm run build`, deploy command `npx wrangler deploy`.
-3. The feed loader's address and the Google client ID are in `src/lib/config.ts`.
+3. The feed loader's address is in `src/lib/config.ts`.
 4. The site's address (`https://rss-reader-web.<account>.workers.dev`) must be in
-   `ALLOWED_ORIGINS` in `../worker/wrangler.toml` and in the Google client's Authorized JavaScript
-   origins.
+   `ALLOWED_ORIGINS` in `../worker/wrangler.toml`.
 
 Every push to `main` then publishes the new version; pull requests get a preview build. Any
 static host with https works too: upload the contents of `dist/` after `npm run build`.

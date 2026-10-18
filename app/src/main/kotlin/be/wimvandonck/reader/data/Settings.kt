@@ -1,6 +1,5 @@
 package be.wimvandonck.reader.data
 
-import be.wimvandonck.reader.sync.SyncService
 
 enum class ThemeMode { System, Light, Dark }
 
@@ -129,8 +128,6 @@ data class Settings(
     /** Mark articles as read once they scroll off the top of the list. */
     val markReadOnScroll: Boolean = false,
     val listView: ListView = ListView.Medium,
-    /** Where feeds, folders and read articles are synced, if anywhere. */
-    val syncService: SyncService = SyncService.None,
     /** When the last sync succeeded, or null. */
     val lastSyncedAt: Long? = null,
 )

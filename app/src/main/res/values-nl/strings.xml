@@ -5,7 +5,6 @@
     <string name="menu_settings">Instellingen</string>
     <string name="section_expanded">Uitgevouwen</string>
     <string name="section_collapsed">Ingevouwen</string>
-    <string name="section_feeds">Feeds</string>
     <string name="section_appearance">Weergave</string>
     <string name="setting_theme_title">Thema</string>
     <string name="theme_system">Systeem</string>
@@ -112,7 +111,7 @@
     <string name="list_view_small">Klein</string>
     <string name="list_view_medium">Middel</string>
     <string name="list_view_large">Groot</string>
-    <string name="feeds_page_title">Feeds en mappen beheren</string>
+    <string name="feeds_page_title">Feeds en mappen</string>
     <string name="feeds_opml_title">Van of naar een andere lezer</string>
     <string name="reader_auto_dark_title">Automatisch donker</string>
     <string name="reader_auto_dark_summary">Donkere pagina wanneer de app donker is</string>
@@ -147,39 +146,22 @@
         <item quantity="one">Alle artikels · %d ongelezen</item>
         <item quantity="other">Alle artikels · %d ongelezen</item>
     </plurals>
-    <plurals name="feeds_problem_count">
-        <item quantity="one">%d feed kan niet gedownload worden</item>
-        <item quantity="other">%d feeds kunnen niet gedownload worden</item>
-    </plurals>
-    <plurals name="folders_count">
-        <item quantity="one">%d map</item>
-        <item quantity="other">%d mappen</item>
-    </plurals>
     <plurals name="marked_read">
         <item quantity="one">%d artikel als gelezen gemarkeerd</item>
         <item quantity="other">%d artikelen als gelezen gemarkeerd</item>
     </plurals>
-    <string name="section_sync">Synchronisatie</string>
-    <string name="sync_google_drive">Google Drive</string>
-    <string name="sync_off_summary">Dezelfde feeds en gelezen artikelen op al je apparaten. Bewaard in een verborgen map in je Drive.</string>
-    <string name="sync_connect">Verbinden</string>
     <string name="sync_now">Nu synchroniseren</string>
-    <string name="sync_disconnect">Ontkoppelen</string>
     <string name="sync_syncing">Bezig met synchroniseren…</string>
     <string name="sync_last">Laatst gesynchroniseerd %1$s</string>
     <string name="sync_never">Nog niet gesynchroniseerd</string>
-    <string name="sync_failed_offline">Google Drive is niet bereikbaar. Controleer je verbinding.</string>
-    <string name="sync_failed_approval">Google Drive heeft opnieuw je toestemming nodig. Tik op Verbinden.</string>
-    <string name="sync_failed_server">Google Drive had een probleem. Probeer het later opnieuw.</string>
-    <string name="sync_failed_file">Het synchronisatiebestand komt van een nieuwere versie van Reader. Werk de app bij.</string>
-    <string name="sync_failed_setup">Google herkent deze versie van de app nog niet, dus ze kan Drive niet gebruiken.</string>
-    <string name="sync_connect_failed">Verbinden met Google Drive is mislukt</string>
+    <string name="sync_failed_offline">De server van Reader is niet bereikbaar. Controleer je verbinding.</string>
+    <string name="sync_failed_server">De server van Reader had een probleem. Probeer het later opnieuw.</string>
+    <string name="sync_failed_file">Je gesynchroniseerde gegevens komen van een nieuwere versie van Reader. Werk de app bij.</string>
+    <string name="sync_failed_setup">Synchronisatie is nog niet beschikbaar op de server van Reader.</string>
     <string name="section_instapaper">Instapaper</string>
-    <string name="instapaper_summary">Bewaar artikelen in je eigen Instapaper-account. Je bewaarde artikelen, mappen en tags staan in het ☰-menu.</string>
     <string name="instapaper_sign_in">Inloggen met Instapaper</string>
     <string name="instapaper_signed_in_as">Ingelogd als %1$s</string>
     <string name="instapaper_sign_out">Uitloggen</string>
-    <string name="instapaper_open">Bewaarde artikelen</string>
     <string name="instapaper_sign_in_done">Ingelogd bij Instapaper</string>
     <string name="instapaper_sign_in_failed">Inloggen bij Instapaper is niet gelukt. Probeer het opnieuw.</string>
     <string name="instapaper_saved">Bewaard in Instapaper</string>
@@ -198,8 +180,6 @@
     <string name="instapaper_move_to">Naar map verplaatsen</string>
     <string name="instapaper_empty">Hier staat nog niets.</string>
     <string name="instapaper_load_more">Meer laden</string>
-    <string name="instapaper_manage_folders">Mappen beheren</string>
-    <string name="instapaper_manage_tags">Tags beheren</string>
     <string name="instapaper_delete_folder">Map verwijderen</string>
     <string name="instapaper_delete_folder_note">Artikelen in een verwijderde map gaan terug naar Ongelezen.</string>
     <string name="instapaper_tag_name">Tagnaam</string>
@@ -211,4 +191,17 @@
     <string name="instapaper_folder">Map</string>
     <string name="action_done">Klaar</string>
     <string name="instapaper_folders">Mappen</string>
+    <string name="section_account">Account</string>
+    <string name="account_summary">Log in met Instapaper om je feeds, gelezen artikelen en instellingen op al je apparaten gelijk te houden, en om artikelen in Instapaper te bewaren.</string>
+    <string name="sync_no_account">Synchronisatie staat uit voor deze login. Log opnieuw in om ze aan te zetten.</string>
+    <string name="sync_failed_signed_out">Dit apparaat is uitgelogd uit je account. Log opnieuw in.</string>
+    <string name="account_delete_data">Gesynchroniseerde gegevens verwijderen</string>
+    <string name="account_delete_confirm">Je feeds, gelezen artikelen en instellingen van de server van Reader verwijderen? Ze blijven op dit apparaat, en je wordt overal uitgelogd.</string>
+    <string name="account_deleted">Gesynchroniseerde gegevens verwijderd</string>
+    <string name="action_delete">Verwijderen</string>
+    <string name="menu_manage_feeds">Feeds beheren</string>
+    <string name="menu_manage_instapaper">Instapaper beheren</string>
+    <string name="instapaper_manage_title">Instapaper-mappen en -tags</string>
+    <string name="action_collapse">Inklappen</string>
+    <string name="action_expand">Uitklappen</string>
 </resources>

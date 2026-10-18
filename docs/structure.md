@@ -27,10 +27,10 @@ rss-reader/
 │   ├── libs.versions.toml            Version catalog (every dependency version)
 │   └── wrapper/                      Gradle wrapper
 ├── web/                              The web app (static site; see web/README.md)
-│   ├── src/lib/                      Feeds, library, sync, Drive, storage, full articles, embeds, reader style (plain TypeScript, tested)
+│   ├── src/lib/                      Feeds, library, sync, account, storage, full articles, embeds, reader style (plain TypeScript, tested)
 │   ├── src/components/               Screens: sidebar, article list, reader, dialogs; ui/ = shadcn-style parts
 │   └── test/                         Vitest tests
-├── worker/                           Feed loader for the web app (Cloudflare Worker; see worker/README.md)
+├── worker/                           Feed loader and Reader accounts (Cloudflare Worker; see worker/README.md)
 └── app/
     ├── build.gradle.kts              App ID, versioning, signing, languages, lint, dependencies
     ├── proguard-rules.pro            Stack trace settings for release builds
@@ -51,10 +51,10 @@ rss-reader/
         │   │   │   ├── SyncDocument.kt        The sync file: folders, feeds, read marks (plain Kotlin)
         │   │   │   ├── SyncMerge.kt           Three-way merge with the last synced file (plain Kotlin)
         │   │   │   ├── Json.kt                Small JSON reader and writer (plain Kotlin)
-        │   │   │   ├── SyncProvider.kt        Where the file lives; problems; services
-        │   │   │   ├── GoogleDrive.kt         The file in Drive's hidden app folder (OkHttp)
-        │   │   │   ├── GoogleAuth.kt          Google's authorization screen (drive.appdata)
-        │   │   │   └── SyncManager.kt         When to sync, base file, status
+        │   │   │   ├── SyncRound.kt           One sync: read, merge, save with the version (plain Kotlin)
+        │   │   │   ├── AccountClient.kt       The Reader account's calls (OkHttp); problems
+        │   │   │   ├── LiveUpdates.kt         Live connection: another device saved (WebSocket)
+        │   │   │   └── SyncManager.kt         When to sync, base and version, status
         │   │   ├── feed/
         │   │   │   ├── FeedFetcher.kt         HTTPS downloads
         │   │   │   ├── FeedParser.kt          RSS / RDF / Atom parser, safe XML parser
@@ -87,7 +87,11 @@ rss-reader/
 
 Instapaper: `app/src/main/kotlin/be/wimvandonck/reader/instapaper/` (client, sign-in, list logic,
 account), `ui/reader/SavedArticleControls.kt`, `ui/feeds/InstapaperManage.kt`, `ui/home/` (drawer and
-list) and `ui/settings/InstapaperSettings.kt` (screens), `web/src/lib/instapaper.ts`,
+list) and `ui/settings/AccountSettings.kt` (screens), `web/src/lib/instapaper.ts`,
 `web/src/lib/instapaperLibrary.ts`, `web/src/components/InstapaperActions.tsx` and
 `InstapaperManage.tsx` (web), `worker/src/instapaper.ts` (token swap and the web
 app's calls). See `docs/instapaper.md`.
+
+Reader account (sync): `worker/src/account.ts` (accounts, encrypted document, live connection),
+`app/src/main/kotlin/be/wimvandonck/reader/sync/`, `web/src/lib/account.ts` and
+`web/src/lib/sync.ts`. See `docs/account.md` and `docs/sync.md`.
