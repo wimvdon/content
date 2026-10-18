@@ -78,8 +78,9 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
 
 - **☰** opens the drawer, the app's navigation. **Feeds**: **All articles** (every feed), your
   folders with their feeds, the other feeds (each with its number of unread articles). Signed in to
-  Instapaper, **Instapaper** follows with its own places (see below). Tap a section's name to fold
-  it shut or open. Below them: **Manage feeds**, **Manage Instapaper** (signed in) and **Settings**.
+  Instapaper, **Instapaper** follows with its own places (see below). The section you're in (Feeds or
+  Instapaper) is open and the other is folded shut, so the menu stays short; tap a section's name
+  to fold it open or shut. Below them: **Manage feeds**, **Manage Instapaper** (signed in) and **Settings**.
 - Articles are grouped under **Today**, **Yesterday** and then the date; the date stays at the
   top while you scroll through that day.
 - Under the title you see how many articles are unread. Below it, **Unread | All** switches
