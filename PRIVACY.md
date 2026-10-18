@@ -60,16 +60,18 @@ devices stay the same.
   your device; the token stays valid at Instapaper until you revoke it there.
 - **Links you open** (Read on website, links in articles) open in your browser, under the
   website's own privacy policy.
-- **Save and Share.** When you tap Save or Share, the article's title and link go to the app you
-  chose in Settings (Instapaper for Save by default) or picked in the share menu, under that app's
-  privacy policy. Signed in to Instapaper (see above), Save sends them to your Instapaper account
-  instead. Nothing is sent otherwise.
+- **Save and Share.** By default Save keeps the article's title and link in the app's own Saved list
+  on your phone; nothing is sent. When you set Save or Share to an app in Settings, or pick one in the
+  share menu, the title and link go to that app, under its privacy policy. Signed in to Instapaper
+  (see above), Save sends them to your Instapaper account instead. Nothing is sent otherwise.
 
 ## What the app stores on your device
 
 - Your feed list (with each feed's icon address) and folders, the downloaded articles and which ones you read.
 - If you are signed in: a copy of the synced document as last synced, to merge changes.
 - Your settings (theme, text settings, full articles, pictures, Save and Share targets, the Unread filter, mark as read on scroll).
+- Articles you saved without an Instapaper account: their address, title, when you saved them,
+  whether you liked or archived them, and their tags (`datastore/saved`). They are not sent anywhere.
 - The text of full articles you opened, and recently shown pictures, in the app's cache (Android
   may clear it).
 - If you signed in to Instapaper: the access token, your Instapaper user name and this device's
@@ -77,7 +79,7 @@ devices stay the same.
   phone-to-phone transfer leave out.
 
 Android's own backup (to your Google account, if you turned that on) and phone-to-phone transfer
-include the feed list, articles, read state and settings, not the cache and not the Instapaper sign-in. Removing a feed deletes its articles; uninstalling the app deletes everything.
+include the feed list, articles, read state, settings and the articles saved without an account, not the cache and not the Instapaper sign-in. Removing a feed deletes its articles; uninstalling the app deletes everything.
 
 ## Background activity
 

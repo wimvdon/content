@@ -172,7 +172,7 @@
     <string name="instapaper_problem_invalid">Instapaper couldn’t do that.</string>
     <string name="instapaper_archive_list">Archive</string>
     <string name="instapaper_archive">Archive</string>
-    <string name="instapaper_move_to_unread">Move to Unread</string>
+    <string name="instapaper_move_to_unread">Move back to Saved</string>
     <string name="instapaper_like">Like</string>
     <string name="instapaper_unlike">Remove like</string>
     <string name="instapaper_liked">Liked</string>
@@ -182,7 +182,7 @@
     <string name="instapaper_empty">Nothing here yet.</string>
     <string name="instapaper_load_more">Load more</string>
     <string name="instapaper_delete_folder">Delete folder</string>
-    <string name="instapaper_delete_folder_note">Articles in a deleted folder move back to Unread.</string>
+    <string name="instapaper_delete_folder_note">Articles in a deleted folder move back to Saved.</string>
     <string name="instapaper_tag_name">Tag name</string>
     <string name="instapaper_add_tag">Add tag</string>
     <string name="instapaper_rename_tag">Rename tag</string>
@@ -217,4 +217,12 @@
     <string name="search_saved_loading">Searching your saved articles…</string>
     <string name="search_section_none">No matches</string>
     <string name="search_saved_incomplete">Instapaper didn\'t answer for every list, so some saved articles weren\'t searched.</string>
+    <string name="section_saved">Saved</string>
+    <string name="saved_list">Saved</string>
+    <string name="saved_done">Saved</string>
+    <string name="saved_delete_body">Delete this saved article for good? This can’t be undone.</string>
+    <string name="menu_manage_saved">Manage tags</string>
+    <string name="saved_manage_title">Tags</string>
+    <string name="saved_manage_empty">Tags you add to saved articles show here, so you can rename them.</string>
+    <string name="share_target_saved">Saved, in this app</string>
 </resources>

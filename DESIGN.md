@@ -240,34 +240,33 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   "No folder" when it is empty, and the
   dragged row lifted with a shadow. Tapping a row opens its edit dialog; Remove sits in the
   dialog, in the error colour. Manage Instapaper ("Instapaper folders and tags") is a page of its own
-  too (☰, when signed in). Settings sections: Account (Sign in with Instapaper; signed in, who, the
+  too (☰; signed out it is Manage tags, with only the tags). Settings sections: Account (Sign in with Instapaper; signed in, who, the
   last sync or what went wrong, Sync now, Sign out and Delete synced data in the error colour, which
   asks first), Article list, Reader, Save and share (integration), Appearance, footer.
 - Folder icons come from the whole Material Symbols set (outlined, rounded), picked with a search
-  field and a grid in the folder dialog. The app's other icons (Instapaper's Unread, Liked,
+  field and a grid in the folder dialog. The app's other icons (Saved's Saved, Liked,
   Archive, folders and tags included) use the same outlined, rounded style; only an icon that
   shows something is on is filled (a selected destination, the Like heart once liked).
-- Navigation: signed in to Instapaper, a navigation bar at the bottom (a navigation rail on
+- Navigation: a navigation bar at the bottom (a navigation rail on
   windows 600dp and wider) switches between the two destinations, Feeds (feed symbol) and
-  Instapaper (bookmarks, filled when selected); Instapaper returns to the list last shown there.
-  Signed out there is one destination and no bar. Search is an action in the top bar of both
+  Saved (bookmarks, filled when selected), with or without an Instapaper account; Saved returns to
+  the list last shown there. Search is an action in the top bar of both
   destinations (a magnifier) that opens one search page for
-  everything: the field in its top bar, results as article rows, signed in under two section
-  headers (Feeds, Instapaper; the destination you came from first). It is not a navigation bar
-  item: it acts on the content of both destinations rather than being a place of its own, and
-  signed out there is no bar to hold it. The ☰ drawer holds every place, the same
-  wherever the app is: Feeds and, signed in, Instapaper are sections in it; each header
+  everything: the field in its top bar, results as article rows, under two section
+  headers (Feeds, Saved; the destination you came from first). It is not a navigation bar
+  item: it acts on the content of both destinations rather than being a place of its own. The ☰
+  drawer holds every place, the same wherever the app is: Feeds and Saved are sections in it; each header
   (Title Small in `primary`, a fold arrow, the unread count while folded) folds its section open
   and shut. The section being shown is open and the other folded shut whenever you move between
-  them, so the drawer stays short. Back from an Instapaper list or a feed section goes to All articles.
-- Feeds and Instapaper each have scrollable primary tabs under the top app bar for their peer views. Feeds:
-  All (feed symbol), then each folder with its icon and name. Instapaper: Unread, Liked,
-  Archive, each Instapaper folder, then Tags; under Tags a row of filter chips picks the tag
+  them, so the drawer stays short. Back from a Saved list or a feed section goes to All articles.
+- Feeds and Saved each have scrollable primary tabs under the top app bar for their peer views. Feeds:
+  All (feed symbol), then each folder with its icon and name. Saved: Saved, Liked, each Instapaper
+  folder (signed in), Tags, then Archive; under Tags a row of filter chips picks the tag
   (tags come and go too often for a tab each). The Mark all read FAB and the Unread chip are on
   Feeds only; the FAB only marks the section shown.
 - The ☰ drawer: the Feeds section (All articles, the folders with their feeds, the other feeds),
-  the Instapaper section (Unread, Liked, Archive, its folders and tags), then Manage feeds, Manage
-  Instapaper and Settings. The web app's sidebar is the same, with the same folding sections.
+  the Saved section (Saved, Liked, the Instapaper folders, the tags, then Archive), then Manage feeds,
+  Manage Instapaper (signed out: Manage tags) and Settings. The web app's sidebar is the same, with the same folding sections.
   Manage feeds and Manage Instapaper show what they manage with a pen: the feed symbol with a
   pen and a bookmark with a pen (Android: Material Symbols' shapes; web: Lucide's).
 - Site icons sit on a fixed light tile (`#F4F4F4`, rounded, 10% padding) in light and dark mode,

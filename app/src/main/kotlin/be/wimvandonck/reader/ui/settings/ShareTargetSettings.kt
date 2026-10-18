@@ -1,5 +1,6 @@
 package be.wimvandonck.reader.ui.settings
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -40,8 +41,8 @@ import be.wimvandonck.reader.ui.ExternalApps
 import be.wimvandonck.reader.ui.theme.SettingsSection
 
 /**
- * Where the reader's Save and Share buttons send an article: the share menu, or straight to one
- * app (for example Instapaper for Save). Signed in to Instapaper, Save always goes to the account,
+ * Where the reader's Save and Share buttons send an article: Saved in this app (Save only), the
+ * share menu, or straight to one app. Signed in to Instapaper, Save always goes to the account,
  * so there is no choice to show for it ([showSaveTarget] false).
  */
 @Composable
@@ -54,7 +55,7 @@ fun ShareTargetsSection(
     showSaveTarget: Boolean = true,
 ) {
     SettingsSection(title = stringResource(R.string.section_save)) {
-        if (showSaveTarget) TargetRow(stringResource(R.string.setting_save_button), saveTarget, apps, onSaveTargetChange)
+        if (showSaveTarget) TargetRow(stringResource(R.string.setting_save_button), saveTarget, apps, onSaveTargetChange, offerSaved = true)
         TargetRow(stringResource(R.string.setting_share_button), shareTarget, apps, onShareTargetChange)
     }
 }
@@ -65,18 +66,21 @@ private fun TargetRow(
     target: ShareTarget,
     apps: List<ExternalApps.ShareApp>,
     onChange: (ShareTarget) -> Unit,
+    /** Offer Saved in this app as the first choice (for Save). */
+    offerSaved: Boolean = false,
 ) {
     var choosing by rememberSaveable { mutableStateOf(false) }
     val sheet = stringResource(R.string.share_target_sheet)
+    val saved = stringResource(R.string.share_target_saved)
     val missing = target is ShareTarget.App && apps.isNotEmpty() && apps.none { it.target.packageName == target.packageName }
     ListItem(
         headlineContent = { Text(title) },
         supportingContent = {
             Column {
-                Text(target.label(sheet))
+                Text(target.label(sheet, saved))
                 if (missing) {
                     Text(
-                        stringResource(R.string.share_target_missing, target.label(sheet)),
+                        stringResource(R.string.share_target_missing, target.label(sheet, saved)),
                         color = MaterialTheme.colorScheme.error,
                     )
                 }
@@ -90,6 +94,14 @@ private fun TargetRow(
             title = { Text(title) },
             text = {
                 LazyColumn(Modifier.heightIn(max = 420.dp)) {
+                    if (offerSaved) {
+                        item(key = "saved") {
+                            Choice(saved, null, selected = target == ShareTarget.Saved, iconRes = R.drawable.ic_bookmark_add) {
+                                onChange(ShareTarget.Saved)
+                                choosing = false
+                            }
+                        }
+                    }
                     item(key = "sheet") {
                         Choice(sheet, null, selected = target == ShareTarget.Sheet) {
                             onChange(ShareTarget.Sheet)
@@ -119,6 +131,7 @@ private fun Choice(
     label: String,
     app: ExternalApps.ShareApp?,
     selected: Boolean,
+    @DrawableRes iconRes: Int = R.drawable.ic_share,
     onClick: () -> Unit,
 ) {
     Row(
@@ -135,16 +148,20 @@ private fun Choice(
             val bitmap = remember(app) { app.icon.toBitmap(96, 96).asImageBitmap() }
             Image(bitmap, contentDescription = null, modifier = Modifier.size(32.dp))
         } else {
-            Icon(painterResource(R.drawable.ic_share), contentDescription = null, modifier = Modifier.size(32.dp).padding(4.dp))
+            Icon(painterResource(iconRes), contentDescription = null, modifier = Modifier.size(32.dp).padding(4.dp))
         }
         Text(label, style = MaterialTheme.typography.bodyLarge)
         Spacer(Modifier.weight(1f))
     }
 }
 
-/** What the setting shows: the app's name, or "Share menu". */
-fun ShareTarget.label(sheet: String): String =
+/** What the setting shows: the app's name, "Share menu" or "Saved, in this app". */
+fun ShareTarget.label(
+    sheet: String,
+    saved: String,
+): String =
     when (this) {
         ShareTarget.Sheet -> sheet
+        ShareTarget.Saved -> saved
         is ShareTarget.App -> label
     }

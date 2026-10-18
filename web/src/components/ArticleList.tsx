@@ -149,7 +149,7 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo }: 
  */
 function InstapaperArticles({ view, openKey, onOpen, onMenu }: { view: View; openKey: string | null; onOpen: (a: Article) => void; onMenu: () => void }) {
   const { instapaperList: list, instapaperFolders } = useApp();
-  const title = viewTitle(view, instapaperFolders, { home: t("unread"), liked: t("instapaperLiked"), archive: t("instapaperArchiveList") });
+  const title = viewTitle(view, instapaperFolders, { home: t("saved"), liked: t("instapaperLiked"), archive: t("instapaperArchiveList") });
   const items = list.items;
   return (
     <section className="flex h-full min-w-0 flex-col" aria-label={title}>
@@ -159,7 +159,7 @@ function InstapaperArticles({ view, openKey, onOpen, onMenu }: { view: View; ope
         </Button>
         <div className="min-w-0 flex-1 px-2">
           <h1 className="truncate text-xl font-semibold">{title}</h1>
-          <p className="text-xs text-muted-foreground">{t("instapaper")}</p>
+          <p className="text-xs text-muted-foreground">{t("saved")}</p>
         </div>
         <Button variant="ghost" size="icon" onClick={() => void app.refresh()} disabled={list.loading} aria-label={t("refresh")} title={t("refresh") + " (r)"}>
           <RefreshCw className={cn(list.loading && "animate-spin")} />

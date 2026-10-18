@@ -52,7 +52,7 @@ import be.wimvandonck.reader.instapaper.InstapaperView
 /**
  * The app's navigation: Feeds and, when signed in, Instapaper as two sections that fold open and
  * shut. Feeds: All articles, each folder with its feeds and the feeds outside folders (each with
- * its unread count). Instapaper: Unread, Liked, its folders, its tags and Archive. Then Manage feeds,
+ * its unread count). Saved (Instapaper, or this phone): Saved, Liked, its folders, its tags and Archive. Then Manage feeds,
  * Manage Instapaper and Settings. The same wherever the app is (DESIGN.md), with the section
  * being shown open and the other folded shut.
  */
@@ -144,7 +144,7 @@ fun FeedDrawer(
             }
             if (instapaper != null) {
                 SectionHeader(
-                    title = stringResource(R.string.section_instapaper),
+                    title = stringResource(R.string.section_saved),
                     open = instapaperOpen,
                     count = 0,
                     onToggle = { instapaperOpen = !instapaperOpen },
@@ -163,7 +163,7 @@ fun FeedDrawer(
             )
             if (instapaper != null) {
                 NavigationDrawerItem(
-                    label = { Text(stringResource(R.string.menu_manage_instapaper)) },
+                    label = { Text(stringResource(if (instapaper.list.account) R.string.menu_manage_instapaper else R.string.menu_manage_saved)) },
                     icon = { Icon(painterResource(R.drawable.ic_manage_instapaper), contentDescription = null) },
                     selected = false,
                     onClick = onOpenInstapaperManage,
@@ -240,7 +240,7 @@ private fun InstapaperSection(
         selected = instapaper.view == view,
         onClick = { onSelect(view) },
     )
-    item(InstapaperView.Home, stringResource(R.string.filter_unread), R.drawable.ic_article)
+    item(InstapaperView.Home, stringResource(R.string.saved_list), R.drawable.ic_article)
     item(InstapaperView.Liked, stringResource(R.string.instapaper_liked), R.drawable.ic_favorite)
     for (folder in instapaper.folders) item(InstapaperView.InFolder(folder.id), folder.title, R.drawable.ic_folder)
     if (instapaper.tags.isNotEmpty()) {

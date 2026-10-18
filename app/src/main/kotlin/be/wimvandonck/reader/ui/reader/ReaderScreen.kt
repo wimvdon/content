@@ -169,7 +169,7 @@ fun ReaderScreen(
                             )
                         }
                         if (saved != null) {
-                            SavedArticleMenuItems(onOpen = {
+                            SavedArticleMenuItems(withFolders = saved.account, onOpen = {
                                 menuOpen = false
                                 savedDialog = it
                             })

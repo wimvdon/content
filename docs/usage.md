@@ -76,14 +76,14 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
 
 ## Reading the list
 
-- Signed in with Instapaper, the **bar at the bottom** switches between **Feeds** and
-  **Instapaper** (on a tablet or in landscape it sits at the left side). Instapaper opens the list
-  you last had open there (Unread at first).
+- The **bar at the bottom** switches between **Feeds** and **Saved** (on a tablet or in landscape
+  it sits at the left side). Saved opens the list you last had open there (Saved at first).
 - **☰** opens the drawer with every place. **Feeds**: **All articles** (every feed), your
-  folders with their feeds, the other feeds (each with its number of unread articles). Signed in to
-  Instapaper, **Instapaper** follows with its own places (see below). The section you're in (Feeds or
-  Instapaper) is open and the other is folded shut, so the menu stays short; tap a section's name
-  to fold it open or shut. Below them: **Manage feeds**, **Manage Instapaper** (signed in) and **Settings**.
+  folders with their feeds, the other feeds (each with its number of unread articles). **Saved**
+  follows with its own places (see Saved articles). The section you're in (Feeds or
+  Saved) is open and the other is folded shut, so the menu stays short; tap a section's name
+  to fold it open or shut. Below them: **Manage feeds**, **Manage Instapaper** (signed in; signed
+  out **Manage tags**) and **Settings**.
 - **Search** (the magnifier at the top right, in Feeds and in Instapaper) searches everything: the
   articles of all your feeds that are on the phone (titles, text, feed names and authors) and,
   signed in to Instapaper, your saved articles (titles, websites, descriptions and tags). Every word
@@ -128,7 +128,7 @@ website (the same as **Read on website** at the end). In the top bar:
 | Button | What it does |
 |---|---|
 | **Aa** | Text settings: font (Sans or Serif), text size, spacing (Compact, Normal, Relaxed), background (Theme, Sepia or Dark) and **Auto dark** (the dark page whenever the app is dark, e.g. Sepia by day and dark at night). Changes apply right away and are remembered for every article. |
-| Bookmark | **Save**: sends the article to the app you chose (Instapaper by default), or opens the share menu (see below). Signed in to Instapaper, it saves straight to your account. |
+| Bookmark | **Save**: keeps the article in **Saved** (by default), or sends it to the app you chose or the share menu (see below). Signed in to Instapaper, it saves straight to your account. |
 | Share | **Share**: the share menu, or straight to the app you chose. |
 | ⋮ | **Open in browser** and **Mark as unread**. |
 
@@ -153,8 +153,10 @@ data); embed cards stay, without preview.
 The reader has a **Save** button (bookmark) and a **Share** button. In **Settings › Save and
 share** you choose, for each, where it sends the article:
 
+- **Saved, in this app** (Save only, and its default): the article goes to the **Saved** screen
+  of this app, and a sheet opens to like, archive and tag it (see Saved articles).
 - **an app**, picked from the apps on your phone that accept shared links: the article goes
-  straight there, without the share menu. Save is set to **Instapaper** by default.
+  straight there, without the share menu.
 - **Share menu**: Android's share menu opens, so you pick an app each time. This is Share's
   default.
 
@@ -191,28 +193,37 @@ from the same source. Downloaded full articles are not backed up; they load agai
 The app follows the phone's language. To choose another one for this app only: Android
 **Settings › System › Languages › App languages › Reader**.
 
-## Instapaper account
+## Saved articles
 
-Settings › **Account** › **Sign in with Instapaper** opens Instapaper's own page in your browser.
-Approve Reader there and you come back to the app (or the web page) signed in; Reader never sees your
-password. The same sign-in turns on sync (see Sync between devices).
+**Saved** works with or without an Instapaper account. Without one, your saved articles stay on
+this phone (they are part of the phone's backup but don't sync), and there are no folders. Signed
+in, they are your Instapaper articles, with Instapaper's folders, on every device.
 
-Signed in:
-
-- **Save** (the bookmark button in the reader) saves the article to your Instapaper account. A
-  sheet (a dialog on the web) opens at once: tap a folder to file it there and add tags, then
-  **Done**. Close it to leave the article in Unread.
-- The ☰ drawer (the web app: the sidebar) gets an **Instapaper** section under Feeds: Unread,
+- **Save** (the bookmark button in the reader) saves the article. A sheet (a dialog on the web)
+  opens at once: **Like** and **Archive** it, tap a folder to file it there (signed in) and add
+  tags, then **Done**. Close it to leave the article in Saved.
+- The ☰ drawer (the web app: the sidebar, signed in) has a **Saved** section under Feeds: Saved,
   Liked, your Instapaper folders, your tags and, last, Archive. On an Instapaper list, tabs under the title
   show the same places, with **Tags** (chips under it pick the tag). Each shows its saved articles in the same
   list as feed articles, and they open in the same reader (the whole article loads from its
   website, like a feed's). Saved articles have no read state and are not in All articles: you
-  archive them yourself. In the reader: like (♥), archive (or move back to Unread), and in ⋮ move
-  to a folder (or **New folder**: name it and the article goes straight in), tags (add or remove) and
+  archive them yourself. In the reader: like (♥), archive (or move back to Saved), and in ⋮ move
+  to a folder (signed in) (or **New folder**: name it and the article goes straight in), tags (add or remove) and
   delete for good (asks first). The sheet after Save has **New folder** too.
 - **☰ › Manage Instapaper** ("Instapaper folders and tags"): create, reorder and delete Instapaper
-  folders (a deleted folder's articles go back to Unread) and rename tags.
-- **Sign out** removes the sign-in from this device, and stops syncing here.
+  folders (a deleted folder's articles go back to Saved) and rename tags. Signed out it is
+  **☰ › Manage tags**, to rename the tags of the articles saved on the phone.
+
+Signing in shows your Instapaper articles instead of the ones saved on the phone; those stay on the
+phone (they aren't copied to Instapaper) and come back when you sign out.
+
+## Instapaper account
+
+Settings › **Account** › **Sign in with Instapaper** opens Instapaper's own page in your browser.
+Approve Reader there and you come back to the app (or the web page) signed in; Reader never sees your
+password. The same sign-in turns on sync (see Sync between devices) and puts your Instapaper
+articles and folders in **Saved**. **Sign out** removes the sign-in from this device, and stops
+syncing here.
 
 Until Instapaper has approved Reader, only the owner's own account works; other accounts see
 "Instapaper hasn't approved Reader for your account yet." Setup and details: `instapaper.md`.
@@ -224,4 +235,4 @@ Until Instapaper has approved Reader, only the owner's own account works; other 
 | "No feed found at this address" | Try the site's feed address instead; look for an RSS or feed link on the site. |
 | "Couldn't connect" | Check the internet connection and pull down to try again. |
 | A feed shows only short summaries | That is what the site publishes; tap **Read on website**. |
-| Not sure Save worked | The "Saved to Instapaper" sheet opens; open Instapaper to see the article. |
+| Not sure Save worked | A "Saved" sheet opens ("Saved to Instapaper" when signed in); the article is in **Saved**. |

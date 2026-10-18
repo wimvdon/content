@@ -177,7 +177,7 @@
     <string name="instapaper_problem_invalid">Instapaper non è riuscito a farlo.</string>
     <string name="instapaper_archive_list">Archivio</string>
     <string name="instapaper_archive">Archivia</string>
-    <string name="instapaper_move_to_unread">Sposta in Non letti</string>
+    <string name="instapaper_move_to_unread">Sposta in Salvati</string>
     <string name="instapaper_like">Mi piace</string>
     <string name="instapaper_unlike">Rimuovi mi piace</string>
     <string name="instapaper_liked">Mi piace</string>
@@ -187,7 +187,7 @@
     <string name="instapaper_empty">Qui non c’è ancora nulla.</string>
     <string name="instapaper_load_more">Carica altri</string>
     <string name="instapaper_delete_folder">Elimina cartella</string>
-    <string name="instapaper_delete_folder_note">Gli articoli di una cartella eliminata tornano in Non letti.</string>
+    <string name="instapaper_delete_folder_note">Gli articoli di una cartella eliminata tornano in Salvati.</string>
     <string name="instapaper_tag_name">Nome del tag</string>
     <string name="instapaper_add_tag">Aggiungi tag</string>
     <string name="instapaper_rename_tag">Rinomina tag</string>
@@ -222,4 +222,12 @@
     <string name="search_saved_loading">Ricerca negli articoli salvati…</string>
     <string name="search_section_none">Nessun risultato</string>
     <string name="search_saved_incomplete">Instapaper non ha risposto per ogni elenco, quindi alcuni articoli salvati non sono stati cercati.</string>
+    <string name="section_saved">Salvati</string>
+    <string name="saved_list">Salvati</string>
+    <string name="saved_done">Salvato</string>
+    <string name="saved_delete_body">Eliminare definitivamente questo articolo salvato? L’azione non si può annullare.</string>
+    <string name="menu_manage_saved">Gestisci tag</string>
+    <string name="saved_manage_title">Tag</string>
+    <string name="saved_manage_empty">I tag che aggiungi agli articoli salvati compaiono qui, per rinominarli.</string>
+    <string name="share_target_saved">Salvati, in questa app</string>
 </resources>

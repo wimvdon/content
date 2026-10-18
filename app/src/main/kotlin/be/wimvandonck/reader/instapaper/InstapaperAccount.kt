@@ -49,6 +49,9 @@ class InstapaperAccount(
 ) {
     private val dataStore = context.applicationContext.instapaperDataStore
 
+    /** The articles saved on this phone while no account is signed in. */
+    private val localSaved = LocalSaved(LocalSavedStore(context))
+
     val state: StateFlow<InstapaperState> =
         dataStore.data
             .catch { error -> if (error is IOException) emit(emptyPreferences()) else throw error }
@@ -112,6 +115,12 @@ class InstapaperAccount(
         session: InstapaperSession,
         modelScope: CoroutineScope,
     ): InstapaperModel = InstapaperModel(InstapaperClient(http, session.token), modelScope, onSignedOut = { scope.launch { signOut() } })
+
+    /**
+     * The model for the Saved screen without an account: the articles saved on this phone, with
+     * likes, archive and tags but no folders, not synced.
+     */
+    fun newLocalModel(modelScope: CoroutineScope): InstapaperModel = InstapaperModel(localSaved, modelScope, onSignedOut = {}, account = false)
 
     /** Saves one address to the account; a refused token signs out. */
     suspend fun save(

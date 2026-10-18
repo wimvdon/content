@@ -156,10 +156,19 @@ fun RssReaderNavigation() {
     // another feed, the other filter, or a refresh. Otherwise rows would jump away.
     var readThisVisit by rememberSaveable { mutableStateOf(setOf<String>()) }
 
-    // Instapaper, shown like the feeds: one model per sign-in, with the folders and tags for the
-    // drawer and the list chosen there (null while a feed section is shown).
+    // Saved, shown like the feeds: one model per Instapaper sign-in, or the articles saved on this
+    // phone when signed out, with the folders and tags for the drawer and the list chosen there
+    // (null while a feed section is shown).
     val signedIn = instapaperState as? InstapaperState.SignedIn
-    val instapaper = remember(signedIn?.session?.token) { signedIn?.let { app.instapaper.newModel(it.session, app.appScope).also { m -> m.start() } } }
+    val signedOut = instapaperState == InstapaperState.SignedOut
+    val instapaper =
+        remember(signedIn?.session?.token, signedOut) {
+            when {
+                signedIn != null -> app.instapaper.newModel(signedIn.session, app.appScope)
+                signedOut -> app.instapaper.newLocalModel(app.appScope)
+                else -> null
+            }?.also { m -> m.start() }
+        }
     val instapaperUi by (instapaper?.state ?: flowOf(null)).collectAsStateWithLifecycle(null)
     var chosenView by rememberSaveable(stateSaver = InstapaperViewSaver) { mutableStateOf<InstapaperView?>(null) }
     val instapaperView = chosenView.takeIf { instapaper != null }
@@ -167,7 +176,9 @@ fun RssReaderNavigation() {
     var lastInstapaperView by rememberSaveable(stateSaver = InstapaperViewSaver) { mutableStateOf<InstapaperView?>(null) }
     // After a sign-in, or the app coming back, show the chosen list.
     LaunchedEffect(instapaper) {
-        val view = chosenView
+        // Saved on this phone has no folders: a folder chosen with the account shows Saved instead.
+        val view = chosenView?.let { if (instapaper?.state?.value?.account == false && it is InstapaperView.InFolder) InstapaperView.Home else it }
+        if (view != chosenView) chosenView = view
         if (instapaper != null && view != null && instapaper.state.value.view != view) instapaper.select(view)
     }
 
@@ -299,7 +310,10 @@ fun RssReaderNavigation() {
         }
     }
 
-    /** Saves the article to the signed-in Instapaper account, then offers to file it (folder and tags). */
+    /**
+     * Saves the article to Saved (the signed-in Instapaper account, or this phone), then offers to
+     * file it (like, archive, folder and tags).
+     */
     fun saveToInstapaper(article: Article) {
         val link = article.link ?: return
         uiScope.launch {
@@ -308,7 +322,8 @@ fun RssReaderNavigation() {
                 if (model != null) {
                     model.save(link, article.title)
                     // The sheet says it was saved; a message is only needed when there is no sheet.
-                    if (model.state.value.justSaved == null) showMessage(resources.getString(R.string.instapaper_saved))
+                    val done = if (model.state.value.account) R.string.instapaper_saved else R.string.saved_done
+                    if (model.state.value.justSaved == null) showMessage(resources.getString(done))
                 } else {
                     app.instapaper.save(link, article.title)
                     showMessage(resources.getString(R.string.instapaper_saved))
@@ -486,7 +501,8 @@ fun RssReaderNavigation() {
                                     onStyleChange = { style -> app.appScope.launch { app.settings.setReaderStyle(style) } },
                                     onSave = {
                                         article?.let {
-                                            if (instapaperState is InstapaperState.SignedIn) saveToInstapaper(it) else send(it, current.saveTarget)
+                                            val inApp = instapaperState is InstapaperState.SignedIn || current.saveTarget == ShareTarget.Saved
+                                            if (inApp) saveToInstapaper(it) else send(it, current.saveTarget)
                                         }
                                     },
                                     onShare = { article?.let { send(it, current.shareTarget) } },
@@ -502,6 +518,7 @@ fun RssReaderNavigation() {
                                 if (bookmark != null && instapaper != null && instapaperUi != null) {
                                     SavedArticle(
                                         bookmark = bookmark,
+                                        account = instapaperUi?.account ?: true,
                                         folders = instapaperUi?.folders.orEmpty(),
                                         tags = instapaperUi?.tags.orEmpty(),
                                         onLike = { instapaper.toggleLike(bookmark) },
@@ -631,11 +648,11 @@ fun RssReaderNavigation() {
                 Screen.InstapaperManage -> {
                     SystemBarsFollowTheme(appDark)
                     val model = instapaper
-                    // Signed out meanwhile (here or because Instapaper refused the token): nothing to manage.
+                    // Still loading the sign-in: nothing to manage yet.
                     LaunchedEffect(model == null) { if (model == null) pop() }
                     if (model != null) {
                         InstapaperManageScreen(
-                            state = InstapaperManageState(instapaperUi?.folders.orEmpty(), instapaperUi?.tags.orEmpty()),
+                            state = InstapaperManageState(instapaperUi?.folders.orEmpty(), instapaperUi?.tags.orEmpty(), account = instapaperUi?.account ?: true),
                             snackbarHostState = snackbar,
                             onBack = ::pop,
                             actions =
@@ -657,8 +674,11 @@ fun RssReaderNavigation() {
     if (instapaper != null && justSaved != null) {
         JustSavedSheet(
             bookmark = justSaved,
+            account = instapaperUi?.account ?: true,
             folders = instapaperUi?.folders.orEmpty(),
             tags = instapaperUi?.tags.orEmpty(),
+            onLike = { instapaper.toggleLike(justSaved) },
+            onArchive = { instapaper.toggleArchive(justSaved) },
             onMove = { folderId -> instapaper.moveTo(justSaved, folderId) },
             onMoveToNewFolder = { title -> instapaper.moveToNewFolder(justSaved, title) },
             onAddTag = { name -> instapaper.addTag(justSaved, name) },

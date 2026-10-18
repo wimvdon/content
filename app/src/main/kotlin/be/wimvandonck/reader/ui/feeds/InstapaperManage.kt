@@ -44,15 +44,16 @@ import be.wimvandonck.reader.ui.theme.DragHandle
 import be.wimvandonck.reader.ui.theme.ReorderableColumn
 import be.wimvandonck.reader.ui.theme.readableWidth
 
-/** Instapaper's folders and tags, for Manage Instapaper. */
+/** Saved's folders and tags, for Manage Instapaper; only tags without an account ([account] false). */
 data class InstapaperManageState(
     val folders: List<InstapaperFolder>,
     val tags: List<InstapaperTag>,
+    val account: Boolean = true,
 )
 
 class InstapaperManageActions(
     val onCreateFolder: (String) -> Unit,
-    /** Its articles go back to Unread at Instapaper. */
+    /** Its articles go back to Saved at Instapaper. */
     val onDeleteFolder: (InstapaperFolder) -> Unit,
     val onMoveFolder: (InstapaperFolder, Int) -> Unit,
     val onRenameTag: (InstapaperTag, String) -> Unit,
@@ -77,7 +78,7 @@ fun InstapaperManageScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             LargeTopAppBar(
-                title = { Text(stringResource(R.string.instapaper_manage_title)) },
+                title = { Text(stringResource(if (state.account) R.string.instapaper_manage_title else R.string.saved_manage_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(painterResource(R.drawable.ic_arrow_back), contentDescription = stringResource(R.string.action_back))
@@ -110,41 +111,46 @@ private fun InstapaperManageSection(
     var renaming by rememberSaveable { mutableStateOf<Long?>(null) }
     val rowColors = ListItemDefaults.colors(containerColor = Color.Transparent)
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(
-            stringResource(R.string.instapaper_folders),
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.semantics { heading() },
-        )
-        ReorderableColumn(
-            items = state.folders,
-            key = { it.id },
-            onMove = { from, to -> actions.onMoveFolder(state.folders[from], to - from) },
-        ) { folder ->
-            ListItem(
-                headlineContent = { Text(folder.title) },
-                leadingContent = { Icon(painterResource(R.drawable.ic_folder), contentDescription = null) },
-                trailingContent = {
-                    androidx.compose.foundation.layout.Row {
-                        IconButton(onClick = { deleting = folder.id }) {
-                            Icon(painterResource(R.drawable.ic_delete), contentDescription = stringResource(R.string.instapaper_delete_folder))
-                        }
-                        DragHandle(handleModifier)
-                    }
-                },
-                colors = rowColors,
+        if (state.account) {
+            Text(
+                stringResource(R.string.instapaper_folders),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.semantics { heading() },
             )
+            ReorderableColumn(
+                items = state.folders,
+                key = { it.id },
+                onMove = { from, to -> actions.onMoveFolder(state.folders[from], to - from) },
+            ) { folder ->
+                ListItem(
+                    headlineContent = { Text(folder.title) },
+                    leadingContent = { Icon(painterResource(R.drawable.ic_folder), contentDescription = null) },
+                    trailingContent = {
+                        androidx.compose.foundation.layout.Row {
+                            IconButton(onClick = { deleting = folder.id }) {
+                                Icon(painterResource(R.drawable.ic_delete), contentDescription = stringResource(R.string.instapaper_delete_folder))
+                            }
+                            DragHandle(handleModifier)
+                        }
+                    },
+                    colors = rowColors,
+                )
+            }
+            FilledTonalButton(onClick = { newFolder = true }) {
+                Icon(painterResource(R.drawable.ic_add), contentDescription = null)
+                Text(stringResource(R.string.folder_new), modifier = Modifier.padding(start = 8.dp))
+            }
         }
-        FilledTonalButton(onClick = { newFolder = true }) {
-            Icon(painterResource(R.drawable.ic_add), contentDescription = null)
-            Text(stringResource(R.string.folder_new), modifier = Modifier.padding(start = 8.dp))
+        if (!state.account && state.tags.isEmpty()) {
+            Text(stringResource(R.string.saved_manage_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         if (state.tags.isNotEmpty()) {
             Text(
                 stringResource(R.string.instapaper_tags),
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(top = 16.dp).semantics { heading() },
+                modifier = Modifier.padding(top = if (state.account) 16.dp else 0.dp).semantics { heading() },
             )
             state.tags.forEach { tag ->
                 ListItem(
