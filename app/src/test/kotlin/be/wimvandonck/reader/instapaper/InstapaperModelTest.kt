@@ -1,5 +1,6 @@
 package be.wimvandonck.reader.instapaper
 
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -25,12 +26,16 @@ private class FakeService : InstapaperService {
     var tagsAfter: List<InstapaperTag> = emptyList()
     var failure: InstapaperException? = null
 
+    /** When set, reading a list waits for it (a slow connection). */
+    var gate: CompletableDeferred<Unit>? = null
+
     private fun check() {
         failure?.let { throw it }
     }
 
     override suspend fun list(view: InstapaperView, offset: Int, limit: Int): InstapaperPage {
         calls += "list $view $offset"
+        gate?.await()
         check()
         val all = lists[view].orEmpty()
         return InstapaperPage(all.drop(offset).take(limit), all.size)
@@ -111,6 +116,21 @@ class InstapaperModelTest {
         assertEquals(2, state.folders.size)
         assertEquals(listOf(InstapaperTag(1, "Cooking")), state.tags)
         assertNull(state.problem)
+    }
+
+    @Test
+    fun `a refresh keeps the list and counts as loading until the new one is in`() {
+        service.lists[InstapaperView.Home] = listOf(bookmark(1))
+        val model = model()
+        model.start()
+        service.lists[InstapaperView.Home] = listOf(bookmark(2), bookmark(1))
+        val gate = CompletableDeferred<Unit>().also { service.gate = it }
+        model.refresh()
+        assertTrue(model.state.value.loading)
+        assertEquals(listOf(1L), model.state.value.items.map { it.id })
+        gate.complete(Unit)
+        assertFalse(model.state.value.loading)
+        assertEquals(listOf(2L, 1L), model.state.value.items.map { it.id })
     }
 
     @Test
