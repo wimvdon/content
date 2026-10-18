@@ -251,7 +251,7 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   windows 600dp and wider) switches between the two destinations, Feeds (feed symbol) and
   Instapaper (bookmarks, filled when selected); Instapaper returns to the list last shown there.
   Signed out there is one destination and no bar. Search is an action in the top bar of both
-  destinations (a magnifier, before the Unread chip on Feeds) that opens one search page for
+  destinations (a magnifier) that opens one search page for
   everything: the field in its top bar, results as article rows, signed in under two section
   headers (Feeds, Instapaper; the destination you came from first). It is not a navigation bar
   item: it acts on the content of both destinations rather than being a place of its own, and
@@ -277,10 +277,12 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   `surfaceContainer`, read rows on `surfaceContainerLow`; the feed name is in `primary`. Swiping
   either way past 30% of the width toggles read (haptic tick at the threshold, row springs
   back); the drawer opens from the ☰ button only. The top bar shows the section and its unread count, with no ⋮ menu (refresh is pull-down; adding
-  feeds lives on Manage feeds). Unread | All is one Material 3 filter chip, **Unread**, at the end
-  of the top bar: selected (with a check) shows unread articles only, unselected all of them.
+  feeds lives on Manage feeds). Unread | All is one Material 3 filter chip, **Unread**, in a chip
+  row of its own under the folder tabs (16dp sides, 8dp above and below, like the tag chips on
+  Instapaper's Tags tab): selected (with a check) shows unread articles only, unselected all of
+  them. The top bar holds only icon buttons, as Material 3's top app bar does.
   Settings lives in the drawer only.
-  The header (a small `TopAppBar` with the Unread chip, then the folder tabs attached to it) is one block that slides away
+  The header (a small `TopAppBar`, the folder tabs attached to it, then the chip row) is one block that slides away
   while scrolling down and comes back as soon as you scroll up (Material's "enter always"),
   turning `surfaceContainer` once articles pass under it; articles sit under sticky day headers (Today,
   Yesterday, date) in `primary` Title Small; Mark all as read is an icon-only FAB. The drawer opens with the app's logo (the

@@ -293,13 +293,6 @@ fun HomeScreen(
                                         Icon(painterResource(R.drawable.ic_search), contentDescription = stringResource(R.string.action_search))
                                     }
                                 }
-                                if (state.feeds.isNotEmpty() && savedView == null) {
-                                    ReadFilter(
-                                        unreadOnly = state.unreadOnly,
-                                        onUnreadOnlyChange = actions.onUnreadOnlyChange,
-                                        modifier = Modifier.padding(end = 12.dp),
-                                    )
-                                }
                             },
                             windowInsets = WindowInsets(0),
                             colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent, scrolledContainerColor = Color.Transparent),
@@ -318,6 +311,13 @@ fun HomeScreen(
                                 selectedFolderId = sectionFolderId,
                                 onSelectAll = { actions.onSelect(FeedSelection.All) },
                                 onSelectFolder = { actions.onSelect(FeedSelection.InFolder(it.id)) },
+                            )
+                        }
+                        // Filter chips sit in a row of their own under the tabs, above the list they filter.
+                        if (state.feeds.isNotEmpty() && savedView == null) {
+                            ReadFilter(
+                                unreadOnly = state.unreadOnly,
+                                onUnreadOnlyChange = actions.onUnreadOnlyChange,
                             )
                         }
                     }

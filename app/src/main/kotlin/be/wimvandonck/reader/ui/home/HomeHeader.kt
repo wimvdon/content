@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.Constraints
 import kotlin.math.roundToInt
 
 /**
- * The home screen's header (top app bar, folder tabs, Unread | All) as one block that slides away
+ * The home screen's header (top app bar, folder tabs, the Unread chip row) as one block that slides away
  * when scrolling down the list and comes back as soon as you scroll up, like Material 3's
  * "enter always" top app bar. Only the status bar strip stays.
  *
