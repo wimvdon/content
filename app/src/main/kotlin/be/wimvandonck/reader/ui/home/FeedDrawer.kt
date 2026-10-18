@@ -53,7 +53,8 @@ import be.wimvandonck.reader.instapaper.InstapaperView
  * The app's navigation: Feeds and, when signed in, Instapaper as two sections that fold open and
  * shut. Feeds: All articles, each folder with its feeds and the feeds outside folders (each with
  * its unread count). Instapaper: Unread, Liked, Archive, its folders and tags. Then Manage feeds,
- * Manage Instapaper and Settings. The same wherever the app is (DESIGN.md).
+ * Manage Instapaper and Settings. The same wherever the app is (DESIGN.md), with the section
+ * being shown open and the other folded shut.
  */
 @Composable
 fun FeedDrawer(
@@ -71,8 +72,11 @@ fun FeedDrawer(
     // While an Instapaper list is shown, no feed section is selected.
     @Suppress("NAME_SHADOWING")
     val selection: FeedSelection? = selection.takeIf { instapaper?.view == null }
-    var feedsOpen by rememberSaveable { mutableStateOf(true) }
-    var instapaperOpen by rememberSaveable { mutableStateOf(true) }
+    // The section you're in is open, the other folded shut, so the drawer stays short. Folding by
+    // hand lasts until you go to the other section.
+    val inInstapaper = instapaper?.view != null
+    var feedsOpen by rememberSaveable(inInstapaper) { mutableStateOf(!inInstapaper) }
+    var instapaperOpen by rememberSaveable(inInstapaper) { mutableStateOf(inInstapaper) }
     ModalDrawerSheet {
         Column(
             Modifier
