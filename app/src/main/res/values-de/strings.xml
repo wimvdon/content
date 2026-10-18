@@ -220,6 +220,8 @@
     <string name="section_saved">Gespeichert</string>
     <string name="saved_list">Gespeichert</string>
     <string name="saved_done">Gespeichert</string>
+    <!-- A share from another app without a web link (#97). -->
+    <string name="share_no_link">Kein Link zum Speichern</string>
     <string name="saved_delete_body">Diesen gespeicherten Artikel endgültig löschen? Das lässt sich nicht rückgängig machen.</string>
     <string name="menu_manage_saved">Tags verwalten</string>
     <string name="saved_manage_title">Tags</string>

@@ -226,6 +226,8 @@
     <string name="section_saved">Guardados</string>
     <string name="saved_list">Guardados</string>
     <string name="saved_done">Guardado</string>
+    <!-- A share from another app without a web link (#97). -->
+    <string name="share_no_link">No hay ningún enlace para guardar</string>
     <string name="saved_delete_body">¿Eliminar este artículo guardado para siempre? No se puede deshacer.</string>
     <string name="menu_manage_saved">Gestionar etiquetas</string>
     <string name="saved_manage_title">Etiquetas</string>

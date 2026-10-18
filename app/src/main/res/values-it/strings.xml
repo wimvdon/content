@@ -226,6 +226,8 @@
     <string name="section_saved">Salvati</string>
     <string name="saved_list">Salvati</string>
     <string name="saved_done">Salvato</string>
+    <!-- A share from another app without a web link (#97). -->
+    <string name="share_no_link">Nessun link da salvare</string>
     <string name="saved_delete_body">Eliminare definitivamente questo articolo salvato? L’azione non si può annullare.</string>
     <string name="menu_manage_saved">Gestisci tag</string>
     <string name="saved_manage_title">Tag</string>

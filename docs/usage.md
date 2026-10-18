@@ -168,6 +168,11 @@ If the chosen app has been uninstalled, the button opens the share menu instead 
 Signed in with Instapaper (Settings › Account), Save always goes straight to your Instapaper
 account, so Settings › Save and share only shows the Share button's choice.
 
+**Saving from other apps.** In Chrome or any app that shares links, tap Share and pick
+**Reader**. Reader opens, saves the link to Saved (your Instapaper account when signed in, else
+this phone) and shows the same sheet as the Save button, to like, archive, pick a folder and add
+tags. Shared text without a web link says "No link to save".
+
 ## Settings
 
 - **Account:** sign in with Instapaper to sync and to save to Instapaper; signed in, **Sync now**,

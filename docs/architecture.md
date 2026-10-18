@@ -63,6 +63,11 @@ RssReaderApp ── SettingsStore ── DataStore "settings" (Preferences)
    Load full articles is on, the reader fetches the article's page and shows the extracted article.
 5. Save hands the link to Instapaper with an `ACTION_SEND`
    intent aimed at its package; the share menu is the fallback.
+6. Reader also takes shares (#97): `MainActivity` accepts `ACTION_SEND` with `text/plain`, reads
+   the first web link and a title (`instapaper/SharedLink.kt`) and puts it in
+   `RssReaderApp.sharedLink`. `Navigation` saves it like the Save button once Saved is ready
+   (`saveLink`), which opens the save sheet (`JustSavedSheet`). Reader leaves itself out of its own
+   share menu (`EXTRA_EXCLUDE_COMPONENTS`).
 
 ## Patterns
 
