@@ -10,8 +10,9 @@ import { ManageFeedsIcon, ManageInstapaperIcon } from "./ManageIcons";
 import { cn } from "./ui/cn";
 
 /**
- * The app's navigation: Feeds and Saved (Instapaper when signed in, else this browser) as two sections that fold open and
- * shut (remembered in this browser). Feeds: All articles, the folders with their feeds, the other
+ * The app's navigation: Feeds and Saved (Instapaper when signed in, else this browser) as two
+ * sections that fold open and shut: the one you're in is open, the other folded (folders and tags
+ * remember theirs in this browser). Feeds: All articles, the folders with their feeds, the other
  * feeds. Saved (Instapaper): Saved, Liked, its folders, its tags and Archive. Then the ways to manage each,
  * and Settings. The same everywhere in the app, like the Android drawer.
  */
@@ -30,6 +31,14 @@ export function Sidebar({
   const counts = unreadByFeed(library);
   const total = library.feeds.reduce((n, f) => n + (counts.get(f.url) ?? 0), 0);
   const [collapsed, setCollapsed] = useState<Set<string>>(loadCollapsed);
+  // The section you're in is open and the other folded, as in the Android drawer; a click on a
+  // section's name folds it open or shut until you move to the other section.
+  const inSaved = selection.kind === "instapaper";
+  const sectionsFor = (saved: boolean) => ({ inSaved: saved, open: { [FEEDS]: !saved, [INSTAPAPER]: saved } as Record<string, boolean> });
+  const [sections, setSections] = useState(() => sectionsFor(inSaved));
+  if (sections.inSaved !== inSaved) setSections(sectionsFor(inSaved));
+  const openSections = sections.inSaved === inSaved ? sections.open : sectionsFor(inSaved).open;
+  const toggleSection = (id: string) => setSections((s) => ({ ...s, open: { ...s.open, [id]: !s.open[id] } }));
   const select = (s: Selection) => {
     app.select(s);
     onNavigate();
@@ -61,7 +70,7 @@ export function Sidebar({
         <span className="text-lg font-semibold">Reader</span>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-2">
-        <Section id={FEEDS} title={t("feeds")} count={collapsed.has(FEEDS) ? total : undefined} open={!collapsed.has(FEEDS)} onToggle={toggle}>
+        <Section id={FEEDS} title={t("feeds")} count={openSections[FEEDS] ? undefined : total} open={openSections[FEEDS]} onToggle={toggleSection}>
           <Row selected={isSelected({ kind: "all" })} onClick={() => select({ kind: "all" })} icon={<Rss className="size-5" />} label={t("allArticles")} count={total} />
           {library.folders.map((folder) => {
             const feeds = library.feeds.filter((f) => f.folderId === folder.id);
@@ -108,7 +117,7 @@ export function Sidebar({
           ))}
         </Section>
         {(
-          <Section id={INSTAPAPER} title={t("saved")} open={!collapsed.has(INSTAPAPER)} onToggle={toggle}>
+          <Section id={INSTAPAPER} title={t("saved")} open={openSections[INSTAPAPER]} onToggle={toggleSection}>
             {instapaperRow({ kind: "home" }, <Inbox />, t("saved"))}
             {instapaperRow({ kind: "liked" }, <Heart />, t("instapaperLiked"))}
             {instapaperFolders.map((folder) => instapaperRow({ kind: "folder", id: folder.id }, <FolderGlyph />, folder.title, folder.count, `f${folder.id}`))}

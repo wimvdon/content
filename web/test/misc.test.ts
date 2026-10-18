@@ -107,6 +107,13 @@ describe("sanitize", () => {
     ]);
     expect(doc.querySelector("a.embed img")?.getAttribute("referrerpolicy")).toBe("no-referrer");
   });
+
+  it("leaves out pictures and embed previews when Show images is off, but keeps the cards", () => {
+    const html = sanitizeArticle('<p>Text<img src="https://a.example/p.jpg"></p><iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ"></iframe>', "https://a.example/post", false);
+    expect(html).not.toContain("<img");
+    expect(html).toContain('class="embed"');
+    expect(html).toContain("Text");
+  });
 });
 
 describe("full articles from the web", () => {

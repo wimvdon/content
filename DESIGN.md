@@ -281,6 +281,7 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   **Unread** and **All**, in a chip row of its own under the folder tabs (16dp sides, 8dp above and
   below, like the tag chips on Saved's Tags tab and the chips in Search): the chosen one is filled
   with a check, so which list is shown reads at a glance. The web app has the same chips. The top bar holds only icon buttons, as Material 3's top app bar does.
+  In a narrow window the web app has the same Feeds | Saved navigation bar at the bottom.
   Settings lives in the drawer only.
   The header (a small `TopAppBar`, the folder tabs attached to it, then the chip row) is one block that slides away
   while scrolling down and comes back as soon as you scroll up (Material's "enter always"),

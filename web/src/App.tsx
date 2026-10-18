@@ -5,6 +5,7 @@ import { ArticleView } from "./components/ArticleView";
 import { AddFeedDialog, ManageDialog, SettingsDialog } from "./components/Dialogs";
 import { JustSavedDialog } from "./components/InstapaperActions";
 import { InstapaperManageDialog } from "./components/InstapaperManage";
+import { NavigationBar } from "./components/NavigationBar";
 import { SearchPanel } from "./components/SearchPanel";
 import { Sidebar } from "./components/Sidebar";
 import { Button } from "./components/ui/button";
@@ -144,20 +145,23 @@ export default function App() {
           </D.Content>
         </D.Portal>
       </D.Root>
-      <main className={`min-w-0 flex-1 border-r lg:max-w-md ${openArticle ? "hidden lg:block" : "block"}`}>
-        {searching ? (
-          <SearchPanel openKey={openArticle ? articleKey(openArticle) : null} onOpen={open} onClose={() => setSearching(false)} />
-        ) : (
-          <ArticleList
-            openKey={openArticle ? articleKey(openArticle) : null}
-            onOpen={open}
-            onMenu={() => setDrawer(true)}
-            onAddFeed={() => setDialog("add")}
-            onImport={() => fileInput.current?.click()}
-            onUndo={undoMarkAll}
-            onSearch={() => setSearching(true)}
-          />
-        )}
+      <main className={`min-w-0 flex-1 flex-col border-r lg:max-w-md ${openArticle ? "hidden lg:flex" : "flex"}`}>
+        <div className="min-h-0 flex-1">
+          {searching ? (
+            <SearchPanel openKey={openArticle ? articleKey(openArticle) : null} onOpen={open} onClose={() => setSearching(false)} />
+          ) : (
+            <ArticleList
+              openKey={openArticle ? articleKey(openArticle) : null}
+              onOpen={open}
+              onMenu={() => setDrawer(true)}
+              onAddFeed={() => setDialog("add")}
+              onImport={() => fileInput.current?.click()}
+              onUndo={undoMarkAll}
+              onSearch={() => setSearching(true)}
+            />
+          )}
+        </div>
+        <NavigationBar onNavigate={() => setSearching(false)} />
       </main>
       <div className={`min-w-0 flex-1 ${openArticle ? "block" : "hidden lg:block"}`}>
         {openArticle ? (

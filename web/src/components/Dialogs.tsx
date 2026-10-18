@@ -1,6 +1,6 @@
 import { ArrowDown, ArrowUp, Pencil, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { app, useApp, type Theme } from "@/lib/app";
+import { app, useApp, type ListView, type Theme } from "@/lib/app";
 import { formatRelative, t, type Key } from "@/lib/i18n";
 import { searchIcons } from "@/lib/icons";
 import type { Feed, Folder } from "@/lib/library";
@@ -309,11 +309,25 @@ export function SettingsDialog({ open, onOpenChange }: Props) {
         <AccountSection />
         <section className="space-y-2">
           <h3 className="text-sm font-medium text-primary">{t("articleList")}</h3>
+          <div className="flex flex-wrap items-center justify-between gap-2 py-1">
+            <span className="text-sm">{t("listView")}</span>
+            <Segmented<ListView>
+              label={t("listView")}
+              value={settings.listView}
+              onChange={(listView) => app.updateSettings({ listView })}
+              options={[
+                { value: "small", label: t("listSmall") },
+                { value: "medium", label: t("listMedium") },
+                { value: "large", label: t("listLarge") },
+              ]}
+            />
+          </div>
           <SwitchRow title={t("markReadOnScroll")} checked={settings.markReadOnScroll} onChange={(v) => app.updateSettings({ markReadOnScroll: v })} />
         </section>
         <section className="space-y-2">
           <h3 className="text-sm font-medium text-primary">{t("reader")}</h3>
           <SwitchRow title={t("fullArticles")} summary={t("fullArticlesSummary")} checked={settings.fullArticles} onChange={(v) => app.updateSettings({ fullArticles: v })} />
+          <SwitchRow title={t("showImages")} summary={t("showImagesSummary")} checked={settings.showImages} onChange={(v) => app.updateSettings({ showImages: v })} />
           <div className="pt-2">
             <ReaderStyleControls preview />
           </div>

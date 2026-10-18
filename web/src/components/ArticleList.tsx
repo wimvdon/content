@@ -244,8 +244,12 @@ export function Row({
   noReadState?: boolean;
   label?: string;
 }) {
+  const { settings } = useApp();
+  const view = settings.listView;
   const unread = !article.read && !noReadState;
   const text = useMemo(() => snippet(article.html, 160), [article.html]);
+  const image = settings.showImages && view !== "small" ? article.imageUrl : null;
+  const hide = (e: React.SyntheticEvent<HTMLImageElement>) => (e.currentTarget.style.display = "none");
   return (
     <button
       type="button"
@@ -253,11 +257,13 @@ export function Row({
       data-key={articleKey(article)}
       aria-current={open ? "true" : undefined}
       className={cn(
-        "flex w-full cursor-pointer gap-3 rounded-xl p-3 text-left transition-colors",
+        "flex w-full cursor-pointer gap-3 rounded-xl text-left transition-colors",
+        view === "large" ? "flex-col overflow-hidden" : "p-3",
         open ? "bg-accent" : unread || noReadState ? "bg-card hover:bg-muted" : "hover:bg-muted",
       )}
     >
-      <div className="min-w-0 flex-1">
+      {view === "large" && image ? <img src={image} alt="" loading="lazy" referrerPolicy="no-referrer" className="aspect-video w-full bg-muted object-cover" onError={hide} /> : null}
+      <div className={cn("min-w-0 flex-1", view === "large" && "px-3 pb-3", view === "large" && !image && "pt-3")}>
         {feed || label ? (
           <div className="mb-1 flex items-center gap-1.5 text-xs font-medium text-primary">
             {feed ? (
@@ -271,12 +277,20 @@ export function Row({
         ) : null}
         <div className="flex items-start gap-2">
           {unread ? <span className="mt-2 size-2 shrink-0 rounded-full bg-unread" aria-label={t("unread")} /> : null}
-          <h3 className={cn("line-clamp-3 text-[0.95rem] leading-snug", unread || noReadState ? "font-semibold" : "text-muted-foreground")}>{article.title}</h3>
+          <h3
+            className={cn(
+              "leading-snug",
+              view === "small" ? "line-clamp-2 text-sm" : view === "large" ? "line-clamp-3 text-lg" : "line-clamp-3 text-[0.95rem]",
+              unread || noReadState ? "font-semibold" : "text-muted-foreground",
+            )}
+          >
+            {article.title}
+          </h3>
         </div>
-        {text ? <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{text}</p> : null}
+        {text && view !== "small" ? <p className={cn("mt-1 text-sm text-muted-foreground", view === "large" ? "line-clamp-3" : "line-clamp-2")}>{text}</p> : null}
       </div>
-      {article.imageUrl ? (
-        <img src={article.imageUrl} alt="" loading="lazy" referrerPolicy="no-referrer" className="size-18 shrink-0 rounded-lg bg-muted object-cover" onError={(e) => (e.currentTarget.style.display = "none")} />
+      {view === "medium" && image ? (
+        <img src={image} alt="" loading="lazy" referrerPolicy="no-referrer" className="size-18 shrink-0 rounded-lg bg-muted object-cover" onError={hide} />
       ) : null}
     </button>
   );

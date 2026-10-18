@@ -70,9 +70,9 @@ The account's document (it was `rss-reader-sync.json` in Google Drive before), U
   | `reader.background` | `default`, `sepia`, `dark` | both |
   | `reader.autoDark` | `true`, `false` | both |
   | `fullArticles` | `true`, `false` | both |
-  | `showImages` | `true`, `false` | Android |
+  | `showImages` | `true`, `false` | both |
   | `markReadOnScroll` | `true`, `false` | both |
-  | `listView` | `small`, `medium`, `large` | Android |
+  | `listView` | `small`, `medium`, `large` | both |
 
   Not synced: the Save and Share targets (each phone has its own apps), the Instapaper sign-in
   (each device signs in itself, and that sign-in is the account) and Unread | All (it is where you

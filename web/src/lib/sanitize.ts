@@ -6,9 +6,9 @@ import { t, type Key } from "./i18n";
  * Article HTML made safe to show: no scripts, styles, forms or frames; video players and other
  * embeds become a card that opens them in a new tab (nothing plays inside the page); links open
  * in a new tab without telling the site where they came from; pictures load lazily and only over
- * https.
+ * https. With `showImages` off (Settings), pictures and embed previews are left out.
  */
-export function sanitizeArticle(html: string, baseUrl: string): string {
+export function sanitizeArticle(html: string, baseUrl: string, showImages = true): string {
   // An iframe's fallback content never shows, and with markup in it DOMPurify drops the whole
   // iframe (and so its card).
   const clean = DOMPurify.sanitize(html.replace(/(<iframe\b[^>]*>)[\s\S]*?<\/iframe\s*>/gi, "$1</iframe>"), {
@@ -28,7 +28,10 @@ export function sanitizeArticle(html: string, baseUrl: string): string {
     a.setAttribute("target", "_blank");
     a.setAttribute("rel", "noopener noreferrer");
   }
-  for (const img of Array.from(clean.querySelectorAll("img"))) fixImage(img, baseUrl);
+  for (const img of Array.from(clean.querySelectorAll("img"))) {
+    if (showImages) fixImage(img, baseUrl);
+    else img.remove();
+  }
   for (const element of Array.from(clean.querySelectorAll("[width], [height]"))) {
     if (element.tagName !== "IMG") {
       element.removeAttribute("width");

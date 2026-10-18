@@ -123,7 +123,14 @@ describe("sync timing", () => {
 });
 
 describe("synced settings", () => {
-  const settings = { ...defaultSettings, theme: "dark" as const, fullArticles: false, readerStyle: { ...defaultReaderStyle, font: "sans" as const, textSize: 22 } };
+  const settings = {
+    ...defaultSettings,
+    theme: "dark" as const,
+    fullArticles: false,
+    showImages: false,
+    listView: "large" as const,
+    readerStyle: { ...defaultReaderStyle, font: "sans" as const, textSize: 22 },
+  };
 
   it("go into the file and back, and files without them still read", () => {
     const doc = { ...S.emptyDocument(), settings: { theme: "dark", "reader.textSize": "20" } };
@@ -136,15 +143,16 @@ describe("synced settings", () => {
 
   it("use the same names and values as the Android app and come back the same", () => {
     const values = SS.syncedSettings(settings);
-    expect(values).toMatchObject({ theme: "dark", "reader.font": "sans", "reader.textSize": "22", "reader.background": "default", fullArticles: "false" });
+    expect(values).toMatchObject({ theme: "dark", "reader.font": "sans", "reader.textSize": "22", "reader.background": "default", fullArticles: "false", showImages: "false", listView: "large" });
     expect(SS.applySynced(defaultSettings, values)).toEqual(settings);
   });
 
   it("keep Android-only names and ignore bad values", () => {
-    const values = SS.syncedSettings(settings, { showImages: "false", theme: "light" });
-    expect(values.showImages).toBe("false");
+    const values = SS.syncedSettings(settings, { dynamicColor: "true", theme: "light" });
+    expect(values.dynamicColor).toBe("true");
     expect(values.theme).toBe("dark");
-    const applied = SS.applySynced(settings, { theme: "purple", "reader.textSize": "99", fullArticles: "yes" });
+    const applied = SS.applySynced(settings, { theme: "purple", "reader.textSize": "99", fullArticles: "yes", listView: "huge" });
+    expect(applied.listView).toBe(settings.listView);
     expect(applied.theme).toBe("dark");
     expect(applied.readerStyle.textSize).toBe(28);
     expect(applied.fullArticles).toBe(false);
