@@ -2,6 +2,15 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-18: The Unread chip in a chip row, not in the top bar
+
+The owner found the Unread chip at the end of the top app bar a misuse of chips. Material 3's top
+app bar holds icon buttons; chips that filter a collection sit in a row of their own above it,
+which is how the tag chips on Instapaper's Tags tab already work. The **Unread** filter chip now has
+its own row under the folder tabs, inside the header that slides away on scroll. Rejected: an
+icon button in the top bar (its state isn't readable at a glance, as an earlier version showed) and
+Unread | All as two chips (two chips for one on/off choice).
+
 ## 2026-10-18: Search everywhere: feeds and Instapaper
 
 The owner asked for search to be global, and whether its button could go in the navigation bar.
