@@ -1,4 +1,4 @@
-import { Archive, Bookmark, ChevronDown, ChevronRight, Folder as FolderGlyph, Heart, Inbox, Rss, Settings as SettingsIcon, SlidersHorizontal, Tag as TagGlyph } from "lucide-react";
+import { Archive, ChevronDown, ChevronRight, Folder as FolderGlyph, Heart, Inbox, Rss, Settings as SettingsIcon, Tag as TagGlyph } from "lucide-react";
 import { useState } from "react";
 import { app, useApp } from "@/lib/app";
 import { t } from "@/lib/i18n";
@@ -6,6 +6,7 @@ import type { View } from "@/lib/instapaper";
 import { unreadByFeed, type Selection } from "@/lib/library";
 import { FeedIcon } from "./FeedIcon";
 import { FolderIcon } from "./FolderIcon";
+import { ManageFeedsIcon, ManageInstapaperIcon } from "./ManageIcons";
 import { cn } from "./ui/cn";
 
 /**
@@ -137,8 +138,8 @@ export function Sidebar({
         ) : null}
       </div>
       <div className="border-t p-2">
-        <Row selected={false} onClick={onManage} icon={<SlidersHorizontal className="size-5" />} label={t("manageFeeds")} />
-        {instapaper ? <Row selected={false} onClick={onManageInstapaper} icon={<Bookmark className="size-5" />} label={t("manageInstapaper")} /> : null}
+        <Row selected={false} onClick={onManage} icon={<ManageFeedsIcon />} label={t("manageFeeds")} />
+        {instapaper ? <Row selected={false} onClick={onManageInstapaper} icon={<ManageInstapaperIcon />} label={t("manageInstapaper")} /> : null}
         <Row selected={false} onClick={onSettings} icon={<SettingsIcon className="size-5" />} label={t("settings")} />
       </div>
     </nav>
