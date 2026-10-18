@@ -109,6 +109,52 @@ describe("sanitize", () => {
   });
 });
 
+describe("full articles from the web", () => {
+  it("keeps small pictures small and drops tracking pixels", () => {
+    const html = sanitizeArticle(
+      '<p>Hi <img src="https://a.example/smile.png" width="16" height="16"> there</p>' +
+        '<img src="https://a.example/photo.jpg" width="1200" height="800" style="width:100%">' +
+        '<img src="https://a.example/logo.png" height="24">' +
+        '<img src="https://s.w.org/images/core/emoji/15/svg/1f600.svg">' +
+        '<img src="https://a.example/p.gif" width="1" height="1"><img src="https://stats.wordpress.com/b.gif">' +
+        '<img src="https://a.example/wide.jpg" width="100%">',
+      "https://a.example/post",
+    );
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    const images = Array.from(doc.querySelectorAll("img")).map((img) => [img.getAttribute("src"), img.getAttribute("width"), img.getAttribute("class")]);
+    expect(images).toEqual([
+      ["https://a.example/smile.png", "16", "small"],
+      ["https://a.example/photo.jpg", "1200", null],
+      ["https://a.example/logo.png", "24", "small"],
+      ["https://s.w.org/images/core/emoji/15/svg/1f600.svg", "20", "small"],
+      ["https://a.example/wide.jpg", null, null],
+    ]);
+    expect(doc.querySelector("[height]")).toBeNull();
+  });
+
+  it("uses the largest picture a lazy-loading page offers", () => {
+    const html = sanitizeArticle(
+      '<img src="data:image/gif;base64,R0lGOD" data-src="/lazy.jpg"><img src="/s.jpg" srcset="/s.jpg 400w, /l.jpg 1600w, /m.jpg 800w">',
+      "https://a.example/post",
+    );
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    expect(Array.from(doc.querySelectorAll("img")).map((img) => img.getAttribute("src"))).toEqual(["https://a.example/lazy.jpg", "https://a.example/l.jpg"]);
+    expect(html).not.toContain("srcset");
+  });
+
+  it("turns two line breaks into a paragraph gap, and keeps a single one", () => {
+    const html = sanitizeArticle("<div>One<br><br>Two<br/> <br>Three<br>still three</div>", "https://a.example/");
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    expect(doc.querySelectorAll(".gap")).toHaveLength(2);
+    expect(doc.querySelectorAll("br")).toHaveLength(1);
+    expect(doc.body.textContent).toBe("OneTwo Threestill three");
+  });
+
+  it("drops sizes from everything but pictures", () => {
+    expect(sanitizeArticle('<table width="900"><tr><td height="40">x</td></tr></table>', "https://a.example/")).not.toMatch(/width|height/);
+  });
+});
+
 describe("embeds", () => {
   it("finds YouTube and Vimeo videos in their player addresses", () => {
     expect(embedFor("https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?rel=0", "https://a.example/")?.url).toBe("https://www.youtube.com/watch?v=dQw4w9WgXcQ");

@@ -100,8 +100,21 @@ body {
   line-height: 1.7;
   overflow-wrap: anywhere;
 }
-.article > * + * {
+/* Paragraphs, lists, quotes and pictures are spaced at any depth: full articles from the web
+   come wrapped in one or more <div>s, so spacing only the direct children ran them together. */
+.article :where(p, ul, ol, blockquote, pre, figure, table, hr, h1, h2, h3, h4, h5, h6, div, img:not(.small), a.embed) {
   margin-top: 1em;
+}
+.article :where(*):first-child {
+  margin-top: 0;
+}
+.article li + li {
+  margin-top: 0.3em;
+}
+/* Two line breaks in a row (lib/sanitize.ts) make a paragraph gap. */
+.article .gap {
+  display: block;
+  height: 1em;
 }
 .article h1,
 .article h2,
@@ -125,6 +138,13 @@ body {
   height: auto;
   border-radius: 0.5rem;
   margin-inline: auto;
+}
+/* Icons and emoji (lib/sanitize.ts): small and in the line of text, not a picture of their own. */
+.article img.small {
+  display: inline-block;
+  margin: 0 0.1em;
+  border-radius: 0;
+  vertical-align: -0.25em;
 }
 /* Embedded videos and posts: a card that opens them in a new tab (lib/embeds.ts). */
 .article a.embed {

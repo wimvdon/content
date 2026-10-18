@@ -13,7 +13,8 @@ export function sanitizeArticle(html: string, baseUrl: string): string {
   // iframe (and so its card).
   const clean = DOMPurify.sanitize(html.replace(/(<iframe\b[^>]*>)[\s\S]*?<\/iframe\s*>/gi, "$1</iframe>"), {
     FORBID_TAGS: ["style", "form", "input", "button", "textarea", "select", "object", "embed"],
-    FORBID_ATTR: ["style", "class", "id", "width", "height"],
+    // width and height stay for now: they say how big a picture is meant to be (see below).
+    FORBID_ATTR: ["style", "class", "id"],
     ADD_TAGS: ["iframe"],
     RETURN_DOM_FRAGMENT: true,
   });
@@ -27,21 +28,93 @@ export function sanitizeArticle(html: string, baseUrl: string): string {
     a.setAttribute("target", "_blank");
     a.setAttribute("rel", "noopener noreferrer");
   }
-  for (const img of Array.from(clean.querySelectorAll("img"))) {
-    const src = img.getAttribute("src") ?? img.getAttribute("data-src") ?? "";
-    const url = absolute(src, baseUrl);
-    if (!url || !url.startsWith("https:")) {
-      img.remove();
-      continue;
+  for (const img of Array.from(clean.querySelectorAll("img"))) fixImage(img, baseUrl);
+  for (const element of Array.from(clean.querySelectorAll("[width], [height]"))) {
+    if (element.tagName !== "IMG") {
+      element.removeAttribute("width");
+      element.removeAttribute("height");
     }
-    img.setAttribute("src", url);
-    img.removeAttribute("srcset");
-    img.setAttribute("loading", "lazy");
-    img.setAttribute("referrerpolicy", "no-referrer");
   }
+  separateParagraphs(clean);
   const holder = document.createElement("div");
   holder.appendChild(clean);
   return holder.innerHTML;
+}
+
+/** Pictures at most this wide (in CSS pixels) are icons or emoji: they stay small, in the line. */
+export const SMALL_IMAGE = 48;
+
+/** Parts of addresses that belong to tracking pixels and share buttons, not pictures (as on Android). */
+const TRACKERS = ["feeds.feedburner.com/~r/", "/~ff/", "stats.wordpress.com", "pixel.wp.com", "/pixel.", "doubleclick.net"];
+
+/**
+ * A picture fit to show, or removed: the largest version a lazy-loading page offers (like the
+ * Android app), https only, no tracking pixels. Its width stays as a limit, so an icon or emoji
+ * isn't blown up to the width of the page; the height follows the width.
+ */
+function fixImage(img: Element, baseUrl: string) {
+  const width = pixels(img.getAttribute("width"));
+  const height = pixels(img.getAttribute("height"));
+  const candidate =
+    largestFromSrcset(img.getAttribute("srcset") ?? img.getAttribute("data-srcset")) ??
+    img.getAttribute("data-src") ??
+    img.getAttribute("data-lazy-src") ??
+    img.getAttribute("src") ??
+    "";
+  const url = absolute(candidate, baseUrl);
+  if (!url || !url.startsWith("https:") || (width !== null && width <= 2) || (height !== null && height <= 2) || TRACKERS.some((t) => url.toLowerCase().includes(t))) {
+    img.remove();
+    return;
+  }
+  img.setAttribute("src", url);
+  for (const name of ["srcset", "data-srcset", "data-src", "data-lazy-src", "sizes", "height"]) img.removeAttribute(name);
+  if (width !== null) img.setAttribute("width", String(width));
+  else img.removeAttribute("width");
+  if ((width !== null && width <= SMALL_IMAGE) || (width === null && height !== null && height <= SMALL_IMAGE) || /\/emoji\//i.test(url)) {
+    img.setAttribute("class", "small");
+    if (width === null) img.setAttribute("width", String(Math.min(height ?? 20, SMALL_IMAGE)));
+  }
+  img.setAttribute("loading", "lazy");
+  img.setAttribute("referrerpolicy", "no-referrer");
+}
+
+/** A size attribute in pixels ("40", "40px"), or null when absent or relative ("100%"). */
+function pixels(value: string | null): number | null {
+  const match = value?.trim().match(/^(\d+(?:\.\d+)?)(px)?$/i);
+  return match ? Math.round(Number(match[1])) : null;
+}
+
+/** The address of the widest picture in a srcset ("a.jpg 400w, b.jpg 800w"), or null. */
+function largestFromSrcset(srcset: string | null): string | null {
+  let best: { url: string; size: number } | null = null;
+  for (const part of srcset?.split(",") ?? []) {
+    const [url, descriptor] = part.trim().split(/\s+/);
+    if (!url) continue;
+    const size = Number.parseFloat(descriptor ?? "1") || 1;
+    if (!best || size > best.size) best = { url, size };
+  }
+  return best?.url ?? null;
+}
+
+/**
+ * Pages that separate paragraphs with two line breaks instead of <p> get a paragraph gap there
+ * (the Android app does the same), so the text doesn't run together.
+ */
+function separateParagraphs(root: DocumentFragment) {
+  for (const br of Array.from(root.querySelectorAll("br"))) {
+    if (!br.isConnected && !root.contains(br)) continue;
+    const run: Element[] = [br];
+    let next = br.nextSibling;
+    while (next && (next.nodeName === "BR" || (next.nodeType === Node.TEXT_NODE && !next.textContent?.trim()))) {
+      if (next.nodeName === "BR") run.push(next as Element);
+      next = next.nextSibling;
+    }
+    if (run.length < 2) continue;
+    const gap = br.ownerDocument.createElement("span");
+    gap.className = "gap";
+    br.replaceWith(gap);
+    for (const extra of run.slice(1)) extra.remove();
+  }
 }
 
 const LABELS: Record<EmbedKind, Key> = { youtube: "embedYoutube", vimeo: "embedVimeo", video: "embedVideo", other: "embedOther" };
