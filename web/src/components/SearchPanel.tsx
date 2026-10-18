@@ -1,0 +1,149 @@
+import { ArrowLeft, Check, Loader2, Search, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { app, useApp } from "@/lib/app";
+import { t } from "@/lib/i18n";
+import { bookmarkArticle, hostOf, siteOf } from "@/lib/instapaperLibrary";
+import { articleKey, type Article } from "@/lib/library";
+import { indexArticles, mix, searchArticles, searchSaved, type SavedArticles, type SearchFilter } from "@/lib/search";
+import { Empty, Row } from "./ArticleList";
+import { Button } from "./ui/button";
+import { cn } from "./ui/cn";
+
+/**
+ * Search, in place of the list: a field, chips for All, Feeds or Saved, and the matches below, mixed
+ * and best first, each labelled Feed or Saved (like the Android app's search screen). The query
+ * stays while an article is read, so the results are still there.
+ */
+export function SearchPanel({ openKey, onOpen, onClose }: { openKey: string | null; onOpen: (a: Article) => void; onClose: () => void }) {
+  const { library } = useApp();
+  const [query, setQuery] = useState(() => sessionQuery);
+  const [filter, setFilter] = useState<SearchFilter>("all");
+  const [saved, setSaved] = useState<SavedArticles | null>(null);
+  const input = useRef<HTMLInputElement>(null);
+
+  useEffect(() => input.current?.focus(), []);
+  useEffect(() => {
+    sessionQuery = query;
+  }, [query]);
+  // Saved has no search of its own: its articles are read once each time Search opens.
+  useEffect(() => {
+    let cancelled = false;
+    void app.loadSavedForSearch().then((result) => !cancelled && setSaved(result));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const index = useMemo(() => indexArticles(library), [library]);
+  const feeds = useMemo(() => new Map(library.feeds.map((f) => [f.url, f])), [library.feeds]);
+  const hits = useMemo(
+    () => mix(query, searchArticles(index, query), saved ? searchSaved(saved.bookmarks, query) : [], filter),
+    [index, saved, query, filter],
+  );
+  const blank = query.trim() === "";
+
+  return (
+    <section className="flex h-full min-w-0 flex-col" aria-label={t("search")}>
+      <header className="flex items-center gap-1 px-2 pt-2 pb-1">
+        <Button variant="ghost" size="icon" onClick={onClose} aria-label={t("back")} title={t("back")}>
+          <ArrowLeft />
+        </Button>
+        <input
+          ref={input}
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => e.key === "Escape" && (query ? setQuery("") : onClose())}
+          placeholder={t("searchHint")}
+          aria-label={t("searchHint")}
+          className="h-10 min-w-0 flex-1 bg-transparent px-2 text-base outline-none placeholder:text-muted-foreground [&::-webkit-search-cancel-button]:hidden"
+        />
+        {query ? (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              setQuery("");
+              input.current?.focus();
+            }}
+            aria-label={t("clear")}
+            title={t("clear")}
+          >
+            <X />
+          </Button>
+        ) : null}
+      </header>
+      <div role="radiogroup" aria-label={t("filter")} className="flex flex-wrap gap-2 px-4 pt-1 pb-3">
+        {(
+          [
+            ["all", t("all")],
+            ["feeds", t("feeds")],
+            ["saved", t("saved")],
+          ] as const
+        ).map(([value, label]) => (
+          <button
+            key={value}
+            type="button"
+            role="radio"
+            aria-checked={filter === value}
+            onClick={() => setFilter(value)}
+            className={cn(
+              "inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border px-3 text-sm",
+              filter === value ? "border-transparent bg-accent font-medium text-accent-foreground" : "hover:bg-muted",
+            )}
+          >
+            {filter === value ? <Check className="size-4" /> : null}
+            {label}
+          </button>
+        ))}
+      </div>
+      <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-6">
+        {!saved && !blank ? (
+          <p className="flex items-center gap-2 px-3 pb-2 text-sm text-muted-foreground">
+            <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+            {t("searchSavedLoading")}
+          </p>
+        ) : null}
+        {blank ? (
+          <Empty icon={Search} title={t("searchStartTitle")} text={t("searchStartBody")} />
+        ) : hits.length === 0 && saved && !saved.incomplete ? (
+          <Empty icon={Search} title={t("searchNoneTitle")} text={t("searchNoneBody")} />
+        ) : (
+          <ul className="space-y-1">
+            {hits.map((hit) => {
+              if (hit.kind === "feed") {
+                const a = hit.article;
+                return (
+                  <li key={articleKey(a)}>
+                    <Row article={a} feed={feeds.get(a.feedUrl)} open={openKey === articleKey(a)} onOpen={() => onOpen(a)} label={t("searchLabelFeed")} />
+                  </li>
+                );
+              }
+              const article = bookmarkArticle(hit.bookmark);
+              const host = hostOf(hit.bookmark.url);
+              return (
+                <li key={`saved:${hit.bookmark.id}`}>
+                  <Row
+                    article={article}
+                    feed={host ? siteOf(host) : undefined}
+                    open={openKey === articleKey(article)}
+                    onOpen={() => {
+                      app.openSaved(hit.bookmark);
+                      onOpen(article);
+                    }}
+                    noReadState
+                    label={t("saved")}
+                  />
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        {saved?.incomplete && !blank ? <p className="px-3 pt-3 text-sm text-muted-foreground">{t("searchSavedIncomplete")}</p> : null}
+      </div>
+    </section>
+  );
+}
+
+/** What was typed, kept while Search is closed for this visit (like the Android app). */
+let sessionQuery = "";

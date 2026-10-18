@@ -5,6 +5,7 @@ import { ArticleView } from "./components/ArticleView";
 import { AddFeedDialog, ManageDialog, SettingsDialog } from "./components/Dialogs";
 import { JustSavedDialog } from "./components/InstapaperActions";
 import { InstapaperManageDialog } from "./components/InstapaperManage";
+import { SearchPanel } from "./components/SearchPanel";
 import { Sidebar } from "./components/Sidebar";
 import { Button } from "./components/ui/button";
 import { app, useApp } from "./lib/app";
@@ -21,6 +22,8 @@ export default function App() {
   const openArticle = opened?.selection === selection ? opened.article : null;
   const setOpenArticle = useCallback((article: Article | null) => setOpened(article ? { article, selection } : null), [selection]);
   const [drawer, setDrawer] = useState(false);
+  // Search takes the list's place until it is closed; the article opened from it stays open.
+  const [searching, setSearching] = useState(false);
   const [dialog, setDialog] = useState<"add" | "manage" | "manageInstapaper" | "settings" | null>(null);
   const [message, setMessage] = useState<{ text: string; undo?: () => void } | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -89,6 +92,8 @@ export default function App() {
         window.open(openArticle.link, "_blank", "noopener,noreferrer");
       } else if (e.key === "r") {
         void app.refresh();
+      } else if (e.key === "/") {
+        setSearching(true);
       } else return;
       e.preventDefault();
     };
@@ -108,7 +113,10 @@ export default function App() {
 
   const sidebar = (
     <Sidebar
-      onNavigate={() => setDrawer(false)}
+      onNavigate={() => {
+        setDrawer(false);
+        setSearching(false);
+      }}
       onManage={() => {
         setDrawer(false);
         setDialog("manage");
@@ -137,14 +145,19 @@ export default function App() {
         </D.Portal>
       </D.Root>
       <main className={`min-w-0 flex-1 border-r lg:max-w-md ${openArticle ? "hidden lg:block" : "block"}`}>
-        <ArticleList
-          openKey={openArticle ? articleKey(openArticle) : null}
-          onOpen={open}
-          onMenu={() => setDrawer(true)}
-          onAddFeed={() => setDialog("add")}
-          onImport={() => fileInput.current?.click()}
-          onUndo={undoMarkAll}
-        />
+        {searching ? (
+          <SearchPanel openKey={openArticle ? articleKey(openArticle) : null} onOpen={open} onClose={() => setSearching(false)} />
+        ) : (
+          <ArticleList
+            openKey={openArticle ? articleKey(openArticle) : null}
+            onOpen={open}
+            onMenu={() => setDrawer(true)}
+            onAddFeed={() => setDialog("add")}
+            onImport={() => fileInput.current?.click()}
+            onUndo={undoMarkAll}
+            onSearch={() => setSearching(true)}
+          />
+        )}
       </main>
       <div className={`min-w-0 flex-1 ${openArticle ? "block" : "hidden lg:block"}`}>
         {openArticle ? (

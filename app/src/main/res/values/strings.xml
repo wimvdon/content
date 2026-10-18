@@ -212,7 +212,8 @@
     <string name="search_start_body">Finds words in the titles and text of your feeds\' articles.</string>
     <string name="search_none_title">Nothing found</string>
     <string name="search_none_body">No article contains all these words.</string>
-    <string name="search_start_title_saved">Search feeds and Instapaper</string>
+    <string name="search_start_title_saved">Search your feeds and saved articles</string>
+    <string name="search_label_feed">Feed</string>
     <string name="search_start_body_saved">Finds words in your feeds\' articles, and in the titles, descriptions and tags of your saved articles.</string>
     <string name="search_saved_loading">Searching your saved articles…</string>
     <string name="search_section_none">No matches</string>

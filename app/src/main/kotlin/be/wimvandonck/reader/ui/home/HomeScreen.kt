@@ -653,6 +653,8 @@ internal fun ArticleRow(
     showImage: Boolean,
     onClick: () -> Unit,
     showUnreadDot: Boolean = true,
+    /** What kind of article this is, shown at the end of its top line (Search: Feed or Saved). */
+    label: String? = null,
     modifier: Modifier = Modifier,
 ) {
     val time =
@@ -676,7 +678,7 @@ internal fun ArticleRow(
         when (view) {
             ListView.Small -> {
                 Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    MetaLine(article, feed, time, showUnreadDot)
+                    MetaLine(article, feed, time, showUnreadDot, label)
                     ArticleTitle(article, MaterialTheme.typography.titleSmall, maxLines = 2)
                 }
             }
@@ -684,7 +686,7 @@ internal fun ArticleRow(
             ListView.Medium -> {
                 Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        MetaLine(article, feed, time, showUnreadDot)
+                        MetaLine(article, feed, time, showUnreadDot, label)
                         ArticleTitle(article, MaterialTheme.typography.titleMedium, maxLines = 3)
                         Snippet(snippet, maxLines = 2)
                     }
@@ -696,7 +698,7 @@ internal fun ArticleRow(
                 Column {
                     if (image != null) LargePicture(image)
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        MetaLine(article, feed, time, showUnreadDot)
+                        MetaLine(article, feed, time, showUnreadDot, label)
                         ArticleTitle(article, MaterialTheme.typography.titleLarge, maxLines = 3)
                         Snippet(snippet, maxLines = 3)
                     }
@@ -713,6 +715,7 @@ private fun MetaLine(
     feed: Feed?,
     time: String,
     showUnreadDot: Boolean,
+    label: String?,
 ) {
     val unreadLabel = stringResource(R.string.article_unread)
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -741,6 +744,18 @@ private fun MetaLine(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1,
         )
+        if (label != null) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                maxLines = 1,
+                modifier =
+                    Modifier
+                        .background(MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.shapes.small)
+                        .padding(horizontal = 6.dp, vertical = 2.dp),
+            )
+        }
     }
 }
 

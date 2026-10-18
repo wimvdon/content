@@ -1,10 +1,10 @@
-import { Bookmark, CheckCheck, Menu, Newspaper, RefreshCw, Rss, type LucideIcon } from "lucide-react";
+import { Bookmark, CheckCheck, Menu, Newspaper, RefreshCw, Rss, Search, type LucideIcon } from "lucide-react";
 import { useMemo, useRef } from "react";
 import { app, useApp } from "@/lib/app";
 import { snippet } from "@/lib/html";
 import { dayLabel, plural, t } from "@/lib/i18n";
 import type { View } from "@/lib/instapaper";
-import { bookmarkArticle, hostOf, viewTitle } from "@/lib/instapaperLibrary";
+import { bookmarkArticle, hostOf, siteOf, viewTitle } from "@/lib/instapaperLibrary";
 import { articleKey, articlesFor, sortTime, unreadKeys, type Article, type Feed } from "@/lib/library";
 import { scrolledPast } from "@/lib/scrollRead";
 import { FeedIcon } from "./FeedIcon";
@@ -19,15 +19,20 @@ type ListProps = {
   onAddFeed: () => void;
   onImport: () => void;
   onUndo: (keys: Set<string>) => void;
+  onSearch: () => void;
 };
 
 /** The articles of the chosen feed, folder or All articles, or of an Instapaper list. */
 export function ArticleList(props: ListProps) {
   const { selection } = useApp();
-  return selection.kind === "instapaper" ? <InstapaperArticles view={selection.view} openKey={props.openKey} onOpen={props.onOpen} onMenu={props.onMenu} /> : <FeedArticles {...props} />;
+  return selection.kind === "instapaper" ? (
+    <InstapaperArticles view={selection.view} openKey={props.openKey} onOpen={props.onOpen} onMenu={props.onMenu} onSearch={props.onSearch} />
+  ) : (
+    <FeedArticles {...props} />
+  );
 }
 
-function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo }: ListProps) {
+function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, onSearch }: ListProps) {
   const { library, selection, settings, readThisVisit, refreshing, loaded, problems } = useApp();
   const articles = useMemo(
     () => articlesFor(library, selection, settings.unreadOnly, readThisVisit),
@@ -70,6 +75,7 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo }: 
             <p className="text-xs text-muted-foreground">{plural(settings.unreadOnly ? "unreadCount" : "unreadCountAll", unread)}</p>
           ) : null}
         </div>
+        <SearchButton onClick={onSearch} />
         {library.feeds.length > 0 ? (
           <>
             <Button variant="ghost" size="icon" onClick={() => void app.refresh()} disabled={refreshing} aria-label={t("refresh")} title={t("refresh") + " (r)"}>
@@ -147,7 +153,19 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo }: 
  * An Instapaper list: the saved articles with the same rows as feed articles, without read state
  * (archiving is an action in the reader), newest saved first, a page at a time.
  */
-function InstapaperArticles({ view, openKey, onOpen, onMenu }: { view: View; openKey: string | null; onOpen: (a: Article) => void; onMenu: () => void }) {
+function InstapaperArticles({
+  view,
+  openKey,
+  onOpen,
+  onMenu,
+  onSearch,
+}: {
+  view: View;
+  openKey: string | null;
+  onOpen: (a: Article) => void;
+  onMenu: () => void;
+  onSearch: () => void;
+}) {
   const { instapaperList: list, instapaperFolders } = useApp();
   const title = viewTitle(view, instapaperFolders, { home: t("saved"), liked: t("instapaperLiked"), archive: t("instapaperArchiveList") });
   const items = list.items;
@@ -161,6 +179,7 @@ function InstapaperArticles({ view, openKey, onOpen, onMenu }: { view: View; ope
           <h1 className="truncate text-xl font-semibold">{title}</h1>
           <p className="text-xs text-muted-foreground">{t("saved")}</p>
         </div>
+        <SearchButton onClick={onSearch} />
         <Button variant="ghost" size="icon" onClick={() => void app.refresh()} disabled={list.loading} aria-label={t("refresh")} title={t("refresh") + " (r)"}>
           <RefreshCw className={cn(list.loading && "animate-spin")} />
         </Button>
@@ -200,10 +219,32 @@ function InstapaperArticles({ view, openKey, onOpen, onMenu }: { view: View; ope
   );
 }
 
-/** The website of a saved article, shown where a feed's name goes (with its first letter as icon). */
-const siteOf = (host: string): Feed => ({ url: host, title: host, siteUrl: null, folderId: null, iconUrl: null, renamed: false });
+/** Search everything (feeds and saved), at the top of both lists like on Android. */
+function SearchButton({ onClick }: { onClick: () => void }) {
+  return (
+    <Button variant="ghost" size="icon" onClick={onClick} aria-label={t("search")} title={t("search") + " (/)"}>
+      <Search />
+    </Button>
+  );
+}
 
-function Row({ article, feed, open, onOpen, noReadState }: { article: Article; feed: Feed | undefined; open: boolean; onOpen: () => void; noReadState?: boolean }) {
+
+/** One article in a list. `label` says what kind it is (Search: Feed or Saved). */
+export function Row({
+  article,
+  feed,
+  open,
+  onOpen,
+  noReadState,
+  label,
+}: {
+  article: Article;
+  feed: Feed | undefined;
+  open: boolean;
+  onOpen: () => void;
+  noReadState?: boolean;
+  label?: string;
+}) {
   const unread = !article.read && !noReadState;
   const text = useMemo(() => snippet(article.html, 160), [article.html]);
   return (
@@ -218,10 +259,15 @@ function Row({ article, feed, open, onOpen, noReadState }: { article: Article; f
       )}
     >
       <div className="min-w-0 flex-1">
-        {feed ? (
+        {feed || label ? (
           <div className="mb-1 flex items-center gap-1.5 text-xs font-medium text-primary">
-            <FeedIcon feed={feed} className="size-4" />
-            <span className="truncate">{feed.title}</span>
+            {feed ? (
+              <>
+                <FeedIcon feed={feed} className="size-4" />
+                <span className="truncate">{feed.title}</span>
+              </>
+            ) : null}
+            {label ? <span className="ml-auto shrink-0 rounded-md bg-accent px-1.5 py-0.5 text-[0.7rem] text-accent-foreground">{label}</span> : null}
           </div>
         ) : null}
         <div className="flex items-start gap-2">
@@ -238,7 +284,7 @@ function Row({ article, feed, open, onOpen, noReadState }: { article: Article; f
 }
 
 /** Same layout as the Android app's EmptyState: icon in a circle, title, one sentence, buttons. */
-function Empty({
+export function Empty({
   icon: Icon,
   title,
   text,
@@ -261,7 +307,7 @@ function Empty({
   );
 }
 
-function Skeletons() {
+export function Skeletons() {
   return (
     <div className="space-y-2 p-2" aria-hidden="true">
       {Array.from({ length: 6 }, (_, i) => (

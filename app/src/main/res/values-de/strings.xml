@@ -211,7 +211,8 @@
     <string name="search_start_body">Findet Wörter in den Titeln und Texten der Artikel deiner Feeds.</string>
     <string name="search_none_title">Nichts gefunden</string>
     <string name="search_none_body">Kein Artikel enthält all diese Wörter.</string>
-    <string name="search_start_title_saved">In Feeds und Instapaper suchen</string>
+    <string name="search_start_title_saved">In deinen Feeds und gespeicherten Artikeln suchen</string>
+    <string name="search_label_feed">Feed</string>
     <string name="search_start_body_saved">Findet Wörter in den Artikeln deiner Feeds und in den Titeln, Beschreibungen und Tags deiner gespeicherten Artikel.</string>
     <string name="search_saved_loading">Deine gespeicherten Artikel werden durchsucht …</string>
     <string name="search_section_none">Keine Treffer</string>

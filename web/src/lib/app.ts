@@ -21,6 +21,7 @@ import { applyChange, patchBookmark, sameView, type Change } from "./instapaperL
 import { problemText } from "./instapaperText";
 import { LocalSaved, localSavedOf, type SavedService } from "./localSaved";
 import * as L from "./library";
+import { loadSaved, savedViews, type SavedArticles } from "./search";
 import { importOpml, parseOpml, writeOpml } from "./opml";
 import { fetchViaProxy, FetchError } from "./proxy";
 import { defaultReaderStyle, readerStyleOf, type ReaderStyle } from "./readerStyle";
@@ -347,7 +348,9 @@ class AppStore {
   open(article: L.Article) {
     if (article.feedUrl === "instapaper") {
       // Saved articles have no read state; the reader keeps this one even if it leaves the list.
-      this.set({ instapaperOpen: this.state.instapaperList.items.find((b) => String(b.id) === article.id) ?? null });
+      // One opened from Search may not be in the list shown: openSaved has already set it.
+      const open = this.state.instapaperOpen;
+      this.set({ instapaperOpen: this.state.instapaperList.items.find((b) => String(b.id) === article.id) ?? (open && String(open.id) === article.id ? open : null) });
       return;
     }
     const key = L.articleKey(article);
@@ -555,6 +558,19 @@ class AppStore {
     this.set({ instapaperJustSaved: bookmark?.id ? bookmark : null });
     void this.loadInstapaperSides();
   };
+
+  /**
+   * Every saved article Search looks through (search.ts): Saved has no search of its own, so its
+   * lists are read and searched here. A refused sign-in signs out, as elsewhere.
+   */
+  loadSavedForSearch = (): Promise<SavedArticles> =>
+    this.withInstapaper(async (api) => {
+      const folders = this.state.instapaperFolders.length > 0 ? this.state.instapaperFolders : await api.folders();
+      return loadSaved(savedViews(folders), (view, offset, limit) => api.list(view, offset, limit), (e) => e instanceof InstapaperError && e.problem === "auth");
+    }).catch((): SavedArticles => ({ bookmarks: [], incomplete: true }));
+
+  /** A saved article opened from Search: the reader shows it with Saved's buttons. */
+  openSaved = (b: Bookmark) => this.set({ instapaperOpen: b });
 
   /** The dialog for the article just saved was closed. */
   closeJustSaved = () => this.set({ instapaperJustSaved: null });
