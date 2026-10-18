@@ -203,7 +203,7 @@ Signed in:
   sheet (a dialog on the web) opens at once: tap a folder to file it there and add tags, then
   **Done**. Close it to leave the article in Unread.
 - The ☰ drawer (the web app: the sidebar) gets an **Instapaper** section under Feeds: Unread,
-  Liked, Archive, your Instapaper folders and tags. On an Instapaper list, tabs under the title
+  Liked, your Instapaper folders, your tags and, last, Archive. On an Instapaper list, tabs under the title
   show the same places, with **Tags** (chips under it pick the tag). Each shows its saved articles in the same
   list as feed articles, and they open in the same reader (the whole article loads from its
   website, like a feed's). Saved articles have no read state and are not in All articles: you

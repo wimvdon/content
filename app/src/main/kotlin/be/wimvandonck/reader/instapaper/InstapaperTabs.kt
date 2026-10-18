@@ -17,7 +17,7 @@ sealed interface InstapaperTab {
 }
 
 object InstapaperTabs {
-    /** Unread, Liked, Archive, each folder in Instapaper's order, then Tags when there are any. */
+    /** Unread, Liked, each folder in Instapaper's order, Tags when there are any, and Archive last. */
     fun of(
         folders: List<InstapaperFolder>,
         tags: List<InstapaperTag>,
@@ -25,9 +25,9 @@ object InstapaperTabs {
         buildList {
             add(InstapaperTab.Unread)
             add(InstapaperTab.Liked)
-            add(InstapaperTab.Archive)
             folders.forEach { add(InstapaperTab.Folder(it.id)) }
             if (tags.isNotEmpty()) add(InstapaperTab.Tags)
+            add(InstapaperTab.Archive)
         }
 
     /** The tab that shows [view]. */

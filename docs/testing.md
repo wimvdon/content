@@ -159,8 +159,8 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
 - [ ] Settings › Account › **Sign in with Instapaper** opens Instapaper; approving returns to the app (Android) or
       the page (web) with "Signed in to Instapaper", and Settings shows your user name.
 - [ ] **Save** in the reader saves the article; it appears in Instapaper's Unread list.
-- [ ] The ☰ menu (web: the sidebar) has an **Instapaper** section: Unread, Liked, Archive, your
-      folders and tags each show the right saved articles in the normal list (no unread dot, not
+- [ ] The ☰ menu (web: the sidebar) has an **Instapaper** section: Unread, Liked, your
+      folders, your tags and Archive (in that order) each show the right saved articles in the normal list (no unread dot, not
       in All articles). Tapping one opens it in the reader, with the full article from its website.
 - [ ] In the reader: like, archive (the article leaves Unread but stays open), move back to Unread,
       move to a folder, add and remove a tag, and delete (asks first) each change it in Instapaper.

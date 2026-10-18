@@ -52,7 +52,7 @@ import be.wimvandonck.reader.instapaper.InstapaperView
 /**
  * The app's navigation: Feeds and, when signed in, Instapaper as two sections that fold open and
  * shut. Feeds: All articles, each folder with its feeds and the feeds outside folders (each with
- * its unread count). Instapaper: Unread, Liked, Archive, its folders and tags. Then Manage feeds,
+ * its unread count). Instapaper: Unread, Liked, its folders, its tags and Archive. Then Manage feeds,
  * Manage Instapaper and Settings. The same wherever the app is (DESIGN.md), with the section
  * being shown open and the other folded shut.
  */
@@ -242,12 +242,14 @@ private fun InstapaperSection(
     )
     item(InstapaperView.Home, stringResource(R.string.filter_unread), R.drawable.ic_article)
     item(InstapaperView.Liked, stringResource(R.string.instapaper_liked), R.drawable.ic_favorite)
-    item(InstapaperView.Archive, stringResource(R.string.instapaper_archive_list), R.drawable.ic_archive)
     for (folder in instapaper.folders) item(InstapaperView.InFolder(folder.id), folder.title, R.drawable.ic_folder)
     if (instapaper.tags.isNotEmpty()) {
         SectionHeading(stringResource(R.string.instapaper_tags))
         for (tag in instapaper.tags) item(InstapaperView.WithTag(tag.name), tag.name, R.drawable.ic_label)
     }
+    // Archive last, set apart so it doesn't read as one of the tags.
+    HorizontalDivider(Modifier.padding(vertical = 8.dp, horizontal = 16.dp))
+    item(InstapaperView.Archive, stringResource(R.string.instapaper_archive_list), R.drawable.ic_archive)
 }
 
 @Composable

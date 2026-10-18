@@ -1,8 +1,8 @@
 # Instapaper
 
 Reader can sign in to the user's own Instapaper account (Instapaper API v2, OAuth 2). Signed in,
-**Save** sends the article straight to the account, and the account's Unread, Liked, Archive,
-folders and tags appear in the ☰ menu (web: the sidebar) next to the feeds. Their saved articles
+**Save** sends the article straight to the account, and the account's Unread, Liked,
+folders, tags and Archive appear in the ☰ menu (web: the sidebar) next to the feeds. Their saved articles
 show in the same list and reader as feed articles (without read state; archiving is an action), and
 ☰ › Manage Instapaper (web: Manage Instapaper in the sidebar) manages its folders and tags.
 Signing in also opens the user's Reader account, which syncs the library (`docs/account.md`). Not signed
