@@ -155,6 +155,12 @@ describe("synced settings", () => {
     expect(Object.keys(values).some((k) => k.startsWith("instapaper."))).toBe(false);
   });
 
+  it("leave out Unread or All, which is navigation, and drop it from older files", () => {
+    const values = SS.syncedSettings({ ...settings, unreadOnly: false }, { unreadOnly: "true" });
+    expect("unreadOnly" in values).toBe(false);
+    expect(SS.applySynced({ ...settings, unreadOnly: true }, { unreadOnly: "false" }).unreadOnly).toBe(true);
+  });
+
   it("merge per setting; a device without synced settings takes the file's", () => {
     const b = { ...base, settings: { theme: "system", fullArticles: "true", "instapaper.token": "t" } };
     const local = { ...b, settings: { ...b.settings, theme: "dark" } };

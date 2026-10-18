@@ -7,9 +7,10 @@ import be.wimvandonck.reader.data.Settings
  * web app (docs/sync.md). Each app reads the names it knows and keeps the others as they are, so a
  * setting only one of them has (Show images, list view) survives a sync by the other.
  *
- * Not synced: the Save and Share targets (each phone has its own apps) and the Instapaper sign-in
- * (each device signs in itself; that sign-in is the account). Older versions synced the sign-in as
- * instapaper.*; those names are dropped.
+ * Not synced: the Save and Share targets (each phone has its own apps), the Instapaper sign-in
+ * (each device signs in itself; that sign-in is the account) and Unread | All (it is where you are
+ * in the list, not a setting). Older versions synced the sign-in as instapaper.* and the filter as
+ * [DROPPED_UNREAD_ONLY]; those names are dropped.
  */
 object SyncSettings {
     const val THEME = "theme"
@@ -19,16 +20,18 @@ object SyncSettings {
     const val READER_SPACING = "reader.spacing"
     const val READER_BACKGROUND = "reader.background"
     const val READER_AUTO_DARK = "reader.autoDark"
-    const val UNREAD_ONLY = "unreadOnly"
     const val FULL_ARTICLES = "fullArticles"
     const val SHOW_IMAGES = "showImages"
     const val MARK_READ_ON_SCROLL = "markReadOnScroll"
     const val LIST_VIEW = "listView"
 
+    /** Unread | All, synced by older versions. */
+    const val DROPPED_UNREAD_ONLY = "unreadOnly"
+
     private val known =
         setOf(
             THEME, DYNAMIC_COLOR, READER_FONT, READER_TEXT_SIZE, READER_SPACING, READER_BACKGROUND, READER_AUTO_DARK,
-            UNREAD_ONLY, FULL_ARTICLES, SHOW_IMAGES, MARK_READ_ON_SCROLL, LIST_VIEW,
+            FULL_ARTICLES, SHOW_IMAGES, MARK_READ_ON_SCROLL, LIST_VIEW,
         )
 
     /** This device's synced settings, plus the names from [base] that this app doesn't know. */
@@ -46,13 +49,12 @@ object SyncSettings {
                 put(READER_SPACING, r.spacing.text())
                 put(READER_BACKGROUND, r.background.text())
                 put(READER_AUTO_DARK, r.autoDark.toString())
-                put(UNREAD_ONLY, settings.unreadOnly.toString())
                 put(FULL_ARTICLES, settings.fullArticles.toString())
                 put(SHOW_IMAGES, settings.showImages.toString())
                 put(MARK_READ_ON_SCROLL, settings.markReadOnScroll.toString())
                 put(LIST_VIEW, settings.listView.text())
             }
-        return base.filterKeys { it !in known && !it.startsWith("instapaper.") } + mine
+        return base.filterKeys { it !in known && it != DROPPED_UNREAD_ONLY && !it.startsWith("instapaper.") } + mine
     }
 
     /** [settings] with the synced [values] it understands; missing or unknown values change nothing. */
@@ -79,7 +81,6 @@ object SyncSettings {
                         background = enumFrom(values[READER_BACKGROUND], r.background),
                         autoDark = bool(READER_AUTO_DARK, r.autoDark),
                     ).withTextSize(values[READER_TEXT_SIZE]?.toIntOrNull() ?: r.textSize),
-            unreadOnly = bool(UNREAD_ONLY, settings.unreadOnly),
             fullArticles = bool(FULL_ARTICLES, settings.fullArticles),
             showImages = bool(SHOW_IMAGES, settings.showImages),
             markReadOnScroll = bool(MARK_READ_ON_SCROLL, settings.markReadOnScroll),
