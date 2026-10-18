@@ -2,6 +2,16 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-18: Unread | All as one filter chip in the top bar
+
+The connected Unread | All buttons had a row of their own under the title and tabs and drew the
+eye more than the articles. The owner asked for chips. Material 3's filter chip is the component
+for a filter that is on or off, so Unread | All is now one **Unread** chip at the end of the top
+app bar: selected (with a check) for unread only, unselected for all. The row is gone, so the list
+starts higher. The web app keeps its Unread | All switch (the issue was about Android). Rejected:
+two chips (Unread and All) in their own row (still a row, and two chips for one on/off choice) and
+an icon button (its state isn't readable at a glance, as an earlier version showed).
+
 ## 2026-10-18: Unread | All is no longer synced
 
 Unread | All was a synced setting, so switching it on one device switched the list on every other

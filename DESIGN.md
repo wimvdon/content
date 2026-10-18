@@ -252,7 +252,7 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
 - Feeds and Instapaper each have scrollable primary tabs under the top app bar for their peer views. Feeds:
   All (feed symbol), then each folder with its icon and name. Instapaper: Unread, Liked,
   Archive, each Instapaper folder, then Tags; under Tags a row of filter chips picks the tag
-  (tags come and go too often for a tab each). The Mark all read FAB and Unread | All are on
+  (tags come and go too often for a tab each). The Mark all read FAB and the Unread chip are on
   Feeds only; the FAB only marks the section shown.
 - The ☰ drawer: the Feeds section (All articles, the folders with their feeds, the other feeds),
   the Instapaper section (Unread, Liked, Archive, its folders and tags), then Manage feeds, Manage
@@ -264,12 +264,10 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   `surfaceContainer`, read rows on `surfaceContainerLow`; the feed name is in `primary`. Swiping
   either way past 30% of the width toggles read (haptic tick at the threshold, row springs
   back); the drawer opens from the ☰ button only. The top bar shows the section and its unread count, with no ⋮ menu (refresh is pull-down; adding
-  feeds lives on Manage feeds). Under it, Unread | All is a connected button group
-  at the normal 40dp button height (48dp touch target), as wide as its labels with equal halves,
-  16dp from the top bar or tabs (selected half `primary` with a check, fully rounded; other half
-  `secondaryContainer`; inner corners 8dp, 2dp gap), hand-built until Material 3 ships it. Settings lives in the drawer only.
-  The header (a small `TopAppBar`, the folder tabs, Unread | All, in that order: the app bar,
-  then tabs attached to it, then the filter for the content) is one block that slides away
+  feeds lives on Manage feeds). Unread | All is one Material 3 filter chip, **Unread**, at the end
+  of the top bar: selected (with a check) shows unread articles only, unselected all of them.
+  Settings lives in the drawer only.
+  The header (a small `TopAppBar` with the Unread chip, then the folder tabs attached to it) is one block that slides away
   while scrolling down and comes back as soon as you scroll up (Material's "enter always"),
   turning `surfaceContainer` once articles pass under it; articles sit under sticky day headers (Today,
   Yesterday, date) in `primary` Title Small; Mark all as read is an icon-only FAB. The drawer opens with the app's logo (the
