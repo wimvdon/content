@@ -172,17 +172,26 @@ fun RssReaderNavigation() {
         uiScope.launch { snackbar.showSnackbar(text) }
     }
 
+    // A refresh syncs before it downloads; the indicator shows from the pull to the end of both,
+    // set at once so it doesn't spring back and drop down again when the download starts.
+    var refreshRunning by remember { mutableStateOf(false) }
+
     fun refresh() {
         if (instapaperView != null) {
             instapaper?.refresh()
             return
         }
         readThisVisit = emptySet()
+        refreshRunning = true
         app.appScope.launch {
-            // Read marks and feeds from other devices first, so they apply to the new articles.
-            app.sync.sync()
-            val failed = repository.refreshAll()
-            if (failed > 0) showMessage(resources.getQuantityString(R.plurals.refresh_failed, failed, failed))
+            try {
+                // Read marks and feeds from other devices first, so they apply to the new articles.
+                app.sync.sync()
+                val failed = repository.refreshAll()
+                if (failed > 0) showMessage(resources.getQuantityString(R.plurals.refresh_failed, failed, failed))
+            } finally {
+                refreshRunning = false
+            }
         }
     }
 
@@ -328,7 +337,7 @@ fun RssReaderNavigation() {
                                 selection = shownSelection,
                                 unreadOnly = current.unreadOnly,
                                 unreadCounts = unreadCounts,
-                                refreshing = refreshing,
+                                refreshing = refreshing || refreshRunning,
                                 hasAnyArticles = library.articles.isNotEmpty(),
                                 loaded = libraryOrNull != null,
                                 showImages = current.showImages,
