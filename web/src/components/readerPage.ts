@@ -22,7 +22,7 @@ export function useAppDark(theme: Theme): boolean {
 /** The class that gives the reader page its colours (see index.css), or "" for the app's theme. */
 export function pageClass(style: ReaderStyle, appDark: boolean): string {
   const background = pageBackground(style, appDark);
-  return background === "sepia" ? "sepia" : background === "dark" ? "dark" : "";
+  return background === "sepia" ? "reader-sepia" : background === "dark" ? "dark" : "";
 }
 
 /** The article text's font, size and line height. */

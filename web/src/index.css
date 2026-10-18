@@ -17,7 +17,6 @@
   --destructive: oklch(0.58 0.2 27);
   --ring: oklch(0.6 0.17 245);
   --unread: oklch(0.6 0.17 245);
-  --sepia: oklch(0.96 0.025 85);
 }
 
 .dark {
@@ -36,8 +35,11 @@
   --unread: oklch(0.72 0.14 240);
 }
 
-/* The reader's sepia page (Settings › Reader › Background), the Android app's sepia colours. */
-.sepia {
+/*
+ * The reader's sepia page (Settings › Reader › Background), the Android app's sepia colours. Not
+ * called .sepia: that is Tailwind's sepia filter, which turned the whole page and its pictures yellow.
+ */
+.reader-sepia {
   --background: #f6eedc;
   --foreground: #3d2f1e;
   --card: #fbf5e8;

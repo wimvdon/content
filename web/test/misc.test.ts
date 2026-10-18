@@ -10,6 +10,7 @@ import { needsFullText, touch } from "../src/lib/fullArticle";
 import { articleKey, type Article } from "../src/lib/library";
 import { defaultReaderStyle, MAX_TEXT_SIZE, MIN_TEXT_SIZE, pageBackground, readerStyleOf, withTextSize } from "../src/lib/readerStyle";
 import { scrolledPast } from "../src/lib/scrollRead";
+import { pageClass } from "../src/components/readerPage";
 
 describe("discovery", () => {
   it("normalizes addresses", () => {
@@ -161,6 +162,13 @@ describe("reader style", () => {
     expect(pageBackground(sepia, true)).toBe("sepia");
     expect(pageBackground({ ...sepia, autoDark: true }, true)).toBe("dark");
     expect(pageBackground({ ...sepia, autoDark: true }, false)).toBe("sepia");
+  });
+
+  it("gives the sepia page its own colours, not Tailwind's sepia filter", () => {
+    const sepia = pageClass({ ...defaultReaderStyle, background: "sepia" }, false);
+    // "sepia" is a Tailwind class that puts a yellow photo filter over the whole page;
+    // index.css gives .reader-sepia the page's colours.
+    expect(sepia).toBe("reader-sepia");
   });
 });
 
