@@ -6,13 +6,12 @@ folders, tags and Archive appear in the ☰ menu (web: the sidebar) next to the 
 show in the same list and reader as feed articles (without read state; archiving is an action), and
 ☰ › Manage Instapaper (web: Manage Instapaper in the sidebar) manages its folders and tags.
 Signing in also opens the user's Reader account, which syncs the library (`docs/account.md`). Not signed
-in, the same **Saved** screen works on the phone itself (`LocalSaved`, see below); the web app needs
-the account.
+in, the same **Saved** section works on the phone or in the browser itself (`LocalSaved`, see below).
 
 In the app this section is called **Saved**, with or without an account, and its first list (Instapaper's
 Unread, "home") is called **Saved** too, so it isn't mixed up with unread feed articles.
 
-## Saved without an account (Android)
+## Saved without an account
 
 Signed out, the Saved screen runs on `instapaper/LocalSaved.kt` instead of `InstapaperClient`: the
 same `InstapaperService`, so the lists, Search, the reader's buttons and the sheet after Save behave
@@ -20,8 +19,19 @@ the same. Its articles (address, title, time, liked, archived, tags) are kept on
 `datastore/saved` as JSON, are part of Android's backup, and are not synced. There are no folders:
 the folder parts of the screens are hidden, and a move to a folder is refused. Tags are created when
 first added and disappear when no article has them any more; renaming a tag to an existing name joins
-the two. Signing in shows the account's articles instead; the ones saved on the phone stay there and
-come back after signing out (they are not copied to Instapaper).
+the two.
+
+The web app does the same with `web/src/lib/localSaved.ts` (`LocalSaved`, behind the same
+`SavedService` as `InstapaperApi`), kept in the browser's IndexedDB under `saved`.
+
+**Signing in copies them to Instapaper** (`LocalSaved.uploadTo`): oldest first (so the newest ends on
+top), each with its title, like, tags and archive, so it lands in the same list. Each article is
+removed from the phone or browser once it is in the account, so nothing is copied twice. If
+Instapaper stops answering halfway (offline, too many requests), the rest stays saved locally and the
+copy goes on the next time the app opens signed in. Afterwards a message says how many were copied
+and the list is read again. Android starts the copy with each new Saved model for the account
+(`InstapaperAccount.newModel`), the web app after signing in and when it opens
+(`AppStore.copyLocalSaved`).
 
 ## How sign-in works
 

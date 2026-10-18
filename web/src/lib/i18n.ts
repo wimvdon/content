@@ -125,6 +125,10 @@ const en = {
   yesterday: "Yesterday",
   instapaper: "Instapaper",
   saved: "Saved",
+  saveArticle: "Save",
+  manageTags: "Manage tags",
+  savedManageTitle: "Tags",
+  savedManageEmpty: "Tags you add to saved articles show here, so you can rename them.",
   instapaperSignIn: "Sign in with Instapaper",
   instapaperSignedInAs: "Signed in as {name}",
   instapaperSignOut: "Sign out",
@@ -166,6 +170,7 @@ const plurals_en = {
   feedsFailed: ["{n} feed couldn’t be refreshed", "{n} feeds couldn’t be refreshed"],
   importAdded: ["{n} feed added", "{n} feeds added"],
   markedRead: ["{n} article marked as read", "{n} articles marked as read"],
+  savedCopied: ["Copied {n} article saved in this browser to Instapaper", "Copied {n} articles saved in this browser to Instapaper"],
 };
 
 type PluralKey = keyof typeof plurals_en;
@@ -217,6 +222,10 @@ const nl: Pack = {
     textSettings: "Tekst", font: "Lettertype", fontSans: "Schreefloos", fontSerif: "Schreef", textSize: "Tekstgrootte", spacing: "Regelafstand", spacingCompact: "Compact", spacingNormal: "Normaal", spacingRelaxed: "Ruim", background: "Achtergrond", backgroundDefault: "Thema", backgroundSepia: "Sepia", backgroundDark: "Donker", autoDark: "Automatisch donker", autoDarkSummary: "Donkere pagina wanneer de app donker is", readerPreview: "Goede typografie zie je niet: je merkt het verhaal op, niet de letters.", showFull: "Volledig artikel tonen", showFeedText: "Tekst uit feed tonen", articleList: "Artikellijst", markReadOnScroll: "Als gelezen markeren bij scrollen", embedYoutube: "Bekijken op YouTube", embedVimeo: "Bekijken op Vimeo", embedVideo: "Video afspelen", embedOther: "Ingesloten inhoud openen", smaller: "Kleinere tekst", larger: "Grotere tekst",
   instapaper: "Instapaper",
   saved: "Bewaard",
+  saveArticle: "Bewaren",
+  manageTags: "Tags beheren",
+  savedManageTitle: "Tags",
+  savedManageEmpty: "Tags die je aan bewaarde artikelen geeft, staan hier, zodat je ze kunt hernoemen.",
   instapaperSignIn: "Inloggen met Instapaper",
   instapaperSignedInAs: "Ingelogd als {name}",
   instapaperSignOut: "Uitloggen",
@@ -255,6 +264,7 @@ const nl: Pack = {
     feedsFailed: ["{n} feed kon niet vernieuwd worden", "{n} feeds konden niet vernieuwd worden"],
     importAdded: ["{n} feed toegevoegd", "{n} feeds toegevoegd"],
     markedRead: ["{n} artikel als gelezen gemarkeerd", "{n} artikelen als gelezen gemarkeerd"],
+    savedCopied: ["{n} artikel dat in deze browser bewaard was, staat nu in Instapaper", "{n} artikelen die in deze browser bewaard waren, staan nu in Instapaper"],
   },
 };
 
@@ -304,6 +314,10 @@ const fr: Pack = {
     textSettings: "Texte", font: "Police", fontSans: "Sans serif", fontSerif: "Serif", textSize: "Taille du texte", spacing: "Interligne", spacingCompact: "Compact", spacingNormal: "Normal", spacingRelaxed: "Aéré", background: "Arrière-plan", backgroundDefault: "Thème", backgroundSepia: "Sépia", backgroundDark: "Sombre", autoDark: "Sombre automatique", autoDarkSummary: "Page sombre quand l’app est sombre", readerPreview: "Une bonne typographie est invisible : on remarque l’histoire, pas les lettres.", showFull: "Afficher l’article complet", showFeedText: "Afficher le texte du flux", articleList: "Liste d’articles", markReadOnScroll: "Marquer comme lu en défilant", embedYoutube: "Regarder sur YouTube", embedVimeo: "Regarder sur Vimeo", embedVideo: "Lire la vidéo", embedOther: "Ouvrir le contenu intégré", smaller: "Texte plus petit", larger: "Texte plus grand",
   instapaper: "Instapaper",
   saved: "Enregistrés",
+  saveArticle: "Enregistrer",
+  manageTags: "Gérer les étiquettes",
+  savedManageTitle: "Étiquettes",
+  savedManageEmpty: "Les étiquettes ajoutées aux articles enregistrés s’affichent ici, pour pouvoir les renommer.",
   instapaperSignIn: "Se connecter avec Instapaper",
   instapaperSignedInAs: "Connecté en tant que {name}",
   instapaperSignOut: "Se déconnecter",
@@ -342,6 +356,7 @@ const fr: Pack = {
     feedsFailed: ["{n} flux n’a pas pu être actualisé", "{n} flux n’ont pas pu être actualisés"],
     importAdded: ["{n} flux ajouté", "{n} flux ajoutés"],
     markedRead: ["{n} article marqué comme lu", "{n} articles marqués comme lus"],
+    savedCopied: ["{n} article enregistré dans ce navigateur copié dans Instapaper", "{n} articles enregistrés dans ce navigateur copiés dans Instapaper"],
   },
 };
 
@@ -391,6 +406,10 @@ const de: Pack = {
     textSettings: "Text", font: "Schrift", fontSans: "Serifenlos", fontSerif: "Serif", textSize: "Textgröße", spacing: "Zeilenabstand", spacingCompact: "Kompakt", spacingNormal: "Normal", spacingRelaxed: "Weit", background: "Hintergrund", backgroundDefault: "Design", backgroundSepia: "Sepia", backgroundDark: "Dunkel", autoDark: "Automatisch dunkel", autoDarkSummary: "Dunkle Seite, wenn die App dunkel ist", readerPreview: "Gute Typografie ist unsichtbar: Du bemerkst die Geschichte, nicht die Buchstaben.", showFull: "Ganzen Artikel anzeigen", showFeedText: "Text aus dem Feed anzeigen", articleList: "Artikelliste", markReadOnScroll: "Beim Scrollen als gelesen markieren", embedYoutube: "Auf YouTube ansehen", embedVimeo: "Auf Vimeo ansehen", embedVideo: "Video abspielen", embedOther: "Eingebetteten Inhalt öffnen", smaller: "Kleinere Schrift", larger: "Größere Schrift",
   instapaper: "Instapaper",
   saved: "Gespeichert",
+  saveArticle: "Speichern",
+  manageTags: "Tags verwalten",
+  savedManageTitle: "Tags",
+  savedManageEmpty: "Tags, die du gespeicherten Artikeln gibst, erscheinen hier, damit du sie umbenennen kannst.",
   instapaperSignIn: "Mit Instapaper anmelden",
   instapaperSignedInAs: "Angemeldet als {name}",
   instapaperSignOut: "Abmelden",
@@ -429,6 +448,7 @@ const de: Pack = {
     feedsFailed: ["{n} Feed konnte nicht aktualisiert werden", "{n} Feeds konnten nicht aktualisiert werden"],
     importAdded: ["{n} Feed hinzugefügt", "{n} Feeds hinzugefügt"],
     markedRead: ["{n} Artikel als gelesen markiert", "{n} Artikel als gelesen markiert"],
+    savedCopied: ["{n} in diesem Browser gespeicherter Artikel nach Instapaper kopiert", "{n} in diesem Browser gespeicherte Artikel nach Instapaper kopiert"],
   },
 };
 
@@ -478,6 +498,10 @@ const es: Pack = {
     textSettings: "Texto", font: "Fuente", fontSans: "Sans", fontSerif: "Serif", textSize: "Tamaño del texto", spacing: "Interlineado", spacingCompact: "Compacto", spacingNormal: "Normal", spacingRelaxed: "Amplio", background: "Fondo", backgroundDefault: "Tema", backgroundSepia: "Sepia", backgroundDark: "Oscuro", autoDark: "Oscuro automático", autoDarkSummary: "Página oscura cuando la app está oscura", readerPreview: "La buena tipografía es invisible: notas la historia, no las letras.", showFull: "Mostrar el artículo completo", showFeedText: "Mostrar el texto del feed", articleList: "Lista de artículos", markReadOnScroll: "Marcar como leído al desplazarse", embedYoutube: "Ver en YouTube", embedVimeo: "Ver en Vimeo", embedVideo: "Reproducir vídeo", embedOther: "Abrir contenido insertado", smaller: "Texto más pequeño", larger: "Texto más grande",
   instapaper: "Instapaper",
   saved: "Guardados",
+  saveArticle: "Guardar",
+  manageTags: "Gestionar etiquetas",
+  savedManageTitle: "Etiquetas",
+  savedManageEmpty: "Las etiquetas que añadas a los artículos guardados aparecen aquí, para poder cambiarles el nombre.",
   instapaperSignIn: "Iniciar sesión con Instapaper",
   instapaperSignedInAs: "Sesión iniciada como {name}",
   instapaperSignOut: "Cerrar sesión",
@@ -516,6 +540,7 @@ const es: Pack = {
     feedsFailed: ["No se pudo actualizar {n} feed", "No se pudieron actualizar {n} feeds"],
     importAdded: ["{n} feed añadido", "{n} feeds añadidos"],
     markedRead: ["{n} artículo marcado como leído", "{n} artículos marcados como leídos"],
+    savedCopied: ["{n} artículo guardado en este navegador copiado a Instapaper", "{n} artículos guardados en este navegador copiados a Instapaper"],
   },
 };
 
@@ -565,6 +590,10 @@ const it: Pack = {
     textSettings: "Testo", font: "Carattere", fontSans: "Sans", fontSerif: "Serif", textSize: "Dimensione testo", spacing: "Interlinea", spacingCompact: "Compatto", spacingNormal: "Normale", spacingRelaxed: "Ampio", background: "Sfondo", backgroundDefault: "Tema", backgroundSepia: "Seppia", backgroundDark: "Scuro", autoDark: "Scuro automatico", autoDarkSummary: "Pagina scura quando l’app è scura", readerPreview: "La buona tipografia è invisibile: noti la storia, non le lettere.", showFull: "Mostra l’articolo completo", showFeedText: "Mostra il testo del feed", articleList: "Elenco articoli", markReadOnScroll: "Segna come letto scorrendo", embedYoutube: "Guarda su YouTube", embedVimeo: "Guarda su Vimeo", embedVideo: "Riproduci video", embedOther: "Apri contenuto incorporato", smaller: "Testo più piccolo", larger: "Testo più grande",
   instapaper: "Instapaper",
   saved: "Salvati",
+  saveArticle: "Salva",
+  manageTags: "Gestisci tag",
+  savedManageTitle: "Tag",
+  savedManageEmpty: "I tag che aggiungi agli articoli salvati compaiono qui, così puoi rinominarli.",
   instapaperSignIn: "Accedi con Instapaper",
   instapaperSignedInAs: "Accesso effettuato come {name}",
   instapaperSignOut: "Esci",
@@ -603,6 +632,7 @@ const it: Pack = {
     feedsFailed: ["Impossibile aggiornare {n} feed", "Impossibile aggiornare {n} feed"],
     importAdded: ["{n} feed aggiunto", "{n} feed aggiunti"],
     markedRead: ["{n} articolo segnato come letto", "{n} articoli segnati come letti"],
+    savedCopied: ["{n} articolo salvato in questo browser copiato in Instapaper", "{n} articoli salvati in questo browser copiati in Instapaper"],
   },
 };
 

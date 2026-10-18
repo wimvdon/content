@@ -2,6 +2,17 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-18: Signing in copies the locally saved articles to Instapaper (and Saved on the web)
+
+The owner found that articles saved without an account seemed gone after signing in (#88), and asked
+for the same on the web. Signing in now copies them to Instapaper with their like, tags and archive
+(`LocalSaved.uploadTo`, Android and web), oldest first so the order stays, and removes each from the
+device once it is in the account. That answers the earlier worries: an article is only removed after
+Instapaper has it, so a copy that stops halfway goes on later without duplicates, and the rate limit
+only slows a big copy down. The web app got the same Saved without an account (`localSaved.ts`, in
+IndexedDB) so both work alike. Rejected: keeping a local copy after the upload (two places to change
+the same article), and asking before copying (the owner asked for it to happen).
+
 ## 2026-10-18: Saved works without an Instapaper account
 
 The owner asked for the Instapaper part of the app to work without an account (#78). It is now

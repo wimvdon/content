@@ -9,8 +9,9 @@ import { Input } from "./ui/input";
 
 /** Manage Instapaper: its own page, apart from the feeds' folders (Manage feeds). */
 export function InstapaperManageDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+  const { instapaper } = useApp();
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} title={t("instapaperManageTitle")} closeLabel={t("close")} wide>
+    <Dialog open={open} onOpenChange={onOpenChange} title={instapaper ? t("instapaperManageTitle") : t("savedManageTitle")} closeLabel={t("close")} wide>
       <InstapaperManage />
     </Dialog>
   );
@@ -18,10 +19,10 @@ export function InstapaperManageDialog({ open, onOpenChange }: { open: boolean; 
 
 /**
  * Instapaper's folders and tags: create, reorder and delete folders; rename tags (Instapaper
- * creates tags when they are added to an article).
+ * creates tags when they are added to an article). Saved in this browser has only tags.
  */
 function InstapaperManage() {
-  const { instapaperFolders: folders, instapaperTags: tags } = useApp();
+  const { instapaperFolders: folders, instapaperTags: tags, instapaper } = useApp();
   const [title, setTitle] = useState("");
   const [problem, setProblem] = useState<string | null>(null);
   const run = (work: Promise<string | null>) => void work.then(setProblem);
@@ -32,6 +33,7 @@ function InstapaperManage() {
           {problem}
         </p>
       ) : null}
+      {instapaper ? (
       <div>
         <h3 className="px-1 pb-1 text-sm font-medium text-primary">{t("instapaperFolders")}</h3>
         <ul>
@@ -69,6 +71,8 @@ function InstapaperManage() {
           </Button>
         </form>
       </div>
+      ) : null}
+      {!instapaper && tags.length === 0 ? <p className="px-1 text-sm text-muted-foreground">{t("savedManageEmpty")}</p> : null}
       {tags.length > 0 ? (
         <div>
           <h3 className="px-1 pb-1 text-sm font-medium text-primary">{t("instapaperTags")}</h3>

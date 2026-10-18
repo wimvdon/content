@@ -230,4 +230,9 @@
     <string name="saved_manage_title">Etiquetas</string>
     <string name="saved_manage_empty">Las etiquetas que añadas a los artículos guardados aparecen aquí, para cambiarles el nombre.</string>
     <string name="share_target_saved">Guardados, en esta app</string>
+    <plurals name="saved_copied">
+        <item quantity="one">%d artículo guardado en este teléfono copiado a Instapaper</item>
+        <item quantity="many">%d artículos guardados en este teléfono copiados a Instapaper</item>
+        <item quantity="other">%d artículos guardados en este teléfono copiados a Instapaper</item>
+    </plurals>
 </resources>

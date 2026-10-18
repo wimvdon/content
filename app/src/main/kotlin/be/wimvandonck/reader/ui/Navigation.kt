@@ -145,6 +145,7 @@ fun RssReaderNavigation() {
     val syncStatus by app.sync.status.collectAsStateWithLifecycle()
     val instapaperState by app.instapaper.state.collectAsStateWithLifecycle()
     val instapaperNotice by app.instapaper.notice.collectAsStateWithLifecycle()
+    val savedCopied by app.instapaper.copied.collectAsStateWithLifecycle()
     val current = settings ?: Settings()
     val library = libraryOrNull ?: Library()
     val snackbar = remember { SnackbarHostState() }
@@ -280,6 +281,11 @@ fun RssReaderNavigation() {
         val notice = instapaperNotice ?: return@LaunchedEffect
         showMessage(resources.getString(if (notice == InstapaperNotice.SignedIn) R.string.instapaper_sign_in_done else R.string.instapaper_sign_in_failed))
         app.instapaper.clearNotice()
+    }
+    LaunchedEffect(savedCopied) {
+        if (savedCopied == 0) return@LaunchedEffect
+        showMessage(resources.getQuantityString(R.plurals.saved_copied, savedCopied, savedCopied))
+        app.instapaper.clearCopied()
     }
 
     // Sync while the app is on screen: when it comes back, live while it stays, and every minute

@@ -10,6 +10,8 @@ import { Input } from "./ui/input";
 
 /** The reader's buttons for a saved Instapaper article: like, archive, move to a folder, tags, delete. */
 export function InstapaperActions({ bookmark: b, onDeleted }: { bookmark: Bookmark; onDeleted: () => void }) {
+  // Saved in this browser (signed out) has no folders.
+  const { instapaper } = useApp();
   const [open, setOpen] = useState<"move" | "tags" | "delete" | null>(null);
   return (
     <>
@@ -32,9 +34,11 @@ export function InstapaperActions({ bookmark: b, onDeleted }: { bookmark: Bookma
       >
         {b.archived ? <ArchiveRestore /> : <Archive />}
       </Button>
-      <Button variant="ghost" size="icon" onClick={() => setOpen("move")} aria-label={t("instapaperMoveTo")} title={t("instapaperMoveTo")}>
-        <FolderInput />
-      </Button>
+      {instapaper ? (
+        <Button variant="ghost" size="icon" onClick={() => setOpen("move")} aria-label={t("instapaperMoveTo")} title={t("instapaperMoveTo")}>
+          <FolderInput />
+        </Button>
+      ) : null}
       <Button variant="ghost" size="icon" onClick={() => setOpen("tags")} aria-label={t("instapaperTags")} title={t("instapaperTags")}>
         <TagIcon />
       </Button>
@@ -176,7 +180,7 @@ function TagsEditor({ bookmark: b }: { bookmark: Bookmark }) {
  * Saved).
  */
 export function JustSavedDialog() {
-  const { instapaperJustSaved: b, instapaperFolders } = useApp();
+  const { instapaperJustSaved: b, instapaperFolders, instapaper } = useApp();
   const chip = (folderId: number | null, label: string) => {
     const selected = (b?.folder_id ?? null) === folderId;
     return (
@@ -200,7 +204,7 @@ export function JustSavedDialog() {
     <Dialog
       open={b !== null}
       onOpenChange={(o) => !o && app.closeJustSaved()}
-      title={t("instapaperSaved")}
+      title={instapaper ? t("instapaperSaved") : t("saved")}
       closeLabel={t("close")}
       footer={<Button onClick={app.closeJustSaved}>{t("done")}</Button>}
     >
@@ -210,6 +214,7 @@ export function JustSavedDialog() {
             <Toggle pressed={b.liked} onClick={() => void app.likeBookmark(b, !b.liked)} icon={<Heart className={cn("size-4", b.liked && "fill-current")} />} label={t("instapaperLike")} />
             <Toggle pressed={b.archived} onClick={() => void app.archiveBookmark(b, !b.archived)} icon={<Archive className="size-4" />} label={t("instapaperArchive")} />
           </div>
+          {instapaper ? (
           <section className="space-y-2">
             <h3 className="text-sm font-medium text-primary">{t("folder")}</h3>
             <div role="radiogroup" aria-label={t("folder")} className="flex flex-wrap gap-1.5">
@@ -218,6 +223,7 @@ export function JustSavedDialog() {
             </div>
             <NewFolder onCreate={(title) => void app.moveBookmarkToNewFolder(b, title)} />
           </section>
+          ) : null}
           <section className="space-y-2">
             <h3 className="text-sm font-medium text-primary">{t("instapaperTags")}</h3>
             <TagsEditor bookmark={b} />

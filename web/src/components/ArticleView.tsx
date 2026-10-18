@@ -131,8 +131,15 @@ export function ArticleView({ article, onBack, onMessage }: { article: Article; 
         )}
         {article.link ? (
           <>
-            {instapaper && !isInstapaperArticle(article) ? (
-              <Button variant="ghost" size="icon" onClick={() => void saveToInstapaper()} disabled={saving} aria-label={t("saveToInstapaper")} title={t("saveToInstapaper")}>
+            {!isInstapaperArticle(article) ? (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => void saveToInstapaper()}
+                disabled={saving}
+                aria-label={instapaper ? t("saveToInstapaper") : t("saveArticle")}
+                title={instapaper ? t("saveToInstapaper") : t("saveArticle")}
+              >
                 <BookmarkPlus />
               </Button>
             ) : null}

@@ -18,6 +18,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import okhttp3.OkHttpClient
 import java.io.IOException
 
@@ -52,6 +54,9 @@ class InstapaperAccount(
     /** The articles saved on this phone while no account is signed in. */
     private val localSaved = LocalSaved(LocalSavedStore(context))
 
+    /** One copy of [localSaved] to the account at a time, so no article is sent twice. */
+    private val uploading = Mutex()
+
     val state: StateFlow<InstapaperState> =
         dataStore.data
             .catch { error -> if (error is IOException) emit(emptyPreferences()) else throw error }
@@ -64,6 +69,15 @@ class InstapaperAccount(
 
     fun clearNotice() {
         noticeFlow.value = null
+    }
+
+    private val copiedFlow = MutableStateFlow(0)
+
+    /** How many articles saved on this phone were just copied to the account, shown once; 0 when none. */
+    val copied: StateFlow<Int> = copiedFlow
+
+    fun clearCopied() {
+        copiedFlow.value = 0
     }
 
     /** Starts a sign-in: remembers a fresh state and returns Instapaper's sign-in address. */
@@ -110,11 +124,27 @@ class InstapaperAccount(
         }
     }
 
-    /** The model for one visit to the Instapaper screen. It signs out when Instapaper refuses the token. */
+    /**
+     * The model for one visit to the Instapaper screen. It signs out when Instapaper refuses the token.
+     * The articles saved on this phone while signed out are copied to the account first, and the
+     * list is read again once they are in; what didn't make it is tried again the next time.
+     */
     fun newModel(
         session: InstapaperSession,
         modelScope: CoroutineScope,
-    ): InstapaperModel = InstapaperModel(InstapaperClient(http, session.token), modelScope, onSignedOut = { scope.launch { signOut() } })
+    ): InstapaperModel {
+        val client = InstapaperClient(http, session.token)
+        val model = InstapaperModel(client, modelScope, onSignedOut = { scope.launch { signOut() } })
+        modelScope.launch {
+            val upload = uploading.withLock { localSaved.uploadTo(client) }
+            if (upload.problem == InstapaperProblem.SignedOut) signOut()
+            if (upload.copied > 0) {
+                copiedFlow.value = upload.copied
+                model.refresh()
+            }
+        }
+        return model
+    }
 
     /**
      * The model for the Saved screen without an account: the articles saved on this phone, with

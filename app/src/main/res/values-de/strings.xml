@@ -224,4 +224,8 @@
     <string name="saved_manage_title">Tags</string>
     <string name="saved_manage_empty">Tags, die du gespeicherten Artikeln gibst, erscheinen hier, damit du sie umbenennen kannst.</string>
     <string name="share_target_saved">Gespeichert, in dieser App</string>
+    <plurals name="saved_copied">
+        <item quantity="one">%d auf diesem Telefon gespeicherter Artikel nach Instapaper kopiert</item>
+        <item quantity="other">%d auf diesem Telefon gespeicherte Artikel nach Instapaper kopiert</item>
+    </plurals>
 </resources>
