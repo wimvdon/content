@@ -69,15 +69,16 @@ The account's document (it was `rss-reader-sync.json` in Google Drive before), U
   | `reader.spacing` | `compact`, `normal`, `relaxed` | both |
   | `reader.background` | `default`, `sepia`, `dark` | both |
   | `reader.autoDark` | `true`, `false` | both |
-  | `unreadOnly` | `true`, `false` | both |
   | `fullArticles` | `true`, `false` | both |
   | `showImages` | `true`, `false` | Android |
   | `markReadOnScroll` | `true`, `false` | both |
   | `listView` | `small`, `medium`, `large` | Android |
 
-  Not synced: the Save and Share targets (each phone has its own apps) and the Instapaper sign-in
-  (each device signs in itself, and that sign-in is the account). Older versions synced it as
-  `instapaper.token`, `instapaper.username` and `instapaper.userId`; those names are dropped.
+  Not synced: the Save and Share targets (each phone has its own apps), the Instapaper sign-in
+  (each device signs in itself, and that sign-in is the account) and Unread | All (it is where you
+  are in the list, not a setting; each device remembers its own). Older versions synced the sign-in
+  as `instapaper.token`, `instapaper.username` and `instapaper.userId`, and the filter as
+  `unreadOnly`; those names are dropped.
 - A reader that finds a higher `version` leaves the file alone and asks to update the app.
 
 ## Merging

@@ -146,6 +146,9 @@ share** you choose, for each, where it sends the article:
 
 If the chosen app has been uninstalled, the button opens the share menu instead and says so.
 
+Signed in with Instapaper (Settings › Account), Save always goes straight to your Instapaper
+account, so Settings › Save and share only shows the Share button's choice.
+
 ## Settings
 
 - **Account:** sign in with Instapaper to sync and to save to Instapaper; signed in, **Sync now**,

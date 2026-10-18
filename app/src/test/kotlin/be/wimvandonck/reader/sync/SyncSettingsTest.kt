@@ -32,7 +32,7 @@ class SyncSettingsTest {
         assertEquals("sepia", values[SyncSettings.READER_BACKGROUND])
         assertEquals("22", values[SyncSettings.READER_TEXT_SIZE])
         assertEquals("large", values[SyncSettings.LIST_VIEW])
-        assertEquals(custom.copy(saveTarget = Settings().saveTarget), SyncSettings.applyTo(Settings(), values))
+        assertEquals(custom.copy(saveTarget = Settings().saveTarget, unreadOnly = Settings().unreadOnly), SyncSettings.applyTo(Settings(), values))
     }
 
     @Test
@@ -65,5 +65,12 @@ class SyncSettingsTest {
         val values = SyncSettings.of(Settings(), base)
         assertFalse(values.keys.any { it.startsWith("instapaper.") })
         assertEquals("x", values["web.only"])
+    }
+
+    @Test
+    fun `Unread or All is not synced, and the name older versions synced is dropped`() {
+        val values = SyncSettings.of(custom, base = mapOf("unreadOnly" to "true"))
+        assertFalse("unreadOnly" in values)
+        assertEquals(true, SyncSettings.applyTo(Settings(unreadOnly = true), mapOf("unreadOnly" to "false")).unreadOnly)
     }
 }

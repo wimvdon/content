@@ -94,11 +94,13 @@ and then (always before a release):
       without refreshing. Rename a feed: the same. Delete synced data: both say to sign in again.
 - [ ] **Save** sends to the app chosen in Settings › Save and share (Instapaper by default);
       **Share** opens the share menu or the chosen app. An uninstalled app falls back to the share menu.
+      Signed in to Instapaper, Settings › Save and share has no Save button row (Save goes to the account).
 - [ ] **List:** at app start the list shows loading placeholders, never "No feeds yet" first.
       Swipe an article left and right past a third: a tick, it becomes read, then unread; a short
       swipe does nothing; swiping never opens the ☰ menu. Unread | All under the title switches unread only / all.
       Scroll down: the title, folder tabs and Unread | All slide away together; scroll up a
-      little: they come back; pulling down at the very top refreshes. Settings › Article list › View: Small,
+      little: they come back; pulling down at the very top refreshes, and the spinner stays in place
+      until the refresh is done (no jump back up and down again), also in an Instapaper list. Settings › Article list › View: Small,
       Medium and Large each look right, with and without pictures.
 - [ ] **Website icons:** after a refresh, feeds show their site's icon in the list, ☰ menu,
       manage page and reader, on a light tile; in dark mode dark logos are still visible; a feed

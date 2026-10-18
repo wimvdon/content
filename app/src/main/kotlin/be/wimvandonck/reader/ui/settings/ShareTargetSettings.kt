@@ -41,7 +41,8 @@ import be.wimvandonck.reader.ui.theme.SettingsSection
 
 /**
  * Where the reader's Save and Share buttons send an article: the share menu, or straight to one
- * app (for example Instapaper for Save).
+ * app (for example Instapaper for Save). Signed in to Instapaper, Save always goes to the account,
+ * so there is no choice to show for it ([showSaveTarget] false).
  */
 @Composable
 fun ShareTargetsSection(
@@ -50,9 +51,10 @@ fun ShareTargetsSection(
     apps: List<ExternalApps.ShareApp>,
     onSaveTargetChange: (ShareTarget) -> Unit,
     onShareTargetChange: (ShareTarget) -> Unit,
+    showSaveTarget: Boolean = true,
 ) {
     SettingsSection(title = stringResource(R.string.section_save)) {
-        TargetRow(stringResource(R.string.setting_save_button), saveTarget, apps, onSaveTargetChange)
+        if (showSaveTarget) TargetRow(stringResource(R.string.setting_save_button), saveTarget, apps, onSaveTargetChange)
         TargetRow(stringResource(R.string.setting_share_button), shareTarget, apps, onShareTargetChange)
     }
 }

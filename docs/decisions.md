@@ -11,6 +11,13 @@ Material Symbols nor Lucide has them, so each is drawn from the set's own feed o
 (made smaller) and the pen that the set uses in its other "manage" icons (`bookmark_manager`,
 `user-pen`). Rejected: `bookmark_manager` (a folder, not a bookmark) and a pen on its own (doesn't
 say what it manages).
+## 2026-10-18: Unread | All is no longer synced
+
+Unread | All was a synced setting, so switching it on one device switched the list on every other
+device as soon as it synced. The owner pointed out that it is navigation (where you are in the
+list), not a setting. It is still remembered on each device, but no longer in the sync document;
+older documents' `unreadOnly` is dropped on the next sync. Rejected: not remembering it at all (the
+list would reset to Unread every time the app starts).
 
 ## 2026-10-18: Sync through a Reader account, signed in with Instapaper
 

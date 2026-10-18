@@ -13,20 +13,20 @@ export const READER_TEXT_SIZE = "reader.textSize";
 export const READER_SPACING = "reader.spacing";
 export const READER_BACKGROUND = "reader.background";
 export const READER_AUTO_DARK = "reader.autoDark";
-export const UNREAD_ONLY = "unreadOnly";
 export const FULL_ARTICLES = "fullArticles";
 export const MARK_READ_ON_SCROLL = "markReadOnScroll";
 
 const KNOWN = new Set([
   THEME, READER_FONT, READER_TEXT_SIZE, READER_SPACING, READER_BACKGROUND, READER_AUTO_DARK,
-  UNREAD_ONLY, FULL_ARTICLES, MARK_READ_ON_SCROLL,
+  FULL_ARTICLES, MARK_READ_ON_SCROLL,
 ]);
 
 /**
  * Names that are no longer synced and are dropped: the Instapaper sign-in (each device signs in
- * itself, and that sign-in is the account).
+ * itself, and that sign-in is the account) and Unread | All (where you are in the list, not a
+ * setting).
  */
-const DROPPED = /^instapaper\./;
+const DROPPED = /^(instapaper\.|unreadOnly$)/;
 
 /** This browser's synced settings, plus the names from base that the web app doesn't know. */
 export function syncedSettings(settings: Settings, base: Record<string, string> = {}): Record<string, string> {
@@ -40,7 +40,6 @@ export function syncedSettings(settings: Settings, base: Record<string, string> 
     [READER_SPACING]: r.spacing,
     [READER_BACKGROUND]: r.background,
     [READER_AUTO_DARK]: String(r.autoDark),
-    [UNREAD_ONLY]: String(settings.unreadOnly),
     [FULL_ARTICLES]: String(settings.fullArticles),
     [MARK_READ_ON_SCROLL]: String(settings.markReadOnScroll),
   });
@@ -63,7 +62,6 @@ export function applySynced(settings: Settings, values: Record<string, string>):
       background: values[READER_BACKGROUND] ?? r.background,
       autoDark: bool(READER_AUTO_DARK, r.autoDark),
     }, r),
-    unreadOnly: bool(UNREAD_ONLY, settings.unreadOnly),
     fullArticles: bool(FULL_ARTICLES, settings.fullArticles),
     markReadOnScroll: bool(MARK_READ_ON_SCROLL, settings.markReadOnScroll),
   };
