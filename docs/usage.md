@@ -77,7 +77,8 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
 ## Reading the list
 
 - The **bar at the bottom** switches between **Feeds** and **Saved** (on a tablet or in landscape
-  it sits at the left side). Saved opens the list you last had open there (Saved at first).
+  it sits at the left side; the web app shows it in a narrow window, and the sidebar in a wide one).
+  Saved opens the list you last had open there (Saved at first).
 - **☰** opens the drawer with every place. **Feeds**: **All articles** (every feed), your
   folders with their feeds, the other feeds (each with its number of unread articles). **Saved**
   follows with its own places (see Saved articles). The section you're in (Feeds or

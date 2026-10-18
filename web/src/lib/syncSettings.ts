@@ -4,7 +4,7 @@ import { readerStyleOf } from "./readerStyle";
 /**
  * The settings in the sync file: shared names with text values, the same as the Android app's
  * SyncSettings (docs/sync.md). The web app reads the names it knows and keeps the others as they
- * are, so Android-only settings (Show images, list view) survive a sync from the web.
+ * are, so Android-only settings (dynamic colour) survive a sync from the web.
  */
 
 export const THEME = "theme";
@@ -15,10 +15,12 @@ export const READER_BACKGROUND = "reader.background";
 export const READER_AUTO_DARK = "reader.autoDark";
 export const FULL_ARTICLES = "fullArticles";
 export const MARK_READ_ON_SCROLL = "markReadOnScroll";
+export const SHOW_IMAGES = "showImages";
+export const LIST_VIEW = "listView";
 
 const KNOWN = new Set([
   THEME, READER_FONT, READER_TEXT_SIZE, READER_SPACING, READER_BACKGROUND, READER_AUTO_DARK,
-  FULL_ARTICLES, MARK_READ_ON_SCROLL,
+  FULL_ARTICLES, MARK_READ_ON_SCROLL, SHOW_IMAGES, LIST_VIEW,
 ]);
 
 /**
@@ -42,6 +44,8 @@ export function syncedSettings(settings: Settings, base: Record<string, string> 
     [READER_AUTO_DARK]: String(r.autoDark),
     [FULL_ARTICLES]: String(settings.fullArticles),
     [MARK_READ_ON_SCROLL]: String(settings.markReadOnScroll),
+    [SHOW_IMAGES]: String(settings.showImages),
+    [LIST_VIEW]: settings.listView,
   });
   return out;
 }
@@ -64,5 +68,7 @@ export function applySynced(settings: Settings, values: Record<string, string>):
     }, r),
     fullArticles: bool(FULL_ARTICLES, settings.fullArticles),
     markReadOnScroll: bool(MARK_READ_ON_SCROLL, settings.markReadOnScroll),
+    showImages: bool(SHOW_IMAGES, settings.showImages),
+    listView: ["small", "medium", "large"].includes(values[LIST_VIEW]) ? (values[LIST_VIEW] as Settings["listView"]) : settings.listView,
   };
 }

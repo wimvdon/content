@@ -33,6 +33,9 @@ import * as SS from "./syncSettings";
 
 export type Theme = "system" | "light" | "dark";
 
+/** How big each article is in the list: title only, with a thumbnail, or a card with a large picture (as on Android). */
+export type ListView = "small" | "medium" | "large";
+
 export interface Settings {
   lastSyncedAt: number | null;
   unreadOnly: boolean;
@@ -40,6 +43,9 @@ export interface Settings {
   fullArticles: boolean;
   readerStyle: ReaderStyle;
   markReadOnScroll: boolean;
+  /** Show article pictures, thumbnails and embed previews (they load from the sites). */
+  showImages: boolean;
+  listView: ListView;
 }
 
 export type SyncStatus = { kind: "idle" } | { kind: "syncing" } | { kind: "failed"; problem: SyncProblem };
@@ -91,6 +97,8 @@ export const defaultSettings: Settings = {
   fullArticles: true,
   readerStyle: defaultReaderStyle,
   markReadOnScroll: false,
+  showImages: true,
+  listView: "medium",
 };
 
 const PARALLEL = 4;
@@ -239,9 +247,21 @@ class AppStore {
     if (syncSoon && !sameValues(SS.syncedSettings(before), SS.syncedSettings(settings))) this.syncSoon();
   }
 
+  /** Where Feeds and Saved were last, so switching between them (the navigation bar) goes back there. */
+  private lastFeeds: L.Selection = { kind: "all" };
+  private lastSaved: L.Selection = { kind: "instapaper", view: { kind: "home" } };
+
   select(selection: L.Selection) {
+    if (selection.kind === "instapaper") this.lastSaved = selection;
+    else this.lastFeeds = selection;
     this.set({ selection, readThisVisit: new Set() });
     if (selection.kind === "instapaper") void this.loadInstapaperList(selection.view);
+  }
+
+  /** Feeds or Saved, where it was last (the navigation bar). */
+  showSection(saved: boolean) {
+    if ((this.state.selection.kind === "instapaper") === saved) return;
+    this.select(saved ? this.lastSaved : L.selectionExists(this.state.library, this.lastFeeds));
   }
 
   setUnreadOnly(unreadOnly: boolean) {

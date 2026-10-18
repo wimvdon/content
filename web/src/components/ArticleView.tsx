@@ -67,10 +67,10 @@ export function ArticleView({ article, onBack, onMessage }: { article: Article; 
 
   const base = article.link ?? feed?.siteUrl ?? article.feedUrl;
   const html = useMemo(
-    () => sanitizeArticle(fullHtml ?? article.html, base),
-    [fullHtml, article.html, base],
+    () => sanitizeArticle(fullHtml ?? article.html, base, settings.showImages),
+    [fullHtml, article.html, base, settings.showImages],
   );
-  const showHero = article.imageUrl && !html.includes(article.imageUrl);
+  const showHero = settings.showImages && article.imageUrl && !html.includes(article.imageUrl);
 
   const share = async () => {
     if (!article.link) return;

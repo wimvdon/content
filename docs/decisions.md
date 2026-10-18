@@ -2,6 +2,18 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-18: The web app has the same features as Android
+
+The owner asked for feature parity between the web app and Android, and for a look back at what
+earlier changes had missed. Search (#90), Saved without an account and the copy on sign-in (#89)
+came with their issues. The review found four more gaps, all on the web, now closed:
+**Show images** and the list **View** (Small, Medium, Large) are web settings too, synced under the
+names Android already used; the sidebar opens the section you're in and folds
+the other (#69); and a narrow window gets the **Feeds | Saved** navigation bar at the bottom (#70).
+Left as they are because they belong to one platform: Save and Share targets and dynamic colour
+(Android apps and wallpaper), swipe to toggle read (touch), keyboard shortcuts (web), and the folder
+tabs under the title (the web sidebar lists the same places, and a wide window has room for it).
+
 ## 2026-10-18: Unread and All as two chips
 
 The owner found the single **Unread** chip (#77) not Material 3 compliant and not friendly (#92):
