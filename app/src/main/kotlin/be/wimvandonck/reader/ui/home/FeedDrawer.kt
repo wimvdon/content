@@ -164,7 +164,7 @@ fun FeedDrawer(
             if (instapaper != null) {
                 NavigationDrawerItem(
                     label = { Text(stringResource(R.string.menu_manage_instapaper)) },
-                    icon = { Icon(painterResource(R.drawable.ic_bookmarks_outline), contentDescription = null) },
+                    icon = { Icon(painterResource(R.drawable.ic_manage_instapaper), contentDescription = null) },
                     selected = false,
                     onClick = onOpenInstapaperManage,
                 )

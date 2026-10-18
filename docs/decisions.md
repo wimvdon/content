@@ -2,6 +2,16 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-18: Manage icons: the feed symbol and a bookmark, each with a pen
+
+Manage feeds had a generic icon (lines with a pen on Android, sliders on the web) and Manage
+Instapaper a bookmark, so the two didn't read as a pair and the bookmark looked like a list rather
+than a page to manage. The owner asked for a feed with a pen and a bookmark with a pen. Neither
+Material Symbols nor Lucide has them, so each is drawn from the set's own feed or bookmark shape
+(made smaller) and the pen that the set uses in its other "manage" icons (`bookmark_manager`,
+`user-pen`). Rejected: `bookmark_manager` (a folder, not a bookmark) and a pen on its own (doesn't
+say what it manages).
+
 ## 2026-10-18: The drawer opens the section you're in
 
 With Feeds and Instapaper both open, the ☰ drawer grew long (every folder and feed, then every

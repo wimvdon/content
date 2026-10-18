@@ -258,6 +258,8 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
 - The ☰ drawer: the Feeds section (All articles, the folders with their feeds, the other feeds),
   the Instapaper section (Unread, Liked, Archive, its folders and tags), then Manage feeds, Manage
   Instapaper and Settings. The web app's sidebar is the same, with the same folding sections.
+  Manage feeds and Manage Instapaper show what they manage with a pen: the feed symbol with a
+  pen and a bookmark with a pen (Android: Material Symbols' shapes; web: Lucide's).
 - Site icons sit on a fixed light tile (`#F4F4F4`, rounded, 10% padding) in light and dark mode,
   so logos drawn for light browser tabs keep their contrast; the letter fallback uses
   `tertiaryContainer`.
