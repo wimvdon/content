@@ -2,6 +2,14 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-18: Unread | All is no longer synced
+
+Unread | All was a synced setting, so switching it on one device switched the list on every other
+device as soon as it synced. The owner pointed out that it is navigation (where you are in the
+list), not a setting. It is still remembered on each device, but no longer in the sync document;
+older documents' `unreadOnly` is dropped on the next sync. Rejected: not remembering it at all (the
+list would reset to Unread every time the app starts).
+
 ## 2026-10-18: Sync through a Reader account, signed in with Instapaper
 
 Google Drive sync was unreliable: read marks went missing and arrived late. Three causes: Drive has
