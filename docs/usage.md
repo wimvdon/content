@@ -7,8 +7,8 @@ from another reader.
 
 ## Adding feeds
 
-Tap **Add feed** (on the empty screen or on the **Manage feeds and folders** page, ☰ › Manage
-feeds and folders)
+Tap **Add feed** (on the empty screen or on the **Manage feeds** page, ☰ › Manage
+feeds)
 and type an address. Any of these work:
 
 - a feed address (`https://example.com/feed.xml`);
@@ -28,14 +28,14 @@ sit on a light tile, so dark logos stay visible in dark mode.
 
 Export your feeds as an **OPML** file in your old reader (in Inoreader: Preferences ›
 Import/Export; Feedly, NetNewsWire and most others have the same), then tap **Import OPML** (on
-the empty start screen or on the **Manage feeds and folders** page) and pick the file. All feeds are added (feeds
+the empty start screen or on the **Manage feeds** page) and pick the file. All feeds are added (feeds
 you already follow are skipped), in the same folders as in your old reader, and the app downloads
 their articles. **Export OPML** does the reverse, folders included. Read and starred states don't
 come along.
 
 ## Folders
 
-Open **☰ › Manage feeds and folders** (also reachable from the top of Settings). This page lists
+Open **☰ › Manage feeds**. This page lists
 each folder with its feeds under it, then the feeds outside folders ("No folder"; when every
 feed is in a folder, a note there says you can drag a feed onto it).
 
@@ -57,20 +57,29 @@ after them. A feed added while a folder is open goes into that folder.
 
 ## Sync between devices
 
-Settings › **Sync** › **Connect** links the app to your Google Drive. Google asks once whether
-Reader may use its own hidden folder there (it can't see your other files). From then on
-your feeds, folders, read articles and settings stay the same on every phone where you connect,
-and in the web app. Signed in to Instapaper on one, you are signed in on all of them (and signing
-out signs out everywhere). The Save and Share apps stay per phone. A phone connecting for the first
-time takes the settings you already have. The app syncs while it is on screen: when you open it, every minute, a
-couple of seconds after you read an article or change a feed, when you refresh, and when you tap
-**Sync now**; the line under Google Drive says when it last did, or what went wrong.
-**Disconnect** stops syncing on this phone. See [sync.md](sync.md) for how it works.
+Sign in with Instapaper (Settings › **Account** › **Sign in with Instapaper**, see below) on every
+phone and in the web app, and your feeds, folders, read articles and settings stay the same on all
+of them. Reader keeps them in your Reader account on its own server, encrypted. A phone signing in
+for the first time combines its feeds with the account's and takes the settings you already have.
+The Save and Share apps stay per phone.
+
+The app syncs while it is on screen: when you open it, **at once when another device changes
+something** (an article read on the laptop turns read on the phone within a second or two), about a
+second after you read an article or change a feed, when you refresh, and when you tap **Sync now**.
+The line under your name in Settings › Account says when it last did, or what went wrong.
+
+- **Sign out** stops syncing on this device (and signs out of Instapaper here). Your feeds stay.
+- **Delete synced data** removes everything Reader keeps for your account from its server and
+  signs out every device. Each device keeps its own feeds and read articles.
+
+See [account.md](account.md) and [sync.md](sync.md) for how it works.
 
 ## Reading the list
 
-- **☰** opens the drawer: **All articles** (every feed), your folders with their feeds, the other feeds
-  (each with its number of unread articles), **Manage feeds and folders** and **Settings**.
+- **☰** opens the drawer, the app's navigation. **Feeds**: **All articles** (every feed), your
+  folders with their feeds, the other feeds (each with its number of unread articles). Signed in to
+  Instapaper, **Instapaper** follows with its own places (see below). Tap a section's name to fold
+  it shut or open. Below them: **Manage feeds**, **Manage Instapaper** (signed in) and **Settings**.
 - Articles are grouped under **Today**, **Yesterday** and then the date; the date stays at the
   top while you scroll through that day.
 - Under the title you see how many articles are unread. Below it, **Unread | All** switches
@@ -94,7 +103,7 @@ couple of seconds after you read an article or change a feed, when you refresh, 
 - **Mark as read on scroll** (in **Settings › Article list**, off by default): articles are
   marked as read once you scroll them off the top of the list. They stay in the unread list until
   you switch feed, filter or refresh, so you can scroll back to them.
-- If some feeds can't be downloaded, a message says how many; **Manage feeds and folders** shows why
+- If some feeds can't be downloaded, a message says how many; **Manage feeds** shows why
   for each one.
 
 ## The reader
@@ -139,15 +148,18 @@ If the chosen app has been uninstalled, the button opens the share menu instead 
 
 ## Settings
 
-- **Feeds › Manage feeds and folders** (at the top; the same page as in ☰): every feed with its address (or why
-  its last download failed), grouped by folder. Add, rename, reorder (drag) or remove feeds (a
-  removed feed's articles go too), create, edit, reorder and remove folders, put feeds in folders, and **Import OPML** /
-  **Export OPML** to move your feeds between readers.
+- **Account:** sign in with Instapaper to sync and to save to Instapaper; signed in, **Sync now**,
+  **Sign out** and **Delete synced data** (see Sync between devices).
 - **Article list:** View (Small, Medium, Large) and **Mark as read on scroll**.
 - **Reader:** **Load full articles**, **Show images**, and the same text settings as **Aa**, with a preview.
 - **Save and share:** see above.
 - **Appearance:** Theme (System, Light, Dark) and Dynamic color (wallpaper colours instead of
   the app's blue).
+
+Your feeds are managed on their own page, **☰ › Manage feeds** ("Feeds and folders"): every feed with its address (or why
+  its last download failed), grouped by folder. Add, rename, reorder (drag) or remove feeds (a
+  removed feed's articles go too), create, edit, reorder and remove folders, put feeds in folders, and **Import OPML** /
+  **Export OPML** to move your feeds between readers.
 
 ## Backup and moving to a new phone
 
@@ -164,26 +176,26 @@ The app follows the phone's language. To choose another one for this app only: A
 
 ## Instapaper account
 
-Settings › **Instapaper** › **Sign in** opens Instapaper's own page in your browser. Approve Reader
-there and you come back to the app (or the web page) signed in; Reader never sees your password.
+Settings › **Account** › **Sign in with Instapaper** opens Instapaper's own page in your browser.
+Approve Reader there and you come back to the app (or the web page) signed in; Reader never sees your
+password. The same sign-in turns on sync (see Sync between devices).
 
 Signed in:
 
 - **Save** (the bookmark button in the reader) saves the article to your Instapaper account. A
   sheet (a dialog on the web) opens at once: tap a folder to file it there and add tags, then
   **Done**. Close it to leave the article in Unread.
-- A bar at the bottom (on a tablet: at the side) switches between **Feeds** and **Instapaper**
-  (the web app: a Feeds | Instapaper switch at the top of the sidebar). On Instapaper, tabs under
-  the title show Unread, Liked, Archive, your Instapaper folders and **Tags** (chips under it pick
-  the tag); the ☰ menu then lists the same places. Each shows its saved articles in the same
+- The ☰ drawer (the web app: the sidebar) gets an **Instapaper** section under Feeds: Unread,
+  Liked, Archive, your Instapaper folders and tags. On an Instapaper list, tabs under the title
+  show the same places, with **Tags** (chips under it pick the tag). Each shows its saved articles in the same
   list as feed articles, and they open in the same reader (the whole article loads from its
   website, like a feed's). Saved articles have no read state and are not in All articles: you
   archive them yourself. In the reader: like (♥), archive (or move back to Unread), and in ⋮ move
   to a folder (or **New folder**: name it and the article goes straight in), tags (add or remove) and
   delete for good (asks first). The sheet after Save has **New folder** too.
-- **Manage feeds and folders** has an Instapaper part: create, reorder and delete Instapaper folders
-  (a deleted folder's articles go back to Unread) and rename tags.
-- **Sign out** removes the sign-in from this device.
+- **☰ › Manage Instapaper** ("Instapaper folders and tags"): create, reorder and delete Instapaper
+  folders (a deleted folder's articles go back to Unread) and rename tags.
+- **Sign out** removes the sign-in from this device, and stops syncing here.
 
 Until Instapaper has approved Reader, only the owner's own account works; other accounts see
 "Instapaper hasn't approved Reader for your account yet." Setup and details: `instapaper.md`.

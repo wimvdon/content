@@ -1,3 +1,4 @@
+import { SyncError, type ReadAnswer, type WriteAnswer } from "./account";
 import { articleKey, DEFAULT_ICON, sortTime, type Feed, type Library } from "./library";
 
 /**
@@ -35,8 +36,11 @@ export const VERSION = 2;
 export const KEEP_READ_MS = 120 * 24 * 60 * 60 * 1000;
 
 /** When sync runs while the app is open, the same as the Android app's SyncTiming. */
-export const CHANGE_DELAY_MS = 2_000;
-/** While the page is visible it syncs this often, so changes from other devices come in. */
+export const CHANGE_DELAY_MS = 1_000;
+/**
+ * While the page is visible and the live connection is down, it syncs this often, so changes from
+ * other devices still come in. With the live connection they come in at once.
+ */
 export const VISIBLE_INTERVAL_MS = 60_000;
 /** Coming back or the next minute skips sync when it ran this recently. A refresh never does. */
 export const MIN_GAP_MS = 10_000;
@@ -211,4 +215,47 @@ export function hasNewFeeds(lib: Library, merged: SyncDocument): boolean {
 
 function isObject(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null && !Array.isArray(v);
+}
+
+/** The document as this browser last saved or read it, with the account's version of it. */
+export interface SyncBase {
+  version: number;
+  text: string;
+}
+
+export interface SyncTarget {
+  read(knownVersion: number | null): Promise<ReadAnswer>;
+  write(baseVersion: number, text: string): Promise<WriteAnswer>;
+}
+
+/** Saves after another device's save are tried again this often, then given up until next time. */
+const MAX_ATTEMPTS = 4;
+
+/**
+ * One sync: reads the account's document, lets mergeIn merge it into this browser's library (it
+ * gets the base and the remote document, applies the result and returns it), and saves the result
+ * when it differs. When another device saved in between, merges again with that document. Returns
+ * the new base.
+ */
+export async function syncRound(
+  target: SyncTarget,
+  saved: SyncBase | null,
+  mergeIn: (base: SyncDocument | null, remote: SyncDocument | null) => SyncDocument,
+): Promise<SyncBase> {
+  let base = saved ? decode(saved.text) : null;
+  let answer: ReadAnswer | WriteAnswer = await target.read(saved && base ? saved.version : null);
+  for (let attempt = 1; ; attempt++) {
+    const remote = answer.kind === "unchanged" ? base : answer.text === null ? null : decode(answer.text);
+    if (answer.kind !== "unchanged" && answer.text !== null && !remote) throw new SyncError("unreadableFile");
+    // Without a document there is nothing to merge with: this browser's library becomes it.
+    const out = pruned(mergeIn(remote ? base : null, remote), Date.now() - KEEP_READ_MS);
+    const text = encode(out);
+    if (remote && encode(remote) === text) return { version: answer.version, text };
+    const result = await target.write(answer.version, text);
+    if (result.kind === "saved") return { version: result.version, text };
+    if (attempt >= MAX_ATTEMPTS) throw new SyncError("server");
+    // What was just merged in is this browser's state now, so it is the base for the next try.
+    base = remote;
+    answer = result;
+  }
 }

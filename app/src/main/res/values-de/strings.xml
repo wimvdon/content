@@ -5,7 +5,6 @@
     <string name="menu_settings">Einstellungen</string>
     <string name="section_expanded">Ausgeklappt</string>
     <string name="section_collapsed">Eingeklappt</string>
-    <string name="section_feeds">Feeds</string>
     <string name="section_appearance">Darstellung</string>
     <string name="setting_theme_title">Design</string>
     <string name="theme_system">System</string>
@@ -112,7 +111,7 @@
     <string name="list_view_small">Klein</string>
     <string name="list_view_medium">Mittel</string>
     <string name="list_view_large">Groß</string>
-    <string name="feeds_page_title">Feeds und Ordner verwalten</string>
+    <string name="feeds_page_title">Feeds und Ordner</string>
     <string name="feeds_opml_title">Von oder zu einem anderen Reader</string>
     <string name="reader_auto_dark_title">Automatisch dunkel</string>
     <string name="reader_auto_dark_summary">Dunkle Seite, wenn die App dunkel ist</string>
@@ -147,39 +146,22 @@
         <item quantity="one">Alle Artikel · %d ungelesen</item>
         <item quantity="other">Alle Artikel · %d ungelesen</item>
     </plurals>
-    <plurals name="feeds_problem_count">
-        <item quantity="one">%d Feed kann nicht geladen werden</item>
-        <item quantity="other">%d Feeds können nicht geladen werden</item>
-    </plurals>
-    <plurals name="folders_count">
-        <item quantity="one">%d Ordner</item>
-        <item quantity="other">%d Ordner</item>
-    </plurals>
     <plurals name="marked_read">
         <item quantity="one">%d Artikel als gelesen markiert</item>
         <item quantity="other">%d Artikel als gelesen markiert</item>
     </plurals>
-    <string name="section_sync">Synchronisierung</string>
-    <string name="sync_google_drive">Google Drive</string>
-    <string name="sync_off_summary">Gleiche Feeds und gelesene Artikel auf allen Geräten. Gespeichert in einem versteckten Ordner deines Drive.</string>
-    <string name="sync_connect">Verbinden</string>
     <string name="sync_now">Jetzt synchronisieren</string>
-    <string name="sync_disconnect">Trennen</string>
     <string name="sync_syncing">Wird synchronisiert…</string>
     <string name="sync_last">Zuletzt synchronisiert %1$s</string>
     <string name="sync_never">Noch nicht synchronisiert</string>
-    <string name="sync_failed_offline">Google Drive ist nicht erreichbar. Prüfe deine Verbindung.</string>
-    <string name="sync_failed_approval">Google Drive braucht erneut deine Erlaubnis. Tippe auf Verbinden.</string>
-    <string name="sync_failed_server">Google Drive hatte ein Problem. Versuche es später noch einmal.</string>
-    <string name="sync_failed_file">Die Sync-Datei stammt von einer neueren Version von Reader. Aktualisiere die App.</string>
-    <string name="sync_failed_setup">Google erkennt diese Version der App noch nicht, daher kann sie Drive nicht nutzen.</string>
-    <string name="sync_connect_failed">Verbindung mit Google Drive fehlgeschlagen</string>
+    <string name="sync_failed_offline">Der Server von Reader ist nicht erreichbar. Prüfe deine Verbindung.</string>
+    <string name="sync_failed_server">Der Server von Reader hatte ein Problem. Versuche es später noch einmal.</string>
+    <string name="sync_failed_file">Deine synchronisierten Daten stammen von einer neueren Version von Reader. Aktualisiere die App.</string>
+    <string name="sync_failed_setup">Die Synchronisierung ist auf dem Server von Reader noch nicht verfügbar.</string>
     <string name="section_instapaper">Instapaper</string>
-    <string name="instapaper_summary">Speichere Artikel in deinem eigenen Instapaper-Konto. Deine gespeicherten Artikel, Ordner und Tags erscheinen im ☰-Menü.</string>
     <string name="instapaper_sign_in">Mit Instapaper anmelden</string>
     <string name="instapaper_signed_in_as">Angemeldet als %1$s</string>
     <string name="instapaper_sign_out">Abmelden</string>
-    <string name="instapaper_open">Gespeicherte Artikel</string>
     <string name="instapaper_sign_in_done">Bei Instapaper angemeldet</string>
     <string name="instapaper_sign_in_failed">Die Anmeldung bei Instapaper hat nicht geklappt. Versuche es erneut.</string>
     <string name="instapaper_saved">In Instapaper gespeichert</string>
@@ -198,8 +180,6 @@
     <string name="instapaper_move_to">In Ordner verschieben</string>
     <string name="instapaper_empty">Hier ist noch nichts.</string>
     <string name="instapaper_load_more">Mehr laden</string>
-    <string name="instapaper_manage_folders">Ordner verwalten</string>
-    <string name="instapaper_manage_tags">Tags verwalten</string>
     <string name="instapaper_delete_folder">Ordner löschen</string>
     <string name="instapaper_delete_folder_note">Artikel in einem gelöschten Ordner wandern zurück zu Ungelesen.</string>
     <string name="instapaper_tag_name">Tag-Name</string>
@@ -211,4 +191,17 @@
     <string name="instapaper_folder">Ordner</string>
     <string name="action_done">Fertig</string>
     <string name="instapaper_folders">Ordner</string>
+    <string name="section_account">Konto</string>
+    <string name="account_summary">Melde dich mit Instapaper an, damit deine Feeds, gelesenen Artikel und Einstellungen auf allen Geräten gleich sind, und um Artikel in Instapaper zu speichern.</string>
+    <string name="sync_no_account">Die Synchronisierung ist für diese Anmeldung aus. Melde dich erneut an, um sie einzuschalten.</string>
+    <string name="sync_failed_signed_out">Dieses Gerät wurde von deinem Konto abgemeldet. Melde dich erneut an.</string>
+    <string name="account_delete_data">Synchronisierte Daten löschen</string>
+    <string name="account_delete_confirm">Deine Feeds, gelesenen Artikel und Einstellungen vom Server von Reader löschen? Sie bleiben auf diesem Gerät, und du wirst überall abgemeldet.</string>
+    <string name="account_deleted">Synchronisierte Daten gelöscht</string>
+    <string name="action_delete">Löschen</string>
+    <string name="menu_manage_feeds">Feeds verwalten</string>
+    <string name="menu_manage_instapaper">Instapaper verwalten</string>
+    <string name="instapaper_manage_title">Instapaper-Ordner und -Tags</string>
+    <string name="action_collapse">Einklappen</string>
+    <string name="action_expand">Ausklappen</string>
 </resources>

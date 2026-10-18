@@ -54,12 +54,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.NavigationBar
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalWindowInfo
-import androidx.compose.material3.NavigationRailItem
-import androidx.compose.material3.NavigationRail
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -163,10 +157,8 @@ class HomeActions(
     val onImportOpml: () -> Unit,
     val onOpenSettings: () -> Unit,
     val onOpenFeeds: () -> Unit,
+    val onOpenInstapaperManage: () -> Unit = {},
     val onSelectInstapaper: (InstapaperView) -> Unit = {},
-    /** The navigation bar's destinations (shown when signed in to Instapaper). */
-    val onShowFeeds: () -> Unit = {},
-    val onShowInstapaper: () -> Unit = {},
     val onOpenSaved: (InstapaperBookmark) -> Unit = {},
     val onLoadMoreSaved: () -> Unit = {},
 )
@@ -196,7 +188,6 @@ fun HomeScreen(
     val sectionFolderId = selectedFolder?.id ?: selectedFeed?.folderId
     val showFolderTabs = state.folders.isNotEmpty() && state.feeds.isNotEmpty()
     val unreadHere = state.unreadCounts[state.selection] ?: 0
-    val wide = with(LocalDensity.current) { LocalWindowInfo.current.containerSize.width.toDp() } >= WIDE_WINDOW
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -220,6 +211,10 @@ fun HomeScreen(
                     scope.launch { drawerState.close() }
                     actions.onOpenFeeds()
                 },
+                onOpenInstapaperManage = {
+                    scope.launch { drawerState.close() }
+                    actions.onOpenInstapaperManage()
+                },
                 instapaper = state.instapaper,
                 onSelectInstapaper = {
                     actions.onSelectInstapaper(it)
@@ -233,26 +228,8 @@ fun HomeScreen(
         val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(canScroll = { hasArticles })
         // Another section, or a list with nothing left to scroll, shows the header again.
         LaunchedEffect(state.selection, savedView, hasArticles) { scrollBehavior.state.heightOffset = 0f }
-        // On wide windows the destinations move to a navigation rail at the side, in the same order.
-        Row(Modifier.fillMaxSize()) {
-            if (state.instapaper != null && wide) {
-                NavigationRail(Modifier.padding(top = 8.dp)) {
-                    NavigationRailItem(
-                        selected = savedView == null,
-                        onClick = { if (savedView != null) actions.onShowFeeds() },
-                        icon = { DestinationIcon(instapaper = false, selected = savedView == null) },
-                        label = { Text(stringResource(R.string.feeds_title)) },
-                    )
-                    NavigationRailItem(
-                        selected = savedView != null,
-                        onClick = { if (savedView == null) actions.onShowInstapaper() },
-                        icon = { DestinationIcon(instapaper = true, selected = savedView != null) },
-                        label = { Text(stringResource(R.string.section_instapaper)) },
-                    )
-                }
-            }
             Scaffold(
-                modifier = Modifier.weight(1f).nestedScroll(scrollBehavior.nestedScrollConnection),
+                modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
                 snackbarHost = { SnackbarHost(snackbarHostState) },
                 topBar = {
                     CollapsingHeader(scrollBehavior) {
@@ -304,25 +281,6 @@ fun HomeScreen(
                                 onUnreadOnlyChange = actions.onUnreadOnlyChange,
                                 // Room around the filter so the header doesn't feel cramped.
                                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 12.dp),
-                            )
-                        }
-                    }
-                },
-                bottomBar = {
-                    // Feeds and Instapaper are the app's two top-level destinations; without Instapaper there is only one.
-                    if (state.instapaper != null && !wide) {
-                        NavigationBar {
-                            NavigationBarItem(
-                                selected = savedView == null,
-                                onClick = { if (savedView != null) actions.onShowFeeds() },
-                                icon = { DestinationIcon(instapaper = false, selected = savedView == null) },
-                                label = { Text(stringResource(R.string.feeds_title)) },
-                            )
-                            NavigationBarItem(
-                                selected = savedView != null,
-                                onClick = { if (savedView == null) actions.onShowInstapaper() },
-                                icon = { DestinationIcon(instapaper = true, selected = savedView != null) },
-                                label = { Text(stringResource(R.string.section_instapaper)) },
                             )
                         }
                     }
@@ -379,29 +337,10 @@ fun HomeScreen(
                 }
                 }
             }
-        }
     }
 }
 
 private enum class HomeContent { NoFeeds, Loading, Empty, Articles }
-
-/** From this width the destinations sit in a navigation rail instead of a bar (Material's medium window). */
-private val WIDE_WINDOW = 600.dp
-
-/** A destination's icon: Instapaper's filled when selected and outlined otherwise; the feed symbol has one form. */
-@Composable
-private fun DestinationIcon(
-    instapaper: Boolean,
-    selected: Boolean,
-) {
-    val icon =
-        when {
-            !instapaper -> R.drawable.ic_rss_feed
-            selected -> R.drawable.ic_bookmarks
-            else -> R.drawable.ic_bookmarks_outline
-        }
-    Icon(painterResource(icon), contentDescription = null)
-}
 
 private const val SKELETON_ROWS = 6
 

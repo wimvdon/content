@@ -1,7 +1,6 @@
 import { useSyncExternalStore } from "react";
-import { GOOGLE_CLIENT_ID } from "./config";
+import { AccountClient, LiveUpdates, SyncError, type SyncProblem } from "./account";
 import { findFeed } from "./discovery";
-import { GoogleAuth, GoogleDrive, SyncError, type SyncProblem, type SyncProvider } from "./drive";
 import { parseFeed } from "./feedParser";
 import {
   authorizeUrl,
@@ -31,10 +30,8 @@ import * as SS from "./syncSettings";
 /** Everything the web app shows, kept in one place; components subscribe with useApp(). */
 
 export type Theme = "system" | "light" | "dark";
-export type SyncService = "none" | "googleDrive";
 
 export interface Settings {
-  syncService: SyncService;
   lastSyncedAt: number | null;
   unreadOnly: boolean;
   theme: Theme;
@@ -55,7 +52,7 @@ export interface State {
   refreshing: boolean;
   problems: Map<string, FetchError["kind"] | "notAFeed">;
   syncStatus: SyncStatus;
-  /** The Instapaper account, when signed in. Kept in this browser, and in the sync file when Drive sync is on. */
+  /** The Instapaper sign-in, which is also the Reader account (sync). Kept in this browser only. */
   instapaper: InstapaperSession | null;
   /** The result of coming back from Instapaper's sign-in page, shown once. */
   instapaperNotice: "signedIn" | "failed" | null;
@@ -84,7 +81,6 @@ const INSTAPAPER_PAGE = 25;
 const INSTAPAPER_STATE_KEY = "instapaper-sign-in-state";
 
 export const defaultSettings: Settings = {
-  syncService: "none",
   lastSyncedAt: null,
   unreadOnly: true,
   theme: "system",
@@ -117,7 +113,9 @@ class AppStore {
   private knownRead = new Set<string>();
   private syncTimer: ReturnType<typeof setTimeout> | null = null;
   private syncing: Promise<void> | null = null;
-  private auth: GoogleAuth | null = null;
+  /** A sync was asked for while one was running: it runs once more afterwards. */
+  private syncAgain = false;
+  private live: LiveUpdates | null = null;
 
   subscribe = (listener: () => void) => {
     this.listeners.add(listener);
@@ -139,24 +137,59 @@ class AppStore {
     const [library, settings, base, instapaper] = await Promise.all([
       load<L.Library>("library").catch(() => undefined),
       load<Partial<Settings>>("settings").catch(() => undefined),
-      load<string>("syncBase").catch(() => undefined),
+      load<S.SyncBase>("syncBase").catch(() => undefined),
       load<InstapaperSession>("instapaper").catch(() => undefined),
     ]);
     const merged = { ...defaultSettings, ...settings, readerStyle: readerStyleOf(settings?.readerStyle) };
-    this.knownRead = new Set(Object.keys((base && S.decode(base)?.read) || {}));
-    this.set({ loaded: true, library: library ?? L.emptyLibrary(), settings: merged, instapaper: instapaper?.token ? instapaper : null });
+    this.knownRead = new Set(Object.keys((typeof base?.text === "string" && S.decode(base.text)?.read) || {}));
+    this.set({
+      loaded: true,
+      library: library ?? L.emptyLibrary(),
+      settings: merged,
+      instapaper: instapaper?.token ? { ...instapaper, accountKey: instapaper.accountKey ?? null } : null,
+    });
     void this.loadInstapaperSides();
     if (location.pathname === CALLBACK_PATH) await this.finishInstapaperSignIn(location.search);
     this.syncWhileVisible();
-    if (merged.syncService !== "none") await this.sync();
+    if (this.accountKey()) await this.sync();
     if (this.state.library.feeds.length > 0) await this.refresh();
   }
 
-  /** Syncs while the page is visible: when it comes back, and every minute (like Android). */
+  /**
+   * Syncs while the page is visible: when it comes back, whenever another device saved (the live
+   * connection), and every minute while that connection is down (like Android).
+   */
   private syncWhileVisible() {
-    const due = () => document.visibilityState === "visible" && void this.syncIfDue();
-    document.addEventListener("visibilitychange", due);
-    setInterval(due, S.VISIBLE_INTERVAL_MS);
+    const visible = () => document.visibilityState === "visible";
+    document.addEventListener("visibilitychange", () => {
+      this.updateLive();
+      if (visible()) void this.syncIfDue();
+    });
+    setInterval(() => visible() && !this.live?.connected && void this.syncIfDue(), S.VISIBLE_INTERVAL_MS);
+    this.updateLive();
+  }
+
+  /** The live connection runs while the page is visible and an account is signed in. */
+  private updateLive() {
+    const key = this.accountKey();
+    const want = key !== null && document.visibilityState === "visible";
+    if (!want) {
+      this.live?.stop();
+      this.live = null;
+      return;
+    }
+    if (this.live) return;
+    this.live = new LiveUpdates(key, (version) => {
+      if (version !== this.syncedVersion) void this.sync();
+    });
+    this.live.start();
+  }
+
+  /** The account's version this browser last saved or read. */
+  private syncedVersion: number | null = null;
+
+  private accountKey(): string | null {
+    return this.state.instapaper?.accountKey ?? null;
   }
 
   /** Syncs unless the last sync was only seconds ago. */
@@ -180,7 +213,7 @@ class AppStore {
 
   /** Syncs a moment after the last of a row of changes. */
   private syncSoon() {
-    if (this.state.settings.syncService === "none") return;
+    if (!this.accountKey()) return;
     if (this.syncTimer) clearTimeout(this.syncTimer);
     this.syncTimer = setTimeout(() => void this.sync(), S.CHANGE_DELAY_MS);
   }
@@ -190,7 +223,7 @@ class AppStore {
     const settings = { ...before, ...patch };
     this.set({ settings });
     void save("settings", settings).catch(() => undefined);
-    if (syncSoon && !sameValues(SS.syncedSettings(before, null), SS.syncedSettings(settings, null))) this.syncSoon();
+    if (syncSoon && !sameValues(SS.syncedSettings(before), SS.syncedSettings(settings))) this.syncSoon();
   }
 
   select(selection: L.Selection) {
@@ -338,7 +371,8 @@ class AppStore {
 
   exportOpml = () => writeOpml("Reader", this.state.library);
 
-  // Instapaper (docs/instapaper.md). Sign-in happens on Instapaper's own page; the token stays in this browser.
+  // Instapaper (docs/instapaper.md). Sign-in happens on Instapaper's own page; the token stays in this
+  // browser. The sign-in is also the Reader account that syncs the library (docs/account.md).
 
   /** From a click: leaves for Instapaper's sign-in page, which sends the user back to CALLBACK_PATH. */
   connectInstapaper() {
@@ -358,10 +392,11 @@ class AppStore {
     }
     try {
       const session = await exchangeCode(answer.code);
-      await save("instapaper", session);
-      this.set({ instapaper: session, instapaperNotice: "signedIn" });
-      void this.loadInstapaperSides();
-      this.syncSoon();
+      await this.forgetSync();
+      await this.setInstapaper(session);
+      this.set({ instapaperNotice: "signedIn" });
+      this.updateLive();
+      void this.sync();
     } catch {
       this.set({ instapaperNotice: "failed" });
     }
@@ -371,12 +406,46 @@ class AppStore {
     this.set({ instapaperNotice: null });
   }
 
+  /** Signs out of Instapaper and the account in this browser; the library stays here. */
   async disconnectInstapaper() {
-    await this.setInstapaper(null);
-    this.syncSoon();
+    const key = this.accountKey();
+    if (key) void new AccountClient(key).signOut().catch(() => undefined);
+    await this.signOutHere();
   }
 
-  /** Signs in or out in this browser, for example because another device did (sync). */
+  /**
+   * Deletes everything the account keeps (for every device) and signs out. The library stays in
+   * this browser. Returns false when the server couldn't be reached.
+   */
+  async deleteAccountData(): Promise<boolean> {
+    const key = this.accountKey();
+    if (key) {
+      try {
+        await new AccountClient(key).deleteAll();
+      } catch {
+        return false;
+      }
+    }
+    await this.signOutHere();
+    return true;
+  }
+
+  private async signOutHere() {
+    await this.forgetSync();
+    await this.setInstapaper(null);
+    this.updateLive();
+    this.set({ syncStatus: { kind: "idle" } });
+  }
+
+  /** Forgets what was synced, so the next account starts by combining this browser's library with its own. */
+  private async forgetSync() {
+    if (this.syncTimer) clearTimeout(this.syncTimer);
+    this.knownRead = new Set();
+    this.syncedVersion = null;
+    await remove("syncBase").catch(() => undefined);
+    this.updateSettings({ lastSyncedAt: null }, false);
+  }
+
   private async setInstapaper(session: InstapaperSession | null) {
     if (session) await save("instapaper", session).catch(() => undefined);
     else await remove("instapaper").catch(() => undefined);
@@ -542,68 +611,50 @@ class AppStore {
     }
   }
 
-  // Sync, the same way as the Android app (docs/sync.md).
+  // Sync with the Reader account, the same way as the Android app (docs/sync.md).
 
-  private provider(): SyncProvider | null {
-    if (this.state.settings.syncService !== "googleDrive") return null;
-    if (!this.auth) this.auth = new GoogleAuth(GOOGLE_CLIENT_ID);
-    return new GoogleDrive(this.auth);
-  }
-
-  /** From a click: shows Google's screen, then syncs. */
-  async connectGoogleDrive() {
-    this.auth = new GoogleAuth(GOOGLE_CLIENT_ID);
-    try {
-      await this.auth.connect();
-    } catch (e) {
-      this.set({ syncStatus: { kind: "failed", problem: e instanceof SyncError ? e.problem : "needsApproval" } });
-      return;
-    }
-    this.updateSettings({ syncService: "googleDrive", lastSyncedAt: null });
-    await this.sync();
-  }
-
-  async disconnect() {
-    this.auth?.forget();
-    this.auth = null;
-    this.knownRead = new Set();
-    await remove("syncBase").catch(() => undefined);
-    this.updateSettings({ syncService: "none", lastSyncedAt: null });
-    this.set({ syncStatus: { kind: "idle" } });
-  }
-
+  /** Syncs now; asked while a sync runs, it runs once more right after, so no change waits. */
   sync(): Promise<void> {
-    this.syncing ??= this.syncOnce().finally(() => (this.syncing = null));
+    if (this.syncing) {
+      this.syncAgain = true;
+      return this.syncing;
+    }
+    this.syncing = (async () => {
+      do {
+        this.syncAgain = false;
+        await this.syncOnce();
+      } while (this.syncAgain);
+    })().finally(() => (this.syncing = null));
     return this.syncing;
   }
 
   private async syncOnce() {
-    const target = this.provider();
-    if (!target) return;
+    const key = this.accountKey();
+    if (!key) return;
     this.set({ syncStatus: { kind: "syncing" } });
     try {
-      const remoteText = await target.read();
-      const remote = remoteText === null ? null : S.decode(remoteText);
-      if (remoteText !== null && !remote) throw new SyncError("unreadableFile");
-      const baseText = remote ? await load<string>("syncBase").catch(() => undefined) : undefined;
-      const base = baseText ? S.decode(baseText) : null;
-      const current = this.state.library;
-      const local = { ...S.localDocument(current, base), settings: SS.syncedSettings(this.state.settings, this.state.instapaper, base?.settings) };
-      const merged = remote ? S.merge(base, local, remote) : local;
-      const newFeeds = S.hasNewFeeds(current, merged);
-      this.updateLibrary(() => S.apply(this.state.library, merged), false);
-      const out = S.pruned(merged, Date.now() - S.KEEP_READ_MS);
-      const outText = S.encode(out);
-      if (!remote || S.encode(remote) !== outText) await target.write(outText);
-      await save("syncBase", outText);
-      this.knownRead = new Set(Object.keys(out.read));
-      this.updateSettings({ ...SS.applySynced(this.state.settings, out.settings), lastSyncedAt: Date.now() }, false);
-      const session = SS.instapaperOf(out.settings);
-      if (!sameSession(session, this.state.instapaper)) await this.setInstapaper(session);
+      const saved = await load<S.SyncBase>("syncBase").catch(() => undefined);
+      let newFeeds = false;
+      const next = await S.syncRound(new AccountClient(key), typeof saved?.text === "string" ? saved : null, (base, remote) => {
+        // Merged with the library as it is right now, so changes made while the document loaded count.
+        const current = this.state.library;
+        const local = { ...S.localDocument(current, base), settings: SS.syncedSettings(this.state.settings, base?.settings) };
+        const merged = remote ? S.merge(base, local, remote) : local;
+        newFeeds ||= S.hasNewFeeds(current, merged);
+        this.updateLibrary(() => S.apply(this.state.library, merged), false);
+        this.updateSettings(SS.applySynced(this.state.settings, merged.settings), false);
+        return merged;
+      });
+      if (this.accountKey() !== key) return;
+      await save("syncBase", next);
+      this.syncedVersion = next.version;
+      this.knownRead = new Set(Object.keys(S.decode(next.text)?.read ?? {}));
+      this.updateSettings({ lastSyncedAt: Date.now() }, false);
       this.set({ syncStatus: { kind: "idle" } });
       if (newFeeds) void this.refresh();
     } catch (e) {
-      this.set({ syncStatus: { kind: "failed", problem: e instanceof SyncError ? e.problem : "server" } });
+      const problem = e instanceof SyncError ? e.problem : "server";
+      this.set({ syncStatus: { kind: "failed", problem } });
     }
   }
 }
@@ -611,10 +662,6 @@ class AppStore {
 function sameValues(a: Record<string, string>, b: Record<string, string>): boolean {
   const keys = Object.keys(a);
   return keys.length === Object.keys(b).length && keys.every((k) => a[k] === b[k]);
-}
-
-function sameSession(a: InstapaperSession | null, b: InstapaperSession | null): boolean {
-  return a === b || (!!a && !!b && a.token === b.token && a.username === b.username && a.userId === b.userId);
 }
 
 function size(link: HTMLLinkElement): number {

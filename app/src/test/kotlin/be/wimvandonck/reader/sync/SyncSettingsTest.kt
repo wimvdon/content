@@ -8,10 +8,8 @@ import be.wimvandonck.reader.data.ReaderStyle
 import be.wimvandonck.reader.data.Settings
 import be.wimvandonck.reader.data.ShareTarget
 import be.wimvandonck.reader.data.ThemeMode
-import be.wimvandonck.reader.instapaper.InstapaperSession
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Test
 
 class SyncSettingsTest {
@@ -29,7 +27,7 @@ class SyncSettingsTest {
 
     @Test
     fun `settings go to shared names and come back the same`() {
-        val values = SyncSettings.of(custom, null)
+        val values = SyncSettings.of(custom)
         assertEquals("dark", values[SyncSettings.THEME])
         assertEquals("sepia", values[SyncSettings.READER_BACKGROUND])
         assertEquals("22", values[SyncSettings.READER_TEXT_SIZE])
@@ -39,14 +37,14 @@ class SyncSettingsTest {
 
     @Test
     fun `save and share targets and the sync choice are not synced`() {
-        val values = SyncSettings.of(custom, null)
+        val values = SyncSettings.of(custom)
         assertFalse(values.keys.any { "save" in it.lowercase() || "share" in it.lowercase() || "sync" in it.lowercase() })
     }
 
     @Test
     fun `names this app doesn't know are kept, its own come from the device`() {
         val base = mapOf("web.only" to "x", SyncSettings.THEME to "light")
-        val values = SyncSettings.of(custom, null, base)
+        val values = SyncSettings.of(custom, base)
         assertEquals("x", values["web.only"])
         assertEquals("dark", values[SyncSettings.THEME])
     }
@@ -62,11 +60,10 @@ class SyncSettingsTest {
     }
 
     @Test
-    fun `the Instapaper sign-in travels with the settings`() {
-        val session = InstapaperSession("token", 42, "me@example.com")
-        val values = SyncSettings.of(Settings(), session)
-        assertEquals(session, SyncSettings.instapaperOf(values))
-        assertNull(SyncSettings.instapaperOf(SyncSettings.of(Settings(), null)))
-        assertEquals(InstapaperSession("t", null, ""), SyncSettings.instapaperOf(mapOf(SyncSettings.INSTAPAPER_TOKEN to "t")))
+    fun `the Instapaper sign-in that older versions synced is dropped`() {
+        val base = mapOf("instapaper.token" to "t", "instapaper.username" to "me", "web.only" to "x")
+        val values = SyncSettings.of(Settings(), base)
+        assertFalse(values.keys.any { it.startsWith("instapaper.") })
+        assertEquals("x", values["web.only"])
     }
 }

@@ -56,11 +56,16 @@ describe("sign-in", () => {
   });
 
   it("swaps the code for a session through the Worker", async () => {
-    const { doFetch, calls } = fakeFetch(() => ok({ access_token: "tok", user: { id: 42, username: "me@example.com" } }));
-    expect(await exchangeCode("1a2b", doFetch, PROXY)).toEqual({ token: "tok", userId: 42, username: "me@example.com" });
+    const { doFetch, calls } = fakeFetch(() => ok({ access_token: "tok", user: { id: 42, username: "me@example.com" }, account: { key: "abc.def" } }));
+    expect(await exchangeCode("1a2b", doFetch, PROXY)).toEqual({ token: "tok", userId: 42, username: "me@example.com", accountKey: "abc.def" });
     expect(calls[0].url).toBe(`${PROXY}/instapaper/token`);
     expect(calls[0].init.method).toBe("POST");
     expect(JSON.parse(String(calls[0].init.body))).toEqual({ code: "1a2b" });
+  });
+
+  it("signs in without an account when the server has none", async () => {
+    const { doFetch } = fakeFetch(() => ok({ access_token: "tok", user: { id: 42, username: "me" }, account: null }));
+    expect((await exchangeCode("1a2b", doFetch, PROXY)).accountKey).toBeNull();
   });
 
   it("reports why the exchange failed", async () => {

@@ -3,9 +3,12 @@ package be.wimvandonck.reader.sync
 /** When sync runs while the app is in use (see SyncManager). The web app uses the same timing. */
 object SyncTiming {
     /** A change (a read mark, a new feed) is synced this long after the last one in a row. */
-    const val CHANGE_DELAY_MS = 2_000L
+    const val CHANGE_DELAY_MS = 1_000L
 
-    /** While the app is on screen, it syncs this often, so changes from other devices come in. */
+    /**
+     * While the app is on screen and the live connection is down, it syncs this often, so changes
+     * from other devices still come in. With the live connection they come in at once.
+     */
     const val VISIBLE_INTERVAL_MS = 60_000L
 
     /** Coming back or the next minute skips sync when it ran this recently. A refresh never does. */

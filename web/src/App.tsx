@@ -4,6 +4,7 @@ import { ArticleList } from "./components/ArticleList";
 import { ArticleView } from "./components/ArticleView";
 import { AddFeedDialog, ManageDialog, SettingsDialog } from "./components/Dialogs";
 import { JustSavedDialog } from "./components/InstapaperActions";
+import { InstapaperManageDialog } from "./components/InstapaperManage";
 import { Sidebar } from "./components/Sidebar";
 import { Button } from "./components/ui/button";
 import { app, useApp } from "./lib/app";
@@ -20,7 +21,7 @@ export default function App() {
   const openArticle = opened?.selection === selection ? opened.article : null;
   const setOpenArticle = useCallback((article: Article | null) => setOpened(article ? { article, selection } : null), [selection]);
   const [drawer, setDrawer] = useState(false);
-  const [dialog, setDialog] = useState<"add" | "manage" | "settings" | null>(null);
+  const [dialog, setDialog] = useState<"add" | "manage" | "manageInstapaper" | "settings" | null>(null);
   const [message, setMessage] = useState<{ text: string; undo?: () => void } | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -104,6 +105,10 @@ export default function App() {
         setDrawer(false);
         setDialog("manage");
       }}
+      onManageInstapaper={() => {
+        setDrawer(false);
+        setDialog("manageInstapaper");
+      }}
       onSettings={() => {
         setDrawer(false);
         setDialog("settings");
@@ -118,7 +123,7 @@ export default function App() {
         <D.Portal>
           <D.Overlay className="fixed inset-0 z-40 bg-black/40 lg:hidden" />
           <D.Content className="fixed inset-y-0 left-0 z-50 w-80 max-w-[85vw] bg-background shadow-xl lg:hidden" aria-describedby={undefined}>
-            <D.Title className="sr-only">{t("feeds")}</D.Title>
+            <D.Title className="sr-only">{t("navigation")}</D.Title>
             {sidebar}
           </D.Content>
         </D.Portal>
@@ -148,6 +153,7 @@ export default function App() {
         onAddFeed={() => setDialog("add")}
         onImport={() => fileInput.current?.click()}
       />
+      <InstapaperManageDialog open={dialog === "manageInstapaper"} onOpenChange={(o) => setDialog(o ? "manageInstapaper" : null)} />
       <SettingsDialog open={dialog === "settings"} onOpenChange={(o) => setDialog(o ? "settings" : null)} />
       <JustSavedDialog />
       <input

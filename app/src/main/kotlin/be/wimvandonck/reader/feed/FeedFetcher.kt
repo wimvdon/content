@@ -10,7 +10,7 @@ import java.net.URL
 
 /**
  * Downloads feeds and web pages over HTTPS. The app's only network code apart from pictures (Coil)
- * and sync (sync/GoogleDrive.kt): it fetches
+ * sync (sync/AccountClient.kt, sync/LiveUpdates.kt) and Instapaper (instapaper/): it fetches
  * exactly the addresses the user subscribed to (or typed), sends no cookies or identifiers,
  * and follows at most [MAX_REDIRECTS] redirects.
  */

@@ -3,7 +3,17 @@ package be.wimvandonck.reader.ui.feeds
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -32,8 +42,9 @@ import be.wimvandonck.reader.instapaper.InstapaperFolder
 import be.wimvandonck.reader.instapaper.InstapaperTag
 import be.wimvandonck.reader.ui.theme.DragHandle
 import be.wimvandonck.reader.ui.theme.ReorderableColumn
+import be.wimvandonck.reader.ui.theme.readableWidth
 
-/** Instapaper's folders and tags, for Manage feeds and folders. Null when signed out. */
+/** Instapaper's folders and tags, for Manage Instapaper. */
 data class InstapaperManageState(
     val folders: List<InstapaperFolder>,
     val tags: List<InstapaperTag>,
@@ -48,11 +59,49 @@ class InstapaperManageActions(
 )
 
 /**
- * Instapaper next to the feeds' own folders: create, reorder and delete folders, and rename tags
- * (Instapaper creates a tag when it is first added to an article).
+ * Manage Instapaper: its own page, apart from the feeds' folders (Manage feeds). Create, reorder
+ * and delete folders, and rename tags (Instapaper creates a tag when it is first added to an
+ * article).
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun InstapaperManageSection(
+fun InstapaperManageScreen(
+    state: InstapaperManageState,
+    snackbarHostState: SnackbarHostState,
+    onBack: () -> Unit,
+    actions: InstapaperManageActions,
+) {
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        topBar = {
+            LargeTopAppBar(
+                title = { Text(stringResource(R.string.instapaper_manage_title)) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(painterResource(R.drawable.ic_arrow_back), contentDescription = stringResource(R.string.action_back))
+                    }
+                },
+                scrollBehavior = scrollBehavior,
+            )
+        },
+    ) { innerPadding ->
+        LazyColumn(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .readableWidth(),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 32.dp),
+        ) {
+            item(key = "instapaper") { InstapaperManageSection(state, actions) }
+        }
+    }
+}
+
+@Composable
+private fun InstapaperManageSection(
     state: InstapaperManageState,
     actions: InstapaperManageActions,
 ) {
@@ -60,14 +109,13 @@ fun InstapaperManageSection(
     var deleting by rememberSaveable { mutableStateOf<Long?>(null) }
     var renaming by rememberSaveable { mutableStateOf<Long?>(null) }
     val rowColors = ListItemDefaults.colors(containerColor = Color.Transparent)
-    Column(Modifier.padding(top = 24.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(
-            stringResource(R.string.section_instapaper),
-            style = MaterialTheme.typography.titleMedium,
+            stringResource(R.string.instapaper_folders),
+            style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.semantics { heading() },
         )
-        Text(stringResource(R.string.instapaper_folders), style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 8.dp))
         ReorderableColumn(
             items = state.folders,
             key = { it.id },
@@ -92,7 +140,12 @@ fun InstapaperManageSection(
             Text(stringResource(R.string.folder_new), modifier = Modifier.padding(start = 8.dp))
         }
         if (state.tags.isNotEmpty()) {
-            Text(stringResource(R.string.instapaper_tags), style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 16.dp))
+            Text(
+                stringResource(R.string.instapaper_tags),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(top = 16.dp).semantics { heading() },
+            )
             state.tags.forEach { tag ->
                 ListItem(
                     headlineContent = { Text(tag.name) },

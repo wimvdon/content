@@ -1,14 +1,15 @@
 package be.wimvandonck.reader.sync
 
 import be.wimvandonck.reader.data.Settings
-import be.wimvandonck.reader.instapaper.InstapaperSession
 
 /**
  * The settings in the sync file: shared names with text values, the same on Android and in the
  * web app (docs/sync.md). Each app reads the names it knows and keeps the others as they are, so a
  * setting only one of them has (Show images, list view) survives a sync by the other.
  *
- * Not synced: the Save and Share targets (each phone has its own apps) and the sync choice itself.
+ * Not synced: the Save and Share targets (each phone has its own apps) and the Instapaper sign-in
+ * (each device signs in itself; that sign-in is the account). Older versions synced the sign-in as
+ * instapaper.*; those names are dropped.
  */
 object SyncSettings {
     const val THEME = "theme"
@@ -23,21 +24,16 @@ object SyncSettings {
     const val SHOW_IMAGES = "showImages"
     const val MARK_READ_ON_SCROLL = "markReadOnScroll"
     const val LIST_VIEW = "listView"
-    const val INSTAPAPER_TOKEN = "instapaper.token"
-    const val INSTAPAPER_USERNAME = "instapaper.username"
-    const val INSTAPAPER_USER_ID = "instapaper.userId"
 
     private val known =
         setOf(
             THEME, DYNAMIC_COLOR, READER_FONT, READER_TEXT_SIZE, READER_SPACING, READER_BACKGROUND, READER_AUTO_DARK,
             UNREAD_ONLY, FULL_ARTICLES, SHOW_IMAGES, MARK_READ_ON_SCROLL, LIST_VIEW,
-            INSTAPAPER_TOKEN, INSTAPAPER_USERNAME, INSTAPAPER_USER_ID,
         )
 
     /** This device's synced settings, plus the names from [base] that this app doesn't know. */
     fun of(
         settings: Settings,
-        instapaper: InstapaperSession?,
         base: Map<String, String> = emptyMap(),
     ): Map<String, String> {
         val r = settings.reader
@@ -55,13 +51,8 @@ object SyncSettings {
                 put(SHOW_IMAGES, settings.showImages.toString())
                 put(MARK_READ_ON_SCROLL, settings.markReadOnScroll.toString())
                 put(LIST_VIEW, settings.listView.text())
-                if (instapaper != null) {
-                    put(INSTAPAPER_TOKEN, instapaper.token)
-                    put(INSTAPAPER_USERNAME, instapaper.username)
-                    instapaper.userId?.let { put(INSTAPAPER_USER_ID, it.toString()) }
-                }
             }
-        return base.filterKeys { it !in known } + mine
+        return base.filterKeys { it !in known && !it.startsWith("instapaper.") } + mine
     }
 
     /** [settings] with the synced [values] it understands; missing or unknown values change nothing. */
@@ -95,12 +86,6 @@ object SyncSettings {
             listView = enumFrom(values[LIST_VIEW], settings.listView),
         )
     }
-
-    /** The Instapaper sign-in in [values], or null when signed out. */
-    fun instapaperOf(values: Map<String, String>): InstapaperSession? =
-        values[INSTAPAPER_TOKEN]?.takeIf { it.isNotEmpty() }?.let { token ->
-            InstapaperSession(token, values[INSTAPAPER_USER_ID]?.toLongOrNull(), values[INSTAPAPER_USERNAME].orEmpty())
-        }
 
     private fun Enum<*>.text() = name.lowercase()
 

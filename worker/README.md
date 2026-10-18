@@ -10,9 +10,10 @@ What it does, and doesn't:
 - Passes only feeds and web pages (XML, HTML, JSON, text). Pictures load directly in the browser.
 - Answers only the web app's own address(es) in `ALLOWED_ORIGINS`.
 - At most 120 requests per minute per IP address (`LIMITER`).
-- Stores nothing and logs nothing (`observability` off). Cloudflare's cache keeps a feed for 5
-  minutes so many readers of one feed cost one download.
-- The Android app never uses it, except to finish signing in to Instapaper (`POST /instapaper/token`).
+- Stores nothing of what it loads and logs nothing (`observability` off). Cloudflare's cache keeps a
+  feed for 5 minutes so many readers of one feed cost one download.
+- The Android app uses it only to finish signing in to Instapaper (`POST /instapaper/token`) and for
+  the Reader account (`/account/...`).
 
 ## Deploying
 
@@ -51,3 +52,12 @@ Set once: the client ID and redirect address are in `wrangler.toml`. The client 
 it as a Worker secret, never in the repository: Cloudflare dashboard › this Worker › Settings ›
 Variables and Secrets › Add › type **Secret** › `INSTAPAPER_CLIENT_SECRET` (or
 `npx wrangler secret put INSTAPAPER_CLIENT_SECRET`).
+
+## Reader accounts
+
+`src/account.ts` answers `/account/...` (details in `docs/account.md`): one Durable Object per
+account keeps its device keys (hashed) and the sync document, compressed and encrypted with a key
+derived from the `ACCOUNT_KEY` secret, and tells the open devices when it changes (WebSocket). The
+Durable Objects come with the deploy (`wrangler.toml`); add the secret once: Cloudflare dashboard ›
+this Worker › Settings › Variables and Secrets › Add › type **Secret** › `ACCOUNT_KEY` (a random
+text of at least 32 characters; never change or lose it), or `npx wrangler secret put ACCOUNT_KEY`.

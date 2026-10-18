@@ -2,8 +2,6 @@ package be.wimvandonck.reader.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
-import android.app.Activity
-import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -36,6 +34,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import be.wimvandonck.reader.R
 import be.wimvandonck.reader.ui.feeds.InstapaperManageState
 import be.wimvandonck.reader.ui.feeds.InstapaperManageActions
+import be.wimvandonck.reader.ui.feeds.InstapaperManageScreen
 import kotlinx.coroutines.flow.flowOf
 import be.wimvandonck.reader.data.Feed
 import be.wimvandonck.reader.ui.reader.JustSavedSheet
@@ -55,8 +54,6 @@ import be.wimvandonck.reader.instapaper.InstapaperException
 import be.wimvandonck.reader.instapaper.InstapaperNotice
 import be.wimvandonck.reader.instapaper.InstapaperState
 import be.wimvandonck.reader.rssReaderApp
-import be.wimvandonck.reader.sync.GoogleAuth
-import be.wimvandonck.reader.sync.SyncService
 import be.wimvandonck.reader.ui.feeds.FeedsActions
 import be.wimvandonck.reader.ui.feeds.FeedsScreen
 import be.wimvandonck.reader.ui.feeds.FeedsState
@@ -87,8 +84,11 @@ sealed interface Screen {
 
     data object Settings : Screen
 
-    /** Feeds and folders. */
+    /** Manage feeds: feeds and folders. */
     data object Feeds : Screen
+
+    /** Manage Instapaper: its folders and tags. */
+    data object InstapaperManage : Screen
 
     companion object {
         fun encode(screen: Screen): String =
@@ -96,6 +96,7 @@ sealed interface Screen {
                 Home -> "home"
                 Settings -> "settings"
                 Feeds -> "feeds"
+                InstapaperManage -> "instapaper"
                 is Reader -> "reader:" + screen.articleKey
             }
 
@@ -103,6 +104,7 @@ sealed interface Screen {
             when {
                 text == "settings" -> Settings
                 text == "feeds" -> Feeds
+                text == "instapaper" -> InstapaperManage
                 text.startsWith("reader:") -> Reader(text.removePrefix("reader:"))
                 else -> Home
             }
@@ -148,9 +150,7 @@ fun RssReaderNavigation() {
     val instapaperUi by (instapaper?.state ?: flowOf(null)).collectAsStateWithLifecycle(null)
     var chosenView by rememberSaveable(stateSaver = InstapaperViewSaver) { mutableStateOf<InstapaperView?>(null) }
     val instapaperView = chosenView.takeIf { instapaper != null }
-    // The Instapaper list last shown, so the navigation bar returns to it from Feeds.
-    var lastInstapaperView by rememberSaveable(stateSaver = InstapaperViewSaver) { mutableStateOf<InstapaperView?>(null) }
-    // After a sign-in on this device or another, or the app coming back, show the chosen list.
+    // After a sign-in, or the app coming back, show the chosen list.
     LaunchedEffect(instapaper) {
         val view = chosenView
         if (instapaper != null && view != null && instapaper.state.value.view != view) instapaper.select(view)
@@ -226,32 +226,6 @@ fun RssReaderNavigation() {
     val importOpml = { importLauncher.launch(arrayOf("text/x-opml", "text/xml", "application/xml", "application/octet-stream", "*/*")) }
     val exportOpml = { exportLauncher.launch(OPML_FILE_NAME) }
 
-    // Sync with Google Drive: Connect asks Google for access to the app's hidden Drive folder,
-    // showing Google's approval screen the first time.
-    fun finishConnect(result: GoogleAuth.Result?) {
-        if (result is GoogleAuth.Result.Token) {
-            app.appScope.launch {
-                app.settings.setSyncService(SyncService.GoogleDrive)
-                app.sync.sync()
-            }
-        } else {
-            showMessage(resources.getString(R.string.sync_connect_failed))
-        }
-    }
-    val approvalLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
-            if (result.resultCode == Activity.RESULT_OK) finishConnect(app.googleAuth.fromIntent(result.data))
-        }
-    val connectSync = {
-        uiScope.launch {
-            when (val result = runCatching { app.googleAuth.authorize() }.getOrNull()) {
-                is GoogleAuth.Result.NeedsApproval -> approvalLauncher.launch(IntentSenderRequest.Builder(result.intent.intentSender).build())
-                else -> finishConnect(result)
-            }
-        }
-        Unit
-    }
-
     // Fresh articles once per app start, as soon as the stored library is known.
     LaunchedEffect(libraryOrNull != null) {
         if (libraryOrNull != null) app.sync.start()
@@ -268,7 +242,8 @@ fun RssReaderNavigation() {
         app.instapaper.clearNotice()
     }
 
-    // Sync while the app is on screen: when it comes back and every minute (SyncManager).
+    // Sync while the app is on screen: when it comes back, live while it stays, and every minute
+    // while the live connection is down (SyncManager).
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     LaunchedEffect(lifecycle, libraryOrNull != null) {
         if (libraryOrNull != null) lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) { app.sync.whileVisible() }
@@ -372,14 +347,7 @@ fun RssReaderNavigation() {
                                 },
                                 onSelectInstapaper = { view ->
                                     chosenView = view
-                                    lastInstapaperView = view
                                     instapaper?.select(view)
-                                },
-                                onShowFeeds = { chosenView = null },
-                                onShowInstapaper = {
-                                    val view = lastInstapaperView ?: InstapaperView.Home
-                                    chosenView = view
-                                    if (instapaper?.state?.value?.view != view) instapaper?.select(view)
                                 },
                                 onOpenSaved = { bookmark ->
                                     instapaper?.open(bookmark)
@@ -424,6 +392,7 @@ fun RssReaderNavigation() {
                                 onImportOpml = importOpml,
                                 onOpenSettings = { push(Screen.Settings) },
                                 onOpenFeeds = { push(Screen.Feeds) },
+                                onOpenInstapaperManage = { push(Screen.InstapaperManage) },
                             ),
                     )
                 }
@@ -519,9 +488,6 @@ fun RssReaderNavigation() {
                         state =
                             SettingsState(
                                 settings = current,
-                                feedCount = library.feeds.size,
-                                folderCount = library.folders.size,
-                                problemCount = problems.size,
                                 shareApps = shareApps,
                                 syncStatus = syncStatus,
                                 instapaper = instapaperState,
@@ -530,7 +496,6 @@ fun RssReaderNavigation() {
                         actions =
                             SettingsActions(
                                 onBack = ::pop,
-                                onOpenFeeds = { push(Screen.Feeds) },
                                 onReaderStyleChange = { style -> app.appScope.launch { app.settings.setReaderStyle(style) } },
                                 onFullArticlesChange = { enabled -> app.appScope.launch { app.settings.setFullArticles(enabled) } },
                                 onShowImagesChange = { enabled -> app.appScope.launch { app.settings.setShowImages(enabled) } },
@@ -540,11 +505,15 @@ fun RssReaderNavigation() {
                                 onShareTargetChange = { target -> app.appScope.launch { app.settings.setShareTarget(target) } },
                                 onThemeModeChange = { mode -> app.appScope.launch { app.settings.setThemeMode(mode) } },
                                 onDynamicColorChange = { enabled -> app.appScope.launch { app.settings.setDynamicColor(enabled) } },
-                                onConnectSync = connectSync,
+                                onSignIn = { uiScope.launch { ExternalApps.openLink(context, app.instapaper.begin()) } },
                                 onSyncNow = { app.appScope.launch { app.sync.sync() } },
-                                onDisconnectSync = { app.appScope.launch { app.sync.disconnect() } },
-                                onInstapaperSignIn = { uiScope.launch { ExternalApps.openLink(context, app.instapaper.begin()) } },
-                                onInstapaperSignOut = { app.appScope.launch { app.instapaper.signOut() } },
+                                onSignOut = { app.appScope.launch { app.sync.signOut() } },
+                                onDeleteAccountData = {
+                                    app.appScope.launch {
+                                        val deleted = app.sync.deleteAccountData()
+                                        showMessage(resources.getString(if (deleted) R.string.account_deleted else R.string.sync_failed_offline))
+                                    }
+                                },
                             ),
                     )
                 }
@@ -557,7 +526,6 @@ fun RssReaderNavigation() {
                                 feeds = library.feeds,
                                 folders = library.folders,
                                 problems = problems,
-                                instapaper = instapaperUi?.let { InstapaperManageState(it.folders, it.tags) },
                             ),
                         snackbarHostState = snackbar,
                         actions =
@@ -577,17 +545,29 @@ fun RssReaderNavigation() {
                                 onRemoveFolder = { folder -> app.appScope.launch { repository.removeFolder(folder.id) } },
                                 onImportOpml = importOpml,
                                 onExportOpml = exportOpml,
-                                instapaper =
-                                    instapaper?.let { model ->
-                                        InstapaperManageActions(
-                                            onCreateFolder = model::createFolder,
-                                            onDeleteFolder = model::deleteFolder,
-                                            onMoveFolder = model::moveFolder,
-                                            onRenameTag = model::renameTag,
-                                        )
-                                    },
                             ),
                     )
+                }
+
+                Screen.InstapaperManage -> {
+                    SystemBarsFollowTheme(appDark)
+                    val model = instapaper
+                    // Signed out meanwhile (here or because Instapaper refused the token): nothing to manage.
+                    LaunchedEffect(model == null) { if (model == null) pop() }
+                    if (model != null) {
+                        InstapaperManageScreen(
+                            state = InstapaperManageState(instapaperUi?.folders.orEmpty(), instapaperUi?.tags.orEmpty()),
+                            snackbarHostState = snackbar,
+                            onBack = ::pop,
+                            actions =
+                                InstapaperManageActions(
+                                    onCreateFolder = model::createFolder,
+                                    onDeleteFolder = model::deleteFolder,
+                                    onMoveFolder = model::moveFolder,
+                                    onRenameTag = model::renameTag,
+                                ),
+                        )
+                    }
                 }
             }
         }

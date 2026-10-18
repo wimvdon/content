@@ -25,3 +25,14 @@ INSTAPAPER_REDIRECT_URI = "https://rss-reader-web.wim-d57.workers.dev/instapaper
 name = "LIMITER"
 namespace_id = "1001"
 simple = { limit = 120, period = 60 }
+
+# Reader accounts (src/account.ts, docs/account.md): one Durable Object per account holds its
+# encrypted sync document. Created automatically on deploy; nothing to set up in the dashboard
+# except the Worker secret ACCOUNT_KEY (never here).
+[[durable_objects.bindings]]
+name = "ACCOUNTS"
+class_name = "Account"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Account"]

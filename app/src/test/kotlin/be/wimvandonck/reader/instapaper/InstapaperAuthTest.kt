@@ -60,6 +60,11 @@ class InstapaperAuthTest {
             InstapaperAuth.sessionFrom("""{"access_token": "tok", "user": {"id": 42, "username": "me@example.com"}}"""),
         )
         assertEquals(InstapaperSession("tok", null, ""), InstapaperAuth.sessionFrom("""{"access_token": "tok"}"""))
+        assertEquals(
+            InstapaperSession("tok", 42L, "me", accountKey = "acc.key"),
+            InstapaperAuth.sessionFrom("""{"access_token": "tok", "user": {"id": 42, "username": "me"}, "account": {"key": "acc.key"}}"""),
+        )
+        assertEquals(InstapaperSession("tok", null, ""), InstapaperAuth.sessionFrom("""{"access_token": "tok", "account": null}"""))
         assertNull(InstapaperAuth.sessionFrom("""{"access_token": ""}"""))
         assertNull(InstapaperAuth.sessionFrom("""{"user": {}}"""))
         assertNull(InstapaperAuth.sessionFrom("<html>"))

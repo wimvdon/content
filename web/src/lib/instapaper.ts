@@ -1,7 +1,8 @@
 /**
  * Instapaper (API v2) in the web app: sign-in and the calls. Instapaper's API doesn't allow calls from
  * a browser, so everything goes through the feed loader Worker (worker/src/instapaper.ts), which also
- * holds the client secret. The access token never expires; it lives in this browser only.
+ * holds the client secret. The access token never expires; it lives in this browser only. Signing in
+ * also gives this browser the key to the user's Reader account (account.ts), which syncs the library.
  */
 
 import { INSTAPAPER_CLIENT_ID, INSTAPAPER_REDIRECT_URI, PROXY_URL } from "./config";
@@ -43,6 +44,8 @@ export interface Session {
   token: string;
   userId: number | null;
   username: string;
+  /** The key to the user's Reader account; null when the server has no accounts (sync is then off). */
+  accountKey: string | null;
 }
 
 /** Which list of bookmarks: Unread ("home"), the archive, the liked ones, one folder or one tag. */
@@ -108,12 +111,17 @@ export async function exchangeCode(code: string, doFetch: Fetch = browserFetch, 
     throw new InstapaperError("offline");
   }
   if (!response.ok) throw new InstapaperError(response.status === 400 ? "invalid" : "server");
-  const body = (await response.json().catch(() => null)) as { access_token?: unknown; user?: { id?: unknown; username?: unknown } } | null;
+  const body = (await response.json().catch(() => null)) as {
+    access_token?: unknown;
+    user?: { id?: unknown; username?: unknown };
+    account?: { key?: unknown } | null;
+  } | null;
   if (!body || typeof body.access_token !== "string" || !body.access_token) throw new InstapaperError("server");
   return {
     token: body.access_token,
     userId: typeof body.user?.id === "number" ? body.user.id : null,
     username: typeof body.user?.username === "string" ? body.user.username : "",
+    accountKey: typeof body.account?.key === "string" && body.account.key ? body.account.key : null,
   };
 }
 

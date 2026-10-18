@@ -6,7 +6,6 @@ import { searchIcons } from "@/lib/icons";
 import type { Feed, Folder } from "@/lib/library";
 import { FeedIcon } from "./FeedIcon";
 import { FolderIcon, SymbolSvg } from "./FolderIcon";
-import { InstapaperManage } from "./InstapaperManage";
 import { useIcons } from "./useIcons";
 import { Button } from "./ui/button";
 import { cn } from "./ui/cn";
@@ -73,7 +72,7 @@ const addErrors: Record<string, Key> = {
 };
 
 export function ManageDialog({ open, onOpenChange, onAddFeed, onImport }: Props & { onAddFeed: () => void; onImport: () => void }) {
-  const { library, instapaper } = useApp();
+  const { library } = useApp();
   const [editFeed, setEditFeed] = useState<Feed | null>(null);
   const [editFolder, setEditFolder] = useState<Folder | "new" | null>(null);
   const exportOpml = () => {
@@ -93,7 +92,7 @@ export function ManageDialog({ open, onOpenChange, onAddFeed, onImport }: Props 
       <Dialog
         open={open}
         onOpenChange={onOpenChange}
-        title={t("manageFeeds")}
+        title={t("feedsAndFolders")}
         closeLabel={t("close")}
         wide
         footer={
@@ -163,7 +162,6 @@ export function ManageDialog({ open, onOpenChange, onAddFeed, onImport }: Props 
               </ul>
             </section>
           ))}
-          {instapaper ? <InstapaperManage /> : null}
         </div>
       </Dialog>
       <EditFeedDialog key={editFeed?.url ?? ""} feed={editFeed} folders={library.folders} onClose={() => setEditFeed(null)} />
@@ -302,55 +300,16 @@ function FolderDialog({ folder, onClose }: { folder: Folder | "new" | null; onCl
   );
 }
 
+/** Settings in the order DESIGN.md gives: the account first, then the app's own, then appearance. */
 export function SettingsDialog({ open, onOpenChange }: Props) {
-  const { settings, syncStatus, instapaper } = useApp();
-  const connected = settings.syncService === "googleDrive";
-  const statusText =
-    syncStatus.kind === "syncing"
-      ? t("syncing")
-      : syncStatus.kind === "failed"
-        ? t(syncProblems[syncStatus.problem])
-        : settings.lastSyncedAt
-          ? t("lastSynced").replace("{when}", formatRelative(settings.lastSyncedAt))
-          : t("notSyncedYet");
+  const { settings } = useApp();
   return (
     <Dialog open={open} onOpenChange={onOpenChange} title={t("settings")} closeLabel={t("close")} wide>
       <div className="space-y-6">
+        <AccountSection />
         <section className="space-y-2">
-          <h3 className="text-sm font-medium text-primary">{t("sync")}</h3>
-          <p className="text-sm font-medium">Google Drive</p>
-          <p className={cn("text-sm", syncStatus.kind === "failed" ? "text-destructive" : "text-muted-foreground")}>{connected || syncStatus.kind === "failed" ? statusText : t("syncSummary")}</p>
-          <div className="flex flex-wrap gap-2 pt-1">
-            {!connected || (syncStatus.kind === "failed" && syncStatus.problem === "needsApproval") ? (
-              <Button onClick={() => void app.connectGoogleDrive()}>
-                {t("connect")}
-              </Button>
-            ) : (
-              <Button variant="tonal" onClick={() => void app.sync()} disabled={syncStatus.kind === "syncing"}>
-                {t("syncNow")}
-              </Button>
-            )}
-            {connected ? (
-              <Button variant="ghost" onClick={() => void app.disconnect()}>
-                {t("disconnect")}
-              </Button>
-            ) : null}
-          </div>
-        </section>
-        <section className="space-y-2">
-          <h3 className="text-sm font-medium text-primary">{t("instapaper")}</h3>
-          <p className="text-sm text-muted-foreground">
-            {instapaper ? t("instapaperSignedInAs").replace("{name}", instapaper.username || "Instapaper") : t("instapaperSummary")}
-          </p>
-          <div className="flex flex-wrap gap-2 pt-1">
-            {instapaper ? (
-              <Button variant="ghost" onClick={() => void app.disconnectInstapaper()}>
-                {t("instapaperSignOut")}
-              </Button>
-            ) : (
-              <Button onClick={() => app.connectInstapaper()}>{t("instapaperSignIn")}</Button>
-            )}
-          </div>
+          <h3 className="text-sm font-medium text-primary">{t("articleList")}</h3>
+          <SwitchRow title={t("markReadOnScroll")} checked={settings.markReadOnScroll} onChange={(v) => app.updateSettings({ markReadOnScroll: v })} />
         </section>
         <section className="space-y-2">
           <h3 className="text-sm font-medium text-primary">{t("reader")}</h3>
@@ -358,10 +317,6 @@ export function SettingsDialog({ open, onOpenChange }: Props) {
           <div className="pt-2">
             <ReaderStyleControls preview />
           </div>
-        </section>
-        <section className="space-y-2">
-          <h3 className="text-sm font-medium text-primary">{t("articleList")}</h3>
-          <SwitchRow title={t("markReadOnScroll")} checked={settings.markReadOnScroll} onChange={(v) => app.updateSettings({ markReadOnScroll: v })} />
         </section>
         <section className="space-y-2">
           <h3 className="text-sm font-medium text-primary">{t("appearance")}</h3>
@@ -378,7 +333,7 @@ export function SettingsDialog({ open, onOpenChange }: Props) {
         </section>
         <p className="text-xs text-muted-foreground">
           Reader ·{" "}
-          <a className="underline" href="https://github.com/wimvdon/rss-reader/blob/main/PRIVACY.md" target="_blank" rel="noopener noreferrer">
+          <a className="underline" href="https://github.com/wimvdon/reader/blob/main/PRIVACY.md" target="_blank" rel="noopener noreferrer">
             {t("privacy")}
           </a>
         </p>
@@ -387,9 +342,93 @@ export function SettingsDialog({ open, onOpenChange }: Props) {
   );
 }
 
+/**
+ * The account: signing in with Instapaper also syncs the library (docs/account.md). Signed in, it
+ * shows who, how sync is doing, Sync now, Sign out and Delete synced data.
+ */
+function AccountSection() {
+  const { settings, syncStatus, instapaper } = useApp();
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleteFailed, setDeleteFailed] = useState(false);
+  const statusText = !instapaper?.accountKey
+    ? t("syncNoAccount")
+    : syncStatus.kind === "syncing"
+      ? t("syncing")
+      : syncStatus.kind === "failed"
+        ? t(syncProblems[syncStatus.problem])
+        : settings.lastSyncedAt
+          ? t("lastSynced").replace("{when}", formatRelative(settings.lastSyncedAt))
+          : t("notSyncedYet");
+  const failed = syncStatus.kind === "failed" || (instapaper !== null && !instapaper.accountKey);
+  return (
+    <section className="space-y-2">
+      <h3 className="text-sm font-medium text-primary">{t("account")}</h3>
+      {instapaper ? (
+        <>
+          <p className="text-sm font-medium">{t("instapaperSignedInAs").replace("{name}", instapaper.username || "Instapaper")}</p>
+          <p className={cn("text-sm", failed ? "text-destructive" : "text-muted-foreground")} role={failed ? "alert" : undefined}>
+            {statusText}
+          </p>
+          <div className="flex flex-wrap gap-2 pt-1">
+            {instapaper.accountKey && !(syncStatus.kind === "failed" && syncStatus.problem === "signedOut") ? (
+              <Button variant="tonal" onClick={() => void app.sync()} disabled={syncStatus.kind === "syncing"}>
+                {t("syncNow")}
+              </Button>
+            ) : (
+              <Button onClick={() => app.connectInstapaper()}>{t("instapaperSignIn")}</Button>
+            )}
+            <Button variant="ghost" onClick={() => void app.disconnectInstapaper()}>
+              {t("instapaperSignOut")}
+            </Button>
+            {instapaper.accountKey ? (
+              <Button variant="ghost" className="text-destructive" onClick={() => setConfirmDelete(true)}>
+                {t("deleteAccountData")}
+              </Button>
+            ) : null}
+          </div>
+          {deleteFailed ? <p className="text-sm text-destructive" role="alert">{t("syncOffline")}</p> : null}
+        </>
+      ) : (
+        <>
+          <p className="text-sm text-muted-foreground">{t("accountSummary")}</p>
+          <div className="pt-1">
+            <Button onClick={() => app.connectInstapaper()}>{t("instapaperSignIn")}</Button>
+          </div>
+        </>
+      )}
+      <Dialog
+        open={confirmDelete}
+        onOpenChange={setConfirmDelete}
+        title={t("deleteAccountData")}
+        closeLabel={t("close")}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setConfirmDelete(false)}>
+              {t("cancel")}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                setConfirmDelete(false);
+                void app.deleteAccountData().then((ok) => setDeleteFailed(!ok));
+              }}
+            >
+              <Trash2 />
+              {t("delete")}
+            </Button>
+          </>
+        }
+      >
+        <p className="text-sm">{t("deleteAccountConfirm")}</p>
+      </Dialog>
+    </section>
+  );
+}
+
 const syncProblems: Record<string, Key> = {
   offline: "syncOffline",
-  needsApproval: "syncNeedsApproval",
+  signedOut: "syncSignedOut",
   server: "syncServer",
   unreadableFile: "syncUnreadable",
+  notSetUp: "syncNotSetUp",
 };

@@ -18,7 +18,7 @@ On every pull request and push to `main`:
 | Lint | `./gradlew lintDebug` | Android API misuse, missing translations, accessibility, hard-coded text, … (errors fail the build) |
 | Debug build | `./gradlew assembleDebug` | Compile errors; produces the APK to test on the phone |
 | Release build | `./gradlew assembleRelease` | Problems caused by R8 minification / resource shrinking |
-| Web app and feed loader | `npm test`, `npm run lint`, `npm run build` in `web/`; `npm test`, `npm run typecheck` in `worker/` | Parser ids that match Android, reading the Android app's sync file, merge (also settings and the Instapaper sign-in), the Google sign-in kept in the browser and never asked for without a click, OPML, HTML cleaning, embed cards, Instapaper's lists in the reader, when to load the full article, the full-article cache, reader text settings, mark as read on scroll; the Worker's origin check, address rules, redirects, size and type limits |
+| Web app and feed loader | `npm test`, `npm run lint`, `npm run build` in `web/`; `npm test`, `npm run typecheck` in `worker/` | Parser ids that match Android, reading the Android app's sync file, merge (also settings), one sync with the account (conflicts merged again), the account client and live connection, OPML, HTML cleaning, embed cards, Instapaper's lists in the reader, when to load the full article, the full-article cache, reader text settings, mark as read on scroll; the Worker's origin check, address rules, redirects, size and type limits, and its accounts (device keys, versions and conflicts, encryption, sign-out and delete) |
 
 Reports (test results, lint HTML) are attached to every CI run as the `reports` artifact, also
 when the run fails.
@@ -45,10 +45,9 @@ when the run fails.
 | `SyncMergeTest` | Three-way merge: changes and removals from either side, this device wins but an edit beats a removal, order from the side that reordered, first sync without base, unread again; articles not here yet; applying the result to the library; syncing twice changes nothing; settings per setting, and a device without synced settings taking the file's |
 | `InstapaperListsTest` | A saved article as a list/reader article (no read state, safe links), which Instapaper list it belongs in, a change updating the list |
 | `InstapaperModelTest` | Lists, paging, archive, like, move, tags, delete, folders and tags management; the article open in the reader following changes |
-| `GoogleDriveTest` | Finding the sync file in a Drive answer, the upload into the app folder |
-| `SyncSettingsTest` | Settings to shared names and back, Save/Share targets not synced, unknown names kept, bad values ignored, the Instapaper sign-in |
+| `AccountSyncTest` | One sync with the account: the first device's library becomes the document, nothing saved when nothing changed, another device's save in between merged in (with the right base), newer documents left alone; reading the server's answers and problems; the live connection's address, messages and retry delays; the stored base with its version |
+| `SyncSettingsTest` | Settings to shared names and back, Save/Share targets not synced, unknown names kept, bad values ignored, the Instapaper sign-in of older versions dropped |
 | `SyncTimingTest` | When a sync is due: never synced, or more than ten seconds ago (also when the clock went back) |
-| `SyncProblemTest` | Google refusing an app it doesn't know shows "not set up" instead of "offline" |
 | `SiteIconTest` | Choosing a site's icon: largest size, apple-touch-icon, relative and http addresses, skipping SVG and inline icons, home page and favicon.ico fallback |
 | `IconCatalogTest` | Reading the icon file, search order (name, words, categories, related words), suggestions, old icon names, and that the bundled file has every suggested and migrated icon |
 | `ArticleDaysTest` | Grouping the list by local day, time zones |
@@ -88,11 +87,11 @@ and then (always before a release):
 - [ ] **Pictures:** list rows show thumbnails; the reader shows the picture above the title and
       pictures between paragraphs; a YouTube embed shows a card with a preview that opens YouTube.
       Settings › Reader › Show images off hides them all.
-- [ ] **Sync** (needs the Google Cloud setup in `docs/sync.md`): Settings › Sync › Connect shows
-      Google's screen; after allowing, "Last synced just now". On a second phone (or after
-      Disconnect + clearing data), Connect brings the same feeds, folders and read marks. Rename a
-      feed, read an article, wait 2 seconds; on the other phone, refresh (or wait a minute with the
-      app open) and the change shows.
+- [ ] **Sync** (needs `ACCOUNT_KEY` on the Worker, `docs/account.md`, and the Instapaper sign-in
+      below): signed in, Settings › Account says "Last synced just now". Sign in on the web app (or
+      a second phone) with the same Instapaper account: the same feeds, folders and read marks
+      appear. Read an article on one with both open: within a few seconds it is read on the other,
+      without refreshing. Rename a feed: the same. Delete synced data: both say to sign in again.
 - [ ] **Save** sends to the app chosen in Settings › Save and share (Instapaper by default);
       **Share** opens the share menu or the chosen app. An uninstalled app falls back to the share menu.
 - [ ] **List:** at app start the list shows loading placeholders, never "No feeds yet" first.
@@ -105,14 +104,16 @@ and then (always before a release):
       manage page and reader, on a light tile; in dark mode dark logos are still visible; a feed
       without one shows its first letter.
 - [ ] **Manage feeds and folders:** drag a feed into another folder and above another feed; drag
-      a folder above another; the drawer and bottom bar follow the new order. Tap a feed, rename
+      a folder above another; the drawer and folder tabs follow the new order. Tap a feed, rename
       it, refresh: the name stays; clear it: the feed's own name comes back after a refresh.
-- [ ] **Navigation:** in a folder or feed, Back goes to All; on All, Back closes the app.
+- [ ] **Navigation:** the ☰ drawer looks the same on Feeds and on an Instapaper list; tapping
+      Feeds or Instapaper folds that section shut and open (folded Feeds shows the unread count).
+      In a folder or feed, Back goes to All; on All, Back closes the app.
       The Undo message after Mark all as read shows above the folder bar.
 - [ ] **Mark as read on scroll** on: scroll down the Unread list; the articles that leave the
       top of the screen are marked read (their dot goes) but stay until you refresh.
 - [ ] Import and export OPML (for example an Inoreader export); folders come along both ways.
-- [ ] **Manage feeds and folders** (☰ and top of Settings): create a folder, search an icon (e.g. *soccer*) and pick it, move feeds into it (they show under it); the bottom bar appears, its
+- [ ] **Manage feeds** (☰): create a folder, search an icon (e.g. *soccer*) and pick it, move feeds into it (they show under it); the bottom bar appears, its
       tabs show only that folder's articles; Mark all read (round button) only marks that
       section and Undo restores it; removing the folder keeps its feeds and hides the bar.
 - [ ] **Dark mode** and **Settings › Appearance**: switch Theme and Dynamic color. Text stays
@@ -140,7 +141,7 @@ Or ask Claude Code to do it: give it the stack trace and the version.
 Sign-in needs the real Instapaper, the Worker's secret and a verified App Link, so it can't be tested
 in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
 
-- [ ] Settings › Instapaper › **Sign in** opens Instapaper; approving returns to the app (Android) or
+- [ ] Settings › Account › **Sign in with Instapaper** opens Instapaper; approving returns to the app (Android) or
       the page (web) with "Signed in to Instapaper", and Settings shows your user name.
 - [ ] **Save** in the reader saves the article; it appears in Instapaper's Unread list.
 - [ ] The ☰ menu (web: the sidebar) has an **Instapaper** section: Unread, Liked, Archive, your
@@ -148,7 +149,7 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
       in All articles). Tapping one opens it in the reader, with the full article from its website.
 - [ ] In the reader: like, archive (the article leaves Unread but stays open), move back to Unread,
       move to a folder, add and remove a tag, and delete (asks first) each change it in Instapaper.
-- [ ] **Manage feeds and folders** › Instapaper: create, drag by the handle to reorder, and delete folders;
+- [ ] **☰ › Manage Instapaper**: create, drag by the handle to reorder, and delete folders;
       rename tags.
 - [ ] **Sign out** returns Settings to "Sign in", and Save goes back to the chosen app.
 - [ ] `https://rss-reader-web.wim-d57.workers.dev/.well-known/assetlinks.json` shows the JSON file.

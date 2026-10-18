@@ -1,5 +1,4 @@
 import type { Settings } from "./app";
-import type { Session } from "./instapaper";
 import { readerStyleOf } from "./readerStyle";
 
 /**
@@ -17,19 +16,22 @@ export const READER_AUTO_DARK = "reader.autoDark";
 export const UNREAD_ONLY = "unreadOnly";
 export const FULL_ARTICLES = "fullArticles";
 export const MARK_READ_ON_SCROLL = "markReadOnScroll";
-export const INSTAPAPER_TOKEN = "instapaper.token";
-export const INSTAPAPER_USERNAME = "instapaper.username";
-export const INSTAPAPER_USER_ID = "instapaper.userId";
 
 const KNOWN = new Set([
   THEME, READER_FONT, READER_TEXT_SIZE, READER_SPACING, READER_BACKGROUND, READER_AUTO_DARK,
-  UNREAD_ONLY, FULL_ARTICLES, MARK_READ_ON_SCROLL, INSTAPAPER_TOKEN, INSTAPAPER_USERNAME, INSTAPAPER_USER_ID,
+  UNREAD_ONLY, FULL_ARTICLES, MARK_READ_ON_SCROLL,
 ]);
 
+/**
+ * Names that are no longer synced and are dropped: the Instapaper sign-in (each device signs in
+ * itself, and that sign-in is the account).
+ */
+const DROPPED = /^instapaper\./;
+
 /** This browser's synced settings, plus the names from base that the web app doesn't know. */
-export function syncedSettings(settings: Settings, instapaper: Session | null, base: Record<string, string> = {}): Record<string, string> {
+export function syncedSettings(settings: Settings, base: Record<string, string> = {}): Record<string, string> {
   const out: Record<string, string> = {};
-  for (const [k, v] of Object.entries(base)) if (!KNOWN.has(k)) out[k] = v;
+  for (const [k, v] of Object.entries(base)) if (!KNOWN.has(k) && !DROPPED.test(k)) out[k] = v;
   const r = settings.readerStyle;
   Object.assign(out, {
     [THEME]: settings.theme,
@@ -42,11 +44,6 @@ export function syncedSettings(settings: Settings, instapaper: Session | null, b
     [FULL_ARTICLES]: String(settings.fullArticles),
     [MARK_READ_ON_SCROLL]: String(settings.markReadOnScroll),
   });
-  if (instapaper) {
-    out[INSTAPAPER_TOKEN] = instapaper.token;
-    out[INSTAPAPER_USERNAME] = instapaper.username;
-    if (instapaper.userId !== null) out[INSTAPAPER_USER_ID] = String(instapaper.userId);
-  }
   return out;
 }
 
@@ -70,12 +67,4 @@ export function applySynced(settings: Settings, values: Record<string, string>):
     fullArticles: bool(FULL_ARTICLES, settings.fullArticles),
     markReadOnScroll: bool(MARK_READ_ON_SCROLL, settings.markReadOnScroll),
   };
-}
-
-/** The Instapaper sign-in in values, or null when signed out. */
-export function instapaperOf(values: Record<string, string>): Session | null {
-  const token = values[INSTAPAPER_TOKEN];
-  if (!token) return null;
-  const id = Number(values[INSTAPAPER_USER_ID]);
-  return { token, username: values[INSTAPAPER_USERNAME] ?? "", userId: values[INSTAPAPER_USER_ID] !== undefined && Number.isFinite(id) ? id : null };
 }

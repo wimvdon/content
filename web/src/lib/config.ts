@@ -3,11 +3,8 @@
  * so they live here rather than in Settings.
  */
 
-/** The owner's feed loader, the Cloudflare Worker in worker/. */
+/** The owner's feed loader, the Cloudflare Worker in worker/. It also keeps the Reader accounts. */
 export const PROXY_URL = "https://rss-reader-worker.wim-d57.workers.dev";
-
-/** The Google Cloud OAuth client of type "Web application", for Drive sync (docs/sync.md). */
-export const GOOGLE_CLIENT_ID = "213170413016-678semm4og2emqalhi7d4uqu42n0hk1m.apps.googleusercontent.com";
 
 /** The Instapaper application (API v2): its client ID is public. The client secret lives only in the Worker. */
 export const INSTAPAPER_CLIENT_ID = "94f820c94dc04d0386c71d7b0c26bd80";

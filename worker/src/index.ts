@@ -1,13 +1,17 @@
 /**
  * RSS Reader's feed loader. Browsers don't let a web page load most feeds and article pages
  * (CORS), so the web app asks this Worker: GET /?url=<https address>. It fetches that one
- * address and passes the answer back. It stores nothing and logs nothing, answers only the web
+ * address and passes the answer back. It stores and logs nothing of that, answers only the web
  * app's own address(es), and only passes feeds and web pages, up to MAX_BYTES.
  *
- * Instapaper sign-in and the web app's Instapaper calls live in instapaper.ts (/instapaper/...).
+ * Instapaper sign-in and the web app's Instapaper calls live in instapaper.ts (/instapaper/...),
+ * Reader accounts (the synced, encrypted library) in account.ts (/account/...).
  */
 
+import { handleAccount } from "./account";
 import { handleInstapaper } from "./instapaper";
+
+export { Account } from "./account";
 
 export interface Env {
   /** Comma-separated web app origins, e.g. "https://rss-reader.pages.dev,http://localhost:5173". */
@@ -17,6 +21,9 @@ export interface Env {
   INSTAPAPER_REDIRECT_URI?: string;
   /** The client secret. Only ever a Worker secret, never in this repository. */
   INSTAPAPER_CLIENT_SECRET?: string;
+  /** The accounts' Durable Objects (wrangler.toml) and the secret their data is encrypted with. */
+  ACCOUNTS?: DurableObjectNamespace;
+  ACCOUNT_KEY?: string;
   /** Optional Cloudflare rate limiting binding (see wrangler.toml). */
   LIMITER?: { limit(options: { key: string }): Promise<{ success: boolean }> };
 }
@@ -40,6 +47,7 @@ export default {
 export async function handle(request: Request, env: Env, fetcher: Fetcher): Promise<Response> {
   const requestUrl = new URL(request.url);
   if (requestUrl.pathname.startsWith("/instapaper/")) return handleInstapaper(request, env, fetcher, requestUrl);
+  if (requestUrl.pathname === "/account" || requestUrl.pathname.startsWith("/account/")) return handleAccount(request, env, requestUrl);
   const origin = request.headers.get("Origin");
   const allowed = (env.ALLOWED_ORIGINS ?? "")
     .split(",")

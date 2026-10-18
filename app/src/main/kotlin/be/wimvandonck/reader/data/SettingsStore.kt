@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import be.wimvandonck.reader.sync.SyncService
 import be.wimvandonck.reader.sync.SyncSettings
 import java.io.IOException
 
@@ -87,11 +86,8 @@ class SettingsStore(
             }
         }
 
-    suspend fun setSyncService(service: SyncService) =
-        edit {
-            it[SYNC_SERVICE] = service.name
-            it.remove(LAST_SYNCED_AT)
-        }
+    /** Forgets when the last sync was, for a new sign-in. */
+    suspend fun clearLastSyncedAt() = edit { it.remove(LAST_SYNCED_AT) }
 
     suspend fun setLastSyncedAt(time: Long) = edit { it[LAST_SYNCED_AT] = time }
 
@@ -121,7 +117,6 @@ class SettingsStore(
             showImages = p[SHOW_IMAGES] ?: defaults.showImages,
             markReadOnScroll = p[MARK_READ_ON_SCROLL] ?: defaults.markReadOnScroll,
             listView = enumOr(p[LIST_VIEW], defaults.listView),
-            syncService = enumOr(p[SYNC_SERVICE], defaults.syncService),
             lastSyncedAt = p[LAST_SYNCED_AT],
         )
     }
@@ -146,7 +141,6 @@ class SettingsStore(
         val SHOW_IMAGES = booleanPreferencesKey("show_images")
         val MARK_READ_ON_SCROLL = booleanPreferencesKey("mark_read_on_scroll")
         val LIST_VIEW = stringPreferencesKey("list_view")
-        val SYNC_SERVICE = stringPreferencesKey("sync_service")
         val LAST_SYNCED_AT = longPreferencesKey("last_synced_at")
     }
 }
