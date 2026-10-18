@@ -402,7 +402,7 @@ private fun DestinationIcon(
         when {
             !instapaper -> R.drawable.ic_rss_feed
             selected -> R.drawable.ic_bookmarks
-            else -> R.drawable.ic_bookmarks_outlined
+            else -> R.drawable.ic_bookmarks_outline
         }
     Icon(painterResource(icon), contentDescription = null)
 }
