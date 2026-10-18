@@ -64,13 +64,13 @@ class SavedArticle(
 /** Which of the saved article's dialogs is open. */
 enum class SavedDialog { Move, Tags, Delete }
 
-/** Like and Archive, in the reader's top bar instead of Save. */
+/** Like (a filled heart once liked) and Archive, in the reader's top bar instead of Save. */
 @Composable
 fun SavedArticleButtons(saved: SavedArticle) {
     val b = saved.bookmark
     IconButton(onClick = saved.onLike) {
         Icon(
-            painterResource(R.drawable.ic_favorite),
+            painterResource(if (b.liked) R.drawable.ic_favorite_filled else R.drawable.ic_favorite),
             contentDescription = stringResource(if (b.liked) R.string.instapaper_unlike else R.string.instapaper_like),
             tint = if (b.liked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
         )
