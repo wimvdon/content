@@ -8,15 +8,15 @@ class InstapaperTabsTest {
     private val tags = listOf(InstapaperTag(7, "Cooking"), InstapaperTag(8, "Travel"))
 
     @Test
-    fun `the lists, then the folders in order, then one tab for every tag`() {
+    fun `Unread and Liked, the folders in order, one tab for every tag, and Archive last`() {
         assertEquals(
             listOf(
                 InstapaperTab.Unread,
                 InstapaperTab.Liked,
-                InstapaperTab.Archive,
                 InstapaperTab.Folder(1),
                 InstapaperTab.Folder(2),
                 InstapaperTab.Tags,
+                InstapaperTab.Archive,
             ),
             InstapaperTabs.of(folders, tags),
         )

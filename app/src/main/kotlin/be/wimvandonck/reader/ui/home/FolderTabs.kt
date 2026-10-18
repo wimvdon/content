@@ -76,7 +76,7 @@ private val MAX_LABEL_WIDTH = 160.dp
 
 /**
  * Scrollable tabs under the top app bar on Instapaper, like the folder tabs on Feeds: Unread, Liked,
- * Archive, each Instapaper folder, then Tags. Under Tags, a row of filter chips picks the tag.
+ * each Instapaper folder, Tags, then Archive. Under Tags, a row of filter chips picks the tag.
  */
 @Composable
 fun InstapaperTabRow(
