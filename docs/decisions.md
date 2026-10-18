@@ -2,6 +2,17 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-18: The navigation bar is back, next to the drawer
+
+The bar (Feeds | Instapaper) was removed earlier today because the drawer changed with the
+destination shown. The owner missed it and asked for it back. Both problems are solved together
+now: the bar (rail on wide windows) switches between the two destinations as Material 3
+recommends for two to five, and the drawer keeps both sections everywhere, with the one you're in
+open and the other folded shut. The bar only shows when signed in to Instapaper (one destination
+needs no bar). Global search, also asked in the same issue, is a separate change. Rejected: a bar
+with a third Search destination (search acts on the content of both, so it belongs in the top bar)
+and dropping the drawer (single feeds, Manage and Settings need a place).
+
 ## 2026-10-18: Unread | All as one filter chip in the top bar
 
 The connected Unread | All buttons had a row of their own under the title and tabs and drew the
@@ -11,6 +22,8 @@ app bar: selected (with a check) for unread only, unselected for all. The row is
 starts higher. The web app keeps its Unread | All switch (the issue was about Android). Rejected:
 two chips (Unread and All) in their own row (still a row, and two chips for one on/off choice) and
 an icon button (its state isn't readable at a glance, as an earlier version showed).
+
+
 
 ## 2026-10-18: Manage icons: the feed symbol and a bookmark, each with a pen
 

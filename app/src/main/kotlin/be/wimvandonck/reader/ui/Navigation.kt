@@ -150,6 +150,8 @@ fun RssReaderNavigation() {
     val instapaperUi by (instapaper?.state ?: flowOf(null)).collectAsStateWithLifecycle(null)
     var chosenView by rememberSaveable(stateSaver = InstapaperViewSaver) { mutableStateOf<InstapaperView?>(null) }
     val instapaperView = chosenView.takeIf { instapaper != null }
+    // The Instapaper list last shown, so the navigation bar returns to it from Feeds.
+    var lastInstapaperView by rememberSaveable(stateSaver = InstapaperViewSaver) { mutableStateOf<InstapaperView?>(null) }
     // After a sign-in, or the app coming back, show the chosen list.
     LaunchedEffect(instapaper) {
         val view = chosenView
@@ -356,7 +358,14 @@ fun RssReaderNavigation() {
                                 },
                                 onSelectInstapaper = { view ->
                                     chosenView = view
+                                    lastInstapaperView = view
                                     instapaper?.select(view)
+                                },
+                                onShowFeeds = { chosenView = null },
+                                onShowInstapaper = {
+                                    val view = lastInstapaperView ?: InstapaperView.Home
+                                    chosenView = view
+                                    if (instapaper?.state?.value?.view != view) instapaper?.select(view)
                                 },
                                 onOpenSaved = { bookmark ->
                                     instapaper?.open(bookmark)

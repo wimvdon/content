@@ -76,7 +76,10 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
 
 ## Reading the list
 
-- **☰** opens the drawer, the app's navigation. **Feeds**: **All articles** (every feed), your
+- Signed in with Instapaper, the **bar at the bottom** switches between **Feeds** and
+  **Instapaper** (on a tablet or in landscape it sits at the left side). Instapaper opens the list
+  you last had open there (Unread at first).
+- **☰** opens the drawer with every place. **Feeds**: **All articles** (every feed), your
   folders with their feeds, the other feeds (each with its number of unread articles). Signed in to
   Instapaper, **Instapaper** follows with its own places (see below). The section you're in (Feeds or
   Instapaper) is open and the other is folded shut, so the menu stays short; tap a section's name
