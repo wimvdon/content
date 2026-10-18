@@ -97,8 +97,8 @@ and then (always before a release):
       Signed in to Instapaper, Settings › Save and share has no Save button row (Save goes to the account).
 - [ ] **List:** at app start the list shows loading placeholders, never "No feeds yet" first.
       Swipe an article left and right past a third: a tick, it becomes read, then unread; a short
-      swipe does nothing; swiping never opens the ☰ menu. Unread | All under the title switches unread only / all.
-      Scroll down: the title, folder tabs and Unread | All slide away together; scroll up a
+      swipe does nothing; swiping never opens the ☰ menu. The Unread chip at the top right switches unread only (filled, check) / all.
+      Scroll down: the title, the Unread chip and the folder tabs slide away together; scroll up a
       little: they come back; pulling down at the very top refreshes, and the spinner stays in place
       until the refresh is done (no jump back up and down again), also in an Instapaper list. Settings › Article list › View: Small,
       Medium and Large each look right, with and without pictures.

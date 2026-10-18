@@ -256,6 +256,15 @@ fun HomeScreen(
                                     Icon(painterResource(R.drawable.ic_menu), contentDescription = stringResource(R.string.action_open_feeds))
                                 }
                             },
+                            actions = {
+                                if (state.feeds.isNotEmpty() && savedView == null) {
+                                    ReadFilter(
+                                        unreadOnly = state.unreadOnly,
+                                        onUnreadOnlyChange = actions.onUnreadOnlyChange,
+                                        modifier = Modifier.padding(end = 12.dp),
+                                    )
+                                }
+                            },
                             windowInsets = WindowInsets(0),
                             colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent, scrolledContainerColor = Color.Transparent),
                         )
@@ -273,14 +282,6 @@ fun HomeScreen(
                                 selectedFolderId = sectionFolderId,
                                 onSelectAll = { actions.onSelect(FeedSelection.All) },
                                 onSelectFolder = { actions.onSelect(FeedSelection.InFolder(it.id)) },
-                            )
-                        }
-                        if (state.feeds.isNotEmpty() && savedView == null) {
-                            ReadFilter(
-                                unreadOnly = state.unreadOnly,
-                                onUnreadOnlyChange = actions.onUnreadOnlyChange,
-                                // Room around the filter so the header doesn't feel cramped.
-                                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 12.dp),
                             )
                         }
                     }
