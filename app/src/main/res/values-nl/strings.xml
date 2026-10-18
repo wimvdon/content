@@ -211,4 +211,9 @@
     <string name="search_start_body">Vindt woorden in de titels en de tekst van de artikels uit je feeds.</string>
     <string name="search_none_title">Niets gevonden</string>
     <string name="search_none_body">Geen artikel bevat al deze woorden.</string>
+    <string name="search_start_title_saved">Zoeken in feeds en Instapaper</string>
+    <string name="search_start_body_saved">Vindt woorden in de artikels uit je feeds, en in de titels, beschrijvingen en tags van je bewaarde artikels.</string>
+    <string name="search_saved_loading">Je bewaarde artikels doorzoeken…</string>
+    <string name="search_section_none">Geen resultaten</string>
+    <string name="search_saved_incomplete">Instapaper antwoordde niet voor elke lijst, dus sommige bewaarde artikels zijn niet doorzocht.</string>
 </resources>

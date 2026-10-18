@@ -81,6 +81,16 @@ class InstapaperModel(
     }
 
     /**
+     * Every saved article Search looks through ([SavedSearch]), read from Instapaper; null when the
+     * folders aren't known yet and the first call fails. A refused token signs out, as elsewhere.
+     */
+    suspend fun loadForSearch(): SavedArticles? =
+        guarded {
+            val folders = mutable.value.folders.ifEmpty { api.folders() }
+            SavedSearch.load(SavedSearch.views(folders), list = api::list)
+        }
+
+    /**
      * Saves a feed article and keeps it as [InstapaperUiState.justSaved], so it can be put in a folder
      * and tagged at once. Throws when Instapaper refuses (the caller says why); returns whether it was saved.
      */

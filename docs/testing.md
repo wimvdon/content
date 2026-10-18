@@ -44,6 +44,7 @@ when the run fails.
 | `SyncDocumentTest` | Sync file round trip (with settings, the same text as the web app), other or newer files left alone, broken entries skipped, taking folders, feeds and read marks from the library, pruning old read marks |
 | `SyncMergeTest` | Three-way merge: changes and removals from either side, this device wins but an edit beats a removal, order from the side that reordered, first sync without base, unread again; articles not here yet; applying the result to the library; syncing twice changes nothing; settings per setting, and a device without synced settings taking the file's |
 | `InstapaperListsTest` | A saved article as a list/reader article (no read state, safe links), which Instapaper list it belongs in, a change updating the list |
+| `SavedSearchTest` | Search in saved articles: Unread, folders, then Archive; page by page up to 100 per list, no doubles; keeps what it has when Instapaper stops answering; title, website, description and tags, title matches first |
 | `InstapaperModelTest` | Lists, paging, archive, like, move, tags, delete, folders and tags management; the article open in the reader following changes |
 | `AccountSyncTest` | One sync with the account: the first device's library becomes the document, nothing saved when nothing changed, another device's save in between merged in (with the right base), newer documents left alone; reading the server's answers and problems; the live connection's address, messages and retry delays; the stored base with its version |
 | `SyncSettingsTest` | Settings to shared names and back, Save/Share targets not synced, unknown names kept, bad values ignored, the Instapaper sign-in of older versions dropped |
@@ -112,6 +113,9 @@ and then (always before a release):
 - [ ] **Search:** the magnifier at the top right of Feeds opens Search with the keyboard up; typing
       *cafe* finds articles with "Café" in the title (first) or the text; two words find articles with
       both; nothing found shows "Nothing found"; opening a result and going back shows the same results.
+      Signed in to Instapaper, the magnifier is on Instapaper too; results come under Feeds and
+      Instapaper (Instapaper first when opened from there), a word from a saved article's title or
+      website finds it, and tapping it opens it with Like and Archive.
 - [ ] **Navigation bar:** signed in, a bar at the bottom has Feeds and Instapaper (a rail at the
       left in landscape on a tablet); Instapaper opens its last list, Feeds the feed section you had;
       signed out, no bar. The Mark all read button and messages sit above the bar.

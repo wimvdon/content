@@ -217,4 +217,9 @@
     <string name="search_start_body">Trova parole nei titoli e nel testo degli articoli dei tuoi feed.</string>
     <string name="search_none_title">Nessun risultato</string>
     <string name="search_none_body">Nessun articolo contiene tutte queste parole.</string>
+    <string name="search_start_title_saved">Cerca nei feed e in Instapaper</string>
+    <string name="search_start_body_saved">Trova parole negli articoli dei tuoi feed e nei titoli, nelle descrizioni e nei tag dei tuoi articoli salvati.</string>
+    <string name="search_saved_loading">Ricerca negli articoli salvati…</string>
+    <string name="search_section_none">Nessun risultato</string>
+    <string name="search_saved_incomplete">Instapaper non ha risposto per ogni elenco, quindi alcuni articoli salvati non sono stati cercati.</string>
 </resources>

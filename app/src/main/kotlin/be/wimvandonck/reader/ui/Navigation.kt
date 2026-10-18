@@ -46,6 +46,9 @@ import be.wimvandonck.reader.instapaper.InstapaperLists
 import be.wimvandonck.reader.data.AddFeedResult
 import be.wimvandonck.reader.data.Article
 import be.wimvandonck.reader.data.ArticleSearch
+import be.wimvandonck.reader.instapaper.SavedArticles
+import be.wimvandonck.reader.instapaper.SavedSearch
+import be.wimvandonck.reader.ui.home.SavedResults
 import be.wimvandonck.reader.ui.home.SearchActions
 import be.wimvandonck.reader.ui.home.SearchScreen
 import be.wimvandonck.reader.ui.home.SearchState
@@ -95,7 +98,7 @@ sealed interface Screen {
     /** Manage Instapaper: its folders and tags. */
     data object InstapaperManage : Screen
 
-    /** Search through every feed's articles. */
+    /** Search through every feed's articles and the saved Instapaper articles. */
     data object Search : Screen
 
     companion object {
@@ -209,6 +212,8 @@ fun RssReaderNavigation() {
 
     // What was typed in Search; kept while reading a result, so Back returns to the same results.
     var searchQuery by rememberSaveable { mutableStateOf("") }
+    // The saved Instapaper articles Search reads; read again each time Search is opened from the list.
+    var savedForSearch by remember(instapaper) { mutableStateOf<SavedArticles?>(null) }
 
     // Add feed dialog, shared by the list, the drawer and Settings.
     var addDialogOpen by rememberSaveable { mutableStateOf(false) }
@@ -424,7 +429,10 @@ fun RssReaderNavigation() {
                                 onOpenSettings = { push(Screen.Settings) },
                                 onOpenFeeds = { push(Screen.Feeds) },
                                 onOpenInstapaperManage = { push(Screen.InstapaperManage) },
-                                onOpenSearch = { push(Screen.Search) },
+                                onOpenSearch = {
+                                    savedForSearch = null
+                                    push(Screen.Search)
+                                },
                             ),
                     )
                 }
@@ -586,6 +594,14 @@ fun RssReaderNavigation() {
                     // Preparing every article's text takes a moment with many feeds: off the main thread.
                     val search by produceState<ArticleSearch?>(null, library) { value = withContext(Dispatchers.Default) { ArticleSearch(library) } }
                     val results = remember(search, searchQuery) { search?.search(searchQuery) }
+                    // Instapaper can't search, so its saved articles are read once and searched here.
+                    LaunchedEffect(instapaper) {
+                        if (instapaper != null && savedForSearch == null) {
+                            savedForSearch = instapaper.loadForSearch() ?: SavedArticles(emptyList(), incomplete = true)
+                        }
+                    }
+                    val saved = savedForSearch
+                    val savedMatches = remember(saved, searchQuery) { saved?.let { SavedSearch.search(it.bookmarks, searchQuery) } }
                     SearchScreen(
                         state =
                             SearchState(
@@ -594,11 +610,19 @@ fun RssReaderNavigation() {
                                 feeds = library.feeds,
                                 listView = current.listView,
                                 showImages = current.showImages,
+                                instapaper =
+                                    instapaper?.let {
+                                        SavedResults(savedMatches, incomplete = saved?.incomplete == true, first = instapaperView != null)
+                                    },
                             ),
                         actions =
                             SearchActions(
                                 onQueryChange = { searchQuery = it },
                                 onOpenArticle = { article -> push(Screen.Reader(article.key)) },
+                                onOpenSaved = { bookmark ->
+                                    instapaper?.open(bookmark)
+                                    push(Screen.Reader(InstapaperLists.article(bookmark).key))
+                                },
                                 onBack = ::pop,
                             ),
                     )
