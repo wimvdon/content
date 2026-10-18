@@ -263,7 +263,7 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
 - Feeds and Saved each have scrollable primary tabs under the top app bar for their peer views. Feeds:
   All (feed symbol), then each folder with its icon and name. Saved: Saved, Liked, each Instapaper
   folder (signed in), Tags, then Archive; under Tags a row of filter chips picks the tag
-  (tags come and go too often for a tab each). The Mark all read FAB and the Unread chip are on
+  (tags come and go too often for a tab each). The Mark all read FAB and the Unread and All chips are on
   Feeds only; the FAB only marks the section shown.
 - The ☰ drawer: the Feeds section (All articles, the folders with their feeds, the other feeds),
   the Saved section (Saved, Liked, the Instapaper folders, the tags, then Archive), then Manage feeds,
@@ -277,10 +277,10 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   `surfaceContainer`, read rows on `surfaceContainerLow`; the feed name is in `primary`. Swiping
   either way past 30% of the width toggles read (haptic tick at the threshold, row springs
   back); the drawer opens from the ☰ button only. The top bar shows the section and its unread count, with no ⋮ menu (refresh is pull-down; adding
-  feeds lives on Manage feeds). Unread | All is one Material 3 filter chip, **Unread**, in a chip
-  row of its own under the folder tabs (16dp sides, 8dp above and below, like the tag chips on
-  Instapaper's Tags tab): selected (with a check) shows unread articles only, unselected all of
-  them. The top bar holds only icon buttons, as Material 3's top app bar does.
+  feeds lives on Manage feeds). Unread | All are two Material 3 filter chips used as one choice,
+  **Unread** and **All**, in a chip row of its own under the folder tabs (16dp sides, 8dp above and
+  below, like the tag chips on Saved's Tags tab and the chips in Search): the chosen one is filled
+  with a check, so which list is shown reads at a glance. The web app has the same chips. The top bar holds only icon buttons, as Material 3's top app bar does.
   Settings lives in the drawer only.
   The header (a small `TopAppBar`, the folder tabs attached to it, then the chip row) is one block that slides away
   while scrolling down and comes back as soon as you scroll up (Material's "enter always"),

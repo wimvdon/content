@@ -96,11 +96,11 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   saved articles isn't searched: Instapaper only gives the title and description.
 - Articles are grouped under **Today**, **Yesterday** and then the date; the date stays at the
   top while you scroll through that day.
-- Under the title you see how many articles are unread. The **Unread** chip just above the list
-  (under the folder tabs) switches between only unread articles (chip filled, with a check mark) and all articles (tap it
-  again). Articles you open from the unread list stay in it until you switch feed, filter or
+- Under the title you see how many articles are unread. Two chips just above the list
+  (under the folder tabs), **Unread** and **All**, choose between only unread articles and all
+  articles; the chosen one is filled, with a check mark. The web app has the same two chips. Articles you open from the unread list stay in it until you switch feed, filter or
   refresh, so the list doesn't jump.
-- Scrolling down slides the title, the folder tabs and the **Unread** chip out of the way, so you see
+- Scrolling down slides the title, the folder tabs and the **Unread** and **All** chips out of the way, so you see
   more articles; scroll up a little and they come straight back.
 - **Swipe** an article left or right past about a third of its width (you feel a short tick) to
   mark it as read, or as unread when it was read. The ☰ menu opens with the ☰ button only, so

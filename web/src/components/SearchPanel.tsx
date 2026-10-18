@@ -1,4 +1,4 @@
-import { ArrowLeft, Check, Loader2, Search, X } from "lucide-react";
+import { ArrowLeft, Loader2, Search, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { app, useApp } from "@/lib/app";
 import { t } from "@/lib/i18n";
@@ -7,7 +7,7 @@ import { articleKey, type Article } from "@/lib/library";
 import { indexArticles, mix, searchArticles, searchSaved, type SavedArticles, type SearchFilter } from "@/lib/search";
 import { Empty, Row } from "./ArticleList";
 import { Button } from "./ui/button";
-import { cn } from "./ui/cn";
+import { FilterChip } from "./ui/chip";
 
 /**
  * Search, in place of the list: a field, chips for All, Feeds or Saved, and the matches below, mixed
@@ -81,20 +81,9 @@ export function SearchPanel({ openKey, onOpen, onClose }: { openKey: string | nu
             ["saved", t("saved")],
           ] as const
         ).map(([value, label]) => (
-          <button
-            key={value}
-            type="button"
-            role="radio"
-            aria-checked={filter === value}
-            onClick={() => setFilter(value)}
-            className={cn(
-              "inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border px-3 text-sm",
-              filter === value ? "border-transparent bg-accent font-medium text-accent-foreground" : "hover:bg-muted",
-            )}
-          >
-            {filter === value ? <Check className="size-4" /> : null}
+          <FilterChip key={value} role="radio" selected={filter === value} onClick={() => setFilter(value)}>
             {label}
-          </button>
+          </FilterChip>
         ))}
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-6">
