@@ -171,7 +171,7 @@
     <string name="instapaper_problem_invalid">Instapaper konnte das nicht ausführen.</string>
     <string name="instapaper_archive_list">Archiv</string>
     <string name="instapaper_archive">Archivieren</string>
-    <string name="instapaper_move_to_unread">Zurück zu Ungelesen</string>
+    <string name="instapaper_move_to_unread">Zurück zu Gespeichert</string>
     <string name="instapaper_like">Gefällt mir</string>
     <string name="instapaper_unlike">„Gefällt mir“ entfernen</string>
     <string name="instapaper_liked">Gefällt mir</string>
@@ -181,7 +181,7 @@
     <string name="instapaper_empty">Hier ist noch nichts.</string>
     <string name="instapaper_load_more">Mehr laden</string>
     <string name="instapaper_delete_folder">Ordner löschen</string>
-    <string name="instapaper_delete_folder_note">Artikel in einem gelöschten Ordner wandern zurück zu Ungelesen.</string>
+    <string name="instapaper_delete_folder_note">Artikel in einem gelöschten Ordner wandern zurück zu Gespeichert.</string>
     <string name="instapaper_tag_name">Tag-Name</string>
     <string name="instapaper_add_tag">Tag hinzufügen</string>
     <string name="instapaper_rename_tag">Tag umbenennen</string>
@@ -216,4 +216,12 @@
     <string name="search_saved_loading">Deine gespeicherten Artikel werden durchsucht …</string>
     <string name="search_section_none">Keine Treffer</string>
     <string name="search_saved_incomplete">Instapaper hat nicht für jede Liste geantwortet, daher wurden einige gespeicherte Artikel nicht durchsucht.</string>
+    <string name="section_saved">Gespeichert</string>
+    <string name="saved_list">Gespeichert</string>
+    <string name="saved_done">Gespeichert</string>
+    <string name="saved_delete_body">Diesen gespeicherten Artikel endgültig löschen? Das lässt sich nicht rückgängig machen.</string>
+    <string name="menu_manage_saved">Tags verwalten</string>
+    <string name="saved_manage_title">Tags</string>
+    <string name="saved_manage_empty">Tags, die du gespeicherten Artikeln gibst, erscheinen hier, damit du sie umbenennen kannst.</string>
+    <string name="share_target_saved">Gespeichert, in dieser App</string>
 </resources>

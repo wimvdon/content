@@ -98,7 +98,7 @@ function MoveDialog({ bookmark: b, open, onClose }: { bookmark: Bookmark; open: 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()} title={t("instapaperMoveTo")} closeLabel={t("close")}>
       <div role="radiogroup" aria-label={t("instapaperMoveTo")} className="space-y-0.5">
-        {option(null, t("unread"), <Inbox />)}
+        {option(null, t("saved"), <Inbox />)}
         {instapaperFolders.map((f) => option(f.id, f.title, <FolderInput />))}
       </div>
       <NewFolder
@@ -171,8 +171,9 @@ function TagsEditor({ bookmark: b }: { bookmark: Bookmark }) {
 }
 
 /**
- * Opens right after a feed article is saved to Instapaper: put it in a folder and tag it at once.
- * Every choice applies straight away; closing leaves the article as it is (in Unread).
+ * Opens right after a feed article is saved to Instapaper: like it, archive it, put it in a folder
+ * and tag it at once. Every choice applies straight away; closing leaves the article as it is (in
+ * Saved).
  */
 export function JustSavedDialog() {
   const { instapaperJustSaved: b, instapaperFolders } = useApp();
@@ -205,10 +206,14 @@ export function JustSavedDialog() {
     >
       {b ? (
         <div className="space-y-5">
+          <div className="flex flex-wrap gap-1.5">
+            <Toggle pressed={b.liked} onClick={() => void app.likeBookmark(b, !b.liked)} icon={<Heart className={cn("size-4", b.liked && "fill-current")} />} label={t("instapaperLike")} />
+            <Toggle pressed={b.archived} onClick={() => void app.archiveBookmark(b, !b.archived)} icon={<Archive className="size-4" />} label={t("instapaperArchive")} />
+          </div>
           <section className="space-y-2">
             <h3 className="text-sm font-medium text-primary">{t("folder")}</h3>
             <div role="radiogroup" aria-label={t("folder")} className="flex flex-wrap gap-1.5">
-              {chip(null, t("unread"))}
+              {chip(null, t("saved"))}
               {instapaperFolders.map((f) => chip(f.id, f.title))}
             </div>
             <NewFolder onCreate={(title) => void app.moveBookmarkToNewFolder(b, title)} />
@@ -220,6 +225,24 @@ export function JustSavedDialog() {
         </div>
       ) : null}
     </Dialog>
+  );
+}
+
+/** A chip that is on or off, like Like and Archive after saving. */
+function Toggle({ pressed, onClick, icon, label }: { pressed: boolean; onClick: () => void; icon: React.ReactNode; label: string }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={pressed}
+      onClick={onClick}
+      className={cn(
+        "inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm",
+        pressed ? "border-transparent bg-accent font-medium text-accent-foreground" : "hover:bg-muted",
+      )}
+    >
+      {icon}
+      {label}
+    </button>
   );
 }
 

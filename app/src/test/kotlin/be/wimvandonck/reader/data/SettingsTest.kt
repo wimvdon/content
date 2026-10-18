@@ -50,6 +50,7 @@ class SettingsTest {
         val app = ShareTarget.App("com.example.notes", "com.example.notes.ShareActivity", "Notes")
         assertEquals(app, ShareTarget.decode(ShareTarget.encode(app), ShareTarget.Sheet))
         assertEquals(ShareTarget.Sheet, ShareTarget.decode(ShareTarget.encode(ShareTarget.Sheet), ShareTarget.Instapaper))
+        assertEquals(ShareTarget.Saved, ShareTarget.decode(ShareTarget.encode(ShareTarget.Saved), ShareTarget.Sheet))
         val noActivity = ShareTarget.App("com.example.notes", null, "Notes")
         assertEquals(noActivity, ShareTarget.decode(ShareTarget.encode(noActivity), ShareTarget.Sheet))
         // Values written by v0.0.1.
@@ -64,7 +65,8 @@ class SettingsTest {
     fun `defaults match the design`() {
         val settings = Settings()
         assertFalse(settings.appearance.dynamicColor)
-        assertEquals(ShareTarget.Instapaper, settings.saveTarget)
+        // Save keeps the article in the app's own Saved list, also without an Instapaper account.
+        assertEquals(ShareTarget.Saved, settings.saveTarget)
         assertEquals(ShareTarget.Sheet, settings.shareTarget)
         assertEquals(ReaderBackground.Default, settings.reader.background)
         assertFalse(settings.markReadOnScroll)

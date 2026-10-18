@@ -40,7 +40,8 @@ object ExternalApps {
         chooserTitle: String,
     ): Boolean =
         when (target) {
-            ShareTarget.Sheet -> share(context, title, url, chooserTitle)
+            // Saved is handled in the app; the share menu is the fallback should it get here.
+            ShareTarget.Sheet, ShareTarget.Saved -> share(context, title, url, chooserTitle)
             is ShareTarget.App -> {
                 val intent = shareIntent(title, url)
                 if (target.activityName != null) {

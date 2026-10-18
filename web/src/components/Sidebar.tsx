@@ -12,7 +12,7 @@ import { cn } from "./ui/cn";
 /**
  * The app's navigation: Feeds and, when signed in, Instapaper as two sections that fold open and
  * shut (remembered in this browser). Feeds: All articles, the folders with their feeds, the other
- * feeds. Instapaper: Unread, Liked, its folders, its tags and Archive. Then the ways to manage each,
+ * feeds. Saved (Instapaper): Saved, Liked, its folders, its tags and Archive. Then the ways to manage each,
  * and Settings. The same everywhere in the app, like the Android drawer.
  */
 export function Sidebar({
@@ -108,8 +108,8 @@ export function Sidebar({
           ))}
         </Section>
         {instapaper ? (
-          <Section id={INSTAPAPER} title={t("instapaper")} open={!collapsed.has(INSTAPAPER)} onToggle={toggle}>
-            {instapaperRow({ kind: "home" }, <Inbox />, t("unread"))}
+          <Section id={INSTAPAPER} title={t("saved")} open={!collapsed.has(INSTAPAPER)} onToggle={toggle}>
+            {instapaperRow({ kind: "home" }, <Inbox />, t("saved"))}
             {instapaperRow({ kind: "liked" }, <Heart />, t("instapaperLiked"))}
             {instapaperFolders.map((folder) => instapaperRow({ kind: "folder", id: folder.id }, <FolderGlyph />, folder.title, folder.count, `f${folder.id}`))}
             {instapaperTags.length > 0 ? (

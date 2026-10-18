@@ -158,13 +158,16 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
 
 - [ ] Settings › Account › **Sign in with Instapaper** opens Instapaper; approving returns to the app (Android) or
       the page (web) with "Signed in to Instapaper", and Settings shows your user name.
-- [ ] **Save** in the reader saves the article; it appears in Instapaper's Unread list.
-- [ ] The ☰ menu (web: the sidebar) has an **Instapaper** section: Unread, Liked, your
+- [ ] **Save** in the reader saves the article; it appears in Instapaper's Unread list (Saved in the app).
+- [ ] The ☰ menu (web: the sidebar) has a **Saved** section: Saved, Liked, your
       folders, your tags and Archive (in that order) each show the right saved articles in the normal list (no unread dot, not
       in All articles). Tapping one opens it in the reader, with the full article from its website.
 - [ ] In the reader: like, archive (the article leaves Unread but stays open), move back to Unread,
       move to a folder, add and remove a tag, and delete (asks first) each change it in Instapaper.
 - [ ] **☰ › Manage Instapaper**: create, drag by the handle to reorder, and delete folders;
       rename tags.
-- [ ] **Sign out** returns Settings to "Sign in", and Save goes back to the chosen app.
+- [ ] **Sign out** returns Settings to "Sign in", and Saved shows the articles saved on the phone again.
+- [ ] Signed out (Android): **Save** keeps the article in **Saved**; the sheet offers Like, Archive and
+      tags but no folders; Saved, Liked, Tags and Archive show it; ⋮ in the reader has no Move to folder;
+      ☰ › **Manage tags** renames a tag; the articles are still there after restarting the app.
 - [ ] `https://rss-reader-web.wim-d57.workers.dev/.well-known/assetlinks.json` shows the JSON file.

@@ -136,11 +136,11 @@ data class HomeState(
     val folders: List<Folder> = emptyList(),
     val markReadOnScroll: Boolean = false,
     val listView: ListView = ListView.Medium,
-    /** Instapaper in the drawer and, when one of its lists is chosen, in the list. Null when signed out. */
+    /** Saved in the drawer and, when one of its lists is chosen, in the list. Null while the sign-in is read. */
     val instapaper: InstapaperHome? = null,
 )
 
-/** The signed-in Instapaper account as the home screen shows it. */
+/** Saved (the Instapaper account, or this phone) as the home screen shows it. */
 data class InstapaperHome(
     val folders: List<InstapaperFolder>,
     val tags: List<InstapaperTag>,
@@ -167,7 +167,7 @@ class HomeActions(
     val onSelectInstapaper: (InstapaperView) -> Unit = {},
     val onOpenSaved: (InstapaperBookmark) -> Unit = {},
     val onLoadMoreSaved: () -> Unit = {},
-    /** The navigation bar's destinations (shown when signed in to Instapaper). */
+    /** The navigation bar's destinations: Feeds and Saved. */
     val onShowFeeds: () -> Unit = {},
     val onShowInstapaper: () -> Unit = {},
     /** Opens the search through every feed's articles and the saved Instapaper articles. */
@@ -254,7 +254,7 @@ fun HomeScreen(
                         selected = savedView != null,
                         onClick = { if (savedView == null) actions.onShowInstapaper() },
                         icon = { DestinationIcon(instapaper = true, selected = savedView != null) },
-                        label = { Text(stringResource(R.string.section_instapaper)) },
+                        label = { Text(stringResource(R.string.section_saved)) },
                     )
                 }
             }
@@ -323,7 +323,7 @@ fun HomeScreen(
                     }
                 },
                 bottomBar = {
-                    // Feeds and Instapaper are the app's two top-level destinations; without Instapaper there is only one.
+                    // Feeds and Saved are the app's two top-level destinations.
                     if (state.instapaper != null && !wide) {
                         NavigationBar {
                             NavigationBarItem(
@@ -336,7 +336,7 @@ fun HomeScreen(
                                 selected = savedView != null,
                                 onClick = { if (savedView == null) actions.onShowInstapaper() },
                                 icon = { DestinationIcon(instapaper = true, selected = savedView != null) },
-                                label = { Text(stringResource(R.string.section_instapaper)) },
+                                label = { Text(stringResource(R.string.section_saved)) },
                             )
                         }
                     }
@@ -631,14 +631,14 @@ private fun SavedList(
     }
 }
 
-/** An Instapaper list's name: Unread, Liked, Archive, or the folder's or tag's name. */
+/** A Saved list's name: Saved, Liked, Archive, or the folder's or tag's name. */
 @Composable
 fun instapaperViewTitle(
     view: InstapaperView,
     folders: List<InstapaperFolder>,
 ): String =
     when (view) {
-        InstapaperView.Home -> stringResource(R.string.filter_unread)
+        InstapaperView.Home -> stringResource(R.string.saved_list)
         InstapaperView.Liked -> stringResource(R.string.instapaper_liked)
         InstapaperView.Archive -> stringResource(R.string.instapaper_archive_list)
         is InstapaperView.InFolder -> folders.firstOrNull { it.id == view.folderId }?.title.orEmpty()

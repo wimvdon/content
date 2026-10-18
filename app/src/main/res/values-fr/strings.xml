@@ -177,7 +177,7 @@
     <string name="instapaper_problem_invalid">Instapaper n’a pas pu le faire.</string>
     <string name="instapaper_archive_list">Archives</string>
     <string name="instapaper_archive">Archiver</string>
-    <string name="instapaper_move_to_unread">Remettre dans Non lus</string>
+    <string name="instapaper_move_to_unread">Remettre dans Enregistrés</string>
     <string name="instapaper_like">J’aime</string>
     <string name="instapaper_unlike">Retirer le j’aime</string>
     <string name="instapaper_liked">Aimés</string>
@@ -187,7 +187,7 @@
     <string name="instapaper_empty">Rien ici pour l’instant.</string>
     <string name="instapaper_load_more">Charger plus</string>
     <string name="instapaper_delete_folder">Supprimer le dossier</string>
-    <string name="instapaper_delete_folder_note">Les articles d’un dossier supprimé retournent dans Non lus.</string>
+    <string name="instapaper_delete_folder_note">Les articles d’un dossier supprimé retournent dans Enregistrés.</string>
     <string name="instapaper_tag_name">Nom de l’étiquette</string>
     <string name="instapaper_add_tag">Ajouter une étiquette</string>
     <string name="instapaper_rename_tag">Renommer l’étiquette</string>
@@ -222,4 +222,12 @@
     <string name="search_saved_loading">Recherche dans vos articles enregistrés…</string>
     <string name="search_section_none">Aucun résultat</string>
     <string name="search_saved_incomplete">Instapaper n\'a pas répondu pour chaque liste : certains articles enregistrés n\'ont pas été parcourus.</string>
+    <string name="section_saved">Enregistrés</string>
+    <string name="saved_list">Enregistrés</string>
+    <string name="saved_done">Enregistré</string>
+    <string name="saved_delete_body">Supprimer définitivement cet article enregistré ? Cette action est irréversible.</string>
+    <string name="menu_manage_saved">Gérer les étiquettes</string>
+    <string name="saved_manage_title">Étiquettes</string>
+    <string name="saved_manage_empty">Les étiquettes ajoutées aux articles enregistrés apparaissent ici, pour les renommer.</string>
+    <string name="share_target_saved">Enregistrés, dans cette app</string>
 </resources>

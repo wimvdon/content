@@ -165,7 +165,7 @@ fun SearchScreen(
 
                         fun savedSection() {
                             if (saved == null) return
-                            item(key = "saved") { SectionTitle(stringResource(R.string.section_instapaper)) }
+                            item(key = "saved") { SectionTitle(stringResource(R.string.section_saved)) }
                             when {
                                 savedMatches == null ->
                                     item(key = "saved-loading") {

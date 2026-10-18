@@ -177,7 +177,7 @@
     <string name="instapaper_problem_invalid">Instapaper no pudo hacerlo.</string>
     <string name="instapaper_archive_list">Archivo</string>
     <string name="instapaper_archive">Archivar</string>
-    <string name="instapaper_move_to_unread">Mover a Sin leer</string>
+    <string name="instapaper_move_to_unread">Mover a Guardados</string>
     <string name="instapaper_like">Me gusta</string>
     <string name="instapaper_unlike">Quitar me gusta</string>
     <string name="instapaper_liked">Me gusta</string>
@@ -187,7 +187,7 @@
     <string name="instapaper_empty">Aún no hay nada aquí.</string>
     <string name="instapaper_load_more">Cargar más</string>
     <string name="instapaper_delete_folder">Eliminar carpeta</string>
-    <string name="instapaper_delete_folder_note">Los artículos de una carpeta eliminada vuelven a Sin leer.</string>
+    <string name="instapaper_delete_folder_note">Los artículos de una carpeta eliminada vuelven a Guardados.</string>
     <string name="instapaper_tag_name">Nombre de la etiqueta</string>
     <string name="instapaper_add_tag">Añadir etiqueta</string>
     <string name="instapaper_rename_tag">Renombrar etiqueta</string>
@@ -222,4 +222,12 @@
     <string name="search_saved_loading">Buscando en tus artículos guardados…</string>
     <string name="search_section_none">Sin resultados</string>
     <string name="search_saved_incomplete">Instapaper no respondió para todas las listas, así que algunos artículos guardados no se buscaron.</string>
+    <string name="section_saved">Guardados</string>
+    <string name="saved_list">Guardados</string>
+    <string name="saved_done">Guardado</string>
+    <string name="saved_delete_body">¿Eliminar este artículo guardado para siempre? No se puede deshacer.</string>
+    <string name="menu_manage_saved">Gestionar etiquetas</string>
+    <string name="saved_manage_title">Etiquetas</string>
+    <string name="saved_manage_empty">Las etiquetas que añadas a los artículos guardados aparecen aquí, para cambiarles el nombre.</string>
+    <string name="share_target_saved">Guardados, en esta app</string>
 </resources>

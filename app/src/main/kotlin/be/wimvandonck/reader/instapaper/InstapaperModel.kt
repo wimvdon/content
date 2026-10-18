@@ -22,6 +22,8 @@ data class InstapaperUiState(
     val open: InstapaperBookmark? = null,
     /** The article just saved from a feed, while the sheet to file it (folder and tags) is open. */
     val justSaved: InstapaperBookmark? = null,
+    /** Backed by an Instapaper account; false for the articles saved on this phone ([LocalSaved]), which have no folders. */
+    val account: Boolean = true,
 ) {
     val canLoadMore: Boolean get() = !loading && !loadingMore && items.size < total
 }
@@ -36,8 +38,10 @@ class InstapaperModel(
     private val scope: CoroutineScope,
     /** Called when Instapaper refuses the token, so the account can sign out. */
     private val onSignedOut: () -> Unit,
+    /** False for the articles saved on this phone without an account. */
+    account: Boolean = true,
 ) {
-    private val mutable = MutableStateFlow(InstapaperUiState())
+    private val mutable = MutableStateFlow(InstapaperUiState(account = account))
     val state: StateFlow<InstapaperUiState> = mutable.asStateFlow()
     private var loading: Job? = null
 

@@ -44,15 +44,17 @@ import be.wimvandonck.reader.instapaper.InstapaperBookmark
 import be.wimvandonck.reader.instapaper.InstapaperFolder
 import be.wimvandonck.reader.instapaper.InstapaperTag
 
-/** A saved Instapaper article in the reader: its state and what its buttons do. Null for feed articles. */
+/** A saved article in the reader: its state and what its buttons do. Null for feed articles. */
 class SavedArticle(
     val bookmark: InstapaperBookmark,
+    /** Saved in the Instapaper account; false when saved on this phone (no folders). */
+    val account: Boolean,
     val folders: List<InstapaperFolder>,
     /** All the account's tags, to add one with a tap. */
     val tags: List<InstapaperTag>,
     val onLike: () -> Unit,
     val onArchive: () -> Unit,
-    /** Into a folder, or back to Unread when null. */
+    /** Into a folder, or back to Saved when null. */
     val onMove: (Long?) -> Unit,
     /** Into a new folder with this name, made on the spot. */
     val onMoveToNewFolder: (String) -> Unit,
@@ -83,14 +85,22 @@ fun SavedArticleButtons(saved: SavedArticle) {
     }
 }
 
-/** Move to folder, Tags and Delete for good, in the reader's ⋮ menu instead of Mark as unread. */
+/**
+ * Move to folder (with an Instapaper account), Tags and Delete for good, in the reader's ⋮ menu
+ * instead of Mark as unread.
+ */
 @Composable
-fun SavedArticleMenuItems(onOpen: (SavedDialog) -> Unit) {
-    DropdownMenuItem(
-        text = { Text(stringResource(R.string.instapaper_move_to)) },
-        leadingIcon = { Icon(painterResource(R.drawable.ic_folder), contentDescription = null) },
-        onClick = { onOpen(SavedDialog.Move) },
-    )
+fun SavedArticleMenuItems(
+    withFolders: Boolean,
+    onOpen: (SavedDialog) -> Unit,
+) {
+    if (withFolders) {
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.instapaper_move_to)) },
+            leadingIcon = { Icon(painterResource(R.drawable.ic_folder), contentDescription = null) },
+            onClick = { onOpen(SavedDialog.Move) },
+        )
+    }
     DropdownMenuItem(
         text = { Text(stringResource(R.string.instapaper_tags)) },
         leadingIcon = { Icon(painterResource(R.drawable.ic_label), contentDescription = null) },
@@ -116,7 +126,7 @@ fun SavedArticleDialog(
             AlertDialog(
                 onDismissRequest = onDismiss,
                 title = { Text(stringResource(R.string.instapaper_delete)) },
-                text = { Text(stringResource(R.string.instapaper_delete_body)) },
+                text = { Text(stringResource(if (saved.account) R.string.instapaper_delete_body else R.string.saved_delete_body)) },
                 confirmButton = {
                     TextButton(onClick = {
                         onDismiss()
@@ -128,7 +138,7 @@ fun SavedArticleDialog(
     }
 }
 
-/** Unread or one of the folders, like choosing a feed's folder. */
+/** Saved or one of the folders, like choosing a feed's folder. */
 @Composable
 private fun MoveDialog(
     saved: SavedArticle,
@@ -163,7 +173,7 @@ private fun MoveDialog(
         title = { Text(stringResource(R.string.instapaper_move_to)) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState())) {
-                option(null, stringResource(R.string.filter_unread))
+                option(null, stringResource(R.string.saved_list))
                 saved.folders.forEach { option(it.id, it.title) }
                 NewFolder(Modifier.padding(top = 8.dp)) { title ->
                     onDismiss()
@@ -255,15 +265,20 @@ private fun TagsEditor(
 }
 
 /**
- * Opens right after a feed article is saved to Instapaper: put it in a folder and tag it at once.
- * Every tap applies straight away; closing the sheet leaves the article as it is (in Unread).
+ * Opens right after a feed article is saved: like it, archive it, put it in a folder (with an
+ * Instapaper account) and tag it at once. Every tap applies straight away; closing the sheet leaves
+ * the article as it is (in Saved).
  */
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun JustSavedSheet(
     bookmark: InstapaperBookmark,
+    /** Saved in the Instapaper account; false when saved on this phone (no folders). */
+    account: Boolean,
     folders: List<InstapaperFolder>,
     tags: List<InstapaperTag>,
+    onLike: () -> Unit,
+    onArchive: () -> Unit,
     onMove: (Long?) -> Unit,
     onMoveToNewFolder: (String) -> Unit,
     onAddTag: (String) -> Unit,
@@ -278,27 +293,49 @@ fun JustSavedSheet(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(
-                stringResource(R.string.instapaper_saved),
+                stringResource(if (account) R.string.instapaper_saved else R.string.saved_done),
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.semantics { heading() },
             )
-            Text(stringResource(R.string.instapaper_folder), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilterChip(
-                    selected = bookmark.folderId == null,
-                    onClick = { if (bookmark.folderId != null) onMove(null) },
-                    label = { Text(stringResource(R.string.filter_unread)) },
+                    selected = bookmark.liked,
+                    onClick = onLike,
+                    label = { Text(stringResource(R.string.instapaper_like)) },
+                    leadingIcon = {
+                        Icon(
+                            painterResource(if (bookmark.liked) R.drawable.ic_favorite_filled else R.drawable.ic_favorite),
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    },
                 )
-                folders.forEach { folder ->
-                    FilterChip(
-                        selected = bookmark.folderId == folder.id,
-                        onClick = { if (bookmark.folderId != folder.id) onMove(folder.id) },
-                        label = { Text(folder.title) },
-                        leadingIcon = { Icon(painterResource(R.drawable.ic_folder), contentDescription = null, modifier = Modifier.size(18.dp)) },
-                    )
-                }
+                FilterChip(
+                    selected = bookmark.archived,
+                    onClick = onArchive,
+                    label = { Text(stringResource(R.string.instapaper_archive)) },
+                    leadingIcon = { Icon(painterResource(R.drawable.ic_archive), contentDescription = null, modifier = Modifier.size(18.dp)) },
+                )
             }
-            NewFolder(onCreate = onMoveToNewFolder)
+            if (account) {
+                Text(stringResource(R.string.instapaper_folder), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(
+                        selected = !bookmark.archived && bookmark.folderId == null,
+                        onClick = { if (bookmark.folderId != null || bookmark.archived) onMove(null) },
+                        label = { Text(stringResource(R.string.saved_list)) },
+                    )
+                    folders.forEach { folder ->
+                        FilterChip(
+                            selected = bookmark.folderId == folder.id,
+                            onClick = { if (bookmark.folderId != folder.id) onMove(folder.id) },
+                            label = { Text(folder.title) },
+                            leadingIcon = { Icon(painterResource(R.drawable.ic_folder), contentDescription = null, modifier = Modifier.size(18.dp)) },
+                        )
+                    }
+                }
+                NewFolder(onCreate = onMoveToNewFolder)
+            }
             Text(stringResource(R.string.instapaper_tags), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
             TagsEditor(bookmark, tags, onAddTag, onRemoveTag)
             Button(onClick = onDismiss, modifier = Modifier.align(Alignment.End)) { Text(stringResource(R.string.action_done)) }

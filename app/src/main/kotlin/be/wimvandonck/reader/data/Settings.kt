@@ -68,9 +68,15 @@ data class ReaderStyle(
     }
 }
 
-/** Where the reader's Save or Share button sends an article: the share menu, or straight to one app. */
+/**
+ * Where the reader's Save or Share button sends an article: this app's own Saved list (Save only),
+ * the share menu, or straight to one app.
+ */
 sealed interface ShareTarget {
     data object Sheet : ShareTarget
+
+    /** Saved in this app (the Saved screen), also without an Instapaper account. Save's default. */
+    data object Saved : ShareTarget
 
     /** A share target of another app; [activityName] picks one when the app has several. */
     data class App(
@@ -82,7 +88,7 @@ sealed interface ShareTarget {
     companion object {
         const val INSTAPAPER_PACKAGE = "com.instapaper.android"
 
-        /** Save's default, as before this setting existed. */
+        /** The Instapaper app, Save's default before the Saved screen worked without an account. */
         val Instapaper: ShareTarget = App(INSTAPAPER_PACKAGE, null, "Instapaper")
 
         private const val SEPARATOR = '\u001F'
@@ -90,6 +96,7 @@ sealed interface ShareTarget {
         fun encode(target: ShareTarget): String =
             when (target) {
                 Sheet -> "sheet"
+                Saved -> "saved"
                 is App -> listOf("app", target.packageName, target.activityName.orEmpty(), target.label).joinToString(SEPARATOR.toString())
             }
 
@@ -101,6 +108,7 @@ sealed interface ShareTarget {
             when (text) {
                 null -> default
                 "sheet", "ShareMenu" -> Sheet
+                "saved" -> Saved
                 "Instapaper" -> Instapaper
                 else -> {
                     val parts = text.split(SEPARATOR)
@@ -118,7 +126,7 @@ sealed interface ShareTarget {
 data class Settings(
     val appearance: Appearance = Appearance(),
     val reader: ReaderStyle = ReaderStyle(),
-    val saveTarget: ShareTarget = ShareTarget.Instapaper,
+    val saveTarget: ShareTarget = ShareTarget.Saved,
     val shareTarget: ShareTarget = ShareTarget.Sheet,
     val unreadOnly: Boolean = true,
     /** Load the whole article from its web page when the feed only has a summary. */

@@ -75,7 +75,7 @@ fun FolderTabs(
 private val MAX_LABEL_WIDTH = 160.dp
 
 /**
- * Scrollable tabs under the top app bar on Instapaper, like the folder tabs on Feeds: Unread, Liked,
+ * Scrollable tabs under the top app bar on Saved, like the folder tabs on Feeds: Saved, Liked,
  * each Instapaper folder, Tags, then Archive. Under Tags, a row of filter chips picks the tag.
  */
 @Composable
@@ -97,7 +97,7 @@ fun InstapaperTabRow(
             tabs.forEach { tab ->
                 val (label, icon) =
                     when (tab) {
-                        InstapaperTab.Unread -> stringResource(R.string.filter_unread) to R.drawable.ic_article
+                        InstapaperTab.Unread -> stringResource(R.string.saved_list) to R.drawable.ic_article
                         InstapaperTab.Liked -> stringResource(R.string.instapaper_liked) to R.drawable.ic_favorite
                         InstapaperTab.Archive -> stringResource(R.string.instapaper_archive_list) to R.drawable.ic_archive
                         is InstapaperTab.Folder -> folders.firstOrNull { it.id == tab.folderId }?.title.orEmpty() to R.drawable.ic_folder

@@ -1,12 +1,27 @@
 # Instapaper
 
 Reader can sign in to the user's own Instapaper account (Instapaper API v2, OAuth 2). Signed in,
-**Save** sends the article straight to the account, and the account's Unread, Liked,
+**Save** sends the article straight to the account, and the account's Saved (Instapaper's Unread), Liked,
 folders, tags and Archive appear in the ☰ menu (web: the sidebar) next to the feeds. Their saved articles
 show in the same list and reader as feed articles (without read state; archiving is an action), and
 ☰ › Manage Instapaper (web: Manage Instapaper in the sidebar) manages its folders and tags.
 Signing in also opens the user's Reader account, which syncs the library (`docs/account.md`). Not signed
-in, Save works as before: Instapaper's app or the share menu (see `usage.md`).
+in, the same **Saved** screen works on the phone itself (`LocalSaved`, see below); the web app needs
+the account.
+
+In the app this section is called **Saved**, with or without an account, and its first list (Instapaper's
+Unread, "home") is called **Saved** too, so it isn't mixed up with unread feed articles.
+
+## Saved without an account (Android)
+
+Signed out, the Saved screen runs on `instapaper/LocalSaved.kt` instead of `InstapaperClient`: the
+same `InstapaperService`, so the lists, Search, the reader's buttons and the sheet after Save behave
+the same. Its articles (address, title, time, liked, archived, tags) are kept on the phone in
+`datastore/saved` as JSON, are part of Android's backup, and are not synced. There are no folders:
+the folder parts of the screens are hidden, and a move to a folder is refused. Tags are created when
+first added and disappear when no article has them any more; renaming a tag to an existing name joins
+the two. Signing in shows the account's articles instead; the ones saved on the phone stay there and
+come back after signing out (they are not copied to Instapaper).
 
 ## How sign-in works
 
