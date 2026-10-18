@@ -2,6 +2,13 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-18: Outlined icons for Instapaper too
+
+The owner noticed Instapaper's icons (Unread, Liked, Archive, folders, tags) were filled while the
+feed folders' icons are outlined. Those icons were older filled Material Icons; they now use the
+same Material Symbols (outlined, rounded) as the folder icons. Filled stays only where it shows a
+state, as Material 3 does: the selected navigation destination and the Like heart once liked.
+
 ## 2026-10-18: Search through the feeds' articles
 
 The owner asked whether a search through feeds and saved articles was possible. Feed articles are

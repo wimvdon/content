@@ -244,7 +244,9 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   last sync or what went wrong, Sync now, Sign out and Delete synced data in the error colour, which
   asks first), Article list, Reader, Save and share (integration), Appearance, footer.
 - Folder icons come from the whole Material Symbols set (outlined, rounded), picked with a search
-  field and a grid in the folder dialog.
+  field and a grid in the folder dialog. The app's other icons (Instapaper's Unread, Liked,
+  Archive, folders and tags included) use the same outlined, rounded style; only an icon that
+  shows something is on is filled (a selected destination, the Like heart once liked).
 - Navigation: signed in to Instapaper, a navigation bar at the bottom (a navigation rail on
   windows 600dp and wider) switches between the two destinations, Feeds (feed symbol) and
   Instapaper (bookmarks, filled when selected); Instapaper returns to the list last shown there.
