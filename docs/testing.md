@@ -108,6 +108,9 @@ and then (always before a release):
 - [ ] **Manage feeds and folders:** drag a feed into another folder and above another feed; drag
       a folder above another; the drawer and folder tabs follow the new order. Tap a feed, rename
       it, refresh: the name stays; clear it: the feed's own name comes back after a refresh.
+- [ ] **Navigation bar:** signed in, a bar at the bottom has Feeds and Instapaper (a rail at the
+      left in landscape on a tablet); Instapaper opens its last list, Feeds the feed section you had;
+      signed out, no bar. The Mark all read button and messages sit above the bar.
 - [ ] **Navigation:** the ☰ drawer has the same sections on Feeds and on an Instapaper list; the
       section you're in is open and the other folded shut (on Feeds: Feeds open, Instapaper shut; on
       an Instapaper list the other way round). Tapping Feeds or Instapaper folds that section shut

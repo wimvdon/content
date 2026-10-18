@@ -245,8 +245,11 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   asks first), Article list, Reader, Save and share (integration), Appearance, footer.
 - Folder icons come from the whole Material Symbols set (outlined, rounded), picked with a search
   field and a grid in the folder dialog.
-- Navigation: the ☰ drawer is the app's one top-level navigation, the same wherever the app is
-  (no navigation bar or rail). Feeds and, signed in, Instapaper are sections in it; each header
+- Navigation: signed in to Instapaper, a navigation bar at the bottom (a navigation rail on
+  windows 600dp and wider) switches between the two destinations, Feeds (feed symbol) and
+  Instapaper (bookmarks, filled when selected); Instapaper returns to the list last shown there.
+  Signed out there is one destination and no bar. The ☰ drawer holds every place, the same
+  wherever the app is: Feeds and, signed in, Instapaper are sections in it; each header
   (Title Small in `primary`, a fold arrow, the unread count while folded) folds its section open
   and shut. The section being shown is open and the other folded shut whenever you move between
   them, so the drawer stays short. Back from an Instapaper list or a feed section goes to All articles.
