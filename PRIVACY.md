@@ -27,6 +27,8 @@ devices stay the same.
   the site's small icon (favicon), and then downloads that icon (from the site, or wherever the
   site says it is, often its image server). If the site names none, its `/favicon.ico` is tried.
   The icon is shown next to the feed's name. These servers see the same as for the feed.
+  A saved article from a website you don't follow shows that website's `/favicon.ico`, loaded from
+  the same website the article itself comes from.
 - **Sync with your Reader account (off unless you sign in with Instapaper).** While the app is
   on screen (when it opens, a second after a change, on refresh, on Sync now, and at once when
   another of your devices changed something; never in the background) it reads and saves one

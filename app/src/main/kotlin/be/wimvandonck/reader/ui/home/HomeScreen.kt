@@ -108,6 +108,7 @@ import be.wimvandonck.reader.instapaper.InstapaperBookmark
 import be.wimvandonck.reader.data.Article
 import be.wimvandonck.reader.data.Feed
 import be.wimvandonck.reader.data.Folder
+import be.wimvandonck.reader.data.Library
 import be.wimvandonck.reader.data.FeedSelection
 import be.wimvandonck.reader.data.ScrollRead
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -147,6 +148,8 @@ data class InstapaperHome(
     /** The chosen Instapaper list, or null while a feed section is shown. */
     val view: InstapaperView?,
     val list: InstapaperUiState,
+    /** The feeds and their articles, so a saved article shows like the feed article it was saved from. */
+    val library: Library? = null,
 )
 
 class HomeActions(
@@ -361,7 +364,7 @@ fun HomeScreen(
                         onRefresh = actions.onRefresh,
                         modifier = Modifier.fillMaxSize(),
                     ) {
-                        SavedList(saved, state.listView, actions)
+                        SavedList(saved, state.listView, state.showImages, actions)
                     }
                 } else {
                 PullToRefreshBox(
@@ -596,6 +599,7 @@ private const val SWIPE_THRESHOLD = 0.3f
 private fun SavedList(
     home: InstapaperHome,
     view: ListView,
+    showImages: Boolean,
     actions: HomeActions,
 ) {
     val list = home.list
@@ -608,11 +612,13 @@ private fun SavedList(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         items(list.items, key = { "saved:${it.id}" }) { bookmark ->
+            val article = remember(bookmark, home.library) { InstapaperLists.article(bookmark, home.library) }
+            val source = remember(bookmark, home.library) { InstapaperLists.source(bookmark, home.library) }
             ArticleRow(
-                article = InstapaperLists.article(bookmark),
-                feed = bookmark.host.takeIf { it.isNotEmpty() }?.let { Feed(url = it, title = it) },
+                article = article,
+                feed = source,
                 view = view,
-                showImage = false,
+                showImage = showImages,
                 showUnreadDot = false,
                 onClick = { actions.onOpenSaved(bookmark) },
                 modifier = Modifier.animateItem(),

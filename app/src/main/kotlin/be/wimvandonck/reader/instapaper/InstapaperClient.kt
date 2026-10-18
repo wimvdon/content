@@ -182,6 +182,7 @@ class InstapaperClient(
                 archived = map["archived"] == true,
                 folderId = map["folder_id"].asLong(),
                 tags = (map["tags"] as? List<*>).orEmpty().mapNotNull(::parseTag),
+                imageUrl = (map["image"] as? String)?.takeIf { it.startsWith("https://") },
             )
         }
 

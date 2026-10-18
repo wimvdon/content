@@ -1,6 +1,6 @@
 import { escapeHtml } from "./html";
 import type { Bookmark, Folder, Tag, View } from "./instapaper";
-import type { Article, Feed } from "./library";
+import type { Article, Feed, Library } from "./library";
 
 /**
  * Instapaper inside the reader: saved articles show in the same list and reader as feed articles.
@@ -12,20 +12,59 @@ export const INSTAPAPER_FEED = "instapaper";
 
 export const isInstapaperArticle = (a: Article) => a.feedUrl === INSTAPAPER_FEED;
 
-/** A saved article as the list and the reader show it. The reader loads the page for the full text. */
-export function bookmarkArticle(b: Bookmark): Article {
+/**
+ * A saved article as the list and the reader show it, the same way as a feed article. When the
+ * library still has the feed article with the same address, its text, author and picture are used
+ * (so the reader shows the feed's text, or the full article, like for a feed); otherwise
+ * Instapaper's description and picture. The reader loads the page for the full text.
+ */
+export function bookmarkArticle(b: Bookmark, library?: Library): Article {
+  const fromFeed = library ? feedArticleOf(b, library) : undefined;
   return {
     feedUrl: INSTAPAPER_FEED,
     id: String(b.id),
-    title: b.title || b.url || "",
+    title: b.title || fromFeed?.title || b.url || "",
     link: webAddress(b.url),
-    html: b.description ? `<p>${escapeHtml(b.description)}</p>` : "",
-    imageUrl: b.image && webAddress(b.image)?.startsWith("https:") ? b.image : null,
-    author: null,
+    html: fromFeed?.html ?? (b.description ? `<p>${escapeHtml(b.description)}</p>` : ""),
+    imageUrl: fromFeed?.imageUrl ?? (b.image && webAddress(b.image)?.startsWith("https:") ? b.image : null),
+    author: fromFeed?.author ?? null,
     publishedAt: b.time * 1000,
     fetchedAt: b.time * 1000,
     read: false,
   };
+}
+
+/** An address without what doesn't change the page (http(s), www., a trailing slash, the #part). */
+export function addressKey(url: string | null): string | null {
+  if (!url?.trim()) return null;
+  return url
+    .trim()
+    .split("#")[0]
+    .replace(/^https?:\/\//i, "")
+    .replace(/^www\./i, "")
+    .replace(/\/+$/, "")
+    .toLowerCase();
+}
+
+/** The feed article with the same address as a saved article, while the library still has it. */
+export function feedArticleOf(b: Bookmark, library: Library): Article | undefined {
+  const address = addressKey(b.url);
+  return address ? library.articles.find((a) => addressKey(a.link) === address) : undefined;
+}
+
+/**
+ * Where a saved article comes from, shown above its title like a feed: the feed it was saved from,
+ * else a feed of the same website, else the website itself with its icon (favicon).
+ */
+export function sourceOf(b: Bookmark, library: Library): Feed | undefined {
+  const host = hostOf(b.url);
+  if (!host) return undefined;
+  const fromFeed = feedArticleOf(b, library);
+  const feed =
+    (fromFeed && library.feeds.find((f) => f.url === fromFeed.feedUrl)) ??
+    library.feeds.find((f) => hostOf(f.siteUrl) === host || hostOf(f.url) === host);
+  if (feed) return feed;
+  return { ...siteOf(host), iconUrl: `https://${new URL(b.url!).hostname}/favicon.ico` };
 }
 
 export const bookmarkId = (a: Article) => Number(a.id);

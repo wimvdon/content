@@ -24,6 +24,8 @@ data class InstapaperBookmark(
     val archived: Boolean,
     val folderId: Long?,
     val tags: List<InstapaperTag>,
+    /** The article's picture, when Instapaper found one (https only). */
+    val imageUrl: String? = null,
 ) {
     /** The address to open, only when it is a web address (so a saved item can't carry a script). */
     val link: String? get() = url?.takeIf { it.startsWith("https://") || it.startsWith("http://") }

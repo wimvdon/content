@@ -388,7 +388,7 @@ fun RssReaderNavigation() {
                                 showImages = current.showImages,
                                 instapaper =
                                     instapaperUi?.let { ui ->
-                                        InstapaperHome(folders = ui.folders, tags = ui.tags, view = instapaperView, list = ui)
+                                        InstapaperHome(folders = ui.folders, tags = ui.tags, view = instapaperView, list = ui, library = library)
                                     },
                             ),
                         snackbarHostState = snackbar,
@@ -467,7 +467,7 @@ fun RssReaderNavigation() {
                     // A saved Instapaper article ("instapaper <id>") comes from the Instapaper model.
                     val savedKey = screen.articleKey.startsWith(InstapaperLists.FEED + " ")
                     val bookmark = if (savedKey) instapaperUi?.open?.takeIf { InstapaperLists.article(it).key == screen.articleKey } else null
-                    val article = if (savedKey) bookmark?.let(InstapaperLists::article) else library.article(screen.articleKey)
+                    val article = if (savedKey) bookmark?.let { InstapaperLists.article(it, library) } else library.article(screen.articleKey)
                     // The full article loads by itself when the setting is on and the feed only has a
                     // summary; the reader's menu switches between the two (null: follow the setting).
                     var fullTextChoice by rememberSaveable(screen.articleKey) { mutableStateOf<Boolean?>(null) }
@@ -495,7 +495,7 @@ fun RssReaderNavigation() {
                             article = article,
                             feed =
                                 if (savedKey) {
-                                    bookmark?.host?.takeIf { it.isNotEmpty() }?.let { Feed(url = it, title = it) }
+                                    bookmark?.let { InstapaperLists.source(it, library) }
                                 } else {
                                     article?.let { library.feed(it.feedUrl) }
                                 },
@@ -645,6 +645,7 @@ fun RssReaderNavigation() {
                                 showImages = current.showImages,
                                 saved = instapaper?.let { SavedSearchState(loading = saved == null, incomplete = saved?.incomplete == true) },
                                 filter = searchFilter,
+                                library = library,
                             ),
                         actions =
                             SearchActions(

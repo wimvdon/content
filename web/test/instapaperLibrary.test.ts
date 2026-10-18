@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Bookmark } from "../src/lib/instapaper";
-import { applyChange, bookmarkArticle, hostOf, inView, INSTAPAPER_FEED, viewTitle } from "../src/lib/instapaperLibrary";
+import { addressKey, applyChange, bookmarkArticle, hostOf, inView, INSTAPAPER_FEED, sourceOf, viewTitle } from "../src/lib/instapaperLibrary";
 import { articleKey, articlesFor, emptyLibrary } from "../src/lib/library";
 
 const bookmark = (id: number, change: Partial<Bookmark> = {}): Bookmark => ({
@@ -60,5 +60,47 @@ describe("Instapaper in the reader", () => {
     expect(viewTitle({ kind: "folder", id: 2 }, [{ id: 2, title: "Later", slug: "later", position: 1, public: false, count: 0 }], names)).toBe("Later");
     expect(viewTitle({ kind: "tag", name: "ai" }, [], names)).toBe("ai");
     expect(viewTitle({ kind: "archive" }, [], names)).toBe("Archive");
+  });
+});
+
+describe("saved articles shown like feed articles", () => {
+  const feed = { url: "https://site.example/rss", title: "Site News", siteUrl: "https://www.site.example/", folderId: null, iconUrl: "https://site.example/icon.png", renamed: false };
+  const fromFeed = {
+    feedUrl: feed.url,
+    id: "x",
+    title: "From the feed",
+    link: "http://site.example/7/#top",
+    author: "Ann",
+    html: "<p>The feed's whole text</p>",
+    publishedAt: 1,
+    fetchedAt: 1,
+    read: false,
+    imageUrl: "https://site.example/7.jpg",
+  };
+  const lib = { ...emptyLibrary(), feeds: [feed], articles: [fromFeed] };
+
+  it("uses the feed article with the same address, and its feed", () => {
+    const b = bookmark(7, { url: "https://www.site.example/7" });
+    const a = bookmarkArticle(b, lib);
+    expect(a.html).toBe("<p>The feed's whole text</p>");
+    expect(a.imageUrl).toBe("https://site.example/7.jpg");
+    expect(a.author).toBe("Ann");
+    expect(articleKey(a)).toBe(`${INSTAPAPER_FEED} 7`);
+    expect(sourceOf(b, lib)).toBe(feed);
+  });
+
+  it("otherwise keeps its description, under its website's feed or its favicon", () => {
+    const other = bookmark(8, { url: "https://www.site.example/8" });
+    expect(bookmarkArticle(other, lib).html).toContain("summary");
+    expect(sourceOf(other, lib)).toBe(feed);
+    const elsewhere = bookmark(9, { url: "https://www.elsewhere.example/a" });
+    expect(sourceOf(elsewhere, lib)?.title).toBe("elsewhere.example");
+    expect(sourceOf(elsewhere, lib)?.iconUrl).toBe("https://www.elsewhere.example/favicon.ico");
+    expect(sourceOf(bookmark(10, { url: null }), lib)).toBeUndefined();
+  });
+
+  it("matches addresses without http, www, a trailing slash or the part after #", () => {
+    expect(addressKey("https://www.Site.example/a/")).toBe(addressKey("http://site.example/a#x"));
+    expect(addressKey(" ")).toBeNull();
   });
 });

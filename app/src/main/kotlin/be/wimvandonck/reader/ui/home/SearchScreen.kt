@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import be.wimvandonck.reader.R
 import be.wimvandonck.reader.data.Article
 import be.wimvandonck.reader.data.Feed
+import be.wimvandonck.reader.data.Library
 import be.wimvandonck.reader.data.ListView
 import be.wimvandonck.reader.data.SearchFilter
 import be.wimvandonck.reader.data.SearchHit
@@ -62,6 +63,8 @@ data class SearchState(
     /** Saved articles are searched too (always, unless they couldn't be read), with chips to pick the kind. */
     val saved: SavedSearchState? = null,
     val filter: SearchFilter = SearchFilter.All,
+    /** So saved results show like the feed article they were saved from. */
+    val library: Library? = null,
 )
 
 /** How searching the saved articles goes. */
@@ -180,10 +183,10 @@ fun SearchScreen(
                                     )
                                 is SearchHit.FromSaved ->
                                     ArticleRow(
-                                        article = InstapaperLists.article(hit.bookmark),
-                                        feed = hit.bookmark.host.takeIf { it.isNotEmpty() }?.let { Feed(url = it, title = it) },
+                                        article = InstapaperLists.article(hit.bookmark, state.library),
+                                        feed = InstapaperLists.source(hit.bookmark, state.library),
                                         view = state.listView,
-                                        showImage = false,
+                                        showImage = state.showImages,
                                         showUnreadDot = false,
                                         label = savedLabel,
                                         onClick = { actions.onOpenSaved(hit.bookmark) },
