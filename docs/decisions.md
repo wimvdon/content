@@ -2,6 +2,18 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-18: View settings stay on each device (#96)
+
+The owner asked that view settings stop syncing: people often want a different view on a
+different device (small cards on the phone, large ones on a tablet, sepia in one place only). The
+sync file now carries only the settings about what the app does, Load full articles and Mark as
+read on scroll. The theme, dynamic colour, the reader's font, size, spacing, page colour and
+automatic dark page, Show images and the list view stay where they were set. Their old names are
+dropped from the file and ignored when an older version still writes them, so an old phone can't
+overwrite a new one's view. Rejected: a switch to choose between synced and per-device view (more
+settings for a case nobody asked for). Show images went with the view settings because it is
+mostly chosen per device (to save data on a phone).
+
 ## 2026-10-18: The web app has the same features as Android
 
 The owner asked for feature parity between the web app and Android, and for a look back at what

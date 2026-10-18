@@ -28,11 +28,32 @@ class SyncSettingsTest {
     @Test
     fun `settings go to shared names and come back the same`() {
         val values = SyncSettings.of(custom)
-        assertEquals("dark", values[SyncSettings.THEME])
-        assertEquals("sepia", values[SyncSettings.READER_BACKGROUND])
-        assertEquals("22", values[SyncSettings.READER_TEXT_SIZE])
-        assertEquals("large", values[SyncSettings.LIST_VIEW])
-        assertEquals(custom.copy(saveTarget = Settings().saveTarget, unreadOnly = Settings().unreadOnly), SyncSettings.applyTo(Settings(), values))
+        assertEquals(mapOf(SyncSettings.FULL_ARTICLES to "false", SyncSettings.MARK_READ_ON_SCROLL to "true"), values)
+        val applied = SyncSettings.applyTo(Settings(), values)
+        assertEquals(false, applied.fullArticles)
+        assertEquals(true, applied.markReadOnScroll)
+    }
+
+    @Test
+    fun `view settings stay on each device`() {
+        val values = SyncSettings.of(custom)
+        assertFalse(values.keys.any { it in SyncSettings.DROPPED_VIEW })
+        // Another device, or an older version, still writing them changes nothing here.
+        val fromOlder =
+            mapOf(
+                "theme" to "light", "dynamicColor" to "false", "reader.font" to "serif", "reader.textSize" to "16",
+                "reader.spacing" to "compact", "reader.background" to "default", "reader.autoDark" to "false",
+                "showImages" to "true", "listView" to "small",
+            )
+        assertEquals(custom, SyncSettings.applyTo(custom, fromOlder))
+    }
+
+    @Test
+    fun `view settings that older versions synced are dropped from the file`() {
+        val base = mapOf("theme" to "light", "listView" to "small", "reader.font" to "serif", "web.only" to "x")
+        val values = SyncSettings.of(custom, base)
+        assertFalse(values.keys.any { it in SyncSettings.DROPPED_VIEW })
+        assertEquals("x", values["web.only"])
     }
 
     @Test
@@ -43,19 +64,18 @@ class SyncSettingsTest {
 
     @Test
     fun `names this app doesn't know are kept, its own come from the device`() {
-        val base = mapOf("web.only" to "x", SyncSettings.THEME to "light")
+        val base = mapOf("web.only" to "x", SyncSettings.FULL_ARTICLES to "true")
         val values = SyncSettings.of(custom, base)
         assertEquals("x", values["web.only"])
-        assertEquals("dark", values[SyncSettings.THEME])
+        assertEquals("false", values[SyncSettings.FULL_ARTICLES])
     }
 
     @Test
     fun `bad or missing values change nothing`() {
-        val values = mapOf(SyncSettings.THEME to "purple", SyncSettings.READER_TEXT_SIZE to "99", SyncSettings.FULL_ARTICLES to "yes")
+        val values = mapOf(SyncSettings.FULL_ARTICLES to "yes", SyncSettings.MARK_READ_ON_SCROLL to "1")
         val applied = SyncSettings.applyTo(custom, values)
-        assertEquals(ThemeMode.Dark, applied.appearance.themeMode)
-        assertEquals(ReaderStyle.MAX_TEXT_SIZE, applied.reader.textSize)
         assertEquals(false, applied.fullArticles)
+        assertEquals(true, applied.markReadOnScroll)
         assertEquals(custom, SyncSettings.applyTo(custom, emptyMap()))
     }
 
