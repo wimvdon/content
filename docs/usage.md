@@ -61,7 +61,9 @@ Sign in with Instapaper (Settings › **Account** › **Sign in with Instapaper*
 phone and in the web app, and your feeds, folders, read articles and settings stay the same on all
 of them. Reader keeps them in your Reader account on its own server, encrypted. A phone signing in
 for the first time combines its feeds with the account's and takes the settings you already have.
-The Save and Share apps stay per phone.
+Only Load full articles and Mark as read on scroll sync. How the app looks (theme, the reader's
+font, size, spacing and page colour, Show images and the list view) stays on each device, so a
+phone and a laptop can each have their own. The Save and Share apps stay per phone too.
 
 The app syncs while it is on screen: when you open it, **at once when another device changes
 something** (an article read on the laptop turns read on the phone within a second or two), about a

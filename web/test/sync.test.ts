@@ -142,20 +142,28 @@ describe("synced settings", () => {
   });
 
   it("use the same names and values as the Android app and come back the same", () => {
-    const values = SS.syncedSettings(settings);
-    expect(values).toMatchObject({ theme: "dark", "reader.font": "sans", "reader.textSize": "22", "reader.background": "default", fullArticles: "false", showImages: "false", listView: "large" });
-    expect(SS.applySynced(defaultSettings, values)).toEqual(settings);
+    const values = SS.syncedSettings({ ...settings, markReadOnScroll: true });
+    expect(values).toEqual({ fullArticles: "false", markReadOnScroll: "true" });
+    const applied = SS.applySynced(defaultSettings, values);
+    expect(applied.fullArticles).toBe(false);
+    expect(applied.markReadOnScroll).toBe(true);
   });
 
-  it("keep Android-only names and ignore bad values", () => {
-    const values = SS.syncedSettings(settings, { dynamicColor: "true", theme: "light" });
-    expect(values.dynamicColor).toBe("true");
-    expect(values.theme).toBe("dark");
-    const applied = SS.applySynced(settings, { theme: "purple", "reader.textSize": "99", fullArticles: "yes", listView: "huge" });
-    expect(applied.listView).toBe(settings.listView);
-    expect(applied.theme).toBe("dark");
-    expect(applied.readerStyle.textSize).toBe(28);
+  it("keep view settings in each browser, and drop the ones older versions synced", () => {
+    const values = SS.syncedSettings(settings, { theme: "light", listView: "small", "reader.font": "serif", "web.only": "x" });
+    expect(Object.keys(values).some((k) => SS.DROPPED_VIEW.has(k))).toBe(false);
+    expect(values["web.only"]).toBe("x");
+    const fromOlder = { theme: "light", "reader.font": "serif", "reader.textSize": "16", "reader.background": "sepia", showImages: "true", listView: "small" };
+    expect(SS.applySynced(settings, fromOlder)).toEqual(settings);
+  });
+
+  it("keep names the web app doesn't know and ignore bad values", () => {
+    const values = SS.syncedSettings(settings, { "android.only": "true", fullArticles: "true" });
+    expect(values["android.only"]).toBe("true");
+    expect(values.fullArticles).toBe("false");
+    const applied = SS.applySynced(settings, { fullArticles: "yes", markReadOnScroll: "1" });
     expect(applied.fullArticles).toBe(false);
+    expect(applied.markReadOnScroll).toBe(settings.markReadOnScroll);
   });
 
   it("drop the Instapaper sign-in that older versions synced", () => {

@@ -35,8 +35,9 @@ devices stay the same.
   document in your account on the owner's feed loader (a Cloudflare Worker, built from `worker/`,
   at rss-reader-worker.wim-d57.workers.dev). The document holds your feed list (addresses, names,
   folders, website and icon addresses), your folders, which articles you read in the last 120 days
-  (feed address, article id and date) and your settings (theme, text settings, full articles,
-  pictures, list view, the Unread filter, mark as read on scroll; not the Save and Share targets).
+  (feed address, article id and date) and two settings (Load full articles and Mark as read on
+  scroll; not the view settings such as theme, text settings, pictures and list view, the Unread
+  filter, or the Save and Share targets, which stay on each device).
   It does not hold article texts, your Instapaper token or your Instapaper password. While the app
   is on screen it also keeps a connection open to the feed loader that only says when the document
   changed. The document is stored compressed and encrypted (AES-256-GCM, with a key for your account
