@@ -46,12 +46,14 @@ import be.wimvandonck.reader.instapaper.InstapaperLists
 import be.wimvandonck.reader.data.AddFeedResult
 import be.wimvandonck.reader.data.Article
 import be.wimvandonck.reader.data.ArticleSearch
+import be.wimvandonck.reader.data.MixedSearch
+import be.wimvandonck.reader.data.SearchFilter
 import be.wimvandonck.reader.instapaper.SavedArticles
 import be.wimvandonck.reader.instapaper.SavedSearch
-import be.wimvandonck.reader.ui.home.SavedResults
 import be.wimvandonck.reader.ui.home.SearchActions
 import be.wimvandonck.reader.ui.home.SearchScreen
 import be.wimvandonck.reader.ui.home.SearchState
+import be.wimvandonck.reader.ui.home.SavedSearchState
 import be.wimvandonck.reader.data.FeedSelection
 import be.wimvandonck.reader.data.FullArticle
 import be.wimvandonck.reader.data.Library
@@ -224,6 +226,8 @@ fun RssReaderNavigation() {
 
     // What was typed in Search; kept while reading a result, so Back returns to the same results.
     var searchQuery by rememberSaveable { mutableStateOf("") }
+    // Which kind of results Search shows (the chips): all, only feeds or only saved.
+    var searchFilter by rememberSaveable { mutableStateOf(SearchFilter.All) }
     // The saved Instapaper articles Search reads; read again each time Search is opened from the list.
     var savedForSearch by remember(instapaper) { mutableStateOf<SavedArticles?>(null) }
 
@@ -452,6 +456,7 @@ fun RssReaderNavigation() {
                                 onOpenInstapaperManage = { push(Screen.InstapaperManage) },
                                 onOpenSearch = {
                                     savedForSearch = null
+                                    searchFilter = SearchFilter.All
                                     push(Screen.Search)
                                 },
                             ),
@@ -616,8 +621,9 @@ fun RssReaderNavigation() {
                     SystemBarsFollowTheme(appDark)
                     // Preparing every article's text takes a moment with many feeds: off the main thread.
                     val search by produceState<ArticleSearch?>(null, library) { value = withContext(Dispatchers.Default) { ArticleSearch(library) } }
-                    val results = remember(search, searchQuery) { search?.search(searchQuery) }
-                    // Instapaper can't search, so its saved articles are read once and searched here.
+                    val feedMatches = remember(search, searchQuery) { search?.search(searchQuery) }
+                    // Saved can't be searched where it is kept (Instapaper has no search), so its
+                    // articles are read once and searched here, with or without an account.
                     LaunchedEffect(instapaper) {
                         if (instapaper != null && savedForSearch == null) {
                             savedForSearch = instapaper.loadForSearch() ?: SavedArticles(emptyList(), incomplete = true)
@@ -625,6 +631,10 @@ fun RssReaderNavigation() {
                     }
                     val saved = savedForSearch
                     val savedMatches = remember(saved, searchQuery) { saved?.let { SavedSearch.search(it.bookmarks, searchQuery) } }
+                    val results =
+                        remember(feedMatches, savedMatches, searchQuery, searchFilter) {
+                            feedMatches?.let { MixedSearch.mix(searchQuery, it, savedMatches.orEmpty(), searchFilter) }
+                        }
                     SearchScreen(
                         state =
                             SearchState(
@@ -633,14 +643,13 @@ fun RssReaderNavigation() {
                                 feeds = library.feeds,
                                 listView = current.listView,
                                 showImages = current.showImages,
-                                instapaper =
-                                    instapaper?.let {
-                                        SavedResults(savedMatches, incomplete = saved?.incomplete == true, first = instapaperView != null)
-                                    },
+                                saved = instapaper?.let { SavedSearchState(loading = saved == null, incomplete = saved?.incomplete == true) },
+                                filter = searchFilter,
                             ),
                         actions =
                             SearchActions(
                                 onQueryChange = { searchQuery = it },
+                                onFilterChange = { searchFilter = it },
                                 onOpenArticle = { article -> push(Screen.Reader(article.key)) },
                                 onOpenSaved = { bookmark ->
                                     instapaper?.open(bookmark)

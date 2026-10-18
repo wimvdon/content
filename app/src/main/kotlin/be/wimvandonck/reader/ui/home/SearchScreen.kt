@@ -3,7 +3,7 @@ package be.wimvandonck.reader.ui.home
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,6 +14,8 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -34,48 +36,54 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import be.wimvandonck.reader.R
 import be.wimvandonck.reader.data.Article
 import be.wimvandonck.reader.data.Feed
 import be.wimvandonck.reader.data.ListView
+import be.wimvandonck.reader.data.SearchFilter
+import be.wimvandonck.reader.data.SearchHit
 import be.wimvandonck.reader.instapaper.InstapaperBookmark
 import be.wimvandonck.reader.instapaper.InstapaperLists
 import be.wimvandonck.reader.ui.theme.EmptyState
 import be.wimvandonck.reader.ui.theme.readableWidth
 
-/** What the search screen shows. [results] is null while the articles are being prepared for searching. */
+/**
+ * What the search screen shows. [results] is null while the articles are being prepared for
+ * searching; feed and saved matches are mixed in one list, best first (MixedSearch).
+ */
 data class SearchState(
     val query: String,
-    val results: List<Article>?,
+    val results: List<SearchHit>?,
     val feeds: List<Feed>,
     val listView: ListView,
     val showImages: Boolean,
-    /** Signed in to Instapaper: its saved articles are searched too, in a section of their own. */
-    val instapaper: SavedResults? = null,
+    /** Saved articles are searched too (always, unless they couldn't be read), with chips to pick the kind. */
+    val saved: SavedSearchState? = null,
+    val filter: SearchFilter = SearchFilter.All,
 )
 
-/** The saved articles that match. [matches] is null while the saved articles are being read. */
-data class SavedResults(
-    val matches: List<InstapaperBookmark>?,
+/** How searching the saved articles goes. */
+data class SavedSearchState(
+    /** The saved articles are still being read. */
+    val loading: Boolean = false,
+    /** Instapaper stopped answering part way, so some saved articles weren't searched. */
     val incomplete: Boolean = false,
-    /** Search was opened from Instapaper, so its section comes first. */
-    val first: Boolean = false,
 )
 
 class SearchActions(
     val onQueryChange: (String) -> Unit,
+    val onFilterChange: (SearchFilter) -> Unit = {},
     val onOpenArticle: (Article) -> Unit,
     val onOpenSaved: (InstapaperBookmark) -> Unit = {},
     val onBack: () -> Unit,
 )
 
 /**
- * Searches everything: the articles of every feed and, signed in, the saved Instapaper articles. A
- * search field in the top bar, the matches below it (in a section for each when both are searched).
+ * Searches everything: the articles of every feed and the saved articles. A search field in the top
+ * bar, chips to show all results, only feeds or only saved, and the matches below, mixed and best
+ * first, each labelled Feed or Saved.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -126,10 +134,20 @@ fun SearchScreen(
             )
         },
     ) { innerPadding ->
-        Box(Modifier.fillMaxSize().padding(innerPadding)) {
+        Column(Modifier.fillMaxSize().padding(innerPadding)) {
             val results = state.results
-            val saved = state.instapaper
-            val savedMatches = saved?.matches
+            val saved = state.saved
+            if (saved != null) FilterRow(state.filter, actions.onFilterChange)
+            if (saved?.loading == true && results != null && state.query.isNotBlank()) {
+                Row(
+                    Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                    Note(stringResource(R.string.search_saved_loading))
+                }
+            }
             when {
                 results == null -> LinearProgressIndicator(Modifier.fillMaxWidth())
                 state.query.isBlank() ->
@@ -138,65 +156,41 @@ fun SearchScreen(
                     } else {
                         EmptyState(painterResource(R.drawable.ic_search), stringResource(R.string.search_start_title_saved), body = stringResource(R.string.search_start_body_saved))
                     }
-                results.isEmpty() && (saved == null || savedMatches?.isEmpty() == true && !saved.incomplete) ->
+                results.isEmpty() && saved?.loading != true && saved?.incomplete != true ->
                     EmptyState(painterResource(R.drawable.ic_search), stringResource(R.string.search_none_title), body = stringResource(R.string.search_none_body))
                 else -> {
                     val feedsByUrl = remember(state.feeds) { state.feeds.associateBy { it.url } }
+                    val feedLabel = stringResource(R.string.search_label_feed)
+                    val savedLabel = stringResource(R.string.section_saved)
                     LazyColumn(
                         modifier = Modifier.fillMaxSize().readableWidth(),
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        fun feedSection() {
-                            if (saved != null) {
-                                item(key = "feeds") { SectionTitle(stringResource(R.string.feeds_title)) }
-                                if (results.isEmpty()) item(key = "feeds-none") { Note(stringResource(R.string.search_section_none)) }
-                            }
-                            items(results, key = { it.key }) { article ->
-                                ArticleRow(
-                                    article = article,
-                                    feed = feedsByUrl[article.feedUrl],
-                                    view = state.listView,
-                                    showImage = state.showImages,
-                                    onClick = { actions.onOpenArticle(article) },
-                                )
+                        items(results, key = { hit -> hit.key }) { hit ->
+                            when (hit) {
+                                is SearchHit.FromFeed ->
+                                    ArticleRow(
+                                        article = hit.article,
+                                        feed = feedsByUrl[hit.article.feedUrl],
+                                        view = state.listView,
+                                        showImage = state.showImages,
+                                        label = feedLabel.takeIf { saved != null },
+                                        onClick = { actions.onOpenArticle(hit.article) },
+                                    )
+                                is SearchHit.FromSaved ->
+                                    ArticleRow(
+                                        article = InstapaperLists.article(hit.bookmark),
+                                        feed = hit.bookmark.host.takeIf { it.isNotEmpty() }?.let { Feed(url = it, title = it) },
+                                        view = state.listView,
+                                        showImage = false,
+                                        showUnreadDot = false,
+                                        label = savedLabel,
+                                        onClick = { actions.onOpenSaved(hit.bookmark) },
+                                    )
                             }
                         }
-
-                        fun savedSection() {
-                            if (saved == null) return
-                            item(key = "saved") { SectionTitle(stringResource(R.string.section_saved)) }
-                            when {
-                                savedMatches == null ->
-                                    item(key = "saved-loading") {
-                                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                            CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
-                                            Note(stringResource(R.string.search_saved_loading))
-                                        }
-                                    }
-                                savedMatches.isEmpty() -> item(key = "saved-none") { Note(stringResource(R.string.search_section_none)) }
-                                else ->
-                                    items(savedMatches, key = { "saved:${it.id}" }) { bookmark ->
-                                        ArticleRow(
-                                            article = InstapaperLists.article(bookmark),
-                                            feed = bookmark.host.takeIf { it.isNotEmpty() }?.let { Feed(url = it, title = it) },
-                                            view = state.listView,
-                                            showImage = false,
-                                            showUnreadDot = false,
-                                            onClick = { actions.onOpenSaved(bookmark) },
-                                        )
-                                    }
-                            }
-                            if (saved.incomplete) item(key = "saved-incomplete") { Note(stringResource(R.string.search_saved_incomplete)) }
-                        }
-
-                        if (saved?.first == true) {
-                            savedSection()
-                            feedSection()
-                        } else {
-                            feedSection()
-                            savedSection()
-                        }
+                        if (saved?.incomplete == true) item(key = "saved-incomplete") { Note(stringResource(R.string.search_saved_incomplete)) }
                     }
                 }
             }
@@ -204,15 +198,42 @@ fun SearchScreen(
     }
 }
 
-/** A section's name above its matches: Feeds or Instapaper. */
+/** A unique key for the list: feed articles by their key, saved ones by their id. */
+private val SearchHit.key: String
+    get() =
+        when (this) {
+            is SearchHit.FromFeed -> article.key
+            is SearchHit.FromSaved -> "saved:${bookmark.id}"
+        }
+
+/** All, Feeds or Saved: filter chips above the results, as Material places chips that filter a list. */
 @Composable
-private fun SectionTitle(text: String) {
-    Text(
-        text,
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp).semantics { heading() },
-    )
+private fun FilterRow(
+    filter: SearchFilter,
+    onChange: (SearchFilter) -> Unit,
+) {
+    Row(
+        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        listOf(
+            SearchFilter.All to R.string.filter_all,
+            SearchFilter.Feeds to R.string.feeds_title,
+            SearchFilter.Saved to R.string.section_saved,
+        ).forEach { (option, label) ->
+            FilterChip(
+                selected = filter == option,
+                onClick = { onChange(option) },
+                label = { Text(stringResource(label)) },
+                leadingIcon =
+                    if (filter == option) {
+                        { Icon(painterResource(R.drawable.ic_check), contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) }
+                    } else {
+                        null
+                    },
+            )
+        }
+    }
 }
 
 @Composable

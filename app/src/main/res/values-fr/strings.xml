@@ -217,7 +217,8 @@
     <string name="search_start_body">Trouve des mots dans les titres et le texte des articles de vos flux.</string>
     <string name="search_none_title">Aucun résultat</string>
     <string name="search_none_body">Aucun article ne contient tous ces mots.</string>
-    <string name="search_start_title_saved">Rechercher dans les flux et Instapaper</string>
+    <string name="search_start_title_saved">Rechercher dans vos flux et articles enregistrés</string>
+    <string name="search_label_feed">Flux</string>
     <string name="search_start_body_saved">Trouve des mots dans les articles de vos flux, et dans les titres, descriptions et étiquettes de vos articles enregistrés.</string>
     <string name="search_saved_loading">Recherche dans vos articles enregistrés…</string>
     <string name="search_section_none">Aucun résultat</string>

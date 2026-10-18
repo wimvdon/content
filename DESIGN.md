@@ -252,8 +252,9 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   Saved (bookmarks, filled when selected), with or without an Instapaper account; Saved returns to
   the list last shown there. Search is an action in the top bar of both
   destinations (a magnifier) that opens one search page for
-  everything: the field in its top bar, results as article rows, under two section
-  headers (Feeds, Saved; the destination you came from first). It is not a navigation bar
+  everything: the field in its top bar, a row of filter chips (All, Feeds, Saved) above the results,
+  and the results as one list of article rows ranked by relevance, each with a small label (Feed or
+  Saved). The web app has the same search in place of the list. It is not a navigation bar
   item: it acts on the content of both destinations rather than being a place of its own. The ☰
   drawer holds every place, the same wherever the app is: Feeds and Saved are sections in it; each header
   (Title Small in `primary`, a fold arrow, the unread count while folded) folds its section open

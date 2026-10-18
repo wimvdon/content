@@ -2,6 +2,19 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-18: Search results in one list, ranked, with chips; search on the web too
+
+The owner asked to mix feed and saved results, ranked by relevance and labelled, with filter chips
+for the kind of content (#83), and for the web app to match Android. Search now shows one list
+(`MixedSearch`, web `search.ts`): the whole query in the title scores highest, each word of it in
+the title next, matches only in the text last; equal scores go newest first. A small label on each
+row says Feed or Saved, and filter chips (All, Feeds, Saved) sit above the results, where Material 3
+puts chips that filter a list. The web app had no search; it now has the same one, opened with the
+magnifier in both lists or the / key, in place of the list. Rejected: a full-text relevance score
+(word counts, TF-IDF): saved articles only have a title and description, so their text can't be
+weighed against a feed article's whole text; titles compare fairly. Sections per kind (the old
+layout) are what the owner asked to replace.
+
 ## 2026-10-18: Signing in copies the locally saved articles to Instapaper (and Saved on the web)
 
 The owner found that articles saved without an account seemed gone after signing in (#88), and asked

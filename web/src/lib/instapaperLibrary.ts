@@ -1,6 +1,6 @@
 import { escapeHtml } from "./html";
 import type { Bookmark, Folder, Tag, View } from "./instapaper";
-import type { Article } from "./library";
+import type { Article, Feed } from "./library";
 
 /**
  * Instapaper inside the reader: saved articles show in the same list and reader as feed articles.
@@ -116,3 +116,6 @@ export function viewTitle(view: View, folders: Folder[], names: { home: string; 
       return view.name;
   }
 }
+
+/** The website of a saved article, shown where a feed's name goes (with its first letter as icon). */
+export const siteOf = (host: string): Feed => ({ url: host, title: host, siteUrl: null, folderId: null, iconUrl: null, renamed: false });
