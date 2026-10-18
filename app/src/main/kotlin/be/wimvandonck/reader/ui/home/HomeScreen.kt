@@ -170,6 +170,8 @@ class HomeActions(
     /** The navigation bar's destinations (shown when signed in to Instapaper). */
     val onShowFeeds: () -> Unit = {},
     val onShowInstapaper: () -> Unit = {},
+    /** Opens the search through every feed's articles. */
+    val onOpenSearch: () -> Unit = {},
 )
 
 /** The article list, with the feeds in a navigation drawer. */
@@ -286,6 +288,9 @@ fun HomeScreen(
                             },
                             actions = {
                                 if (state.feeds.isNotEmpty() && savedView == null) {
+                                    IconButton(onClick = actions.onOpenSearch) {
+                                        Icon(painterResource(R.drawable.ic_search), contentDescription = stringResource(R.string.action_search))
+                                    }
                                     ReadFilter(
                                         unreadOnly = state.unreadOnly,
                                         onUnreadOnlyChange = actions.onUnreadOnlyChange,
@@ -638,7 +643,7 @@ fun instapaperViewTitle(
     }
 
 @Composable
-private fun ArticleRow(
+internal fun ArticleRow(
     article: Article,
     feed: Feed?,
     view: ListView,

@@ -14,6 +14,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.Saver
@@ -44,6 +45,10 @@ import be.wimvandonck.reader.instapaper.InstapaperView
 import be.wimvandonck.reader.instapaper.InstapaperLists
 import be.wimvandonck.reader.data.AddFeedResult
 import be.wimvandonck.reader.data.Article
+import be.wimvandonck.reader.data.ArticleSearch
+import be.wimvandonck.reader.ui.home.SearchActions
+import be.wimvandonck.reader.ui.home.SearchScreen
+import be.wimvandonck.reader.ui.home.SearchState
 import be.wimvandonck.reader.data.FeedSelection
 import be.wimvandonck.reader.data.FullArticle
 import be.wimvandonck.reader.data.Library
@@ -90,6 +95,9 @@ sealed interface Screen {
     /** Manage Instapaper: its folders and tags. */
     data object InstapaperManage : Screen
 
+    /** Search through every feed's articles. */
+    data object Search : Screen
+
     companion object {
         fun encode(screen: Screen): String =
             when (screen) {
@@ -97,6 +105,7 @@ sealed interface Screen {
                 Settings -> "settings"
                 Feeds -> "feeds"
                 InstapaperManage -> "instapaper"
+                Search -> "search"
                 is Reader -> "reader:" + screen.articleKey
             }
 
@@ -105,6 +114,7 @@ sealed interface Screen {
                 text == "settings" -> Settings
                 text == "feeds" -> Feeds
                 text == "instapaper" -> InstapaperManage
+                text == "search" -> Search
                 text.startsWith("reader:") -> Reader(text.removePrefix("reader:"))
                 else -> Home
             }
@@ -196,6 +206,9 @@ fun RssReaderNavigation() {
             }
         }
     }
+
+    // What was typed in Search; kept while reading a result, so Back returns to the same results.
+    var searchQuery by rememberSaveable { mutableStateOf("") }
 
     // Add feed dialog, shared by the list, the drawer and Settings.
     var addDialogOpen by rememberSaveable { mutableStateOf(false) }
@@ -411,6 +424,7 @@ fun RssReaderNavigation() {
                                 onOpenSettings = { push(Screen.Settings) },
                                 onOpenFeeds = { push(Screen.Feeds) },
                                 onOpenInstapaperManage = { push(Screen.InstapaperManage) },
+                                onOpenSearch = { push(Screen.Search) },
                             ),
                     )
                 }
@@ -563,6 +577,29 @@ fun RssReaderNavigation() {
                                 onRemoveFolder = { folder -> app.appScope.launch { repository.removeFolder(folder.id) } },
                                 onImportOpml = importOpml,
                                 onExportOpml = exportOpml,
+                            ),
+                    )
+                }
+
+                Screen.Search -> {
+                    SystemBarsFollowTheme(appDark)
+                    // Preparing every article's text takes a moment with many feeds: off the main thread.
+                    val search by produceState<ArticleSearch?>(null, library) { value = withContext(Dispatchers.Default) { ArticleSearch(library) } }
+                    val results = remember(search, searchQuery) { search?.search(searchQuery) }
+                    SearchScreen(
+                        state =
+                            SearchState(
+                                query = searchQuery,
+                                results = results,
+                                feeds = library.feeds,
+                                listView = current.listView,
+                                showImages = current.showImages,
+                            ),
+                        actions =
+                            SearchActions(
+                                onQueryChange = { searchQuery = it },
+                                onOpenArticle = { article -> push(Screen.Reader(article.key)) },
+                                onBack = ::pop,
                             ),
                     )
                 }

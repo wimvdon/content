@@ -84,6 +84,10 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   Instapaper, **Instapaper** follows with its own places (see below). The section you're in (Feeds or
   Instapaper) is open and the other is folded shut, so the menu stays short; tap a section's name
   to fold it open or shut. Below them: **Manage feeds**, **Manage Instapaper** (signed in) and **Settings**.
+- **Search** (the magnifier at the top right) searches the articles of all your feeds that are on
+  the phone: their titles, text, feed names and authors. Every word you type must appear; capitals
+  and accents don't matter ("cafe" finds "Café"). Articles with the words in their title come
+  first. Saved Instapaper articles aren't searched: Instapaper doesn't offer a way to search them.
 - Articles are grouped under **Today**, **Yesterday** and then the date; the date stays at the
   top while you scroll through that day.
 - Under the title you see how many articles are unread. The **Unread** chip at the top right

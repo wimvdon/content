@@ -204,4 +204,11 @@
     <string name="instapaper_manage_title">Instapaper-Ordner und -Tags</string>
     <string name="action_collapse">Einklappen</string>
     <string name="action_expand">Ausklappen</string>
+    <string name="action_search">Suchen</string>
+    <string name="search_hint">Artikel suchen</string>
+    <string name="action_clear">Löschen</string>
+    <string name="search_start_title">In deinen Feeds suchen</string>
+    <string name="search_start_body">Findet Wörter in den Titeln und Texten der Artikel deiner Feeds.</string>
+    <string name="search_none_title">Nichts gefunden</string>
+    <string name="search_none_body">Kein Artikel enthält all diese Wörter.</string>
 </resources>

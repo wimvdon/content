@@ -51,6 +51,7 @@ when the run fails.
 | `SiteIconTest` | Choosing a site's icon: largest size, apple-touch-icon, relative and http addresses, skipping SVG and inline icons, home page and favicon.ico fallback |
 | `IconCatalogTest` | Reading the icon file, search order (name, words, categories, related words), suggestions, old icon names, and that the bundled file has every suggested and migrated icon |
 | `ArticleDaysTest` | Grouping the list by local day, time zones |
+| `ArticleSearchTest` | Search: every word, case and accents ignored, title, text, feed name and author, title matches first, removed feeds left out |
 | `FeedArrangementTest` | Manage page order: rows per folder, dragging feeds between folders and out of them, forbidden moves, reordering folders |
 | `SettingsTest` | Text size limits, reader and theme darkness (and Auto dark), Save/Share targets (storage and the old Save setting), defaults |
 
@@ -108,6 +109,9 @@ and then (always before a release):
 - [ ] **Manage feeds and folders:** drag a feed into another folder and above another feed; drag
       a folder above another; the drawer and folder tabs follow the new order. Tap a feed, rename
       it, refresh: the name stays; clear it: the feed's own name comes back after a refresh.
+- [ ] **Search:** the magnifier at the top right of Feeds opens Search with the keyboard up; typing
+      *cafe* finds articles with "Café" in the title (first) or the text; two words find articles with
+      both; nothing found shows "Nothing found"; opening a result and going back shows the same results.
 - [ ] **Navigation bar:** signed in, a bar at the bottom has Feeds and Instapaper (a rail at the
       left in landscape on a tablet); Instapaper opens its last list, Feeds the feed section you had;
       signed out, no bar. The Mark all read button and messages sit above the bar.

@@ -205,4 +205,11 @@
     <string name="instapaper_manage_title">Instapaper folders and tags</string>
     <string name="action_collapse">Collapse</string>
     <string name="action_expand">Expand</string>
+    <string name="action_search">Search</string>
+    <string name="search_hint">Search articles</string>
+    <string name="action_clear">Clear</string>
+    <string name="search_start_title">Search your feeds</string>
+    <string name="search_start_body">Finds words in the titles and text of your feeds\' articles.</string>
+    <string name="search_none_title">Nothing found</string>
+    <string name="search_none_body">No article contains all these words.</string>
 </resources>

@@ -2,6 +2,19 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-18: Search through the feeds' articles
+
+The owner asked whether a search through feeds and saved articles was possible. Feed articles are
+all on the phone, so Search searches them there (`ArticleSearch`, unit tested): title, text, feed
+name and author, every word must appear, case and accents ignored, title matches first, at most
+200 results. It is an action in the Feeds top bar that opens its own page, as in Material's
+search pattern; the text of every article is prepared off the main thread when the page opens.
+Saved Instapaper articles are not searched: Instapaper's API has no documented search, and
+loading every saved article page by page to search it locally would be slow and run into
+Instapaper's rate limit. Rejected: Search as a third navigation destination (it acts on content,
+not a place of its own), searching only titles (the text is what people remember) and a search
+index stored on the phone (the articles are few enough to search in memory).
+
 ## 2026-10-18: The navigation bar is back, next to the drawer
 
 The bar (Feeds | Instapaper) was removed earlier today because the drawer changed with the
