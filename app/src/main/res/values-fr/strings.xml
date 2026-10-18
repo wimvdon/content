@@ -210,4 +210,11 @@
     <string name="instapaper_manage_title">Dossiers et étiquettes Instapaper</string>
     <string name="action_collapse">Réduire</string>
     <string name="action_expand">Développer</string>
+    <string name="action_search">Rechercher</string>
+    <string name="search_hint">Rechercher des articles</string>
+    <string name="action_clear">Effacer</string>
+    <string name="search_start_title">Rechercher dans vos flux</string>
+    <string name="search_start_body">Trouve des mots dans les titres et le texte des articles de vos flux.</string>
+    <string name="search_none_title">Aucun résultat</string>
+    <string name="search_none_body">Aucun article ne contient tous ces mots.</string>
 </resources>

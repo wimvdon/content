@@ -210,4 +210,11 @@
     <string name="instapaper_manage_title">Cartelle e tag di Instapaper</string>
     <string name="action_collapse">Comprimi</string>
     <string name="action_expand">Espandi</string>
+    <string name="action_search">Cerca</string>
+    <string name="search_hint">Cerca articoli</string>
+    <string name="action_clear">Cancella</string>
+    <string name="search_start_title">Cerca nei tuoi feed</string>
+    <string name="search_start_body">Trova parole nei titoli e nel testo degli articoli dei tuoi feed.</string>
+    <string name="search_none_title">Nessun risultato</string>
+    <string name="search_none_body">Nessun articolo contiene tutte queste parole.</string>
 </resources>

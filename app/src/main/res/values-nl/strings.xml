@@ -204,4 +204,11 @@
     <string name="instapaper_manage_title">Instapaper-mappen en -tags</string>
     <string name="action_collapse">Inklappen</string>
     <string name="action_expand">Uitklappen</string>
+    <string name="action_search">Zoeken</string>
+    <string name="search_hint">Artikels zoeken</string>
+    <string name="action_clear">Wissen</string>
+    <string name="search_start_title">Zoeken in je feeds</string>
+    <string name="search_start_body">Vindt woorden in de titels en de tekst van de artikels uit je feeds.</string>
+    <string name="search_none_title">Niets gevonden</string>
+    <string name="search_none_body">Geen artikel bevat al deze woorden.</string>
 </resources>

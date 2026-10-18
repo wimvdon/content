@@ -210,4 +210,11 @@
     <string name="instapaper_manage_title">Carpetas y etiquetas de Instapaper</string>
     <string name="action_collapse">Contraer</string>
     <string name="action_expand">Expandir</string>
+    <string name="action_search">Buscar</string>
+    <string name="search_hint">Buscar artículos</string>
+    <string name="action_clear">Borrar</string>
+    <string name="search_start_title">Buscar en tus feeds</string>
+    <string name="search_start_body">Encuentra palabras en los títulos y el texto de los artículos de tus feeds.</string>
+    <string name="search_none_title">Sin resultados</string>
+    <string name="search_none_body">Ningún artículo contiene todas estas palabras.</string>
 </resources>
