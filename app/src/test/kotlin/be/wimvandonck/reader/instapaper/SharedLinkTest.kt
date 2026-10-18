@@ -45,4 +45,19 @@ class SharedLinkTest {
         assertNull(SharedLink.of(null, "mailto:me@example.com"))
         assertNull(SharedLink.of(null, null))
     }
+
+    @Test
+    fun `a custom tab's page keeps the article title only while it is the opened page`() {
+        assertEquals(SharedLink("https://example.com/a", "Title"), SharedLink.fromTab("https://example.com/a", "https://example.com/a", "Title"))
+        assertEquals(SharedLink("https://example.com/b", null), SharedLink.fromTab("https://example.com/b", "https://example.com/a", "Title"))
+        assertEquals(SharedLink("https://example.com/a", null), SharedLink.fromTab("https://example.com/a", null, null))
+        assertEquals(SharedLink("https://example.com/a", null), SharedLink.fromTab("https://example.com/a", "https://example.com/a", " "))
+    }
+
+    @Test
+    fun `a custom tab without a web page saves nothing`() {
+        assertNull(SharedLink.fromTab(null, "https://example.com/a", "Title"))
+        assertNull(SharedLink.fromTab("about:blank", null, null))
+        assertNull(SharedLink.fromTab("file:///sdcard/x.html", null, null))
+    }
 }
