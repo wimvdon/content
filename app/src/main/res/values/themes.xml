@@ -4,4 +4,12 @@
     <style name="Theme.RssReader" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:windowBackground">@color/window_background</item>
     </style>
+
+    <!-- The save sheet over a custom tab (#95): see-through, the sheet draws its own scrim. -->
+    <style name="Theme.RssReader.Translucent">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:windowAnimationStyle">@null</item>
+    </style>
 </resources>

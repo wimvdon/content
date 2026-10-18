@@ -26,14 +26,15 @@ object ExternalApps {
         return start(context, Intent(Intent.ACTION_VIEW, url.toUri()))
     }
 
-    /** Action of the intent a custom tab's Save button sends to [MainActivity] (#95). */
+    /** Action of the intent a custom tab's Save button sends to [SaveFromTabActivity] (#95). */
     const val ACTION_SAVE_FROM_TAB = "be.wimvandonck.reader.action.SAVE_FROM_TAB"
     const val EXTRA_OPENED_URL = "be.wimvandonck.reader.extra.OPENED_URL"
     const val EXTRA_OPENED_TITLE = "be.wimvandonck.reader.extra.OPENED_TITLE"
 
     /**
      * Opens a web page in a custom tab (#95): the browser's page on top of Reader, with a Save
-     * button that saves the page shown to Saved ([ACTION_SAVE_FROM_TAB]). [title] is the article's,
+     * button that saves the page shown to Saved and opens the save sheet over the tab
+     * ([SaveFromTabActivity]). [title] is the article's,
      * used when the page saved is the one opened. Other links (mailto) go to [openLink].
      */
     fun openInTab(
@@ -44,7 +45,7 @@ object ExternalApps {
         val scheme = url.substringBefore(':').lowercase()
         if (scheme != "http" && scheme != "https") return openLink(context, url)
         val save =
-            Intent(context, MainActivity::class.java)
+            Intent(context, SaveFromTabActivity::class.java)
                 .setAction(ACTION_SAVE_FROM_TAB)
                 .putExtra(EXTRA_OPENED_URL, url)
                 .putExtra(EXTRA_OPENED_TITLE, title)

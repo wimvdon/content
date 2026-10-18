@@ -51,6 +51,15 @@
                     android:path="/instapaper/callback" />
             </intent-filter>
         </activity>
+
+        <!-- The custom tab's Save button (#95): the save sheet on top of the tab. Not exported:
+             only the tab's PendingIntent, made by this app, opens it. Rotating keeps the sheet. -->
+        <activity
+            android:name=".ui.SaveFromTabActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode|density"
+            android:theme="@style/Theme.RssReader.Translucent" />
     </application>
 
 </manifest>

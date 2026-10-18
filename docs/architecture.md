@@ -70,9 +70,12 @@ RssReaderApp ── SettingsStore ── DataStore "settings" (Preferences)
    share menu (`EXTRA_EXCLUDE_COMPONENTS`).
 7. Web links open in a custom tab (#95, `ExternalApps.openInTab`, AndroidX Browser) with a Save
    action button. Its `PendingIntent` (mutable, so the browser can add the page shown as the data)
-   goes to `MainActivity` with `ACTION_SAVE_FROM_TAB` and the link and title Reader opened;
-   `SharedLink.fromTab` keeps that title only while the tab still shows that page. From there it
-   takes the same path as a share (`RssReaderApp.sharedLink`, `saveLink`, `JustSavedSheet`).
+   opens `SaveFromTabActivity` with the link and title Reader opened; `SharedLink.fromTab` keeps
+   that title only while the tab still shows that page. That activity is see-through
+   (`Theme.RssReader.Translucent`, not exported) and lands on top of the tab in Reader's task: it
+   saves with its own `InstapaperModel` (the account's, or this phone's) and shows `JustSavedSheet`
+   over the page; closing the sheet finishes it, back on the tab. `RssReaderApp.savedElsewhere` then
+   makes the main screen's Saved list read itself again.
 
 ## Patterns
 

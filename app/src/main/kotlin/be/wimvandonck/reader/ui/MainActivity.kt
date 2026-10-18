@@ -36,18 +36,8 @@ class MainActivity : ComponentActivity() {
         takeSharedLink(intent)
     }
 
-    /** A link shared from another app (#97) or a custom tab (#95): saved like an article, then the save sheet opens. */
+    /** A link shared from another app (#97): saved like an article, then the save sheet opens. */
     private fun takeSharedLink(intent: Intent?) {
-        if (intent?.action == ExternalApps.ACTION_SAVE_FROM_TAB) {
-            // A custom tab's Save button (#95): the browser adds the page shown as the data.
-            SharedLink
-                .fromTab(
-                    intent.dataString,
-                    intent.getStringExtra(ExternalApps.EXTRA_OPENED_URL),
-                    intent.getStringExtra(ExternalApps.EXTRA_OPENED_TITLE),
-                )?.let { rssReaderApp.sharedLink.value = it }
-            return
-        }
         if (intent?.action != Intent.ACTION_SEND) return
         val link =
             SharedLink.of(
