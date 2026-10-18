@@ -8,10 +8,10 @@ The owner asked for Chrome Custom Tabs with a Save button that opens the save sh
 browser and links in articles now open in a custom tab of the default browser, on top of Reader,
 with Save as the toolbar's action button; it saves the page shown, like a share (#97). This adds
 one library, AndroidX Browser (`androidx.browser`), which the owner approved: it is Google's
-official way to open custom tabs and is small. Tapping Save brings Reader back (its task is
-`singleTask`), so the tab closes and the sheet shows in Reader. Rejected: building the custom tab
-intent by hand without the library (the extras are undocumented outside it and could break), and a
-see-through activity that shows the sheet over the tab (more code; can follow if wanted).
+official way to open custom tabs and is small. Tapping Save opens a see-through screen over the
+tab with the save sheet, so you stay on the page (the owner asked for this over first returning to
+Reader, whose `singleTask` main screen would close the tab). Rejected: building the custom tab
+intent by hand without the library (the extras are undocumented outside it and could break).
 
 ## 2026-10-18: View settings stay on each device (#96)
 

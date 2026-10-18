@@ -357,6 +357,12 @@ fun RssReaderNavigation() {
         saveLink(shared.url, shared.title)
     }
 
+    // Saved from a custom tab (#95, SaveFromTabActivity): read the Saved list and its folders again.
+    val savedElsewhere by app.savedElsewhere.collectAsStateWithLifecycle()
+    LaunchedEffect(savedElsewhere) {
+        if (savedElsewhere > 0) instapaper?.refresh()
+    }
+
     BackHandler(enabled = backStack.size > 1) { pop() }
 
     val appDark = current.appearance.isDark(isSystemInDarkTheme())

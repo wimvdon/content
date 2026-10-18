@@ -57,6 +57,9 @@ class RssReaderApp :
     /** A link shared to Reader from another app, waiting to be saved (#97, MainActivity → Navigation). */
     val sharedLink = MutableStateFlow<SharedLink?>(null)
 
+    /** Counts saves made outside the main screen (the save sheet over a custom tab, #95), so Saved reads its list again. */
+    val savedElsewhere = MutableStateFlow(0)
+
     /** Sync with the user's Reader account, which signing in with Instapaper opens. See sync/ and docs/account.md. */
     val sync: SyncManager by lazy { SyncManager(this, appScope, library, settings, instapaper, http) }
 
