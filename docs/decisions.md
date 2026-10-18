@@ -2,6 +2,18 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-18: Unread and All as two chips
+
+The owner found the single **Unread** chip (#77) not Material 3 compliant and not friendly (#92):
+off, it didn't say what was shown, and tapping a selected chip to see everything isn't obvious.
+They offered two chips or a filter icon in the top bar. Now **Unread** and **All** are two filter
+chips used as one choice (Material 3 allows filter chips for a single selection), the chosen one
+with a check, in the same chip row; the web app has the same instead of its Unread | All toggle.
+This replaces the 2026-10-18 entry that rejected two chips. Rejected: a filter icon in the top bar
+(the state can't be read at a glance and needs a menu, as the earlier icon showed) and segmented
+buttons (Material reserves them for switching views or options, and they were dropped in #68 for
+being too big there).
+
 ## 2026-10-18: Saved articles show like the feed article they came from
 
 The owner found that saved cards looked different from feed cards (no website icon) and asked that

@@ -10,7 +10,7 @@ import { scrolledPast } from "@/lib/scrollRead";
 import { FeedIcon } from "./FeedIcon";
 import { Button } from "./ui/button";
 import { cn } from "./ui/cn";
-import { Segmented } from "./ui/segmented";
+import { FilterChip } from "./ui/chip";
 
 type ListProps = {
   openKey: string | null;
@@ -96,15 +96,15 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, on
       </header>
       {library.feeds.length > 0 ? (
         <div className="flex items-center gap-2 px-4 pt-2 pb-3">
-          <Segmented
-            label={t("filter")}
-            value={settings.unreadOnly ? "unread" : "all"}
-            onChange={(v) => app.setUnreadOnly(v === "unread")}
-            options={[
-              { value: "unread", label: t("unread") },
-              { value: "all", label: t("all") },
-            ]}
-          />
+          {/* Unread or All: two filter chips, one chosen, in a row above the list (as on Android). */}
+          <div role="radiogroup" aria-label={t("filter")} className="flex gap-2">
+            <FilterChip role="radio" selected={settings.unreadOnly} onClick={() => app.setUnreadOnly(true)}>
+              {t("unread")}
+            </FilterChip>
+            <FilterChip role="radio" selected={!settings.unreadOnly} onClick={() => app.setUnreadOnly(false)}>
+              {t("all")}
+            </FilterChip>
+          </div>
           {problems.size > 0 ? <span className="text-xs text-destructive">{plural("feedsFailed", problems.size)}</span> : null}
         </div>
       ) : null}
