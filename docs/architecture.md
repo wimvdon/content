@@ -37,7 +37,7 @@ RssReaderApp ── SettingsStore ── DataStore "settings" (Preferences)
 | `data/IconCatalog.kt` | Folder icons: the Material Symbols set in `assets/material_symbols.txt` (name, category, path data per icon; Apache 2.0, licence next to it), with search and the names of the icons folders had before. `RssReaderApp.iconCatalog` reads it once in the background; `ui/home/FolderIcons.kt` turns an icon into a vector. |
 | `feed/FeedDates.kt`, `Html.kt`, `Opml.kt` | Date formats of real feeds; HTML clean-up, plain text and snippets; OPML read and write. |
 | `ui/Navigation.kt` | Back stack, wiring between screens and stores, Add feed dialog, OPML file pickers, Instapaper and share hand-offs. |
-| `ui/home/` | Article list with the Unread filter chip, pull-to-refresh, loading placeholders, empty states, Mark all read button (for the section shown: All, a folder or a feed); folder tabs (`FolderTabs`); a header (top app bar with the Unread chip, tabs) that slides away on scroll (`HomeHeader`); the navigation bar or rail (Feeds, Instapaper; signed in only); the drawer (`FeedDrawer`) with Feeds and Instapaper as sections that fold open and shut; Add feed dialog; the search page (`SearchScreen`). |
+| `ui/home/` | Article list with the Unread filter chip, pull-to-refresh, loading placeholders, empty states, Mark all read button (for the section shown: All, a folder or a feed); folder tabs (`FolderTabs`); a header (top app bar with the Unread chip, tabs) that slides away on scroll (`HomeHeader`); the navigation bar or rail (Feeds, Instapaper; signed in only); the drawer (`FeedDrawer`) with Feeds and Instapaper as sections that fold open and shut; Add feed dialog; the search page (`SearchScreen`: feed articles, and saved Instapaper articles in a section of their own when signed in). |
 | `ui/reader/` | Reader screen, Text sheet, reader colours (theme, sepia, dark). `ReaderStyleControls` is shared with Settings. |
 | `web/` | The web app (see `web/README.md`): `src/lib/` holds the logic (feed parser with Android-compatible ids, library, sync merge and the Reader account with its live connection, IndexedDB storage, feed loading through the Worker, Readability with a full-article cache, DOMPurify with embed cards, reader text settings, mark as read on scroll) and `src/lib/app.ts` the state the screens subscribe to; `src/components/` the screens. |
 | `worker/` | The Cloudflare Worker the web app loads feeds and pages through (CORS): one address per request, https and public hosts only, feeds and pages only, the web app's origin only, rate limited, nothing stored or logged. It also swaps the Instapaper sign-in code and keeps the Reader accounts: one Durable Object per account with the encrypted sync document and a live connection per open device (`src/account.ts`, `docs/account.md`). |
@@ -85,7 +85,8 @@ work means no battery use when the app is closed.
 `InstapaperClient` (API v2 over OkHttp, with pure parsing helpers), `InstapaperAuth` (sign-in address,
 callback parsing, token swap through the Worker), `InstapaperModel` (one list at a time, the folders and
 tags, the article open in the reader and every change, tested on the JVM), `InstapaperLists` (a
-saved article as a list/reader `Article`, which list it belongs in after a change) and
+saved article as a list/reader `Article`, which list it belongs in after a change), `SavedSearch`
+(reads the saved articles for Search and searches them on the phone, as Instapaper has no search) and
 `InstapaperAccount` (the token in its own DataStore file). The navigation keeps one model per
 sign-in: the drawer (`FeedDrawer`) and the home list show its lists, the reader its open article
 with `ui/reader/SavedArticleControls.kt`, and Manage feeds and folders its folders and tags

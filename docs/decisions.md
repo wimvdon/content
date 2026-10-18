@@ -2,6 +2,20 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-18: Search everywhere: feeds and Instapaper
+
+The owner asked for search to be global, and whether its button could go in the navigation bar.
+Search now looks through the saved Instapaper articles too, and the magnifier is in the top bar of
+both destinations. Instapaper's API has no search, so `SavedSearch` reads the saved articles when
+Search opens (Unread, each folder, then Archive; the newest 100 of each, 25 per call) and searches
+their title, website, description and tags on the phone; the full text isn't available from
+Instapaper. If Instapaper stops answering part way (rate limit, offline), the results say some saved
+articles weren't searched. The search button stays in the top bar: Material 3 keeps the navigation
+bar for places, search acts on the content of both, and signed out there is no bar at all.
+Rejected: a Search destination in the bar (a third place for one action, missing when signed out),
+reading every saved article (a long Archive would take dozens of calls and run into Instapaper's
+rate limit) and searching only the Instapaper list on screen (not global).
+
 ## 2026-10-18: Outlined icons for Instapaper too
 
 The owner noticed Instapaper's icons (Unread, Liked, Archive, folders, tags) were filled while the

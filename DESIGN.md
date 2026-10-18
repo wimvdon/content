@@ -250,9 +250,12 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
 - Navigation: signed in to Instapaper, a navigation bar at the bottom (a navigation rail on
   windows 600dp and wider) switches between the two destinations, Feeds (feed symbol) and
   Instapaper (bookmarks, filled when selected); Instapaper returns to the list last shown there.
-  Signed out there is one destination and no bar. Search is an action in the Feeds top bar (a
-  magnifier before the Unread chip) that opens a search page: the field in its top bar, results
-  as article rows. The ☰ drawer holds every place, the same
+  Signed out there is one destination and no bar. Search is an action in the top bar of both
+  destinations (a magnifier, before the Unread chip on Feeds) that opens one search page for
+  everything: the field in its top bar, results as article rows, signed in under two section
+  headers (Feeds, Instapaper; the destination you came from first). It is not a navigation bar
+  item: it acts on the content of both destinations rather than being a place of its own, and
+  signed out there is no bar to hold it. The ☰ drawer holds every place, the same
   wherever the app is: Feeds and, signed in, Instapaper are sections in it; each header
   (Title Small in `primary`, a fold arrow, the unread count while folded) folds its section open
   and shut. The section being shown is open and the other folded shut whenever you move between

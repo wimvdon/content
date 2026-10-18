@@ -170,7 +170,7 @@ class HomeActions(
     /** The navigation bar's destinations (shown when signed in to Instapaper). */
     val onShowFeeds: () -> Unit = {},
     val onShowInstapaper: () -> Unit = {},
-    /** Opens the search through every feed's articles. */
+    /** Opens the search through every feed's articles and the saved Instapaper articles. */
     val onOpenSearch: () -> Unit = {},
 )
 
@@ -287,10 +287,13 @@ fun HomeScreen(
                                 }
                             },
                             actions = {
-                                if (state.feeds.isNotEmpty() && savedView == null) {
+                                // Search looks through everything (feeds and Instapaper), so it is on both destinations.
+                                if (state.feeds.isNotEmpty() || state.instapaper != null) {
                                     IconButton(onClick = actions.onOpenSearch) {
                                         Icon(painterResource(R.drawable.ic_search), contentDescription = stringResource(R.string.action_search))
                                     }
+                                }
+                                if (state.feeds.isNotEmpty() && savedView == null) {
                                     ReadFilter(
                                         unreadOnly = state.unreadOnly,
                                         onUnreadOnlyChange = actions.onUnreadOnlyChange,

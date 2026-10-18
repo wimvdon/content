@@ -71,6 +71,9 @@ intent filter in `AndroidManifest.xml`.
 
 ## Not supported
 
+- Searching the full text of saved articles. Instapaper's API has no search, so Search reads the
+  saved articles (the newest 100 of Unread, each folder and Archive) and searches their title,
+  website, description and tags on the phone (`instapaper/SavedSearch.kt`).
 - Highlights, and Instapaper's parsed article text (for accounts other than the owner's it needs a
   separate Instaparser key). A saved article opens on its own website.
 - Syncing reading progress.

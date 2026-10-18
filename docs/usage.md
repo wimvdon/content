@@ -84,10 +84,16 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   Instapaper, **Instapaper** follows with its own places (see below). The section you're in (Feeds or
   Instapaper) is open and the other is folded shut, so the menu stays short; tap a section's name
   to fold it open or shut. Below them: **Manage feeds**, **Manage Instapaper** (signed in) and **Settings**.
-- **Search** (the magnifier at the top right) searches the articles of all your feeds that are on
-  the phone: their titles, text, feed names and authors. Every word you type must appear; capitals
-  and accents don't matter ("cafe" finds "Café"). Articles with the words in their title come
-  first. Saved Instapaper articles aren't searched: Instapaper doesn't offer a way to search them.
+- **Search** (the magnifier at the top right, in Feeds and in Instapaper) searches everything: the
+  articles of all your feeds that are on the phone (titles, text, feed names and authors) and,
+  signed in to Instapaper, your saved articles (titles, websites, descriptions and tags). Every word
+  you type must appear; capitals and accents don't matter ("cafe" finds "Café"). Articles with the
+  words in their title come first. Signed in, the results come in two sections, Feeds and
+  Instapaper; the section of the place you opened Search from comes first. Instapaper has no search
+  of its own, so Search reads your saved articles when it opens (Unread, your folders and the
+  newest 100 of each, Archive included) and searches them on the phone; while it does, the
+  Instapaper section says "Searching your saved articles…". The full text of saved articles isn't
+  searched: Instapaper only gives the title and description.
 - Articles are grouped under **Today**, **Yesterday** and then the date; the date stays at the
   top while you scroll through that day.
 - Under the title you see how many articles are unread. The **Unread** chip at the top right
