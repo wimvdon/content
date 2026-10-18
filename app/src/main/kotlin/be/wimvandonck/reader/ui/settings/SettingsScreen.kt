@@ -3,6 +3,8 @@ package be.wimvandonck.reader.ui.settings
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -29,6 +31,7 @@ import be.wimvandonck.reader.instapaper.InstapaperState
 import be.wimvandonck.reader.sync.SyncStatus
 import be.wimvandonck.reader.ui.ExternalApps
 import be.wimvandonck.reader.ui.reader.ReaderStyleControls
+import be.wimvandonck.reader.ui.reader.ReaderTheme
 import be.wimvandonck.reader.ui.reader.labelRes
 import be.wimvandonck.reader.ui.reader.readerBodyStyle
 import be.wimvandonck.reader.ui.theme.AppShapes
@@ -173,16 +176,23 @@ private fun ReaderSection(
             onCheckedChange = actions.onShowImagesChange,
         )
         ReaderStyleControls(style = style, onChange = actions.onReaderStyleChange)
+        val appDark = settings.appearance.isDark(isSystemInDarkTheme())
         SettingsBlock {
-        Text(
-            text = stringResource(R.string.reader_preview),
-            style = readerBodyStyle(style),
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surfaceContainerHighest, AppShapes.Item)
-                    .padding(16.dp),
-        )
+        // The preview is a small piece of the reader page: same page colour (and Auto dark) as the
+        // reader itself, with a thin outline so the default colour still stands out from Settings.
+        val outline = MaterialTheme.colorScheme.outlineVariant
+        ReaderTheme(style = style, appearance = settings.appearance, appDark = appDark) {
+            Text(
+                text = stringResource(R.string.reader_preview),
+                style = readerBodyStyle(style),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surface, AppShapes.Item)
+                        .border(1.dp, outline, AppShapes.Item)
+                        .padding(16.dp),
+            )
+        }
         }
     }
 }

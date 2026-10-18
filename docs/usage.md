@@ -168,7 +168,7 @@ account, so Settings › Save and share only shows the Share button's choice.
 - **Account:** sign in with Instapaper to sync and to save to Instapaper; signed in, **Sync now**,
   **Sign out** and **Delete synced data** (see Sync between devices).
 - **Article list:** View (Small, Medium, Large) and **Mark as read on scroll**.
-- **Reader:** **Load full articles**, **Show images**, and the same text settings as **Aa**, with a preview.
+- **Reader:** **Load full articles**, **Show images**, and the same text settings as **Aa**, with a preview in the page colour you chose.
 - **Save and share:** see above.
 - **Appearance:** Theme (System, Light, Dark) and Dynamic color (wallpaper colours instead of
   the app's blue).
