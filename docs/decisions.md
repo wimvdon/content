@@ -2,6 +2,14 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-19: Sharing to Reader shows only the save sheet (#103)
+
+Links shared from other apps go to an exported `ShareActivity` alias of the see-through
+`SaveFromTabActivity`, so only the save sheet opens over the sharing app, as the custom tab's Save
+already did; `MainActivity` no longer takes shares. An alias keeps the tab's own entry unexported:
+other apps can only send a shared link, which still needs the user's Save. Rejected: a second,
+separate activity (the same screen twice).
+
 ## 2026-10-19: Instapaper and Raindrop together (#121)
 
 Following #121 and the owner's decision comment there:

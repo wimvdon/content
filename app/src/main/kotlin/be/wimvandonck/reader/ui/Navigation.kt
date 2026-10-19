@@ -419,15 +419,6 @@ fun RssReaderNavigation() {
         }
     }
 
-    // A link shared to Reader from another app (#97) opens the save sheet: its folder, note and tags.
-    val sharedLink by app.sharedLink.collectAsStateWithLifecycle()
-    LaunchedEffect(sharedLink, libraryOrNull != null) {
-        val shared = sharedLink ?: return@LaunchedEffect
-        if (libraryOrNull == null) return@LaunchedEffect
-        app.sharedLink.value = null
-        openSave(shared.url, shared.title)
-    }
-
     fun openItem(item: Item) = push(Screen.Reader(ReadingLists.readerKey(item)))
 
     BackHandler(enabled = backStack.size > 1) { pop() }
