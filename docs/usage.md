@@ -131,7 +131,7 @@ website (the same as **Read on website** at the end). In the top bar:
 | Open book | **Read later**: puts the article on your **Reading list** (by default), or sends it to the app you chose or the share menu (see below). Once it is on the reading list, the same screen shows the reading list's buttons (below). |
 | ♥ | On the reading list: **Like** (the heart fills). |
 | Share | **Share**: the share menu, or straight to the app you chose. |
-| ⋮ | **Open in browser** and **Mark as unread**; on the reading list also **Tags** and **Remove from reading list**. Open in browser, and links in an article, open in a tab of your browser on top of Reader, with a **Save** button in its toolbar: it puts the page shown on the reading list and opens the sheet over the page; close it to keep reading. |
+| ⋮ | **Open in browser** and **Mark as unread**; a feed article not saved yet also has **Keep as bookmark** (the save sheet with Bookmark chosen); on the reading list also **Tags** and **Remove from reading list**. Open in browser, and links in an article, open in a tab of your browser on top of Reader, with a **Save** button in its toolbar: it opens the save sheet over the page (see Saving from other apps); save or close it to keep reading. |
 
 An article on the reading list has **Keep** and **Archive** at the bottom, and **Finished reading** at
 the end of the text. Each opens a sheet that asks what's next: **Archive** (done with it; it stays
@@ -173,9 +173,12 @@ Signed in with Instapaper (Settings › Account), Save always puts the article o
 (which is kept in Instapaper too), so Settings › Save and share only shows the Share button's choice.
 
 **Saving from other apps.** In Chrome or any app that shares links, tap Share and pick
-**Reader**. Reader opens, puts the link on the reading list and shows the same sheet as the Save
-button, to like and tag it. A link shared without a title gets the page's own title, description and
-picture. Shared text without a web link says "No link to save".
+**Reader**. Reader opens the **Save to Reader** sheet: the site, then **Reading list | Bookmark**
+(articles are chosen for the reading list, other links such as a tool's home page, a GitHub
+repository or a video for Bookmarks; tap the other to change it), the **Collection** (Bookmark
+only), a **Note** and **Tags**. **Save** saves it and says where it went; **Cancel** saves nothing. A
+link shared without a title gets the page's own title, description and picture. Shared text without
+a web link says "No link to save".
 
 ## Settings
 
@@ -225,10 +228,35 @@ Instapaper account (see Instapaper account).
 - In the reader: **♥** to like, **Keep** and **Archive** at the bottom (see The reader), **Tags** and
   **Remove from reading list** in ⋮. Removing asks first; an article that is also a bookmark stays
   in Bookmarks.
-- **☰ › Tags**: every tag with how many articles have it; tap to rename it (renaming it to another
-  tag's name joins the two), or remove it from every article.
+- **☰ › Collections and tags**: every bookmark collection and every tag, with how many have it;
+  tap one to rename it (renaming it to another one's name joins the two), or remove it: a tag from
+  every article, a collection from its bookmarks (they stay, without a collection).
 - **☰ › Connected services**: which service each section is connected to. The reading list can be
   connected to Instapaper; feeds and bookmarks are Reader's own.
+
+## Bookmarks
+
+**Bookmarks** (#108) is the third place in the navigation bar, next to Feeds and the Reading list:
+links you keep for good, with a note, and the highlights of articles you read. Like the reading
+list it is Reader's own, works without an account and syncs between your devices.
+
+- **Getting things in:** **Keep as bookmark** when you finish an article on the reading list (it
+  stays on the reading list until you archive it); **⋮ › Keep as bookmark** on a feed article;
+  sharing a link to Reader and choosing **Bookmark**; and **Add bookmark** (the button at the bottom
+  right of Bookmarks), which asks for the address. Archiving an article doesn't keep it.
+- **Collections** are tabs under the title (**All**, then each collection); a bookmark is in at most
+  one. Under them, chips filter by type: **Articles**, **Tools** (a site's home page), **Repos**
+  (GitHub, GitLab, Codeberg and others) and **Videos** (YouTube, Vimeo). The drawer lists the
+  collections too, with how many bookmarks each has.
+- Bookmarks show as cards in two columns (articles and videos with their picture, a play mark on
+  videos), with your note, the tags and the number of highlights. The button at the top switches to
+  a list and back; Reader remembers your choice.
+- Tap a bookmark for its page: the picture, site and title, when you kept it and from which feed,
+  **Open** (in the browser tab) and **Read again** (back on the reading list to read from the start,
+  and open in the reader; it stays a bookmark), your note, its collection and tags, and its
+  highlights with their notes. **Edit** (pen) changes the collection, note and tags; ⋮ › **Remove
+  bookmark** asks first, then removes it with its note, tags and highlights, unless it is also on
+  the reading list.
 
 ## Instapaper account
 

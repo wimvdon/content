@@ -103,6 +103,8 @@ import be.wimvandonck.reader.data.Feed
 import be.wimvandonck.reader.data.Folder
 import be.wimvandonck.reader.data.Item
 import be.wimvandonck.reader.data.ReadingListFilter
+import be.wimvandonck.reader.data.BookmarkFilter
+import be.wimvandonck.reader.data.BookmarksView
 import be.wimvandonck.reader.data.FeedSelection
 import be.wimvandonck.reader.data.ScrollRead
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -137,10 +139,13 @@ data class HomeState(
     val readingList: ReadingListHome? = null,
     /** How many articles are still to read, for the drawer and the navigation. */
     val toReadCount: Int = 0,
+    /** Bookmarks, for their destination and the drawer (#108). */
+    val bookmarks: BookmarksHome? = null,
+    val bookmarkCount: Int = 0,
 )
 
-/** The app's top-level destinations (#113): Feeds and the reading list. */
-enum class HomeSection { Feeds, ReadingList }
+/** The app's top-level destinations (#113): Feeds, the reading list and Bookmarks. */
+enum class HomeSection { Feeds, ReadingList, Bookmarks }
 
 class HomeActions(
     val onSelect: (FeedSelection) -> Unit,
@@ -167,6 +172,11 @@ class HomeActions(
     val onReadingListFilter: (ReadingListFilter) -> Unit = {},
     val onOpenItem: (Item) -> Unit = {},
     val onAddLink: () -> Unit = {},
+    val onShowBookmarks: () -> Unit = {},
+    val onOpenBookmark: (Item) -> Unit = {},
+    val onBookmarksFilter: (BookmarkFilter) -> Unit = {},
+    val onBookmarksView: (BookmarksView) -> Unit = {},
+    val onAddBookmark: () -> Unit = {},
     /** Opens the search through every feed's articles and the reading list. */
     val onOpenSearch: () -> Unit = {},
 )
@@ -185,7 +195,15 @@ fun HomeScreen(
     val selectedFolder = (state.selection as? FeedSelection.InFolder)?.let { s -> state.folders.firstOrNull { it.id == s.folderId } }
     // The reading list replaces the feed sections: its own title, tabs and chips, no Mark all read.
     val reading = state.readingList?.takeIf { state.section == HomeSection.ReadingList }
-    val title = if (reading != null) stringResource(R.string.reading_list_title) else selectedFeed?.title ?: selectedFolder?.title ?: stringResource(R.string.feeds_all)
+    // Bookmarks do the same, with collections as tabs and types as chips.
+    val marks = state.bookmarks?.takeIf { state.section == HomeSection.Bookmarks }
+    val inFeeds = reading == null && marks == null
+    val title =
+        when {
+            reading != null -> stringResource(R.string.reading_list_title)
+            marks != null -> stringResource(R.string.bookmarks_title)
+            else -> selectedFeed?.title ?: selectedFolder?.title ?: stringResource(R.string.feeds_all)
+        }
     // The selected folder tab: the folder being viewed, or the folder of the feed being viewed.
     val sectionFolderId = selectedFolder?.id ?: selectedFeed?.folderId
     val showFolderTabs = state.folders.isNotEmpty() && state.feeds.isNotEmpty()
@@ -229,30 +247,33 @@ fun HomeScreen(
                     actions.onReadingListFilter(it)
                     scope.launch { drawerState.close() }
                 },
+                bookmarks = state.bookmarks,
+                inBookmarks = marks != null,
+                bookmarkCount = state.bookmarkCount,
+                onBookmarksFilter = {
+                    actions.onBookmarksFilter(it)
+                    scope.launch { drawerState.close() }
+                },
             )
         },
     ) {
-        val hasArticles = reading?.items?.isNotEmpty() ?: state.articles.isNotEmpty()
+        val hasArticles = reading?.items?.isNotEmpty() ?: marks?.items?.isNotEmpty() ?: state.articles.isNotEmpty()
         // The whole header slides away while scrolling down and returns when scrolling up.
         val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(canScroll = { hasArticles })
         // Another section, or a list with nothing left to scroll, shows the header again.
-        LaunchedEffect(state.selection, state.section, reading?.filter, hasArticles) { scrollBehavior.state.heightOffset = 0f }
+        LaunchedEffect(state.selection, state.section, reading?.filter, marks?.filter, hasArticles) { scrollBehavior.state.heightOffset = 0f }
         // On wide windows the destinations move to a navigation rail at the side, in the same order.
         Row(Modifier.fillMaxSize()) {
             if (wide) {
                 NavigationRail(Modifier.padding(top = 8.dp)) {
-                    NavigationRailItem(
-                        selected = reading == null,
-                        onClick = { if (reading != null) actions.onShowFeeds() },
-                        icon = { Icon(painterResource(R.drawable.ic_rss_feed), contentDescription = null) },
-                        label = { Text(stringResource(R.string.feeds_title)) },
-                    )
-                    NavigationRailItem(
-                        selected = reading != null,
-                        onClick = { if (reading == null) actions.onShowReadingList() },
-                        icon = { Icon(painterResource(R.drawable.ic_reading_list), contentDescription = null) },
-                        label = { Text(stringResource(R.string.reading_list_title)) },
-                    )
+                    destinations(actions).forEach { d ->
+                        NavigationRailItem(
+                            selected = state.section == d.section,
+                            onClick = { if (state.section != d.section) d.onShow() },
+                            icon = { Icon(painterResource(d.icon), contentDescription = null) },
+                            label = { Text(stringResource(d.label)) },
+                        )
+                    }
                 }
             }
             Scaffold(
@@ -267,6 +288,13 @@ fun HomeScreen(
                                     if (reading != null) {
                                         Text(
                                             pluralStringResource(R.plurals.reading_list_to_read_count, state.toReadCount, state.toReadCount),
+                                            style = MaterialTheme.typography.labelMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            maxLines = 1,
+                                        )
+                                    } else if (marks != null) {
+                                        Text(
+                                            pluralStringResource(R.plurals.bookmarks_count, state.bookmarkCount, state.bookmarkCount),
                                             style = MaterialTheme.typography.labelMedium,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                                             maxLines = 1,
@@ -291,6 +319,15 @@ fun HomeScreen(
                                 }
                             },
                             actions = {
+                                if (marks != null && marks.items.isNotEmpty()) {
+                                    val grid = marks.view == BookmarksView.Grid
+                                    IconButton(onClick = { actions.onBookmarksView(if (grid) BookmarksView.List else BookmarksView.Grid) }) {
+                                        Icon(
+                                            painterResource(if (grid) R.drawable.ic_view_list else R.drawable.ic_grid_view),
+                                            contentDescription = stringResource(if (grid) R.string.bookmarks_view_list else R.string.bookmarks_view_grid),
+                                        )
+                                    }
+                                }
                                 // Search looks through everything (feeds and the reading list), so it is on both destinations.
                                 if (state.feeds.isNotEmpty() || state.readingList?.library?.items?.isNotEmpty() == true) {
                                     IconButton(onClick = actions.onOpenSearch) {
@@ -304,7 +341,10 @@ fun HomeScreen(
                         if (reading != null) {
                             ReadingListTabRow(filter = reading.filter, tags = reading.tags, onChange = actions.onReadingListFilter)
                         }
-                        if (showFolderTabs && reading == null) {
+                        if (marks != null) {
+                            BookmarksTabRow(filter = marks.filter, collections = marks.collections, onChange = actions.onBookmarksFilter)
+                        }
+                        if (showFolderTabs && inFeeds) {
                             FolderTabs(
                                 folders = state.folders,
                                 selectedFolderId = sectionFolderId,
@@ -313,7 +353,7 @@ fun HomeScreen(
                             )
                         }
                         // Filter chips sit in a row of their own under the tabs, above the list they filter.
-                        if (state.feeds.isNotEmpty() && reading == null) {
+                        if (state.feeds.isNotEmpty() && inFeeds) {
                             ReadFilter(
                                 unreadOnly = state.unreadOnly,
                                 onUnreadOnlyChange = actions.onUnreadOnlyChange,
@@ -325,24 +365,20 @@ fun HomeScreen(
                     // Feeds and the reading list are the app's top-level destinations.
                     if (!wide) {
                         NavigationBar {
-                            NavigationBarItem(
-                                selected = reading == null,
-                                onClick = { if (reading != null) actions.onShowFeeds() },
-                                icon = { Icon(painterResource(R.drawable.ic_rss_feed), contentDescription = null) },
-                                label = { Text(stringResource(R.string.feeds_title)) },
-                            )
-                            NavigationBarItem(
-                                selected = reading != null,
-                                onClick = { if (reading == null) actions.onShowReadingList() },
-                                icon = { Icon(painterResource(R.drawable.ic_reading_list), contentDescription = null) },
-                                label = { Text(stringResource(R.string.reading_list_title)) },
-                            )
+                            destinations(actions).forEach { d ->
+                                NavigationBarItem(
+                                    selected = state.section == d.section,
+                                    onClick = { if (state.section != d.section) d.onShow() },
+                                    icon = { Icon(painterResource(d.icon), contentDescription = null) },
+                                    label = { Text(stringResource(d.label)) },
+                                )
+                            }
                         }
                     }
                 },
                 floatingActionButton = {
                     // Marks everything in the section being viewed as read: All, a folder or a feed.
-                    if (state.feeds.isNotEmpty() && unreadHere > 0 && reading == null) {
+                    if (state.feeds.isNotEmpty() && unreadHere > 0 && inFeeds) {
                         FloatingActionButton(onClick = actions.onMarkAllRead) {
                             Icon(painterResource(R.drawable.ic_done_all), contentDescription = stringResource(R.string.action_mark_all_read))
                         }
@@ -350,6 +386,11 @@ fun HomeScreen(
                     if (reading != null) {
                         FloatingActionButton(onClick = actions.onAddLink) {
                             Icon(painterResource(R.drawable.ic_add_link), contentDescription = stringResource(R.string.add_link_title))
+                        }
+                    }
+                    if (marks != null) {
+                        FloatingActionButton(onClick = actions.onAddBookmark) {
+                            Icon(painterResource(R.drawable.ic_bookmark_add), contentDescription = stringResource(R.string.bookmark_add_title))
                         }
                     }
                 },
@@ -366,6 +407,14 @@ fun HomeScreen(
                         modifier = Modifier.fillMaxSize(),
                     ) {
                         ReadingListContent(reading, state.showImages, actions.onOpenItem)
+                    }
+                } else if (marks != null) {
+                    PullToRefreshBox(
+                        isRefreshing = state.refreshing,
+                        onRefresh = actions.onRefresh,
+                        modifier = Modifier.fillMaxSize(),
+                    ) {
+                        BookmarksContent(marks, state.showImages, actions.onOpenBookmark)
                     }
                 } else {
                 PullToRefreshBox(
@@ -400,6 +449,21 @@ fun HomeScreen(
         }
     }
 }
+
+/** A top-level destination in the navigation bar or rail. */
+private class Destination(
+    val section: HomeSection,
+    val icon: Int,
+    val label: Int,
+    val onShow: () -> Unit,
+)
+
+private fun destinations(actions: HomeActions) =
+    listOf(
+        Destination(HomeSection.Feeds, R.drawable.ic_rss_feed, R.string.feeds_title, actions.onShowFeeds),
+        Destination(HomeSection.ReadingList, R.drawable.ic_reading_list, R.string.reading_list_title, actions.onShowReadingList),
+        Destination(HomeSection.Bookmarks, R.drawable.ic_bookmarks_outline, R.string.bookmarks_title, actions.onShowBookmarks),
+    )
 
 /** From this width the destinations sit in a navigation rail instead of a bar (Material's medium window). */
 private val WIDE_WINDOW = 600.dp

@@ -193,9 +193,9 @@
     <string name="search_start_body">Trouve des mots dans les titres et le texte des articles de vos flux.</string>
     <string name="search_none_title">Aucun résultat</string>
     <string name="search_none_body">Aucun article ne contient tous ces mots.</string>
-    <string name="search_start_title_saved">Rechercher dans vos flux et votre liste de lecture</string>
+    <string name="search_start_title_saved">Tout rechercher</string>
     <string name="search_label_feed">Flux</string>
-    <string name="search_start_body_saved">Trouve des mots dans les articles de vos flux, et dans les titres, descriptions, tags, notes et surlignages de votre liste de lecture.</string>
+    <string name="search_start_body_saved">Trouve des mots dans les articles de vos flux, et dans les titres, descriptions, tags, notes et surlignages de votre liste de lecture et de vos signets.</string>
     <string name="search_section_none">Aucun résultat</string>
     <!-- A share from another app without a web link (#97). -->
     <string name="share_no_link">Aucun lien à enregistrer</string>
@@ -220,7 +220,7 @@
     <string name="finish_keep_body">Avec votre note et vos surlignages.</string>
     <string name="finish_with_note">1 note</string>
     <string name="kept_as_bookmark">Gardé en signet</string>
-    <string name="menu_manage_tags">Tags</string>
+    <string name="menu_manage_tags">Collections et tags</string>
     <string name="reader_text_instapaper">Texte d’Instapaper</string>
     <string name="reading_list_title">Liste de lecture</string>
     <string name="reading_list_to_read">À lire</string>
@@ -271,5 +271,42 @@
         <item quantity="one">%d à lire</item>
         <item quantity="many">%d à lire</item>
         <item quantity="other">%d à lire</item>
+    </plurals>
+    <string name="bookmarks_title">Signets</string>
+    <string name="bookmarks_view_list">Afficher en liste</string>
+    <string name="bookmarks_view_grid">Afficher en cartes</string>
+    <string name="bookmark_add_title">Ajouter un signet</string>
+    <string name="collections_title">Collections</string>
+    <string name="bookmark_kind_articles">Articles</string>
+    <string name="bookmark_kind_tools">Outils</string>
+    <string name="bookmark_kind_repos">Dépôts</string>
+    <string name="bookmark_kind_videos">Vidéos</string>
+    <string name="bookmark_kind_article">Article</string>
+    <string name="bookmark_kind_tool">Outil</string>
+    <string name="bookmark_kind_repo">Dépôt</string>
+    <string name="bookmark_kind_video">Vidéo</string>
+    <string name="bookmarks_empty_title">Pas encore de signets</string>
+    <string name="bookmarks_empty_body">Gardez un article en signet quand vous l’avez fini, ou partagez un lien avec Reader et choisissez Signet.</string>
+    <string name="save_title">Enregistrer dans Reader</string>
+    <string name="save_to_bookmark">Signet</string>
+    <string name="save_help">Les articles vont dans la liste de lecture, les autres liens dans les signets.</string>
+    <string name="bookmark_saved">Enregistré dans les signets</string>
+    <string name="bookmark_kept_on">Gardé le %1$s</string>
+    <string name="bookmark_from">depuis %1$s</string>
+    <string name="action_open">Ouvrir</string>
+    <string name="action_read_again">Relire</string>
+    <string name="bookmark_edit">Modifier le signet</string>
+    <string name="bookmark_remove">Supprimer le signet</string>
+    <string name="bookmark_remove_body">Supprimer ce signet ? Sa note, ses tags et ses surlignages partent aussi, sauf s’il est dans votre liste de lecture.</string>
+    <string name="bookmark_removed">Signet supprimé</string>
+    <string name="highlights_title">Surlignages</string>
+    <string name="collection_rename">Renommer la collection</string>
+    <string name="collection_remove">Supprimer la collection</string>
+    <string name="collection_remove_body">Supprimer la collection %1$s ? Ses signets restent, sans collection.</string>
+    <string name="collection_none">Aucune collection</string>
+    <plurals name="bookmarks_count">
+        <item quantity="one">%d signet</item>
+        <item quantity="many">%d signets</item>
+        <item quantity="other">%d signets</item>
     </plurals>
 </resources>

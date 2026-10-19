@@ -45,7 +45,7 @@ RssReaderApp ── SettingsStore ── DataStore "settings" (Preferences)
 | `worker/` | The Cloudflare Worker the web app loads feeds and pages through (CORS): one address per request, https and public hosts only, feeds and pages only, the web app's origin only, rate limited, nothing stored or logged. It also swaps the Instapaper sign-in code and keeps the Reader accounts: one Durable Object per account with the encrypted sync document and a live connection per open device (`src/account.ts`, `docs/account.md`). |
 | `sync/` | Sync with the user's Reader account (see `docs/sync.md`, `docs/account.md`): `SyncRows` and `ItemSync` (per-item sync of the reading list, Bookmarks and read marks: the rows, their three-way merge, and one round of reading changes and saving this device's), `SyncDocument` (the shared JSON document: folders, feeds, settings), `SyncMerge` (three-way merge with the last synced document, applied to the `Library` in one update), `SyncRound` (read, merge, save with the version read, merge again after another device's save), `AccountClient` (the account's calls over OkHttp, with the device key from the Instapaper sign-in), `LiveUpdates` (the WebSocket that says when another device saved), and `SyncManager` (syncs while the app is on screen: on coming back, live, every minute only while the live connection is down (`whileVisible`), a second after a change, on refresh and on request, with the timing in `SyncTiming`; keeps the base and its version; keeps what it last synced of the items in the database). |
 | `data/FeedArrangement.kt` | The manage page as a flat list of folder headers and feeds: which moves are allowed while dragging, and turning the dragged order back into folder order, feed order and each feed's folder. |
-| `ui/feeds/` | Manage feeds (feeds and folders) and Tags (`TagsManage.kt`: rename and remove the reading list's tags). Manage feeds: drag and drop (own `LazyColumn` with a drag handle per row), feed dialog (rename, folder, remove) and folder dialog (`FolderDialogs.kt`), OPML import/export. |
+| `ui/feeds/` | Manage feeds (feeds and folders) and Collections and tags (`TagsManage.kt`: rename and remove bookmark collections and tags). Manage feeds: drag and drop (own `LazyColumn` with a drag handle per row), feed dialog (rename, folder, remove) and folder dialog (`FolderDialogs.kt`), OPML import/export. |
 | `ui/settings/` | Settings screen built from the shared `SettingsKit`: Account (Instapaper sign-in and sync, `AccountSettings.kt`), Article list, Reader, Save and Share targets, Appearance. |
 | `ui/theme/` | The app's palette and the shared design kit (see `DESIGN.md`). |
 | `ui/ExternalApps.kt` | Browser, share sheet, Instapaper and Play Store intents. |
@@ -102,6 +102,15 @@ reading times, and an item as a list/reader `Article` (with the feed article's t
 still has it). `ui/home/ReadingListContent.kt` shows it, `ui/home/FolderTabs.kt` (`ReadingListTabRow`)
 its tabs and chips, `ui/reader/ItemSheets.kt` the sheets (added, tags, Finished reading with Keep as
 bookmark, Add link), and `ReaderScreen` its buttons (`ReaderItem`) and reading progress.
+
+Bookmarks (#108) are the library's items with a bookmark. `data/Bookmarks.kt` gives their filter
+(a collection, a type), each link's type (`kindOf`: article, tool, repository, video, read from the
+address), collections and their counts, and the changes: save from the save sheet (`save`, reading
+list or bookmark), Read again, edit, remove, and renaming or removing a collection.
+`ui/home/BookmarksContent.kt` shows them (collection tabs and type chips, cards in a staggered grid
+or a list), `ui/home/BookmarkScreen.kt` one bookmark, and `ItemSheets.kt` the save sheet
+(`SaveSheet`, used for shared links, the custom tab's Save, Add bookmark and Keep as bookmark) and
+`BookmarkEditSheet`. `HomeScreen` has three destinations (`HomeSection`).
 
 `services/` connects a section to a service (#109): `ReadingListService` (the core every
 reading-list service shares, the features it supports), `ServiceSync` (a three-way merge with the

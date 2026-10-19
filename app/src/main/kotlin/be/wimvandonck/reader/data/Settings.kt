@@ -18,6 +18,9 @@ data class Appearance(
 /** How big each article is in the list: title only, with a thumbnail, or a card with a large picture. */
 enum class ListView { Small, Medium, Large }
 
+/** How Bookmarks shows its cards (#108): two columns of cards, or one list. */
+enum class BookmarksView { Grid, List }
+
 enum class ReaderFont { Sans, Serif }
 
 /** Line height as a multiple of the text size. */
@@ -136,6 +139,8 @@ data class Settings(
     /** Mark articles as read once they scroll off the top of the list. */
     val markReadOnScroll: Boolean = false,
     val listView: ListView = ListView.Medium,
+    /** Each device keeps its own, like the list view. */
+    val bookmarksView: BookmarksView = BookmarksView.Grid,
     /** When the last sync succeeded, or null. */
     val lastSyncedAt: Long? = null,
 )

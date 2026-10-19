@@ -1,6 +1,8 @@
 package be.wimvandonck.reader.ui.home
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Column
@@ -145,6 +147,7 @@ fun SearchScreen(
                     val feedsByUrl = remember(state.feeds) { state.feeds.associateBy { it.url } }
                     val feedLabel = stringResource(R.string.search_label_feed)
                     val itemLabel = stringResource(R.string.reading_list_title)
+                    val bookmarkLabel = stringResource(R.string.save_to_bookmark)
                     LazyColumn(
                         modifier = Modifier.fillMaxSize().readableWidth(),
                         contentPadding = PaddingValues(16.dp),
@@ -168,7 +171,7 @@ fun SearchScreen(
                                         view = state.listView,
                                         showImage = state.showImages,
                                         showUnreadDot = false,
-                                        label = itemLabel,
+                                        label = if (hit.item.readingList == null) bookmarkLabel else itemLabel,
                                         onClick = { actions.onOpenItem(hit.item) },
                                     )
                             }
@@ -195,13 +198,14 @@ private fun FilterRow(
     onChange: (SearchFilter) -> Unit,
 ) {
     Row(
-        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+        Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         listOf(
             SearchFilter.All to R.string.filter_all,
             SearchFilter.Feeds to R.string.feeds_title,
             SearchFilter.ReadingList to R.string.reading_list_title,
+            SearchFilter.Bookmarks to R.string.bookmarks_title,
         ).forEach { (option, label) ->
             FilterChip(
                 selected = filter == option,

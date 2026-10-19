@@ -6,36 +6,29 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import be.wimvandonck.reader.R
+import be.wimvandonck.reader.data.Bookmarks
 import be.wimvandonck.reader.data.Item
-import be.wimvandonck.reader.data.addToReadingList
-import be.wimvandonck.reader.data.item
+import be.wimvandonck.reader.data.SaveTo
 import be.wimvandonck.reader.data.itemTags
-import be.wimvandonck.reader.data.setLiked
-import be.wimvandonck.reader.data.setTags
 import be.wimvandonck.reader.instapaper.SharedLink
 import be.wimvandonck.reader.rssReaderApp
-import be.wimvandonck.reader.ui.reader.AddedSheet
+import be.wimvandonck.reader.ui.reader.SaveSheet
 import be.wimvandonck.reader.ui.theme.RssReaderAppTheme
 import kotlinx.coroutines.launch
 
 /**
- * The custom tab's Save button (#95): a see-through screen on top of the tab that puts the page
- * shown on the reading list and opens the sheet over it. Closing the sheet goes back to the tab.
+ * The custom tab's Save button (#95): a see-through screen on top of the tab with the save sheet
+ * over it (reading list or bookmark). Saving or closing the sheet goes back to the tab.
  */
 class SaveFromTabActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        // Brought back after the system closed it: the page was already saved then.
+        // Brought back after the system closed it: don't ask again.
         if (savedInstanceState != null) {
             finish()
             return
@@ -66,37 +59,30 @@ private fun SaveFromTab(
     val context = LocalContext.current
     val resources = LocalResources.current
     val app = context.rssReaderApp
-    val libraryOrNull by app.library.library.collectAsStateWithLifecycle()
-    var addedKey by remember { mutableStateOf<String?>(null) }
+    val library = app.library.library.collectAsStateWithLifecycle().value ?: return
 
-    // On the reading list (#107), as Save does in the app; waits for the library to be read.
-    LaunchedEffect(libraryOrNull != null) {
-        if (libraryOrNull == null || addedKey != null) return@LaunchedEffect
-        var added: Item? = null
-        app.library.edit { library ->
-            val (updated, item) = library.addToReadingList(link.url, link.title, System.currentTimeMillis())
-            added = item
-            updated
-        }
-        val item = added
-        if (item == null) {
-            Toast.makeText(context, resources.getString(R.string.add_link_invalid), Toast.LENGTH_SHORT).show()
-            onDone()
-            return@LaunchedEffect
-        }
-        addedKey = item.key
-        app.appScope.launch { app.library.describe(item.key) }
-    }
-
-    val item = addedKey?.let { key -> libraryOrNull?.item(key) }
-    val library = libraryOrNull
-    if (item != null && library != null) {
-        AddedSheet(
-            item = item,
-            allTags = library.itemTags(),
-            onLike = { app.appScope.launch { app.library.edit { it.setLiked(item.key, !item.liked) } } },
-            onTags = { tags -> app.appScope.launch { app.library.edit { it.setTags(item.key, tags) } } },
-            onDismiss = onDone,
-        )
-    }
+    // The save sheet, as for links shared to Reader (#108): the reading list or a bookmark.
+    SaveSheet(
+        url = link.url,
+        title = link.title,
+        initial = null,
+        collections = Bookmarks.collections(library),
+        allTags = library.itemTags(),
+        onSave = { url, to, collection, note, tags ->
+            app.appScope.launch {
+                var saved: Item? = null
+                app.library.edit { lib ->
+                    val (updated, item) = Bookmarks.save(lib, url, link.title, to, System.currentTimeMillis(), collection, note, tags)
+                    saved = item
+                    updated
+                }
+                val item = saved
+                val message = if (item == null) R.string.add_link_invalid else if (to == SaveTo.Bookmark) R.string.bookmark_saved else R.string.reading_list_added
+                // The tab is back by then: the app's context outlives this screen.
+                Toast.makeText(app, resources.getString(message), Toast.LENGTH_SHORT).show()
+                if (item != null) app.library.describe(item.key)
+            }
+        },
+        onDismiss = onDone,
+    )
 }

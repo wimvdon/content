@@ -65,6 +65,8 @@ class SettingsStore(
 
     suspend fun setListView(view: ListView) = edit { it[LIST_VIEW] = view.name }
 
+    suspend fun setBookmarksView(view: BookmarksView) = edit { it[BOOKMARKS_VIEW] = view.name }
+
     /** Takes the synced settings from another device (see SyncSettings); the rest stays as it is. */
     suspend fun applySynced(values: Map<String, String>) =
         edit { prefs ->
@@ -117,6 +119,7 @@ class SettingsStore(
             showImages = p[SHOW_IMAGES] ?: defaults.showImages,
             markReadOnScroll = p[MARK_READ_ON_SCROLL] ?: defaults.markReadOnScroll,
             listView = enumOr(p[LIST_VIEW], defaults.listView),
+            bookmarksView = enumOr(p[BOOKMARKS_VIEW], defaults.bookmarksView),
             lastSyncedAt = p[LAST_SYNCED_AT],
         )
     }
@@ -141,6 +144,7 @@ class SettingsStore(
         val SHOW_IMAGES = booleanPreferencesKey("show_images")
         val MARK_READ_ON_SCROLL = booleanPreferencesKey("mark_read_on_scroll")
         val LIST_VIEW = stringPreferencesKey("list_view")
+        val BOOKMARKS_VIEW = stringPreferencesKey("bookmarks_view")
         val LAST_SYNCED_AT = longPreferencesKey("last_synced_at")
     }
 }
