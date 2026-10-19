@@ -79,7 +79,10 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   bookmarks and collections in your account and sends the title, link, tags, note, favorite,
   folder (collection) and archive of the articles in Saved that are kept there, and moves to
   Raindrop's trash what you remove from Saved. When both Instapaper and Raindrop are connected,
-  each only gets its own articles; new saves go to the one you choose. **Disconnect** deletes the
+  each only gets its own articles; new saves go to the one you choose. An article you saved in both
+  shares its archive, like and tags (and folder, if you turn that on) between the two. Only when you
+  use **Copy between services** are one service's articles (title, link, tags, folder, archive,
+  and notes when Raindrop is the target) sent to the other. **Disconnect** deletes the
   tokens from your device; revoke Reader in Raindrop's settings to end it there too.
 - **Links you open** (Read on website, links in articles) open in your browser, under the
   website's own privacy policy.

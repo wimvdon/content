@@ -283,8 +283,18 @@ Approve Reader there and you come back connected ("Connected to Raindrop.io"). O
 - **Disconnect** stops it on this device. Saved stays.
 
 **Instapaper and Raindrop together:** each keeps its own articles and nothing is copied from one to
-the other. Saved shows both. The first time both are connected, Reader asks where new saves go; change
-it later in Connected services › **New saves go to**. Details: `raindrop.md`.
+the other unless you ask. Saved shows both, with a small mark on each article: a serif **I** for
+Instapaper, a **drop** for Raindrop.
+
+- The first time both are connected, Reader asks where new saves go; change it later in Connected
+  services › **New saves go to**, or for one save with **Save to** in the save sheet.
+- An article in both shows once. Connected services › **Articles in both** chooses what reaches both
+  copies: Archive, Liked and Tags (on), Folder (off).
+- Removing an article both keep asks: from both, or from one only (it then stays in Saved).
+- Connected services › **Copy between services** copies all articles of one service to the other,
+  once, after showing how many. Articles already there are skipped; you can cancel.
+
+Details: `raindrop.md`.
 
 ## Common problems
 

@@ -126,6 +126,10 @@ class ReaderItem(
     val onRemove: () -> Unit,
     /** How far it was read, 0 to 1, as the reader scrolls. */
     val onProgress: (Float) -> Unit,
+    /** The services that keep it while both are connected (#121): with two, removing asks where. */
+    val services: Set<String> = emptySet(),
+    /** Removes it from one service only; it stays in Saved, kept in the other. */
+    val onRemoveFrom: (String) -> Unit = {},
 )
 
 /** One article, in the reader's font, size, spacing and page colour. */
@@ -336,7 +340,7 @@ fun ReaderScreen(
 
     if (item != null) {
         if (tagsOpen) TagsDialog(item.item, item.allTags, item.onTags, onDismiss = { tagsOpen = false })
-        if (removeOpen) RemoveDialog(item.item, item.onRemove, onDismiss = { removeOpen = false })
+        if (removeOpen) RemoveDialog(item.item, item.onRemove, onDismiss = { removeOpen = false }, services = item.services, onRemoveFrom = item.onRemoveFrom)
         if (finishOpen) {
             FinishSheet(
                 item = item.item,

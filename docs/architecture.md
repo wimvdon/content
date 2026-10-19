@@ -120,6 +120,9 @@ helpers), `InstapaperAuth` (sign-in address, callback parsing, token swap throug
 time as it has no `since`), `RaindropClient`, `RaindropAuth` (OAuth 2 through the Worker) and
 `RaindropAccount`. With both connected (#121) every item remembers its service (`Item.service`):
 `ServiceSync` sends an item only to its own service, new ones to the default (`Settings.saveService`,
-asked once), so nothing is copied between them; `ServiceManager` waits until both accounts are read
-before the first sync. `ui/settings/ServicesScreen.kt` shows the connected services. See
+asked once or picked per save), so nothing is copied between them; an article both have is the first
+one's, and the other's copy only shares what `DuplicateSync` says (`ServiceSync.share`).
+`ServiceManager` waits until both accounts are read before the first sync, keeps which service has
+each item (`presence`, for the marks in Saved), removes from one service only (`removeFrom`) and
+runs the opt-in copy (`ServiceCopy`). `ui/settings/ServicesScreen.kt` shows the connected services. See
 `instapaper.md` and `raindrop.md`.

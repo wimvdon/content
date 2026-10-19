@@ -70,6 +70,8 @@ data class SavedHome(
     val titleFont: FontFamily,
     /** The feed list's view (Small, Medium, Large), which To read, All and Archive share. */
     val listView: ListView = ListView.Medium,
+    /** The services that keep each item, by key, while both are connected (#121); empty otherwise. */
+    val services: Map<String, Set<String>> = emptyMap(),
 )
 
 /**
@@ -130,6 +132,7 @@ private fun ArticleList(
                 showUnreadDot = false,
                 onClick = { onOpen(item) },
                 modifier = Modifier.animateItem(),
+                services = home.services[item.key].orEmpty(),
             )
         }
     }
@@ -171,7 +174,7 @@ private fun NotesGrid(
         item(key = "summary", span = StaggeredGridItemSpan.FullLine) { Summary(home, Modifier.padding(start = 4.dp, bottom = 4.dp)) }
         items(home.items, key = { it.key }) { item ->
             val source = remember(item, home.library) { ReadingLists.source(item, home.library) }
-            NoteCard(item, source, home.titleFont, showImages, onClick = { onOpen(item) }, modifier = Modifier.animateItem())
+            NoteCard(item, source, home.titleFont, showImages, home.services[item.key].orEmpty(), onClick = { onOpen(item) }, modifier = Modifier.animateItem())
         }
     }
 }
@@ -188,6 +191,7 @@ private fun NoteCard(
     source: Feed?,
     titleFont: FontFamily,
     showImage: Boolean,
+    services: Set<String>,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -250,6 +254,7 @@ private fun NoteCard(
                             tint = MaterialTheme.colorScheme.primary,
                         )
                     }
+                    ServiceMarks(services)
                 }
             }
         }

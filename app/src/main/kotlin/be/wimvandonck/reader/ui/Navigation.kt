@@ -62,6 +62,7 @@ import be.wimvandonck.reader.ui.reader.AddedSheet
 import be.wimvandonck.reader.ui.reader.ReaderItem
 import be.wimvandonck.reader.ui.reader.fontFamily
 import be.wimvandonck.reader.ui.settings.SaveServiceDialog
+import be.wimvandonck.reader.ui.settings.serviceName
 import be.wimvandonck.reader.ui.settings.ServicesActions
 import be.wimvandonck.reader.ui.settings.ServicesScreen
 import be.wimvandonck.reader.ui.settings.ServicesState
@@ -172,6 +173,10 @@ fun RssReaderNavigation() {
     val textWords by repository.textWords.collectAsStateWithLifecycle()
     val syncStatus by app.sync.status.collectAsStateWithLifecycle()
     val serviceStatuses by app.services.statuses.collectAsStateWithLifecycle()
+    // Which service keeps each saved item, marked while both are connected (#121).
+    val servicePresence by app.services.presence.collectAsStateWithLifecycle()
+    val copying by app.services.copying.collectAsStateWithLifecycle()
+    val shownPresence = if (serviceStatuses.size > 1) servicePresence else emptyMap()
     val instapaperState by app.instapaper.state.collectAsStateWithLifecycle()
     val instapaperNotice by app.instapaper.notice.collectAsStateWithLifecycle()
     val raindropState by app.raindrop.state.collectAsStateWithLifecycle()
@@ -395,11 +400,12 @@ fun RssReaderNavigation() {
         folder: String,
         note: String,
         tags: List<String>,
+        service: String? = null,
     ) {
         app.appScope.launch {
             var saved: Item? = null
             repository.edit { library ->
-                val (updated, item) = Saved.save(library, url, title, System.currentTimeMillis(), folder, note, tags)
+                val (updated, item) = Saved.save(library, url, title, System.currentTimeMillis(), folder, note, tags, service)
                 saved = item
                 if (item != null && current.tagWithFolder) updated.tagWithFeedFolder(item.key) else updated
             }
@@ -482,6 +488,7 @@ fun RssReaderNavigation() {
                                         library = library,
                                         titleFont = current.reader.font.fontFamily(),
                                         listView = current.listView,
+                                        services = shownPresence,
                                     ),
                                 toReadCount = remember(library) { library.items.count { Saved.isIn(it, SavedTab.ToRead) } },
                             ),
@@ -648,6 +655,14 @@ fun RssReaderNavigation() {
                                             editLibrary { Saved.remove(it, i.key) }
                                             pop()
                                         },
+                                        services = shownPresence[i.key].orEmpty(),
+                                        onRemoveFrom = { id ->
+                                            app.appScope.launch {
+                                                val removed = app.services.removeFrom(i.key, id)
+                                                val name = resources.getString(serviceName(id))
+                                                showMessage(resources.getString(if (removed) R.string.saved_removed_from else R.string.saved_remove_from_failed, name))
+                                            }
+                                        },
                                         onProgress = { progress ->
                                             if (kotlin.math.abs(progress - i.progress) >= 0.01f) {
                                                 editLibrary { lib -> lib.changeItem(i.key) { if (it.readingList == null) it else it.copy(progress = progress) } }
@@ -789,6 +804,8 @@ fun RssReaderNavigation() {
                                 raindrop = raindropState,
                                 statuses = serviceStatuses,
                                 saveService = serviceStatuses.keys.let { connected -> current.saveService?.takeIf { it in connected } ?: connected.firstOrNull() },
+                                duplicates = current.duplicates,
+                                copying = copying,
                             ),
                         actions =
                             ServicesActions(
@@ -798,6 +815,11 @@ fun RssReaderNavigation() {
                                 onDisconnectRaindrop = { app.appScope.launch { app.raindrop.signOut() } },
                                 onSyncNow = { app.appScope.launch { app.services.sync() } },
                                 onSaveServiceChange = { id -> app.appScope.launch { app.settings.setSaveService(id) } },
+                                onDuplicatesChange = { value -> app.appScope.launch { app.settings.setDuplicates(value) } },
+                                onCountCopy = { from, to, result -> uiScope.launch { result(app.services.copyCount(from, to)) } },
+                                onCopy = { from, to -> app.services.startCopy(from, to) },
+                                onCancelCopy = { app.services.cancelCopy() },
+                                onCopyDone = { app.services.clearCopy() },
                             ),
                     )
                 }
@@ -831,8 +853,10 @@ fun RssReaderNavigation() {
             title = saveTitle,
             folders = Saved.folders(library),
             allTags = library.itemTags(),
-            onSave = { url, folder, note, tags -> save(url, saveTitle.takeIf { saveUrl.isNotEmpty() }, folder, note, tags) },
+            onSave = { url, folder, note, tags, service -> save(url, saveTitle.takeIf { saveUrl.isNotEmpty() }, folder, note, tags, service) },
             onDismiss = { saveOpen = false },
+            services = serviceStatuses.keys.toList(),
+            defaultService = app.services.defaultService(),
         )
     }
 

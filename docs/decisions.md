@@ -2,6 +2,21 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-19: Instapaper and Raindrop together (#121)
+
+Following #121 and the owner's decision comment there:
+
+- **Merged view, nothing copied on its own:** an article in both services is one item (its address is
+  its key), the first service's; the other has a copy. Marks on each article say where it is kept.
+- **What copies share** is a setting per state (`DuplicateSync`): Archive, Liked and Tags on, Folder
+  off. Title, note, progress and highlights stay per service. A copy's changes come in only for
+  what is shared; a deletion in one service's own app never deletes in the other (the item moves to
+  the other); removing in Reader asks (both, or one only).
+- **Default for new saves:** asked once, changeable in Connected services and per save.
+- **Copy is an explicit import** (Connected services), with the count and what doesn't carry over
+  first, skipping what the target has, cancellable, in batches so what got through is kept.
+  Rejected: ongoing two-way sync (out of scope in #121).
+
 ## 2026-10-19: Raindrop.io for Saved (#112), next to Instapaper without copying (#121)
 
 The owner approved Raindrop.io and its network destination `api.raindrop.io` (#112).
