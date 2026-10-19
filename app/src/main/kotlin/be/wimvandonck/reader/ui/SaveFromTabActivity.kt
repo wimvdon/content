@@ -1,5 +1,6 @@
 package be.wimvandonck.reader.ui
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -21,8 +22,9 @@ import be.wimvandonck.reader.ui.theme.RssReaderAppTheme
 import kotlinx.coroutines.launch
 
 /**
- * The custom tab's Save button (#95): a see-through screen on top of the tab with the save sheet
- * over it (reading list or bookmark). Saving or closing the sheet goes back to the tab.
+ * The save sheet on a see-through screen (#95, #103): over the custom tab for its Save button, and
+ * over the other app for a link shared to Reader (through the ShareActivity alias in the manifest),
+ * without opening the whole app. Saving or closing the sheet goes back to where the user was.
  */
 class SaveFromTabActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,13 +35,27 @@ class SaveFromTabActivity : ComponentActivity() {
             finish()
             return
         }
+        val shared = intent.action == Intent.ACTION_SEND
+        // Other apps reach this screen only through the share alias, and only with a shared link.
+        if (!shared && intent.component?.className?.endsWith(SHARE_ALIAS) == true) {
+            finish()
+            return
+        }
         val link =
-            SharedLink.fromTab(
-                intent.dataString,
-                intent.getStringExtra(ExternalApps.EXTRA_OPENED_URL),
-                intent.getStringExtra(ExternalApps.EXTRA_OPENED_TITLE),
-            )
+            if (shared) {
+                SharedLink.of(
+                    intent.getStringExtra(Intent.EXTRA_SUBJECT),
+                    intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString(),
+                )
+            } else {
+                SharedLink.fromTab(
+                    intent.dataString,
+                    intent.getStringExtra(ExternalApps.EXTRA_OPENED_URL),
+                    intent.getStringExtra(ExternalApps.EXTRA_OPENED_TITLE),
+                )
+            }
         if (link == null) {
+            if (shared) Toast.makeText(this, R.string.share_no_link, Toast.LENGTH_SHORT).show()
             finish()
             return
         }
@@ -48,6 +64,11 @@ class SaveFromTabActivity : ComponentActivity() {
                 SaveFromTab(link, onDone = ::finish)
             }
         }
+    }
+
+    private companion object {
+        /** The exported alias other apps share links to (AndroidManifest.xml). */
+        const val SHARE_ALIAS = ".ShareActivity"
     }
 }
 

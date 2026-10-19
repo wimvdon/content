@@ -31,6 +31,9 @@ object ExternalApps {
     const val EXTRA_OPENED_URL = "be.wimvandonck.reader.extra.OPENED_URL"
     const val EXTRA_OPENED_TITLE = "be.wimvandonck.reader.extra.OPENED_TITLE"
 
+    /** The alias other apps share links to (AndroidManifest.xml, #103); left out of Reader's own share menu. */
+    private const val SHARE_ACTIVITY = "be.wimvandonck.reader.ui.ShareActivity"
+
     /**
      * Opens a web page in a custom tab (#95): the browser's page on top of Reader, with a Save
      * button that saves the page shown to Saved and opens the save sheet over the tab
@@ -77,7 +80,7 @@ object ExternalApps {
             context,
             Intent
                 .createChooser(shareIntent(title, url), chooserTitle)
-                .putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, arrayOf(ComponentName(context, MainActivity::class.java))),
+                .putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, arrayOf(ComponentName(context, SHARE_ACTIVITY))),
         )
 
     /**

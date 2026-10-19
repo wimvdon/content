@@ -14,9 +14,7 @@ import be.wimvandonck.reader.data.DuplicateSync
 import be.wimvandonck.reader.data.SettingsStore
 import be.wimvandonck.reader.feed.FeedFetcher
 import be.wimvandonck.reader.instapaper.InstapaperAccount
-import be.wimvandonck.reader.instapaper.SharedLink
 import be.wimvandonck.reader.raindrop.RaindropAccount
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -56,9 +54,6 @@ class RssReaderApp :
 
     /** The user's Instapaper account (sign-in, saving, and the saved list). See instapaper/. */
     val instapaper: InstapaperAccount by lazy { InstapaperAccount(this, appScope, http) }
-
-    /** A link shared to Reader from another app, waiting to be saved (#97, MainActivity → Navigation). */
-    val sharedLink = MutableStateFlow<SharedLink?>(null)
 
 
     /** Sync with the user's Reader account, which signing in with Instapaper opens. See sync/ and docs/account.md. */

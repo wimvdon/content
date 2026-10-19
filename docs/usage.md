@@ -171,8 +171,10 @@ article in Reader (which is kept in that service too), so Settings › Save and 
 Share button's choice.
 
 **Saving from other apps.** In Chrome or any app that shares links, tap Share and pick
-**Reader**. Reader opens the **Save to Reader** sheet: the site, then the **Folder** (empty: To read;
-type one or tap one you have), a **Note** and **Tags**. **Save** saves it and says where it went; **Cancel** saves nothing. A
+**Reader**. Only the **Save to Reader** sheet opens, over the app you were in (the rest of Reader
+stays closed): the site, then the **Folder** (empty: To read; type one or tap one you have), a
+**Note** and **Tags** (and **Save to** with both services connected). **Save** saves it and says where
+it went, and you are back in that app; **Cancel** saves nothing. A
 link shared without a title gets the page's own title, description and picture. Shared text without
 a web link says "No link to save".
 

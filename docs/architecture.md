@@ -66,10 +66,11 @@ RssReaderApp ── SettingsStore ── DataStore "settings" (Preferences)
    item as the feed article, and opens the sheet to like and tag it (`AddedSheet`); set to another
    app, it hands the link over with an `ACTION_SEND` intent instead. A link without a title gets
    the page's own (`LibraryRepository.describe`, `feed/PageInfo.kt`).
-6. Reader also takes shares (#97): `MainActivity` accepts `ACTION_SEND` with `text/plain`, reads
-   the first web link and a title (`instapaper/SharedLink.kt`) and puts it in
-   `RssReaderApp.sharedLink`. `Navigation` opens the save sheet (`SaveSheet`: folder, note, tags)
-   for it once the library is read. Reader leaves itself out of its own share menu (`EXTRA_EXCLUDE_COMPONENTS`).
+6. Reader also takes shares (#97, #103): the exported `ui.ShareActivity` alias of
+   `SaveFromTabActivity` accepts `ACTION_SEND` with `text/plain`, reads the first web link and a
+   title (`instapaper/SharedLink.kt`) and shows only the save sheet (`SaveSheet`: folder, note,
+   tags) on a see-through screen over the app that shared it; the rest of Reader doesn't open.
+   Reader leaves the alias out of its own share menu (`EXTRA_EXCLUDE_COMPONENTS`).
 7. Web links open in a custom tab (#95, `ExternalApps.openInTab`, AndroidX Browser) with a Save
    action button. Its `PendingIntent` (mutable, so the browser can add the page shown as the data)
    opens `SaveFromTabActivity` with the link and title Reader opened; `SharedLink.fromTab` keeps

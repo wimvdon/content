@@ -211,3 +211,10 @@ Needs the Raindrop app registered and the Worker's `RAINDROP_CLIENT_ID` and `RAI
 - [ ] **Copy between services**: the dialog shows how many and what stays behind; Copy shows progress,
       Cancel stops it; running it again offers only what wasn't copied.
 - [ ] **Disconnect**: the screen shows Connect again; Saved keeps its articles.
+
+## Sharing to Reader (#103)
+
+- [ ] In Chrome, Share › **Reader Dev**: only the save sheet slides up over Chrome; Reader's own
+      screens don't open. **Save** shows where it went and you are back in Chrome.
+- [ ] Share plain text without a link: "No link to save", and nothing else opens.
+- [ ] Reader's own Share button doesn't list Reader itself.
