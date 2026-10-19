@@ -92,7 +92,8 @@ Reading list and Instapaper (#107, #109): `data/ReadingLists.kt` (lists, reading
 articles), `services/` (`ReadingListService`, `ServiceSync`, `ServiceManager`),
 `instapaper/` (client, sign-in, account, `InstapaperReadingList`, and the files of Saved before #106
 for the move-in), `ui/home/ReadingListContent.kt`, `ui/reader/ItemSheets.kt`,
-`ui/feeds/TagsManage.kt`, `ui/settings/ServicesScreen.kt`. Bookmarks (#108): `data/Bookmarks.kt`,
+`ui/feeds/TagsManage.kt`, `ui/settings/ServicesScreen.kt`. Highlights (#102): `data/Anchors.kt`, `data/ArticleText.kt`, `services/HighlightSync.kt`,
+`services/MatchTest.kt`, `ui/reader/HighlightSheets.kt`. Bookmarks (#108): `data/Bookmarks.kt`,
 `ui/home/BookmarksContent.kt`, `ui/home/BookmarkScreen.kt`. The web app: `web/src/lib/instapaper.ts`,
 `web/src/lib/instapaperLibrary.ts`, `web/src/lib/localSaved.ts` (Saved without an account),
 `web/src/components/InstapaperActions.tsx` and `InstapaperManage.tsx`, `worker/src/instapaper.ts`

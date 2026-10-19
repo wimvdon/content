@@ -1,6 +1,6 @@
 # Privacy policy
 
-_Last updated: 2026-10-19 (the reading list and Instapaper, page titles for added links)_
+_Last updated: 2026-10-19 (highlights and Instapaper)_
 
 Reader has no analytics, advertising or crash reporting. It works without an account. If you sign
 in with Instapaper, that sign-in is also your Reader account: Reader then keeps your feed list,
@@ -64,7 +64,10 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   Android app keeps your reading list and your Instapaper account the same while it is open: it
   reads everything in your account and what changed since its last look, and sends the title, link,
   tags, like, archive and reading progress of the articles on your reading list, and removes from
-  Instapaper what you take off the reading list. On the app owner's own account it also asks
+  Instapaper what you take off the reading list. When you open an article it asks Instapaper for
+  the highlights you made there, and only if you turn on **Copy highlights to Instapaper**
+  (Connected services, off by default) it sends your highlights (the passage, your note and which
+  occurrence it is) and deletes them there when you delete them here. On the app owner's own account it also asks
   Instapaper for its text of an article you open, which is kept on your device only. The web app
   reads and changes your saved list (archive, like, delete, move to a folder, tags, folders). Signing out deletes the token and the account key from
   your device; the token stays valid at Instapaper until you revoke it there.

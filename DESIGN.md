@@ -271,6 +271,11 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   bottom app bar, and a tonal "Finished reading" button at the end of the text; each opens the
   Finished reading sheet (Archive / Keep as bookmark as two radio rows with an icon and a line of
   help, then the collection, note and tags for Keep; Cancel and the action as buttons).
+- Highlights (#102): a marker yellow (`#FFD54F` at 45%) behind the passage on every page colour;
+  an approximate one at 18% and underlined. Highlight and Note join Copy and Share in the selection
+  menu. The reader's bottom bar shows a quote mark with the count, which opens the list; a
+  highlight's sheet has the quote beside a `primary` bar, its status line, the note, and Remove,
+  Cancel and Save.
 - The ☰ drawer: the Feeds section (All articles, the folders with their feeds, the other feeds),
   the Reading list section (To read with its count, Liked, the tags, then Archive), the Bookmarks
   section (All with its count, then the collections with theirs), then Manage feeds, Collections

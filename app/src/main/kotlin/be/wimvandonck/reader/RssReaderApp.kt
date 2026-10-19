@@ -63,7 +63,7 @@ class RssReaderApp :
     val sync: SyncManager by lazy { SyncManager(this, appScope, library, settings, instapaper, http) }
 
     /** The reading list's connected service (Instapaper when signed in). See services/. */
-    val services: ServiceManager by lazy { ServiceManager(appScope, library, instapaper, http) }
+    val services: ServiceManager by lazy { ServiceManager(appScope, library, instapaper, http) { settings.settings.value?.copyHighlights == true } }
 
     val fullArticles: FullArticles by lazy { FullArticles(File(cacheDir, "articles"), fetch = fetcher::fetch) }
 

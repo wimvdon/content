@@ -23,7 +23,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.text.contextmenu.builder.item
+import androidx.compose.foundation.text.contextmenu.modifier.appendTextContextMenuComponents
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.foundation.text.selection.rememberSelectionState
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextDecoration
+import be.wimvandonck.reader.data.Mark
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -73,23 +81,107 @@ fun HeroImage(url: String) {
 }
 
 /** A run of article text in the reader's style; links open through [onOpenLink]. */
+/**
+ * Highlights in the reader (#102): each paragraph's marks, and what selecting text and tapping a mark
+ * do. Null where the text can't be highlighted.
+ */
+class Highlighting(
+    val marks: Map<Int, List<Mark>>,
+    /** Text selected in paragraph [Int] was highlighted, with a note to write when the Boolean is true. */
+    val onCreate: (Int, String, Boolean) -> Unit,
+    /** A highlight was tapped. */
+    val onOpen: (String) -> Unit,
+)
+
+/** A paragraph's place among the reader's paragraphs, for [Highlighting]. */
+class Paragraph(
+    val index: Int,
+    val highlighting: Highlighting,
+)
+
+/** A paragraph's text as the reader shows it, for anchoring highlights (the same text [TextBlock] draws). */
+fun paragraphText(html: String): String = AnnotatedString.fromHtml(html).trimmed().text
+
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TextBlock(
     html: String,
     style: TextStyle,
     links: TextLinkStyles,
     modifier: Modifier = Modifier,
+    paragraph: Paragraph? = null,
     onOpenLink: (String) -> Unit,
 ) {
     val open by rememberUpdatedState(onOpenLink)
+    val openHighlight by rememberUpdatedState(paragraph?.highlighting?.onOpen)
+    val marks = paragraph?.let { it.highlighting.marks[it.index] }.orEmpty()
+    val exactColor = HIGHLIGHT
+    val roughColor = HIGHLIGHT.copy(alpha = 0.18f)
     val text =
-        remember(html, links) {
-            AnnotatedString
-                .fromHtml(html, linkStyles = links) { link -> (link as? LinkAnnotation.Url)?.let { open(it.url) } }
-                .trimmed()
+        remember(html, links, marks) {
+            val base =
+                AnnotatedString
+                    .fromHtml(html, linkStyles = links) { link -> (link as? LinkAnnotation.Url)?.let { open(it.url) } }
+                    .trimmed()
+            if (marks.isEmpty()) {
+                base
+            } else {
+                buildAnnotatedString {
+                    append(base)
+                    for (mark in marks) {
+                        val start = mark.start.coerceIn(0, base.length)
+                        val end = mark.end.coerceIn(start, base.length)
+                        if (start == end) continue
+                        addStyle(
+                            SpanStyle(
+                                background = if (mark.approximate) roughColor else exactColor,
+                                textDecoration = if (mark.approximate) TextDecoration.Underline else null,
+                            ),
+                            start,
+                            end,
+                        )
+                        addLink(LinkAnnotation.Clickable(mark.highlightId) { openHighlight?.invoke(mark.highlightId) }, start, end)
+                    }
+                }
+            }
         }
-    if (text.isNotEmpty()) SelectionContainer { Text(text, style = style, modifier = modifier) }
+    if (text.isEmpty()) return
+    if (paragraph == null) {
+        SelectionContainer { Text(text, style = style, modifier = modifier) }
+        return
+    }
+    // Highlight and Note join Copy and Share in the menu over selected text.
+    val selection = rememberSelectionState()
+    val highlightLabel = stringResource(R.string.highlight_action)
+    val noteLabel = stringResource(R.string.note_title)
+    val create by rememberUpdatedState(paragraph.highlighting.onCreate)
+    val index = paragraph.index
+    SelectionContainer(
+        selection,
+        Modifier.appendTextContextMenuComponents {
+            separator()
+            item(HighlightKey, highlightLabel, R.drawable.ic_highlight) {
+                val selected = selection.selectedTexts.joinToString("") { it.text }
+                close()
+                selection.clear()
+                create(index, selected, false)
+            }
+            item(NoteKey, noteLabel, R.drawable.ic_edit_note) {
+                val selected = selection.selectedTexts.joinToString("") { it.text }
+                close()
+                selection.clear()
+                create(index, selected, true)
+            }
+        },
+    ) { Text(text, style = style, modifier = modifier) }
 }
+
+/** A highlight's colour: a marker yellow that reads on the light, sepia and dark pages. */
+private val HIGHLIGHT = Color(0xFFFFD54F).copy(alpha = 0.45f)
+
+private object HighlightKey
+
+private object NoteKey
 
 /** A heading inside the article: bolder and, for h1 to h3, larger than the text. */
 @Composable
@@ -97,6 +189,7 @@ fun HeadingBlock(
     block: ArticleBlock.Heading,
     style: TextStyle,
     links: TextLinkStyles,
+    paragraph: Paragraph? = null,
     onOpenLink: (String) -> Unit,
 ) {
     val scale =
@@ -110,6 +203,7 @@ fun HeadingBlock(
         style.copy(fontSize = style.fontSize * scale, fontWeight = FontWeight.Bold, lineHeight = 1.3.em),
         links,
         Modifier.padding(top = 8.dp).semantics { heading() },
+        paragraph,
         onOpenLink,
     )
 }
@@ -120,6 +214,8 @@ fun QuoteBlock(
     block: ArticleBlock.Quote,
     style: TextStyle,
     links: TextLinkStyles,
+    /** The first paragraph's place; the others follow it. */
+    first: Paragraph? = null,
     onOpenLink: (String) -> Unit,
 ) {
     val barColor = MaterialTheme.colorScheme.primary
@@ -131,8 +227,14 @@ fun QuoteBlock(
                 .drawBehind { drawRect(barColor, size = Size(3.dp.toPx(), size.height)) }
                 .padding(start = 16.dp),
     ) {
-        for (paragraph in block.paragraphs) {
-            TextBlock(paragraph, style.copy(fontStyle = FontStyle.Italic, color = MaterialTheme.colorScheme.onSurfaceVariant), links, onOpenLink = onOpenLink)
+        block.paragraphs.forEachIndexed { i, paragraph ->
+            TextBlock(
+                paragraph,
+                style.copy(fontStyle = FontStyle.Italic, color = MaterialTheme.colorScheme.onSurfaceVariant),
+                links,
+                paragraph = first?.let { Paragraph(it.index + i, it.highlighting) },
+                onOpenLink = onOpenLink,
+            )
         }
     }
 }
@@ -165,10 +267,12 @@ fun ListBlockView(
     block: ArticleBlock.ListBlock,
     style: TextStyle,
     links: TextLinkStyles,
+    /** The first item's place; the others follow it. */
+    first: Paragraph? = null,
     onOpenLink: (String) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        for (item in block.items) {
+        block.items.forEachIndexed { i, item ->
             Row(Modifier.padding(start = (20 * (item.depth - 1)).dp)) {
                 Text(
                     item.marker,
@@ -176,7 +280,7 @@ fun ListBlockView(
                     textAlign = TextAlign.End,
                     modifier = Modifier.width(28.dp).padding(end = 8.dp).clearAndSetSemantics {},
                 )
-                TextBlock(item.html, style, links, Modifier.weight(1f), onOpenLink)
+                TextBlock(item.html, style, links, Modifier.weight(1f), first?.let { Paragraph(it.index + i, it.highlighting) }, onOpenLink)
             }
         }
     }

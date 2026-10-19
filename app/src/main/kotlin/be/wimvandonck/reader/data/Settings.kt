@@ -143,6 +143,8 @@ data class Settings(
     val bookmarksView: BookmarksView = BookmarksView.Grid,
     /** Tag an article saved from a feed with the feed's folder (#120). */
     val tagWithFolder: Boolean = true,
+    /** Copy highlights to Instapaper (#102). Off: free accounts may make five a month. */
+    val copyHighlights: Boolean = false,
     /** When the last sync succeeded, or null. */
     val lastSyncedAt: Long? = null,
 )

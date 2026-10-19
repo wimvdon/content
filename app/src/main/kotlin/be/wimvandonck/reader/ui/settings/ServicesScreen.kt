@@ -1,5 +1,18 @@
 package be.wimvandonck.reader.ui.settings
 
+import android.content.ClipData
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.text.font.FontFamily
+import be.wimvandonck.reader.ui.theme.SwitchSetting
+import kotlinx.coroutines.launch
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -29,6 +42,11 @@ fun ServicesScreen(
     onBack: () -> Unit,
     onSignIn: () -> Unit,
     onSyncNow: () -> Unit,
+    copyHighlights: Boolean = false,
+    onCopyHighlightsChange: (Boolean) -> Unit = {},
+    /** The matching test of #102, in test builds only (null hides it). */
+    matchTest: MatchTestState? = null,
+    onRunMatchTest: () -> Unit = {},
 ) {
     SettingsScaffold(
         title = stringResource(R.string.services_title),
@@ -74,15 +92,56 @@ fun ServicesScreen(
                         }
                     }
                 }
+                if (signedIn != null) {
+                    SwitchSetting(
+                        title = stringResource(R.string.services_copy_highlights_title),
+                        summary = stringResource(R.string.services_copy_highlights_summary),
+                        checked = copyHighlights,
+                        onCheckedChange = onCopyHighlightsChange,
+                    )
+                    if (matchTest != null) MatchTestBlock(matchTest, onRunMatchTest)
+                }
             }
         }
+    }
+}
+
+/** Where the matching test is: not run, running (articles checked), or done with its report. */
+data class MatchTestState(
+    val running: Boolean = false,
+    val checked: Int = 0,
+    val result: String? = null,
+)
+
+@Composable
+private fun MatchTestBlock(
+    state: MatchTestState,
+    onRun: () -> Unit,
+) {
+    val clipboard = LocalClipboard.current
+    val scope = rememberCoroutineScope()
+    SettingsBlock {
+        Text(stringResource(R.string.match_test_title), style = MaterialTheme.typography.bodyLarge)
+        Text(stringResource(R.string.match_test_body), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (state.running || state.checked > 0) {
+            Text(pluralStringResource(R.plurals.match_test_progress, state.checked, state.checked), style = MaterialTheme.typography.labelLarge)
+        }
+        if (state.running) LinearProgressIndicator(Modifier.fillMaxWidth())
+        val result = state.result
+        if (result != null) {
+            SelectionContainer { Text(result, style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace)) }
+            OutlinedButton(onClick = { scope.launch { clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("match", result))) } }) {
+                Text(stringResource(R.string.match_test_copy))
+            }
+        }
+        FilledTonalButton(onClick = onRun, enabled = !state.running) { Text(stringResource(R.string.match_test_run)) }
     }
 }
 
 private fun ServiceProblem.messageRes(): Int =
     when (this) {
         ServiceProblem.SignedOut -> R.string.instapaper_problem_signed_out
-        ServiceProblem.RateLimited -> R.string.services_problem_later
+        ServiceProblem.RateLimited, ServiceProblem.LimitReached -> R.string.services_problem_later
         ServiceProblem.Offline -> R.string.problem_offline
         ServiceProblem.Refused -> R.string.problem_server
     }

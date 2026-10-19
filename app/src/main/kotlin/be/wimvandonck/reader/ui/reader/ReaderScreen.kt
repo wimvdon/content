@@ -64,6 +64,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import be.wimvandonck.reader.R
+import androidx.compose.ui.res.pluralStringResource
+import java.util.UUID
+import be.wimvandonck.reader.data.Highlight
+import be.wimvandonck.reader.data.ArticleText
+import be.wimvandonck.reader.data.Anchors
+import be.wimvandonck.reader.data.Anchor
 import be.wimvandonck.reader.data.Article
 import be.wimvandonck.reader.data.Feed
 import be.wimvandonck.reader.ui.home.FeedIcon
@@ -142,7 +148,10 @@ fun ReaderScreen(
     item: ReaderItem? = null,
     /** Where the text came from, when it isn't the feed's ("Instapaper text"), shown above the title. */
     textSource: String? = null,
+    /** Highlights (#102); null where the article can't be highlighted (no link). */
+    highlights: ReaderHighlights? = null,
 ) {
+    var highlightsOpen by rememberSaveable { mutableStateOf(false) }
     var showStyleSheet by rememberSaveable { mutableStateOf(false) }
     var tagsOpen by rememberSaveable { mutableStateOf(false) }
     var removeOpen by rememberSaveable { mutableStateOf(false) }
@@ -279,6 +288,14 @@ fun ReaderScreen(
             // Keep and Archive for an article on the reading list (#107).
             if (item != null && onList && article != null) {
                 BottomAppBar(containerColor = MaterialTheme.colorScheme.surfaceContainer) {
+                    val count = highlights?.highlights?.size ?: 0
+                    if (count > 0) {
+                        val label = pluralStringResource(R.plurals.highlights_count, count, count)
+                        TextButton(onClick = { highlightsOpen = true }, modifier = Modifier.semantics { contentDescription = label }) {
+                            Icon(painterResource(R.drawable.ic_quote), contentDescription = null)
+                            Text(count.toString(), modifier = Modifier.padding(start = 8.dp))
+                        }
+                    }
                     Spacer(Modifier.weight(1f))
                     TextButton(onClick = { finish(FinishChoice.Keep) }) {
                         Icon(painterResource(R.drawable.ic_bookmark_add), contentDescription = null)
@@ -318,6 +335,9 @@ fun ReaderScreen(
                 scrollState = scrollState,
                 textSource = textSource,
                 onFinished = if (item != null && onList && !item.item.archived) ({ finish(null) }) else null,
+                highlights = highlights,
+                highlightsOpen = highlightsOpen,
+                onHighlightsOpenChange = { highlightsOpen = it },
                 modifier = Modifier.padding(innerPadding),
             )
         }
@@ -376,6 +396,9 @@ private fun ArticleBody(
     textSource: String?,
     /** At the end of an article on the reading list: "Finished reading" opens the sheet that asks what's next. */
     onFinished: (() -> Unit)?,
+    highlights: ReaderHighlights?,
+    highlightsOpen: Boolean,
+    onHighlightsOpenChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val linkColor = MaterialTheme.colorScheme.primary
@@ -392,6 +415,47 @@ private fun ArticleBody(
         }
     val links = TextLinkStyles(SpanStyle(color = linkColor, textDecoration = TextDecoration.Underline))
     val bodyStyle = readerBodyStyle(style)
+    // The text's paragraphs, in order, as one text that highlights are anchored in (#102).
+    val articleText =
+        remember(blocks) {
+            ArticleText(
+                blocks.flatMap { b ->
+                    when (b) {
+                        is ArticleBlock.Text -> listOf(b.html)
+                        is ArticleBlock.Heading -> listOf(b.html)
+                        is ArticleBlock.Quote -> b.paragraphs
+                        is ArticleBlock.ListBlock -> b.items.map { it.html }
+                        else -> emptyList()
+                    }
+                }.map(::paragraphText),
+            )
+        }
+    val placed = remember(articleText, highlights?.highlights) { highlights?.let { articleText.place(it.highlights) } }
+    var openHighlight by rememberSaveable(article.key) { mutableStateOf<String?>(null) }
+    // A new highlight waiting for its note (Note in the selection menu).
+    var draft by remember(article.key) { mutableStateOf<Highlight?>(null) }
+    val highlighting =
+        if (highlights != null && placed != null) {
+            Highlighting(
+                marks = placed.marks,
+                onCreate = { index, selected, withNote ->
+                    articleText.locate(index, selected)?.let { range ->
+                        val made = Anchors.create(articleText.text, range.first, range.last + 1, UUID.randomUUID().toString(), System.currentTimeMillis())
+                        if (withNote) draft = made else highlights.onAdd(made)
+                    }
+                },
+                onOpen = { openHighlight = it },
+            )
+        } else {
+            null
+        }
+    var nextParagraph = 0
+
+    fun paragraph(count: Int = 1): Paragraph? {
+        val first = nextParagraph
+        nextParagraph += count
+        return highlighting?.let { Paragraph(first, it) }
+    }
     val context = LocalContext.current
     val date =
         article.publishedAt?.let {
@@ -472,11 +536,11 @@ private fun ArticleBody(
             }
             for (block in blocks) {
                 when (block) {
-                    is ArticleBlock.Text -> TextBlock(block.html, bodyStyle, links) { openLink(it) }
-                    is ArticleBlock.Heading -> HeadingBlock(block, bodyStyle, links) { openLink(it) }
-                    is ArticleBlock.Quote -> QuoteBlock(block, bodyStyle, links) { openLink(it) }
+                    is ArticleBlock.Text -> TextBlock(block.html, bodyStyle, links, paragraph = paragraph()) { openLink(it) }
+                    is ArticleBlock.Heading -> HeadingBlock(block, bodyStyle, links, paragraph()) { openLink(it) }
+                    is ArticleBlock.Quote -> QuoteBlock(block, bodyStyle, links, paragraph(block.paragraphs.size)) { openLink(it) }
                     is ArticleBlock.Code -> CodeBlock(block, bodyStyle)
-                    is ArticleBlock.ListBlock -> ListBlockView(block, bodyStyle, links) { openLink(it) }
+                    is ArticleBlock.ListBlock -> ListBlockView(block, bodyStyle, links, paragraph(block.items.size)) { openLink(it) }
                     is ArticleBlock.Image -> InlineImage(block.url, block.caption)
                     is ArticleBlock.Embed -> EmbedCard(block, showThumbnail = showImages, onOpen = { openLink(block.url) })
                 }
@@ -494,6 +558,65 @@ private fun ArticleBody(
                 }
             }
         }
+    }
+    if (highlights != null) {
+        HighlightDialogs(
+            highlights = highlights,
+            anchors = placed?.anchors.orEmpty(),
+            openId = openHighlight,
+            onOpenIdChange = { openHighlight = it },
+            draft = draft,
+            onDraftChange = { draft = it },
+            listOpen = highlightsOpen,
+            onListOpenChange = onHighlightsOpenChange,
+        )
+    }
+}
+
+/** The highlight sheets of the reader: one highlight, a new one's note, and the list. */
+@Composable
+private fun HighlightDialogs(
+    highlights: ReaderHighlights,
+    anchors: Map<String, Anchor>,
+    openId: String?,
+    onOpenIdChange: (String?) -> Unit,
+    draft: Highlight?,
+    onDraftChange: (Highlight?) -> Unit,
+    listOpen: Boolean,
+    onListOpenChange: (Boolean) -> Unit,
+) {
+    val open = openId?.let { id -> highlights.highlights.firstOrNull { it.id == id } }
+    if (open != null) {
+        HighlightSheet(
+            highlight = open,
+            anchor = anchors[open.id],
+            notCopied = open.id in highlights.notCopied,
+            onSave = { note -> if (note.trim() != open.note) highlights.onNote(open.id, note) },
+            onRemove = { highlights.onRemove(open.id) },
+            onDismiss = { onOpenIdChange(null) },
+        )
+    }
+    if (draft != null) {
+        HighlightSheet(
+            highlight = draft,
+            anchor = null,
+            notCopied = false,
+            onSave = { note -> highlights.onAdd(draft.copy(note = note.trim())) },
+            onRemove = null,
+            onDismiss = { onDraftChange(null) },
+        )
+    }
+    if (listOpen) {
+        HighlightsSheet(
+            highlights = highlights.highlights,
+            anchors = anchors,
+            notCopied = highlights.notCopied,
+            onOpen = {
+                onListOpenChange(false)
+                onOpenIdChange(it)
+            },
+            onDismiss = { onListOpenChange(false) },
+        )
     }
 }
 

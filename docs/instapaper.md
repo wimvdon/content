@@ -33,6 +33,20 @@ and on Sync now. Never in the background.
   API terms ask). Other accounts get `403` once and then Reader's own extraction; no Instaparser key
   is bought (#113).
 - A link saved without a title (shared or added) takes Instapaper's title when Instapaper knows it.
+- **Highlights (#102)** are Reader's own (`Item.highlights`, synced through the Reader account).
+  Opening an article asks `GET /bookmarks/{id}/highlights` (one request per article, so not at every
+  sync): highlights made in Instapaper's apps come in, placed by their text and `position`, and one
+  deleted there goes here too (`HighlightSync.takeIn`). **Copy highlights to Instapaper** (Connected
+  services) is **off by default**: free accounts may make five a month. On, each sync makes the new
+  ones (`POST /bookmarks/{id}/highlights` with text, note and `position`, the occurrence counted in
+  Instapaper's own text when the device has it), deletes removed ones (`DELETE /highlights/{id}`), and
+  makes a highlight with a changed note again (Instapaper can't edit one). A `403` there is the
+  free accounts' limit: the highlight stays in Reader, shows "Not in Instapaper", and is tried again
+  a day later. Which Reader highlight is which at Instapaper is kept with the article's
+  `service_rows` entry (`RemoteEntry.highlights`), on the device only.
+- **Highlight matching test (test builds):** Connected services › Check highlight matching asks up
+  to 300 articles for their Instapaper highlights and, for up to 50 that have some, looks for them in
+  Instapaper's text, the feed's and Reader's own extraction, and shows a table to copy (#102).
 - **Signing out** forgets what was synced with Instapaper; the reading list stays.
 
 Before #107 the Android app showed Instapaper's lists directly and kept articles saved without an
@@ -110,8 +124,6 @@ intent filter in `AndroidManifest.xml`.
 
 ## Not supported
 
-- Highlights in Instapaper: Reader's own highlights come with #102, copying them to Instapaper is
-  optional there.
 - Instapaper's parsed text for accounts other than the owner's (it needs an Instaparser key).
 - Signing in from a debug build's App Link: debug APKs are signed with a different key every CI run
   and have another package name (`.debug`), so Android doesn't verify the link for them and opens the

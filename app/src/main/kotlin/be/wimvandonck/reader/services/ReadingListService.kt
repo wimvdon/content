@@ -23,6 +23,9 @@ enum class ServiceProblem {
 
     /** Too many requests: try again later. That is normal, not an error to show. */
     RateLimited,
+
+    /** The account's plan allows no more of this for now (Instapaper: five highlights a month without Premium). */
+    LimitReached,
     Offline,
     Refused,
 }
@@ -51,6 +54,30 @@ data class RemoteEntry(
     val progress: Float = 0f,
     /** A detail only the service uses, kept with what was last seen (Instapaper: the folder's title). */
     val extra: String? = null,
+    /** Reader's highlights as copied there or taken from there (#102), by Reader's highlight id. */
+    val highlights: Map<String, HighlightLink> = emptyMap(),
+)
+
+/** A highlight as the service has it. */
+data class RemoteHighlight(
+    val remoteId: String,
+    val text: String,
+    val note: String,
+    /** Which occurrence of [text] in the service's text, counting from 0. */
+    val position: Int,
+    /** When it was made, in milliseconds. */
+    val createdAt: Long,
+)
+
+/**
+ * A Reader highlight and its copy at the service: the service's id and the note sent, or, when the
+ * service refused it (a plan's limit), when that was, so it shows as "not in Instapaper" and is
+ * tried again later.
+ */
+data class HighlightLink(
+    val remoteId: String? = null,
+    val note: String = "",
+    val refusedAt: Long? = null,
 )
 
 /** What changed at the service since a cursor. */
@@ -94,4 +121,18 @@ interface ReadingListService {
 
     /** The service's text of the article as HTML, or null when it has none for this account. */
     suspend fun text(remoteId: String): String?
+
+    /** The article's highlights at the service, with [Highlights][ServiceFeature.Highlights]. */
+    suspend fun highlights(remoteId: String): List<RemoteHighlight> = emptyList()
+
+    /** Makes a highlight there; [ServiceProblem.LimitReached] when the account may make no more now. */
+    suspend fun addHighlight(
+        remoteId: String,
+        text: String,
+        note: String,
+        position: Int,
+    ): RemoteHighlight = throw ServiceException(ServiceProblem.Refused)
+
+    /** Deletes a highlight there; one already gone counts as deleted. */
+    suspend fun removeHighlight(remoteId: String) = Unit
 }

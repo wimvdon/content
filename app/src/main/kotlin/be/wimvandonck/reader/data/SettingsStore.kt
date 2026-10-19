@@ -69,6 +69,8 @@ class SettingsStore(
 
     suspend fun setTagWithFolder(enabled: Boolean) = edit { it[TAG_WITH_FOLDER] = enabled }
 
+    suspend fun setCopyHighlights(enabled: Boolean) = edit { it[COPY_HIGHLIGHTS] = enabled }
+
     /** Takes the synced settings from another device (see SyncSettings); the rest stays as it is. */
     suspend fun applySynced(values: Map<String, String>) =
         edit { prefs ->
@@ -123,6 +125,7 @@ class SettingsStore(
             listView = enumOr(p[LIST_VIEW], defaults.listView),
             bookmarksView = enumOr(p[BOOKMARKS_VIEW], defaults.bookmarksView),
             tagWithFolder = p[TAG_WITH_FOLDER] ?: defaults.tagWithFolder,
+            copyHighlights = p[COPY_HIGHLIGHTS] ?: defaults.copyHighlights,
             lastSyncedAt = p[LAST_SYNCED_AT],
         )
     }
@@ -149,6 +152,7 @@ class SettingsStore(
         val LIST_VIEW = stringPreferencesKey("list_view")
         val BOOKMARKS_VIEW = stringPreferencesKey("bookmarks_view")
         val TAG_WITH_FOLDER = booleanPreferencesKey("tag_with_folder")
+        val COPY_HIGHLIGHTS = booleanPreferencesKey("copy_highlights")
         val LAST_SYNCED_AT = longPreferencesKey("last_synced_at")
     }
 }

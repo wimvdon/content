@@ -311,4 +311,22 @@
     </plurals>
     <string name="setting_tag_with_folder_title">Taguer avec le dossier du flux</string>
     <string name="setting_tag_with_folder_summary">Un article enregistré depuis un flux reçoit le nom de son dossier comme tag.</string>
+    <string name="highlight_action">Surligner</string>
+    <string name="highlight_title">Surlignage</string>
+    <string name="highlight_remove">Supprimer le surlignage</string>
+    <string name="highlight_approximate">Approximatif : ce texte diffère de celui où il a été fait.</string>
+    <string name="highlight_not_found">Introuvable dans ce texte. Il reste avec l’article.</string>
+    <string name="highlight_not_copied">Pas dans Instapaper : les comptes gratuits peuvent faire cinq surlignages par mois. Reader réessaie demain.</string>
+    <string name="highlights_none">Sélectionnez du texte et touchez Surligner.</string>
+    <string name="services_copy_highlights_title">Copier les surlignages vers Instapaper</string>
+    <string name="services_copy_highlights_summary">Désactivé par défaut : les comptes Instapaper gratuits peuvent faire cinq surlignages par mois. Vos surlignages restent toujours dans Reader.</string>
+    <string name="match_test_title">Vérifier les surlignages</string>
+    <string name="match_test_body">Retrouve vos surlignages Instapaper dans chaque version du texte (Instapaper, flux et Reader) pour 50 articles au plus. Versions de test uniquement.</string>
+    <string name="match_test_run">Lancer</string>
+    <string name="match_test_copy">Copier le résultat</string>
+    <plurals name="match_test_progress">
+        <item quantity="one">%d article vérifié</item>
+        <item quantity="many">%d articles vérifiés</item>
+        <item quantity="other">%d articles vérifiés</item>
+    </plurals>
 </resources>

@@ -1,5 +1,6 @@
 package be.wimvandonck.reader.services
 
+import be.wimvandonck.reader.data.Highlight
 import be.wimvandonck.reader.data.Item
 import be.wimvandonck.reader.data.ItemKeys
 import be.wimvandonck.reader.data.Library
@@ -41,6 +42,11 @@ object ServiceSync {
     suspend fun run(
         service: ReadingListService,
         state: ServiceState,
+        /** Copy Reader's highlights to the service (#102, off by default). */
+        copyHighlights: Boolean = false,
+        now: Long = System.currentTimeMillis(),
+        /** Which occurrence of its text a highlight is in the service's text of the item. */
+        positionOf: suspend (Item, Highlight) -> Int = { _, h -> h.occurrence },
         update: suspend ((Library) -> Library) -> Library,
     ): ServiceSyncResult {
         val rows = HashMap(state.rows)
@@ -75,7 +81,18 @@ object ServiceSync {
                     if (!sameCore(added, target, progress)) added = service.update(added, target)
                     rows[item.key] = added
                 } else if (!sameCore(have, want, progress)) {
-                    rows[item.key] = service.update(have, want)
+                    rows[item.key] = service.update(have, want).copy(highlights = have.highlights)
+                }
+            }
+            if (copyHighlights && ServiceFeature.Highlights in service.features) {
+                library = update { it }
+                for (item in library.items) {
+                    val row = rows[item.key] ?: continue
+                    if (item.highlights.isEmpty() && row.highlights.isEmpty()) continue
+                    val positions = item.highlights.associate { it.id to positionOf(item, it) }
+                    val pushed = HighlightSync.push(service, row.remoteId, item, row.highlights, now) { positions[it.id] ?: it.occurrence }
+                    rows[item.key] = row.copy(highlights = pushed.links)
+                    pushed.problem?.let { return ServiceSyncResult(ServiceState(cursor, rows), it) }
                 }
             }
             library = update { it }
@@ -161,7 +178,7 @@ object ServiceSync {
                     else -> remote
                 }
             if (merged != null) result = put(result, key, item, merged, remote)
-            rows[key] = remote
+            rows[key] = remote.copy(highlights = base?.highlights.orEmpty())
         }
         for (gone in changes.deleted) {
             val key = byRemoteId[gone] ?: continue
@@ -232,6 +249,10 @@ object ServiceRows {
                 "tags" to e.tags,
                 "progress" to Math.round(e.progress * 1000).toLong(),
                 "extra" to e.extra,
+                "highlights" to
+                    e.highlights.mapValues { (_, link) ->
+                        linkedMapOf<String, Any?>("id" to link.remoteId, "note" to link.note, "refusedAt" to link.refusedAt)
+                    },
             ),
         )
 
@@ -247,6 +268,12 @@ object ServiceRows {
             tags = (m["tags"] as? List<*>).orEmpty().filterIsInstance<String>(),
             progress = (((m["progress"] as? Number)?.toDouble() ?: 0.0) / 1000).toFloat(),
             extra = m["extra"] as? String,
+            highlights =
+                (m["highlights"] as? Map<*, *>).orEmpty().entries.mapNotNull { (k, v) ->
+                    val link = v as? Map<*, *> ?: return@mapNotNull null
+                    (k as? String ?: return@mapNotNull null) to
+                        HighlightLink(link["id"] as? String, link["note"] as? String ?: "", (link["refusedAt"] as? Number)?.toLong())
+                }.toMap(),
         )
     }
 }

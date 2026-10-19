@@ -237,6 +237,25 @@ Instapaper account (see Instapaper account).
 - **☰ › Connected services**: which service each section is connected to. The reading list can be
   connected to Instapaper; feeds and bookmarks are Reader's own.
 
+## Highlights
+
+Select text in an article (press and hold, then drag the handles) and tap **Highlight** in the menu
+over it, or **Note** to write a note with it. The passage gets a yellow marker; tap it to change the
+note or remove the highlight. A highlight is made within one paragraph.
+
+- An article with highlights shows how many at the bottom of the reader (the quote mark); tap it for
+  the list. Bookmarks show them on the bookmark's page.
+- Highlighting a feed article puts it on your reading list, so the highlight is kept.
+- Highlights are anchored by their passage and the words around it, not by position: they are found
+  again in another version of the text (the feed's, the full article, Instapaper's). When the text
+  differs, the marker is lighter and underlined, and the highlight says it is approximate; when the
+  passage isn't in this text, it is listed as not found. A highlight is never thrown away.
+- They sync between your devices with your Reader account. With Instapaper connected, highlights
+  made in Instapaper's apps come in when you open the article; **☰ › Connected services › Copy
+  highlights to Instapaper** (off by default) also sends yours there. Free Instapaper accounts may
+  make five a month: after that a highlight says "Not in Instapaper" and Reader tries again a day
+  later.
+
 ## Bookmarks
 
 **Bookmarks** (#108) is the third place in the navigation bar, next to Feeds and the Reading list:

@@ -76,6 +76,29 @@ class InstapaperClient(
     /** Instapaper's parsed text of the article (HTML). Without an Instaparser key only for the developer's own account. */
     suspend fun parse(id: Long): String? = parseText(call("GET", "/bookmarks/$id/parse"))
 
+    /** A bookmark's highlights. */
+    suspend fun highlights(bookmarkId: Long): List<InstapaperHighlight> = parseHighlights(call("GET", "/bookmarks/$bookmarkId/highlights"))
+
+    /** Makes a highlight of the [position]th occurrence of [text]; 403 when a free account used its five a month. */
+    suspend fun addHighlight(
+        bookmarkId: Long,
+        text: String,
+        note: String,
+        position: Int,
+    ): InstapaperHighlight {
+        val body =
+            buildMap<String, Any?> {
+                put("text", text)
+                if (note.isNotBlank()) put("note", note)
+                put("position", position.toLong())
+            }
+        return parseHighlight(parseJson(call("POST", "/bookmarks/$bookmarkId/highlights", Json.write(body)))) ?: throw InstapaperException(InstapaperProblem.ServerError)
+    }
+
+    suspend fun deleteHighlight(id: Long) {
+        call("DELETE", "/highlights/$id")
+    }
+
     suspend fun delete(id: Long) {
         call("DELETE", "/bookmarks/$id")
     }
@@ -227,6 +250,24 @@ class InstapaperClient(
         fun parseText(text: String): String? {
             val root = parseJson(text) as? Map<*, *> ?: return null
             return ((root["content"] as? Map<*, *>)?.get("body") as? String)?.takeIf { it.isNotBlank() }
+        }
+
+        fun parseHighlight(value: Any?): InstapaperHighlight? {
+            val map = value as? Map<*, *> ?: return null
+            val id = map["id"].asLong() ?: return null
+            return InstapaperHighlight(
+                id = id,
+                text = (map["text"] as? String).orEmpty(),
+                note = (map["note"] as? String).orEmpty(),
+                position = (map["position"].asLong() ?: 0L).toInt(),
+                time = map["time"].asLong() ?: 0L,
+            )
+        }
+
+        /** A list wrapped as {"highlights": [...]}. */
+        fun parseHighlights(text: String): List<InstapaperHighlight> {
+            val root = parseJson(text) as? Map<*, *> ?: throw InstapaperException(InstapaperProblem.ServerError)
+            return (root["highlights"] as? List<*>).orEmpty().mapNotNull(::parseHighlight).filter { it.text.isNotBlank() }
         }
 
         fun parseTag(value: Any?): InstapaperTag? {

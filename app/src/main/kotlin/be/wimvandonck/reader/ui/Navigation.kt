@@ -61,6 +61,12 @@ import be.wimvandonck.reader.ui.home.BookmarkActions
 import be.wimvandonck.reader.ui.home.BookmarkScreen
 import be.wimvandonck.reader.ui.home.BookmarksHome
 import be.wimvandonck.reader.ui.reader.SaveSheet
+import be.wimvandonck.reader.ui.reader.ReaderHighlights
+import be.wimvandonck.reader.ui.settings.MatchTestState
+import be.wimvandonck.reader.data.addHighlight
+import be.wimvandonck.reader.data.setHighlightNote
+import be.wimvandonck.reader.data.removeHighlight
+import android.content.pm.ApplicationInfo
 import be.wimvandonck.reader.data.BookmarkFilter
 import be.wimvandonck.reader.data.BookmarkKind
 import be.wimvandonck.reader.data.Bookmarks
@@ -199,6 +205,8 @@ fun RssReaderNavigation() {
     // The item just put on the reading list, while the sheet to like and tag it is open.
     var addedKey by rememberSaveable { mutableStateOf<String?>(null) }
     var addLinkOpen by rememberSaveable { mutableStateOf(false) }
+    // The highlight matching test in Connected services (#102, test builds).
+    var matchTest by remember { mutableStateOf(MatchTestState()) }
     // Bookmarks' collection and type (#108).
     var bookmarkFilter by rememberSaveable(stateSaver = BookmarkFilterSaver) { mutableStateOf(BookmarkFilter()) }
     // The save sheet (Reading list or Bookmark) while it is open: the link (empty: type one), its title and the choice offered first.
@@ -606,6 +614,12 @@ fun RssReaderNavigation() {
                                 }
                             }
                     }
+                    // Highlights (#102): those made in Instapaper's apps come in when the article opens.
+                    LaunchedEffect(item?.key) { item?.let { app.services.takeInHighlights(it) } }
+                    val notCopied by produceState(emptySet<String>(), item?.key, item?.highlights, serviceStatus) {
+                        value = item?.let { app.services.highlightsNotCopied(it.key) }.orEmpty()
+                    }
+                    val highlightLink = item?.url ?: feedArticle?.link
                     // Opening a feed article marks it as read.
                     LaunchedEffect(screen.articleKey) { fromFeed?.let { a -> app.appScope.launch { repository.setRead(a.key, true) } } }
                     SystemBarsFollowTheme(current.reader.isDark(appDark))
@@ -621,6 +635,17 @@ fun RssReaderNavigation() {
                             showImages = current.showImages,
                             snackbarHostState = snackbar,
                             textSource = if (serviceText != null) resources.getString(R.string.reader_text_instapaper) else null,
+                            highlights =
+                                highlightLink?.let { link ->
+                                    ReaderHighlights(
+                                        highlights = item?.highlights.orEmpty(),
+                                        notCopied = notCopied,
+                                        // A feed article that isn't saved yet goes on the reading list with its first highlight (#108).
+                                        onAdd = { h -> editLibrary { it.addHighlight(link, article?.title, h, System.currentTimeMillis()) } },
+                                        onNote = { id, note -> item?.let { i -> editLibrary { it.setHighlightNote(i.key, id, note) } } },
+                                        onRemove = { id -> item?.let { i -> editLibrary { it.removeHighlight(i.key, id) } } },
+                                    )
+                                },
                             actions =
                                 ReaderActions(
                                     onBack = ::pop,
@@ -839,6 +864,20 @@ fun RssReaderNavigation() {
                         onBack = ::pop,
                         onSignIn = { uiScope.launch { ExternalApps.openLink(context, app.instapaper.begin()) } },
                         onSyncNow = { app.appScope.launch { app.services.sync() } },
+                        copyHighlights = current.copyHighlights,
+                        onCopyHighlightsChange = { enabled -> app.appScope.launch { app.settings.setCopyHighlights(enabled) } },
+                        matchTest = matchTest.takeIf { context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0 },
+                        onRunMatchTest = {
+                            matchTest = MatchTestState(running = true)
+                            app.appScope.launch {
+                                val report =
+                                    app.services.matchTest(
+                                        extract = { url -> (app.fullArticles.load(url) as? FullArticle.Loaded)?.html },
+                                        onProgress = { n -> matchTest = MatchTestState(running = true, checked = n) },
+                                    )
+                                matchTest = MatchTestState(checked = report?.articles ?: 0, result = report?.summary())
+                            }
+                        },
                     )
                 }
             }

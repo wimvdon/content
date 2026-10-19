@@ -1,6 +1,12 @@
 package be.wimvandonck.reader.services
 
+import be.wimvandonck.reader.data.Anchors
+import be.wimvandonck.reader.data.Highlight
 import be.wimvandonck.reader.data.Item
+import be.wimvandonck.reader.data.ReadingLists
+import be.wimvandonck.reader.data.changeItem
+import be.wimvandonck.reader.data.item
+import be.wimvandonck.reader.feed.Html
 import be.wimvandonck.reader.data.LibraryRepository
 import be.wimvandonck.reader.instapaper.InstapaperAccount
 import be.wimvandonck.reader.instapaper.InstapaperClient
@@ -48,6 +54,8 @@ class ServiceManager(
     private val library: LibraryRepository,
     private val instapaper: InstapaperAccount,
     private val http: OkHttpClient,
+    /** Copy highlights to the service (#102; a setting, off by default). */
+    private val copyHighlights: () -> Boolean = { false },
 ) {
     private val _status = MutableStateFlow<ServiceStatus>(ServiceStatus.None)
     val status: StateFlow<ServiceStatus> = _status.asStateFlow()
@@ -78,7 +86,7 @@ class ServiceManager(
                 }
         }
         scope.launch {
-            // A change to the reading list: its items' core and progress.
+            // A change to the reading list: its items' core, progress and highlights.
             library.library
                 .filterNotNull()
                 .map { lib -> lib.items.filter { it.readingList != null }.map(::core) }
@@ -95,7 +103,13 @@ class ServiceManager(
         lock.withLock {
             _status.value = ServiceStatus.Syncing
             val state = library.serviceState(current.id)
-            val result = ServiceSync.run(current, state) { change -> library.edit(change) }
+            val result =
+                ServiceSync.run(
+                    current,
+                    state,
+                    copyHighlights = copyHighlights(),
+                    positionOf = { item, highlight -> positionIn(current, item, highlight) },
+                ) { change -> library.edit(change) }
             library.saveServiceState(current.id, state, result.state)
             _status.value = result.problem?.let { ServiceStatus.Failed(it) } ?: ServiceStatus.Idle
             if (result.problem == ServiceProblem.SignedOut) instapaper.signOut()
@@ -116,6 +130,76 @@ class ServiceManager(
         return text
     }
 
+    /** Which occurrence of its text a highlight is, counted in the service's own text when it is kept here. */
+    private suspend fun positionIn(
+        service: ReadingListService,
+        item: Item,
+        highlight: Highlight,
+    ): Int {
+        val text = library.texts(item.key)[service.id] ?: return highlight.occurrence
+        return Anchors.occurrenceIn(highlight, Html.toPlainText(text))
+    }
+
+    /**
+     * Takes in an item's highlights made in the service's own apps (#102), when it is opened: one
+     * request per article, so not for the whole list at every sync.
+     */
+    suspend fun takeInHighlights(item: Item) {
+        val current = service ?: return
+        if (ServiceFeature.Highlights !in current.features) return
+        val remoteId = library.serviceState(current.id).rows[item.key]?.remoteId ?: return
+        val remote = runCatching { current.highlights(remoteId) }.getOrNull() ?: return
+        lock.withLock {
+            val state = library.serviceState(current.id)
+            val row = state.rows[item.key] ?: return
+            var links = row.highlights
+            library.edit { lib ->
+                val now = lib.item(item.key) ?: return@edit lib
+                val (highlights, newLinks) = HighlightSync.takeIn(current.id, now, remote, row.highlights)
+                links = newLinks
+                lib.changeItem(item.key) { it.copy(highlights = highlights) }
+            }
+            if (links != row.highlights) library.saveServiceState(current.id, state, state.copy(rows = state.rows + (item.key to row.copy(highlights = links))))
+        }
+    }
+
+    /**
+     * The matching test of #102 (test builds): for up to [limit] articles with highlights made in the
+     * service, how each version of the text finds them: the service's text, the feed's, and Reader's
+     * own extraction ([extract]). Newest articles first; at most [MAX_SCANNED] are asked for highlights.
+     */
+    suspend fun matchTest(
+        limit: Int = 50,
+        extract: suspend (String) -> String?,
+        onProgress: (Int) -> Unit,
+    ): MatchReport? {
+        val current = service ?: return null
+        if (ServiceFeature.Highlights !in current.features) return null
+        val rows = library.serviceState(current.id).rows
+        val lib = library.library.value ?: return null
+        var report = MatchReport()
+        var scanned = 0
+        for ((key, row) in rows.entries.sortedByDescending { it.value.addedAt }) {
+            if (report.articles >= limit || scanned >= MAX_SCANNED) break
+            scanned++
+            val remote = runCatching { current.highlights(row.remoteId) }.getOrNull().orEmpty()
+            if (remote.isEmpty()) continue
+            val texts = LinkedHashMap<String, String>()
+            runCatching { current.text(row.remoteId) }.getOrNull()?.let { texts[current.id] = Html.toPlainText(it) }
+            lib.item(key)?.let { ReadingLists.feedArticle(it, lib) }?.html?.takeIf { it.isNotBlank() }?.let { texts["feed"] = Html.toPlainText(it) }
+            extract(row.url)?.let { texts["reader"] = Html.toPlainText(it) }
+            report = report.add(remote.map(MatchReport::highlightOf), texts)
+            onProgress(report.articles)
+        }
+        return report
+    }
+
+    /** The ids of an item's highlights the service refused (a plan's limit): shown as not there. */
+    suspend fun highlightsNotCopied(itemKey: String): Set<String> {
+        val current = service ?: return emptySet()
+        return HighlightSync.notCopied(library.serviceState(current.id).rows[itemKey]?.highlights.orEmpty())
+    }
+
     /** The connected service's name for the reader's text choice, or null. */
     val textSource: String? get() = service?.takeIf { ServiceFeature.Text in it.features }?.id
 
@@ -126,12 +210,16 @@ class ServiceManager(
         val tags: List<String>,
         val title: String,
         val progress: Int,
+        val highlights: List<Pair<String, String>>,
     )
 
-    private fun core(item: Item) = Core(item.key, item.readingList?.state, item.liked, item.tags, item.title, (item.progress * 100).toInt())
+    private fun core(item: Item) = Core(item.key, item.readingList?.state, item.liked, item.tags, item.title, (item.progress * 100).toInt(), item.highlights.map { it.id to it.note })
 
     private companion object {
         /** A row of changes (archiving several, tagging) goes as one sync. */
         const val CHANGE_DELAY_MS = 2_000L
+
+        /** The matching test asks at most this many articles for their highlights. */
+        const val MAX_SCANNED = 300
     }
 }

@@ -301,4 +301,21 @@
     </plurals>
     <string name="setting_tag_with_folder_title">Tag with the feed’s folder</string>
     <string name="setting_tag_with_folder_summary">An article you save from a feed gets its folder’s name as a tag.</string>
+    <string name="highlight_action">Highlight</string>
+    <string name="highlight_title">Highlight</string>
+    <string name="highlight_remove">Remove highlight</string>
+    <string name="highlight_approximate">Approximate: this text differs from the one it was made on.</string>
+    <string name="highlight_not_found">Not found in this text. It stays with the article.</string>
+    <string name="highlight_not_copied">Not in Instapaper: free accounts can make five highlights a month. Reader tries again tomorrow.</string>
+    <string name="highlights_none">Select text and tap Highlight to mark it.</string>
+    <string name="services_copy_highlights_title">Copy highlights to Instapaper</string>
+    <string name="services_copy_highlights_summary">Off by default: free Instapaper accounts can make five highlights a month. Your highlights always stay in Reader.</string>
+    <string name="match_test_title">Check highlight matching</string>
+    <string name="match_test_body">Finds your Instapaper highlights in each version of the text (Instapaper’s, the feed’s and Reader’s own) for up to 50 articles. Test builds only.</string>
+    <string name="match_test_run">Run</string>
+    <string name="match_test_copy">Copy result</string>
+    <plurals name="match_test_progress">
+        <item quantity="one">%d article checked</item>
+        <item quantity="other">%d articles checked</item>
+    </plurals>
 </resources>

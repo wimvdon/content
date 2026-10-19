@@ -2,6 +2,27 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-19: Highlights anchored by quote; copying to Instapaper opt-in (#102)
+
+- **Anchors** (`data/Anchors.kt`): the quote, 32 characters before and after, and which occurrence.
+  Found by the quote with typographic variants folded (quotes, dashes, spaces, ligatures,
+  invisible characters; letter case only as a last resort); several matches are told apart by their
+  surroundings, then the occurrence. A changed quote is found roughly between its surroundings or
+  by its first and last words and shown as approximate; one not found is kept and listed. Rejected:
+  character offsets (they break with any other version of the text).
+- **Selecting text:** Compose has no public API for a selection's offsets, so each paragraph has its
+  own selection area with **Highlight** and **Note** added to its menu
+  (`appendTextContextMenuComponents`, `SelectionState.selectedTexts`). A highlight is therefore
+  within one paragraph, and a quote that occurs twice in one paragraph takes the first. Rejected: a
+  `PROCESS_TEXT` activity (it would show in every app's menu) and reading the clipboard after Copy.
+- **Instapaper:** highlights made there come in when an article is opened (one request per article,
+  not per sync). Copying Reader's highlights there is a setting, off by default (five a month on
+  free accounts); a refused one stays and shows "Not in Instapaper", tried again after a day. The
+  link between a Reader highlight and Instapaper's is kept with the service's row on the device,
+  not synced (another device sees the same highlight at Instapaper when it opens the article).
+- **Shipping gate:** #102 asks for a matching test on 30 to 50 of the owner's articles before
+  highlights ship. Test builds have Connected services › Check highlight matching for that.
+
 ## 2026-10-19: Saved feed articles get their folder as a tag (#120)
 
 - Saving an article from a feed (Read later, the swipe, the save sheet, the custom tab) adds the

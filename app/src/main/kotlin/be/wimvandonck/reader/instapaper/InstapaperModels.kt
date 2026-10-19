@@ -83,3 +83,14 @@ class InstapaperException(
     val problem: InstapaperProblem,
     cause: Throwable? = null,
 ) : Exception(problem.name, cause)
+
+/** A highlight in an Instapaper bookmark (API v2). */
+data class InstapaperHighlight(
+    val id: Long,
+    val text: String,
+    val note: String,
+    /** Which occurrence of [text] in the article, counting from 0. */
+    val position: Int,
+    /** When it was made, in seconds since 1970. */
+    val time: Long,
+)

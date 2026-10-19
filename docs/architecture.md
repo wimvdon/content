@@ -103,6 +103,13 @@ still has it). `ui/home/ReadingListContent.kt` shows it, `ui/home/FolderTabs.kt`
 its tabs and chips, `ui/reader/ItemSheets.kt` the sheets (added, tags, Finished reading with Keep as
 bookmark, Add link), and `ReaderScreen` its buttons (`ReaderItem`) and reading progress.
 
+Highlights (#102) are anchored by quote (`data/Anchors.kt`); `data/ArticleText.kt` joins the
+reader's paragraphs into one text and draws each highlight back in its paragraphs. In the reader
+each paragraph (`TextBlock`) has Highlight and Note in its selection menu and draws its marks as
+tappable spans; `ui/reader/HighlightSheets.kt` has the highlight and list sheets.
+`services/HighlightSync.kt` takes in a service's highlights and copies Reader's there (opt-in), and
+`services/MatchTest.kt` is #102's matching report.
+
 Bookmarks (#108) are the library's items with a bookmark. `data/Bookmarks.kt` gives their filter
 (a collection, a type), each link's type (`kindOf`: article, tool, repository, video, read from the
 address), collections and their counts, and the changes: save from the save sheet (`save`, reading
