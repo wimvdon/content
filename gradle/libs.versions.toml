@@ -14,7 +14,7 @@ okhttp = "5.5.0"
 junit = "4.13.2"
 readability4j = "1.0.8"
 jsoup = "1.23.2"
-browser = "1.8.0"
+browser = "1.10.0"
 room = "2.8.5"
 ksp = "2.3.12"
 
