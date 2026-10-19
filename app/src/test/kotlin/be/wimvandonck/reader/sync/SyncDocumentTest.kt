@@ -5,6 +5,7 @@ import be.wimvandonck.reader.data.Feed
 import be.wimvandonck.reader.data.Folder
 import be.wimvandonck.reader.data.Library
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -21,7 +22,6 @@ class SyncDocumentTest {
                     SyncFeed(a, "A", renamed = true, folderId = "f1", siteUrl = "https://a.example.com", iconUrl = null),
                     SyncFeed(b, "B", renamed = false, folderId = null, siteUrl = null, iconUrl = "https://b/icon.png"),
                 ),
-            read = mapOf("$a 1" to 100L, "$b x y" to 200L),
         )
 
     @Test
@@ -33,14 +33,14 @@ class SyncDocumentTest {
     fun `leaves alone files that aren't sync files or are newer`() {
         assertNull(SyncDocument.decode("not json"))
         assertNull(SyncDocument.decode("""{"format":"other","version":1}"""))
-        assertNull(SyncDocument.decode("""{"format":"rss-reader-sync","version":3}"""))
+        assertNull(SyncDocument.decode("""{"format":"rss-reader-sync","version":4}"""))
     }
 
     @Test
     fun `settings go into the file and back, and files without them still read`() {
         val doc = SyncDocument(settings = mapOf("theme" to "dark", "reader.textSize" to "20"))
         val text = SyncDocument.encode(doc)
-        assertTrue(text.contains("\"version\":2"))
+        assertTrue(text.contains("\"version\":3"))
         assertEquals(doc, SyncDocument.decode(text))
         assertEquals(emptyMap<String, String>(), SyncDocument.decode("""{"format":"rss-reader-sync","version":1}""")!!.settings)
         assertEquals(
@@ -59,11 +59,11 @@ class SyncDocumentTest {
         val decoded = SyncDocument.decode(text)!!
         assertEquals(listOf("f1"), decoded.folders.map { it.id })
         assertEquals(listOf(SyncFeed(a, "A", false, null, null, null)), decoded.feeds)
-        assertEquals(mapOf("$a 1" to 100L), decoded.read)
+        assertEquals(mapOf("$a 1" to 100L), decoded.legacyRead)
     }
 
     @Test
-    fun `of takes folders, feeds and read articles from the library`() {
+    fun `of takes folders and feeds from the library, not read marks`() {
         val library =
             Library(
                 feeds = listOf(Feed(a, "A", folderId = "f1")),
@@ -77,27 +77,21 @@ class SyncDocumentTest {
         val of = SyncDocument.of(library)
         assertEquals(listOf("f1"), of.folders.map { it.id })
         assertEquals(listOf(a), of.feeds.map { it.url })
-        assertEquals(mapOf("$a 1" to 50L), of.read)
+        assertFalse(SyncDocument.encode(of).contains("\"read\""))
     }
 
     @Test
-    fun `pruning drops old read marks and those of removed feeds`() {
-        val withExtra = doc.copy(read = doc.read + ("https://gone/feed 1" to 500L))
-        assertEquals(mapOf("$b x y" to 200L), withExtra.pruned(keepSince = 150).read)
-    }
-
-    @Test
-    fun `article keys give their feed`() {
-        assertEquals(b, SyncDocument.feedUrlOf("$b x y"))
+    fun `a version 3 file's read marks are ignored`() {
+        assertEquals(emptyMap<String, Long>(), SyncDocument.decode("""{"format":"rss-reader-sync","version":3,"read":{"x 1":1}}""")!!.legacyRead)
     }
 
     @Test
     fun `writes exactly the text the web app writes for the same file`() {
         // The same text is checked in web/test/sync.test.ts.
         val web =
-            """{"format":"rss-reader-sync","version":2,"folders":[{"id":"f1","title":"News","icon":"newspaper"}],""" +
+            """{"format":"rss-reader-sync","version":3,"folders":[{"id":"f1","title":"News","icon":"newspaper"}],""" +
                 """"feeds":[{"url":"https://a.example/feed","title":"A","renamed":true,"folderId":"f1","siteUrl":"https://a.example","iconUrl":null}],""" +
-                """"read":{"https://a.example/feed 1":100,"https://a.example/feed 2":200},"settings":{"reader.textSize":"20","theme":"dark"}}"""
+                """"settings":{"reader.textSize":"20","theme":"dark"}}"""
         assertEquals(web, SyncDocument.encode(SyncDocument.decode(web)!!))
     }
 }

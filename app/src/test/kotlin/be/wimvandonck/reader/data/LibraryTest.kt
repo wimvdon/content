@@ -250,14 +250,16 @@ class LibraryTest {
     @Test
     fun `new articles read on another device arrive as read`() {
         val key = Article.keyOf(a, "2")
-        val library = Library().addFeed(Feed(a, "A")).merge(a, parsed(item("1", 100), item("2", 200)), now = 5, knownRead = setOf(key))
+        val library = Library(readElsewhere = mapOf(key to 200L, "other x" to 1L)).addFeed(Feed(a, "A")).merge(a, parsed(item("1", 100), item("2", 200)), now = 5)
         assertFalse(library.article(Article.keyOf(a, "1"))!!.read)
         assertTrue(library.article(key)!!.read)
+        // Arrived: the article carries its read state now.
+        assertEquals(mapOf("other x" to 1L), library.readElsewhere)
     }
 
     @Test
     fun `known read leaves articles already here alone`() {
-        val library = twoFeeds.mergeAll(mapOf(a to parsed(item("1", 100))), now = 2_000, knownRead = setOf(Article.keyOf(a, "1")))
+        val library = twoFeeds.copy(readElsewhere = mapOf(Article.keyOf(a, "1") to 100L)).mergeAll(mapOf(a to parsed(item("1", 100))), now = 2_000)
         assertFalse(library.article(Article.keyOf(a, "1"))!!.read)
     }
 }

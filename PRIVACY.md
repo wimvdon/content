@@ -1,11 +1,11 @@
 # Privacy policy
 
-_Last updated: 2026-10-19 (the library is kept in a database on the device)_
+_Last updated: 2026-10-19 (the reading list, Bookmarks, notes and highlights sync per item)_
 
 Reader has no analytics, advertising or crash reporting. It works without an account. If you sign
 in with Instapaper, that sign-in is also your Reader account: Reader then keeps your feed list,
-read articles and settings on its own server (the owner's Cloudflare Worker), encrypted, so your
-devices stay the same.
+read articles, reading list, bookmarks (with your notes, tags and highlights) and settings on its own
+server (the owner's Cloudflare Worker), encrypted, so your devices stay the same.
 
 ## What the app sends, and to whom
 
@@ -31,22 +31,25 @@ devices stay the same.
   the same website the article itself comes from.
 - **Sync with your Reader account (off unless you sign in with Instapaper).** While the app is
   on screen (when it opens, a second after a change, on refresh, on Sync now, and at once when
-  another of your devices changed something; never in the background) it reads and saves one
-  document in your account on the owner's feed loader (a Cloudflare Worker, built from `worker/`,
-  at rss-reader-worker.wim-d57.workers.dev). The document holds your feed list (addresses, names,
-  folders, website and icon addresses), your folders, which articles you read in the last 120 days
-  (feed address, article id and date) and two settings (Load full articles and Mark as read on
-  scroll; not the view settings such as theme, text settings, pictures and list view, the Unread
-  filter, or the Save and Share targets, which stay on each device).
+  another of your devices changed something; never in the background) it reads and saves your data
+  in your account on the owner's feed loader (a Cloudflare Worker, built from `worker/`, at
+  rss-reader-worker.wim-d57.workers.dev): one document with your feed list (addresses, names,
+  folders, website and icon addresses), your folders and two settings (Load full articles and Mark
+  as read on scroll; not the view settings such as theme, text settings, pictures and list view, the
+  Unread filter, or the Save and Share targets, which stay on each device); and one record per item:
+  which articles you read in the last 120 days (feed address, article id and date), and each article
+  on your reading list or in your bookmarks (its address, title, picture address, the feed it came
+  from, when you added it, whether you archived or liked it, its collection, tags, your note, your
+  highlights with the highlighted passage and a few words around it, and how far you read it).
   It does not hold article texts, your Instapaper token or your Instapaper password. While the app
   is on screen it also keeps a connection open to the feed loader that only says when the document
-  changed. The document is stored compressed and encrypted (AES-256-GCM, with a key for your account
-  derived from a secret that only the feed loader has) in Cloudflare's storage (Durable Objects).
-  The feed loader can decrypt it to send it to your devices; the owner could too, but doesn't look
-  at it. Your account is found by a code derived from your Instapaper user number; each device gets
+  changed. The document and each record are stored encrypted (AES-256-GCM, with a key for your
+  account derived from a secret that only the feed loader has) in Cloudflare's storage (Durable
+  Objects), the records under scrambled names that don't show their addresses. The feed loader can
+  decrypt them to send them to your devices; the owner could too, but doesn't look at them. Your account is found by a code derived from your Instapaper user number; each device gets
   its own key, of which only a scrambled form (hash) is stored. Nothing is logged. Cloudflare sees
   your IP address, under Cloudflare's privacy policy. **Sign out** (Settings › Account) forgets this
-  device's key; **Delete synced data** deletes the document and every device's key from the server
+  device's key; **Delete synced data** deletes the document, the records and every device's key from the server
   at once (your devices keep their own copy of the library).
 - **Instapaper (off unless you sign in).** Settings › Instapaper › Sign in opens Instapaper's own
   page in your browser, where you approve Reader; Reader never sees your Instapaper password.
@@ -72,7 +75,7 @@ devices stay the same.
 ## What the app stores on your device
 
 - Your feed list (with each feed's icon address) and folders, the downloaded articles and which ones you read.
-- If you are signed in: a copy of the synced document as last synced, to merge changes.
+- If you are signed in: a copy of the synced document and records as last synced, to merge changes, and read marks of articles another device read that this one hasn't downloaded yet.
 - Your settings (theme, text settings, full articles, pictures, Save and Share targets, the Unread filter, mark as read on scroll).
 - Articles you saved without an Instapaper account: their address, title, when you saved them,
   whether you liked or archived them, and their tags (in the app's database; on the web, the browser's

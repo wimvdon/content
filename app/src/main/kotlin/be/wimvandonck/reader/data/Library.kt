@@ -73,6 +73,11 @@ data class Library(
     val articles: List<Article> = emptyList(),
     val folders: List<Folder> = emptyList(),
     val items: List<Item> = emptyList(),
+    /**
+     * Articles read on another device that this one doesn't have (yet): article key → the article's
+     * date. They arrive read, and their marks stay in sync until they do (see sync/SyncRows.kt).
+     */
+    val readElsewhere: Map<String, Long> = emptyMap(),
 ) {
     fun feed(url: String): Feed? = feeds.firstOrNull { it.url == url }
 
@@ -175,14 +180,13 @@ data class Library(
     /**
      * Applies a freshly downloaded copy of a feed: new articles are added as unread, known ones
      * get the new title and text but keep their read state. Articles that left the feed are
-     * kept, up to [MAX_ARTICLES_PER_FEED] per feed (the newest ones). New articles whose key is in
-     * [knownRead] (read on another device, see sync/) arrive as read.
+     * kept, up to [MAX_ARTICLES_PER_FEED] per feed (the newest ones). New articles in
+     * [readElsewhere] (read on another device) arrive as read.
      */
     fun merge(
         feedUrl: String,
         parsed: ParsedFeed,
         now: Long,
-        knownRead: Set<String> = emptySet(),
     ): Library {
         val feed = feed(feedUrl) ?: return this
         val existing = articles.filter { it.feedUrl == feedUrl }.associateBy { it.id }
@@ -201,7 +205,7 @@ data class Library(
                     // A date in the future (a wrong clock or time zone) would stick to the top.
                     publishedAt = (item.publishedAt ?: old?.publishedAt)?.coerceAtMost(now),
                     fetchedAt = old?.fetchedAt ?: now,
-                    read = old?.read ?: (Article.keyOf(feedUrl, item.id) in knownRead),
+                    read = old?.read ?: (Article.keyOf(feedUrl, item.id) in readElsewhere),
                     imageUrl = item.imageUrl ?: old?.imageUrl,
                 )
             }
@@ -215,9 +219,12 @@ data class Library(
                 title = if (feed.renamed) feed.title else parsed.title.ifBlank { feed.title },
                 siteUrl = parsed.siteUrl ?: feed.siteUrl,
             )
+        val arrived = feedArticles.mapNotNullTo(HashSet()) { it.key.takeIf { key -> key in readElsewhere } }
         return copy(
             feeds = feeds.map { if (it.url == feedUrl) updatedFeed else it },
             articles = articles.filterNot { it.feedUrl == feedUrl } + feedArticles,
+            // Arrived: the article itself carries its read state now.
+            readElsewhere = if (arrived.isEmpty()) readElsewhere else readElsewhere - arrived,
         )
     }
 
@@ -228,8 +235,7 @@ data class Library(
     fun mergeAll(
         downloads: Map<String, ParsedFeed>,
         now: Long,
-        knownRead: Set<String> = emptySet(),
-    ): Library = downloads.entries.fold(this) { library, (url, parsed) -> library.merge(url, parsed, now, knownRead) }
+    ): Library = downloads.entries.fold(this) { library, (url, parsed) -> library.merge(url, parsed, now) }
 
     fun setRead(
         key: String,

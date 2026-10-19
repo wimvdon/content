@@ -1,6 +1,7 @@
 package be.wimvandonck.reader.data
 
 import be.wimvandonck.reader.data.db.LibraryTables
+import be.wimvandonck.reader.data.db.ReadElsewhereRow
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -37,6 +38,7 @@ class LibraryRowsTest {
                     ),
                     Item(key = "c/2", url = "https://c/2", title = "Two", createdAt = 9, readingList = ReadingListEntry(ReadingState.ToRead, 9)),
                 ),
+            readElsewhere = mapOf("https://a/feed 9" to 99L),
         )
 
     private fun roundTrip(library: Library): Library =
@@ -46,6 +48,7 @@ class LibraryRowsTest {
                 feeds = library.feeds.mapIndexed(LibraryRows::feed).reversed(),
                 articles = library.articles.map(LibraryRows::article),
                 items = library.items.map(LibraryRows::item),
+                readElsewhere = library.readElsewhere.map { (k, v) -> ReadElsewhereRow(k, v) },
             ),
         )
 
@@ -98,5 +101,14 @@ class LibraryRowsTest {
         assertEquals(sample.feeds, all.feeds)
         assertEquals(sample.articles, all.articles)
         assertEquals(sample.items, all.items)
+        assertEquals(sample.readElsewhere, all.readElsewhere)
+    }
+
+    @Test
+    fun `read marks from elsewhere are written when they change`() {
+        val changed = sample.copy(readElsewhere = mapOf("x 1" to 5L))
+        val changes = LibraryChanges.between(sample, changed)
+        assertEquals(mapOf("x 1" to 5L), changes.readElsewhere)
+        assertEquals(listOf("https://a/feed 9"), changes.deletedReadElsewhere)
     }
 }

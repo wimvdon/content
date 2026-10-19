@@ -1,8 +1,10 @@
 # Sync
 
-Reader keeps feeds, folders, read articles and settings the same on every device and in the web
-app through the user's **Reader account**, which signing in with Instapaper opens
-(`docs/account.md`). The account's feed loader stores one sync document per account, encrypted.
+Reader keeps feeds, folders, read articles, the reading list, Bookmarks (with notes, tags and
+highlights) and settings the same on every device and in the web app through the user's **Reader
+account**, which signing in with Instapaper opens (`docs/account.md`). The account's feed loader
+stores, encrypted, one small sync document per account (folders, feeds, settings) and one row per
+item (#106): the reading list and Bookmarks, and every read article.
 
 ## When it syncs
 
@@ -30,7 +32,7 @@ The account's document (it was `rss-reader-sync.json` in Google Drive before), U
 ```json
 {
   "format": "rss-reader-sync",
-  "version": 2,
+  "version": 3,
   "folders": [{ "id": "…uuid…", "title": "News", "icon": "newspaper" }],
   "feeds": [
     {
@@ -42,19 +44,15 @@ The account's document (it was `rss-reader-sync.json` in Google Drive before), U
       "iconUrl": "https://example.com/icon.png or null"
     }
   ],
-  "read": { "https://example.com/feed.xml <article id>": 1760000000000 },
-  "settings": { "theme": "dark", "reader.textSize": "20" }
+  "settings": { "fullArticles": "true", "markReadOnScroll": "false" }
 }
 ```
 
 - `folders` and `feeds` are in the user's order.
 - `icon` is a Material Symbols name from the app's icon catalog.
-- `read` lists read articles: key `<feed url> <article id>` (one space), value the article's date
-  in milliseconds (publication date, or when it was first downloaded). Marks older than 120 days
-  and those of removed feeds are dropped.
-- The article id is the item's `guid` (RSS) or `id` (Atom), else its link, else
-  `hash:` + the hex of Java's `String.hashCode` of `title|date|first 500 characters of the text`
-  (see `FeedParser.fallbackId`). The web app computes the same ids.
+- Version 2 files also held `read`, the read articles (key `<feed url> <article id>`, value the
+  article's date); they are per-item rows now (below). A version 3 app reading a version 2 file keeps
+  those marks for the articles it doesn't have and syncs them as rows; it never writes `read` back.
 - Articles themselves are not synced: every device downloads them from the feeds.
 - `settings` (added in version 2) maps shared names to text values (`SyncSettings` on Android,
   `web/src/lib/syncSettings.ts`). Each app reads the names it knows and keeps the others, so a
@@ -79,6 +77,47 @@ The account's document (it was `rss-reader-sync.json` in Google Drive before), U
   the sign-in as `instapaper.token`, `instapaper.username` and `instapaper.userId`, and the filter
   as `unreadOnly`; those names are dropped.
 - A reader that finds a higher `version` leaves the file alone and asks to update the app.
+
+## Per-item sync (#106)
+
+Everything that grows with the library syncs one row per item, so the account has no size limit
+and a change sends only what changed (`sync/SyncRows.kt` and `sync/ItemSync.kt` on Android,
+`web/src/lib/syncRows.ts`). Each row has a key, the account's **items version** of its last save,
+and JSON data (`null` once deleted):
+
+| Key | Data |
+|---|---|
+| `item:<item key>` | An item of the reading list or Bookmarks (`data/Items.kt`): `url`, `title`, `imageUrl`, `feedUrl`, `articleId`, `createdAt`, `readingList` (`{"state": "toread" \| "archived", "addedAt"}` or `null`), `bookmark` (`{"addedAt", "collection"}` or `null`), `liked`, `tags`, `note`, `highlights` (each `{"id", "quote", "prefix", "suffix", "occurrence", "note", "createdAt"}`) and `progress` (thousandths, 0 to 1000) |
+| `read:<feed url> <article id>` | A read feed article: `{"time": <the article's date in ms>}` |
+
+- The item key is the link without `http(s)://`, `www.`, a trailing slash and the `#part`, in lower
+  case (`ItemKeys`, web `keyOfLink`), so a saved feed article and its item share one key.
+- The article id is the item's `guid` (RSS) or `id` (Atom), else its link, else `hash:` + the hex of
+  Java's `String.hashCode` of `title|date|first 500 characters of the text` (see
+  `FeedParser.fallbackId`). The web app computes the same ids.
+- **No article text** is in a row: not the feed's text, not Reader's extraction, not the description.
+  Every device downloads or extracts the text again. Tests check the payload (`ItemSyncTest`,
+  `syncRows.test.ts`).
+- Read marks older than 120 days leave the account (the device that notices sends their removal);
+  that never marks an article unread. Marks of articles a device doesn't have yet are kept in
+  `Library.readElsewhere`, so those articles arrive read.
+- Kinds of rows a version doesn't know are left alone.
+
+One sync, after the document:
+
+1. **Read the changes:** `GET /account/items?since=<items version>` (in pages of at most 500 rows;
+   a page never splits one save). Each row is merged three ways with the row as this device last
+   synced it (the base, kept in the `sync_rows` table, web `syncRows` store) and this device's own
+   data: whatever differs from the base on one side is a change on that side and wins; both changed,
+   this device wins, except that an edit beats a removal. Items merge per field, tags as a set (each
+   side's additions and removals count) and highlights per highlight.
+2. **Save this device's changes:** every row whose data differs from its base, with that base's
+   version (`POST /account/items`, at most 500 rows per call). A row another device saved first comes
+   back as a conflict with what is there now; it is merged the same way and saved again (at most
+   four rounds per sync).
+
+The live connection's message carries both versions (`{"version": n, "items": m}`), so a save by
+another device to either brings a sync.
 
 ## Merging
 

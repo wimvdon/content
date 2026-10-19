@@ -7,10 +7,11 @@ import org.junit.Assert.assertThrows
 import org.junit.Test
 
 class AccountSyncTest {
-    private val now = 1_800_000_000_000L
     private val feed = SyncFeed(url = "f", title = "F", renamed = false, folderId = null, siteUrl = null, iconUrl = null)
 
-    private fun doc(vararg read: String) = SyncDocument(feeds = listOf(feed), read = read.associateWith { now })
+    private fun doc(vararg feeds: String) = SyncDocument(feeds = feeds.map { feed.copy(url = it) })
+
+    private fun urls(text: String?) = SyncDocument.decode(text!!)!!.feeds.mapTo(HashSet()) { it.url }
 
     /** An account in memory, like the Worker: versions, and conflicts for old bases. */
     private class FakeAccount(
@@ -40,12 +41,12 @@ class AccountSyncTest {
         runBlocking {
             val account = FakeAccount()
             val next =
-                SyncRound.run(account, null, now) { _, remote ->
+                SyncRound.run(account, null) { _, remote ->
                     assertNull(remote)
                     doc("f a")
                 }
             assertEquals(1L, next.version)
-            assertEquals(setOf("f a"), SyncDocument.decode(account.text!!)!!.read.keys)
+            assertEquals(setOf("f a"), urls(account.text))
         }
 
     @Test
@@ -53,7 +54,7 @@ class AccountSyncTest {
         runBlocking {
             val text = SyncDocument.encode(doc("f a"))
             val account = FakeAccount(4, text)
-            val next = SyncRound.run(account, SyncBase(4, text), now) { base, remote -> remote ?: base!! }
+            val next = SyncRound.run(account, SyncBase(4, text)) { base, remote -> remote ?: base!! }
             assertEquals(SyncBase(4, text), next)
             assertEquals(0, account.writes)
         }
@@ -64,7 +65,7 @@ class AccountSyncTest {
             val account = FakeAccount(1, SyncDocument.encode(doc("f a")))
             var library = doc("f b")
             account.beforeWrite = {
-                // Another device marks "f c" read while this one merges; only once.
+                // Another device adds feed "f c" while this one merges; only once.
                 if (account.version == 1L) {
                     account.version = 2
                     account.text = SyncDocument.encode(doc("f a", "f c"))
@@ -72,20 +73,20 @@ class AccountSyncTest {
             }
             var merges = 0
             val next =
-                SyncRound.run(account, null, now) { base, remote ->
+                SyncRound.run(account, null) { base, remote ->
                     merges++
                     library = if (remote == null) library else SyncMerge.merge(base, library, remote)
                     library
                 }
             assertEquals(2, merges)
             assertEquals(3L, next.version)
-            assertEquals(setOf("f a", "f b", "f c"), SyncDocument.decode(account.text!!)!!.read.keys)
+            assertEquals(setOf("f a", "f b", "f c"), urls(account.text))
         }
 
     @Test
     fun `a document from a newer version is left alone`() {
         val account = FakeAccount(1, """{"format":"rss-reader-sync","version":99}""")
-        val e = assertThrows(SyncException::class.java) { runBlocking { SyncRound.run(account, null, now) { _, _ -> doc() } } }
+        val e = assertThrows(SyncException::class.java) { runBlocking { SyncRound.run(account, null) { _, _ -> doc() } } }
         assertEquals(SyncProblem.UnreadableFile, e.problem)
     }
 
@@ -105,7 +106,8 @@ class AccountSyncTest {
     @Test
     fun `the live connection's address and messages`() {
         assertEquals("wss://worker.example/account/live?key=a.b", AccountClient.liveUrl("a.b", "https://worker.example"))
-        assertEquals(7L, LiveUpdates.versionOf("""{"version":7}"""))
+        assertEquals(LiveVersions(7L, null), LiveUpdates.versionOf("""{"version":7}"""))
+        assertEquals(LiveVersions(7L, 3L), LiveUpdates.versionOf("""{"version":7,"items":3}"""))
         assertNull(LiveUpdates.versionOf("pong"))
         assertEquals(2_000L, LiveUpdates.retryDelay(1))
         assertEquals(4_000L, LiveUpdates.retryDelay(2))

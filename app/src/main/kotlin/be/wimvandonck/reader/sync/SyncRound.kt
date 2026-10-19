@@ -19,7 +19,6 @@ object SyncRound {
     suspend fun run(
         target: SyncTarget,
         saved: SyncBase?,
-        now: Long,
         mergeIn: suspend (base: SyncDocument?, remote: SyncDocument?) -> SyncDocument,
     ): SyncBase {
         var base = saved?.let { SyncDocument.decode(it.text) }
@@ -28,7 +27,7 @@ object SyncRound {
         while (true) {
             val remote = answer.text?.let { SyncDocument.decode(it) ?: throw SyncException(SyncProblem.UnreadableFile) }
             // Without a document there is nothing to merge with: this device's library becomes it.
-            val out = mergeIn(if (remote == null) null else base, remote).pruned(now - SyncDocument.KEEP_READ_MS)
+            val out = mergeIn(if (remote == null) null else base, remote)
             val text = SyncDocument.encode(out)
             if (remote != null && SyncDocument.encode(remote) == text) return SyncBase(answer.version, text)
             when (val result = target.write(answer.version, text)) {

@@ -41,6 +41,11 @@ export interface Library {
   folders: Folder[];
   articles: Article[];
   items: Item[];
+  /**
+   * Articles read on another device that this one doesn't have (yet): article key → the article's
+   * date. They arrive read, and their marks stay in sync until they do (syncRows.ts).
+   */
+  readElsewhere: Record<string, number>;
 }
 
 /** What the list shows: feed articles, or one of the user's Instapaper lists (instapaperLibrary.ts). */
@@ -54,7 +59,7 @@ export const MAX_ARTICLES_PER_FEED = 200;
 export const MAX_HTML_LENGTH = 200_000;
 export const DEFAULT_ICON = "folder";
 
-export const emptyLibrary = (): Library => ({ feeds: [], folders: [], articles: [], items: [] });
+export const emptyLibrary = (): Library => ({ feeds: [], folders: [], articles: [], items: [], readElsewhere: {} });
 
 export const keyOf = (feedUrl: string, id: string) => `${feedUrl} ${id}`;
 export const articleKey = (a: Article) => keyOf(a.feedUrl, a.id);
@@ -120,10 +125,10 @@ export function removeFolder(lib: Library, id: string): Library {
 }
 
 /**
- * Applies a fresh download of a feed: new articles arrive unread (or read when [knownRead] says
- * so), known ones keep their read state; at most MAX_ARTICLES_PER_FEED newest are kept.
+ * Applies a fresh download of a feed: new articles arrive unread (or read when another device read
+ * them, readElsewhere), known ones keep their read state; at most MAX_ARTICLES_PER_FEED newest are kept.
  */
-export function mergeFeed(lib: Library, feedUrl: string, parsed: ParsedFeed, now: number, knownRead: Set<string> = new Set()): Library {
+export function mergeFeed(lib: Library, feedUrl: string, parsed: ParsedFeed, now: number): Library {
   const feed = lib.feeds.find((f) => f.url === feedUrl);
   if (!feed) return lib;
   const existing = new Map(lib.articles.filter((a) => a.feedUrl === feedUrl).map((a) => [a.id, a]));
@@ -143,7 +148,7 @@ export function mergeFeed(lib: Library, feedUrl: string, parsed: ParsedFeed, now
       html: item.html.slice(0, MAX_HTML_LENGTH),
       publishedAt: published === null ? null : Math.min(published, now),
       fetchedAt: old?.fetchedAt ?? now,
-      read: old?.read ?? knownRead.has(keyOf(feedUrl, item.id)),
+      read: old?.read ?? keyOf(feedUrl, item.id) in lib.readElsewhere,
       imageUrl: item.imageUrl ?? old?.imageUrl ?? null,
     });
   }
@@ -154,10 +159,18 @@ export function mergeFeed(lib: Library, feedUrl: string, parsed: ParsedFeed, now
     title: feed.renamed ? feed.title : parsed.title.trim() || feed.title,
     siteUrl: parsed.siteUrl ?? feed.siteUrl,
   };
+  // Arrived: the article itself carries its read state now.
+  const arrived = feedArticles.map(articleKey).filter((k) => k in lib.readElsewhere);
+  let readElsewhere = lib.readElsewhere;
+  if (arrived.length > 0) {
+    readElsewhere = { ...readElsewhere };
+    for (const k of arrived) delete readElsewhere[k];
+  }
   return {
     ...lib,
     feeds: lib.feeds.map((f) => (f.url === feedUrl ? updated : f)),
     articles: [...lib.articles.filter((a) => a.feedUrl !== feedUrl), ...feedArticles],
+    readElsewhere,
   };
 }
 

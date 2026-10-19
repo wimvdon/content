@@ -1,6 +1,7 @@
 package be.wimvandonck.reader.data.db
 
 import android.content.Context
+import androidx.room.AutoMigration
 import androidx.room.Dao
 import androidx.room.Database
 import androidx.room.Query
@@ -17,6 +18,7 @@ data class LibraryTables(
     val feeds: List<FeedRow>,
     val articles: List<ArticleRow>,
     val items: List<ItemRow>,
+    val readElsewhere: List<ReadElsewhereRow> = emptyList(),
 )
 
 @Dao
@@ -33,8 +35,11 @@ abstract class LibraryDao {
     @Query("SELECT * FROM items")
     protected abstract suspend fun items(): List<ItemRow>
 
+    @Query("SELECT * FROM read_elsewhere")
+    protected abstract suspend fun readElsewhere(): List<ReadElsewhereRow>
+
     @Transaction
-    open suspend fun read(): LibraryTables = LibraryTables(folders(), feeds(), articles(), items())
+    open suspend fun read(): LibraryTables = LibraryTables(folders(), feeds(), articles(), items(), readElsewhere())
 
     @Query("DELETE FROM folders")
     protected abstract suspend fun clearFolders()
@@ -47,6 +52,15 @@ abstract class LibraryDao {
 
     @Query("DELETE FROM items")
     protected abstract suspend fun clearItems()
+
+    @Query("DELETE FROM read_elsewhere")
+    protected abstract suspend fun clearReadElsewhere()
+
+    @Upsert
+    protected abstract suspend fun upsertReadElsewhere(rows: List<ReadElsewhereRow>)
+
+    @Query("DELETE FROM read_elsewhere WHERE `key` IN (:keys)")
+    protected abstract suspend fun deleteReadElsewhere(keys: List<String>)
 
     @Upsert
     protected abstract suspend fun upsertFolders(rows: List<FolderRow>)
@@ -99,6 +113,34 @@ abstract class LibraryDao {
             deleteTexts(it)
         }
         changes.items.chunked(CHUNK).forEach { upsertItems(it.map(LibraryRows::item)) }
+        changes.deletedReadElsewhere.chunked(CHUNK).forEach { deleteReadElsewhere(it) }
+        changes.readElsewhere.entries.chunked(CHUNK).forEach { batch -> upsertReadElsewhere(batch.map { ReadElsewhereRow(it.key, it.value) }) }
+    }
+
+    @Query("SELECT * FROM sync_rows")
+    abstract suspend fun syncRows(): List<SyncRowRow>
+
+    @Upsert
+    protected abstract suspend fun upsertSyncRows(rows: List<SyncRowRow>)
+
+    @Query("DELETE FROM sync_rows WHERE `key` IN (:keys)")
+    protected abstract suspend fun deleteSyncRows(keys: List<String>)
+
+    @Query("DELETE FROM sync_rows")
+    protected abstract suspend fun clearSyncRows()
+
+    /** Stores what changed in the synced rows and the items version, all or nothing; [clear] forgets them all first. */
+    @Transaction
+    open suspend fun writeSyncRows(
+        put: List<SyncRowRow>,
+        delete: List<String>,
+        version: Long,
+        clear: Boolean = false,
+    ) {
+        if (clear) clearSyncRows()
+        delete.chunked(CHUNK).forEach { deleteSyncRows(it) }
+        put.chunked(CHUNK).forEach { upsertSyncRows(it) }
+        putMeta(MetaRow(ITEMS_VERSION, version.toString()))
     }
 
     /** Replaces everything (moving the old files in), and records [name] so it happens once. */
@@ -111,20 +153,29 @@ abstract class LibraryDao {
         clearFeeds()
         clearArticles()
         clearItems()
+        clearReadElsewhere()
         write(changes)
         putMeta(MetaRow(name, "1"))
     }
 
-    private companion object {
+    companion object {
         /** SQLite allows at most 999 values in one statement. */
-        const val CHUNK = 500
+        private const val CHUNK = 500
+
+        /** The account's items version this device last synced to. */
+        const val ITEMS_VERSION = "items-version"
     }
 }
 
 @Database(
-    entities = [FolderRow::class, FeedRow::class, ArticleRow::class, ItemRow::class, ItemTextRow::class, MetaRow::class],
-    version = 1,
+    entities = [
+        FolderRow::class, FeedRow::class, ArticleRow::class, ItemRow::class, ItemTextRow::class, MetaRow::class, ReadElsewhereRow::class,
+        SyncRowRow::class,
+    ],
+    // 2 added read_elsewhere and sync_rows (per-item sync, #106).
+    version = 2,
     exportSchema = true,
+    autoMigrations = [AutoMigration(from = 1, to = 2)],
 )
 abstract class LibraryDatabase : RoomDatabase() {
     abstract fun dao(): LibraryDao

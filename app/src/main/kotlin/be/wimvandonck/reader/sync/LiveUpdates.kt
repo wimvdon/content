@@ -11,16 +11,22 @@ import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import java.util.concurrent.TimeUnit
 
+/** What a live message says: the document's version and the items version (null from servers before #106). */
+data class LiveVersions(
+    val document: Long,
+    val items: Long?,
+)
+
 /**
- * The live connection to the account while the app is on screen: [onVersion] gets every version
- * another device saved (and the current one right after connecting), so their changes come in at
- * once. It connects again by itself, waiting longer after each failure, until [stop].
+ * The live connection to the account while the app is on screen: [onVersion] gets the versions
+ * after every save by another device (and the current ones right after connecting), so their
+ * changes come in at once. It connects again by itself, waiting longer after each failure, until [stop].
  */
 class LiveUpdates(
     http: OkHttpClient,
     private val key: String,
     private val scope: CoroutineScope,
-    private val onVersion: (Long) -> Unit,
+    private val onVersion: (LiveVersions) -> Unit,
 ) {
     private val client = http.newBuilder().pingInterval(PING_SECONDS, TimeUnit.SECONDS).build()
     private var socket: WebSocket? = null
@@ -110,7 +116,11 @@ class LiveUpdates(
         /** How long to wait before connecting again (doubling, at most a minute), like the web app. */
         fun retryDelay(failures: Int): Long = minOf(60_000L, 2_000L shl (failures - 1).coerceIn(0, 10))
 
-        /** The version in a live message, or null. */
-        fun versionOf(text: String): Long? = ((runCatching { Json.parse(text) }.getOrNull() as? Map<*, *>)?.get("version") as? Number)?.toLong()
+        /** The versions in a live message, or null. */
+        fun versionOf(text: String): LiveVersions? {
+            val map = runCatching { Json.parse(text) }.getOrNull() as? Map<*, *> ?: return null
+            val document = (map["version"] as? Number)?.toLong() ?: return null
+            return LiveVersions(document, (map["items"] as? Number)?.toLong())
+        }
     }
 }

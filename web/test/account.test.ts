@@ -15,11 +15,11 @@ function server(answer: (path: string, init: RequestInit) => Response) {
 }
 
 const json = (value: unknown, status = 200) => new Response(JSON.stringify(value), { status, headers: { "Content-Type": "application/json" } });
-const doc = (read: Record<string, number> = {}): S.SyncDocument => ({
+const doc = (urls: Record<string, number> = {}): S.SyncDocument => ({
   ...S.emptyDocument(),
-  feeds: [{ url: "f", title: "F", renamed: false, folderId: null, siteUrl: null, iconUrl: null }],
-  read,
+  feeds: Object.keys(urls).map((url) => ({ url, title: "F", renamed: false, folderId: null, siteUrl: null, iconUrl: null })),
 });
+const urls = (text: string | null) => S.decode(text!)!.feeds.map((f) => f.url).sort();
 
 describe("AccountClient", () => {
   it("reads with the key and the version it has", async () => {
@@ -64,7 +64,8 @@ describe("AccountClient", () => {
 describe("live updates", () => {
   it("connect with the key and read versions", () => {
     expect(liveUrl("a.b c", BASE)).toBe("wss://worker.example/account/live?key=a.b%20c");
-    expect(versionOf('{"version":7}')).toBe(7);
+    expect(versionOf('{"version":7}')).toEqual({ document: 7, items: null });
+    expect(versionOf('{"version":7,"items":3}')).toEqual({ document: 7, items: 3 });
     expect(versionOf("pong")).toBeNull();
     expect(versionOf(5)).toBeNull();
   });
@@ -102,7 +103,7 @@ describe("syncRound", () => {
       return doc({ "f a": now });
     });
     expect(next.version).toBe(1);
-    expect(S.decode(state.text!)!.read).toEqual({ "f a": now });
+    expect(urls(state.text)).toEqual(["f a"]);
   });
 
   it("doesn't save when nothing changed", async () => {
@@ -123,7 +124,7 @@ describe("syncRound", () => {
     const next = await S.syncRound(target, null, (base, remote) => {
       calls++;
       if (calls === 1) {
-        // Another device marks "f c" read while this one merges.
+        // Another device adds feed "f c" while this one merges.
         state.version = 2;
         state.text = S.encode(doc({ "f a": now, "f c": now }));
       }
@@ -132,7 +133,7 @@ describe("syncRound", () => {
     });
     expect(calls).toBe(2);
     expect(next.version).toBe(3);
-    expect(Object.keys(S.decode(state.text!)!.read).sort()).toEqual(["f a", "f b", "f c"]);
+    expect(urls(state.text)).toEqual(["f a", "f b", "f c"]);
   });
 
   it("refuses a document from a newer version", async () => {

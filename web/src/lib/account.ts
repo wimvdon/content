@@ -6,6 +6,7 @@
  */
 
 import { PROXY_URL } from "./config";
+import type { ItemChange, ItemRow, ItemsPage, ItemsWritten, RowData } from "./syncRows";
 
 export type SyncProblem = "offline" | "signedOut" | "server" | "unreadableFile" | "notSetUp";
 
@@ -55,6 +56,25 @@ export class AccountClient {
     return { kind: "saved", version: body.version };
   }
 
+  /** The item rows changed after items version `since` (#106, syncRows.ts). */
+  async readItems(since: number): Promise<ItemsPage> {
+    const body = (await (await this.call(`/account/items?since=${since}`, {})).json().catch(() => null)) as { version?: unknown; rows?: unknown; more?: unknown } | null;
+    if (!body || typeof body.version !== "number") throw new SyncError("server");
+    return { version: body.version, rows: rowsOf(body.rows), more: body.more === true };
+  }
+
+  /** Saves item rows; those another device changed first come back as conflicts. */
+  async writeItems(rows: ItemChange[]): Promise<ItemsWritten> {
+    const response = await this.call("/account/items", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ rows }) });
+    const body = (await response.json().catch(() => null)) as { version?: unknown; saved?: unknown; conflicts?: unknown } | null;
+    if (!body || typeof body.version !== "number") throw new SyncError("server");
+    const saved: Record<string, number> = {};
+    for (const s of Array.isArray(body.saved) ? body.saved : []) {
+      if (typeof s?.key === "string" && typeof s.version === "number") saved[s.key] = s.version;
+    }
+    return { version: body.version, saved, conflicts: rowsOf(body.conflicts) };
+  }
+
   /** Forgets this browser's key on the server. */
   async signOut(): Promise<void> {
     await this.call("/account/signout", { method: "POST" });
@@ -81,6 +101,15 @@ export class AccountClient {
   }
 }
 
+export function rowsOf(value: unknown): ItemRow[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((r) => {
+    if (typeof r?.key !== "string" || typeof r.version !== "number") return [];
+    const data = typeof r.data === "object" && r.data !== null && !Array.isArray(r.data) ? (r.data as RowData) : null;
+    return [{ key: r.key, version: r.version, data }];
+  });
+}
+
 async function documentOf(response: Response): Promise<{ version: number; text: string | null }> {
   const body = (await response.json().catch(() => null)) as { version?: unknown; data?: unknown } | null;
   if (!body || typeof body.version !== "number") throw new SyncError("server");
@@ -97,12 +126,18 @@ export function liveUrl(key: string, base = PROXY_URL): string {
   return `${base.replace(/^http/, "ws")}/account/live?key=${encodeURIComponent(key)}`;
 }
 
-/** The version in a live message, or null. */
-export function versionOf(message: unknown): number | null {
+/** What a live message says: the document's version and the items version (null from servers before #106). */
+export interface LiveVersions {
+  document: number;
+  items: number | null;
+}
+
+/** The versions in a live message, or null. */
+export function versionOf(message: unknown): LiveVersions | null {
   if (typeof message !== "string") return null;
   try {
-    const value = JSON.parse(message) as { version?: unknown };
-    return typeof value.version === "number" ? value.version : null;
+    const value = JSON.parse(message) as { version?: unknown; items?: unknown };
+    return typeof value.version === "number" ? { document: value.version, items: typeof value.items === "number" ? value.items : null } : null;
   } catch {
     return null;
   }
@@ -111,8 +146,8 @@ export function versionOf(message: unknown): number | null {
 const PING_MS = 45_000;
 
 /**
- * The live connection while the page is visible: calls onVersion with every version another
- * device saved (and the current one right after connecting). Reconnects by itself until stopped.
+ * The live connection while the page is visible: calls onVersion with the versions after every save
+ * by another device (and the current ones right after connecting). Reconnects by itself until stopped.
  */
 export class LiveUpdates {
   private socket: WebSocket | null = null;
@@ -121,9 +156,9 @@ export class LiveUpdates {
   private failures = 0;
   private running = false;
   private readonly key: string;
-  private readonly onVersion: (version: number) => void;
+  private readonly onVersion: (versions: LiveVersions) => void;
 
-  constructor(key: string, onVersion: (version: number) => void) {
+  constructor(key: string, onVersion: (versions: LiveVersions) => void) {
     this.key = key;
     this.onVersion = onVersion;
   }

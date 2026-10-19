@@ -1,5 +1,5 @@
 import { SyncError, type ReadAnswer, type WriteAnswer } from "./account";
-import { articleKey, DEFAULT_ICON, sortTime, type Feed, type Library } from "./library";
+import { articleKey, DEFAULT_ICON, type Feed, type Library } from "./library";
 
 /**
  * The sync file shared with the Android app (docs/sync.md) and the three-way merge, a port of
@@ -21,18 +21,26 @@ export interface SyncFeed {
   iconUrl: string | null;
 }
 
+/**
+ * Folders, feeds and settings. Read marks, the reading list and Bookmarks sync per item instead
+ * (syncRows.ts, #106).
+ */
 export interface SyncDocument {
   folders: SyncFolder[];
   feeds: SyncFeed[];
-  /** Read article key → the article's date in ms. */
-  read: Record<string, number>;
   /** Shared setting name → text value (syncSettings.ts). */
   settings: Record<string, string>;
+  /**
+   * The read marks of a version 2 file (article key → date in ms), only when reading one: the first
+   * sync of this version moves them to per-item sync. Never written.
+   */
+  legacyRead?: Record<string, number>;
 }
 
 export const FORMAT = "rss-reader-sync";
-// 2 added settings; older apps leave such a file alone and ask to be updated.
-export const VERSION = 2;
+// 2 added settings; 3 moved the read marks to per-item sync (#106). Older apps leave a newer file
+// alone and ask to be updated.
+export const VERSION = 3;
 export const KEEP_READ_MS = 120 * 24 * 60 * 60 * 1000;
 
 /** When sync runs while the app is open, the same as the Android app's SyncTiming. */
@@ -52,30 +60,22 @@ export function syncDue(lastSyncedAt: number | null, now: number): boolean {
   return since < 0 || since >= MIN_GAP_MS;
 }
 
-export const emptyDocument = (): SyncDocument => ({ folders: [], feeds: [], read: {}, settings: {} });
-
-export const feedUrlOf = (key: string) => key.split(" ")[0];
+export const emptyDocument = (): SyncDocument => ({ folders: [], feeds: [], settings: {} });
 
 export function documentOf(lib: Library): SyncDocument {
-  const read: Record<string, number> = {};
-  for (const a of lib.articles) if (a.read) read[articleKey(a)] = sortTime(a);
   return {
     folders: lib.folders.map((f) => ({ id: f.id, title: f.title, icon: f.icon })),
     feeds: lib.feeds.map((f) => ({ url: f.url, title: f.title, renamed: f.renamed, folderId: f.folderId, siteUrl: f.siteUrl, iconUrl: f.iconUrl })),
-    read,
     settings: {},
   };
 }
 
 export function encode(doc: SyncDocument): string {
-  const read: Record<string, number> = {};
-  for (const key of Object.keys(doc.read).sort()) read[key] = doc.read[key];
   return JSON.stringify({
     format: FORMAT,
     version: VERSION,
     folders: doc.folders.map((f) => ({ id: f.id, title: f.title, icon: f.icon })),
     feeds: doc.feeds.map((f) => ({ url: f.url, title: f.title, renamed: f.renamed, folderId: f.folderId, siteUrl: f.siteUrl, iconUrl: f.iconUrl })),
-    read,
     settings: Object.fromEntries(Object.keys(doc.settings).sort().map((k) => [k, doc.settings[k]])),
   });
 }
@@ -112,14 +112,7 @@ export function decode(text: string): SyncDocument | null {
   if (isObject(root.read)) for (const [k, v] of Object.entries(root.read)) if (typeof v === "number") read[k] = Math.trunc(v);
   const settings: Record<string, string> = {};
   if (isObject(root.settings)) for (const [k, v] of Object.entries(root.settings)) if (typeof v === "string") settings[k] = v;
-  return { folders, feeds, read, settings };
-}
-
-export function pruned(doc: SyncDocument, keepSince: number): SyncDocument {
-  const urls = new Set(doc.feeds.map((f) => f.url));
-  const read: Record<string, number> = {};
-  for (const [k, t] of Object.entries(doc.read)) if (t >= keepSince && urls.has(feedUrlOf(k))) read[k] = t;
-  return { ...doc, read };
+  return { folders, feeds, settings, legacyRead: root.version < 3 ? read : {} };
 }
 
 export function merge(base: SyncDocument | null, local: SyncDocument, remote: SyncDocument): SyncDocument {
@@ -131,7 +124,7 @@ export function merge(base: SyncDocument | null, local: SyncDocument, remote: Sy
   );
   // A device without synced settings yet takes the file's, so its defaults don't overwrite them.
   const settings = Object.keys(b.settings).length === 0 ? { ...local.settings, ...remote.settings } : mergeSettings(b.settings, local.settings, remote.settings);
-  return { folders, feeds, read: mergeRead(b.read, local.read, remote.read), settings };
+  return { folders, feeds, settings, legacyRead: remote.legacyRead ?? {} };
 }
 
 /** Per setting: a change in this browser wins, otherwise the other devices' value (or its removal). */
@@ -166,26 +159,16 @@ function mergeRecords<T>(base: T[], local: T[], remote: T[], key: (t: T) => stri
   return [...order].map((k) => merged.get(k)!);
 }
 
-function mergeRead(base: Record<string, number>, local: Record<string, number>, remote: Record<string, number>): Record<string, number> {
-  const out: Record<string, number> = {};
-  for (const k of new Set([...Object.keys(base), ...Object.keys(local), ...Object.keys(remote)])) {
-    const inBase = k in base;
-    const inLocal = k in local;
-    const read = inLocal === inBase ? k in remote : inLocal;
-    if (read) out[k] = local[k] ?? remote[k] ?? base[k];
-  }
-  return out;
+/** This device's side. */
+export function localDocument(lib: Library): SyncDocument {
+  return documentOf(lib);
 }
 
-/** This device's side: articles it doesn't have count as unchanged. */
-export function localDocument(lib: Library, base: SyncDocument | null): SyncDocument {
-  const doc = documentOf(lib);
-  const have = new Set(lib.articles.map(articleKey));
-  const read: Record<string, number> = {};
-  for (const [k, t] of Object.entries(base?.read ?? {})) if (!have.has(k)) read[k] = t;
-  return { ...doc, read: { ...read, ...doc.read } };
-}
-
+/**
+ * Makes the library match the merged document: folders and feeds (removed ones lose their
+ * articles). A version 2 file's read marks are kept for the articles this browser doesn't have, so
+ * per-item sync takes them over.
+ */
 export function apply(lib: Library, merged: SyncDocument): Library {
   const existing = new Map(lib.feeds.map((f) => [f.url, f]));
   const feeds: Feed[] = merged.feeds.map((f) => {
@@ -200,13 +183,16 @@ export function apply(lib: Library, merged: SyncDocument): Library {
     };
   });
   const urls = new Set(feeds.map((f) => f.url));
-  const articles = lib.articles
-    .filter((a) => urls.has(a.feedUrl))
-    .map((a) => {
-      const read = articleKey(a) in merged.read;
-      return a.read === read ? a : { ...a, read };
-    });
-  return { ...lib, feeds, articles, folders: merged.folders.map((f) => ({ ...f })) };
+  const articles = lib.articles.filter((a) => urls.has(a.feedUrl));
+  const have = new Set(articles.map(articleKey));
+  const legacy = Object.entries(merged.legacyRead ?? {}).filter(([k]) => !have.has(k) && !(k in lib.readElsewhere));
+  return {
+    ...lib,
+    feeds,
+    articles: articles.length === lib.articles.length ? lib.articles : articles,
+    folders: merged.folders.map((f) => ({ ...f })),
+    readElsewhere: legacy.length === 0 ? lib.readElsewhere : { ...lib.readElsewhere, ...Object.fromEntries(legacy) },
+  };
 }
 
 export function hasNewFeeds(lib: Library, merged: SyncDocument): boolean {
@@ -248,7 +234,7 @@ export async function syncRound(
     const remote = answer.kind === "unchanged" ? base : answer.text === null ? null : decode(answer.text);
     if (answer.kind !== "unchanged" && answer.text !== null && !remote) throw new SyncError("unreadableFile");
     // Without a document there is nothing to merge with: this browser's library becomes it.
-    const out = pruned(mergeIn(remote ? base : null, remote), Date.now() - KEEP_READ_MS);
+    const out = mergeIn(remote ? base : null, remote);
     const text = encode(out);
     if (remote && encode(remote) === text) return { version: answer.version, text };
     const result = await target.write(answer.version, text);

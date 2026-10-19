@@ -2,6 +2,30 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-19: Sync per item instead of one document (#106)
+
+The reading list, Bookmarks, notes and highlights would make the one synced document grow without
+limit (it was capped at 8 MB). Now everything that grows syncs **one row per item** (`item:<key>`
+and `read:<feed url> <article id>`), and the document keeps only folders, feeds and settings
+(format version 3; older apps ask to be updated).
+
+- **Server:** rows in the account's Durable Object storage, each encrypted, stored under an HMAC of
+  its key and indexed by the version of its last save, so "changes since a version" is one ordered
+  list. A save sends rows with the version each was based on; a row another device saved first comes
+  back as a conflict. No SQL schema: the storage's key-value calls are enough and keep the tests in
+  memory.
+- **Clients:** a three-way merge per row with the row as last synced (kept per row on the device),
+  per field for items, tags as a set and highlights per highlight, the same rules as the document's
+  merge (this device wins a field both changed; an edit beats a removal). Rows are compared by what
+  they mean, not their text, so Android and the web app can't send each other the same row forever.
+- **Read marks** became rows too, so they no longer need the document; old ones (120 days) are
+  removed from the account by the first device that notices, which never makes an article unread.
+  Marks of articles a device doesn't have yet live in `Library.readElsewhere`.
+- **No article text** is ever sent (tested): it stays on each device, which downloads or extracts it
+  again. That keeps the account inside Cloudflare's free plan.
+- Rejected: last-write-wins per row with timestamps (clocks differ, and one side's change to another
+  field would be lost), and SQL tables in the Durable Object (more code, and harder to test).
+
 ## 2026-10-19: The library moves into a database (Room), one item per link (#106)
 
 Reader grows into one app for feeds, a reading list and bookmarks (#113). Notes, highlights and
