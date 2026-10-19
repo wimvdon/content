@@ -40,6 +40,7 @@ object SyncRows {
                     linkedMapOf("state" to if (it.state == ReadingState.Archived) "archived" else "toread", "addedAt" to it.addedAt)
                 },
             "folder" to i.folder,
+            "service" to i.service,
             "bookmark" to i.bookmark?.let { linkedMapOf("addedAt" to it.addedAt, "collection" to it.collection) },
             "liked" to i.liked,
             "tags" to i.tags,
@@ -82,6 +83,7 @@ object SyncRows {
                     state?.let { s -> ReadingListEntry(s, (it["addedAt"] as? Number)?.toLong() ?: createdAt) }
                 },
             folder = (data["folder"] as? String)?.trim()?.ifEmpty { null },
+            service = (data["service"] as? String)?.ifEmpty { null },
             bookmark = bookmark?.let { BookmarkEntry((it["addedAt"] as? Number)?.toLong() ?: createdAt, (it["collection"] as? String)?.ifBlank { null }) },
             liked = data["liked"] == true,
             tags = cleanTags((data["tags"] as? List<*>).orEmpty().filterIsInstance<String>()),
@@ -194,6 +196,8 @@ object SyncRows {
             createdAt = minOf(l.createdAt, r.createdAt),
             readingList = pick(b?.readingList, l.readingList, r.readingList),
             folder = pick(b?.folder, l.folder, r.folder),
+            // Once kept in a service it stays there: a device that set it wins over one that didn't.
+            service = pick(b?.service, l.service, r.service) ?: l.service ?: r.service,
             bookmark = pick(b?.bookmark, l.bookmark, r.bookmark),
             liked = pick(b?.liked, l.liked, r.liked),
             tags = mergeTags(b?.tags.orEmpty(), l.tags, r.tags),

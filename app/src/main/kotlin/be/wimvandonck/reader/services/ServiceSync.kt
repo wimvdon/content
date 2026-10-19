@@ -42,26 +42,40 @@ object ServiceSync {
     suspend fun run(
         service: ReadingListService,
         state: ServiceState,
+        /** New items kept in no service yet go to this one (the default service for saves, #121). */
+        isDefault: Boolean = true,
+        /** False for the quick sync after a change here (see [ReadingListService.changes]). */
+        full: Boolean = true,
         update: suspend ((Library) -> Library) -> Library,
     ): ServiceSyncResult {
         val rows = HashMap(state.rows)
         var cursor = state.cursor
         val progress = ServiceFeature.Progress in service.features
+        val notes = ServiceFeature.Notes in service.features
         try {
-            val changes = service.changes(cursor)
-            update { library -> takeIn(library, rows, changes, progress) }
+            val changes = service.changes(cursor, full)
+            update { library -> takeIn(library, rows, changes, progress, service.id) }
             cursor = changes.cursor
         } catch (e: ServiceException) {
             return ServiceSyncResult(ServiceState(cursor, rows), e.problem)
         }
-        var library = update { it }
+        // What this service already has (synced before items knew their service) is its own.
+        var library =
+            update { lib ->
+                val unclaimed = lib.items.filter { it.service == null && it.readingList != null && it.key in rows }
+                unclaimed.fold(lib) { acc, item -> acc.changeItem(item.key) { it.copy(service = service.id) } }
+            }
         try {
             for (item in library.items) {
                 if (item.readingList == null) continue
                 val have = rows[item.key]
-                val want = entryOf(item, have?.remoteId.orEmpty())
+                // Only what belongs to this service goes there: nothing is copied between services (#121).
+                if (have == null && item.service != service.id && !(item.service == null && isDefault)) continue
+                val want = entryOf(item, have?.remoteId.orEmpty(), notes)
                 if (have == null) {
-                    var added = service.add(item.url, item.title, item.tags, item.archived, Saved.folderOf(item))
+                    var added = service.add(item.url, item.title, item.tags, item.archived, Saved.folderOf(item), if (notes) item.note else "")
+                    // Kept there now: no other service takes it.
+                    if (item.service == null) library = update { lib -> lib.changeItem(item.key) { if (it.service == null) it.copy(service = service.id) else it } }
                     var target = want.copy(remoteId = added.remoteId)
                     // Saved without a title (its address stands in): the service's title is better.
                     if (item.title == item.url && added.title.isNotBlank() && added.title != item.url) {
@@ -94,10 +108,11 @@ object ServiceSync {
         return ServiceSyncResult(ServiceState(cursor, rows), null)
     }
 
-    /** An item on the reading list as a service entry (the core only). */
+    /** A saved item as a service entry (the core only; its note when the service keeps notes). */
     fun entryOf(
         item: Item,
         remoteId: String,
+        notes: Boolean = false,
     ): RemoteEntry =
         RemoteEntry(
             remoteId = remoteId,
@@ -110,6 +125,7 @@ object ServiceSync {
             liked = item.liked,
             tags = item.tags,
             folder = Saved.folderOf(item),
+            note = item.note.takeIf { notes },
             progress = item.progress,
         )
 
@@ -124,6 +140,7 @@ object ServiceSync {
             a.liked == b.liked &&
             a.title == b.title &&
             a.folder.equals(b.folder, ignoreCase = true) &&
+            (a.note == null || b.note == null || a.note == b.note) &&
             sameTags(a.tags, b.tags) &&
             (!progress || abs(a.progress - b.progress) < PROGRESS_STEP)
     }
@@ -148,14 +165,18 @@ object ServiceSync {
         rows: MutableMap<String, RemoteEntry>,
         changes: RemoteChanges,
         progress: Boolean,
+        serviceId: String? = null,
     ): Library {
         var result = library
         val byRemoteId = rows.entries.associate { (key, entry) -> entry.remoteId to key }
+        // A complete list says what was deleted there: what it had before and hasn't now.
+        val listed = changes.entries.mapTo(HashSet()) { it.remoteId }
+        val deleted = if (changes.complete) changes.deleted + rows.values.map { it.remoteId }.filter { it !in listed } else changes.deleted
         for (remote in changes.entries) {
             val key = byRemoteId[remote.remoteId] ?: ItemKeys.of(remote.url) ?: continue
             val base = rows[key]
             val item = result.item(key)
-            val local = item?.takeIf { it.readingList != null }?.let { entryOf(it, remote.remoteId) }
+            val local = item?.takeIf { it.readingList != null }?.let { entryOf(it, remote.remoteId, remote.note != null) }
             val merged: RemoteEntry? =
                 when {
                     local != null -> merge(base, local, remote, progress)
@@ -163,16 +184,16 @@ object ServiceSync {
                     base != null && sameCore(base, remote, progress) -> null
                     else -> remote
                 }
-            if (merged != null) result = put(result, key, item, merged, remote)
+            if (merged != null) result = put(result, key, item, merged, remote, serviceId)
             rows[key] = remote
         }
-        for (gone in changes.deleted) {
+        for (gone in deleted.distinct()) {
             val key = byRemoteId[gone] ?: continue
             val base = rows.remove(key) ?: continue
             val item = result.item(key) ?: continue
             if (item.readingList == null) continue
             // Changed here since: the edit stays (and is saved again); otherwise it leaves the reading list.
-            if (!sameCore(base, entryOf(item, base.remoteId), progress)) continue
+            if (!sameCore(base, entryOf(item, base.remoteId, base.note != null), progress)) continue
             result = result.putItem(if (item.bookmark != null) item.copy(readingList = null) else item.copy(readingList = null, liked = false, tags = emptyList()))
         }
         return result
@@ -196,6 +217,7 @@ object ServiceSync {
             liked = pick(base?.liked, local.liked, remote.liked),
             tags = SyncRows.mergeTags(base?.tags.orEmpty(), local.tags, remote.tags),
             folder = if (local.folder.equals(base?.folder, ignoreCase = true)) remote.folder else local.folder,
+            note = if (local.note == null || remote.note == null) local.note else pick(base?.note, local.note, remote.note),
             progress = if (progress) pick(base?.progress, local.progress, remote.progress) else local.progress,
         ).let { if (it.archived) it.copy(folder = null) else it }
     }
@@ -206,6 +228,7 @@ object ServiceSync {
         item: Item?,
         entry: RemoteEntry,
         remote: RemoteEntry,
+        serviceId: String? = null,
     ): Library {
         val base = item ?: library.newItem(remote.url, remote.title, remote.addedAt, remote.description, remote.imageUrl)?.copy(key = key) ?: return library
         return library.putItem(
@@ -217,6 +240,9 @@ object ServiceSync {
                 liked = entry.liked,
                 tags = cleanTags(entry.tags),
                 folder = entry.folder.takeIf { !entry.archived },
+                note = entry.note ?: base.note,
+                // Kept in this service from now on, unless it was already in another (a duplicate).
+                service = base.service ?: serviceId,
                 progress = entry.progress.coerceIn(0f, 1f),
             ),
         )
@@ -237,6 +263,7 @@ object ServiceRows {
                 "tags" to e.tags,
                 "progress" to Math.round(e.progress * 1000).toLong(),
                 "folder" to e.folder,
+                "note" to e.note,
                 "extra" to e.extra,
             ),
         )
@@ -253,6 +280,7 @@ object ServiceRows {
             tags = (m["tags"] as? List<*>).orEmpty().filterIsInstance<String>(),
             progress = (((m["progress"] as? Number)?.toDouble() ?: 0.0) / 1000).toFloat(),
             folder = (m["folder"] as? String)?.ifEmpty { null },
+            note = m["note"] as? String,
             extra = m["extra"] as? String,
         )
     }

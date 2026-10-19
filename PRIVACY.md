@@ -1,6 +1,6 @@
 # Privacy policy
 
-_Last updated: 2026-10-19 (the reading list and Instapaper, page titles for added links)_
+_Last updated: 2026-10-19 (Raindrop.io)_
 
 Reader has no analytics, advertising or crash reporting. It works without an account. If you sign
 in with Instapaper, that sign-in is also your Reader account: Reader then keeps your feed list,
@@ -68,6 +68,19 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   Instapaper for its text of an article you open, which is kept on your device only. The web app
   reads and changes your saved list (archive, like, delete, move to a folder, tags, folders). Signing out deletes the token and the account key from
   your device; the token stays valid at Instapaper until you revoke it there.
+- **Raindrop.io (off unless you connect it).** ☰ › Connected services › Connect Raindrop.io opens
+  Raindrop's own page in your browser, where you approve Reader; Reader never sees your Raindrop
+  password. Raindrop sends you back with a one-time code (through a page of the web app, which only
+  passes it to the app). The app gives the code to the owner's feed loader, which adds Reader's
+  client ID and secret, swaps the code for tokens at raindrop.io and hands them back without keeping
+  or logging them; renewing the token every two weeks goes the same way. Cloudflare sees your IP
+  address, under Cloudflare's privacy policy. With the token the Android app talks to
+  api.raindrop.io directly, under Raindrop's privacy policy: while the app is open it reads the
+  bookmarks and collections in your account and sends the title, link, tags, note, favorite,
+  folder (collection) and archive of the articles in Saved that are kept there, and moves to
+  Raindrop's trash what you remove from Saved. When both Instapaper and Raindrop are connected,
+  each only gets its own articles; new saves go to the one you choose. **Disconnect** deletes the
+  tokens from your device; revoke Reader in Raindrop's settings to end it there too.
 - **Links you open** (Read on website, links in articles) open in your browser, under the
   website's own privacy policy.
 - **Links you add or share to Reader.** A link put on the reading list without a title (Add link,
@@ -92,6 +105,8 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
 - If you signed in to Instapaper: the access token, your Instapaper user name and this device's
   Reader account key, in a file of their own (`datastore/instapaper`) that Android's backup and
   phone-to-phone transfer leave out.
+- If you connected Raindrop.io: its access and renewal tokens, in a file of their own
+  (`datastore/raindrop`) that backup and phone-to-phone transfer leave out.
 
 Android's own backup (to your Google account, if you turned that on) and phone-to-phone transfer
 include the feed list, articles, read state, settings and the articles saved without an account, not the cache and not the Instapaper sign-in. Removing a feed deletes its articles; uninstalling the app deletes everything.
@@ -122,7 +137,9 @@ Reader account that signing in with Instapaper opens.
   nothing, and only the web app loads feeds through it. Cloudflare runs it, so Cloudflare sees which feed or page is
   loaded and your IP address, under Cloudflare's privacy policy. It keeps a copy of a feed for at
   most five minutes in Cloudflare's cache, shared by everyone reading that feed. The Android app
-  uses it only to finish signing in to Instapaper and for sync (see above).
+  uses it only to finish signing in to Instapaper and Raindrop.io and for sync (see above).
+- **Raindrop.io's return page** (`/raindrop/callback`) only shows buttons that hand the address
+  Raindrop sent you back with to the Android app; it sends nothing anywhere.
 - **Pictures and website icons** load directly from the websites, without telling them which
   page you came from.
 - **Embedded videos and posts** show as a card; nothing plays inside the page. YouTube cards

@@ -266,6 +266,7 @@ describe("per-item sync (#106)", () => {
       "createdAt",
       "readingList",
       "folder",
+      "service",
       "bookmark",
       "liked",
       "tags",

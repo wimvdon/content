@@ -51,6 +51,8 @@ export interface Item {
   readingList: ReadingListEntry | null;
   /** The folder it is filed in (#119): one at most, only while it is to read. */
   folder: string | null;
+  /** The service it is kept in (#112): "instapaper", "raindrop", or null while in none yet. */
+  service: string | null;
   /** Bookmarks before #119; the Android app moves them into folders. */
   bookmark: BookmarkEntry | null;
   liked: boolean;
@@ -115,6 +117,7 @@ export function newItem(lib: Library, url: string, title: string | null | undefi
     createdAt: now,
     readingList: null,
     folder: null,
+    service: null,
     bookmark: null,
     liked: false,
     tags: [],
@@ -226,6 +229,7 @@ export function itemsOf(value: unknown): Item[] {
           ? { state: v.readingList.state, addedAt: Number(v.readingList.addedAt) || 0 }
           : null,
       folder: typeof v.folder === "string" && v.folder.trim() ? v.folder.trim() : null,
+      service: typeof v.service === "string" && v.service ? v.service : null,
       bookmark: v.bookmark ? { addedAt: Number(v.bookmark.addedAt) || 0, collection: typeof v.bookmark.collection === "string" ? v.bookmark.collection : null } : null,
       liked: v.liked === true,
       tags: Array.isArray(v.tags) ? cleanTags(v.tags.filter((t): t is string => typeof t === "string")) : [],

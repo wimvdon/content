@@ -223,6 +223,17 @@
     <string name="services_reading_body">Reader bewaart je artikels zelf. Meld je aan met Instapaper om ze daar ook te bewaren.</string>
     <string name="services_instapaper_body">Gesynchroniseerd met het Instapaper-account van %s</string>
     <string name="services_problem_later">Instapaper vroeg even te wachten. De rest gaat later.</string>
+    <string name="section_raindrop">Raindrop.io</string>
+    <string name="raindrop_connect">Raindrop.io koppelen</string>
+    <string name="raindrop_disconnect">Ontkoppelen</string>
+    <string name="services_raindrop_off">Koppel Raindrop.io om je bewaarde artikels, mappen en notities daar ook te bewaren.</string>
+    <string name="services_raindrop_body">Gesynchroniseerd met je Raindrop.io-account</string>
+    <string name="raindrop_sign_in_done">Gekoppeld met Raindrop.io</string>
+    <string name="raindrop_sign_in_failed">Koppelen met Raindrop.io is niet gelukt. Probeer het opnieuw.</string>
+    <string name="raindrop_problem_signed_out">Raindrop.io aanvaardt de koppeling niet meer. Koppel opnieuw.</string>
+    <string name="raindrop_problem_later">Raindrop.io vroeg even te wachten. De rest gaat later.</string>
+    <string name="save_service_title">Nieuwe artikels gaan naar</string>
+    <string name="save_service_question">Instapaper en Raindrop.io zijn allebei gekoppeld. Elk houdt zijn eigen artikels bij en er wordt niets tussen beide gekopieerd. Waar moet wat je nieuw bewaart naartoe? Je kunt dit wijzigen bij Gekoppelde diensten.</string>
     <string name="tags_title">Tags</string>
     <string name="tags_add">Tag toevoegen</string>
     <string name="tags_remove">Tag verwijderen</string>

@@ -61,7 +61,10 @@ import be.wimvandonck.reader.ui.reader.SaveSheet
 import be.wimvandonck.reader.ui.reader.AddedSheet
 import be.wimvandonck.reader.ui.reader.ReaderItem
 import be.wimvandonck.reader.ui.reader.fontFamily
+import be.wimvandonck.reader.ui.settings.SaveServiceDialog
+import be.wimvandonck.reader.ui.settings.ServicesActions
 import be.wimvandonck.reader.ui.settings.ServicesScreen
+import be.wimvandonck.reader.ui.settings.ServicesState
 import be.wimvandonck.reader.data.AddFeedResult
 import be.wimvandonck.reader.data.Article
 import be.wimvandonck.reader.data.ArticleSearch
@@ -78,6 +81,8 @@ import be.wimvandonck.reader.data.Settings
 import be.wimvandonck.reader.data.needsFullText
 import be.wimvandonck.reader.instapaper.InstapaperNotice
 import be.wimvandonck.reader.instapaper.InstapaperState
+import be.wimvandonck.reader.raindrop.RaindropNotice
+import be.wimvandonck.reader.raindrop.RaindropState
 import be.wimvandonck.reader.rssReaderApp
 import be.wimvandonck.reader.ui.feeds.FeedsActions
 import be.wimvandonck.reader.ui.feeds.FeedsScreen
@@ -166,9 +171,13 @@ fun RssReaderNavigation() {
     val problems by repository.problems.collectAsStateWithLifecycle()
     val textWords by repository.textWords.collectAsStateWithLifecycle()
     val syncStatus by app.sync.status.collectAsStateWithLifecycle()
-    val serviceStatus by app.services.status.collectAsStateWithLifecycle()
+    val serviceStatuses by app.services.statuses.collectAsStateWithLifecycle()
     val instapaperState by app.instapaper.state.collectAsStateWithLifecycle()
     val instapaperNotice by app.instapaper.notice.collectAsStateWithLifecycle()
+    val raindropState by app.raindrop.state.collectAsStateWithLifecycle()
+    val raindropNotice by app.raindrop.notice.collectAsStateWithLifecycle()
+    // Saved syncs with a service (Instapaper, Raindrop or both): Save then always keeps it in Saved.
+    val savedConnected = instapaperState is InstapaperState.SignedIn || raindropState == RaindropState.SignedIn
     val current = settings ?: Settings()
     val library = libraryOrNull ?: Library()
     val snackbar = remember { SnackbarHostState() }
@@ -311,6 +320,13 @@ fun RssReaderNavigation() {
         val notice = instapaperNotice ?: return@LaunchedEffect
         showMessage(resources.getString(if (notice == InstapaperNotice.SignedIn) R.string.instapaper_sign_in_done else R.string.instapaper_sign_in_failed))
         app.instapaper.clearNotice()
+    }
+
+    // Coming back from Raindrop's sign-in page.
+    LaunchedEffect(raindropNotice) {
+        val notice = raindropNotice ?: return@LaunchedEffect
+        showMessage(resources.getString(if (notice == RaindropNotice.SignedIn) R.string.raindrop_sign_in_done else R.string.raindrop_sign_in_failed))
+        app.raindrop.clearNotice()
     }
 
     // Sync while the app is on screen: when it comes back, live while it stays, and every minute
@@ -578,8 +594,8 @@ fun RssReaderNavigation() {
                             article = article,
                             feed = fromFeed?.let { library.feed(it.feedUrl) } ?: item?.let { ReadingLists.source(it, library) },
                             style = current.reader,
-                            // Signed in to Instapaper, Save puts it on the reading list (which syncs there).
-                            saveTarget = if (instapaperState is InstapaperState.SignedIn) ShareTarget.Saved else current.saveTarget,
+                            // Connected to a service, Save keeps it in Saved (which syncs there).
+                            saveTarget = if (savedConnected) ShareTarget.Saved else current.saveTarget,
                             shareTarget = current.shareTarget,
                             fullText = fullText,
                             showImages = current.showImages,
@@ -591,7 +607,7 @@ fun RssReaderNavigation() {
                                     onStyleChange = { style -> app.appScope.launch { app.settings.setReaderStyle(style) } },
                                     onSave = {
                                         article?.let {
-                                            val inApp = instapaperState is InstapaperState.SignedIn || current.saveTarget == ShareTarget.Saved
+                                            val inApp = savedConnected || current.saveTarget == ShareTarget.Saved
                                             if (inApp) it.link?.let { link -> readLater(link, it.title) } else send(it, current.saveTarget)
                                         }
                                     },
@@ -652,6 +668,7 @@ fun RssReaderNavigation() {
                                 shareApps = shareApps,
                                 syncStatus = syncStatus,
                                 instapaper = instapaperState,
+                                raindropConnected = raindropState == RaindropState.SignedIn,
                             ),
                         snackbarHostState = snackbar,
                         actions =
@@ -766,11 +783,22 @@ fun RssReaderNavigation() {
                 Screen.Services -> {
                     SystemBarsFollowTheme(appDark)
                     ServicesScreen(
-                        instapaper = instapaperState,
-                        status = serviceStatus,
-                        onBack = ::pop,
-                        onSignIn = { uiScope.launch { ExternalApps.openLink(context, app.instapaper.begin()) } },
-                        onSyncNow = { app.appScope.launch { app.services.sync() } },
+                        state =
+                            ServicesState(
+                                instapaper = instapaperState,
+                                raindrop = raindropState,
+                                statuses = serviceStatuses,
+                                saveService = serviceStatuses.keys.let { connected -> current.saveService?.takeIf { it in connected } ?: connected.firstOrNull() },
+                            ),
+                        actions =
+                            ServicesActions(
+                                onBack = ::pop,
+                                onSignIn = { uiScope.launch { ExternalApps.openLink(context, app.instapaper.begin()) } },
+                                onConnectRaindrop = { uiScope.launch { ExternalApps.openLink(context, app.raindrop.begin()) } },
+                                onDisconnectRaindrop = { app.appScope.launch { app.raindrop.signOut() } },
+                                onSyncNow = { app.appScope.launch { app.services.sync() } },
+                                onSaveServiceChange = { id -> app.appScope.launch { app.settings.setSaveService(id) } },
+                            ),
                     )
                 }
 
@@ -787,6 +815,13 @@ fun RssReaderNavigation() {
             onLike = { editLibrary { it.setLiked(added.key, !added.liked) } },
             onTags = { tags -> editLibrary { it.setTags(added.key, tags) } },
             onDismiss = { addedKey = null },
+        )
+    }
+
+    // Both services connected and not yet said where new saves go: ask once (#121).
+    if (settings != null && instapaperState is InstapaperState.SignedIn && raindropState == RaindropState.SignedIn && current.saveService == null) {
+        SaveServiceDialog(
+            onChoose = { id -> app.appScope.launch { app.settings.setSaveService(id) } },
         )
     }
 

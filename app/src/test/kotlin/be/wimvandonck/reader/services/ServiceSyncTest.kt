@@ -5,6 +5,7 @@ import be.wimvandonck.reader.data.ReadingState
 import be.wimvandonck.reader.data.Saved
 import be.wimvandonck.reader.data.SavedTab
 import be.wimvandonck.reader.data.addToReadingList
+import be.wimvandonck.reader.data.changeItem
 import be.wimvandonck.reader.data.item
 import be.wimvandonck.reader.data.setLiked
 import be.wimvandonck.reader.data.setReadingState
@@ -18,9 +19,12 @@ import org.junit.Test
 
 class ServiceSyncTest {
     /** A reading-list service in memory: what it has, a cursor per change, and a call that can fail. */
-    private class FakeService : ReadingListService {
-        override val id = "fake"
-        override val features = setOf(ServiceFeature.Progress)
+    private class FakeService(
+        override val id: String = "fake",
+        override val features: Set<ServiceFeature> = setOf(ServiceFeature.Progress),
+        /** Lists everything each time (as Raindrop), so what is missing was deleted there. */
+        val complete: Boolean = false,
+    ) : ReadingListService {
         val entries = LinkedHashMap<String, RemoteEntry>()
         private val changedAt = HashMap<String, Int>()
         private val deletedAt = HashMap<String, Int>()
@@ -45,8 +49,12 @@ class ServiceSyncTest {
             deletedAt[remoteId] = ++clock
         }
 
-        override suspend fun changes(cursor: String?): RemoteChanges {
+        override suspend fun changes(
+            cursor: String?,
+            full: Boolean,
+        ): RemoteChanges {
             call("changes")
+            if (complete) return RemoteChanges(entries.values.toList(), emptyList(), clock.toString(), complete = true)
             val since = cursor?.toInt() ?: 0
             return RemoteChanges(
                 entries.values.filter { (changedAt[it.remoteId] ?: 0) > since },
@@ -61,10 +69,13 @@ class ServiceSyncTest {
             tags: List<String>,
             archived: Boolean,
             folder: String?,
+            note: String,
         ): RemoteEntry {
             call("add $url")
             val existing = entries.values.firstOrNull { it.url == url }
-            val entry = (existing ?: RemoteEntry("${nextId++}", url, title, addedAt = 5, archived = false, liked = false, tags = emptyList())).copy(title = title, tags = tags, archived = archived, folder = folder)
+            val entry =
+                (existing ?: RemoteEntry("${nextId++}", url, title, addedAt = 5, archived = false, liked = false, tags = emptyList()))
+                    .copy(title = title, tags = tags, archived = archived, folder = folder, note = note.takeIf { ServiceFeature.Notes in features })
             put(entry)
             return entry
         }
@@ -96,6 +107,16 @@ class ServiceSyncTest {
             val result = ServiceSync.run(service, state) { change -> change(library).also { library = it } }
             state = result.state
             result.problem
+        }
+
+    /** Syncs another service with its own state, as ServiceManager does for each connected one. */
+    private fun sync(
+        other: FakeService,
+        otherState: ServiceState,
+        isDefault: Boolean,
+    ): ServiceState =
+        runBlocking {
+            ServiceSync.run(other, otherState, isDefault) { change -> change(library).also { library = it } }.state
         }
 
     private fun remote(
@@ -285,8 +306,81 @@ class ServiceSyncTest {
     }
 
     @Test
+    fun `each service keeps its own items, and new saves go only to the default one`() {
+        val raindrop = FakeService("raindrop")
+        service.put(remote("1", "https://a.example/1"))
+        raindrop.put(remote("9", "https://r.example/9"))
+        sync()
+        var raindropState = sync(raindrop, ServiceState(), isDefault = false)
+        assertEquals("fake", library.item("a.example/1")?.service)
+        assertEquals("raindrop", library.item("r.example/9")?.service)
+        // Nothing is copied: each has only its own.
+        sync()
+        raindropState = sync(raindrop, raindropState, isDefault = false)
+        assertEquals(setOf("https://a.example/1"), service.entries.values.map { it.url }.toSet())
+        assertEquals(setOf("https://r.example/9"), raindrop.entries.values.map { it.url }.toSet())
+        // A new save goes to the default service only, and is its own from then on.
+        library = library.addToReadingList("https://b.example/new", "New", 10).first
+        sync(raindrop, raindropState, isDefault = false)
+        assertEquals(1, raindrop.entries.size)
+        sync()
+        assertEquals("fake", library.item("b.example/new")?.service)
+        assertTrue(service.entries.values.any { it.url == "https://b.example/new" })
+        // A change to Raindrop's item goes to Raindrop.
+        library = library.setLiked("r.example/9", true)
+        sync(raindrop, raindropState, isDefault = false)
+        sync()
+        assertTrue(raindrop.entries["9"]!!.liked)
+        assertFalse(service.entries.values.any { it.url == "https://r.example/9" })
+    }
+
+    @Test
+    fun `items synced before they knew their service become that service's own`() {
+        library = library.addToReadingList("https://b.example/1", "1", 10).first
+        sync()
+        // As stored by an older version: in the service's rows, without a service.
+        library = library.copy(items = library.items.map { it.copy(service = null) })
+        val raindrop = FakeService("raindrop")
+        sync()
+        assertEquals("fake", library.item("b.example/1")?.service)
+        // So making the other service the default doesn't copy it there.
+        sync(raindrop, ServiceState(), isDefault = true)
+        assertTrue(raindrop.entries.isEmpty())
+    }
+
+    @Test
+    fun `a service that lists everything deletes what is missing from the list`() {
+        val raindrop = FakeService("raindrop", features = setOf(ServiceFeature.Notes), complete = true)
+        raindrop.put(remote("1", "https://r.example/1"))
+        raindrop.put(remote("2", "https://r.example/2"))
+        var rs = sync(raindrop, ServiceState(), isDefault = true)
+        assertEquals(2, library.items.count { it.readingList != null })
+        raindrop.entries.remove("2")
+        rs = sync(raindrop, rs, isDefault = true)
+        assertNull(library.item("r.example/2")?.readingList)
+        assertEquals(setOf("1"), rs.rows.values.map { it.remoteId }.toSet())
+        assertEquals(1, raindrop.entries.size)
+    }
+
+    @Test
+    fun `notes go to services that keep them, and theirs come in`() {
+        val raindrop = FakeService("raindrop", features = setOf(ServiceFeature.Notes))
+        raindrop.put(remote("1", "https://r.example/1").copy(note = "From there"))
+        var rs = sync(raindrop, ServiceState(), isDefault = true)
+        assertEquals("From there", library.item("r.example/1")?.note)
+        library = library.changeItem("r.example/1") { it.copy(note = "Changed here") }
+        rs = sync(raindrop, rs, isDefault = true)
+        assertEquals("Changed here", raindrop.entries["1"]!!.note)
+        // A service without notes never gets one.
+        library = library.addToReadingList("https://b.example/1", "1", 10).first.changeItem("b.example/1") { it.copy(note = "Mine") }
+        sync()
+        assertNull(service.entries.values.single { it.url == "https://b.example/1" }.note)
+        assertEquals("Mine", library.item("b.example/1")?.note)
+    }
+
+    @Test
     fun `entries are stored and read back`() {
-        val entry = RemoteEntry("7", "https://a/1", "T", addedAt = 5, archived = true, liked = true, tags = listOf("x"), progress = 0.25f, extra = "Folder")
+        val entry = RemoteEntry("7", "https://a/1", "T", addedAt = 5, archived = true, liked = true, tags = listOf("x"), progress = 0.25f, note = "A note", extra = "Folder")
         assertEquals(entry, ServiceRows.decode(ServiceRows.encode(entry)))
         assertNull(ServiceRows.decode("nope"))
     }

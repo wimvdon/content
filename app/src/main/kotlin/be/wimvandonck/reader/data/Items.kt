@@ -59,6 +59,11 @@ data class Item(
      * folder is the inbox; archiving takes it out of its folder.
      */
     val folder: String? = null,
+    /**
+     * The service it is kept in (#112, #121): "instapaper", "raindrop", or null while it is in none
+     * yet (it then goes to the default service). Nothing is copied from one service to another.
+     */
+    val service: String? = null,
     /** Bookmarks before #119; moved into folders when read (see [Saved.settle]). */
     val bookmark: BookmarkEntry? = null,
     /** Liked is one flag on the item (#107), not a list. */

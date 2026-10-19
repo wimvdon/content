@@ -61,6 +61,8 @@ data class ItemRow(
     val collection: String?,
     /** The folder it is filed in (#119), or null. */
     @ColumnInfo(defaultValue = "NULL") val folder: String? = null,
+    /** The service it is kept in (#112), or null. */
+    @ColumnInfo(defaultValue = "NULL") val service: String? = null,
     val liked: Boolean,
     val tags: String,
     val note: String,

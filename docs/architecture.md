@@ -115,5 +115,11 @@ again), `ServiceManager` (when to sync, while the app is on screen; the service'
 `instapaper/InstapaperReadingList.kt` knows Instapaper (API v2 `since`, folders as tags, parsed text,
 progress). `instapaper/` also holds `InstapaperClient` (API v2 over OkHttp, with pure parsing
 helpers), `InstapaperAuth` (sign-in address, callback parsing, token swap through the Worker) and
-`InstapaperAccount` (the token in its own DataStore file). `ui/settings/ServicesScreen.kt` shows the
-connected services. See `instapaper.md`.
+`InstapaperAccount` (the token in its own DataStore file). `raindrop/` is the same for Raindrop.io
+(#112): `RaindropSaved` (collections as folders, an Archive collection, the whole account listed each
+time as it has no `since`), `RaindropClient`, `RaindropAuth` (OAuth 2 through the Worker) and
+`RaindropAccount`. With both connected (#121) every item remembers its service (`Item.service`):
+`ServiceSync` sends an item only to its own service, new ones to the default (`Settings.saveService`,
+asked once), so nothing is copied between them; `ServiceManager` waits until both accounts are read
+before the first sync. `ui/settings/ServicesScreen.kt` shows the connected services. See
+`instapaper.md` and `raindrop.md`.

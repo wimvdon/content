@@ -140,6 +140,8 @@ data class Settings(
     val listView: ListView = ListView.Medium,
     /** Tag an article saved from a feed with the feed's folder (#120). */
     val tagWithFolder: Boolean = true,
+    /** The service new saves go to when more than one is connected (#121): "instapaper" or "raindrop"; null until chosen. */
+    val saveService: String? = null,
     /** When the last sync succeeded, or null. */
     val lastSyncedAt: Long? = null,
 )

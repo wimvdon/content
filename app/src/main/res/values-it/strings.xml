@@ -229,6 +229,17 @@
     <string name="services_reading_body">Reader conserva i tuoi articoli salvati. Accedi con Instapaper per conservarli anche lì.</string>
     <string name="services_instapaper_body">Sincronizzata con l’account Instapaper di %s</string>
     <string name="services_problem_later">Instapaper ha chiesto di aspettare un momento. Il resto seguirà.</string>
+    <string name="section_raindrop">Raindrop.io</string>
+    <string name="raindrop_connect">Collega Raindrop.io</string>
+    <string name="raindrop_disconnect">Scollega</string>
+    <string name="services_raindrop_off">Collega Raindrop.io per conservare anche lì i tuoi articoli salvati, cartelle e note.</string>
+    <string name="services_raindrop_body">Sincronizzato con il tuo account Raindrop.io</string>
+    <string name="raindrop_sign_in_done">Collegato a Raindrop.io</string>
+    <string name="raindrop_sign_in_failed">Collegamento a Raindrop.io non riuscito. Riprova.</string>
+    <string name="raindrop_problem_signed_out">Raindrop.io non accetta più il collegamento. Collegalo di nuovo.</string>
+    <string name="raindrop_problem_later">Raindrop.io ha chiesto di aspettare un momento. Il resto seguirà.</string>
+    <string name="save_service_title">I nuovi salvataggi vanno in</string>
+    <string name="save_service_question">Instapaper e Raindrop.io sono entrambi collegati. Ognuno conserva i propri articoli e nulla viene copiato dall’uno all’altro. Dove vanno i nuovi salvataggi? Puoi cambiarlo in Servizi collegati.</string>
     <string name="tags_title">Tag</string>
     <string name="tags_add">Aggiungi tag</string>
     <string name="tags_remove">Rimuovi tag</string>

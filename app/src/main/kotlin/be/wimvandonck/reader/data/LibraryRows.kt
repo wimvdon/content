@@ -41,6 +41,7 @@ object LibraryRows {
             bookmarkAddedAt = i.bookmark?.addedAt,
             collection = i.bookmark?.collection,
             folder = i.folder,
+            service = i.service,
             liked = i.liked,
             tags = Json.write(i.tags),
             note = i.note,
@@ -86,6 +87,7 @@ object LibraryRows {
                     else -> null
                 },
             folder = row.folder,
+            service = row.service,
             bookmark = row.bookmarkAddedAt?.let { BookmarkEntry(it, row.collection) },
             liked = row.liked,
             tags = (runCatching { Json.parse(row.tags) }.getOrNull() as? List<*>).orEmpty().filterIsInstance<String>(),
