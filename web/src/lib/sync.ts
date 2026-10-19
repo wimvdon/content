@@ -206,7 +206,7 @@ export function apply(lib: Library, merged: SyncDocument): Library {
       const read = articleKey(a) in merged.read;
       return a.read === read ? a : { ...a, read };
     });
-  return { feeds, articles, folders: merged.folders.map((f) => ({ ...f })) };
+  return { ...lib, feeds, articles, folders: merged.folders.map((f) => ({ ...f })) };
 }
 
 export function hasNewFeeds(lib: Library, merged: SyncDocument): boolean {

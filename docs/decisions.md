@@ -25,6 +25,9 @@ twice (a feed article and a saved article). So:
 - **Migration:** on first start the old `library.txt` and Saved without an account (`saved`) move
   into the database once (`SavedItems.migrate`, tested on a sample), and the old files are deleted.
   Saved without an account now runs on the reading list's items (`ItemsSavedStorage`).
+- **Web app:** the same model (`web/src/lib/items.ts`) in IndexedDB: feeds and folders in the
+  key-value store, one store for articles and one for items, each change writing only what changed
+  (`libraryStore.ts`). The old single `library` value and `saved` move in once.
 - Rejected: Android's own `SQLiteOpenHelper` without a library (more hand-written code for the
   same result, and the owner approved Room), and keeping the text format with one file per item
   (no transactions, slow searches).
