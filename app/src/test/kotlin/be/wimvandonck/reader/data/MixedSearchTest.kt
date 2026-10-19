@@ -82,3 +82,14 @@ class ItemSearchTest {
         assertTrue(ItemSearch.search(items, " ").isEmpty())
     }
 }
+
+class BookmarkSearchTest {
+    @Test
+    fun `the Bookmarks chip shows only bookmarks, and collections are searched`() {
+        val reading = Item("a.example/1", "https://a.example/1", "Tea one", createdAt = 1, readingList = ReadingListEntry(ReadingState.ToRead, 1))
+        val kept = Item("b.example/2", "https://b.example/2", "Tea two", createdAt = 2, bookmark = BookmarkEntry(2, "Brewing"))
+        assertEquals(listOf(kept), MixedSearch.mix("tea", emptyList(), listOf(reading, kept), SearchFilter.Bookmarks).map { (it as SearchHit.FromItem).item })
+        assertEquals(listOf(reading), MixedSearch.mix("tea", emptyList(), listOf(reading, kept), SearchFilter.ReadingList).map { (it as SearchHit.FromItem).item })
+        assertEquals(listOf(kept), ItemSearch.search(listOf(reading, kept), "brewing"))
+    }
+}

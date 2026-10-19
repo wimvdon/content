@@ -193,9 +193,9 @@
     <string name="search_start_body">Encuentra palabras en los títulos y el texto de los artículos de tus feeds.</string>
     <string name="search_none_title">Sin resultados</string>
     <string name="search_none_body">Ningún artículo contiene todas estas palabras.</string>
-    <string name="search_start_title_saved">Buscar en tus feeds y tu lista de lectura</string>
+    <string name="search_start_title_saved">Buscar en todo</string>
     <string name="search_label_feed">Feed</string>
-    <string name="search_start_body_saved">Encuentra palabras en los artículos de tus feeds y en los títulos, descripciones, etiquetas, notas y resaltados de tu lista de lectura.</string>
+    <string name="search_start_body_saved">Encuentra palabras en los artículos de tus feeds y en los títulos, descripciones, etiquetas, notas y resaltados de tu lista de lectura y tus marcadores.</string>
     <string name="search_section_none">Sin resultados</string>
     <!-- A share from another app without a web link (#97). -->
     <string name="share_no_link">No hay ningún enlace para guardar</string>
@@ -220,7 +220,7 @@
     <string name="finish_keep_body">Con tu nota y tus resaltados.</string>
     <string name="finish_with_note">1 nota</string>
     <string name="kept_as_bookmark">Guardado como marcador</string>
-    <string name="menu_manage_tags">Etiquetas</string>
+    <string name="menu_manage_tags">Colecciones y etiquetas</string>
     <string name="reader_text_instapaper">Texto de Instapaper</string>
     <string name="reading_list_title">Lista de lectura</string>
     <string name="reading_list_to_read">Por leer</string>
@@ -271,5 +271,42 @@
         <item quantity="one">%d por leer</item>
         <item quantity="many">%d por leer</item>
         <item quantity="other">%d por leer</item>
+    </plurals>
+    <string name="bookmarks_title">Marcadores</string>
+    <string name="bookmarks_view_list">Ver como lista</string>
+    <string name="bookmarks_view_grid">Ver como tarjetas</string>
+    <string name="bookmark_add_title">Añadir marcador</string>
+    <string name="collections_title">Colecciones</string>
+    <string name="bookmark_kind_articles">Artículos</string>
+    <string name="bookmark_kind_tools">Herramientas</string>
+    <string name="bookmark_kind_repos">Repositorios</string>
+    <string name="bookmark_kind_videos">Vídeos</string>
+    <string name="bookmark_kind_article">Artículo</string>
+    <string name="bookmark_kind_tool">Herramienta</string>
+    <string name="bookmark_kind_repo">Repositorio</string>
+    <string name="bookmark_kind_video">Vídeo</string>
+    <string name="bookmarks_empty_title">Aún no hay marcadores</string>
+    <string name="bookmarks_empty_body">Guarda un artículo como marcador al terminarlo, o comparte un enlace con Reader y elige Marcador.</string>
+    <string name="save_title">Guardar en Reader</string>
+    <string name="save_to_bookmark">Marcador</string>
+    <string name="save_help">Los artículos van a la lista de lectura, los demás enlaces a marcadores.</string>
+    <string name="bookmark_saved">Guardado en Marcadores</string>
+    <string name="bookmark_kept_on">Guardado el %1$s</string>
+    <string name="bookmark_from">de %1$s</string>
+    <string name="action_open">Abrir</string>
+    <string name="action_read_again">Volver a leer</string>
+    <string name="bookmark_edit">Editar marcador</string>
+    <string name="bookmark_remove">Quitar marcador</string>
+    <string name="bookmark_remove_body">¿Quitar este marcador? Su nota, etiquetas y resaltados también se van, salvo que esté en tu lista de lectura.</string>
+    <string name="bookmark_removed">Marcador quitado</string>
+    <string name="highlights_title">Resaltados</string>
+    <string name="collection_rename">Renombrar colección</string>
+    <string name="collection_remove">Quitar colección</string>
+    <string name="collection_remove_body">¿Quitar la colección %1$s? Sus marcadores se quedan, sin colección.</string>
+    <string name="collection_none">Sin colección</string>
+    <plurals name="bookmarks_count">
+        <item quantity="one">%d marcador</item>
+        <item quantity="many">%d marcadores</item>
+        <item quantity="other">%d marcadores</item>
     </plurals>
 </resources>

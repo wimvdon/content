@@ -2,6 +2,31 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-19: Bookmarks, a third destination (#108)
+
+- **Third top-level destination** in the navigation bar and rail (Feeds, Reading list, Bookmarks)
+  and a third foldable section in the drawer (All and each collection with its count), as in the
+  mockup.
+- **Collections are flat and a bookmark is in one at most**, so they are tabs (peer views of the same
+  content); types are chips (they filter). The type isn't stored: `Bookmarks.kindOf` reads it from
+  the link (video sites, code hosts with owner/repository, a site's home page is a tool), so it needs
+  no sync field and stays right when the rules improve.
+- **What goes in** follows the membership rules on #108: Keep as bookmark (finishing an article, or ⋮
+  on a feed article), the share sheet, Add bookmark. Archiving doesn't keep. Read again puts the item
+  back on the reading list from the start and keeps it in Bookmarks.
+- **One save sheet** ("Save to Reader") for links shared to Reader, the custom tab's Save button,
+  Add bookmark and Keep as bookmark on a feed article: Reading list | Bookmark as a segmented
+  button, chosen by the link (articles to the reading list, other links to Bookmarks), then
+  collection, note and tags. Nothing is saved until Save. Shared links used to go on the reading
+  list at once with the like-and-tag sheet; that sheet stays for Read later in the reader and the
+  swipe.
+- **Removing a bookmark** that isn't on the reading list removes the whole item (its note, tags
+  and highlights), so no hidden item is left; the dialog says so.
+- Cards in a staggered grid by default, a list as the alternative (`Settings.bookmarksView`, device
+  only, not synced: it depends on the screen).
+- The Tags page becomes **Collections and tags** (rename and remove both). Search gets a Bookmarks
+  chip and labels bookmark-only results "Bookmark"; they open the bookmark's page.
+
 ## 2026-10-19: The reading list replaces Saved; services behind one interface (#107, #109)
 
 Saved becomes the **Reading list**: articles you want to read, as a queue (#113).

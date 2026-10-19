@@ -188,9 +188,9 @@
     <string name="search_start_body">Finds words in the titles and text of your feeds\' articles.</string>
     <string name="search_none_title">Nothing found</string>
     <string name="search_none_body">No article contains all these words.</string>
-    <string name="search_start_title_saved">Search your feeds and reading list</string>
+    <string name="search_start_title_saved">Search everything</string>
     <string name="search_label_feed">Feed</string>
-    <string name="search_start_body_saved">Finds words in your feeds’ articles, and in the titles, descriptions, tags, notes and highlights of your reading list.</string>
+    <string name="search_start_body_saved">Finds words in your feeds’ articles, and in the titles, descriptions, tags, notes and highlights of your reading list and bookmarks.</string>
     <string name="search_section_none">No matches</string>
     <!-- A share from another app without a web link (#97). -->
     <string name="share_no_link">No link to save</string>
@@ -215,7 +215,7 @@
     <string name="finish_keep_body">With your note and highlights.</string>
     <string name="finish_with_note">1 note</string>
     <string name="kept_as_bookmark">Kept as bookmark</string>
-    <string name="menu_manage_tags">Tags</string>
+    <string name="menu_manage_tags">Collections and tags</string>
     <string name="reader_text_instapaper">Instapaper text</string>
     <string name="reading_list_title">Reading list</string>
     <string name="reading_list_to_read">To read</string>
@@ -262,5 +262,41 @@
     <plurals name="reading_list_to_read_count">
         <item quantity="one">%d to read</item>
         <item quantity="other">%d to read</item>
+    </plurals>
+    <string name="bookmarks_title">Bookmarks</string>
+    <string name="bookmarks_view_list">Show as a list</string>
+    <string name="bookmarks_view_grid">Show as cards</string>
+    <string name="bookmark_add_title">Add bookmark</string>
+    <string name="collections_title">Collections</string>
+    <string name="bookmark_kind_articles">Articles</string>
+    <string name="bookmark_kind_tools">Tools</string>
+    <string name="bookmark_kind_repos">Repos</string>
+    <string name="bookmark_kind_videos">Videos</string>
+    <string name="bookmark_kind_article">Article</string>
+    <string name="bookmark_kind_tool">Tool</string>
+    <string name="bookmark_kind_repo">Repo</string>
+    <string name="bookmark_kind_video">Video</string>
+    <string name="bookmarks_empty_title">No bookmarks yet</string>
+    <string name="bookmarks_empty_body">Keep an article as a bookmark when you finish it, or share a link to Reader and choose Bookmark.</string>
+    <string name="save_title">Save to Reader</string>
+    <string name="save_to_bookmark">Bookmark</string>
+    <string name="save_help">Articles go to the reading list, other links to bookmarks.</string>
+    <string name="bookmark_saved">Saved to Bookmarks</string>
+    <string name="bookmark_kept_on">Kept %1$s</string>
+    <string name="bookmark_from">from %1$s</string>
+    <string name="action_open">Open</string>
+    <string name="action_read_again">Read again</string>
+    <string name="bookmark_edit">Edit bookmark</string>
+    <string name="bookmark_remove">Remove bookmark</string>
+    <string name="bookmark_remove_body">Remove this bookmark? Its note, tags and highlights go too, unless it is on your reading list.</string>
+    <string name="bookmark_removed">Bookmark removed</string>
+    <string name="highlights_title">Highlights</string>
+    <string name="collection_rename">Rename collection</string>
+    <string name="collection_remove">Remove collection</string>
+    <string name="collection_remove_body">Remove the collection %1$s? Its bookmarks stay, without a collection.</string>
+    <string name="collection_none">No collection</string>
+    <plurals name="bookmarks_count">
+        <item quantity="one">%d bookmark</item>
+        <item quantity="other">%d bookmarks</item>
     </plurals>
 </resources>

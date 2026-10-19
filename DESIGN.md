@@ -272,8 +272,9 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   Finished reading sheet (Archive / Keep as bookmark as two radio rows with an icon and a line of
   help, then the collection, note and tags for Keep; Cancel and the action as buttons).
 - The ☰ drawer: the Feeds section (All articles, the folders with their feeds, the other feeds),
-  the Reading list section (To read with its count, Liked, the tags, then Archive), then Manage
-  feeds, Tags, Connected services and Settings. Manage feeds shows what it manages with a pen (the
+  the Reading list section (To read with its count, Liked, the tags, then Archive), the Bookmarks
+  section (All with its count, then the collections with theirs), then Manage feeds, Collections
+  and tags, Connected services and Settings. Manage feeds shows what it manages with a pen (the
   feed symbol with a pen); Tags has a tag, Connected services two arrows (Material Symbols'
   shapes). The web app's sidebar still has its Saved section until it catches up.
 - Site icons sit on a fixed light tile (`#F4F4F4`, rounded, 10% padding) in light and dark mode,

@@ -46,7 +46,14 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import be.wimvandonck.reader.R
+import be.wimvandonck.reader.data.Bookmarks
 import be.wimvandonck.reader.data.Item
+import be.wimvandonck.reader.data.ItemKeys
+import be.wimvandonck.reader.data.SaveTo
+import be.wimvandonck.reader.feed.FeedDiscovery
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 
 /**
  * An item's tags as removable chips, a field for a new one, and the other tags in use to add with a
@@ -266,6 +273,127 @@ private fun FinishOption(
             Text(body, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         RadioButton(selected = selected, onClick = null)
+    }
+}
+
+/**
+ * "Save to Reader" (#108): a link shared to Reader, the custom tab's Save, Add bookmark, or Keep as
+ * bookmark on a feed article. Reading list or Bookmark (articles are suggested for the reading
+ * list, other links for Bookmarks), then the collection (Bookmark only), a note and tags. Nothing is
+ * saved until Save. Without [url] it asks for an address first.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SaveSheet(
+    url: String?,
+    title: String?,
+    initial: SaveTo?,
+    collections: List<String>,
+    allTags: List<String>,
+    onSave: (url: String, to: SaveTo, collection: String, note: String, tags: List<String>) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var address by rememberSaveable(url) { mutableStateOf(url.orEmpty()) }
+    var chosen by rememberSaveable(url) { mutableStateOf(initial) }
+    // A typed address may leave out https://.
+    val link = remember(address) { url ?: FeedDiscovery.normalizeUrl(address)?.takeIf { ItemKeys.isWebLink(it) } }
+    val to = chosen ?: Bookmarks.suggested(link ?: address)
+    var collection by rememberSaveable(url) { mutableStateOf("") }
+    var note by rememberSaveable(url) { mutableStateOf("") }
+    var tags by remember(url) { mutableStateOf(emptyList<String>()) }
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+        Column(
+            Modifier
+                .verticalScroll(rememberScrollState())
+                .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(stringResource(R.string.save_title), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
+            if (url == null) {
+                OutlinedTextField(
+                    value = address,
+                    onValueChange = { address = it },
+                    label = { Text(stringResource(R.string.add_link_address)) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Next),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            } else {
+                Column {
+                    if (!title.isNullOrBlank()) Text(title, style = MaterialTheme.typography.titleSmall, maxLines = 2)
+                    Text(ItemKeys.hostOf(url).ifEmpty { url }, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                }
+            }
+            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                SaveTo.entries.forEachIndexed { index, option ->
+                    SegmentedButton(
+                        selected = to == option,
+                        onClick = { chosen = option },
+                        shape = SegmentedButtonDefaults.itemShape(index, SaveTo.entries.size),
+                        icon = { SegmentedButtonDefaults.Icon(to == option) { Icon(painterResource(if (option == SaveTo.ReadingList) R.drawable.ic_reading_list else R.drawable.ic_bookmark_add), contentDescription = null, modifier = Modifier.size(SegmentedButtonDefaults.IconSize)) } },
+                        label = { Text(stringResource(if (option == SaveTo.ReadingList) R.string.reading_list_title else R.string.save_to_bookmark)) },
+                    )
+                }
+            }
+            Text(stringResource(R.string.save_help), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (to == SaveTo.Bookmark) CollectionField(collection, collections, onChange = { collection = it })
+            OutlinedTextField(
+                value = note,
+                onValueChange = { note = it },
+                label = { Text(stringResource(R.string.note_title)) },
+                minLines = 2,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            TagsEditor(tags, allTags, onChange = { tags = it })
+            Row(Modifier.align(Alignment.End), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
+                Button(enabled = link != null, onClick = {
+                    link?.let { onSave(it, to, collection, note, tags) }
+                    onDismiss()
+                }) { Text(stringResource(R.string.action_save)) }
+            }
+        }
+    }
+}
+
+/** Edit bookmark: its collection, note and tags. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BookmarkEditSheet(
+    item: Item,
+    collections: List<String>,
+    allTags: List<String>,
+    onSave: (collection: String, note: String, tags: List<String>) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var collection by rememberSaveable(item.key) { mutableStateOf(item.bookmark?.collection.orEmpty()) }
+    var note by rememberSaveable(item.key) { mutableStateOf(item.note) }
+    var tags by remember(item.key) { mutableStateOf(item.tags) }
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+        Column(
+            Modifier
+                .verticalScroll(rememberScrollState())
+                .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(stringResource(R.string.bookmark_edit), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
+            CollectionField(collection, collections, onChange = { collection = it })
+            OutlinedTextField(
+                value = note,
+                onValueChange = { note = it },
+                label = { Text(stringResource(R.string.note_title)) },
+                minLines = 2,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            TagsEditor(tags, allTags, onChange = { tags = it })
+            Row(Modifier.align(Alignment.End), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
+                Button(onClick = {
+                    onSave(collection, note, tags)
+                    onDismiss()
+                }) { Text(stringResource(R.string.action_save)) }
+            }
+        }
     }
 }
 

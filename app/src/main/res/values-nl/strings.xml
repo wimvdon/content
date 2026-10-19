@@ -187,9 +187,9 @@
     <string name="search_start_body">Vindt woorden in de titels en de tekst van de artikels uit je feeds.</string>
     <string name="search_none_title">Niets gevonden</string>
     <string name="search_none_body">Geen artikel bevat al deze woorden.</string>
-    <string name="search_start_title_saved">Zoeken in je feeds en leeslijst</string>
+    <string name="search_start_title_saved">Alles doorzoeken</string>
     <string name="search_label_feed">Feed</string>
-    <string name="search_start_body_saved">Vindt woorden in de artikels uit je feeds, en in de titels, beschrijvingen, tags, notities en markeringen van je leeslijst.</string>
+    <string name="search_start_body_saved">Vindt woorden in de artikels uit je feeds, en in de titels, beschrijvingen, tags, notities en markeringen van je leeslijst en bladwijzers.</string>
     <string name="search_section_none">Geen resultaten</string>
     <!-- A share from another app without a web link (#97). -->
     <string name="share_no_link">Geen link om te bewaren</string>
@@ -214,7 +214,7 @@
     <string name="finish_keep_body">Met je notitie en markeringen.</string>
     <string name="finish_with_note">1 notitie</string>
     <string name="kept_as_bookmark">Bewaard als bladwijzer</string>
-    <string name="menu_manage_tags">Tags</string>
+    <string name="menu_manage_tags">Collecties en tags</string>
     <string name="reader_text_instapaper">Tekst van Instapaper</string>
     <string name="reading_list_title">Leeslijst</string>
     <string name="reading_list_to_read">Te lezen</string>
@@ -261,5 +261,41 @@
     <plurals name="reading_list_to_read_count">
         <item quantity="one">%d te lezen</item>
         <item quantity="other">%d te lezen</item>
+    </plurals>
+    <string name="bookmarks_title">Bladwijzers</string>
+    <string name="bookmarks_view_list">Tonen als lijst</string>
+    <string name="bookmarks_view_grid">Tonen als kaarten</string>
+    <string name="bookmark_add_title">Bladwijzer toevoegen</string>
+    <string name="collections_title">Collecties</string>
+    <string name="bookmark_kind_articles">Artikels</string>
+    <string name="bookmark_kind_tools">Tools</string>
+    <string name="bookmark_kind_repos">Repo’s</string>
+    <string name="bookmark_kind_videos">Video’s</string>
+    <string name="bookmark_kind_article">Artikel</string>
+    <string name="bookmark_kind_tool">Tool</string>
+    <string name="bookmark_kind_repo">Repo</string>
+    <string name="bookmark_kind_video">Video</string>
+    <string name="bookmarks_empty_title">Nog geen bladwijzers</string>
+    <string name="bookmarks_empty_body">Bewaar een artikel als bladwijzer als je het uit hebt, of deel een link met Reader en kies Bladwijzer.</string>
+    <string name="save_title">Bewaren in Reader</string>
+    <string name="save_to_bookmark">Bladwijzer</string>
+    <string name="save_help">Artikels gaan naar de leeslijst, andere links naar bladwijzers.</string>
+    <string name="bookmark_saved">Bewaard bij Bladwijzers</string>
+    <string name="bookmark_kept_on">Bewaard %1$s</string>
+    <string name="bookmark_from">uit %1$s</string>
+    <string name="action_open">Openen</string>
+    <string name="action_read_again">Opnieuw lezen</string>
+    <string name="bookmark_edit">Bladwijzer bewerken</string>
+    <string name="bookmark_remove">Bladwijzer verwijderen</string>
+    <string name="bookmark_remove_body">Deze bladwijzer verwijderen? De notitie, tags en markeringen gaan mee weg, tenzij hij op je leeslijst staat.</string>
+    <string name="bookmark_removed">Bladwijzer verwijderd</string>
+    <string name="highlights_title">Markeringen</string>
+    <string name="collection_rename">Collectie hernoemen</string>
+    <string name="collection_remove">Collectie verwijderen</string>
+    <string name="collection_remove_body">De collectie %1$s verwijderen? De bladwijzers blijven, zonder collectie.</string>
+    <string name="collection_none">Geen collectie</string>
+    <plurals name="bookmarks_count">
+        <item quantity="one">%d bladwijzer</item>
+        <item quantity="other">%d bladwijzers</item>
     </plurals>
 </resources>

@@ -56,6 +56,14 @@ import be.wimvandonck.reader.feed.FeedDiscovery
 import be.wimvandonck.reader.ui.feeds.TagsManageScreen
 import be.wimvandonck.reader.ui.home.HomeSection
 import be.wimvandonck.reader.ui.home.ReadingListHome
+import be.wimvandonck.reader.ui.home.BookmarkActions
+import be.wimvandonck.reader.ui.home.BookmarkScreen
+import be.wimvandonck.reader.ui.home.BookmarksHome
+import be.wimvandonck.reader.ui.reader.SaveSheet
+import be.wimvandonck.reader.data.BookmarkFilter
+import be.wimvandonck.reader.data.BookmarkKind
+import be.wimvandonck.reader.data.Bookmarks
+import be.wimvandonck.reader.data.SaveTo
 import be.wimvandonck.reader.ui.reader.AddLinkDialog
 import be.wimvandonck.reader.ui.reader.AddedSheet
 import be.wimvandonck.reader.ui.reader.ReaderItem
@@ -120,6 +128,9 @@ sealed interface Screen {
     /** Search through every feed's articles and the reading list. */
     data object Search : Screen
 
+    /** One bookmark (#108), by its item key. */
+    data class Bookmark(val key: String) : Screen
+
     companion object {
         fun encode(screen: Screen): String =
             when (screen) {
@@ -130,6 +141,7 @@ sealed interface Screen {
                 Services -> "services"
                 Search -> "search"
                 is Reader -> "reader:" + screen.articleKey
+                is Bookmark -> "bookmark:" + screen.key
             }
 
         fun decode(text: String): Screen =
@@ -140,6 +152,7 @@ sealed interface Screen {
                 text == "services" -> Services
                 text == "search" -> Search
                 text.startsWith("reader:") -> Reader(text.removePrefix("reader:"))
+                text.startsWith("bookmark:") -> Bookmark(text.removePrefix("bookmark:"))
                 else -> Home
             }
     }
@@ -185,6 +198,24 @@ fun RssReaderNavigation() {
     // The item just put on the reading list, while the sheet to like and tag it is open.
     var addedKey by rememberSaveable { mutableStateOf<String?>(null) }
     var addLinkOpen by rememberSaveable { mutableStateOf(false) }
+    // Bookmarks' collection and type (#108).
+    var bookmarkFilter by rememberSaveable(stateSaver = BookmarkFilterSaver) { mutableStateOf(BookmarkFilter()) }
+    // The save sheet (Reading list or Bookmark) while it is open: the link (empty: type one), its title and the choice offered first.
+    var saveOpen by rememberSaveable { mutableStateOf(false) }
+    var saveUrl by rememberSaveable { mutableStateOf("") }
+    var saveTitle by rememberSaveable { mutableStateOf<String?>(null) }
+    var saveInitial by rememberSaveable { mutableStateOf<SaveTo?>(null) }
+
+    fun openSave(
+        url: String?,
+        title: String?,
+        initial: SaveTo?,
+    ) {
+        saveUrl = url.orEmpty()
+        saveTitle = title
+        saveInitial = initial
+        saveOpen = true
+    }
 
     fun push(screen: Screen) {
         if (backStack.last() != screen) backStack.add(screen)
@@ -212,7 +243,7 @@ fun RssReaderNavigation() {
 
     fun refresh() {
         refreshRunning = true
-        if (section == HomeSection.ReadingList) {
+        if (section != HomeSection.Feeds) {
             app.appScope.launch {
                 try {
                     app.sync.sync()
@@ -359,16 +390,43 @@ fun RssReaderNavigation() {
         }
     }
 
-    // A link shared to Reader from another app (#97) goes on the reading list the same way.
+    /** Saves a link from the save sheet (#108), says where it went, and fills in the page's title and picture. */
+    fun save(
+        url: String,
+        to: SaveTo,
+        title: String?,
+        collection: String,
+        note: String,
+        tags: List<String>,
+    ) {
+        app.appScope.launch {
+            var saved: Item? = null
+            repository.edit { library ->
+                val (updated, item) = Bookmarks.save(library, url, title, to, System.currentTimeMillis(), collection, note, tags)
+                saved = item
+                updated
+            }
+            val item = saved
+            if (item == null) {
+                showMessage(resources.getString(R.string.add_link_invalid))
+                return@launch
+            }
+            showMessage(resources.getString(if (to == SaveTo.Bookmark) R.string.bookmark_saved else R.string.reading_list_added))
+            repository.describe(item.key)
+        }
+    }
+
+    // A link shared to Reader from another app (#97) opens the save sheet: reading list or bookmark.
     val sharedLink by app.sharedLink.collectAsStateWithLifecycle()
     LaunchedEffect(sharedLink, libraryOrNull != null) {
         val shared = sharedLink ?: return@LaunchedEffect
         if (libraryOrNull == null) return@LaunchedEffect
         app.sharedLink.value = null
-        readLater(shared.url, shared.title)
+        openSave(shared.url, shared.title, null)
     }
 
-    fun openItem(item: Item) = push(Screen.Reader(ReadingLists.readerKey(item)))
+    /** Opens an item: in the reader while it is on the reading list, else its bookmark page. */
+    fun openItem(item: Item) = push(if (item.readingList == null && item.bookmark != null) Screen.Bookmark(item.key) else Screen.Reader(ReadingLists.readerKey(item)))
 
     BackHandler(enabled = backStack.size > 1) { pop() }
 
@@ -387,6 +445,7 @@ fun RssReaderNavigation() {
                     // A removed feed or folder can't stay selected.
                     val shownSelection = library.shown(selection)
                     val shownFilter = remember(library, readingFilter) { ReadingLists.shown(library, readingFilter) }
+                    val shownBookmarks = remember(library, bookmarkFilter) { Bookmarks.shown(library, bookmarkFilter) }
                     // Back from a folder, a feed or the reading list goes to Home first; back on Home leaves the app.
                     BackHandler(enabled = backStack.size == 1 && (shownSelection != FeedSelection.All || section != HomeSection.Feeds)) {
                         selection = FeedSelection.All
@@ -428,6 +487,15 @@ fun RssReaderNavigation() {
                                         titleFont = current.reader.font.fontFamily(),
                                     ),
                                 toReadCount = remember(library) { library.items.count { it.toRead } },
+                                bookmarks =
+                                    BookmarksHome(
+                                        filter = shownBookmarks,
+                                        items = remember(library, shownBookmarks) { Bookmarks.items(library, shownBookmarks) },
+                                        collections = remember(library) { Bookmarks.collections(library) },
+                                        view = current.bookmarksView,
+                                        library = library,
+                                    ),
+                                bookmarkCount = remember(library) { library.items.count { it.bookmark != null } },
                             ),
                         snackbarHostState = snackbar,
                         actions =
@@ -486,6 +554,14 @@ fun RssReaderNavigation() {
                                 },
                                 onOpenItem = ::openItem,
                                 onAddLink = { addLinkOpen = true },
+                                onShowBookmarks = { section = HomeSection.Bookmarks },
+                                onOpenBookmark = { push(Screen.Bookmark(it.key)) },
+                                onBookmarksFilter = {
+                                    bookmarkFilter = it
+                                    section = HomeSection.Bookmarks
+                                },
+                                onBookmarksView = { view -> app.appScope.launch { app.settings.setBookmarksView(view) } },
+                                onAddBookmark = { openSave(null, null, SaveTo.Bookmark) },
                                 onOpenSearch = {
                                     searchFilter = SearchFilter.All
                                     push(Screen.Search)
@@ -565,6 +641,11 @@ fun RssReaderNavigation() {
                                         },
                                     onOpenLink = { url -> ExternalApps.openInTab(context, url, null) },
                                     onToggleFullText = { fullTextChoice = !wantFullText },
+                                    // A feed article not saved yet: keep it straight in Bookmarks (#108).
+                                    onKeepAsBookmark =
+                                        article?.link?.takeIf { item?.readingList == null && item?.bookmark == null }?.let { link ->
+                                            { openSave(link, article.title, SaveTo.Bookmark) }
+                                        },
                                 ),
                             item =
                                 item?.let { i ->
@@ -674,7 +755,7 @@ fun RssReaderNavigation() {
                     // Preparing every article's text takes a moment with many feeds: off the main thread.
                     val search by produceState<ArticleSearch?>(null, library) { value = withContext(Dispatchers.Default) { ArticleSearch(library) } }
                     val feedMatches = remember(search, searchQuery) { search?.search(searchQuery) }
-                    val itemMatches = remember(library.items, searchQuery) { ItemSearch.search(library.items.filter { it.readingList != null }, searchQuery) }
+                    val itemMatches = remember(library.items, searchQuery) { ItemSearch.search(library.items.filter { it.readingList != null || it.bookmark != null }, searchQuery) }
                     val results =
                         remember(feedMatches, itemMatches, searchQuery, searchFilter) {
                             feedMatches?.let { MixedSearch.mix(searchQuery, it, itemMatches, searchFilter) }
@@ -687,7 +768,7 @@ fun RssReaderNavigation() {
                                 feeds = library.feeds,
                                 listView = current.listView,
                                 showImages = current.showImages,
-                                hasItems = library.items.any { it.readingList != null },
+                                hasItems = library.items.any { it.readingList != null || it.bookmark != null },
                                 filter = searchFilter,
                                 library = library,
                             ),
@@ -706,10 +787,45 @@ fun RssReaderNavigation() {
                     SystemBarsFollowTheme(appDark)
                     TagsManageScreen(
                         tags = remember(library) { library.tagCounts() },
+                        collections = remember(library) { Bookmarks.collectionCounts(library) },
                         snackbarHostState = snackbar,
                         onBack = ::pop,
                         onRename = { from, to -> editLibrary { it.renameTag(from, to) } },
                         onRemove = { tag -> editLibrary { it.removeTag(tag) } },
+                        onRenameCollection = { from, to -> editLibrary { Bookmarks.renameCollection(it, from, to) } },
+                        onRemoveCollection = { name -> editLibrary { Bookmarks.removeCollection(it, name) } },
+                    )
+                }
+
+                is Screen.Bookmark -> {
+                    SystemBarsFollowTheme(appDark)
+                    val item = library.item(screen.key)?.takeIf { it.bookmark != null }
+                    BookmarkScreen(
+                        item = item,
+                        source = item?.let { ReadingLists.source(it, library) },
+                        fromFeed = item?.let { ReadingLists.feedArticle(it, library) }?.let { library.feed(it.feedUrl)?.title },
+                        collections = remember(library) { Bookmarks.collections(library) },
+                        allTags = remember(library) { library.itemTags() },
+                        showImages = current.showImages,
+                        snackbarHostState = snackbar,
+                        actions =
+                            BookmarkActions(
+                                onBack = ::pop,
+                                onOpen = { item?.let { ExternalApps.openInTab(context, it.url, it.title) } },
+                                onReadAgain = {
+                                    item?.let { i ->
+                                        editLibrary { Bookmarks.readAgain(it, i.key, System.currentTimeMillis()) }
+                                        push(Screen.Reader(ReadingLists.readerKey(i)))
+                                    }
+                                },
+                                onShare = { item?.let { ExternalApps.share(context, it.title, it.url, resources.getString(R.string.action_share)) } },
+                                onEdit = { collection, note, tags -> item?.let { i -> editLibrary { Bookmarks.edit(it, i.key, collection, note, tags) } } },
+                                onRemove = {
+                                    item?.let { i -> editLibrary { Bookmarks.remove(it, i.key) } }
+                                    pop()
+                                    showMessage(resources.getString(R.string.bookmark_removed))
+                                },
+                            ),
                     )
                 }
 
@@ -736,6 +852,18 @@ fun RssReaderNavigation() {
             onLike = { editLibrary { it.setLiked(added.key, !added.liked) } },
             onTags = { tags -> editLibrary { it.setTags(added.key, tags) } },
             onDismiss = { addedKey = null },
+        )
+    }
+
+    if (saveOpen) {
+        SaveSheet(
+            url = saveUrl.ifEmpty { null },
+            title = saveTitle,
+            initial = saveInitial,
+            collections = Bookmarks.collections(library),
+            allTags = library.itemTags(),
+            onSave = { url, to, collection, note, tags -> save(url, to, saveTitle.takeIf { saveUrl.isNotEmpty() }, collection, note, tags) },
+            onDismiss = { saveOpen = false },
         )
     }
 
@@ -806,6 +934,18 @@ private val ReadingFilterSaver =
                 tab = ReadingListTab.entries.firstOrNull { tab -> tab.name == parts.getOrNull(0) } ?: ReadingListTab.ToRead,
                 likedOnly = parts.getOrNull(1) == "true",
                 tag = parts.getOrNull(2)?.ifEmpty { null },
+            )
+        },
+    )
+
+private val BookmarkFilterSaver =
+    Saver<BookmarkFilter, String>(
+        save = { "${it.kind?.name.orEmpty()}|${it.collection.orEmpty()}" },
+        restore = {
+            val parts = it.split('|', limit = 2)
+            BookmarkFilter(
+                collection = parts.getOrNull(1)?.ifEmpty { null },
+                kind = BookmarkKind.entries.firstOrNull { kind -> kind.name == parts.getOrNull(0) },
             )
         },
     )

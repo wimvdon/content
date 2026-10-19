@@ -193,9 +193,9 @@
     <string name="search_start_body">Trova parole nei titoli e nel testo degli articoli dei tuoi feed.</string>
     <string name="search_none_title">Nessun risultato</string>
     <string name="search_none_body">Nessun articolo contiene tutte queste parole.</string>
-    <string name="search_start_title_saved">Cerca nei feed e nella lista di lettura</string>
+    <string name="search_start_title_saved">Cerca in tutto</string>
     <string name="search_label_feed">Feed</string>
-    <string name="search_start_body_saved">Trova parole negli articoli dei feed e in titoli, descrizioni, tag, note ed evidenziazioni della lista di lettura.</string>
+    <string name="search_start_body_saved">Trova parole negli articoli dei feed e in titoli, descrizioni, tag, note ed evidenziazioni della lista di lettura e dei segnalibri.</string>
     <string name="search_section_none">Nessun risultato</string>
     <!-- A share from another app without a web link (#97). -->
     <string name="share_no_link">Nessun link da salvare</string>
@@ -220,7 +220,7 @@
     <string name="finish_keep_body">Con la tua nota e le evidenziazioni.</string>
     <string name="finish_with_note">1 nota</string>
     <string name="kept_as_bookmark">Conservato come segnalibro</string>
-    <string name="menu_manage_tags">Tag</string>
+    <string name="menu_manage_tags">Raccolte e tag</string>
     <string name="reader_text_instapaper">Testo di Instapaper</string>
     <string name="reading_list_title">Lista di lettura</string>
     <string name="reading_list_to_read">Da leggere</string>
@@ -271,5 +271,42 @@
         <item quantity="one">%d da leggere</item>
         <item quantity="many">%d da leggere</item>
         <item quantity="other">%d da leggere</item>
+    </plurals>
+    <string name="bookmarks_title">Segnalibri</string>
+    <string name="bookmarks_view_list">Mostra come elenco</string>
+    <string name="bookmarks_view_grid">Mostra come schede</string>
+    <string name="bookmark_add_title">Aggiungi segnalibro</string>
+    <string name="collections_title">Raccolte</string>
+    <string name="bookmark_kind_articles">Articoli</string>
+    <string name="bookmark_kind_tools">Strumenti</string>
+    <string name="bookmark_kind_repos">Repository</string>
+    <string name="bookmark_kind_videos">Video</string>
+    <string name="bookmark_kind_article">Articolo</string>
+    <string name="bookmark_kind_tool">Strumento</string>
+    <string name="bookmark_kind_repo">Repository</string>
+    <string name="bookmark_kind_video">Video</string>
+    <string name="bookmarks_empty_title">Ancora nessun segnalibro</string>
+    <string name="bookmarks_empty_body">Conserva un articolo come segnalibro quando l’hai finito, o condividi un link con Reader e scegli Segnalibro.</string>
+    <string name="save_title">Salva in Reader</string>
+    <string name="save_to_bookmark">Segnalibro</string>
+    <string name="save_help">Gli articoli vanno nella lista di lettura, gli altri link nei segnalibri.</string>
+    <string name="bookmark_saved">Salvato nei segnalibri</string>
+    <string name="bookmark_kept_on">Conservato il %1$s</string>
+    <string name="bookmark_from">da %1$s</string>
+    <string name="action_open">Apri</string>
+    <string name="action_read_again">Rileggi</string>
+    <string name="bookmark_edit">Modifica segnalibro</string>
+    <string name="bookmark_remove">Rimuovi segnalibro</string>
+    <string name="bookmark_remove_body">Rimuovere questo segnalibro? Anche nota, tag ed evidenziazioni spariscono, a meno che sia nella lista di lettura.</string>
+    <string name="bookmark_removed">Segnalibro rimosso</string>
+    <string name="highlights_title">Evidenziazioni</string>
+    <string name="collection_rename">Rinomina raccolta</string>
+    <string name="collection_remove">Rimuovi raccolta</string>
+    <string name="collection_remove_body">Rimuovere la raccolta %1$s? I suoi segnalibri restano, senza raccolta.</string>
+    <string name="collection_none">Nessuna raccolta</string>
+    <plurals name="bookmarks_count">
+        <item quantity="one">%d segnalibro</item>
+        <item quantity="many">%d segnalibri</item>
+        <item quantity="other">%d segnalibri</item>
     </plurals>
 </resources>

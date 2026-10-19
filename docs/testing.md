@@ -55,6 +55,7 @@ when the run fails.
 | `IconCatalogTest` | Reading the icon file, search order (name, words, categories, related words), suggestions, old icon names, and that the bundled file has every suggested and migrated icon |
 | `ArticleDaysTest` | Grouping the list by local day, time zones |
 | `MixedSearchTest` | Search's ranking: the whole query in a title above single words above text-only matches, feed and reading list results in one list (then newest), the All/Feeds/Reading list chips; `ItemSearchTest`: the reading list searched by title, website, description, tags, note and highlights, title matches first; the web app's `test/search.test.ts` checks the ranking too |
+| `BookmarksTest` | Bookmarks (#108): a link's type from its address (videos, repositories but not a code host's own pages, a site's home page as a tool), articles suggested for the reading list and other links for Bookmarks, adding with collection, note and tags (keeping the reading list place and the first date), the collection and type filter (newest first) and a collection that is gone let go, renaming (joining) and removing collections, the save sheet to either place, Read again from the start (it stays a bookmark), removing (an item on the reading list stays; otherwise all of it goes), editing; `BookmarkSearchTest`: the Bookmarks chip and collections in search |
 | `ReadingListsTest` | The reading list's lists, the Liked chip and tags, a tag the list no longer has let go, reading times and minutes left, an item shown like its feed article (or with its description), its source (feed or website with favicon) |
 | `ServiceSyncTest` | The reading list and a fake service: the whole account on the first sync (folders as tags), adding, archiving, liking and tagging sent once, removing sent (a bookmark stays), changes on both sides to other fields both kept, Reader wins the same field, deleted at the service leaves the reading list unless changed here, removed here but changed there stays, a link the service has joins it, a failure keeps everything and the rest goes next time, progress, entries stored and read back |
 | `InstapaperReadingListTest` | Instapaper as the reading list's service, with recorded answers: `since` page by page with deletions and folders as tags, the first sync asks for everything, adding with tags and archive, only changes sent (taking the folder's tag off moves it home), parsed text only for the developer's own account (asked once), problems mapped |
@@ -122,8 +123,9 @@ and then (always before a release):
       both; nothing found shows "Nothing found"; opening a result and going back shows the same results.
       The magnifier is on the reading list too; a word from a reading list article's title, website,
       tag or note finds it (labelled Reading list, archived ones too), and tapping it opens it with ♥,
-      Keep and Archive.
-- [ ] **Navigation bar:** a bar at the bottom has Feeds and Reading list (a rail at the left in
+      Keep and Archive. A bookmark's collection finds it too (labelled Bookmark; it opens its page);
+      the Bookmarks chip shows only bookmarks.
+- [ ] **Navigation bar:** a bar at the bottom has Feeds, Reading list and Bookmarks (a rail at the left in
       landscape on a tablet). The Mark all read and Add link buttons and messages sit above the bar.
 - [ ] **Navigation:** the ☰ drawer has the same sections on Feeds and on the reading list; the
       section you're in is open and the other folded shut. Tapping a section's name folds it shut and
@@ -135,7 +137,15 @@ and then (always before a release):
       the sheet with Keep as bookmark chosen (collection, note, tags); Archive opens it with Archive
       chosen; Finished reading at the end of the text opens it too; ⋮ › Tags and Remove from reading
       list (asks first). Leave an article halfway and open it again: it opens where you were, and the
-      list shows a bar and the minutes left. ☰ › Tags renames and removes tags.
+      list shows a bar and the minutes left. ☰ › Collections and tags renames and removes tags.
+- [ ] **Bookmarks:** keep an article (Keep, a collection "Research", a note); in Bookmarks it shows
+      as a card with the note, under All and the Research tab, and in the drawer with its count. The
+      type chips (Articles, Tools, Repos, Videos) filter; the button at the top switches to a list.
+      Add bookmark with `github.com/owner/repo` (Bookmark chosen, a Repo card); share a YouTube link
+      to Reader (Bookmark chosen) and an article (Reading list chosen). ⋮ › Keep as bookmark on a feed
+      article. Tap a bookmark: Open opens the tab, Read again opens it in the reader and it is To
+      read again, the pen edits, ⋮ › Remove bookmark asks first. ☰ › Collections and tags renames and
+      removes a collection (its bookmarks stay).
       The Undo message after Mark all as read shows above the folder bar.
 - [ ] **Mark as read on scroll** on: scroll down the Unread list; the articles that leave the
       top of the screen are marked read (their dot goes) but stay until you refresh.

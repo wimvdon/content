@@ -98,6 +98,8 @@ class ReaderActions(
     /** Switches between the full article and the feed's text. */
     val onToggleFullText: () -> Unit,
     val onOpenLink: (String) -> Unit,
+    /** Keep as bookmark (#108), for a feed article not saved yet; null hides it. */
+    val onKeepAsBookmark: (() -> Unit)? = null,
 )
 
 /**
@@ -238,6 +240,17 @@ fun ReaderScreen(
                                 onClick = {
                                     menuOpen = false
                                     removeOpen = true
+                                },
+                            )
+                        }
+                        val keep = actions.onKeepAsBookmark
+                        if (keep != null) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.action_keep_bookmark)) },
+                                leadingIcon = { Icon(painterResource(R.drawable.ic_bookmark_add), contentDescription = null) },
+                                onClick = {
+                                    menuOpen = false
+                                    keep()
                                 },
                             )
                         }
