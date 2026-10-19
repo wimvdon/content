@@ -1,0 +1,129 @@
+package be.wimvandonck.reader.data
+
+import be.wimvandonck.reader.sync.SyncRows
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
+import org.junit.Test
+
+class SavedTest {
+    private fun saved(
+        key: String,
+        added: Long,
+        state: ReadingState = ReadingState.ToRead,
+        folder: String? = null,
+        liked: Boolean = false,
+        tags: List<String> = emptyList(),
+        url: String = "https://$key",
+    ) = Item(key, url, key, createdAt = 0, readingList = ReadingListEntry(state, added), folder = folder, liked = liked, tags = tags)
+
+    private val library =
+        Library(
+            items =
+                listOf(
+                    saved("a.example/1", 1),
+                    saved("a.example/2", 2, folder = "Work", tags = listOf("ai", "news")),
+                    saved("a.example/3", 3, folder = "work", liked = true, tags = listOf("ai")),
+                    saved("a.example/4", 4, state = ReadingState.Archived, tags = listOf("old")),
+                    saved("youtu.be/x", 5, url = "https://youtu.be/x"),
+                    Item("b.example/5", "https://b.example/5", "Not saved", createdAt = 0, tags = listOf("ai")),
+                ),
+        )
+
+    private fun keys(filter: SavedFilter) = Saved.items(library, filter).map { it.key }
+
+    @Test
+    fun `each item is in one place, and All has them all, newest first`() {
+        assertEquals(listOf("youtu.be/x", "a.example/1"), keys(SavedFilter(SavedTab.ToRead)))
+        assertEquals(listOf("a.example/3", "a.example/2"), keys(SavedFilter(SavedTab.Folder("WORK"))))
+        assertEquals(listOf("a.example/4"), keys(SavedFilter(SavedTab.Archive)))
+        assertEquals(listOf("youtu.be/x", "a.example/4", "a.example/3", "a.example/2", "a.example/1"), keys(SavedFilter(SavedTab.All)))
+    }
+
+    @Test
+    fun `liked, tags (all of them) and the type filter within a tab`() {
+        assertEquals(listOf("a.example/3"), keys(SavedFilter(SavedTab.All, likedOnly = true)))
+        assertEquals(listOf("a.example/3", "a.example/2"), keys(SavedFilter(SavedTab.All, tags = setOf("AI"))))
+        assertEquals(listOf("a.example/2"), keys(SavedFilter(SavedTab.All, tags = setOf("ai", "news"))))
+        assertEquals(listOf("youtu.be/x"), keys(SavedFilter(SavedTab.All, type = SavedType.Video)))
+        // Chips: the tab's tags, most used first.
+        assertEquals(listOf("ai", "news"), Saved.tags(library, SavedTab.Folder("Work")))
+        assertEquals(listOf("ai", "news", "old"), Saved.tags(library, SavedTab.All))
+    }
+
+    @Test
+    fun `folders and their counts, and a filter without what is gone`() {
+        assertEquals(listOf("Work"), Saved.folders(library))
+        assertEquals(mapOf("Work" to 2), Saved.folderCounts(library))
+        assertEquals(SavedFilter(SavedTab.ToRead), Saved.shown(library, SavedFilter(SavedTab.Folder("Gone"))))
+        assertEquals(SavedFilter(SavedTab.All, tags = setOf("ai")), Saved.shown(library, SavedFilter(SavedTab.All, tags = setOf("ai", "nope"))))
+        val same = SavedFilter(SavedTab.Folder("work"))
+        assertSame(same, Saved.shown(library, same))
+    }
+
+    @Test
+    fun `filing moves an item into a folder or back to read, archiving leaves the folder`() {
+        val filed = Saved.file(library, "a.example/1", " Later ")
+        assertEquals("Later", Saved.folderOf(filed.item("a.example/1")!!))
+        val back = Saved.file(filed, "a.example/1", null)
+        assertEquals(listOf("youtu.be/x", "a.example/1"), Saved.items(back, SavedFilter()).map { it.key })
+        // An archived item filed comes back to read.
+        val unarchived = Saved.file(library, "a.example/4", "Work")
+        assertEquals(ReadingState.ToRead, unarchived.item("a.example/4")!!.readingList?.state)
+        val archived = library.setReadingState("a.example/2", ReadingState.Archived)
+        assertNull(archived.item("a.example/2")!!.folder)
+        // An item not saved isn't filed.
+        assertSame(library, Saved.file(library, "b.example/5", "Work"))
+    }
+
+    @Test
+    fun `renaming a folder joins it with one of that name, removing one sends its items back to read`() {
+        val withOther = Saved.file(library, "a.example/1", "Later")
+        assertEquals(listOf("Later"), Saved.folders(Saved.renameFolder(withOther, "work", "Later")))
+        assertSame(library, Saved.renameFolder(library, "Work", " "))
+        val removed = Saved.removeFolder(library, "WORK")
+        assertEquals(emptyList<String>(), Saved.folders(removed))
+        assertEquals(4, Saved.items(removed, SavedFilter()).size)
+    }
+
+    @Test
+    fun `bookmarks from before move into folders once`() {
+        val old =
+            Library(
+                items =
+                    listOf(
+                        Item("c.example/1", "https://c.example/1", "C", createdAt = 0, bookmark = BookmarkEntry(7, "Research")),
+                        Item("c.example/2", "https://c.example/2", "D", createdAt = 0, bookmark = BookmarkEntry(8, null), readingList = ReadingListEntry(ReadingState.Archived, 3)),
+                        saved("a.example/1", 1),
+                    ),
+            )
+        val settled = Saved.settle(old, "Bookmarks")
+        assertEquals(ReadingListEntry(ReadingState.ToRead, 7), settled.item("c.example/1")!!.readingList)
+        assertEquals("Research", settled.item("c.example/1")!!.folder)
+        assertNull(settled.item("c.example/1")!!.bookmark)
+        assertEquals("Bookmarks", Saved.folderOf(settled.item("c.example/2")!!))
+        assertEquals(3L, settled.item("c.example/2")!!.readingList?.addedAt)
+        assertSame(settled, Saved.settle(settled, "Bookmarks"))
+    }
+
+    @Test
+    fun `a link's type comes from its address`() {
+        assertEquals(SavedType.Video, Saved.typeOf("https://www.youtube.com/watch?v=1"))
+        assertEquals(SavedType.Video, Saved.typeOf("https://vimeo.com/123"))
+        assertEquals(SavedType.Audio, Saved.typeOf("https://open.spotify.com/episode/abc"))
+        assertEquals(SavedType.Audio, Saved.typeOf("https://overcast.fm/+abc"))
+        assertEquals(SavedType.Article, Saved.typeOf("https://open.spotify.com/track/abc"))
+        assertEquals(SavedType.Article, Saved.typeOf("https://example.com/story"))
+    }
+
+    @Test
+    fun `the folder syncs, and both sides changing it keeps this device's`() {
+        val item = saved("a.example/2", 2, folder = "Work")
+        val data = SyncRows.itemData(item)
+        assertEquals("Work", data["folder"])
+        assertEquals("Work", SyncRows.itemOf(item.key, data, null)!!.folder)
+        val base = item.copy(folder = null)
+        assertEquals("Here", SyncRows.mergeItems(base, item.copy(folder = "Here"), item.copy(folder = "There")).folder)
+        assertEquals("There", SyncRows.mergeItems(base, base, item.copy(folder = "There")).folder)
+    }
+}

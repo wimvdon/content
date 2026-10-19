@@ -54,6 +54,12 @@ data class Item(
     val articleId: String? = null,
     val createdAt: Long,
     val readingList: ReadingListEntry? = null,
+    /**
+     * The folder it is filed in (#119): one at most, only while it is to read. To read without a
+     * folder is the inbox; archiving takes it out of its folder.
+     */
+    val folder: String? = null,
+    /** Bookmarks before #119; moved into folders when read (see [Saved.settle]). */
     val bookmark: BookmarkEntry? = null,
     /** Liked is one flag on the item (#107), not a list. */
     val liked: Boolean = false,

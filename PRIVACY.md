@@ -4,7 +4,7 @@ _Last updated: 2026-10-19 (the reading list and Instapaper, page titles for adde
 
 Reader has no analytics, advertising or crash reporting. It works without an account. If you sign
 in with Instapaper, that sign-in is also your Reader account: Reader then keeps your feed list,
-read articles, reading list, bookmarks (with your notes, tags and highlights) and settings on its own
+read articles, saved articles (with their folders, notes, tags and highlights) and settings on its own
 server (the owner's Cloudflare Worker), encrypted, so your devices stay the same.
 
 ## What the app sends, and to whom
@@ -38,7 +38,7 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   as read on scroll; not the view settings such as theme, text settings, pictures and list view, the
   Unread filter, or the Save and Share targets, which stay on each device); and one record per item:
   which articles you read in the last 120 days (feed address, article id and date), and each article
-  on your reading list or in your bookmarks (its address, title, picture address, the feed it came
+  you saved (its address, title, picture address, the feed it came
   from, when you added it, whether you archived or liked it, its collection, tags, your note, your
   highlights with the highlighted passage and a few words around it, and how far you read it).
   It does not hold article texts, your Instapaper token or your Instapaper password. While the app

@@ -39,6 +39,7 @@ object SyncRows {
                 i.readingList?.let {
                     linkedMapOf("state" to if (it.state == ReadingState.Archived) "archived" else "toread", "addedAt" to it.addedAt)
                 },
+            "folder" to i.folder,
             "bookmark" to i.bookmark?.let { linkedMapOf("addedAt" to it.addedAt, "collection" to it.collection) },
             "liked" to i.liked,
             "tags" to i.tags,
@@ -80,6 +81,7 @@ object SyncRows {
                         }
                     state?.let { s -> ReadingListEntry(s, (it["addedAt"] as? Number)?.toLong() ?: createdAt) }
                 },
+            folder = (data["folder"] as? String)?.trim()?.ifEmpty { null },
             bookmark = bookmark?.let { BookmarkEntry((it["addedAt"] as? Number)?.toLong() ?: createdAt, (it["collection"] as? String)?.ifBlank { null }) },
             liked = data["liked"] == true,
             tags = cleanTags((data["tags"] as? List<*>).orEmpty().filterIsInstance<String>()),
@@ -191,6 +193,7 @@ object SyncRows {
             articleId = pick(b?.articleId, l.articleId, r.articleId),
             createdAt = minOf(l.createdAt, r.createdAt),
             readingList = pick(b?.readingList, l.readingList, r.readingList),
+            folder = pick(b?.folder, l.folder, r.folder),
             bookmark = pick(b?.bookmark, l.bookmark, r.bookmark),
             liked = pick(b?.liked, l.liked, r.liked),
             tags = mergeTags(b?.tags.orEmpty(), l.tags, r.tags),

@@ -47,17 +47,15 @@ import be.wimvandonck.reader.R
 import be.wimvandonck.reader.data.Feed
 import be.wimvandonck.reader.data.FeedSelection
 import be.wimvandonck.reader.data.Folder
-import be.wimvandonck.reader.data.ReadingListFilter
-import be.wimvandonck.reader.data.BookmarkFilter
-import be.wimvandonck.reader.data.Bookmarks
-import be.wimvandonck.reader.data.ReadingListTab
-import be.wimvandonck.reader.data.itemTags
+import be.wimvandonck.reader.data.Saved
+import be.wimvandonck.reader.data.SavedFilter
+import be.wimvandonck.reader.data.SavedTab
 
 /**
- * The app's navigation: Feeds and the reading list as sections that fold open and shut. Feeds: All
- * articles, each folder with its feeds and the feeds outside folders (each with its unread count).
- * Reading list: To read, Liked, its tags and Archive. Bookmarks: All and each collection. Then Manage feeds, Tags, Connected services
- * and Settings. The same wherever the app is (DESIGN.md), with the section being shown open and the
+ * The app's navigation: Feeds and Saved as sections that fold open and shut. Feeds: All articles,
+ * each folder with its feeds and the feeds outside folders (each with its unread count). Saved: To
+ * read, All, its folders and Archive. Then Manage feeds, Folders and tags, Connected services and
+ * Settings. The same wherever the app is (DESIGN.md), with the section being shown open and the
  * other folded shut.
  */
 @Composable
@@ -71,24 +69,18 @@ fun FeedDrawer(
     onOpenFeeds: () -> Unit,
     onOpenTagsManage: () -> Unit = {},
     onOpenServices: () -> Unit = {},
-    readingList: ReadingListHome? = null,
-    inReadingList: Boolean = false,
+    saved: SavedHome? = null,
+    inSaved: Boolean = false,
     toReadCount: Int = 0,
-    onReadingListFilter: (ReadingListFilter) -> Unit = {},
-    bookmarks: BookmarksHome? = null,
-    inBookmarks: Boolean = false,
-    bookmarkCount: Int = 0,
-    onBookmarksFilter: (BookmarkFilter) -> Unit = {},
+    onSavedFilter: (SavedFilter) -> Unit = {},
 ) {
-    val inFeeds = !inReadingList && !inBookmarks
-    // While the reading list or Bookmarks is shown, no feed section is selected.
+    // While Saved is shown, no feed section is selected.
     @Suppress("NAME_SHADOWING")
-    val selection: FeedSelection? = selection.takeIf { inFeeds }
-    // The section you're in is open, the others folded shut, so the drawer stays short. Folding by
-    // hand lasts until you go to another section.
-    var feedsOpen by rememberSaveable(inReadingList, inBookmarks) { mutableStateOf(inFeeds) }
-    var readingOpen by rememberSaveable(inReadingList, inBookmarks) { mutableStateOf(inReadingList) }
-    var bookmarksOpen by rememberSaveable(inReadingList, inBookmarks) { mutableStateOf(inBookmarks) }
+    val selection: FeedSelection? = selection.takeIf { !inSaved }
+    // The section you're in is open, the other folded shut, so the drawer stays short. Folding by
+    // hand lasts until you go to the other section.
+    var feedsOpen by rememberSaveable(inSaved) { mutableStateOf(!inSaved) }
+    var savedOpen by rememberSaveable(inSaved) { mutableStateOf(inSaved) }
     ModalDrawerSheet {
         Column(
             Modifier
@@ -154,28 +146,16 @@ fun FeedDrawer(
                     }
                 }
             }
-            if (readingList != null) {
+            if (saved != null) {
                 SectionHeader(
-                    title = stringResource(R.string.reading_list_title),
-                    open = readingOpen,
-                    count = if (readingOpen) 0 else toReadCount,
-                    onToggle = { readingOpen = !readingOpen },
+                    title = stringResource(R.string.saved_title),
+                    open = savedOpen,
+                    count = if (savedOpen) 0 else toReadCount,
+                    onToggle = { savedOpen = !savedOpen },
                     modifier = Modifier.padding(top = 8.dp),
                 )
-                AnimatedVisibility(visible = readingOpen, enter = expandVertically(), exit = shrinkVertically()) {
-                    Column { ReadingListSection(readingList.filter.takeIf { inReadingList }, readingList.library.itemTags(), toReadCount, onReadingListFilter) }
-                }
-            }
-            if (bookmarks != null) {
-                SectionHeader(
-                    title = stringResource(R.string.bookmarks_title),
-                    open = bookmarksOpen,
-                    count = if (bookmarksOpen) 0 else bookmarkCount,
-                    onToggle = { bookmarksOpen = !bookmarksOpen },
-                    modifier = Modifier.padding(top = 8.dp),
-                )
-                AnimatedVisibility(visible = bookmarksOpen, enter = expandVertically(), exit = shrinkVertically()) {
-                    Column { BookmarksSection(bookmarks.filter.takeIf { inBookmarks }, Bookmarks.collectionCounts(bookmarks.library), bookmarkCount, onBookmarksFilter) }
+                AnimatedVisibility(visible = savedOpen, enter = expandVertically(), exit = shrinkVertically()) {
+                    Column { SavedSection(saved.filter.tab.takeIf { inSaved }, Saved.folderCounts(saved.library), toReadCount, onSavedFilter) }
                 }
             }
             HorizontalDivider(Modifier.padding(vertical = 12.dp, horizontal = 16.dp))
@@ -186,7 +166,7 @@ fun FeedDrawer(
                 onClick = onOpenFeeds,
             )
             NavigationDrawerItem(
-                label = { Text(stringResource(R.string.menu_manage_tags)) },
+                label = { Text(stringResource(R.string.menu_folders_tags)) },
                 icon = { Icon(painterResource(R.drawable.ic_tags), contentDescription = null) },
                 selected = false,
                 onClick = onOpenTagsManage,
@@ -252,17 +232,18 @@ private fun SectionHeader(
     }
 }
 
+/** Saved in the drawer: To read with its count, All, each folder with its count, then Archive. */
 @Composable
-private fun ReadingListSection(
-    /** The list shown, or null while Feeds is shown. */
-    shown: ReadingListFilter?,
-    tags: List<String>,
+private fun SavedSection(
+    /** The tab shown, or null while Feeds is shown. */
+    shown: SavedTab?,
+    folders: Map<String, Int>,
     toReadCount: Int,
-    onSelect: (ReadingListFilter) -> Unit,
+    onSelect: (SavedFilter) -> Unit,
 ) {
     @Composable
     fun item(
-        filter: ReadingListFilter,
+        tab: SavedTab,
         label: String,
         icon: Int,
         badge: Int = 0,
@@ -270,48 +251,18 @@ private fun ReadingListSection(
         label = { Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
         icon = { Icon(painterResource(icon), contentDescription = null) },
         badge = { UnreadBadge(badge) },
-        selected = shown == filter,
-        onClick = { onSelect(filter) },
+        selected = if (shown is SavedTab.Folder && tab is SavedTab.Folder) shown.name.equals(tab.name, ignoreCase = true) else shown == tab,
+        onClick = { onSelect(SavedFilter(tab)) },
     )
-    item(ReadingListFilter(), stringResource(R.string.reading_list_to_read), R.drawable.ic_reading_list, toReadCount)
-    item(ReadingListFilter(likedOnly = true), stringResource(R.string.reading_list_liked), R.drawable.ic_favorite)
-    if (tags.isNotEmpty()) {
-        SectionHeading(stringResource(R.string.tags_title))
-        for (tag in tags) item(ReadingListFilter(tag = tag), tag, R.drawable.ic_label)
+    item(SavedTab.ToRead, stringResource(R.string.reading_list_to_read), R.drawable.ic_reading_list, toReadCount)
+    item(SavedTab.All, stringResource(R.string.filter_all), R.drawable.ic_bookmarks_outline)
+    if (folders.isNotEmpty()) {
+        SectionHeading(stringResource(R.string.saved_folders))
+        for ((folder, n) in folders) item(SavedTab.Folder(folder), folder, R.drawable.ic_folder, n)
     }
-    // Archive last, set apart so it doesn't read as one of the tags.
+    // Archive last, set apart so it doesn't read as one of the folders.
     HorizontalDivider(Modifier.padding(vertical = 8.dp, horizontal = 16.dp))
-    item(ReadingListFilter(ReadingListTab.Archive), stringResource(R.string.reading_list_archive), R.drawable.ic_inventory)
-}
-
-/** Bookmarks in the drawer: All, then each collection with its number of bookmarks. */
-@Composable
-private fun BookmarksSection(
-    /** The bookmarks shown, or null while another section is shown. */
-    shown: BookmarkFilter?,
-    collections: Map<String, Int>,
-    count: Int,
-    onSelect: (BookmarkFilter) -> Unit,
-) {
-    NavigationDrawerItem(
-        label = { Text(stringResource(R.string.filter_all)) },
-        icon = { Icon(painterResource(R.drawable.ic_bookmarks_outline), contentDescription = null) },
-        badge = { UnreadBadge(count) },
-        selected = shown != null && shown.collection == null,
-        onClick = { onSelect(BookmarkFilter()) },
-    )
-    if (collections.isNotEmpty()) {
-        SectionHeading(stringResource(R.string.collections_title))
-        for ((collection, n) in collections) {
-            NavigationDrawerItem(
-                label = { Text(collection, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                icon = { Icon(painterResource(R.drawable.ic_folder), contentDescription = null) },
-                badge = { UnreadBadge(n) },
-                selected = shown?.collection.equals(collection, ignoreCase = true),
-                onClick = { onSelect(BookmarkFilter(collection = collection)) },
-            )
-        }
-    }
+    item(SavedTab.Archive, stringResource(R.string.reading_list_archive), R.drawable.ic_inventory)
 }
 
 @Composable

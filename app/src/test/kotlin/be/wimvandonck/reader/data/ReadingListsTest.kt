@@ -18,19 +18,6 @@ class ReadingListsTest {
             .setReadingState("third.example/b", ReadingState.Archived)
 
     @Test
-    fun `lists, the liked chip and tags filter the reading list`() {
-        assertEquals(listOf("other.example/a", "news.example/story"), ReadingLists.items(library, ReadingListFilter()).map { it.key })
-        assertEquals(listOf("third.example/b"), ReadingLists.items(library, ReadingListFilter(ReadingListTab.Archive)).map { it.key })
-        assertEquals(listOf("other.example/a"), ReadingLists.items(library, ReadingListFilter(likedOnly = true)).map { it.key })
-        assertEquals(listOf("other.example/a"), ReadingLists.items(library, ReadingListFilter(tag = "WORK")).map { it.key })
-        assertEquals(listOf("work"), ReadingLists.tags(library, ReadingListTab.ToRead))
-        assertEquals(listOf("Home"), ReadingLists.tags(library, ReadingListTab.Archive))
-        // A tag the list no longer has is let go.
-        assertNull(ReadingLists.shown(library, ReadingListFilter(tag = "gone")).tag)
-        assertEquals("work", ReadingLists.shown(library, ReadingListFilter(tag = "work")).tag)
-    }
-
-    @Test
     fun `reading times`() {
         assertEquals(0, ReadingLists.minutes(0))
         assertEquals(1, ReadingLists.minutes(10))

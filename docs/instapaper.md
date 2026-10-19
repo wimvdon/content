@@ -25,8 +25,10 @@ and on Sync now. Never in the background.
   with `progress`), and removal from the reading list (`DELETE /bookmarks/{id}`). A failure (offline,
   `429`, a server error) stops the sync and keeps everything in Reader; the rest goes next time. A
   refused token (`401`) signs out.
-- **Folders** are an Instapaper extra: an article's folder shows as one more tag in Reader, and
-  taking that tag off moves it back to Instapaper's home list. Reader never makes folders.
+- **Folders** are Saved's folders (#119): home is To read, a folder is a folder (`/move` with the
+  folder's id), the archive is the archive. Filing into a folder Instapaper doesn't have makes it
+  there (`POST /folders`). Before #119 folders showed as tags; the first sync after the update takes
+  that tag off and files the article in its folder instead.
 - **Liked** maps to Instapaper's liked (the old "star"); **archived** to its archive.
 - **Instapaper's text** (`GET /bookmarks/{id}/parse`) is shown for the owner's own account, where it
   needs no key, and kept on the device only (`item_texts`, source `instapaper`; never synced, as the

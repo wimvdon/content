@@ -5,6 +5,7 @@ import be.wimvandonck.reader.data.ItemKeys
 import be.wimvandonck.reader.data.Library
 import be.wimvandonck.reader.data.ReadingListEntry
 import be.wimvandonck.reader.data.ReadingState
+import be.wimvandonck.reader.data.Saved
 import be.wimvandonck.reader.data.changeItem
 import be.wimvandonck.reader.data.cleanTags
 import be.wimvandonck.reader.data.item
@@ -60,7 +61,7 @@ object ServiceSync {
                 val have = rows[item.key]
                 val want = entryOf(item, have?.remoteId.orEmpty())
                 if (have == null) {
-                    var added = service.add(item.url, item.title, item.tags, item.archived)
+                    var added = service.add(item.url, item.title, item.tags, item.archived, Saved.folderOf(item))
                     var target = want.copy(remoteId = added.remoteId)
                     // Saved without a title (its address stands in): the service's title is better.
                     if (item.title == item.url && added.title.isNotBlank() && added.title != item.url) {
@@ -108,6 +109,7 @@ object ServiceSync {
             archived = item.archived,
             liked = item.liked,
             tags = item.tags,
+            folder = Saved.folderOf(item),
             progress = item.progress,
         )
 
@@ -121,6 +123,7 @@ object ServiceSync {
         return a.archived == b.archived &&
             a.liked == b.liked &&
             a.title == b.title &&
+            a.folder.equals(b.folder, ignoreCase = true) &&
             sameTags(a.tags, b.tags) &&
             (!progress || abs(a.progress - b.progress) < PROGRESS_STEP)
     }
@@ -192,8 +195,9 @@ object ServiceSync {
             archived = pick(base?.archived, local.archived, remote.archived),
             liked = pick(base?.liked, local.liked, remote.liked),
             tags = SyncRows.mergeTags(base?.tags.orEmpty(), local.tags, remote.tags),
+            folder = if (local.folder.equals(base?.folder, ignoreCase = true)) remote.folder else local.folder,
             progress = if (progress) pick(base?.progress, local.progress, remote.progress) else local.progress,
-        )
+        ).let { if (it.archived) it.copy(folder = null) else it }
     }
 
     private fun put(
@@ -212,6 +216,7 @@ object ServiceSync {
                 readingList = ReadingListEntry(if (entry.archived) ReadingState.Archived else ReadingState.ToRead, base.readingList?.addedAt ?: remote.addedAt),
                 liked = entry.liked,
                 tags = cleanTags(entry.tags),
+                folder = entry.folder.takeIf { !entry.archived },
                 progress = entry.progress.coerceIn(0f, 1f),
             ),
         )
@@ -231,6 +236,7 @@ object ServiceRows {
                 "liked" to e.liked,
                 "tags" to e.tags,
                 "progress" to Math.round(e.progress * 1000).toLong(),
+                "folder" to e.folder,
                 "extra" to e.extra,
             ),
         )
@@ -246,6 +252,7 @@ object ServiceRows {
             liked = m["liked"] == true,
             tags = (m["tags"] as? List<*>).orEmpty().filterIsInstance<String>(),
             progress = (((m["progress"] as? Number)?.toDouble() ?: 0.0) / 1000).toFloat(),
+            folder = (m["folder"] as? String)?.ifEmpty { null },
             extra = m["extra"] as? String,
         )
     }

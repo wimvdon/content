@@ -1,7 +1,7 @@
 package be.wimvandonck.reader.data
 
 /** Which kind of results Search shows: the chips above the results. */
-enum class SearchFilter { All, Feeds, ReadingList, Bookmarks }
+enum class SearchFilter { All, Feeds, Saved }
 
 /** One search result: a feed article or an item of the reading list, with how well it matches. */
 sealed interface SearchHit {
@@ -61,8 +61,7 @@ object MixedSearch {
                     when (filter) {
                         SearchFilter.All -> true
                         SearchFilter.Feeds -> false
-                        SearchFilter.ReadingList -> it.readingList != null
-                        SearchFilter.Bookmarks -> it.bookmark != null
+                        SearchFilter.Saved -> it.readingList != null
                     }
                 }.map { SearchHit.FromItem(it, relevance(query, it.title)) }
         return (fromFeeds + fromItems)
@@ -75,8 +74,8 @@ object MixedSearch {
 }
 
 /**
- * Searches the reading list (archived items included, #107) and Bookmarks (#108): title, website,
- * address, description, collection, tags, note and highlights. Every word must appear (case and accents ignored); title matches first,
+ * Searches Saved (archived items included, #107, #119): title, website, address, description,
+ * folder, tags, note and highlights. Every word must appear (case and accents ignored); title matches first,
  * then newest. Plain Kotlin, unit tested.
  */
 object ItemSearch {
@@ -100,5 +99,5 @@ object ItemSearch {
     }
 
     private fun text(i: Item): String =
-        (listOf(i.title, i.host, i.url, i.description, i.note, i.bookmark?.collection.orEmpty()) + i.tags + i.highlights.flatMap { listOf(it.quote, it.note) }).joinToString(" ")
+        (listOf(i.title, i.host, i.url, i.description, i.note, i.folder.orEmpty()) + i.tags + i.highlights.flatMap { listOf(it.quote, it.note) }).joinToString(" ")
 }

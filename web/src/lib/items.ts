@@ -49,6 +49,9 @@ export interface Item {
   articleId: string | null;
   createdAt: number;
   readingList: ReadingListEntry | null;
+  /** The folder it is filed in (#119): one at most, only while it is to read. */
+  folder: string | null;
+  /** Bookmarks before #119; the Android app moves them into folders. */
   bookmark: BookmarkEntry | null;
   liked: boolean;
   tags: string[];
@@ -111,6 +114,7 @@ export function newItem(lib: Library, url: string, title: string | null | undefi
     articleId: article?.id ?? null,
     createdAt: now,
     readingList: null,
+    folder: null,
     bookmark: null,
     liked: false,
     tags: [],
@@ -144,9 +148,15 @@ export function addToReadingList(lib: Library, url: string, title: string | null
   return [putItem(lib, item), item];
 }
 
-/** Archives or puts back to read; null takes it off the reading list (Bookmarks keeps it). */
+/** Archives or puts back to read; null takes it off the reading list. Archiving takes it out of its folder (#119). */
 export function setReadingState(lib: Library, key: string, state: ReadingState | null): Library {
-  return changeItem(lib, key, (i) => (state === null ? { ...i, readingList: null } : i.readingList ? { ...i, readingList: { ...i.readingList, state } } : i));
+  return changeItem(lib, key, (i) =>
+    state === null
+      ? { ...i, readingList: null, folder: null }
+      : i.readingList
+        ? { ...i, readingList: { ...i.readingList, state }, folder: state === "archived" ? null : i.folder }
+        : i,
+  );
 }
 
 export const setLiked = (lib: Library, key: string, liked: boolean) => changeItem(lib, key, (i) => ({ ...i, liked }));
@@ -215,6 +225,7 @@ export function itemsOf(value: unknown): Item[] {
         v.readingList && (v.readingList.state === "toread" || v.readingList.state === "archived")
           ? { state: v.readingList.state, addedAt: Number(v.readingList.addedAt) || 0 }
           : null,
+      folder: typeof v.folder === "string" && v.folder.trim() ? v.folder.trim() : null,
       bookmark: v.bookmark ? { addedAt: Number(v.bookmark.addedAt) || 0, collection: typeof v.bookmark.collection === "string" ? v.bookmark.collection : null } : null,
       liked: v.liked === true,
       tags: Array.isArray(v.tags) ? cleanTags(v.tags.filter((t): t is string => typeof t === "string")) : [],

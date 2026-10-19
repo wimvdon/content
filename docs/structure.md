@@ -42,7 +42,8 @@ rss-reader/
         │   │   ├── RssReaderApp.kt            Application: stores, background scope
         │   │   ├── data/
         │   │   │   ├── Library.kt             Feeds, articles, read state, merge (plain Kotlin)
-        │   │   │   ├── Items.kt, LibraryItems.kt  One item per link: reading list, Bookmarks, tags (plain Kotlin)
+        │   │   │   ├── Items.kt, LibraryItems.kt  One item per link: Saved's place, folder, tags (plain Kotlin)
+        │   │   │   ├── Saved.kt              Saved's tabs, filters, folders, filing (plain Kotlin)
         │   │   │   ├── LibraryCodec.kt        The text format before #106 (moved in once by LegacyLibrary.kt)
         │   │   │   ├── LibraryRows.kt         Library ⇄ database rows, what a change writes
         │   │   │   ├── db/                    Room: tables, queries, the database
@@ -88,12 +89,11 @@ rss-reader/
             └── feed/                          Parser, dates, HTML, discovery, finder, OPML tests
 ```
 
-Reading list and Instapaper (#107, #109): `data/ReadingLists.kt` (lists, reading times, items as
-articles), `services/` (`ReadingListService`, `ServiceSync`, `ServiceManager`),
+Saved and Instapaper (#107, #109, #119): `data/Saved.kt` (tabs, filters, folders),
+`data/ReadingLists.kt` (reading times, items as articles), `services/` (`ReadingListService`, `ServiceSync`, `ServiceManager`),
 `instapaper/` (client, sign-in, account, `InstapaperReadingList`, and the files of Saved before #106
-for the move-in), `ui/home/ReadingListContent.kt`, `ui/reader/ItemSheets.kt`,
-`ui/feeds/TagsManage.kt`, `ui/settings/ServicesScreen.kt`. Bookmarks (#108): `data/Bookmarks.kt`,
-`ui/home/BookmarksContent.kt`, `ui/home/BookmarkScreen.kt`. The web app: `web/src/lib/instapaper.ts`,
+for the move-in), `ui/home/SavedContent.kt`, `ui/reader/ItemSheets.kt`,
+`ui/feeds/TagsManage.kt`, `ui/settings/ServicesScreen.kt`. The web app: `web/src/lib/instapaper.ts`,
 `web/src/lib/instapaperLibrary.ts`, `web/src/lib/localSaved.ts` (Saved without an account),
 `web/src/components/InstapaperActions.tsx` and `InstapaperManage.tsx`, `worker/src/instapaper.ts`
 (token swap and the web app's calls). See `docs/instapaper.md`.

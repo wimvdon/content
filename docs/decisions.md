@@ -2,6 +2,32 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-19: One Saved tab with folders (#119), replacing Reading list and Bookmarks
+
+The owner chose #119's design over the epic's (#113) two sections: one **Saved** destination
+where an item is in exactly one place, To read, one folder, or the Archive, the same for Instapaper
+and (next) Raindrop.
+
+- **Data:** a synced `folder` field on the item (Room v4, auto-migrated; per-item sync rows, merged
+  per field like the rest), meaningful only while to read; archiving clears it. No new membership
+  type, so the reading list's state, sync and services carry over. The web app keeps the field in
+  its rows and merges until its own screens catch up.
+- **Bookmarks (#108) move into folders** on read (`Saved.settle`, run when the library loads and after
+  every change, so rows synced in from a device that hasn't updated move in too): the collection
+  becomes the folder, without one a folder called "Bookmarks" (in the device's language). The
+  Bookmarks destination, its page and its type chips (tool, repo) are gone; the type filter is now
+  Article, Video, Audio, behind a filter button next to search (#119), read from the link.
+- **Instapaper:** folders are folders (they were tags in #107): home is To read, `/move` with the
+  folder id files, a missing folder is made. `RemoteEntry.folder` is a core field, merged three
+  ways; the old folder tag is taken off by the first sync's merge.
+- **Look (owner's request):** To read, All and Archive use the feed list's rows and view setting
+  (they are lists to read through); a folder shows its items as notes, Noter's Keep-style outlined
+  cards in a staggered grid (picture, title, note or description, site, tags), because a folder is a
+  collection to browse.
+- Chips: Liked first, set apart by its heart and a divider, then the tab's tags by use; several tags
+  narrow together. "Remove from Saved" removes the whole item (note, tags, highlights); Archive
+  keeps it.
+
 ## 2026-10-19: Saved feed articles get their folder as a tag (#120)
 
 - Saving an article from a feed (Read later, the swipe, the save sheet, the custom tab) adds the

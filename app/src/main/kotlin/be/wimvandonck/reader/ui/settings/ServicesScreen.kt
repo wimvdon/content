@@ -45,7 +45,7 @@ fun ServicesScreen(
             }
         }
         item(key = "reading") {
-            SettingsSection(title = stringResource(R.string.reading_list_title)) {
+            SettingsSection(title = stringResource(R.string.saved_title)) {
                 val signedIn = instapaper as? InstapaperState.SignedIn
                 ListItem(
                     headlineContent = { Text(if (signedIn != null) stringResource(R.string.section_instapaper) else stringResource(R.string.services_reader)) },

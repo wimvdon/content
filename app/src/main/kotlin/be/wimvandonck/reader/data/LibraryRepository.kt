@@ -1,5 +1,6 @@
 package be.wimvandonck.reader.data
 
+import be.wimvandonck.reader.R
 import android.content.Context
 import be.wimvandonck.reader.data.db.ItemTextRow
 import be.wimvandonck.reader.data.db.LibraryDao
@@ -70,6 +71,9 @@ class LibraryRepository(
     private val legacy: LegacyLibrary = LegacyLibrary(context),
 ) {
     private val database = LibraryDatabase.open(context)
+
+    /** Where bookmarks without a collection go when they move into Saved's folders (#119). */
+    private val bookmarksFolder = context.getString(R.string.bookmarks_title)
     private val dao = database.dao()
 
     private val state = MutableStateFlow<Library?>(null)
@@ -96,7 +100,11 @@ class LibraryRepository(
             return moved
         }
         legacy.delete()
-        return LibraryRows.library(dao.read())
+        val read = LibraryRows.library(dao.read())
+        // Bookmarks from before #119 move into folders once.
+        val settled = Saved.settle(read, bookmarksFolder)
+        if (settled !== read) dao.write(LibraryChanges.between(read, settled))
+        return settled
     }
 
     /** The library once read from storage. */
@@ -119,7 +127,9 @@ class LibraryRepository(
     suspend fun <T> update(change: (Library) -> Pair<Library, T>): T =
         writeLock.withLock {
             val old = current()
-            val (updated, value) = change(old)
+            val (changed, value) = change(old)
+            // A bookmark synced in from a device that hasn't moved to folders yet moves in too.
+            val updated = Saved.settle(changed, bookmarksFolder)
             if (updated !== old) {
                 val changes = LibraryChanges.between(old, updated)
                 if (!changes.isEmpty) dao.write(changes)
