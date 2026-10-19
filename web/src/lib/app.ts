@@ -19,7 +19,9 @@ import {
 } from "./instapaper";
 import { applyChange, patchBookmark, sameView, type Change } from "./instapaperLibrary";
 import { problemText } from "./instapaperText";
-import { LocalSaved, localSavedOf, type SavedService } from "./localSaved";
+import { LocalSaved, type SavedService } from "./localSaved";
+import { changesBetween, loadLibrary, writeLibrary } from "./libraryStore";
+import { applySaved, savedData } from "./savedItems";
 import * as L from "./library";
 import { loadSaved, savedViews, type SavedArticles } from "./search";
 import { importOpml, parseOpml, writeOpml } from "./opml";
@@ -129,13 +131,29 @@ class AppStore {
   /** A sync was asked for while one was running: it runs once more afterwards. */
   private syncAgain = false;
   private live: LiveUpdates | null = null;
-  /** Saved without an account: the articles saved in this browser (docs/instapaper.md). */
+  /** The stored library, once read (init). */
+  private libraryLoaded: Promise<void>;
+  private resolveLibrary!: () => void;
+  /**
+   * Saved without an account: the library's reading list (#106, savedItems.ts), as LocalSaved's
+   * data; its changes become changes to the items.
+   */
   private localSaved = new LocalSaved({
-    read: async () => localSavedOf(await load("saved").catch(() => undefined)),
-    write: (data) => save("saved", data),
+    read: async () => {
+      await this.libraryLoaded;
+      return savedData(this.state.library);
+    },
+    write: async (data) => {
+      await this.libraryLoaded;
+      this.updateLibrary((lib) => applySaved(lib, savedData(lib), data, Date.now()), false);
+    },
   });
   /** The copy of `localSaved` to the account that is running, so no article is sent twice. */
   private copying: Promise<void> | null = null;
+
+  constructor() {
+    this.libraryLoaded = new Promise((resolve) => (this.resolveLibrary = resolve));
+  }
 
   subscribe = (listener: () => void) => {
     this.listeners.add(listener);
@@ -155,7 +173,7 @@ class AppStore {
     if (this.started) return;
     this.started = true;
     const [library, settings, base, instapaper] = await Promise.all([
-      load<L.Library>("library").catch(() => undefined),
+      loadLibrary().catch(() => undefined),
       load<Partial<Settings>>("settings").catch(() => undefined),
       load<S.SyncBase>("syncBase").catch(() => undefined),
       load<InstapaperSession>("instapaper").catch(() => undefined),
@@ -168,6 +186,7 @@ class AppStore {
       settings: merged,
       instapaper: instapaper?.token ? { ...instapaper, accountKey: instapaper.accountKey ?? null } : null,
     });
+    this.resolveLibrary();
     void this.loadInstapaperSides();
     if (location.pathname === CALLBACK_PATH) await this.finishInstapaperSignIn(location.search);
     else void this.copyLocalSaved();
@@ -224,7 +243,7 @@ class AppStore {
     const library = change(before);
     if (library === before) return;
     this.set({ library, selection: L.selectionExists(library, this.state.selection) });
-    void save("library", library).catch(() => undefined);
+    void writeLibrary(changesBetween(before, library)).catch(() => undefined);
     if (syncSoon) this.scheduleSync(before, library);
   }
 

@@ -1,7 +1,11 @@
 import type { ParsedFeed } from "./feedParser";
 import type { View as InstapaperView } from "./instapaper";
+import type { Item } from "./items";
 
-/** The user's feeds, folders and articles, like the Android app's data/Library.kt. Immutable. */
+/**
+ * The user's feeds, folders and articles, and the items on the reading list or in Bookmarks
+ * (items.ts), like the Android app's data/Library.kt. Immutable.
+ */
 
 export interface Feed {
   url: string;
@@ -36,6 +40,7 @@ export interface Library {
   feeds: Feed[];
   folders: Folder[];
   articles: Article[];
+  items: Item[];
 }
 
 /** What the list shows: feed articles, or one of the user's Instapaper lists (instapaperLibrary.ts). */
@@ -49,7 +54,7 @@ export const MAX_ARTICLES_PER_FEED = 200;
 export const MAX_HTML_LENGTH = 200_000;
 export const DEFAULT_ICON = "folder";
 
-export const emptyLibrary = (): Library => ({ feeds: [], folders: [], articles: [] });
+export const emptyLibrary = (): Library => ({ feeds: [], folders: [], articles: [], items: [] });
 
 export const keyOf = (feedUrl: string, id: string) => `${feedUrl} ${id}`;
 export const articleKey = (a: Article) => keyOf(a.feedUrl, a.id);
@@ -63,6 +68,7 @@ export function addFeed(lib: Library, feed: Feed): Library {
   return lib.feeds.some((f) => f.url === feed.url) ? lib : { ...lib, feeds: [...lib.feeds, feed] };
 }
 
+/** Removes a feed with its articles; items saved from it stay. */
 export function removeFeed(lib: Library, url: string): Library {
   return { ...lib, feeds: lib.feeds.filter((f) => f.url !== url), articles: lib.articles.filter((a) => a.feedUrl !== url) };
 }

@@ -6,6 +6,7 @@
 
 import { InstapaperError, type Bookmark, type Folder, type Page, type Tag, type View } from "./instapaper";
 import { inView } from "./instapaperLibrary";
+import { keyOfLink } from "./items";
 
 /** What the Saved section needs: InstapaperApi with an account, LocalSaved without one. */
 export interface SavedService {
@@ -90,19 +91,26 @@ export class LocalSaved implements SavedService {
     return { bookmarks: all.slice(offset, offset + limit), total: all.length };
   }
 
-  /** Saving an address that is already saved brings it back to the top of Saved, as Instapaper does. */
-  save(url: string, title?: string): Promise<Bookmark> {
+  /** Saving an address that is already saved (however it is written) brings it back to the top of Saved, as Instapaper does. */
+  async save(url: string, title?: string): Promise<Bookmark> {
     const time = Math.floor(this.now() / 1000);
-    return this.update((data) => {
-      const existing = data.articles.find((a) => a.url === url);
+    const key = keyOfLink(url);
+    const sameLink = (a: LocalArticle) => a.url === url || (key !== null && keyOfLink(a.url) === key);
+    await this.update((data) => {
+      const existing = data.articles.find(sameLink);
       const article: LocalArticle = existing
         ? { ...existing, time, archived: false, title: title?.trim() || existing.title }
         : { id: data.nextId, url, title: title?.trim() || url, time, liked: false, archived: false, tagIds: [] };
       const next = existing
         ? { ...data, articles: data.articles.map((a) => (a.id === article.id ? article : a)) }
         : { ...data, articles: [...data.articles, article], nextId: data.nextId + 1 };
-      return [next, bookmarkOf(article, next)];
+      return [next, undefined];
     });
+    // As stored: the storage may give it its own id (the reading list's items, savedItems.ts).
+    const data = await this.read();
+    const stored = data.articles.find((a) => a.url === url) ?? data.articles.find(sameLink);
+    if (!stored) throw new InstapaperError("invalid");
+    return bookmarkOf(stored, data);
   }
 
   move(id: number, to: "archive" | "home" | number): Promise<Bookmark> {
@@ -137,7 +145,11 @@ export class LocalSaved implements SavedService {
       const kept = article.tagIds.filter((t) => !removeIds.includes(t));
       const tagIds = [...kept, ...added.filter((t, i) => !kept.includes(t) && added.indexOf(t) === i)];
       const next = { ...data, tags, nextId, articles: data.articles.map((a) => (a.id === id ? { ...a, tagIds } : a)) };
-      return [next, bookmarkOf({ ...article, tagIds }, next).tags];
+      return [next, undefined];
+    }).then(async () => {
+      // As stored: the storage may give new tags their own ids (the reading list's items, savedItems.ts).
+      const data = await this.read();
+      return bookmarkOf(find(data, id), data).tags;
     });
   }
 
@@ -178,7 +190,11 @@ export class LocalSaved implements SavedService {
           a.tagIds.includes(id) ? { ...a, tagIds: [...a.tagIds.filter((t) => t !== id && t !== target.id), target.id] } : a,
         ),
       };
-      return [next, tagOf(target, next)];
+      return [next, target];
+    }).then(async (target) => {
+      // As stored: the storage may give the renamed tag its own id.
+      const data = await this.read();
+      return tagOf(data.tags.find((t) => t.name.toLowerCase() === clean.toLowerCase()) ?? target, data);
     });
   }
 

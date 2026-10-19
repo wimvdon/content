@@ -29,7 +29,8 @@ first added and disappear when no article has them any more; renaming a tag to a
 the two.
 
 The web app does the same with `web/src/lib/localSaved.ts` (`LocalSaved`, behind the same
-`SavedService` as `InstapaperApi`), kept in the browser's IndexedDB under `saved`.
+`SavedService` as `InstapaperApi`), on the reading list's items in the browser's IndexedDB
+(`savedItems.ts`, `libraryStore.ts`). Versions before #106 kept them under `saved`; they move in once.
 
 **Signing in copies them to Instapaper** (`LocalSaved.uploadTo`): oldest first (so the newest ends on
 top), each with its title, like, tags and archive, so it lands in the same list. Each article is

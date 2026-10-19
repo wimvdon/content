@@ -1,14 +1,25 @@
-/** A tiny key-value store on IndexedDB (the library is too big for localStorage). */
+/**
+ * The browser's storage, on IndexedDB: a tiny key-value store ("kv") for settings, the sign-in and
+ * the library's feeds and folders, and one store per article and per item (#106, libraryStore.ts).
+ */
 
 const DB = "rss-reader";
 const STORE = "kv";
+export const ARTICLES = "articles";
+export const ITEMS = "items";
 
 let opening: Promise<IDBDatabase> | null = null;
 
-function db(): Promise<IDBDatabase> {
+export function db(): Promise<IDBDatabase> {
   opening ??= new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB, 1);
-    request.onupgradeneeded = () => request.result.createObjectStore(STORE);
+    // 2 added the articles and items stores (#106).
+    const request = indexedDB.open(DB, 2);
+    request.onupgradeneeded = () => {
+      const d = request.result;
+      if (!d.objectStoreNames.contains(STORE)) d.createObjectStore(STORE);
+      if (!d.objectStoreNames.contains(ARTICLES)) d.createObjectStore(ARTICLES);
+      if (!d.objectStoreNames.contains(ITEMS)) d.createObjectStore(ITEMS, { keyPath: "key" });
+    };
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => {
       opening = null;
