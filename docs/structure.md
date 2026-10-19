@@ -42,8 +42,11 @@ rss-reader/
         │   │   ├── RssReaderApp.kt            Application: stores, background scope
         │   │   ├── data/
         │   │   │   ├── Library.kt             Feeds, articles, read state, merge (plain Kotlin)
-        │   │   │   ├── LibraryCodec.kt        Library ⇄ text for storage
-        │   │   │   ├── LibraryRepository.kt   DataStore, refresh, add feed, OPML
+        │   │   │   ├── Items.kt, LibraryItems.kt  One item per link: reading list, Bookmarks, tags (plain Kotlin)
+        │   │   │   ├── LibraryCodec.kt        The text format before #106 (moved in once by LegacyLibrary.kt)
+        │   │   │   ├── LibraryRows.kt         Library ⇄ database rows, what a change writes
+        │   │   │   ├── db/                    Room: tables, queries, the database
+        │   │   │   ├── LibraryRepository.kt   Room, refresh, add feed, OPML
         │   │   │   ├── Settings.kt            Theme, reader style, Save target (plain Kotlin)
         │   │   │   ├── SettingsStore.kt       Preferences DataStore
 │   │   │   └── FullArticles.kt        Full articles for summary-only feeds, cached

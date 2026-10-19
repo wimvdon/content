@@ -133,7 +133,7 @@ object SyncMerge {
                     val read = a.key in merged.read
                     if (a.read == read) a else a.copy(read = read)
                 }
-        return Library(
+        return library.copy(
             feeds = feeds,
             articles = articles,
             folders = merged.folders.map { Folder(it.id, it.title, it.icon) },

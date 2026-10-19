@@ -3,6 +3,7 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp)
 }
 
 // ---------------------------------------------------------------------------
@@ -129,12 +130,21 @@ android {
     }
 }
 
+// Room writes each database version's schema here (committed), so later versions can be migrated and checked.
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.browser)
+    // The library (feeds, articles, reading list and bookmarks) in SQLite (#106, see docs/decisions.md).
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
     // Article pictures: hero images, list thumbnails, inline images (see docs/decisions.md).
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)

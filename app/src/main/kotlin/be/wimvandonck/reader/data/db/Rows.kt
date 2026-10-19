@@ -1,0 +1,85 @@
+package be.wimvandonck.reader.data.db
+
+import androidx.room.Entity
+import androidx.room.Index
+import androidx.room.PrimaryKey
+
+// The library's tables (#106). Plain data classes, turned into the Library and back by LibraryRows.
+
+@Entity(tableName = "folders")
+data class FolderRow(
+    @PrimaryKey val id: String,
+    val position: Int,
+    val title: String,
+    val icon: String,
+)
+
+@Entity(tableName = "feeds")
+data class FeedRow(
+    @PrimaryKey val url: String,
+    val position: Int,
+    val title: String,
+    val siteUrl: String?,
+    val folderId: String?,
+    val iconUrl: String?,
+    val renamed: Boolean,
+)
+
+@Entity(tableName = "articles", indices = [Index("feedUrl")])
+data class ArticleRow(
+    /** "<feed url> <article id>", as Article.key. */
+    @PrimaryKey val key: String,
+    val feedUrl: String,
+    val articleId: String,
+    val title: String,
+    val link: String?,
+    val author: String?,
+    val html: String,
+    val publishedAt: Long?,
+    val fetchedAt: Long,
+    val read: Boolean,
+    val imageUrl: String?,
+)
+
+/** An item: its memberships as columns (null when not a member), tags and highlights as JSON. */
+@Entity(tableName = "items")
+data class ItemRow(
+    @PrimaryKey val key: String,
+    val url: String,
+    val title: String,
+    val description: String,
+    val imageUrl: String?,
+    val feedUrl: String?,
+    val articleId: String?,
+    val createdAt: Long,
+    /** "toread", "archived" or null (not on the reading list). */
+    val readingState: String?,
+    val readingAddedAt: Long?,
+    /** When it was kept in Bookmarks, or null (not a bookmark). */
+    val bookmarkAddedAt: Long?,
+    val collection: String?,
+    val liked: Boolean,
+    val tags: String,
+    val note: String,
+    val highlights: String,
+    val progress: Float,
+)
+
+/**
+ * A version of an item's text and where it came from ("feed", "extracted" or a service such as
+ * "instapaper"), kept on this device only: article text is never synced (#106).
+ */
+@Entity(tableName = "item_texts", primaryKeys = ["itemKey", "source"])
+data class ItemTextRow(
+    val itemKey: String,
+    val source: String,
+    val html: String,
+    val savedAt: Long,
+)
+
+/** Small facts about the database itself, such as whether the old files were moved in. */
+@Entity(tableName = "meta")
+data class MetaRow(
+    @PrimaryKey val name: String,
+    val value: String,
+)

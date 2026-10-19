@@ -1,6 +1,7 @@
 package be.wimvandonck.reader.instapaper
 
 import android.content.Context
+import be.wimvandonck.reader.data.LibraryRepository
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -48,11 +49,12 @@ class InstapaperAccount(
     context: Context,
     private val scope: CoroutineScope,
     private val http: OkHttpClient,
+    library: LibraryRepository,
 ) {
     private val dataStore = context.applicationContext.instapaperDataStore
 
-    /** The articles saved on this phone while no account is signed in. */
-    private val localSaved = LocalSaved(LocalSavedStore(context))
+    /** The articles saved on this phone while no account is signed in: the library's reading list (#106). */
+    private val localSaved = LocalSaved(ItemsSavedStorage(read = library::current, update = library::edit))
 
     /** One copy of [localSaved] to the account at a time, so no article is sent twice. */
     private val uploading = Mutex()

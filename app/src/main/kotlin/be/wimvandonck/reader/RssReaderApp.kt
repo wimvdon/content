@@ -52,7 +52,7 @@ class RssReaderApp :
     private val http: OkHttpClient by lazy { OkHttpClient() }
 
     /** The user's Instapaper account (sign-in, saving, and the saved list). See instapaper/. */
-    val instapaper: InstapaperAccount by lazy { InstapaperAccount(this, appScope, http) }
+    val instapaper: InstapaperAccount by lazy { InstapaperAccount(this, appScope, http, library) }
 
     /** A link shared to Reader from another app, waiting to be saved (#97, MainActivity → Navigation). */
     val sharedLink = MutableStateFlow<SharedLink?>(null)

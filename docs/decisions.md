@@ -2,6 +2,34 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-19: The library moves into a database (Room), one item per link (#106)
+
+Reader grows into one app for feeds, a reading list and bookmarks (#113). Notes, highlights and
+whole libraries of saved articles don't fit one DataStore value, and the same link could exist
+twice (a feed article and a saved article). So:
+
+- **Room** (`androidx.room`, with its KSP compiler, `com.google.devtools.ksp`) keeps the library in
+  SQLite (`library.db`), approved by the owner on #106. It replaces the DataStore rule for the
+  library only; settings and the Instapaper sign-in stay in DataStore. Each change writes only what
+  changed (`LibraryChanges`). The whole library is still held in memory as one `Library` value,
+  so the screens and the merge logic stay plain Kotlin. Room 2.8 (stable, widely documented) was
+  chosen over Room 3 (new package names, little documentation yet). Its schema is exported to
+  `app/schemas/` for later migrations.
+- **One item per link** (`data/Items.kt`, `LibraryItems.kt`): an item has independent memberships
+  (reading list: to read or archived; Bookmarks with one flat collection), a liked flag, tags, a
+  note and highlights. Links that match after normalising (`ItemKeys`, the rule saved articles used
+  to find their feed article) are one item; saving a feed article makes the item from it and leaves
+  the article where it is. A feed article that is only in its feed has no item.
+- **Texts per source** (`item_texts`): a version of an item's text records where it came from
+  (feed, Reader's own extraction, a service) and stays on the device.
+- **Migration:** on first start the old `library.txt` and Saved without an account (`saved`) move
+  into the database once (`SavedItems.migrate`, tested on a sample), and the old files are deleted.
+  Saved without an account now runs on the reading list's items (`ItemsSavedStorage`).
+- Rejected: Android's own `SQLiteOpenHelper` without a library (more hand-written code for the
+  same result, and the owner approved Room), and keeping the text format with one file per item
+  (no transactions, slow searches).
+
+
 ## 2026-10-18: Links open in a custom tab with a Save button (#95)
 
 The owner asked for Chrome Custom Tabs with a Save button that opens the save sheet. Open in

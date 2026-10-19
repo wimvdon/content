@@ -1,6 +1,6 @@
 # Privacy policy
 
-_Last updated: 2026-10-18 (sync through a Reader account instead of Google Drive)_
+_Last updated: 2026-10-19 (the library is kept in a database on the device)_
 
 Reader has no analytics, advertising or crash reporting. It works without an account. If you sign
 in with Instapaper, that sign-in is also your Reader account: Reader then keeps your feed list,
@@ -75,7 +75,7 @@ devices stay the same.
 - If you are signed in: a copy of the synced document as last synced, to merge changes.
 - Your settings (theme, text settings, full articles, pictures, Save and Share targets, the Unread filter, mark as read on scroll).
 - Articles you saved without an Instapaper account: their address, title, when you saved them,
-  whether you liked or archived them, and their tags (`datastore/saved`; on the web, the browser's
+  whether you liked or archived them, and their tags (in the app's database; on the web, the browser's
   storage). They are not sent anywhere until you sign in to Instapaper: then they are copied to your
   Instapaper account and removed from the device.
 - The text of full articles you opened, and recently shown pictures, in the app's cache (Android

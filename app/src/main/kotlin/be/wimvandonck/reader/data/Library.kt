@@ -64,13 +64,15 @@ sealed interface FeedSelection {
 }
 
 /**
- * Everything the app knows about the user's feeds: the subscriptions and their articles, with
- * read state. Immutable; every change returns a new value.
+ * Everything the app knows about the user's reading: the subscriptions and their articles, with
+ * read state, and the [items] on the reading list or in Bookmarks (LibraryItems.kt). Immutable;
+ * every change returns a new value.
  */
 data class Library(
     val feeds: List<Feed> = emptyList(),
     val articles: List<Article> = emptyList(),
     val folders: List<Folder> = emptyList(),
+    val items: List<Item> = emptyList(),
 ) {
     fun feed(url: String): Feed? = feeds.firstOrNull { it.url == url }
 
@@ -163,7 +165,7 @@ data class Library(
     /** Adds [feed] at the end, unless a feed with the same address is already there. */
     fun addFeed(feed: Feed): Library = if (feed(feed.url) != null) this else copy(feeds = feeds + feed)
 
-    /** Removes a feed together with its articles. */
+    /** Removes a feed together with its articles; items saved from it stay. */
     fun removeFeed(url: String): Library =
         copy(
             feeds = feeds.filterNot { it.url == url },
