@@ -1,6 +1,5 @@
 package be.wimvandonck.reader.data
 
-import be.wimvandonck.reader.instapaper.InstapaperBookmark
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -16,13 +15,13 @@ class MixedSearchTest {
         id: Long,
         title: String,
         timeSeconds: Long,
-    ) = InstapaperBookmark(id, "https://site.example/$id", title, "", timeSeconds, liked = false, archived = false, folderId = null, tags = emptyList())
+    ) = Item("site.example/$id", "https://site.example/$id", title, createdAt = 0, readingList = ReadingListEntry(ReadingState.ToRead, timeSeconds * 1000))
 
     private fun names(hits: List<SearchHit>) =
         hits.map {
             when (it) {
                 is SearchHit.FromFeed -> "feed:${it.article.id}"
-                is SearchHit.FromSaved -> "saved:${it.bookmark.id}"
+                is SearchHit.FromItem -> "saved:${it.item.key.substringAfter('/')}"
             }
         }
 
@@ -38,7 +37,7 @@ class MixedSearchTest {
     }
 
     @Test
-    fun `feed and saved matches are ranked together, best first, then newest`() {
+    fun `feed and reading list matches are ranked together, best first, then newest`() {
         val feeds = listOf(article("a", "Coffee news", 5_000), article("b", "Green tea guide", 1_000))
         val savedOnes = listOf(saved(1, "All about green tea", 9), saved(2, "Gardening", 2))
         val hits = MixedSearch.mix("green tea", feeds, savedOnes)
@@ -47,12 +46,39 @@ class MixedSearchTest {
     }
 
     @Test
-    fun `the chips show only feeds or only saved articles`() {
+    fun `the chips show only feeds or only the reading list`() {
         val feeds = listOf(article("a", "Tea", 1))
         val savedOnes = listOf(saved(1, "Tea", 1))
         assertEquals(listOf("feed:a"), names(MixedSearch.mix("tea", feeds, savedOnes, SearchFilter.Feeds)))
-        assertEquals(listOf("saved:1"), names(MixedSearch.mix("tea", feeds, savedOnes, SearchFilter.Saved)))
+        assertEquals(listOf("saved:1"), names(MixedSearch.mix("tea", feeds, savedOnes, SearchFilter.ReadingList)))
         assertEquals(2, MixedSearch.mix("tea", feeds, savedOnes, SearchFilter.All).size)
         assertEquals(1, MixedSearch.mix("tea", feeds, savedOnes, limit = 1).size)
+    }
+}
+
+class ItemSearchTest {
+    private fun item(
+        key: String,
+        title: String,
+        added: Long,
+        description: String = "",
+        tags: List<String> = emptyList(),
+        note: String = "",
+    ) = Item(key, "https://$key", title, description = description, createdAt = 0, readingList = ReadingListEntry(ReadingState.ToRead, added), tags = tags, note = note)
+
+    @Test
+    fun `finds every word in the title, site, description, tags, note and highlights, title matches first`() {
+        val items =
+            listOf(
+                item("a.example/1", "Coffee", 1, description = "All about green tea"),
+                item("b.example/2", "Green tea at home", 2),
+                item("c.example/3", "Biscuits", 3, tags = listOf("Green"), note = "with tea"),
+                item("d.example/4", "Café life", 4).copy(highlights = listOf(Highlight("h", "a green tea field", createdAt = 1))),
+                item("e.example/5", "Nothing", 5),
+            )
+        assertEquals(listOf("b.example/2", "d.example/4", "c.example/3", "a.example/1"), ItemSearch.search(items, "green TEA").map { it.key })
+        assertEquals(listOf("d.example/4"), ItemSearch.search(items, "cafe").map { it.key })
+        assertEquals(listOf("e.example/5"), ItemSearch.search(items, "e.example").map { it.key })
+        assertTrue(ItemSearch.search(items, " ").isEmpty())
     }
 }

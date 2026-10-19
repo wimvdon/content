@@ -88,13 +88,14 @@ rss-reader/
             └── feed/                          Parser, dates, HTML, discovery, finder, OPML tests
 ```
 
-Instapaper: `app/src/main/kotlin/be/wimvandonck/reader/instapaper/` (client, sign-in, list logic,
-account), `ui/reader/SavedArticleControls.kt`, `ui/feeds/InstapaperManage.kt`, `ui/home/` (drawer and
-list) and `ui/settings/AccountSettings.kt` (screens), `web/src/lib/instapaper.ts`,
+Reading list and Instapaper (#107, #109): `data/ReadingLists.kt` (lists, reading times, items as
+articles), `services/` (`ReadingListService`, `ServiceSync`, `ServiceManager`),
+`instapaper/` (client, sign-in, account, `InstapaperReadingList`, and the files of Saved before #106
+for the move-in), `ui/home/ReadingListContent.kt`, `ui/reader/ItemSheets.kt`,
+`ui/feeds/TagsManage.kt`, `ui/settings/ServicesScreen.kt`. The web app: `web/src/lib/instapaper.ts`,
 `web/src/lib/instapaperLibrary.ts`, `web/src/lib/localSaved.ts` (Saved without an account),
-`web/src/components/InstapaperActions.tsx` and
-`InstapaperManage.tsx` (web), `worker/src/instapaper.ts` (token swap and the web
-app's calls). See `docs/instapaper.md`.
+`web/src/components/InstapaperActions.tsx` and `InstapaperManage.tsx`, `worker/src/instapaper.ts`
+(token swap and the web app's calls). See `docs/instapaper.md`.
 
 Reader account (sync): `worker/src/account.ts` (accounts, encrypted document, live connection),
 `app/src/main/kotlin/be/wimvandonck/reader/sync/`, `web/src/lib/account.ts` and

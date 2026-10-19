@@ -1,45 +1,51 @@
 # Instapaper
 
-Reader can sign in to the user's own Instapaper account (Instapaper API v2, OAuth 2). Signed in,
-**Save** sends the article straight to the account, and the account's Saved (Instapaper's Unread), Liked,
-folders, tags and Archive appear in the ☰ menu (web: the sidebar) next to the feeds. Their saved articles
-show in the same list and reader as feed articles (without read state; archiving is an action), and
-☰ › Manage Instapaper (web: Manage Instapaper in the sidebar) manages its folders and tags.
-Signing in also opens the user's Reader account, which syncs the library (`docs/account.md`). Not signed
-in, the same **Saved** section works on the phone or in the browser itself (`LocalSaved`, see below).
+Reader can sign in to the user's own Instapaper account (Instapaper API v2, OAuth 2). Signing in
+also opens the user's Reader account, which syncs the library (`docs/account.md`), and connects the
+**reading list** to Instapaper (#107, #109).
 
-Saved articles show in lists, Search and the reader like the feed article with the same address when
-the library still has it (`InstapaperLists.article`/`source`, web `bookmarkArticle`/`sourceOf`): the
-feed's text, picture, name and icon, and the same choice between that text and the full article.
-Otherwise they show Instapaper's description and picture under their website's icon.
+## The reading list and Instapaper (Android)
 
-In the app this section is called **Saved**, with or without an account, and its first list (Instapaper's
-Unread, "home") is called **Saved** too, so it isn't mixed up with unread feed articles.
+The reading list is Reader's own (items of the library, `data/Items.kt`): it works without an
+account. Signed in, `services/ServiceManager.kt` keeps it and the Instapaper account the same through
+`services/ServiceSync.kt` and `instapaper/InstapaperReadingList.kt`, while the app is on screen: when
+it comes on screen or signs in, two seconds after a change to the reading list, on pull-to-refresh
+and on Sync now. Never in the background.
 
-## Saved without an account
+- **Reading changes:** `GET /api/2/bookmarks?since=<time>` (500 a page, with `deleted_ids`) returns
+  everything changed since the last sync across the whole account; the first sync asks with
+  `since=1`, so the device keeps a full copy and Search covers every article. The next `since` is
+  the time of the request minus five minutes (clocks differ; taking a change twice is harmless).
+- **Merging:** each article is merged three ways with the article as last seen at Instapaper (the
+  `service_rows` table): a change on one side wins; both changed, Reader's; an edit beats a removal;
+  tags as a set (`ServiceSync.merge`).
+- **Sending changes:** what differs from the last-seen article is sent: new articles
+  (`POST /bookmarks` with title and tags, then `/move` to archive), archive (`/move`), like
+  (`/like`), tags (`/tags`, removed by id), the title and reading progress (`POST /bookmarks/{id}`
+  with `progress`), and removal from the reading list (`DELETE /bookmarks/{id}`). A failure (offline,
+  `429`, a server error) stops the sync and keeps everything in Reader; the rest goes next time. A
+  refused token (`401`) signs out.
+- **Folders** are an Instapaper extra: an article's folder shows as one more tag in Reader, and
+  taking that tag off moves it back to Instapaper's home list. Reader never makes folders.
+- **Liked** maps to Instapaper's liked (the old "star"); **archived** to its archive.
+- **Instapaper's text** (`GET /bookmarks/{id}/parse`) is shown for the owner's own account, where it
+  needs no key, and kept on the device only (`item_texts`, source `instapaper`; never synced, as the
+  API terms ask). Other accounts get `403` once and then Reader's own extraction; no Instaparser key
+  is bought (#113).
+- A link saved without a title (shared or added) takes Instapaper's title when Instapaper knows it.
+- **Signing out** forgets what was synced with Instapaper; the reading list stays.
 
-Signed out, the Saved screen runs on `instapaper/LocalSaved.kt` instead of `InstapaperClient`: the
-same `InstapaperService`, so the lists, Search, the reader's buttons and the sheet after Save behave
-the same. Its articles are the library's reading list (#106): items in the library database with
-their address, title, time, liked, archived and tags (`ItemsSavedStorage`, `SavedItems`), part of
-Android's backup, and not synced. Saving a feed article makes the item of its link, so it isn't
-copied. Versions before #106 kept them in `datastore/saved`; they move into the database once. There are no folders:
-the folder parts of the screens are hidden, and a move to a folder is refused. Tags are created when
-first added and disappear when no article has them any more; renaming a tag to an existing name joins
-the two.
+Before #107 the Android app showed Instapaper's lists directly and kept articles saved without an
+account apart (`LocalSaved`); those now live on the reading list, moved in once (#106).
 
-The web app does the same with `web/src/lib/localSaved.ts` (`LocalSaved`, behind the same
-`SavedService` as `InstapaperApi`), on the reading list's items in the browser's IndexedDB
-(`savedItems.ts`, `libraryStore.ts`). Versions before #106 kept them under `saved`; they move in once.
+## The web app
 
-**Signing in copies them to Instapaper** (`LocalSaved.uploadTo`): oldest first (so the newest ends on
-top), each with its title, like, tags and archive, so it lands in the same list. Each article is
-removed from the phone or browser once it is in the account, so nothing is copied twice. If
-Instapaper stops answering halfway (offline, too many requests), the rest stays saved locally and the
-copy goes on the next time the app opens signed in. Afterwards a message says how many were copied
-and the list is read again. Android starts the copy with each new Saved model for the account
-(`InstapaperAccount.newModel`), the web app after signing in and when it opens
-(`AppStore.copyLocalSaved`).
+The web app still shows Saved as before #107: signed in, Instapaper's own lists through the Worker
+(`web/src/lib/instapaper.ts`, `instapaperLibrary.ts`); signed out, the reading list's items
+(`web/src/lib/localSaved.ts` on `savedItems.ts`). It no longer copies the browser's articles to
+Instapaper on sign-in: they sync to the other devices through the Reader account, and the Android
+app keeps the reading list the same as Instapaper. It catches up with the reading list in a later
+change.
 
 ## How sign-in works
 
@@ -68,8 +74,8 @@ One callback address serves both apps:
 | Token swap, and the web app's Instapaper calls | `worker/src/instapaper.ts` (tests in `worker/test/instapaper.test.ts`) |
 | Web: client, sign-in helpers | `web/src/lib/instapaper.ts` |
 | Web: lists and reader | `web/src/lib/instapaperLibrary.ts` (tested), `Sidebar.tsx`, `ArticleList.tsx`, `InstapaperActions.tsx` in the reader, `InstapaperManage.tsx` in Manage; Save in `ArticleView.tsx`; sign-in in Settings |
-| Android: client, sign-in helpers, list logic | `app/src/main/kotlin/be/wimvandonck/reader/instapaper/` |
-| Android: lists and reader | `instapaper/InstapaperLists.kt` (tested), `ui/home/` (drawer and list), `ui/reader/SavedArticleControls.kt`, `ui/feeds/InstapaperManage.kt`, `ui/settings/InstapaperSettings.kt` |
+| Android: client, sign-in, the reading list's service | `app/src/main/kotlin/be/wimvandonck/reader/instapaper/` (`InstapaperClient`, `InstapaperAuth`, `InstapaperAccount`, `InstapaperReadingList`) and `services/` (`ServiceSync`, `ServiceManager`) |
+| Android: the reading list's screens | `ui/home/ReadingListContent.kt`, `FolderTabs.kt` (`ReadingListTabRow`), `FeedDrawer.kt`, `ui/reader/ItemSheets.kt`, `ui/feeds/TagsManage.kt`, `ui/settings/ServicesScreen.kt` |
 | Android: App Link and backup exclusion | `AndroidManifest.xml`, `res/xml/data_extraction_rules.xml` |
 | App Link proof for the website | `web/public/.well-known/assetlinks.json` |
 
@@ -104,12 +110,9 @@ intent filter in `AndroidManifest.xml`.
 
 ## Not supported
 
-- Searching the full text of saved articles. Instapaper's API has no search, so Search reads the
-  saved articles (the newest 100 of Unread, each folder and Archive) and searches their title,
-  website, description and tags on the phone (`instapaper/SavedSearch.kt`).
-- Highlights, and Instapaper's parsed article text (for accounts other than the owner's it needs a
-  separate Instaparser key). A saved article opens on its own website.
-- Syncing reading progress.
+- Highlights in Instapaper: Reader's own highlights come with #102, copying them to Instapaper is
+  optional there.
+- Instapaper's parsed text for accounts other than the owner's (it needs an Instaparser key).
 - Signing in from a debug build's App Link: debug APKs are signed with a different key every CI run
   and have another package name (`.debug`), so Android doesn't verify the link for them and opens the
   browser, where the *web app* finishes the sign-in. Try the Android sign-in with a released build.

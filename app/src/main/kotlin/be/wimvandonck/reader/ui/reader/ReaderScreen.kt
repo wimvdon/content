@@ -1,7 +1,17 @@
 package be.wimvandonck.reader.ui.reader
 
 import android.text.format.DateUtils
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
+import be.wimvandonck.reader.data.Item
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -83,10 +93,34 @@ class ReaderActions(
     val onSave: () -> Unit,
     val onShare: () -> Unit,
     val onOpenInBrowser: () -> Unit,
-    val onMarkUnread: () -> Unit,
+    /** Null for what has no read state (an item that isn't a feed article). */
+    val onMarkUnread: (() -> Unit)?,
     /** Switches between the full article and the feed's text. */
     val onToggleFullText: () -> Unit,
     val onOpenLink: (String) -> Unit,
+)
+
+/**
+ * An item on the reading list in the reader (#107): its state and what its buttons do. Null for
+ * feed articles not saved.
+ */
+class ReaderItem(
+    val item: Item,
+    /** Every tag in use, to add one with a tap. */
+    val allTags: List<String>,
+    /** Every bookmark collection in use. */
+    val collections: List<String>,
+    val onLike: () -> Unit,
+    val onArchive: () -> Unit,
+    /** Back to To read. */
+    val onUnarchive: () -> Unit,
+    /** Keep as bookmark, with its collection, note and tags. */
+    val onKeep: (collection: String, note: String, tags: List<String>) -> Unit,
+    val onTags: (List<String>) -> Unit,
+    /** Off the reading list (Bookmarks keeps it). */
+    val onRemove: () -> Unit,
+    /** How far it was read, 0 to 1, as the reader scrolls. */
+    val onProgress: (Float) -> Unit,
 )
 
 /** One article, in the reader's font, size, spacing and page colour. */
@@ -102,14 +136,26 @@ fun ReaderScreen(
     showImages: Boolean,
     snackbarHostState: SnackbarHostState,
     actions: ReaderActions,
-    /** A saved Instapaper article: its buttons replace Save and Mark as unread. */
-    saved: SavedArticle? = null,
+    /** On the reading list: its buttons replace Save and Mark as unread. */
+    item: ReaderItem? = null,
+    /** Where the text came from, when it isn't the feed's ("Instapaper text"), shown above the title. */
+    textSource: String? = null,
 ) {
     var showStyleSheet by rememberSaveable { mutableStateOf(false) }
-    var savedDialog by rememberSaveable { mutableStateOf<SavedDialog?>(null) }
+    var tagsOpen by rememberSaveable { mutableStateOf(false) }
+    var removeOpen by rememberSaveable { mutableStateOf(false) }
+    var finishOpen by rememberSaveable { mutableStateOf(false) }
+    var finishChoice by rememberSaveable { mutableStateOf<FinishChoice?>(null) }
     var menuOpen by remember { mutableStateOf(false) }
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val hasLink = article?.link != null
+    val onList = item?.item?.readingList != null
+    val scrollState = rememberScrollState()
+    fun finish(choice: FinishChoice?) {
+        finishChoice = choice
+        finishOpen = true
+    }
+    if (item != null && onList) ReadingProgress(scrollState, item.item.progress, item.onProgress)
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -126,14 +172,23 @@ fun ReaderScreen(
                     IconButton(onClick = { showStyleSheet = true }) {
                         Icon(painterResource(R.drawable.ic_text_format), contentDescription = stringResource(R.string.reader_text_settings))
                     }
-                    if (saved != null) SavedArticleButtons(saved)
-                    if (hasLink) {
-                        if (saved == null) IconButton(onClick = actions.onSave) {
+                    if (item != null && onList) {
+                        val liked = item.item.liked
+                        IconButton(onClick = item.onLike) {
                             Icon(
-                                painterResource(R.drawable.ic_bookmark_add),
+                                painterResource(if (liked) R.drawable.ic_favorite_filled else R.drawable.ic_favorite),
+                                contentDescription = stringResource(if (liked) R.string.action_unlike else R.string.action_like),
+                                tint = if (liked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                    if (hasLink) {
+                        if (!onList) IconButton(onClick = actions.onSave) {
+                            Icon(
+                                painterResource(if (saveTarget is ShareTarget.App) R.drawable.ic_bookmark_add else R.drawable.ic_reading_list),
                                 contentDescription =
                                     (saveTarget as? ShareTarget.App)?.let { stringResource(R.string.action_save_to, it.label) }
-                                        ?: stringResource(R.string.action_save_later),
+                                        ?: stringResource(R.string.action_read_later),
                             )
                         }
                         IconButton(onClick = actions.onShare) {
@@ -168,18 +223,32 @@ fun ReaderScreen(
                                 },
                             )
                         }
-                        if (saved != null) {
-                            SavedArticleMenuItems(withFolders = saved.account, onOpen = {
-                                menuOpen = false
-                                savedDialog = it
-                            })
-                        } else {
+                        if (item != null && onList) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.tags_title)) },
+                                leadingIcon = { Icon(painterResource(R.drawable.ic_tags), contentDescription = null) },
+                                onClick = {
+                                    menuOpen = false
+                                    tagsOpen = true
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.reading_list_remove)) },
+                                leadingIcon = { Icon(painterResource(R.drawable.ic_delete), contentDescription = null) },
+                                onClick = {
+                                    menuOpen = false
+                                    removeOpen = true
+                                },
+                            )
+                        }
+                        val markUnread = actions.onMarkUnread
+                        if (markUnread != null) {
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.action_mark_unread)) },
                                 leadingIcon = { Icon(painterResource(R.drawable.ic_mark_unread), contentDescription = null) },
                                 onClick = {
                                     menuOpen = false
-                                    actions.onMarkUnread()
+                                    markUnread()
                                 },
                             )
                         }
@@ -192,6 +261,29 @@ fun ReaderScreen(
                         scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
                     ),
             )
+        },
+        bottomBar = {
+            // Keep and Archive for an article on the reading list (#107).
+            if (item != null && onList && article != null) {
+                BottomAppBar(containerColor = MaterialTheme.colorScheme.surfaceContainer) {
+                    Spacer(Modifier.weight(1f))
+                    TextButton(onClick = { finish(FinishChoice.Keep) }) {
+                        Icon(painterResource(R.drawable.ic_bookmark_add), contentDescription = null)
+                        Text(stringResource(if (item.item.bookmark != null) R.string.action_kept else R.string.action_keep), modifier = Modifier.padding(start = 8.dp))
+                    }
+                    if (item.item.archived) {
+                        TextButton(onClick = item.onUnarchive) {
+                            Icon(painterResource(R.drawable.ic_unarchive), contentDescription = null)
+                            Text(stringResource(R.string.action_unarchive), modifier = Modifier.padding(start = 8.dp))
+                        }
+                    } else {
+                        TextButton(onClick = { finish(FinishChoice.Archive) }) {
+                            Icon(painterResource(R.drawable.ic_inventory), contentDescription = null)
+                            Text(stringResource(R.string.action_archive), modifier = Modifier.padding(start = 8.dp))
+                        }
+                    }
+                }
+            }
         },
         containerColor = MaterialTheme.colorScheme.surface,
     ) { innerPadding ->
@@ -210,13 +302,29 @@ fun ReaderScreen(
                 style = style,
                 onOpenLink = actions.onOpenLink,
                 onOpenInBrowser = actions.onOpenInBrowser,
+                scrollState = scrollState,
+                textSource = textSource,
+                onFinished = if (item != null && onList && !item.item.archived) ({ finish(null) }) else null,
                 modifier = Modifier.padding(innerPadding),
             )
         }
     }
 
-    val dialog = savedDialog
-    if (saved != null && dialog != null) SavedArticleDialog(saved, dialog, onDismiss = { savedDialog = null })
+    if (item != null) {
+        if (tagsOpen) TagsDialog(item.item, item.allTags, item.onTags, onDismiss = { tagsOpen = false })
+        if (removeOpen) RemoveDialog(item.item, item.onRemove, onDismiss = { removeOpen = false })
+        if (finishOpen) {
+            FinishSheet(
+                item = item.item,
+                initial = finishChoice,
+                collections = item.collections,
+                allTags = item.allTags,
+                onArchive = item.onArchive,
+                onKeep = item.onKeep,
+                onDismiss = { finishOpen = false },
+            )
+        }
+    }
 
     if (showStyleSheet) {
         ModalBottomSheet(
@@ -251,6 +359,10 @@ private fun ArticleBody(
     showImages: Boolean,
     onOpenLink: (String) -> Unit,
     onOpenInBrowser: () -> Unit,
+    scrollState: ScrollState,
+    textSource: String?,
+    /** At the end of an article on the reading list: "Finished reading" opens the sheet that asks what's next. */
+    onFinished: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     val linkColor = MaterialTheme.colorScheme.primary
@@ -278,7 +390,7 @@ private fun ArticleBody(
         modifier =
             modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Column(
@@ -321,6 +433,9 @@ private fun ArticleBody(
             if (meta.isNotEmpty()) {
                 Text(meta, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
+            if (textSource != null && fullText !is FullTextState.Shown) {
+                Text(textSource, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             when (fullText) {
                 FullTextState.Loading -> {
                     val loading = stringResource(R.string.reader_loading_full)
@@ -359,6 +474,36 @@ private fun ArticleBody(
                     Text(stringResource(R.string.reader_read_on_website), modifier = Modifier.padding(start = 8.dp))
                 }
             }
+            if (onFinished != null) {
+                FilledTonalButton(onClick = onFinished, modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
+                    Icon(painterResource(R.drawable.ic_check_circle), contentDescription = null)
+                    Text(stringResource(R.string.finish_title), modifier = Modifier.padding(start = 8.dp))
+                }
+            }
         }
     }
+}
+
+/**
+ * Keeps an item's reading progress: scrolls back to where it was left when it opens, and reports
+ * the position (0 to 1) when the article is left or the app goes to the background, so reading
+ * doesn't send a change at every pause.
+ */
+@Composable
+private fun ReadingProgress(
+    scrollState: ScrollState,
+    start: Float,
+    onProgress: (Float) -> Unit,
+) {
+    val report by rememberUpdatedState(onProgress)
+    var restored by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(scrollState.maxValue > 0) {
+        if (!restored && scrollState.maxValue > 0) {
+            restored = true
+            if (start in 0.02f..0.98f) scrollState.scrollTo((scrollState.maxValue * start).toInt())
+        }
+    }
+    fun position(): Float? = if (restored && scrollState.maxValue > 0) (scrollState.value.toFloat() / scrollState.maxValue).coerceIn(0f, 1f) else null
+    LifecycleEventEffect(Lifecycle.Event.ON_STOP) { position()?.let(report) }
+    DisposableEffect(Unit) { onDispose { position()?.let(report) } }
 }

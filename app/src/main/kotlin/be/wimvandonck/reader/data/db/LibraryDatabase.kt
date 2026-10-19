@@ -12,6 +12,12 @@ import androidx.room.Upsert
 import be.wimvandonck.reader.data.LibraryChanges
 import be.wimvandonck.reader.data.LibraryRows
 
+/** The length of the longest text kept for an item. */
+data class TextLength(
+    val itemKey: String,
+    val length: Int,
+)
+
 /** Everything in the library tables, read in one transaction. */
 data class LibraryTables(
     val folders: List<FolderRow>,
@@ -83,6 +89,9 @@ abstract class LibraryDao {
     @Query("DELETE FROM item_texts WHERE itemKey IN (:keys)")
     protected abstract suspend fun deleteTexts(keys: List<String>)
 
+    @Query("SELECT itemKey, MAX(LENGTH(html)) AS length FROM item_texts GROUP BY itemKey")
+    abstract suspend fun textLengths(): List<TextLength>
+
     @Query("SELECT * FROM item_texts WHERE itemKey = :key")
     abstract suspend fun texts(key: String): List<ItemTextRow>
 
@@ -129,6 +138,42 @@ abstract class LibraryDao {
     @Query("DELETE FROM sync_rows")
     protected abstract suspend fun clearSyncRows()
 
+    @Query("SELECT * FROM service_rows WHERE service = :service")
+    abstract suspend fun serviceRows(service: String): List<ServiceRowRow>
+
+    @Upsert
+    protected abstract suspend fun upsertServiceRows(rows: List<ServiceRowRow>)
+
+    @Query("DELETE FROM service_rows WHERE service = :service AND itemKey IN (:keys)")
+    protected abstract suspend fun deleteServiceRows(
+        service: String,
+        keys: List<String>,
+    )
+
+    @Query("DELETE FROM service_rows WHERE service = :service")
+    protected abstract suspend fun clearServiceRows(service: String)
+
+    @Query("DELETE FROM meta WHERE name = :name")
+    protected abstract suspend fun deleteMeta(name: String)
+
+    /** Stores what changed of a service's state, all or nothing; a null cursor forgets the service. */
+    @Transaction
+    open suspend fun writeServiceRows(
+        service: String,
+        put: List<ServiceRowRow>,
+        delete: List<String>,
+        cursor: String?,
+    ) {
+        if (cursor == null) {
+            clearServiceRows(service)
+            deleteMeta("$service-cursor")
+            return
+        }
+        delete.chunked(CHUNK).forEach { deleteServiceRows(service, it) }
+        put.chunked(CHUNK).forEach { upsertServiceRows(it) }
+        putMeta(MetaRow("$service-cursor", cursor))
+    }
+
     /** Stores what changed in the synced rows and the items version, all or nothing; [clear] forgets them all first. */
     @Transaction
     open suspend fun writeSyncRows(
@@ -170,12 +215,12 @@ abstract class LibraryDao {
 @Database(
     entities = [
         FolderRow::class, FeedRow::class, ArticleRow::class, ItemRow::class, ItemTextRow::class, MetaRow::class, ReadElsewhereRow::class,
-        SyncRowRow::class,
+        SyncRowRow::class, ServiceRowRow::class,
     ],
-    // 2 added read_elsewhere and sync_rows (per-item sync, #106).
-    version = 2,
+    // 2 added read_elsewhere and sync_rows (per-item sync, #106); 3 service_rows (#109).
+    version = 3,
     exportSchema = true,
-    autoMigrations = [AutoMigration(from = 1, to = 2)],
+    autoMigrations = [AutoMigration(from = 1, to = 2), AutoMigration(from = 2, to = 3)],
 )
 abstract class LibraryDatabase : RoomDatabase() {
     abstract fun dao(): LibraryDao

@@ -10,19 +10,19 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 import java.net.URLEncoder
 
-/** Instapaper API v2, called straight from the phone with the user's access token. */
+/** Instapaper API v2, called straight from the phone with the user's access token (InstapaperReadingList uses it). */
 class InstapaperClient(
     private val http: OkHttpClient,
     private val token: String,
     private val apiBase: String = API_BASE,
-) : InstapaperService {
-    override suspend fun list(
+) {
+    suspend fun list(
         view: InstapaperView,
         offset: Int,
         limit: Int,
     ): InstapaperPage = parsePage(call("GET", listPath(view, offset, limit)))
 
-    override suspend fun save(
+    suspend fun save(
         url: String,
         title: String?,
     ): InstapaperBookmark? {
@@ -33,14 +33,14 @@ class InstapaperClient(
         return parseBookmark(runCatching { Json.parse(call("POST", "/bookmarks", Json.write(body))) }.getOrNull())
     }
 
-    override suspend fun move(
+    suspend fun move(
         id: Long,
         section: String,
     ) {
         call("POST", "/bookmarks/$id/move", Json.write(mapOf("section" to section)))
     }
 
-    override suspend fun like(
+    suspend fun like(
         id: Long,
         liked: Boolean,
     ): Boolean {
@@ -48,11 +48,39 @@ class InstapaperClient(
         return parseBookmark(runCatching { Json.parse(text) }.getOrNull())?.liked ?: liked
     }
 
-    override suspend fun delete(id: Long) {
+    /**
+     * One page of everything changed since [since] (seconds since 1970, at least 1), across every
+     * section: the changed bookmarks and the ids of deleted ones.
+     */
+    suspend fun changesSince(
+        since: Long,
+        offset: Int,
+        limit: Int,
+    ): InstapaperChanges = parseChanges(call("GET", "/bookmarks?since=${since.coerceAtLeast(1)}&limit=$limit&offset=$offset"))
+
+    /** Changes the title and/or the reading progress; returns the bookmark afterwards. */
+    suspend fun updateBookmark(
+        id: Long,
+        title: String? = null,
+        progress: Float? = null,
+        progressAt: Long = System.currentTimeMillis() / 1000,
+    ): InstapaperBookmark? {
+        val body =
+            buildMap<String, Any?> {
+                if (title != null) put("title", title)
+                if (progress != null) put("progress", mapOf("percentage" to progress.toDouble(), "timestamp" to progressAt))
+            }
+        return parseBookmark(runCatching { Json.parse(call("POST", "/bookmarks/$id", Json.write(body))) }.getOrNull())
+    }
+
+    /** Instapaper's parsed text of the article (HTML). Without an Instaparser key only for the developer's own account. */
+    suspend fun parse(id: Long): String? = parseText(call("GET", "/bookmarks/$id/parse"))
+
+    suspend fun delete(id: Long) {
         call("DELETE", "/bookmarks/$id")
     }
 
-    override suspend fun setTags(
+    suspend fun setTags(
         id: Long,
         add: List<String>,
         removeIds: List<Long>,
@@ -61,23 +89,23 @@ class InstapaperClient(
         return parseTagList(call("POST", "/bookmarks/$id/tags", Json.write(body)), "tags")
     }
 
-    override suspend fun folders(): List<InstapaperFolder> = parseFolderList(call("GET", "/folders"))
+    suspend fun folders(): List<InstapaperFolder> = parseFolderList(call("GET", "/folders"))
 
-    override suspend fun createFolder(title: String): InstapaperFolder =
+    suspend fun createFolder(title: String): InstapaperFolder =
         parseFolder(parseJson(call("POST", "/folders", Json.write(mapOf("title" to title))))) ?: throw InstapaperException(InstapaperProblem.ServerError)
 
-    override suspend fun deleteFolder(id: Long) {
+    suspend fun deleteFolder(id: Long) {
         call("DELETE", "/folders/$id")
     }
 
-    override suspend fun reorderFolders(order: List<Pair<Long, Int>>): List<InstapaperFolder> {
+    suspend fun reorderFolders(order: List<Pair<Long, Int>>): List<InstapaperFolder> {
         val body = mapOf("order" to order.map { (id, position) -> mapOf("folder_id" to id, "position" to position) })
         return parseFolderList(call("POST", "/folders/reorder", Json.write(body)))
     }
 
-    override suspend fun tags(): List<InstapaperTag> = parseTagList(call("GET", "/tags"), "tags")
+    suspend fun tags(): List<InstapaperTag> = parseTagList(call("GET", "/tags"), "tags")
 
-    override suspend fun renameTag(
+    suspend fun renameTag(
         id: Long,
         name: String,
     ): InstapaperTag =
@@ -183,7 +211,22 @@ class InstapaperClient(
                 folderId = map["folder_id"].asLong(),
                 tags = (map["tags"] as? List<*>).orEmpty().mapNotNull(::parseTag),
                 imageUrl = (map["image"] as? String)?.takeIf { it.startsWith("https://") },
+                progress = (((map["progress"] as? Map<*, *>)?.get("percentage") as? Number)?.toFloat() ?: 0f).coerceIn(0f, 1f),
             )
+        }
+
+        /** A `since` page: `{"bookmarks": [...], "deleted_ids": [...]}`. */
+        fun parseChanges(text: String): InstapaperChanges {
+            val root = parseJson(text) as? Map<*, *> ?: throw InstapaperException(InstapaperProblem.ServerError)
+            val bookmarks = (root["bookmarks"] as? List<*>).orEmpty()
+            val deleted = (root["deleted_ids"] as? List<*>).orEmpty()
+            return InstapaperChanges(bookmarks.mapNotNull(::parseBookmark), deleted.mapNotNull { it.asLong() }, bookmarks.size + deleted.size)
+        }
+
+        /** The body of a /parse answer. */
+        fun parseText(text: String): String? {
+            val root = parseJson(text) as? Map<*, *> ?: return null
+            return ((root["content"] as? Map<*, *>)?.get("body") as? String)?.takeIf { it.isNotBlank() }
         }
 
         fun parseTag(value: Any?): InstapaperTag? {

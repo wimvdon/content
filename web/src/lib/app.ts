@@ -148,8 +148,6 @@ class AppStore {
       this.updateLibrary((lib) => applySaved(lib, savedData(lib), data, Date.now()), false);
     },
   });
-  /** The copy of `localSaved` to the account that is running, so no article is sent twice. */
-  private copying: Promise<void> | null = null;
 
   constructor() {
     this.libraryLoaded = new Promise((resolve) => (this.resolveLibrary = resolve));
@@ -187,7 +185,6 @@ class AppStore {
     this.resolveLibrary();
     void this.loadInstapaperSides();
     if (location.pathname === CALLBACK_PATH) await this.finishInstapaperSignIn(location.search);
-    else void this.copyLocalSaved();
     this.syncWhileVisible();
     if (this.accountKey()) await this.sync();
     if (this.state.library.feeds.length > 0) await this.refresh();
@@ -454,7 +451,6 @@ class AppStore {
       await this.setInstapaper(session);
       this.set({ instapaperNotice: "signedIn" });
       this.updateLive();
-      void this.copyLocalSaved();
       void this.sync();
     } catch {
       this.set({ instapaperNotice: "failed" });
@@ -465,24 +461,10 @@ class AppStore {
     this.set({ instapaperNotice: null });
   }
 
-  /**
-   * Signed in, copies the articles saved in this browser to the account and shows them there. What
-   * didn't make it (offline, too many requests) is tried again the next time the app opens.
-   */
-  private copyLocalSaved(): Promise<void> {
-    const session = this.state.instapaper;
-    if (!session || this.copying) return this.copying ?? Promise.resolve();
-    this.copying = (async () => {
-      const upload = await this.localSaved.uploadTo(new InstapaperApi(session.token));
-      if (upload.problem === "auth") await this.disconnectInstapaper();
-      if (upload.copied === 0 || this.state.instapaper?.token !== session.token) return;
-      this.set({ savedCopied: upload.copied });
-      void this.loadInstapaperSides();
-      const s = this.state.selection;
-      if (s.kind === "instapaper") void this.loadInstapaperList(s.view);
-    })().finally(() => (this.copying = null));
-    return this.copying;
-  }
+  // The reading list isn't copied to Instapaper from here any more: it syncs to the other devices
+  // through the Reader account, and the Android app keeps it the same as Instapaper (#107). Copying
+  // here removed the articles from the reading list afterwards, which would now remove them
+  // everywhere.
 
   clearSavedCopied() {
     this.set({ savedCopied: 0 });

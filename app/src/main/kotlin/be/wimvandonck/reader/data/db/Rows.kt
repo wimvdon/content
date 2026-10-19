@@ -95,6 +95,14 @@ data class SyncRowRow(
     val data: String,
 )
 
+/** An article as a connected service last had it (services/ServiceSync.kt): the base for merging, as JSON. */
+@Entity(tableName = "service_rows", primaryKeys = ["service", "itemKey"])
+data class ServiceRowRow(
+    val service: String,
+    val itemKey: String,
+    val data: String,
+)
+
 /** Small facts about the database itself, such as whether the old files were moved in. */
 @Entity(tableName = "meta")
 data class MetaRow(

@@ -5,9 +5,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LeadingIconTab
 import androidx.compose.material3.PrimaryScrollableTabRow
@@ -21,11 +23,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import be.wimvandonck.reader.R
 import be.wimvandonck.reader.data.Folder
-import be.wimvandonck.reader.instapaper.InstapaperFolder
-import be.wimvandonck.reader.instapaper.InstapaperTab
-import be.wimvandonck.reader.instapaper.InstapaperTabs
-import be.wimvandonck.reader.instapaper.InstapaperTag
-import be.wimvandonck.reader.instapaper.InstapaperView
+import be.wimvandonck.reader.data.ReadingListFilter
+import be.wimvandonck.reader.data.ReadingListTab
 
 /**
  * Scrollable tabs under the top app bar, shown once there are folders: All (every feed) and then
@@ -75,64 +74,63 @@ fun FolderTabs(
 private val MAX_LABEL_WIDTH = 160.dp
 
 /**
- * Scrollable tabs under the top app bar on Saved, like the folder tabs on Feeds: Saved, Liked,
- * each Instapaper folder, Tags, then Archive. Under Tags, a row of filter chips picks the tag.
+ * The reading list's header under the top app bar (#107): To read and Archive as tabs, then one row
+ * of filter chips: Liked, and the list's tags (tags come and go too often for a tab each).
  */
 @Composable
-fun InstapaperTabRow(
-    folders: List<InstapaperFolder>,
-    tags: List<InstapaperTag>,
-    view: InstapaperView,
-    onSelect: (InstapaperView) -> Unit,
+fun ReadingListTabRow(
+    filter: ReadingListFilter,
+    tags: List<String>,
+    onChange: (ReadingListFilter) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val tabs = InstapaperTabs.of(folders, tags)
-    val current = InstapaperTabs.tabOf(view)
+    val tabs = listOf(ReadingListTab.ToRead to (R.string.reading_list_to_read to R.drawable.ic_reading_list), ReadingListTab.Archive to (R.string.reading_list_archive to R.drawable.ic_inventory))
     Column(modifier) {
         PrimaryScrollableTabRow(
-            selectedTabIndex = tabs.indexOf(current).coerceAtLeast(0),
+            selectedTabIndex = tabs.indexOfFirst { it.first == filter.tab }.coerceAtLeast(0),
             edgePadding = 16.dp,
             containerColor = Color.Transparent,
         ) {
-            tabs.forEach { tab ->
-                val (label, icon) =
-                    when (tab) {
-                        InstapaperTab.Unread -> stringResource(R.string.saved_list) to R.drawable.ic_article
-                        InstapaperTab.Liked -> stringResource(R.string.instapaper_liked) to R.drawable.ic_favorite
-                        InstapaperTab.Archive -> stringResource(R.string.instapaper_archive_list) to R.drawable.ic_archive
-                        is InstapaperTab.Folder -> folders.firstOrNull { it.id == tab.folderId }?.title.orEmpty() to R.drawable.ic_folder
-                        InstapaperTab.Tags -> stringResource(R.string.instapaper_tags) to R.drawable.ic_label
-                    }
+            tabs.forEach { (tab, res) ->
                 LeadingIconTab(
-                    selected = tab == current,
-                    onClick = { if (tab != current) onSelect(InstapaperTabs.viewOf(tab, tags, view)) },
-                    text = {
-                        Text(
-                            label,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.widthIn(max = MAX_LABEL_WIDTH),
-                        )
-                    },
-                    icon = { Icon(painterResource(icon), contentDescription = null) },
+                    selected = tab == filter.tab,
+                    onClick = { if (tab != filter.tab) onChange(ReadingListFilter(tab, filter.likedOnly)) },
+                    text = { Text(stringResource(res.first), maxLines = 1) },
+                    icon = { Icon(painterResource(res.second), contentDescription = null) },
                 )
             }
         }
-        if (view is InstapaperView.WithTag) {
-            // Chips filter the Tags tab to one tag.
-            Row(
-                Modifier
-                    .horizontalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                tags.forEach { tag ->
-                    FilterChip(
-                        selected = tag.name == view.name,
-                        onClick = { if (tag.name != view.name) onSelect(InstapaperView.WithTag(tag.name)) },
-                        label = { Text(tag.name) },
+        Row(
+            Modifier
+                .horizontalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            FilterChip(
+                selected = filter.likedOnly,
+                onClick = { onChange(filter.copy(likedOnly = !filter.likedOnly)) },
+                label = { Text(stringResource(R.string.reading_list_liked)) },
+                leadingIcon = {
+                    Icon(
+                        painterResource(if (filter.likedOnly) R.drawable.ic_favorite_filled else R.drawable.ic_favorite),
+                        contentDescription = null,
+                        modifier = Modifier.size(FilterChipDefaults.IconSize),
                     )
-                }
+                },
+            )
+            tags.forEach { tag ->
+                val selected = filter.tag.equals(tag, ignoreCase = true)
+                FilterChip(
+                    selected = selected,
+                    onClick = { onChange(filter.copy(tag = if (selected) null else tag)) },
+                    label = { Text(tag) },
+                    leadingIcon =
+                        if (selected) {
+                            { Icon(painterResource(R.drawable.ic_check), contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) }
+                        } else {
+                            null
+                        },
+                )
             }
         }
     }

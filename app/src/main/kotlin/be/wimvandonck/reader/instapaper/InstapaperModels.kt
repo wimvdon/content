@@ -26,6 +26,8 @@ data class InstapaperBookmark(
     val tags: List<InstapaperTag>,
     /** The article's picture, when Instapaper found one (https only). */
     val imageUrl: String? = null,
+    /** How far it was read, 0 to 1. */
+    val progress: Float = 0f,
 ) {
     /** The address to open, only when it is a web address (so a saved item can't carry a script). */
     val link: String? get() = url?.takeIf { it.startsWith("https://") || it.startsWith("http://") }
@@ -51,6 +53,13 @@ sealed interface InstapaperView {
     ) : InstapaperView
 }
 
+/** One page of a `since` sync: the changed bookmarks, the deleted ids, and how many entries the page held. */
+data class InstapaperChanges(
+    val bookmarks: List<InstapaperBookmark>,
+    val deletedIds: List<Long>,
+    val count: Int,
+)
+
 data class InstapaperPage(
     val bookmarks: List<InstapaperBookmark>,
     /** The size of the whole list, not of this page. */
@@ -74,55 +83,3 @@ class InstapaperException(
     val problem: InstapaperProblem,
     cause: Throwable? = null,
 ) : Exception(problem.name, cause)
-
-/** What the Instapaper screen needs from the account. [InstapaperClient] is the real one; tests use a fake. */
-interface InstapaperService {
-    suspend fun list(
-        view: InstapaperView,
-        offset: Int,
-        limit: Int,
-    ): InstapaperPage
-
-    /** Returns the new saved article, or null when Instapaper's answer doesn't describe it. */
-    suspend fun save(
-        url: String,
-        title: String?,
-    ): InstapaperBookmark?
-
-    /** [section] is "archive", "home" or a folder id. */
-    suspend fun move(
-        id: Long,
-        section: String,
-    )
-
-    /** Returns whether the bookmark is liked afterwards. */
-    suspend fun like(
-        id: Long,
-        liked: Boolean,
-    ): Boolean
-
-    suspend fun delete(id: Long)
-
-    /** Adds tags by name (created when new) and removes tags by id. Returns the bookmark's tags afterwards. */
-    suspend fun setTags(
-        id: Long,
-        add: List<String>,
-        removeIds: List<Long>,
-    ): List<InstapaperTag>
-
-    suspend fun folders(): List<InstapaperFolder>
-
-    suspend fun createFolder(title: String): InstapaperFolder
-
-    suspend fun deleteFolder(id: Long)
-
-    /** Positions start at 1; folders left out keep theirs. Returns every folder in the new order. */
-    suspend fun reorderFolders(order: List<Pair<Long, Int>>): List<InstapaperFolder>
-
-    suspend fun tags(): List<InstapaperTag>
-
-    suspend fun renameTag(
-        id: Long,
-        name: String,
-    ): InstapaperTag
-}

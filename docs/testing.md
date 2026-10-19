@@ -40,24 +40,25 @@ when the run fails.
 | `LibraryTest` | Merging downloads (read state kept, duplicates, limits), sorting, Unread filter, counts, mark read (and undo), remove feed, rename feed (kept through refreshes), a whole refresh merged at once, future dates; folders: add, edit, remove, move feeds, folder selection, OPML import into folders and export |
 | `LibraryItemsTest` | One item per link (#106): links written another way are one item, saving a feed article makes its item without a copy, saving again brings it back to read, archive keeps the bookmark, keep as bookmark keeps the reading list place, remove bookmark keeps the reading list place, read again, tags cleaned and renamed (joined), lists newest first, removing a feed keeps its items |
 | `LibraryRowsTest` | The library to database rows and back unchanged (order, tabs, line breaks, tags, highlights), broken rows repaired, only changed articles and items written, an empty database filled |
-| `SavedItemsTest` | Moving a sample of the old files into the database: feeds, read marks and saved articles kept, links written another way joined; Saved without an account on the reading list's items (save from a feed, like, archive, tags, rename, save again, delete with a bookmark kept), stable ids |
+| `SavedItemsTest` | Moving a sample of the old files into the database: feeds, read marks and saved articles kept, links written another way joined |
 | `LibraryCodecTest` | Storage round trip with folders, tabs, line breaks and backslashes; missing folders and unknown icons; damaged input |
 | `ScrollReadTest` | Mark as read on scroll: which articles have scrolled past (unread only, not the top one) |
 | `JsonTest` | JSON round trip (escapes, emoji, numbers, nesting), whitespace, broken text |
 | `SyncDocumentTest` | Sync file round trip (with settings, the same text as the web app), other or newer files left alone, broken entries skipped, taking folders and feeds (not read marks) from the library, a version 2 file's read marks read but never written |
 | `ItemSyncTest` | Per-item sync between two devices: items and read marks arrive, **no article text in the payload**, changes to different parts of an item both stay, tags as a set and highlights per highlight, this device wins the same field but an edit beats a removal, removals and unread again arrive, marks of articles not here yet arrive read, old marks leave the account without making anything unread, syncing again saves nothing, pages, rows of unknown kinds left alone, the account's answers |
 | `SyncMergeTest` | Three-way merge: changes and removals from either side, this device wins but an edit beats a removal, order from the side that reordered, first sync without base; a version 2 file's read marks kept for articles not here; applying the result to the library; syncing twice changes nothing; settings per setting, and a device without synced settings taking the file's |
-| `InstapaperListsTest` | A saved article as a list/reader article (no read state, safe links), shown like the feed article with the same address (text, picture, feed) or under its website's feed or favicon, which Instapaper list it belongs in, a change updating the list |
-| `SavedSearchTest` | Search in saved articles: Unread, folders, then Archive; page by page up to 100 per list, no doubles; keeps what it has when Instapaper stops answering; title, website, description and tags, title matches first |
-| `LocalSavedTest` | Saved without an account: newest first, saving again brings an article back, like, archive, delete, no folders, tags shared by name and renamed (joined), storage round trip; copying to Instapaper on sign-in with like, tags and archive, oldest first, and going on after a copy stopped halfway (the web app's `test/localSaved.test.ts` checks the same) |
-| `InstapaperModelTest` | Lists, paging, archive, like, move, tags, delete, folders and tags management; the article open in the reader following changes |
+| `LocalSavedTest` | The file of Saved without an account from before #106 read back (moved in once), unreadable text starts empty |
 | `AccountSyncTest` | One sync with the account: the first device's library becomes the document, nothing saved when nothing changed, another device's save in between merged in (with the right base), newer documents left alone; reading the server's answers and problems; the live connection's address, messages and retry delays; the stored base with its version |
 | `SyncSettingsTest` | Settings to shared names and back, Save/Share targets not synced, unknown names kept, bad values ignored, the Instapaper sign-in of older versions dropped |
 | `SyncTimingTest` | When a sync is due: never synced, or more than ten seconds ago (also when the clock went back) |
 | `SiteIconTest` | Choosing a site's icon: largest size, apple-touch-icon, relative and http addresses, skipping SVG and inline icons, home page and favicon.ico fallback |
 | `IconCatalogTest` | Reading the icon file, search order (name, words, categories, related words), suggestions, old icon names, and that the bundled file has every suggested and migrated icon |
 | `ArticleDaysTest` | Grouping the list by local day, time zones |
-| `MixedSearchTest` | Search's ranking: the whole query in a title above single words above text-only matches, feed and saved results in one list (then newest), the All/Feeds/Saved chips; the web app's `test/search.test.ts` checks the same and its own feed and saved search |
+| `MixedSearchTest` | Search's ranking: the whole query in a title above single words above text-only matches, feed and reading list results in one list (then newest), the All/Feeds/Reading list chips; `ItemSearchTest`: the reading list searched by title, website, description, tags, note and highlights, title matches first; the web app's `test/search.test.ts` checks the ranking too |
+| `ReadingListsTest` | The reading list's lists, the Liked chip and tags, a tag the list no longer has let go, reading times and minutes left, an item shown like its feed article (or with its description), its source (feed or website with favicon) |
+| `ServiceSyncTest` | The reading list and a fake service: the whole account on the first sync (folders as tags), adding, archiving, liking and tagging sent once, removing sent (a bookmark stays), changes on both sides to other fields both kept, Reader wins the same field, deleted at the service leaves the reading list unless changed here, removed here but changed there stays, a link the service has joins it, a failure keeps everything and the rest goes next time, progress, entries stored and read back |
+| `InstapaperReadingListTest` | Instapaper as the reading list's service, with recorded answers: `since` page by page with deletions and folders as tags, the first sync asks for everything, adding with tags and archive, only changes sent (taking the folder's tag off moves it home), parsed text only for the developer's own account (asked once), problems mapped |
+| `PageInfoTest` | A page's title, description and picture (Open Graph first, https pictures only) for links saved without a title |
 | `ArticleSearchTest` | Search: every word, case and accents ignored, title, text, feed name and author, title matches first, removed feeds left out |
 | `FeedArrangementTest` | Manage page order: rows per folder, dragging feeds between folders and out of them, forbidden moves, reordering folders |
 | `SettingsTest` | Text size limits, reader and theme darkness (and Auto dark), Save/Share targets (storage and the old Save setting), defaults |
@@ -100,15 +101,15 @@ and then (always before a release):
       a second phone) with the same Instapaper account: the same feeds, folders and read marks
       appear. Read an article on one with both open: within a few seconds it is read on the other,
       without refreshing. Rename a feed: the same. Delete synced data: both say to sign in again.
-- [ ] **Save** sends to the app chosen in Settings › Save and share (Instapaper by default);
-      **Share** opens the share menu or the chosen app. An uninstalled app falls back to the share menu.
-      Signed in to Instapaper, Settings › Save and share has no Save button row (Save goes to the account).
+- [ ] **Read later** puts the article on the reading list (or sends it to the app chosen in Settings ›
+      Save and share); **Share** opens the share menu or the chosen app. An uninstalled app falls back
+      to the share menu. Signed in to Instapaper, Settings › Save and share has no Save button row.
 - [ ] **List:** at app start the list shows loading placeholders, never "No feeds yet" first.
-      Swipe an article left and right past a third: a tick, it becomes read, then unread; a short
-      swipe does nothing; swiping never opens the ☰ menu. The Unread chip in its own row under the folder tabs (not in the top bar) switches unread only (filled, check) / all.
+      Swipe an article right past a third: a tick, it becomes read, then unread; swipe one left: "Added
+      to reading list" and it is on the reading list; a short swipe does nothing; swiping never opens the ☰ menu. The Unread chip in its own row under the folder tabs (not in the top bar) switches unread only (filled, check) / all.
       Scroll down: the title, the folder tabs and the Unread chip slide away together; scroll up a
       little: they come back; pulling down at the very top refreshes, and the spinner stays in place
-      until the refresh is done (no jump back up and down again), also in an Instapaper list. Settings › Article list › View: Small,
+      until the refresh is done (no jump back up and down again), also on the reading list. Settings › Article list › View: Small,
       Medium and Large each look right, with and without pictures.
 - [ ] **Website icons:** after a refresh, feeds show their site's icon in the list, ☰ menu,
       manage page and reader, on a light tile; in dark mode dark logos are still visible; a feed
@@ -119,17 +120,22 @@ and then (always before a release):
 - [ ] **Search:** the magnifier at the top right of Feeds opens Search with the keyboard up; typing
       *cafe* finds articles with "Café" in the title (first) or the text; two words find articles with
       both; nothing found shows "Nothing found"; opening a result and going back shows the same results.
-      Signed in to Instapaper, the magnifier is on Instapaper too; results come under Feeds and
-      Instapaper (Instapaper first when opened from there), a word from a saved article's title or
-      website finds it, and tapping it opens it with Like and Archive.
-- [ ] **Navigation bar:** signed in, a bar at the bottom has Feeds and Instapaper (a rail at the
-      left in landscape on a tablet); Instapaper opens its last list, Feeds the feed section you had;
-      signed out, no bar. The Mark all read button and messages sit above the bar.
-- [ ] **Navigation:** the ☰ drawer has the same sections on Feeds and on an Instapaper list; the
-      section you're in is open and the other folded shut (on Feeds: Feeds open, Instapaper shut; on
-      an Instapaper list the other way round). Tapping Feeds or Instapaper folds that section shut
-      and open (folded Feeds shows the unread count).
-      In a folder or feed, Back goes to All; on All, Back closes the app.
+      The magnifier is on the reading list too; a word from a reading list article's title, website,
+      tag or note finds it (labelled Reading list, archived ones too), and tapping it opens it with ♥,
+      Keep and Archive.
+- [ ] **Navigation bar:** a bar at the bottom has Feeds and Reading list (a rail at the left in
+      landscape on a tablet). The Mark all read and Add link buttons and messages sit above the bar.
+- [ ] **Navigation:** the ☰ drawer has the same sections on Feeds and on the reading list; the
+      section you're in is open and the other folded shut. Tapping a section's name folds it shut and
+      open (folded, it shows its count).
+      In a folder, a feed or the reading list, Back goes to All; on All, Back closes the app.
+- [ ] **Reading list:** To read and Archive tabs, the Liked chip and a chip per tag filter it; the
+      count and "about … min" sit above; the newest article with a picture is a large card. Add link
+      (the button) adds an address and the page's title appears. In the reader: ♥ fills; Keep opens
+      the sheet with Keep as bookmark chosen (collection, note, tags); Archive opens it with Archive
+      chosen; Finished reading at the end of the text opens it too; ⋮ › Tags and Remove from reading
+      list (asks first). Leave an article halfway and open it again: it opens where you were, and the
+      list shows a bar and the minutes left. ☰ › Tags renames and removes tags.
       The Undo message after Mark all as read shows above the folder bar.
 - [ ] **Mark as read on scroll** on: scroll down the Unread list; the articles that leave the
       top of the screen are marked read (their dot goes) but stay until you refresh.
@@ -157,25 +163,22 @@ retrace rss-reader-<version>-mapping.txt stacktrace.txt
 ```
 Or ask Claude Code to do it: give it the stack trace and the version.
 
-## Instapaper (by hand, on the released app and the web app)
+## Instapaper (by hand, on the released app)
 
 Sign-in needs the real Instapaper, the Worker's secret and a verified App Link, so it can't be tested
 in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
 
-- [ ] Settings › Account › **Sign in with Instapaper** opens Instapaper; approving returns to the app (Android) or
-      the page (web) with "Signed in to Instapaper", and Settings shows your user name.
-- [ ] **Save** in the reader saves the article; it appears in Instapaper's Unread list (Saved in the app).
-- [ ] The ☰ menu (web: the sidebar) has a **Saved** section: Saved, Liked, your
-      folders, your tags and Archive (in that order) each show the right saved articles in the normal list (no unread dot, not
-      in All articles). Tapping one opens it in the reader, with the full article from its website.
-- [ ] In the reader: like, archive (the article leaves Unread but stays open), move back to Unread,
-      move to a folder, add and remove a tag, and delete (asks first) each change it in Instapaper.
-- [ ] **☰ › Manage Instapaper**: create, drag by the handle to reorder, and delete folders;
-      rename tags.
-- [ ] **Sign out** returns Settings to "Sign in", and Saved shows the (empty) list saved on the phone again.
-- [ ] Signing in with articles saved on the phone (or in the browser) says "Copied N articles…" and
-      shows them in Instapaper, with their likes, tags and archive; Saved on the phone is then empty.
-- [ ] Signed out (Android and web): **Save** keeps the article in **Saved**; the sheet offers Like, Archive and
-      tags but no folders; Saved, Liked, Tags and Archive show it; ⋮ in the reader has no Move to folder;
-      ☰ › **Manage tags** renames a tag; the articles are still there after restarting the app.
-- [ ] `https://rss-reader-web.wim-d57.workers.dev/.well-known/assetlinks.json` shows the JSON file.
+- [ ] Settings › Account › **Sign in with Instapaper** opens Instapaper; approving returns to the app
+      with "Signed in to Instapaper", and Settings shows your user name.
+- [ ] Right after signing in, everything in the Instapaper account appears on the reading list
+      (archived ones under Archive, folders as tags), and what was on the reading list appears in
+      Instapaper. ☰ › Connected services says the reading list is synced with your account.
+- [ ] **Read later** on a feed article: it appears in Instapaper's Unread list within seconds.
+      Archive, like, tag and remove it in Reader: each change shows in Instapaper. Do the same in
+      Instapaper's own app and pull down on the reading list: the change shows in Reader.
+- [ ] Take a folder's tag off an article: it leaves that folder in Instapaper.
+- [ ] On the owner's account an article without feed text shows "Instapaper text" above the title.
+- [ ] Read an article halfway, leave it: Instapaper shows the same progress.
+- [ ] **Sign out** returns Settings to "Sign in"; the reading list stays.
+- [ ] Signed out: **Read later** keeps the article on the reading list; the sheet offers Like and
+      tags; the articles are still there after restarting the app.

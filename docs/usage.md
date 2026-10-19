@@ -78,25 +78,22 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
 
 ## Reading the list
 
-- The **bar at the bottom** switches between **Feeds** and **Saved** (on a tablet or in landscape
-  it sits at the left side; the web app shows it in a narrow window, and the sidebar in a wide one).
-  Saved opens the list you last had open there (Saved at first).
+- The **bar at the bottom** switches between **Feeds** and the **Reading list** (on a tablet or in
+  landscape it sits at the left side). The web app still calls the reading list **Saved** until it
+  catches up with the app (#107); it shows the same articles.
 - **☰** opens the drawer with every place. **Feeds**: **All articles** (every feed), your
-  folders with their feeds, the other feeds (each with its number of unread articles). **Saved**
-  follows with its own places (see Saved articles). The section you're in (Feeds or
-  Saved) is open and the other is folded shut, so the menu stays short; tap a section's name
-  to fold it open or shut. Below them: **Manage feeds**, **Manage Instapaper** (signed in; signed
-  out **Manage tags**) and **Settings**.
-- **Search** (the magnifier at the top right, in Feeds and in Saved; on the web also the **/** key)
-  searches everything: the articles of all your feeds that are on the device (titles, text, feed
-  names and authors) and your saved articles (titles, websites, descriptions and tags). Every word
-  you type must appear; capitals and accents don't matter ("cafe" finds "Café"). The results are one
-  list, best match first: the whole search in the title, then more of its words in the title, then
-  the newest. Each result says **Feed** or **Saved**. Chips above the results show **All**, only
-  **Feeds** or only **Saved**. Saved has no search of its own (Instapaper has none), so Search reads
-  your saved articles when it opens (Saved, your folders and Archive, the newest 100 of each) and
-  searches them on the device; meanwhile it says "Searching your saved articles…". The full text of
-  saved articles isn't searched: Instapaper only gives the title and description.
+  folders with their feeds, the other feeds (each with its number of unread articles). The
+  **Reading list** follows: To read, Liked, your tags and Archive (see Reading list). The section
+  you're in is open and the other is folded shut, so the menu stays short; tap a section's name to
+  fold it open or shut. Below them: **Manage feeds**, **Tags**, **Connected services** and
+  **Settings**.
+- **Search** (the magnifier at the top right, on Feeds and on the reading list; on the web also the
+  **/** key) searches everything: the articles of all your feeds that are on the device (titles,
+  text, feed names and authors) and your reading list, archived articles too (titles, websites,
+  descriptions, tags, notes and highlights). Every word you type must appear; capitals and accents
+  don't matter ("cafe" finds "Café"). The results are one list, best match first: the whole search
+  in the title, then more of its words in the title, then the newest. Each result says **Feed** or
+  **Reading list**. Chips above the results show **All**, only **Feeds** or only the **Reading list**.
 - Articles are grouped under **Today**, **Yesterday** and then the date; the date stays at the
   top while you scroll through that day.
 - Under the title you see how many articles are unread. Two chips just above the list
@@ -131,9 +128,16 @@ website (the same as **Read on website** at the end). In the top bar:
 | Button | What it does |
 |---|---|
 | **Aa** | Text settings: font (Sans or Serif), text size, spacing (Compact, Normal, Relaxed), background (Theme, Sepia or Dark) and **Auto dark** (the dark page whenever the app is dark, e.g. Sepia by day and dark at night). Changes apply right away and are remembered for every article. |
-| Bookmark | **Save**: keeps the article in **Saved** (by default), or sends it to the app you chose or the share menu (see below). Signed in to Instapaper, it saves straight to your account. |
+| Open book | **Read later**: puts the article on your **Reading list** (by default), or sends it to the app you chose or the share menu (see below). Once it is on the reading list, the same screen shows the reading list's buttons (below). |
+| ♥ | On the reading list: **Like** (the heart fills). |
 | Share | **Share**: the share menu, or straight to the app you chose. |
-| ⋮ | **Open in browser** and **Mark as unread**. Open in browser, and links in an article, open in a tab of your browser on top of Reader, with a **Save** button (bookmark with a plus) in its toolbar: it saves the page shown to Saved and opens the save sheet over the page; close it to keep reading. |
+| ⋮ | **Open in browser** and **Mark as unread**; on the reading list also **Tags** and **Remove from reading list**. Open in browser, and links in an article, open in a tab of your browser on top of Reader, with a **Save** button in its toolbar: it puts the page shown on the reading list and opens the sheet over the page; close it to keep reading. |
+
+An article on the reading list has **Keep** and **Archive** at the bottom, and **Finished reading** at
+the end of the text. Each opens a sheet that asks what's next: **Archive** (done with it; it stays
+searchable) or **Keep as bookmark**, with a collection, a note and tags (it stays on the reading list
+until you archive it). Keep is chosen first when the article has highlights or a note. Reader
+remembers how far you read and opens the article there again.
 
 **Full articles.** Many feeds contain only the start of an article, or a few paragraphs with a
 "Read full article" link. Then the reader fetches the
@@ -156,8 +160,8 @@ data); embed cards stay, without preview.
 The reader has a **Save** button (bookmark) and a **Share** button. In **Settings › Save and
 share** you choose, for each, where it sends the article:
 
-- **Saved, in this app** (Save only, and its default): the article goes to the **Saved** screen
-  of this app, and a sheet opens to like, archive and tag it (see Saved articles).
+- **Reading list, in this app** (Save only, and its default): the article goes on your **Reading
+  list**, and a sheet opens to like and tag it (see Reading list).
 - **an app**, picked from the apps on your phone that accept shared links: the article goes
   straight there, without the share menu.
 - **Share menu**: Android's share menu opens, so you pick an app each time. This is Share's
@@ -165,13 +169,13 @@ share** you choose, for each, where it sends the article:
 
 If the chosen app has been uninstalled, the button opens the share menu instead and says so.
 
-Signed in with Instapaper (Settings › Account), Save always goes straight to your Instapaper
-account, so Settings › Save and share only shows the Share button's choice.
+Signed in with Instapaper (Settings › Account), Save always puts the article on the reading list
+(which is kept in Instapaper too), so Settings › Save and share only shows the Share button's choice.
 
 **Saving from other apps.** In Chrome or any app that shares links, tap Share and pick
-**Reader**. Reader opens, saves the link to Saved (your Instapaper account when signed in, else
-this phone) and shows the same sheet as the Save button, to like, archive, pick a folder and add
-tags. Shared text without a web link says "No link to save".
+**Reader**. Reader opens, puts the link on the reading list and shows the same sheet as the Save
+button, to like and tag it. A link shared without a title gets the page's own title, description and
+picture. Shared text without a web link says "No link to save".
 
 ## Settings
 
@@ -201,42 +205,50 @@ from the same source. Downloaded full articles are not backed up; they load agai
 The app follows the phone's language. To choose another one for this app only: Android
 **Settings › System › Languages › App languages › Reader**.
 
-## Saved articles
+## Reading list
 
-**Saved** works with or without an Instapaper account. Without one, your saved articles stay on
-this phone or in this browser (on the phone they are part of the phone's backup) but don't sync,
-and there are no folders. Signed in, they are your Instapaper articles, with Instapaper's folders,
-on every device.
+The **Reading list** (#107) holds the articles you want to read, in a queue you work through. It
+is Reader's own: it works without an account, is kept on the device (and in its backup), and syncs
+between your devices through your Reader account. Signed in to Instapaper, it is also kept in your
+Instapaper account (see Instapaper account).
 
-- **Save** (the bookmark button in the reader) saves the article. A sheet (a dialog on the web)
-  opens at once: **Like** and **Archive** it, tap a folder to file it there (signed in) and add
-  tags, then **Done**. Close it to leave the article in Saved.
-- The ☰ drawer (the web app: the sidebar) has a **Saved** section under Feeds: Saved,
-  Liked, your Instapaper folders, your tags and, last, Archive. On an Instapaper list, tabs under the title
-  show the same places, with **Tags** (chips under it pick the tag). Each shows its saved articles in the same
-  list as feed articles, and they open in the same reader. An article saved from one of your feeds
-  looks just like it did there (the feed's name and icon, picture and text), with the same choice
-  in the reader between the feed's text and the full article; others show the website's icon and
-  Instapaper's description, and the full article loads from the website, like a feed's. Saved articles have no read state and are not in All articles: you
-  archive them yourself. In the reader: like (♥), archive (or move back to Saved), and in ⋮ move
-  to a folder (signed in) (or **New folder**: name it and the article goes straight in), tags (add or remove) and
-  delete for good (asks first). The sheet after Save has **New folder** too.
-- **☰ › Manage Instapaper** ("Instapaper folders and tags"): create, reorder and delete Instapaper
-  folders (a deleted folder's articles go back to Saved) and rename tags. Signed out it is
-  **☰ › Manage tags**, to rename the tags of the articles saved on the phone.
-
-Signing in to Instapaper **copies the articles saved on this phone (or in this browser) to your
-Instapaper account**, with their likes, tags and archive, and a message says how many. They then
-live in Instapaper only. If the copy stops halfway (no connection, Instapaper busy), the rest is
-copied the next time you open the app.
+- **Getting articles on it:** **Read later** in an article; **swipe a feed article left** in the
+  list (swiping right still marks it read or unread); **Add link** (the button at the bottom right of
+  the reading list); and sharing a link to Reader from another app. A feed article you save stays
+  the same article: its feed, text and picture come along, and it isn't copied.
+- **To read** and **Archive** are tabs under the title. Under them, chips filter the list:
+  **Liked**, and each of the list's tags. The drawer has the same places.
+- At the top, how many articles and about how long they take to read. Each article shows its
+  website, about how many minutes it takes (once its text is known), how much is left once you
+  started it, and how many highlights it has. The newest article to read shows as a large card
+  with its picture. Titles are in the reader's font.
+- In the reader: **♥** to like, **Keep** and **Archive** at the bottom (see The reader), **Tags** and
+  **Remove from reading list** in ⋮. Removing asks first; an article that is also a bookmark stays
+  in Bookmarks.
+- **☰ › Tags**: every tag with how many articles have it; tap to rename it (renaming it to another
+  tag's name joins the two), or remove it from every article.
+- **☰ › Connected services**: which service each section is connected to. The reading list can be
+  connected to Instapaper; feeds and bookmarks are Reader's own.
 
 ## Instapaper account
 
 Settings › **Account** › **Sign in with Instapaper** opens Instapaper's own page in your browser.
 Approve Reader there and you come back to the app (or the web page) signed in; Reader never sees your
-password. The same sign-in turns on sync (see Sync between devices) and puts your Instapaper
-articles and folders in **Saved**. **Sign out** removes the sign-in from this device, and stops
-syncing here.
+password. The same sign-in turns on sync (see Sync between devices) and connects your reading list
+to Instapaper:
+
+- Everything in your Instapaper account comes onto the reading list, and everything on the reading
+  list goes to Instapaper. From then on, what you add, archive, like or tag, and how far you read,
+  goes both ways, while the app is open (when it opens, a moment after a change, and when you pull
+  down on the reading list).
+- Instapaper's **folders** show as tags; taking that tag off moves the article out of the folder.
+  Reader doesn't make folders.
+- On the owner's own Instapaper account the reader shows **Instapaper's text** of an article
+  ("Instapaper text" above the title). Other accounts get Reader's own full article, as Instapaper
+  only gives its text to the account that registered the app.
+- If Instapaper doesn't answer or asks to wait, nothing is lost: the rest goes the next time.
+
+**Sign out** removes the sign-in from this device and stops syncing here. Your reading list stays.
 
 Until Instapaper has approved Reader, only the owner's own account works; other accounts see
 "Instapaper hasn't approved Reader for your account yet." Setup and details: `instapaper.md`.
@@ -248,4 +260,4 @@ Until Instapaper has approved Reader, only the owner's own account works; other 
 | "No feed found at this address" | Try the site's feed address instead; look for an RSS or feed link on the site. |
 | "Couldn't connect" | Check the internet connection and pull down to try again. |
 | A feed shows only short summaries | That is what the site publishes; tap **Read on website**. |
-| Not sure Save worked | A "Saved" sheet opens ("Saved to Instapaper" when signed in); the article is in **Saved**. |
+| Not sure Save worked | An "Added to reading list" sheet opens; the article is on the **Reading list**. |

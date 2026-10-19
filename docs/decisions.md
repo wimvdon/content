@@ -2,6 +2,43 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-19: The reading list replaces Saved; services behind one interface (#107, #109)
+
+Saved becomes the **Reading list**: articles you want to read, as a queue (#113).
+
+- **Reader's own, always.** The reading list is the library's items on the reading list, with or
+  without an account. Signed in, Instapaper is a *connected service* that is kept the same as the
+  reading list (`ServiceSync`), instead of the screen showing Instapaper's lists directly. So the
+  reading list works offline, Search covers every article, and another service can take
+  Instapaper's place.
+- **One interface per section** (`ReadingListService`): the core every reading-list service shares
+  (link, title, to read or archived, liked, tags) is always synced; a service declares what else it
+  supports (its text, progress, highlights). Service extras map onto the core: Instapaper folders
+  become tags, and Reader never creates folders (Readwise Reader and Wallabag have none, so
+  folders can't be part of what all services share). Only `InstapaperReadingList` knows Instapaper.
+  A third service (Notion, #114) will test the abstraction; it isn't generalised further now.
+- **Sync with Instapaper** uses API v2's `since` (a full copy on the device) and the same three-way
+  merge as per-item sync, with the articles as last seen at Instapaper as the base. Failures keep
+  everything in Reader; a rate limit is normal behaviour, not an error; the rest goes next time.
+  Only while the app is on screen, like the Reader account.
+- **Instapaper's parsed text** only for the owner's own account, where the API needs no key; it is
+  kept on the device and never synced (API terms). Others get Reader's own extraction; no
+  Instaparser key is bought (cost).
+- **Lists:** To read and Archive; **Liked** is a filter chip, not a list (the mockup showed a tab; #107
+  chose a chip). Swiping a feed article left is Read later; right still toggles read.
+- **Finishing an article** asks what's next: Archive, or Keep as bookmark (collection, note, tags),
+  which also adds it to Bookmarks (#108) and keeps it on the reading list until archived.
+- **Reading progress** is saved when the article is left (not at every scroll pause, which would sync
+  every few seconds) and sent to Instapaper.
+- **Links without a title** (shared or added) get the page's own title, description and picture,
+  read from the page (`PageInfo`, jsoup), which is one of the pages of the user's articles.
+- The web app keeps its Saved screens for now and no longer copies its articles to Instapaper on
+  sign-in: that copy removed them from the reading list afterwards, which per-item sync would now
+  spread to every device.
+- Rejected: keeping Instapaper's lists as the screen when signed in (no offline list, no full search,
+  every action a network call), and an outbox of operations for the service (a diff with the last
+  seen state retries by itself and can't replay stale operations).
+
 ## 2026-10-19: Sync per item instead of one document (#106)
 
 The reading list, Bookmarks, notes and highlights would make the one synced document grow without
