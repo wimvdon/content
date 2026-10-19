@@ -1,5 +1,6 @@
 package be.wimvandonck.reader.services
 
+import be.wimvandonck.reader.data.DuplicateSync
 import be.wimvandonck.reader.data.Library
 import be.wimvandonck.reader.data.ReadingState
 import be.wimvandonck.reader.data.Saved
@@ -114,9 +115,11 @@ class ServiceSyncTest {
         other: FakeService,
         otherState: ServiceState,
         isDefault: Boolean,
+        shared: DuplicateSync = DuplicateSync(),
+        elsewhere: Map<String, String> = emptyMap(),
     ): ServiceState =
         runBlocking {
-            ServiceSync.run(other, otherState, isDefault) { change -> change(library).also { library = it } }.state
+            ServiceSync.run(other, otherState, isDefault, shared = shared, elsewhere = elsewhere) { change -> change(library).also { library = it } }.state
         }
 
     private fun remote(
@@ -377,6 +380,123 @@ class ServiceSyncTest {
         assertNull(service.entries.values.single { it.url == "https://b.example/1" }.note)
         assertEquals("Mine", library.item("b.example/1")?.note)
     }
+
+    /** The same article in this service (its own) and in a second one (a copy), both synced once. */
+    private fun duplicate(): Pair<FakeService, ServiceState> {
+        val raindrop = FakeService("raindrop")
+        service.put(remote("1", "https://a.example/1", tags = listOf("x"), folder = "Work"))
+        raindrop.put(remote("9", "https://a.example/1", tags = listOf("x"), folder = "Reading"))
+        sync()
+        val rs = sync(raindrop, ServiceState(), isDefault = false)
+        return raindrop to rs
+    }
+
+    @Test
+    fun `an article in both services is shown once and stays the first one's`() {
+        val (raindrop, _) = duplicate()
+        assertEquals(1, library.items.size)
+        val item = library.item("a.example/1")!!
+        assertEquals("fake", item.service)
+        // The copy's folder doesn't come in: folders are not shared by default.
+        assertEquals("Work", item.folder)
+        assertEquals("Reading", raindrop.entries["9"]!!.folder)
+    }
+
+    @Test
+    fun `archive, like and tags reach both copies, the folder only when shared`() {
+        var (raindrop, rs) = duplicate()
+        library = library.setLiked("a.example/1", true).setTags("a.example/1", listOf("x", "y"))
+        library = Saved.file(library, "a.example/1", "Later")
+        sync()
+        rs = sync(raindrop, rs, isDefault = false)
+        assertTrue(raindrop.entries["9"]!!.liked)
+        assertEquals(listOf("x", "y"), raindrop.entries["9"]!!.tags)
+        assertEquals("Reading", raindrop.entries["9"]!!.folder)
+        assertEquals("Later", service.entries["1"]!!.folder)
+        // With folders shared, filing reaches the copy too.
+        library = Saved.file(library, "a.example/1", "Next")
+        sync()
+        rs = sync(raindrop, rs, isDefault = false, shared = DuplicateSync(folder = true))
+        assertEquals("Next", raindrop.entries["9"]!!.folder)
+        // Archive off: archiving here leaves the copy where it is.
+        library = library.setReadingState("a.example/1", ReadingState.Archived)
+        sync()
+        sync(raindrop, rs, isDefault = false, shared = DuplicateSync(archive = false))
+        assertTrue(service.entries["1"]!!.archived)
+        assertFalse(raindrop.entries["9"]!!.archived)
+    }
+
+    @Test
+    fun `from a copy only what is shared comes in`() {
+        var (raindrop, rs) = duplicate()
+        raindrop.put(raindrop.entries["9"]!!.copy(liked = true, folder = "Elsewhere", title = "Other title"))
+        rs = sync(raindrop, rs, isDefault = false)
+        val item = library.item("a.example/1")!!
+        assertTrue(item.liked)
+        assertEquals("Work", item.folder)
+        assertEquals("Title 1", item.title)
+        // Liked not shared: a change at the copy stays there.
+        raindrop.put(raindrop.entries["9"]!!.copy(liked = false))
+        sync(raindrop, rs, isDefault = false, shared = DuplicateSync(liked = false))
+        assertTrue(library.item("a.example/1")!!.liked)
+    }
+
+    @Test
+    fun `deleted from one service, an article the other keeps stays in Saved`() {
+        var (raindrop, rs) = duplicate()
+        // Deleted from the copy: nothing changes here, and the first service keeps it.
+        raindrop.delete("9")
+        rs = sync(raindrop, rs, isDefault = false)
+        assertTrue(library.item("a.example/1")!!.readingList != null)
+        assertTrue(rs.rows.isEmpty())
+        sync()
+        assertEquals(1, service.entries.size)
+        // Deleted from the service that keeps it while the other has it: it moves to the other.
+        val (raindrop2, rs2) = FakeService("raindrop") to ServiceState()
+        raindrop2.put(remote("5", "https://a.example/1"))
+        val rs3 = sync(raindrop2, rs2, isDefault = false)
+        service.delete("1")
+        sync(service, state, isDefault = true, elsewhere = rs3.rows.keys.associateWith { "raindrop" })
+        assertEquals("raindrop", library.item("a.example/1")!!.service)
+        assertTrue(library.item("a.example/1")!!.readingList != null)
+    }
+
+    @Test
+    fun `saved again after it was taken out, it goes to the default service`() {
+        library = library.addToReadingList("https://b.example/1", "1", 10).first.changeItem("b.example/1") { it.copy(service = "raindrop") }
+        library = library.setReadingState("b.example/1", null)
+        library = library.addToReadingList("https://b.example/1", "1", 20).first
+        assertNull(library.item("b.example/1")!!.service)
+        // A save from the sheet can pick the service; one already saved stays where it is.
+        library = Saved.save(library, "https://c.example/1", "C", 30, service = "raindrop").first
+        assertEquals("raindrop", library.item("c.example/1")!!.service)
+        library = Saved.save(library, "https://c.example/1", "C", 40, service = "fake").first
+        assertEquals("raindrop", library.item("c.example/1")!!.service)
+    }
+
+    @Test
+    fun `copying adds what the other service hasn't, once, and stops on a problem`() =
+        runBlocking {
+            library = library.addToReadingList("https://b.example/1", "1", 10).first.addToReadingList("https://b.example/2", "2", 11).first
+            sync()
+            val raindrop = FakeService("raindrop", features = setOf(ServiceFeature.Notes))
+            raindrop.put(remote("9", "https://b.example/2"))
+            val rs = sync(raindrop, ServiceState(), isDefault = false)
+            val items = ServiceCopy.candidates(library, state.rows.keys, rs.rows.keys)
+            assertEquals(listOf("b.example/1"), items.map { it.key })
+            val rows = HashMap(rs.rows)
+            var added = 0
+            assertNull(ServiceCopy.run(raindrop, items, rows) { added++ })
+            assertEquals(1, added)
+            assertEquals(2, raindrop.entries.size)
+            // Run again: nothing left to add.
+            assertNull(ServiceCopy.run(raindrop, items, rows))
+            assertEquals(2, raindrop.entries.size)
+            // The copied one stays the first service's; the other has a copy.
+            assertEquals("fake", library.item("b.example/1")!!.service)
+            raindrop.failAfter = 0
+            assertEquals(ServiceProblem.RateLimited, ServiceCopy.run(raindrop, ServiceCopy.candidates(library, setOf("b.example/1"), emptySet()), HashMap()))
+        }
 
     @Test
     fun `entries are stored and read back`() {

@@ -81,6 +81,8 @@ fun Library.addToReadingList(
         base.copy(
             title = title?.trim()?.takeIf { it.isNotEmpty() } ?: base.title,
             readingList = ReadingListEntry(ReadingState.ToRead, now),
+            // Saved again after it was taken out: it goes to the default service, like a new save (#121).
+            service = if (base.readingList != null) base.service else null,
         )
     return putItem(item) to item
 }

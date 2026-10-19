@@ -10,6 +10,7 @@ import coil3.request.crossfade
 import be.wimvandonck.reader.data.FullArticles
 import be.wimvandonck.reader.data.IconCatalog
 import be.wimvandonck.reader.data.LibraryRepository
+import be.wimvandonck.reader.data.DuplicateSync
 import be.wimvandonck.reader.data.SettingsStore
 import be.wimvandonck.reader.feed.FeedFetcher
 import be.wimvandonck.reader.instapaper.InstapaperAccount
@@ -67,7 +68,7 @@ class RssReaderApp :
     val raindrop: RaindropAccount by lazy { RaindropAccount(this, appScope, http) }
 
     /** Saved's connected services (Instapaper, Raindrop). See services/. */
-    val services: ServiceManager by lazy { ServiceManager(appScope, library, instapaper, raindrop, http) { settings.settings.value?.saveService } }
+    val services: ServiceManager by lazy { ServiceManager(appScope, library, instapaper, raindrop, http, { settings.settings.value?.saveService }) { settings.settings.value?.duplicates ?: DuplicateSync() } }
 
     val fullArticles: FullArticles by lazy { FullArticles(File(cacheDir, "articles"), fetch = fetcher::fetch) }
 

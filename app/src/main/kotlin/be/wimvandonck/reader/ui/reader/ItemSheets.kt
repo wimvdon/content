@@ -49,6 +49,8 @@ import be.wimvandonck.reader.R
 import be.wimvandonck.reader.data.Item
 import be.wimvandonck.reader.data.ItemKeys
 import be.wimvandonck.reader.feed.FeedDiscovery
+import be.wimvandonck.reader.ui.settings.SaveServiceChoice
+import be.wimvandonck.reader.ui.settings.serviceName
 
 /**
  * An item's tags as removable chips, a field for a new one, and the other tags in use to add with a
@@ -290,8 +292,11 @@ fun SaveSheet(
     title: String?,
     folders: List<String>,
     allTags: List<String>,
-    onSave: (url: String, folder: String, note: String, tags: List<String>) -> Unit,
+    onSave: (url: String, folder: String, note: String, tags: List<String>, service: String?) -> Unit,
     onDismiss: () -> Unit,
+    /** The connected services; with two, the sheet asks which one keeps this save (#121). */
+    services: List<String> = emptyList(),
+    defaultService: String? = null,
 ) {
     var address by rememberSaveable(url) { mutableStateOf(url.orEmpty()) }
     // A typed address may leave out https://.
@@ -299,6 +304,7 @@ fun SaveSheet(
     var folder by rememberSaveable(url) { mutableStateOf("") }
     var note by rememberSaveable(url) { mutableStateOf("") }
     var tags by remember(url) { mutableStateOf(emptyList<String>()) }
+    var service by rememberSaveable(url, defaultService) { mutableStateOf(defaultService) }
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(
             Modifier
@@ -331,10 +337,14 @@ fun SaveSheet(
                 modifier = Modifier.fillMaxWidth(),
             )
             TagsEditor(tags, allTags, onChange = { tags = it })
+            if (services.size > 1) {
+                Text(stringResource(R.string.save_to_service), style = MaterialTheme.typography.labelLarge)
+                SaveServiceChoice(service, onSelect = { service = it })
+            }
             Row(Modifier.align(Alignment.End), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
                 Button(enabled = link != null, onClick = {
-                    link?.let { onSave(it, folder, note, tags) }
+                    link?.let { onSave(it, folder, note, tags, service.takeIf { services.size > 1 }) }
                     onDismiss()
                 }) { Text(stringResource(R.string.action_save)) }
             }
@@ -370,22 +380,40 @@ fun FolderField(
     }
 }
 
-/** Remove from the reading list (the reader's ⋮): asks first, says what stays. */
+/**
+ * Remove from Saved (the reader's ⋮): asks first, says what stays. An article both services keep
+ * (#121) can also go from one of them only; it then stays in Saved, kept in the other.
+ */
 @Composable
 fun RemoveDialog(
     item: Item,
     onRemove: () -> Unit,
     onDismiss: () -> Unit,
+    services: Set<String> = emptySet(),
+    onRemoveFrom: (String) -> Unit = {},
 ) {
+    val both = services.size > 1
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.saved_remove)) },
-        text = { Text(stringResource(R.string.saved_remove_body)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(stringResource(if (both) R.string.saved_remove_both_body else R.string.saved_remove_body))
+                if (both) {
+                    for (id in services) {
+                        TextButton(onClick = {
+                            onDismiss()
+                            onRemoveFrom(id)
+                        }) { Text(stringResource(R.string.saved_remove_only_from, stringResource(serviceName(id)))) }
+                    }
+                }
+            }
+        },
         confirmButton = {
             TextButton(onClick = {
                 onDismiss()
                 onRemove()
-            }) { Text(stringResource(R.string.action_remove)) }
+            }) { Text(stringResource(if (both) R.string.saved_remove_from_both else R.string.action_remove)) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )

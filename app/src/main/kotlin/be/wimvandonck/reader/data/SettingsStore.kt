@@ -69,6 +69,14 @@ class SettingsStore(
 
     suspend fun setSaveService(service: String) = edit { it[SAVE_SERVICE] = service }
 
+    suspend fun setDuplicates(value: DuplicateSync) =
+        edit {
+            it[DUP_ARCHIVE] = value.archive
+            it[DUP_LIKED] = value.liked
+            it[DUP_TAGS] = value.tags
+            it[DUP_FOLDER] = value.folder
+        }
+
     /** Takes the synced settings from another device (see SyncSettings); the rest stays as it is. */
     suspend fun applySynced(values: Map<String, String>) =
         edit { prefs ->
@@ -123,6 +131,13 @@ class SettingsStore(
             listView = enumOr(p[LIST_VIEW], defaults.listView),
             tagWithFolder = p[TAG_WITH_FOLDER] ?: defaults.tagWithFolder,
             saveService = p[SAVE_SERVICE] ?: defaults.saveService,
+            duplicates =
+                DuplicateSync(
+                    archive = p[DUP_ARCHIVE] ?: defaults.duplicates.archive,
+                    liked = p[DUP_LIKED] ?: defaults.duplicates.liked,
+                    tags = p[DUP_TAGS] ?: defaults.duplicates.tags,
+                    folder = p[DUP_FOLDER] ?: defaults.duplicates.folder,
+                ),
             lastSyncedAt = p[LAST_SYNCED_AT],
         )
     }
@@ -149,6 +164,10 @@ class SettingsStore(
         val LIST_VIEW = stringPreferencesKey("list_view")
         val TAG_WITH_FOLDER = booleanPreferencesKey("tag_with_folder")
         val SAVE_SERVICE = stringPreferencesKey("save_service")
+        val DUP_ARCHIVE = booleanPreferencesKey("duplicates_archive")
+        val DUP_LIKED = booleanPreferencesKey("duplicates_liked")
+        val DUP_TAGS = booleanPreferencesKey("duplicates_tags")
+        val DUP_FOLDER = booleanPreferencesKey("duplicates_folder")
         val LAST_SYNCED_AT = longPreferencesKey("last_synced_at")
     }
 }

@@ -27,11 +27,30 @@ back to (see "How connecting works").
 
 ## Instapaper and Raindrop together (#121)
 
-Each service keeps its own articles and **nothing is copied between them**. An item remembers the
-service it is kept in (the synced `service` field, `docs/sync.md`): what came from Instapaper goes
-back only to Instapaper, what came from Raindrop only to Raindrop. New saves go to the **default
-service**: asked once when both are connected, changed later in Connected services › **New saves
-go to**. Until it is chosen, Instapaper is the default. Saved shows both together.
+Each service keeps its own articles and **nothing is copied between them** on its own. An item
+remembers the service it is kept in (the synced `service` field, `docs/sync.md`): what came from
+Instapaper goes back only to Instapaper, what came from Raindrop only to Raindrop. Saved shows both
+together, with a small mark (a serif I for Instapaper, a drop for Raindrop) on each article while
+both are connected.
+
+- **New saves** go to the **default service**: asked once when both are connected, changed later in
+  Connected services › **New saves go to**, or per save in the save sheet's **Save to**. Until it is
+  chosen, Instapaper is the default.
+- **The same article in both** (same address) shows once. It stays the first service's item; the
+  other has a *copy*. Connected services › **Articles in both** says what the two copies share:
+  Archive, Liked and Tags on, Folder off (folders often differ; on, a folder is made in the other
+  service only when an article is filed there). Title, note and progress stay per service, and so
+  do highlights. In code: `DuplicateSync` (settings), `ServiceSync.isCopy` and `ServiceSync.share`.
+- **Deleted in one service's own app:** the article stays in Saved when the other still has it (it
+  becomes the other's). Nothing is deleted in the other service by that.
+- **Removing in Reader** an article both keep asks: **Remove from both**, or **Only from** one (it
+  then stays in Saved, kept in the other; `ServiceManager.removeFrom`).
+- **Copying is opt-in:** Connected services › **Copy between services** copies all of one service's
+  articles to the other, once, after saying how many and what doesn't carry over (notes and
+  Raindrop's own highlights, covers and types stay in Raindrop; reading progress and Instapaper's
+  highlights stay in Instapaper). Articles the other already has are skipped; it can be cancelled,
+  and what got through is kept (`services/ServiceCopy.kt`). Copied articles stay the first
+  service's, with a copy in the other.
 
 ## How connecting works
 

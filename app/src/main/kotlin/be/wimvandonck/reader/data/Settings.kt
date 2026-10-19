@@ -124,6 +124,18 @@ sealed interface ShareTarget {
     }
 }
 
+/**
+ * What an article kept in both Instapaper and Raindrop.io shares between its two copies (#121):
+ * archive, like and tags by default; folders off, as the two services' folders often differ.
+ * Nothing else (title, note, progress) goes from one copy to the other.
+ */
+data class DuplicateSync(
+    val archive: Boolean = true,
+    val liked: Boolean = true,
+    val tags: Boolean = true,
+    val folder: Boolean = false,
+)
+
 /** Everything the user can set, as stored. */
 data class Settings(
     val appearance: Appearance = Appearance(),
@@ -142,6 +154,8 @@ data class Settings(
     val tagWithFolder: Boolean = true,
     /** The service new saves go to when more than one is connected (#121): "instapaper" or "raindrop"; null until chosen. */
     val saveService: String? = null,
+    /** What the two copies of an article in both services share (#121). */
+    val duplicates: DuplicateSync = DuplicateSync(),
     /** When the last sync succeeded, or null. */
     val lastSyncedAt: Long? = null,
 )

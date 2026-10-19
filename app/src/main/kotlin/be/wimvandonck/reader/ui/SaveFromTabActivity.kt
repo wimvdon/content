@@ -68,11 +68,13 @@ private fun SaveFromTab(
         title = link.title,
         folders = Saved.folders(library),
         allTags = library.itemTags(),
-        onSave = { url, folder, note, tags ->
+        services = app.services.connected,
+        defaultService = app.services.defaultService(),
+        onSave = { url, folder, note, tags, service ->
             app.appScope.launch {
                 var saved: Item? = null
                 app.library.edit { lib ->
-                    val (updated, item) = Saved.save(lib, url, link.title, System.currentTimeMillis(), folder, note, tags)
+                    val (updated, item) = Saved.save(lib, url, link.title, System.currentTimeMillis(), folder, note, tags, service)
                     saved = item
                     if (item != null && tagWithFolder) updated.tagWithFeedFolder(item.key) else updated
                 }

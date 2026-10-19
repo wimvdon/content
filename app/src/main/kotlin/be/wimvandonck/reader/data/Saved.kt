@@ -104,11 +104,14 @@ object Saved {
         folder: String? = null,
         note: String = "",
         tags: List<String> = emptyList(),
+        /** The service to keep a new save in (#121); null for the default. One already saved stays where it is. */
+        service: String? = null,
     ): Pair<Library, Item?> {
         val (added, item) = library.addToReadingList(url, title, now)
         item ?: return library to null
         val updated =
             item.copy(
+                service = item.service ?: service,
                 folder = folder?.trim()?.ifEmpty { null },
                 note = if (note.isBlank()) item.note else note.trim(),
                 tags = cleanTags(item.tags + tags),
