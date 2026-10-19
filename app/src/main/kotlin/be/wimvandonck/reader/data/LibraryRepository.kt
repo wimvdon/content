@@ -2,7 +2,9 @@ package be.wimvandonck.reader.data
 
 import android.content.Context
 import be.wimvandonck.reader.data.db.ItemTextRow
+import be.wimvandonck.reader.data.db.LibraryDao
 import be.wimvandonck.reader.data.db.LibraryDatabase
+import be.wimvandonck.reader.data.db.SyncRowRow
 import be.wimvandonck.reader.feed.FeedFinder
 import be.wimvandonck.reader.feed.FeedParser
 import be.wimvandonck.reader.feed.FetchError
@@ -13,6 +15,9 @@ import be.wimvandonck.reader.feed.NotAFeedException
 import be.wimvandonck.reader.feed.Opml
 import be.wimvandonck.reader.feed.ParsedFeed
 import be.wimvandonck.reader.feed.SiteIcon
+import be.wimvandonck.reader.sync.ItemRow
+import be.wimvandonck.reader.sync.ItemSyncState
+import be.wimvandonck.reader.sync.Json
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -98,9 +103,6 @@ class LibraryRepository(
 
     private val refreshLock = Mutex()
 
-    /** Articles read on other devices (see sync/): when they arrive here, they arrive as read. */
-    @Volatile
-    var knownRead: Set<String> = emptySet()
 
     /**
      * Changes the stored library in one step and returns a value computed with it, for sync:
@@ -120,6 +122,33 @@ class LibraryRepository(
 
     /** Changes the stored library in one step and returns it. */
     suspend fun edit(change: (Library) -> Library): Library = update { library -> change(library).let { it to it } }
+
+    /** What this device last synced of the account's items (sync/ItemSync.kt). */
+    suspend fun itemSyncState(): ItemSyncState {
+        val rows =
+            dao.syncRows().mapNotNull { row ->
+                @Suppress("UNCHECKED_CAST")
+                val data = runCatching { Json.parse(row.data) }.getOrNull() as? Map<String, Any?> ?: return@mapNotNull null
+                row.key to ItemRow(row.key, row.version, data)
+            }.toMap()
+        return ItemSyncState(dao.meta(LibraryDao.ITEMS_VERSION)?.toLongOrNull() ?: 0, rows)
+    }
+
+    /** Stores [next] after a sync that started from [previous], writing only the rows that changed. */
+    suspend fun saveItemSyncState(
+        previous: ItemSyncState,
+        next: ItemSyncState,
+    ) {
+        // Deleted rows aren't kept: saving that key again later costs one conflict, which brings the deletion back.
+        val put = next.rows.values.filter { it.data != null && previous.rows[it.key] != it }.map { SyncRowRow(it.key, it.version, Json.write(it.data)) }
+        val delete = previous.rows.keys.filter { next.rows[it]?.data == null }
+        dao.writeSyncRows(put, delete, next.version)
+    }
+
+    /** Forgets what was synced of the items (signed out, or another account). */
+    suspend fun forgetItemSync() {
+        dao.writeSyncRows(emptyList(), emptyList(), 0, clear = true)
+    }
 
     /** The texts kept for an item (Reader's extraction, a service's text), by where they came from. */
     suspend fun texts(itemKey: String): Map<String, String> = dao.texts(itemKey).associate { it.source to it.html }
@@ -150,7 +179,7 @@ class LibraryRepository(
                         .awaitAll()
                 }
             val downloads = results.mapNotNull { (url, result) -> result.getOrNull()?.let { url to it } }.toMap()
-            if (downloads.isNotEmpty()) edit { it.mergeAll(downloads, clock(), knownRead) }
+            if (downloads.isNotEmpty()) edit { it.mergeAll(downloads, clock()) }
             findMissingIcons()
             val problems = results.mapNotNull { (url, result) -> result.exceptionOrNull()?.let { url to (it as ProblemException).problem } }.toMap()
             _problems.value = problems
@@ -226,7 +255,7 @@ class LibraryRepository(
                         library
                     } else {
                         added = true
-                        library.addFeed(feed.copy(folderId = folderId?.takeIf { library.folder(it) != null })).merge(feed.url, result.feed, clock(), knownRead)
+                        library.addFeed(feed.copy(folderId = folderId?.takeIf { library.folder(it) != null })).merge(feed.url, result.feed, clock())
                     }
                 }
                 // In the background: the dialog shouldn't wait for the website.

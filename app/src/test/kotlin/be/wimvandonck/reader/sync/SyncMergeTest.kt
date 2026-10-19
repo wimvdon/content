@@ -20,29 +20,26 @@ class SyncMergeTest {
         SyncDocument(
             folders = listOf(SyncFolder("f1", "News", "folder"), SyncFolder("f2", "Tech", "folder")),
             feeds = listOf(feed("a", folderId = "f1"), feed("b"), feed("c")),
-            read = mapOf("a 1" to 10L),
         )
 
     @Test
     fun `changes on either side are kept`() {
         val local = base.copy(feeds = base.feeds.map { if (it.url == "a") it.copy(title = "A!", renamed = true) else it })
-        val remote = base.copy(feeds = base.feeds + feed("d"), read = base.read + ("b 1" to 20L))
+        val remote = base.copy(feeds = base.feeds + feed("d"))
         val merged = SyncMerge.merge(base, local, remote)
         assertEquals(listOf("a", "b", "c", "d"), merged.feeds.map { it.url })
         assertEquals("A!", merged.feeds.first().title)
-        assertEquals(setOf("a 1", "b 1"), merged.read.keys)
     }
 
     @Test
     fun `removals on either side are kept`() {
         val local = base.copy(feeds = base.feeds.filterNot { it.url == "b" })
-        val remote = base.copy(folders = base.folders.filterNot { it.id == "f1" }, read = emptyMap())
+        val remote = base.copy(folders = base.folders.filterNot { it.id == "f1" })
         val merged = SyncMerge.merge(base, local, remote)
         assertEquals(listOf("a", "c"), merged.feeds.map { it.url })
         assertEquals(listOf("f2"), merged.folders.map { it.id })
         // Its folder is gone, so the feed is in no folder.
         assertEquals(null, merged.feeds.first().folderId)
-        assertTrue(merged.read.isEmpty())
     }
 
     @Test
@@ -64,18 +61,11 @@ class SyncMergeTest {
 
     @Test
     fun `a first sync without base combines both sides`() {
-        val local = SyncDocument(feeds = listOf(feed("a"), feed("x")), read = mapOf("x 1" to 1L))
-        val remote = SyncDocument(feeds = listOf(feed("a", title = "Remote"), feed("y")), read = mapOf("y 1" to 2L))
+        val local = SyncDocument(feeds = listOf(feed("a"), feed("x")))
+        val remote = SyncDocument(feeds = listOf(feed("a", title = "Remote"), feed("y")))
         val merged = SyncMerge.merge(null, local, remote)
         assertEquals(listOf("a", "y", "x"), merged.feeds.map { it.url })
         assertEquals("a", merged.feeds.first().title)
-        assertEquals(setOf("x 1", "y 1"), merged.read.keys)
-    }
-
-    @Test
-    fun `unread again on this device wins over the old read mark`() {
-        val local = base.copy(read = emptyMap())
-        assertTrue(SyncMerge.merge(base, local, base).read.isEmpty())
     }
 
     private val library =
@@ -91,10 +81,14 @@ class SyncMergeTest {
         )
 
     @Test
-    fun `articles this device doesn't have count as unchanged`() {
-        val withMissing = base.copy(read = base.read + ("z 9" to 5L))
-        val local = SyncMerge.localDocument(library, withMissing)
-        assertEquals(setOf("a 1", "z 9"), local.read.keys)
+    fun `a version 2 file's read marks are kept for the articles this device doesn't have`() {
+        val old = SyncDocument.decode("""{"format":"rss-reader-sync","version":2,"feeds":[{"url":"a"}],"read":{"a 1":10,"z 9":5}}""")!!
+        assertEquals(mapOf("a 1" to 10L, "z 9" to 5L), old.legacyRead)
+        val merged = SyncMerge.merge(null, SyncMerge.localDocument(library), old)
+        val applied = SyncMerge.apply(library, merged)
+        assertEquals(mapOf("z 9" to 5L), applied.readElsewhere)
+        // Never written back.
+        assertFalse(SyncDocument.encode(merged).contains("z 9"))
     }
 
     @Test
@@ -103,24 +97,23 @@ class SyncMergeTest {
             SyncDocument(
                 folders = listOf(SyncFolder("f2", "Tech", "code")),
                 feeds = listOf(feed("c", title = "C", folderId = "f2"), feed("a"), feed("new")),
-                read = mapOf("c 1" to 30L),
             )
         val applied = SyncMerge.apply(library, merged)
         assertEquals(listOf("c", "a", "new"), applied.feeds.map { it.url })
         assertEquals("C", applied.feeds.first().title)
         assertEquals("f2", applied.feeds.first().folderId)
         assertEquals(listOf("code"), applied.folders.map { it.icon })
-        // b was removed with its articles; a's article is unread again, c's is read.
+        // b was removed with its articles; read state isn't the document's (per-item sync).
         assertEquals(setOf("a 1", "c 1"), applied.articles.map { it.key }.toSet())
-        assertFalse(applied.article("a 1")!!.read)
-        assertTrue(applied.article("c 1")!!.read)
+        assertTrue(applied.article("a 1")!!.read)
+        assertFalse(applied.article("c 1")!!.read)
         assertTrue(SyncMerge.hasNewFeeds(library, merged))
         assertFalse(SyncMerge.hasNewFeeds(applied, merged))
     }
 
     @Test
     fun `syncing the same state twice changes nothing`() {
-        val doc = SyncMerge.localDocument(library, null)
+        val doc = SyncMerge.localDocument(library)
         val merged = SyncMerge.merge(doc, doc, doc)
         assertEquals(doc, merged)
         assertEquals(library, SyncMerge.apply(library, merged))

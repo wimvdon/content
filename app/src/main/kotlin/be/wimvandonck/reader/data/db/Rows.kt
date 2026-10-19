@@ -77,6 +77,24 @@ data class ItemTextRow(
     val savedAt: Long,
 )
 
+/** A read mark from another device for an article this one doesn't have (yet), see Library.readElsewhere. */
+@Entity(tableName = "read_elsewhere")
+data class ReadElsewhereRow(
+    @PrimaryKey val key: String,
+    val time: Long,
+)
+
+/**
+ * A row of per-item sync as this device last synced it (the base for merging, sync/ItemSync.kt):
+ * its key, the account's items version of it, and its JSON data.
+ */
+@Entity(tableName = "sync_rows")
+data class SyncRowRow(
+    @PrimaryKey val key: String,
+    val version: Long,
+    val data: String,
+)
+
 /** Small facts about the database itself, such as whether the old files were moved in. */
 @Entity(tableName = "meta")
 data class MetaRow(

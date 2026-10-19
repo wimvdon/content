@@ -59,7 +59,13 @@ object LibraryRows {
             tables.articles.filter { it.feedUrl in feedUrls }.map {
                 Article(it.feedUrl, it.articleId, it.title, it.link, it.author, it.html, it.publishedAt, it.fetchedAt, it.read, it.imageUrl)
             }
-        return Library(feeds = feeds, articles = articles, folders = folders, items = tables.items.map(::item))
+        return Library(
+            feeds = feeds,
+            articles = articles,
+            folders = folders,
+            items = tables.items.map(::item),
+            readElsewhere = tables.readElsewhere.associate { it.key to it.time },
+        )
     }
 
     fun item(row: ItemRow): Item =
@@ -128,9 +134,13 @@ data class LibraryChanges(
     val deletedArticles: List<String> = emptyList(),
     val items: List<Item> = emptyList(),
     val deletedItems: List<String> = emptyList(),
+    val readElsewhere: Map<String, Long> = emptyMap(),
+    val deletedReadElsewhere: List<String> = emptyList(),
 ) {
     val isEmpty: Boolean
-        get() = folders == null && feeds == null && articles.isEmpty() && deletedArticles.isEmpty() && items.isEmpty() && deletedItems.isEmpty()
+        get() =
+            folders == null && feeds == null && articles.isEmpty() && deletedArticles.isEmpty() && items.isEmpty() && deletedItems.isEmpty() &&
+                readElsewhere.isEmpty() && deletedReadElsewhere.isEmpty()
 
     companion object {
         fun between(
@@ -146,11 +156,13 @@ data class LibraryChanges(
                 deletedArticles = deletedArticles,
                 items = items,
                 deletedItems = deletedItems,
+                readElsewhere = if (old.readElsewhere === new.readElsewhere) emptyMap() else new.readElsewhere.filter { (k, v) -> old.readElsewhere[k] != v },
+                deletedReadElsewhere = if (old.readElsewhere === new.readElsewhere) emptyList() else old.readElsewhere.keys.filter { it !in new.readElsewhere },
             )
         }
 
         /** Everything in [library], to fill an empty database. */
-        fun all(library: Library) = LibraryChanges(library.folders, library.feeds, library.articles, emptyList(), library.items, emptyList())
+        fun all(library: Library) = LibraryChanges(library.folders, library.feeds, library.articles, emptyList(), library.items, emptyList(), library.readElsewhere)
 
         private fun <T> diff(
             old: List<T>,

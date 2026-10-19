@@ -6,6 +6,7 @@ import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.core.Serializer
 import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.dataStoreFile
+import be.wimvandonck.reader.data.Item
 import be.wimvandonck.reader.data.LibraryRepository
 import be.wimvandonck.reader.data.SettingsStore
 import be.wimvandonck.reader.instapaper.InstapaperAccount
@@ -32,6 +33,13 @@ import okhttp3.OkHttpClient
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+
+/** What a change must be synced for: the document's part, the items and the read articles. */
+private data class SyncedState(
+    val document: SyncDocument,
+    val items: List<Item>,
+    val read: Set<String>,
+)
 
 /** What sync is doing, for Settings. */
 sealed interface SyncStatus {
@@ -73,9 +81,12 @@ class SyncManager(
 
     private var started = false
 
-    /** The account's version this device last saved or read, to skip live messages about it. */
+    /** The account's versions (document and items) this device last saved or read, to skip live messages about them. */
     @Volatile
     private var syncedVersion: Long? = null
+
+    @Volatile
+    private var syncedItemsVersion: Long? = null
 
     @Volatile
     private var live: LiveUpdates? = null
@@ -87,9 +98,8 @@ class SyncManager(
         started = true
         // The first sync comes from whileVisible, which runs as soon as the app is on screen.
         scope.launch {
-            val saved = base()
-            syncedVersion = saved?.version
-            library.knownRead = saved?.let { SyncDocument.decode(it.text) }?.read?.keys.orEmpty()
+            syncedVersion = base()?.version
+            syncedItemsVersion = library.itemSyncState().version
         }
         scope.launch {
             // Signing in starts with a fresh base (the new account's document is combined with this
@@ -105,11 +115,11 @@ class SyncManager(
                 }
         }
         scope.launch {
-            // A change to the library or a synced setting.
+            // A change to the library (feeds, folders, items, read marks) or a synced setting.
             combine(
-                library.library.filterNotNull().map { SyncDocument.of(it) },
+                library.library.filterNotNull().map { SyncedState(SyncDocument.of(it), it.items, it.articles.filter { a -> a.read }.mapTo(HashSet()) { a -> a.key }) },
                 settings.settings.filterNotNull(),
-            ) { doc, s -> doc.copy(settings = SyncSettings.of(s)) }
+            ) { state, s -> state.copy(document = state.document.copy(settings = SyncSettings.of(s))) }
                 .distinctUntilChanged()
                 .drop(1)
                 .debounce(SyncTiming.CHANGE_DELAY_MS)
@@ -142,7 +152,9 @@ class SyncManager(
                     live?.stop()
                     live =
                         key?.let {
-                            LiveUpdates(http, it, scope) { version -> if (version != syncedVersion) scope.launch { sync() } }.also(LiveUpdates::start)
+                            LiveUpdates(http, it, scope) { versions ->
+                                if (versions.document != syncedVersion || (versions.items != null && versions.items != syncedItemsVersion)) scope.launch { sync() }
+                            }.also(LiveUpdates::start)
                         }
                 }
             }
@@ -199,8 +211,9 @@ class SyncManager(
     private suspend fun forget() {
         lock.withLock {
             baseStore.updateData { "" }
+            library.forgetItemSync()
             syncedVersion = null
-            library.knownRead = emptySet()
+            syncedItemsVersion = null
             settings.clearLastSyncedAt()
             _status.value = SyncStatus.Idle
         }
@@ -208,15 +221,15 @@ class SyncManager(
 
     private suspend fun base(): SyncBase? = baseFrom(baseStore.data.first())
 
-    private suspend fun syncWith(target: SyncTarget) {
+    private suspend fun syncWith(target: AccountClient) {
         var newFeeds = false
         val next =
-            SyncRound.run(target, base(), clock()) { base, remote ->
+            SyncRound.run(target, base()) { base, remote ->
                 val localSettings = SyncSettings.of(settings.settings.filterNotNull().first(), base?.settings.orEmpty())
                 // Merged with the library as it is right now, so changes made while the document loaded count.
                 val merged =
                     library.update { current ->
-                        val local = SyncMerge.localDocument(current, base).copy(settings = localSettings)
+                        val local = SyncMerge.localDocument(current).copy(settings = localSettings)
                         val merged = if (remote == null) local else SyncMerge.merge(base, local, remote)
                         newFeeds = newFeeds || SyncMerge.hasNewFeeds(current, merged)
                         SyncMerge.apply(current, merged) to merged
@@ -226,7 +239,11 @@ class SyncManager(
             }
         baseStore.updateData { baseText(next) }
         syncedVersion = next.version
-        library.knownRead = SyncDocument.decode(next.text)?.read?.keys.orEmpty()
+        // Then the reading list, Bookmarks and read marks, one row per item (#106).
+        val items = library.itemSyncState()
+        val nextItems = ItemSync.run(target, items, clock()) { change -> library.edit(change) }
+        library.saveItemSyncState(items, nextItems)
+        syncedItemsVersion = nextItems.version
         if (newFeeds) scope.launch { library.refreshAll() }
     }
 

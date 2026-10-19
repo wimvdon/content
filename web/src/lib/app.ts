@@ -20,7 +20,8 @@ import {
 import { applyChange, patchBookmark, sameView, type Change } from "./instapaperLibrary";
 import { problemText } from "./instapaperText";
 import { LocalSaved, type SavedService } from "./localSaved";
-import { changesBetween, loadLibrary, writeLibrary } from "./libraryStore";
+import { changesBetween, loadItemSyncState, loadLibrary, writeItemSyncState, writeLibrary } from "./libraryStore";
+import { emptyItemSyncState, syncItems } from "./syncRows";
 import { applySaved, savedData } from "./savedItems";
 import * as L from "./library";
 import { loadSaved, savedViews, type SavedArticles } from "./search";
@@ -125,7 +126,6 @@ class AppStore {
     instapaperJustSaved: null,
   };
   private listeners = new Set<() => void>();
-  private knownRead = new Set<string>();
   private syncTimer: ReturnType<typeof setTimeout> | null = null;
   private syncing: Promise<void> | null = null;
   /** A sync was asked for while one was running: it runs once more afterwards. */
@@ -172,14 +172,12 @@ class AppStore {
   async init() {
     if (this.started) return;
     this.started = true;
-    const [library, settings, base, instapaper] = await Promise.all([
+    const [library, settings, instapaper] = await Promise.all([
       loadLibrary().catch(() => undefined),
       load<Partial<Settings>>("settings").catch(() => undefined),
-      load<S.SyncBase>("syncBase").catch(() => undefined),
       load<InstapaperSession>("instapaper").catch(() => undefined),
     ]);
     const merged = { ...defaultSettings, ...settings, readerStyle: readerStyleOf(settings?.readerStyle) };
-    this.knownRead = new Set(Object.keys((typeof base?.text === "string" && S.decode(base.text)?.read) || {}));
     this.set({
       loaded: true,
       library: library ?? L.emptyLibrary(),
@@ -219,14 +217,15 @@ class AppStore {
       return;
     }
     if (this.live) return;
-    this.live = new LiveUpdates(key, (version) => {
-      if (version !== this.syncedVersion) void this.sync();
+    this.live = new LiveUpdates(key, (versions) => {
+      if (versions.document !== this.syncedVersion || (versions.items !== null && versions.items !== this.syncedItemsVersion)) void this.sync();
     });
     this.live.start();
   }
 
-  /** The account's version this browser last saved or read. */
+  /** The account's versions (document and items) this browser last saved or read. */
   private syncedVersion: number | null = null;
+  private syncedItemsVersion: number | null = null;
 
   private accountKey(): string | null {
     return this.state.instapaper?.accountKey ?? null;
@@ -247,8 +246,14 @@ class AppStore {
     if (syncSoon) this.scheduleSync(before, library);
   }
 
+  /** A change to the document's part, the items or read marks is synced soon. */
   private scheduleSync(before: L.Library, after: L.Library) {
-    if (S.encode(S.documentOf(before)) !== S.encode(S.documentOf(after))) this.syncSoon();
+    const changed =
+      S.encode(S.documentOf(before)) !== S.encode(S.documentOf(after)) ||
+      before.items !== after.items ||
+      before.articles.length !== after.articles.length ||
+      before.articles.some((a, i) => a.read !== after.articles[i].read);
+    if (changed) this.syncSoon();
   }
 
   /** Syncs a moment after the last of a row of changes. */
@@ -319,7 +324,7 @@ class AppStore {
     const now = Date.now();
     this.updateLibrary((lib) => {
       let out = lib;
-      for (const [url, parsed] of results) out = L.mergeFeed(out, url, parsed, now, this.knownRead);
+      for (const [url, parsed] of results) out = L.mergeFeed(out, url, parsed, now);
       return out;
     });
     this.set({ refreshing: false, problems });
@@ -357,7 +362,6 @@ class AppStore {
         result.url,
         result.feed,
         now,
-        this.knownRead,
       ),
     );
     void this.findIcons();
@@ -518,9 +522,10 @@ class AppStore {
   /** Forgets what was synced, so the next account starts by combining this browser's library with its own. */
   private async forgetSync() {
     if (this.syncTimer) clearTimeout(this.syncTimer);
-    this.knownRead = new Set();
     this.syncedVersion = null;
+    this.syncedItemsVersion = null;
     await remove("syncBase").catch(() => undefined);
+    await writeItemSyncState(emptyItemSyncState(), null).catch(() => undefined);
     this.updateSettings({ lastSyncedAt: null }, false);
   }
 
@@ -733,7 +738,7 @@ class AppStore {
       const next = await S.syncRound(new AccountClient(key), typeof saved?.text === "string" ? saved : null, (base, remote) => {
         // Merged with the library as it is right now, so changes made while the document loaded count.
         const current = this.state.library;
-        const local = { ...S.localDocument(current, base), settings: SS.syncedSettings(this.state.settings, base?.settings) };
+        const local = { ...S.localDocument(current), settings: SS.syncedSettings(this.state.settings, base?.settings) };
         const merged = remote ? S.merge(base, local, remote) : local;
         newFeeds ||= S.hasNewFeeds(current, merged);
         this.updateLibrary(() => S.apply(this.state.library, merged), false);
@@ -743,7 +748,15 @@ class AppStore {
       if (this.accountKey() !== key) return;
       await save("syncBase", next);
       this.syncedVersion = next.version;
-      this.knownRead = new Set(Object.keys(S.decode(next.text)?.read ?? {}));
+      // Then the reading list, Bookmarks and read marks, one row per item (#106).
+      const items = await loadItemSyncState();
+      const nextItems = await syncItems(new AccountClient(key), items, Date.now(), (change) => {
+        this.updateLibrary(change, false);
+        return this.state.library;
+      });
+      if (this.accountKey() !== key) return;
+      await writeItemSyncState(items, nextItems);
+      this.syncedItemsVersion = nextItems.version;
       this.updateSettings({ lastSyncedAt: Date.now() }, false);
       this.set({ syncStatus: { kind: "idle" } });
       if (newFeeds) void this.refresh();

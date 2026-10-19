@@ -7,7 +7,11 @@
  *  - GET    /account/sync    the document and its version (304 with If-None-Match: "<version>")
  *  - PUT    /account/sync    {"baseVersion": n, "data": {...}}: saved as n + 1, or 409 with the
  *                            current version and document when another device saved first
- *  - GET    /account/live    a WebSocket that says {"version": n} whenever the document changes
+ *  - GET    /account/items?since=n  the items changed after items version n (#106, see below)
+ *  - POST   /account/items   {"rows": [{"key", "baseVersion", "data"}]}: each row saved when nobody
+ *                            changed it since baseVersion, else returned as a conflict
+ *  - GET    /account/live    a WebSocket that says {"version": n, "items": m} whenever the document
+ *                            or the items change
  *  - POST   /account/signout forgets this device's key
  *  - DELETE /account         deletes the document and every device key
  *
@@ -17,9 +21,23 @@
  *
  * The document is compressed and encrypted (AES-256-GCM) with a key derived for this account from
  * the ACCOUNT_KEY secret. Nothing is logged.
+ *
+ * Items (#106): the reading list, bookmarks, notes, highlights and read marks are synced one row
+ * per item instead of in the document, so the account grows with the library. Each row is a key
+ * chosen by the apps (docs/sync.md) and its JSON data, or null once deleted. Rows are stored
+ * encrypted, under an id derived from the key (so the stored keys say nothing), with the items
+ * version of the save that last changed them: "changes since a version" is one list in version order.
  */
 
 import type { Env } from "./index";
+
+/** The most item rows one save may send, and one read returns (more come on the next page). */
+export const MAX_ROWS = 500;
+/** The largest item row (its JSON data) and the longest key. */
+export const MAX_ROW_BYTES = 64 * 1024;
+export const MAX_KEY_LENGTH = 2048;
+/** The largest item save (its body). */
+export const MAX_ITEMS_BODY = 4 * 1024 * 1024;
 
 /** The largest document a device may save (its JSON text). */
 export const MAX_DOCUMENT_BYTES = 8 * 1024 * 1024;
@@ -64,24 +82,26 @@ export async function handleAccount(request: Request, env: Env, url: URL): Promi
   if (ifNoneMatch) headers.set("If-None-Match", ifNoneMatch);
   if (route === "live") headers.set("Upgrade", "websocket");
   let body: string | undefined;
-  if (route === "write") {
+  if (route === "write" || route === "writeItems") {
     body = await request.text();
-    if (body.length > MAX_DOCUMENT_BYTES + 1024) return plain(413, "Too large", cors);
+    if (body.length > (route === "write" ? MAX_DOCUMENT_BYTES + 1024 : MAX_ITEMS_BODY)) return plain(413, "Too large", cors);
   }
   const stub = env.ACCOUNTS.get(env.ACCOUNTS.idFromName(accountId));
-  const answer = await stub.fetch(`https://account/${route}`, { method: request.method, headers, body });
+  const search = route === "items" ? url.search : "";
+  const answer = await stub.fetch(`https://account/${route}${search}`, { method: request.method, headers, body });
   if (answer.webSocket) return answer;
   const out = new Headers(answer.headers);
   for (const [k, v] of Object.entries(cors)) out.set(k, v);
   return new Response(answer.body, { status: answer.status, headers: out });
 }
 
-const KNOWN_PATHS = ["/account", "/account/sync", "/account/live", "/account/signout"];
+const KNOWN_PATHS = ["/account", "/account/sync", "/account/items", "/account/live", "/account/signout"];
 
-type Route = "read" | "write" | "live" | "signout" | "delete";
+type Route = "read" | "write" | "items" | "writeItems" | "live" | "signout" | "delete";
 
 function routeOf(method: string, path: string): Route | null {
   if (path === "/account/sync") return method === "GET" ? "read" : method === "PUT" ? "write" : null;
+  if (path === "/account/items") return method === "GET" ? "items" : method === "POST" ? "writeItems" : null;
   if (path === "/account/live") return method === "GET" ? "live" : null;
   if (path === "/account/signout") return method === "POST" ? "signout" : null;
   if (path === "/account") return method === "DELETE" ? "delete" : null;
@@ -116,6 +136,9 @@ export async function accountIdOf(masterKey: string, provider: string, userId: n
 export interface Storage {
   get<T>(key: string): Promise<T | undefined>;
   put<T>(key: string, value: T): Promise<void>;
+  delete(key: string): Promise<boolean>;
+  /** Entries in key order, from start on, only those with the prefix, at most limit. */
+  list<T>(options: { prefix: string; start?: string; limit?: number }): Promise<Map<string, T>>;
   deleteAll(): Promise<void>;
 }
 
@@ -126,6 +149,41 @@ interface Device {
 
 interface Stored {
   version: number;
+  iv: Uint8Array;
+  data: Uint8Array;
+}
+
+/** One item as the apps send and get it: its key, the items version that last changed it, its data (null: deleted). */
+export interface ItemRow {
+  key: string;
+  version: number;
+  data: unknown;
+}
+
+/** A row a device saves: what it was based on (0 for new) and the new data (null to delete). */
+export interface ItemChange {
+  key: string;
+  baseVersion: number;
+  data: unknown;
+}
+
+export interface ItemsPage {
+  /** The items version this page brings the device to. */
+  version: number;
+  rows: ItemRow[];
+  /** More rows after this page: ask again with since = version. */
+  more: boolean;
+}
+
+export interface ItemsWritten {
+  /** The items version after this save. */
+  version: number;
+  saved: { key: string; version: number }[];
+  /** Rows another device changed since their baseVersion: what is there now, to merge and send again. */
+  conflicts: ItemRow[];
+}
+
+interface SealedRow {
   iv: Uint8Array;
   data: Uint8Array;
 }
@@ -221,9 +279,106 @@ export class AccountData {
     });
   }
 
-  private async cipher(): Promise<CryptoKey> {
-    const raw = await derive(this.masterKey, `reader-sync:${this.accountId}`, 32);
-    return crypto.subtle.importKey("raw", raw, "AES-GCM", false, ["encrypt", "decrypt"]);
+  async itemsVersion(): Promise<number> {
+    return (await this.storage.get<number>("itemsVersion")) ?? 0;
+  }
+
+  /**
+   * The rows changed after [since], in version order. A page ends between two versions (a save's
+   * rows are never split), so the device can ask for the rest with since = page.version.
+   */
+  async readItems(since: number, limit = MAX_ROWS): Promise<ItemsPage> {
+    const current = await this.itemsVersion();
+    if (since >= current) return { version: current, rows: [], more: false };
+    const found = await this.storage.list<SealedRow>({ prefix: "v:", start: versionKey(since + 1, ""), limit: limit + 1 });
+    const entries = [...found.entries()];
+    let more = false;
+    if (entries.length > limit) {
+      more = true;
+      const lastVersion = versionOf(entries[limit][0]);
+      // Cut before the version that doesn't fit, unless it is the only one (then it comes whole).
+      const firstOfLast = entries.findIndex(([key]) => versionOf(key) === lastVersion);
+      if (firstOfLast > 0) entries.splice(firstOfLast);
+      else {
+        const all = await this.storage.list<SealedRow>({ prefix: versionKey(lastVersion, "") });
+        entries.splice(0, entries.length, ...all.entries());
+      }
+    }
+    const rows: ItemRow[] = [];
+    for (const [key, sealed] of entries) rows.push(await this.openRow(key, sealed));
+    const version = more ? versionOf(entries[entries.length - 1][0]) : current;
+    return { version, rows, more: more && version < current };
+  }
+
+  /** Saves each row whose stored version is still its baseVersion; the others come back as conflicts. */
+  writeItems(changes: ItemChange[]): Promise<ItemsWritten> {
+    return this.serial(async () => {
+      const current = await this.itemsVersion();
+      const next = current + 1;
+      const saved: { key: string; version: number }[] = [];
+      const conflicts: ItemRow[] = [];
+      const accepted: { change: ItemChange; id: string; previous: number }[] = [];
+      for (const change of changes) {
+        const id = await this.rowId(change.key);
+        const previous = (await this.storage.get<number>("r:" + id)) ?? 0;
+        if (previous !== change.baseVersion) {
+          const sealed = previous ? await this.storage.get<SealedRow>(versionKey(previous, id)) : undefined;
+          conflicts.push(sealed ? await this.openRow(versionKey(previous, id), sealed) : { key: change.key, version: previous, data: null });
+        } else {
+          accepted.push({ change, id, previous });
+        }
+      }
+      if (accepted.length === 0) return { version: current, saved, conflicts };
+      for (const { change, id, previous } of accepted) {
+        if (previous) await this.storage.delete(versionKey(previous, id));
+        await this.storage.put(versionKey(next, id), await this.sealRow(next, id, change.key, change.data));
+        await this.storage.put("r:" + id, next);
+        saved.push({ key: change.key, version: next });
+      }
+      await this.storage.put("itemsVersion", next);
+      return { version: next, saved, conflicts };
+    });
+  }
+
+  private idKey: Promise<CryptoKey> | null = null;
+
+  /** The stored id of a row: says nothing about the key without ACCOUNT_KEY. */
+  private async rowId(key: string): Promise<string> {
+    this.idKey ??= derive(this.masterKey, `reader-item-id:${this.accountId}`, 32).then((raw) =>
+      crypto.subtle.importKey("raw", raw, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]),
+    );
+    const mac = await crypto.subtle.sign("HMAC", await this.idKey, new TextEncoder().encode(key));
+    return hex(new Uint8Array(mac)).slice(0, 40);
+  }
+
+  private async sealRow(version: number, id: string, key: string, data: unknown): Promise<SealedRow> {
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const plain = new TextEncoder().encode(JSON.stringify({ key, data: data ?? null }));
+    const sealed = await crypto.subtle.encrypt({ name: "AES-GCM", iv, additionalData: this.rowLabel(version, id) }, await this.cipher(), plain);
+    return { iv, data: new Uint8Array(sealed) };
+  }
+
+  private async openRow(storageKey: string, sealed: SealedRow): Promise<ItemRow> {
+    const version = versionOf(storageKey);
+    const id = storageKey.slice(storageKey.lastIndexOf(":") + 1);
+    const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: sealed.iv, additionalData: this.rowLabel(version, id) }, await this.cipher(), sealed.data);
+    const { key, data } = JSON.parse(new TextDecoder().decode(plain)) as { key: string; data: unknown };
+    return { key, version, data };
+  }
+
+  /** Ties an encrypted row to its account, id and version, so it can't be moved or rolled back. */
+  private rowLabel(version: number, id: string): Uint8Array {
+    return new TextEncoder().encode(`${this.accountId}:item:${id}:${version}`);
+  }
+
+  private cipherKey: Promise<CryptoKey> | null = null;
+
+  /** The account's encryption key, worked out once per Durable Object. */
+  private cipher(): Promise<CryptoKey> {
+    this.cipherKey ??= derive(this.masterKey, `reader-sync:${this.accountId}`, 32).then((raw) =>
+      crypto.subtle.importKey("raw", raw, "AES-GCM", false, ["encrypt", "decrypt"]),
+    );
+    return this.cipherKey;
   }
 
   private async seal(version: number, text: string): Promise<Stored> {
@@ -249,6 +404,43 @@ export class AccountData {
 }
 
 export class TooLarge extends Error {}
+
+/** The storage key of a row: versions padded so they sort as numbers. */
+function versionKey(version: number, id: string): string {
+  return `v:${String(version).padStart(15, "0")}:${id}`;
+}
+
+function versionOf(storageKey: string): number {
+  return Number(storageKey.slice(2, 17));
+}
+
+/** What a device may save to /account/items, or null when it isn't that. */
+export function itemChanges(body: string): ItemChange[] | null {
+  let value: unknown;
+  try {
+    value = JSON.parse(body);
+  } catch {
+    return null;
+  }
+  if (!isObject(value) || !Array.isArray(value.rows) || value.rows.length > MAX_ROWS) return null;
+  const changes: ItemChange[] = [];
+  const keys = new Set<string>();
+  for (const row of value.rows) {
+    if (!isObject(row) || typeof row.key !== "string" || row.key.length === 0 || row.key.length > MAX_KEY_LENGTH || keys.has(row.key)) return null;
+    if (!Number.isSafeInteger(row.baseVersion) || (row.baseVersion as number) < 0) return null;
+    const data = row.data ?? null;
+    if (data !== null && (!isObject(data) || JSON.stringify(data).length > MAX_ROW_BYTES)) return null;
+    keys.add(row.key);
+    changes.push({ key: row.key, baseVersion: row.baseVersion as number, data });
+  }
+  return changes;
+}
+
+/** The since=n of /account/items (0 when missing), or null when it isn't a version. */
+export function sinceOf(url: string): number | null {
+  const since = new URL(url).searchParams.get("since") ?? "0";
+  return /^\d{1,15}$/.test(since) ? Number(since) : null;
+}
 
 /** What a device may save: a sync document (docs/sync.md) as JSON text, or null when it isn't one. */
 export function documentText(body: string): { baseVersion: number; text: string } | null {
@@ -294,6 +486,16 @@ export async function answer(data: AccountData, route: string, request: Request)
         throw e;
       }
     }
+    case "items": {
+      const since = sinceOf(request.url);
+      if (since === null) return plain(400, "Give since=<items version>");
+      return json(await data.readItems(since));
+    }
+    case "writeItems": {
+      const changes = itemChanges(await request.text());
+      if (!changes) return plain(400, `Send {"rows": [{"key", "baseVersion", "data"}]}, at most ${MAX_ROWS}`);
+      return json(await data.writeItems(changes));
+    }
     case "signout":
       await data.removeDevice(secret);
       return new Response(null, { status: 204 });
@@ -326,13 +528,16 @@ export class Account {
       // Hibernation: an open, quiet connection costs nothing, and "ping" is answered without waking.
       this.state.acceptWebSocket(server);
       this.state.setWebSocketAutoResponse(new WebSocketRequestResponsePair("ping", "pong"));
-      server.send(JSON.stringify({ version: await this.data.version() }));
+      server.send(JSON.stringify({ version: await this.data.version(), items: await this.data.itemsVersion() }));
       return new Response(null, { status: 101, webSocket: client });
     }
 
     const response = await answer(this.data, route, request);
-    if (route === "write" && response.status === 200) {
-      const message = JSON.stringify(await response.clone().json());
+    const changed =
+      (route === "write" && response.status === 200) ||
+      (route === "writeItems" && response.status === 200 && ((await response.clone().json()) as ItemsWritten).saved.length > 0);
+    if (changed) {
+      const message = JSON.stringify({ version: await this.data.version(), items: await this.data.itemsVersion() });
       for (const ws of this.state.getWebSockets()) {
         try {
           ws.send(message);

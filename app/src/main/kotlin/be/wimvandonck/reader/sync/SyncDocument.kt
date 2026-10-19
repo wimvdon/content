@@ -21,40 +21,35 @@ data class SyncFeed(
 )
 
 /**
- * The sync file shared by every device and the web app: folders and feeds in the user's order,
- * the read articles (article key → the article's date, used to forget old ones) and the settings
- * (shared name → text value, see [SyncSettings]). The format is documented in docs/sync.md.
+ * The sync file shared by every device and the web app: folders and feeds in the user's order and
+ * the settings (shared name → text value, see [SyncSettings]). Read marks, the reading list and
+ * Bookmarks sync per item instead ([ItemSync], #106). The format is documented in docs/sync.md.
  */
 data class SyncDocument(
     val folders: List<SyncFolder> = emptyList(),
     val feeds: List<SyncFeed> = emptyList(),
-    val read: Map<String, Long> = emptyMap(),
     val settings: Map<String, String> = emptyMap(),
+    /**
+     * The read marks of a version 2 file (article key → the article's date), only when reading
+     * one: the first sync of this version moves them to per-item sync. Never written.
+     */
+    val legacyRead: Map<String, Long> = emptyMap(),
 ) {
-    /** Leaves out read marks of removed feeds and of articles older than [keepSince]. */
-    fun pruned(keepSince: Long): SyncDocument {
-        val urls = feeds.mapTo(HashSet()) { it.url }
-        return copy(read = read.filter { (key, time) -> time >= keepSince && feedUrlOf(key) in urls })
-    }
-
     companion object {
         const val FORMAT = "rss-reader-sync"
-        // 2 added settings. Older apps leave a version 2 file alone and ask to be updated, rather
-        // than writing it back without the settings.
-        const val VERSION = 2L
+        // 2 added settings; 3 moved the read marks to per-item sync (#106). Older apps leave a
+        // newer file alone and ask to be updated, rather than writing it back without what they
+        // don't know.
+        const val VERSION = 3L
 
         /** Read marks older than this are dropped from the file (feeds rarely go back further). */
         const val KEEP_READ_MS = 120L * 24 * 60 * 60 * 1000
-
-        /** The feed address in an article key ("<feed url> <article id>"). */
-        fun feedUrlOf(key: String): String = key.substringBefore(' ')
 
         /** What [library] holds that is synced. */
         fun of(library: Library): SyncDocument =
             SyncDocument(
                 folders = library.folders.map { SyncFolder(it.id, it.title, it.icon) },
                 feeds = library.feeds.map { SyncFeed(it.url, it.title, it.renamed, it.folderId, it.siteUrl, it.iconUrl) },
-                read = library.articles.filter { it.read }.associate { it.key to it.sortTime },
             )
 
         fun encode(doc: SyncDocument): String =
@@ -74,7 +69,6 @@ data class SyncDocument(
                                 "iconUrl" to it.iconUrl,
                             )
                         },
-                    "read" to doc.read.toSortedMap(),
                     "settings" to doc.settings.toSortedMap(),
                 ),
             )
@@ -121,7 +115,7 @@ data class SyncDocument(
                     val value = v as? String ?: return@mapNotNull null
                     key to value
                 }.toMap()
-            return SyncDocument(folders, feeds, read, settings)
+            return SyncDocument(folders, feeds, settings, legacyRead = if (version < 3) read else emptyMap())
         }
     }
 }

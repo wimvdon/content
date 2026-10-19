@@ -26,7 +26,7 @@ object SyncMerge {
         // were in the file) takes the file's, so its defaults don't overwrite the user's choices.
         val settings =
             if (b.settings.isEmpty()) local.settings + remote.settings else mergeSettings(b.settings, local.settings, remote.settings)
-        return SyncDocument(folders, feeds, mergeRead(b.read, local.read, remote.read), settings)
+        return SyncDocument(folders, feeds, settings, legacyRead = remote.legacyRead)
     }
 
     /** Per setting: a change on this device wins, otherwise the other devices' value (or its removal). */
@@ -71,44 +71,13 @@ object SyncMerge {
         return order.map { merged.getValue(it) }
     }
 
-    private fun mergeRead(
-        base: Map<String, Long>,
-        local: Map<String, Long>,
-        remote: Map<String, Long>,
-    ): Map<String, Long> {
-        val result = HashMap<String, Long>()
-        for (k in (base.keys + local.keys + remote.keys)) {
-            val inBase = k in base
-            val inLocal = k in local
-            val inRemote = k in remote
-            val read = if (inLocal == inBase) inRemote else inLocal
-            if (read) result[k] = local[k] ?: remote[k] ?: base.getValue(k)
-        }
-        return result
-    }
-
-    /**
-     * What this device knows about read state, for [merge]: articles it has are read or not;
-     * articles it doesn't have (not downloaded yet, or dropped as too old) count as unchanged.
-     */
-    fun localRead(
-        library: Library,
-        base: SyncDocument?,
-    ): Map<String, Long> {
-        val have = library.articles.mapTo(HashSet()) { it.key }
-        val unknown = base?.read.orEmpty().filterKeys { it !in have }
-        return unknown + library.articles.filter { it.read }.associate { it.key to it.sortTime }
-    }
-
     /** What this device sends to [merge] as its side. */
-    fun localDocument(
-        library: Library,
-        base: SyncDocument?,
-    ): SyncDocument = SyncDocument.of(library).copy(read = localRead(library, base))
+    fun localDocument(library: Library): SyncDocument = SyncDocument.of(library)
 
     /**
      * Makes [library] match [merged]: folders and feeds (new feeds start without articles until
-     * the next refresh; removed ones lose theirs) and the read state of the articles it has.
+     * the next refresh; removed ones lose theirs). A version 2 file's read marks ([SyncDocument.legacyRead])
+     * are kept for the articles this device doesn't have, so per-item sync takes them over.
      */
     fun apply(
         library: Library,
@@ -126,17 +95,14 @@ object SyncMerge {
                 )
             }
         val urls = feeds.mapTo(HashSet()) { it.url }
-        val articles =
-            library.articles
-                .filter { it.feedUrl in urls }
-                .map { a ->
-                    val read = a.key in merged.read
-                    if (a.read == read) a else a.copy(read = read)
-                }
+        val articles = library.articles.filter { it.feedUrl in urls }
+        val have = articles.mapTo(HashSet()) { it.key }
+        val legacy = merged.legacyRead.filterKeys { it !in have && it !in library.readElsewhere }
         return library.copy(
             feeds = feeds,
-            articles = articles,
+            articles = if (articles.size == library.articles.size) library.articles else articles,
             folders = merged.folders.map { Folder(it.id, it.title, it.icon) },
+            readElsewhere = if (legacy.isEmpty()) library.readElsewhere else library.readElsewhere + legacy,
         )
     }
 

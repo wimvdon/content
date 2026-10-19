@@ -68,7 +68,8 @@ class AccountClient(
     private val http: OkHttpClient,
     private val key: String,
     private val base: String = BASE_URL,
-) : SyncTarget {
+) : SyncTarget,
+    ItemsTarget {
     override suspend fun read(knownVersion: Long?): Versioned? {
         val request = request("/account/sync").apply { if (knownVersion != null) header("If-None-Match", "\"$knownVersion\"") }.get().build()
         return call(request) { code, text -> if (code == 304) null else documentFrom(text) }
@@ -82,6 +83,13 @@ class AccountClient(
         return call(request("/account/sync").put(body).build(), alsoOk = 409) { code, answer ->
             if (code == 409) WriteResult.Conflict(documentFrom(answer)) else WriteResult.Saved(versionFrom(answer))
         }
+    }
+
+    override suspend fun readItems(since: Long): ItemsPage = call(request("/account/items?since=$since").get().build()) { _, text -> itemsPageFrom(text) }
+
+    override suspend fun writeItems(rows: List<ItemChange>): ItemsWritten {
+        val body = Json.write(mapOf("rows" to rows.map { linkedMapOf("key" to it.key, "baseVersion" to it.baseVersion, "data" to it.data) }))
+        return call(request("/account/items").post(body.toRequestBody(JSON_TYPE)).build()) { _, text -> itemsWrittenFrom(text) }
     }
 
     /** Forgets this device's key on the server. */
@@ -148,6 +156,35 @@ class AccountClient(
         fun versionFrom(text: String): Long =
             ((runCatching { Json.parse(text) }.getOrNull() as? Map<*, *>)?.get("version") as? Number)?.toLong()
                 ?: throw SyncException(SyncProblem.ServerError)
+
+        private fun rowsFrom(value: Any?): List<ItemRow> =
+            (value as? List<*>).orEmpty().mapNotNull { r ->
+                val m = r as? Map<*, *> ?: return@mapNotNull null
+                val key = m["key"] as? String ?: return@mapNotNull null
+                val version = (m["version"] as? Number)?.toLong() ?: return@mapNotNull null
+                @Suppress("UNCHECKED_CAST")
+                ItemRow(key, version, m["data"] as? Map<String, Any?>)
+            }
+
+        /** `{"version": n, "rows": [...], "more": bool}`. */
+        fun itemsPageFrom(text: String): ItemsPage {
+            val map = runCatching { Json.parse(text) }.getOrNull() as? Map<*, *> ?: throw SyncException(SyncProblem.ServerError)
+            val version = (map["version"] as? Number)?.toLong() ?: throw SyncException(SyncProblem.ServerError)
+            return ItemsPage(version, rowsFrom(map["rows"]), map["more"] == true)
+        }
+
+        /** `{"version": n, "saved": [{"key", "version"}], "conflicts": [...]}`. */
+        fun itemsWrittenFrom(text: String): ItemsWritten {
+            val map = runCatching { Json.parse(text) }.getOrNull() as? Map<*, *> ?: throw SyncException(SyncProblem.ServerError)
+            val version = (map["version"] as? Number)?.toLong() ?: throw SyncException(SyncProblem.ServerError)
+            val saved =
+                (map["saved"] as? List<*>).orEmpty().mapNotNull { s ->
+                    val m = s as? Map<*, *> ?: return@mapNotNull null
+                    val key = m["key"] as? String ?: return@mapNotNull null
+                    key to ((m["version"] as? Number)?.toLong() ?: return@mapNotNull null)
+                }.toMap()
+            return ItemsWritten(version, saved, rowsFrom(map["conflicts"]))
+        }
 
         /** The live connection's address (see [LiveUpdates]). */
         fun liveUrl(

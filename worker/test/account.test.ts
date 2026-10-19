@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Account, AccountData, MAX_DEVICES, accountIdOf, documentText, knownVersionOf, type Storage } from "../src/account";
+import { Account, AccountData, MAX_DEVICES, MAX_ROWS, accountIdOf, documentText, itemChanges, knownVersionOf, sinceOf, type ItemsPage, type ItemsWritten, type Storage } from "../src/account";
 import { handle, type Env } from "../src/index";
 import { TOKEN_URL } from "../src/instapaper";
 
@@ -13,6 +13,13 @@ class MemoryStorage implements Storage {
   }
   async put<T>(key: string, value: T) {
     this.map.set(key, structuredClone(value));
+  }
+  async delete(key: string) {
+    return this.map.delete(key);
+  }
+  async list<T>({ prefix, start, limit }: { prefix: string; start?: string; limit?: number }) {
+    const keys = [...this.map.keys()].filter((k) => k.startsWith(prefix) && (start === undefined || k >= start)).sort();
+    return new Map(keys.slice(0, limit ?? keys.length).map((k) => [k, this.map.get(k) as T]));
   }
   async deleteAll() {
     this.map.clear();
@@ -243,5 +250,113 @@ describe("helpers", () => {
     expect(documentText("nope")).toBeNull();
     expect(documentText(JSON.stringify({ baseVersion: -1, data: doc() }))).toBeNull();
     expect(documentText(JSON.stringify({ baseVersion: 1.5, data: doc() }))).toBeNull();
+  });
+});
+
+describe("/account/items (#106)", () => {
+  const row = (key: string, baseVersion: number, data: unknown) => ({ key, baseVersion, data });
+  const items = async (env: Env, key: string, since = 0) => (await (await call(env, "GET", `/account/items?since=${since}`, key)).json()) as ItemsPage;
+  const write = async (env: Env, key: string, rows: unknown[]) => {
+    const response = await call(env, "POST", "/account/items", key, { rows });
+    expect(response.status).toBe(200);
+    return (await response.json()) as ItemsWritten;
+  };
+
+  it("starts empty, saves rows and sends the changes since a version", async () => {
+    const { env } = accounts();
+    const phone = await signIn(env);
+    const laptop = await signIn(env);
+    expect(await items(env, phone)).toEqual({ version: 0, rows: [], more: false });
+
+    expect(await write(env, phone, [row("item:a", 0, { title: "A" }), row("read:f 1", 0, { time: 5 })])).toEqual({
+      version: 1,
+      saved: [
+        { key: "item:a", version: 1 },
+        { key: "read:f 1", version: 1 },
+      ],
+      conflicts: [],
+    });
+    expect(await write(env, phone, [row("item:a", 1, { title: "A2" })])).toMatchObject({ version: 2 });
+
+    const all = await items(env, laptop);
+    expect(all.version).toBe(2);
+    expect(all.rows).toEqual([
+      { key: "read:f 1", version: 1, data: { time: 5 } },
+      { key: "item:a", version: 2, data: { title: "A2" } },
+    ]);
+    expect((await items(env, laptop, 1)).rows).toEqual([{ key: "item:a", version: 2, data: { title: "A2" } }]);
+    expect(await items(env, laptop, 2)).toEqual({ version: 2, rows: [], more: false });
+  });
+
+  it("returns a row changed by another device as a conflict, and saves the others", async () => {
+    const { env } = accounts();
+    const phone = await signIn(env);
+    const laptop = await signIn(env);
+    await write(env, phone, [row("item:a", 0, { title: "phone" })]);
+    const answer = await write(env, laptop, [row("item:a", 0, { title: "laptop" }), row("item:b", 0, { title: "B" })]);
+    expect(answer.saved).toEqual([{ key: "item:b", version: 2 }]);
+    expect(answer.conflicts).toEqual([{ key: "item:a", version: 1, data: { title: "phone" } }]);
+    // Merged and sent again with the version it now knows.
+    expect((await write(env, laptop, [row("item:a", 1, { title: "both" })])).saved).toEqual([{ key: "item:a", version: 3 }]);
+  });
+
+  it("keeps deleted rows as null, so other devices learn of the removal", async () => {
+    const { env } = accounts();
+    const key = await signIn(env);
+    await write(env, key, [row("item:a", 0, { title: "A" })]);
+    await write(env, key, [row("item:a", 1, null)]);
+    expect((await items(env, key)).rows).toEqual([{ key: "item:a", version: 2, data: null }]);
+    // Made again: the device that doesn't know the removal gets a conflict with it.
+    const answer = await write(env, key, [row("item:a", 0, { title: "again" })]);
+    expect(answer.conflicts).toEqual([{ key: "item:a", version: 2, data: null }]);
+  });
+
+  it("pages between saves", async () => {
+    const { env } = accounts();
+    const key = await signIn(env);
+    const many = (from: number, n: number) => Array.from({ length: n }, (_, i) => row(`read:${from + i}`, 0, { time: i }));
+    await write(env, key, many(0, MAX_ROWS));
+    await write(env, key, many(MAX_ROWS, 10));
+    const first = await items(env, key);
+    expect(first).toMatchObject({ version: 1, more: true });
+    expect(first.rows).toHaveLength(MAX_ROWS);
+    const second = await items(env, key, first.version);
+    expect(second).toMatchObject({ version: 2, more: false });
+    expect(second.rows).toHaveLength(10);
+  });
+
+  it("stores rows encrypted, under ids that don't show the key", async () => {
+    const { env, objects } = accounts();
+    const key = await signIn(env);
+    await write(env, key, [row("item:secret.example/story", 0, { url: "https://secret.example/story" })]);
+    const stored = [...objects.values()][0].storage.map;
+    for (const [name, value] of stored) {
+      expect(name).not.toContain("secret");
+      const bytes = (value as { data?: Uint8Array })?.data;
+      if (bytes) expect(new TextDecoder().decode(bytes)).not.toContain("secret.example");
+    }
+  });
+
+  it("refuses what isn't a list of rows", async () => {
+    const { env } = accounts();
+    const key = await signIn(env);
+    expect((await call(env, "POST", "/account/items", key, { rows: [row("a", -1, null)] })).status).toBe(400);
+    expect((await call(env, "GET", "/account/items?since=x", key)).status).toBe(400);
+    expect((await call(env, "PUT", "/account/items", key, { rows: [] })).status).toBe(405);
+    expect(itemChanges(JSON.stringify({ rows: [row("a", 0, null), row("a", 0, null)] }))).toBeNull();
+    expect(itemChanges(JSON.stringify({ rows: [row("a", 0, [1])] }))).toBeNull();
+    expect(itemChanges(JSON.stringify({ rows: Array.from({ length: MAX_ROWS + 1 }, (_, i) => row(`k${i}`, 0, null)) }))).toBeNull();
+    expect(itemChanges(JSON.stringify({ rows: [row("a", 0, { x: 1 })] }))).toEqual([{ key: "a", baseVersion: 0, data: { x: 1 } }]);
+    expect(sinceOf("https://x/account/items")).toBe(0);
+    expect(sinceOf("https://x/account/items?since=12")).toBe(12);
+  });
+
+  it("deletes the rows with the account", async () => {
+    const { env } = accounts();
+    const key = await signIn(env);
+    await write(env, key, [row("item:a", 0, { title: "A" })]);
+    await call(env, "DELETE", "/account", key);
+    const again = await signIn(env);
+    expect(await items(env, again)).toEqual({ version: 0, rows: [], more: false });
   });
 });
