@@ -309,4 +309,6 @@
         <item quantity="many">%d segnalibri</item>
         <item quantity="other">%d segnalibri</item>
     </plurals>
+    <string name="setting_tag_with_folder_title">Tagga con la cartella del feed</string>
+    <string name="setting_tag_with_folder_summary">Un articolo salvato da un feed riceve il nome della sua cartella come tag.</string>
 </resources>

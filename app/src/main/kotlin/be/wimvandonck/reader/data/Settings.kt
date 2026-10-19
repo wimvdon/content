@@ -141,6 +141,8 @@ data class Settings(
     val listView: ListView = ListView.Medium,
     /** Each device keeps its own, like the list view. */
     val bookmarksView: BookmarksView = BookmarksView.Grid,
+    /** Tag an article saved from a feed with the feed's folder (#120). */
+    val tagWithFolder: Boolean = true,
     /** When the last sync succeeded, or null. */
     val lastSyncedAt: Long? = null,
 )

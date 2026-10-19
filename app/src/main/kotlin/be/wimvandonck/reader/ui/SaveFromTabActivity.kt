@@ -14,6 +14,7 @@ import be.wimvandonck.reader.data.Bookmarks
 import be.wimvandonck.reader.data.Item
 import be.wimvandonck.reader.data.SaveTo
 import be.wimvandonck.reader.data.itemTags
+import be.wimvandonck.reader.data.tagWithFeedFolder
 import be.wimvandonck.reader.instapaper.SharedLink
 import be.wimvandonck.reader.rssReaderApp
 import be.wimvandonck.reader.ui.reader.SaveSheet
@@ -60,6 +61,7 @@ private fun SaveFromTab(
     val resources = LocalResources.current
     val app = context.rssReaderApp
     val library = app.library.library.collectAsStateWithLifecycle().value ?: return
+    val tagWithFolder = app.settings.settings.collectAsStateWithLifecycle().value?.tagWithFolder ?: true
 
     // The save sheet, as for links shared to Reader (#108): the reading list or a bookmark.
     SaveSheet(
@@ -74,7 +76,7 @@ private fun SaveFromTab(
                 app.library.edit { lib ->
                     val (updated, item) = Bookmarks.save(lib, url, link.title, to, System.currentTimeMillis(), collection, note, tags)
                     saved = item
-                    updated
+                    if (item != null && tagWithFolder) updated.tagWithFeedFolder(item.key) else updated
                 }
                 val item = saved
                 val message = if (item == null) R.string.add_link_invalid else if (to == SaveTo.Bookmark) R.string.bookmark_saved else R.string.reading_list_added

@@ -59,6 +59,7 @@ class SettingsActions(
     val onListViewChange: (ListView) -> Unit,
     val onSaveTargetChange: (ShareTarget) -> Unit,
     val onShareTargetChange: (ShareTarget) -> Unit,
+    val onTagWithFolderChange: (Boolean) -> Unit = {},
     val onThemeModeChange: (ThemeMode) -> Unit,
     val onDynamicColorChange: (Boolean) -> Unit,
     val onSignIn: () -> Unit,
@@ -102,6 +103,8 @@ fun SettingsScreen(
                 onShareTargetChange = actions.onShareTargetChange,
                 // Signed in to Instapaper, Save goes straight to the account.
                 showSaveTarget = state.instapaper !is InstapaperState.SignedIn,
+                tagWithFolder = state.settings.tagWithFolder,
+                onTagWithFolderChange = actions.onTagWithFolderChange,
             )
         }
         item(key = "appearance") { AppearanceSection(state.settings, actions) }

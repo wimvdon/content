@@ -299,4 +299,6 @@
         <item quantity="one">%d bookmark</item>
         <item quantity="other">%d bookmarks</item>
     </plurals>
+    <string name="setting_tag_with_folder_title">Tag with the feed’s folder</string>
+    <string name="setting_tag_with_folder_summary">An article you save from a feed gets its folder’s name as a tag.</string>
 </resources>

@@ -131,4 +131,21 @@ class LibraryItemsTest {
         assertTrue(library.articles.isEmpty())
         assertEquals(1, library.items.size)
     }
+
+    @Test
+    fun `a saved feed article is tagged with its feed's folder, in the spelling already in use`() {
+        val inFolder = withArticle.addFolder(Folder("f", "Tech", "devices")).moveFeed(feed, "f")
+        val (library, item) = inFolder.addToReadingList("https://example.com/story", null, 1)
+        assertEquals(listOf("Tech"), library.tagWithFeedFolder(item!!.key).item(item.key)!!.tags)
+        // A tag "tech" already in use keeps its spelling, and isn't added twice.
+        val other = library.addToReadingList("https://other.example/x", null, 2).first.setTags("other.example/x", listOf("tech"))
+        assertEquals(listOf("tech"), other.tagWithFeedFolder(item.key).item(item.key)!!.tags)
+        val twice = other.tagWithFeedFolder(item.key).tagWithFeedFolder(item.key)
+        assertEquals(listOf("tech"), twice.item(item.key)!!.tags)
+        // A feed outside folders, or a link that isn't a feed article: nothing.
+        val loose = withArticle.addToReadingList("https://example.com/story", null, 1).first
+        assertSame(loose, loose.tagWithFeedFolder("example.com/story"))
+        val elsewhere = inFolder.addToReadingList("https://elsewhere.example/a", null, 1).first
+        assertSame(elsewhere, elsewhere.tagWithFeedFolder("elsewhere.example/a"))
+    }
 }
