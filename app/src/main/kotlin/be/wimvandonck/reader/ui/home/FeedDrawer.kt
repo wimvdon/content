@@ -47,14 +47,16 @@ import be.wimvandonck.reader.R
 import be.wimvandonck.reader.data.Feed
 import be.wimvandonck.reader.data.FeedSelection
 import be.wimvandonck.reader.data.Folder
-import be.wimvandonck.reader.instapaper.InstapaperView
+import be.wimvandonck.reader.data.ReadingListFilter
+import be.wimvandonck.reader.data.ReadingListTab
+import be.wimvandonck.reader.data.itemTags
 
 /**
- * The app's navigation: Feeds and, when signed in, Instapaper as two sections that fold open and
- * shut. Feeds: All articles, each folder with its feeds and the feeds outside folders (each with
- * its unread count). Saved (Instapaper, or this phone): Saved, Liked, its folders, its tags and Archive. Then Manage feeds,
- * Manage Instapaper and Settings. The same wherever the app is (DESIGN.md), with the section
- * being shown open and the other folded shut.
+ * The app's navigation: Feeds and the reading list as sections that fold open and shut. Feeds: All
+ * articles, each folder with its feeds and the feeds outside folders (each with its unread count).
+ * Reading list: To read, Liked, its tags and Archive. Then Manage feeds, Tags, Connected services
+ * and Settings. The same wherever the app is (DESIGN.md), with the section being shown open and the
+ * other folded shut.
  */
 @Composable
 fun FeedDrawer(
@@ -65,18 +67,20 @@ fun FeedDrawer(
     onSelect: (FeedSelection) -> Unit,
     onOpenSettings: () -> Unit,
     onOpenFeeds: () -> Unit,
-    onOpenInstapaperManage: () -> Unit = {},
-    instapaper: InstapaperHome? = null,
-    onSelectInstapaper: (InstapaperView) -> Unit = {},
+    onOpenTagsManage: () -> Unit = {},
+    onOpenServices: () -> Unit = {},
+    readingList: ReadingListHome? = null,
+    inReadingList: Boolean = false,
+    toReadCount: Int = 0,
+    onReadingListFilter: (ReadingListFilter) -> Unit = {},
 ) {
-    // While an Instapaper list is shown, no feed section is selected.
+    // While the reading list is shown, no feed section is selected.
     @Suppress("NAME_SHADOWING")
-    val selection: FeedSelection? = selection.takeIf { instapaper?.view == null }
+    val selection: FeedSelection? = selection.takeIf { !inReadingList }
     // The section you're in is open, the other folded shut, so the drawer stays short. Folding by
     // hand lasts until you go to the other section.
-    val inInstapaper = instapaper?.view != null
-    var feedsOpen by rememberSaveable(inInstapaper) { mutableStateOf(!inInstapaper) }
-    var instapaperOpen by rememberSaveable(inInstapaper) { mutableStateOf(inInstapaper) }
+    var feedsOpen by rememberSaveable(inReadingList) { mutableStateOf(!inReadingList) }
+    var readingOpen by rememberSaveable(inReadingList) { mutableStateOf(inReadingList) }
     ModalDrawerSheet {
         Column(
             Modifier
@@ -142,16 +146,16 @@ fun FeedDrawer(
                     }
                 }
             }
-            if (instapaper != null) {
+            if (readingList != null) {
                 SectionHeader(
-                    title = stringResource(R.string.section_saved),
-                    open = instapaperOpen,
-                    count = 0,
-                    onToggle = { instapaperOpen = !instapaperOpen },
+                    title = stringResource(R.string.reading_list_title),
+                    open = readingOpen,
+                    count = if (readingOpen) 0 else toReadCount,
+                    onToggle = { readingOpen = !readingOpen },
                     modifier = Modifier.padding(top = 8.dp),
                 )
-                AnimatedVisibility(visible = instapaperOpen, enter = expandVertically(), exit = shrinkVertically()) {
-                    Column { InstapaperSection(instapaper, onSelectInstapaper) }
+                AnimatedVisibility(visible = readingOpen, enter = expandVertically(), exit = shrinkVertically()) {
+                    Column { ReadingListSection(readingList.filter.takeIf { inReadingList }, readingList.library.itemTags(), toReadCount, onReadingListFilter) }
                 }
             }
             HorizontalDivider(Modifier.padding(vertical = 12.dp, horizontal = 16.dp))
@@ -161,14 +165,18 @@ fun FeedDrawer(
                 selected = false,
                 onClick = onOpenFeeds,
             )
-            if (instapaper != null) {
-                NavigationDrawerItem(
-                    label = { Text(stringResource(if (instapaper.list.account) R.string.menu_manage_instapaper else R.string.menu_manage_saved)) },
-                    icon = { Icon(painterResource(R.drawable.ic_manage_instapaper), contentDescription = null) },
-                    selected = false,
-                    onClick = onOpenInstapaperManage,
-                )
-            }
+            NavigationDrawerItem(
+                label = { Text(stringResource(R.string.menu_manage_tags)) },
+                icon = { Icon(painterResource(R.drawable.ic_tags), contentDescription = null) },
+                selected = false,
+                onClick = onOpenTagsManage,
+            )
+            NavigationDrawerItem(
+                label = { Text(stringResource(R.string.services_title)) },
+                icon = { Icon(painterResource(R.drawable.ic_sync_alt), contentDescription = null) },
+                selected = false,
+                onClick = onOpenServices,
+            )
             NavigationDrawerItem(
                 label = { Text(stringResource(R.string.menu_settings)) },
                 icon = { Icon(painterResource(R.drawable.ic_settings), contentDescription = null) },
@@ -225,31 +233,35 @@ private fun SectionHeader(
 }
 
 @Composable
-private fun InstapaperSection(
-    instapaper: InstapaperHome,
-    onSelect: (InstapaperView) -> Unit,
+private fun ReadingListSection(
+    /** The list shown, or null while Feeds is shown. */
+    shown: ReadingListFilter?,
+    tags: List<String>,
+    toReadCount: Int,
+    onSelect: (ReadingListFilter) -> Unit,
 ) {
     @Composable
     fun item(
-        view: InstapaperView,
+        filter: ReadingListFilter,
         label: String,
         icon: Int,
+        badge: Int = 0,
     ) = NavigationDrawerItem(
         label = { Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
         icon = { Icon(painterResource(icon), contentDescription = null) },
-        selected = instapaper.view == view,
-        onClick = { onSelect(view) },
+        badge = { UnreadBadge(badge) },
+        selected = shown == filter,
+        onClick = { onSelect(filter) },
     )
-    item(InstapaperView.Home, stringResource(R.string.saved_list), R.drawable.ic_article)
-    item(InstapaperView.Liked, stringResource(R.string.instapaper_liked), R.drawable.ic_favorite)
-    for (folder in instapaper.folders) item(InstapaperView.InFolder(folder.id), folder.title, R.drawable.ic_folder)
-    if (instapaper.tags.isNotEmpty()) {
-        SectionHeading(stringResource(R.string.instapaper_tags))
-        for (tag in instapaper.tags) item(InstapaperView.WithTag(tag.name), tag.name, R.drawable.ic_label)
+    item(ReadingListFilter(), stringResource(R.string.reading_list_to_read), R.drawable.ic_reading_list, toReadCount)
+    item(ReadingListFilter(likedOnly = true), stringResource(R.string.reading_list_liked), R.drawable.ic_favorite)
+    if (tags.isNotEmpty()) {
+        SectionHeading(stringResource(R.string.tags_title))
+        for (tag in tags) item(ReadingListFilter(tag = tag), tag, R.drawable.ic_label)
     }
     // Archive last, set apart so it doesn't read as one of the tags.
     HorizontalDivider(Modifier.padding(vertical = 8.dp, horizontal = 16.dp))
-    item(InstapaperView.Archive, stringResource(R.string.instapaper_archive_list), R.drawable.ic_archive)
+    item(ReadingListFilter(ReadingListTab.Archive), stringResource(R.string.reading_list_archive), R.drawable.ic_inventory)
 }
 
 @Composable

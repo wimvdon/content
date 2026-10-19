@@ -1,11 +1,9 @@
 package be.wimvandonck.reader.data
 
-import be.wimvandonck.reader.instapaper.InstapaperBookmark
-
 /** Which kind of results Search shows: the chips above the results. */
-enum class SearchFilter { All, Feeds, Saved }
+enum class SearchFilter { All, Feeds, ReadingList }
 
-/** One search result: a feed article or a saved article, with how well it matches. */
+/** One search result: a feed article or an item of the reading list, with how well it matches. */
 sealed interface SearchHit {
     val relevance: Int
 
@@ -19,19 +17,18 @@ sealed interface SearchHit {
         override val time: Long get() = article.sortTime
     }
 
-    data class FromSaved(
-        val bookmark: InstapaperBookmark,
+    data class FromItem(
+        val item: Item,
         override val relevance: Int,
     ) : SearchHit {
-        override val time: Long get() = bookmark.time * 1000
+        override val time: Long get() = item.readingList?.addedAt ?: item.bookmark?.addedAt ?: item.createdAt
     }
 }
 
 /**
- * Search's results in one list: the feed articles ([ArticleSearch]) and the saved articles
- * ([be.wimvandonck.reader.instapaper.SavedSearch]) that match, ranked together by how well their
- * title matches, then newest first. Plain Kotlin, unit tested; the web app does the same in
- * web/src/lib/search.ts.
+ * Search's results in one list: the feed articles ([ArticleSearch]) and the items ([ItemSearch])
+ * that match, ranked together by how well their title matches, then newest first. Plain Kotlin,
+ * unit tested; the web app does the same in web/src/lib/search.ts.
  */
 object MixedSearch {
     /**
@@ -53,17 +50,46 @@ object MixedSearch {
     fun mix(
         query: String,
         feeds: List<Article>,
-        saved: List<InstapaperBookmark>,
+        items: List<Item>,
         filter: SearchFilter = SearchFilter.All,
         limit: Int = ArticleSearch.MAX_RESULTS,
     ): List<SearchHit> {
-        val fromFeeds = if (filter == SearchFilter.Saved) emptyList() else feeds.map { SearchHit.FromFeed(it, relevance(query, it.title)) }
-        val fromSaved = if (filter == SearchFilter.Feeds) emptyList() else saved.map { SearchHit.FromSaved(it, relevance(query, it.title)) }
-        return (fromFeeds + fromSaved)
+        val fromFeeds = if (filter == SearchFilter.ReadingList) emptyList() else feeds.map { SearchHit.FromFeed(it, relevance(query, it.title)) }
+        val fromItems = if (filter == SearchFilter.Feeds) emptyList() else items.map { SearchHit.FromItem(it, relevance(query, it.title)) }
+        return (fromFeeds + fromItems)
             .sortedWith(compareByDescending<SearchHit> { it.relevance }.thenByDescending { it.time })
             .take(limit)
     }
 
     private const val PHRASE = 100
     private const val WORD = 10
+}
+
+/**
+ * Searches the reading list (archived items included, #107): title, website, address, description,
+ * tags, note and highlights. Every word must appear (case and accents ignored); title matches first,
+ * then newest. Plain Kotlin, unit tested.
+ */
+object ItemSearch {
+    fun search(
+        items: List<Item>,
+        query: String,
+        limit: Int = ArticleSearch.MAX_RESULTS,
+    ): List<Item> {
+        val words = ArticleSearch.words(query)
+        if (words.isEmpty()) return emptyList()
+        return items
+            .asSequence()
+            .map { item -> Triple(item, ArticleSearch.normalize(item.title), ArticleSearch.normalize(text(item))) }
+            .filter { (_, _, text) -> words.all { it in text } }
+            .sortedWith(
+                compareByDescending<Triple<Item, String, String>> { (_, title, _) -> words.all { it in title } }
+                    .thenByDescending { (item, _, _) -> item.readingList?.addedAt ?: item.bookmark?.addedAt ?: item.createdAt },
+            ).take(limit)
+            .map { it.first }
+            .toList()
+    }
+
+    private fun text(i: Item): String =
+        (listOf(i.title, i.host, i.url, i.description, i.note) + i.tags + i.highlights.flatMap { listOf(it.quote, it.note) }).joinToString(" ")
 }

@@ -12,7 +12,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -45,14 +44,14 @@ import be.wimvandonck.reader.data.Library
 import be.wimvandonck.reader.data.ListView
 import be.wimvandonck.reader.data.SearchFilter
 import be.wimvandonck.reader.data.SearchHit
-import be.wimvandonck.reader.instapaper.InstapaperBookmark
-import be.wimvandonck.reader.instapaper.InstapaperLists
+import be.wimvandonck.reader.data.Item
+import be.wimvandonck.reader.data.ReadingLists
 import be.wimvandonck.reader.ui.theme.EmptyState
 import be.wimvandonck.reader.ui.theme.readableWidth
 
 /**
  * What the search screen shows. [results] is null while the articles are being prepared for
- * searching; feed and saved matches are mixed in one list, best first (MixedSearch).
+ * searching; feed and reading list matches are mixed in one list, best first (MixedSearch).
  */
 data class SearchState(
     val query: String,
@@ -60,33 +59,25 @@ data class SearchState(
     val feeds: List<Feed>,
     val listView: ListView,
     val showImages: Boolean,
-    /** Saved articles are searched too (always, unless they couldn't be read), with chips to pick the kind. */
-    val saved: SavedSearchState? = null,
+    /** The reading list is searched too; with something on it, chips pick the kind. */
+    val hasItems: Boolean = false,
     val filter: SearchFilter = SearchFilter.All,
-    /** So saved results show like the feed article they were saved from. */
+    /** So items show like the feed article they were saved from. */
     val library: Library? = null,
-)
-
-/** How searching the saved articles goes. */
-data class SavedSearchState(
-    /** The saved articles are still being read. */
-    val loading: Boolean = false,
-    /** Instapaper stopped answering part way, so some saved articles weren't searched. */
-    val incomplete: Boolean = false,
 )
 
 class SearchActions(
     val onQueryChange: (String) -> Unit,
     val onFilterChange: (SearchFilter) -> Unit = {},
     val onOpenArticle: (Article) -> Unit,
-    val onOpenSaved: (InstapaperBookmark) -> Unit = {},
+    val onOpenItem: (Item) -> Unit = {},
     val onBack: () -> Unit,
 )
 
 /**
- * Searches everything: the articles of every feed and the saved articles. A search field in the top
- * bar, chips to show all results, only feeds or only saved, and the matches below, mixed and best
- * first, each labelled Feed or Saved.
+ * Searches everything: the articles of every feed and the reading list (archived articles too). A
+ * search field in the top bar, chips to show all results, only feeds or only the reading list, and
+ * the matches below, mixed and best first, each labelled Feed or Reading list.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -139,32 +130,21 @@ fun SearchScreen(
     ) { innerPadding ->
         Column(Modifier.fillMaxSize().padding(innerPadding)) {
             val results = state.results
-            val saved = state.saved
-            if (saved != null) FilterRow(state.filter, actions.onFilterChange)
-            if (saved?.loading == true && results != null && state.query.isNotBlank()) {
-                Row(
-                    Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
-                    Note(stringResource(R.string.search_saved_loading))
-                }
-            }
+            if (state.hasItems) FilterRow(state.filter, actions.onFilterChange)
             when {
                 results == null -> LinearProgressIndicator(Modifier.fillMaxWidth())
                 state.query.isBlank() ->
-                    if (saved == null) {
+                    if (!state.hasItems) {
                         EmptyState(painterResource(R.drawable.ic_search), stringResource(R.string.search_start_title), body = stringResource(R.string.search_start_body))
                     } else {
                         EmptyState(painterResource(R.drawable.ic_search), stringResource(R.string.search_start_title_saved), body = stringResource(R.string.search_start_body_saved))
                     }
-                results.isEmpty() && saved?.loading != true && saved?.incomplete != true ->
+                results.isEmpty() ->
                     EmptyState(painterResource(R.drawable.ic_search), stringResource(R.string.search_none_title), body = stringResource(R.string.search_none_body))
                 else -> {
                     val feedsByUrl = remember(state.feeds) { state.feeds.associateBy { it.url } }
                     val feedLabel = stringResource(R.string.search_label_feed)
-                    val savedLabel = stringResource(R.string.section_saved)
+                    val itemLabel = stringResource(R.string.reading_list_title)
                     LazyColumn(
                         modifier = Modifier.fillMaxSize().readableWidth(),
                         contentPadding = PaddingValues(16.dp),
@@ -178,22 +158,21 @@ fun SearchScreen(
                                         feed = feedsByUrl[hit.article.feedUrl],
                                         view = state.listView,
                                         showImage = state.showImages,
-                                        label = feedLabel.takeIf { saved != null },
+                                        label = feedLabel.takeIf { state.hasItems },
                                         onClick = { actions.onOpenArticle(hit.article) },
                                     )
-                                is SearchHit.FromSaved ->
+                                is SearchHit.FromItem ->
                                     ArticleRow(
-                                        article = InstapaperLists.article(hit.bookmark, state.library),
-                                        feed = InstapaperLists.source(hit.bookmark, state.library),
+                                        article = ReadingLists.article(hit.item, state.library),
+                                        feed = ReadingLists.source(hit.item, state.library),
                                         view = state.listView,
                                         showImage = state.showImages,
                                         showUnreadDot = false,
-                                        label = savedLabel,
-                                        onClick = { actions.onOpenSaved(hit.bookmark) },
+                                        label = itemLabel,
+                                        onClick = { actions.onOpenItem(hit.item) },
                                     )
                             }
                         }
-                        if (saved?.incomplete == true) item(key = "saved-incomplete") { Note(stringResource(R.string.search_saved_incomplete)) }
                     }
                 }
             }
@@ -206,10 +185,10 @@ private val SearchHit.key: String
     get() =
         when (this) {
             is SearchHit.FromFeed -> article.key
-            is SearchHit.FromSaved -> "saved:${bookmark.id}"
+            is SearchHit.FromItem -> "item:${item.key}"
         }
 
-/** All, Feeds or Saved: filter chips above the results, as Material places chips that filter a list. */
+/** All, Feeds or Reading list: filter chips above the results, as Material places chips that filter a list. */
 @Composable
 private fun FilterRow(
     filter: SearchFilter,
@@ -222,7 +201,7 @@ private fun FilterRow(
         listOf(
             SearchFilter.All to R.string.filter_all,
             SearchFilter.Feeds to R.string.feeds_title,
-            SearchFilter.Saved to R.string.section_saved,
+            SearchFilter.ReadingList to R.string.reading_list_title,
         ).forEach { (option, label) ->
             FilterChip(
                 selected = filter == option,

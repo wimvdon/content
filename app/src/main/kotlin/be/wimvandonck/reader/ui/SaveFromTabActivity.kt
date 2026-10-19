@@ -15,19 +15,21 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import be.wimvandonck.reader.R
-import be.wimvandonck.reader.instapaper.InstapaperException
-import be.wimvandonck.reader.instapaper.InstapaperState
+import be.wimvandonck.reader.data.Item
+import be.wimvandonck.reader.data.addToReadingList
+import be.wimvandonck.reader.data.item
+import be.wimvandonck.reader.data.itemTags
+import be.wimvandonck.reader.data.setLiked
+import be.wimvandonck.reader.data.setTags
 import be.wimvandonck.reader.instapaper.SharedLink
 import be.wimvandonck.reader.rssReaderApp
-import be.wimvandonck.reader.ui.instapaper.messageRes
-import be.wimvandonck.reader.ui.reader.JustSavedSheet
+import be.wimvandonck.reader.ui.reader.AddedSheet
 import be.wimvandonck.reader.ui.theme.RssReaderAppTheme
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 /**
- * The custom tab's Save button (#95): a see-through screen on top of the tab that saves the page
- * shown and opens the save sheet over it. Closing the sheet goes back to the tab.
+ * The custom tab's Save button (#95): a see-through screen on top of the tab that puts the page
+ * shown on the reading list and opens the sheet over it. Closing the sheet goes back to the tab.
  */
 class SaveFromTabActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,58 +66,37 @@ private fun SaveFromTab(
     val context = LocalContext.current
     val resources = LocalResources.current
     val app = context.rssReaderApp
-    val account by app.instapaper.state.collectAsStateWithLifecycle()
-    // Saved as in the app: the Instapaper account when signed in, else this phone. Waits for the
-    // sign-in to be read.
-    val model =
-        remember(account) {
-            when (val a = account) {
-                is InstapaperState.SignedIn -> app.instapaper.newModel(a.session, app.appScope)
-                InstapaperState.SignedOut -> app.instapaper.newLocalModel(app.appScope)
-                InstapaperState.Loading -> null
-            }
+    val libraryOrNull by app.library.library.collectAsStateWithLifecycle()
+    var addedKey by remember { mutableStateOf<String?>(null) }
+
+    // On the reading list (#107), as Save does in the app; waits for the library to be read.
+    LaunchedEffect(libraryOrNull != null) {
+        if (libraryOrNull == null || addedKey != null) return@LaunchedEffect
+        var added: Item? = null
+        app.library.edit { library ->
+            val (updated, item) = library.addToReadingList(link.url, link.title, System.currentTimeMillis())
+            added = item
+            updated
         }
-    val ui by (model?.state ?: flowOf(null)).collectAsStateWithLifecycle(null)
-    var started by remember { mutableStateOf(false) }
-
-    fun say(text: Int) = Toast.makeText(context, resources.getString(text), Toast.LENGTH_SHORT).show()
-
-    LaunchedEffect(model) {
-        if (model == null || started) return@LaunchedEffect
-        started = true
-        try {
-            model.save(link.url, link.title)
-            // Reader's own Saved list reads it again (Navigation).
-            app.savedElsewhere.update { it + 1 }
-            if (model.state.value.justSaved == null) {
-                say(if (model.state.value.account) R.string.instapaper_saved else R.string.saved_done)
-                onDone()
-            }
-        } catch (e: InstapaperException) {
-            say(e.problem.messageRes())
+        val item = added
+        if (item == null) {
+            Toast.makeText(context, resources.getString(R.string.add_link_invalid), Toast.LENGTH_SHORT).show()
             onDone()
+            return@LaunchedEffect
         }
+        addedKey = item.key
+        app.appScope.launch { app.library.describe(item.key) }
     }
 
-    val saved = ui?.justSaved
-    if (model != null && saved != null) {
-        JustSavedSheet(
-            bookmark = saved,
-            account = ui?.account ?: true,
-            folders = ui?.folders.orEmpty(),
-            tags = ui?.tags.orEmpty(),
-            onLike = { model.toggleLike(saved) },
-            onArchive = { model.toggleArchive(saved) },
-            onMove = { folderId -> model.moveTo(saved, folderId) },
-            onMoveToNewFolder = { title -> model.moveToNewFolder(saved, title) },
-            onAddTag = { name -> model.addTag(saved, name) },
-            onRemoveTag = { tag -> model.removeTag(saved, tag) },
-            onDismiss = {
-                model.closeJustSaved()
-                // Folder and tag changes also show in Reader's own Saved list.
-                app.savedElsewhere.update { it + 1 }
-                onDone()
-            },
+    val item = addedKey?.let { key -> libraryOrNull?.item(key) }
+    val library = libraryOrNull
+    if (item != null && library != null) {
+        AddedSheet(
+            item = item,
+            allTags = library.itemTags(),
+            onLike = { app.appScope.launch { app.library.edit { it.setLiked(item.key, !item.liked) } } },
+            onTags = { tags -> app.appScope.launch { app.library.edit { it.setTags(item.key, tags) } } },
+            onDismiss = onDone,
         )
     }
 }

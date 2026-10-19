@@ -239,47 +239,53 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   their feeds indented below (`surfaceContainer`), a pen button and a drag handle at the end of each row, an outlined note under
   "No folder" when it is empty, and the
   dragged row lifted with a shadow. Tapping a row opens its edit dialog; Remove sits in the
-  dialog, in the error colour. Manage Instapaper ("Instapaper folders and tags") is a page of its own
-  too (☰; signed out it is Manage tags, with only the tags). Settings sections: Account (Sign in with Instapaper; signed in, who, the
+  dialog, in the error colour. Tags ("Tags", ☰) is a page of its own too: every tag with its number of articles, tap to rename, a delete button to remove it everywhere. Settings sections: Account (Sign in with Instapaper; signed in, who, the
   last sync or what went wrong, Sync now, Sign out and Delete synced data in the error colour, which
   asks first), Article list, Reader, Save and share (integration), Appearance, footer.
 - Folder icons come from the whole Material Symbols set (outlined, rounded), picked with a search
-  field and a grid in the folder dialog. The app's other icons (Saved's Saved, Liked,
-  Archive, folders and tags included) use the same outlined, rounded style; only an icon that
+  field and a grid in the folder dialog. The app's other icons (the reading list's To read (an open
+  book), Liked, Archive (a box) and tags included) use the same outlined, rounded style; only an icon that
   shows something is on is filled (a selected destination, the Like heart once liked).
-- Navigation: a navigation bar at the bottom (a navigation rail on
-  windows 600dp and wider) switches between the two destinations, Feeds (feed symbol) and
-  Saved (bookmarks, filled when selected), with or without an Instapaper account; Saved returns to
-  the list last shown there. Search is an action in the top bar of both
-  destinations (a magnifier) that opens one search page for
-  everything: the field in its top bar, a row of filter chips (All, Feeds, Saved) above the results,
-  and the results as one list of article rows ranked by relevance, each with a small label (Feed or
-  Saved). The web app has the same search in place of the list. It is not a navigation bar
-  item: it acts on the content of both destinations rather than being a place of its own. The ☰
-  drawer holds every place, the same wherever the app is: Feeds and Saved are sections in it; each header
-  (Title Small in `primary`, a fold arrow, the unread count while folded) folds its section open
-  and shut. The section being shown is open and the other folded shut whenever you move between
-  them, so the drawer stays short. Back from a Saved list or a feed section goes to All articles.
-- Feeds and Saved each have scrollable primary tabs under the top app bar for their peer views. Feeds:
-  All (feed symbol), then each folder with its icon and name. Saved: Saved, Liked, each Instapaper
-  folder (signed in), Tags, then Archive; under Tags a row of filter chips picks the tag
-  (tags come and go too often for a tab each). The Mark all read FAB and the Unread and All chips are on
-  Feeds only; the FAB only marks the section shown.
+- Navigation (#113): a navigation bar at the bottom (a navigation rail on windows 600dp and wider)
+  switches between the destinations, Feeds (feed symbol) and Reading list (an open book). Search is
+  an action in the top bar of both destinations (a magnifier) that opens one search page for
+  everything: the field in its top bar, a row of filter chips (All, Feeds, Reading list) above the
+  results, and the results as one list of article rows ranked by relevance, each with a small label
+  (Feed or Reading list). It is not a navigation bar item: it acts on the content of both
+  destinations rather than being a place of its own. The ☰ drawer holds every place, the same
+  wherever the app is: Feeds and the reading list are sections in it; each header (Title Small in
+  `primary`, a fold arrow, the count while folded) folds its section open and shut. The section
+  being shown is open and the other folded shut whenever you move between them, so the drawer stays
+  short. Back from the reading list or a feed section goes to All articles.
+- Feeds has scrollable primary tabs under the top app bar for its folders (All (feed symbol), then
+  each folder with its icon and name), and the Unread and All chips under them. The reading list
+  has two tabs, To read and Archive, and one row of filter chips under them: Liked (heart) and each
+  of the list's tags (tags come and go too often for a tab each). The Mark all read FAB is on Feeds
+  only and only marks the section shown; the reading list's FAB is Add link.
+- The reading list (#107) is for reading: a line with the number of articles and about how long
+  they take, then article-style rows on `surfaceContainer` (archived on `surfaceContainerLow`): the
+  site's icon and name in `primary`, the reading time, the number of highlights; the title in the
+  reader's font (SemiBold); a thin progress bar with the minutes left once started; a 64dp
+  thumbnail at the end. The newest article to read with a picture is a large card with a 16:9
+  picture. In the reader an article on the reading list has ♥ in the top bar, Keep and Archive in a
+  bottom app bar, and a tonal "Finished reading" button at the end of the text; each opens the
+  Finished reading sheet (Archive / Keep as bookmark as two radio rows with an icon and a line of
+  help, then the collection, note and tags for Keep; Cancel and the action as buttons).
 - The ☰ drawer: the Feeds section (All articles, the folders with their feeds, the other feeds),
-  the Saved section (Saved, Liked, the Instapaper folders, the tags, then Archive), then Manage feeds,
-  Manage Instapaper (signed out: Manage tags) and Settings. The web app's sidebar is the same, with the same folding sections.
-  Manage feeds and Manage Instapaper show what they manage with a pen: the feed symbol with a
-  pen and a bookmark with a pen (Android: Material Symbols' shapes; web: Lucide's).
+  the Reading list section (To read with its count, Liked, the tags, then Archive), then Manage
+  feeds, Tags, Connected services and Settings. Manage feeds shows what it manages with a pen (the
+  feed symbol with a pen); Tags has a tag, Connected services two arrows (Material Symbols'
+  shapes). The web app's sidebar still has its Saved section until it catches up.
 - Site icons sit on a fixed light tile (`#F4F4F4`, rounded, 10% padding) in light and dark mode,
   so logos drawn for light browser tabs keep their contrast; the letter fallback uses
   `tertiaryContainer`.
 - Article list: three views (Small, Medium, Large card with a 16:9 picture). Unread rows sit on
   `surfaceContainer`, read rows on `surfaceContainerLow`; the feed name is in `primary`. Swiping
-  either way past 30% of the width toggles read (haptic tick at the threshold, row springs
-  back); the drawer opens from the ☰ button only. The top bar shows the section and its unread count, with no ⋮ menu (refresh is pull-down; adding
+  right past 30% of the width toggles read, swiping left puts the article on the reading list
+  ("Read later", an open book) (haptic tick at the threshold, row springs back); the drawer opens from the ☰ button only. The top bar shows the section and its unread count, with no ⋮ menu (refresh is pull-down; adding
   feeds lives on Manage feeds). Unread | All are two Material 3 filter chips used as one choice,
   **Unread** and **All**, in a chip row of its own under the folder tabs (16dp sides, 8dp above and
-  below, like the tag chips on Saved's Tags tab and the chips in Search): the chosen one is filled
+  below, like the chips on the reading list and in Search): the chosen one is filled
   with a check, so which list is shown reads at a glance. The web app has the same chips. The top bar holds only icon buttons, as Material 3's top app bar does.
   In a narrow window the web app has the same Feeds | Saved navigation bar at the bottom.
   Settings lives in the drawer only.
@@ -289,7 +295,8 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   Yesterday, date) in `primary` Title Small; Mark all as read is an icon-only FAB. The drawer opens with the app's logo (the
   launcher icon: its feed symbol on white, in a circle with an `outlineVariant` edge) and name; the
   web app's sidebar and favicon use the same logo.
-- Settings starts with Account; managing feeds and Instapaper lives in the drawer, not in Settings.
+- Settings starts with Account; managing feeds and tags, and the connected services, live in the
+  drawer, not in Settings.
 
 ### Other platforms (planned)
 

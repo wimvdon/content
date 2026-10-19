@@ -151,3 +151,12 @@ fun Library.readingList(state: ReadingState): List<Item> = items.filter { it.rea
 fun Library.bookmarks(): List<Item> = items.filter { it.bookmark != null }.sortedByDescending { it.bookmark!!.addedAt }
 
 internal fun cleanTags(tags: List<String>): List<String> = tags.map(String::trim).filter(String::isNotEmpty).distinctBy { it.lowercase() }
+
+/** Takes a tag off every item; an item with nothing left on it goes. */
+fun Library.removeTag(name: String): Library =
+    items.filter { item -> item.tags.any { it.equals(name, ignoreCase = true) } }.fold(this) { lib, item ->
+        lib.putItem(item.copy(tags = item.tags.filterNot { it.equals(name, ignoreCase = true) }))
+    }
+
+/** How many items have each tag, by tag (as [itemTags] names them). */
+fun Library.tagCounts(): Map<String, Int> = itemTags().associateWith { tag -> items.count { item -> item.tags.any { it.equals(tag, ignoreCase = true) } } }

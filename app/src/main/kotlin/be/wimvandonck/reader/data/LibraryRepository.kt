@@ -4,6 +4,7 @@ import android.content.Context
 import be.wimvandonck.reader.data.db.ItemTextRow
 import be.wimvandonck.reader.data.db.LibraryDao
 import be.wimvandonck.reader.data.db.LibraryDatabase
+import be.wimvandonck.reader.data.db.ServiceRowRow
 import be.wimvandonck.reader.data.db.SyncRowRow
 import be.wimvandonck.reader.feed.FeedFinder
 import be.wimvandonck.reader.feed.FeedParser
@@ -14,7 +15,10 @@ import be.wimvandonck.reader.feed.FindResult
 import be.wimvandonck.reader.feed.NotAFeedException
 import be.wimvandonck.reader.feed.Opml
 import be.wimvandonck.reader.feed.ParsedFeed
+import be.wimvandonck.reader.feed.PageInfo
 import be.wimvandonck.reader.feed.SiteIcon
+import be.wimvandonck.reader.services.ServiceRows
+import be.wimvandonck.reader.services.ServiceState
 import be.wimvandonck.reader.sync.ItemRow
 import be.wimvandonck.reader.sync.ItemSyncState
 import be.wimvandonck.reader.sync.Json
@@ -77,7 +81,11 @@ class LibraryRepository(
     private val writeLock = Mutex()
 
     init {
-        scope.launch { state.value = writeLock.withLock { load() } }
+        scope.launch {
+            state.value = writeLock.withLock { load() }
+            // A rough word count from each kept text's length, for reading times; exact once a text is read again.
+            _textWords.value = dao.textLengths().associate { it.itemKey to it.length / HTML_CHARS_PER_WORD }
+        }
     }
 
     private suspend fun load(): Library {
@@ -123,6 +131,39 @@ class LibraryRepository(
     /** Changes the stored library in one step and returns it. */
     suspend fun edit(change: (Library) -> Library): Library = update { library -> change(library).let { it to it } }
 
+    /**
+     * Fills in a link saved without a title (an added or shared link): the page's title, description
+     * and picture, read from the page itself. Leaves the item alone when the page can't be read.
+     */
+    suspend fun describe(itemKey: String) {
+        val item = current().item(itemKey) ?: return
+        if (item.title != item.url) return
+        val info =
+            try {
+                val page = fetch(item.url)
+                PageInfo.parse(page.bytes.decodeToString(), page.url)
+            } catch (_: FetchException) {
+                return
+            }
+        edit { library ->
+            library.changeItem(itemKey) { i ->
+                if (i.title != i.url) {
+                    i
+                } else {
+                    i.copy(
+                        title = info.title ?: i.title,
+                        description = i.description.ifBlank { info.description.orEmpty() },
+                        imageUrl = i.imageUrl ?: info.imageUrl,
+                    )
+                }
+            }
+        }
+    }
+
+    /** About how many words the longest text kept for each item has, by item key, for reading times. */
+    private val _textWords = MutableStateFlow<Map<String, Int>>(emptyMap())
+    val textWords: StateFlow<Map<String, Int>> = _textWords.asStateFlow()
+
     /** What this device last synced of the account's items (sync/ItemSync.kt). */
     suspend fun itemSyncState(): ItemSyncState {
         val rows =
@@ -145,6 +186,27 @@ class LibraryRepository(
         dao.writeSyncRows(put, delete, next.version)
     }
 
+    /** What this device last saw of the reading list at [service] (services/ServiceSync.kt). */
+    suspend fun serviceState(service: String): ServiceState {
+        val rows = dao.serviceRows(service).mapNotNull { row -> ServiceRows.decode(row.data)?.let { row.itemKey to it } }.toMap()
+        return ServiceState(dao.meta("$service-cursor"), rows)
+    }
+
+    /** Stores [next] after a service sync that started from [previous]; null forgets the service (signed out). */
+    suspend fun saveServiceState(
+        service: String,
+        previous: ServiceState,
+        next: ServiceState?,
+    ) {
+        if (next == null) {
+            dao.writeServiceRows(service, emptyList(), emptyList(), null)
+            return
+        }
+        val put = next.rows.filter { (key, entry) -> previous.rows[key] != entry }.map { (key, entry) -> ServiceRowRow(service, key, ServiceRows.encode(entry)) }
+        val delete = previous.rows.keys.filter { it !in next.rows }
+        dao.writeServiceRows(service, put, delete, next.cursor ?: "")
+    }
+
     /** Forgets what was synced of the items (signed out, or another account). */
     suspend fun forgetItemSync() {
         dao.writeSyncRows(emptyList(), emptyList(), 0, clear = true)
@@ -159,6 +221,8 @@ class LibraryRepository(
         html: String,
     ) {
         dao.putText(ItemTextRow(itemKey, source, html, clock()))
+        val words = ReadingLists.words(html)
+        _textWords.update { if ((it[itemKey] ?: 0) >= words) it else it + (itemKey to words) }
     }
 
     /**
@@ -360,6 +424,9 @@ class LibraryRepository(
 
     private companion object {
         const val PARALLEL_DOWNLOADS = 4
+
+        /** Article HTML has about this many characters per word, tags included. */
+        const val HTML_CHARS_PER_WORD = 7
     }
 }
 

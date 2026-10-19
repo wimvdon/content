@@ -1,0 +1,97 @@
+package be.wimvandonck.reader.services
+
+/**
+ * What a service can keep of the reading list besides the core (#109). The core (link, title,
+ * to read or archived, liked, tags) is what every reading-list service shares and is always synced.
+ * Reader keeps everything itself; a feature a service lacks is just not copied there.
+ */
+enum class ServiceFeature {
+    /** The service's own text of the article (Instapaper's parsed text, own account only). */
+    Text,
+
+    /** How far the article has been read. */
+    Progress,
+
+    /** Highlights and their notes (#102). */
+    Highlights,
+}
+
+/** Why a service call failed. A failure never loses anything in Reader; the change is tried again later. */
+enum class ServiceProblem {
+    /** The sign-in no longer works: sign in again. */
+    SignedOut,
+
+    /** Too many requests: try again later. That is normal, not an error to show. */
+    RateLimited,
+    Offline,
+    Refused,
+}
+
+class ServiceException(
+    val problem: ServiceProblem,
+    cause: Throwable? = null,
+) : Exception(problem.name, cause)
+
+/**
+ * A reading-list article as the service has it, reduced to the core. Service extras are mapped onto
+ * it by the service (Instapaper folders become tags).
+ */
+data class RemoteEntry(
+    val remoteId: String,
+    val url: String,
+    val title: String,
+    val description: String = "",
+    val imageUrl: String? = null,
+    /** When it was saved, in milliseconds. */
+    val addedAt: Long,
+    val archived: Boolean,
+    val liked: Boolean,
+    val tags: List<String>,
+    /** 0 to 1, with [Progress][ServiceFeature.Progress]. */
+    val progress: Float = 0f,
+    /** A detail only the service uses, kept with what was last seen (Instapaper: the folder's title). */
+    val extra: String? = null,
+)
+
+/** What changed at the service since a cursor. */
+data class RemoteChanges(
+    val entries: List<RemoteEntry>,
+    val deleted: List<String>,
+    /** To give to the next [ReadingListService.changes]. */
+    val cursor: String,
+)
+
+/**
+ * A service the reading list can be connected to (#109): Instapaper now, others later. Only
+ * implementations know a service's specifics; [ServiceSync] keeps Reader's reading list and the
+ * service the same through these calls. Tests use a fake.
+ */
+interface ReadingListService {
+    /** A short, stable name ("instapaper"), used to store what was synced. */
+    val id: String
+
+    val features: Set<ServiceFeature>
+
+    /** Every change since [cursor] (null: everything there is). */
+    suspend fun changes(cursor: String?): RemoteChanges
+
+    /** Saves a link (or brings back one the service already has) and returns it as the service has it now. */
+    suspend fun add(
+        url: String,
+        title: String,
+        tags: List<String>,
+        archived: Boolean,
+    ): RemoteEntry
+
+    /** Applies the core fields of [want] that differ from [have] (the entry as last seen) and returns the entry afterwards. */
+    suspend fun update(
+        have: RemoteEntry,
+        want: RemoteEntry,
+    ): RemoteEntry
+
+    /** Takes the article off the service's list. */
+    suspend fun remove(remoteId: String)
+
+    /** The service's text of the article as HTML, or null when it has none for this account. */
+    suspend fun text(remoteId: String): String?
+}

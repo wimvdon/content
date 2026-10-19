@@ -1,6 +1,6 @@
 # Privacy policy
 
-_Last updated: 2026-10-19 (the reading list, Bookmarks, notes and highlights sync per item)_
+_Last updated: 2026-10-19 (the reading list and Instapaper, page titles for added links)_
 
 Reader has no analytics, advertising or crash reporting. It works without an account. If you sign
 in with Instapaper, that sign-in is also your Reader account: Reader then keeps your feed list,
@@ -60,27 +60,33 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   its key (see Sync above); nothing is logged, and Cloudflare sees your IP address, under
   Cloudflare's privacy policy. With the token the
   app talks to www.instapaper.com (the Android app directly, the web app through the feed loader,
-  because browsers aren't allowed to call Instapaper): it sends the title and link of an article
-  you save, and reads and changes your saved list (archive, like, delete, move to a folder, tags,
-  folders), under Instapaper's privacy policy. Signing out deletes the token and the account key from
+  because browsers aren't allowed to call Instapaper), under Instapaper's privacy policy. The
+  Android app keeps your reading list and your Instapaper account the same while it is open: it
+  reads everything in your account and what changed since its last look, and sends the title, link,
+  tags, like, archive and reading progress of the articles on your reading list, and removes from
+  Instapaper what you take off the reading list. On the app owner's own account it also asks
+  Instapaper for its text of an article you open, which is kept on your device only. The web app
+  reads and changes your saved list (archive, like, delete, move to a folder, tags, folders). Signing out deletes the token and the account key from
   your device; the token stays valid at Instapaper until you revoke it there.
 - **Links you open** (Read on website, links in articles) open in your browser, under the
   website's own privacy policy.
-- **Save and Share.** By default Save keeps the article's title and link in the app's own Saved list
-  on your phone; nothing is sent. When you set Save or Share to an app in Settings, or pick one in the
+- **Links you add or share to Reader.** A link put on the reading list without a title (Add link,
+  or shared from another app) is loaded once from its website to read the page's title, description
+  and picture, like opening the article. The website sees the same as for an article page.
+- **Save and Share.** By default Save keeps the article's title and link on the app's own reading
+  list on your phone (synced as described above when you are signed in). When you set Save or Share to an app in Settings, or pick one in the
   share menu, the title and link go to that app, under its privacy policy. Signed in to Instapaper
-  (see above), Save sends them to your Instapaper account instead, and signing in sends the ones saved
-  on the device before (see below). Nothing is sent otherwise.
+  (see above), the reading list is also kept in your Instapaper account. Nothing is sent otherwise.
 
 ## What the app stores on your device
 
 - Your feed list (with each feed's icon address) and folders, the downloaded articles and which ones you read.
 - If you are signed in: a copy of the synced document and records as last synced, to merge changes, and read marks of articles another device read that this one hasn't downloaded yet.
 - Your settings (theme, text settings, full articles, pictures, Save and Share targets, the Unread filter, mark as read on scroll).
-- Articles you saved without an Instapaper account: their address, title, when you saved them,
-  whether you liked or archived them, and their tags (in the app's database; on the web, the browser's
-  storage). They are not sent anywhere until you sign in to Instapaper: then they are copied to your
-  Instapaper account and removed from the device.
+- Your reading list: each article's address, title, description, picture address, when you added
+  it, whether you liked or archived it, its tags, how far you read it, and, for the app owner's own
+  Instapaper account, Instapaper's text of articles you opened (in the app's database; on the web,
+  the browser's storage). Without an account it is not sent anywhere; signed in, see above.
 - The text of full articles you opened, and recently shown pictures, in the app's cache (Android
   may clear it).
 - If you signed in to Instapaper: the access token, your Instapaper user name and this device's

@@ -20,6 +20,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import be.wimvandonck.reader.services.ServiceManager
 import be.wimvandonck.reader.sync.SyncManager
 import okhttp3.OkHttpClient
 import java.io.File
@@ -52,16 +53,17 @@ class RssReaderApp :
     private val http: OkHttpClient by lazy { OkHttpClient() }
 
     /** The user's Instapaper account (sign-in, saving, and the saved list). See instapaper/. */
-    val instapaper: InstapaperAccount by lazy { InstapaperAccount(this, appScope, http, library) }
+    val instapaper: InstapaperAccount by lazy { InstapaperAccount(this, appScope, http) }
 
     /** A link shared to Reader from another app, waiting to be saved (#97, MainActivity → Navigation). */
     val sharedLink = MutableStateFlow<SharedLink?>(null)
 
-    /** Counts saves made outside the main screen (the save sheet over a custom tab, #95), so Saved reads its list again. */
-    val savedElsewhere = MutableStateFlow(0)
 
     /** Sync with the user's Reader account, which signing in with Instapaper opens. See sync/ and docs/account.md. */
     val sync: SyncManager by lazy { SyncManager(this, appScope, library, settings, instapaper, http) }
+
+    /** The reading list's connected service (Instapaper when signed in). See services/. */
+    val services: ServiceManager by lazy { ServiceManager(appScope, library, instapaper, http) }
 
     val fullArticles: FullArticles by lazy { FullArticles(File(cacheDir, "articles"), fetch = fetcher::fetch) }
 
