@@ -8,7 +8,7 @@ import be.wimvandonck.reader.data.ReadingState
 import be.wimvandonck.reader.data.addToReadingList
 import be.wimvandonck.reader.data.changeItem
 import be.wimvandonck.reader.data.item
-import be.wimvandonck.reader.data.keepAsBookmark
+import be.wimvandonck.reader.data.Saved
 import be.wimvandonck.reader.data.setLiked
 import be.wimvandonck.reader.data.setReadingState
 import be.wimvandonck.reader.data.setTags
@@ -100,7 +100,7 @@ class ItemSyncTest {
     fun `no article text is sent to the account`() {
         val account = FakeItems()
         val phone = Device(libraryWith(article("1", read = true), article("2")))
-        phone.library = phone.library.addToReadingList("https://news.example/2", null, now).first.keepAsBookmark("news.example/2", "Research", now)
+        phone.library = Saved.file(phone.library.addToReadingList("https://news.example/2", null, now).first, "news.example/2", "Research")
         assertTrue(phone.library.item("news.example/2")!!.description.contains("SECRET"))
         phone.sync(account)
         assertTrue(account.sent.isNotEmpty())
@@ -120,7 +120,7 @@ class ItemSyncTest {
 
         val key = "news.example/2"
         phone.library = phone.library.setLiked(key, true).setTags(key, listOf("work", "old"))
-        laptop.library = laptop.library.setTags(key, listOf("news")).keepAsBookmark(key, "Tools", now)
+        laptop.library = Saved.file(laptop.library.setTags(key, listOf("news")), key, "Tools")
         phone.sync(account)
         // The laptop's save is refused (the phone saved first), merged and saved again.
         laptop.sync(account)
@@ -130,7 +130,7 @@ class ItemSyncTest {
             val item = device.library.item(key)!!
             assertTrue(item.liked)
             assertEquals(setOf("work", "old", "news"), item.tags.toSet())
-            assertEquals("Tools", item.bookmark?.collection)
+            assertEquals("Tools", item.folder)
         }
         assertEquals(phone.library.items.map(SyncRows::itemData), laptop.library.items.map(SyncRows::itemData))
     }

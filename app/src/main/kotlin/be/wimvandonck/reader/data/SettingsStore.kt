@@ -65,8 +65,6 @@ class SettingsStore(
 
     suspend fun setListView(view: ListView) = edit { it[LIST_VIEW] = view.name }
 
-    suspend fun setBookmarksView(view: BookmarksView) = edit { it[BOOKMARKS_VIEW] = view.name }
-
     suspend fun setTagWithFolder(enabled: Boolean) = edit { it[TAG_WITH_FOLDER] = enabled }
 
     /** Takes the synced settings from another device (see SyncSettings); the rest stays as it is. */
@@ -121,7 +119,6 @@ class SettingsStore(
             showImages = p[SHOW_IMAGES] ?: defaults.showImages,
             markReadOnScroll = p[MARK_READ_ON_SCROLL] ?: defaults.markReadOnScroll,
             listView = enumOr(p[LIST_VIEW], defaults.listView),
-            bookmarksView = enumOr(p[BOOKMARKS_VIEW], defaults.bookmarksView),
             tagWithFolder = p[TAG_WITH_FOLDER] ?: defaults.tagWithFolder,
             lastSyncedAt = p[LAST_SYNCED_AT],
         )
@@ -147,7 +144,6 @@ class SettingsStore(
         val SHOW_IMAGES = booleanPreferencesKey("show_images")
         val MARK_READ_ON_SCROLL = booleanPreferencesKey("mark_read_on_scroll")
         val LIST_VIEW = stringPreferencesKey("list_view")
-        val BOOKMARKS_VIEW = stringPreferencesKey("bookmarks_view")
         val TAG_WITH_FOLDER = booleanPreferencesKey("tag_with_folder")
         val LAST_SYNCED_AT = longPreferencesKey("last_synced_at")
     }

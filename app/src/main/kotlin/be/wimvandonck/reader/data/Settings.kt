@@ -19,7 +19,6 @@ data class Appearance(
 enum class ListView { Small, Medium, Large }
 
 /** How Bookmarks shows its cards (#108): two columns of cards, or one list. */
-enum class BookmarksView { Grid, List }
 
 enum class ReaderFont { Sans, Serif }
 
@@ -139,8 +138,6 @@ data class Settings(
     /** Mark articles as read once they scroll off the top of the list. */
     val markReadOnScroll: Boolean = false,
     val listView: ListView = ListView.Medium,
-    /** Each device keeps its own, like the list view. */
-    val bookmarksView: BookmarksView = BookmarksView.Grid,
     /** Tag an article saved from a feed with the feed's folder (#120). */
     val tagWithFolder: Boolean = true,
     /** When the last sync succeeded, or null. */

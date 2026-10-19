@@ -1,5 +1,6 @@
 package be.wimvandonck.reader.data.db
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
@@ -58,6 +59,8 @@ data class ItemRow(
     /** When it was kept in Bookmarks, or null (not a bookmark). */
     val bookmarkAddedAt: Long?,
     val collection: String?,
+    /** The folder it is filed in (#119), or null. */
+    @ColumnInfo(defaultValue = "NULL") val folder: String? = null,
     val liked: Boolean,
     val tags: String,
     val note: String,

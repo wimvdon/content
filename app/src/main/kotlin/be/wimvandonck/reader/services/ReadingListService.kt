@@ -33,8 +33,8 @@ class ServiceException(
 ) : Exception(problem.name, cause)
 
 /**
- * A reading-list article as the service has it, reduced to the core. Service extras are mapped onto
- * it by the service (Instapaper folders become tags).
+ * A saved article as the service has it, reduced to the core: link, title, to read or archived, its
+ * folder, liked and tags. Service extras are mapped onto it by the service.
  */
 data class RemoteEntry(
     val remoteId: String,
@@ -47,9 +47,11 @@ data class RemoteEntry(
     val archived: Boolean,
     val liked: Boolean,
     val tags: List<String>,
+    /** The folder it is in (#119), or null for To read (and when archived). */
+    val folder: String? = null,
     /** 0 to 1, with [Progress][ServiceFeature.Progress]. */
     val progress: Float = 0f,
-    /** A detail only the service uses, kept with what was last seen (Instapaper: the folder's title). */
+    /** A detail only the service uses, kept with what was last seen. */
     val extra: String? = null,
 )
 
@@ -81,6 +83,7 @@ interface ReadingListService {
         title: String,
         tags: List<String>,
         archived: Boolean,
+        folder: String? = null,
     ): RemoteEntry
 
     /** Applies the core fields of [want] that differ from [have] (the entry as last seen) and returns the entry afterwards. */

@@ -8,10 +8,10 @@ import be.wimvandonck.reader.services.ServiceFeature
 import be.wimvandonck.reader.services.ServiceProblem
 
 /**
- * Instapaper as the reading list's service (#107, #109), on API v2: `since` keeps a full copy of the
- * account on the device. Instapaper's folders are a service extra: a bookmark's folder shows as a tag
- * in Reader, and taking that tag off moves it back to Instapaper's home list; Reader never makes
- * folders. Only this class knows Instapaper's ways; ServiceSync sees the core.
+ * Instapaper as Saved's service (#107, #109, #119), on API v2: `since` keeps a full copy of the
+ * account on the device. Home is To read, Instapaper's folders are Saved's folders (a folder Reader
+ * files into is made there when it doesn't exist yet), the archive is the archive. Only this class
+ * knows Instapaper's ways; ServiceSync sees the core.
  */
 class InstapaperReadingList(
     private val client: InstapaperClient,
@@ -52,11 +52,11 @@ class InstapaperReadingList(
             RemoteChanges(entries, deleted, asked.coerceAtLeast(1).toString())
         }
 
-    /** A bookmark as an entry: its folder as one more tag. Articles without a web address are left out. */
+    /** A bookmark as an entry, with its folder. Articles without a web address are left out. */
     fun entryOf(b: InstapaperBookmark): RemoteEntry? {
         val url = b.link ?: return null
-        val folder = b.folderId?.let { folders[it] }
-        val tags = b.tags.map { it.name } + listOfNotNull(folder?.takeIf { f -> b.tags.none { it.name.equals(f, ignoreCase = true) } })
+        val folder = b.folderId?.let { folders[it] }?.takeIf { !b.archived }
+        val tags = b.tags.map { it.name }
         return RemoteEntry(
             remoteId = b.id.toString(),
             url = url,
@@ -67,8 +67,8 @@ class InstapaperReadingList(
             archived = b.archived,
             liked = b.liked,
             tags = tags,
+            folder = folder,
             progress = b.progress,
-            extra = folder,
         )
     }
 
@@ -77,16 +77,29 @@ class InstapaperReadingList(
         title: String,
         tags: List<String>,
         archived: Boolean,
+        folder: String?,
     ): RemoteEntry =
         guarded {
             var saved = client.save(url, title.takeIf { it.isNotBlank() && it != url }) ?: throw ServiceException(ServiceProblem.Refused)
             if (tags.isNotEmpty()) saved = saved.copy(tags = client.setTags(saved.id, tags, emptyList()))
             if (archived && !saved.archived) {
                 client.move(saved.id, "archive")
-                saved = saved.copy(archived = true)
+                saved = saved.copy(archived = true, folderId = null)
+            } else if (!archived && folder != null) {
+                val id = folderId(folder)
+                if (saved.folderId != id) client.move(saved.id, id.toString())
+                saved = saved.copy(folderId = id)
             }
             entryOf(saved) ?: throw ServiceException(ServiceProblem.Refused)
         }
+
+    /** The id of the folder called [title] (case ignored), made at Instapaper when there is none. */
+    private suspend fun folderId(title: String): Long {
+        folders.entries.firstOrNull { it.value.equals(title, ignoreCase = true) }?.let { return it.key }
+        val made = client.createFolder(title)
+        folders = folders + (made.id to made.title)
+        return made.id
+    }
 
     override suspend fun update(
         have: RemoteEntry,
@@ -94,21 +107,19 @@ class InstapaperReadingList(
     ): RemoteEntry =
         guarded {
             val id = have.remoteId.toLongOrNull() ?: throw ServiceException(ServiceProblem.Refused)
-            val folder = have.extra
             fun List<String>.has(tag: String) = any { it.equals(tag, ignoreCase = true) }
             if (want.liked != have.liked) client.like(id, want.liked)
             val removed = have.tags.filter { !want.tags.has(it) }
             val added = want.tags.filter { !have.tags.has(it) }
-            // The folder's tag: taking it off moves the article out of the folder.
-            val leavesFolder = folder != null && removed.any { it.equals(folder, ignoreCase = true) }
-            val removeIds = removed.filterNot { folder != null && it.equals(folder, ignoreCase = true) }.mapNotNull { tagIds[it.lowercase()] }
+            val removeIds = removed.mapNotNull { tagIds[it.lowercase()] }
             if (added.isNotEmpty() || removeIds.isNotEmpty()) client.setTags(id, added, removeIds)
+            // One place: the archive, a folder, or home (To read).
+            val folderChanged = !want.folder.equals(have.folder, ignoreCase = true)
             when {
-                want.archived && !have.archived -> client.move(id, "archive")
-                !want.archived && (have.archived || leavesFolder) -> client.move(id, "home")
+                want.archived -> if (!have.archived) client.move(id, "archive")
+                want.folder != null -> if (have.archived || folderChanged) client.move(id, folderId(want.folder).toString())
+                have.archived || have.folder != null -> client.move(id, "home")
             }
-            // Back to Unread (home) also leaves the folder.
-            val stillInFolder = folder?.takeIf { !leavesFolder && !(have.archived && !want.archived) }
             val progressChanged = kotlin.math.abs(want.progress - have.progress) >= 0.01f
             if (want.title != have.title || progressChanged) {
                 client.updateBookmark(
@@ -118,7 +129,7 @@ class InstapaperReadingList(
                     progressAt = now() / 1000,
                 )
             }
-            want.copy(remoteId = have.remoteId, addedAt = have.addedAt, extra = stillInFolder)
+            want.copy(remoteId = have.remoteId, addedAt = have.addedAt, folder = want.folder.takeIf { !want.archived })
         }
 
     override suspend fun remove(remoteId: String) =

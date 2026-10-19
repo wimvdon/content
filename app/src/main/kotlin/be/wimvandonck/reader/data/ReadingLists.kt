@@ -4,19 +4,9 @@ import be.wimvandonck.reader.feed.Html
 import java.net.URI
 import kotlin.math.ceil
 
-/** The reading list's two lists (#107): what is still to read, and what is done (archived, still searchable). */
-enum class ReadingListTab { ToRead, Archive }
-
-/** What the reading list shows: one of its lists, only liked ones or not, and one tag or all. */
-data class ReadingListFilter(
-    val tab: ReadingListTab = ReadingListTab.ToRead,
-    val likedOnly: Boolean = false,
-    val tag: String? = null,
-)
-
 /**
- * The reading list as the screens show it, and items shown like articles in lists and the reader.
- * Plain Kotlin, unit tested.
+ * Saved items shown like articles in lists and the reader: reading times, the feed article they
+ * came from, their source. Plain Kotlin, unit tested.
  */
 object ReadingLists {
     /** The feed key of items opened in the reader ("item <item key>"), so it never clashes with a feed's. */
@@ -29,29 +19,6 @@ object ReadingLists {
 
     /** The item key in a reader key, or null when it is a feed article's. */
     fun itemKeyOf(readerKey: String): String? = readerKey.takeIf { it.startsWith("$ITEM_FEED ") }?.removePrefix("$ITEM_FEED ")
-
-    /** The items the filter picks, newest added first. */
-    fun items(
-        library: Library,
-        filter: ReadingListFilter,
-    ): List<Item> {
-        val state = if (filter.tab == ReadingListTab.Archive) ReadingState.Archived else ReadingState.ToRead
-        return library
-            .readingList(state)
-            .filter { (!filter.likedOnly || it.liked) && (filter.tag == null || it.tags.any { t -> t.equals(filter.tag, ignoreCase = true) }) }
-    }
-
-    /** The tags of the items in a list, sorted, for its chips. */
-    fun tags(
-        library: Library,
-        tab: ReadingListTab,
-    ): List<String> = cleanTags(items(library, ReadingListFilter(tab)).flatMap { it.tags }).sortedBy { it.lowercase() }
-
-    /** The filter without a tag that the list no longer has. */
-    fun shown(
-        library: Library,
-        filter: ReadingListFilter,
-    ): ReadingListFilter = if (filter.tag != null && tags(library, filter.tab).none { it.equals(filter.tag, ignoreCase = true) }) filter.copy(tag = null) else filter
 
     /** About how many minutes reading [words] takes (230 words a minute), at least one. */
     fun minutes(words: Int): Int = if (words <= 0) 0 else ceil(words / WORDS_PER_MINUTE).toInt().coerceAtLeast(1)

@@ -2,9 +2,10 @@ package be.wimvandonck.reader.services
 
 import be.wimvandonck.reader.data.Library
 import be.wimvandonck.reader.data.ReadingState
+import be.wimvandonck.reader.data.Saved
+import be.wimvandonck.reader.data.SavedTab
 import be.wimvandonck.reader.data.addToReadingList
 import be.wimvandonck.reader.data.item
-import be.wimvandonck.reader.data.keepAsBookmark
 import be.wimvandonck.reader.data.setLiked
 import be.wimvandonck.reader.data.setReadingState
 import be.wimvandonck.reader.data.setTags
@@ -59,10 +60,11 @@ class ServiceSyncTest {
             title: String,
             tags: List<String>,
             archived: Boolean,
+            folder: String?,
         ): RemoteEntry {
             call("add $url")
             val existing = entries.values.firstOrNull { it.url == url }
-            val entry = (existing ?: RemoteEntry("${nextId++}", url, title, addedAt = 5, archived = false, liked = false, tags = emptyList())).copy(title = title, tags = tags, archived = archived)
+            val entry = (existing ?: RemoteEntry("${nextId++}", url, title, addedAt = 5, archived = false, liked = false, tags = emptyList())).copy(title = title, tags = tags, archived = archived, folder = folder)
             put(entry)
             return entry
         }
@@ -102,10 +104,33 @@ class ServiceSyncTest {
         archived: Boolean = false,
         liked: Boolean = false,
         tags: List<String> = emptyList(),
-    ) = RemoteEntry(id, url, "Title $id", "Desc", null, addedAt = 1_000, archived = archived, liked = liked, tags = tags)
+        folder: String? = null,
+    ) = RemoteEntry(id, url, "Title $id", "Desc", null, addedAt = 1_000, archived = archived, liked = liked, tags = tags, folder = folder)
 
     @Test
-    fun `the whole account comes in on the first sync, folders as tags`() {
+    fun `folders come in, filing here and archiving go out, and the folder is one place`() {
+        service.put(remote("1", "https://a.example/1", folder = "Work"))
+        assertNull(sync())
+        assertEquals("Work", library.item("a.example/1")?.folder)
+        assertTrue(Saved.isIn(library.item("a.example/1")!!, SavedTab.Folder("work")))
+        // Filed elsewhere here: sent once.
+        library = Saved.file(library, "a.example/1", "Later")
+        assertNull(sync())
+        assertEquals("Later", service.entries["1"]!!.folder)
+        // Archiving takes it out of its folder, here and there.
+        library = library.setReadingState("a.example/1", ReadingState.Archived)
+        assertNull(library.item("a.example/1")!!.folder)
+        assertNull(sync())
+        assertTrue(service.entries["1"]!!.archived)
+        assertNull(service.entries["1"]!!.folder)
+        // Filed at the service while unchanged here: it comes back to read, in that folder.
+        service.put(service.entries["1"]!!.copy(archived = false, folder = "Work"))
+        assertNull(sync())
+        assertEquals("Work", Saved.folderOf(library.item("a.example/1")!!))
+    }
+
+    @Test
+    fun `the whole account comes in on the first sync, with tags`() {
         service.put(remote("1", "https://a.example/1", tags = listOf("Work")))
         service.put(remote("2", "https://a.example/2", archived = true, liked = true))
         assertNull(sync())
@@ -141,14 +166,14 @@ class ServiceSyncTest {
     }
 
     @Test
-    fun `taking an item off the reading list removes it at the service, and a bookmark stays in Reader`() {
-        library = library.addToReadingList("https://b.example/x", "X", 10).first.keepAsBookmark("b.example/x", "Tools", 10)
+    fun `taking an item out of Saved removes it at the service`() {
+        library = Saved.file(library.addToReadingList("https://b.example/x", "X", 10).first, "b.example/x", "Tools")
         sync()
         val id = state.rows["b.example/x"]!!.remoteId
-        library = library.setReadingState("b.example/x", null)
+        assertEquals("Tools", service.entries[id]!!.folder)
+        library = Saved.remove(library, "b.example/x")
         sync()
         assertNull(service.entries[id])
-        assertTrue(library.item("b.example/x")!!.bookmarked)
         assertFalse(state.rows.containsKey("b.example/x"))
     }
 

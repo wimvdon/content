@@ -10,9 +10,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import be.wimvandonck.reader.R
-import be.wimvandonck.reader.data.Bookmarks
+import be.wimvandonck.reader.data.Saved
 import be.wimvandonck.reader.data.Item
-import be.wimvandonck.reader.data.SaveTo
 import be.wimvandonck.reader.data.itemTags
 import be.wimvandonck.reader.data.tagWithFeedFolder
 import be.wimvandonck.reader.instapaper.SharedLink
@@ -63,25 +62,29 @@ private fun SaveFromTab(
     val library = app.library.library.collectAsStateWithLifecycle().value ?: return
     val tagWithFolder = app.settings.settings.collectAsStateWithLifecycle().value?.tagWithFolder ?: true
 
-    // The save sheet, as for links shared to Reader (#108): the reading list or a bookmark.
+    // The save sheet, as for links shared to Reader (#108, #119): its folder, a note and tags.
     SaveSheet(
         url = link.url,
         title = link.title,
-        initial = null,
-        collections = Bookmarks.collections(library),
+        folders = Saved.folders(library),
         allTags = library.itemTags(),
-        onSave = { url, to, collection, note, tags ->
+        onSave = { url, folder, note, tags ->
             app.appScope.launch {
                 var saved: Item? = null
                 app.library.edit { lib ->
-                    val (updated, item) = Bookmarks.save(lib, url, link.title, to, System.currentTimeMillis(), collection, note, tags)
+                    val (updated, item) = Saved.save(lib, url, link.title, System.currentTimeMillis(), folder, note, tags)
                     saved = item
                     if (item != null && tagWithFolder) updated.tagWithFeedFolder(item.key) else updated
                 }
                 val item = saved
-                val message = if (item == null) R.string.add_link_invalid else if (to == SaveTo.Bookmark) R.string.bookmark_saved else R.string.reading_list_added
+                val message =
+                    if (item == null) {
+                        resources.getString(R.string.add_link_invalid)
+                    } else {
+                        resources.getString(R.string.saved_to, folder.trim().ifEmpty { resources.getString(R.string.reading_list_to_read) })
+                    }
                 // The tab is back by then: the app's context outlives this screen.
-                Toast.makeText(app, resources.getString(message), Toast.LENGTH_SHORT).show()
+                Toast.makeText(app, message, Toast.LENGTH_SHORT).show()
                 if (item != null) app.library.describe(item.key)
             }
         },
