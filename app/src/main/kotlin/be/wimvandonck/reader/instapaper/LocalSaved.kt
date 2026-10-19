@@ -1,5 +1,6 @@
 package be.wimvandonck.reader.instapaper
 
+import be.wimvandonck.reader.data.ItemKeys
 import be.wimvandonck.reader.sync.Json
 
 /** The articles saved on this phone without an Instapaper account, and their tags. */
@@ -49,20 +50,21 @@ class LocalSaved(
         title: String?,
     ): InstapaperBookmark? {
         val time = now() / 1000
-        var saved: InstapaperBookmark? = null
-        storage.update { data ->
-            val existing = data.bookmarks.firstOrNull { it.url == url }
-            if (existing != null) {
-                val again = existing.copy(time = time, archived = false, title = title?.takeIf { it.isNotBlank() } ?: existing.title)
-                saved = again
-                data.copy(bookmarks = data.bookmarks.map { if (it.id == existing.id) again else it })
-            } else {
-                val new = InstapaperBookmark(data.nextId, url, title?.takeIf { it.isNotBlank() } ?: url, "", time, liked = false, archived = false, folderId = null, tags = emptyList())
-                saved = new
-                data.copy(bookmarks = data.bookmarks + new, nextId = data.nextId + 1)
+        val key = ItemKeys.of(url)
+        val stored =
+            storage.update { data ->
+                // The same link written another way (http, www., a trailing slash) is the same article.
+                val existing = data.bookmarks.firstOrNull { it.url == url || (key != null && ItemKeys.of(it.url) == key) }
+                if (existing != null) {
+                    val again = existing.copy(time = time, archived = false, title = title?.takeIf { it.isNotBlank() } ?: existing.title)
+                    data.copy(bookmarks = data.bookmarks.map { if (it.id == existing.id) again else it })
+                } else {
+                    val new = InstapaperBookmark(data.nextId, url, title?.takeIf { it.isNotBlank() } ?: url, "", time, liked = false, archived = false, folderId = null, tags = emptyList())
+                    data.copy(bookmarks = data.bookmarks + new, nextId = data.nextId + 1)
+                }
             }
-        }
-        return saved
+        // As stored: the storage may give it its own id (ItemsSavedStorage).
+        return stored.bookmarks.firstOrNull { it.url == url } ?: stored.bookmarks.firstOrNull { key != null && ItemKeys.of(it.url) == key }
     }
 
     override suspend fun move(
@@ -132,7 +134,7 @@ class LocalSaved(
         val clean = name.trim()
         if (clean.isEmpty()) throw InstapaperException(InstapaperProblem.Invalid)
         var result: InstapaperTag? = null
-        storage.update { data ->
+        val stored = storage.update { data ->
             val tag = data.tags.firstOrNull { it.id == id } ?: throw InstapaperException(InstapaperProblem.Invalid)
             val target = data.tags.firstOrNull { it.id != id && it.name.equals(clean, ignoreCase = true) } ?: tag.copy(name = clean)
             result = target
@@ -144,7 +146,8 @@ class LocalSaved(
                     },
             )
         }
-        return result!!
+        // As stored: the storage may give the renamed tag its own id (ItemsSavedStorage).
+        return stored.tags.firstOrNull { it.name.equals(clean, ignoreCase = true) } ?: result!!
     }
 
     /**

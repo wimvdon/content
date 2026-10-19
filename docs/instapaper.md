@@ -20,8 +20,10 @@ Unread, "home") is called **Saved** too, so it isn't mixed up with unread feed a
 
 Signed out, the Saved screen runs on `instapaper/LocalSaved.kt` instead of `InstapaperClient`: the
 same `InstapaperService`, so the lists, Search, the reader's buttons and the sheet after Save behave
-the same. Its articles (address, title, time, liked, archived, tags) are kept on the phone in
-`datastore/saved` as JSON, are part of Android's backup, and are not synced. There are no folders:
+the same. Its articles are the library's reading list (#106): items in the library database with
+their address, title, time, liked, archived and tags (`ItemsSavedStorage`, `SavedItems`), part of
+Android's backup, and not synced. Saving a feed article makes the item of its link, so it isn't
+copied. Versions before #106 kept them in `datastore/saved`; they move into the database once. There are no folders:
 the folder parts of the screens are hidden, and a move to a folder is refused. Tags are created when
 first added and disappear when no article has them any more; renaming a tag to an existing name joins
 the two.

@@ -10,7 +10,7 @@ MainActivity ─ RssReaderAppTheme ─ RssReaderNavigation (back stack: Home ›
                                         │ state ▲          │ clicks
                                         ▼       │          ▼
 RssReaderApp ── SettingsStore ── DataStore "settings" (Preferences)
-             └─ LibraryRepository ── DataStore "library.txt" (Library ⇄ LibraryCodec)
+             └─ LibraryRepository ── Room "library.db" (Library ⇄ LibraryRows, data/db)
                         │
                         └─ FeedFetcher (HTTPS) → FeedParser / FeedFinder / Opml (plain Kotlin)
 ```
@@ -20,9 +20,10 @@ RssReaderApp ── SettingsStore ── DataStore "settings" (Preferences)
 | Component | Responsibility |
 |---|---|
 | `RssReaderApp` | Application object: owns the stores and a process-wide coroutine scope, so a refresh survives leaving a screen. |
-| `data/Library.kt` | The whole state of the user's reading: `Folder`s (title and icon), `Feed`s (each in at most one folder) and `Article`s with read state. Immutable; every change (merge a download, mark read, remove a feed) returns a new `Library`. Plain Kotlin, unit tested. |
-| `data/LibraryCodec.kt` | Turns a `Library` into a small tab-separated text format and back, tolerant of damaged lines. |
-| `data/LibraryRepository.kt` | Stores the `Library` with DataStore, refreshes all feeds (four at a time), adds feeds, imports and exports OPML, and remembers which feeds failed. |
+| `data/Library.kt` | The whole state of the user's reading: `Folder`s (title and icon), `Feed`s (each in at most one folder), `Article`s with read state and `Item`s (the reading list and Bookmarks). Immutable; every change (merge a download, mark read, remove a feed) returns a new `Library`. Plain Kotlin, unit tested. |
+| `data/Items.kt`, `LibraryItems.kt` | One item per link (#106): memberships (reading list: to read or archived; Bookmarks with a collection), liked, tags, note, highlights and reading progress. `ItemKeys` normalises links, so a feed article and its saved item share one key. The changes (save, archive, keep as bookmark, tags) are functions on `Library`. |
+| `data/db/`, `data/LibraryRows.kt` | The Room database (`library.db`): tables for folders, feeds, articles, items, item texts (per source, on the device only) and a small `meta` table. `LibraryRows` turns rows into the `Library` and back, and `LibraryChanges` works out what a change needs to write. |
+| `data/LibraryRepository.kt` | Holds the `Library` in memory and in the database (one change at a time, `update`), refreshes all feeds (four at a time), adds feeds, imports and exports OPML, and remembers which feeds failed. On first start it moves in the files of older versions (`LegacyLibrary`: `library.txt` through `LibraryCodec`, and Saved without an account). |
 | `data/SettingsStore.kt`, `Settings.kt` | Theme, dynamic colour, reader style, Save and Share targets, list options (Unread filter, Mark as read on scroll), in Preferences DataStore. |
 | `feed/FeedFetcher.kt` | The only network code: HTTPS GET with timeouts, a 10 MB limit and at most 5 redirects. |
 | `feed/FeedParser.kt` | RSS 2.0/0.9x, RSS 1.0 (RDF) and Atom into `ParsedFeed`, with the platform XML parser (external entities off). Retries with HTML entities fixed. |
@@ -42,7 +43,7 @@ RssReaderApp ── SettingsStore ── DataStore "settings" (Preferences)
 | `ui/reader/` | Reader screen, Text sheet, reader colours (theme, sepia, dark). `ReaderStyleControls` is shared with Settings. |
 | `web/` | The web app (see `web/README.md`): `src/lib/` holds the logic (feed parser with Android-compatible ids, library, search (`search.ts`, like Android's), Saved without an account (`localSaved.ts`), sync merge and the Reader account with its live connection, IndexedDB storage, feed loading through the Worker, Readability with a full-article cache, DOMPurify with embed cards, reader text settings, mark as read on scroll) and `src/lib/app.ts` the state the screens subscribe to; `src/components/` the screens. |
 | `worker/` | The Cloudflare Worker the web app loads feeds and pages through (CORS): one address per request, https and public hosts only, feeds and pages only, the web app's origin only, rate limited, nothing stored or logged. It also swaps the Instapaper sign-in code and keeps the Reader accounts: one Durable Object per account with the encrypted sync document and a live connection per open device (`src/account.ts`, `docs/account.md`). |
-| `sync/` | Sync with the user's Reader account (see `docs/sync.md`, `docs/account.md`): `SyncDocument` (the shared JSON document), `SyncMerge` (three-way merge with the last synced document, applied to the `Library` in one DataStore update), `SyncRound` (read, merge, save with the version read, merge again after another device's save), `AccountClient` (the account's calls over OkHttp, with the device key from the Instapaper sign-in), `LiveUpdates` (the WebSocket that says when another device saved), and `SyncManager` (syncs while the app is on screen: on coming back, live, every minute only while the live connection is down (`whileVisible`), a second after a change, on refresh and on request, with the timing in `SyncTiming`; keeps the base and its version; tells `LibraryRepository` which new articles were already read elsewhere). |
+| `sync/` | Sync with the user's Reader account (see `docs/sync.md`, `docs/account.md`): `SyncDocument` (the shared JSON document), `SyncMerge` (three-way merge with the last synced document, applied to the `Library` in one update), `SyncRound` (read, merge, save with the version read, merge again after another device's save), `AccountClient` (the account's calls over OkHttp, with the device key from the Instapaper sign-in), `LiveUpdates` (the WebSocket that says when another device saved), and `SyncManager` (syncs while the app is on screen: on coming back, live, every minute only while the live connection is down (`whileVisible`), a second after a change, on refresh and on request, with the timing in `SyncTiming`; keeps the base and its version; tells `LibraryRepository` which new articles were already read elsewhere). |
 | `data/FeedArrangement.kt` | The manage page as a flat list of folder headers and feeds: which moves are allowed while dragging, and turning the dragged order back into folder order, feed order and each feed's folder. |
 | `ui/feeds/` | Manage feeds (feeds and folders) and Manage Instapaper (its folders and tags, `InstapaperManage.kt`). Manage feeds: drag and drop (own `LazyColumn` with a drag handle per row), feed dialog (rename, folder, remove) and folder dialog (`FolderDialogs.kt`), OPML import/export. |
 | `ui/settings/` | Settings screen built from the shared `SettingsKit`: Account (Instapaper sign-in and sync, `AccountSettings.kt`), Article list, Reader, Save and Share targets, Appearance. |
@@ -51,7 +52,7 @@ RssReaderApp ── SettingsStore ── DataStore "settings" (Preferences)
 
 ## Data flow
 
-1. On start the repository reads `library.txt`; the list shows stored articles at once.
+1. On start the repository reads the database (`library.db`); the list shows stored articles at once.
 2. The first time the list appears after the app starts (and on pull-to-refresh), every feed is
    downloaded and parsed, and then all results are merged in one update (`Library.mergeAll`), so
    the list changes once, in date order. Dates in the future count as now. In the merge new articles are added unread, known ones keep their read state,
@@ -83,15 +84,15 @@ RssReaderApp ── SettingsStore ── DataStore "settings" (Preferences)
   `LibraryCodec`, `Settings`, everything in `feed/` except `FeedFetcher`.
 - **Composables only display state and forward clicks**; screens get a state class and an actions
   class (`HomeState`/`HomeActions`, `SettingsState`/`SettingsActions`, `ReaderActions`).
-- **One source of truth** per kind of data: DataStore, exposed as `StateFlow`.
+- **One source of truth** per kind of data: the library in Room, settings and the sign-in in DataStore, exposed as `StateFlow`.
 - **No navigation library:** a `Screen` back stack with a shared-axis transition, and a
   `SaveableStateHolder` so the list keeps its scroll position while an article is open.
 
 ## Why this design
 
-See [decisions.md](decisions.md): no database or JSON library is needed for a few thousand
-articles; no image or HTTP library keeps the app small and the privacy story simple; no background
-work means no battery use when the app is closed.
+See [decisions.md](decisions.md): a database (Room) since the library holds a reading list and
+bookmarks with notes and highlights (#106), kept in memory as one value so the logic stays plain
+Kotlin; no JSON library; no background work means no battery use when the app is closed.
 
 ## Instapaper
 
