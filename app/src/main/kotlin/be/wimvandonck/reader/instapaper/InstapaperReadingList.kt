@@ -32,7 +32,10 @@ class InstapaperReadingList(
     @Volatile
     private var textRefused = false
 
-    override suspend fun changes(cursor: String?): RemoteChanges =
+    override suspend fun changes(
+        cursor: String?,
+        full: Boolean,
+    ): RemoteChanges =
         guarded {
             // Recorded before asking, a little early, so nothing changed meanwhile is missed (taking a change twice is harmless).
             val asked = now() / 1000 - CURSOR_MARGIN_S
@@ -78,6 +81,7 @@ class InstapaperReadingList(
         tags: List<String>,
         archived: Boolean,
         folder: String?,
+        note: String,
     ): RemoteEntry =
         guarded {
             var saved = client.save(url, title.takeIf { it.isNotBlank() && it != url }) ?: throw ServiceException(ServiceProblem.Refused)

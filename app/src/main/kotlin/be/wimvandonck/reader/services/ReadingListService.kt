@@ -14,6 +14,9 @@ enum class ServiceFeature {
 
     /** Highlights and their notes (#102). */
     Highlights,
+
+    /** The item's note (Raindrop keeps one per bookmark). */
+    Notes,
 }
 
 /** Why a service call failed. A failure never loses anything in Reader; the change is tried again later. */
@@ -49,6 +52,8 @@ data class RemoteEntry(
     val tags: List<String>,
     /** The folder it is in (#119), or null for To read (and when archived). */
     val folder: String? = null,
+    /** Its note, with [Notes][ServiceFeature.Notes]; null when the service keeps none. */
+    val note: String? = null,
     /** 0 to 1, with [Progress][ServiceFeature.Progress]. */
     val progress: Float = 0f,
     /** A detail only the service uses, kept with what was last seen. */
@@ -61,6 +66,11 @@ data class RemoteChanges(
     val deleted: List<String>,
     /** To give to the next [ReadingListService.changes]. */
     val cursor: String,
+    /**
+     * True when [entries] is everything the service has (a service without "changes since"): what
+     * was there before and isn't now was deleted there.
+     */
+    val complete: Boolean = false,
 )
 
 /**
@@ -74,8 +84,14 @@ interface ReadingListService {
 
     val features: Set<ServiceFeature>
 
-    /** Every change since [cursor] (null: everything there is). */
-    suspend fun changes(cursor: String?): RemoteChanges
+    /**
+     * Every change since [cursor] (null: everything there is). [full] is false for the quick sync
+     * after a change here, when a service that can only list everything may skip listing.
+     */
+    suspend fun changes(
+        cursor: String?,
+        full: Boolean = true,
+    ): RemoteChanges
 
     /** Saves a link (or brings back one the service already has) and returns it as the service has it now. */
     suspend fun add(
@@ -84,6 +100,7 @@ interface ReadingListService {
         tags: List<String>,
         archived: Boolean,
         folder: String? = null,
+        note: String = "",
     ): RemoteEntry
 
     /** Applies the core fields of [want] that differ from [have] (the entry as last seen) and returns the entry afterwards. */

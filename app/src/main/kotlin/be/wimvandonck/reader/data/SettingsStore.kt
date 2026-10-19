@@ -67,6 +67,8 @@ class SettingsStore(
 
     suspend fun setTagWithFolder(enabled: Boolean) = edit { it[TAG_WITH_FOLDER] = enabled }
 
+    suspend fun setSaveService(service: String) = edit { it[SAVE_SERVICE] = service }
+
     /** Takes the synced settings from another device (see SyncSettings); the rest stays as it is. */
     suspend fun applySynced(values: Map<String, String>) =
         edit { prefs ->
@@ -120,6 +122,7 @@ class SettingsStore(
             markReadOnScroll = p[MARK_READ_ON_SCROLL] ?: defaults.markReadOnScroll,
             listView = enumOr(p[LIST_VIEW], defaults.listView),
             tagWithFolder = p[TAG_WITH_FOLDER] ?: defaults.tagWithFolder,
+            saveService = p[SAVE_SERVICE] ?: defaults.saveService,
             lastSyncedAt = p[LAST_SYNCED_AT],
         )
     }
@@ -145,6 +148,7 @@ class SettingsStore(
         val MARK_READ_ON_SCROLL = booleanPreferencesKey("mark_read_on_scroll")
         val LIST_VIEW = stringPreferencesKey("list_view")
         val TAG_WITH_FOLDER = booleanPreferencesKey("tag_with_folder")
+        val SAVE_SERVICE = stringPreferencesKey("save_service")
         val LAST_SYNCED_AT = longPreferencesKey("last_synced_at")
     }
 }

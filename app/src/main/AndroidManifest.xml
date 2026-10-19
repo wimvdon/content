@@ -39,16 +39,16 @@
                 <data android:mimeType="text/plain" />
             </intent-filter>
 
-            <!-- Where Instapaper sends the user back after signing in. Verified against
+            <!-- Where Instapaper and Raindrop send the user back after signing in. Verified against
                  https://rss-reader-web.wim-d57.workers.dev/.well-known/assetlinks.json (web/public). -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                    android:scheme="https"
-                    android:host="rss-reader-web.wim-d57.workers.dev"
-                    android:path="/instapaper/callback" />
+                <data android:scheme="https" />
+                <data android:host="rss-reader-web.wim-d57.workers.dev" />
+                <data android:path="/instapaper/callback" />
+                <data android:path="/raindrop/callback" />
             </intent-filter>
         </activity>
 

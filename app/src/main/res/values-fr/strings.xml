@@ -229,6 +229,17 @@
     <string name="services_reading_body">Reader garde vos articles enregistrés. Connectez-vous avec Instapaper pour les garder aussi là-bas.</string>
     <string name="services_instapaper_body">Synchronisée avec le compte Instapaper de %s</string>
     <string name="services_problem_later">Instapaper a demandé d’attendre un moment. Le reste suivra.</string>
+    <string name="section_raindrop">Raindrop.io</string>
+    <string name="raindrop_connect">Connecter Raindrop.io</string>
+    <string name="raindrop_disconnect">Déconnecter</string>
+    <string name="services_raindrop_off">Connectez Raindrop.io pour y garder aussi vos articles enregistrés, dossiers et notes.</string>
+    <string name="services_raindrop_body">Synchronisé avec votre compte Raindrop.io</string>
+    <string name="raindrop_sign_in_done">Connecté à Raindrop.io</string>
+    <string name="raindrop_sign_in_failed">La connexion à Raindrop.io a échoué. Réessayez.</string>
+    <string name="raindrop_problem_signed_out">Raindrop.io n’accepte plus la connexion. Connectez-vous à nouveau.</string>
+    <string name="raindrop_problem_later">Raindrop.io a demandé d’attendre un moment. Le reste suivra.</string>
+    <string name="save_service_title">Les nouveaux enregistrements vont dans</string>
+    <string name="save_service_question">Instapaper et Raindrop.io sont tous deux connectés. Chacun garde ses propres articles et rien n’est copié de l’un à l’autre. Où enregistrer les nouveaux articles ? Vous pouvez changer cela dans Services connectés.</string>
     <string name="tags_title">Tags</string>
     <string name="tags_add">Ajouter un tag</string>
     <string name="tags_remove">Retirer le tag</string>

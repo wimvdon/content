@@ -14,6 +14,7 @@ import be.wimvandonck.reader.data.SettingsStore
 import be.wimvandonck.reader.feed.FeedFetcher
 import be.wimvandonck.reader.instapaper.InstapaperAccount
 import be.wimvandonck.reader.instapaper.SharedLink
+import be.wimvandonck.reader.raindrop.RaindropAccount
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -62,8 +63,11 @@ class RssReaderApp :
     /** Sync with the user's Reader account, which signing in with Instapaper opens. See sync/ and docs/account.md. */
     val sync: SyncManager by lazy { SyncManager(this, appScope, library, settings, instapaper, http) }
 
-    /** The reading list's connected service (Instapaper when signed in). See services/. */
-    val services: ServiceManager by lazy { ServiceManager(appScope, library, instapaper, http) }
+    /** Raindrop.io, connected in Connected services (#112). See raindrop/. */
+    val raindrop: RaindropAccount by lazy { RaindropAccount(this, appScope, http) }
+
+    /** Saved's connected services (Instapaper, Raindrop). See services/. */
+    val services: ServiceManager by lazy { ServiceManager(appScope, library, instapaper, raindrop, http) { settings.settings.value?.saveService } }
 
     val fullArticles: FullArticles by lazy { FullArticles(File(cacheDir, "articles"), fetch = fetcher::fetch) }
 

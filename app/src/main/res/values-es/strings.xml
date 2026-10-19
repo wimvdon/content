@@ -229,6 +229,17 @@
     <string name="services_reading_body">Reader guarda tus artículos. Inicia sesión con Instapaper para guardarlos también allí.</string>
     <string name="services_instapaper_body">Sincronizada con la cuenta de Instapaper de %s</string>
     <string name="services_problem_later">Instapaper pidió esperar un momento. El resto irá después.</string>
+    <string name="section_raindrop">Raindrop.io</string>
+    <string name="raindrop_connect">Conectar Raindrop.io</string>
+    <string name="raindrop_disconnect">Desconectar</string>
+    <string name="services_raindrop_off">Conecta Raindrop.io para guardar también allí tus artículos, carpetas y notas.</string>
+    <string name="services_raindrop_body">Sincronizado con tu cuenta de Raindrop.io</string>
+    <string name="raindrop_sign_in_done">Conectado a Raindrop.io</string>
+    <string name="raindrop_sign_in_failed">No se pudo conectar con Raindrop.io. Inténtalo de nuevo.</string>
+    <string name="raindrop_problem_signed_out">Raindrop.io ya no acepta la conexión. Vuelve a conectar.</string>
+    <string name="raindrop_problem_later">Raindrop.io pidió esperar un momento. El resto irá después.</string>
+    <string name="save_service_title">Lo nuevo que guardes va a</string>
+    <string name="save_service_question">Instapaper y Raindrop.io están conectados. Cada uno guarda sus propios artículos y no se copia nada entre ellos. ¿Adónde va lo nuevo que guardes? Puedes cambiarlo en Servicios conectados.</string>
     <string name="tags_title">Etiquetas</string>
     <string name="tags_add">Añadir etiqueta</string>
     <string name="tags_remove">Quitar etiqueta</string>

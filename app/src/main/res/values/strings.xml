@@ -224,6 +224,17 @@
     <string name="services_reading_body">Reader keeps your saved articles. Sign in with Instapaper to keep them there too.</string>
     <string name="services_instapaper_body">Synced with %s’s Instapaper account</string>
     <string name="services_problem_later">Instapaper asked to wait a moment. The rest goes later.</string>
+    <string name="section_raindrop">Raindrop.io</string>
+    <string name="raindrop_connect">Connect Raindrop.io</string>
+    <string name="raindrop_disconnect">Disconnect</string>
+    <string name="services_raindrop_off">Connect Raindrop.io to keep your saved articles, folders and notes there too.</string>
+    <string name="services_raindrop_body">Synced with your Raindrop.io account</string>
+    <string name="raindrop_sign_in_done">Connected to Raindrop.io</string>
+    <string name="raindrop_sign_in_failed">Connecting to Raindrop.io didn’t work. Try again.</string>
+    <string name="raindrop_problem_signed_out">Raindrop.io no longer accepts the connection. Connect again.</string>
+    <string name="raindrop_problem_later">Raindrop.io asked to wait a moment. The rest goes later.</string>
+    <string name="save_service_title">New saves go to</string>
+    <string name="save_service_question">Instapaper and Raindrop.io are both connected. Each keeps its own articles and nothing is copied between them. Where should new saves go? You can change this in Connected services.</string>
     <string name="tags_title">Tags</string>
     <string name="tags_add">Add a tag</string>
     <string name="tags_remove">Remove tag</string>

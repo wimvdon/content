@@ -9,6 +9,7 @@ import androidx.activity.enableEdgeToEdge
 import be.wimvandonck.reader.R
 import be.wimvandonck.reader.instapaper.InstapaperAuth
 import be.wimvandonck.reader.instapaper.SharedLink
+import be.wimvandonck.reader.raindrop.RaindropAuth
 import be.wimvandonck.reader.rssReaderApp
 import be.wimvandonck.reader.ui.theme.RssReaderAppTheme
 import kotlinx.coroutines.launch
@@ -20,6 +21,7 @@ class MainActivity : ComponentActivity() {
         // A restored activity (a rotation) must not handle the same sign-in link twice.
         if (savedInstanceState == null) {
             finishInstapaperSignIn(intent)
+            finishRaindropSignIn(intent)
             takeSharedLink(intent)
         }
         setContent {
@@ -33,7 +35,16 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         finishInstapaperSignIn(intent)
+        finishRaindropSignIn(intent)
         takeSharedLink(intent)
+    }
+
+    /** Raindrop sends the user back through the same kind of App Link (#112). */
+    private fun finishRaindropSignIn(intent: Intent?) {
+        val link = intent?.takeIf { it.action == Intent.ACTION_VIEW }?.dataString ?: return
+        if (!RaindropAuth.isCallback(link)) return
+        val app = rssReaderApp
+        app.appScope.launch { app.raindrop.finish(link) }
     }
 
     /** A link shared from another app (#97): saved like an article, then the save sheet opens. */

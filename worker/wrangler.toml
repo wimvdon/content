@@ -20,6 +20,10 @@ INSTAPAPER_CLIENT_ID = "94f820c94dc04d0386c71d7b0c26bd80"
 # Must equal a callback URI registered with the Instapaper application, character for character.
 INSTAPAPER_REDIRECT_URI = "https://rss-reader-web.wim-d57.workers.dev/instapaper/callback"
 
+# Raindrop.io sign-in (#112, docs/raindrop.md). Set RAINDROP_CLIENT_ID and RAINDROP_CLIENT_SECRET as
+# Worker secrets (never here). The callback address must be registered with the Raindrop app.
+RAINDROP_REDIRECT_URI = "https://rss-reader-web.wim-d57.workers.dev/raindrop/callback"
+
 # 120 requests per minute per IP address (a full refresh of 100 feeds fits).
 [[ratelimits]]
 name = "LIMITER"

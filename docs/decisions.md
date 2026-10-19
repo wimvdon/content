@@ -2,6 +2,28 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-19: Raindrop.io for Saved (#112), next to Instapaper without copying (#121)
+
+The owner approved Raindrop.io and its network destination `api.raindrop.io` (#112).
+
+- **Sign-in through the Worker** (OAuth 2, `worker/src/raindrop.ts`), like Instapaper's: the client
+  secret stays a Worker secret, and the client ID lives there too, so the app holds neither. The
+  Worker passes tokens through and keeps nothing; the app calls `api.raindrop.io` directly.
+- **Callback on the web app's domain** (`/raindrop/callback`), so the existing App Link verification
+  covers it; the page there hands the address to Reader or Reader Dev, because debug builds can't
+  verify App Links.
+- **Mapping:** Unsorted is To read, collections are folders (nested ones flattened to "Parent /
+  Child", as Saved's folders are flat), an "Archive" collection made on first use is the Archive,
+  favorite is Liked; notes sync (a new `ServiceFeature.Notes`).
+- **No "changes since" in Raindrop's API:** a sync lists the whole account (`RemoteChanges.complete`,
+  so a missing raindrop was deleted there), at most every three minutes for the quick sync after a
+  change. Rejected: Raindrop's `lastUpdate` sort, which can't tell deletions.
+- **Two services, nothing copied (#121):** a synced `service` field on the item (Room v5,
+  auto-migrated) says which service keeps it. Items each service already had become its own; new
+  saves go to the default service, asked once when both are connected (rejected: copying everything
+  to both, which #121 rules out, and per-save choice, left for #121's save sheet). The first sync
+  waits until both accounts are read, so neither service briefly looks like the only one.
+
 ## 2026-10-19: One Saved tab with folders (#119), replacing Reading list and Bookmarks
 
 The owner chose #119's design over the epic's (#113) two sections: one **Saved** destination

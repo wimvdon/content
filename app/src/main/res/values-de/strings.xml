@@ -223,6 +223,17 @@
     <string name="services_reading_body">Reader behält deine gespeicherten Artikel. Melde dich mit Instapaper an, um sie auch dort zu behalten.</string>
     <string name="services_instapaper_body">Mit dem Instapaper-Konto von %s synchronisiert</string>
     <string name="services_problem_later">Instapaper bat, kurz zu warten. Der Rest folgt später.</string>
+    <string name="section_raindrop">Raindrop.io</string>
+    <string name="raindrop_connect">Raindrop.io verbinden</string>
+    <string name="raindrop_disconnect">Trennen</string>
+    <string name="services_raindrop_off">Verbinde Raindrop.io, um deine gespeicherten Artikel, Ordner und Notizen auch dort zu behalten.</string>
+    <string name="services_raindrop_body">Mit deinem Raindrop.io-Konto synchronisiert</string>
+    <string name="raindrop_sign_in_done">Mit Raindrop.io verbunden</string>
+    <string name="raindrop_sign_in_failed">Die Verbindung mit Raindrop.io hat nicht geklappt. Versuche es erneut.</string>
+    <string name="raindrop_problem_signed_out">Raindrop.io akzeptiert die Verbindung nicht mehr. Verbinde dich erneut.</string>
+    <string name="raindrop_problem_later">Raindrop.io bat, kurz zu warten. Der Rest folgt später.</string>
+    <string name="save_service_title">Neu Gespeichertes geht zu</string>
+    <string name="save_service_question">Instapaper und Raindrop.io sind beide verbunden. Jeder Dienst behält seine eigenen Artikel, und nichts wird zwischen ihnen kopiert. Wohin soll neu Gespeichertes gehen? Du kannst das unter Verbundene Dienste ändern.</string>
     <string name="tags_title">Tags</string>
     <string name="tags_add">Tag hinzufügen</string>
     <string name="tags_remove">Tag entfernen</string>
