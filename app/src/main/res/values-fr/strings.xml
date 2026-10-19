@@ -309,4 +309,6 @@
         <item quantity="many">%d signets</item>
         <item quantity="other">%d signets</item>
     </plurals>
+    <string name="setting_tag_with_folder_title">Taguer avec le dossier du flux</string>
+    <string name="setting_tag_with_folder_summary">Un article enregistré depuis un flux reçoit le nom de son dossier comme tag.</string>
 </resources>

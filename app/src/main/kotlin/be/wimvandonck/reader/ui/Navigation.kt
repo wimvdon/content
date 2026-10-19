@@ -46,6 +46,7 @@ import be.wimvandonck.reader.data.item
 import be.wimvandonck.reader.data.itemFor
 import be.wimvandonck.reader.data.itemTags
 import be.wimvandonck.reader.data.keepAsBookmark
+import be.wimvandonck.reader.data.tagWithFeedFolder
 import be.wimvandonck.reader.data.removeTag
 import be.wimvandonck.reader.data.renameTag
 import be.wimvandonck.reader.data.setLiked
@@ -378,7 +379,7 @@ fun RssReaderNavigation() {
             repository.edit { library ->
                 val (updated, item) = library.addToReadingList(link, title, System.currentTimeMillis())
                 added = item
-                updated
+                if (item != null && current.tagWithFolder) updated.tagWithFeedFolder(item.key) else updated
             }
             val item = added
             if (item == null) {
@@ -404,7 +405,7 @@ fun RssReaderNavigation() {
             repository.edit { library ->
                 val (updated, item) = Bookmarks.save(library, url, title, to, System.currentTimeMillis(), collection, note, tags)
                 saved = item
-                updated
+                if (item != null && current.tagWithFolder) updated.tagWithFeedFolder(item.key) else updated
             }
             val item = saved
             if (item == null) {
@@ -699,6 +700,7 @@ fun RssReaderNavigation() {
                                 onListViewChange = { view -> app.appScope.launch { app.settings.setListView(view) } },
                                 onSaveTargetChange = { target -> app.appScope.launch { app.settings.setSaveTarget(target) } },
                                 onShareTargetChange = { target -> app.appScope.launch { app.settings.setShareTarget(target) } },
+                                onTagWithFolderChange = { enabled -> app.appScope.launch { app.settings.setTagWithFolder(enabled) } },
                                 onThemeModeChange = { mode -> app.appScope.launch { app.settings.setThemeMode(mode) } },
                                 onDynamicColorChange = { enabled -> app.appScope.launch { app.settings.setDynamicColor(enabled) } },
                                 onSignIn = { uiScope.launch { ExternalApps.openLink(context, app.instapaper.begin()) } },

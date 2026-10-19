@@ -309,4 +309,6 @@
         <item quantity="many">%d marcadores</item>
         <item quantity="other">%d marcadores</item>
     </plurals>
+    <string name="setting_tag_with_folder_title">Etiquetar con la carpeta del feed</string>
+    <string name="setting_tag_with_folder_summary">Un artículo que guardas desde un feed recibe el nombre de su carpeta como etiqueta.</string>
 </resources>

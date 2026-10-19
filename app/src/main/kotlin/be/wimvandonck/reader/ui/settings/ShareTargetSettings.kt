@@ -39,6 +39,7 @@ import be.wimvandonck.reader.R
 import be.wimvandonck.reader.data.ShareTarget
 import be.wimvandonck.reader.ui.ExternalApps
 import be.wimvandonck.reader.ui.theme.SettingsSection
+import be.wimvandonck.reader.ui.theme.SwitchSetting
 
 /**
  * Where the reader's Save and Share buttons send an article: Saved in this app (Save only), the
@@ -53,10 +54,18 @@ fun ShareTargetsSection(
     onSaveTargetChange: (ShareTarget) -> Unit,
     onShareTargetChange: (ShareTarget) -> Unit,
     showSaveTarget: Boolean = true,
+    tagWithFolder: Boolean = true,
+    onTagWithFolderChange: (Boolean) -> Unit = {},
 ) {
     SettingsSection(title = stringResource(R.string.section_save)) {
         if (showSaveTarget) TargetRow(stringResource(R.string.setting_save_button), saveTarget, apps, onSaveTargetChange, offerSaved = true)
         TargetRow(stringResource(R.string.setting_share_button), shareTarget, apps, onShareTargetChange)
+        SwitchSetting(
+            title = stringResource(R.string.setting_tag_with_folder_title),
+            summary = stringResource(R.string.setting_tag_with_folder_summary),
+            checked = tagWithFolder,
+            onCheckedChange = onTagWithFolderChange,
+        )
     }
 }
 

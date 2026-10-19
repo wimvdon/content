@@ -160,3 +160,17 @@ fun Library.removeTag(name: String): Library =
 
 /** How many items have each tag, by tag (as [itemTags] names them). */
 fun Library.tagCounts(): Map<String, Int> = itemTags().associateWith { tag -> items.count { item -> item.tags.any { it.equals(tag, ignoreCase = true) } } }
+
+/**
+ * Tags a saved item with the folder of the feed it came from (#120), in the spelling of a tag
+ * already in use. Nothing for a link that isn't a feed article or a feed outside folders. Later
+ * changes to the folder don't touch tags already given.
+ */
+fun Library.tagWithFeedFolder(key: String): Library {
+    val item = item(key) ?: return this
+    val article = ReadingLists.feedArticle(item, this) ?: return this
+    val folderId = feed(article.feedUrl)?.folderId ?: return this
+    val title = folders.firstOrNull { it.id == folderId }?.title?.trim()?.takeIf { it.isNotEmpty() } ?: return this
+    val tag = itemTags().firstOrNull { it.equals(title, ignoreCase = true) } ?: title
+    return setTags(key, item.tags + tag)
+}

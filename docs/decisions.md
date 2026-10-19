@@ -2,6 +2,17 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-19: Saved feed articles get their folder as a tag (#120)
+
+- Saving an article from a feed (Read later, the swipe, the save sheet, the custom tab) adds the
+  feed's folder title as a tag, reusing the spelling of a tag already in use (case ignored). The
+  item still goes to To read. It is a tag on the item, so it reaches Instapaper (and later
+  Raindrop) through the normal service sync; no service-specific call.
+- In Reader a feed is in at most one folder, so one tag. The Google Reader API case (several
+  labels per subscription, #110) is for later.
+- On by default, switch in Settings › Save and share. Kept per device, like the list view (not in
+  the synced settings, so the web app needs no change now).
+
 ## 2026-10-19: Bookmarks, a third destination (#108)
 
 - **Third top-level destination** in the navigation bar and rail (Feeds, Reading list, Bookmarks)

@@ -298,4 +298,6 @@
         <item quantity="one">%d Lesezeichen</item>
         <item quantity="other">%d Lesezeichen</item>
     </plurals>
+    <string name="setting_tag_with_folder_title">Mit dem Ordner des Feeds taggen</string>
+    <string name="setting_tag_with_folder_summary">Ein Artikel, den du aus einem Feed speicherst, bekommt den Namen seines Ordners als Tag.</string>
 </resources>

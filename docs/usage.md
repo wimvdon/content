@@ -186,7 +186,10 @@ a web link says "No link to save".
   **Sign out** and **Delete synced data** (see Sync between devices).
 - **Article list:** View (Small, Medium, Large) and **Mark as read on scroll**.
 - **Reader:** **Load full articles**, **Show images**, and the same text settings as **Aa**, with a preview in the page colour you chose.
-- **Save and share:** see above.
+- **Save and share:** see above, and **Tag with the feed's folder** (on by default): an article you
+  save from a feed (Read later, the swipe, the save sheet) gets its folder's name as a tag, spelled
+  like a tag you already use. It still goes to To read, not into a folder. Renaming or removing the
+  folder later doesn't change tags already given. Each device keeps its own choice.
 - **Appearance:** Theme (System, Light, Dark) and Dynamic color (wallpaper colours instead of
   the app's blue).
 

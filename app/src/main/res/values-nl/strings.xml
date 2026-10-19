@@ -298,4 +298,6 @@
         <item quantity="one">%d bladwijzer</item>
         <item quantity="other">%d bladwijzers</item>
     </plurals>
+    <string name="setting_tag_with_folder_title">Taggen met de map van de feed</string>
+    <string name="setting_tag_with_folder_summary">Een artikel dat je uit een feed bewaart, krijgt de naam van zijn map als tag.</string>
 </resources>
