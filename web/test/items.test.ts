@@ -14,12 +14,11 @@ import {
   renameTag,
   setReadingState,
   setTags,
-  type Item,
 } from "../src/lib/items";
 import { addFeed, emptyLibrary, mergeFeed, newFeed, removeFeed, setRead, type Library } from "../src/lib/library";
 import { allOf, changesBetween, isEmpty, libraryOf } from "../src/lib/libraryStore";
-import { LocalSaved, type LocalSavedData } from "../src/lib/localSaved";
-import { applySaved, idOf, migrateSaved, savedData, tagIdOf } from "../src/lib/savedItems";
+import type { LocalSavedData } from "../src/lib/localSaved";
+import { migrateSaved } from "../src/lib/savedItems";
 
 const FEED = "https://a.example.com/feed";
 
@@ -137,7 +136,7 @@ describe("the library in IndexedDB", () => {
   });
 });
 
-describe("Saved without an account on the reading list", () => {
+describe("Saved in this browser before #106 moves into the items", () => {
   const article = withArticle.articles[0];
 
   it("moves in a migrated sample with nothing lost", () => {
@@ -160,70 +159,5 @@ describe("Saved without an account on the reading list", () => {
     expect(story).toMatchObject({ title: "Saved title", feedUrl: FEED, articleId: "1", liked: true, tags: ["work"], readingList: { state: "toread", addedAt: 100_000 } });
     const elsewhere = itemOf(moved, "elsewhere.example/a")!;
     expect(elsewhere).toMatchObject({ title: "Elsewhere again", tags: ["work"], readingList: { state: "toread", addedAt: 300_000 } });
-  });
-
-  function onItems(start: Library = withArticle) {
-    const box = { lib: start };
-    let now = 1_000_000;
-    const local = new LocalSaved(
-      { read: async () => savedData(box.lib), write: async (data) => void (box.lib = applySaved(box.lib, savedData(box.lib), data, now)) },
-      () => (now += 1000),
-    );
-    return { box, local };
-  }
-
-  it("saves, likes, archives and tags the items", async () => {
-    const { box, local } = onItems();
-    const b = await local.save("https://example.com/story");
-    expect(b.title).toBe("Feed title");
-    const item: Item = box.lib.items[0];
-    expect(item.articleId).toBe("1");
-    expect(b.id).toBe(idOf(item.key));
-
-    await local.like(b.id, true);
-    await local.move(b.id, "archive");
-    expect(box.lib.items[0]).toMatchObject({ liked: true, readingList: { state: "archived" } });
-
-    const tags = await local.setTags(b.id, ["Work", "news"], []);
-    expect(tags.map((t) => t.name)).toEqual(["Work", "news"]);
-    expect(tags[0].id).toBe(tagIdOf("work"));
-    const renamed = await local.renameTag(tags[0].id, "news");
-    expect(renamed.name).toBe("news");
-    expect(box.lib.items[0].tags).toEqual(["news"]);
-
-    const again = await local.save("http://www.example.com/story/");
-    expect(again.id).toBe(b.id);
-    expect(box.lib.items).toHaveLength(1);
-    expect(box.lib.items[0].readingList?.state).toBe("toread");
-  });
-
-  it("keeps folders in the items' folder field, shared with Android (#119)", async () => {
-    const { box, local } = onItems();
-    const b = await local.save("https://example.com/story");
-    const made = await local.createFolder("Work");
-    await local.move(b.id, made.id);
-    expect(box.lib.items[0].folder).toBe("Work");
-    const folders = await local.folders();
-    expect(folders.map((f) => [f.title, f.count])).toEqual([["Work", 1]]);
-    expect((await local.list({ kind: "folder", id: folders[0].id })).total).toBe(1);
-    // A folder that came from another device shows too.
-    box.lib = { ...box.lib, items: box.lib.items.map((i) => ({ ...i, folder: "Later" })) };
-    expect((await local.folders()).map((f) => f.title)).toEqual(["Later"]);
-    // Archiving clears it.
-    await local.move(b.id, "archive");
-    expect(box.lib.items[0].folder).toBeNull();
-    expect(await local.folders()).toEqual([]);
-  });
-
-  it("deleting takes the item off the reading list, and a bookmark keeps it", async () => {
-    const { box, local } = onItems();
-    const a = await local.save("https://a.example/1", "One");
-    const b = await local.save("https://a.example/2", "Two");
-    box.lib = keepAsBookmark(box.lib, "a.example/2", "Tools", 5);
-    await local.remove(a.id);
-    await local.remove(b.id);
-    expect(itemOf(box.lib, "a.example/1")).toBeUndefined();
-    expect(itemOf(box.lib, "a.example/2")).toMatchObject({ readingList: null, bookmark: { collection: "Tools" } });
-    expect((await local.list({ kind: "home" })).total).toBe(0);
   });
 });

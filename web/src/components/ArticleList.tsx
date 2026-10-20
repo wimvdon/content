@@ -1,11 +1,11 @@
-import { Bookmark, CheckCheck, Menu, Newspaper, RefreshCw, Rss, Search, type LucideIcon } from "lucide-react";
-import { useMemo, useRef } from "react";
+import { Archive, Bookmark, BookOpen, CheckCheck, Folder as FolderGlyph, Heart, Highlighter, ListFilter, Menu, Newspaper, Quote, RefreshCw, Rss, Search, type LucideIcon } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
 import { app, useApp } from "@/lib/app";
 import { snippet } from "@/lib/html";
 import { dayLabel, plural, t } from "@/lib/i18n";
-import type { View } from "@/lib/instapaper";
-import { bookmarkArticle, sourceOf, viewTitle } from "@/lib/instapaperLibrary";
+import type { Item } from "@/lib/items";
 import { articleKey, articlesFor, sortTime, unreadKeys, type Article, type Feed } from "@/lib/library";
+import { cardBody, hostOf, itemArticle, sameTab, savedFolders, savedItems, sourceOf, tabTags, type SavedFilter, type SavedTab, type SavedType } from "@/lib/saved";
 import { scrolledPast } from "@/lib/scrollRead";
 import { FeedIcon } from "./FeedIcon";
 import { Button } from "./ui/button";
@@ -22,11 +22,11 @@ type ListProps = {
   onSearch: () => void;
 };
 
-/** The articles of the chosen feed, folder or All articles, or of an Instapaper list. */
+/** The articles of the chosen feed, folder or All articles, or Saved. */
 export function ArticleList(props: ListProps) {
   const { selection } = useApp();
-  return selection.kind === "instapaper" ? (
-    <InstapaperArticles view={selection.view} openKey={props.openKey} onOpen={props.onOpen} onMenu={props.onMenu} onSearch={props.onSearch} />
+  return selection.kind === "saved" ? (
+    <SavedArticles openKey={props.openKey} onOpen={props.onOpen} onMenu={props.onMenu} onSearch={props.onSearch} />
   ) : (
     <FeedArticles {...props} />
   );
@@ -150,71 +150,229 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, on
 }
 
 /**
- * An Instapaper list: the saved articles with the same rows as feed articles, without read state
- * (archiving is an action in the reader), newest saved first, a page at a time.
+ * Saved (#119, #147), as on Android: To read, All, each folder and Archive as tabs, then Liked and
+ * the tab's tags as chips, and the type filter next to search. To read, All and Archive are lists
+ * like the feeds; a folder is a collection, so its articles are cards with your note (or first
+ * highlight, or the description), the site, tags and highlights.
  */
-function InstapaperArticles({
-  view,
-  openKey,
-  onOpen,
-  onMenu,
-  onSearch,
-}: {
-  view: View;
-  openKey: string | null;
-  onOpen: (a: Article) => void;
-  onMenu: () => void;
-  onSearch: () => void;
-}) {
-  const { instapaperList: list, instapaperFolders, library } = useApp();
-  const title = viewTitle(view, instapaperFolders, { home: t("saved"), liked: t("instapaperLiked"), archive: t("instapaperArchiveList") });
-  const items = list.items;
+function SavedArticles({ openKey, onOpen, onMenu, onSearch }: { openKey: string | null; onOpen: (a: Article) => void; onMenu: () => void; onSearch: () => void }) {
+  const { library, savedFilter: filter, loaded } = useApp();
+  const items = useMemo(() => savedItems(library, filter), [library, filter]);
+  const folders = useMemo(() => savedFolders(library), [library]);
+  const tags = useMemo(() => tabTags(library, filter.tab), [library, filter.tab]);
+  const set = (change: Partial<SavedFilter>) => app.showSaved({ ...filter, ...change });
+  const plain = !filter.likedOnly && filter.tags.length === 0 && filter.type === null;
+  const tabs: SavedTab[] = [{ kind: "toread" }, { kind: "all" }, ...folders.map((name): SavedTab => ({ kind: "folder", name })), { kind: "archive" }];
   return (
-    <section className="flex h-full min-w-0 flex-col" aria-label={title}>
+    <section className="flex h-full min-w-0 flex-col" aria-label={t("saved")}>
       <header className="flex items-center gap-1 px-2 pt-2 pb-1">
         <Button variant="ghost" size="icon" className="lg:hidden" onClick={onMenu} aria-label={t("openFeeds")}>
           <Menu />
         </Button>
         <div className="min-w-0 flex-1 px-2">
-          <h1 className="truncate text-xl font-semibold">{title}</h1>
-          <p className="text-xs text-muted-foreground">{t("saved")}</p>
+          <h1 className="truncate text-xl font-semibold">{t("saved")}</h1>
         </div>
+        <TypeFilter type={filter.type} onChange={(type) => set({ type })} />
         <SearchButton onClick={onSearch} />
-        <Button variant="ghost" size="icon" onClick={() => void app.refresh()} disabled={list.loading} aria-label={t("refresh")} title={t("refresh") + " (r)"}>
-          <RefreshCw className={cn(list.loading && "animate-spin")} />
-        </Button>
       </header>
-      <div className="min-h-0 flex-1 overflow-y-auto px-2 pt-2 pb-6" role="feed" aria-busy={list.loading}>
-        {list.problem ? (
-          <p role="alert" className="px-3 pb-2 text-sm text-destructive">
-            {list.problem}
-          </p>
-        ) : null}
-        {list.loading && items.length === 0 ? (
+      <nav aria-label={t("saved")} className="flex shrink-0 overflow-x-auto border-b px-2 [scrollbar-width:none]">
+        {tabs.map((tab) => {
+          const selected = sameTab(tab, filter.tab);
+          const Icon = tab.kind === "toread" ? BookOpen : tab.kind === "all" ? Bookmark : tab.kind === "archive" ? Archive : FolderGlyph;
+          return (
+            <button
+              key={tab.kind === "folder" ? `f:${tab.name}` : tab.kind}
+              type="button"
+              aria-current={selected ? "page" : undefined}
+              onClick={() => !selected && set({ tab, tags: [] })}
+              className={cn(
+                "flex shrink-0 cursor-pointer items-center gap-1.5 border-b-[3px] px-3 py-3 text-sm font-medium whitespace-nowrap",
+                selected ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <Icon className="size-4" aria-hidden="true" />
+              <span className="max-w-40 truncate">{tabName(tab)}</span>
+            </button>
+          );
+        })}
+      </nav>
+      <div role="group" aria-label={t("filter")} className="flex shrink-0 items-center gap-2 overflow-x-auto px-4 py-2 [scrollbar-width:none]">
+        <button
+          type="button"
+          aria-pressed={filter.likedOnly}
+          onClick={() => set({ likedOnly: !filter.likedOnly })}
+          className={cn(
+            "inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border px-3 text-sm",
+            filter.likedOnly ? "border-transparent bg-accent font-medium text-accent-foreground" : "hover:bg-muted",
+          )}
+        >
+          <Heart className={cn("size-4", filter.likedOnly && "fill-current")} aria-hidden="true" />
+          {t("liked")}
+        </button>
+        {tags.length > 0 ? <span className="h-6 w-px shrink-0 bg-border" aria-hidden="true" /> : null}
+        {tags.map((tag) => {
+          const selected = filter.tags.some((x) => x.toLowerCase() === tag.toLowerCase());
+          const others = filter.tags.filter((x) => x.toLowerCase() !== tag.toLowerCase());
+          return (
+            <FilterChip key={tag} selected={selected} onClick={() => set({ tags: selected ? others : [...others, tag] })}>
+              {tag}
+            </FilterChip>
+          );
+        })}
+      </div>
+      <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-6" role="feed">
+        {!loaded ? (
           <Skeletons />
-        ) : items.length === 0 && !list.problem ? (
-          <Empty icon={Bookmark} title={title} text={t("instapaperEmpty")} />
+        ) : items.length === 0 ? (
+          <Empty
+            icon={filter.tab.kind === "archive" ? Archive : BookOpen}
+            title={plain && filter.tab.kind === "toread" ? t("nothingToRead") : plain && filter.tab.kind === "archive" ? t("nothingArchived") : t("savedNoneTitle")}
+            text={plain && filter.tab.kind === "toread" ? t("savedEmptyBody") : undefined}
+          />
         ) : (
-          <ul className="space-y-1">
-            {items.map((b) => {
-              const article = bookmarkArticle(b, library);
-              return (
-                <li key={b.id}>
-                  <Row article={article} feed={sourceOf(b, library)} open={openKey === articleKey(article)} onOpen={() => onOpen(article)} noReadState />
-                </li>
-              );
-            })}
-          </ul>
+          <>
+            <p className="px-3 pt-3 pb-2 text-xs text-muted-foreground">{plural("savedCount", items.length)}</p>
+            {filter.tab.kind === "folder" ? (
+              <ul className="columns-[11rem] gap-2 px-1">
+                {items.map((item) => {
+                  const article = itemArticle(item, library);
+                  return (
+                    <li key={item.key} className="mb-2 break-inside-avoid">
+                      <NoteCard item={item} feed={sourceOf(item, library)} open={openKey === articleKey(article)} onOpen={() => onOpen(article)} />
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <ul className="space-y-1">
+                {items.map((item) => {
+                  const article = itemArticle(item, library);
+                  return (
+                    <li key={item.key}>
+                      <Row article={article} feed={sourceOf(item, library)} open={openKey === articleKey(article)} onOpen={() => onOpen(article)} noReadState />
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </>
         )}
-        {items.length > 0 && items.length < list.total ? (
-          <div className="flex justify-center pt-3">
-            <Button variant="tonal" onClick={() => void app.loadInstapaperList(view, true)} disabled={list.loading}>
-              {t("instapaperLoadMore")}
-            </Button>
-          </div>
-        ) : null}
       </div>
     </section>
+  );
+}
+
+/** A tab's name: To read, All, Archive or the folder's own. */
+function tabName(tab: SavedTab): string {
+  switch (tab.kind) {
+    case "toread":
+      return t("toRead");
+    case "all":
+      return t("all");
+    case "archive":
+      return t("archiveTab");
+    case "folder":
+      return tab.name;
+  }
+}
+
+/** The type filter: a filter button next to search, with All types, Articles, Videos and Audio. */
+function TypeFilter({ type, onChange }: { type: SavedType | null; onChange: (type: SavedType | null) => void }) {
+  const [open, setOpen] = useState(false);
+  const options: [SavedType | null, string][] = [
+    [null, t("typeAll")],
+    ["article", t("typeArticles")],
+    ["video", t("typeVideos")],
+    ["audio", t("typeAudio")],
+  ];
+  return (
+    <div className="relative">
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => setOpen(!open)}
+        aria-expanded={open}
+        aria-label={t("typeFilter")}
+        title={t("typeFilter")}
+        className={cn(type !== null && "text-primary")}
+      >
+        <ListFilter />
+      </Button>
+      {open ? (
+        <>
+          <div className="fixed inset-0 z-20" onClick={() => setOpen(false)} aria-hidden="true" />
+          <div role="radiogroup" aria-label={t("typeFilter")} className="absolute right-0 z-30 mt-1 w-44 rounded-xl border bg-card py-1 shadow-lg">
+            {options.map(([value, label]) => (
+              <button
+                key={value ?? "all"}
+                type="button"
+                role="radio"
+                aria-checked={type === value}
+                onClick={() => {
+                  setOpen(false);
+                  onChange(value);
+                }}
+                className="flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left text-sm hover:bg-muted"
+              >
+                <span className={cn("size-4 rounded-full border-2", type === value ? "border-primary bg-primary shadow-[inset_0_0_0_2px_var(--color-card)]" : "border-muted-foreground")} />
+                {label}
+              </button>
+            ))}
+          </div>
+        </>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * A saved article in a folder, as a note (Noter's cards): the picture on top, the title, your note
+ * (else the first highlight, quoted, else the description), then the site, tags, highlights and a
+ * heart when liked.
+ */
+function NoteCard({ item, feed, open, onOpen }: { item: Item; feed: Feed | undefined; open: boolean; onOpen: () => void }) {
+  const { settings } = useApp();
+  const body = cardBody(item);
+  const image = settings.showImages ? item.imageUrl : null;
+  const highlights = item.highlights.length;
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      aria-current={open ? "true" : undefined}
+      className={cn("flex w-full cursor-pointer flex-col overflow-hidden rounded-xl border text-left", open ? "bg-accent" : "bg-background hover:bg-muted")}
+    >
+      {image ? <img src={image} alt="" loading="lazy" referrerPolicy="no-referrer" className="h-24 w-full bg-muted object-cover" onError={(e) => (e.currentTarget.style.display = "none")} /> : null}
+      <div className="flex flex-col gap-2 px-4 py-3">
+        <h3 className="line-clamp-3 font-serif leading-snug font-medium">{item.title}</h3>
+        {body?.kind === "quote" ? (
+          <p className="flex gap-2 text-sm">
+            <Quote className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
+            <span className="line-clamp-4 font-serif">{body.text}</span>
+          </p>
+        ) : body ? (
+          <p className="line-clamp-[10] text-sm whitespace-pre-line text-muted-foreground">{body.text}</p>
+        ) : null}
+        <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs">
+          <span className="flex min-w-0 items-center gap-1 text-muted-foreground">
+            {feed ? <FeedIcon feed={feed} className="size-4" /> : null}
+            <span className="truncate">{hostOf(item.url)}</span>
+          </span>
+          {item.tags.map((tag) => (
+            <span key={tag} className="font-medium text-primary">
+              #{tag}
+            </span>
+          ))}
+          {highlights > 0 ? (
+            <span className="flex items-center gap-0.5 text-muted-foreground" aria-label={plural("highlightsCount", highlights)}>
+              <Highlighter className="size-3.5" aria-hidden="true" />
+              {highlights}
+            </span>
+          ) : null}
+          {item.liked ? <Heart className="size-3.5 fill-current text-primary" aria-label={t("liked")} /> : null}
+        </div>
+      </div>
+    </button>
   );
 }
 
@@ -305,7 +463,7 @@ export function Empty({
 }: {
   icon: LucideIcon;
   title: string;
-  text: string;
+  text?: string;
   children?: React.ReactNode;
 }) {
   return (
@@ -314,7 +472,7 @@ export function Empty({
         <Icon className="size-9" aria-hidden="true" />
       </div>
       <h2 className="text-lg font-semibold">{title}</h2>
-      <p className="text-sm text-muted-foreground">{text}</p>
+      {text ? <p className="text-sm text-muted-foreground">{text}</p> : null}
       <div className="flex flex-wrap justify-center gap-2 pt-2">{children}</div>
     </div>
   );

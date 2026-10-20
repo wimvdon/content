@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { InstapaperError, type Bookmark, type Page, type View } from "../src/lib/instapaper";
+import type { Item } from "../src/lib/items";
 import { emptyLibrary, type Article, type Library } from "../src/lib/library";
-import { indexArticles, loadSaved, mix, normalize, relevance, savedViews, searchArticles, searchSaved, type SearchHit } from "../src/lib/search";
+import { indexArticles, mix, normalize, relevance, searchArticles, searchItems, type SearchHit } from "../src/lib/search";
 
 const article = (id: string, title: string, time: number, html = ""): Article => ({
   feedUrl: "https://feed.example/rss",
@@ -16,17 +16,24 @@ const article = (id: string, title: string, time: number, html = ""): Article =>
   imageUrl: null,
 });
 
-const saved = (id: number, title: string, time: number, change: Partial<Bookmark> = {}): Bookmark => ({
-  id,
+const saved = (id: number, title: string, time: number, change: Partial<Item> = {}): Item => ({
+  key: `site.example/${id}`,
   url: `https://www.site.example/${id}`,
   title,
   description: "",
-  image: null,
+  imageUrl: null,
+  feedUrl: null,
+  articleId: null,
+  createdAt: 0,
+  readingList: { state: "toread", addedAt: time },
+  folder: null,
+  service: null,
+  bookmark: null,
   liked: false,
-  archived: false,
-  time,
-  folder_id: null,
   tags: [],
+  note: "",
+  highlights: [],
+  progress: 0,
   ...change,
 });
 
@@ -36,7 +43,7 @@ const library = (articles: Article[]): Library => ({
   articles,
 });
 
-const names = (hits: SearchHit[]) => hits.map((h) => (h.kind === "feed" ? `feed:${h.article.id}` : `saved:${h.bookmark.id}`));
+const names = (hits: SearchHit[]) => hits.map((h) => (h.kind === "feed" ? `feed:${h.article.id}` : `saved:${h.item.key.split("/")[1]}`));
 
 describe("search", () => {
   it("ignores case and accents", () => {
@@ -50,10 +57,21 @@ describe("search", () => {
     expect(searchArticles(index, "  ")).toEqual([]);
   });
 
-  it("finds saved articles by title, website, description and tags", () => {
-    const list = [saved(1, "Tea", 1), saved(2, "Other", 2, { description: "about tea" }), saved(3, "X", 3, { tags: [{ id: 1, name: "Tea", slug: "tea", count: 1 }] })];
-    expect(searchSaved(list, "tea").map((b) => b.id)).toEqual([1, 3, 2]);
-    expect(searchSaved(list, "site.example").length).toBe(3);
+  it("finds saved articles by title, website, description, folder, tags, note and highlights", () => {
+    const highlight = { id: "h", quote: "a cup of tea", prefix: "", suffix: "", occurrence: 0, note: "", createdAt: 1 };
+    const list = [
+      saved(1, "Tea", 1),
+      saved(2, "Other", 2, { description: "about tea" }),
+      saved(3, "X", 3, { tags: ["Tea"] }),
+      saved(4, "Y", 4, { note: "Tea, again" }),
+      saved(5, "Z", 5, { highlights: [highlight] }),
+      saved(6, "W", 6, { folder: "Tea" }),
+      saved(7, "Archived", 7, { description: "tea", readingList: { state: "archived", addedAt: 7 } }),
+      // Not saved: not searched.
+      saved(8, "Tea", 8, { readingList: null, liked: true }),
+    ];
+    expect(searchItems(list, "tea").map((i) => i.title)).toEqual(["Tea", "Archived", "W", "Z", "Y", "X", "Other"]);
+    expect(searchItems(list, "site.example").length).toBe(7);
   });
 
   it("ranks the whole query in a title above single words, above text-only matches", () => {
@@ -64,27 +82,9 @@ describe("search", () => {
 
   it("mixes feed and saved matches, best first then newest, and filters by kind", () => {
     const feeds = [article("a", "Coffee news", 5_000), article("b", "Green tea guide", 1_000)];
-    const savedOnes = [saved(1, "All about green tea", 9), saved(2, "Gardening", 2)];
+    const savedOnes = [saved(1, "All about green tea", 9_000), saved(2, "Gardening", 2_000)];
     expect(names(mix("green tea", feeds, savedOnes))).toEqual(["saved:1", "feed:b", "feed:a", "saved:2"]);
     expect(names(mix("green tea", feeds, savedOnes, "feeds"))).toEqual(["feed:b", "feed:a"]);
     expect(names(mix("green tea", feeds, savedOnes, "saved"))).toEqual(["saved:1", "saved:2"]);
-  });
-
-  it("reads saved lists page by page, keeps what it has when one fails, and passes a refused sign-in on", async () => {
-    const views = savedViews([{ id: 7, title: "F", slug: "f", position: 1, public: false, count: 0 }]);
-    expect(views).toEqual([{ kind: "home" }, { kind: "folder", id: 7 }, { kind: "archive" }]);
-    const pages = new Map<string, Bookmark[]>([
-      ["home", [saved(1, "a", 1), saved(2, "b", 2), saved(3, "c", 3)]],
-      ["folder", [saved(3, "c", 3)]],
-    ]);
-    const list = async (view: View, offset: number, limit: number): Promise<Page> => {
-      if (view.kind === "archive") throw new InstapaperError("rateLimit");
-      const all = pages.get(view.kind) ?? [];
-      return { bookmarks: all.slice(offset, offset + limit), total: all.length };
-    };
-    const result = await loadSaved(views, list, () => false, 2);
-    expect(result.bookmarks.map((b) => b.id)).toEqual([1, 2, 3]);
-    expect(result.incomplete).toBe(true);
-    await expect(loadSaved(views, list, (e) => e instanceof InstapaperError)).rejects.toThrow(InstapaperError);
   });
 });

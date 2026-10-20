@@ -1,10 +1,10 @@
-import { ArrowLeft, Loader2, Search, X } from "lucide-react";
+import { ArrowLeft, Search, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { app, useApp } from "@/lib/app";
+import { useApp } from "@/lib/app";
 import { t } from "@/lib/i18n";
-import { bookmarkArticle, sourceOf } from "@/lib/instapaperLibrary";
 import { articleKey, type Article } from "@/lib/library";
-import { indexArticles, mix, searchArticles, searchSaved, type SavedArticles, type SearchFilter } from "@/lib/search";
+import { itemArticle, sourceOf } from "@/lib/saved";
+import { indexArticles, mix, searchArticles, searchItems, type SearchFilter } from "@/lib/search";
 import { Empty, Row } from "./ArticleList";
 import { Button } from "./ui/button";
 import { FilterChip } from "./ui/chip";
@@ -18,27 +18,18 @@ export function SearchPanel({ openKey, onOpen, onClose }: { openKey: string | nu
   const { library } = useApp();
   const [query, setQuery] = useState(() => sessionQuery);
   const [filter, setFilter] = useState<SearchFilter>("all");
-  const [saved, setSaved] = useState<SavedArticles | null>(null);
   const input = useRef<HTMLInputElement>(null);
 
   useEffect(() => input.current?.focus(), []);
   useEffect(() => {
     sessionQuery = query;
   }, [query]);
-  // Saved has no search of its own: its articles are read once each time Search opens.
-  useEffect(() => {
-    let cancelled = false;
-    void app.loadSavedForSearch().then((result) => !cancelled && setSaved(result));
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   const index = useMemo(() => indexArticles(library), [library]);
   const feeds = useMemo(() => new Map(library.feeds.map((f) => [f.url, f])), [library.feeds]);
   const hits = useMemo(
-    () => mix(query, searchArticles(index, query), saved ? searchSaved(saved.bookmarks, query) : [], filter),
-    [index, saved, query, filter],
+    () => mix(query, searchArticles(index, query), searchItems(library.items, query), filter),
+    [index, library.items, query, filter],
   );
   const blank = query.trim() === "";
 
@@ -87,15 +78,9 @@ export function SearchPanel({ openKey, onOpen, onClose }: { openKey: string | nu
         ))}
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-6">
-        {!saved && !blank ? (
-          <p className="flex items-center gap-2 px-3 pb-2 text-sm text-muted-foreground">
-            <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-            {t("searchSavedLoading")}
-          </p>
-        ) : null}
         {blank ? (
           <Empty icon={Search} title={t("searchStartTitle")} text={t("searchStartBody")} />
-        ) : hits.length === 0 && saved && !saved.incomplete ? (
+        ) : hits.length === 0 ? (
           <Empty icon={Search} title={t("searchNoneTitle")} text={t("searchNoneBody")} />
         ) : (
           <ul className="space-y-1">
@@ -108,17 +93,14 @@ export function SearchPanel({ openKey, onOpen, onClose }: { openKey: string | nu
                   </li>
                 );
               }
-              const article = bookmarkArticle(hit.bookmark, library);
+              const article = itemArticle(hit.item, library);
               return (
-                <li key={`saved:${hit.bookmark.id}`}>
+                <li key={articleKey(article)}>
                   <Row
                     article={article}
-                    feed={sourceOf(hit.bookmark, library)}
+                    feed={sourceOf(hit.item, library)}
                     open={openKey === articleKey(article)}
-                    onOpen={() => {
-                      app.openSaved(hit.bookmark);
-                      onOpen(article);
-                    }}
+                    onOpen={() => onOpen(article)}
                     noReadState
                     label={t("saved")}
                   />
@@ -127,7 +109,6 @@ export function SearchPanel({ openKey, onOpen, onClose }: { openKey: string | nu
             })}
           </ul>
         )}
-        {saved?.incomplete && !blank ? <p className="px-3 pt-3 text-sm text-muted-foreground">{t("searchSavedIncomplete")}</p> : null}
       </div>
     </section>
   );

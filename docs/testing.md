@@ -18,7 +18,7 @@ On every pull request and push to `main`:
 | Lint | `./gradlew lintDebug` | Android API misuse, missing translations, accessibility, hard-coded text, … (errors fail the build) |
 | Debug build | `./gradlew assembleDebug` | Compile errors; produces the APK to test on the phone |
 | Release build | `./gradlew assembleRelease` | Problems caused by R8 minification / resource shrinking |
-| Web app and feed loader | `npm test`, `npm run lint`, `npm run build` in `web/`; `npm test`, `npm run typecheck` in `worker/` | Parser ids that match Android, reading the Android app's sync file, merge (also settings), one sync with the account (conflicts merged again), the account client and live connection, OPML, HTML cleaning (picture sizes, lazy-loaded and tracking pictures, paragraph breaks), embed cards, Instapaper's lists in the reader, items (one per link, memberships, tags), the library in IndexedDB (only changes written, older libraries read) and Saved without an account on the items (a migrated sample, save, like, archive, tags, delete), per-item sync (the same cases as Android's `ItemSyncTest`, `test/syncRows.test.ts`), when to load the full article, the full-article cache, reader text settings, mark as read on scroll; the Worker's origin check, address rules, redirects, size and type limits, and its accounts (device keys, versions and conflicts, encryption, sign-out and delete; item rows: changes since a version, conflicts, deletions, pages, encrypted under ids that don't show the key) |
+| Web app and feed loader | `npm test`, `npm run lint`, `npm run build` in `web/`; `npm test`, `npm run typecheck` in `worker/` | Parser ids that match Android, reading the Android app's sync file, merge (also settings), one sync with the account (conflicts merged again), the account client and live connection, OPML, HTML cleaning (picture sizes, lazy-loaded and tracking pictures, paragraph breaks), embed cards, items (one per link, memberships, tags), the library in IndexedDB (only changes written, older libraries read, Saved from before #106 moved in), Saved (`test/saved.test.ts`: the tabs, Liked, tags and type, folders and tags renamed or removed, saving into a folder with a note, filing and archiving, the card's note, highlight or description, an item shown like its feed article), search over saved items (folders, notes and highlights too), per-item sync (the same cases as Android's `ItemSyncTest`, `test/syncRows.test.ts`), when to load the full article, the full-article cache, reader text settings, mark as read on scroll; the Worker's origin check, address rules, redirects, size and type limits, and its accounts (device keys, versions and conflicts, encryption, sign-out and delete; item rows: changes since a version, conflicts, deletions, pages, encrypted under ids that don't show the key) |
 
 Reports (test results, lint HTML) are attached to every CI run as the `reports` artifact, also
 when the run fails.
@@ -236,6 +236,18 @@ Needs the Raindrop app registered and the Worker's `RAINDROP_CLIENT_ID` and `RAI
       **Undo**; Undo puts it back in its folder.
 - [ ] In Saved › To read, swipe a row left: archived with Undo; swipe right: the File sheet. In
       Archive, swiping left puts it back to read.
+
+## Web app: Saved like Android's (#147)
+
+- [ ] Saved shows **To read**, **All**, each folder and **Archive** as tabs, with **Liked** and the
+      tab's tags as chips under them; the filter button next to search picks Articles, Videos or Audio.
+- [ ] A folder shows cards: your note, else the first highlight (with a quote mark), else the
+      description, then the site, `#tags`, the highlight count and a heart when liked.
+- [ ] In a saved article, the note button opens the note; write one and close it: the card in its
+      folder shows it, it shows above the text, and Search finds it. A note written on the phone
+      shows here after a sync, and the other way round.
+- [ ] Nothing in Saved says Instapaper: Archive / Back to read, Like / Unlike, Folder, Tags, Note,
+      Remove from Saved.
 
 ## Web app: the same Saved signed in or not
 

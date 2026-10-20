@@ -249,6 +249,9 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
 - **☰ › Folders and tags**: every folder and every tag, with how many articles have it; tap one to
   rename it (renaming it to another one's name joins the two), or remove it: a tag from every
   article, a folder from its articles (they go back to To read).
+- **In the web app** Saved is the same: the same tabs, chips, type filter and cards. In a saved
+  article the buttons at the top like it, archive it (or put it back to read), file it in a folder,
+  tag it, write its **note**, or remove it from Saved.
 - **☰ › Connected services**: which service each section is connected to. Saved can be connected to
   Instapaper, Raindrop.io or both; feeds are Reader's own.
 - Bookmarks from before Saved moved into folders once: each into its collection's folder, the ones

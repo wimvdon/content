@@ -6,14 +6,11 @@
  */
 
 import { toPlainText } from "./html";
-import type { Bookmark, Folder, Page, View } from "./instapaper";
-import { hostOf } from "./instapaperLibrary";
+import type { Item } from "./items";
 import { sortTime, type Article, type Library } from "./library";
+import { hostOf } from "./saved";
 
 export const MAX_RESULTS = 200;
-
-/** At most this many saved articles per list, so a long Archive doesn't mean dozens of calls. */
-export const SAVED_PER_LIST = 100;
 
 /** Lower case without accents, so "Café" and "cafe" match. */
 export function normalize(text: string): string {
@@ -52,64 +49,30 @@ export function searchArticles(index: ArticleIndex, query: string, limit = MAX_R
     .map((e) => e.article);
 }
 
-/** The saved articles that match: title, website, address, description and tags. */
-export function searchSaved(bookmarks: Bookmark[], query: string, limit = MAX_RESULTS): Bookmark[] {
+/**
+ * The saved items that match (archived ones too): title, website, address, description, folder,
+ * tags, note and highlights, like the Android app's ItemSearch. Title matches first, then newest.
+ */
+export function searchItems(items: Item[], query: string, limit = MAX_RESULTS): Item[] {
   const w = words(query);
   if (w.length === 0) return [];
-  const text = (b: Bookmark) => normalize([b.title ?? "", hostOf(b.url), b.url ?? "", b.description ?? "", ...b.tags.map((t) => t.name)].join(" "));
-  return bookmarks
-    .map((b) => ({ b, title: normalize(b.title ?? ""), text: text(b) }))
+  const text = (i: Item) =>
+    normalize([i.title, hostOf(i.url), i.url, i.description, i.note, i.folder ?? "", ...i.tags, ...i.highlights.flatMap((h) => [h.quote, h.note])].join(" "));
+  return items
+    .filter((i) => i.readingList !== null)
+    .map((i) => ({ i, title: normalize(i.title), text: text(i) }))
     .filter((e) => w.every((x) => e.text.includes(x)))
-    .sort((a, c) => Number(w.every((x) => c.title.includes(x))) - Number(w.every((x) => a.title.includes(x))) || c.b.time - a.b.time)
+    .sort((a, c) => Number(w.every((x) => c.title.includes(x))) - Number(w.every((x) => a.title.includes(x))) || savedAt(c.i) - savedAt(a.i))
     .slice(0, limit)
-    .map((e) => e.b);
+    .map((e) => e.i);
 }
 
-/** The saved lists Search reads, in order: what is still to be read before the Archive. */
-export function savedViews(folders: Folder[]): View[] {
-  return [{ kind: "home" }, ...folders.map((f): View => ({ kind: "folder", id: f.id })), { kind: "archive" }];
-}
-
-export interface SavedArticles {
-  bookmarks: Bookmark[];
-  /** Instapaper stopped answering part way (offline, rate limited, …): the rest is missing. */
-  incomplete: boolean;
-}
-
-/**
- * Reads every list a page at a time, at most `perList` articles each. Stops at the first problem and
- * keeps what it has; `stopOn` decides which problems are passed on instead (a refused sign-in).
- */
-export async function loadSaved(
-  views: View[],
-  list: (view: View, offset: number, limit: number) => Promise<Page>,
-  stopOn: (e: unknown) => boolean = () => false,
-  pageSize = 25,
-  perList = SAVED_PER_LIST,
-): Promise<SavedArticles> {
-  const found = new Map<number, Bookmark>();
-  for (const view of views) {
-    let offset = 0;
-    while (offset < perList) {
-      let page: Page;
-      try {
-        page = await list(view, offset, Math.min(pageSize, perList - offset));
-      } catch (e) {
-        if (stopOn(e)) throw e;
-        return { bookmarks: [...found.values()], incomplete: true };
-      }
-      for (const b of page.bookmarks) if (!found.has(b.id)) found.set(b.id, b);
-      offset += page.bookmarks.length;
-      if (page.bookmarks.length === 0 || offset >= page.total) break;
-    }
-  }
-  return { bookmarks: [...found.values()], incomplete: false };
-}
+const savedAt = (i: Item) => i.readingList?.addedAt ?? i.bookmark?.addedAt ?? i.createdAt;
 
 /** Which kind of results Search shows: the chips above the results. */
 export type SearchFilter = "all" | "feeds" | "saved";
 
-export type SearchHit = { kind: "feed"; article: Article; relevance: number; time: number } | { kind: "saved"; bookmark: Bookmark; relevance: number; time: number };
+export type SearchHit = { kind: "feed"; article: Article; relevance: number; time: number } | { kind: "saved"; item: Item; relevance: number; time: number };
 
 const PHRASE = 100;
 const WORD = 10;
@@ -127,9 +90,9 @@ export function relevance(query: string, title: string): number {
 }
 
 /** The matches of both kinds, filtered, best first, at most `limit`. */
-export function mix(query: string, feeds: Article[], saved: Bookmark[], filter: SearchFilter = "all", limit = MAX_RESULTS): SearchHit[] {
+export function mix(query: string, feeds: Article[], saved: Item[], filter: SearchFilter = "all", limit = MAX_RESULTS): SearchHit[] {
   const fromFeeds: SearchHit[] = filter === "saved" ? [] : feeds.map((article) => ({ kind: "feed", article, relevance: relevance(query, article.title), time: sortTime(article) }));
   const fromSaved: SearchHit[] =
-    filter === "feeds" ? [] : saved.map((bookmark) => ({ kind: "saved", bookmark, relevance: relevance(query, bookmark.title ?? ""), time: bookmark.time * 1000 }));
+    filter === "feeds" ? [] : saved.map((item) => ({ kind: "saved", item, relevance: relevance(query, item.title), time: savedAt(item) }));
   return [...fromFeeds, ...fromSaved].sort((a, b) => b.relevance - a.relevance || b.time - a.time).slice(0, limit);
 }

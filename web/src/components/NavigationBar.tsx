@@ -9,7 +9,7 @@ import { cn } from "./ui/cn";
  */
 export function NavigationBar({ onNavigate }: { onNavigate: () => void }) {
   const { selection } = useApp();
-  const inSaved = selection.kind === "instapaper";
+  const inSaved = selection.kind === "saved";
   const item = (saved: boolean, Icon: typeof Rss, label: string) => {
     const selected = saved === inSaved;
     return (

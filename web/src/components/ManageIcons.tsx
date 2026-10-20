@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 /**
- * The icons of Manage feeds and Manage Instapaper: what is managed (the feed symbol, a bookmark)
+ * The icons of Manage feeds and Folders and tags: what is managed (the feed symbol, a bookmark)
  * with a pen, in Lucide's style, as on Android.
  */
 
@@ -30,7 +30,7 @@ export function ManageFeedsIcon({ className = "size-5" }: { className?: string }
   );
 }
 
-export function ManageInstapaperIcon({ className = "size-5" }: { className?: string }) {
+export function ManageSavedIcon({ className = "size-5" }: { className?: string }) {
   return (
     <WithPen className={className} scale={0.75} x={-0.5} y={-0.25}>
       <path d="M17 3a2 2 0 0 1 2 2v15a1 1 0 0 1-1.496.868l-4.512-2.578a2 2 0 0 0-1.984 0l-4.512 2.578A1 1 0 0 1 5 20V5a2 2 0 0 1 2-2z" />

@@ -2,6 +2,17 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-20: The web app's Saved works on the items directly, like Android's (#147)
+
+The web app's Saved still went through `LocalSaved`, Instapaper's shape (bookmarks with number ids,
+lists read a page at a time) laid over the library's items. It is gone: `web/src/lib/saved.ts` is a
+port of Android's `Saved.kt`, and the screens read the items as they are. Saved now has the same
+tabs (To read, All, folders, Archive), chips (Liked, the tab's tags), type filter, note and cards as
+on Android, Search looks through folders, notes and highlights without loading anything, and the
+wording is Android's (no `instapaper*` keys left for Saved). Kept: the move-in of Saved from before
+#106 (`localSaved.ts`, `savedItems.ts`, now only that). Rejected: adding notes to `LocalSaved` (a
+second shape to keep in step for every later change, #143, #139, #145).
+
 ## 2026-10-20: Reader's own article text, always (#134)
 
 A saved article is read exactly like a feed article: the feed's text, else the full article

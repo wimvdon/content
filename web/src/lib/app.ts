@@ -7,25 +7,17 @@ import {
   CALLBACK_PATH,
   exchangeCode,
   InstapaperApi,
-  InstapaperError,
   newState,
   parseCallback,
-  type Bookmark,
-  type Folder as InstapaperFolder,
   type Session as InstapaperSession,
-  type Tag as InstapaperTag,
-  type View as InstapaperView,
 } from "./instapaper";
-import { applyChange, patchBookmark, sameView, type Change } from "./instapaperLibrary";
-import { problemText } from "./instapaperText";
 import { InstapaperSync } from "./instapaperSync";
-import { LocalSaved, type SavedService } from "./localSaved";
+import { setLiked, setTags, renameTag } from "./items";
+import * as Saved from "./saved";
 import { emptyServiceSyncState, syncService, type ServiceSyncState } from "./serviceSync";
 import { changesBetween, loadItemSyncState, loadLibrary, writeItemSyncState, writeLibrary } from "./libraryStore";
 import { emptyItemSyncState, syncItems } from "./syncRows";
-import { applySaved, savedData } from "./savedItems";
 import * as L from "./library";
-import { loadSaved, savedViews, type SavedArticles } from "./search";
 import { importOpml, parseOpml, writeOpml } from "./opml";
 import { fetchViaProxy, FetchError } from "./proxy";
 import { defaultReaderStyle, readerStyleOf, type ReaderStyle } from "./readerStyle";
@@ -68,29 +60,11 @@ export interface State {
   instapaper: InstapaperSession | null;
   /** The result of coming back from Instapaper's sign-in page, shown once. */
   instapaperNotice: "signedIn" | "failed" | null;
-  /** How many articles saved in this browser were just copied to the account, shown once; 0 when none. */
-  savedCopied: number;
-  /** Instapaper's folders and tags, for the sidebar and Manage; read again after every change. */
-  instapaperFolders: InstapaperFolder[];
-  instapaperTags: InstapaperTag[];
-  /** The Instapaper list shown when an Instapaper section is selected. */
-  instapaperList: InstapaperList;
-  /** The saved article open in the reader; it stays there when a change takes it out of the list. */
-  instapaperOpen: Bookmark | null;
-  /** The article just saved from a feed, while the dialog to file it (folder and tags) is open. */
-  instapaperJustSaved: Bookmark | null;
+  /** Saved's tab, Liked, tags and type (saved.ts), while Saved is shown. */
+  savedFilter: Saved.SavedFilter;
+  /** The key of the item just saved from a feed, while the dialog to file it (folder and tags) is open. */
+  justSaved: string | null;
 }
-
-export interface InstapaperList {
-  view: InstapaperView | null;
-  items: Bookmark[];
-  total: number;
-  loading: boolean;
-  problem: string | null;
-}
-
-const emptyInstapaperList: InstapaperList = { view: null, items: [], total: 0, loading: false, problem: null };
-const INSTAPAPER_PAGE = 25;
 
 const INSTAPAPER_STATE_KEY = "instapaper-sign-in-state";
 /** This browser's copy of what Instapaper had (serviceSync.ts), in IndexedDB. */
@@ -121,12 +95,8 @@ class AppStore {
     syncStatus: { kind: "idle" },
     instapaper: null,
     instapaperNotice: null,
-    savedCopied: 0,
-    instapaperFolders: [],
-    instapaperTags: [],
-    instapaperList: emptyInstapaperList,
-    instapaperOpen: null,
-    instapaperJustSaved: null,
+    savedFilter: Saved.defaultSavedFilter,
+    justSaved: null,
   };
   private listeners = new Set<() => void>();
   private syncTimer: ReturnType<typeof setTimeout> | null = null;
@@ -137,21 +107,6 @@ class AppStore {
   /** The stored library, once read (init). */
   private libraryLoaded: Promise<void>;
   private resolveLibrary!: () => void;
-  /**
-   * Saved: the library's items (#106, savedItems.ts), as LocalSaved's data; its changes become
-   * changes to the items. The same with or without a connected service, which only syncs (#119).
-   */
-  private localSaved = new LocalSaved({
-    read: async () => {
-      await this.libraryLoaded;
-      return savedData(this.state.library);
-    },
-    write: async (data) => {
-      await this.libraryLoaded;
-      this.updateLibrary((lib) => applySaved(lib, savedData(lib), data, Date.now()));
-    },
-  });
-
   constructor() {
     this.libraryLoaded = new Promise((resolve) => (this.resolveLibrary = resolve));
   }
@@ -186,7 +141,6 @@ class AppStore {
       instapaper: instapaper?.token ? { ...instapaper, accountKey: instapaper.accountKey ?? null } : null,
     });
     this.resolveLibrary();
-    void this.loadInstapaperSides();
     if (location.pathname === CALLBACK_PATH) await this.finishInstapaperSignIn(location.search);
     this.syncWhileVisible();
     if (this.accountKey() || this.state.instapaper) await this.sync();
@@ -241,30 +195,10 @@ class AppStore {
     const before = this.state.library;
     const library = change(before);
     if (library === before) return;
-    this.set({ library, selection: L.selectionExists(library, this.state.selection) });
+    // Saved shows the items, so a change from anywhere (this page, another device, the service) shows at once.
+    this.set({ library, selection: L.selectionExists(library, this.state.selection), savedFilter: Saved.shownFilter(library, this.state.savedFilter) });
     void writeLibrary(changesBetween(before, library)).catch(() => undefined);
     if (syncSoon) this.scheduleSync(before, library);
-    // Saved shows the items: a change from anywhere (this page, another device, the service) shows at once.
-    if (before.items !== library.items) this.refreshSaved();
-  }
-
-  private refreshTimer: ReturnType<typeof setTimeout> | null = null;
-
-  /** Reads the Saved list shown (as far as it was loaded) and the sidebar's counts again, without a spinner. */
-  private refreshSaved() {
-    if (this.refreshTimer) clearTimeout(this.refreshTimer);
-    this.refreshTimer = setTimeout(async () => {
-      void this.loadInstapaperSides();
-      const s = this.state.selection;
-      if (s.kind !== "instapaper") return;
-      const view = s.view;
-      const list = this.state.instapaperList;
-      if (list.loading || !list.view || !sameView(list.view, view)) return;
-      const page = await this.localSaved.list(view, 0, Math.max(INSTAPAPER_PAGE, list.items.length)).catch(() => null);
-      const now = this.state.selection;
-      if (!page || now.kind !== "instapaper" || !sameView(now.view, view)) return;
-      this.set({ instapaperList: { view, items: page.bookmarks, total: page.total, loading: false, problem: null } });
-    }, 200);
   }
 
   /** A change to the document's part, the items or read marks is synced soon. */
@@ -294,19 +228,23 @@ class AppStore {
 
   /** Where Feeds and Saved were last, so switching between them (the navigation bar) goes back there. */
   private lastFeeds: L.Selection = { kind: "all" };
-  private lastSaved: L.Selection = { kind: "instapaper", view: { kind: "home" } };
 
   select(selection: L.Selection) {
-    if (selection.kind === "instapaper") this.lastSaved = selection;
-    else this.lastFeeds = selection;
+    if (selection.kind !== "saved") this.lastFeeds = selection;
     this.set({ selection, readThisVisit: new Set() });
-    if (selection.kind === "instapaper") void this.loadInstapaperList(selection.view);
+  }
+
+  /** Saved, on a tab and with filters (the sidebar, the tabs and the chips). */
+  showSaved(filter: Saved.SavedFilter = this.state.savedFilter) {
+    this.set({ savedFilter: Saved.shownFilter(this.state.library, filter) });
+    if (this.state.selection.kind !== "saved") this.select({ kind: "saved" });
   }
 
   /** Feeds or Saved, where it was last (the navigation bar). */
   showSection(saved: boolean) {
-    if ((this.state.selection.kind === "instapaper") === saved) return;
-    this.select(saved ? this.lastSaved : L.selectionExists(this.state.library, this.lastFeeds));
+    if ((this.state.selection.kind === "saved") === saved) return;
+    if (saved) this.showSaved();
+    else this.select(L.selectionExists(this.state.library, this.lastFeeds));
   }
 
   setUnreadOnly(unreadOnly: boolean) {
@@ -317,11 +255,6 @@ class AppStore {
   private fetch = (url: string) => fetchViaProxy(url);
 
   async refresh() {
-    const selection = this.state.selection;
-    if (selection.kind === "instapaper") {
-      void this.loadInstapaperSides();
-      void this.loadInstapaperList(selection.view);
-    }
     if (this.state.refreshing) return;
     this.set({ refreshing: true, readThisVisit: new Set() });
     // Read marks and feeds from other devices first, so they apply to the new articles.
@@ -410,13 +343,8 @@ class AppStore {
 
   /** Opening an article marks it read; it stays in the Unread list until the list changes. */
   open(article: L.Article) {
-    if (article.feedUrl === "instapaper") {
-      // Saved articles have no read state; the reader keeps this one even if it leaves the list.
-      // One opened from Search may not be in the list shown: openSaved has already set it.
-      const open = this.state.instapaperOpen;
-      this.set({ instapaperOpen: this.state.instapaperList.items.find((b) => String(b.id) === article.id) ?? (open && String(open.id) === article.id ? open : null) });
-      return;
-    }
+    // Saved items have no read state (archiving is an action of its own).
+    if (Saved.isItemArticle(article)) return;
     const key = L.articleKey(article);
     this.set({ readThisVisit: new Set([...this.state.readThisVisit, key]) });
     if (!article.read) this.setRead(new Set([key]), true);
@@ -486,15 +414,6 @@ class AppStore {
     this.set({ instapaperNotice: null });
   }
 
-  // The reading list isn't copied to Instapaper from here any more: it syncs to the other devices
-  // through the Reader account, and the Android app keeps it the same as Instapaper (#107). Copying
-  // here removed the articles from the reading list afterwards, which would now remove them
-  // everywhere.
-
-  clearSavedCopied() {
-    this.set({ savedCopied: 0 });
-  }
-
   /** Signs out of Instapaper and the account in this browser; the library stays here. */
   async disconnectInstapaper() {
     const key = this.accountKey();
@@ -541,166 +460,44 @@ class AppStore {
   private async setInstapaper(session: InstapaperSession | null) {
     if (session) await save("instapaper", session).catch(() => undefined);
     else await remove("instapaper").catch(() => undefined);
-    if (session) {
-      this.set({ instapaper: session });
-      void this.loadInstapaperSides();
-      return;
-    }
-    // Saved stays as it is: it was always the library's items.
-    this.set({ instapaper: null });
+    // Saved stays as it is: it is always the library's items.
+    this.set({ instapaper: session });
   }
 
-  // Instapaper's lists, folders and tags, shown like the feeds (instapaperLibrary.ts).
+  // Saved (saved.ts): always the library's items; a connected service syncs them (syncInstapaper).
 
-  /** Reads the folders and tags again (their counts change with every move). */
-  async loadInstapaperSides() {
-    try {
-      const [folders, tags] = await this.withInstapaper(async (api) => [await api.folders(), await api.tags()] as const);
-      this.set({ instapaperFolders: folders, instapaperTags: tags });
-    } catch {
-      // The list shows Instapaper's problems; the sidebar keeps what it had.
-    }
-  }
-
-  /** Loads a list from the start, or the next page of the list already shown. */
-  async loadInstapaperList(view: InstapaperView, more = false) {
-    const current = this.state.instapaperList;
-    const offset = more && current.view && sameView(current.view, view) ? current.items.length : 0;
-    this.set({ instapaperList: { ...(offset ? current : emptyInstapaperList), view, loading: true, problem: null } });
-    const showing = () => {
-      const s = this.state.selection;
-      return s.kind === "instapaper" && sameView(s.view, view);
-    };
-    try {
-      const page = await this.withInstapaper((api) => api.list(view, offset, INSTAPAPER_PAGE));
-      if (!showing()) return;
-      const before = this.state.instapaperList.items;
-      const items = offset ? [...before, ...page.bookmarks.filter((b) => !before.some((c) => c.id === b.id))] : page.bookmarks;
-      this.set({ instapaperList: { view, items, total: page.total, loading: false, problem: null } });
-    } catch (e) {
-      if (showing()) this.set({ instapaperList: { ...this.state.instapaperList, loading: false, problem: problemText(e) } });
-    }
-  }
-
-  /** Runs one change to a saved article and updates the list, the open article and the sidebar's counts. */
-  private async changeBookmark(id: number, run: (api: SavedService) => Promise<Change>): Promise<boolean> {
-    try {
-      const change = await this.withInstapaper(run);
-      const list = this.state.instapaperList;
-      const items = list.view ? applyChange(list.view, list.items, id, change) : list.items;
-      const open = this.state.instapaperOpen;
-      const justSaved = this.state.instapaperJustSaved;
-      this.set({
-        instapaperList: { ...list, items, total: Math.max(0, list.total - (list.items.length - items.length)), problem: null },
-        instapaperOpen: open && open.id === id ? patchBookmark(open, change) : open,
-        instapaperJustSaved: justSaved && justSaved.id === id ? patchBookmark(justSaved, change) : justSaved,
-      });
-      void this.loadInstapaperSides();
-      return true;
-    } catch (e) {
-      this.set({ instapaperList: { ...this.state.instapaperList, problem: problemText(e) } });
-      return false;
-    }
-  }
-
-  /** Saves a feed article and keeps it as `instapaperJustSaved`, so it can be filed at once. Throws when Instapaper refuses. */
-  saveToInstapaper = async (url: string, title: string) => {
-    const bookmark = await this.withInstapaper((api) => api.save(url, title));
-    this.set({ instapaperJustSaved: bookmark?.id ? bookmark : null });
-    void this.loadInstapaperSides();
+  /** Saves an article to To read and opens the dialog to file it (folder and tags) at once. */
+  saveArticle = (url: string, title: string) => {
+    let key: string | null = null;
+    this.updateLibrary((lib) => {
+      const [out, item] = Saved.saveLink(lib, url, title, Date.now());
+      key = item?.key ?? null;
+      return out;
+    });
+    this.set({ justSaved: key });
   };
-
-  /**
-   * Every saved article Search looks through (search.ts): Saved has no search of its own, so its
-   * lists are read and searched here. A refused sign-in signs out, as elsewhere.
-   */
-  loadSavedForSearch = (): Promise<SavedArticles> =>
-    this.withInstapaper(async (api) => {
-      const folders = this.state.instapaperFolders.length > 0 ? this.state.instapaperFolders : await api.folders();
-      return loadSaved(savedViews(folders), (view, offset, limit) => api.list(view, offset, limit), (e) => e instanceof InstapaperError && e.problem === "auth");
-    }).catch((): SavedArticles => ({ bookmarks: [], incomplete: true }));
-
-  /** A saved article opened from Search: the reader shows it with Saved's buttons. */
-  openSaved = (b: Bookmark) => this.set({ instapaperOpen: b });
 
   /** The dialog for the article just saved was closed. */
-  closeJustSaved = () => this.set({ instapaperJustSaved: null });
+  closeJustSaved = () => this.set({ justSaved: null });
 
-  archiveBookmark = (b: Bookmark, archived: boolean) =>
-    this.changeBookmark(b.id, async (api) => {
-      await api.move(b.id, archived ? "archive" : "home");
-      return { kind: "archived", archived };
-    });
+  likeItem = (key: string, liked: boolean) => this.updateLibrary((lib) => setLiked(lib, key, liked));
+  archiveItem = (key: string, archived: boolean) => this.updateLibrary((lib) => Saved.archiveItem(lib, key, archived));
+  /** Into a folder, or To read with null. */
+  fileItem = (key: string, folder: string | null) => this.updateLibrary((lib) => Saved.fileItem(lib, key, folder));
+  tagItem = (key: string, tags: string[]) => this.updateLibrary((lib) => setTags(lib, key, tags));
+  setItemNote = (key: string, note: string) => this.updateLibrary((lib) => Saved.setNote(lib, key, note));
+  removeItem = (key: string) => this.updateLibrary((lib) => Saved.removeSaved(lib, key));
 
-  likeBookmark = (b: Bookmark, liked: boolean) =>
-    this.changeBookmark(b.id, async (api) => ({ kind: "liked", liked: (await api.like(b.id, liked)).liked }));
-
-  /** Into a folder, or back to Unread (null). */
-  moveBookmark = (b: Bookmark, folderId: number | null) =>
-    this.changeBookmark(b.id, async (api) => {
-      await api.move(b.id, folderId ?? "home");
-      return { kind: "moved", folderId };
-    });
-
-  /** Makes folder `title` and moves the article into it (Move to folder, or the dialog after saving). */
-  moveBookmarkToNewFolder = (b: Bookmark, title: string) => {
-    const name = title.trim();
-    if (!name) return Promise.resolve(false);
-    return this.changeBookmark(b.id, async (api) => {
-      const folder = await api.createFolder(name);
-      await api.move(b.id, folder.id);
-      return { kind: "moved", folderId: folder.id };
-    });
+  /** Folders and tags (Folders and tags). Renaming to another's name joins the two. */
+  renameSavedFolder = (from: string, to: string) => {
+    this.updateLibrary((lib) => Saved.renameFolder(lib, from, to));
+    const tab = this.state.savedFilter.tab;
+    if (tab.kind === "folder" && tab.name.toLowerCase() === from.toLowerCase()) this.set({ savedFilter: { ...this.state.savedFilter, tab: { kind: "folder", name: to.trim() } } });
   };
-
-  tagBookmark = (b: Bookmark, add: string[], removeIds: number[]) =>
-    this.changeBookmark(b.id, async (api) => ({ kind: "tags", tags: await api.setTags(b.id, add, removeIds) }));
-
-  deleteBookmark = (b: Bookmark) =>
-    this.changeBookmark(b.id, async (api) => {
-      await api.remove(b.id);
-      return { kind: "deleted" };
-    });
-
-  /** Folder and tag management (Manage feeds and folders). Each returns what went wrong, or null. */
-  private async manageInstapaper(run: (api: SavedService) => Promise<void>): Promise<string | null> {
-    try {
-      await this.withInstapaper(run);
-      return null;
-    } catch (e) {
-      return problemText(e);
-    } finally {
-      void this.loadInstapaperSides();
-    }
-  }
-
-  createInstapaperFolder = (title: string) =>
-    this.manageInstapaper(async (api) => {
-      const created = await api.createFolder(title);
-      this.set({ instapaperFolders: [...this.state.instapaperFolders, created].sort((a, b) => a.position - b.position) });
-    });
-
-  /** Its articles go back to Unread at Instapaper. */
-  deleteInstapaperFolder = (id: number) =>
-    this.manageInstapaper(async (api) => {
-      await api.deleteFolder(id);
-      this.set({ instapaperFolders: this.state.instapaperFolders.filter((f) => f.id !== id) });
-      const s = this.state.selection;
-      if (s.kind === "instapaper" && s.view.kind === "folder" && s.view.id === id) this.select({ kind: "instapaper", view: { kind: "home" } });
-    });
-
-  renameInstapaperTag = (tag: InstapaperTag, name: string) =>
-    this.manageInstapaper(async (api) => {
-      const renamed = await api.renameTag(tag.id, name);
-      this.set({ instapaperTags: this.state.instapaperTags.map((x) => (x.id === tag.id ? renamed : x)) });
-      const s = this.state.selection;
-      if (s.kind === "instapaper" && s.view.kind === "tag" && s.view.name === tag.name) this.select({ kind: "instapaper", view: { kind: "tag", name: renamed.name } });
-    });
-
-  /** Runs one call on Saved: always the library's items; a connected service syncs them (syncInstapaper). */
-  async withInstapaper<T>(run: (api: SavedService) => Promise<T>): Promise<T> {
-    return run(this.localSaved);
-  }
+  /** Its articles go back to To read. */
+  removeSavedFolder = (name: string) => this.updateLibrary((lib) => Saved.removeFolder(lib, name));
+  renameSavedTag = (from: string, to: string) => this.updateLibrary((lib) => renameTag(lib, from, to));
+  removeSavedTag = (name: string) => this.updateLibrary((lib) => Saved.removeTag(lib, name));
 
   private instapaperSyncing: Promise<void> | null = null;
 
