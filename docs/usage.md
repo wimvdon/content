@@ -150,6 +150,18 @@ folder moves it there. Next to it, **its tags** (or **Liked**, with a filled hea
 tag**. New folder and Add a tag open **Organise**, where you can also write a note. The text ends with **Read on website**.
 Reader remembers how far you read and opens the article there again.
 
+**Highlights and notes.** Press and hold on a word, drag the handles over a passage, and tap
+**Highlight** in the menu over it (next to Copy and Share), or **Note** to write a note with it. In
+the web app, select text with the mouse and pick **Highlight** or **Note** in the small bar above it.
+The passage gets a yellow marker; tap or click it to change its note or remove it. A quote mark
+with the count in the bottom bar lists every highlight of the article. Highlighting a feed article
+saves it to **To read**, so the highlight is kept. A highlight is kept as its passage and a few
+words around it, not a position, so it is found again in the feed's text, the full article or a
+newer version; when the text changed it is lighter and underlined ("approximate"), and when it
+isn't there at all it is listed as "not found". A highlight is never thrown away. Highlights and
+their notes sync between your devices with your Reader account, and Saved's cards show the first
+one when the article has no note. On the phone a highlight stays within one paragraph.
+
 After **Save**, the sheet that opens says where it was saved, then has the **Folder** (To read and
 **Archive** first, then your folders, or **New folder** to make one), the **Tags** with **Like** in
 front, and a **Note**: one step from a feed article to its folder. **Save** keeps what you chose,

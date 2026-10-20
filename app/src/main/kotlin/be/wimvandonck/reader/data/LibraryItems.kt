@@ -162,3 +162,32 @@ fun Library.tagWithFeedFolder(key: String): Library {
     val tag = itemTags().firstOrNull { it.equals(title, ignoreCase = true) } ?: title
     return setTags(key, item.tags + tag)
 }
+
+/**
+ * Adds a highlight to the item of [url] (#102). A feed article that isn't saved yet goes to To read
+ * first: annotating it keeps it.
+ */
+fun Library.addHighlight(
+    url: String,
+    title: String?,
+    highlight: Highlight,
+    now: Long,
+): Library {
+    val existing = itemForLink(url)?.takeIf { it.readingList != null }
+    val (library, item) = if (existing != null) this to existing else addToReadingList(url, title, now)
+    item ?: return this
+    return library.changeItem(item.key) { it.copy(highlights = it.highlights + highlight) }
+}
+
+/** Changes a highlight's note. */
+fun Library.setHighlightNote(
+    key: String,
+    highlightId: String,
+    note: String,
+): Library = changeItem(key) { item -> item.copy(highlights = item.highlights.map { if (it.id == highlightId) it.copy(note = note.trim()) else it }) }
+
+/** Removes a highlight. */
+fun Library.removeHighlight(
+    key: String,
+    highlightId: String,
+): Library = changeItem(key) { item -> item.copy(highlights = item.highlights.filterNot { it.id == highlightId }) }

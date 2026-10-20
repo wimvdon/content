@@ -42,6 +42,8 @@ when the run fails.
 | `LibraryRowsTest` | The library to database rows and back unchanged (order, tabs, line breaks, tags, highlights), broken rows repaired, only changed articles and items written, an empty database filled |
 | `SavedItemsTest` | Moving a sample of the old files into the database: feeds, read marks and saved articles kept, links written another way joined |
 | `LibraryCodecTest` | Storage round trip with folders, tabs, line breaks and backslashes; missing folders and unknown icons; damaged input |
+| `AnchorsTest` | Highlights (#102): quote, surroundings and occurrence; found again exactly, with typographic variants, letter case as a last resort, a repeated quote told apart by its surroundings, roughly when the text changed, and kept when not found. The web app's `anchors.test.ts` runs the same cases, and `highlightDom.test.ts` reads and marks a page |
+| `ArticleTextTest` | The reader's paragraphs as one text, a selection's place in it, and the marks per paragraph |
 | `ScrollReadTest` | Mark as read on scroll: which articles have scrolled past (unread only, not the top one, only ones that were on screen) |
 | `JsonTest` | JSON round trip (escapes, emoji, numbers, nesting), whitespace, broken text |
 | `SyncDocumentTest` | Sync file round trip (with settings, the same text as the web app), other or newer files left alone, broken entries skipped, taking folders and feeds (not read marks) from the library, a version 2 file's read marks read but never written |
@@ -265,6 +267,13 @@ Needs the Raindrop app registered and the Worker's `RAINDROP_CLIENT_ID` and `RAI
       phone, messages show above the bottom bar, and the round read button shows on every row.
       Moving a feed up or down in Manage feeds always moves it within its folder.
 - [ ] Swipe a feed article left: "Saved to To read" with **File**; tap File: the same sheet.
+- [ ] **Highlights (#102):** in an article, press and hold a word, drag over a sentence and tap
+      **Highlight** in the menu: it turns yellow. Select another and tap **Note**, type, Save. The
+      bottom bar shows a quote mark with 2; tap it: both, with the note. Tap a marker: change its
+      note or **Remove highlight**. A feed article you highlight appears in Saved › To read. Switch
+      to the feed's text with the page button: the highlights are still there (or say approximate).
+      Web app: select text with the mouse, pick Highlight or Note in the bar above it; click a
+      marker to edit; a highlight made on the phone shows on the web after sync, and the other way.
 - [ ] In a saved article the bottom bar has two buttons (#156): where it is (e.g. "To read") and
       its tags (or "Tags"). Tap the first: To read and Archive with their icons, a line, your
       folders, New folder. Pick **Archive**: back in the list with "Archived" and **Undo**; Undo puts

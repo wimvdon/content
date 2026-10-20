@@ -284,6 +284,12 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   a menu of Like, a divider, the tags with a check when on, and Add a tag. New folder and Add a tag
   open Organise. The text ends with Read on website and nothing else. ⋮
   holds the rare ones: Open in browser, Mark as unread, Remove from Saved.
+- Highlights (#102): **Highlight** and **Note** join Copy and Share in the menu over selected text
+  (the web: a small bar above the selection). A highlight is a marker yellow (`#FFD54F` at 45 %)
+  behind the text, lighter and underlined when only found roughly; tapping it opens a
+  `ModalBottomSheet` with the quote (a `primary` bar at its left, italic), its status, the note
+  field, Remove highlight, Cancel and Save. With highlights, the bottom bar has a quote mark and the
+  count before Share, which opens the list.
 - Save is the action's one name (#142), in the reader's bottom bar, the swipe and the sheet's button;
   "Read later" names nothing. After the sheet, a snackbar says "Saved to …", with **Open** (to the
   article in Saved) when you weren't in it already: after a swipe, Add link, or a share from another

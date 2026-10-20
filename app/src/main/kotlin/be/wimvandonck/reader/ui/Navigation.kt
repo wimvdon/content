@@ -45,6 +45,9 @@ import be.wimvandonck.reader.data.SavedType
 import be.wimvandonck.reader.data.ReadingLists
 import be.wimvandonck.reader.data.ReadingState
 import be.wimvandonck.reader.data.addToReadingList
+import be.wimvandonck.reader.data.addHighlight
+import be.wimvandonck.reader.data.removeHighlight
+import be.wimvandonck.reader.data.setHighlightNote
 import be.wimvandonck.reader.data.changeItem
 import be.wimvandonck.reader.data.item
 import be.wimvandonck.reader.data.itemFor
@@ -60,6 +63,7 @@ import be.wimvandonck.reader.ui.feeds.TagsManageScreen
 import be.wimvandonck.reader.ui.home.HomeSection
 import be.wimvandonck.reader.ui.home.SavedHome
 import be.wimvandonck.reader.ui.reader.SaveSheet
+import be.wimvandonck.reader.ui.reader.ReaderHighlights
 import be.wimvandonck.reader.ui.reader.SheetKind
 import be.wimvandonck.reader.ui.reader.ReaderItem
 import be.wimvandonck.reader.ui.reader.fontFamily
@@ -666,6 +670,16 @@ fun RssReaderNavigation(
                             fullText = fullText,
                             showImages = current.showImages,
                             snackbarHostState = snackbar,
+                            highlights =
+                                (item?.url ?: article?.link)?.let { link ->
+                                    ReaderHighlights(
+                                        highlights = item?.highlights.orEmpty(),
+                                        // A feed article that isn't saved yet goes to To read with its first highlight.
+                                        onAdd = { h -> editLibrary { it.addHighlight(link, article?.title, h, System.currentTimeMillis()) } },
+                                        onNote = { id, note -> item?.let { i -> editLibrary { it.setHighlightNote(i.key, id, note) } } },
+                                        onRemove = { id -> item?.let { i -> editLibrary { it.removeHighlight(i.key, id) } } },
+                                    )
+                                },
                             actions =
                                 ReaderActions(
                                     onBack = ::pop,
