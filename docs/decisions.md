@@ -2,6 +2,17 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-20: The web app's Saved is the same signed in or not; Instapaper only syncs
+
+The owner's rule: the interface is always the same; external services sync, they don't change the
+experience. The web app showed Instapaper's own lists when signed in and the library's items
+otherwise. Now Saved is always the items, and `serviceSync.ts` (a port of Android's
+`ServiceSync.kt`, with `instapaperSync.ts` for Instapaper) syncs them in the background after each
+Reader account sync. Labels and dialogs no longer change with the sign-in; folders are in name order
+everywhere (Instapaper's own order isn't kept). The Worker forwards one more call, POST
+`/bookmarks/{id}` (title and reading progress), to the same host. Rejected: leaving the web app's
+Instapaper sync to the phone (a web-only user's saves would never reach Instapaper).
+
 ## 2026-10-20: A smoother way from a feed to a folder or the archive
 
 The owner found feed → Saved → folder or archive not smooth. Changes: the sheet after Read later

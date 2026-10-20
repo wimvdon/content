@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, Folder as FolderGlyph, Plus, Tag as TagGlyph, Trash2 } from "lucide-react";
+import { Folder as FolderGlyph, Plus, Tag as TagGlyph, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { app, useApp } from "@/lib/app";
 import { t } from "@/lib/i18n";
@@ -7,11 +7,10 @@ import { Button } from "./ui/button";
 import { Dialog } from "./ui/dialog";
 import { Input } from "./ui/input";
 
-/** Manage Instapaper: its own page, apart from the feeds' folders (Manage feeds). */
+/** Saved's folders and tags: their own page, apart from the feeds' folders (Manage feeds). */
 export function InstapaperManageDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
-  const { instapaper } = useApp();
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} title={instapaper ? t("instapaperManageTitle") : t("savedManageTitle")} closeLabel={t("close")} wide>
+    <Dialog open={open} onOpenChange={onOpenChange} title={t("savedManageTitle")} closeLabel={t("close")} wide>
       <InstapaperManage />
     </Dialog>
   );
@@ -22,7 +21,7 @@ export function InstapaperManageDialog({ open, onOpenChange }: { open: boolean; 
  * creates tags when they are added to an article). Saved in this browser has the same, its folders in name order.
  */
 function InstapaperManage() {
-  const { instapaperFolders: folders, instapaperTags: tags, instapaper } = useApp();
+  const { instapaperFolders: folders, instapaperTags: tags } = useApp();
   const [title, setTitle] = useState("");
   const [problem, setProblem] = useState<string | null>(null);
   const run = (work: Promise<string | null>) => void work.then(setProblem);
@@ -36,21 +35,10 @@ function InstapaperManage() {
       <div>
         <h3 className="px-1 pb-1 text-sm font-medium text-primary">{t("instapaperFolders")}</h3>
         <ul>
-          {folders.map((folder, index) => (
+          {folders.map((folder) => (
             <li key={folder.id} className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-card">
               <FolderGlyph className="size-5 text-muted-foreground" aria-hidden="true" />
               <span className="min-w-0 flex-1 truncate text-sm">{folder.title}</span>
-              {/* Saved in this browser keeps its folders in name order. */}
-              {instapaper ? (
-                <>
-                  <Button variant="ghost" size="iconSm" disabled={index === 0} onClick={() => run(app.moveInstapaperFolder(index, -1))} aria-label={t("moveUp")} title={t("moveUp")}>
-                    <ArrowUp />
-                  </Button>
-                  <Button variant="ghost" size="iconSm" disabled={index === folders.length - 1} onClick={() => run(app.moveInstapaperFolder(index, 1))} aria-label={t("moveDown")} title={t("moveDown")}>
-                    <ArrowDown />
-                  </Button>
-                </>
-              ) : null}
               <Button variant="ghost" size="iconSm" onClick={() => run(app.deleteInstapaperFolder(folder.id))} aria-label={`${t("instapaperDeleteFolder")}: ${folder.title}`} title={t("instapaperDeleteFolder")}>
                 <Trash2 />
               </Button>

@@ -48,8 +48,6 @@ data class SettingsState(
     val shareApps: List<ExternalApps.ShareApp>,
     val syncStatus: SyncStatus = SyncStatus.Idle,
     val instapaper: InstapaperState = InstapaperState.Loading,
-    /** Raindrop.io is connected (#112). */
-    val raindropConnected: Boolean = false,
 )
 
 class SettingsActions(
@@ -103,8 +101,6 @@ fun SettingsScreen(
                 apps = state.shareApps,
                 onSaveTargetChange = actions.onSaveTargetChange,
                 onShareTargetChange = actions.onShareTargetChange,
-                // Connected to a service, Save goes straight to Saved and the account.
-                showSaveTarget = state.instapaper !is InstapaperState.SignedIn && !state.raindropConnected,
                 tagWithFolder = state.settings.tagWithFolder,
                 onTagWithFolderChange = actions.onTagWithFolderChange,
             )

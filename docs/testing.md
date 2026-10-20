@@ -110,7 +110,7 @@ and then (always before a release):
       without refreshing. Rename a feed: the same. Delete synced data: both say to sign in again.
 - [ ] **Read later** puts the article on the reading list (or sends it to the app chosen in Settings ›
       Save and share); **Share** opens the share menu or the chosen app. An uninstalled app falls back
-      to the share menu. Signed in to Instapaper, Settings › Save and share has no Save button row.
+      to the share menu. Settings › Save and share looks the same signed in to Instapaper or not.
 - [ ] **List:** at app start the list shows loading placeholders, never "No feeds yet" first.
       Swipe an article right past a third: a tick, it becomes read, then unread; swipe one left: "Added
       to reading list" and it is on the reading list; a short swipe does nothing; swiping never opens the ☰ menu. The Unread chip in its own row under the folder tabs (not in the top bar) switches unread only (filled, check) / all.
@@ -239,3 +239,12 @@ Needs the Raindrop app registered and the Worker's `RAINDROP_CLIENT_ID` and `RAI
       **Undo**; Undo puts it back in its folder.
 - [ ] In Saved › To read, swipe a row left: archived with Undo; swipe right: the File sheet. In
       Archive, swiping left puts it back to read.
+
+## Web app: the same Saved signed in or not
+
+- [ ] Signed out, save a few articles and put one in a folder. Sign in with Instapaper: Saved looks
+      the same (same tabs, same buttons); within a few seconds the articles are in Instapaper too, the
+      filed one in its folder.
+- [ ] Archive, like and tag an article in the web app: the change shows in Instapaper's own app.
+      Change one in Instapaper and reload the page: the change shows in the web app.
+- [ ] Sign out: Saved stays exactly as it was.

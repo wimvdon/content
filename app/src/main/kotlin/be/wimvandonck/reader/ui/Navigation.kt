@@ -189,8 +189,6 @@ fun RssReaderNavigation() {
     val instapaperNotice by app.instapaper.notice.collectAsStateWithLifecycle()
     val raindropState by app.raindrop.state.collectAsStateWithLifecycle()
     val raindropNotice by app.raindrop.notice.collectAsStateWithLifecycle()
-    // Saved syncs with a service (Instapaper, Raindrop or both): Save then always keeps it in Saved.
-    val savedConnected = instapaperState is InstapaperState.SignedIn || raindropState == RaindropState.SignedIn
     val current = settings ?: Settings()
     val library = libraryOrNull ?: Library()
     val snackbar = remember { SnackbarHostState() }
@@ -644,8 +642,8 @@ fun RssReaderNavigation() {
                             article = article,
                             feed = fromFeed?.let { library.feed(it.feedUrl) } ?: item?.let { ReadingLists.source(it, library) },
                             style = current.reader,
-                            // Connected to a service, Save keeps it in Saved (which syncs there).
-                            saveTarget = if (savedConnected) ShareTarget.Saved else current.saveTarget,
+                            // The same with or without a service, which only syncs Saved.
+                            saveTarget = current.saveTarget,
                             shareTarget = current.shareTarget,
                             fullText = fullText,
                             showImages = current.showImages,
@@ -668,7 +666,7 @@ fun RssReaderNavigation() {
                                     onStyleChange = { style -> app.appScope.launch { app.settings.setReaderStyle(style) } },
                                     onSave = {
                                         article?.let {
-                                            val inApp = savedConnected || current.saveTarget == ShareTarget.Saved
+                                            val inApp = current.saveTarget == ShareTarget.Saved
                                             if (inApp) it.link?.let { link -> readLater(link, it.title) } else send(it, current.saveTarget)
                                         }
                                     },
@@ -741,7 +739,6 @@ fun RssReaderNavigation() {
                                 shareApps = shareApps,
                                 syncStatus = syncStatus,
                                 instapaper = instapaperState,
-                                raindropConnected = raindropState == RaindropState.SignedIn,
                             ),
                         snackbarHostState = snackbar,
                         actions =

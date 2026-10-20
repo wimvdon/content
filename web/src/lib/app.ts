@@ -10,7 +10,6 @@ import {
   InstapaperError,
   newState,
   parseCallback,
-  reorderedPositions,
   type Bookmark,
   type Folder as InstapaperFolder,
   type Session as InstapaperSession,
@@ -19,7 +18,9 @@ import {
 } from "./instapaper";
 import { applyChange, patchBookmark, sameView, type Change } from "./instapaperLibrary";
 import { problemText } from "./instapaperText";
+import { InstapaperSync } from "./instapaperSync";
 import { LocalSaved, type SavedService } from "./localSaved";
+import { emptyServiceSyncState, syncService, type ServiceSyncState } from "./serviceSync";
 import { changesBetween, loadItemSyncState, loadLibrary, writeItemSyncState, writeLibrary } from "./libraryStore";
 import { emptyItemSyncState, syncItems } from "./syncRows";
 import { applySaved, savedData } from "./savedItems";
@@ -92,6 +93,8 @@ const emptyInstapaperList: InstapaperList = { view: null, items: [], total: 0, l
 const INSTAPAPER_PAGE = 25;
 
 const INSTAPAPER_STATE_KEY = "instapaper-sign-in-state";
+/** This browser's copy of what Instapaper had (serviceSync.ts), in IndexedDB. */
+const INSTAPAPER_SYNC_KEY = "instapaperSync";
 
 export const defaultSettings: Settings = {
   lastSyncedAt: null,
@@ -135,8 +138,8 @@ class AppStore {
   private libraryLoaded: Promise<void>;
   private resolveLibrary!: () => void;
   /**
-   * Saved without an account: the library's reading list (#106, savedItems.ts), as LocalSaved's
-   * data; its changes become changes to the items.
+   * Saved: the library's items (#106, savedItems.ts), as LocalSaved's data; its changes become
+   * changes to the items. The same with or without a connected service, which only syncs (#119).
    */
   private localSaved = new LocalSaved({
     read: async () => {
@@ -145,7 +148,7 @@ class AppStore {
     },
     write: async (data) => {
       await this.libraryLoaded;
-      this.updateLibrary((lib) => applySaved(lib, savedData(lib), data, Date.now()), false);
+      this.updateLibrary((lib) => applySaved(lib, savedData(lib), data, Date.now()));
     },
   });
 
@@ -186,7 +189,7 @@ class AppStore {
     void this.loadInstapaperSides();
     if (location.pathname === CALLBACK_PATH) await this.finishInstapaperSignIn(location.search);
     this.syncWhileVisible();
-    if (this.accountKey()) await this.sync();
+    if (this.accountKey() || this.state.instapaper) await this.sync();
     if (this.state.library.feeds.length > 0) await this.refresh();
   }
 
@@ -241,6 +244,27 @@ class AppStore {
     this.set({ library, selection: L.selectionExists(library, this.state.selection) });
     void writeLibrary(changesBetween(before, library)).catch(() => undefined);
     if (syncSoon) this.scheduleSync(before, library);
+    // Saved shows the items: a change from anywhere (this page, another device, the service) shows at once.
+    if (before.items !== library.items) this.refreshSaved();
+  }
+
+  private refreshTimer: ReturnType<typeof setTimeout> | null = null;
+
+  /** Reads the Saved list shown (as far as it was loaded) and the sidebar's counts again, without a spinner. */
+  private refreshSaved() {
+    if (this.refreshTimer) clearTimeout(this.refreshTimer);
+    this.refreshTimer = setTimeout(async () => {
+      void this.loadInstapaperSides();
+      const s = this.state.selection;
+      if (s.kind !== "instapaper") return;
+      const view = s.view;
+      const list = this.state.instapaperList;
+      if (list.loading || !list.view || !sameView(list.view, view)) return;
+      const page = await this.localSaved.list(view, 0, Math.max(INSTAPAPER_PAGE, list.items.length)).catch(() => null);
+      const now = this.state.selection;
+      if (!page || now.kind !== "instapaper" || !sameView(now.view, view)) return;
+      this.set({ instapaperList: { view, items: page.bookmarks, total: page.total, loading: false, problem: null } });
+    }, 200);
   }
 
   /** A change to the document's part, the items or read marks is synced soon. */
@@ -255,7 +279,7 @@ class AppStore {
 
   /** Syncs a moment after the last of a row of changes. */
   private syncSoon() {
-    if (!this.accountKey()) return;
+    if (!this.accountKey() && !this.state.instapaper) return;
     if (this.syncTimer) clearTimeout(this.syncTimer);
     this.syncTimer = setTimeout(() => void this.sync(), S.CHANGE_DELAY_MS);
   }
@@ -448,6 +472,7 @@ class AppStore {
     try {
       const session = await exchangeCode(answer.code);
       await this.forgetSync();
+      await remove(INSTAPAPER_SYNC_KEY).catch(() => undefined);
       await this.setInstapaper(session);
       this.set({ instapaperNotice: "signedIn" });
       this.updateLive();
@@ -496,6 +521,8 @@ class AppStore {
 
   private async signOutHere() {
     await this.forgetSync();
+    // Disconnected: what was synced with Instapaper is forgotten; Saved stays.
+    await remove(INSTAPAPER_SYNC_KEY).catch(() => undefined);
     await this.setInstapaper(null);
     this.updateLive();
     this.set({ syncStatus: { kind: "idle" } });
@@ -519,10 +546,8 @@ class AppStore {
       void this.loadInstapaperSides();
       return;
     }
-    // Back to the articles saved in this browser, which have no folders.
-    this.set({ instapaper: null, instapaperFolders: [], instapaperTags: [], instapaperList: emptyInstapaperList, instapaperOpen: null, instapaperJustSaved: null });
-    void this.loadInstapaperSides();
-    if (this.state.selection.kind === "instapaper") this.select({ kind: "instapaper", view: { kind: "home" } });
+    // Saved stays as it is: it was always the library's items.
+    this.set({ instapaper: null });
   }
 
   // Instapaper's lists, folders and tags, shown like the feeds (instapaperLibrary.ts).
@@ -664,12 +689,6 @@ class AppStore {
       if (s.kind === "instapaper" && s.view.kind === "folder" && s.view.id === id) this.select({ kind: "instapaper", view: { kind: "home" } });
     });
 
-  moveInstapaperFolder = (index: number, delta: number) =>
-    this.manageInstapaper(async (api) => {
-      const order = reorderedPositions(this.state.instapaperFolders, index, delta);
-      if (order) this.set({ instapaperFolders: await api.reorderFolders(order) });
-    });
-
   renameInstapaperTag = (tag: InstapaperTag, name: string) =>
     this.manageInstapaper(async (api) => {
       const renamed = await api.renameTag(tag.id, name);
@@ -678,19 +697,40 @@ class AppStore {
       if (s.kind === "instapaper" && s.view.kind === "tag" && s.view.name === tag.name) this.select({ kind: "instapaper", view: { kind: "tag", name: renamed.name } });
     });
 
+  /** Runs one call on Saved: always the library's items; a connected service syncs them (syncInstapaper). */
+  async withInstapaper<T>(run: (api: SavedService) => Promise<T>): Promise<T> {
+    return run(this.localSaved);
+  }
+
+  private instapaperSyncing: Promise<void> | null = null;
+
   /**
-   * Runs one call on Saved: Instapaper when signed in, else the articles saved in this browser. A
+   * Syncs Saved with Instapaper when signed in (serviceSync.ts), as the Android app does: what changed
+   * there comes in, what changed here goes there. Runs after each sync with the Reader account. A
    * token Instapaper no longer accepts signs the user out, so they can sign in again.
    */
-  async withInstapaper<T>(run: (api: SavedService) => Promise<T>): Promise<T> {
-    const session = this.state.instapaper;
-    if (!session) return run(this.localSaved);
-    try {
-      return await run(new InstapaperApi(session.token));
-    } catch (e) {
-      if (e instanceof InstapaperError && e.problem === "auth") await this.disconnectInstapaper();
-      throw e;
-    }
+  private syncInstapaper(): Promise<void> {
+    if (this.instapaperSyncing) return this.instapaperSyncing;
+    this.instapaperSyncing = (async () => {
+      const session = this.state.instapaper;
+      if (!session) return;
+      await this.libraryLoaded;
+      const state = (await load<ServiceSyncState>(INSTAPAPER_SYNC_KEY).catch(() => undefined)) ?? emptyServiceSyncState;
+      const result = await syncService(
+        new InstapaperSync(new InstapaperApi(session.token)),
+        { cursor: state.cursor ?? null, rows: state.rows ?? {} },
+        (change) => {
+          this.updateLibrary(change);
+          return this.state.library;
+        },
+        Date.now(),
+      );
+      // Signed out meanwhile: what was synced belongs to the old sign-in.
+      if (this.state.instapaper?.token !== session.token) return;
+      await save(INSTAPAPER_SYNC_KEY, result.state).catch(() => undefined);
+      if (result.problem === "auth") await this.disconnectInstapaper();
+    })().finally(() => (this.instapaperSyncing = null));
+    return this.instapaperSyncing;
   }
 
   // Sync with the Reader account, the same way as the Android app (docs/sync.md).
@@ -705,6 +745,7 @@ class AppStore {
       do {
         this.syncAgain = false;
         await this.syncOnce();
+        await this.syncInstapaper().catch(() => undefined);
       } while (this.syncAgain);
     })().finally(() => (this.syncing = null));
     return this.syncing;
