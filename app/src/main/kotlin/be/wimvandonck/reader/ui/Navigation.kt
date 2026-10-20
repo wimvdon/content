@@ -82,6 +82,7 @@ import be.wimvandonck.reader.data.Library
 import be.wimvandonck.reader.data.ShareTarget
 import be.wimvandonck.reader.data.Settings
 import be.wimvandonck.reader.data.needsFullText
+import be.wimvandonck.reader.data.wantsFullText
 import be.wimvandonck.reader.instapaper.InstapaperNotice
 import be.wimvandonck.reader.instapaper.InstapaperState
 import be.wimvandonck.reader.raindrop.RaindropNotice
@@ -591,17 +592,13 @@ fun RssReaderNavigation() {
                     val feedArticle = if (itemKey == null) library.article(screen.articleKey) else null
                     val item = itemKey?.let { library.item(it) } ?: feedArticle?.let { library.itemFor(it) }
                     val fromFeed = feedArticle ?: item?.let { ReadingLists.feedArticle(it, library) }
-                    // Without the feed's text, the service's own (Instapaper's parsed text, own account only).
-                    var serviceText by remember(screen.articleKey) { mutableStateOf<String?>(null) }
-                    LaunchedEffect(screen.articleKey, item?.key, fromFeed == null) {
-                        if (item != null && fromFeed == null && serviceText == null) serviceText = app.services.text(item)
-                    }
-                    val article = feedArticle ?: fromFeed?.takeIf { serviceText == null } ?: item?.let { ReadingLists.article(it, library, serviceText) }
+                    // Always Reader's own text: the feed's, else the full article it extracts (#134).
+                    val article = feedArticle ?: fromFeed ?: item?.let { ReadingLists.article(it, library) }
                     // The full article loads by itself when the setting is on and the feed only has a
                     // summary; the reader's menu switches between the two (null: follow the setting).
                     var fullTextChoice by rememberSaveable(screen.articleKey) { mutableStateOf<Boolean?>(null) }
                     val isSummary = remember(article?.html, article?.link) { article != null && needsFullText(article.html, article.link) }
-                    val wantFullText = article?.link != null && (fullTextChoice ?: (current.fullArticles && isSummary))
+                    val wantFullText = article?.link != null && wantsFullText(fullTextChoice, current.fullArticles, fromFeed != null, isSummary)
                     var fullText by remember(screen.articleKey) { mutableStateOf<FullTextState>(FullTextState.Off) }
                     LaunchedEffect(screen.articleKey, wantFullText) {
                         val link = article?.link
@@ -634,7 +631,6 @@ fun RssReaderNavigation() {
                             fullText = fullText,
                             showImages = current.showImages,
                             snackbarHostState = snackbar,
-                            textSource = if (serviceText != null) resources.getString(R.string.reader_text_instapaper) else null,
                             actions =
                                 ReaderActions(
                                     onBack = ::pop,

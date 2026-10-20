@@ -56,4 +56,17 @@ class FullArticlesTest {
         val result = runBlocking { articles(folder.newFolder("articles")).load("https://example.com/missing") }
         assertEquals(FullArticle.Failed, result)
     }
+
+    @Test
+    fun `a saved article without feed text always loads its page`() {
+        // A feed's summary follows the setting.
+        assertTrue(wantsFullText(choice = null, setting = true, hasFeedText = true, isSummary = true))
+        assertFalse(wantsFullText(choice = null, setting = false, hasFeedText = true, isSummary = true))
+        // An added link, or one from a service: only its description, so the page, whatever the setting.
+        assertTrue(wantsFullText(choice = null, setting = false, hasFeedText = false, isSummary = true))
+        // A complete text needs nothing more, and the reader's menu always wins.
+        assertFalse(wantsFullText(choice = null, setting = true, hasFeedText = true, isSummary = false))
+        assertFalse(wantsFullText(choice = false, setting = false, hasFeedText = false, isSummary = true))
+        assertTrue(wantsFullText(choice = true, setting = false, hasFeedText = true, isSummary = false))
+    }
 }

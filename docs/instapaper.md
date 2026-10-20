@@ -30,10 +30,10 @@ and on Sync now. Never in the background.
   there (`POST /folders`). Before #119 folders showed as tags; the first sync after the update takes
   that tag off and files the article in its folder instead.
 - **Liked** maps to Instapaper's liked (the old "star"); **archived** to its archive.
-- **Instapaper's text** (`GET /bookmarks/{id}/parse`) is shown for the owner's own account, where it
-  needs no key, and kept on the device only (`item_texts`, source `instapaper`; never synced, as the
-  API terms ask). Other accounts get `403` once and then Reader's own extraction; no Instaparser key
-  is bought (#113).
+- **The text** is always Reader's own (#134): a saved article is read like a feed article, through
+  `ArticleExtractor`. Instapaper's parsed text (`GET /bookmarks/{id}/parse`) is not used: it is only
+  given to the account that registered the app, and no Instaparser key is bought (#113). Texts kept
+  before are deleted when the app starts.
 - A link saved without a title (shared or added) takes Instapaper's title when Instapaper knows it.
 - **Signing out** forgets what was synced with Instapaper; the reading list stays.
 

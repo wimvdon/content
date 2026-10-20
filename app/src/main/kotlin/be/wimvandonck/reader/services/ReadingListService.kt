@@ -6,9 +6,6 @@ package be.wimvandonck.reader.services
  * Reader keeps everything itself; a feature a service lacks is just not copied there.
  */
 enum class ServiceFeature {
-    /** The service's own text of the article (Instapaper's parsed text, own account only). */
-    Text,
-
     /** How far the article has been read. */
     Progress,
 
@@ -111,7 +108,4 @@ interface ReadingListService {
 
     /** Takes the article off the service's list. */
     suspend fun remove(remoteId: String)
-
-    /** The service's text of the article as HTML, or null when it has none for this account. */
-    suspend fun text(remoteId: String): String?
 }

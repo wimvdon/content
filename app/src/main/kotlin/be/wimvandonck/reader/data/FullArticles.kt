@@ -41,6 +41,18 @@ private fun linksTo(
     return target.isNotEmpty() && hrefs.findAll(html).any { it.groupValues[1].normalized() == target }
 }
 
+/**
+ * Whether the reader loads an article's full text: as [choice] in the reader's menu, else as the
+ * setting says for a feed's summary. A saved article with no feed text (an added link, or one from
+ * a service) has only its description, so it always loads the page (#134).
+ */
+fun wantsFullText(
+    choice: Boolean?,
+    setting: Boolean,
+    hasFeedText: Boolean,
+    isSummary: Boolean,
+): Boolean = choice ?: (isSummary && (setting || !hasFeedText))
+
 /** Feed texts shorter than this (in characters of text) count as summaries. */
 const val FULL_TEXT_THRESHOLD = 1500
 

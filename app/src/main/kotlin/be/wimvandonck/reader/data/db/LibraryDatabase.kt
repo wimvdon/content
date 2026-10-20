@@ -89,11 +89,12 @@ abstract class LibraryDao {
     @Query("DELETE FROM item_texts WHERE itemKey IN (:keys)")
     protected abstract suspend fun deleteTexts(keys: List<String>)
 
+    /** Instapaper's own texts, kept before #134: Reader always reads its own text now. */
+    @Query("DELETE FROM item_texts WHERE source = 'instapaper'")
+    abstract suspend fun deleteServiceTexts()
+
     @Query("SELECT itemKey, MAX(LENGTH(html)) AS length FROM item_texts GROUP BY itemKey")
     abstract suspend fun textLengths(): List<TextLength>
-
-    @Query("SELECT * FROM item_texts WHERE itemKey = :key")
-    abstract suspend fun texts(key: String): List<ItemTextRow>
 
     @Upsert
     abstract suspend fun putText(row: ItemTextRow)

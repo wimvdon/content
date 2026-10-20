@@ -184,7 +184,8 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
       Instapaper's own app and pull down on the reading list: the change shows in Reader.
 - [ ] File an article in a folder (also a new one): it moves to that folder in Instapaper (made
       there when missing); archiving it moves it to Instapaper's archive.
-- [ ] On the owner's account an article without feed text shows "Instapaper text" above the title.
+- [ ] An article that came in from Instapaper (or an added link) shows its full text in the reader,
+      with nothing above the title saying where the text came from.
 - [ ] Read an article halfway, leave it: Instapaper shows the same progress.
 - [ ] **Sign out** returns Settings to "Sign in"; Saved stays.
 - [ ] Signed out: **Read later** keeps the article in Saved; the sheet offers Like and

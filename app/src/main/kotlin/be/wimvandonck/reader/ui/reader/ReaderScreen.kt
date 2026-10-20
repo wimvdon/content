@@ -147,8 +147,6 @@ fun ReaderScreen(
     actions: ReaderActions,
     /** On the reading list: its buttons replace Save and Mark as unread. */
     item: ReaderItem? = null,
-    /** Where the text came from, when it isn't the feed's ("Instapaper text"), shown above the title. */
-    textSource: String? = null,
 ) {
     var showStyleSheet by rememberSaveable { mutableStateOf(false) }
     var tagsOpen by rememberSaveable { mutableStateOf(false) }
@@ -332,7 +330,6 @@ fun ReaderScreen(
                 onOpenLink = actions.onOpenLink,
                 onOpenInBrowser = actions.onOpenInBrowser,
                 scrollState = scrollState,
-                textSource = textSource,
                 onFinished = if (item != null && onList && !item.item.archived) ({ finish(null) }) else null,
                 modifier = Modifier.padding(innerPadding),
             )
@@ -389,7 +386,6 @@ private fun ArticleBody(
     onOpenLink: (String) -> Unit,
     onOpenInBrowser: () -> Unit,
     scrollState: ScrollState,
-    textSource: String?,
     /** At the end of an article on the reading list: "Finished reading" opens the sheet that asks what's next. */
     onFinished: (() -> Unit)?,
     modifier: Modifier = Modifier,
@@ -461,9 +457,6 @@ private fun ArticleBody(
             )
             if (meta.isNotEmpty()) {
                 Text(meta, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            if (textSource != null && fullText !is FullTextState.Shown) {
-                Text(textSource, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             when (fullText) {
                 FullTextState.Loading -> {

@@ -166,19 +166,6 @@ class InstapaperReadingListTest {
         }
 
     @Test
-    fun `parsed text only for the developer's own account`() =
-        runBlocking {
-            answer = { _, _, _ -> 200 to """{"metadata":{"title":"A"},"content":{"body":"<p>Text</p>","words":1}}""" }
-            assertEquals("<p>Text</p>", service.text("5"))
-            answer = { _, _, _ -> 403 to "Instaparser key required" }
-            assertNull(service.text("6"))
-            calls.clear()
-            // Refused once: not asked again.
-            assertNull(service.text("7"))
-            assertTrue(calls.isEmpty())
-        }
-
-    @Test
     fun `problems become the service's problems, and a bookmark that is already gone is removed`() =
         runBlocking {
             answer = { _, _, _ -> 429 to "slow down" }

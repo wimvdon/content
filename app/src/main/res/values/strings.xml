@@ -210,7 +210,6 @@
     <string name="finish_title">Finished reading</string>
     <string name="finish_archive_body">Done with it. Stays in your history.</string>
     <string name="finish_with_note">1 note</string>
-    <string name="reader_text_instapaper">Instapaper text</string>
     <string name="reading_list_to_read">To read</string>
     <string name="reading_list_archive">Archive</string>
     <string name="reading_list_liked">Liked</string>

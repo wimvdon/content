@@ -100,9 +100,8 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
 - If you are signed in: a copy of the synced document and records as last synced, to merge changes, and read marks of articles another device read that this one hasn't downloaded yet.
 - Your settings (theme, text settings, full articles, pictures, Save and Share targets, the Unread filter, mark as read on scroll).
 - Your reading list: each article's address, title, description, picture address, when you added
-  it, whether you liked or archived it, its tags, how far you read it, and, for the app owner's own
-  Instapaper account, Instapaper's text of articles you opened (in the app's database; on the web,
-  the browser's storage). Without an account it is not sent anywhere; signed in, see above.
+  it, whether you liked or archived it, its tags and how far you read it (in the app's database; on
+  the web, the browser's storage). Without an account it is not sent anywhere; signed in, see above.
 - The text of full articles you opened, and recently shown pictures, in the app's cache (Android
   may clear it).
 - If you signed in to Instapaper: the access token, your Instapaper user name and this device's

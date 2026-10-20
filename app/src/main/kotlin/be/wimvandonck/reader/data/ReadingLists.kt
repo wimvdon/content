@@ -12,7 +12,7 @@ object ReadingLists {
     /** The feed key of items opened in the reader ("item <item key>"), so it never clashes with a feed's. */
     const val ITEM_FEED = "item"
 
-    /** Where a text kept for an item came from: Reader's own extraction (a service's texts go under its id). */
+    /** Where a text kept for an item came from: Reader's own extraction. */
     const val EXTRACTED = "extracted"
 
     fun readerKey(item: Item): String = Article.keyOf(ITEM_FEED, item.key)
@@ -45,8 +45,8 @@ object ReadingLists {
     }
 
     /**
-     * An item as the list and the reader show it, like a feed article: [text] when there is one (a
-     * service's text or Reader's extraction), else the feed article's text, else the description.
+     * An item as the list and the reader show it, like a feed article: [text] when there is one (Reader's
+     * extraction), else the feed article's text, else the description.
      */
     fun article(
         item: Item,

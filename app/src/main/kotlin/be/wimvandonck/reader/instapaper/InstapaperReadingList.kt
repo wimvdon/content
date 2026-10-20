@@ -20,17 +20,13 @@ class InstapaperReadingList(
 ) : ReadingListService {
     override val id = ID
 
-    override val features = setOf(ServiceFeature.Text, ServiceFeature.Progress)
+    override val features = setOf(ServiceFeature.Progress)
 
     /** The account's folders by id, read with the changes. */
     private var folders: Map<Long, String> = emptyMap()
 
     /** The account's tags by name (lower case), to remove one by id. */
     private var tagIds: Map<String, Long> = emptyMap()
-
-    /** Instapaper refused its parsed text for this account (it isn't the developer's own): don't ask again. */
-    @Volatile
-    private var textRefused = false
 
     override suspend fun changes(
         cursor: String?,
@@ -146,21 +142,6 @@ class InstapaperReadingList(
                 if (e.problem != InstapaperProblem.Invalid) throw e
             }
         }
-
-    override suspend fun text(remoteId: String): String? {
-        if (textRefused) return null
-        val id = remoteId.toLongOrNull() ?: return null
-        return try {
-            client.parse(id)
-        } catch (e: InstapaperException) {
-            when (e.problem) {
-                // Not the developer's own account (Reader has no Instaparser key, #113).
-                InstapaperProblem.NotApproved -> textRefused = true
-                else -> Unit
-            }
-            null
-        }
-    }
 
     private suspend fun <T> guarded(block: suspend () -> T): T =
         try {
