@@ -60,12 +60,38 @@ describe("Saved in this browser", () => {
     expect((await saved.list({ kind: "liked" })).total).toBe(0);
   });
 
-  it("has no folders", async () => {
+  it("files in one folder at a time, and archiving takes it out (#119)", async () => {
     const { saved } = newSaved();
     const a = await saved.save("https://a.example/1");
+    const b = await saved.save("https://a.example/2");
     expect(await saved.folders()).toEqual([]);
     await expect(saved.move(a.id, 12)).rejects.toThrow(InstapaperError);
-    await expect(saved.createFolder()).rejects.toThrow(InstapaperError);
+    await expect(saved.createFolder("  ")).rejects.toThrow(InstapaperError);
+    // A new folder waits for its first article, and the same name (any capitals) is the same folder.
+    const work = await saved.createFolder("Work");
+    expect((await saved.createFolder("work")).id).toBe(work.id);
+    expect((await saved.folders()).map((f) => [f.title, f.count])).toEqual([["Work", 0]]);
+    const filed = await saved.move(a.id, work.id);
+    const folder = (await saved.folders())[0];
+    expect(filed.folder_id).toBe(folder.id);
+    expect(folder.count).toBe(1);
+    expect((await saved.list({ kind: "folder", id: folder.id })).bookmarks.map((x) => x.id)).toEqual([a.id]);
+    expect((await saved.list({ kind: "home" })).bookmarks.map((x) => x.id)).toEqual([b.id]);
+    // Archiving takes it out of the folder, which goes away with its last article.
+    const archived = await saved.move(a.id, "archive");
+    expect(archived.folder_id).toBeNull();
+    expect(await saved.folders()).toEqual([]);
+  });
+
+  it("deleting a folder puts its articles back to read", async () => {
+    const { saved } = newSaved();
+    const a = await saved.save("https://a.example/1");
+    const work = await saved.createFolder("Work");
+    await saved.move(a.id, work.id);
+    const id = (await saved.folders())[0].id;
+    await saved.deleteFolder(id);
+    expect(await saved.folders()).toEqual([]);
+    expect((await saved.list({ kind: "home" })).bookmarks.map((x) => x.id)).toEqual([a.id]);
   });
 
   it("shares tags by name, counts them, and drops them when no article has them", async () => {
@@ -127,6 +153,17 @@ describe("copying to Instapaper after signing in", () => {
     expect(one.tags.map((t) => t.name)).toEqual(["Travel"]);
     expect(one.archived).toBe(false);
     expect((await account.list({ kind: "archive" })).bookmarks.map((x) => x.url)).toEqual(["https://a.example/2"]);
+  });
+
+  it("copies an article's folder too, made in the account when missing", async () => {
+    const { saved } = newSaved();
+    const a = await saved.save("https://a.example/1");
+    await saved.move(a.id, (await saved.createFolder("Work")).id);
+    const account = new FakeAccount();
+    expect(await saved.uploadTo(account)).toEqual({ copied: 1, problem: null });
+    const [work] = await account.folders();
+    expect(work.title).toBe("Work");
+    expect((await account.list({ kind: "folder", id: work.id })).bookmarks.map((x) => x.url)).toEqual(["https://a.example/1"]);
   });
 
   it("keeps what didn't make it and goes on the next time", async () => {

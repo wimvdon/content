@@ -46,8 +46,10 @@ The web app still shows Saved as before #107: signed in, Instapaper's own lists 
 (`web/src/lib/instapaper.ts`, `instapaperLibrary.ts`); signed out, the reading list's items
 (`web/src/lib/localSaved.ts` on `savedItems.ts`). It no longer copies the browser's articles to
 Instapaper on sign-in: they sync to the other devices through the Reader account, and the Android
-app keeps the reading list the same as Instapaper. It catches up with the reading list in a later
-change.
+app keeps the reading list the same as Instapaper. Signed out, Saved has folders like the Android
+app's (#119): each item's synced `folder`, one at most, only while to read; archiving takes it out.
+Folders and tags (the sidebar's manage page) lists them, in name order, to delete; deleting one puts
+its articles back to read. Raindrop.io isn't in the web app yet.
 
 ## How sign-in works
 

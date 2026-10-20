@@ -218,3 +218,10 @@ Needs the Raindrop app registered and the Worker's `RAINDROP_CLIENT_ID` and `RAI
       screens don't open. **Save** shows where it went and you are back in Chrome.
 - [ ] Share plain text without a link: "No link to save", and nothing else opens.
 - [ ] Reader's own Share button doesn't list Reader itself.
+
+## Web app: folders without an account (#119)
+
+- [ ] Signed out, save an article, open it, tap the folder button and make a new folder: the article
+      moves there, the sidebar lists the folder with its count, and Saved no longer shows it.
+- [ ] Archive it: it leaves the folder, and the folder disappears with its last article.
+- [ ] Sidebar › **Folders and tags**: delete a folder; its articles are back in Saved.
