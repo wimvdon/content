@@ -160,7 +160,7 @@ class AppStore {
     if (location.pathname === CALLBACK_PATH) await this.finishInstapaperSignIn(location.search);
     this.syncWhileVisible();
     if (this.accountKey() || this.state.instapaper) await this.sync();
-    if (this.state.library.feeds.length > 0) await this.refresh();
+    if (this.state.library.feeds.length > 0) await this.refresh(false);
   }
 
   /**
@@ -252,8 +252,11 @@ class AppStore {
   private lastFeeds: L.Selection = { kind: "all" };
 
   select(selection: L.Selection) {
+    // Another feed or folder starts afresh; Saved and back, or the same one again, keeps the
+    // articles read this visit in the Unread list (#157).
+    const fresh = selection.kind !== "saved" && !L.sameSelection(selection, this.lastFeeds);
     if (selection.kind !== "saved") this.lastFeeds = selection;
-    this.set({ selection, readThisVisit: new Set() });
+    this.set(fresh ? { selection, readThisVisit: new Set() } : { selection });
   }
 
   /** Saved, on a tab and with filters (the sidebar, the tabs and the chips). */
@@ -270,15 +273,17 @@ class AppStore {
   }
 
   setUnreadOnly(unreadOnly: boolean) {
+    if (unreadOnly === this.state.settings.unreadOnly) return;
     this.updateSettings({ unreadOnly });
     this.set({ readThisVisit: new Set() });
   }
 
   private fetch = (url: string) => fetchViaProxy(url);
 
-  async refresh() {
+  /** Checks every feed. Only a refresh you ask for starts the Unread list afresh (#157). */
+  async refresh(byYou = true) {
     if (this.state.refreshing) return;
-    this.set({ refreshing: true, readThisVisit: new Set() });
+    this.set(byYou ? { refreshing: true, readThisVisit: new Set() } : { refreshing: true });
     // Read marks and feeds from other devices first, so they apply to the new articles.
     await this.sync();
     const feeds = [...this.state.library.feeds];
@@ -363,13 +368,31 @@ class AppStore {
     this.updateLibrary((lib) => L.setRead(lib, keys, read));
   }
 
-  /** Opening an article marks it read; it stays in the Unread list until the list changes. */
+  /**
+   * Opening an article marks it read; it stays in the Unread list until the list changes. A saved
+   * item has no read state (archiving is an action of its own), but the feed article it was saved
+   * from counts as read, like on Android (#157).
+   */
   open(article: L.Article) {
-    // Saved items have no read state (archiving is an action of its own).
-    if (Saved.isItemArticle(article)) return;
+    const itemKey = Saved.itemKeyOf(article);
+    if (itemKey !== null) {
+      const item = this.state.library.items.find((i) => i.key === itemKey);
+      const fromFeed = item && Saved.feedArticleOf(item, this.state.library);
+      if (fromFeed && !fromFeed.read) this.setRead(new Set([L.articleKey(fromFeed)]), true);
+      return;
+    }
     const key = L.articleKey(article);
     this.set({ readThisVisit: new Set([...this.state.readThisVisit, key]) });
     if (!article.read) this.setRead(new Set([key]), true);
+  }
+
+  /** Read ⇄ unread, by hand (the row's button, ⋮, m): one marked read stays in the Unread list, like opened ones. */
+  toggleRead(article: L.Article) {
+    const key = L.articleKey(article);
+    const current = this.state.library.articles.find((a) => L.articleKey(a) === key);
+    if (!current) return;
+    if (!current.read) this.set({ readThisVisit: new Set([...this.state.readThisVisit, key]) });
+    this.setRead(new Set([key]), !current.read);
   }
 
   /** Mark as read on scroll: the articles stay in the Unread list until the list changes. */
@@ -379,8 +402,10 @@ class AppStore {
     this.setRead(keys, true);
   }
 
+  /** Done with the section: everything unread in it is read, and nothing read stays in the Unread list (#157). */
   markAllRead(): Set<string> {
     const keys = L.unreadKeys(this.state.library, this.state.selection);
+    this.set({ readThisVisit: new Set() });
     this.setRead(keys, true);
     return keys;
   }
@@ -394,7 +419,7 @@ class AppStore {
       added = count;
       return out;
     });
-    if (added > 0) void this.refresh();
+    if (added > 0) void this.refresh(false);
     return added;
   }
 
@@ -686,7 +711,7 @@ class AppStore {
       this.syncedItemsVersion = nextItems.version;
       this.updateSettings({ lastSyncedAt: Date.now() }, false);
       this.set({ syncStatus: { kind: "idle" } });
-      if (newFeeds) void this.refresh();
+      if (newFeeds) void this.refresh(false);
     } catch (e) {
       const problem = e instanceof SyncError ? e.problem : "server";
       this.set({ syncStatus: { kind: "failed", problem } });

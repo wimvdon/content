@@ -127,7 +127,7 @@ export function ArticleView({ article, onBack, onMessage }: { article: Article; 
                   <MenuItem
                     icon={current.read ? <Circle /> : <CircleCheck />}
                     label={current.read ? t("markUnread") : t("markRead")}
-                    onClick={() => app.setRead(new Set([articleKey(current)]), !current.read)}
+                    onClick={() => app.toggleRead(current)}
                     close={() => setMenuOpen(false)}
                   />
                 ) : null}

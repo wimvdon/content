@@ -42,7 +42,7 @@ when the run fails.
 | `LibraryRowsTest` | The library to database rows and back unchanged (order, tabs, line breaks, tags, highlights), broken rows repaired, only changed articles and items written, an empty database filled |
 | `SavedItemsTest` | Moving a sample of the old files into the database: feeds, read marks and saved articles kept, links written another way joined |
 | `LibraryCodecTest` | Storage round trip with folders, tabs, line breaks and backslashes; missing folders and unknown icons; damaged input |
-| `ScrollReadTest` | Mark as read on scroll: which articles have scrolled past (unread only, not the top one) |
+| `ScrollReadTest` | Mark as read on scroll: which articles have scrolled past (unread only, not the top one, only ones that were on screen) |
 | `JsonTest` | JSON round trip (escapes, emoji, numbers, nesting), whitespace, broken text |
 | `SyncDocumentTest` | Sync file round trip (with settings, the same text as the web app), other or newer files left alone, broken entries skipped, taking folders and feeds (not read marks) from the library, a version 2 file's read marks read but never written |
 | `ItemSyncTest` | Per-item sync between two devices: items and read marks arrive, **no article text in the payload**, changes to different parts of an item both stay, tags as a set and highlights per highlight, this device wins the same field but an edit beats a removal, removals and unread again arrive, marks of articles not here yet arrive read, old marks leave the account without making anything unread, syncing again saves nothing, pages, rows of unknown kinds left alone, the account's answers |
@@ -146,7 +146,19 @@ and then (always before a release):
       version with Bookmarks shows them in folders (their collection, or "Bookmarks").
       The Undo message after Mark all as read shows above the folder bar.
 - [ ] **Mark as read on scroll** on: scroll down the Unread list; the articles that leave the
-      top of the screen are marked read (their dot goes) but stay until you refresh.
+      top of the screen are marked read (their dot goes) but stay until you refresh. Scroll down,
+      pull to refresh so new articles arrive at the top: they stay unread (#157).
+- [ ] **What stays in the Unread list (#157):** open an article and go back, open one from Search,
+      swipe one right: each stays, dimmed. Go to Saved and back, or tap the same feed again: they
+      are still there. Pick another feed, switch Unread/All, or pull to refresh: they are gone.
+      Mark all read: the list empties ("All caught up"); Undo brings them back unread.
+- [ ] Saved rows (also archived ones and Saved hits in Search) are never dimmed and have no dot.
+      Opening a saved article saved from a feed marks that feed article read, in both apps.
+- [ ] Web app: pointing at an article in the list shows a round button that marks it read or
+      unread; it stays in the Unread list after marking it read. **m** does the same for the open
+      article; ⋮ in the reader offers Mark as read / Mark as unread.
+- [ ] Two devices: let a read article drop out of a busy feed (or remove the feed) on one; on the
+      other it stays read. Add the feed again: its read articles come back read.
 - [ ] Import and export OPML (for example an Inoreader export); folders come along both ways.
 - [ ] **Manage feeds** (☰): create a folder, search an icon (e.g. *soccer*) and pick it, move feeds into it (they show under it); the bottom bar appears, its
       tabs show only that folder's articles; Mark all read (round button) only marks that

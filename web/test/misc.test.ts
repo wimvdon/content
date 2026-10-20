@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { feedLinks, findFeed, normalizeUrl } from "../src/lib/discovery";
 import { searchIcons, parseIcons } from "../src/lib/icons";
-import { emptyLibrary, articlesFor, setRead, removeFolder, addFolder, addFeed, newFeed, moveFeed, renameFeed, mergeFeed, reorder, unreadKeys } from "../src/lib/library";
+import { emptyLibrary, articlesFor, setRead, removeFolder, addFolder, addFeed, newFeed, moveFeed, renameFeed, mergeFeed, reorder, unreadKeys, removeFeed, sameSelection, MAX_ARTICLES_PER_FEED } from "../src/lib/library";
 import { importOpml, parseOpml, writeOpml } from "../src/lib/opml";
 import { FetchError } from "../src/lib/proxy";
 import { sanitizeArticle } from "../src/lib/sanitize";
@@ -53,6 +53,37 @@ describe("library", () => {
     expect(lib.feeds[0].folderId).toBeNull();
     expect(reorder([1, 2, 3], 0, 1)).toEqual([2, 1, 3]);
     expect(reorder([1, 2, 3], 0, -1)).toEqual([1, 2, 3]);
+  });
+});
+
+describe("read marks that leave this browser (#157)", () => {
+  const items = (...ids: [string, number][]) => ids.map(([id, publishedAt]) => ({ id, title: id, link: null, author: null, html: "", publishedAt, imageUrl: null }));
+  it("keeps the mark of a read article that no longer fits, not of an unread one", () => {
+    let lib = addFeed(emptyLibrary(), newFeed("a", "A"));
+    lib = mergeFeed(lib, "a", { title: "A", siteUrl: null, items: items(["old", 1], ["gone", 2]) }, 1000);
+    lib = setRead(lib, new Set(["a old"]), true);
+    const many = Array.from({ length: MAX_ARTICLES_PER_FEED }, (_, i) => [`n${i}`, 100 + i] as [string, number]);
+    lib = mergeFeed(lib, "a", { title: "A", siteUrl: null, items: items(...many) }, 2000);
+    expect(lib.articles.some((x) => x.id === "old")).toBe(false);
+    expect(lib.readElsewhere).toEqual({ "a old": 1 });
+  });
+  it("drops marks older than the sync keeps", () => {
+    const day = 24 * 60 * 60 * 1000;
+    const lib = addFeed({ ...emptyLibrary(), readElsewhere: { "x 1": 10 * day, "x 2": 200 * day } }, newFeed("a", "A"));
+    expect(mergeFeed(lib, "a", { title: "A", siteUrl: null, items: items(["1", 1]) }, 200 * day).readElsewhere).toEqual({ "x 2": 200 * day });
+  });
+  it("keeps a removed feed's read marks, so adding it again brings them back read", () => {
+    let lib = addFeed(emptyLibrary(), newFeed("a", "A"));
+    lib = mergeFeed(lib, "a", { title: "A", siteUrl: null, items: items(["1", 5], ["2", 6]) }, 10);
+    lib = removeFeed(setRead(lib, new Set(["a 2"]), true), "a");
+    expect(lib.readElsewhere).toEqual({ "a 2": 6 });
+    lib = mergeFeed(addFeed(lib, newFeed("a", "A")), "a", { title: "A", siteUrl: null, items: items(["1", 5], ["2", 6]) }, 20);
+    expect(lib.articles.map((x) => [x.id, x.read])).toEqual([["2", true], ["1", false]]);
+  });
+  it("knows the same selection", () => {
+    expect(sameSelection({ kind: "folder", folderId: "f" }, { kind: "folder", folderId: "f" })).toBe(true);
+    expect(sameSelection({ kind: "feed", feedUrl: "a" }, { kind: "feed", feedUrl: "b" })).toBe(false);
+    expect(sameSelection({ kind: "all" }, { kind: "saved" })).toBe(false);
   });
 });
 
@@ -229,9 +260,16 @@ describe("mark as read on scroll", () => {
   it("marks the unread articles above the first one on screen", () => {
     const article = (id: string, read: boolean) => ({ feedUrl: "f", id, title: id, link: null, html: "", imageUrl: null, author: null, publishedAt: null, fetchedAt: 0, read }) as unknown as Article;
     const list = [article("1", false), article("2", true), article("3", false), article("4", false)];
-    expect([...scrolledPast(list, 3)]).toEqual([articleKey(list[0]), articleKey(list[2])]);
-    expect(scrolledPast(list, 0).size).toBe(0);
-    expect(scrolledPast(list, -1).size).toBe(0);
+    const all = new Set(list.map(articleKey));
+    expect([...scrolledPast(list, 3, all)]).toEqual([articleKey(list[0]), articleKey(list[2])]);
+    expect(scrolledPast(list, 0, all).size).toBe(0);
+    expect(scrolledPast(list, -1, all).size).toBe(0);
+  });
+
+  it("leaves articles that were never on screen, like new ones arriving above", () => {
+    const article = (id: string) => ({ feedUrl: "f", id, title: id, link: null, html: "", imageUrl: null, author: null, publishedAt: null, fetchedAt: 0, read: false }) as unknown as Article;
+    const list = [article("new"), article("1"), article("2")];
+    expect([...scrolledPast(list, 2, new Set([articleKey(list[1]), articleKey(list[2])]))]).toEqual([articleKey(list[1])]);
   });
 });
 

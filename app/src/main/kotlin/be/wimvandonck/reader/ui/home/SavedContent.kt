@@ -149,7 +149,7 @@ private fun ArticleList(
                     feed = source,
                     view = home.listView,
                     showImage = showImages,
-                    showUnreadDot = false,
+                    showReadState = false,
                     onClick = { onOpen(item) },
                 )
             }
