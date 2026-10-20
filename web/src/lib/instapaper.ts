@@ -29,6 +29,14 @@ export interface Bookmark {
   time: number;
   folder_id: number | null;
   tags: Tag[];
+  /** How far it was read (API v2), when Instapaper sends it. */
+  progress?: { percentage?: number; timestamp?: number } | null;
+}
+
+/** A `since` page: what changed and what was deleted since a time. */
+export interface ChangesPage {
+  bookmarks: Bookmark[];
+  deleted_ids: number[];
 }
 
 export interface Folder {
@@ -176,6 +184,23 @@ export class InstapaperApi {
       query.set("section", view.kind);
     }
     return this.call("GET", `/bookmarks?${query}`);
+  }
+
+  /** Every bookmark changed (and every id deleted) since [since], in seconds, a page at a time. */
+  changesSince(since: number, offset = 0, limit = 500): Promise<ChangesPage> {
+    const query = new URLSearchParams({ since: String(Math.max(1, since)), limit: String(limit), offset: String(offset) });
+    return this.call<Partial<ChangesPage>>("GET", `/bookmarks?${query}`).then((page) => ({
+      bookmarks: Array.isArray(page?.bookmarks) ? page.bookmarks : [],
+      deleted_ids: Array.isArray(page?.deleted_ids) ? page.deleted_ids.filter((id) => typeof id === "number") : [],
+    }));
+  }
+
+  /** A bookmark's title and reading progress (each only when given). */
+  updateBookmark(id: number, change: { title?: string; progress?: number; at: number }): Promise<Bookmark> {
+    return this.call("POST", `/bookmarks/${id}`, {
+      ...(change.title !== undefined ? { title: change.title } : {}),
+      ...(change.progress !== undefined ? { progress: { percentage: change.progress, timestamp: change.at } } : {}),
+    });
   }
 
   /** Saving an address the account already has doesn't duplicate it; Instapaper moves it back to the top. */

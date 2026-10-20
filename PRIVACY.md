@@ -154,8 +154,11 @@ Reader account that signing in with Instapaper opens.
 - **Instapaper** (off unless you sign in, in Settings › Account): the page's sign-in leaves for
   Instapaper's own website and returns to the web app, which swaps the one-time code for an access
   token (and this browser's Reader account key) through the feed loader. Both are kept in the
-  browser's storage (IndexedDB) only. Saving and managing your articles goes through the feed loader to www.instapaper.com;
-  the loader passes the token on, and keeps and logs nothing.
+  browser's storage (IndexedDB) only. While the page is open, Saved is kept the same as your
+  Instapaper account through the feed loader to www.instapaper.com: it reads what changed there and
+  sends the title, link, tags, like, archive, folder and reading progress of your saved articles,
+  and removes there what you remove from Saved (not articles kept in Raindrop.io). The loader passes
+  the token on, and keeps and logs nothing.
 - Removing the site's data in your browser deletes everything the web app stored.
 
 If this changes, this file will be updated **before** the change is released.

@@ -22,13 +22,15 @@ const LIST_PARAMS = ["section", "folder_id", "tag", "limit", "offset", "since"];
 type Fetcher = (input: string, init?: RequestInit) => Promise<Response>;
 
 /**
- * The Instapaper calls the web app may make: bookmarks (list, save, delete, move to the archive, home
- * or a folder, like, tag), folders (list, create, delete, reorder) and tags (list, create, rename).
+ * The Instapaper calls the web app may make: bookmarks (list or what changed since a time, save,
+ * delete, change the title or reading progress, move to the archive, home or a folder, like, tag),
+ * folders (list, create, delete, reorder) and tags (list, create, rename).
  */
 const API_ROUTES: { method: string; path: RegExp }[] = [
   { method: "GET", path: /^\/bookmarks$/ },
   { method: "POST", path: /^\/bookmarks$/ },
   { method: "DELETE", path: /^\/bookmarks\/\d+$/ },
+  { method: "POST", path: /^\/bookmarks\/\d+$/ },
   { method: "POST", path: /^\/bookmarks\/\d+\/move$/ },
   { method: "POST", path: /^\/bookmarks\/\d+\/like$/ },
   { method: "DELETE", path: /^\/bookmarks\/\d+\/like$/ },

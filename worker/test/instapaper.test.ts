@@ -238,7 +238,17 @@ describe("/instapaper/api", () => {
     expect((await ask("/bookmarks/../account")).status).toBe(404);
     expect((await ask("/bookmarks", "DELETE")).status).toBe(405);
     expect((await ask("/bookmarks/7/move", "GET")).status).toBe(405);
+    // A bookmark's title and progress can be changed, but it can't be read on its own.
+    expect((await ask("/bookmarks/7")).status).toBe(405);
     expect(calls).toEqual([]);
+  });
+
+  it("forwards a change to a bookmark's title or reading progress", async () => {
+    const { fetcher, calls } = upstream(() => jsonResponse({ id: 7 }));
+    const body = JSON.stringify({ progress: { percentage: 0.5, timestamp: 1 } });
+    const response = await handle(apiRequest("/bookmarks/7", { method: "POST", headers: BEARER, body }), env, fetcher);
+    expect(response.status).toBe(200);
+    expect(calls).toHaveLength(1);
   });
 
   it("doesn't follow redirects with the token", async () => {
