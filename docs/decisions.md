@@ -293,7 +293,7 @@ called **Saved**, and its first list (Instapaper's Unread) is **Saved** too, so 
 unread feed articles. Signed out, the same screen runs on `LocalSaved`, a second implementation of
 `InstapaperService` that keeps the saved articles on the phone in a DataStore file (`datastore/saved`,
 JSON written with the sync's own `Json`), so the lists, Search, the reader's buttons and the sheet
-after Save need no second code path. Without an account there are no folders: Instapaper's folders
+after Save need no second code path. Without an account there were no folders (until #119 added them): Instapaper's folders
 are its own, and the owner asked for everything except folders. Save's default became **Saved, in
 this app** instead of the Instapaper app; a chosen app still works. The sheet after Save now also
 offers Like and Archive. Local articles aren't synced and aren't copied to Instapaper on sign-in.

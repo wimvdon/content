@@ -19,7 +19,7 @@ export function InstapaperManageDialog({ open, onOpenChange }: { open: boolean; 
 
 /**
  * Instapaper's folders and tags: create, reorder and delete folders; rename tags (Instapaper
- * creates tags when they are added to an article). Saved in this browser has only tags.
+ * creates tags when they are added to an article). Saved in this browser has the same, its folders in name order.
  */
 function InstapaperManage() {
   const { instapaperFolders: folders, instapaperTags: tags, instapaper } = useApp();
@@ -33,7 +33,6 @@ function InstapaperManage() {
           {problem}
         </p>
       ) : null}
-      {instapaper ? (
       <div>
         <h3 className="px-1 pb-1 text-sm font-medium text-primary">{t("instapaperFolders")}</h3>
         <ul>
@@ -41,12 +40,17 @@ function InstapaperManage() {
             <li key={folder.id} className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-card">
               <FolderGlyph className="size-5 text-muted-foreground" aria-hidden="true" />
               <span className="min-w-0 flex-1 truncate text-sm">{folder.title}</span>
-              <Button variant="ghost" size="iconSm" disabled={index === 0} onClick={() => run(app.moveInstapaperFolder(index, -1))} aria-label={t("moveUp")} title={t("moveUp")}>
-                <ArrowUp />
-              </Button>
-              <Button variant="ghost" size="iconSm" disabled={index === folders.length - 1} onClick={() => run(app.moveInstapaperFolder(index, 1))} aria-label={t("moveDown")} title={t("moveDown")}>
-                <ArrowDown />
-              </Button>
+              {/* Saved in this browser keeps its folders in name order. */}
+              {instapaper ? (
+                <>
+                  <Button variant="ghost" size="iconSm" disabled={index === 0} onClick={() => run(app.moveInstapaperFolder(index, -1))} aria-label={t("moveUp")} title={t("moveUp")}>
+                    <ArrowUp />
+                  </Button>
+                  <Button variant="ghost" size="iconSm" disabled={index === folders.length - 1} onClick={() => run(app.moveInstapaperFolder(index, 1))} aria-label={t("moveDown")} title={t("moveDown")}>
+                    <ArrowDown />
+                  </Button>
+                </>
+              ) : null}
               <Button variant="ghost" size="iconSm" onClick={() => run(app.deleteInstapaperFolder(folder.id))} aria-label={`${t("instapaperDeleteFolder")}: ${folder.title}`} title={t("instapaperDeleteFolder")}>
                 <Trash2 />
               </Button>
@@ -71,8 +75,6 @@ function InstapaperManage() {
           </Button>
         </form>
       </div>
-      ) : null}
-      {!instapaper && tags.length === 0 ? <p className="px-1 text-sm text-muted-foreground">{t("savedManageEmpty")}</p> : null}
       {tags.length > 0 ? (
         <div>
           <h3 className="px-1 pb-1 text-sm font-medium text-primary">{t("instapaperTags")}</h3>

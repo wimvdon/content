@@ -1,7 +1,8 @@
 /**
- * Saved without an account: the same lists, likes, archive and tags as Instapaper, kept in this
- * browser and not synced; signing in copies them to Instapaper (`uploadTo`). There are no folders
- * (moving to one is refused). The same as Android's LocalSaved (docs/instapaper.md).
+ * Saved without an account: the same lists, likes, archive, folders and tags as Instapaper, kept in
+ * this browser and not synced; signing in copies them to Instapaper (`uploadTo`). An article is in
+ * one folder at most, only while it is to read (#119): archiving takes it out. A folder lives while
+ * an article is in it (one just made waits for its first article). Folders are in name order.
  */
 
 import { InstapaperError, type Bookmark, type Folder, type Page, type Tag, type View } from "./instapaper";
@@ -33,16 +34,20 @@ export interface LocalArticle {
   liked: boolean;
   archived: boolean;
   tagIds: number[];
+  /** Its folder (#119), only while to read; missing in data from before folders. */
+  folderId?: number | null;
 }
 
 export interface LocalSavedData {
   articles: LocalArticle[];
   tags: { id: number; name: string }[];
+  /** The folders in use; missing in data from before folders. */
+  folders?: { id: number; name: string }[];
   /** The id the next saved article or tag gets. */
   nextId: number;
 }
 
-export const emptyLocalSaved: LocalSavedData = { articles: [], tags: [], nextId: 1 };
+export const emptyLocalSaved: LocalSavedData = { articles: [], tags: [], folders: [], nextId: 1 };
 
 /** Where the data lives: IndexedDB in the app (app.ts), memory in tests. */
 export interface LocalSavedStorage {
@@ -61,6 +66,9 @@ export class LocalSaved implements SavedService {
   private readonly now: () => number;
   /** Changes run one after the other, so none is lost. */
   private queue: Promise<unknown> = Promise.resolve();
+  /** Folders made here that no article is in yet. */
+  private made: { id: number; name: string }[] = [];
+  private nextMadeId = -1;
 
   constructor(storage: LocalSavedStorage, now: () => number = Date.now) {
     this.storage = storage;
@@ -113,9 +121,30 @@ export class LocalSaved implements SavedService {
     return bookmarkOf(stored, data);
   }
 
+  /** To read, the archive (out of its folder) or a folder (back to read). */
   move(id: number, to: "archive" | "home" | number): Promise<Bookmark> {
-    if (typeof to === "number") return Promise.reject(new InstapaperError("invalid"));
-    return this.change(id, (a) => ({ ...a, archived: to === "archive" }));
+    if (typeof to !== "number") return this.change(id, (a) => ({ ...a, archived: to === "archive", folderId: null }));
+    return this.update((data) => {
+      const known = foldersOf(data);
+      const made = known.some((f) => f.id === to) ? null : this.made.find((f) => f.id === to);
+      if (!made && !known.some((f) => f.id === to)) throw new InstapaperError("invalid");
+      // A folder made here gets its own id once an article is in it.
+      const folder = made ? { id: data.nextId, name: made.name } : known.find((f) => f.id === to)!;
+      if (made) this.made = this.made.filter((f) => f !== made);
+      const article = { ...find(data, id), archived: false, folderId: folder.id };
+      const next = {
+        ...data,
+        folders: made ? [...known, folder] : known,
+        nextId: made ? data.nextId + 1 : data.nextId,
+        articles: data.articles.map((a) => (a.id === id ? article : a)),
+      };
+      return [next, folder.name];
+    }).then(async (name) => {
+      // As stored: the storage may give the folder its own id (the reading list's items, savedItems.ts).
+      const data = await this.read();
+      const stored = find(data, id);
+      return bookmarkOf(stored.folderId != null ? stored : { ...stored, folderId: foldersOf(data).find((f) => f.name === name)?.id ?? null }, data);
+    });
   }
 
   like(id: number, liked: boolean): Promise<Bookmark> {
@@ -154,19 +183,43 @@ export class LocalSaved implements SavedService {
   }
 
   async folders(): Promise<Folder[]> {
-    return [];
+    const data = await this.read();
+    const all = [...foldersOf(data), ...this.made.filter((m) => !foldersOf(data).some((f) => sameName(f.name, m.name)))];
+    return all
+      .sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()))
+      .map((f, position) => ({
+        id: f.id,
+        title: f.name,
+        slug: f.name.toLowerCase(),
+        position,
+        public: false,
+        count: data.articles.filter((a) => !a.archived && a.folderId === f.id).length,
+      }));
   }
 
-  createFolder(): Promise<Folder> {
-    return Promise.reject(new InstapaperError("invalid"));
+  /** A folder of that name (whatever the capitals) if there is one, else a new one. */
+  async createFolder(title: string): Promise<Folder> {
+    const name = title.trim();
+    if (!name) throw new InstapaperError("invalid");
+    const data = await this.read();
+    const existing = [...foldersOf(data), ...this.made].find((f) => sameName(f.name, name));
+    const folder = existing ?? { id: this.nextMadeId--, name };
+    if (!existing) this.made = [...this.made, folder];
+    return (await this.folders()).find((f) => f.id === folder.id)!;
   }
 
-  deleteFolder(): Promise<void> {
-    return Promise.reject(new InstapaperError("invalid"));
+  /** Its articles go back to To read. */
+  deleteFolder(id: number): Promise<void> {
+    this.made = this.made.filter((f) => f.id !== id);
+    return this.update((data) => [
+      { ...data, folders: foldersOf(data).filter((f) => f.id !== id), articles: data.articles.map((a) => (a.folderId === id ? { ...a, folderId: null } : a)) },
+      undefined,
+    ]);
   }
 
+  /** Folders here are in name order; the order asked for is not kept. */
   reorderFolders(): Promise<Folder[]> {
-    return Promise.reject(new InstapaperError("invalid"));
+    return this.folders();
   }
 
   async tags(): Promise<Tag[]> {
@@ -207,6 +260,7 @@ export class LocalSaved implements SavedService {
   async uploadTo(remote: SavedService): Promise<LocalUpload> {
     const data = await this.read();
     let copied = 0;
+    let remoteFolders: Folder[] | null = null;
     for (const local of [...data.articles].sort((a, b) => a.time - b.time)) {
       try {
         const saved = await remote.save(local.url, local.title !== local.url ? local.title : undefined);
@@ -217,6 +271,18 @@ export class LocalSaved implements SavedService {
             .filter((name) => !(saved.tags ?? []).some((t) => t.name.toLowerCase() === name.toLowerCase()));
           if (names.length > 0) await remote.setTags(saved.id, names, []);
           if (local.archived) await remote.move(saved.id, "archive");
+          else if (local.folderId != null) {
+            const name = foldersOf(data).find((f) => f.id === local.folderId)?.name;
+            if (name) {
+              remoteFolders ??= await remote.folders();
+              let folder: Folder | undefined = remoteFolders.find((f) => sameName(f.title, name));
+              if (!folder) {
+                folder = await remote.createFolder(name);
+                remoteFolders = [...remoteFolders, folder];
+              }
+              await remote.move(saved.id, folder.id);
+            }
+          }
         }
       } catch (e) {
         return { copied, problem: e instanceof InstapaperError ? e.problem : "server" };
@@ -256,7 +322,7 @@ function bookmarkOf(a: LocalArticle, data: LocalSavedData): Bookmark {
     liked: a.liked,
     archived: a.archived,
     time: a.time,
-    folder_id: null,
+    folder_id: a.archived ? null : (a.folderId ?? null),
     tags: a.tagIds.flatMap((id) => {
       const tag = data.tags.find((t) => t.id === id);
       return tag ? [tagOf(tag, data)] : [];
@@ -264,9 +330,15 @@ function bookmarkOf(a: LocalArticle, data: LocalSavedData): Bookmark {
   };
 }
 
+const sameName = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
+
+const foldersOf = (data: LocalSavedData) => data.folders ?? [];
+
+/** Tags and folders no article has go away. */
 function withoutUnusedTags(data: LocalSavedData): LocalSavedData {
   const used = new Set(data.articles.flatMap((a) => a.tagIds));
-  return { ...data, tags: data.tags.filter((t) => used.has(t.id)) };
+  const filed = new Set(data.articles.flatMap((a) => (a.archived || a.folderId == null ? [] : [a.folderId])));
+  return { ...data, tags: data.tags.filter((t) => used.has(t.id)), folders: foldersOf(data).filter((f) => filed.has(f.id)) };
 }
 
 /** Stored data from an older or damaged copy, made safe to use. */
@@ -275,6 +347,7 @@ export function localSavedOf(value: unknown): LocalSavedData {
   if (!v || !Array.isArray(v.articles) || !Array.isArray(v.tags)) return emptyLocalSaved;
   const articles = v.articles.filter((a): a is LocalArticle => typeof a?.id === "number" && typeof a.url === "string");
   const tags = v.tags.filter((t) => typeof t?.id === "number" && typeof t.name === "string");
-  const highest = Math.max(0, ...articles.map((a) => a.id), ...tags.map((t) => t.id));
-  return { articles, tags, nextId: Math.max(typeof v.nextId === "number" ? v.nextId : 1, highest + 1) };
+  const folders = (Array.isArray(v.folders) ? v.folders : []).filter((f) => typeof f?.id === "number" && typeof f.name === "string");
+  const highest = Math.max(0, ...articles.map((a) => a.id), ...tags.map((t) => t.id), ...folders.map((f) => f.id));
+  return { articles, tags, folders, nextId: Math.max(typeof v.nextId === "number" ? v.nextId : 1, highest + 1) };
 }

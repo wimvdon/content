@@ -197,6 +197,24 @@ describe("Saved without an account on the reading list", () => {
     expect(box.lib.items[0].readingList?.state).toBe("toread");
   });
 
+  it("keeps folders in the items' folder field, shared with Android (#119)", async () => {
+    const { box, local } = onItems();
+    const b = await local.save("https://example.com/story");
+    const made = await local.createFolder("Work");
+    await local.move(b.id, made.id);
+    expect(box.lib.items[0].folder).toBe("Work");
+    const folders = await local.folders();
+    expect(folders.map((f) => [f.title, f.count])).toEqual([["Work", 1]]);
+    expect((await local.list({ kind: "folder", id: folders[0].id })).total).toBe(1);
+    // A folder that came from another device shows too.
+    box.lib = { ...box.lib, items: box.lib.items.map((i) => ({ ...i, folder: "Later" })) };
+    expect((await local.folders()).map((f) => f.title)).toEqual(["Later"]);
+    // Archiving clears it.
+    await local.move(b.id, "archive");
+    expect(box.lib.items[0].folder).toBeNull();
+    expect(await local.folders()).toEqual([]);
+  });
+
   it("deleting takes the item off the reading list, and a bookmark keeps it", async () => {
     const { box, local } = onItems();
     const a = await local.save("https://a.example/1", "One");
