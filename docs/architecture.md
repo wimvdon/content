@@ -32,6 +32,8 @@ RssReaderApp ── SettingsStore ── DataStore "settings" (Preferences)
 | `feed/ArticleBlocks.kt` | Splits article HTML into text, picture and embed blocks; finds article pictures; turns iframes into embed cards (YouTube, Vimeo, video, other). |
 | `ui/reader/ArticleBlocksView.kt` | Hero picture, text blocks, inline pictures and embed cards. Pictures load with Coil (`RssReaderApp` is its `SingletonImageLoader.Factory`). |
 | `data/FullArticles.kt` | Loads full articles for summary-only feeds and keeps them in the cache folder (300 most recent). The file names carry a version (`PREFIX`), raised when the extractor changes, so articles kept from before are extracted again. |
+| `data/Anchors.kt` | Highlights anchored by quote (#102): making one from a selection, and finding it again in a text, exactly, roughly or not at all; typographic variants fold. The web app's `lib/anchors.ts` is the same. |
+| `data/ArticleText.kt` | The reader's paragraphs as one text to anchor highlights in, and each highlight's marks per paragraph. The web app's `lib/highlightDom.ts` reads the page the same way. |
 | `data/ScrollRead.kt` | Mark as read on scroll: which list articles that were on screen have scrolled off the top. |
 | `data/MixedSearch.kt` | Search's one list: feed and Saved matches ranked together (whole query in the title, then words in the title, then newest), filtered by the All/Feeds/Saved chips; `ItemSearch` searches Saved (title, website, description, folder, tags, note, highlights). The web app does the same in `web/src/lib/search.ts`. |
 | `data/ArticleSearch.kt` | Search: the stored articles whose title, feed name, author or text hold every word of the query (case and accents ignored), title matches first. |

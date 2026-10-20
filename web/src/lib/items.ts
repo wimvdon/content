@@ -240,3 +240,21 @@ export function itemsOf(value: unknown): Item[] {
   }
   return out;
 }
+
+/**
+ * Adds a highlight to the item of url (#102). A feed article that isn't saved yet goes to To read
+ * first: annotating it keeps it. The same as the Android app's Library.addHighlight.
+ */
+export function addHighlight(lib: Library, url: string, title: string | null | undefined, highlight: Highlight, now: number): Library {
+  const existing = itemForLink(lib, url);
+  const [out, item] = existing?.readingList ? [lib, existing] : addToReadingList(lib, url, title, now);
+  if (!item) return lib;
+  return changeItem(out, item.key, (i) => ({ ...i, highlights: [...i.highlights, highlight] }));
+}
+
+/** Changes a highlight's note. */
+export const setHighlightNote = (lib: Library, key: string, id: string, note: string) =>
+  changeItem(lib, key, (i) => ({ ...i, highlights: i.highlights.map((h) => (h.id === id ? { ...h, note: note.trim() } : h)) }));
+
+/** Removes a highlight. */
+export const removeHighlight = (lib: Library, key: string, id: string) => changeItem(lib, key, (i) => ({ ...i, highlights: i.highlights.filter((h) => h.id !== id) }));

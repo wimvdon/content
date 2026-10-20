@@ -12,7 +12,7 @@ import {
   type Session as InstapaperSession,
 } from "./instapaper";
 import { INSTAPAPER_ID, InstapaperSync } from "./instapaperSync";
-import { renameTag, setLiked, type Item } from "./items";
+import { addHighlight, removeHighlight, renameTag, setHighlightNote, setLiked, type Highlight, type Item } from "./items";
 import { applyChoice, saveNew, undoSave, type SaveChoice } from "./saveChoice";
 import * as Saved from "./saved";
 import { emptyServiceSyncState, importService, syncService, type ServiceSyncState } from "./serviceSync";
@@ -555,6 +555,11 @@ class AppStore {
 
   /** Writes what the sheet says about a saved item. */
   organise = (key: string, choice: SaveChoice) => this.updateLibrary((lib) => applyChoice(lib, key, choice));
+
+  /** A highlight on the article of url (#102); a feed article not saved yet goes to To read with it. */
+  addHighlight = (url: string, title: string, highlight: Highlight) => this.updateLibrary((lib) => addHighlight(lib, url, title, highlight, Date.now()));
+  setHighlightNote = (key: string, id: string, note: string) => this.updateLibrary((lib) => setHighlightNote(lib, key, id, note));
+  removeHighlight = (key: string, id: string) => this.updateLibrary((lib) => removeHighlight(lib, key, id));
 
   likeItem = (key: string, liked: boolean) => this.updateLibrary((lib) => setLiked(lib, key, liked));
   archiveItem = (key: string, archived: boolean) => this.updateLibrary((lib) => Saved.archiveItem(lib, key, archived));

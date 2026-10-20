@@ -1,7 +1,7 @@
-import { Archive, BookOpen, Check, ChevronDown, Folder as FolderGlyph, Heart, ListPlus, Plus, Share2, Tag, Trash2 } from "lucide-react";
+import { Archive, BookOpen, Check, ChevronDown, Folder as FolderGlyph, Heart, ListPlus, Plus, Quote, Share2, Tag, Trash2 } from "lucide-react";
 import { Fragment, useState } from "react";
 import { app, useApp } from "@/lib/app";
-import { t } from "@/lib/i18n";
+import { plural, t } from "@/lib/i18n";
 import type { Item } from "@/lib/items";
 import { choiceOf, places, samePlace, tagsLabel, withTag, type Place } from "@/lib/saveChoice";
 import { savedFolders, tabTags } from "@/lib/saved";
@@ -22,22 +22,37 @@ export function LibraryBar({
   onSave,
   onShare,
   onArchived,
+  highlightCount,
+  onHighlights,
 }: {
   item: Item | null;
   onSave: (() => void) | null;
   onShare: (() => void) | null;
   onArchived: (undo: () => void) => void;
+  /** How many highlights it has; with any, a quote mark and the count open their list, next to Share. */
+  highlightCount: number;
+  onHighlights: () => void;
 }) {
   const { library } = useApp();
   const [open, setOpen] = useState<"places" | "tags" | null>(null);
-  // At the right end, after Save or the folder and tags.
-  const share = onShare ? (
-    <Button variant="ghost" size="icon" onClick={onShare} aria-label={t("share")} title={t("share")} className="ml-auto shrink-0">
-      <Share2 />
-    </Button>
-  ) : null;
+  // At the right end, after Save or the folder and tags: the highlights, then Share.
+  const share = (
+    <div className="ml-auto flex shrink-0 items-center">
+      {highlightCount > 0 ? (
+        <Button variant="ghost" onClick={onHighlights} aria-label={plural("highlightsCount", highlightCount)} title={t("highlightsTitle")}>
+          <Quote />
+          {highlightCount}
+        </Button>
+      ) : null}
+      {onShare ? (
+        <Button variant="ghost" size="icon" onClick={onShare} aria-label={t("share")} title={t("share")}>
+          <Share2 />
+        </Button>
+      ) : null}
+    </div>
+  );
   if (!item) {
-    if (!onSave && !onShare) return null;
+    if (!onSave && !onShare && highlightCount === 0) return null;
     return (
       <div className="flex items-center gap-1 border-t bg-muted/40 px-2 py-2">
         {onSave ? (

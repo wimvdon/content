@@ -4,12 +4,14 @@ import { app, useApp } from "@/lib/app";
 import { extractArticle, needsFullText } from "@/lib/fullArticle";
 import { cached, cachedNow, keep } from "@/lib/fullArticleStore";
 import { formatDateTime, t } from "@/lib/i18n";
-import { itemForArticle } from "@/lib/items";
+import { itemForArticle, type Highlight } from "@/lib/items";
 import { articleKey, sortTime, type Article } from "@/lib/library";
 import { hostOf, isItemArticle, siteOf, sourceOf } from "@/lib/saved";
 import { fetchViaProxy } from "@/lib/proxy";
 import { sanitizeArticle } from "@/lib/sanitize";
 import { FeedIcon } from "./FeedIcon";
+import { HighlightDialog, HighlightedText, HighlightsDialog } from "./Highlights";
+import { useAnchors } from "./useAnchors";
 import { LibraryBar, RemoveDialog } from "./SavedActions";
 import { pageClass, textStyle, useAppDark } from "./readerPage";
 import { ReaderStyleControls } from "./ReaderStyleControls";
@@ -22,6 +24,9 @@ import { useEscape } from "./ui/useEscape";
 type Full = { link: string; html: string | null };
 
 /** The parent gives each article its own key, so this state starts fresh for every article. */
+/** Kept the same between renders, so the page isn't drawn again for nothing. */
+const NO_HIGHLIGHTS: Highlight[] = [];
+
 export function ArticleView({
   article,
   onBack,
@@ -96,6 +101,13 @@ export function ArticleView({
   const [menuOpen, setMenuOpen] = useState(false);
   useEscape(menuOpen, () => setMenuOpen(false));
   const [removeOpen, setRemoveOpen] = useState(false);
+  // Highlights (#102): those of the article's item; one open, a new one waiting for its note, the list.
+  const highlights = found?.highlights ?? NO_HIGHLIGHTS;
+  const anchors = useAnchors(html, highlights);
+  const [openHighlight, setOpenHighlight] = useState<string | null>(null);
+  const [draft, setDraft] = useState<Highlight | null>(null);
+  const [listOpen, setListOpen] = useState(false);
+  const opened = openHighlight ? highlights.find((h) => h.id === openHighlight) : undefined;
 
   return (
     <article className="flex h-full min-w-0 flex-col" aria-label={article.title}>
@@ -181,7 +193,14 @@ export function ArticleView({
           {showHero ? <img src={article.imageUrl!} alt="" referrerPolicy="no-referrer" className="mt-6 w-full rounded-xl bg-muted object-cover" onError={(e) => (e.currentTarget.style.display = "none")} /> : null}
           {useFull && !loaded ? <p className="mt-6 text-sm text-muted-foreground">{t("loadingFull")}</p> : null}
           {useFull && loaded && !loaded.html ? <p className="mt-6 text-sm text-muted-foreground">{t("fullFailed")}</p> : null}
-          <div className="article mt-6" style={textStyle(style)} dangerouslySetInnerHTML={{ __html: html }} />
+          <HighlightedText
+            html={html}
+            className="article mt-6"
+            style={textStyle(style)}
+            highlights={link ? highlights : null}
+            onAdd={(h, withNote) => (withNote ? setDraft(h) : link && app.addHighlight(link, article.title, h))}
+            onOpen={setOpenHighlight}
+          />
           {article.link ? (
             <div className="mt-10 border-t pt-6">
               <Button variant="tonal" asChild>
@@ -198,12 +217,38 @@ export function ArticleView({
         item={saved}
         onSave={article.link && !fromSaved ? saveArticle : null}
         onShare={article.link ? () => void share() : null}
+        highlightCount={highlights.length}
+        onHighlights={() => setListOpen(true)}
         onArchived={(undo) => {
           // Done with it, as on Android: back to the list, with Undo.
           onBack();
           onMessage(t("archived"), { label: t("undo"), run: undo });
         }}
       />
+      {opened && found ? (
+        <HighlightDialog
+          key={opened.id}
+          highlight={opened}
+          anchor={anchors.get(opened.id)}
+          onSave={(note) => note.trim() !== opened.note && app.setHighlightNote(found.key, opened.id, note)}
+          onRemove={() => app.removeHighlight(found.key, opened.id)}
+          onClose={() => setOpenHighlight(null)}
+        />
+      ) : null}
+      {draft && link ? (
+        <HighlightDialog highlight={draft} anchor={undefined} onSave={(note) => app.addHighlight(link, article.title, { ...draft, note: note.trim() })} onRemove={null} onClose={() => setDraft(null)} />
+      ) : null}
+      {listOpen ? (
+        <HighlightsDialog
+          highlights={highlights}
+          anchors={anchors}
+          onOpen={(id) => {
+            setListOpen(false);
+            setOpenHighlight(id);
+          }}
+          onClose={() => setListOpen(false)}
+        />
+      ) : null}
       {saved ? <RemoveDialog item={saved} open={removeOpen} onClose={() => setRemoveOpen(false)} onRemoved={() => fromSaved && onBack()} /> : null}
     </article>
   );

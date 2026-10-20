@@ -119,4 +119,20 @@ class LibraryItemsTest {
         val elsewhere = inFolder.addToReadingList("https://elsewhere.example/a", null, 1).first
         assertSame(elsewhere, elsewhere.tagWithFeedFolder("elsewhere.example/a"))
     }
+
+    @Test
+    fun `highlighting a feed article saves it to To read, notes change and highlights go`() {
+        val h = Highlight("h1", "Story", createdAt = 5)
+        val library = withArticle.addHighlight("https://www.example.com/story/", "Feed title", h, 100)
+        val item = library.itemForLink("https://www.example.com/story/")!!
+        assertEquals(ReadingState.ToRead, item.readingList?.state)
+        assertEquals(listOf(h), item.highlights)
+        val noted = library.setHighlightNote(item.key, "h1", " why ")
+        assertEquals("why", noted.item(item.key)!!.highlights.single().note)
+        // Removing the last highlight leaves the article saved.
+        val removed = noted.removeHighlight(item.key, "h1")
+        assertTrue(removed.item(item.key)!!.highlights.isEmpty())
+        assertNotNull(removed.item(item.key)!!.readingList)
+        assertSame(withArticle, withArticle.addHighlight("mailto:x@example.com", null, h, 1))
+    }
 }

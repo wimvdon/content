@@ -2,6 +2,18 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-20: Highlights and notes in the reader, without Instapaper copying (#102)
+
+Highlights were built in #124 but left as a draft: it waited for a matching test on Instapaper's
+parsed text, which #134 then removed, so the test no longer applied and the work never shipped.
+They now ship from Reader's own text on both apps: select, Highlight or Note, a yellow mark, tap
+it to edit, a list from the bottom bar. They are anchored by quote, surroundings and occurrence
+(`Anchors`, the same rules in `anchors.ts`), stored on the item and synced like the rest of it.
+Highlighting a feed article saves it, so the highlight is kept. Left out for now: copying
+highlights to Instapaper (free accounts get five a month, and Reader can no longer see Instapaper's
+text to place them), and highlights across paragraphs on Android (Compose doesn't say where a
+selection starts).
+
 ## 2026-10-20: The reader's bars: library on the left, Share on the right, full article on top
 
 The owner asked for the bottom bar to read left to right: the article in your library (Save, or

@@ -203,3 +203,15 @@ body {
 .article code { font-size: 0.9em; }
 .article table { display: block; overflow-x: auto; font-size: 0.95rem; }
 .article td, .article th { border: 1px solid var(--border); padding: 0.3em 0.5em; }
+
+/* Highlights (#102): a marker yellow that reads on the light, sepia and dark pages; lighter and underlined when only found roughly. */
+.article mark[data-highlight] {
+  background: rgb(255 213 79 / 0.45);
+  color: inherit;
+  border-radius: 2px;
+  cursor: pointer;
+}
+.article mark[data-approximate] {
+  background: rgb(255 213 79 / 0.18);
+  text-decoration: underline;
+}
