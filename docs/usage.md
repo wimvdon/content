@@ -239,7 +239,8 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
 - **To read, All and Archive look like your feeds**: the same rows, in the view you chose for the
   feed list (Small, Medium, Large), with how many articles and about how long they take at the top.
   **A folder looks like a page of notes**: cards in two columns, each with its picture, the title,
-  your note (or else the article's description), the site, its tags and its highlights.
+  your note (or else your first highlight, quoted, or else the article's description), the site,
+  its tags and how many highlights it has.
 - In the reader: **♥** to like, **File** and **Archive** at the bottom, with the folder it is in.
   **File** (and **Finished reading** at the end of the text) asks where it goes: Archive, or **File
   in a folder** with a note and tags (type a folder, or tap one you have; leave it empty for To

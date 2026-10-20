@@ -270,6 +270,8 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   `OutlinedCard`s on `surface` in a staggered grid (cells at least 160dp: two columns on a phone),
   the picture on top (96dp, cropped), the title (Title Medium, Medium weight, the reader's font, up to
   three lines), the note or else the description (Body Medium, `onSurfaceVariant`, up to ten lines),
+  or, with highlights and no note, the first highlight instead of the description (a `primary`
+  quote mark and the reader's font in `onSurface`, up to four lines),
   then the site's icon and name, `#tags` in `primary`, the highlight count and a heart when liked.
   In the reader a saved article has ♥ in the top bar, its folder at the left of a bottom app bar with
   File and Archive, and a tonal "Finished reading" button at the end of the text; each opens the
