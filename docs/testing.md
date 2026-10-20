@@ -59,10 +59,12 @@ when the run fails.
 | `ArticleTextTest` | The reader's paragraphs as one text: a selection found in its own paragraph; highlights drawn in each paragraph they touch, approximate ones marked |
 | `HighlightSyncTest` | Highlights and a fake service: made once with their position, a changed note made again, a deleted one deleted there, past the plan's limit kept and marked not copied and retried a day later, another failure keeps what was done; taking in made-there highlights (new, linked to a same passage, deleted there); links stored with the service rows |
 | `MatchTestTest` | The #102 matching report counts per text source and sums over articles; the Markdown table |
-| `BookmarksTest` | Bookmarks (#108): a link's type from its address (videos, repositories but not a code host's own pages, a site's home page as a tool), articles suggested for the reading list and other links for Bookmarks, adding with collection, note and tags (keeping the reading list place and the first date), the collection and type filter (newest first) and a collection that is gone let go, renaming (joining) and removing collections, the save sheet to either place, Read again from the start (it stays a bookmark), removing (an item on the reading list stays; otherwise all of it goes), editing; `BookmarkSearchTest`: the Bookmarks chip and collections in search |
-| `ReadingListsTest` | The reading list's lists, the Liked chip and tags, a tag the list no longer has let go, reading times and minutes left, an item shown like its feed article (or with its description), its source (feed or website with favicon) |
-| `ServiceSyncTest` | The reading list and a fake service: the whole account on the first sync (folders as tags), adding, archiving, liking and tagging sent once, removing sent (a bookmark stays), changes on both sides to other fields both kept, Reader wins the same field, deleted at the service leaves the reading list unless changed here, removed here but changed there stays, a link the service has joins it, a failure keeps everything and the rest goes next time, progress, entries stored and read back |
-| `InstapaperReadingListTest` | Instapaper as the reading list's service, with recorded answers: `since` page by page with deletions and folders as tags, the first sync asks for everything, adding with tags and archive, only changes sent (taking the folder's tag off moves it home), parsed text only for the developer's own account (asked once), problems mapped |
+| `SavedTest` | Saved (#119): each item in one place (To read, a folder, Archive) and All with them all, newest first; Liked, tags (all of them) and the type filter; chips most used first; folders and counts, a filter without a folder or tags that are gone; filing and archiving (out of the folder); renaming (joining) and removing folders; bookmarks from before moving into folders once; a link's type; the folder through sync and its merge |
+| `ReadingListsTest` | Reading times and minutes left, an item shown like its feed article (or with its description), its source (feed or website with favicon) |
+| `ServiceSyncTest` | The reading list and a fake service: the whole account on the first sync, folders in and out (filing, archiving leaves the folder), adding, archiving, liking and tagging sent once, removing sent (a bookmark stays), changes on both sides to other fields both kept, Reader wins the same field, deleted at the service leaves the reading list unless changed here, removed here but changed there stays, a link the service has joins it, a failure keeps everything and the rest goes next time, progress, entries stored and read back; with two services: each keeps its own, an article in both shows once and its copy shares archive, like and tags (folder when on), only shared changes come in from a copy, a deletion in one keeps what the other has, a re-save goes to the default, and the opt-in copy adds what's missing once and stops on a problem |
+| `InstapaperReadingListTest` | Instapaper as the reading list's service, with recorded answers: `since` page by page with deletions and folders, filing into a folder made there when missing, the first sync asks for everything, adding with tags and archive, only changes sent (taking the folder's tag off moves it home), parsed text only for the developer's own account (asked once), problems mapped |
+| `RaindropSavedTest` | Raindrop.io as Saved's service, with recorded answers: the whole account page by page, collections as folders ("Parent / Child"), the Archive collection, favorites and notes; the quick sync listing at most every three minutes; adding to Unsorted, a folder or the archive, making missing collections once; updates sending only what changed; removing (already gone counts); a refused token renewed once, then signed out; busy and broken answers |
+| `RaindropAuthTest` | The callback's code and state (or why not), the sign-in address with a fresh state, the Worker's tokens, and swapping a code: done, refused, failed or offline |
 | `PageInfoTest` | A page's title, description and picture (Open Graph first, https pictures only) for links saved without a title |
 | `ArticleSearchTest` | Search: every word, case and accents ignored, title, text, feed name and author, title matches first, removed feeds left out |
 | `FeedArrangementTest` | Manage page order: rows per folder, dragging feeds between folders and out of them, forbidden moves, reordering folders |
@@ -129,27 +131,21 @@ and then (always before a release):
       tag or note finds it (labelled Reading list, archived ones too), and tapping it opens it with ♥,
       Keep and Archive. A bookmark's collection finds it too (labelled Bookmark; it opens its page);
       the Bookmarks chip shows only bookmarks.
-- [ ] **Navigation bar:** a bar at the bottom has Feeds, Reading list and Bookmarks (a rail at the left in
+- [ ] **Navigation bar:** a bar at the bottom has Feeds and Saved (a rail at the left in
       landscape on a tablet). The Mark all read and Add link buttons and messages sit above the bar.
-- [ ] **Navigation:** the ☰ drawer has the same sections on Feeds and on the reading list; the
-      section you're in is open and the other folded shut. Tapping a section's name folds it shut and
-      open (folded, it shows its count).
-      In a folder, a feed or the reading list, Back goes to All; on All, Back closes the app.
-- [ ] **Reading list:** To read and Archive tabs, the Liked chip and a chip per tag filter it; the
-      count and "about … min" sit above; the newest article with a picture is a large card. Add link
-      (the button) adds an address and the page's title appears. In the reader: ♥ fills; Keep opens
-      the sheet with Keep as bookmark chosen (collection, note, tags); Archive opens it with Archive
-      chosen; Finished reading at the end of the text opens it too; ⋮ › Tags and Remove from reading
-      list (asks first). Leave an article halfway and open it again: it opens where you were, and the
-      list shows a bar and the minutes left. ☰ › Collections and tags renames and removes tags.
-- [ ] **Bookmarks:** keep an article (Keep, a collection "Research", a note); in Bookmarks it shows
-      as a card with the note, under All and the Research tab, and in the drawer with its count. The
-      type chips (Articles, Tools, Repos, Videos) filter; the button at the top switches to a list.
-      Add bookmark with `github.com/owner/repo` (Bookmark chosen, a Repo card); share a YouTube link
-      to Reader (Bookmark chosen) and an article (Reading list chosen). ⋮ › Keep as bookmark on a feed
-      article. Tap a bookmark: Open opens the tab, Read again opens it in the reader and it is To
-      read again, the pen edits, ⋮ › Remove bookmark asks first. ☰ › Collections and tags renames and
-      removes a collection (its bookmarks stay).
+- [ ] **Navigation:** the ☰ drawer has the same sections on Feeds and on Saved; the section you're
+      in is open and the other folded shut. Tapping a section's name folds it shut and open (folded,
+      it shows its count). In a folder, a feed or Saved, Back goes to All; on All, Back closes the app.
+- [ ] **Saved:** tabs To read, All, each folder and Archive; the Liked chip and tag chips (several
+      at once) filter it; the filter button next to search picks Articles, Videos or Audio. To read,
+      All and Archive look like the feed list (Settings › View applies); a folder shows notes in two
+      columns (picture, title, note or description, site, tags). Add link asks for an address and a
+      folder. In the reader: ♥ fills; File opens the sheet with File in a folder chosen (folder, note,
+      tags) and the button says "File in …"; Archive opens it with Archive chosen; Finished reading
+      opens it too; the folder shows at the bottom left; ⋮ › Tags and Remove from Saved (asks first).
+      Leave an article halfway and open it again: it opens where you were. ☰ › Folders and tags
+      renames and removes folders (their articles go back to To read) and tags. An app updated from a
+      version with Bookmarks shows them in folders (their collection, or "Bookmarks").
       The Undo message after Mark all as read shows above the folder bar.
 - [ ] **Mark as read on scroll** on: scroll down the Unread list; the articles that leave the
       top of the screen are marked read (their dot goes) but stay until you refresh.
@@ -184,15 +180,62 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
 
 - [ ] Settings › Account › **Sign in with Instapaper** opens Instapaper; approving returns to the app
       with "Signed in to Instapaper", and Settings shows your user name.
-- [ ] Right after signing in, everything in the Instapaper account appears on the reading list
-      (archived ones under Archive, folders as tags), and what was on the reading list appears in
-      Instapaper. ☰ › Connected services says the reading list is synced with your account.
+- [ ] Right after signing in, everything in the Instapaper account appears in Saved (archived ones
+      under Archive, Instapaper's folders as folders), and what was in Saved appears in Instapaper.
+      ☰ › Connected services says Saved is synced with your account.
 - [ ] **Read later** on a feed article: it appears in Instapaper's Unread list within seconds.
       Archive, like, tag and remove it in Reader: each change shows in Instapaper. Do the same in
       Instapaper's own app and pull down on the reading list: the change shows in Reader.
-- [ ] Take a folder's tag off an article: it leaves that folder in Instapaper.
+- [ ] File an article in a folder (also a new one): it moves to that folder in Instapaper (made
+      there when missing); archiving it moves it to Instapaper's archive.
 - [ ] On the owner's account an article without feed text shows "Instapaper text" above the title.
 - [ ] Read an article halfway, leave it: Instapaper shows the same progress.
-- [ ] **Sign out** returns Settings to "Sign in"; the reading list stays.
-- [ ] Signed out: **Read later** keeps the article on the reading list; the sheet offers Like and
+- [ ] **Sign out** returns Settings to "Sign in"; Saved stays.
+- [ ] Signed out: **Read later** keeps the article in Saved; the sheet offers Like and
       tags; the articles are still there after restarting the app.
+
+## Raindrop.io (by hand)
+
+Needs the Raindrop app registered and the Worker's `RAINDROP_CLIENT_ID` and `RAINDROP_CLIENT_SECRET`
+(see `raindrop.md`). A debug build works too: the return page has an **Open in Reader Dev** button.
+
+- [ ] ☰ › Connected services › **Connect Raindrop.io**: approve in the browser, come back with
+      "Connected to Raindrop.io"; the screen shows "Synced with your Raindrop.io account".
+- [ ] Raindrop's Unsorted shows under To read, its collections as folders (nested ones as
+      "Parent / Child"), favorites as liked, with tags and notes.
+- [ ] Save an article (only Raindrop connected): it appears in Raindrop's Unsorted within seconds.
+      File it in a new folder: the collection is made. Archive it: it moves to the "Archive" collection.
+- [ ] Change a raindrop in Raindrop's app, then pull down on Saved: the change shows in Reader.
+- [ ] Remove an article from Saved: it is in Raindrop's trash.
+- [ ] With Instapaper connected too: Reader asks once where new saves go; neither account gets the
+      other's articles; a new save goes only to the chosen one (or the one picked in **Save to**).
+- [ ] Each article shows a small I (Instapaper) or drop (Raindrop). Save the same link in both apps:
+      Reader shows it once with both marks; liking it reaches both; filing it reaches only the first.
+- [ ] Remove that article: Reader asks; **Only from Raindrop.io** leaves it in Saved and in Instapaper.
+- [ ] **Copy between services**: the dialog shows how many and what stays behind; Copy shows progress,
+      Cancel stops it; running it again offers only what wasn't copied.
+- [ ] **Disconnect**: the screen shows Connect again; Saved keeps its articles.
+
+## Sharing to Reader (#103)
+
+- [ ] In Chrome, Share › **Reader Dev**: only the save sheet slides up over Chrome; Reader's own
+      screens don't open. **Save** shows where it went and you are back in Chrome.
+- [ ] Share plain text without a link: "No link to save", and nothing else opens.
+- [ ] Reader's own Share button doesn't list Reader itself.
+
+## Web app: folders without an account (#119)
+
+- [ ] Signed out, save an article, open it, tap the folder button and make a new folder: the article
+      moves there, the sidebar lists the folder with its count, and Saved no longer shows it.
+- [ ] Archive it: it leaves the folder, and the folder disappears with its last article.
+- [ ] Sidebar › **Folders and tags**: delete a folder; its articles are back in Saved.
+
+## Feed to Saved to folder or archive (smooth flow)
+
+- [ ] In an article from a feed, tap **Read later**: the sheet shows Like, **Folder** and Tags. Tap a
+      folder chip (or type a new one) and **Done**: "Saved to <folder>", and it is in that folder.
+- [ ] Swipe a feed article left: "Saved to To read" with **File**; tap File: the same sheet.
+- [ ] In a saved article, tap **Archive** at the bottom: back in the list with "Archived" and
+      **Undo**; Undo puts it back in its folder.
+- [ ] In Saved › To read, swipe a row left: archived with Undo; swipe right: the File sheet. In
+      Archive, swiping left puts it back to read.

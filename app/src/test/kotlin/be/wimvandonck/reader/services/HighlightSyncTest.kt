@@ -22,13 +22,18 @@ class HighlightSyncTest {
         val calls = ArrayList<String>()
         private var next = 1
 
-        override suspend fun changes(cursor: String?) = RemoteChanges(emptyList(), emptyList(), "c")
+        override suspend fun changes(
+            cursor: String?,
+            full: Boolean,
+        ) = RemoteChanges(emptyList(), emptyList(), "c")
 
         override suspend fun add(
             url: String,
             title: String,
             tags: List<String>,
             archived: Boolean,
+            folder: String?,
+            note: String,
         ) = throw UnsupportedOperationException()
 
         override suspend fun update(

@@ -6,7 +6,9 @@ import { KEEP_READ_MS } from "../src/lib/sync";
 import {
   emptyItemSyncState,
   itemData,
+  itemOfRow,
   mergeHighlights,
+  mergeItems,
   mergeTags,
   syncItems,
   type ItemChange,
@@ -263,6 +265,8 @@ describe("per-item sync (#106)", () => {
       "articleId",
       "createdAt",
       "readingList",
+      "folder",
+      "service",
       "bookmark",
       "liked",
       "tags",
@@ -271,6 +275,18 @@ describe("per-item sync (#106)", () => {
       "progress",
     ]);
     expect(itemData(item).progress).toBe(457);
+  });
+
+  it("keeps an item's folder through sync, and both sides changing it keeps this device's (#119)", () => {
+    const item = { ...itemOf(saved(libraryWith(article("2"))), KEY)!, folder: "Work" };
+    expect(itemData(item).folder).toBe("Work");
+    expect(itemOfRow(KEY, itemData(item), undefined)?.folder).toBe("Work");
+    const base = { ...item, folder: null };
+    expect(mergeItems(base, { ...item, folder: "Here" }, { ...item, folder: "There" }).folder).toBe("Here");
+    expect(mergeItems(base, base, { ...item, folder: "There" }).folder).toBe("There");
+    // Archiving takes it out of its folder.
+    const lib = { ...libraryWith(article("2")), items: [item] };
+    expect(itemOf(setReadingState(lib, KEY, "archived"), KEY)?.folder).toBeNull();
   });
 
   it("talks to the account's items", async () => {

@@ -253,35 +253,39 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   results, and the results as one list of article rows ranked by relevance, each with a small label
   (Feed or Reading list). It is not a navigation bar item: it acts on the content of both
   destinations rather than being a place of its own. The ☰ drawer holds every place, the same
-  wherever the app is: Feeds and the reading list are sections in it; each header (Title Small in
+  wherever the app is: Feeds and Saved are sections in it; each header (Title Small in
   `primary`, a fold arrow, the count while folded) folds its section open and shut. The section
   being shown is open and the other folded shut whenever you move between them, so the drawer stays
-  short. Back from the reading list or a feed section goes to All articles.
+  short. Back from Saved or a feed section goes to All articles.
 - Feeds has scrollable primary tabs under the top app bar for its folders (All (feed symbol), then
-  each folder with its icon and name), and the Unread and All chips under them. The reading list
-  has two tabs, To read and Archive, and one row of filter chips under them: Liked (heart) and each
-  of the list's tags (tags come and go too often for a tab each). The Mark all read FAB is on Feeds
-  only and only marks the section shown; the reading list's FAB is Add link.
-- The reading list (#107) is for reading: a line with the number of articles and about how long
-  they take, then article-style rows on `surfaceContainer` (archived on `surfaceContainerLow`): the
-  site's icon and name in `primary`, the reading time, the number of highlights; the title in the
-  reader's font (SemiBold); a thin progress bar with the minutes left once started; a 64dp
-  thumbnail at the end. The newest article to read with a picture is a large card with a 16:9
-  picture. In the reader an article on the reading list has ♥ in the top bar, Keep and Archive in a
-  bottom app bar, and a tonal "Finished reading" button at the end of the text; each opens the
-  Finished reading sheet (Archive / Keep as bookmark as two radio rows with an icon and a line of
-  help, then the collection, note and tags for Keep; Cancel and the action as buttons).
+  each folder with its icon and name), and the Unread and All chips under them. Saved (#119) has
+  scrollable tabs To read, All, each folder (folder icon) and Archive, and one row of filter chips:
+  Liked (heart, set apart by a vertical divider) then the tab's tags, most used first, several at
+  once. The type filter (Articles, Videos, Audio) is a filter-list icon button next to search, with a
+  menu of radio items; it turns `primary` while a type is chosen. The Mark all read FAB is on Feeds
+  only and only marks the section shown; Saved's FAB is Add link.
+- Saved's lists look like what they are for: To read, All and Archive are read through, so they use
+  the feed list's rows and its view setting (Small, Medium, Large), under a line with how many and
+  about how long; a folder is a collection to browse, so its items are notes in Noter's style:
+  `OutlinedCard`s on `surface` in a staggered grid (cells at least 160dp: two columns on a phone),
+  the picture on top (96dp, cropped), the title (Title Medium, Medium weight, the reader's font, up to
+  three lines), the note or else the description (Body Medium, `onSurfaceVariant`, up to ten lines),
+  then the site's icon and name, `#tags` in `primary`, the highlight count and a heart when liked.
+  In the reader a saved article has ♥ in the top bar, its folder at the left of a bottom app bar with
+  File and Archive, and a tonal "Finished reading" button at the end of the text; each opens the
+  Finished reading sheet (Archive / File in a folder as two radio rows with an icon and a line of
+  help, then the folder field (empty: To read; folders in use as chips), note and tags; Cancel and the
+  action, "File in …", as buttons). The save sheet has the same folder field.
 - Highlights (#102): a marker yellow (`#FFD54F` at 45%) behind the passage on every page colour;
   an approximate one at 18% and underlined. Highlight and Note join Copy and Share in the selection
   menu. The reader's bottom bar shows a quote mark with the count, which opens the list; a
   highlight's sheet has the quote beside a `primary` bar, its status line, the note, and Remove,
   Cancel and Save.
 - The ☰ drawer: the Feeds section (All articles, the folders with their feeds, the other feeds),
-  the Reading list section (To read with its count, Liked, the tags, then Archive), the Bookmarks
-  section (All with its count, then the collections with theirs), then Manage feeds, Collections
-  and tags, Connected services and Settings. Manage feeds shows what it manages with a pen (the
+  the Saved section (To read with its count, All, the folders with theirs, then Archive), then
+  Manage feeds, Folders and tags, Connected services and Settings. Manage feeds shows what it manages with a pen (the
   feed symbol with a pen); Tags has a tag, Connected services two arrows (Material Symbols'
-  shapes). The web app's sidebar still has its Saved section until it catches up.
+  shapes).
 - Site icons sit on a fixed light tile (`#F4F4F4`, rounded, 10% padding) in light and dark mode,
   so logos drawn for light browser tabs keep their contrast; the letter fallback uses
   `tertiaryContainer`.

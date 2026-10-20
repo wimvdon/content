@@ -19,7 +19,6 @@ data class Appearance(
 enum class ListView { Small, Medium, Large }
 
 /** How Bookmarks shows its cards (#108): two columns of cards, or one list. */
-enum class BookmarksView { Grid, List }
 
 enum class ReaderFont { Sans, Serif }
 
@@ -125,6 +124,18 @@ sealed interface ShareTarget {
     }
 }
 
+/**
+ * What an article kept in both Instapaper and Raindrop.io shares between its two copies (#121):
+ * archive, like and tags by default; folders off, as the two services' folders often differ.
+ * Nothing else (title, note, progress) goes from one copy to the other.
+ */
+data class DuplicateSync(
+    val archive: Boolean = true,
+    val liked: Boolean = true,
+    val tags: Boolean = true,
+    val folder: Boolean = false,
+)
+
 /** Everything the user can set, as stored. */
 data class Settings(
     val appearance: Appearance = Appearance(),
@@ -139,10 +150,12 @@ data class Settings(
     /** Mark articles as read once they scroll off the top of the list. */
     val markReadOnScroll: Boolean = false,
     val listView: ListView = ListView.Medium,
-    /** Each device keeps its own, like the list view. */
-    val bookmarksView: BookmarksView = BookmarksView.Grid,
     /** Tag an article saved from a feed with the feed's folder (#120). */
     val tagWithFolder: Boolean = true,
+    /** The service new saves go to when more than one is connected (#121): "instapaper" or "raindrop"; null until chosen. */
+    val saveService: String? = null,
+    /** What the two copies of an article in both services share (#121). */
+    val duplicates: DuplicateSync = DuplicateSync(),
     /** Copy highlights to Instapaper (#102). Off: free accounts may make five a month. */
     val copyHighlights: Boolean = false,
     /** When the last sync succeeded, or null. */

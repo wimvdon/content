@@ -46,14 +46,11 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import be.wimvandonck.reader.R
-import be.wimvandonck.reader.data.Bookmarks
 import be.wimvandonck.reader.data.Item
 import be.wimvandonck.reader.data.ItemKeys
-import be.wimvandonck.reader.data.SaveTo
 import be.wimvandonck.reader.feed.FeedDiscovery
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import be.wimvandonck.reader.ui.settings.SaveServiceChoice
+import be.wimvandonck.reader.ui.settings.serviceName
 
 /**
  * An item's tags as removable chips, a field for a new one, and the other tags in use to add with a
@@ -134,8 +131,9 @@ fun TagsDialog(
 }
 
 /**
- * Opens right after something is added to the reading list: like it and tag it at once. Every tap
- * applies straight away; closing the sheet leaves it on the reading list.
+ * Opens right after something is saved: like it, put it in a folder and tag it at once. Like and
+ * tags apply straight away; the folder when the sheet closes (Done, or swiped away), so typing a
+ * name doesn't file it letter by letter. Closing without a folder leaves it in To read.
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -145,15 +143,26 @@ fun AddedSheet(
     onLike: () -> Unit,
     onTags: (List<String>) -> Unit,
     onDismiss: () -> Unit,
+    folders: List<String> = emptyList(),
+    onFolder: (String) -> Unit = {},
 ) {
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    var folder by rememberSaveable(item.key) { mutableStateOf(item.folder.orEmpty()) }
+    val close = {
+        if (folder.trim() != item.folder.orEmpty()) onFolder(folder.trim())
+        onDismiss()
+    }
+    ModalBottomSheet(onDismissRequest = close) {
         Column(
             Modifier
                 .verticalScroll(rememberScrollState())
                 .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Text(stringResource(R.string.reading_list_added), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
+            Text(
+                stringResource(R.string.saved_to, folder.trim().ifEmpty { stringResource(R.string.reading_list_to_read) }),
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.semantics { heading() },
+            )
             Text(item.title, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilterChip(
@@ -165,36 +174,36 @@ fun AddedSheet(
                     },
                 )
             }
+            FolderField(folder, folders, onChange = { folder = it })
             Text(stringResource(R.string.tags_title), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
             TagsEditor(item.tags, allTags, onTags)
-            Button(onClick = onDismiss, modifier = Modifier.align(Alignment.End)) { Text(stringResource(R.string.action_done)) }
+            Button(onClick = close, modifier = Modifier.align(Alignment.End)) { Text(stringResource(R.string.action_done)) }
         }
     }
 }
 
 /** What the sheet at the end of an article does. */
-enum class FinishChoice { Archive, Keep }
+enum class FinishChoice { Archive, File }
 
 /**
- * "Finished reading" (#107): archive (done with it; it stays searchable) or keep it as a bookmark
- * with a collection, a note and tags (it then stays on the reading list until archived). Keep is
- * chosen first when the article has highlights or a note. Opens at the end of an article and from
- * the reader's Keep and Archive buttons ([initial]).
+ * "Finished reading" (#107, #119): archive (done with it; it stays searchable) or file it in a
+ * folder with a note and tags. File is chosen first when the article has highlights or a note.
+ * Opens at the end of an article and from the reader's File and Archive buttons ([initial]).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FinishSheet(
     item: Item,
     initial: FinishChoice?,
-    collections: List<String>,
+    folders: List<String>,
     allTags: List<String>,
     onArchive: () -> Unit,
-    onKeep: (collection: String, note: String, tags: List<String>) -> Unit,
+    onFile: (folder: String, note: String, tags: List<String>) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val worthKeeping = item.highlights.isNotEmpty() || item.note.isNotBlank()
-    var choice by rememberSaveable(item.key) { mutableStateOf(initial ?: if (worthKeeping) FinishChoice.Keep else FinishChoice.Archive) }
-    var collection by rememberSaveable(item.key) { mutableStateOf(item.bookmark?.collection.orEmpty()) }
+    var choice by rememberSaveable(item.key) { mutableStateOf(initial ?: if (worthKeeping) FinishChoice.File else FinishChoice.Archive) }
+    var folder by rememberSaveable(item.key) { mutableStateOf(item.folder.orEmpty()) }
     var note by rememberSaveable(item.key) { mutableStateOf(item.note) }
     var tags by remember(item.key) { mutableStateOf(item.tags) }
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
@@ -222,15 +231,15 @@ fun FinishSheet(
                     onClick = { choice = FinishChoice.Archive },
                 )
                 FinishOption(
-                    selected = choice == FinishChoice.Keep,
-                    icon = R.drawable.ic_bookmark_add,
-                    title = stringResource(R.string.action_keep_bookmark),
-                    body = stringResource(R.string.finish_keep_body),
-                    onClick = { choice = FinishChoice.Keep },
+                    selected = choice == FinishChoice.File,
+                    icon = R.drawable.ic_folder,
+                    title = stringResource(R.string.file_title),
+                    body = stringResource(R.string.finish_file_body),
+                    onClick = { choice = FinishChoice.File },
                 )
             }
-            if (choice == FinishChoice.Keep) {
-                CollectionField(collection, collections, onChange = { collection = it })
+            if (choice == FinishChoice.File) {
+                FolderField(folder, folders, onChange = { folder = it })
                 OutlinedTextField(
                     value = note,
                     onValueChange = { note = it },
@@ -243,9 +252,17 @@ fun FinishSheet(
             Row(Modifier.align(Alignment.End), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
                 Button(onClick = {
-                    if (choice == FinishChoice.Archive) onArchive() else onKeep(collection, note, tags)
+                    if (choice == FinishChoice.Archive) onArchive() else onFile(folder, note, tags)
                     onDismiss()
-                }) { Text(stringResource(if (choice == FinishChoice.Archive) R.string.action_archive else R.string.action_keep)) }
+                }) {
+                    Text(
+                        when {
+                            choice == FinishChoice.Archive -> stringResource(R.string.action_archive)
+                            folder.isBlank() -> stringResource(R.string.file_in, stringResource(R.string.reading_list_to_read))
+                            else -> stringResource(R.string.file_in, folder.trim())
+                        },
+                    )
+                }
             }
         }
     }
@@ -277,30 +294,30 @@ private fun FinishOption(
 }
 
 /**
- * "Save to Reader" (#108): a link shared to Reader, the custom tab's Save, Add bookmark, or Keep as
- * bookmark on a feed article. Reading list or Bookmark (articles are suggested for the reading
- * list, other links for Bookmarks), then the collection (Bookmark only), a note and tags. Nothing is
- * saved until Save. Without [url] it asks for an address first.
+ * "Save to Reader" (#108, #119): a link shared to Reader, the custom tab's Save, or Add link. Its
+ * folder (empty: To read), a note and tags. Nothing is saved until Save. Without [url] it asks for
+ * an address first.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SaveSheet(
     url: String?,
     title: String?,
-    initial: SaveTo?,
-    collections: List<String>,
+    folders: List<String>,
     allTags: List<String>,
-    onSave: (url: String, to: SaveTo, collection: String, note: String, tags: List<String>) -> Unit,
+    onSave: (url: String, folder: String, note: String, tags: List<String>, service: String?) -> Unit,
     onDismiss: () -> Unit,
+    /** The connected services; with two, the sheet asks which one keeps this save (#121). */
+    services: List<String> = emptyList(),
+    defaultService: String? = null,
 ) {
     var address by rememberSaveable(url) { mutableStateOf(url.orEmpty()) }
-    var chosen by rememberSaveable(url) { mutableStateOf(initial) }
     // A typed address may leave out https://.
     val link = remember(address) { url ?: FeedDiscovery.normalizeUrl(address)?.takeIf { ItemKeys.isWebLink(it) } }
-    val to = chosen ?: Bookmarks.suggested(link ?: address)
-    var collection by rememberSaveable(url) { mutableStateOf("") }
+    var folder by rememberSaveable(url) { mutableStateOf("") }
     var note by rememberSaveable(url) { mutableStateOf("") }
     var tags by remember(url) { mutableStateOf(emptyList<String>()) }
+    var service by rememberSaveable(url, defaultService) { mutableStateOf(defaultService) }
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(
             Modifier
@@ -324,19 +341,7 @@ fun SaveSheet(
                     Text(ItemKeys.hostOf(url).ifEmpty { url }, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
                 }
             }
-            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-                SaveTo.entries.forEachIndexed { index, option ->
-                    SegmentedButton(
-                        selected = to == option,
-                        onClick = { chosen = option },
-                        shape = SegmentedButtonDefaults.itemShape(index, SaveTo.entries.size),
-                        icon = { SegmentedButtonDefaults.Icon(to == option) { Icon(painterResource(if (option == SaveTo.ReadingList) R.drawable.ic_reading_list else R.drawable.ic_bookmark_add), contentDescription = null, modifier = Modifier.size(SegmentedButtonDefaults.IconSize)) } },
-                        label = { Text(stringResource(if (option == SaveTo.ReadingList) R.string.reading_list_title else R.string.save_to_bookmark)) },
-                    )
-                }
-            }
-            Text(stringResource(R.string.save_help), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            if (to == SaveTo.Bookmark) CollectionField(collection, collections, onChange = { collection = it })
+            FolderField(folder, folders, onChange = { folder = it })
             OutlinedTextField(
                 value = note,
                 onValueChange = { note = it },
@@ -345,10 +350,14 @@ fun SaveSheet(
                 modifier = Modifier.fillMaxWidth(),
             )
             TagsEditor(tags, allTags, onChange = { tags = it })
+            if (services.size > 1) {
+                Text(stringResource(R.string.save_to_service), style = MaterialTheme.typography.labelLarge)
+                SaveServiceChoice(service, onSelect = { service = it })
+            }
             Row(Modifier.align(Alignment.End), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
                 Button(enabled = link != null, onClick = {
-                    link?.let { onSave(it, to, collection, note, tags) }
+                    link?.let { onSave(it, folder, note, tags, service.takeIf { services.size > 1 }) }
                     onDismiss()
                 }) { Text(stringResource(R.string.action_save)) }
             }
@@ -356,65 +365,26 @@ fun SaveSheet(
     }
 }
 
-/** Edit bookmark: its collection, note and tags. */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun BookmarkEditSheet(
-    item: Item,
-    collections: List<String>,
-    allTags: List<String>,
-    onSave: (collection: String, note: String, tags: List<String>) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    var collection by rememberSaveable(item.key) { mutableStateOf(item.bookmark?.collection.orEmpty()) }
-    var note by rememberSaveable(item.key) { mutableStateOf(item.note) }
-    var tags by remember(item.key) { mutableStateOf(item.tags) }
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
-        Column(
-            Modifier
-                .verticalScroll(rememberScrollState())
-                .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Text(stringResource(R.string.bookmark_edit), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
-            CollectionField(collection, collections, onChange = { collection = it })
-            OutlinedTextField(
-                value = note,
-                onValueChange = { note = it },
-                label = { Text(stringResource(R.string.note_title)) },
-                minLines = 2,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            TagsEditor(tags, allTags, onChange = { tags = it })
-            Row(Modifier.align(Alignment.End), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
-                Button(onClick = {
-                    onSave(collection, note, tags)
-                    onDismiss()
-                }) { Text(stringResource(R.string.action_save)) }
-            }
-        }
-    }
-}
-
-/** A bookmark's one collection: typed, or one of those in use picked with a tap. */
+/** An item's one folder (#119): typed, or one of those in use picked with a tap; empty is To read. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun CollectionField(
+fun FolderField(
     value: String,
-    collections: List<String>,
+    folders: List<String>,
     onChange: (String) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         OutlinedTextField(
             value = value,
             onValueChange = onChange,
-            label = { Text(stringResource(R.string.collection_title)) },
+            label = { Text(stringResource(R.string.folder_field)) },
+            placeholder = { Text(stringResource(R.string.reading_list_to_read)) },
+            supportingText = { Text(stringResource(R.string.folder_field_help)) },
             leadingIcon = { Icon(painterResource(R.drawable.ic_folder), contentDescription = null) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
-        val others = collections.filterNot { it.equals(value.trim(), ignoreCase = true) }
+        val others = folders.filterNot { it.equals(value.trim(), ignoreCase = true) }
         if (others.isNotEmpty()) {
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 others.forEach { c -> AssistChip(onClick = { onChange(c) }, label = { Text(c) }) }
@@ -423,49 +393,40 @@ fun CollectionField(
     }
 }
 
-/** Add link: an address to put on the reading list. */
-@Composable
-fun AddLinkDialog(
-    onAdd: (String) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    var address by rememberSaveable { mutableStateOf("") }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.add_link_title)) },
-        text = {
-            OutlinedTextField(
-                value = address,
-                onValueChange = { address = it },
-                label = { Text(stringResource(R.string.add_link_address)) },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Done),
-                modifier = Modifier.fillMaxWidth(),
-            )
-        },
-        confirmButton = {
-            TextButton(onClick = { onAdd(address.trim()) }, enabled = address.isNotBlank()) { Text(stringResource(R.string.action_add)) }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
-    )
-}
-
-/** Remove from the reading list (the reader's ⋮): asks first, says what stays. */
+/**
+ * Remove from Saved (the reader's ⋮): asks first, says what stays. An article both services keep
+ * (#121) can also go from one of them only; it then stays in Saved, kept in the other.
+ */
 @Composable
 fun RemoveDialog(
     item: Item,
     onRemove: () -> Unit,
     onDismiss: () -> Unit,
+    services: Set<String> = emptySet(),
+    onRemoveFrom: (String) -> Unit = {},
 ) {
+    val both = services.size > 1
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.reading_list_remove)) },
-        text = { Text(stringResource(if (item.bookmark != null) R.string.reading_list_remove_body_bookmark else R.string.reading_list_remove_body)) },
+        title = { Text(stringResource(R.string.saved_remove)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(stringResource(if (both) R.string.saved_remove_both_body else R.string.saved_remove_body))
+                if (both) {
+                    for (id in services) {
+                        TextButton(onClick = {
+                            onDismiss()
+                            onRemoveFrom(id)
+                        }) { Text(stringResource(R.string.saved_remove_only_from, stringResource(serviceName(id)))) }
+                    }
+                }
+            }
+        },
         confirmButton = {
             TextButton(onClick = {
                 onDismiss()
                 onRemove()
-            }) { Text(stringResource(R.string.action_remove)) }
+            }) { Text(stringResource(if (both) R.string.saved_remove_from_both else R.string.action_remove)) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )

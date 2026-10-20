@@ -10,8 +10,6 @@ import { Input } from "./ui/input";
 
 /** The reader's buttons for a saved Instapaper article: like, archive, move to a folder, tags, delete. */
 export function InstapaperActions({ bookmark: b, onDeleted }: { bookmark: Bookmark; onDeleted: () => void }) {
-  // Saved in this browser (signed out) has no folders.
-  const { instapaper } = useApp();
   const [open, setOpen] = useState<"move" | "tags" | "delete" | null>(null);
   return (
     <>
@@ -34,11 +32,9 @@ export function InstapaperActions({ bookmark: b, onDeleted }: { bookmark: Bookma
       >
         {b.archived ? <ArchiveRestore /> : <Archive />}
       </Button>
-      {instapaper ? (
-        <Button variant="ghost" size="icon" onClick={() => setOpen("move")} aria-label={t("instapaperMoveTo")} title={t("instapaperMoveTo")}>
-          <FolderInput />
-        </Button>
-      ) : null}
+      <Button variant="ghost" size="icon" onClick={() => setOpen("move")} aria-label={t("instapaperMoveTo")} title={t("instapaperMoveTo")}>
+        <FolderInput />
+      </Button>
       <Button variant="ghost" size="icon" onClick={() => setOpen("tags")} aria-label={t("instapaperTags")} title={t("instapaperTags")}>
         <TagIcon />
       </Button>
@@ -214,7 +210,6 @@ export function JustSavedDialog() {
             <Toggle pressed={b.liked} onClick={() => void app.likeBookmark(b, !b.liked)} icon={<Heart className={cn("size-4", b.liked && "fill-current")} />} label={t("instapaperLike")} />
             <Toggle pressed={b.archived} onClick={() => void app.archiveBookmark(b, !b.archived)} icon={<Archive className="size-4" />} label={t("instapaperArchive")} />
           </div>
-          {instapaper ? (
           <section className="space-y-2">
             <h3 className="text-sm font-medium text-primary">{t("folder")}</h3>
             <div role="radiogroup" aria-label={t("folder")} className="flex flex-wrap gap-1.5">
@@ -223,7 +218,6 @@ export function JustSavedDialog() {
             </div>
             <NewFolder onCreate={(title) => void app.moveBookmarkToNewFolder(b, title)} />
           </section>
-          ) : null}
           <section className="space-y-2">
             <h3 className="text-sm font-medium text-primary">{t("instapaperTags")}</h3>
             <TagsEditor bookmark={b} />

@@ -49,7 +49,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -102,9 +106,8 @@ import be.wimvandonck.reader.data.Article
 import be.wimvandonck.reader.data.Feed
 import be.wimvandonck.reader.data.Folder
 import be.wimvandonck.reader.data.Item
-import be.wimvandonck.reader.data.ReadingListFilter
-import be.wimvandonck.reader.data.BookmarkFilter
-import be.wimvandonck.reader.data.BookmarksView
+import be.wimvandonck.reader.data.SavedFilter
+import be.wimvandonck.reader.data.SavedType
 import be.wimvandonck.reader.data.FeedSelection
 import be.wimvandonck.reader.data.ScrollRead
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -133,19 +136,16 @@ data class HomeState(
     val folders: List<Folder> = emptyList(),
     val markReadOnScroll: Boolean = false,
     val listView: ListView = ListView.Medium,
-    /** Which destination is shown: Feeds or the reading list. */
+    /** Which destination is shown: Feeds or Saved. */
     val section: HomeSection = HomeSection.Feeds,
-    /** The reading list, for its destination and the drawer. */
-    val readingList: ReadingListHome? = null,
+    /** Saved, for its destination and the drawer. */
+    val saved: SavedHome? = null,
     /** How many articles are still to read, for the drawer and the navigation. */
     val toReadCount: Int = 0,
-    /** Bookmarks, for their destination and the drawer (#108). */
-    val bookmarks: BookmarksHome? = null,
-    val bookmarkCount: Int = 0,
 )
 
-/** The app's top-level destinations (#113): Feeds, the reading list and Bookmarks. */
-enum class HomeSection { Feeds, ReadingList, Bookmarks }
+/** The app's top-level destinations (#119): Feeds and Saved. */
+enum class HomeSection { Feeds, Saved }
 
 class HomeActions(
     val onSelect: (FeedSelection) -> Unit,
@@ -153,7 +153,7 @@ class HomeActions(
     val onOpenArticle: (Article) -> Unit,
     /** Swiped right: read becomes unread and the other way round. */
     val onToggleRead: (Article) -> Unit,
-    /** Swiped left: on the reading list, to read later (#107). */
+    /** Swiped left: saved, to read later (#107). */
     val onReadLater: (Article) -> Unit = {},
     val onRefresh: () -> Unit,
     val onMarkAllRead: () -> Unit,
@@ -163,21 +163,20 @@ class HomeActions(
     val onImportOpml: () -> Unit,
     val onOpenSettings: () -> Unit,
     val onOpenFeeds: () -> Unit,
-    /** Manage tags (renaming and removing the reading list's tags). */
+    /** Folders and tags (renaming and removing them). */
     val onOpenTagsManage: () -> Unit = {},
     val onOpenServices: () -> Unit = {},
     /** The navigation bar's destinations. */
     val onShowFeeds: () -> Unit = {},
-    val onShowReadingList: () -> Unit = {},
-    val onReadingListFilter: (ReadingListFilter) -> Unit = {},
+    val onShowSaved: () -> Unit = {},
+    val onSavedFilter: (SavedFilter) -> Unit = {},
     val onOpenItem: (Item) -> Unit = {},
     val onAddLink: () -> Unit = {},
-    val onShowBookmarks: () -> Unit = {},
-    val onOpenBookmark: (Item) -> Unit = {},
-    val onBookmarksFilter: (BookmarkFilter) -> Unit = {},
-    val onBookmarksView: (BookmarksView) -> Unit = {},
-    val onAddBookmark: () -> Unit = {},
-    /** Opens the search through every feed's articles and the reading list. */
+    /** Archives a saved item, or puts an archived one back to read (a swipe in Saved). */
+    val onArchiveItem: (Item) -> Unit = {},
+    /** Opens the sheet to file a saved item in a folder (a swipe in Saved). */
+    val onFileItem: (Item) -> Unit = {},
+    /** Opens the search through every feed's articles and Saved. */
     val onOpenSearch: () -> Unit = {},
 )
 
@@ -193,15 +192,12 @@ fun HomeScreen(
     val scope = rememberCoroutineScope()
     val selectedFeed = (state.selection as? FeedSelection.Single)?.let { s -> state.feeds.firstOrNull { it.url == s.feedUrl } }
     val selectedFolder = (state.selection as? FeedSelection.InFolder)?.let { s -> state.folders.firstOrNull { it.id == s.folderId } }
-    // The reading list replaces the feed sections: its own title, tabs and chips, no Mark all read.
-    val reading = state.readingList?.takeIf { state.section == HomeSection.ReadingList }
-    // Bookmarks do the same, with collections as tabs and types as chips.
-    val marks = state.bookmarks?.takeIf { state.section == HomeSection.Bookmarks }
-    val inFeeds = reading == null && marks == null
+    // Saved replaces the feed sections: its own title, tabs and chips, no Mark all read.
+    val reading = state.saved?.takeIf { state.section == HomeSection.Saved }
+    val inFeeds = reading == null
     val title =
         when {
-            reading != null -> stringResource(R.string.reading_list_title)
-            marks != null -> stringResource(R.string.bookmarks_title)
+            reading != null -> stringResource(R.string.saved_title)
             else -> selectedFeed?.title ?: selectedFolder?.title ?: stringResource(R.string.feeds_all)
         }
     // The selected folder tab: the folder being viewed, or the folder of the feed being viewed.
@@ -240,28 +236,21 @@ fun HomeScreen(
                     scope.launch { drawerState.close() }
                     actions.onOpenServices()
                 },
-                readingList = state.readingList,
-                inReadingList = reading != null,
+                saved = state.saved,
+                inSaved = reading != null,
                 toReadCount = state.toReadCount,
-                onReadingListFilter = {
-                    actions.onReadingListFilter(it)
-                    scope.launch { drawerState.close() }
-                },
-                bookmarks = state.bookmarks,
-                inBookmarks = marks != null,
-                bookmarkCount = state.bookmarkCount,
-                onBookmarksFilter = {
-                    actions.onBookmarksFilter(it)
+                onSavedFilter = {
+                    actions.onSavedFilter(it)
                     scope.launch { drawerState.close() }
                 },
             )
         },
     ) {
-        val hasArticles = reading?.items?.isNotEmpty() ?: marks?.items?.isNotEmpty() ?: state.articles.isNotEmpty()
+        val hasArticles = reading?.items?.isNotEmpty() ?: state.articles.isNotEmpty()
         // The whole header slides away while scrolling down and returns when scrolling up.
         val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(canScroll = { hasArticles })
         // Another section, or a list with nothing left to scroll, shows the header again.
-        LaunchedEffect(state.selection, state.section, reading?.filter, marks?.filter, hasArticles) { scrollBehavior.state.heightOffset = 0f }
+        LaunchedEffect(state.selection, state.section, reading?.filter, hasArticles) { scrollBehavior.state.heightOffset = 0f }
         // On wide windows the destinations move to a navigation rail at the side, in the same order.
         Row(Modifier.fillMaxSize()) {
             if (wide) {
@@ -292,13 +281,6 @@ fun HomeScreen(
                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                                             maxLines = 1,
                                         )
-                                    } else if (marks != null) {
-                                        Text(
-                                            pluralStringResource(R.plurals.bookmarks_count, state.bookmarkCount, state.bookmarkCount),
-                                            style = MaterialTheme.typography.labelMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            maxLines = 1,
-                                        )
                                     } else if (state.feeds.isNotEmpty()) {
                                         Text(
                                             if (state.unreadOnly) {
@@ -319,17 +301,10 @@ fun HomeScreen(
                                 }
                             },
                             actions = {
-                                if (marks != null && marks.items.isNotEmpty()) {
-                                    val grid = marks.view == BookmarksView.Grid
-                                    IconButton(onClick = { actions.onBookmarksView(if (grid) BookmarksView.List else BookmarksView.Grid) }) {
-                                        Icon(
-                                            painterResource(if (grid) R.drawable.ic_view_list else R.drawable.ic_grid_view),
-                                            contentDescription = stringResource(if (grid) R.string.bookmarks_view_list else R.string.bookmarks_view_grid),
-                                        )
-                                    }
-                                }
-                                // Search looks through everything (feeds and the reading list), so it is on both destinations.
-                                if (state.feeds.isNotEmpty() || state.readingList?.library?.items?.isNotEmpty() == true) {
+                                // The type filter (#119): next to search, as it is rarely changed.
+                                if (reading != null) TypeFilterButton(reading.filter, actions.onSavedFilter)
+                                // Search looks through everything (feeds and Saved), so it is on both destinations.
+                                if (state.feeds.isNotEmpty() || state.saved?.library?.items?.isNotEmpty() == true) {
                                     IconButton(onClick = actions.onOpenSearch) {
                                         Icon(painterResource(R.drawable.ic_search), contentDescription = stringResource(R.string.action_search))
                                     }
@@ -339,10 +314,7 @@ fun HomeScreen(
                             colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent, scrolledContainerColor = Color.Transparent),
                         )
                         if (reading != null) {
-                            ReadingListTabRow(filter = reading.filter, tags = reading.tags, onChange = actions.onReadingListFilter)
-                        }
-                        if (marks != null) {
-                            BookmarksTabRow(filter = marks.filter, collections = marks.collections, onChange = actions.onBookmarksFilter)
+                            SavedTabRow(filter = reading.filter, folders = reading.folders, tags = reading.tags, onChange = actions.onSavedFilter)
                         }
                         if (showFolderTabs && inFeeds) {
                             FolderTabs(
@@ -362,7 +334,7 @@ fun HomeScreen(
                     }
                 },
                 bottomBar = {
-                    // Feeds and the reading list are the app's top-level destinations.
+                    // Feeds and Saved are the app's top-level destinations.
                     if (!wide) {
                         NavigationBar {
                             destinations(actions).forEach { d ->
@@ -388,11 +360,6 @@ fun HomeScreen(
                             Icon(painterResource(R.drawable.ic_add_link), contentDescription = stringResource(R.string.add_link_title))
                         }
                     }
-                    if (marks != null) {
-                        FloatingActionButton(onClick = actions.onAddBookmark) {
-                            Icon(painterResource(R.drawable.ic_bookmark_add), contentDescription = stringResource(R.string.bookmark_add_title))
-                        }
-                    }
                 },
             ) { innerPadding ->
                 Box(
@@ -406,15 +373,7 @@ fun HomeScreen(
                         onRefresh = actions.onRefresh,
                         modifier = Modifier.fillMaxSize(),
                     ) {
-                        ReadingListContent(reading, state.showImages, actions.onOpenItem)
-                    }
-                } else if (marks != null) {
-                    PullToRefreshBox(
-                        isRefreshing = state.refreshing,
-                        onRefresh = actions.onRefresh,
-                        modifier = Modifier.fillMaxSize(),
-                    ) {
-                        BookmarksContent(marks, state.showImages, actions.onOpenBookmark)
+                        SavedContent(reading, state.showImages, actions.onOpenItem, onArchive = actions.onArchiveItem, onFile = actions.onFileItem)
                     }
                 } else {
                 PullToRefreshBox(
@@ -450,6 +409,37 @@ fun HomeScreen(
     }
 }
 
+/** The type filter (#119): a filter button next to search, with All types, Articles, Videos and Audio. */
+@Composable
+private fun TypeFilterButton(
+    filter: SavedFilter,
+    onChange: (SavedFilter) -> Unit,
+) {
+    var open by remember { mutableStateOf(false) }
+    Box {
+        IconButton(onClick = { open = true }) {
+            Icon(
+                painterResource(R.drawable.ic_filter_list),
+                contentDescription = stringResource(R.string.type_filter),
+                tint = if (filter.type != null) MaterialTheme.colorScheme.primary else LocalContentColor.current,
+            )
+        }
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            listOf(null to R.string.type_all, SavedType.Article to R.string.type_articles, SavedType.Video to R.string.type_videos, SavedType.Audio to R.string.type_audio)
+                .forEach { (type, label) ->
+                    DropdownMenuItem(
+                        text = { Text(stringResource(label)) },
+                        leadingIcon = { RadioButton(selected = filter.type == type, onClick = null) },
+                        onClick = {
+                            open = false
+                            onChange(filter.copy(type = type))
+                        },
+                    )
+                }
+        }
+    }
+}
+
 /** A top-level destination in the navigation bar or rail. */
 private class Destination(
     val section: HomeSection,
@@ -461,8 +451,7 @@ private class Destination(
 private fun destinations(actions: HomeActions) =
     listOf(
         Destination(HomeSection.Feeds, R.drawable.ic_rss_feed, R.string.feeds_title, actions.onShowFeeds),
-        Destination(HomeSection.ReadingList, R.drawable.ic_reading_list, R.string.reading_list_title, actions.onShowReadingList),
-        Destination(HomeSection.Bookmarks, R.drawable.ic_bookmarks_outline, R.string.bookmarks_title, actions.onShowBookmarks),
+        Destination(HomeSection.Saved, R.drawable.ic_reading_list, R.string.saved_title, actions.onShowSaved),
     )
 
 /** From this width the destinations sit in a navigation rail instead of a bar (Material's medium window). */
@@ -562,8 +551,7 @@ private fun DayHeader(day: LocalDate) {
 
 /**
  * Swiping a row right past [SWIPE_THRESHOLD] of its width marks it read, or unread when it was
- * read; swiping left puts it on the reading list, to read later (#107). The row always springs
- * back. A short vibration says when letting go will act.
+ * read; swiping left puts it on the reading list, to read later (#107).
  */
 @Composable
 private fun SwipeToToggleRead(
@@ -573,19 +561,51 @@ private fun SwipeToToggleRead(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
+    SwipeRow(
+        right =
+            SwipeAction(
+                if (article.read) R.drawable.ic_mark_unread else R.drawable.ic_mark_read,
+                stringResource(if (article.read) R.string.action_mark_unread else R.string.action_mark_read),
+                onToggle,
+            ),
+        left = SwipeAction(R.drawable.ic_reading_list, stringResource(R.string.action_read_later), onReadLater),
+        modifier = modifier,
+        content = content,
+    )
+}
+
+/** What a swipe does: its icon and label behind the row, and the action. */
+internal class SwipeAction(
+    val icon: Int,
+    val label: String,
+    val onAction: () -> Unit,
+)
+
+/**
+ * A row that acts when swiped past [SWIPE_THRESHOLD] of its width: [right] when swiped to the right,
+ * [left] to the left (#107, #119). The row always springs back. A short vibration says when letting
+ * go will act; both actions are also offered to screen readers.
+ */
+@Composable
+internal fun SwipeRow(
+    right: SwipeAction?,
+    left: SwipeAction?,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
     var offset by remember { mutableFloatStateOf(0f) }
     var width by remember { mutableIntStateOf(0) }
     val scope = rememberCoroutineScope()
     val haptics = LocalHapticFeedback.current
-    val toggle by rememberUpdatedState(onToggle)
-    val readLater by rememberUpdatedState(onReadLater)
+    val onRight by rememberUpdatedState(right?.onAction)
+    val onLeft by rememberUpdatedState(left?.onAction)
     val threshold = width * SWIPE_THRESHOLD
-    val label = stringResource(if (article.read) R.string.action_mark_unread else R.string.action_mark_read)
-    val laterLabel = stringResource(R.string.action_read_later)
     val dragState =
         rememberDraggableState { delta ->
             val before = abs(offset) >= threshold
-            offset = (offset + delta).coerceIn(-width.toFloat(), width.toFloat())
+            val min = if (left != null) -width.toFloat() else 0f
+            val max = if (right != null) width.toFloat() else 0f
+            offset = (offset + delta).coerceIn(min, max)
             if (abs(offset) >= threshold != before) haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
         }
     Box(
@@ -593,19 +613,16 @@ private fun SwipeToToggleRead(
             .onSizeChanged { width = it.width }
             .semantics {
                 customActions =
-                    listOf(
-                        CustomAccessibilityAction(label) {
-                            toggle()
+                    listOfNotNull(right, left).map { action ->
+                        CustomAccessibilityAction(action.label) {
+                            action.onAction()
                             true
-                        },
-                        CustomAccessibilityAction(laterLabel) {
-                            readLater()
-                            true
-                        },
-                    )
+                        }
+                    }
             },
     ) {
-        if (offset != 0f) {
+        val shown = if (offset < 0) left else right
+        if (offset != 0f && shown != null) {
             val armed = abs(offset) >= threshold
             Row(
                 Modifier
@@ -617,13 +634,8 @@ private fun SwipeToToggleRead(
                 horizontalArrangement = if (offset < 0) Arrangement.End else Arrangement.Start,
             ) {
                 val tint = if (armed) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onPrimaryContainer
-                val later = offset < 0
-                Icon(
-                    painterResource(if (later) R.drawable.ic_reading_list else if (article.read) R.drawable.ic_mark_unread else R.drawable.ic_mark_read),
-                    contentDescription = null,
-                    tint = tint,
-                )
-                Text(if (later) laterLabel else label, style = MaterialTheme.typography.labelLarge, color = tint, modifier = Modifier.padding(horizontal = 12.dp))
+                Icon(painterResource(shown.icon), contentDescription = null, tint = tint)
+                Text(shown.label, style = MaterialTheme.typography.labelLarge, color = tint, modifier = Modifier.padding(horizontal = 12.dp))
             }
         }
         Box(
@@ -633,7 +645,7 @@ private fun SwipeToToggleRead(
                     state = dragState,
                     orientation = Orientation.Horizontal,
                     onDragStopped = {
-                        if (offset >= threshold) toggle() else if (-offset >= threshold) readLater()
+                        if (offset >= threshold) onRight?.invoke() else if (-offset >= threshold) onLeft?.invoke()
                         scope.launch {
                             animate(offset, 0f, animationSpec = spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMediumLow)) { value, _ ->
                                 offset = value
@@ -647,7 +659,7 @@ private fun SwipeToToggleRead(
     }
 }
 
-/** How far (as part of the row's width) a swipe must go to toggle read. */
+/** How far (as part of the row's width) a swipe must go to act. */
 private const val SWIPE_THRESHOLD = 0.3f
 
 @Composable
@@ -661,6 +673,8 @@ internal fun ArticleRow(
     /** What kind of article this is, shown at the end of its top line (Search: Feed or Saved). */
     label: String? = null,
     modifier: Modifier = Modifier,
+    /** The services that keep it, marked while both are connected (#121). */
+    services: Collection<String> = emptyList(),
 ) {
     val time =
         remember(article.sortTime) {
@@ -683,7 +697,7 @@ internal fun ArticleRow(
         when (view) {
             ListView.Small -> {
                 Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    MetaLine(article, feed, time, showUnreadDot, label)
+                    MetaLine(article, feed, time, showUnreadDot, label, services)
                     ArticleTitle(article, MaterialTheme.typography.titleSmall, maxLines = 2)
                 }
             }
@@ -691,7 +705,7 @@ internal fun ArticleRow(
             ListView.Medium -> {
                 Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        MetaLine(article, feed, time, showUnreadDot, label)
+                        MetaLine(article, feed, time, showUnreadDot, label, services)
                         ArticleTitle(article, MaterialTheme.typography.titleMedium, maxLines = 3)
                         Snippet(snippet, maxLines = 2)
                     }
@@ -703,7 +717,7 @@ internal fun ArticleRow(
                 Column {
                     if (image != null) LargePicture(image)
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        MetaLine(article, feed, time, showUnreadDot, label)
+                        MetaLine(article, feed, time, showUnreadDot, label, services)
                         ArticleTitle(article, MaterialTheme.typography.titleLarge, maxLines = 3)
                         Snippet(snippet, maxLines = 3)
                     }
@@ -721,6 +735,7 @@ private fun MetaLine(
     time: String,
     showUnreadDot: Boolean,
     label: String?,
+    services: Collection<String> = emptyList(),
 ) {
     val unreadLabel = stringResource(R.string.article_unread)
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -749,6 +764,7 @@ private fun MetaLine(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1,
         )
+        ServiceMarks(services)
         if (label != null) {
             Text(
                 text = label,

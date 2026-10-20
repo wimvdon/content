@@ -14,8 +14,13 @@ export function savedData(lib: Library): LocalSavedData {
   const articles: LocalArticle[] = lib.items.filter((i) => i.readingList !== null).map(articleOf);
   const tags = new Map<number, { id: number; name: string }>();
   for (const i of lib.items) if (i.readingList) for (const name of i.tags) tags.set(tagIdOf(name), { id: tagIdOf(name), name });
-  const ids = [...articles.map((a) => a.id), ...tags.keys()];
-  return { articles, tags: [...tags.values()], nextId: Math.max(0, ...ids) + 1 };
+  const folders = new Map<number, { id: number; name: string }>();
+  for (const i of lib.items) {
+    const name = folderOf(i);
+    if (name && !folders.has(folderIdOf(name))) folders.set(folderIdOf(name), { id: folderIdOf(name), name });
+  }
+  const ids = [...articles.map((a) => a.id), ...tags.keys(), ...folders.keys()];
+  return { articles, tags: [...tags.values()], folders: [...folders.values()], nextId: Math.max(0, ...ids) + 1 };
 }
 
 function articleOf(i: Item): LocalArticle {
@@ -27,8 +32,12 @@ function articleOf(i: Item): LocalArticle {
     liked: i.liked,
     archived: i.readingList?.state === "archived",
     tagIds: i.tags.map(tagIdOf),
+    folderId: folderOf(i) ? folderIdOf(folderOf(i)!) : null,
   };
 }
+
+/** An item's folder while it is to read (#119). */
+const folderOf = (i: Item) => (i.readingList?.state === "toread" && i.folder?.trim() ? i.folder.trim() : null);
 
 /**
  * Applies what LocalSaved changed (before → after) to the library's items: new saved articles join
@@ -38,6 +47,7 @@ function articleOf(i: Item): LocalArticle {
 export function applySaved(lib: Library, before: LocalSavedData, after: LocalSavedData, now: number): Library {
   const old = new Map(before.articles.map((a) => [a.id, a]));
   const tagName = new Map(after.tags.map((t) => [t.id, t.name]));
+  const folderName = new Map((after.folders ?? []).map((f) => [f.id, f.name]));
   let result = lib;
   for (const a of after.articles) {
     const previous = old.get(a.id);
@@ -53,6 +63,8 @@ export function applySaved(lib: Library, before: LocalSavedData, after: LocalSav
       // A link saved without a title is titled with its address; the feed article's title is better.
       title: a.title.trim() && a.title !== a.url ? a.title : base.title,
       readingList: { state: a.archived ? "archived" : "toread", addedAt },
+      // Archiving takes it out of its folder (#119).
+      folder: a.archived || a.folderId == null ? null : (folderName.get(a.folderId) ?? base.folder),
       liked: a.liked,
       tags: cleanTags(a.tagIds.flatMap((id) => (tagName.has(id) ? [tagName.get(id)!] : []))),
     });
@@ -96,6 +108,8 @@ export function migrateSaved(lib: Library, saved: LocalSavedData): Library {
 export const idOf = (key: string) => hash(`item:${key}`);
 
 export const tagIdOf = (name: string) => hash(`tag:${name.toLowerCase()}`);
+
+export const folderIdOf = (name: string) => hash(`folder:${name.trim().toLowerCase()}`);
 
 /** cyrb53: a fast 53-bit string hash, so the id is a safe integer; never 0. */
 function hash(text: string): number {

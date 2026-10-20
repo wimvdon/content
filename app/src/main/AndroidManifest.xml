@@ -32,23 +32,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- Links shared from other apps are saved to Saved, with the sheet to file them (#97). -->
-            <intent-filter>
-                <action android:name="android.intent.action.SEND" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="text/plain" />
-            </intent-filter>
-
-            <!-- Where Instapaper sends the user back after signing in. Verified against
+            <!-- Where Instapaper and Raindrop send the user back after signing in. Verified against
                  https://rss-reader-web.wim-d57.workers.dev/.well-known/assetlinks.json (web/public). -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                    android:scheme="https"
-                    android:host="rss-reader-web.wim-d57.workers.dev"
-                    android:path="/instapaper/callback" />
+                <data android:scheme="https" />
+                <data android:host="rss-reader-web.wim-d57.workers.dev" />
+                <data android:path="/instapaper/callback" />
+                <data android:path="/raindrop/callback" />
             </intent-filter>
         </activity>
 
@@ -60,6 +53,20 @@
             android:excludeFromRecents="true"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode|density"
             android:theme="@style/Theme.RssReader.Translucent" />
+
+        <!-- Links shared from other apps (#97, #103): only the save sheet, over the app that shared
+             it, not the whole of Reader. An alias, so the tab's own screen stays unexported. -->
+        <activity-alias
+            android:name=".ui.ShareActivity"
+            android:targetActivity=".ui.SaveFromTabActivity"
+            android:exported="true"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity-alias>
     </application>
 
 </manifest>

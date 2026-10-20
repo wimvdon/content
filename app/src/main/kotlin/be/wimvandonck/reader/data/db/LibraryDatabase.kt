@@ -218,9 +218,9 @@ abstract class LibraryDao {
         SyncRowRow::class, ServiceRowRow::class,
     ],
     // 2 added read_elsewhere and sync_rows (per-item sync, #106); 3 service_rows (#109).
-    version = 3,
+    version = 5,
     exportSchema = true,
-    autoMigrations = [AutoMigration(from = 1, to = 2), AutoMigration(from = 2, to = 3)],
+    autoMigrations = [AutoMigration(from = 1, to = 2), AutoMigration(from = 2, to = 3), AutoMigration(from = 3, to = 4), AutoMigration(from = 4, to = 5)],
 )
 abstract class LibraryDatabase : RoomDatabase() {
     abstract fun dao(): LibraryDao

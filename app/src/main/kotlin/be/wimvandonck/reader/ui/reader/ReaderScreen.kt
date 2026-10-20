@@ -70,6 +70,9 @@ import be.wimvandonck.reader.data.Highlight
 import be.wimvandonck.reader.data.ArticleText
 import be.wimvandonck.reader.data.Anchors
 import be.wimvandonck.reader.data.Anchor
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.text.style.TextOverflow
+import be.wimvandonck.reader.data.Saved
 import be.wimvandonck.reader.data.Article
 import be.wimvandonck.reader.data.Feed
 import be.wimvandonck.reader.ui.home.FeedIcon
@@ -109,26 +112,30 @@ class ReaderActions(
 )
 
 /**
- * An item on the reading list in the reader (#107): its state and what its buttons do. Null for
- * feed articles not saved.
+ * A saved item in the reader (#107, #119): its state and what its buttons do. Null for feed articles
+ * not saved.
  */
 class ReaderItem(
     val item: Item,
     /** Every tag in use, to add one with a tap. */
     val allTags: List<String>,
-    /** Every bookmark collection in use. */
-    val collections: List<String>,
+    /** Every folder in use. */
+    val folders: List<String>,
     val onLike: () -> Unit,
     val onArchive: () -> Unit,
     /** Back to To read. */
     val onUnarchive: () -> Unit,
-    /** Keep as bookmark, with its collection, note and tags. */
-    val onKeep: (collection: String, note: String, tags: List<String>) -> Unit,
+    /** Files it in a folder (empty: To read), with its note and tags. */
+    val onFile: (folder: String, note: String, tags: List<String>) -> Unit,
     val onTags: (List<String>) -> Unit,
-    /** Off the reading list (Bookmarks keeps it). */
+    /** Out of Saved, with its note, tags and highlights. */
     val onRemove: () -> Unit,
     /** How far it was read, 0 to 1, as the reader scrolls. */
     val onProgress: (Float) -> Unit,
+    /** The services that keep it while both are connected (#121): with two, removing asks where. */
+    val services: Set<String> = emptySet(),
+    /** Removes it from one service only; it stays in Saved, kept in the other. */
+    val onRemoveFrom: (String) -> Unit = {},
 )
 
 /** One article, in the reader's font, size, spacing and page colour. */
@@ -244,7 +251,7 @@ fun ReaderScreen(
                                 },
                             )
                             DropdownMenuItem(
-                                text = { Text(stringResource(R.string.reading_list_remove)) },
+                                text = { Text(stringResource(R.string.saved_remove)) },
                                 leadingIcon = { Icon(painterResource(R.drawable.ic_delete), contentDescription = null) },
                                 onClick = {
                                     menuOpen = false
@@ -255,8 +262,8 @@ fun ReaderScreen(
                         val keep = actions.onKeepAsBookmark
                         if (keep != null) {
                             DropdownMenuItem(
-                                text = { Text(stringResource(R.string.action_keep_bookmark)) },
-                                leadingIcon = { Icon(painterResource(R.drawable.ic_bookmark_add), contentDescription = null) },
+                                text = { Text(stringResource(R.string.file_title)) },
+                                leadingIcon = { Icon(painterResource(R.drawable.ic_folder), contentDescription = null) },
                                 onClick = {
                                     menuOpen = false
                                     keep()
@@ -285,7 +292,7 @@ fun ReaderScreen(
             )
         },
         bottomBar = {
-            // Keep and Archive for an article on the reading list (#107).
+            // File and Archive for a saved article (#107, #119).
             if (item != null && onList && article != null) {
                 BottomAppBar(containerColor = MaterialTheme.colorScheme.surfaceContainer) {
                     val count = highlights?.highlights?.size ?: 0
@@ -296,10 +303,18 @@ fun ReaderScreen(
                             Text(count.toString(), modifier = Modifier.padding(start = 8.dp))
                         }
                     }
-                    Spacer(Modifier.weight(1f))
-                    TextButton(onClick = { finish(FinishChoice.Keep) }) {
-                        Icon(painterResource(R.drawable.ic_bookmark_add), contentDescription = null)
-                        Text(stringResource(if (item.item.bookmark != null) R.string.action_kept else R.string.action_keep), modifier = Modifier.padding(start = 8.dp))
+                    val folder = Saved.folderOf(item.item)
+                    if (folder != null) {
+                        Row(Modifier.padding(start = 16.dp).weight(1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Icon(painterResource(R.drawable.ic_folder), contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(folder, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                    } else {
+                        Spacer(Modifier.weight(1f))
+                    }
+                    TextButton(onClick = { finish(FinishChoice.File) }) {
+                        Icon(painterResource(R.drawable.ic_folder), contentDescription = null)
+                        Text(stringResource(R.string.action_file), modifier = Modifier.padding(start = 8.dp))
                     }
                     if (item.item.archived) {
                         TextButton(onClick = item.onUnarchive) {
@@ -307,7 +322,8 @@ fun ReaderScreen(
                             Text(stringResource(R.string.action_unarchive), modifier = Modifier.padding(start = 8.dp))
                         }
                     } else {
-                        TextButton(onClick = { finish(FinishChoice.Archive) }) {
+                        // Archive at once (Undo in the message); the sheet at the end of the text still asks.
+                        TextButton(onClick = item.onArchive) {
                             Icon(painterResource(R.drawable.ic_inventory), contentDescription = null)
                             Text(stringResource(R.string.action_archive), modifier = Modifier.padding(start = 8.dp))
                         }
@@ -345,15 +361,15 @@ fun ReaderScreen(
 
     if (item != null) {
         if (tagsOpen) TagsDialog(item.item, item.allTags, item.onTags, onDismiss = { tagsOpen = false })
-        if (removeOpen) RemoveDialog(item.item, item.onRemove, onDismiss = { removeOpen = false })
+        if (removeOpen) RemoveDialog(item.item, item.onRemove, onDismiss = { removeOpen = false }, services = item.services, onRemoveFrom = item.onRemoveFrom)
         if (finishOpen) {
             FinishSheet(
                 item = item.item,
                 initial = finishChoice,
-                collections = item.collections,
+                folders = item.folders,
                 allTags = item.allTags,
                 onArchive = item.onArchive,
-                onKeep = item.onKeep,
+                onFile = item.onFile,
                 onDismiss = { finishOpen = false },
             )
         }

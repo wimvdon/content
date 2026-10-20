@@ -46,7 +46,8 @@ Secrets, keystores (`*.jks`, `*.keystore`), `keystore.properties`, passwords or 
   (`data/Library.kt`, `feed/`). Composables only display state and forward clicks. HTTP only in
   `feed/FeedFetcher.kt`, for pictures through Coil (`RssReaderApp.newImageLoader`), and for sync in
   `sync/AccountClient.kt` and `sync/LiveUpdates.kt` (the Reader account on the feed loader, see
-  `docs/account.md` and `docs/sync.md`), and for Instapaper in `instapaper/` (see `docs/instapaper.md`).
+  `docs/account.md` and `docs/sync.md`), for Instapaper in `instapaper/` (see `docs/instapaper.md`), and for Raindrop.io in `raindrop/`
+  (see `docs/raindrop.md`).
 - **All user-visible text goes in `app/src/main/res/values/strings.xml`**, never hard-coded. In
   Compose, read strings with `stringResource` or `LocalResources`, not `LocalContext`.
   Add the translation to **every** `values-xx/strings.xml` (currently: `nl`, `fr`, `de`, `es`, `it`),

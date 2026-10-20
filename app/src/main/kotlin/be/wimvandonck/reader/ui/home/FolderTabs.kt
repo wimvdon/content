@@ -15,6 +15,9 @@ import androidx.compose.material3.LeadingIconTab
 import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.material3.VerticalDivider
+import androidx.compose.foundation.layout.height
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -23,8 +26,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import be.wimvandonck.reader.R
 import be.wimvandonck.reader.data.Folder
-import be.wimvandonck.reader.data.ReadingListFilter
-import be.wimvandonck.reader.data.ReadingListTab
+import be.wimvandonck.reader.data.SavedFilter
+import be.wimvandonck.reader.data.SavedTab
 
 /**
  * Scrollable tabs under the top app bar, shown once there are folders: All (every feed) and then
@@ -74,29 +77,59 @@ fun FolderTabs(
 private val MAX_LABEL_WIDTH = 160.dp
 
 /**
- * The reading list's header under the top app bar (#107): To read and Archive as tabs, then one row
- * of filter chips: Liked, and the list's tags (tags come and go too often for a tab each).
+ * Saved's header under the top app bar (#119): To read, All, each folder and Archive as scrollable
+ * tabs, then Liked (a flag, set apart by its heart and a divider) and the tab's tags as chips that
+ * filter together.
  */
 @Composable
-fun ReadingListTabRow(
-    filter: ReadingListFilter,
+fun SavedTabRow(
+    filter: SavedFilter,
+    folders: List<String>,
     tags: List<String>,
-    onChange: (ReadingListFilter) -> Unit,
+    onChange: (SavedFilter) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val tabs = listOf(ReadingListTab.ToRead to (R.string.reading_list_to_read to R.drawable.ic_reading_list), ReadingListTab.Archive to (R.string.reading_list_archive to R.drawable.ic_inventory))
+    val tabs = listOf<SavedTab>(SavedTab.ToRead, SavedTab.All) + folders.map(SavedTab::Folder) + SavedTab.Archive
+    fun same(
+        a: SavedTab,
+        b: SavedTab,
+    ) = if (a is SavedTab.Folder && b is SavedTab.Folder) a.name.equals(b.name, ignoreCase = true) else a == b
     Column(modifier) {
         PrimaryScrollableTabRow(
-            selectedTabIndex = tabs.indexOfFirst { it.first == filter.tab }.coerceAtLeast(0),
+            selectedTabIndex = tabs.indexOfFirst { same(it, filter.tab) }.coerceAtLeast(0),
             edgePadding = 16.dp,
             containerColor = Color.Transparent,
         ) {
-            tabs.forEach { (tab, res) ->
+            tabs.forEach { tab ->
                 LeadingIconTab(
-                    selected = tab == filter.tab,
-                    onClick = { if (tab != filter.tab) onChange(ReadingListFilter(tab, filter.likedOnly)) },
-                    text = { Text(stringResource(res.first), maxLines = 1) },
-                    icon = { Icon(painterResource(res.second), contentDescription = null) },
+                    selected = same(tab, filter.tab),
+                    onClick = { if (!same(tab, filter.tab)) onChange(filter.copy(tab = tab, tags = emptySet())) },
+                    text = {
+                        Text(
+                            when (tab) {
+                                SavedTab.ToRead -> stringResource(R.string.reading_list_to_read)
+                                SavedTab.All -> stringResource(R.string.filter_all)
+                                SavedTab.Archive -> stringResource(R.string.reading_list_archive)
+                                is SavedTab.Folder -> tab.name
+                            },
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.widthIn(max = 160.dp),
+                        )
+                    },
+                    icon = {
+                        Icon(
+                            painterResource(
+                                when (tab) {
+                                    SavedTab.ToRead -> R.drawable.ic_reading_list
+                                    SavedTab.All -> R.drawable.ic_bookmarks_outline
+                                    SavedTab.Archive -> R.drawable.ic_inventory
+                                    is SavedTab.Folder -> R.drawable.ic_folder
+                                },
+                            ),
+                            contentDescription = null,
+                        )
+                    },
                 )
             }
         }
@@ -105,6 +138,7 @@ fun ReadingListTabRow(
                 .horizontalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             FilterChip(
                 selected = filter.likedOnly,
@@ -118,11 +152,15 @@ fun ReadingListTabRow(
                     )
                 },
             )
+            if (tags.isNotEmpty()) VerticalDivider(Modifier.height(24.dp))
             tags.forEach { tag ->
-                val selected = filter.tag.equals(tag, ignoreCase = true)
+                val selected = filter.tags.any { it.equals(tag, ignoreCase = true) }
                 FilterChip(
                     selected = selected,
-                    onClick = { onChange(filter.copy(tag = if (selected) null else tag)) },
+                    onClick = {
+                        val others = filter.tags.filterNot { it.equals(tag, ignoreCase = true) }.toSet()
+                        onChange(filter.copy(tags = if (selected) others else others + tag))
+                    },
                     label = { Text(tag) },
                     leadingIcon =
                         if (selected) {

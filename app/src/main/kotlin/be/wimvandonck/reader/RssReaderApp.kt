@@ -10,11 +10,11 @@ import coil3.request.crossfade
 import be.wimvandonck.reader.data.FullArticles
 import be.wimvandonck.reader.data.IconCatalog
 import be.wimvandonck.reader.data.LibraryRepository
+import be.wimvandonck.reader.data.DuplicateSync
 import be.wimvandonck.reader.data.SettingsStore
 import be.wimvandonck.reader.feed.FeedFetcher
 import be.wimvandonck.reader.instapaper.InstapaperAccount
-import be.wimvandonck.reader.instapaper.SharedLink
-import kotlinx.coroutines.flow.MutableStateFlow
+import be.wimvandonck.reader.raindrop.RaindropAccount
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -55,15 +55,26 @@ class RssReaderApp :
     /** The user's Instapaper account (sign-in, saving, and the saved list). See instapaper/. */
     val instapaper: InstapaperAccount by lazy { InstapaperAccount(this, appScope, http) }
 
-    /** A link shared to Reader from another app, waiting to be saved (#97, MainActivity → Navigation). */
-    val sharedLink = MutableStateFlow<SharedLink?>(null)
-
 
     /** Sync with the user's Reader account, which signing in with Instapaper opens. See sync/ and docs/account.md. */
     val sync: SyncManager by lazy { SyncManager(this, appScope, library, settings, instapaper, http) }
 
-    /** The reading list's connected service (Instapaper when signed in). See services/. */
-    val services: ServiceManager by lazy { ServiceManager(appScope, library, instapaper, http) { settings.settings.value?.copyHighlights == true } }
+    /** Raindrop.io, connected in Connected services (#112). See raindrop/. */
+    val raindrop: RaindropAccount by lazy { RaindropAccount(this, appScope, http) }
+
+    /** Saved's connected services (Instapaper, Raindrop). See services/. */
+    val services: ServiceManager by lazy {
+        ServiceManager(
+            appScope,
+            library,
+            instapaper,
+            raindrop,
+            http,
+            preferredService = { settings.settings.value?.saveService },
+            duplicates = { settings.settings.value?.duplicates ?: DuplicateSync() },
+            copyHighlights = { settings.settings.value?.copyHighlights == true },
+        )
+    }
 
     val fullArticles: FullArticles by lazy { FullArticles(File(cacheDir, "articles"), fetch = fetcher::fetch) }
 

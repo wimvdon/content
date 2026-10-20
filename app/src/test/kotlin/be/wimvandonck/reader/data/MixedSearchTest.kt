@@ -50,7 +50,7 @@ class MixedSearchTest {
         val feeds = listOf(article("a", "Tea", 1))
         val savedOnes = listOf(saved(1, "Tea", 1))
         assertEquals(listOf("feed:a"), names(MixedSearch.mix("tea", feeds, savedOnes, SearchFilter.Feeds)))
-        assertEquals(listOf("saved:1"), names(MixedSearch.mix("tea", feeds, savedOnes, SearchFilter.ReadingList)))
+        assertEquals(listOf("saved:1"), names(MixedSearch.mix("tea", feeds, savedOnes, SearchFilter.Saved)))
         assertEquals(2, MixedSearch.mix("tea", feeds, savedOnes, SearchFilter.All).size)
         assertEquals(1, MixedSearch.mix("tea", feeds, savedOnes, limit = 1).size)
     }
@@ -83,13 +83,12 @@ class ItemSearchTest {
     }
 }
 
-class BookmarkSearchTest {
+class SavedSearchTest {
     @Test
-    fun `the Bookmarks chip shows only bookmarks, and collections are searched`() {
-        val reading = Item("a.example/1", "https://a.example/1", "Tea one", createdAt = 1, readingList = ReadingListEntry(ReadingState.ToRead, 1))
-        val kept = Item("b.example/2", "https://b.example/2", "Tea two", createdAt = 2, bookmark = BookmarkEntry(2, "Brewing"))
-        assertEquals(listOf(kept), MixedSearch.mix("tea", emptyList(), listOf(reading, kept), SearchFilter.Bookmarks).map { (it as SearchHit.FromItem).item })
-        assertEquals(listOf(reading), MixedSearch.mix("tea", emptyList(), listOf(reading, kept), SearchFilter.ReadingList).map { (it as SearchHit.FromItem).item })
-        assertEquals(listOf(kept), ItemSearch.search(listOf(reading, kept), "brewing"))
+    fun `the Saved chip shows only saved articles, and folders are searched`() {
+        val reading = Item("a.example/1", "https://a.example/1", "Tea one", createdAt = 1, readingList = ReadingListEntry(ReadingState.ToRead, 1), folder = "Brewing")
+        val tagged = Item("b.example/2", "https://b.example/2", "Tea two", createdAt = 2, tags = listOf("x"))
+        assertEquals(listOf(reading), MixedSearch.mix("tea", emptyList(), listOf(reading, tagged), SearchFilter.Saved).map { (it as SearchHit.FromItem).item })
+        assertEquals(listOf(reading), ItemSearch.search(listOf(reading, tagged), "brewing"))
     }
 }

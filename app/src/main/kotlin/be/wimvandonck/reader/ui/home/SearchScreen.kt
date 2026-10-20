@@ -146,8 +146,7 @@ fun SearchScreen(
                 else -> {
                     val feedsByUrl = remember(state.feeds) { state.feeds.associateBy { it.url } }
                     val feedLabel = stringResource(R.string.search_label_feed)
-                    val itemLabel = stringResource(R.string.reading_list_title)
-                    val bookmarkLabel = stringResource(R.string.save_to_bookmark)
+                    val itemLabel = stringResource(R.string.saved_title)
                     LazyColumn(
                         modifier = Modifier.fillMaxSize().readableWidth(),
                         contentPadding = PaddingValues(16.dp),
@@ -171,7 +170,7 @@ fun SearchScreen(
                                         view = state.listView,
                                         showImage = state.showImages,
                                         showUnreadDot = false,
-                                        label = if (hit.item.readingList == null) bookmarkLabel else itemLabel,
+                                        label = itemLabel,
                                         onClick = { actions.onOpenItem(hit.item) },
                                     )
                             }
@@ -204,8 +203,7 @@ private fun FilterRow(
         listOf(
             SearchFilter.All to R.string.filter_all,
             SearchFilter.Feeds to R.string.feeds_title,
-            SearchFilter.ReadingList to R.string.reading_list_title,
-            SearchFilter.Bookmarks to R.string.bookmarks_title,
+            SearchFilter.Saved to R.string.saved_title,
         ).forEach { (option, label) ->
             FilterChip(
                 selected = filter == option,

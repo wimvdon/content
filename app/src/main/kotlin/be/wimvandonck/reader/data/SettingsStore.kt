@@ -65,9 +65,17 @@ class SettingsStore(
 
     suspend fun setListView(view: ListView) = edit { it[LIST_VIEW] = view.name }
 
-    suspend fun setBookmarksView(view: BookmarksView) = edit { it[BOOKMARKS_VIEW] = view.name }
-
     suspend fun setTagWithFolder(enabled: Boolean) = edit { it[TAG_WITH_FOLDER] = enabled }
+
+    suspend fun setSaveService(service: String) = edit { it[SAVE_SERVICE] = service }
+
+    suspend fun setDuplicates(value: DuplicateSync) =
+        edit {
+            it[DUP_ARCHIVE] = value.archive
+            it[DUP_LIKED] = value.liked
+            it[DUP_TAGS] = value.tags
+            it[DUP_FOLDER] = value.folder
+        }
 
     suspend fun setCopyHighlights(enabled: Boolean) = edit { it[COPY_HIGHLIGHTS] = enabled }
 
@@ -123,8 +131,15 @@ class SettingsStore(
             showImages = p[SHOW_IMAGES] ?: defaults.showImages,
             markReadOnScroll = p[MARK_READ_ON_SCROLL] ?: defaults.markReadOnScroll,
             listView = enumOr(p[LIST_VIEW], defaults.listView),
-            bookmarksView = enumOr(p[BOOKMARKS_VIEW], defaults.bookmarksView),
             tagWithFolder = p[TAG_WITH_FOLDER] ?: defaults.tagWithFolder,
+            saveService = p[SAVE_SERVICE] ?: defaults.saveService,
+            duplicates =
+                DuplicateSync(
+                    archive = p[DUP_ARCHIVE] ?: defaults.duplicates.archive,
+                    liked = p[DUP_LIKED] ?: defaults.duplicates.liked,
+                    tags = p[DUP_TAGS] ?: defaults.duplicates.tags,
+                    folder = p[DUP_FOLDER] ?: defaults.duplicates.folder,
+                ),
             copyHighlights = p[COPY_HIGHLIGHTS] ?: defaults.copyHighlights,
             lastSyncedAt = p[LAST_SYNCED_AT],
         )
@@ -150,8 +165,12 @@ class SettingsStore(
         val SHOW_IMAGES = booleanPreferencesKey("show_images")
         val MARK_READ_ON_SCROLL = booleanPreferencesKey("mark_read_on_scroll")
         val LIST_VIEW = stringPreferencesKey("list_view")
-        val BOOKMARKS_VIEW = stringPreferencesKey("bookmarks_view")
         val TAG_WITH_FOLDER = booleanPreferencesKey("tag_with_folder")
+        val SAVE_SERVICE = stringPreferencesKey("save_service")
+        val DUP_ARCHIVE = booleanPreferencesKey("duplicates_archive")
+        val DUP_LIKED = booleanPreferencesKey("duplicates_liked")
+        val DUP_TAGS = booleanPreferencesKey("duplicates_tags")
+        val DUP_FOLDER = booleanPreferencesKey("duplicates_folder")
         val COPY_HIGHLIGHTS = booleanPreferencesKey("copy_highlights")
         val LAST_SYNCED_AT = longPreferencesKey("last_synced_at")
     }

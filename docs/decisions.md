@@ -2,6 +2,86 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-20: A smoother way from a feed to a folder or the archive
+
+The owner found feed → Saved → folder or archive not smooth. Changes: the sheet after Read later
+has the folder too (set on Done or close, not while typing); Archive in the reader acts at once and
+returns to the list with Undo (back into its folder), instead of a sheet asking again; a swipe save
+offers File in its message; Saved's list rows swipe like the feed's (left archive or back to read,
+right File), through one shared `SwipeRow`. Finished reading at the end of the text still asks, as
+it is the moment to decide. Rejected: confirmation dialogs (Undo is cheaper than asking).
+
+## 2026-10-19: Sharing to Reader shows only the save sheet (#103)
+
+Links shared from other apps go to an exported `ShareActivity` alias of the see-through
+`SaveFromTabActivity`, so only the save sheet opens over the sharing app, as the custom tab's Save
+already did; `MainActivity` no longer takes shares. An alias keeps the tab's own entry unexported:
+other apps can only send a shared link, which still needs the user's Save. Rejected: a second,
+separate activity (the same screen twice).
+
+## 2026-10-19: Instapaper and Raindrop together (#121)
+
+Following #121 and the owner's decision comment there:
+
+- **Merged view, nothing copied on its own:** an article in both services is one item (its address is
+  its key), the first service's; the other has a copy. Marks on each article say where it is kept.
+- **What copies share** is a setting per state (`DuplicateSync`): Archive, Liked and Tags on, Folder
+  off. Title, note, progress and highlights stay per service. A copy's changes come in only for
+  what is shared; a deletion in one service's own app never deletes in the other (the item moves to
+  the other); removing in Reader asks (both, or one only).
+- **Default for new saves:** asked once, changeable in Connected services and per save.
+- **Copy is an explicit import** (Connected services), with the count and what doesn't carry over
+  first, skipping what the target has, cancellable, in batches so what got through is kept.
+  Rejected: ongoing two-way sync (out of scope in #121).
+
+## 2026-10-19: Raindrop.io for Saved (#112), next to Instapaper without copying (#121)
+
+The owner approved Raindrop.io and its network destination `api.raindrop.io` (#112).
+
+- **Sign-in through the Worker** (OAuth 2, `worker/src/raindrop.ts`), like Instapaper's: the client
+  secret stays a Worker secret, and the client ID lives there too, so the app holds neither. The
+  Worker passes tokens through and keeps nothing; the app calls `api.raindrop.io` directly.
+- **Callback on the web app's domain** (`/raindrop/callback`), so the existing App Link verification
+  covers it; the page there hands the address to Reader or Reader Dev, because debug builds can't
+  verify App Links.
+- **Mapping:** Unsorted is To read, collections are folders (nested ones flattened to "Parent /
+  Child", as Saved's folders are flat), an "Archive" collection made on first use is the Archive,
+  favorite is Liked; notes sync (a new `ServiceFeature.Notes`).
+- **No "changes since" in Raindrop's API:** a sync lists the whole account (`RemoteChanges.complete`,
+  so a missing raindrop was deleted there), at most every three minutes for the quick sync after a
+  change. Rejected: Raindrop's `lastUpdate` sort, which can't tell deletions.
+- **Two services, nothing copied (#121):** a synced `service` field on the item (Room v5,
+  auto-migrated) says which service keeps it. Items each service already had become its own; new
+  saves go to the default service, asked once when both are connected (rejected: copying everything
+  to both, which #121 rules out, and per-save choice, left for #121's save sheet). The first sync
+  waits until both accounts are read, so neither service briefly looks like the only one.
+
+## 2026-10-19: One Saved tab with folders (#119), replacing Reading list and Bookmarks
+
+The owner chose #119's design over the epic's (#113) two sections: one **Saved** destination
+where an item is in exactly one place, To read, one folder, or the Archive, the same for Instapaper
+and (next) Raindrop.
+
+- **Data:** a synced `folder` field on the item (Room v4, auto-migrated; per-item sync rows, merged
+  per field like the rest), meaningful only while to read; archiving clears it. No new membership
+  type, so the reading list's state, sync and services carry over. The web app keeps the field in
+  its rows and merges until its own screens catch up.
+- **Bookmarks (#108) move into folders** on read (`Saved.settle`, run when the library loads and after
+  every change, so rows synced in from a device that hasn't updated move in too): the collection
+  becomes the folder, without one a folder called "Bookmarks" (in the device's language). The
+  Bookmarks destination, its page and its type chips (tool, repo) are gone; the type filter is now
+  Article, Video, Audio, behind a filter button next to search (#119), read from the link.
+- **Instapaper:** folders are folders (they were tags in #107): home is To read, `/move` with the
+  folder id files, a missing folder is made. `RemoteEntry.folder` is a core field, merged three
+  ways; the old folder tag is taken off by the first sync's merge.
+- **Look (owner's request):** To read, All and Archive use the feed list's rows and view setting
+  (they are lists to read through); a folder shows its items as notes, Noter's Keep-style outlined
+  cards in a staggered grid (picture, title, note or description, site, tags), because a folder is a
+  collection to browse.
+- Chips: Liked first, set apart by its heart and a divider, then the tab's tags by use; several tags
+  narrow together. "Remove from Saved" removes the whole item (note, tags, highlights); Archive
+  keeps it.
+
 ## 2026-10-19: Highlights anchored by quote; copying to Instapaper opt-in (#102)
 
 - **Anchors** (`data/Anchors.kt`): the quote, 32 characters before and after, and which occurrence.
@@ -243,7 +323,7 @@ called **Saved**, and its first list (Instapaper's Unread) is **Saved** too, so 
 unread feed articles. Signed out, the same screen runs on `LocalSaved`, a second implementation of
 `InstapaperService` that keeps the saved articles on the phone in a DataStore file (`datastore/saved`,
 JSON written with the sync's own `Json`), so the lists, Search, the reader's buttons and the sheet
-after Save need no second code path. Without an account there are no folders: Instapaper's folders
+after Save need no second code path. Without an account there were no folders (until #119 added them): Instapaper's folders
 are its own, and the owner asked for everything except folders. Save's default became **Saved, in
 this app** instead of the Instapaper app; a chosen app still works. The sheet after Save now also
 offers Like and Archive. Local articles aren't synced and aren't copied to Instapaper on sign-in.

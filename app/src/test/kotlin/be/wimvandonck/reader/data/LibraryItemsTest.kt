@@ -67,41 +67,13 @@ class LibraryItemsTest {
     }
 
     @Test
-    fun `archiving keeps the bookmark, and keeping as bookmark keeps the reading list place`() {
+    fun `archiving takes an item out of its folder, and off the list it goes when nothing is left`() {
         val key = saved().items.single().key
-        val kept = saved().keepAsBookmark(key, " Research ", now = 3_000)
-        val item = kept.item(key)!!
-        assertTrue(item.toRead)
-        assertEquals(BookmarkEntry(3_000, "Research"), item.bookmark)
-
-        val archived = kept.setReadingState(key, ReadingState.Archived)
+        val filed = Saved.file(saved(), key, "Research")
+        val archived = filed.setReadingState(key, ReadingState.Archived)
         assertTrue(archived.item(key)!!.archived)
-        assertTrue(archived.item(key)!!.bookmarked)
-
-        // Off the reading list: still a bookmark.
-        val offList = archived.setReadingState(key, null)
-        assertFalse(offList.item(key)!!.onReadingList)
-        assertTrue(offList.item(key)!!.bookmarked)
-    }
-
-    @Test
-    fun `removing a bookmark keeps the reading list place, and an item with nothing left goes`() {
-        val key = saved().items.single().key
-        val both = saved().keepAsBookmark(key, null, 3_000)
-        val unbookmarked = both.removeBookmark(key)
-        assertTrue(unbookmarked.item(key)!!.toRead)
-        assertNull(unbookmarked.item(key)!!.bookmark)
-        assertNull(unbookmarked.setReadingState(key, null).item(key))
-    }
-
-    @Test
-    fun `read again puts a bookmark on the reading list and keeps it`() {
-        val key = saved().items.single().key
-        val bookmarkOnly = saved().keepAsBookmark(key, "Tools", 3_000).setReadingState(key, null)
-        val item = bookmarkOnly.item(key)!!
-        val again = bookmarkOnly.addToReadingList(item.url, null, 4_000).first.item(key)!!
-        assertTrue(again.toRead)
-        assertEquals(BookmarkEntry(3_000, "Tools"), again.bookmark)
+        assertNull(archived.item(key)!!.folder)
+        assertNull(archived.setReadingState(key, null).item(key))
     }
 
     @Test
@@ -119,9 +91,8 @@ class LibraryItemsTest {
         val two = saved(saved(), url = "https://other.example/x", now = 5_000)
         assertEquals(listOf("other.example/x", "example.com/story"), two.readingList(ReadingState.ToRead).map { it.key })
         val key = two.items.first().key
-        val archived = two.setReadingState(key, ReadingState.Archived).keepAsBookmark(key, null, 6_000)
+        val archived = two.setReadingState(key, ReadingState.Archived)
         assertEquals(listOf(key), archived.readingList(ReadingState.Archived).map { it.key })
-        assertEquals(listOf(key), archived.bookmarks().map { it.key })
         assertNotNull(archived.item(key))
     }
 

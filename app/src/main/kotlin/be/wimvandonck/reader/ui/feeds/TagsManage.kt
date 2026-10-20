@@ -41,10 +41,9 @@ import be.wimvandonck.reader.ui.theme.EmptyState
 import be.wimvandonck.reader.ui.theme.readableWidth
 
 /**
- * Collections and tags (☰): every bookmark collection with how many bookmarks it has, then every
- * tag on the reading list and in Bookmarks with how many articles have it. Tap to rename (renaming
- * to another one's name joins the two), or remove it: a tag from every article, a collection from
- * its bookmarks (they stay, without a collection).
+ * Folders and tags (☰): every folder of Saved with how many articles it has, then every tag with
+ * how many articles have it. Tap to rename (renaming to another one's name joins the two), or remove
+ * it: a tag from every article, a folder from its articles (they go back to To read).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,11 +53,11 @@ fun TagsManageScreen(
     onBack: () -> Unit,
     onRename: (String, String) -> Unit,
     onRemove: (String) -> Unit,
-    collections: Map<String, Int> = emptyMap(),
-    onRenameCollection: (String, String) -> Unit = { _, _ -> },
-    onRemoveCollection: (String) -> Unit = {},
+    folders: Map<String, Int> = emptyMap(),
+    onRenameFolder: (String, String) -> Unit = { _, _ -> },
+    onRemoveFolder: (String) -> Unit = {},
 ) {
-    // What is being renamed or removed: "t:<tag>" or "c:<collection>".
+    // What is being renamed or removed: "t:<tag>" or "c:<folder>".
     var renaming by rememberSaveable { mutableStateOf<String?>(null) }
     var removing by rememberSaveable { mutableStateOf<String?>(null) }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -67,7 +66,7 @@ fun TagsManageScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             LargeTopAppBar(
-                title = { Text(stringResource(R.string.menu_manage_tags)) },
+                title = { Text(stringResource(R.string.menu_folders_tags)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(painterResource(R.drawable.ic_arrow_back), contentDescription = stringResource(R.string.action_back))
@@ -77,11 +76,11 @@ fun TagsManageScreen(
             )
         },
     ) { innerPadding ->
-        if (tags.isEmpty() && collections.isEmpty()) {
+        if (tags.isEmpty() && folders.isEmpty()) {
             EmptyState(
                 painterResource(R.drawable.ic_tags),
-                stringResource(R.string.tags_manage_empty_title),
-                body = stringResource(R.string.tags_manage_empty_body),
+                stringResource(R.string.manage_folders_tags_empty_title),
+                body = stringResource(R.string.manage_folders_tags_empty_body),
                 modifier = Modifier.padding(innerPadding),
             )
             return@Scaffold
@@ -94,25 +93,25 @@ fun TagsManageScreen(
                     .readableWidth(),
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 32.dp),
         ) {
-            if (collections.isNotEmpty()) {
-                item(key = "collections") { Heading(stringResource(R.string.collections_title)) }
-                items(collections.entries.toList(), key = { "c:" + it.key }) { (collection, count) ->
+            if (folders.isNotEmpty()) {
+                item(key = "folders") { Heading(stringResource(R.string.saved_folders)) }
+                items(folders.entries.toList(), key = { "c:" + it.key }) { (folder, count) ->
                     ListItem(
-                        headlineContent = { Text(collection) },
-                        supportingContent = { Text(pluralStringResource(R.plurals.bookmarks_count, count, count)) },
+                        headlineContent = { Text(folder) },
+                        supportingContent = { Text(pluralStringResource(R.plurals.reading_list_count, count, count)) },
                         leadingContent = { Icon(painterResource(R.drawable.ic_folder), contentDescription = null) },
                         trailingContent = {
-                            IconButton(onClick = { removing = "c:$collection" }) {
-                                Icon(painterResource(R.drawable.ic_delete), contentDescription = stringResource(R.string.collection_remove))
+                            IconButton(onClick = { removing = "c:$folder" }) {
+                                Icon(painterResource(R.drawable.ic_delete), contentDescription = stringResource(R.string.saved_folder_remove))
                             }
                         },
                         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                        modifier = Modifier.clickable(role = Role.Button, onClickLabel = stringResource(R.string.collection_rename)) { renaming = "c:$collection" },
+                        modifier = Modifier.clickable(role = Role.Button, onClickLabel = stringResource(R.string.saved_folder_rename)) { renaming = "c:$folder" },
                     )
                 }
             }
             if (tags.isNotEmpty()) {
-                if (collections.isNotEmpty()) item(key = "tags") { Heading(stringResource(R.string.tags_title)) }
+                if (folders.isNotEmpty()) item(key = "tags") { Heading(stringResource(R.string.tags_title)) }
                 items(tags.entries.toList(), key = { "t:" + it.key }) { (tag, count) ->
                     ListItem(
                         headlineContent = { Text(tag) },
@@ -132,33 +131,33 @@ fun TagsManageScreen(
     }
 
     renaming?.let { target ->
-        val collection = target.startsWith("c:")
+        val folder = target.startsWith("c:")
         val tag = target.substring(2)
         var text by rememberSaveable(target) { mutableStateOf(tag) }
         AlertDialog(
             onDismissRequest = { renaming = null },
-            title = { Text(stringResource(if (collection) R.string.collection_rename else R.string.tags_rename)) },
+            title = { Text(stringResource(if (folder) R.string.saved_folder_rename else R.string.tags_rename)) },
             text = { OutlinedTextField(value = text, onValueChange = { text = it }, label = { Text(stringResource(R.string.tags_name)) }, singleLine = true) },
             confirmButton = {
                 TextButton(onClick = {
                     renaming = null
-                    if (text.trim() != tag) (if (collection) onRenameCollection else onRename)(tag, text.trim())
+                    if (text.trim() != tag) (if (folder) onRenameFolder else onRename)(tag, text.trim())
                 }, enabled = text.isNotBlank()) { Text(stringResource(R.string.tags_rename)) }
             },
             dismissButton = { TextButton(onClick = { renaming = null }) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
     removing?.let { target ->
-        val collection = target.startsWith("c:")
+        val folder = target.startsWith("c:")
         val tag = target.substring(2)
         AlertDialog(
             onDismissRequest = { removing = null },
-            title = { Text(stringResource(if (collection) R.string.collection_remove else R.string.tags_remove_everywhere)) },
-            text = { Text(stringResource(if (collection) R.string.collection_remove_body else R.string.tags_remove_body, tag)) },
+            title = { Text(stringResource(if (folder) R.string.saved_folder_remove else R.string.tags_remove_everywhere)) },
+            text = { Text(stringResource(if (folder) R.string.saved_folder_remove_body else R.string.tags_remove_body, tag)) },
             confirmButton = {
                 TextButton(onClick = {
                     removing = null
-                    if (collection) onRemoveCollection(tag) else onRemove(tag)
+                    if (folder) onRemoveFolder(tag) else onRemove(tag)
                 }) { Text(stringResource(R.string.action_remove)) }
             },
             dismissButton = { TextButton(onClick = { removing = null }) { Text(stringResource(R.string.action_cancel)) } },

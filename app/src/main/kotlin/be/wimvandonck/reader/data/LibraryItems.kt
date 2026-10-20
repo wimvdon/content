@@ -81,6 +81,8 @@ fun Library.addToReadingList(
         base.copy(
             title = title?.trim()?.takeIf { it.isNotEmpty() } ?: base.title,
             readingList = ReadingListEntry(ReadingState.ToRead, now),
+            // Saved again after it was taken out: it goes to the default service, like a new save (#121).
+            service = if (base.readingList != null) base.service else null,
         )
     return putItem(item) to item
 }
@@ -94,6 +96,8 @@ fun Library.setReadingState(
         when {
             state == null -> item.copy(readingList = null)
             item.readingList == null -> item
+            // Archiving takes it out of its folder (#119).
+            state == ReadingState.Archived -> item.copy(readingList = item.readingList.copy(state = state), folder = null)
             else -> item.copy(readingList = item.readingList.copy(state = state))
         }
     }
@@ -131,24 +135,8 @@ fun Library.renameTag(
     )
 }
 
-/** Keeps an item in Bookmarks, in [collection] (blank for none). Its reading list place stays as it is. */
-fun Library.keepAsBookmark(
-    key: String,
-    collection: String?,
-    now: Long,
-): Library =
-    changeItem(key) { item ->
-        item.copy(bookmark = BookmarkEntry(addedAt = item.bookmark?.addedAt ?: now, collection = collection?.trim()?.ifEmpty { null }))
-    }
-
-/** Takes an item out of Bookmarks; its reading list place stays as it is. */
-fun Library.removeBookmark(key: String): Library = changeItem(key) { it.copy(bookmark = null) }
-
 /** The items on the reading list in [state], newest first. */
 fun Library.readingList(state: ReadingState): List<Item> = items.filter { it.readingList?.state == state }.sortedByDescending { it.readingList!!.addedAt }
-
-/** The items in Bookmarks, newest first. */
-fun Library.bookmarks(): List<Item> = items.filter { it.bookmark != null }.sortedByDescending { it.bookmark!!.addedAt }
 
 internal fun cleanTags(tags: List<String>): List<String> = tags.map(String::trim).filter(String::isNotEmpty).distinctBy { it.lowercase() }
 
