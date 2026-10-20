@@ -43,11 +43,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import be.wimvandonck.reader.R
+import be.wimvandonck.reader.data.CardBody
 import be.wimvandonck.reader.data.Feed
 import be.wimvandonck.reader.data.Item
 import be.wimvandonck.reader.data.Library
 import be.wimvandonck.reader.data.ListView
 import be.wimvandonck.reader.data.ReadingLists
+import be.wimvandonck.reader.data.Saved
 import be.wimvandonck.reader.data.SavedFilter
 import be.wimvandonck.reader.data.SavedTab
 import be.wimvandonck.reader.ui.theme.EmptyState
@@ -201,8 +203,8 @@ private fun NotesGrid(
 
 /**
  * A saved item as a note (Noter's cards, after Google Keep): an outlined card with the picture on
- * top, the title, your note (or else the description) as up to ten lines, then the site, the tags
- * and the number of highlights.
+ * top, the title, your note (else the first highlight, quoted, else the description), then the
+ * site, the tags and the number of highlights.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -241,15 +243,26 @@ private fun NoteCard(
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
                 )
-                val preview = item.note.ifBlank { item.description }
-                if (preview.isNotBlank()) {
-                    Text(
-                        preview,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 10,
-                        overflow = TextOverflow.Ellipsis,
-                    )
+                when (val body = Saved.cardBody(item)) {
+                    is CardBody.Quote ->
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Icon(painterResource(R.drawable.ic_quote), contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
+                            Text(
+                                body.text,
+                                style = MaterialTheme.typography.bodyMedium.copy(fontFamily = titleFont),
+                                maxLines = 4,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    null -> Unit
+                    else ->
+                        Text(
+                            body.text,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 10,
+                            overflow = TextOverflow.Ellipsis,
+                        )
                 }
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {

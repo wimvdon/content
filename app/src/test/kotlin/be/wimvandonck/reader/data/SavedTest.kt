@@ -141,4 +141,17 @@ class SavedTest {
         assertEquals("Here", SyncRows.mergeItems(base, item.copy(folder = "Here"), item.copy(folder = "There")).folder)
         assertEquals("There", SyncRows.mergeItems(base, base, item.copy(folder = "There")).folder)
     }
+
+    @Test
+    fun `a card shows the note, else the first highlight, else the description`() {
+        val highlight = Highlight("h1", "The author's words.", createdAt = 1)
+        val second = Highlight("h2", "Later words.", createdAt = 2)
+        val item = Item("a.example/1", "https://a.example/1", "A", description = "The site's summary.", createdAt = 0)
+        assertEquals(CardBody.Note("Mine."), Saved.cardBody(item.copy(note = " Mine. ", highlights = listOf(highlight))))
+        assertEquals(CardBody.Quote("The author's words."), Saved.cardBody(item.copy(highlights = listOf(highlight, second))))
+        // A highlight without a quote doesn't count.
+        assertEquals(CardBody.Quote("Later words."), Saved.cardBody(item.copy(highlights = listOf(highlight.copy(quote = " "), second))))
+        assertEquals(CardBody.Description("The site's summary."), Saved.cardBody(item))
+        assertNull(Saved.cardBody(item.copy(description = "")))
+    }
 }

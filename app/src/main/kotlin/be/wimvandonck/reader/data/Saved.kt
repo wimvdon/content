@@ -30,6 +30,17 @@ data class SavedFilter(
  * Saved (#119): one list for everything saved, the same whichever service it is kept in. An item is
  * in exactly one place: To read, one folder, or the archive. Plain Kotlin, unit tested.
  */
+/** What a card in a folder shows under its title, see [Saved.cardBody]. */
+sealed interface CardBody {
+    val text: String
+
+    data class Note(override val text: String) : CardBody
+
+    data class Quote(override val text: String) : CardBody
+
+    data class Description(override val text: String) : CardBody
+}
+
 object Saved {
     /** The folder an item is in, or null (To read, archived, or not saved). */
     fun folderOf(item: Item): String? = item.folder?.takeIf { item.readingList?.state == ReadingState.ToRead }
@@ -174,6 +185,18 @@ object Saved {
                 },
         )
     }
+
+    /**
+     * The body of an item's card in a folder (#133): your note, else the first highlight (shown
+     * quoted, as the author's words), else the website's description; null when it has none.
+     */
+    fun cardBody(item: Item): CardBody? =
+        when {
+            item.note.isNotBlank() -> CardBody.Note(item.note.trim())
+            item.highlights.any { it.quote.isNotBlank() } -> CardBody.Quote(item.highlights.first { it.quote.isNotBlank() }.quote.trim())
+            item.description.isNotBlank() -> CardBody.Description(item.description.trim())
+            else -> null
+        }
 
     /** A link's type: a video site, a podcast or audio site, else an article. */
     fun typeOf(url: String): SavedType {
