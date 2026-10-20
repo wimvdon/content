@@ -201,6 +201,7 @@
     <string name="share_no_link">Aucun lien à enregistrer</string>
     <string name="share_target_saved">Enregistrés, dans cette app</string>
     <string name="action_archive">Archiver</string>
+    <string name="saved_archived">Archivé</string>
     <string name="action_unarchive">Remettre à lire</string>
     <string name="action_like">J’aime</string>
     <string name="action_unlike">Je n’aime plus</string>

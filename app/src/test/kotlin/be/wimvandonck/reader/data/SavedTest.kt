@@ -41,6 +41,21 @@ class SavedTest {
     }
 
     @Test
+    fun `archiving takes it out of its folder, and Undo files it back there`() {
+        val archived = library.setReadingState("a.example/2", ReadingState.Archived)
+        assertNull(archived.item("a.example/2")!!.folder)
+        assertEquals(listOf("a.example/3"), Saved.items(archived, SavedFilter(SavedTab.Folder("Work"))).map { it.key })
+        // Undo: back to read, in the folder it was in, with its tags.
+        val undone = Saved.file(archived, "a.example/2", "Work")
+        assertEquals(ReadingState.ToRead, undone.item("a.example/2")!!.readingList!!.state)
+        assertEquals(listOf("a.example/3", "a.example/2"), Saved.items(undone, SavedFilter(SavedTab.Folder("Work"))).map { it.key })
+        assertEquals(listOf("ai", "news"), undone.item("a.example/2")!!.tags)
+        // An item that was in To read goes back there.
+        val toRead = Saved.file(library.setReadingState("a.example/1", ReadingState.Archived), "a.example/1", null)
+        assertEquals(listOf("youtu.be/x", "a.example/1"), Saved.items(toRead, SavedFilter(SavedTab.ToRead)).map { it.key })
+    }
+
+    @Test
     fun `liked, tags (all of them) and the type filter within a tab`() {
         assertEquals(listOf("a.example/3"), keys(SavedFilter(SavedTab.All, likedOnly = true)))
         assertEquals(listOf("a.example/3", "a.example/2"), keys(SavedFilter(SavedTab.All, tags = setOf("AI"))))

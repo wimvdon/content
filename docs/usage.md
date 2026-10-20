@@ -132,9 +132,15 @@ website (the same as **Read on website** at the end). In the top bar:
 | ⋮ | **Open in browser** and **Mark as unread**; a feed article not saved yet also has **File in a folder** (the save sheet); a saved one also **Tags** and **Remove from Saved**. Open in browser, and links in an article, open in a tab of your browser on top of Reader, with a **Save** button in its toolbar: it opens the save sheet over the page (see Saving from other apps); save or close it to keep reading. |
 
 A saved article has **File** and **Archive** at the bottom, and **Finished reading** at the end of the
-text. Each opens a sheet that asks what's next: **Archive** (done with it; it stays searchable) or
-**File in a folder**, with a note and tags. File is chosen first when the article has highlights or a
-note. Reader remembers how far you read and opens the article there again.
+text. **Archive** archives it at once and goes back to the list, with **Undo** in the message (it
+returns to where it was, in its folder). **File** opens a sheet with the folder, a note and tags.
+**Finished reading** asks what's next: **Archive** (done with it; it stays searchable) or **File in a
+folder**; File is chosen first when the article has highlights or a note. Reader remembers how far you
+read and opens the article there again.
+
+After **Read later**, the sheet that opens has **Like**, the **Folder** (empty: To read; type one or tap
+one you have) and **Tags**: one step from a feed article to its folder. The folder is set when you tap
+**Done** or close the sheet.
 
 **Full articles.** Many feeds contain only the start of an article, or a few paragraphs with a
 "Read full article" link. Then the reader fetches the
@@ -220,10 +226,12 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   the **Archive**. Filing an article in a folder takes it out of To read; archiving it takes it out of
   its folder.
 - **Getting articles in:** **Read later** in an article; **swipe a feed article left** in the list
-  (swiping right still marks it read or unread); **Add link** (the button at the bottom right of
+  (swiping right still marks it read or unread; the message then offers **File** for the folder sheet); **Add link** (the button at the bottom right of
   Saved); and sharing a link to Reader from another app. These go to To read unless you pick a
   folder in the save sheet. A feed article you save stays the same article: its feed, text and
   picture come along, and it isn't copied.
+- **Swipe in To read, All and Archive:** left archives (with **Undo**; in Archive, back to read),
+  right opens **File in a folder**.
 - **Tabs** under the title: **To read**, **All** (everything, archive included), each **folder**, and
   **Archive**. Under them, chips filter the tab: **Liked** (set apart by its heart), then the tab's
   tags, most used first; pick several to see articles with all of them. The **filter button** next to

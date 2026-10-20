@@ -2,6 +2,15 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-20: A smoother way from a feed to a folder or the archive
+
+The owner found feed → Saved → folder or archive not smooth. Changes: the sheet after Read later
+has the folder too (set on Done or close, not while typing); Archive in the reader acts at once and
+returns to the list with Undo (back into its folder), instead of a sheet asking again; a swipe save
+offers File in its message; Saved's list rows swipe like the feed's (left archive or back to read,
+right File), through one shared `SwipeRow`. Finished reading at the end of the text still asks, as
+it is the moment to decide. Rejected: confirmation dialogs (Undo is cheaper than asking).
+
 ## 2026-10-19: Sharing to Reader shows only the save sheet (#103)
 
 Links shared from other apps go to an exported `ShareActivity` alias of the see-through

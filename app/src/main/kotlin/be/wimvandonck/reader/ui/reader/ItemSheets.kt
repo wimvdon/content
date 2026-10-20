@@ -131,8 +131,9 @@ fun TagsDialog(
 }
 
 /**
- * Opens right after something is added to the reading list: like it and tag it at once. Every tap
- * applies straight away; closing the sheet leaves it on the reading list.
+ * Opens right after something is saved: like it, put it in a folder and tag it at once. Like and
+ * tags apply straight away; the folder when the sheet closes (Done, or swiped away), so typing a
+ * name doesn't file it letter by letter. Closing without a folder leaves it in To read.
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -142,15 +143,26 @@ fun AddedSheet(
     onLike: () -> Unit,
     onTags: (List<String>) -> Unit,
     onDismiss: () -> Unit,
+    folders: List<String> = emptyList(),
+    onFolder: (String) -> Unit = {},
 ) {
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    var folder by rememberSaveable(item.key) { mutableStateOf(item.folder.orEmpty()) }
+    val close = {
+        if (folder.trim() != item.folder.orEmpty()) onFolder(folder.trim())
+        onDismiss()
+    }
+    ModalBottomSheet(onDismissRequest = close) {
         Column(
             Modifier
                 .verticalScroll(rememberScrollState())
                 .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Text(stringResource(R.string.reading_list_added), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
+            Text(
+                stringResource(R.string.saved_to, folder.trim().ifEmpty { stringResource(R.string.reading_list_to_read) }),
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.semantics { heading() },
+            )
             Text(item.title, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilterChip(
@@ -162,9 +174,10 @@ fun AddedSheet(
                     },
                 )
             }
+            FolderField(folder, folders, onChange = { folder = it })
             Text(stringResource(R.string.tags_title), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
             TagsEditor(item.tags, allTags, onTags)
-            Button(onClick = onDismiss, modifier = Modifier.align(Alignment.End)) { Text(stringResource(R.string.action_done)) }
+            Button(onClick = close, modifier = Modifier.align(Alignment.End)) { Text(stringResource(R.string.action_done)) }
         }
     }
 }

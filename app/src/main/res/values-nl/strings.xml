@@ -195,6 +195,7 @@
     <string name="share_no_link">Geen link om te bewaren</string>
     <string name="share_target_saved">Bewaard, in deze app</string>
     <string name="action_archive">Archiveren</string>
+    <string name="saved_archived">Gearchiveerd</string>
     <string name="action_unarchive">Terug naar te lezen</string>
     <string name="action_like">Leuk</string>
     <string name="action_unlike">Niet meer leuk</string>

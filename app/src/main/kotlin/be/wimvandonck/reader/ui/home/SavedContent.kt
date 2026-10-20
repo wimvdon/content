@@ -85,6 +85,8 @@ internal fun SavedContent(
     home: SavedHome,
     showImages: Boolean,
     onOpen: (Item) -> Unit,
+    onArchive: (Item) -> Unit = {},
+    onFile: (Item) -> Unit = {},
 ) {
     if (home.items.isEmpty()) {
         val plain = !home.filter.likedOnly && home.filter.tags.isEmpty() && home.filter.type == null
@@ -102,16 +104,24 @@ internal fun SavedContent(
         )
         return
     }
-    if (home.filter.tab is SavedTab.Folder) NotesGrid(home, showImages, onOpen) else ArticleList(home, showImages, onOpen)
+    if (home.filter.tab is SavedTab.Folder) NotesGrid(home, showImages, onOpen) else ArticleList(home, showImages, onOpen, onArchive, onFile)
 }
 
-/** To read, All and Archive: the feed list's rows, newest saved first. */
+/**
+ * To read, All and Archive: the feed list's rows, newest saved first. Swipe left to archive (or,
+ * archived, back to read), right to file in a folder.
+ */
 @Composable
 private fun ArticleList(
     home: SavedHome,
     showImages: Boolean,
     onOpen: (Item) -> Unit,
+    onArchive: (Item) -> Unit,
+    onFile: (Item) -> Unit,
 ) {
+    val archiveLabel = stringResource(R.string.action_archive)
+    val unarchiveLabel = stringResource(R.string.action_unarchive)
+    val fileLabel = stringResource(R.string.action_file)
     // Another list starts at the top.
     val listState = rememberSaveable(home.filter, saver = LazyListState.Saver) { LazyListState() }
     LazyColumn(
@@ -124,16 +134,26 @@ private fun ArticleList(
         items(home.items, key = { it.key }) { item ->
             val article = remember(item, home.library) { ReadingLists.article(item, home.library) }
             val source = remember(item, home.library) { ReadingLists.source(item, home.library) }
-            ArticleRow(
-                article = article,
-                feed = source,
-                view = home.listView,
-                showImage = showImages,
-                showUnreadDot = false,
-                onClick = { onOpen(item) },
+            SwipeRow(
+                right = SwipeAction(R.drawable.ic_folder, fileLabel) { onFile(item) },
+                left =
+                    if (item.archived) {
+                        SwipeAction(R.drawable.ic_unarchive, unarchiveLabel) { onArchive(item) }
+                    } else {
+                        SwipeAction(R.drawable.ic_inventory, archiveLabel) { onArchive(item) }
+                    },
                 modifier = Modifier.animateItem(),
-                services = home.services[item.key].orEmpty(),
-            )
+            ) {
+                ArticleRow(
+                    article = article,
+                    feed = source,
+                    view = home.listView,
+                    showImage = showImages,
+                    showUnreadDot = false,
+                    onClick = { onOpen(item) },
+                    services = home.services[item.key].orEmpty(),
+                )
+            }
         }
     }
 }

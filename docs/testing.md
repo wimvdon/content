@@ -225,3 +225,13 @@ Needs the Raindrop app registered and the Worker's `RAINDROP_CLIENT_ID` and `RAI
       moves there, the sidebar lists the folder with its count, and Saved no longer shows it.
 - [ ] Archive it: it leaves the folder, and the folder disappears with its last article.
 - [ ] Sidebar › **Folders and tags**: delete a folder; its articles are back in Saved.
+
+## Feed to Saved to folder or archive (smooth flow)
+
+- [ ] In an article from a feed, tap **Read later**: the sheet shows Like, **Folder** and Tags. Tap a
+      folder chip (or type a new one) and **Done**: "Saved to <folder>", and it is in that folder.
+- [ ] Swipe a feed article left: "Saved to To read" with **File**; tap File: the same sheet.
+- [ ] In a saved article, tap **Archive** at the bottom: back in the list with "Archived" and
+      **Undo**; Undo puts it back in its folder.
+- [ ] In Saved › To read, swipe a row left: archived with Undo; swipe right: the File sheet. In
+      Archive, swiping left puts it back to read.

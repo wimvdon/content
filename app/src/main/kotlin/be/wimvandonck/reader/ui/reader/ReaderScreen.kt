@@ -305,7 +305,8 @@ fun ReaderScreen(
                             Text(stringResource(R.string.action_unarchive), modifier = Modifier.padding(start = 8.dp))
                         }
                     } else {
-                        TextButton(onClick = { finish(FinishChoice.Archive) }) {
+                        // Archive at once (Undo in the message); the sheet at the end of the text still asks.
+                        TextButton(onClick = item.onArchive) {
                             Icon(painterResource(R.drawable.ic_inventory), contentDescription = null)
                             Text(stringResource(R.string.action_archive), modifier = Modifier.padding(start = 8.dp))
                         }

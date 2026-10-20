@@ -172,6 +172,10 @@ class HomeActions(
     val onSavedFilter: (SavedFilter) -> Unit = {},
     val onOpenItem: (Item) -> Unit = {},
     val onAddLink: () -> Unit = {},
+    /** Archives a saved item, or puts an archived one back to read (a swipe in Saved). */
+    val onArchiveItem: (Item) -> Unit = {},
+    /** Opens the sheet to file a saved item in a folder (a swipe in Saved). */
+    val onFileItem: (Item) -> Unit = {},
     /** Opens the search through every feed's articles and Saved. */
     val onOpenSearch: () -> Unit = {},
 )
@@ -369,7 +373,7 @@ fun HomeScreen(
                         onRefresh = actions.onRefresh,
                         modifier = Modifier.fillMaxSize(),
                     ) {
-                        SavedContent(reading, state.showImages, actions.onOpenItem)
+                        SavedContent(reading, state.showImages, actions.onOpenItem, onArchive = actions.onArchiveItem, onFile = actions.onFileItem)
                     }
                 } else {
                 PullToRefreshBox(
@@ -547,8 +551,7 @@ private fun DayHeader(day: LocalDate) {
 
 /**
  * Swiping a row right past [SWIPE_THRESHOLD] of its width marks it read, or unread when it was
- * read; swiping left puts it on the reading list, to read later (#107). The row always springs
- * back. A short vibration says when letting go will act.
+ * read; swiping left puts it on the reading list, to read later (#107).
  */
 @Composable
 private fun SwipeToToggleRead(
@@ -558,19 +561,51 @@ private fun SwipeToToggleRead(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
+    SwipeRow(
+        right =
+            SwipeAction(
+                if (article.read) R.drawable.ic_mark_unread else R.drawable.ic_mark_read,
+                stringResource(if (article.read) R.string.action_mark_unread else R.string.action_mark_read),
+                onToggle,
+            ),
+        left = SwipeAction(R.drawable.ic_reading_list, stringResource(R.string.action_read_later), onReadLater),
+        modifier = modifier,
+        content = content,
+    )
+}
+
+/** What a swipe does: its icon and label behind the row, and the action. */
+internal class SwipeAction(
+    val icon: Int,
+    val label: String,
+    val onAction: () -> Unit,
+)
+
+/**
+ * A row that acts when swiped past [SWIPE_THRESHOLD] of its width: [right] when swiped to the right,
+ * [left] to the left (#107, #119). The row always springs back. A short vibration says when letting
+ * go will act; both actions are also offered to screen readers.
+ */
+@Composable
+internal fun SwipeRow(
+    right: SwipeAction?,
+    left: SwipeAction?,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
     var offset by remember { mutableFloatStateOf(0f) }
     var width by remember { mutableIntStateOf(0) }
     val scope = rememberCoroutineScope()
     val haptics = LocalHapticFeedback.current
-    val toggle by rememberUpdatedState(onToggle)
-    val readLater by rememberUpdatedState(onReadLater)
+    val onRight by rememberUpdatedState(right?.onAction)
+    val onLeft by rememberUpdatedState(left?.onAction)
     val threshold = width * SWIPE_THRESHOLD
-    val label = stringResource(if (article.read) R.string.action_mark_unread else R.string.action_mark_read)
-    val laterLabel = stringResource(R.string.action_read_later)
     val dragState =
         rememberDraggableState { delta ->
             val before = abs(offset) >= threshold
-            offset = (offset + delta).coerceIn(-width.toFloat(), width.toFloat())
+            val min = if (left != null) -width.toFloat() else 0f
+            val max = if (right != null) width.toFloat() else 0f
+            offset = (offset + delta).coerceIn(min, max)
             if (abs(offset) >= threshold != before) haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
         }
     Box(
@@ -578,19 +613,16 @@ private fun SwipeToToggleRead(
             .onSizeChanged { width = it.width }
             .semantics {
                 customActions =
-                    listOf(
-                        CustomAccessibilityAction(label) {
-                            toggle()
+                    listOfNotNull(right, left).map { action ->
+                        CustomAccessibilityAction(action.label) {
+                            action.onAction()
                             true
-                        },
-                        CustomAccessibilityAction(laterLabel) {
-                            readLater()
-                            true
-                        },
-                    )
+                        }
+                    }
             },
     ) {
-        if (offset != 0f) {
+        val shown = if (offset < 0) left else right
+        if (offset != 0f && shown != null) {
             val armed = abs(offset) >= threshold
             Row(
                 Modifier
@@ -602,13 +634,8 @@ private fun SwipeToToggleRead(
                 horizontalArrangement = if (offset < 0) Arrangement.End else Arrangement.Start,
             ) {
                 val tint = if (armed) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onPrimaryContainer
-                val later = offset < 0
-                Icon(
-                    painterResource(if (later) R.drawable.ic_reading_list else if (article.read) R.drawable.ic_mark_unread else R.drawable.ic_mark_read),
-                    contentDescription = null,
-                    tint = tint,
-                )
-                Text(if (later) laterLabel else label, style = MaterialTheme.typography.labelLarge, color = tint, modifier = Modifier.padding(horizontal = 12.dp))
+                Icon(painterResource(shown.icon), contentDescription = null, tint = tint)
+                Text(shown.label, style = MaterialTheme.typography.labelLarge, color = tint, modifier = Modifier.padding(horizontal = 12.dp))
             }
         }
         Box(
@@ -618,7 +645,7 @@ private fun SwipeToToggleRead(
                     state = dragState,
                     orientation = Orientation.Horizontal,
                     onDragStopped = {
-                        if (offset >= threshold) toggle() else if (-offset >= threshold) readLater()
+                        if (offset >= threshold) onRight?.invoke() else if (-offset >= threshold) onLeft?.invoke()
                         scope.launch {
                             animate(offset, 0f, animationSpec = spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMediumLow)) { value, _ ->
                                 offset = value
@@ -632,7 +659,7 @@ private fun SwipeToToggleRead(
     }
 }
 
-/** How far (as part of the row's width) a swipe must go to toggle read. */
+/** How far (as part of the row's width) a swipe must go to act. */
 private const val SWIPE_THRESHOLD = 0.3f
 
 @Composable
