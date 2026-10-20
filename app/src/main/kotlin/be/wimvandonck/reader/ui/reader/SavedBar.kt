@@ -2,14 +2,12 @@ package be.wimvandonck.reader.ui.reader
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -32,7 +30,8 @@ import be.wimvandonck.reader.data.Place
 import be.wimvandonck.reader.data.SaveChoices
 
 /**
- * The reader's bar for a saved article (#139, #156): two buttons, as the Organise sheet groups it.
+ * The reader's bar for a saved article (#139, #156): two buttons on the left, as the Organise sheet
+ * groups it; Share follows at the bar's right end.
  * **Folder** says where it is and opens To read and Archive, a divider, then the folders and New
  * folder; **Tags** says its tags (or Liked) and opens Like, a divider, then the tags and Add a tag.
  * New folder and Add a tag open Organise, the only place to type.
@@ -75,15 +74,14 @@ internal fun RowScope.SavedBar(item: ReaderItem) {
             )
         }
     }
-    Spacer(Modifier.weight(1f))
-    Box(Modifier.padding(end = 8.dp).weight(1f, fill = false)) {
+    // Next to the folder: the bar's right end is Share.
+    Box(Modifier.weight(1f, fill = false)) {
         val liked = stringResource(R.string.reading_list_liked)
         val tagsSpoken = "$tagsTitle: ${SaveChoices.tagsLabel(choice, liked) ?: "–"}"
         TextButton(onClick = { tagsOpen = true }, modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = tagsSpoken; role = Role.DropdownList }) {
             Icon(
                 painterResource(if (choice.liked) R.drawable.ic_favorite_filled else R.drawable.ic_label),
                 contentDescription = null,
-                tint = if (choice.liked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
                 SaveChoices.tagsLabel(choice, liked) ?: stringResource(R.string.tags_title),

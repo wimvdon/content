@@ -136,10 +136,11 @@ and then (always before a release):
       at once) filter it; the filter button next to search picks Articles, Videos or Audio. To read,
       All and Archive look like the feed list (Settings › View applies); a folder shows notes in two
       columns (picture, title, note or description, site, tags). Add link asks for an address and a
-      folder. In the reader (#139): the top bar has only Aa, Share and ⋮, before and after saving;
-      the bar below has Save, then the folder (tap: Organise, with the note), ♥ and Archive (at once,
-      with Undo; archived: Back to read); the text ends with Read on website; ⋮ has Show feed text /
-      full article, Open in browser, Mark as unread and Remove from Saved (asks first), no Tags.
+      folder. In the reader (#139): the top bar has the full-article button (lit while the full article
+      shows; tap: the feed's text, tap again: the full article), Aa and ⋮, before and after saving;
+      the bar below has Save on the left, or once saved the folder and the tags side by side (both
+      icons in the same colour), and Share at the right end; the text ends with Read on website; ⋮
+      has Open in browser, Mark as unread and Remove from Saved (asks first), no Tags. Web app: the same.
       Nothing says "Finished reading", in any language.
       Leave an article halfway and open it again: it opens where you were. ☰ › Folders and tags
       renames and removes folders (their articles go to the Archive, not back to To read) and tags. An app updated from a
