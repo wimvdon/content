@@ -42,18 +42,16 @@ object SaveChoices {
         )
 
     /**
-     * The folder chips, in order: To read, each folder in use, then the one being made (not in use
-     * yet), and Archive when [offerArchive] (only when something new is saved: a link kept for
-     * reference, never meant to be read).
+     * The folder chips, in order (#156): To read and Archive, the two places every article can be,
+     * then each folder in use and the one being made (not in use yet).
      */
     fun places(
         folders: List<String>,
         current: Place,
-        offerArchive: Boolean,
     ): List<Place> {
         val inUse = folders.map(Place::Folder)
         val made = (current as? Place.Folder)?.takeIf { c -> folders.none { it.equals(c.name, ignoreCase = true) } }
-        return listOf(Place.ToRead) + inUse + listOfNotNull(made) + listOfNotNull(Place.Archive.takeIf { offerArchive || current == Place.Archive })
+        return listOf(Place.ToRead, Place.Archive) + inUse + listOfNotNull(made)
     }
 
     /** A folder typed under New folder: the folder of that name when there is one (case ignored), null when blank. */

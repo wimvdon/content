@@ -137,9 +137,10 @@ at once and goes back to the list, with **Undo** in the message (it returns to w
 folder); an archived article has **Back to read** instead. The text ends with **Read on website**.
 Reader remembers how far you read and opens the article there again.
 
-After **Save**, the sheet that opens says where it was saved, then has the **Folder** (To read,
-your folders, or **New folder** to make one), the **Tags** with **Like** in front, and a **Note**: one
-step from a feed article to its folder. **Save** keeps what you chose; closing the sheet keeps it too.
+After **Save**, the sheet that opens says where it was saved, then has the **Folder** (To read and
+**Archive** first, then your folders, or **New folder** to make one), the **Tags** with **Like** in
+front, and a **Note**: one step from a feed article to its folder. **Save** keeps what you chose;
+**Cancel** (or closing the sheet) changes nothing, and the article stays where it was just saved.
 The same sheet, called **Organise**, opens when you swipe a saved article right in Saved. When it
 closes, a message says where the article went; after a swipe, **Add link** or a link shared from
 another app it also has **Open**, which goes to the article in Saved.
@@ -179,8 +180,8 @@ same, and what is in Saved is also kept in the connected service.
 
 **Saving from other apps.** In Chrome or any app that shares links, tap Share and pick
 **Reader**. Only the **Save to Reader** sheet opens, over the app you were in (the rest of Reader
-stays closed): the site, then the **Folder** (To read, your folders, **Archive** for a link you keep
-for reference, or **New folder**), the **Tags** with **Like** in front, and a **Note**. **Save** saves
+stays closed): the site, then the **Folder** (To read, **Archive** for a link you keep
+for reference, your folders, or **New folder**), the **Tags** with **Like** in front, and a **Note**. **Save** saves
 it and says where it went, and you are back in that app; **Cancel** saves nothing. **Add link** in
 Saved opens the same sheet with a field for the address. A
 link shared without a title gets the page's own title, description and picture. Shared text without

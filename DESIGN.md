@@ -287,11 +287,12 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   app (where the snackbar is all of Reader that shows).
 - One save and Organise sheet (#143), wherever you meet an article: a `ModalBottomSheet` with, in
   this order, what is being saved (only before the save: the address field for Add link, or a shared
-  link's title and site), **Folder** as single-choice `FilterChip`s (To read, each folder, Archive
-  only for a new save, then a New folder `AssistChip`, the only thing to type), **Tags** in one row
+  link's title and site), **Folder** as single-choice `FilterChip`s (To read and Archive with
+  their icons, a `VerticalDivider`, each folder, then a New folder `AssistChip`, the only thing to
+  type; #156), **Tags** in one row
   like Saved's filter row (Like, a `VerticalDivider`, the tags as `InputChip`s, Add a tag), and
-  **Note** last, with the room. Section titles in Title Small, `primary`. Then Save, with Cancel only
-  when nothing is saved yet; the heading is "Save to Reader", "Saved to …" or "Organise".
+  **Note** last, with the room. Section titles in Title Small, `primary`. Then Cancel and Save, always:
+  closing the sheet is Cancel, so only Save changes anything; the heading is "Save to Reader", "Saved to …" or "Organise".
 - The ☰ drawer: the Feeds section (All articles, the folders with their feeds, the other feeds),
   the Saved section (To read with its count, All, the folders with theirs, then Archive), then
   Manage feeds, Folders and tags, Connected services and Settings. Manage feeds shows what it manages with a pen (the

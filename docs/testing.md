@@ -237,14 +237,17 @@ Needs the Raindrop app registered and the Worker's `RAINDROP_CLIENT_ID` and `RAI
 ## Feed to Saved to folder or archive (smooth flow)
 
 - [ ] In an article from a feed, tap **Save**: the sheet's heading says "Saved to To read", then
-      **Folder** chips (no Archive), **Tags** with Like in front, and **Note**; no Cancel. Tap a folder
-      chip (the heading follows), or New folder and type one, and **Save**: it is in that folder.
-      Swipe the sheet away instead: what you picked is kept too.
+      **Folder** chips (To read and Archive with their icons, a thin line, then your folders),
+      **Tags** with Like in front, and **Note**, then **Cancel** and **Save**. Tap a folder chip (the
+      heading follows), or New folder and type one, and **Save**: it is in that folder. Pick another
+      folder and tap **Cancel** (or swipe the sheet away) instead: it stays in To read.
 - [ ] Swipe a feed article left: "Saved to To read" with **File**; tap File: the same sheet.
 - [ ] In a saved article, tap **Archive** at the bottom: back in the list with "Archived" and
       **Undo**; Undo puts it back in its folder.
 - [ ] **Add link** and a link shared from another app: the sheet asks for the address (or shows the
-      link), offers **Archive** among the folders, and has **Cancel**, which saves nothing.
+      link), offers the same folder chips, and **Cancel** saves nothing.
+- [ ] **Organise** a saved article (swipe right in Saved): the same chips, and **Cancel**, which
+      changes nothing.
 - [ ] Nothing in a sheet asks which service, and no sheet explains an empty field.
 - [ ] **Save, the list icon and Open (#142):** nothing says "Read later", in any language; the
       navigation bar's Saved is a list icon, To read keeps the open book. After saving from the
