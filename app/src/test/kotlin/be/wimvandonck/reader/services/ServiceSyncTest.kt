@@ -96,7 +96,6 @@ class ServiceSyncTest {
             delete(remoteId)
         }
 
-        override suspend fun text(remoteId: String): String? = null
     }
 
     private var library = Library()

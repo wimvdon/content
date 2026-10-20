@@ -87,6 +87,7 @@ class LibraryRepository(
     init {
         scope.launch {
             state.value = writeLock.withLock { load() }
+            dao.deleteServiceTexts()
             // A rough word count from each kept text's length, for reading times; exact once a text is read again.
             _textWords.value = dao.textLengths().associate { it.itemKey to it.length / HTML_CHARS_PER_WORD }
         }
@@ -221,9 +222,6 @@ class LibraryRepository(
     suspend fun forgetItemSync() {
         dao.writeSyncRows(emptyList(), emptyList(), 0, clear = true)
     }
-
-    /** The texts kept for an item (Reader's extraction, a service's text), by where they came from. */
-    suspend fun texts(itemKey: String): Map<String, String> = dao.texts(itemKey).associate { it.source to it.html }
 
     suspend fun putText(
         itemKey: String,

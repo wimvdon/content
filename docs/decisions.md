@@ -2,6 +2,17 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-20: Reader's own article text, always (#134)
+
+A saved article is read exactly like a feed article: the feed's text, else the full article
+`ArticleExtractor` makes of its page. Instapaper's parsed text is no longer asked for or shown
+("Instapaper text"), and the texts kept before are deleted at start. Why: Instapaper only gives its
+text to the account that registered the app, so the owner read one text and everyone else another,
+and the owner's phone and the web app disagreed; highlights (#124) need one text to anchor in. An
+article with no feed text (an added link, or one from a service) now loads its page whatever the
+full-articles setting, since it has only a description otherwise. Rejected: buying an Instaparser key
+(not worth its price for a better parser on one device).
+
 ## 2026-10-20: The web app's Saved is the same signed in or not; Instapaper only syncs
 
 The owner's rule: the interface is always the same; external services sync, they don't change the

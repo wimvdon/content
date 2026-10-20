@@ -266,9 +266,8 @@ Instapaper:
   Saved).
 - Instapaper's home list is **To read**, its **folders** are Saved's folders and its archive is the
   **Archive**. Filing into a folder Instapaper doesn't have yet makes it there.
-- On the owner's own Instapaper account the reader shows **Instapaper's text** of an article
-  ("Instapaper text" above the title). Other accounts get Reader's own full article, as Instapaper
-  only gives its text to the account that registered the app.
+- The reader always shows Reader's own full article, for every account: an article that came in
+  from Instapaper reads exactly like one saved from a feed.
 - If Instapaper doesn't answer or asks to wait, nothing is lost: the rest goes the next time.
 
 **Sign out** removes the sign-in from this device and stops syncing here. Saved stays.

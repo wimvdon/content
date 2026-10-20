@@ -73,9 +73,6 @@ class InstapaperClient(
         return parseBookmark(runCatching { Json.parse(call("POST", "/bookmarks/$id", Json.write(body))) }.getOrNull())
     }
 
-    /** Instapaper's parsed text of the article (HTML). Without an Instaparser key only for the developer's own account. */
-    suspend fun parse(id: Long): String? = parseText(call("GET", "/bookmarks/$id/parse"))
-
     suspend fun delete(id: Long) {
         call("DELETE", "/bookmarks/$id")
     }
@@ -221,12 +218,6 @@ class InstapaperClient(
             val bookmarks = (root["bookmarks"] as? List<*>).orEmpty()
             val deleted = (root["deleted_ids"] as? List<*>).orEmpty()
             return InstapaperChanges(bookmarks.mapNotNull(::parseBookmark), deleted.mapNotNull { it.asLong() }, bookmarks.size + deleted.size)
-        }
-
-        /** The body of a /parse answer. */
-        fun parseText(text: String): String? {
-            val root = parseJson(text) as? Map<*, *> ?: return null
-            return ((root["content"] as? Map<*, *>)?.get("body") as? String)?.takeIf { it.isNotBlank() }
         }
 
         fun parseTag(value: Any?): InstapaperTag? {

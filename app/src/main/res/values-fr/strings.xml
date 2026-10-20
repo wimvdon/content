@@ -215,7 +215,6 @@
     <string name="finish_title">Lecture terminée</string>
     <string name="finish_archive_body">Terminé. Reste dans votre historique.</string>
     <string name="finish_with_note">1 note</string>
-    <string name="reader_text_instapaper">Texte d’Instapaper</string>
     <string name="reading_list_to_read">À lire</string>
     <string name="reading_list_archive">Archives</string>
     <string name="reading_list_liked">Aimés</string>

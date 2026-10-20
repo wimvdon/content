@@ -71,8 +71,8 @@ data class ItemRow(
 )
 
 /**
- * A version of an item's text and where it came from ("feed", "extracted" or a service such as
- * "instapaper"), kept on this device only: article text is never synced (#106).
+ * A version of an item's text and where it came from ("feed" or "extracted"; Instapaper's
+ * text, kept before #134, is deleted at start), kept on this device only: article text is never synced (#106).
  */
 @Entity(tableName = "item_texts", primaryKeys = ["itemKey", "source"])
 data class ItemTextRow(

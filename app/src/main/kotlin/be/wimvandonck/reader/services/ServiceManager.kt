@@ -251,22 +251,6 @@ class ServiceManager(
         if (copyJob?.isActive != true) _copying.value = null
     }
 
-    /**
-     * A service's own text of an item (Instapaper's parsed text, own account only), kept on the
-     * device under the service's id; null when no service has one.
-     */
-    suspend fun text(item: Item): String? {
-        for ((id, service) in services) {
-            if (ServiceFeature.Text !in service.features) continue
-            library.texts(item.key)[id]?.let { return it }
-            val remoteId = library.serviceState(id).rows[item.key]?.remoteId ?: continue
-            val text = runCatching { service.text(remoteId) }.getOrNull() ?: continue
-            library.putText(item.key, id, text)
-            return text
-        }
-        return null
-    }
-
     private data class Core(
         val key: String,
         val state: Any?,

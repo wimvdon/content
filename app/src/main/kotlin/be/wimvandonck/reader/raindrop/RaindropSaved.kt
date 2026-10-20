@@ -124,7 +124,6 @@ class RaindropSaved(
         client.delete(id)
     }
 
-    override suspend fun text(remoteId: String): String? = null
 
     /** Where an item goes: the Archive collection (made when missing), a folder's collection (made when missing), or Unsorted. */
     private suspend fun collectionFor(
