@@ -63,7 +63,7 @@ import be.wimvandonck.reader.ui.reader.SaveSheet
 import be.wimvandonck.reader.ui.reader.SheetKind
 import be.wimvandonck.reader.ui.reader.ReaderItem
 import be.wimvandonck.reader.ui.reader.fontFamily
-import be.wimvandonck.reader.ui.settings.SaveServiceDialog
+import be.wimvandonck.reader.ui.settings.ServiceScreen
 import be.wimvandonck.reader.ui.settings.serviceName
 import be.wimvandonck.reader.ui.settings.ServicesActions
 import be.wimvandonck.reader.ui.settings.ServicesScreen
@@ -127,6 +127,9 @@ sealed interface Screen {
     /** Connected services (#109). */
     data object Services : Screen
 
+    /** One connected service: its account, import and what it syncs (#145). */
+    data class Service(val id: String) : Screen
+
     /** Search through every feed's articles and Saved. */
     data object Search : Screen
 
@@ -138,6 +141,7 @@ sealed interface Screen {
                 Feeds -> "feeds"
                 Tags -> "tags"
                 Services -> "services"
+                is Service -> "service:" + screen.id
                 Search -> "search"
                 is Reader -> "reader:" + screen.articleKey
             }
@@ -148,6 +152,7 @@ sealed interface Screen {
                 text == "feeds" -> Feeds
                 text == "tags" -> Tags
                 text == "services" -> Services
+                text.startsWith("service:") -> Service(text.removePrefix("service:"))
                 text == "search" -> Search
                 text.startsWith("reader:") -> Reader(text.removePrefix("reader:"))
                 else -> Home
@@ -180,10 +185,9 @@ fun RssReaderNavigation(
     val textWords by repository.textWords.collectAsStateWithLifecycle()
     val syncStatus by app.sync.status.collectAsStateWithLifecycle()
     val serviceStatuses by app.services.statuses.collectAsStateWithLifecycle()
-    // Which service keeps each saved item, marked while both are connected (#121).
+    // Which services keep each saved item in step: removing one both keep asks which (#145).
     val servicePresence by app.services.presence.collectAsStateWithLifecycle()
-    val copying by app.services.copying.collectAsStateWithLifecycle()
-    val shownPresence = if (serviceStatuses.size > 1) servicePresence else emptyMap()
+    val servicesWaiting by app.services.waiting.collectAsStateWithLifecycle()
     val instapaperState by app.instapaper.state.collectAsStateWithLifecycle()
     val instapaperNotice by app.instapaper.notice.collectAsStateWithLifecycle()
     val raindropState by app.raindrop.state.collectAsStateWithLifecycle()
@@ -532,7 +536,6 @@ fun RssReaderNavigation(
                                         library = library,
                                         titleFont = current.reader.font.fontFamily(),
                                         listView = current.listView,
-                                        services = shownPresence,
                                     ),
                                 toReadCount = remember(library) { library.items.count { Saved.isIn(it, SavedTab.ToRead) } },
                             ),
@@ -687,7 +690,7 @@ fun RssReaderNavigation(
                                             editLibrary { Saved.remove(it, i.key) }
                                             pop()
                                         },
-                                        services = shownPresence[i.key].orEmpty(),
+                                        services = servicePresence[i.key].orEmpty(),
                                         onRemoveFrom = { id ->
                                             app.appScope.launch {
                                                 val removed = app.services.removeFrom(i.key, id)
@@ -826,33 +829,44 @@ fun RssReaderNavigation(
                     )
                 }
 
-                Screen.Services -> {
+                Screen.Services, is Screen.Service -> {
                     SystemBarsFollowTheme(appDark)
-                    ServicesScreen(
-                        state =
-                            ServicesState(
-                                instapaper = instapaperState,
-                                raindrop = raindropState,
-                                statuses = serviceStatuses,
-                                saveService = serviceStatuses.keys.let { connected -> current.saveService?.takeIf { it in connected } ?: connected.firstOrNull() },
-                                duplicates = current.duplicates,
-                                copying = copying,
-                            ),
-                        actions =
-                            ServicesActions(
-                                onBack = ::pop,
-                                onSignIn = { uiScope.launch { ExternalApps.openLink(context, app.instapaper.begin()) } },
-                                onConnectRaindrop = { uiScope.launch { ExternalApps.openLink(context, app.raindrop.begin()) } },
-                                onDisconnectRaindrop = { app.appScope.launch { app.raindrop.signOut() } },
-                                onSyncNow = { app.appScope.launch { app.services.sync() } },
-                                onSaveServiceChange = { id -> app.appScope.launch { app.settings.setSaveService(id) } },
-                                onDuplicatesChange = { value -> app.appScope.launch { app.settings.setDuplicates(value) } },
-                                onCountCopy = { from, to, result -> uiScope.launch { result(app.services.copyCount(from, to)) } },
-                                onCopy = { from, to -> app.services.startCopy(from, to) },
-                                onCancelCopy = { app.services.cancelCopy() },
-                                onCopyDone = { app.services.clearCopy() },
-                            ),
-                    )
+                    val servicesState =
+                        ServicesState(
+                            instapaper = instapaperState,
+                            raindrop = raindropState,
+                            statuses = serviceStatuses,
+                            scopes = current.scopes,
+                            imports = current.imports,
+                            waiting = servicesWaiting,
+                            folders = remember(library) { Saved.folders(library) },
+                        )
+                    val servicesActions =
+                        ServicesActions(
+                            onBack = ::pop,
+                            onSignIn = { uiScope.launch { ExternalApps.openLink(context, app.instapaper.begin()) } },
+                            onSignOut = { app.appScope.launch { app.sync.signOut() } },
+                            onConnectRaindrop = { uiScope.launch { ExternalApps.openLink(context, app.raindrop.begin()) } },
+                            onDisconnectRaindrop = { app.appScope.launch { app.raindrop.signOut() } },
+                            onSyncNow = { app.appScope.launch { app.services.sync() } },
+                            onOpenService = { id -> push(Screen.Service(id)) },
+                            onLoadFolders = { id, result -> uiScope.launch { result(app.services.folders(id)) } },
+                            onImport = { id, what, result ->
+                                // Kept going if the screen is left; the answer comes back if it is still there.
+                                app.appScope.launch {
+                                    val ok = app.services.import(id, what)
+                                    withContext(Dispatchers.Main) { result(ok) }
+                                }
+                            },
+                            onCountLeaving = { id, scope, result -> uiScope.launch { result(app.services.leaving(id, scope)) } },
+                            onScopeChange = { id, scope ->
+                                app.appScope.launch {
+                                    app.settings.setScope(id, scope)
+                                    app.services.sync()
+                                }
+                            },
+                        )
+                    if (screen is Screen.Service) ServiceScreen(screen.id, servicesState, servicesActions) else ServicesScreen(servicesState, servicesActions)
                 }
 
             }
@@ -886,13 +900,6 @@ fun RssReaderNavigation(
                 fileKey = null
             },
             key = sheetItem.key,
-        )
-    }
-
-    // Both services connected and not yet said where new saves go: ask once (#121).
-    if (settings != null && instapaperState is InstapaperState.SignedIn && raindropState == RaindropState.SignedIn && current.saveService == null) {
-        SaveServiceDialog(
-            onChoose = { id -> app.appScope.launch { app.settings.setSaveService(id) } },
         )
     }
 

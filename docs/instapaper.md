@@ -7,18 +7,23 @@ also opens the user's Reader account, which syncs the library (`docs/account.md`
 ## The reading list and Instapaper (Android)
 
 The reading list is Reader's own (items of the library, `data/Items.kt`): it works without an
-account. Signed in, `services/ServiceManager.kt` keeps it and the Instapaper account the same through
-`services/ServiceSync.kt` and `instapaper/InstapaperReadingList.kt`, while the app is on screen: when
-it comes on screen or signs in, two seconds after a change to the reading list, on pull-to-refresh
-and on Sync now. Never in the background.
+account. Signing in first asks what to **import** (#145): everything Instapaper has, or some of its
+folders (and its archive), once; each article arrives where it belongs, as it is. From then on
+`services/ServiceManager.kt` keeps Instapaper's **scope** (everything in Saved, or some folders) in
+step both ways through `services/ServiceSync.kt` and `instapaper/InstapaperReadingList.kt`, while
+the app is on screen: when it comes on screen or signs in, two seconds after a change to the reading
+list, on pull-to-refresh and on Sync now. Never in the background. An article filed out of the
+scope is archived at Instapaper, never deleted.
 
 - **Reading changes:** `GET /api/2/bookmarks?since=<time>` (500 a page, with `deleted_ids`) returns
   everything changed since the last sync across the whole account; the first sync asks with
   `since=1`, so the device keeps a full copy and Search covers every article. The next `since` is
   the time of the request minus five minutes (clocks differ; taking a change twice is harmless).
-- **Merging:** each article is merged three ways with the article as last seen at Instapaper (the
-  `service_rows` table): a change on one side wins; both changed, Reader's; an edit beats a removal;
-  tags as a set (`ServiceSync.merge`).
+- **Merging:** each article is merged three ways with the article as last seen or sent at Instapaper
+  (the `service_rows` table): a change on one side wins; both changed, the later change wins
+  (Instapaper's only change time is the reading progress's, so otherwise Reader's); an edit beats a
+  removal; tags as a set (`ServiceSync.merge`). An article seen there but not imported stays there
+  until it changes.
 - **Sending changes:** what differs from the last-seen article is sent: new articles
   (`POST /bookmarks` with title and tags, then `/move` to archive), archive (`/move`), like
   (`/like`), tags (`/tags`, removed by id), the title and reading progress (`POST /bookmarks/{id}`
@@ -48,7 +53,8 @@ the screens): it is always the library's items, with the Android app's rules (`w
 filter, and notes and highlights on the cards of a folder. Signed in, `web/src/lib/serviceSync.ts` keeps
 it the same as Instapaper in the background, by the Android app's rules (`ServiceSync.kt`): what
 changed there since the last look comes in (`since`), what changed here goes there (title, link,
-tags, like, archive, folder, reading progress), and an item kept in Raindrop.io isn't sent (#121).
+tags, like, archive, folder, reading progress), within Instapaper's scope; the web app has the same
+import and scope in Settings › Instapaper (#145, `serviceSync.ts`, `serviceScope.ts`).
 `web/src/lib/instapaperSync.ts` is Instapaper's side (`InstapaperReadingList.kt`'s twin), through the
 Worker. It runs after every sync with the Reader account (when the page opens, a moment after a
 change, and when it comes back into view). This browser's copy of what Instapaper had is kept in

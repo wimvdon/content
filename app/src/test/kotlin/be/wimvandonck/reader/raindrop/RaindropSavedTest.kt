@@ -228,4 +228,27 @@ class RaindropSavedTest {
         val items = RaindropClient.parseRaindrops("""{"items":[{"_id":1,"link":"file:///x"},{"_id":2},${raindrop(3)}]}""")
         assertEquals(listOf(3L), items.map { it.id })
     }
+
+    @Test
+    fun `a folder that arrived flat still lands in its own collection after a restart`() =
+        runBlocking {
+            // Nothing listed yet in this session: the origins kept with the state say where "Recipes / Pasta" is.
+            service.origins = mapOf("Recipes / Pasta" to "12")
+            answer = { method, path, _ -> if (method == "PUT" && path == "/raindrop/5") 200 to """{"result":true,"item":${raindrop(5, collection = 12)}}""" else 404 to "{}" }
+            val have = RemoteEntry("5", "https://a.example/5", "T5", addedAt = 1, archived = false, liked = false, tags = listOf("Work"))
+            val after = service.update(have, have.copy(folder = "Recipes / Pasta"))
+            assertEquals(listOf("""PUT /raindrop/5 {"collection":{"${'$'}id":12}}"""), calls)
+            assertEquals("5", after.remoteId)
+            // And after listing, the origins are Raindrop's own.
+            account()
+            service.changes(null)
+            assertEquals("12", service.origins["Recipes / Pasta"])
+            assertEquals(listOf("Recipes", "Recipes / Pasta"), service.folders())
+        }
+
+    @Test
+    fun `a raindrop says when it last changed`() {
+        val r = RaindropClient.parseRaindrop(Json.parse("""{"_id":1,"link":"https://a.example/1","lastUpdate":"2026-10-02T10:00:00.000Z"}"""))!!
+        assertEquals(java.time.Instant.parse("2026-10-02T10:00:00Z").toEpochMilli(), service.entryOf(r).changedAt)
+    }
 }

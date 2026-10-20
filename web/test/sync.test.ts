@@ -122,6 +122,21 @@ describe("sync timing", () => {
 });
 
 describe("synced settings", () => {
+  it("carry what each service syncs and what was imported, in the Android app's text", () => {
+    const record = { at: 5, count: 12, folders: ["Research", ""], archive: false };
+    const mine = { ...settings, scopes: { raindrop: { folders: ["Research"] } }, imports: { instapaper: record } };
+    const values = SS.syncedSettings(mine);
+    expect(values["services.raindrop.scope"]).toBe('["Research"]');
+    expect(values["services.instapaper.scope"]).toBe("*");
+    expect(values["services.instapaper.imported"]).toBe('{"at":5,"count":12,"folders":["","Research"],"archive":false}');
+    const applied = SS.applySynced(defaultSettings, values);
+    expect(applied.scopes.raindrop).toEqual({ folders: ["Research"] });
+    expect(applied.imports.instapaper).toEqual({ ...record, folders: ["", "Research"] });
+    // An import this browser doesn't know of stays as the file has it.
+    expect(SS.syncedSettings(settings, { "services.raindrop.imported": values["services.instapaper.imported"] })["services.raindrop.imported"]).toBe(values["services.instapaper.imported"]);
+    expect(SS.applySynced(defaultSettings, { "services.raindrop.scope": "{", "services.raindrop.imported": "x" })).toEqual(defaultSettings);
+  });
+
   const settings = {
     ...defaultSettings,
     theme: "dark" as const,
@@ -142,7 +157,7 @@ describe("synced settings", () => {
 
   it("use the same names and values as the Android app and come back the same", () => {
     const values = SS.syncedSettings({ ...settings, markReadOnScroll: true });
-    expect(values).toEqual({ fullArticles: "false", markReadOnScroll: "true" });
+    expect(values).toEqual({ fullArticles: "false", markReadOnScroll: "true", "services.instapaper.scope": "*", "services.raindrop.scope": "*" });
     const applied = SS.applySynced(defaultSettings, values);
     expect(applied.fullArticles).toBe(false);
     expect(applied.markReadOnScroll).toBe(true);

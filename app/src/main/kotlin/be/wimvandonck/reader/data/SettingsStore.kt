@@ -67,15 +67,20 @@ class SettingsStore(
 
     suspend fun setTagWithFolder(enabled: Boolean) = edit { it[TAG_WITH_FOLDER] = enabled }
 
-    suspend fun setSaveService(service: String) = edit { it[SAVE_SERVICE] = service }
+    /** What [service] syncs (#145). */
+    suspend fun setScope(
+        service: String,
+        scope: ServiceScope,
+    ) = edit { it[SCOPES] = ServiceSettings.writeScopes(ServiceSettings.readScopes(it[SCOPES]) + (service to scope)) }
 
-    suspend fun setDuplicates(value: DuplicateSync) =
-        edit {
-            it[DUP_ARCHIVE] = value.archive
-            it[DUP_LIKED] = value.liked
-            it[DUP_TAGS] = value.tags
-            it[DUP_FOLDER] = value.folder
-        }
+    /** What was imported from [service], or null to forget it (disconnected). */
+    suspend fun setImport(
+        service: String,
+        record: ServiceImport?,
+    ) = edit {
+        val all = ServiceSettings.readImports(it[IMPORTS])
+        it[IMPORTS] = ServiceSettings.writeImports(if (record == null) all - service else all + (service to record))
+    }
 
     /** Takes the synced settings from another device (see SyncSettings); the rest stays as it is. */
     suspend fun applySynced(values: Map<String, String>) =
@@ -95,6 +100,8 @@ class SettingsStore(
                 prefs[SHOW_IMAGES] = s.showImages
                 prefs[MARK_READ_ON_SCROLL] = s.markReadOnScroll
                 prefs[LIST_VIEW] = s.listView.name
+                prefs[SCOPES] = ServiceSettings.writeScopes(s.scopes)
+                prefs[IMPORTS] = ServiceSettings.writeImports(s.imports)
             }
         }
 
@@ -130,14 +137,8 @@ class SettingsStore(
             markReadOnScroll = p[MARK_READ_ON_SCROLL] ?: defaults.markReadOnScroll,
             listView = enumOr(p[LIST_VIEW], defaults.listView),
             tagWithFolder = p[TAG_WITH_FOLDER] ?: defaults.tagWithFolder,
-            saveService = p[SAVE_SERVICE] ?: defaults.saveService,
-            duplicates =
-                DuplicateSync(
-                    archive = p[DUP_ARCHIVE] ?: defaults.duplicates.archive,
-                    liked = p[DUP_LIKED] ?: defaults.duplicates.liked,
-                    tags = p[DUP_TAGS] ?: defaults.duplicates.tags,
-                    folder = p[DUP_FOLDER] ?: defaults.duplicates.folder,
-                ),
+            scopes = ServiceSettings.readScopes(p[SCOPES]),
+            imports = ServiceSettings.readImports(p[IMPORTS]),
             lastSyncedAt = p[LAST_SYNCED_AT],
         )
     }
@@ -163,11 +164,8 @@ class SettingsStore(
         val MARK_READ_ON_SCROLL = booleanPreferencesKey("mark_read_on_scroll")
         val LIST_VIEW = stringPreferencesKey("list_view")
         val TAG_WITH_FOLDER = booleanPreferencesKey("tag_with_folder")
-        val SAVE_SERVICE = stringPreferencesKey("save_service")
-        val DUP_ARCHIVE = booleanPreferencesKey("duplicates_archive")
-        val DUP_LIKED = booleanPreferencesKey("duplicates_liked")
-        val DUP_TAGS = booleanPreferencesKey("duplicates_tags")
-        val DUP_FOLDER = booleanPreferencesKey("duplicates_folder")
+        val SCOPES = stringPreferencesKey("service_scopes")
+        val IMPORTS = stringPreferencesKey("service_imports")
         val LAST_SYNCED_AT = longPreferencesKey("last_synced_at")
     }
 }

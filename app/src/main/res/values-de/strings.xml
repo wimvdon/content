@@ -217,7 +217,6 @@
     <string name="services_reader">Reader</string>
     <string name="services_feeds_body">Reader bewahrt deine Feeds. Mit OPML holst du sie herein und heraus.</string>
     <string name="services_reading_body">Reader behält deine gespeicherten Artikel. Melde dich mit Instapaper an, um sie auch dort zu behalten.</string>
-    <string name="services_instapaper_body">Mit dem Instapaper-Konto von %s synchronisiert</string>
     <string name="services_problem_later">Instapaper bat, kurz zu warten. Der Rest folgt später.</string>
     <string name="section_raindrop">Raindrop.io</string>
     <string name="raindrop_connect">Raindrop.io verbinden</string>
@@ -228,41 +227,29 @@
     <string name="raindrop_sign_in_failed">Die Verbindung mit Raindrop.io hat nicht geklappt. Versuche es erneut.</string>
     <string name="raindrop_problem_signed_out">Raindrop.io akzeptiert die Verbindung nicht mehr. Verbinde dich erneut.</string>
     <string name="raindrop_problem_later">Raindrop.io bat, kurz zu warten. Der Rest folgt später.</string>
-    <string name="source_instapaper">In Instapaper</string>
-    <string name="source_raindrop">In Raindrop.io</string>
+    <string name="services_syncs_everything">Synchronisiert alles in Gespeichert</string>
+    <string name="services_syncs_folders">Synchronisiert %1$s</string>
+    <string name="services_waiting_import">Verbunden. Wähle, was importiert wird.</string>
+    <string name="service_import_title">Importieren</string>
+    <string name="service_import_body">Hol einmal herein, was %1$s hat: alles oder die Ordner, die du wählst. Jeder Artikel kommt an seinen Platz, so wie er ist.</string>
+    <string name="service_import_all">Alles importieren</string>
+    <string name="service_import_choose">Ordner wählen</string>
+    <string name="service_import_again">Erneut importieren</string>
+    <string name="service_import_what">Was hereinholen</string>
+    <string name="service_import_archive">Sein Archiv</string>
+    <string name="service_import_start">Importieren</string>
+    <string name="service_import_failed">Der Import hat nicht geklappt. Versuche es noch einmal.</string>
+    <string name="service_scope_title">Was synchronisiert wird</string>
+    <string name="service_scope_all">Alles in Gespeichert</string>
+    <string name="service_scope_some">Nur diese Ordner</string>
+    <string name="service_scope_note">Änderungen gehen in beide Richtungen. Ein Artikel, den du aus diesen Ordnern nimmst, wird in %1$s archiviert, nie gelöscht.</string>
+    <string name="service_scope_leave_title">In %1$s archivieren?</string>
+    <string name="service_scope_leave_confirm">Dort archivieren</string>
     <string name="saved_remove_both_body">Instapaper und Raindrop.io behalten beide diesen Artikel. Entferne ihn aus beiden oder nur aus einem (dann bleibt er in Gespeichert, im anderen).</string>
     <string name="saved_remove_only_from">Nur aus %1$s</string>
     <string name="saved_remove_from_both">Aus beiden entfernen</string>
     <string name="saved_removed_from">Aus %1$s entfernt</string>
     <string name="saved_remove_from_failed">Entfernen aus %1$s hat nicht geklappt. Versuche es später erneut.</string>
-    <string name="duplicates_title">Artikel in beiden</string>
-    <string name="duplicates_body">Behalten Instapaper und Raindrop.io denselben Artikel, zeigt Reader ihn einmal. Diese Änderungen gehen an beide Kopien:</string>
-    <string name="duplicates_archive">Archivieren</string>
-    <string name="duplicates_liked">Gefällt mir</string>
-    <string name="duplicates_tags">Tags</string>
-    <string name="duplicates_folder">Ordner</string>
-    <string name="duplicates_folder_body">Aus: jeder Dienst behält seine eigenen Ordner</string>
-    <string name="duplicates_remove">Entfernen</string>
-    <string name="duplicates_remove_body">Fragt immer, ob aus beiden oder aus einem</string>
-    <string name="copy_title">Zwischen Diensten kopieren</string>
-    <string name="copy_body">Es wird nur kopiert, wenn du es willst. Kopieren fügt die Artikel eines Dienstes einmal dem anderen hinzu; Artikel, die dort schon sind, werden übersprungen.</string>
-    <string name="copy_action">Artikel von %1$s nach %2$s kopieren</string>
-    <string name="copy_running">Kopiere %1$d von %2$d nach %3$s…</string>
-    <string name="copy_stopped">Nach %1$d von %2$d angehalten. Der Rest wurde nicht nach %3$s kopiert.</string>
-    <string name="copy_nothing">%1$s hat alle diese Artikel schon.</string>
-    <string name="copy_start">Kopieren</string>
-    <string name="copy_note_to_instapaper">Notizen sowie Markierungen, Titelbilder und Typen von Raindrop bleiben in Raindrop.io.</string>
-    <string name="copy_note_to_raindrop">Der Lesefortschritt und die Markierungen von Instapaper bleiben in Instapaper.</string>
-    <plurals name="copy_done">
-        <item quantity="one">%1$d Artikel nach %2$s kopiert</item>
-        <item quantity="other">%1$d Artikel nach %2$s kopiert</item>
-    </plurals>
-    <plurals name="copy_confirm">
-        <item quantity="one">%1$d Artikel wird zu %2$s hinzugefügt.</item>
-        <item quantity="other">%1$d Artikel werden zu %2$s hinzugefügt.</item>
-    </plurals>
-    <string name="save_service_title">Neu Gespeichertes geht zu</string>
-    <string name="save_service_question">Instapaper und Raindrop.io sind beide verbunden. Jeder Dienst behält seine eigenen Artikel, und nichts wird zwischen ihnen kopiert. Wohin soll neu Gespeichertes gehen? Du kannst das unter Verbundene Dienste ändern.</string>
     <string name="tags_title">Tags</string>
     <string name="tags_add">Tag hinzufügen</string>
     <string name="tags_remove">Tag entfernen</string>
@@ -310,4 +297,12 @@
     <string name="saved_empty_body">Wische einen Feed-Artikel nach links, tippe in einem Artikel auf Speichern, teile einen Link mit Reader oder füge hier einen hinzu.</string>
     <string name="manage_folders_tags_empty_title">Noch keine Ordner oder Tags</string>
     <string name="manage_folders_tags_empty_body">Ordner und Tags deiner gespeicherten Artikel erscheinen hier, damit du sie umbenennen kannst.</string>
+    <plurals name="service_imported">
+        <item quantity="one">%1$d Artikel importiert, %2$s</item>
+        <item quantity="other">%1$d Artikel importiert, %2$s</item>
+    </plurals>
+    <plurals name="service_scope_leave_body">
+        <item quantity="one">%1$d Artikel fällt aus dem, was %2$s synchronisiert. Er wird dort archiviert, nicht gelöscht, und bleibt in Reader.</item>
+        <item quantity="other">%1$d Artikel fallen aus dem, was %2$s synchronisiert. Sie werden dort archiviert, nicht gelöscht, und bleiben in Reader.</item>
+    </plurals>
 </resources>

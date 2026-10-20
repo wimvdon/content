@@ -5,6 +5,8 @@ import be.wimvandonck.reader.data.ReaderBackground
 import be.wimvandonck.reader.data.ReaderFont
 import be.wimvandonck.reader.data.ReaderSpacing
 import be.wimvandonck.reader.data.ReaderStyle
+import be.wimvandonck.reader.data.ServiceImport
+import be.wimvandonck.reader.data.ServiceScope
 import be.wimvandonck.reader.data.Settings
 import be.wimvandonck.reader.data.ShareTarget
 import be.wimvandonck.reader.data.ThemeMode
@@ -28,7 +30,15 @@ class SyncSettingsTest {
     @Test
     fun `settings go to shared names and come back the same`() {
         val values = SyncSettings.of(custom)
-        assertEquals(mapOf(SyncSettings.FULL_ARTICLES to "false", SyncSettings.MARK_READ_ON_SCROLL to "true"), values)
+        assertEquals(
+            mapOf(
+                SyncSettings.FULL_ARTICLES to "false",
+                SyncSettings.MARK_READ_ON_SCROLL to "true",
+                "services.instapaper.scope" to "*",
+                "services.raindrop.scope" to "*",
+            ),
+            values,
+        )
         val applied = SyncSettings.applyTo(Settings(), values)
         assertEquals(false, applied.fullArticles)
         assertEquals(true, applied.markReadOnScroll)
@@ -92,5 +102,22 @@ class SyncSettingsTest {
         val values = SyncSettings.of(custom, base = mapOf("unreadOnly" to "true"))
         assertFalse("unreadOnly" in values)
         assertEquals(true, SyncSettings.applyTo(Settings(unreadOnly = true), mapOf("unreadOnly" to "false")).unreadOnly)
+    }
+
+    @Test
+    fun `what each service syncs and what was imported travel with the account`() {
+        val record = ServiceImport(at = 5, count = 12, folders = setOf("Research", ServiceScope.TO_READ), archive = false)
+        val mine = Settings(scopes = mapOf("raindrop" to ServiceScope(setOf("Research"))), imports = mapOf("instapaper" to record))
+        val values = SyncSettings.of(mine)
+        assertEquals("[\"Research\"]", values["services.raindrop.scope"])
+        assertEquals("*", values["services.instapaper.scope"])
+        val applied = SyncSettings.applyTo(Settings(), values)
+        assertEquals(ServiceScope(setOf("Research")), applied.scopes["raindrop"])
+        assertEquals(record, applied.imports["instapaper"])
+        // An import this device doesn't know of stays as the file has it.
+        val fromFile = mapOf("services.raindrop.imported" to ServiceImport.encode(record))
+        assertEquals(fromFile["services.raindrop.imported"], SyncSettings.of(Settings(), fromFile)["services.raindrop.imported"])
+        // Unreadable values change nothing.
+        assertEquals(Settings(), SyncSettings.applyTo(Settings(), mapOf("services.raindrop.scope" to "{", "services.raindrop.imported" to "x")))
     }
 }

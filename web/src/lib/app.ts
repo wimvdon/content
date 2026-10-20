@@ -11,11 +11,12 @@ import {
   parseCallback,
   type Session as InstapaperSession,
 } from "./instapaper";
-import { InstapaperSync } from "./instapaperSync";
+import { INSTAPAPER_ID, InstapaperSync } from "./instapaperSync";
 import { renameTag, setLiked } from "./items";
 import { applyChoice, saveNew, type SaveChoice } from "./saveChoice";
 import * as Saved from "./saved";
-import { emptyServiceSyncState, syncService, type ServiceSyncState } from "./serviceSync";
+import { emptyServiceSyncState, importService, syncService, type ServiceSyncState } from "./serviceSync";
+import { covers, EVERYTHING, type ServiceImport, type ServiceScope } from "./serviceScope";
 import { changesBetween, loadItemSyncState, loadLibrary, writeItemSyncState, writeLibrary } from "./libraryStore";
 import { emptyItemSyncState, syncItems } from "./syncRows";
 import * as L from "./library";
@@ -43,6 +44,10 @@ export interface Settings {
   /** Show article pictures, thumbnails and embed previews (they load from the sites). */
   showImages: boolean;
   listView: ListView;
+  /** What each service syncs (#145), by id; a service without one syncs everything in Saved. */
+  scopes: Record<string, ServiceScope>;
+  /** What was imported from each service when it was connected (#145), by id. */
+  imports: Record<string, ServiceImport>;
 }
 
 export type SyncStatus = { kind: "idle" } | { kind: "syncing" } | { kind: "failed"; problem: SyncProblem };
@@ -65,6 +70,10 @@ export interface State {
   savedFilter: Saved.SavedFilter;
   /** The save and Organise sheet while it is open (#143): Add link, just saved, or organising a saved item. */
   sheet: Sheet | null;
+  /** Instapaper is connected and waits for its import (#145): nothing syncs with it until then. */
+  instapaperWaiting: boolean;
+  /** Instapaper's sync is running (an import or a sync). */
+  instapaperBusy: boolean;
 }
 
 export type Sheet = { kind: "new" } | { kind: "justSaved" | "organise"; key: string };
@@ -82,6 +91,8 @@ export const defaultSettings: Settings = {
   markReadOnScroll: false,
   showImages: true,
   listView: "medium",
+  scopes: {},
+  imports: {},
 };
 
 const PARALLEL = 4;
@@ -100,6 +111,8 @@ class AppStore {
     instapaperNotice: null,
     savedFilter: Saved.defaultSavedFilter,
     sheet: null,
+    instapaperWaiting: false,
+    instapaperBusy: false,
   };
   private listeners = new Set<() => void>();
   private syncTimer: ReturnType<typeof setTimeout> | null = null;
@@ -136,7 +149,7 @@ class AppStore {
       load<Partial<Settings>>("settings").catch(() => undefined),
       load<InstapaperSession>("instapaper").catch(() => undefined),
     ]);
-    const merged = { ...defaultSettings, ...settings, readerStyle: readerStyleOf(settings?.readerStyle) };
+    const merged = { ...defaultSettings, ...settings, readerStyle: readerStyleOf(settings?.readerStyle), scopes: settings?.scopes ?? {}, imports: settings?.imports ?? {} };
     this.set({
       loaded: true,
       library: library ?? L.emptyLibrary(),
@@ -198,6 +211,12 @@ class AppStore {
     const before = this.state.library;
     const library = change(before);
     if (library === before) return;
+    // When each saved item last changed here, for "the later change wins" with a service (#145).
+    if (before.items !== library.items) {
+      const old = new Map(before.items.map((i) => [i.key, i]));
+      const now = Date.now();
+      for (const i of library.items) if (old.get(i.key) !== i) this.editedAt[i.key] = now;
+    }
     // Saved shows the items, so a change from anywhere (this page, another device, the service) shows at once.
     this.set({ library, selection: L.selectionExists(library, this.state.selection), savedFilter: Saved.shownFilter(library, this.state.savedFilter) });
     void writeLibrary(changesBetween(before, library)).catch(() => undefined);
@@ -443,8 +462,11 @@ class AppStore {
 
   private async signOutHere() {
     await this.forgetSync();
-    // Disconnected: what was synced with Instapaper is forgotten; Saved stays.
+    // Disconnected: what was synced with Instapaper, and its import, are forgotten; Saved stays.
     await remove(INSTAPAPER_SYNC_KEY).catch(() => undefined);
+    const imports = { ...this.state.settings.imports };
+    delete imports[INSTAPAPER_ID];
+    this.updateSettings({ imports });
     await this.setInstapaper(null);
     this.updateLive();
     this.set({ syncStatus: { kind: "idle" } });
@@ -531,16 +553,23 @@ class AppStore {
       const session = this.state.instapaper;
       if (!session) return;
       await this.libraryLoaded;
-      const state = (await load<ServiceSyncState>(INSTAPAPER_SYNC_KEY).catch(() => undefined)) ?? emptyServiceSyncState;
+      const state = await this.instapaperState();
+      // Connected and not imported yet: it waits for the import (#145). Connected before #145: already in step.
+      const waiting = !this.state.settings.imports[INSTAPAPER_ID] && Object.keys(state.rows).length === 0;
+      this.set({ instapaperWaiting: waiting });
+      if (waiting) return;
+      this.set({ instapaperBusy: true });
       const result = await syncService(
         new InstapaperSync(new InstapaperApi(session.token)),
-        { cursor: state.cursor ?? null, rows: state.rows ?? {} },
+        state,
         (change) => {
           this.updateLibrary(change);
           return this.state.library;
         },
         Date.now(),
-      );
+        this.state.settings.scopes[INSTAPAPER_ID] ?? EVERYTHING,
+        { ...this.editedAt },
+      ).finally(() => this.set({ instapaperBusy: false }));
       // Signed out meanwhile: what was synced belongs to the old sign-in.
       if (this.state.instapaper?.token !== session.token) return;
       await save(INSTAPAPER_SYNC_KEY, result.state).catch(() => undefined);
@@ -548,6 +577,65 @@ class AppStore {
     })().finally(() => (this.instapaperSyncing = null));
     return this.instapaperSyncing;
   }
+
+  /** When each saved item last changed here, by key (kept for this visit). */
+  private editedAt: Record<string, number> = {};
+
+  private async instapaperState(): Promise<ServiceSyncState> {
+    const state = (await load<ServiceSyncState>(INSTAPAPER_SYNC_KEY).catch(() => undefined)) ?? emptyServiceSyncState;
+    return { cursor: state.cursor ?? null, rows: state.rows ?? {} };
+  }
+
+  /** Instapaper's folders, for choosing what to import; null when it couldn't be asked. */
+  instapaperFolderNames = async (): Promise<string[] | null> => {
+    const session = this.state.instapaper;
+    if (!session) return null;
+    return new InstapaperSync(new InstapaperApi(session.token)).folderNames().catch(() => null);
+  };
+
+  /** Brings in what Instapaper has, once (#145), then syncs. False when it didn't get through. */
+  importInstapaper = async (what: Pick<ServiceImport, "folders" | "archive">): Promise<boolean> => {
+    const session = this.state.instapaper;
+    if (!session) return false;
+    await this.instapaperSyncing?.catch(() => undefined);
+    this.set({ instapaperBusy: true });
+    try {
+      await this.libraryLoaded;
+      const result = await importService(
+        new InstapaperSync(new InstapaperApi(session.token)),
+        await this.instapaperState(),
+        what,
+        (change) => {
+          this.updateLibrary(change);
+          return this.state.library;
+        },
+        Date.now(),
+      );
+      if (result.problem || this.state.instapaper?.token !== session.token) return false;
+      await save(INSTAPAPER_SYNC_KEY, result.state).catch(() => undefined);
+      this.updateSettings({ imports: { ...this.state.settings.imports, [INSTAPAPER_ID]: { ...what, at: Date.now(), count: result.imported ?? 0 } } });
+      this.set({ instapaperWaiting: false });
+    } finally {
+      this.set({ instapaperBusy: false });
+    }
+    await this.syncInstapaper().catch(() => undefined);
+    return true;
+  };
+
+  /** How many articles in step with Instapaper a scope of [next] would take out (they are archived there). */
+  instapaperLeaving = async (next: ServiceScope): Promise<number> => {
+    const rows = (await this.instapaperState()).rows;
+    return Object.entries(rows).filter(([key, row]) => {
+      const item = this.state.library.items.find((i) => i.key === key);
+      return row.linked !== false && item?.readingList && !covers(next, item);
+    }).length;
+  };
+
+  /** What Instapaper syncs (#145); syncs at once. */
+  setInstapaperScope = (scope: ServiceScope) => {
+    this.updateSettings({ scopes: { ...this.state.settings.scopes, [INSTAPAPER_ID]: scope } });
+    void this.syncInstapaper();
+  };
 
   // Sync with the Reader account, the same way as the Android app (docs/sync.md).
 

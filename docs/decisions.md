@@ -2,6 +2,24 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-20: Reader is the library; a service is somewhere it is also kept (#145)
+
+Services no longer own items (#121's `Item.service`). Connecting a service runs an **import**, once
+(everything, or the folders picked): each article arrives where it belongs, as it is, and what isn't
+imported stays there until it changes. Each service then has a **scope**, everything in Saved by
+default or a set of folders (To read counts as one), shared **both ways**: an article reaches every
+service whose scope covers it, so the same folder in two scopes keeps the two in step through
+Reader. Per field, what changed here is sent and what changed there comes in; never a value just
+because the sides differ, and never one that just came in, because each row is what was last seen
+or sent (`linked` says whether it is in step). Both sides changed: the later change wins (the
+service's change time against when Reader's item last changed). Leaving the scope **archives** an
+article there, never deletes it, and unticking a folder says how many first; removing an article
+from Reader still asks from both or one. Raindrop's nested collections keep their origin. The scope
+and the import record are synced settings (`services.<id>.scope`, `.imported`), the same on the web.
+Replaced: Articles in both (`DuplicateSync`), Copy between services (`ServiceCopy`), New saves go to
+(`saveService`) and the service marks on rows. Notion (#114) should fit as a service with a thinner
+vocabulary; if it needs an exception, the model is wrong.
+
 ## 2026-10-20: The article's actions: reading above, library below (#139)
 
 "Finished reading" named a moment the app doesn't have, and three ways led into one sheet. One rule

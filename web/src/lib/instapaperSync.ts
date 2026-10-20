@@ -71,7 +71,13 @@ export class InstapaperSync implements SavedSyncService {
       tags: (b.tags ?? []).map((t) => t.name),
       folder: !b.archived && b.folder_id !== null ? (this.folders.get(b.folder_id) ?? null) : null,
       progress: Math.min(1, Math.max(0, b.progress?.percentage ?? 0)),
+      // Instapaper's only change time is the progress's.
+      changedAt: (b.progress?.timestamp ?? 0) * 1000,
     };
+  }
+
+  folderNames(): Promise<string[]> {
+    return guarded(async () => (await this.api.folders()).map((f) => f.title).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase())));
   }
 
   add(url: string, title: string, tags: string[], archived: boolean, folder: string | null): Promise<RemoteEntry> {

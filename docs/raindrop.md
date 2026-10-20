@@ -25,32 +25,32 @@ back to (see "How connecting works").
 - Not supported: Raindrop's highlights, reading progress (Raindrop doesn't keep it), its own article
   text, and Raindrop on the web app.
 
-## Instapaper and Raindrop together (#121)
+## Import, scope, and Instapaper too (#145)
 
-Each service keeps its own articles and **nothing is copied between them** on its own. An item
-remembers the service it is kept in (the synced `service` field, `docs/sync.md`): what came from
-Instapaper goes back only to Instapaper, what came from Raindrop only to Raindrop. Saved shows both
-together, with a small mark (a serif I for Instapaper, a drop for Raindrop) on each article while
-both are connected.
+Reader is the library; Raindrop (like Instapaper) is somewhere it is also kept.
 
-- **New saves** go to the **default service**: asked once when both are connected, changed later in
-  Connected services › **New saves go to**, or per save in the save sheet's **Save to**. Until it is
-  chosen, Instapaper is the default.
-- **The same article in both** (same address) shows once. It stays the first service's item; the
-  other has a *copy*. Connected services › **Articles in both** says what the two copies share:
-  Archive, Liked and Tags on, Folder off (folders often differ; on, a folder is made in the other
-  service only when an article is filed there). Title, note and progress stay per service, and so
-  do highlights. In code: `DuplicateSync` (settings), `ServiceSync.isCopy` and `ServiceSync.share`.
-- **Deleted in one service's own app:** the article stays in Saved when the other still has it (it
-  becomes the other's). Nothing is deleted in the other service by that.
-- **Removing in Reader** an article both keep asks: **Remove from both**, or **Only from** one (it
-  then stays in Saved, kept in the other; `ServiceManager.removeFrom`).
-- **Copying is opt-in:** Connected services › **Copy between services** copies all of one service's
-  articles to the other, once, after saying how many and what doesn't carry over (notes and
-  Raindrop's own highlights, covers and types stay in Raindrop; reading progress and Instapaper's
-  highlights stay in Instapaper). Articles the other already has are skipped; it can be cancelled,
-  and what got through is kept (`services/ServiceCopy.kt`). Copied articles stay the first
-  service's, with a copy in the other.
+- **Import, once:** connecting asks what to bring in: everything Raindrop has, or some collections
+  (and the Archive). Each raindrop arrives where it belongs, as it is: a collection becomes the
+  matching folder (made if you don't have it, flattened to "Parent / Child" if it was nested), the
+  Archive collection the Archive, favorites stay liked, tags and notes come along. **Import again**
+  repeats it later. What isn't imported stays in Raindrop until it changes there.
+- **Scope:** Connected services › Raindrop.io › **What it syncs**: everything in Saved (the default)
+  or only some folders (To read counts as one). The scope is shared both ways: articles in it stay in
+  step, field by field, and the later change wins when both sides changed the same field (Raindrop
+  says when each raindrop last changed, `lastUpdate`).
+- **Leaving the scope:** filing an article out of a synced folder, or unticking a folder, archives it
+  in Raindrop (the Archive collection), never deletes it. Unticking says first how many articles that
+  is. Removing an article from Reader still removes it (to Raindrop's trash).
+- **Where a folder came from:** a nested collection arrives flat, so Reader keeps which collection
+  each folder name stands for (`ServiceState.origins`, stored on the device). Filing an article there
+  later lands it in that collection, even before Raindrop is listed again, instead of making a new
+  top-level one with a slash in its name.
+- **With Instapaper too:** a save reaches every service whose scope covers its folder. Put the same
+  folder in both scopes and the two stay in step with each other through Reader. Removing an article
+  both keep asks: **Remove from both**, or **Only from** one (`ServiceManager.removeFrom`).
+
+This replaced #121's "Articles in both" switches, the one-off copy between services, "New saves go
+to" and the small service marks on each article.
 
 ## How connecting works
 

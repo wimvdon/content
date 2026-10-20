@@ -13,6 +13,7 @@ import { Dialog } from "./ui/dialog";
 import { Input, Label, Select } from "./ui/input";
 import { Segmented } from "./ui/segmented";
 import { ReaderStyleControls } from "./ReaderStyleControls";
+import { InstapaperSettings } from "./ServiceSettings";
 import { SwitchRow } from "./ui/switch";
 
 type Props = { open: boolean; onOpenChange: (open: boolean) => void };
@@ -307,6 +308,7 @@ export function SettingsDialog({ open, onOpenChange }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange} title={t("settings")} closeLabel={t("close")} wide>
       <div className="space-y-6">
         <AccountSection />
+        <InstapaperSettings />
         <section className="space-y-2">
           <h3 className="text-sm font-medium text-primary">{t("articleList")}</h3>
           <div className="flex flex-wrap items-center justify-between gap-2 py-1">

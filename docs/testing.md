@@ -49,7 +49,7 @@ when the run fails.
 | `SyncMergeTest` | Three-way merge: changes and removals from either side, this device wins but an edit beats a removal, order from the side that reordered, first sync without base; a version 2 file's read marks kept for articles not here; applying the result to the library; syncing twice changes nothing; settings per setting, and a device without synced settings taking the file's |
 | `LocalSavedTest` | The file of Saved without an account from before #106 read back (moved in once), unreadable text starts empty |
 | `AccountSyncTest` | One sync with the account: the first device's library becomes the document, nothing saved when nothing changed, another device's save in between merged in (with the right base), newer documents left alone; reading the server's answers and problems; the live connection's address, messages and retry delays; the stored base with its version |
-| `SyncSettingsTest` | Settings to shared names and back, Save/Share targets not synced, unknown names kept, bad values ignored, the Instapaper sign-in of older versions dropped |
+| `SyncSettingsTest` | Settings to shared names and back, Save/Share targets not synced, unknown names kept, bad values ignored, the Instapaper sign-in of older versions dropped, each service's scope and import record carried (an import this device doesn't know of kept) |
 | `SyncTimingTest` | When a sync is due: never synced, or more than ten seconds ago (also when the clock went back) |
 | `SiteIconTest` | Choosing a site's icon: largest size, apple-touch-icon, relative and http addresses, skipping SVG and inline icons, home page and favicon.ico fallback |
 | `IconCatalogTest` | Reading the icon file, search order (name, words, categories, related words), suggestions, old icon names, and that the bundled file has every suggested and migrated icon |
@@ -57,9 +57,9 @@ when the run fails.
 | `MixedSearchTest` | Search's ranking: the whole query in a title above single words above text-only matches, feed and reading list results in one list (then newest), the All/Feeds/Reading list chips; `ItemSearchTest`: the reading list searched by title, website, description, tags, note and highlights, title matches first; the web app's `test/search.test.ts` checks the ranking too |
 | `SavedTest` | Saved (#119): each item in one place (To read, a folder, Archive) and All with them all, newest first; Liked, tags (all of them) and the type filter; chips most used first; folders and counts, a filter without a folder or tags that are gone; filing and archiving (out of the folder); renaming (joining) and removing folders; bookmarks from before moving into folders once; a link's type; the folder through sync and its merge |
 | `ReadingListsTest` | Reading times and minutes left, an item shown like its feed article (or with its description), its source (feed or website with favicon) |
-| `ServiceSyncTest` | The reading list and a fake service: the whole account on the first sync, folders in and out (filing, archiving leaves the folder), adding, archiving, liking and tagging sent once, removing sent (a bookmark stays), changes on both sides to other fields both kept, Reader wins the same field, deleted at the service leaves the reading list unless changed here, removed here but changed there stays, a link the service has joins it, a failure keeps everything and the rest goes next time, progress, entries stored and read back; with two services: each keeps its own, an article in both shows once and its copy shares archive, like and tags (folder when on), only shared changes come in from a copy, a deletion in one keeps what the other has, a re-save goes to the default, and the opt-in copy adds what's missing once and stops on a problem |
+| `ServiceSyncTest` | Saved and a fake service (#145): connecting imports the whole account, folders in and out (filing, archiving leaves the folder), adding, archiving, liking and tagging sent once, what came in not sent back, removing sent (a bookmark stays), changes on both sides to other fields both kept, the same field: the later change wins (Reader's without a time from the service), deleted at the service leaves Saved unless changed here or another service keeps it in step, removed here but changed there stays, a link the service has joins it, a failure keeps everything and the rest goes next time, progress, notes; a save reaches every service whose scope covers its folder, a scope losing a folder archives its articles there (never deletes) and gaining it brings them back, an import lands each article in its place and leaves the rest there until it changes, another device's import, folder origins kept, entries stored and read back (rows from before #145 in step); the web app's `test/serviceSync.test.ts` covers the same rules |
 | `InstapaperReadingListTest` | Instapaper as the reading list's service, with recorded answers: `since` page by page with deletions and folders, filing into a folder made there when missing, the first sync asks for everything, adding with tags and archive, only changes sent (taking the folder's tag off moves it home), problems mapped |
-| `RaindropSavedTest` | Raindrop.io as Saved's service, with recorded answers: the whole account page by page, collections as folders ("Parent / Child"), the Archive collection, favorites and notes; the quick sync listing at most every three minutes; adding to Unsorted, a folder or the archive, making missing collections once; updates sending only what changed; removing (already gone counts); a refused token renewed once, then signed out; busy and broken answers |
+| `RaindropSavedTest` | Raindrop.io as Saved's service, with recorded answers: the whole account page by page, collections as folders ("Parent / Child"), the Archive collection, favorites and notes; the quick sync listing at most every three minutes; adding to Unsorted, a folder or the archive, making missing collections once; updates sending only what changed; removing (already gone counts); a refused token renewed once, then signed out; busy and broken answers; a flattened folder finding its nested collection from the stored origins; when a raindrop last changed |
 | `RaindropAuthTest` | The callback's code and state (or why not), the sign-in address with a fresh state, the Worker's tokens, and swapping a code: done, refused, failed or offline |
 | `PageInfoTest` | A page's title, description and picture (Open Graph first, https pictures only) for links saved without a title |
 | `ArticleSearchTest` | Search: every word, case and accents ignored, title, text, feed name and author, title matches first, removed feeds left out |
@@ -206,13 +206,18 @@ Needs the Raindrop app registered and the Worker's `RAINDROP_CLIENT_ID` and `RAI
       File it in a new folder: the collection is made. Archive it: it moves to the "Archive" collection.
 - [ ] Change a raindrop in Raindrop's app, then pull down on Saved: the change shows in Reader.
 - [ ] Remove an article from Saved: it is in Raindrop's trash.
-- [ ] With Instapaper connected too: Reader asks once where new saves go; neither account gets the
-      other's articles; a new save goes only to the chosen one (or the one picked in **Save to**).
-- [ ] Each article shows a small I (Instapaper) or drop (Raindrop). Save the same link in both apps:
-      Reader shows it once with both marks; liking it reaches both; filing it reaches only the first.
-- [ ] Remove that article: Reader asks; **Only from Raindrop.io** leaves it in Saved and in Instapaper.
-- [ ] **Copy between services**: the dialog shows how many and what stays behind; Copy shows progress,
-      Cancel stops it; running it again offers only what wasn't copied.
+- [ ] **Import (#145):** connect a service: its row says "Connected. Choose what to import." and
+      nothing syncs yet. Tap it › **Choose folders**, keep one folder and untick the rest: only
+      that folder's articles arrive, in that folder (a nested collection as "Parent / Child");
+      the screen then says "Imported N articles, <date>". The others stay in the service and in
+      the service only, until one changes there.
+- [ ] **What it syncs:** pick **Only these folders** and untick one with articles: a dialog says how
+      many are archived there; confirm: they are archived in the service (not deleted) and stay in
+      Reader. File an article out of a ticked folder: it is archived there too.
+- [ ] With Instapaper connected too, give Raindrop only "Research": a save to To read reaches
+      Instapaper only; filed in Research it reaches both, and liking it there reaches the other.
+- [ ] No article row or card shows a service mark; Connected services shows only the services.
+- [ ] Remove an article both keep: Reader asks; **Only from Raindrop.io** leaves it in Saved and in Instapaper.
 - [ ] **Disconnect**: the screen shows Connect again; Saved keeps its articles.
 
 ## Sharing to Reader (#103)
