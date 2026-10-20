@@ -1,5 +1,6 @@
 import { Archive, Bookmark, BookOpen, CheckCheck, Circle, CircleCheck, Folder as FolderGlyph, Heart, Highlighter, Link2, ListFilter, Menu, Newspaper, Quote, RefreshCw, Rss, Search, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useEscape } from "./ui/useEscape";
 import { app, useApp } from "@/lib/app";
 import { snippet } from "@/lib/html";
 import { dayLabel, plural, t } from "@/lib/i18n";
@@ -81,7 +82,7 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, on
   return (
     <section className="flex h-full min-w-0 flex-col" aria-label={title}>
       <header className="flex items-center gap-1 px-2 pt-2 pb-1">
-        <Button variant="ghost" size="icon" className="lg:hidden" onClick={onMenu} aria-label={t("openFeeds")}>
+        <Button variant="ghost" size="icon" className="lg:hidden" onClick={onMenu} aria-label={t("openMenu")}>
           <Menu />
         </Button>
         <div className="min-w-0 flex-1 px-2">
@@ -181,7 +182,7 @@ function SavedArticles({ openKey, onOpen, onMenu, onSearch }: { openKey: string 
   return (
     <section className="flex h-full min-w-0 flex-col" aria-label={t("saved")}>
       <header className="flex items-center gap-1 px-2 pt-2 pb-1">
-        <Button variant="ghost" size="icon" className="lg:hidden" onClick={onMenu} aria-label={t("openFeeds")}>
+        <Button variant="ghost" size="icon" className="lg:hidden" onClick={onMenu} aria-label={t("openMenu")}>
           <Menu />
         </Button>
         <div className="min-w-0 flex-1 px-2">
@@ -243,10 +244,20 @@ function SavedArticles({ openKey, onOpen, onMenu, onSearch }: { openKey: string 
           <Skeletons />
         ) : items.length === 0 ? (
           <Empty
-            icon={filter.tab.kind === "archive" ? Archive : BookOpen}
+            icon={filter.tab.kind === "archive" ? Archive : filter.tab.kind === "folder" ? FolderGlyph : BookOpen}
             title={plain && filter.tab.kind === "toread" ? t("nothingToRead") : plain && filter.tab.kind === "archive" ? t("nothingArchived") : t("savedNoneTitle")}
             text={plain && filter.tab.kind === "toread" ? t("savedEmptyBody") : undefined}
-          />
+          >
+            {/* Filtered to nothing: one click back to the whole tab; an empty To read offers Add link. */}
+            {!plain ? (
+              <Button onClick={() => set({ likedOnly: false, tags: [], type: null })}>{t("showAll")}</Button>
+            ) : filter.tab.kind === "toread" ? (
+              <Button variant="tonal" onClick={app.addLink}>
+                <Link2 />
+                {t("addLink")}
+              </Button>
+            ) : null}
+          </Empty>
         ) : (
           <>
             <p className="px-3 pt-3 pb-2 text-xs text-muted-foreground">{plural("savedCount", items.length)}</p>
@@ -297,6 +308,7 @@ function tabName(tab: SavedTab): string {
 /** The type filter: a filter button next to search, with All types, Articles, Videos and Audio. */
 function TypeFilter({ type, onChange }: { type: SavedType | null; onChange: (type: SavedType | null) => void }) {
   const [open, setOpen] = useState(false);
+  useEscape(open, () => setOpen(false));
   const options: [SavedType | null, string][] = [
     [null, t("typeAll")],
     ["article", t("typeArticles")],
@@ -437,7 +449,7 @@ export function Row({
         onClick={onToggleRead}
         aria-label={toggle}
         title={toggle + " (m)"}
-        className="absolute top-1.5 right-1.5 flex size-8 cursor-pointer items-center justify-center rounded-full bg-card text-muted-foreground opacity-0 shadow-sm transition-opacity group-hover:opacity-100 hover:text-foreground focus-visible:opacity-100 [&_svg]:size-4"
+        className="absolute top-1.5 right-1.5 flex size-8 cursor-pointer items-center justify-center rounded-full bg-card text-muted-foreground opacity-0 shadow-sm transition-opacity group-hover:opacity-100 hover:text-foreground focus-visible:opacity-100 [@media(hover:none)]:opacity-100 [&_svg]:size-4"
       >
         {article.read ? <Circle /> : <CircleCheck />}
       </button>

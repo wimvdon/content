@@ -20,6 +20,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
@@ -68,8 +69,10 @@ fun TagsEditor(
     allTags: List<String>,
     onChange: (List<String>) -> Unit,
     leading: (@Composable () -> Unit)? = null,
+    /** The tag being typed, kept by the sheet so Save adds it too. */
+    name: String,
+    onNameChange: (String) -> Unit,
 ) {
-    var name by rememberSaveable { mutableStateOf("") }
     var adding by rememberSaveable { mutableStateOf(false) }
     val others = allTags.filter { tag -> tags.none { it.equals(tag, ignoreCase = true) } }
     fun add(tag: String) {
@@ -103,20 +106,20 @@ fun TagsEditor(
         if (adding) {
             OutlinedTextField(
                 value = name,
-                onValueChange = { name = it },
+                onValueChange = onNameChange,
                 label = { Text(stringResource(R.string.tags_add)) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 keyboardActions =
                     KeyboardActions(onDone = {
                         add(name)
-                        name = ""
+                        onNameChange("")
                     }),
                 trailingIcon = {
                     IconButton(
                         onClick = {
                             add(name)
-                            name = ""
+                            onNameChange("")
                         },
                         enabled = name.isNotBlank(),
                     ) { Icon(painterResource(R.drawable.ic_add), contentDescription = stringResource(R.string.tags_add)) }
@@ -143,7 +146,7 @@ enum class SheetKind {
     /** A share or Add link: nothing is saved until Save, and Cancel saves nothing. */
     New,
 
-    /** Saved a moment ago (the reader, a swipe): "Saved to …"; closing keeps what the sheet changed. */
+    /** Saved a moment ago (the reader, a swipe): "Saved to …"; Remove takes the save back, closing keeps it. */
     JustSaved,
 
     /** An article saved before, organised from Saved or the reader (#139). */
@@ -155,7 +158,8 @@ enum class SheetKind {
  * In order: what is being saved (only for [SheetKind.New]: the address field for Add link, or the
  * shared link's title and site), the folder as chips (To read and Archive, a divider, the folders and
  * New folder: #156), the tags with Like in front, then the note. Then Cancel and Save; closing the
- * sheet is Cancel, so only Save changes anything.
+ * sheet is Cancel, so only Save changes anything. Just saved, Remove takes the place of Cancel: it
+ * takes the save back, where closing keeps it as it was saved.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -174,17 +178,23 @@ fun SaveSheet(
     key: String? = url,
     /** Cancel, or the sheet closed without Save. */
     onCancel: () -> Unit = {},
+    /** Remove, for [SheetKind.JustSaved]: takes the save back. */
+    onRemove: () -> Unit = {},
 ) {
     var address by rememberSaveable(key) { mutableStateOf(url.orEmpty()) }
     // A typed address may leave out https://.
     val link = remember(address) { url ?: FeedDiscovery.normalizeUrl(address)?.takeIf { ItemKeys.isWebLink(it) } }
     var choice by remember(key) { mutableStateOf(initial) }
+    // A folder or tag typed but not added yet: Save takes it too, rather than dropping it.
+    var folderName by rememberSaveable(key) { mutableStateOf("") }
+    var tagName by rememberSaveable(key) { mutableStateOf("") }
     val saved = kind != SheetKind.New
     val save = {
+        val chosen = SaveChoices.withTyped(choice, folderName, tagName, folders)
         if (saved) {
-            onSave(null, choice)
+            onSave(null, chosen)
         } else {
-            link?.let { onSave(it, choice) }
+            link?.let { onSave(it, chosen) }
         }
         onDismiss()
     }
@@ -208,7 +218,7 @@ fun SaveSheet(
                     SheetKind.JustSaved ->
                         stringResource(
                             R.string.saved_to,
-                            when (val place = choice.place) {
+                            when (val place = initial.place) {
                                 Place.ToRead -> toRead
                                 Place.Archive -> stringResource(R.string.reading_list_archive)
                                 is Place.Folder -> place.name
@@ -236,12 +246,14 @@ fun SaveSheet(
                 }
             }
             SheetSection(stringResource(R.string.folder_field))
-            FolderChips(choice.place, folders, onChange = { choice = choice.copy(place = it) })
+            FolderChips(choice.place, folders, onChange = { choice = choice.copy(place = it) }, name = folderName, onNameChange = { folderName = it })
             SheetSection(stringResource(R.string.tags_title))
             TagsEditor(
                 tags = choice.tags,
                 allTags = allTags,
                 onChange = { choice = choice.copy(tags = it) },
+                name = tagName,
+                onNameChange = { tagName = it },
                 leading = {
                     FilterChip(
                         selected = choice.liked,
@@ -266,7 +278,20 @@ fun SaveSheet(
                 modifier = Modifier.fillMaxWidth(),
             )
             Row(Modifier.align(Alignment.End), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextButton(onClick = cancel) { Text(stringResource(R.string.action_cancel)) }
+                if (kind == SheetKind.JustSaved) {
+                    TextButton(
+                        onClick = {
+                            onRemove()
+                            onDismiss()
+                        },
+                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                    ) {
+                        Icon(painterResource(R.drawable.ic_delete), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                        Text(stringResource(R.string.action_remove), modifier = Modifier.padding(start = 8.dp))
+                    }
+                } else {
+                    TextButton(onClick = cancel) { Text(stringResource(R.string.action_cancel)) }
+                }
                 Button(enabled = saved || link != null, onClick = save) { Text(stringResource(R.string.action_save)) }
             }
         }
@@ -289,12 +314,14 @@ fun FolderChips(
     place: Place,
     folders: List<String>,
     onChange: (Place) -> Unit,
+    /** The folder being typed, kept by the sheet so Save files it there too. */
+    name: String,
+    onNameChange: (String) -> Unit,
 ) {
     var making by rememberSaveable { mutableStateOf(false) }
-    var name by rememberSaveable { mutableStateOf("") }
     val make = {
         SaveChoices.newFolder(name, folders)?.let(onChange)
-        name = ""
+        onNameChange("")
         making = false
     }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -343,7 +370,7 @@ fun FolderChips(
         if (making) {
             OutlinedTextField(
                 value = name,
-                onValueChange = { name = it },
+                onValueChange = onNameChange,
                 label = { Text(stringResource(R.string.folder_new)) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
@@ -392,7 +419,7 @@ fun RemoveDialog(
             TextButton(onClick = {
                 onDismiss()
                 onRemove()
-            }) { Text(stringResource(if (both) R.string.saved_remove_from_both else R.string.action_remove)) }
+            }, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) { Text(stringResource(if (both) R.string.saved_remove_from_both else R.string.action_remove)) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )

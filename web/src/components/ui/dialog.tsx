@@ -42,7 +42,8 @@ export function Dialog({
               <X className="size-4" />
             </D.Close>
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-4">{children}</div>
+          {/* pt-1: the first field's focus ring isn't cut off by the scrolling body. */}
+          <div className="min-h-0 flex-1 overflow-y-auto px-6 pt-1 pb-4">{children}</div>
           {footer ? <div className="flex flex-wrap justify-end gap-2 border-t px-6 py-3">{footer}</div> : null}
         </D.Content>
       </D.Portal>

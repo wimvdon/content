@@ -107,6 +107,7 @@ import be.wimvandonck.reader.data.Feed
 import be.wimvandonck.reader.data.Folder
 import be.wimvandonck.reader.data.Item
 import be.wimvandonck.reader.data.SavedFilter
+import be.wimvandonck.reader.data.SavedTab
 import be.wimvandonck.reader.data.SavedType
 import be.wimvandonck.reader.data.FeedSelection
 import be.wimvandonck.reader.data.ScrollRead
@@ -274,7 +275,8 @@ fun HomeScreen(
                             title = {
                                 Column {
                                     Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                    if (reading != null) {
+                                    // Saved: how many to read, on To read only (the list's summary line counts the others).
+                                    if (reading != null && reading.filter.tab == SavedTab.ToRead) {
                                         Text(
                                             pluralStringResource(R.plurals.reading_list_to_read_count, state.toReadCount, state.toReadCount),
                                             style = MaterialTheme.typography.labelMedium,
@@ -297,7 +299,7 @@ fun HomeScreen(
                             },
                             navigationIcon = {
                                 IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                                    Icon(painterResource(R.drawable.ic_menu), contentDescription = stringResource(R.string.action_open_feeds))
+                                    Icon(painterResource(R.drawable.ic_menu), contentDescription = stringResource(R.string.action_open_menu))
                                 }
                             },
                             actions = {
@@ -373,7 +375,14 @@ fun HomeScreen(
                         onRefresh = actions.onRefresh,
                         modifier = Modifier.fillMaxSize(),
                     ) {
-                        SavedContent(reading, state.showImages, actions.onOpenItem, onArchive = actions.onArchiveItem, onFile = actions.onFileItem)
+                        SavedContent(
+                            reading,
+                            state.showImages,
+                            actions.onOpenItem,
+                            onArchive = actions.onArchiveItem,
+                            onFile = actions.onFileItem,
+                            onClearFilters = { actions.onSavedFilter(reading.filter.copy(likedOnly = false, tags = emptySet(), type = null)) },
+                        )
                     }
                 } else {
                 PullToRefreshBox(
@@ -420,7 +429,19 @@ private fun TypeFilterButton(
         IconButton(onClick = { open = true }) {
             Icon(
                 painterResource(R.drawable.ic_filter_list),
-                contentDescription = stringResource(R.string.type_filter),
+                contentDescription =
+                    filter.type?.let { type ->
+                        stringResource(
+                            R.string.type_filter_on,
+                            stringResource(
+                                when (type) {
+                                    SavedType.Article -> R.string.type_articles
+                                    SavedType.Video -> R.string.type_videos
+                                    SavedType.Audio -> R.string.type_audio
+                                },
+                            ),
+                        )
+                    } ?: stringResource(R.string.type_filter),
                 tint = if (filter.type != null) MaterialTheme.colorScheme.primary else LocalContentColor.current,
             )
         }
@@ -571,7 +592,8 @@ private fun SwipeToToggleRead(
                 stringResource(if (article.read) R.string.action_mark_unread else R.string.action_mark_read),
                 onToggle,
             ),
-        left = SwipeAction(R.drawable.ic_list, stringResource(R.string.action_save), onReadLater),
+        // Only a link can be saved: without one there is nothing to swipe to.
+        left = if (article.link != null) SwipeAction(R.drawable.ic_list, stringResource(R.string.action_save), onReadLater) else null,
         modifier = modifier,
         content = content,
     )

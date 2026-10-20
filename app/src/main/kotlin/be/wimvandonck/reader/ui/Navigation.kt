@@ -210,6 +210,8 @@ fun RssReaderNavigation(
     // (already in the article: its message needs no Open).
     var addedKey by rememberSaveable { mutableStateOf<String?>(null) }
     var addedFromReader by rememberSaveable { mutableStateOf(false) }
+    // The item as it was before that save (null: not saved then), for Remove on the sheet.
+    var addedBefore by remember { mutableStateOf<Item?>(null) }
     // The save sheet while it is open: the link (empty: type one) and its title.
     var saveOpen by rememberSaveable { mutableStateOf(false) }
     var saveUrl by rememberSaveable { mutableStateOf("") }
@@ -422,6 +424,7 @@ fun RssReaderNavigation(
             repository.edit { library ->
                 val (updated, item) = library.addToReadingList(link, title, System.currentTimeMillis())
                 added = item
+                addedBefore = item?.let { library.item(it.key) }
                 if (item != null && current.tagWithFolder) updated.tagWithFeedFolder(item.key) else updated
             }
             val item = added
@@ -562,7 +565,14 @@ fun RssReaderNavigation(
                                     if (!article.read) readThisVisit = readThisVisit + article.key
                                     app.appScope.launch { repository.setRead(article.key, !article.read) }
                                 },
-                                onReadLater = { article -> article.link?.let { readLater(it, article.title, inReader = false) } },
+                                // Swipe left is Save, so it goes where the reader's Save button goes (Settings › Save button).
+                                onReadLater = { article ->
+                                    if (current.saveTarget == ShareTarget.Saved) {
+                                        article.link?.let { readLater(it, article.title, inReader = false) }
+                                    } else {
+                                        send(article, current.saveTarget)
+                                    }
+                                },
                                 onRefresh = ::refresh,
                                 onMarkAllRead = {
                                     // Done with the section: nothing read stays in the Unread list (#157).
@@ -699,6 +709,7 @@ fun RssReaderNavigation(
                                         onRemove = {
                                             editLibrary { Saved.remove(it, i.key) }
                                             pop()
+                                            showMessage(resources.getString(R.string.saved_removed))
                                         },
                                         services = servicePresence[i.key].orEmpty(),
                                         onRemoveFrom = { id ->
@@ -916,6 +927,12 @@ fun RssReaderNavigation(
             },
             // Cancelled right after saving: it stays where it was saved (#156).
             onCancel = { if (addedKey != null) confirmSaved(sheetItem, SaveChoices.of(sheetItem).place) },
+            // Remove right after saving takes the save back: as if it was never saved.
+            onRemove = {
+                val before = addedBefore
+                editLibrary { SaveChoices.undoSave(it, sheetItem.key, before) }
+                showMessage(resources.getString(R.string.saved_removed))
+            },
             onDismiss = {
                 addedKey = null
                 fileKey = null
@@ -927,7 +944,14 @@ fun RssReaderNavigation(
     if (saveOpen) {
         SaveSheet(
             kind = SheetKind.New,
-            initial = SaveChoice(),
+            // Add link from a folder in Saved starts in that folder.
+            initial =
+                SaveChoice(
+                    place =
+                        (savedFilter.tab as? SavedTab.Folder)
+                            ?.takeIf { saveUrl.isEmpty() && section == HomeSection.Saved }
+                            ?.let { Place.Folder(it.name) } ?: Place.ToRead,
+                ),
             url = saveUrl.ifEmpty { null },
             title = saveTitle,
             folders = Saved.folders(library),

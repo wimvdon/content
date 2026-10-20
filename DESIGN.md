@@ -294,8 +294,10 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   their icons, a `VerticalDivider`, each folder, then a New folder `AssistChip`, the only thing to
   type; #156), **Tags** in one row
   like Saved's filter row (Like, a `VerticalDivider`, the tags as `InputChip`s, Add a tag), and
-  **Note** last, with the room. Section titles in Title Small, `primary`. Then Cancel and Save, always:
+  **Note** last, with the room. Section titles in Title Small, `primary`. Then Cancel and Save:
   closing the sheet is Cancel, so only Save changes anything; the heading is "Save to Reader", "Saved to …" or "Organise".
+  Right after a save ("Saved to …"), **Remove** (error colour, trash icon) takes the place of Cancel
+  and takes the save back; closing keeps it. A folder or tag still being typed is taken by Save.
 - The ☰ drawer: the Feeds section (All articles, the folders with their feeds, the other feeds),
   the Saved section (To read with its count, All, the folders with theirs, then Archive), then
   Manage feeds, Folders and tags, Connected services and Settings. Manage feeds shows what it manages with a pen (the

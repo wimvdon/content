@@ -10,13 +10,14 @@
   --muted: oklch(0.96 0.006 240);
   --muted-foreground: oklch(0.5 0.02 250);
   --border: oklch(0.91 0.008 240);
-  --primary: oklch(0.6 0.17 245);
+  /* L 0.52: 5.3:1 on white, so small primary text passes WCAG AA. */
+  --primary: oklch(0.52 0.17 245);
   --primary-foreground: oklch(0.99 0 0);
   --accent: oklch(0.94 0.03 240);
   --accent-foreground: oklch(0.3 0.08 250);
   --destructive: oklch(0.58 0.2 27);
-  --ring: oklch(0.6 0.17 245);
-  --unread: oklch(0.6 0.17 245);
+  --ring: oklch(0.52 0.17 245);
+  --unread: oklch(0.52 0.17 245);
 }
 
 .dark {

@@ -16,7 +16,6 @@
     <string name="action_add">Añadir</string>
     <string name="action_remove">Quitar</string>
     <string name="action_more">Más opciones</string>
-    <string name="action_open_feeds">Abrir feeds</string>
     <string name="action_mark_all_read">Marcar todo como leído</string>
     <string name="action_mark_unread">Marcar como no leído</string>
     <string name="action_open_in_browser">Abrir en el navegador</string>
@@ -26,7 +25,7 @@
     <string name="feeds_import">Importar OPML</string>
     <string name="feeds_export">Exportar OPML</string>
     <string name="feeds_remove_title">¿Quitar el feed?</string>
-    <string name="feeds_remove_body">%1$s y sus artículos se quitarán de este teléfono.</string>
+    <string name="feeds_remove_body">%1$s y sus artículos se quitarán.</string>
     <string name="add_feed_label">Dirección del sitio o feed</string>
     <string name="add_feed_invalid">Eso no parece una dirección web.</string>
     <string name="add_feed_no_feed">No se encontró ningún feed en esta dirección.</string>
@@ -294,6 +293,8 @@
     <string name="folder_field">Carpeta</string>
     <string name="saved_to">Guardado en %1$s</string>
     <string name="type_filter">Tipo</string>
+    <string name="type_filter_on">Tipo: %1$s</string>
+    <string name="action_open_menu">Abrir menú</string>
     <string name="type_all">Todos los tipos</string>
     <string name="type_articles">Artículos</string>
     <string name="type_videos">Vídeos</string>
@@ -303,6 +304,7 @@
     <string name="saved_folder_remove">Quitar carpeta</string>
     <string name="saved_folder_remove_body">¿Quitar la carpeta %1$s? Sus artículos vuelven a Por leer.</string>
     <string name="saved_remove">Quitar de Guardados</string>
+    <string name="saved_removed">Quitado de Guardados</string>
     <string name="saved_remove_body">¿Quitar este artículo, con su nota, etiquetas y resaltados? Archivarlo lo mantiene buscable.</string>
     <string name="saved_empty_body">Desliza un artículo de un feed a la izquierda, toca Guardar en un artículo, comparte un enlace con Reader o añade uno aquí.</string>
     <string name="manage_folders_tags_empty_title">Aún no hay carpetas ni etiquetas</string>

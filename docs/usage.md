@@ -152,8 +152,9 @@ Reader remembers how far you read and opens the article there again.
 
 After **Save**, the sheet that opens says where it was saved, then has the **Folder** (To read and
 **Archive** first, then your folders, or **New folder** to make one), the **Tags** with **Like** in
-front, and a **Note**: one step from a feed article to its folder. **Save** keeps what you chose;
-**Cancel** (or closing the sheet) changes nothing, and the article stays where it was just saved.
+front, and a **Note**: one step from a feed article to its folder. **Save** keeps what you chose,
+also a folder or tag you typed but didn't add yet. **Remove** takes the save back, as if you never
+saved it ("Removed from Saved"); closing the sheet keeps it where it was just saved, unchanged.
 The same sheet, called **Organise**, opens when you swipe a saved article right in Saved. When it
 closes, a message says where the article went; after a swipe, **Add link** or a link shared from
 another app it also has **Open**, which goes to the article in Saved.
@@ -268,7 +269,10 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
 - **In the web app** Saved is the same: the same tabs, chips, type filter and cards, and **Add link**
   (the link button next to the type filter). In an article the top bar is the reading (Aa, Share,
   ⋮) and the bar under it the library: **Save** before it is saved (it opens the same sheet), then
-  its folder (**Organise**: folder, tags with Like, note), **Like** and **Archive**.
+  the same two menus as on the phone: **where it is** (To read and Archive, your folders) and **its
+  tags** (Like, your tags). Archiving goes back to the list with **Undo**. Keys: **j**/**k** next
+  and previous, **m** read or unread, **o** open on the website, **r** refresh, **/** search, and
+  **Esc** closes a menu, then the article.
 - **☰ › Connected services**: the services Saved is also kept in, Instapaper, Raindrop.io or both,
   each with what it syncs; tap one for its account, its import and **What it syncs**. Feeds are
   Reader's own.

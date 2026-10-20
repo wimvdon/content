@@ -1,4 +1,5 @@
 import { ArrowDown, ArrowUp, Pencil, Plus, Trash2 } from "lucide-react";
+import { ConfirmRemove } from "./ConfirmRemove";
 import { useState } from "react";
 import { app, useApp, type ListView, type Theme } from "@/lib/app";
 import { formatRelative, t, type Key } from "@/lib/i18n";
@@ -139,8 +140,7 @@ export function ManageDialog({ open, onOpenChange, onAddFeed, onImport }: Props 
               </div>
               {feeds.length === 0 ? <p className="px-3 py-2 text-sm text-muted-foreground">{folder ? t("folderEmpty") : t("noFolderEmpty")}</p> : null}
               <ul>
-                {feeds.map((feed) => {
-                  const index = library.feeds.indexOf(feed);
+                {feeds.map((feed, index) => {
                   return (
                     <li key={feed.url} className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-card">
                       <FeedIcon feed={feed} />
@@ -151,7 +151,7 @@ export function ManageDialog({ open, onOpenChange, onAddFeed, onImport }: Props 
                       <Button variant="ghost" size="iconSm" disabled={index === 0} onClick={() => app.moveFeedBy(feed.url, -1)} aria-label={t("moveUp")}>
                         <ArrowUp />
                       </Button>
-                      <Button variant="ghost" size="iconSm" disabled={index === library.feeds.length - 1} onClick={() => app.moveFeedBy(feed.url, 1)} aria-label={t("moveDown")}>
+                      <Button variant="ghost" size="iconSm" disabled={index === feeds.length - 1} onClick={() => app.moveFeedBy(feed.url, 1)} aria-label={t("moveDown")}>
                         <ArrowDown />
                       </Button>
                       <Button variant="ghost" size="iconSm" onClick={() => setEditFeed(feed)} aria-label={t("edit")}>
@@ -165,8 +165,8 @@ export function ManageDialog({ open, onOpenChange, onAddFeed, onImport }: Props 
           ))}
         </div>
       </Dialog>
-      <EditFeedDialog key={editFeed?.url ?? ""} feed={editFeed} folders={library.folders} onClose={() => setEditFeed(null)} />
-      <FolderDialog key={editFolder === "new" ? "new" : (editFolder?.id ?? "")} folder={editFolder} onClose={() => setEditFolder(null)} />
+      <EditFeedDialog key={`feed:${editFeed?.url ?? ""}`} feed={editFeed} folders={library.folders} onClose={() => setEditFeed(null)} />
+      <FolderDialog key={`folder:${editFolder === "new" ? "new" : (editFolder?.id ?? "")}`} folder={editFolder} onClose={() => setEditFolder(null)} />
     </>
   );
 }
@@ -174,6 +174,7 @@ export function ManageDialog({ open, onOpenChange, onAddFeed, onImport }: Props 
 function EditFeedDialog({ feed, folders, onClose }: { feed: Feed | null; folders: Folder[]; onClose: () => void }) {
   const [title, setTitle] = useState(feed?.title ?? "");
   const [folderId, setFolderId] = useState(feed?.folderId ?? "");
+  const [confirming, setConfirming] = useState(false);
   if (!feed) return null;
   const save = () => {
     if (title.trim() !== feed.title) app.renameFeed(feed.url, title);
@@ -192,10 +193,7 @@ function EditFeedDialog({ feed, folders, onClose }: { feed: Feed | null; folders
           <Button
             variant="destructive"
             className="mr-auto"
-            onClick={() => {
-              app.removeFeed(feed.url);
-              onClose();
-            }}
+            onClick={() => setConfirming(true)}
           >
             <Trash2 />
             {t("remove")}
@@ -210,7 +208,7 @@ function EditFeedDialog({ feed, folders, onClose }: { feed: Feed | null; folders
       <div className="space-y-4">
         <div className="space-y-1.5">
           <Label htmlFor="feed-title">{t("name")}</Label>
-          <Input id="feed-title" value={title} onChange={(e) => setTitle(e.target.value)} />
+          <Input id="feed-title" value={title} onChange={(e) => setTitle(e.target.value)} onKeyDown={(e) => e.key === "Enter" && save()} />
           <p className="text-xs text-muted-foreground">{t("nameHint")}</p>
         </div>
         <div className="space-y-1.5">
@@ -225,6 +223,16 @@ function EditFeedDialog({ feed, folders, onClose }: { feed: Feed | null; folders
           </Select>
         </div>
       </div>
+      <ConfirmRemove
+        open={confirming}
+        title={t("removeFeedTitle")}
+        body={t("removeFeedBody").replace("{name}", feed.title)}
+        onConfirm={() => {
+          app.removeFeed(feed.url);
+          onClose();
+        }}
+        onClose={() => setConfirming(false)}
+      />
     </Dialog>
   );
 }
@@ -234,6 +242,7 @@ function FolderDialog({ folder, onClose }: { folder: Folder | "new" | null; onCl
   const [title, setTitle] = useState(folder && folder !== "new" ? folder.title : "");
   const [icon, setIcon] = useState(folder && folder !== "new" ? folder.icon : "folder");
   const [query, setQuery] = useState("");
+  const [confirming, setConfirming] = useState(false);
   if (!folder) return null;
   const save = () => {
     if (folder === "new") app.addFolder(title, icon);
@@ -253,10 +262,7 @@ function FolderDialog({ folder, onClose }: { folder: Folder | "new" | null; onCl
             <Button
               variant="destructive"
               className="mr-auto"
-              onClick={() => {
-                app.removeFolder(folder.id);
-                onClose();
-              }}
+              onClick={() => setConfirming(true)}
             >
               <Trash2 />
               {t("remove")}
@@ -274,7 +280,7 @@ function FolderDialog({ folder, onClose }: { folder: Folder | "new" | null; onCl
       <div className="space-y-4">
         <div className="space-y-1.5">
           <Label htmlFor="folder-title">{t("title")}</Label>
-          <Input id="folder-title" autoFocus value={title} onChange={(e) => setTitle(e.target.value)} />
+          <Input id="folder-title" autoFocus value={title} onChange={(e) => setTitle(e.target.value)} onKeyDown={(e) => e.key === "Enter" && title.trim() && save()} />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="icon-search">{t("icon")}</Label>
@@ -297,6 +303,18 @@ function FolderDialog({ folder, onClose }: { folder: Folder | "new" | null; onCl
           </div>
         </div>
       </div>
+      {folder && folder !== "new" ? (
+        <ConfirmRemove
+          open={confirming}
+          title={t("removeFolderTitle")}
+          body={t("removeFolderBody").replace("{name}", folder.title)}
+          onConfirm={() => {
+            app.removeFolder(folder.id);
+            onClose();
+          }}
+          onClose={() => setConfirming(false)}
+        />
+      ) : null}
     </Dialog>
   );
 }

@@ -20,6 +20,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import be.wimvandonck.reader.R
@@ -37,8 +42,12 @@ internal fun RowScope.SavedBar(item: ReaderItem) {
     val choice = SaveChoices.of(item.item)
     var placesOpen by remember { mutableStateOf(false) }
     var tagsOpen by remember { mutableStateOf(false) }
+    val folderLabel = stringResource(R.string.folder_field)
+    val tagsTitle = stringResource(R.string.tags_title)
     Box(Modifier.padding(start = 8.dp).weight(1f, fill = false)) {
-        TextButton(onClick = { placesOpen = true }) {
+        // Read out as "Folder: To read", a menu, not as an action called "To read".
+        val placeSpoken = "$folderLabel: ${placeName(choice.place)}"
+        TextButton(onClick = { placesOpen = true }, modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = placeSpoken; role = Role.DropdownList }) {
             Icon(painterResource(placeIcon(choice.place)), contentDescription = null)
             Text(placeName(choice.place), modifier = Modifier.padding(start = 8.dp), maxLines = 1, overflow = TextOverflow.Ellipsis)
             Icon(painterResource(R.drawable.ic_expand_more), contentDescription = null, modifier = Modifier.size(18.dp))
@@ -69,7 +78,8 @@ internal fun RowScope.SavedBar(item: ReaderItem) {
     Spacer(Modifier.weight(1f))
     Box(Modifier.padding(end = 8.dp).weight(1f, fill = false)) {
         val liked = stringResource(R.string.reading_list_liked)
-        TextButton(onClick = { tagsOpen = true }) {
+        val tagsSpoken = "$tagsTitle: ${SaveChoices.tagsLabel(choice, liked) ?: "–"}"
+        TextButton(onClick = { tagsOpen = true }, modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = tagsSpoken; role = Role.DropdownList }) {
             Icon(
                 painterResource(if (choice.liked) R.drawable.ic_favorite_filled else R.drawable.ic_label),
                 contentDescription = null,
@@ -115,6 +125,8 @@ private fun MenuChoice(
         leadingIcon = { Icon(painterResource(icon), contentDescription = null) },
         trailingIcon = if (selected) ({ Icon(painterResource(R.drawable.ic_check), contentDescription = null) }) else null,
         onClick = onClick,
+        // The check is announced too.
+        modifier = Modifier.semantics { this.selected = selected },
     )
 }
 

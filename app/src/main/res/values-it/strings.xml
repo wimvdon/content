@@ -16,7 +16,6 @@
     <string name="action_add">Aggiungi</string>
     <string name="action_remove">Rimuovi</string>
     <string name="action_more">Altre opzioni</string>
-    <string name="action_open_feeds">Apri feed</string>
     <string name="action_mark_all_read">Segna tutto come letto</string>
     <string name="action_mark_unread">Segna come non letto</string>
     <string name="action_open_in_browser">Apri nel browser</string>
@@ -26,7 +25,7 @@
     <string name="feeds_import">Importa OPML</string>
     <string name="feeds_export">Esporta OPML</string>
     <string name="feeds_remove_title">Rimuovere il feed?</string>
-    <string name="feeds_remove_body">%1$s e i suoi articoli verranno rimossi da questo telefono.</string>
+    <string name="feeds_remove_body">%1$s e i suoi articoli verranno rimossi.</string>
     <string name="add_feed_label">Indirizzo del sito o del feed</string>
     <string name="add_feed_invalid">Non sembra un indirizzo web.</string>
     <string name="add_feed_no_feed">Nessun feed trovato a questo indirizzo.</string>
@@ -294,6 +293,8 @@
     <string name="folder_field">Cartella</string>
     <string name="saved_to">Salvato in %1$s</string>
     <string name="type_filter">Tipo</string>
+    <string name="type_filter_on">Tipo: %1$s</string>
+    <string name="action_open_menu">Apri menu</string>
     <string name="type_all">Tutti i tipi</string>
     <string name="type_articles">Articoli</string>
     <string name="type_videos">Video</string>
@@ -303,6 +304,7 @@
     <string name="saved_folder_remove">Rimuovi cartella</string>
     <string name="saved_folder_remove_body">Rimuovere la cartella %1$s? I suoi articoli tornano in Da leggere.</string>
     <string name="saved_remove">Rimuovi da Salvati</string>
+    <string name="saved_removed">Rimosso da Salvati</string>
     <string name="saved_remove_body">Rimuovere questo articolo, con nota, tag ed evidenziazioni? Archiviarlo lo mantiene ricercabile.</string>
     <string name="saved_empty_body">Scorri a sinistra un articolo di un feed, tocca Salva in un articolo, condividi un link con Reader o aggiungine uno qui.</string>
     <string name="manage_folders_tags_empty_title">Ancora nessuna cartella o tag</string>

@@ -3,9 +3,9 @@
  * data/SaveChoice.kt: which places to offer, what a new folder is, and where a save lands.
  */
 
-import { changeItem, cleanTags, itemOf, type Item } from "./items";
+import { changeItem, cleanTags, itemOf, putItem, type Item } from "./items";
 import type { Library } from "./library";
-import { archiveItem, fileItem, folderOf, saveLink } from "./saved";
+import { archiveItem, fileItem, folderOf, removeSaved, saveLink } from "./saved";
 
 /** Where the sheet puts an article: To read, one folder, or the Archive. */
 export type Place = { kind: "toread" } | { kind: "folder"; name: string } | { kind: "archive" };
@@ -38,6 +38,26 @@ export function choiceOf(i: Item): SaveChoice {
 export function places(folders: string[], current: Place): Place[] {
   const made = current.kind === "folder" && !folders.some((f) => same(f, current.name)) ? [current] : [];
   return [{ kind: "toread" }, { kind: "archive" }, ...folders.map((name): Place => ({ kind: "folder", name })), ...made];
+}
+
+/**
+ * Takes back a save that just happened (Remove on the sheet right after Save): the item as it was
+ * before, or gone when it wasn't saved then. The same as the Android app's SaveChoices.undoSave.
+ */
+export function undoSave(lib: Library, key: string, before: Item | null): Library {
+  if (!itemOf(lib, key)) return lib;
+  return before ? putItem(lib, before) : removeSaved(lib, key);
+}
+
+/**
+ * The choice with what is still typed in the sheet when Save is tapped: a new folder's name (it
+ * goes there) and a tag's (it is added), so nothing typed is lost. As SaveChoices.withTyped on Android.
+ */
+export function withTyped(choice: SaveChoice, folder: string, tag: string, folders: string[]): SaveChoice {
+  const place = newFolder(folder, folders) ?? choice.place;
+  const clean = tag.trim();
+  const tags = !clean || choice.tags.some((t) => same(t, clean)) ? choice.tags : [...choice.tags, clean];
+  return samePlace(place, choice.place) && tags === choice.tags ? choice : { ...choice, place, tags };
 }
 
 /** The tag on or off (case ignored), as the reader's Tags menu does it (#156). */

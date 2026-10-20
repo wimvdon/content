@@ -16,7 +16,6 @@
     <string name="action_add">Toevoegen</string>
     <string name="action_remove">Verwijderen</string>
     <string name="action_more">Meer opties</string>
-    <string name="action_open_feeds">Feeds openen</string>
     <string name="action_mark_all_read">Alles als gelezen markeren</string>
     <string name="action_mark_unread">Als ongelezen markeren</string>
     <string name="action_open_in_browser">Openen in browser</string>
@@ -26,7 +25,7 @@
     <string name="feeds_import">OPML importeren</string>
     <string name="feeds_export">OPML exporteren</string>
     <string name="feeds_remove_title">Feed verwijderen?</string>
-    <string name="feeds_remove_body">%1$s en de artikels ervan worden van deze telefoon verwijderd.</string>
+    <string name="feeds_remove_body">%1$s en de artikels ervan worden verwijderd.</string>
     <string name="add_feed_label">Adres van website of feed</string>
     <string name="add_feed_invalid">Dat lijkt geen webadres.</string>
     <string name="add_feed_no_feed">Geen feed gevonden op dit adres.</string>
@@ -284,6 +283,8 @@
     <string name="folder_field">Map</string>
     <string name="saved_to">Bewaard in %1$s</string>
     <string name="type_filter">Soort</string>
+    <string name="type_filter_on">Soort: %1$s</string>
+    <string name="action_open_menu">Menu openen</string>
     <string name="type_all">Alle soorten</string>
     <string name="type_articles">Artikels</string>
     <string name="type_videos">Video’s</string>
@@ -293,6 +294,7 @@
     <string name="saved_folder_remove">Map verwijderen</string>
     <string name="saved_folder_remove_body">De map %1$s verwijderen? De artikels gaan terug naar Te lezen.</string>
     <string name="saved_remove">Verwijderen uit Bewaard</string>
+    <string name="saved_removed">Verwijderd uit Bewaard</string>
     <string name="saved_remove_body">Dit artikel verwijderen, met zijn notitie, tags en markeringen? Archiveren houdt het doorzoekbaar.</string>
     <string name="saved_empty_body">Veeg een artikel uit een feed naar links, tik op Opslaan in een artikel, deel een link met Reader of voeg er hier een toe.</string>
     <string name="manage_folders_tags_empty_title">Nog geen mappen of tags</string>

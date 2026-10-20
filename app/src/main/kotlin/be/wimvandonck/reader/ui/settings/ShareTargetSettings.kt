@@ -104,7 +104,7 @@ private fun TargetRow(
                 LazyColumn(Modifier.heightIn(max = 420.dp)) {
                     if (offerSaved) {
                         item(key = "saved") {
-                            Choice(saved, null, selected = target == ShareTarget.Saved, iconRes = R.drawable.ic_bookmark_add) {
+                            Choice(saved, null, selected = target == ShareTarget.Saved, iconRes = R.drawable.ic_list) {
                                 onChange(ShareTarget.Saved)
                                 choosing = false
                             }

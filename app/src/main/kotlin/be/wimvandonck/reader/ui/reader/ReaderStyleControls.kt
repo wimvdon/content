@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
@@ -93,7 +94,8 @@ private fun TextSizeSlider(
             Text(value, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(SAMPLE_LETTER, fontSize = 14.sp, fontFamily = style.font.fontFamily())
+            // The two letters only show the size; the slider says it.
+            Text(SAMPLE_LETTER, fontSize = 14.sp, fontFamily = style.font.fontFamily(), modifier = Modifier.clearAndSetSemantics {})
             Slider(
                 value = style.textSize.toFloat(),
                 onValueChange = { onChange(style.withTextSize(Math.round(it))) },
@@ -107,7 +109,7 @@ private fun TextSizeSlider(
                             stateDescription = value
                         },
             )
-            Text(SAMPLE_LETTER, fontSize = 24.sp, fontFamily = style.font.fontFamily())
+            Text(SAMPLE_LETTER, fontSize = 24.sp, fontFamily = style.font.fontFamily(), modifier = Modifier.clearAndSetSemantics {})
         }
     }
 }

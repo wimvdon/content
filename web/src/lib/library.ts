@@ -102,6 +102,23 @@ export function moveFeed(lib: Library, url: string, folderId: string | null): Li
   return { ...lib, feeds: lib.feeds.map((f) => (f.url === url ? { ...f, folderId: target } : f)) };
 }
 
+/**
+ * Moves a feed up or down among the feeds of its own folder (or those outside folders), as Manage
+ * feeds shows them; swapping with a feed in another folder would change nothing you can see.
+ */
+export function moveWithinFolder(lib: Library, url: string, delta: number): Library {
+  const feed = lib.feeds.find((f) => f.url === url);
+  if (!feed) return lib;
+  const group = lib.feeds.filter((f) => f.folderId === feed.folderId);
+  const other = group[group.indexOf(feed) + delta];
+  if (!other) return lib;
+  const a = lib.feeds.indexOf(feed);
+  const b = lib.feeds.indexOf(other);
+  const feeds = [...lib.feeds];
+  [feeds[a], feeds[b]] = [feeds[b], feeds[a]];
+  return { ...lib, feeds };
+}
+
 export function setFeedIcon(lib: Library, url: string, iconUrl: string): Library {
   return { ...lib, feeds: lib.feeds.map((f) => (f.url === url ? { ...f, iconUrl } : f)) };
 }

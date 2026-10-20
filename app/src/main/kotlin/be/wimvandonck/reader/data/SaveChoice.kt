@@ -63,6 +63,37 @@ object SaveChoices {
         return Place.Folder(folders.firstOrNull { it.equals(clean, ignoreCase = true) } ?: clean)
     }
 
+    /**
+     * Takes back a save that just happened (Remove on the sheet right after Save): the item as it
+     * was before ([before]), or gone when it wasn't saved then.
+     */
+    fun undoSave(
+        library: Library,
+        key: String,
+        before: Item?,
+    ): Library =
+        when {
+            library.item(key) == null -> library
+            before == null -> Saved.remove(library, key)
+            else -> library.changeItem(key) { before }
+        }
+
+    /**
+     * The choice with what is still typed in the sheet when Save is tapped: a new folder's name
+     * (it goes there) and a tag's (it is added), so nothing typed is lost.
+     */
+    fun withTyped(
+        choice: SaveChoice,
+        folder: String,
+        tag: String,
+        folders: List<String>,
+    ): SaveChoice {
+        val place = newFolder(folder, folders) ?: choice.place
+        val clean = tag.trim()
+        val tags = if (clean.isEmpty() || choice.tags.any { it.equals(clean, ignoreCase = true) }) choice.tags else choice.tags + clean
+        return if (place == choice.place && tags == choice.tags) choice else choice.copy(place = place, tags = tags)
+    }
+
     /** The tag on or off (case ignored), as the reader's Tags menu does it (#156). */
     fun withTag(
         choice: SaveChoice,

@@ -41,6 +41,13 @@ fun AddFeedDialog(
     onDismiss: () -> Unit,
 ) {
     var address by rememberSaveable { mutableStateOf("") }
+    // The address last tried: its problem shows until the address is changed.
+    var tried by rememberSaveable { mutableStateOf("") }
+    val shownError = error?.takeIf { address == tried }
+    val add = {
+        tried = address
+        onAdd(address)
+    }
     val focus = remember { FocusRequester() }
     LaunchedEffect(Unit) { focus.requestFocus() }
     val canAdd = address.isNotBlank() && !busy
@@ -56,19 +63,19 @@ fun AddFeedDialog(
                     label = { Text(stringResource(R.string.add_feed_label)) },
                     singleLine = true,
                     enabled = !busy,
-                    isError = error != null,
+                    isError = shownError != null,
                     supportingText =
-                        error?.let {
+                        shownError?.let {
                             { Text(it, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }) }
                         },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(onDone = { if (canAdd) onAdd(address) }),
+                    keyboardActions = KeyboardActions(onDone = { if (canAdd) add() }),
                     modifier = Modifier.focusRequester(focus),
                 )
             }
         },
         confirmButton = {
-            TextButton(onClick = { onAdd(address) }, enabled = canAdd) {
+            TextButton(onClick = add, enabled = canAdd) {
                 if (busy) {
                     CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.size(18.dp))
                 } else {
@@ -77,7 +84,8 @@ fun AddFeedDialog(
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
+            // While it looks for the feed, Cancel can't stop it: shown as off rather than doing nothing.
+            TextButton(onClick = onDismiss, enabled = !busy) { Text(stringResource(R.string.action_cancel)) }
         },
     )
 }

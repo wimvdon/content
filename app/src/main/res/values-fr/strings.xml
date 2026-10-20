@@ -16,7 +16,6 @@
     <string name="action_add">Ajouter</string>
     <string name="action_remove">Supprimer</string>
     <string name="action_more">Plus d\'options</string>
-    <string name="action_open_feeds">Ouvrir les flux</string>
     <string name="action_mark_all_read">Tout marquer comme lu</string>
     <string name="action_mark_unread">Marquer comme non lu</string>
     <string name="action_open_in_browser">Ouvrir dans le navigateur</string>
@@ -26,7 +25,7 @@
     <string name="feeds_import">Importer un OPML</string>
     <string name="feeds_export">Exporter en OPML</string>
     <string name="feeds_remove_title">Supprimer le flux ?</string>
-    <string name="feeds_remove_body">%1$s et ses articles seront supprimés de ce téléphone.</string>
+    <string name="feeds_remove_body">%1$s et ses articles seront supprimés.</string>
     <string name="add_feed_label">Adresse du site ou du flux</string>
     <string name="add_feed_invalid">Cela ne ressemble pas à une adresse web.</string>
     <string name="add_feed_no_feed">Aucun flux trouvé à cette adresse.</string>
@@ -294,6 +293,8 @@
     <string name="folder_field">Dossier</string>
     <string name="saved_to">Enregistré dans %1$s</string>
     <string name="type_filter">Type</string>
+    <string name="type_filter_on">Type : %1$s</string>
+    <string name="action_open_menu">Ouvrir le menu</string>
     <string name="type_all">Tous les types</string>
     <string name="type_articles">Articles</string>
     <string name="type_videos">Vidéos</string>
@@ -303,6 +304,7 @@
     <string name="saved_folder_remove">Supprimer le dossier</string>
     <string name="saved_folder_remove_body">Supprimer le dossier %1$s ? Ses articles retournent dans À lire.</string>
     <string name="saved_remove">Retirer des enregistrés</string>
+    <string name="saved_removed">Retiré des enregistrés</string>
     <string name="saved_remove_body">Retirer cet article, avec sa note, ses tags et ses surlignages ? L’archiver le garde consultable.</string>
     <string name="saved_empty_body">Balayez un article de flux vers la gauche, touchez Enregistrer dans un article, partagez un lien avec Reader ou ajoutez-en un ici.</string>
     <string name="manage_folders_tags_empty_title">Pas encore de dossiers ni de tags</string>

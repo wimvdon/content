@@ -98,4 +98,24 @@ class SaveChoicesTest {
         assertEquals("Liked", SaveChoices.tagsLabel(SaveChoice(liked = true), "Liked"))
         assertNull(SaveChoices.tagsLabel(SaveChoice(), "Liked"))
     }
+
+    @Test
+    fun `Remove right after saving takes the save back`() {
+        // A link that wasn't saved goes again.
+        val (added, item) = library.addToReadingList("https://b.example/new", "New", 5)
+        assertNull(SaveChoices.undoSave(added, item!!.key, before = null).item(item.key))
+        // One saved before (here archived) is as it was.
+        val before = library.item("a.example/3")
+        val again = library.changeItem("a.example/3") { it.copy(readingList = ReadingListEntry(ReadingState.ToRead, 9), liked = true) }
+        assertEquals(before, SaveChoices.undoSave(again, "a.example/3", before).item("a.example/3"))
+    }
+
+    @Test
+    fun `Save takes a folder and a tag still being typed`() {
+        val choice = SaveChoice(tags = listOf("News"))
+        val typed = SaveChoices.withTyped(choice, folder = " work ", tag = "Brussels", folders = listOf("Work"))
+        assertEquals(Place.Folder("Work"), typed.place)
+        assertEquals(listOf("News", "Brussels"), typed.tags)
+        assertSame(choice, SaveChoices.withTyped(choice, folder = "", tag = "news", folders = emptyList()))
+    }
 }

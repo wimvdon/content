@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { itemOf } from "../src/lib/items";
 import { emptyLibrary, type Library } from "../src/lib/library";
-import { applyChoice, choiceOf, emptyChoice, newFolder, places, saveNew, tagsLabel, withTag } from "../src/lib/saveChoice";
+import { applyChoice, choiceOf, emptyChoice, newFolder, places, saveNew, tagsLabel, undoSave, withTag, withTyped } from "../src/lib/saveChoice";
 import { archiveItem, folderOf, isIn, saveLink } from "../src/lib/saved";
 
 function sample(): Library {
@@ -67,5 +67,26 @@ describe("the reader's Tags menu (#156)", () => {
     expect(tagsLabel({ ...emptyChoice, liked: true, tags: ["News", "Brussels"] }, "Liked")).toBe("News, Brussels");
     expect(tagsLabel({ ...emptyChoice, liked: true }, "Liked")).toBe("Liked");
     expect(tagsLabel(emptyChoice, "Liked")).toBeNull();
+  });
+});
+
+describe("Remove right after saving", () => {
+  it("takes the save back: gone when new, as it was when saved before", () => {
+    const lib = sample();
+    const [added, item] = saveLink(lib, "https://b.example/new", "New", 5);
+    expect(itemOf(undoSave(added, item!.key, null), item!.key)).toBeUndefined();
+    const before = itemOf(lib, "a.example/3")!;
+    const [again] = saveLink(lib, "https://a.example/3", null, 9);
+    expect(itemOf(undoSave(again, "a.example/3", before), "a.example/3")).toEqual(before);
+  });
+});
+
+describe("Save with text still typed", () => {
+  it("takes a folder and a tag being typed", () => {
+    const choice = { ...emptyChoice, tags: ["News"] };
+    const typed = withTyped(choice, " work ", "Brussels", ["Work"]);
+    expect(typed.place).toEqual({ kind: "folder", name: "Work" });
+    expect(typed.tags).toEqual(["News", "Brussels"]);
+    expect(withTyped(choice, "", "news", [])).toBe(choice);
   });
 });
