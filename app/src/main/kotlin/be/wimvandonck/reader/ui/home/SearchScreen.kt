@@ -169,7 +169,7 @@ fun SearchScreen(
                                         feed = ReadingLists.source(hit.item, state.library),
                                         view = state.listView,
                                         showImage = state.showImages,
-                                        showUnreadDot = false,
+                                        showReadState = false,
                                         label = itemLabel,
                                         onClick = { actions.onOpenItem(hit.item) },
                                     )

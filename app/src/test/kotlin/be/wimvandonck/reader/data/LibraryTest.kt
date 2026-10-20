@@ -262,4 +262,31 @@ class LibraryTest {
         val library = twoFeeds.copy(readElsewhere = mapOf(Article.keyOf(a, "1") to 100L)).mergeAll(mapOf(a to parsed(item("1", 100))), now = 2_000)
         assertFalse(library.article(Article.keyOf(a, "1"))!!.read)
     }
+
+    @Test
+    fun `read articles that no longer fit keep their mark, unread ones don't`() {
+        val first = Library().addFeed(Feed(a, "A")).merge(a, parsed(item("old", 1), item("gone", 2)), now = 1_000).setRead(Article.keyOf(a, "old"), true)
+        val many = (1..Library.MAX_ARTICLES_PER_FEED).map { item("n$it", 100L + it) }
+        val merged = first.merge(a, parsed(*many.toTypedArray()), now = 2_000)
+        assertNull(merged.article(Article.keyOf(a, "old")))
+        // Leaving this device isn't reading it again elsewhere (#157): sync still sees it read.
+        assertEquals(mapOf(Article.keyOf(a, "old") to 1L), merged.readElsewhere)
+    }
+
+    @Test
+    fun `read marks older than the sync keeps go on the next refresh`() {
+        val day = 24L * 60 * 60 * 1000
+        val library = Library(readElsewhere = mapOf("x 1" to 10 * day, "x 2" to 200 * day)).addFeed(Feed(a, "A"))
+        assertEquals(mapOf("x 2" to 200 * day), library.merge(a, parsed(item("1", 1)), now = 200 * day).readElsewhere)
+    }
+
+    @Test
+    fun `a removed feed's read articles keep their mark and come back read`() {
+        val read = twoFeeds.setRead(Article.keyOf(a, "2"), true)
+        val removed = read.removeFeed(a)
+        assertEquals(mapOf(Article.keyOf(a, "2") to 300L), removed.readElsewhere)
+        val again = removed.addFeed(Feed(a, "A")).merge(a, parsed(item("1", 100), item("2", 300)), now = 2_000)
+        assertTrue(again.article(Article.keyOf(a, "2"))!!.read)
+        assertFalse(again.article(Article.keyOf(a, "1"))!!.read)
+    }
 }

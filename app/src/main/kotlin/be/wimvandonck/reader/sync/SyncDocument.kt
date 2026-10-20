@@ -43,7 +43,7 @@ data class SyncDocument(
         const val VERSION = 3L
 
         /** Read marks older than this are dropped from the file (feeds rarely go back further). */
-        const val KEEP_READ_MS = 120L * 24 * 60 * 60 * 1000
+        const val KEEP_READ_MS = Library.READ_MARKS_KEPT_MS
 
         /** What [library] holds that is synced. */
         fun of(library: Library): SyncDocument =

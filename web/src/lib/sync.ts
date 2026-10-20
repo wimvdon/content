@@ -1,5 +1,5 @@
 import { SyncError, type ReadAnswer, type WriteAnswer } from "./account";
-import { articleKey, DEFAULT_ICON, type Feed, type Library } from "./library";
+import { articleKey, DEFAULT_ICON, READ_MARKS_KEPT_MS, type Feed, type Library } from "./library";
 
 /**
  * The sync file shared with the Android app (docs/sync.md) and the three-way merge, a port of
@@ -41,7 +41,7 @@ export const FORMAT = "rss-reader-sync";
 // 2 added settings; 3 moved the read marks to per-item sync (#106). Older apps leave a newer file
 // alone and ask to be updated.
 export const VERSION = 3;
-export const KEEP_READ_MS = 120 * 24 * 60 * 60 * 1000;
+export const KEEP_READ_MS = READ_MARKS_KEPT_MS;
 
 /** When sync runs while the app is open, the same as the Android app's SyncTiming. */
 export const CHANGE_DELAY_MS = 1_000;

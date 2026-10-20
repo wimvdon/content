@@ -134,8 +134,11 @@ and saves again (at most four tries per sync). So two devices never overwrite ea
 - When both sides changed the same feed or folder, this device wins, except that an edit beats a
   removal.
 - The order comes from the side that reordered.
-- Read marks: an article read or unread on one side follows that side. Articles a device doesn't
-  have yet count as unchanged; when they arrive they arrive already read.
+- Read marks: an article read or unread on one side follows that side; both changed, read wins.
+  Articles a device doesn't have yet count as unchanged; when they arrive they arrive already
+  read. A read article that leaves a device (a feed's newest 200, or a removed feed) keeps its mark
+  there, so it never turns unread on the others, and a feed added again brings it back read
+  (#157).
 - Settings: per name, a change on one side wins; both changed, this device wins.
 - Without a document (the first device), the device's library becomes the document. Without a
   base (a device signing in), both sides are combined. A device that has no synced

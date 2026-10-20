@@ -2,6 +2,19 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-20: One set of rules for read and hidden articles (#157)
+
+Both apps now follow the same rules. Anything you mark read by hand (open, Search, swipe or the web
+row's button, scroll) stays in the Unread list, dimmed, until you change what you look at: another
+feed or folder, the Unread/All filter, or a refresh you start. Saved and back, the same feed again,
+and refreshes the app starts itself keep the list. Mark all read means you're done: the list
+empties. Mark as read on scroll only marks articles that were on screen, so new ones arriving above
+are never marked unseen. Saved rows never show read state; opening a saved item marks its feed
+article read on both. A read article leaving a device keeps its mark (in `readElsewhere`, dropped
+after the 120 days sync keeps), because sending it as gone un-read it on the other devices.
+Rejected: keeping every row shown until you leave the list (then even Mark all read would leave
+it full), and a separate read state for saved items.
+
 ## 2026-10-20: Archive is a folder in the sheet, and every sheet can be cancelled (#156)
 
 The save and Organise sheet keeps organising simple: Tags hold Like and the tags, Folder holds where

@@ -497,9 +497,10 @@ fun RssReaderNavigation(
                     val shownFilter = remember(library, savedFilter) { Saved.shown(library, savedFilter) }
                     // Back from a folder, a feed or Saved goes to Home first; back on Home leaves the app.
                     BackHandler(enabled = backStack.size == 1 && (shownSelection != FeedSelection.All || section != HomeSection.Feeds)) {
+                        // Back from Saved keeps what Feeds showed; only another selection starts afresh (#157).
+                        if (selection != FeedSelection.All) readThisVisit = emptySet()
                         selection = FeedSelection.All
                         section = HomeSection.Feeds
-                        readThisVisit = emptySet()
                     }
                     val articles =
                         remember(library, shownSelection, current.unreadOnly, readThisVisit) {
@@ -543,9 +544,10 @@ fun RssReaderNavigation(
                         actions =
                             HomeActions(
                                 onSelect = {
+                                    // The same feed or folder again keeps the articles read this visit (#157).
+                                    if (it != selection) readThisVisit = emptySet()
                                     selection = it
                                     section = HomeSection.Feeds
-                                    readThisVisit = emptySet()
                                 },
                                 onUnreadOnlyChange = {
                                     readThisVisit = emptySet()
@@ -563,6 +565,8 @@ fun RssReaderNavigation(
                                 onReadLater = { article -> article.link?.let { readLater(it, article.title, inReader = false) } },
                                 onRefresh = ::refresh,
                                 onMarkAllRead = {
+                                    // Done with the section: nothing read stays in the Unread list (#157).
+                                    readThisVisit = emptySet()
                                     app.appScope.launch {
                                         val keys = repository.markAllRead(shownSelection)
                                         if (keys.isEmpty()) return@launch
@@ -808,7 +812,11 @@ fun RssReaderNavigation(
                             SearchActions(
                                 onQueryChange = { searchQuery = it },
                                 onFilterChange = { searchFilter = it },
-                                onOpenArticle = { article -> push(Screen.Reader(article.key)) },
+                                onOpenArticle = { article ->
+                                    // Like from the list: it stays in the Unread list when you go back (#157).
+                                    readThisVisit = readThisVisit + article.key
+                                    push(Screen.Reader(article.key))
+                                },
                                 onOpenItem = ::openItem,
                                 onBack = ::pop,
                             ),

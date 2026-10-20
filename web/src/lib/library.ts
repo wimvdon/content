@@ -55,6 +55,8 @@ export type Selection =
   | { kind: "saved" };
 
 export const MAX_ARTICLES_PER_FEED = 200;
+/** Read marks of articles older than this are dropped (feeds rarely go back further); sync uses the same. */
+export const READ_MARKS_KEPT_MS = 120 * 24 * 60 * 60 * 1000;
 export const MAX_HTML_LENGTH = 200_000;
 export const DEFAULT_ICON = "folder";
 
@@ -72,9 +74,19 @@ export function addFeed(lib: Library, feed: Feed): Library {
   return lib.feeds.some((f) => f.url === feed.url) ? lib : { ...lib, feeds: [...lib.feeds, feed] };
 }
 
-/** Removes a feed with its articles; items saved from it stay. */
+/**
+ * Removes a feed with its articles; items saved from it stay. The read ones keep their mark in
+ * readElsewhere, so other devices don't see them turn unread and adding the feed again brings them
+ * back read (#157).
+ */
 export function removeFeed(lib: Library, url: string): Library {
-  return { ...lib, feeds: lib.feeds.filter((f) => f.url !== url), articles: lib.articles.filter((a) => a.feedUrl !== url) };
+  const marks = lib.articles.filter((a) => a.feedUrl === url && a.read).map((a) => [articleKey(a), sortTime(a)] as const);
+  return {
+    ...lib,
+    feeds: lib.feeds.filter((f) => f.url !== url),
+    articles: lib.articles.filter((a) => a.feedUrl !== url),
+    readElsewhere: marks.length === 0 ? lib.readElsewhere : { ...lib.readElsewhere, ...Object.fromEntries(marks) },
+  };
 }
 
 /** The user's own name; blank goes back to the feed's title on the next refresh. */
@@ -125,7 +137,9 @@ export function removeFolder(lib: Library, id: string): Library {
 
 /**
  * Applies a fresh download of a feed: new articles arrive unread (or read when another device read
- * them, readElsewhere), known ones keep their read state; at most MAX_ARTICLES_PER_FEED newest are kept.
+ * them, readElsewhere), known ones keep their read state; at most MAX_ARTICLES_PER_FEED newest are
+ * kept. Read ones that no longer fit keep their mark in readElsewhere (#157): leaving this browser
+ * doesn't make them unread elsewhere. Marks older than READ_MARKS_KEPT_MS go.
  */
 export function mergeFeed(lib: Library, feedUrl: string, parsed: ParsedFeed, now: number): Library {
   const feed = lib.feeds.find((f) => f.url === feedUrl);
@@ -159,11 +173,17 @@ export function mergeFeed(lib: Library, feedUrl: string, parsed: ParsedFeed, now
     siteUrl: parsed.siteUrl ?? feed.siteUrl,
   };
   // Arrived: the article itself carries its read state now.
-  const arrived = feedArticles.map(articleKey).filter((k) => k in lib.readElsewhere);
+  const stays = new Set(feedArticles.map(articleKey));
+  const arrived = [...stays].filter((k) => k in lib.readElsewhere);
+  const left = [...existing.values()].filter((a) => a.read && !stays.has(articleKey(a)));
+  const oldest = now - READ_MARKS_KEPT_MS;
+  const stale = Object.values(lib.readElsewhere).some((time) => time < oldest);
   let readElsewhere = lib.readElsewhere;
-  if (arrived.length > 0) {
+  if (arrived.length > 0 || left.length > 0 || stale) {
     readElsewhere = { ...readElsewhere };
     for (const k of arrived) delete readElsewhere[k];
+    for (const a of left) readElsewhere[articleKey(a)] = sortTime(a);
+    for (const [k, time] of Object.entries(readElsewhere)) if (time < oldest) delete readElsewhere[k];
   }
   return {
     ...lib,
@@ -205,6 +225,13 @@ export function unreadByFeed(lib: Library): Map<string, number> {
   const counts = new Map<string, number>();
   for (const a of lib.articles) if (!a.read) counts.set(a.feedUrl, (counts.get(a.feedUrl) ?? 0) + 1);
   return counts;
+}
+
+/** The same feed, folder, All or Saved. */
+export function sameSelection(a: Selection, b: Selection): boolean {
+  if (a.kind === "folder" && b.kind === "folder") return a.folderId === b.folderId;
+  if (a.kind === "feed" && b.kind === "feed") return a.feedUrl === b.feedUrl;
+  return a.kind === b.kind;
 }
 
 export function selectionExists(lib: Library, s: Selection): Selection {

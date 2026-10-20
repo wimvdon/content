@@ -96,38 +96,48 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   top while you scroll through that day.
 - Under the title you see how many articles are unread. Two chips just above the list
   (under the folder tabs), **Unread** and **All**, choose between only unread articles and all
-  articles; the chosen one is filled, with a check mark. The web app has the same two chips. Articles you open from the unread list stay in it until you switch feed, filter or
-  refresh, so the list doesn't jump.
+  articles; the chosen one is filled, with a check mark. The web app has the same two chips.
+- **What stays in the Unread list.** An article you read (opened, also from Search, swiped,
+  marked with its button or scrolled past) stays in the list, dimmed, so nothing disappears under
+  your finger. The list starts afresh only when you pick another feed or folder, switch between
+  Unread and All, or pull down (or tap refresh) yourself. Going to Saved and back, or tapping the
+  same feed again, keeps it as it was; a refresh the app does by itself does too.
 - Scrolling down slides the title, the folder tabs and the **Unread** and **All** chips out of the way, so you see
   more articles; scroll up a little and they come straight back.
-- **Swipe** an article left or right past about a third of its width (you feel a short tick) to
-  mark it as read, or as unread when it was read. The ☰ menu opens with the ☰ button only, so
+- **Swipe** an article right past about a third of its width (you feel a short tick) to
+  mark it as read, or as unread when it was read; swipe it left to save it. In the web app, the
+  round button that appears on an article when you point at it does the same as swiping right,
+  and so does **m** for the open article. The ☰ menu opens with the ☰ button only, so
   swiping never opens it by accident.
 - **Pull down** to download new articles. The app also does this once every time it starts. All
   feeds are downloaded first and then added at once, each article in its place by date.
 - **Back** inside a folder or feed returns to All; back on All closes the app.
 - The round **✓✓** (Mark all as read) button at the bottom right marks everything in the section you are in as
-  read: all feeds on All, the folder's feeds in a folder, or the one feed you opened. A message
-  says how many; **Undo** brings them back.
+  read: all feeds on All, the folder's feeds in a folder, or the one feed you opened, also the
+  ones you haven't scrolled to. You're done with it, so the Unread list empties (All caught up).
+  A message says how many; **Undo** brings them back.
 - **Settings › Article list › View** chooses how big articles are in the list: **Small** (title
   only), **Medium** (title, start of the text and a small picture) or **Large** (a card with a
   wide picture).
 - **Mark as read on scroll** (in **Settings › Article list**, off by default): articles are
-  marked as read once you scroll them off the top of the list. They stay in the unread list until
-  you switch feed, filter or refresh, so you can scroll back to them.
+  marked as read once you scroll them off the top of the list, only ones that were on screen: new
+  articles arriving above are never marked unseen. They stay in the unread list (see above), so
+  you can scroll back to them.
 - If some feeds can't be downloaded, a message says how many; **Manage feeds** shows why
   for each one.
 
 ## The reader
 
-Tap an article to read it. It is marked as read. Tap the article's **title** to open it on its
+Tap an article to read it. It is marked as read. Saved articles have no read state of their
+own (archiving is what puts them away), but opening one marks the feed article it came from as
+read, in both apps. Tap the article's **title** to open it on its
 website (the same as **Read on website** at the end). In the top bar:
 
 | Button | What it does |
 |---|---|
 | **Aa** | Text settings: font (Sans or Serif), text size, spacing (Compact, Normal, Relaxed), background (Theme, Sepia or Dark) and **Auto dark** (the dark page whenever the app is dark, e.g. Sepia by day and dark at night). Changes apply right away and are remembered for every article. |
 | Share | **Share**: the share menu, or straight to the app you chose. |
-| ⋮ | **Show feed text** / **Show full article**, **Open in browser**, **Mark as unread**, and for a saved article **Remove from Saved**. Open in browser, and links in an article, open in a tab of your browser on top of Reader, with a **Save** button in its toolbar: it opens the save sheet over the page (see Saving from other apps); save or close it to keep reading. |
+| ⋮ | **Show feed text** / **Show full article**, **Open in browser**, **Mark as unread** (back to the list, where it waits unread; the web app keeps the article open and offers **Mark as read** too), and for a saved article **Remove from Saved**. Open in browser, and links in an article, open in a tab of your browser on top of Reader, with a **Save** button in its toolbar: it opens the save sheet over the page (see Saving from other apps); save or close it to keep reading. |
 
 The bar at the bottom is the article in your library. Before it is saved it has one button,
 **Save**: it saves the article to **To read** (by default), or sends it to the app you chose or the

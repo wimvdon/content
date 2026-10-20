@@ -92,8 +92,7 @@ export default function App() {
           document.querySelector(`[data-key="${CSS.escape(articleKey(next))}"]`)?.scrollIntoView({ block: "nearest" });
         }
       } else if (e.key === "m" && openArticle) {
-        const current = library.articles.find((a) => articleKey(a) === articleKey(openArticle));
-        if (current) app.setRead(new Set([articleKey(current)]), !current.read);
+        app.toggleRead(openArticle);
       } else if (e.key === "o" && openArticle?.link) {
         window.open(openArticle.link, "_blank", "noopener,noreferrer");
       } else if (e.key === "r") {

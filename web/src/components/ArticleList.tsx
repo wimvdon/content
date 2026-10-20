@@ -1,5 +1,5 @@
-import { Archive, Bookmark, BookOpen, CheckCheck, Folder as FolderGlyph, Heart, Highlighter, Link2, ListFilter, Menu, Newspaper, Quote, RefreshCw, Rss, Search, type LucideIcon } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { Archive, Bookmark, BookOpen, CheckCheck, Circle, CircleCheck, Folder as FolderGlyph, Heart, Highlighter, Link2, ListFilter, Menu, Newspaper, Quote, RefreshCw, Rss, Search, type LucideIcon } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { app, useApp } from "@/lib/app";
 import { snippet } from "@/lib/html";
 import { dayLabel, plural, t } from "@/lib/i18n";
@@ -49,17 +49,32 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, on
   const days = useMemo(() => groupByDay(articles), [articles]);
   const showFeedName = selection.kind !== "feed";
 
-  // Mark as read on scroll: once per frame, the unread articles that scrolled off the top.
+  // Mark as read on scroll: once per frame, the unread articles that scrolled off the top, of
+  // those that were on screen (#157), so new ones arriving above are never marked unseen.
   const frame = useRef(0);
+  const listRef = useRef<HTMLDivElement>(null);
+  const seen = useRef(new Set<string>());
+  const rowsOf = (list: HTMLElement) => Array.from(list.querySelectorAll<HTMLElement>("[data-key]"));
+  const noteSeen = (list: HTMLElement) => {
+    const box = list.getBoundingClientRect();
+    for (const row of rowsOf(list)) {
+      const r = row.getBoundingClientRect();
+      if (r.bottom > box.top && r.top < box.bottom) seen.current.add(row.dataset.key!);
+    }
+  };
+  useEffect(() => {
+    if (settings.markReadOnScroll && listRef.current) noteSeen(listRef.current);
+  }, [articles, settings.markReadOnScroll]);
   const onScroll = (e: React.UIEvent<HTMLDivElement>) => {
     if (!settings.markReadOnScroll || frame.current) return;
     const list = e.currentTarget;
     frame.current = requestAnimationFrame(() => {
       frame.current = 0;
+      noteSeen(list);
       const top = list.getBoundingClientRect().top;
-      const rows = Array.from(list.querySelectorAll<HTMLElement>("[data-key]"));
+      const rows = rowsOf(list);
       const first = rows.findIndex((row) => row.getBoundingClientRect().bottom > top);
-      app.markScrolledPast(scrolledPast(articles, first === -1 ? rows.length : first));
+      app.markScrolledPast(scrolledPast(articles, first === -1 ? rows.length : first, seen.current));
     });
   };
 
@@ -108,7 +123,7 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, on
           {problems.size > 0 ? <span className="text-xs text-destructive">{plural("feedsFailed", problems.size)}</span> : null}
         </div>
       ) : null}
-      <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-6" role="feed" aria-busy={refreshing} onScroll={onScroll}>
+      <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-6" role="feed" aria-busy={refreshing} onScroll={onScroll} ref={listRef}>
         {!loaded || (refreshing && library.articles.length === 0) ? (
           <Skeletons />
         ) : library.feeds.length === 0 ? (
@@ -137,7 +152,7 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, on
               <ul className="space-y-1">
                 {list.map((a) => (
                   <li key={articleKey(a)}>
-                    <Row article={a} feed={showFeedName ? feeds.get(a.feedUrl) : undefined} open={openKey === articleKey(a)} onOpen={() => onOpen(a)} />
+                    <Row article={a} feed={showFeedName ? feeds.get(a.feedUrl) : undefined} open={openKey === articleKey(a)} onOpen={() => onOpen(a)} onToggleRead={() => app.toggleRead(a)} />
                   </li>
                 ))}
               </ul>
@@ -389,8 +404,48 @@ function SearchButton({ onClick }: { onClick: () => void }) {
 }
 
 
-/** One article in a list. `label` says what kind it is (Search: Feed or Saved). */
+/**
+ * One article in a list. `label` says what kind it is (Search: Feed or Saved). With
+ * `onToggleRead` (the feed list), a button on hover marks it read or unread, like the swipe on
+ * Android (#157).
+ */
 export function Row({
+  article,
+  feed,
+  open,
+  onOpen,
+  noReadState,
+  label,
+  onToggleRead,
+}: {
+  article: Article;
+  feed: Feed | undefined;
+  open: boolean;
+  onOpen: () => void;
+  noReadState?: boolean;
+  label?: string;
+  onToggleRead?: () => void;
+}) {
+  const row = <RowButton article={article} feed={feed} open={open} onOpen={onOpen} noReadState={noReadState} label={label} />;
+  if (!onToggleRead) return row;
+  const toggle = article.read ? t("markUnread") : t("markRead");
+  return (
+    <div className="group relative">
+      {row}
+      <button
+        type="button"
+        onClick={onToggleRead}
+        aria-label={toggle}
+        title={toggle + " (m)"}
+        className="absolute top-1.5 right-1.5 flex size-8 cursor-pointer items-center justify-center rounded-full bg-card text-muted-foreground opacity-0 shadow-sm transition-opacity group-hover:opacity-100 hover:text-foreground focus-visible:opacity-100 [&_svg]:size-4"
+      >
+        {article.read ? <Circle /> : <CircleCheck />}
+      </button>
+    </div>
+  );
+}
+
+function RowButton({
   article,
   feed,
   open,

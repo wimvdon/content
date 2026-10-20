@@ -170,18 +170,28 @@ data class Library(
     /** Adds [feed] at the end, unless a feed with the same address is already there. */
     fun addFeed(feed: Feed): Library = if (feed(feed.url) != null) this else copy(feeds = feeds + feed)
 
-    /** Removes a feed together with its articles; items saved from it stay. */
-    fun removeFeed(url: String): Library =
-        copy(
+    /**
+     * Removes a feed together with its articles; items saved from it stay. The read ones keep their
+     * mark in [readElsewhere], so other devices don't see them turn unread and adding the feed
+     * again brings them back read (#157).
+     */
+    fun removeFeed(url: String): Library {
+        val (gone, stay) = articles.partition { it.feedUrl == url }
+        val marks = gone.filter { it.read }.associate { it.key to it.sortTime }
+        return copy(
             feeds = feeds.filterNot { it.url == url },
-            articles = articles.filterNot { it.feedUrl == url },
+            articles = stay,
+            readElsewhere = if (marks.isEmpty()) readElsewhere else readElsewhere + marks,
         )
+    }
 
     /**
      * Applies a freshly downloaded copy of a feed: new articles are added as unread, known ones
      * get the new title and text but keep their read state. Articles that left the feed are
      * kept, up to [MAX_ARTICLES_PER_FEED] per feed (the newest ones). New articles in
-     * [readElsewhere] (read on another device) arrive as read.
+     * [readElsewhere] (read on another device) arrive as read, and read ones that no longer fit
+     * keep their mark there (#157): leaving this device doesn't make them unread elsewhere. Marks
+     * older than [READ_MARKS_KEPT_MS] go.
      */
     fun merge(
         feedUrl: String,
@@ -219,12 +229,21 @@ data class Library(
                 title = if (feed.renamed) feed.title else parsed.title.ifBlank { feed.title },
                 siteUrl = parsed.siteUrl ?: feed.siteUrl,
             )
+        // Arrived: the article itself carries its read state now.
         val arrived = feedArticles.mapNotNullTo(HashSet()) { it.key.takeIf { key -> key in readElsewhere } }
+        val stays = feedArticles.mapTo(HashSet()) { it.key }
+        val left = existing.values.filter { it.read && it.key !in stays }.associate { it.key to it.sortTime }
+        val oldest = now - READ_MARKS_KEPT_MS
+        val stale = readElsewhere.any { it.value < oldest }
         return copy(
             feeds = feeds.map { if (it.url == feedUrl) updatedFeed else it },
             articles = articles.filterNot { it.feedUrl == feedUrl } + feedArticles,
-            // Arrived: the article itself carries its read state now.
-            readElsewhere = if (arrived.isEmpty()) readElsewhere else readElsewhere - arrived,
+            readElsewhere =
+                if (arrived.isEmpty() && left.isEmpty() && !stale) {
+                    readElsewhere
+                } else {
+                    (readElsewhere - arrived + left).filterValues { it >= oldest }
+                },
         )
     }
 
@@ -302,6 +321,9 @@ data class Library(
     companion object {
         /** Bounds storage: feeds rarely list more than 50 articles at a time. */
         const val MAX_ARTICLES_PER_FEED = 200
+
+        /** Read marks of articles older than this are dropped (feeds rarely go back further); sync uses the same. */
+        const val READ_MARKS_KEPT_MS = 120L * 24 * 60 * 60 * 1000
 
         /** Bounds storage for feeds that put entire books in one article. */
         const val MAX_HTML_LENGTH = 200_000

@@ -487,10 +487,13 @@ private fun ArticleList(
         val positions by rememberUpdatedState(articlesBefore)
         val onScrolledPast by rememberUpdatedState(actions.onScrolledPast)
         LaunchedEffect(listState) {
-            snapshotFlow { listState.firstVisibleItemIndex }
+            // Only articles that were on screen count (#157): new ones arriving above aren't marked unseen.
+            val seen = HashSet<String>()
+            snapshotFlow { listState.firstVisibleItemIndex to listState.layoutInfo.visibleItemsInfo.mapNotNull { it.key as? String } }
                 .distinctUntilChanged()
-                .collect { first ->
-                    val keys = ScrollRead.scrolledPast(articles, positions.getOrElse(first) { articles.size })
+                .collect { (first, visible) ->
+                    seen += visible
+                    val keys = ScrollRead.scrolledPast(articles, positions.getOrElse(first) { articles.size }, seen)
                     if (keys.isNotEmpty()) onScrolledPast(keys)
                 }
         }
@@ -669,42 +672,44 @@ internal fun ArticleRow(
     view: ListView,
     showImage: Boolean,
     onClick: () -> Unit,
-    showUnreadDot: Boolean = true,
+    /** False for saved items: they have no read state, so they are never dimmed and have no dot (#157). */
+    showReadState: Boolean = true,
     /** What kind of article this is, shown at the end of its top line (Search: Feed or Saved). */
     label: String? = null,
     modifier: Modifier = Modifier,
 ) {
+    val shown = if (showReadState) article else article.copy(read = false)
     val time =
-        remember(article.sortTime) {
+        remember(shown.sortTime) {
             DateUtils
                 .getRelativeTimeSpanString(
-                    article.sortTime,
+                    shown.sortTime,
                     System.currentTimeMillis(),
                     DateUtils.MINUTE_IN_MILLIS,
                     DateUtils.FORMAT_ABBREV_RELATIVE,
                 ).toString()
         }
-    val snippet = remember(article.html) { Html.snippet(article.html) }
-    val image = article.imageUrl?.takeIf { showImage && view != ListView.Small }
+    val snippet = remember(shown.html) { Html.snippet(shown.html) }
+    val image = shown.imageUrl?.takeIf { showImage && view != ListView.Small }
     Surface(
         onClick = onClick,
         shape = AppShapes.Item,
-        color = if (article.read) MaterialTheme.colorScheme.surfaceContainerLow else MaterialTheme.colorScheme.surfaceContainer,
+        color = if (shown.read) MaterialTheme.colorScheme.surfaceContainerLow else MaterialTheme.colorScheme.surfaceContainer,
         modifier = modifier.fillMaxWidth(),
     ) {
         when (view) {
             ListView.Small -> {
                 Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    MetaLine(article, feed, time, showUnreadDot, label)
-                    ArticleTitle(article, MaterialTheme.typography.titleSmall, maxLines = 2)
+                    MetaLine(shown, feed, time, showReadState, label)
+                    ArticleTitle(shown, MaterialTheme.typography.titleSmall, maxLines = 2)
                 }
             }
 
             ListView.Medium -> {
                 Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        MetaLine(article, feed, time, showUnreadDot, label)
-                        ArticleTitle(article, MaterialTheme.typography.titleMedium, maxLines = 3)
+                        MetaLine(shown, feed, time, showReadState, label)
+                        ArticleTitle(shown, MaterialTheme.typography.titleMedium, maxLines = 3)
                         Snippet(snippet, maxLines = 2)
                     }
                     if (image != null) Thumbnail(image, Modifier.padding(top = 20.dp))
@@ -715,8 +720,8 @@ internal fun ArticleRow(
                 Column {
                     if (image != null) LargePicture(image)
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        MetaLine(article, feed, time, showUnreadDot, label)
-                        ArticleTitle(article, MaterialTheme.typography.titleLarge, maxLines = 3)
+                        MetaLine(shown, feed, time, showReadState, label)
+                        ArticleTitle(shown, MaterialTheme.typography.titleLarge, maxLines = 3)
                         Snippet(snippet, maxLines = 3)
                     }
                 }
