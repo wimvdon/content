@@ -206,9 +206,6 @@
     <string name="note_title">Notitie</string>
     <string name="duration_hours">%1$d u %2$d min</string>
     <string name="duration_minutes">%d min</string>
-    <string name="finish_title">Uitgelezen</string>
-    <string name="finish_archive_body">Klaar ermee. Blijft in je geschiedenis.</string>
-    <string name="finish_with_note">1 notitie</string>
     <string name="reading_list_to_read">Te lezen</string>
     <string name="reading_list_archive">Archief</string>
     <string name="reading_list_liked">Leuk gevonden</string>
@@ -298,10 +295,6 @@
     <string name="saved_title">Bewaard</string>
     <string name="saved_folders">Mappen</string>
     <string name="folder_field">Map</string>
-    <string name="file_in">Opbergen in %1$s</string>
-    <string name="action_file">Opbergen</string>
-    <string name="file_title">In een map opbergen</string>
-    <string name="finish_file_body">In een map, met je notitie en tags.</string>
     <string name="saved_to">Bewaard in %1$s</string>
     <string name="type_filter">Soort</string>
     <string name="type_all">Alle soorten</string>

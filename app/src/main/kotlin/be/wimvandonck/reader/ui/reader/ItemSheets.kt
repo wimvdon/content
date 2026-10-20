@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.text.KeyboardActions
@@ -27,7 +26,6 @@ import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.VerticalDivider
@@ -41,7 +39,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
@@ -138,138 +135,6 @@ fun TagsEditor(
                 }
             }
         }
-    }
-}
-
-/** The tags of an item in a dialog (the reader's ⋮ › Tags). */
-@Composable
-fun TagsDialog(
-    item: Item,
-    allTags: List<String>,
-    onChange: (List<String>) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.tags_title)) },
-        text = { Column(Modifier.verticalScroll(rememberScrollState())) { TagsEditor(item.tags, allTags, onChange) } },
-        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_close)) } },
-    )
-}
-
-/** What the sheet at the end of an article does. */
-enum class FinishChoice { Archive, File }
-
-/**
- * "Finished reading" (#107, #119): archive (done with it; it stays searchable) or file it in a
- * folder with a note and tags. File is chosen first when the article has highlights or a note.
- * Opens at the end of an article and from the reader's File and Archive buttons ([initial]).
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun FinishSheet(
-    item: Item,
-    initial: FinishChoice?,
-    folders: List<String>,
-    allTags: List<String>,
-    onArchive: () -> Unit,
-    onFile: (folder: String, note: String, tags: List<String>) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    val worthKeeping = item.highlights.isNotEmpty() || item.note.isNotBlank()
-    var choice by rememberSaveable(item.key) { mutableStateOf(initial ?: if (worthKeeping) FinishChoice.File else FinishChoice.Archive) }
-    var folder by rememberSaveable(item.key) { mutableStateOf(item.folder.orEmpty()) }
-    var note by rememberSaveable(item.key) { mutableStateOf(item.note) }
-    var tags by remember(item.key) { mutableStateOf(item.tags) }
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
-        Column(
-            Modifier
-                .verticalScroll(rememberScrollState())
-                .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Text(stringResource(R.string.finish_title), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
-            if (worthKeeping) {
-                val parts =
-                    listOfNotNull(
-                        item.highlights.size.takeIf { it > 0 }?.let { pluralStringResource(R.plurals.highlights_count, it, it) },
-                        if (item.note.isNotBlank()) stringResource(R.string.finish_with_note) else null,
-                    )
-                Text(parts.joinToString(" · "), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            Column(Modifier.selectableGroup()) {
-                FinishOption(
-                    selected = choice == FinishChoice.Archive,
-                    icon = R.drawable.ic_inventory,
-                    title = stringResource(R.string.action_archive),
-                    body = stringResource(R.string.finish_archive_body),
-                    onClick = { choice = FinishChoice.Archive },
-                )
-                FinishOption(
-                    selected = choice == FinishChoice.File,
-                    icon = R.drawable.ic_folder,
-                    title = stringResource(R.string.file_title),
-                    body = stringResource(R.string.finish_file_body),
-                    onClick = { choice = FinishChoice.File },
-                )
-            }
-            if (choice == FinishChoice.File) {
-                FolderChips(
-                    place = folder.trim().ifEmpty { null }?.let(Place::Folder) ?: Place.ToRead,
-                    folders = folders,
-                    offerArchive = false,
-                    onChange = { place -> folder = (place as? Place.Folder)?.name.orEmpty() },
-                )
-                OutlinedTextField(
-                    value = note,
-                    onValueChange = { note = it },
-                    label = { Text(stringResource(R.string.note_title)) },
-                    minLines = 2,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                TagsEditor(tags, allTags, onChange = { tags = it })
-            }
-            Row(Modifier.align(Alignment.End), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
-                Button(onClick = {
-                    if (choice == FinishChoice.Archive) onArchive() else onFile(folder, note, tags)
-                    onDismiss()
-                }) {
-                    Text(
-                        when {
-                            choice == FinishChoice.Archive -> stringResource(R.string.action_archive)
-                            folder.isBlank() -> stringResource(R.string.file_in, stringResource(R.string.reading_list_to_read))
-                            else -> stringResource(R.string.file_in, folder.trim())
-                        },
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun FinishOption(
-    selected: Boolean,
-    icon: Int,
-    title: String,
-    body: String,
-    onClick: () -> Unit,
-) {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Icon(painterResource(icon), contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-        Column(Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.bodyLarge)
-            Text(body, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        RadioButton(selected = selected, onClick = null)
     }
 }
 

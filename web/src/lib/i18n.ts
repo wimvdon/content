@@ -194,6 +194,7 @@ const en = {
   webAddress: "Web address",
   addLinkInvalid: "That isn’t a web address.",
   open: "Open",
+  moreOptions: "More options",
 };
 
 export type Key = keyof typeof en;
@@ -326,6 +327,7 @@ const nl: Pack = {
     webAddress: "Webadres",
     addLinkInvalid: "Dat is geen webadres.",
     open: "Openen",
+    moreOptions: "Meer opties",
   },
   plurals: {
     unreadCount: ["{n} ongelezen artikel", "{n} ongelezen artikelen"],
@@ -453,6 +455,7 @@ const fr: Pack = {
     webAddress: "Adresse web",
     addLinkInvalid: "Ce n’est pas une adresse web.",
     open: "Ouvrir",
+    moreOptions: "Plus d’options",
   },
   plurals: {
     unreadCount: ["{n} article non lu", "{n} articles non lus"],
@@ -580,6 +583,7 @@ const de: Pack = {
     webAddress: "Webadresse",
     addLinkInvalid: "Das ist keine Webadresse.",
     open: "Öffnen",
+    moreOptions: "Weitere Optionen",
   },
   plurals: {
     unreadCount: ["{n} ungelesener Artikel", "{n} ungelesene Artikel"],
@@ -707,6 +711,7 @@ const es: Pack = {
     webAddress: "Dirección web",
     addLinkInvalid: "No es una dirección web.",
     open: "Abrir",
+    moreOptions: "Más opciones",
   },
   plurals: {
     unreadCount: ["{n} artículo sin leer", "{n} artículos sin leer"],
@@ -834,6 +839,7 @@ const it: Pack = {
     webAddress: "Indirizzo web",
     addLinkInvalid: "Non è un indirizzo web.",
     open: "Apri",
+    moreOptions: "Altre opzioni",
   },
   plurals: {
     unreadCount: ["{n} articolo non letto", "{n} articoli non letti"],

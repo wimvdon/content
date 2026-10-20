@@ -111,7 +111,7 @@ internal fun SavedContent(
 
 /**
  * To read, All and Archive: the feed list's rows, newest saved first. Swipe left to archive (or,
- * archived, back to read), right to file in a folder.
+ * archived, back to read), right to organise it (#143).
  */
 @Composable
 private fun ArticleList(
@@ -123,7 +123,7 @@ private fun ArticleList(
 ) {
     val archiveLabel = stringResource(R.string.action_archive)
     val unarchiveLabel = stringResource(R.string.action_unarchive)
-    val fileLabel = stringResource(R.string.action_file)
+    val organiseLabel = stringResource(R.string.organise_title)
     // Another list starts at the top.
     val listState = rememberSaveable(home.filter, saver = LazyListState.Saver) { LazyListState() }
     LazyColumn(
@@ -137,7 +137,7 @@ private fun ArticleList(
             val article = remember(item, home.library) { ReadingLists.article(item, home.library) }
             val source = remember(item, home.library) { ReadingLists.source(item, home.library) }
             SwipeRow(
-                right = SwipeAction(R.drawable.ic_folder, fileLabel) { onFile(item) },
+                right = SwipeAction(R.drawable.ic_folder, organiseLabel) { onFile(item) },
                 left =
                     if (item.archived) {
                         SwipeAction(R.drawable.ic_unarchive, unarchiveLabel) { onArchive(item) }

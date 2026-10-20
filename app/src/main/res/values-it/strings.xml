@@ -212,9 +212,6 @@
     <string name="note_title">Nota</string>
     <string name="duration_hours">%1$d h %2$d min</string>
     <string name="duration_minutes">%d min</string>
-    <string name="finish_title">Lettura finita</string>
-    <string name="finish_archive_body">Finito. Resta nella tua cronologia.</string>
-    <string name="finish_with_note">1 nota</string>
     <string name="reading_list_to_read">Da leggere</string>
     <string name="reading_list_archive">Archivio</string>
     <string name="reading_list_liked">Piaciuti</string>
@@ -310,10 +307,6 @@
     <string name="saved_title">Salvati</string>
     <string name="saved_folders">Cartelle</string>
     <string name="folder_field">Cartella</string>
-    <string name="file_in">Sposta in %1$s</string>
-    <string name="action_file">Sposta</string>
-    <string name="file_title">Sposta in una cartella</string>
-    <string name="finish_file_body">In una cartella, con la tua nota e i tag.</string>
     <string name="saved_to">Salvato in %1$s</string>
     <string name="type_filter">Tipo</string>
     <string name="type_all">Tutti i tipi</string>

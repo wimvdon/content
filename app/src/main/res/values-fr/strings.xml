@@ -212,9 +212,6 @@
     <string name="note_title">Note</string>
     <string name="duration_hours">%1$d h %2$d min</string>
     <string name="duration_minutes">%d min</string>
-    <string name="finish_title">Lecture terminée</string>
-    <string name="finish_archive_body">Terminé. Reste dans votre historique.</string>
-    <string name="finish_with_note">1 note</string>
     <string name="reading_list_to_read">À lire</string>
     <string name="reading_list_archive">Archives</string>
     <string name="reading_list_liked">Aimés</string>
@@ -310,10 +307,6 @@
     <string name="saved_title">Enregistrés</string>
     <string name="saved_folders">Dossiers</string>
     <string name="folder_field">Dossier</string>
-    <string name="file_in">Ranger dans %1$s</string>
-    <string name="action_file">Ranger</string>
-    <string name="file_title">Ranger dans un dossier</string>
-    <string name="finish_file_body">Dans un dossier, avec votre note et vos tags.</string>
     <string name="saved_to">Enregistré dans %1$s</string>
     <string name="type_filter">Type</string>
     <string name="type_all">Tous les types</string>

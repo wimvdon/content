@@ -54,7 +54,6 @@ import be.wimvandonck.reader.data.removeTag
 import be.wimvandonck.reader.data.renameTag
 import be.wimvandonck.reader.data.setLiked
 import be.wimvandonck.reader.data.setReadingState
-import be.wimvandonck.reader.data.setTags
 import be.wimvandonck.reader.data.tagCounts
 import be.wimvandonck.reader.feed.FeedDiscovery
 import be.wimvandonck.reader.ui.feeds.TagsManageScreen
@@ -671,18 +670,11 @@ fun RssReaderNavigation(
                                         },
                                     onOpenLink = { url -> ExternalApps.openInTab(context, url, null) },
                                     onToggleFullText = { fullTextChoice = !wantFullText },
-                                    // A feed article not saved yet: save it straight into a folder (#119).
-                                    onKeepAsBookmark =
-                                        article?.link?.takeIf { item?.readingList == null }?.let { link ->
-                                            { openSave(link, article.title) }
-                                        },
                                 ),
                             item =
                                 item?.let { i ->
                                     ReaderItem(
                                         item = i,
-                                        allTags = library.itemTags(),
-                                        folders = Saved.folders(library),
                                         onLike = { editLibrary { it.setLiked(i.key, !i.liked) } },
                                         // Done with it: archived, back to the list, with Undo.
                                         onArchive = {
@@ -690,13 +682,7 @@ fun RssReaderNavigation(
                                             pop()
                                         },
                                         onUnarchive = { editLibrary { it.setReadingState(i.key, ReadingState.ToRead) } },
-                                        onFile = { folder, note, tags ->
-                                            editLibrary { lib ->
-                                                Saved.file(lib, i.key, folder).changeItem(i.key) { it.copy(note = note.trim()) }.setTags(i.key, tags)
-                                            }
-                                            showMessage(resources.getString(R.string.saved_to, folder.trim().ifEmpty { resources.getString(R.string.reading_list_to_read) }))
-                                        },
-                                        onTags = { tags -> editLibrary { it.setTags(i.key, tags) } },
+                                        onOrganise = { fileKey = i.key },
                                         onRemove = {
                                             editLibrary { Saved.remove(it, i.key) }
                                             pop()

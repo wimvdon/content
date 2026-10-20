@@ -126,17 +126,16 @@ website (the same as **Read on website** at the end). In the top bar:
 | Button | What it does |
 |---|---|
 | **Aa** | Text settings: font (Sans or Serif), text size, spacing (Compact, Normal, Relaxed), background (Theme, Sepia or Dark) and **Auto dark** (the dark page whenever the app is dark, e.g. Sepia by day and dark at night). Changes apply right away and are remembered for every article. |
-| List | **Save**: saves the article to **To read** (by default), or sends it to the app you chose or the share menu (see below). Once it is saved, the same screen shows Saved's buttons (below). |
-| ♥ | When saved: **Like** (the heart fills). |
 | Share | **Share**: the share menu, or straight to the app you chose. |
-| ⋮ | **Open in browser** and **Mark as unread**; a feed article not saved yet also has **File in a folder** (the save sheet); a saved one also **Tags** and **Remove from Saved**. Open in browser, and links in an article, open in a tab of your browser on top of Reader, with a **Save** button in its toolbar: it opens the save sheet over the page (see Saving from other apps); save or close it to keep reading. |
+| ⋮ | **Show feed text** / **Show full article**, **Open in browser**, **Mark as unread**, and for a saved article **Remove from Saved**. Open in browser, and links in an article, open in a tab of your browser on top of Reader, with a **Save** button in its toolbar: it opens the save sheet over the page (see Saving from other apps); save or close it to keep reading. |
 
-A saved article has **File** and **Archive** at the bottom, and **Finished reading** at the end of the
-text. **Archive** archives it at once and goes back to the list, with **Undo** in the message (it
-returns to where it was, in its folder). **File** opens a sheet with the folder, a note and tags.
-**Finished reading** asks what's next: **Archive** (done with it; it stays searchable) or **File in a
-folder**; File is chosen first when the article has highlights or a note. Reader remembers how far you
-read and opens the article there again.
+The bar at the bottom is the article in your library. Before it is saved it has one button,
+**Save**: it saves the article to **To read** (by default), or sends it to the app you chose or the
+share menu (see below). Once saved, the bar shows the **folder** it is in (tap it to **Organise**:
+the folder, the tags with Like, and the note), **♥ Like**, and **Archive**. **Archive** archives it
+at once and goes back to the list, with **Undo** in the message (it returns to where it was, in its
+folder); an archived article has **Back to read** instead. The text ends with **Read on website**.
+Reader remembers how far you read and opens the article there again.
 
 After **Save**, the sheet that opens says where it was saved, then has the **Folder** (To read,
 your folders, or **New folder** to make one), the **Tags** with **Like** in front, and a **Note**: one
@@ -246,18 +245,16 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   **A folder looks like a page of notes**: cards in two columns, each with its picture, the title,
   your note (or else your first highlight, quoted, or else the article's description), the site,
   its tags and how many highlights it has.
-- In the reader: **♥** to like, **File** and **Archive** at the bottom, with the folder it is in.
-  **File** (and **Finished reading** at the end of the text) asks where it goes: Archive, or **File
-  in a folder** with a note and tags (type a folder, or tap one you have; leave it empty for To
-  read). **Tags** and **Remove from Saved** are in ⋮; removing asks first and takes the note, tags
-  and highlights with it (Archive keeps it searchable instead).
+- In the reader, the bar at the bottom: the **folder** it is in (tap it to Organise: folder, tags with
+  Like, note), **♥** to like, and **Archive**. **Remove from Saved** is in ⋮; removing asks first and
+  takes the note, tags and highlights with it (Archive keeps it searchable instead).
 - **☰ › Folders and tags**: every folder and every tag, with how many articles have it; tap one to
   rename it (renaming it to another one's name joins the two), or remove it: a tag from every
   article, a folder from its articles (they go back to To read).
 - **In the web app** Saved is the same: the same tabs, chips, type filter and cards, and **Add link**
-  (the link button next to the type filter). In a saved article the buttons at the top like it,
-  archive it (or put it back to read), **Organise** it (the same sheet: folder, tags with Like, note),
-  or remove it from Saved. **Save** on a feed article opens the same sheet after saving it.
+  (the link button next to the type filter). In an article the top bar is the reading (Aa, Share,
+  ⋮) and the bar under it the library: **Save** before it is saved (it opens the same sheet), then
+  its folder (**Organise**: folder, tags with Like, note), **Like** and **Archive**.
 - **☰ › Connected services**: which service each section is connected to. Saved can be connected to
   Instapaper, Raindrop.io or both; feeds are Reader's own.
 - Bookmarks from before Saved moved into folders once: each into its collection's folder, the ones

@@ -2,6 +2,17 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-20: The article's actions: reading above, library below (#139)
+
+"Finished reading" named a moment the app doesn't have, and three ways led into one sheet. One rule
+now places every action: the top bar is this reading (Back, Aa, Share, ⋮); the bottom bar is this
+article in your library (Save before; the folder, which opens Organise from #143, Like and Archive
+after); the end of the text is Read on website; ⋮ holds the rare ones. `FinishSheet`, its strings and
+the end-of-text button are gone, and Tags left ⋮. Archive stays a button, decided: the article just
+read is the one most often done with. Rejected: keeping Like in the top bar (it says what the article
+is to you, not how you read it) and Save in the top bar (the bar changed shape the moment you saved).
+The web reader got the same two groups.
+
 ## 2026-10-20: Save, the list icon, and a confirmation that opens the article (#142)
 
 "Read later" named only part of what Saved is, so the action is **Save** everywhere (the reader,
