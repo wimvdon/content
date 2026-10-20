@@ -43,8 +43,8 @@ import be.wimvandonck.reader.ui.theme.SwitchSetting
 
 /**
  * Where the reader's Save and Share buttons send an article: Saved in this app (Save only), the
- * share menu, or straight to one app. Signed in to Instapaper, Save always goes to the account,
- * so there is no choice to show for it ([showSaveTarget] false).
+ * share menu, or straight to one app. The same with or without a connected service, which only
+ * syncs Saved.
  */
 @Composable
 fun ShareTargetsSection(
@@ -53,12 +53,11 @@ fun ShareTargetsSection(
     apps: List<ExternalApps.ShareApp>,
     onSaveTargetChange: (ShareTarget) -> Unit,
     onShareTargetChange: (ShareTarget) -> Unit,
-    showSaveTarget: Boolean = true,
     tagWithFolder: Boolean = true,
     onTagWithFolderChange: (Boolean) -> Unit = {},
 ) {
     SettingsSection(title = stringResource(R.string.section_save)) {
-        if (showSaveTarget) TargetRow(stringResource(R.string.setting_save_button), saveTarget, apps, onSaveTargetChange, offerSaved = true)
+        TargetRow(stringResource(R.string.setting_save_button), saveTarget, apps, onSaveTargetChange, offerSaved = true)
         TargetRow(stringResource(R.string.setting_share_button), shareTarget, apps, onShareTargetChange)
         SwitchSetting(
             title = stringResource(R.string.setting_tag_with_folder_title),

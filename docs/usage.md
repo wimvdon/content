@@ -172,9 +172,8 @@ share** you choose, for each, where it sends the article:
 
 If the chosen app has been uninstalled, the button opens the share menu instead and says so.
 
-Signed in with Instapaper (Settings › Account) or connected to Raindrop.io, Save always saves the
-article in Reader (which is kept in that service too), so Settings › Save and share only shows the
-Share button's choice.
+Connecting Instapaper or Raindrop.io changes nothing here: the buttons and their choices stay the
+same, and what is in Saved is also kept in the connected service.
 
 **Saving from other apps.** In Chrome or any app that shares links, tap Share and pick
 **Reader**. Only the **Save to Reader** sheet opens, over the app you were in (the rest of Reader

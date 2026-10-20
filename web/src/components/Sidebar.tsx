@@ -27,7 +27,7 @@ export function Sidebar({
   onManageInstapaper: () => void;
   onSettings: () => void;
 }) {
-  const { library, selection, instapaper, instapaperFolders, instapaperTags } = useApp();
+  const { library, selection, instapaperFolders, instapaperTags } = useApp();
   const counts = unreadByFeed(library);
   const total = library.feeds.reduce((n, f) => n + (counts.get(f.url) ?? 0), 0);
   const [collapsed, setCollapsed] = useState<Set<string>>(loadCollapsed);
@@ -150,7 +150,7 @@ export function Sidebar({
       </div>
       <div className="border-t p-2">
         <Row selected={false} onClick={onManage} icon={<ManageFeedsIcon />} label={t("manageFeeds")} />
-        <Row selected={false} onClick={onManageInstapaper} icon={<ManageInstapaperIcon />} label={instapaper ? t("manageInstapaper") : t("manageTags")} />
+        <Row selected={false} onClick={onManageInstapaper} icon={<ManageInstapaperIcon />} label={t("manageTags")} />
         <Row selected={false} onClick={onSettings} icon={<SettingsIcon className="size-5" />} label={t("settings")} />
       </div>
     </nav>

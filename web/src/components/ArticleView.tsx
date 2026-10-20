@@ -22,7 +22,7 @@ type Full = { link: string; html: string | null };
 
 /** The parent gives each article its own key, so this state starts fresh for every article. */
 export function ArticleView({ article, onBack, onMessage }: { article: Article; onBack: () => void; onMessage: (text: string) => void }) {
-  const { library, settings, instapaper, instapaperOpen } = useApp();
+  const { library, settings, instapaperOpen } = useApp();
   const [saving, setSaving] = useState(false);
   // A saved article: no read state, the feed it came from (or its website) above it, Saved's actions.
   const saved = isInstapaperArticle(article) && instapaperOpen && String(instapaperOpen.id) === article.id ? instapaperOpen : null;
@@ -139,8 +139,8 @@ export function ArticleView({ article, onBack, onMessage }: { article: Article; 
                 size="icon"
                 onClick={() => void saveToInstapaper()}
                 disabled={saving}
-                aria-label={instapaper ? t("saveToInstapaper") : t("saveArticle")}
-                title={instapaper ? t("saveToInstapaper") : t("saveArticle")}
+                aria-label={t("saveArticle")}
+                title={t("saveArticle")}
               >
                 <BookmarkPlus />
               </Button>

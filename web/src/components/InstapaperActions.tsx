@@ -176,7 +176,7 @@ function TagsEditor({ bookmark: b }: { bookmark: Bookmark }) {
  * Saved).
  */
 export function JustSavedDialog() {
-  const { instapaperJustSaved: b, instapaperFolders, instapaper } = useApp();
+  const { instapaperJustSaved: b, instapaperFolders } = useApp();
   const chip = (folderId: number | null, label: string) => {
     const selected = (b?.folder_id ?? null) === folderId;
     return (
@@ -200,7 +200,7 @@ export function JustSavedDialog() {
     <Dialog
       open={b !== null}
       onOpenChange={(o) => !o && app.closeJustSaved()}
-      title={instapaper ? t("instapaperSaved") : t("saved")}
+      title={t("saved")}
       closeLabel={t("close")}
       footer={<Button onClick={app.closeJustSaved}>{t("done")}</Button>}
     >
