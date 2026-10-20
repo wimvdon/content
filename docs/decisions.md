@@ -2,6 +2,16 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-20: Save, the list icon, and a confirmation that opens the article (#142)
+
+"Read later" named only part of what Saved is, so the action is **Save** everywhere (the reader,
+the swipe, the sheet), and "Read later" is what To read means, never a button. Saved's destination
+and the Save actions use Material Symbols **list** (`ic_list`); the open book stays on To read. After
+the sheet, a message says where the article went, with **Open** when you are not already in it (a
+swipe, Add link, a share from another app). The share screen shows that message as a snackbar of its
+own before it closes; Open starts the app on the article (`MainActivity.EXTRA_OPEN_ARTICLE`).
+Rejected: a Toast for shares (it can't have an action).
+
 ## 2026-10-20: One save and Organise sheet, on Android and the web (#143)
 
 Saving, filing later and tagging an article used three sheets (`SaveSheet`, `AddedSheet`, the File

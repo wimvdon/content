@@ -245,13 +245,15 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
 - Folder icons come from the whole Material Symbols set (outlined, rounded), picked with a search
   field and a grid in the folder dialog. The app's other icons (the reading list's To read (an open
   book), Liked, Archive (a box) and tags included) use the same outlined, rounded style; only an icon that
-  shows something is on is filled (a selected destination, the Like heart once liked).
+  shows something is on is filled (a selected destination, the Like heart once liked). Saved and
+  the Save action use Material Symbols list (#142): Saved is more than a reading list, so the open
+  book stays on To read only (its tab and drawer row).
 - Navigation (#113): a navigation bar at the bottom (a navigation rail on windows 600dp and wider)
-  switches between the destinations, Feeds (feed symbol) and Reading list (an open book). Search is
+  switches between the destinations, Feeds (feed symbol) and Saved (a list). Search is
   an action in the top bar of both destinations (a magnifier) that opens one search page for
-  everything: the field in its top bar, a row of filter chips (All, Feeds, Reading list) above the
+  everything: the field in its top bar, a row of filter chips (All, Feeds, Saved) above the
   results, and the results as one list of article rows ranked by relevance, each with a small label
-  (Feed or Reading list). It is not a navigation bar item: it acts on the content of both
+  (Feed or Saved). It is not a navigation bar item: it acts on the content of both
   destinations rather than being a place of its own. The ☰ drawer holds every place, the same
   wherever the app is: Feeds and Saved are sections in it; each header (Title Small in
   `primary`, a fold arrow, the count while folded) folds its section open and shut. The section
@@ -278,6 +280,10 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   Finished reading sheet (Archive / File in a folder as two radio rows with an icon and a line of
   help, then the folder field (empty: To read; folders in use as chips), note and tags; Cancel and the
   action, "File in …", as buttons).
+- Save is the action's one name (#142), in the reader's top bar, the swipe and the sheet's button;
+  "Read later" names nothing. After the sheet, a snackbar says "Saved to …", with **Open** (to the
+  article in Saved) when you weren't in it already: after a swipe, Add link, or a share from another
+  app (where the snackbar is all of Reader that shows).
 - One save and Organise sheet (#143), wherever you meet an article: a `ModalBottomSheet` with, in
   this order, what is being saved (only before the save: the address field for Add link, or a shared
   link's title and site), **Folder** as single-choice `FilterChip`s (To read, each folder, Archive
@@ -295,8 +301,8 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   `tertiaryContainer`.
 - Article list: three views (Small, Medium, Large card with a 16:9 picture). Unread rows sit on
   `surfaceContainer`, read rows on `surfaceContainerLow`; the feed name is in `primary`. Swiping
-  right past 30% of the width toggles read, swiping left puts the article on the reading list
-  ("Read later", an open book) (haptic tick at the threshold, row springs back); the drawer opens from the ☰ button only. The top bar shows the section and its unread count, with no ⋮ menu (refresh is pull-down; adding
+  right past 30% of the width toggles read, swiping left saves the article ("Save", a list) and
+  opens the save sheet (haptic tick at the threshold, row springs back); the drawer opens from the ☰ button only. The top bar shows the section and its unread count, with no ⋮ menu (refresh is pull-down; adding
   feeds lives on Manage feeds). Unread | All are two Material 3 filter chips used as one choice,
   **Unread** and **All**, in a chip row of its own under the folder tabs (16dp sides, 8dp above and
   below, like the chips on the reading list and in Search): the chosen one is filled

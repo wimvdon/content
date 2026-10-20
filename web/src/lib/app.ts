@@ -488,15 +488,15 @@ class AppStore {
 
   closeSheet = () => this.set({ sheet: null });
 
-  /** Saves a new link where the sheet says; false when it isn't a web address. */
-  saveNew = (url: string, choice: SaveChoice): boolean => {
-    let saved = false;
+  /** Saves a new link where the sheet says; its key, or null when it isn't a web address. */
+  saveNew = (url: string, choice: SaveChoice): string | null => {
+    let key: string | null = null;
     this.updateLibrary((lib) => {
       const [out, item] = saveNew(lib, url, null, Date.now(), choice);
-      saved = item !== null;
+      key = item?.key ?? null;
       return out;
     });
-    return saved;
+    return key;
   };
 
   /** Writes what the sheet says about a saved item. */

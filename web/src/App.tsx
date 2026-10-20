@@ -14,6 +14,9 @@ import { plural, t } from "./lib/i18n";
 import { articleKey, articlesFor, type Article } from "./lib/library";
 import { itemArticle, savedItems } from "./lib/saved";
 
+/** A message at the bottom, with at most one action (Undo, Open). */
+type Message = { text: string; action?: { label: string; run: () => void } };
+
 /** Three panes on wide screens (feeds, list, article); one at a time on phones. */
 export default function App() {
   const state = useApp();
@@ -21,12 +24,13 @@ export default function App() {
   // The open article belongs to the section it was opened in: another section closes it.
   const [opened, setOpened] = useState<{ article: Article; selection: typeof selection } | null>(null);
   const openArticle = opened?.selection === selection ? opened.article : null;
-  const setOpenArticle = useCallback((article: Article | null) => setOpened(article ? { article, selection } : null), [selection]);
+  // The section at the time it opens: Open after saving switches to Saved first.
+  const setOpenArticle = useCallback((article: Article | null) => setOpened(article ? { article, selection: app.get().selection } : null), []);
   const [drawer, setDrawer] = useState(false);
   // Search takes the list's place until it is closed; the article opened from it stays open.
   const [searching, setSearching] = useState(false);
   const [dialog, setDialog] = useState<"add" | "manage" | "manageSaved" | "settings" | null>(null);
-  const [message, setMessage] = useState<{ text: string; undo?: () => void } | null>(null);
+  const [message, setMessage] = useState<Message | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -54,7 +58,7 @@ export default function App() {
     const timer = setTimeout(() => app.clearInstapaperNotice(), 6000);
     return () => clearTimeout(timer);
   }, [instapaperNotice]);
-  const shown: { text: string; undo?: () => void } | null =
+  const shown: Message | null =
     message ??
     (instapaperNotice ? { text: t(instapaperNotice === "signedIn" ? "instapaperSignedIn" : "instapaperSignInFailed") } : null);
 
@@ -62,6 +66,14 @@ export default function App() {
     app.open(a);
     setOpenArticle(a);
   }, [setOpenArticle]);
+
+  /** Opens a saved article in Saved, as the message after saving offers. */
+  const openSaved = (key: string) => {
+    const item = app.get().library.items.find((i) => i.key === key);
+    if (!item) return;
+    app.showSaved();
+    open(itemArticle(item, app.get().library));
+  };
 
   const visible = useMemo(
     () => (selection.kind === "saved" ? savedItems(library, savedFilter).map((i) => itemArticle(i, library)) : articlesFor(library, selection, settings.unreadOnly, readThisVisit)),
@@ -102,7 +114,7 @@ export default function App() {
 
   const undoMarkAll = (keys: Set<string>) => {
     if (keys.size === 0) return;
-    setMessage({ text: plural("markedRead", keys.size), undo: () => app.setRead(keys, false) });
+    setMessage({ text: plural("markedRead", keys.size), action: { label: t("undo"), run: () => app.setRead(keys, false) } });
   };
 
   const sidebar = (
@@ -173,7 +185,12 @@ export default function App() {
       />
       <SavedManageDialog open={dialog === "manageSaved"} onOpenChange={(o) => setDialog(o ? "manageSaved" : null)} />
       <SettingsDialog open={dialog === "settings"} onOpenChange={(o) => setDialog(o ? "settings" : null)} />
-      <SaveSheet onMessage={(text) => setMessage({ text })} />
+      <SaveSheet
+        onMessage={(text, openKey) =>
+          // Not in the article yet: Open goes there, in Saved (#142).
+          setMessage({ text, action: openKey ? { label: t("open"), run: () => openSaved(openKey) } : undefined })
+        }
+      />
       <input
         ref={fileInput}
         type="file"
@@ -188,17 +205,17 @@ export default function App() {
       {shown ? (
         <div role="status" className="fixed bottom-4 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-xl bg-foreground px-4 py-3 text-sm text-background shadow-lg">
           <span>{shown.text}</span>
-          {shown.undo ? (
+          {shown.action ? (
             <Button
               size="sm"
               variant="ghost"
               className="text-primary hover:bg-white/10"
               onClick={() => {
-                shown.undo?.();
+                shown.action?.run();
                 setMessage(null);
               }}
             >
-              {t("undo")}
+              {shown.action.label}
             </Button>
           ) : null}
         </div>

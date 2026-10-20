@@ -89,6 +89,7 @@
     <string name="action_share_to">Delen met %1$s</string>
     <string name="feeds_opml_hint">Verhuis je feeds van of naar een andere lezer, zoals Feedly.</string>
     <string name="action_save">Opslaan</string>
+    <string name="action_open">Openen</string>
     <string name="action_undo">Ongedaan maken</string>
     <string name="folders_explanation">Zet feeds in mappen om ze samen te lezen.</string>
     <string name="folder_all">Alle</string>
@@ -199,7 +200,6 @@
     <string name="action_unarchive">Terug naar te lezen</string>
     <string name="action_like">Leuk</string>
     <string name="action_unlike">Niet meer leuk</string>
-    <string name="action_read_later">Later lezen</string>
     <string name="add_link_title">Link toevoegen</string>
     <string name="add_link_address">Webadres</string>
     <string name="add_link_invalid">Dat is geen webadres.</string>
@@ -213,7 +213,6 @@
     <string name="reading_list_archive">Archief</string>
     <string name="reading_list_liked">Leuk gevonden</string>
     <string name="reading_list_about">ongeveer %s</string>
-    <string name="reading_list_added">Bewaard in Te lezen</string>
     <string name="reading_list_empty_title">Niets te lezen</string>
     <string name="reading_list_archive_empty_title">Nog niets gearchiveerd</string>
     <string name="reading_list_none_title">Niets hier</string>
@@ -315,7 +314,7 @@
     <string name="saved_folder_remove_body">De map %1$s verwijderen? De artikels gaan terug naar Te lezen.</string>
     <string name="saved_remove">Verwijderen uit Bewaard</string>
     <string name="saved_remove_body">Dit artikel verwijderen, met zijn notitie, tags en markeringen? Archiveren houdt het doorzoekbaar.</string>
-    <string name="saved_empty_body">Veeg een artikel uit een feed naar links, tik op Later lezen in een artikel, deel een link met Reader of voeg er hier een toe.</string>
+    <string name="saved_empty_body">Veeg een artikel uit een feed naar links, tik op Opslaan in een artikel, deel een link met Reader of voeg er hier een toe.</string>
     <string name="manage_folders_tags_empty_title">Nog geen mappen of tags</string>
     <string name="manage_folders_tags_empty_body">Mappen en tags van je bewaarde artikels verschijnen hier, zodat je ze kunt hernoemen.</string>
 </resources>

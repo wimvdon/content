@@ -89,6 +89,7 @@
     <string name="action_share_to">Condividi con %1$s</string>
     <string name="feeds_opml_hint">Sposta i tuoi feed da o verso un altro lettore, come Feedly.</string>
     <string name="action_save">Salva</string>
+    <string name="action_open">Apri</string>
     <string name="action_undo">Annulla</string>
     <string name="folders_explanation">Metti i feed in cartelle per leggerli insieme.</string>
     <string name="folder_all">Tutti</string>
@@ -205,7 +206,6 @@
     <string name="action_unarchive">Di nuovo da leggere</string>
     <string name="action_like">Mi piace</string>
     <string name="action_unlike">Non mi piace più</string>
-    <string name="action_read_later">Leggi dopo</string>
     <string name="add_link_title">Aggiungi link</string>
     <string name="add_link_address">Indirizzo web</string>
     <string name="add_link_invalid">Non è un indirizzo web.</string>
@@ -219,7 +219,6 @@
     <string name="reading_list_archive">Archivio</string>
     <string name="reading_list_liked">Piaciuti</string>
     <string name="reading_list_about">circa %s</string>
-    <string name="reading_list_added">Salvato in Da leggere</string>
     <string name="reading_list_empty_title">Niente da leggere</string>
     <string name="reading_list_archive_empty_title">Ancora niente in archivio</string>
     <string name="reading_list_none_title">Niente qui</string>
@@ -327,7 +326,7 @@
     <string name="saved_folder_remove_body">Rimuovere la cartella %1$s? I suoi articoli tornano in Da leggere.</string>
     <string name="saved_remove">Rimuovi da Salvati</string>
     <string name="saved_remove_body">Rimuovere questo articolo, con nota, tag ed evidenziazioni? Archiviarlo lo mantiene ricercabile.</string>
-    <string name="saved_empty_body">Scorri a sinistra un articolo di un feed, tocca Leggi dopo in un articolo, condividi un link con Reader o aggiungine uno qui.</string>
+    <string name="saved_empty_body">Scorri a sinistra un articolo di un feed, tocca Salva in un articolo, condividi un link con Reader o aggiungine uno qui.</string>
     <string name="manage_folders_tags_empty_title">Ancora nessuna cartella o tag</string>
     <string name="manage_folders_tags_empty_body">Cartelle e tag dei tuoi articoli salvati appaiono qui, così puoi rinominarli.</string>
 </resources>

@@ -89,6 +89,7 @@
     <string name="action_share_to">Mit %1$s teilen</string>
     <string name="feeds_opml_hint">Zieh deine Feeds von oder zu einem anderen Reader um, etwa Feedly.</string>
     <string name="action_save">Speichern</string>
+    <string name="action_open">Öffnen</string>
     <string name="action_undo">Rückgängig</string>
     <string name="folders_explanation">Lege Feeds in Ordner, um sie zusammen zu lesen.</string>
     <string name="folder_all">Alle</string>
@@ -199,7 +200,6 @@
     <string name="action_unarchive">Wieder zu lesen</string>
     <string name="action_like">Gefällt mir</string>
     <string name="action_unlike">Gefällt mir nicht mehr</string>
-    <string name="action_read_later">Später lesen</string>
     <string name="add_link_title">Link hinzufügen</string>
     <string name="add_link_address">Webadresse</string>
     <string name="add_link_invalid">Das ist keine Webadresse.</string>
@@ -213,7 +213,6 @@
     <string name="reading_list_archive">Archiv</string>
     <string name="reading_list_liked">Gefällt mir</string>
     <string name="reading_list_about">etwa %s</string>
-    <string name="reading_list_added">In Zu lesen gespeichert</string>
     <string name="reading_list_empty_title">Nichts zu lesen</string>
     <string name="reading_list_archive_empty_title">Noch nichts archiviert</string>
     <string name="reading_list_none_title">Hier ist nichts</string>
@@ -315,7 +314,7 @@
     <string name="saved_folder_remove_body">Den Ordner %1$s entfernen? Seine Artikel kommen zurück zu Zu lesen.</string>
     <string name="saved_remove">Aus Gespeichert entfernen</string>
     <string name="saved_remove_body">Diesen Artikel mit Notiz, Tags und Markierungen entfernen? Archivieren hält ihn durchsuchbar.</string>
-    <string name="saved_empty_body">Wische einen Feed-Artikel nach links, tippe in einem Artikel auf Später lesen, teile einen Link mit Reader oder füge hier einen hinzu.</string>
+    <string name="saved_empty_body">Wische einen Feed-Artikel nach links, tippe in einem Artikel auf Speichern, teile einen Link mit Reader oder füge hier einen hinzu.</string>
     <string name="manage_folders_tags_empty_title">Noch keine Ordner oder Tags</string>
     <string name="manage_folders_tags_empty_body">Ordner und Tags deiner gespeicherten Artikel erscheinen hier, damit du sie umbenennen kannst.</string>
 </resources>

@@ -165,7 +165,11 @@ private val BackStackSaver =
 private const val OPML_FILE_NAME = "rss-reader-feeds.opml"
 
 @Composable
-fun RssReaderNavigation() {
+fun RssReaderNavigation(
+    /** An article to open (its reader key), asked for by the share sheet's Open (#142). */
+    openRequest: String? = null,
+    onOpened: () -> Unit = {},
+) {
     val context = LocalContext.current
     val resources = LocalResources.current
     val app = context.rssReaderApp
@@ -199,8 +203,10 @@ fun RssReaderNavigation() {
     // The destination shown (Feeds or Saved) and Saved's tab, chips and type.
     var section by rememberSaveable { mutableStateOf(HomeSection.Feeds) }
     var savedFilter by rememberSaveable(stateSaver = SavedFilterSaver) { mutableStateOf(SavedFilter()) }
-    // The item just put on the reading list, while the sheet to like and tag it is open.
+    // The item just saved, while the sheet to file it is open, and whether that was in the reader
+    // (already in the article: its message needs no Open).
     var addedKey by rememberSaveable { mutableStateOf<String?>(null) }
+    var addedFromReader by rememberSaveable { mutableStateOf(false) }
     // The save sheet while it is open: the link (empty: type one) and its title.
     var saveOpen by rememberSaveable { mutableStateOf(false) }
     var saveUrl by rememberSaveable { mutableStateOf("") }
@@ -399,13 +405,14 @@ fun RssReaderNavigation() {
     }
 
     /**
-     * Puts [link] on the reading list (#107), then opens the sheet to like and tag it. A link without
-     * a title gets the page's own afterwards.
+     * Saves [link] to To read (#107), then opens the sheet to file, like, tag and note it (#143); when
+     * it closes, a message says where it went, with Open unless [inReader] (#142). A link without a
+     * title gets the page's own afterwards.
      */
     fun readLater(
         link: String,
         title: String?,
-        sheet: Boolean = true,
+        inReader: Boolean,
     ) {
         app.appScope.launch {
             var added: Item? = null
@@ -419,12 +426,8 @@ fun RssReaderNavigation() {
                 showMessage(resources.getString(R.string.add_link_invalid))
                 return@launch
             }
-            // Saved with a swipe: the message offers the folder sheet.
-            if (sheet) {
-                addedKey = item.key
-            } else {
-                showMessage(resources.getString(R.string.reading_list_added), resources.getString(R.string.action_file)) { addedKey = item.key }
-            }
+            addedFromReader = inReader
+            addedKey = item.key
             repository.describe(item.key)
         }
     }
@@ -455,12 +458,22 @@ fun RssReaderNavigation() {
                 showMessage(resources.getString(R.string.add_link_invalid))
                 return@launch
             }
-            showMessage(resources.getString(R.string.saved_to, placeName(choice.place)))
+            // Not in the article yet: Open goes there (#142).
+            showMessage(resources.getString(R.string.saved_to, placeName(choice.place)), resources.getString(R.string.action_open)) {
+                push(Screen.Reader(ReadingLists.readerKey(item)))
+            }
             repository.describe(item.key)
         }
     }
 
     fun openItem(item: Item) = push(Screen.Reader(ReadingLists.readerKey(item)))
+
+    LaunchedEffect(openRequest) {
+        val key = openRequest ?: return@LaunchedEffect
+        section = HomeSection.Saved
+        push(Screen.Reader(key))
+        onOpened()
+    }
 
     BackHandler(enabled = backStack.size > 1) { pop() }
 
@@ -545,7 +558,7 @@ fun RssReaderNavigation() {
                                     if (!article.read) readThisVisit = readThisVisit + article.key
                                     app.appScope.launch { repository.setRead(article.key, !article.read) }
                                 },
-                                onReadLater = { article -> article.link?.let { readLater(it, article.title, sheet = false) } },
+                                onReadLater = { article -> article.link?.let { readLater(it, article.title, inReader = false) } },
                                 onRefresh = ::refresh,
                                 onMarkAllRead = {
                                     app.appScope.launch {
@@ -644,7 +657,7 @@ fun RssReaderNavigation() {
                                     onSave = {
                                         article?.let {
                                             val inApp = current.saveTarget == ShareTarget.Saved
-                                            if (inApp) it.link?.let { link -> readLater(link, it.title) } else send(it, current.saveTarget)
+                                            if (inApp) it.link?.let { link -> readLater(link, it.title, inReader = true) } else send(it, current.saveTarget)
                                         }
                                     },
                                     onShare = { article?.let { send(it, current.shareTarget) } },
@@ -870,7 +883,18 @@ fun RssReaderNavigation() {
             initial = SaveChoices.of(sheetItem),
             folders = Saved.folders(library),
             allTags = library.itemTags(),
-            onSave = { _, choice -> editLibrary { SaveChoices.apply(it, sheetItem.key, choice) } },
+            onSave = { _, choice ->
+                editLibrary { SaveChoices.apply(it, sheetItem.key, choice) }
+                // Just saved: say where it went; from the list, Open goes to the article (#142).
+                if (addedKey != null) {
+                    val text = resources.getString(R.string.saved_to, placeName(choice.place))
+                    if (addedFromReader) {
+                        showMessage(text)
+                    } else {
+                        showMessage(text, resources.getString(R.string.action_open)) { push(Screen.Reader(ReadingLists.readerKey(sheetItem))) }
+                    }
+                }
+            },
             onDismiss = {
                 addedKey = null
                 fileKey = null

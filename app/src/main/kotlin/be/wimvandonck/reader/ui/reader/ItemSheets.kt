@@ -299,6 +299,7 @@ fun SaveSheet(
     initial: SaveChoice,
     folders: List<String>,
     allTags: List<String>,
+    /** With the link for a new save; null for one already saved, which gets this on every close. */
     onSave: (url: String?, choice: SaveChoice) -> Unit,
     onDismiss: () -> Unit,
     /** The shared link (with [title]); null with [SheetKind.New] asks for an address. */
@@ -314,7 +315,7 @@ fun SaveSheet(
     val saved = kind != SheetKind.New
     val save = {
         if (saved) {
-            if (choice != initial) onSave(null, choice)
+            onSave(null, choice)
         } else {
             link?.let { onSave(it, choice) }
         }

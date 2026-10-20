@@ -58,7 +58,7 @@ when the run fails.
 | `SavedTest` | Saved (#119): each item in one place (To read, a folder, Archive) and All with them all, newest first; Liked, tags (all of them) and the type filter; chips most used first; folders and counts, a filter without a folder or tags that are gone; filing and archiving (out of the folder); renaming (joining) and removing folders; bookmarks from before moving into folders once; a link's type; the folder through sync and its merge |
 | `ReadingListsTest` | Reading times and minutes left, an item shown like its feed article (or with its description), its source (feed or website with favicon) |
 | `ServiceSyncTest` | The reading list and a fake service: the whole account on the first sync, folders in and out (filing, archiving leaves the folder), adding, archiving, liking and tagging sent once, removing sent (a bookmark stays), changes on both sides to other fields both kept, Reader wins the same field, deleted at the service leaves the reading list unless changed here, removed here but changed there stays, a link the service has joins it, a failure keeps everything and the rest goes next time, progress, entries stored and read back; with two services: each keeps its own, an article in both shows once and its copy shares archive, like and tags (folder when on), only shared changes come in from a copy, a deletion in one keeps what the other has, a re-save goes to the default, and the opt-in copy adds what's missing once and stops on a problem |
-| `InstapaperReadingListTest` | Instapaper as the reading list's service, with recorded answers: `since` page by page with deletions and folders, filing into a folder made there when missing, the first sync asks for everything, adding with tags and archive, only changes sent (taking the folder's tag off moves it home), parsed text only for the developer's own account (asked once), problems mapped |
+| `InstapaperReadingListTest` | Instapaper as the reading list's service, with recorded answers: `since` page by page with deletions and folders, filing into a folder made there when missing, the first sync asks for everything, adding with tags and archive, only changes sent (taking the folder's tag off moves it home), problems mapped |
 | `RaindropSavedTest` | Raindrop.io as Saved's service, with recorded answers: the whole account page by page, collections as folders ("Parent / Child"), the Archive collection, favorites and notes; the quick sync listing at most every three minutes; adding to Unsorted, a folder or the archive, making missing collections once; updates sending only what changed; removing (already gone counts); a refused token renewed once, then signed out; busy and broken answers |
 | `RaindropAuthTest` | The callback's code and state (or why not), the sign-in address with a fresh state, the Worker's tokens, and swapping a code: done, refused, failed or offline |
 | `PageInfoTest` | A page's title, description and picture (Open Graph first, https pictures only) for links saved without a title |
@@ -104,12 +104,12 @@ and then (always before a release):
       a second phone) with the same Instapaper account: the same feeds, folders and read marks
       appear. Read an article on one with both open: within a few seconds it is read on the other,
       without refreshing. Rename a feed: the same. Delete synced data: both say to sign in again.
-- [ ] **Read later** puts the article on the reading list (or sends it to the app chosen in Settings ›
+- [ ] **Save** (a list icon) puts the article in Saved (or sends it to the app chosen in Settings ›
       Save and share); **Share** opens the share menu or the chosen app. An uninstalled app falls back
       to the share menu. Settings › Save and share looks the same signed in to Instapaper or not.
 - [ ] **List:** at app start the list shows loading placeholders, never "No feeds yet" first.
-      Swipe an article right past a third: a tick, it becomes read, then unread; swipe one left: "Added
-      to reading list" and it is on the reading list; a short swipe does nothing; swiping never opens the ☰ menu. The Unread chip in its own row under the folder tabs (not in the top bar) switches unread only (filled, check) / all.
+      Swipe an article right past a third: a tick, it becomes read, then unread; swipe one left (Save, a list
+      icon): the save sheet opens, then "Saved to To read" with **Open**, which opens the article; a short swipe does nothing; swiping never opens the ☰ menu. The Unread chip in its own row under the folder tabs (not in the top bar) switches unread only (filled, check) / all.
       Scroll down: the title, the folder tabs and the Unread chip slide away together; scroll up a
       little: they come back; pulling down at the very top refreshes, and the spinner stays in place
       until the refresh is done (no jump back up and down again), also on the reading list. Settings › Article list › View: Small,
@@ -179,7 +179,7 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
 - [ ] Right after signing in, everything in the Instapaper account appears in Saved (archived ones
       under Archive, Instapaper's folders as folders), and what was in Saved appears in Instapaper.
       ☰ › Connected services says Saved is synced with your account.
-- [ ] **Read later** on a feed article: it appears in Instapaper's Unread list within seconds.
+- [ ] **Save** on a feed article: it appears in Instapaper's Unread list within seconds.
       Archive, like, tag and remove it in Reader: each change shows in Instapaper. Do the same in
       Instapaper's own app and pull down on the reading list: the change shows in Reader.
 - [ ] File an article in a folder (also a new one): it moves to that folder in Instapaper (made
@@ -188,7 +188,7 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
       with nothing above the title saying where the text came from.
 - [ ] Read an article halfway, leave it: Instapaper shows the same progress.
 - [ ] **Sign out** returns Settings to "Sign in"; Saved stays.
-- [ ] Signed out: **Read later** keeps the article in Saved; the sheet offers Like and
+- [ ] Signed out: **Save** keeps the article in Saved; the sheet offers Like and
       tags; the articles are still there after restarting the app.
 
 ## Raindrop.io (by hand)
@@ -229,7 +229,7 @@ Needs the Raindrop app registered and the Worker's `RAINDROP_CLIENT_ID` and `RAI
 
 ## Feed to Saved to folder or archive (smooth flow)
 
-- [ ] In an article from a feed, tap **Read later**: the sheet's heading says "Saved to To read", then
+- [ ] In an article from a feed, tap **Save**: the sheet's heading says "Saved to To read", then
       **Folder** chips (no Archive), **Tags** with Like in front, and **Note**; no Cancel. Tap a folder
       chip (the heading follows), or New folder and type one, and **Save**: it is in that folder.
       Swipe the sheet away instead: what you picked is kept too.
@@ -239,6 +239,10 @@ Needs the Raindrop app registered and the Worker's `RAINDROP_CLIENT_ID` and `RAI
 - [ ] **Add link** and a link shared from another app: the sheet asks for the address (or shows the
       link), offers **Archive** among the folders, and has **Cancel**, which saves nothing.
 - [ ] Nothing in a sheet asks which service, and no sheet explains an empty field.
+- [ ] **Save, the list icon and Open (#142):** nothing says "Read later", in any language; the
+      navigation bar's Saved is a list icon, To read keeps the open book. After saving from the
+      reader the message has no Open; after a swipe, Add link or a share (over Chrome) it has
+      **Open**, which lands on that article. Web app: the same icons, and Open after Add link.
 - [ ] Web app: **Save** on a feed article and **Organise** on a saved one open the same sheet;
       **Add link** in Saved too, with Cancel.
 - [ ] In Saved › To read, swipe a row left: archived with Undo; swipe right: the Organise sheet. In

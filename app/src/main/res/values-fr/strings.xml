@@ -89,6 +89,7 @@
     <string name="action_share_to">Partager avec %1$s</string>
     <string name="feeds_opml_hint">Transférez vos flux depuis ou vers un autre lecteur, comme Feedly.</string>
     <string name="action_save">Enregistrer</string>
+    <string name="action_open">Ouvrir</string>
     <string name="action_undo">Annuler</string>
     <string name="folders_explanation">Rangez vos flux dans des dossiers pour les lire ensemble.</string>
     <string name="folder_all">Tous</string>
@@ -205,7 +206,6 @@
     <string name="action_unarchive">Remettre à lire</string>
     <string name="action_like">J’aime</string>
     <string name="action_unlike">Je n’aime plus</string>
-    <string name="action_read_later">Lire plus tard</string>
     <string name="add_link_title">Ajouter un lien</string>
     <string name="add_link_address">Adresse web</string>
     <string name="add_link_invalid">Ce n’est pas une adresse web.</string>
@@ -219,7 +219,6 @@
     <string name="reading_list_archive">Archives</string>
     <string name="reading_list_liked">Aimés</string>
     <string name="reading_list_about">environ %s</string>
-    <string name="reading_list_added">Enregistré dans À lire</string>
     <string name="reading_list_empty_title">Rien à lire</string>
     <string name="reading_list_archive_empty_title">Rien d’archivé pour l’instant</string>
     <string name="reading_list_none_title">Rien ici</string>
@@ -327,7 +326,7 @@
     <string name="saved_folder_remove_body">Supprimer le dossier %1$s ? Ses articles retournent dans À lire.</string>
     <string name="saved_remove">Retirer des enregistrés</string>
     <string name="saved_remove_body">Retirer cet article, avec sa note, ses tags et ses surlignages ? L’archiver le garde consultable.</string>
-    <string name="saved_empty_body">Balayez un article de flux vers la gauche, touchez Lire plus tard dans un article, partagez un lien avec Reader ou ajoutez-en un ici.</string>
+    <string name="saved_empty_body">Balayez un article de flux vers la gauche, touchez Enregistrer dans un article, partagez un lien avec Reader ou ajoutez-en un ici.</string>
     <string name="manage_folders_tags_empty_title">Pas encore de dossiers ni de tags</string>
     <string name="manage_folders_tags_empty_body">Les dossiers et tags de vos articles enregistrés s’affichent ici, pour les renommer.</string>
 </resources>
