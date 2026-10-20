@@ -1,4 +1,4 @@
-import { Archive, BookOpen, Check, ChevronDown, Folder as FolderGlyph, Heart, ListPlus, Plus, Tag, Trash2 } from "lucide-react";
+import { Archive, BookOpen, Check, ChevronDown, Folder as FolderGlyph, Heart, ListPlus, Plus, Share2, Tag, Trash2 } from "lucide-react";
 import { Fragment, useState } from "react";
 import { app, useApp } from "@/lib/app";
 import { t } from "@/lib/i18n";
@@ -12,22 +12,41 @@ import { Dialog } from "./ui/dialog";
 
 /**
  * The reader's library bar (#139, #156), under the text: one Save before the article is saved;
- * after, two menus, as the Organise sheet groups it. **Folder** says where it is and offers To read
+ * after, two menus, as the Organise sheet groups it; Share at the right end. **Folder** says where it is and offers To read
  * and Archive, a divider, then the folders and New folder; **Tags** says its tags (or Liked) and
  * offers Like, a divider, then the tags and Add a tag. New folder and Add a tag open Organise, the
  * only place to type. The same as the Android app's bottom bar.
  */
-export function LibraryBar({ item, onSave, onArchived }: { item: Item | null; onSave: (() => void) | null; onArchived: (undo: () => void) => void }) {
+export function LibraryBar({
+  item,
+  onSave,
+  onShare,
+  onArchived,
+}: {
+  item: Item | null;
+  onSave: (() => void) | null;
+  onShare: (() => void) | null;
+  onArchived: (undo: () => void) => void;
+}) {
   const { library } = useApp();
   const [open, setOpen] = useState<"places" | "tags" | null>(null);
+  // At the right end, after Save or the folder and tags.
+  const share = onShare ? (
+    <Button variant="ghost" size="icon" onClick={onShare} aria-label={t("share")} title={t("share")} className="ml-auto shrink-0">
+      <Share2 />
+    </Button>
+  ) : null;
   if (!item) {
-    if (!onSave) return null;
+    if (!onSave && !onShare) return null;
     return (
-      <div className="flex justify-end border-t bg-muted/40 px-4 py-2">
-        <Button variant="tonal" onClick={onSave}>
-          <ListPlus />
-          {t("saveArticle")}
-        </Button>
+      <div className="flex items-center gap-1 border-t bg-muted/40 px-2 py-2">
+        {onSave ? (
+          <Button variant="tonal" onClick={onSave} className="ml-2">
+            <ListPlus />
+            {t("saveArticle")}
+          </Button>
+        ) : null}
+        {share}
       </div>
     );
   }
@@ -68,7 +87,6 @@ export function LibraryBar({ item, onSave, onArchived }: { item: Item | null; on
           </Menu>
         ) : null}
       </div>
-      <div className="flex-1" />
       <div className="relative min-w-0">
         <Button variant="ghost" onClick={() => setOpen(open === "tags" ? null : "tags")} aria-expanded={open === "tags"} aria-haspopup="menu" title={t("tags")} className="max-w-full">
           {choice.liked ? <Heart className="fill-current text-primary" /> : <Tag />}
@@ -76,7 +94,7 @@ export function LibraryBar({ item, onSave, onArchived }: { item: Item | null; on
           <ChevronDown />
         </Button>
         {open === "tags" ? (
-          <Menu onClose={close} alignEnd>
+          <Menu onClose={close}>
             {/* Like and the tags leave the menu open: several can change at once. */}
             <MenuChoice icon={<Heart className={cn(choice.liked && "fill-current")} />} label={t("like")} selected={choice.liked} onClick={() => app.likeItem(item.key, !choice.liked)} />
             <div className="my-1 h-px bg-border" aria-hidden="true" />
@@ -93,6 +111,7 @@ export function LibraryBar({ item, onSave, onArchived }: { item: Item | null; on
           </Menu>
         ) : null}
       </div>
+      {share}
     </div>
   );
 }

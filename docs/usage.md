@@ -135,17 +135,17 @@ website (the same as **Read on website** at the end). In the top bar:
 
 | Button | What it does |
 |---|---|
+| Full article (page icon) | **Show full article** / **Show feed text**: the whole article from the website, or the feed's own text. It is lit while the full article shows. |
 | **Aa** | Text settings: font (Sans or Serif), text size, spacing (Compact, Normal, Relaxed), background (Theme, Sepia or Dark) and **Auto dark** (the dark page whenever the app is dark, e.g. Sepia by day and dark at night). Changes apply right away and are remembered for every article. |
-| Share | **Share**: the share menu, or straight to the app you chose. |
-| ⋮ | **Show feed text** / **Show full article**, **Open in browser**, **Mark as unread** (back to the list, where it waits unread; the web app keeps the article open and offers **Mark as read** too), and for a saved article **Remove from Saved**. Open in browser, and links in an article, open in a tab of your browser on top of Reader, with a **Save** button in its toolbar: it opens the save sheet over the page (see Saving from other apps); save or close it to keep reading. |
+| ⋮ | **Open in browser**, **Mark as unread** (back to the list, where it waits unread; the web app keeps the article open and offers **Mark as read** too), and for a saved article **Remove from Saved**. Open in browser, and links in an article, open in a tab of your browser on top of Reader, with a **Save** button in its toolbar: it opens the save sheet over the page (see Saving from other apps); save or close it to keep reading. |
 
-The bar at the bottom is the article in your library. Before it is saved it has one button,
-**Save**: it saves the article to **To read** (by default), or sends it to the app you chose or the
-share menu (see below). Once saved, the bar has two buttons, grouped like the save sheet. On the left,
+The bar at the bottom is the article in your library, with **Share** at its right end (the share
+menu, or straight to the app you chose). Before it is saved it has **Save** on the left: it saves the article to **To read** (by default), or sends it to the app you chose or the
+share menu (see below). Once saved, Save makes way for two buttons side by side, grouped like the save sheet: first
 **where it is** (To read, its folder or Archive): tap it for **To read** and **Archive**, then your
 folders and **New folder**. Picking **Archive** on the phone archives it and goes back to the list,
 with **Undo** in the message (it returns to where it was, in its folder); picking To read or a
-folder moves it there. On the right, **its tags** (or **Liked**, with a filled heart): tap it for
+folder moves it there. Next to it, **its tags** (or **Liked**, with a filled heart): tap it for
 **Like**, then your tags (a check shows the ones it has; tap to add or take one off) and **Add a
 tag**. New folder and Add a tag open **Organise**, where you can also write a note. The text ends with **Read on website**.
 Reader remembers how far you read and opens the article there again.
@@ -163,7 +163,7 @@ another app it also has **Open**, which goes to the article in Saved.
 "Read full article" link. Then the reader fetches the
 whole article from the website by itself: a thin bar shows while it loads, and the text is
 replaced by the complete article (without the site's menus, ads and comments). If that fails, the
-feed's text stays and a line says so. ⋮ › **Show feed text** / **Show full article** switches
+feed's text stays and a line says so. The page button in the top bar switches
 between the two for the open article; **Settings › Reader › Load full articles** turns the
 automatic loading off. Full articles are kept for a while, so opening one again is instant.
 **Read on website** at the end always opens the original page. 
@@ -267,8 +267,8 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   rename it (renaming it to another one's name joins the two), or remove it: a tag from every
   article, a folder from its articles (they go to the Archive).
 - **In the web app** Saved is the same: the same tabs, chips, type filter and cards, and **Add link**
-  (the link button next to the type filter). In an article the top bar is the reading (Aa, Share,
-  ⋮) and the bar under it the library: **Save** before it is saved (it opens the same sheet), then
+  (the link button next to the type filter). In an article the top bar is the reading (the full
+  article, Aa, ⋮) and the bar under it the library, with Share at its right end: **Save** before it is saved (it opens the same sheet), then
   the same two menus as on the phone: **where it is** (To read and Archive, your folders) and **its
   tags** (Like, your tags). Archiving goes back to the list with **Undo**. Keys: **j**/**k** next
   and previous, **m** read or unread, **o** open on the website, **r** refresh, **/** search, and

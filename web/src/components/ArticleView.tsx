@@ -1,4 +1,4 @@
-import { ALargeSmall, ArrowLeft, Circle, CircleCheck, EllipsisVertical, ExternalLink, FileText, Share2, Trash2 } from "lucide-react";
+import { ALargeSmall, ArrowLeft, Circle, CircleCheck, EllipsisVertical, ExternalLink, FileText, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { app, useApp } from "@/lib/app";
 import { extractArticle, needsFullText } from "@/lib/fullArticle";
@@ -104,15 +104,22 @@ export function ArticleView({
           <ArrowLeft />
         </Button>
         <div className="flex-1" />
-        {/* This reading (#139): Aa, Share and ⋮; the article in your library is in the bar below. */}
+        {/* This reading (#139): the full article, Aa and ⋮; the article in your library, and Share, are in the bar below. */}
+        {canLoad ? (
+          <Button
+            variant={useFull ? "tonal" : "ghost"}
+            size="icon"
+            onClick={() => setUseFull(!useFull)}
+            aria-pressed={useFull}
+            aria-label={useFull ? t("showFeedText") : t("showFull")}
+            title={useFull ? t("showFeedText") : t("showFull")}
+          >
+            <FileText />
+          </Button>
+        ) : null}
         <Button variant="ghost" size="icon" onClick={() => setTextOpen(true)} aria-label={t("textSettings")} title={t("textSettings")}>
           <ALargeSmall />
         </Button>
-        {article.link ? (
-          <Button variant="ghost" size="icon" onClick={() => void share()} aria-label={t("share")} title={t("share")}>
-            <Share2 />
-          </Button>
-        ) : null}
         <div className="relative">
           <Button variant="ghost" size="icon" onClick={() => setMenuOpen(!menuOpen)} aria-expanded={menuOpen} aria-label={t("moreOptions")} title={t("moreOptions")}>
             <EllipsisVertical />
@@ -121,9 +128,6 @@ export function ArticleView({
             <>
               <div className="fixed inset-0 z-20" onClick={() => setMenuOpen(false)} aria-hidden="true" />
               <div role="menu" className="absolute right-0 z-30 mt-1 w-60 rounded-xl border bg-card py-1 shadow-lg">
-                {canLoad ? (
-                  <MenuItem icon={<FileText />} label={useFull ? t("showFeedText") : t("showFull")} onClick={() => setUseFull(!useFull)} close={() => setMenuOpen(false)} />
-                ) : null}
                 {article.link ? (
                   <a
                     role="menuitem"
@@ -193,6 +197,7 @@ export function ArticleView({
       <LibraryBar
         item={saved}
         onSave={article.link && !fromSaved ? saveArticle : null}
+        onShare={article.link ? () => void share() : null}
         onArchived={(undo) => {
           // Done with it, as on Android: back to the list, with Undo.
           onBack();

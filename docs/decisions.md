@@ -2,6 +2,14 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-20: The reader's bars: library on the left, Share on the right, full article on top
+
+The owner asked for the bottom bar to read left to right: the article in your library (Save, or
+its folder and tags side by side) on the left, Share at the right end; and for the full article to
+be one tap in the top bar rather than in ⋮, since it is used on many articles. Share moved down
+because it acts on the article like Save, and it sits where a thumb reaches. The tags button's icon
+now has the folder button's colour (it was grey). Same on the web.
+
 ## 2026-10-20: Removing a Saved folder archives its articles
 
 A folder holds articles you filed away; removing the folder used to send them back to To read,

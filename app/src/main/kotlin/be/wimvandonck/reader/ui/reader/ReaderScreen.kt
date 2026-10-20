@@ -26,6 +26,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -172,33 +173,24 @@ fun ReaderScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { showStyleSheet = true }) {
-                        Icon(painterResource(R.drawable.ic_text_format), contentDescription = stringResource(R.string.reader_text_settings))
-                    }
+                    // The full article or the feed's text, one tap away: on while the full article shows.
                     if (hasLink) {
-                        IconButton(onClick = actions.onShare) {
+                        val showingFull = fullText is FullTextState.Shown || fullText is FullTextState.Loading
+                        IconToggleButton(checked = showingFull, onCheckedChange = { actions.onToggleFullText() }) {
                             Icon(
-                                painterResource(R.drawable.ic_share),
-                                contentDescription =
-                                    (shareTarget as? ShareTarget.App)?.let { stringResource(R.string.action_share_to, it.label) }
-                                        ?: stringResource(R.string.action_share),
+                                painterResource(R.drawable.ic_article),
+                                contentDescription = stringResource(if (showingFull) R.string.reader_show_feed_text else R.string.reader_show_full),
                             )
                         }
+                    }
+                    IconButton(onClick = { showStyleSheet = true }) {
+                        Icon(painterResource(R.drawable.ic_text_format), contentDescription = stringResource(R.string.reader_text_settings))
                     }
                     IconButton(onClick = { menuOpen = true }) {
                         Icon(painterResource(R.drawable.ic_more_vert), contentDescription = stringResource(R.string.action_more))
                     }
                     DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
                         if (hasLink) {
-                            val showingFull = fullText is FullTextState.Shown || fullText is FullTextState.Loading
-                            DropdownMenuItem(
-                                text = { Text(stringResource(if (showingFull) R.string.reader_show_feed_text else R.string.reader_show_full)) },
-                                leadingIcon = { Icon(painterResource(R.drawable.ic_article), contentDescription = null) },
-                                onClick = {
-                                    menuOpen = false
-                                    actions.onToggleFullText()
-                                },
-                            )
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.action_open_in_browser)) },
                                 leadingIcon = { Icon(painterResource(R.drawable.ic_open_in_new), contentDescription = null) },
@@ -240,20 +232,31 @@ fun ReaderScreen(
             )
         },
         bottomBar = {
-            // The library bar (#139, #156): Save before, then the folder and the tags.
+            // The library bar (#139, #156): on the left Save, or once saved the folder and the tags;
+            // on the right Share.
             if (article != null && (hasLink || onList)) {
                 BottomAppBar(containerColor = MaterialTheme.colorScheme.surfaceContainer) {
                     if (item != null && onList) {
                         SavedBar(item)
                     } else {
-                        Spacer(Modifier.weight(1f))
-                        FilledTonalButton(onClick = actions.onSave, modifier = Modifier.padding(end = 16.dp)) {
+                        FilledTonalButton(onClick = actions.onSave, modifier = Modifier.padding(start = 16.dp).weight(1f, fill = false)) {
                             Icon(painterResource(if (saveTarget is ShareTarget.App) R.drawable.ic_bookmark_add else R.drawable.ic_list), contentDescription = null)
                             Text(
                                 (saveTarget as? ShareTarget.App)?.let { stringResource(R.string.action_save_to, it.label) } ?: stringResource(R.string.action_save),
                                 modifier = Modifier.padding(start = 8.dp),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    }
+                    Spacer(Modifier.weight(1f))
+                    if (hasLink) {
+                        IconButton(onClick = actions.onShare, modifier = Modifier.padding(end = 4.dp)) {
+                            Icon(
+                                painterResource(R.drawable.ic_share),
+                                contentDescription =
+                                    (shareTarget as? ShareTarget.App)?.let { stringResource(R.string.action_share_to, it.label) }
+                                        ?: stringResource(R.string.action_share),
                             )
                         }
                     }
