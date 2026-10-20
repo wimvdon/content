@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -43,7 +44,7 @@ import be.wimvandonck.reader.ui.theme.readableWidth
 /**
  * Folders and tags (☰): every folder of Saved with how many articles it has, then every tag with
  * how many articles have it. Tap to rename (renaming to another one's name joins the two), or remove
- * it: a tag from every article, a folder from its articles (they go back to To read).
+ * it: a tag from every article, a folder from its articles (they go to the Archive).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -137,7 +138,7 @@ fun TagsManageScreen(
         AlertDialog(
             onDismissRequest = { renaming = null },
             title = { Text(stringResource(if (folder) R.string.saved_folder_rename else R.string.tags_rename)) },
-            text = { OutlinedTextField(value = text, onValueChange = { text = it }, label = { Text(stringResource(R.string.tags_name)) }, singleLine = true) },
+            text = { OutlinedTextField(value = text, onValueChange = { text = it }, label = { Text(stringResource(if (folder) R.string.feed_name else R.string.tags_name)) }, singleLine = true) },
             confirmButton = {
                 TextButton(onClick = {
                     renaming = null
@@ -158,7 +159,7 @@ fun TagsManageScreen(
                 TextButton(onClick = {
                     removing = null
                     if (folder) onRemoveFolder(tag) else onRemove(tag)
-                }) { Text(stringResource(R.string.action_remove)) }
+                }, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) { Text(stringResource(R.string.action_remove)) }
             },
             dismissButton = { TextButton(onClick = { removing = null }) { Text(stringResource(R.string.action_cancel)) } },
         )

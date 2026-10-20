@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.lazy.staggeredgrid.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -87,12 +88,20 @@ internal fun SavedContent(
     onOpen: (Item) -> Unit,
     onArchive: (Item) -> Unit = {},
     onFile: (Item) -> Unit = {},
+    /** Clears Liked, the tags and the type, for an empty list they filtered out. */
+    onClearFilters: () -> Unit = {},
 ) {
     if (home.items.isEmpty()) {
         val plain = !home.filter.likedOnly && home.filter.tags.isEmpty() && home.filter.type == null
         val toRead = home.filter.tab == SavedTab.ToRead && plain
         EmptyState(
-            painterResource(if (home.filter.tab == SavedTab.Archive) R.drawable.ic_inventory else R.drawable.ic_reading_list),
+            painterResource(
+                when (home.filter.tab) {
+                    SavedTab.Archive -> R.drawable.ic_inventory
+                    is SavedTab.Folder -> R.drawable.ic_folder
+                    else -> R.drawable.ic_reading_list
+                },
+            ),
             stringResource(
                 when {
                     toRead -> R.string.reading_list_empty_title
@@ -101,7 +110,10 @@ internal fun SavedContent(
                 },
             ),
             body = if (toRead) stringResource(R.string.saved_empty_body) else null,
-        )
+        ) {
+            // Filtered to nothing: one tap back to the whole tab, as Feeds' "All caught up" has Show all.
+            if (!plain) Button(onClick = onClearFilters) { Text(stringResource(R.string.home_show_all)) }
+        }
         return
     }
     if (home.filter.tab is SavedTab.Folder) NotesGrid(home, showImages, onOpen) else ArticleList(home, showImages, onOpen, onArchive, onFile)

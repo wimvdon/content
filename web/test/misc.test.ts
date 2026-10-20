@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { feedLinks, findFeed, normalizeUrl } from "../src/lib/discovery";
 import { searchIcons, parseIcons } from "../src/lib/icons";
-import { emptyLibrary, articlesFor, setRead, removeFolder, addFolder, addFeed, newFeed, moveFeed, renameFeed, mergeFeed, reorder, unreadKeys, removeFeed, sameSelection, MAX_ARTICLES_PER_FEED } from "../src/lib/library";
+import { emptyLibrary, articlesFor, setRead, removeFolder, addFolder, addFeed, newFeed, moveFeed, renameFeed, mergeFeed, reorder, unreadKeys, removeFeed, sameSelection, MAX_ARTICLES_PER_FEED, moveWithinFolder } from "../src/lib/library";
 import { importOpml, parseOpml, writeOpml } from "../src/lib/opml";
 import { FetchError } from "../src/lib/proxy";
 import { sanitizeArticle } from "../src/lib/sanitize";
@@ -84,6 +84,17 @@ describe("read marks that leave this browser (#157)", () => {
     expect(sameSelection({ kind: "folder", folderId: "f" }, { kind: "folder", folderId: "f" })).toBe(true);
     expect(sameSelection({ kind: "feed", feedUrl: "a" }, { kind: "feed", feedUrl: "b" })).toBe(false);
     expect(sameSelection({ kind: "all" }, { kind: "saved" })).toBe(false);
+  });
+});
+
+describe("moving feeds in Manage feeds", () => {
+  it("swaps with the next feed of the same folder, not one elsewhere", () => {
+    let lib = addFolder(emptyLibrary(), { id: "f", title: "F", icon: "folder" });
+    for (const u of ["a", "b", "c"]) lib = addFeed(lib, newFeed(u, u));
+    lib = moveFeed(moveFeed(lib, "a", "f"), "c", "f");
+    expect(moveWithinFolder(lib, "a", 1).feeds.map((f) => f.url)).toEqual(["c", "b", "a"]);
+    expect(moveWithinFolder(lib, "c", 1)).toBe(lib);
+    expect(moveWithinFolder(lib, "b", -1)).toBe(lib);
   });
 });
 

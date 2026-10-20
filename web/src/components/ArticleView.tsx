@@ -16,12 +16,21 @@ import { ReaderStyleControls } from "./ReaderStyleControls";
 import { Button } from "./ui/button";
 import { cn } from "./ui/cn";
 import { Dialog } from "./ui/dialog";
+import { useEscape } from "./ui/useEscape";
 
 /** The full article for one address: loaded, or failed (no answer yet means it is loading). */
 type Full = { link: string; html: string | null };
 
 /** The parent gives each article its own key, so this state starts fresh for every article. */
-export function ArticleView({ article, onBack, onMessage }: { article: Article; onBack: () => void; onMessage: (text: string) => void }) {
+export function ArticleView({
+  article,
+  onBack,
+  onMessage,
+}: {
+  article: Article;
+  onBack: () => void;
+  onMessage: (text: string, action?: { label: string; run: () => void }) => void;
+}) {
   const { library, settings } = useApp();
   // A saved article (also a feed article that was saved): the feed it came from (or its website)
   // above it, and Saved's actions instead of read state and Save.
@@ -73,14 +82,19 @@ export function ArticleView({ article, onBack, onMessage }: { article: Article; 
     if (navigator.share) {
       await navigator.share({ title: article.title, url: article.link }).catch(() => undefined);
     } else {
-      await navigator.clipboard.writeText(article.link);
-      onMessage(t("linkCopied"));
+      // Copying can be refused (no permission): then the message shows the link to copy by hand.
+      const copied = await navigator.clipboard.writeText(article.link).then(
+        () => true,
+        () => false,
+      );
+      onMessage(copied ? t("linkCopied") : article.link);
     }
   };
 
   // The dialog to file it (folder and tags) says it was saved.
   const saveArticle = () => article.link && app.saveArticle(article.link, article.title);
   const [menuOpen, setMenuOpen] = useState(false);
+  useEscape(menuOpen, () => setMenuOpen(false));
   const [removeOpen, setRemoveOpen] = useState(false);
 
   return (
@@ -176,7 +190,15 @@ export function ArticleView({ article, onBack, onMessage }: { article: Article; 
           ) : null}
         </div>
       </div>
-      <LibraryBar item={saved} onSave={article.link && !fromSaved ? saveArticle : null} />
+      <LibraryBar
+        item={saved}
+        onSave={article.link && !fromSaved ? saveArticle : null}
+        onArchived={(undo) => {
+          // Done with it, as on Android: back to the list, with Undo.
+          onBack();
+          onMessage(t("archived"), { label: t("undo"), run: undo });
+        }}
+      />
       {saved ? <RemoveDialog item={saved} open={removeOpen} onClose={() => setRemoveOpen(false)} onRemoved={() => fromSaved && onBack()} /> : null}
     </article>
   );

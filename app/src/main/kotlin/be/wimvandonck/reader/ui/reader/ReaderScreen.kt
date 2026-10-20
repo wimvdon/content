@@ -64,6 +64,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import be.wimvandonck.reader.R
+import be.wimvandonck.reader.ui.theme.EmptyState
 import androidx.compose.foundation.layout.size
 import androidx.compose.ui.text.style.TextOverflow
 import be.wimvandonck.reader.data.Place
@@ -262,11 +263,14 @@ fun ReaderScreen(
         containerColor = MaterialTheme.colorScheme.surface,
     ) { innerPadding ->
         if (article == null) {
-            Text(
-                text = stringResource(R.string.reader_article_gone),
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(innerPadding).padding(24.dp),
-            )
+            // Like every empty screen: the shared empty state, with a way back.
+            EmptyState(
+                painterResource(R.drawable.ic_article),
+                stringResource(R.string.reader_article_gone),
+                modifier = Modifier.padding(innerPadding),
+            ) {
+                FilledTonalButton(onClick = actions.onBack) { Text(stringResource(R.string.action_back)) }
+            }
         } else {
             ArticleBody(
                 showImages = showImages,

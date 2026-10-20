@@ -134,9 +134,12 @@ export function renameFolder(lib: Library, from: string, to: string): Library {
   return { ...lib, items: lib.items.map((i) => (i.folder && same(i.folder, from) ? { ...i, folder: clean } : i)) };
 }
 
-/** Takes a folder away: its items go back to To read. */
+/** Takes a folder away: its items go to the Archive (filed away, they don't come back as unread work). */
 export function removeFolder(lib: Library, name: string): Library {
-  return { ...lib, items: lib.items.map((i) => (i.folder && same(i.folder, name) ? { ...i, folder: null } : i)) };
+  return {
+    ...lib,
+    items: lib.items.map((i) => (i.folder && same(i.folder, name) ? { ...i, folder: null, readingList: i.readingList ? { ...i.readingList, state: "archived" } : null } : i)),
+  };
 }
 
 /** Takes a tag off every item; the items stay. */

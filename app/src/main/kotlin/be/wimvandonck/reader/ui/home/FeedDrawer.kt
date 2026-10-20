@@ -40,6 +40,8 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -299,5 +301,9 @@ private fun FeedItem(
 
 @Composable
 private fun UnreadBadge(count: Int) {
-    if (count > 0) Text(count.toString(), style = MaterialTheme.typography.labelLarge)
+    if (count > 0) {
+        // Read out as "12 unread", not a bare number.
+        val spoken = pluralStringResource(R.plurals.home_subtitle_unread, count, count)
+        Text(count.toString(), style = MaterialTheme.typography.labelLarge, modifier = Modifier.semantics { contentDescription = spoken })
+    }
 }

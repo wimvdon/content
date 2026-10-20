@@ -155,11 +155,18 @@ object Saved {
         return library.copy(items = library.items.map { if (it.folder.equals(from, ignoreCase = true)) it.copy(folder = clean) else it })
     }
 
-    /** Takes a folder away: its items go back to To read. */
+    /** Takes a folder away: its items go to the Archive. */
     fun removeFolder(
         library: Library,
         name: String,
-    ): Library = library.copy(items = library.items.map { if (it.folder.equals(name, ignoreCase = true)) it.copy(folder = null) else it })
+    ): Library =
+        library.copy(
+            items =
+                library.items.map {
+                    // Its articles go to the Archive: filed away, they don't come back as unread work.
+                    if (it.folder.equals(name, ignoreCase = true)) it.copy(folder = null, readingList = it.readingList?.copy(state = ReadingState.Archived)) else it
+                },
+        )
 
     /**
      * Moves bookmarks from before #119 into folders, once: a bookmark's collection becomes its

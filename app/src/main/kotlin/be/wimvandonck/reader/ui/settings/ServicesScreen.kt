@@ -33,6 +33,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.ui.unit.dp
 import be.wimvandonck.reader.R
 import be.wimvandonck.reader.data.ServiceImport
@@ -170,6 +172,7 @@ private fun connected(
  * connecting), and what it syncs, both ways: everything in Saved, or only some folders. Unticking a
  * folder says first how many articles it archives there.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ServiceScreen(
     id: String,
@@ -202,7 +205,8 @@ fun ServiceScreen(
                     },
                 )
                 SettingsBlock {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    // Wraps rather than squeezes the two buttons in longer languages.
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         if (connected && id !in state.waiting) {
                             FilledTonalButton(onClick = actions.onSyncNow, enabled = status !is ServiceStatus.Syncing) { Text(stringResource(R.string.sync_now)) }
                         }
@@ -223,6 +227,7 @@ fun ServiceScreen(
 }
 
 /** The import: once, right after connecting, then Import again when the service has drifted. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ImportSection(
     id: String,
@@ -256,7 +261,7 @@ private fun ImportSection(
             if (busy) {
                 CircularProgressIndicator()
             } else {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (waiting) {
                         Button(onClick = { run(ServiceImport(0, 0)) }) { Text(stringResource(R.string.service_import_all)) }
                     }

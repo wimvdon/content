@@ -2,6 +2,28 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-20: Removing a Saved folder archives its articles
+
+A folder holds articles you filed away; removing the folder used to send them back to To read,
+turning filed work into unread work again. They now go to the Archive (still searchable, with
+their tags and notes), on Android and the web, and the confirmation says so. Rejected: keeping
+them in To read (the old behaviour) and asking each time.
+
+## 2026-10-20: Remove right after Save, and a UI review of both apps
+
+Cancel on the "Saved to …" sheet kept the save, which read as if it undid it. It is now **Remove**
+(red, with a trash icon): it takes the save back, restoring the item as it was (a link saved
+before keeps its earlier state). Closing the sheet keeps the save, since closing never changes
+anything. Rejected: Cancel undoing the save (then a swipe away would lose it too).
+
+A review of both apps then fixed what it found, among others: text typed in the sheet is kept by
+Save; empty filtered lists offer Show all; Add link starts in the folder shown; swiping left to
+save follows the Save button setting; removals ask first on the web and use the error colour on
+Android; screen readers hear "Folder: To read", "12 unread" and the type filter; the web's primary
+colour passes WCAG AA, messages clear the bottom bars on phones, Escape closes menus and the
+article, Enter submits, and feeds move within their folder. Left for later: dragging to reorder
+on the web, full-screen settings pages on narrow web windows, and a shared keyboard-navigable menu.
+
 ## 2026-10-20: The reader's bar groups like the sheet: where it is, and its tags (#156)
 
 The reader's bar for a saved article had a folder button, a heart and Archive side by side, so

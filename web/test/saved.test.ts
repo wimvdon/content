@@ -10,6 +10,7 @@ import {
   hostOf,
   itemArticle,
   removeFolder,
+  isIn,
   removeSaved,
   removeTag,
   renameFolder,
@@ -117,9 +118,13 @@ describe("Saved (#119, #147)", () => {
   it("renames and removes folders and tags", () => {
     let lib = renameFolder(sample(), "WORK", "Job");
     expect(savedFolders(lib)).toEqual(["Job"]);
+    const toRead = toReadCount(lib);
     lib = removeFolder(lib, "job");
     expect(savedFolders(lib)).toEqual([]);
-    expect(toReadCount(lib)).toBe(4);
+    // The folder's articles are archived, not back in To read.
+    expect(toReadCount(lib)).toBe(toRead);
+    expect(isIn(itemOf(lib, "a.example/2")!, { kind: "archive" })).toBe(true);
+    expect(isIn(itemOf(lib, "a.example/3")!, { kind: "archive" })).toBe(true);
     lib = removeTag(lib, "AI");
     expect(tabTags(lib, { kind: "all" })).toEqual(["news", "old"]);
   });

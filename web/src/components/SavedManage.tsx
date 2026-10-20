@@ -4,6 +4,7 @@ import { app, useApp } from "@/lib/app";
 import { t } from "@/lib/i18n";
 import { itemTags } from "@/lib/items";
 import { folderCounts } from "@/lib/saved";
+import { ConfirmRemove } from "./ConfirmRemove";
 import { Button } from "./ui/button";
 import { Dialog } from "./ui/dialog";
 import { Input } from "./ui/input";
@@ -19,7 +20,7 @@ export function SavedManageDialog({ open, onOpenChange }: { open: boolean; onOpe
 
 /**
  * The folders and tags of the saved articles, as on Android: rename either (to another's name joins
- * the two), remove a folder (its articles go back to To read) or a tag (the articles stay). Folders
+ * the two), remove a folder (its articles go to the Archive) or a tag (the articles stay). Folders
  * are made by filing an article in one, tags by adding them to an article.
  */
 function SavedManage() {
@@ -50,6 +51,7 @@ function SavedManage() {
                 removeLabel={t("folderRemove")}
                 onRename={(to) => app.renameSavedFolder(name, to)}
                 onRemove={() => app.removeSavedFolder(name)}
+                confirmBody={t("removeSavedFolderBody").replace("{name}", name)}
               />
             ))}
           </ul>
@@ -69,6 +71,7 @@ function SavedManage() {
                 removeLabel={t("tagRemoveEverywhere")}
                 onRename={(to) => app.renameSavedTag(tag, to)}
                 onRemove={() => app.removeSavedTag(tag)}
+                confirmBody={t("removeTagBody").replace("{name}", tag)}
               />
             ))}
           </ul>
@@ -86,6 +89,7 @@ function NameRow({
   removeLabel,
   onRename,
   onRemove,
+  confirmBody,
 }: {
   name: string;
   count?: number;
@@ -94,8 +98,11 @@ function NameRow({
   removeLabel: string;
   onRename: (to: string) => void;
   onRemove: () => void;
+  /** What removing it does, asked first. */
+  confirmBody: string;
 }) {
   const [value, setValue] = useState(name);
+  const [confirming, setConfirming] = useState(false);
   const changed = value.trim() !== "" && value.trim() !== name;
   return (
     <li>
@@ -112,10 +119,11 @@ function NameRow({
         <Button type="submit" variant="tonal" size="sm" disabled={!changed}>
           {label}
         </Button>
-        <Button variant="ghost" size="iconSm" onClick={onRemove} aria-label={`${removeLabel}: ${name}`} title={removeLabel}>
+        <Button type="button" variant="ghost" size="iconSm" onClick={() => setConfirming(true)} aria-label={`${removeLabel}: ${name}`} title={removeLabel}>
           <Trash2 />
         </Button>
       </form>
+      <ConfirmRemove open={confirming} title={removeLabel} body={confirmBody} onConfirm={onRemove} onClose={() => setConfirming(false)} />
     </li>
   );
 }

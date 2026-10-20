@@ -142,7 +142,7 @@ and then (always before a release):
       full article, Open in browser, Mark as unread and Remove from Saved (asks first), no Tags.
       Nothing says "Finished reading", in any language.
       Leave an article halfway and open it again: it opens where you were. ☰ › Folders and tags
-      renames and removes folders (their articles go back to To read) and tags. An app updated from a
+      renames and removes folders (their articles go to the Archive, not back to To read) and tags. An app updated from a
       version with Bookmarks shows them in folders (their collection, or "Bookmarks").
       The Undo message after Mark all as read shows above the folder bar.
 - [ ] **Mark as read on scroll** on: scroll down the Unread list; the articles that leave the
@@ -250,9 +250,19 @@ Needs the Raindrop app registered and the Worker's `RAINDROP_CLIENT_ID` and `RAI
 
 - [ ] In an article from a feed, tap **Save**: the sheet's heading says "Saved to To read", then
       **Folder** chips (To read and Archive with their icons, a thin line, then your folders),
-      **Tags** with Like in front, and **Note**, then **Cancel** and **Save**. Tap a folder chip (the
-      heading follows), or New folder and type one, and **Save**: it is in that folder. Pick another
-      folder and tap **Cancel** (or swipe the sheet away) instead: it stays in To read.
+      **Tags** with Like in front, and **Note**, then **Remove** (red) and **Save**. Tap a folder chip
+      (the heading stays "Saved to To read"), or New folder and type one, and **Save**: it is in
+      that folder. Type a tag without tapping + and tap Save: the tag is on it too. Pick another
+      folder and swipe the sheet away instead: it stays in To read. Tap **Remove**: "Removed from
+      Saved", and it isn't in Saved at all.
+- [ ] Saved, filtered to nothing (Liked or a tag with no match): **Show all** brings the tab back.
+      Add link from a folder tab starts in that folder. Empty To read on the web offers Add link.
+- [ ] Removing a feed, a feed folder, a Saved folder or a tag asks first (both apps); Remove is red.
+      Remove from Saved says "Removed from Saved".
+- [ ] With Settings › Save button set to another app, swiping a feed article left sends it there.
+- [ ] Web app: Escape closes a menu, then the article; shortcuts do nothing behind a dialog. On a
+      phone, messages show above the bottom bar, and the round read button shows on every row.
+      Moving a feed up or down in Manage feeds always moves it within its folder.
 - [ ] Swipe a feed article left: "Saved to To read" with **File**; tap File: the same sheet.
 - [ ] In a saved article the bottom bar has two buttons (#156): where it is (e.g. "To read") and
       its tags (or "Tags"). Tap the first: To read and Archive with their icons, a line, your

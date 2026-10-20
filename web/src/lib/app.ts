@@ -12,8 +12,8 @@ import {
   type Session as InstapaperSession,
 } from "./instapaper";
 import { INSTAPAPER_ID, InstapaperSync } from "./instapaperSync";
-import { renameTag, setLiked } from "./items";
-import { applyChoice, saveNew, type SaveChoice } from "./saveChoice";
+import { renameTag, setLiked, type Item } from "./items";
+import { applyChoice, saveNew, undoSave, type SaveChoice } from "./saveChoice";
 import * as Saved from "./saved";
 import { emptyServiceSyncState, importService, syncService, type ServiceSyncState } from "./serviceSync";
 import { covers, EVERYTHING, type ServiceImport, type ServiceScope } from "./serviceScope";
@@ -359,8 +359,8 @@ class AppStore {
   };
   updateFolder = (id: string, title: string, icon: string) => this.updateLibrary((lib) => L.updateFolder(lib, id, title, icon));
   removeFolder = (id: string) => this.updateLibrary((lib) => L.removeFolder(lib, id));
-  moveFeedBy = (url: string, delta: number) =>
-    this.updateLibrary((lib) => ({ ...lib, feeds: L.reorder(lib.feeds, lib.feeds.findIndex((f) => f.url === url), delta) }));
+  /** Up or down within its folder, as Manage feeds lists it. */
+  moveFeedBy = (url: string, delta: number) => this.updateLibrary((lib) => L.moveWithinFolder(lib, url, delta));
   moveFolderBy = (id: string, delta: number) =>
     this.updateLibrary((lib) => ({ ...lib, folders: L.reorder(lib.folders, lib.folders.findIndex((f) => f.id === id), delta) }));
 
@@ -522,10 +522,17 @@ class AppStore {
     this.updateLibrary((lib) => {
       const [out, item] = Saved.saveLink(lib, url, title, Date.now());
       key = item?.key ?? null;
+      this.savedBefore = (item && lib.items.find((i) => i.key === item.key)) ?? null;
       return out;
     });
     this.set({ sheet: key ? { kind: "justSaved", key } : null });
   };
+
+  /** The item as it was before the last saveArticle (null: not saved then), for Remove on the sheet. */
+  private savedBefore: Item | null = null;
+
+  /** Remove on the sheet right after saving: takes the save back, as if it was never saved. */
+  undoSave = (key: string) => this.updateLibrary((lib) => undoSave(lib, key, this.savedBefore));
 
   /** Add link: the sheet asks for the address; nothing is saved until Save. */
   addLink = () => this.set({ sheet: { kind: "new" } });
@@ -560,7 +567,7 @@ class AppStore {
     const tab = this.state.savedFilter.tab;
     if (tab.kind === "folder" && tab.name.toLowerCase() === from.toLowerCase()) this.set({ savedFilter: { ...this.state.savedFilter, tab: { kind: "folder", name: to.trim() } } });
   };
-  /** Its articles go back to To read. */
+  /** Its articles go to the Archive. */
   removeSavedFolder = (name: string) => this.updateLibrary((lib) => Saved.removeFolder(lib, name));
   renameSavedTag = (from: string, to: string) => this.updateLibrary((lib) => renameTag(lib, from, to));
   removeSavedTag = (name: string) => this.updateLibrary((lib) => Saved.removeTag(lib, name));

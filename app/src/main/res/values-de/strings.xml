@@ -16,7 +16,6 @@
     <string name="action_add">Hinzufügen</string>
     <string name="action_remove">Entfernen</string>
     <string name="action_more">Weitere Optionen</string>
-    <string name="action_open_feeds">Feeds öffnen</string>
     <string name="action_mark_all_read">Alle als gelesen markieren</string>
     <string name="action_mark_unread">Als ungelesen markieren</string>
     <string name="action_open_in_browser">Im Browser öffnen</string>
@@ -26,7 +25,7 @@
     <string name="feeds_import">OPML importieren</string>
     <string name="feeds_export">OPML exportieren</string>
     <string name="feeds_remove_title">Feed entfernen?</string>
-    <string name="feeds_remove_body">%1$s und seine Artikel werden von diesem Telefon entfernt.</string>
+    <string name="feeds_remove_body">%1$s und seine Artikel werden entfernt.</string>
     <string name="add_feed_label">Adresse der Website oder des Feeds</string>
     <string name="add_feed_invalid">Das sieht nicht nach einer Webadresse aus.</string>
     <string name="add_feed_no_feed">Unter dieser Adresse wurde kein Feed gefunden.</string>
@@ -284,6 +283,8 @@
     <string name="folder_field">Ordner</string>
     <string name="saved_to">In %1$s gespeichert</string>
     <string name="type_filter">Typ</string>
+    <string name="type_filter_on">Typ: %1$s</string>
+    <string name="action_open_menu">Menü öffnen</string>
     <string name="type_all">Alle Typen</string>
     <string name="type_articles">Artikel</string>
     <string name="type_videos">Videos</string>
@@ -291,8 +292,9 @@
     <string name="menu_folders_tags">Ordner und Tags</string>
     <string name="saved_folder_rename">Ordner umbenennen</string>
     <string name="saved_folder_remove">Ordner entfernen</string>
-    <string name="saved_folder_remove_body">Den Ordner %1$s entfernen? Seine Artikel kommen zurück zu Zu lesen.</string>
+    <string name="saved_folder_remove_body">Den Ordner %1$s entfernen? Seine Artikel kommen ins Archiv.</string>
     <string name="saved_remove">Aus Gespeichert entfernen</string>
+    <string name="saved_removed">Aus Gespeichert entfernt</string>
     <string name="saved_remove_body">Diesen Artikel mit Notiz, Tags und Markierungen entfernen? Archivieren hält ihn durchsuchbar.</string>
     <string name="saved_empty_body">Wische einen Feed-Artikel nach links, tippe in einem Artikel auf Speichern, teile einen Link mit Reader oder füge hier einen hinzu.</string>
     <string name="manage_folders_tags_empty_title">Noch keine Ordner oder Tags</string>

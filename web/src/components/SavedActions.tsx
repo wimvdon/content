@@ -6,6 +6,7 @@ import type { Item } from "@/lib/items";
 import { choiceOf, places, samePlace, tagsLabel, withTag, type Place } from "@/lib/saveChoice";
 import { savedFolders, tabTags } from "@/lib/saved";
 import { Button } from "./ui/button";
+import { useEscape } from "./ui/useEscape";
 import { cn } from "./ui/cn";
 import { Dialog } from "./ui/dialog";
 
@@ -16,7 +17,7 @@ import { Dialog } from "./ui/dialog";
  * offers Like, a divider, then the tags and Add a tag. New folder and Add a tag open Organise, the
  * only place to type. The same as the Android app's bottom bar.
  */
-export function LibraryBar({ item, onSave }: { item: Item | null; onSave: (() => void) | null }) {
+export function LibraryBar({ item, onSave, onArchived }: { item: Item | null; onSave: (() => void) | null; onArchived: (undo: () => void) => void }) {
   const { library } = useApp();
   const [open, setOpen] = useState<"places" | "tags" | null>(null);
   if (!item) {
@@ -55,7 +56,9 @@ export function LibraryBar({ item, onSave }: { item: Item | null; onSave: (() =>
                   selected={samePlace(place, choice.place)}
                   onClick={() => {
                     close();
-                    if (!samePlace(place, choice.place)) app.organise(item.key, { ...choice, place });
+                    if (samePlace(place, choice.place)) return;
+                    app.organise(item.key, { ...choice, place });
+                    if (place.kind === "archive") onArchived(() => app.organise(item.key, choice));
                   }}
                 />
                 {place.kind === "archive" ? <div className="my-1 h-px bg-border" aria-hidden="true" /> : null}
@@ -104,6 +107,7 @@ function PlaceIcon({ place }: { place: Place }) {
 
 /** A menu above the bar, closed by a click outside it. */
 function Menu({ onClose, alignEnd, children }: { onClose: () => void; alignEnd?: boolean; children: React.ReactNode }) {
+  useEscape(true, onClose);
   return (
     <>
       <div className="fixed inset-0 z-20" onClick={onClose} aria-hidden="true" />

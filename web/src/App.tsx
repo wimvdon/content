@@ -84,6 +84,8 @@ export default function App() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (dialog || state.sheet || e.metaKey || e.ctrlKey || e.altKey || (e.target as HTMLElement).closest("input, textarea, select")) return;
+      // Nothing behind an open dialog or menu (the drawer, Aa, Remove, a feed's or folder's dialog).
+      if (document.querySelector('[role="dialog"], [role="menu"]')) return;
       const index = openArticle ? visible.findIndex((a) => articleKey(a) === articleKey(openArticle)) : -1;
       if (e.key === "j" || e.key === "k") {
         const next = visible[e.key === "j" ? index + 1 : Math.max(index - 1, 0)];
@@ -99,12 +101,15 @@ export default function App() {
         void app.refresh();
       } else if (e.key === "/") {
         setSearching(true);
+      } else if (e.key === "Escape" && openArticle) {
+        // Closes the article, as Back does on a phone.
+        setOpenArticle(null);
       } else return;
       e.preventDefault();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [dialog, state.sheet, openArticle, visible, library.articles, open]);
+  }, [dialog, state.sheet, openArticle, visible, library.articles, open, setOpenArticle]);
 
   const importFile = async (file: File) => {
     const added = app.importOpml(await file.text());
@@ -169,7 +174,7 @@ export default function App() {
       </main>
       <div className={`min-w-0 flex-1 ${openArticle ? "block" : "hidden lg:block"}`}>
         {openArticle ? (
-          <ArticleView key={articleKey(openArticle)} article={openArticle} onBack={() => setOpenArticle(null)} onMessage={(text) => setMessage({ text })} />
+          <ArticleView key={articleKey(openArticle)} article={openArticle} onBack={() => setOpenArticle(null)} onMessage={(text, action) => setMessage({ text, action })} />
         ) : (
           <div className="flex h-full items-center justify-center p-8 text-center text-sm text-muted-foreground">{t("pickArticle")}</div>
         )}
@@ -202,7 +207,8 @@ export default function App() {
         }}
       />
       {shown ? (
-        <div role="status" className="fixed bottom-4 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-xl bg-foreground px-4 py-3 text-sm text-background shadow-lg">
+        // Above the bottom bars on a phone (the article's library bar, Feeds | Saved).
+        <div role="status" className="fixed bottom-20 left-1/2 z-50 flex max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-3 rounded-xl bg-foreground px-4 py-3 text-sm text-background shadow-lg lg:bottom-4">
           <span>{shown.text}</span>
           {shown.action ? (
             <Button
