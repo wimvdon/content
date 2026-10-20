@@ -83,4 +83,19 @@ class SaveChoicesTest {
         // An item that isn't saved, or isn't there, stays as it is.
         assertSame(library, SaveChoices.apply(library, "gone.example", SaveChoice()))
     }
+
+    @Test
+    fun `the Tags menu turns a tag on and off, case ignored`() {
+        val choice = SaveChoice(tags = listOf("News"))
+        assertEquals(listOf("News", "Brussels"), SaveChoices.withTag(choice, " Brussels ").tags)
+        assertEquals(emptyList<String>(), SaveChoices.withTag(choice, "news").tags)
+        assertSame(choice, SaveChoices.withTag(choice, "  "))
+    }
+
+    @Test
+    fun `the Tags button shows the tags, else Liked, else nothing`() {
+        assertEquals("News, Brussels", SaveChoices.tagsLabel(SaveChoice(liked = true, tags = listOf("News", "Brussels")), "Liked"))
+        assertEquals("Liked", SaveChoices.tagsLabel(SaveChoice(liked = true), "Liked"))
+        assertNull(SaveChoices.tagsLabel(SaveChoice(), "Liked"))
+    }
 }

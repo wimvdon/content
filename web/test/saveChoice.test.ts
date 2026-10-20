@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { itemOf } from "../src/lib/items";
 import { emptyLibrary, type Library } from "../src/lib/library";
-import { applyChoice, choiceOf, emptyChoice, newFolder, places, saveNew } from "../src/lib/saveChoice";
+import { applyChoice, choiceOf, emptyChoice, newFolder, places, saveNew, tagsLabel, withTag } from "../src/lib/saveChoice";
 import { archiveItem, folderOf, isIn, saveLink } from "../src/lib/saved";
 
 function sample(): Library {
@@ -53,5 +53,19 @@ describe("the save and Organise sheet (#143)", () => {
     const archived = applyChoice(lib, "a.example/2", { ...choiceOf(itemOf(lib, "a.example/2")!), place: { kind: "archive" } });
     expect(folderOf(itemOf(archived, "a.example/2")!)).toBeNull();
     expect(applyChoice(lib, "gone.example", emptyChoice)).toBe(lib);
+  });
+});
+
+describe("the reader's Tags menu (#156)", () => {
+  it("turns a tag on and off, case ignored", () => {
+    const choice = { ...emptyChoice, tags: ["News"] };
+    expect(withTag(choice, " Brussels ").tags).toEqual(["News", "Brussels"]);
+    expect(withTag(choice, "news").tags).toEqual([]);
+    expect(withTag(choice, "  ")).toBe(choice);
+  });
+  it("shows the tags, else Liked, else nothing", () => {
+    expect(tagsLabel({ ...emptyChoice, liked: true, tags: ["News", "Brussels"] }, "Liked")).toBe("News, Brussels");
+    expect(tagsLabel({ ...emptyChoice, liked: true }, "Liked")).toBe("Liked");
+    expect(tagsLabel(emptyChoice, "Liked")).toBeNull();
   });
 });

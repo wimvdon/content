@@ -682,13 +682,19 @@ fun RssReaderNavigation(
                                 item?.let { i ->
                                     ReaderItem(
                                         item = i,
-                                        onLike = { editLibrary { it.setLiked(i.key, !i.liked) } },
-                                        // Done with it: archived, back to the list, with Undo.
-                                        onArchive = {
-                                            archive(i)
-                                            pop()
+                                        folders = Saved.folders(library),
+                                        tags = Saved.tags(library, SavedTab.All),
+                                        onPlace = { place ->
+                                            if (place == Place.Archive) {
+                                                // Done with it: archived, back to the list, with Undo.
+                                                archive(i)
+                                                pop()
+                                            } else {
+                                                editLibrary { SaveChoices.apply(it, i.key, SaveChoices.of(i).copy(place = place)) }
+                                            }
                                         },
-                                        onUnarchive = { editLibrary { it.setReadingState(i.key, ReadingState.ToRead) } },
+                                        onLike = { editLibrary { it.setLiked(i.key, !i.liked) } },
+                                        onTag = { tag -> editLibrary { lib -> lib.item(i.key)?.let { now -> SaveChoices.apply(lib, i.key, SaveChoices.withTag(SaveChoices.of(now), tag)) } ?: lib } },
                                         onOrganise = { fileKey = i.key },
                                         onRemove = {
                                             editLibrary { Saved.remove(it, i.key) }

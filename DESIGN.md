@@ -276,9 +276,12 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   quote mark and the reader's font in `onSurface`, up to four lines),
   then the site's icon and name, `#tags` in `primary`, the highlight count and a heart when liked.
   The reader's actions follow one rule (#139): the top bar is this reading (Back, Aa, Share, ⋮); the
-  bottom app bar is this article in your library: a tonal **Save** before it is saved, then its
-  **folder** (a text button with the folder icon and a drop-down arrow, opening Organise), **Like** and
-  **Archive** (Back to read once archived). The text ends with Read on website and nothing else. ⋮
+  bottom app bar is this article in your library: a tonal **Save** before it is saved, then two
+  text buttons with a drop-down arrow, grouped like the sheet (#156): its **place** (To read, the
+  folder or Archive, with its icon), a `DropdownMenu` of To read and Archive, a divider, the folders
+  and New folder; and its **tags** (the tags, else Liked; a filled heart when liked, else a label),
+  a menu of Like, a divider, the tags with a check when on, and Add a tag. New folder and Add a tag
+  open Organise. The text ends with Read on website and nothing else. ⋮
   holds the rare ones: Show feed text / Show full article, Open in browser, Mark as unread, Remove from
   Saved.
 - Save is the action's one name (#142), in the reader's top bar, the swipe and the sheet's button;

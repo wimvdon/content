@@ -66,7 +66,7 @@ import androidx.compose.ui.semantics.Role
 import be.wimvandonck.reader.R
 import androidx.compose.foundation.layout.size
 import androidx.compose.ui.text.style.TextOverflow
-import be.wimvandonck.reader.data.Saved
+import be.wimvandonck.reader.data.Place
 import be.wimvandonck.reader.data.Article
 import be.wimvandonck.reader.data.Feed
 import be.wimvandonck.reader.ui.home.FeedIcon
@@ -109,11 +109,15 @@ class ReaderActions(
  */
 class ReaderItem(
     val item: Item,
+    /** The folders and tags in use, for the bar's menus (#156). */
+    val folders: List<String>,
+    val tags: List<String>,
+    /** Moves it: To read, a folder, or the Archive (done with it: back to the list, with Undo). */
+    val onPlace: (Place) -> Unit,
     val onLike: () -> Unit,
-    val onArchive: () -> Unit,
-    /** Back to To read. */
-    val onUnarchive: () -> Unit,
-    /** Opens Organise (#139, #143): the folder, tags with Like, and the note. */
+    /** A tag on or off. */
+    val onTag: (String) -> Unit,
+    /** Opens Organise (#139, #143): the folder, tags with Like, and the note; New folder and Add a tag. */
     val onOrganise: () -> Unit,
     /** Out of Saved, with its note, tags and highlights. */
     val onRemove: () -> Unit,
@@ -235,41 +239,11 @@ fun ReaderScreen(
             )
         },
         bottomBar = {
-            // The library bar (#139): Save before, then the folder (Organise), Like and Archive.
+            // The library bar (#139, #156): Save before, then the folder and the tags.
             if (article != null && (hasLink || onList)) {
                 BottomAppBar(containerColor = MaterialTheme.colorScheme.surfaceContainer) {
                     if (item != null && onList) {
-                        val place =
-                            when {
-                                item.item.archived -> stringResource(R.string.reading_list_archive)
-                                else -> Saved.folderOf(item.item) ?: stringResource(R.string.reading_list_to_read)
-                            }
-                        TextButton(onClick = item.onOrganise, modifier = Modifier.padding(start = 8.dp).weight(1f, fill = false)) {
-                            Icon(painterResource(R.drawable.ic_folder), contentDescription = null)
-                            Text(place, modifier = Modifier.padding(start = 8.dp), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            Icon(painterResource(R.drawable.ic_expand_more), contentDescription = null, modifier = Modifier.size(18.dp))
-                        }
-                        Spacer(Modifier.weight(1f))
-                        val liked = item.item.liked
-                        IconButton(onClick = item.onLike) {
-                            Icon(
-                                painterResource(if (liked) R.drawable.ic_favorite_filled else R.drawable.ic_favorite),
-                                contentDescription = stringResource(if (liked) R.string.action_unlike else R.string.action_like),
-                                tint = if (liked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                        if (item.item.archived) {
-                            TextButton(onClick = item.onUnarchive, modifier = Modifier.padding(end = 8.dp)) {
-                                Icon(painterResource(R.drawable.ic_unarchive), contentDescription = null)
-                                Text(stringResource(R.string.action_unarchive), modifier = Modifier.padding(start = 8.dp))
-                            }
-                        } else {
-                            // At once, with Undo in the message: the article just read is the one most often done with.
-                            TextButton(onClick = item.onArchive, modifier = Modifier.padding(end = 8.dp)) {
-                                Icon(painterResource(R.drawable.ic_inventory), contentDescription = null)
-                                Text(stringResource(R.string.action_archive), modifier = Modifier.padding(start = 8.dp))
-                            }
-                        }
+                        SavedBar(item)
                     } else {
                         Spacer(Modifier.weight(1f))
                         FilledTonalButton(onClick = actions.onSave, modifier = Modifier.padding(end = 16.dp)) {

@@ -2,6 +2,15 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-20: The reader's bar groups like the sheet: where it is, and its tags (#156)
+
+The reader's bar for a saved article had a folder button, a heart and Archive side by side, so
+folders and tags were scattered again outside the sheet. It now has two menu buttons, as the sheet
+groups them: **where it is** (To read and Archive, a divider, the folders, New folder) and **its
+tags** (Like, a divider, the tags, Add a tag). Archiving stays two taps and still goes back to the
+list with Undo on the phone. Rejected: opening the whole Organise sheet from each button (slower
+for the common one-tap change), and keeping Archive as its own button (it is a place).
+
 ## 2026-10-20: One set of rules for read and hidden articles (#157)
 
 Both apps now follow the same rules. Anything you mark read by hand (open, Search, swipe or the web

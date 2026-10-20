@@ -63,6 +63,27 @@ object SaveChoices {
         return Place.Folder(folders.firstOrNull { it.equals(clean, ignoreCase = true) } ?: clean)
     }
 
+    /** The tag on or off (case ignored), as the reader's Tags menu does it (#156). */
+    fun withTag(
+        choice: SaveChoice,
+        tag: String,
+    ): SaveChoice {
+        val clean = tag.trim().ifEmpty { return choice }
+        val has = choice.tags.any { it.equals(clean, ignoreCase = true) }
+        return choice.copy(tags = if (has) choice.tags.filterNot { it.equals(clean, ignoreCase = true) } else choice.tags + clean)
+    }
+
+    /** What the reader's Tags button says (#156): the tags, else Liked, else null (just "Tags"). */
+    fun tagsLabel(
+        choice: SaveChoice,
+        liked: String,
+    ): String? =
+        when {
+            choice.tags.isNotEmpty() -> choice.tags.joinToString(", ")
+            choice.liked -> liked
+            else -> null
+        }
+
     fun same(
         a: Place,
         b: Place,

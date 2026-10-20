@@ -254,8 +254,13 @@ Needs the Raindrop app registered and the Worker's `RAINDROP_CLIENT_ID` and `RAI
       heading follows), or New folder and type one, and **Save**: it is in that folder. Pick another
       folder and tap **Cancel** (or swipe the sheet away) instead: it stays in To read.
 - [ ] Swipe a feed article left: "Saved to To read" with **File**; tap File: the same sheet.
-- [ ] In a saved article, tap **Archive** at the bottom: back in the list with "Archived" and
-      **Undo**; Undo puts it back in its folder.
+- [ ] In a saved article the bottom bar has two buttons (#156): where it is (e.g. "To read") and
+      its tags (or "Tags"). Tap the first: To read and Archive with their icons, a line, your
+      folders, New folder. Pick **Archive**: back in the list with "Archived" and **Undo**; Undo puts
+      it back in its folder. Pick a folder: the button shows that folder.
+- [ ] Tap the tags button: Like, a line, your tags with a check on its own, Add a tag. Tap Like
+      and a tag: the menu stays open, the button shows the tags (a filled heart when liked).
+      Web app: the same two menus under the article.
 - [ ] **Add link** and a link shared from another app: the sheet asks for the address (or shows the
       link), offers the same folder chips, and **Cancel** saves nothing.
 - [ ] **Organise** a saved article (swipe right in Saved): the same chips, and **Cancel**, which
