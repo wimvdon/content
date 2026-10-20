@@ -58,6 +58,8 @@ import be.wimvandonck.reader.ui.feeds.TagsManageScreen
 import be.wimvandonck.reader.ui.home.HomeSection
 import be.wimvandonck.reader.ui.home.SavedHome
 import be.wimvandonck.reader.ui.reader.SaveSheet
+import be.wimvandonck.reader.ui.reader.FinishChoice
+import be.wimvandonck.reader.ui.reader.FinishSheet
 import be.wimvandonck.reader.ui.reader.AddedSheet
 import be.wimvandonck.reader.ui.reader.ReaderItem
 import be.wimvandonck.reader.ui.reader.fontFamily
@@ -229,8 +231,37 @@ fun RssReaderNavigation() {
         uiScope.launch { snackbar.showSnackbar(text) }
     }
 
+    /** A message with one action (Undo, File), run when it is tapped. */
+    fun showMessage(
+        text: String,
+        action: String,
+        onAction: () -> Unit,
+    ) {
+        uiScope.launch {
+            if (snackbar.showSnackbar(text, actionLabel = action, duration = SnackbarDuration.Short) == SnackbarResult.ActionPerformed) onAction()
+        }
+    }
+
+
     fun editLibrary(change: (Library) -> Library) {
         app.appScope.launch { repository.edit(change) }
+    }
+
+    // The saved item whose File sheet is open (a swipe right in Saved).
+    var fileKey by rememberSaveable { mutableStateOf<String?>(null) }
+
+    /** Archives a saved item, with Undo (back where it was, in its folder); an archived one goes back to read. */
+    fun archive(item: Item) {
+        if (item.archived) {
+            editLibrary { it.setReadingState(item.key, ReadingState.ToRead) }
+            showMessage(resources.getString(R.string.saved_to, resources.getString(R.string.reading_list_to_read)))
+            return
+        }
+        val folder = item.folder
+        editLibrary { it.setReadingState(item.key, ReadingState.Archived) }
+        showMessage(resources.getString(R.string.saved_archived), resources.getString(R.string.action_undo)) {
+            editLibrary { Saved.file(it, item.key, folder) }
+        }
     }
 
     // A refresh syncs before it downloads; the indicator shows from the pull to the end of both,
@@ -388,7 +419,12 @@ fun RssReaderNavigation() {
                 showMessage(resources.getString(R.string.add_link_invalid))
                 return@launch
             }
-            if (sheet) addedKey = item.key else showMessage(resources.getString(R.string.reading_list_added))
+            // Saved with a swipe: the message offers the folder sheet.
+            if (sheet) {
+                addedKey = item.key
+            } else {
+                showMessage(resources.getString(R.string.reading_list_added), resources.getString(R.string.action_file)) { addedKey = item.key }
+            }
             repository.describe(item.key)
         }
     }
@@ -541,6 +577,8 @@ fun RssReaderNavigation() {
                                 onOpenItem = ::openItem,
                                 // Add link: the save sheet asks for the address, into the folder shown.
                                 onAddLink = { openSave(null, null) },
+                                onArchiveItem = ::archive,
+                                onFileItem = { fileKey = it.key },
                                 onOpenSearch = {
                                     searchFilter = SearchFilter.All
                                     push(Screen.Search)
@@ -633,7 +671,11 @@ fun RssReaderNavigation() {
                                         allTags = library.itemTags(),
                                         folders = Saved.folders(library),
                                         onLike = { editLibrary { it.setLiked(i.key, !i.liked) } },
-                                        onArchive = { editLibrary { it.setReadingState(i.key, ReadingState.Archived) } },
+                                        // Done with it: archived, back to the list, with Undo.
+                                        onArchive = {
+                                            archive(i)
+                                            pop()
+                                        },
                                         onUnarchive = { editLibrary { it.setReadingState(i.key, ReadingState.ToRead) } },
                                         onFile = { folder, note, tags ->
                                             editLibrary { lib ->
@@ -828,6 +870,28 @@ fun RssReaderNavigation() {
             onLike = { editLibrary { it.setLiked(added.key, !added.liked) } },
             onTags = { tags -> editLibrary { it.setTags(added.key, tags) } },
             onDismiss = { addedKey = null },
+            folders = Saved.folders(library),
+            onFolder = { folder ->
+                editLibrary { Saved.file(it, added.key, folder) }
+                showMessage(resources.getString(R.string.saved_to, folder.ifEmpty { resources.getString(R.string.reading_list_to_read) }))
+            },
+        )
+    }
+
+    // Filing a saved item from the list (a swipe right): the same sheet as the reader's File.
+    val filing = fileKey?.let { library.item(it) }
+    if (filing != null) {
+        FinishSheet(
+            item = filing,
+            initial = FinishChoice.File,
+            folders = Saved.folders(library),
+            allTags = library.itemTags(),
+            onArchive = { archive(filing) },
+            onFile = { folder, note, tags ->
+                editLibrary { lib -> Saved.file(lib, filing.key, folder).changeItem(filing.key) { it.copy(note = note.trim()) }.setTags(filing.key, tags) }
+                showMessage(resources.getString(R.string.saved_to, folder.trim().ifEmpty { resources.getString(R.string.reading_list_to_read) }))
+            },
+            onDismiss = { fileKey = null },
         )
     }
 
