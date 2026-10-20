@@ -12,7 +12,8 @@ import {
   type Session as InstapaperSession,
 } from "./instapaper";
 import { InstapaperSync } from "./instapaperSync";
-import { setLiked, setTags, renameTag } from "./items";
+import { renameTag, setLiked } from "./items";
+import { applyChoice, saveNew, type SaveChoice } from "./saveChoice";
 import * as Saved from "./saved";
 import { emptyServiceSyncState, syncService, type ServiceSyncState } from "./serviceSync";
 import { changesBetween, loadItemSyncState, loadLibrary, writeItemSyncState, writeLibrary } from "./libraryStore";
@@ -62,9 +63,11 @@ export interface State {
   instapaperNotice: "signedIn" | "failed" | null;
   /** Saved's tab, Liked, tags and type (saved.ts), while Saved is shown. */
   savedFilter: Saved.SavedFilter;
-  /** The key of the item just saved from a feed, while the dialog to file it (folder and tags) is open. */
-  justSaved: string | null;
+  /** The save and Organise sheet while it is open (#143): Add link, just saved, or organising a saved item. */
+  sheet: Sheet | null;
 }
+
+export type Sheet = { kind: "new" } | { kind: "justSaved" | "organise"; key: string };
 
 const INSTAPAPER_STATE_KEY = "instapaper-sign-in-state";
 /** This browser's copy of what Instapaper had (serviceSync.ts), in IndexedDB. */
@@ -96,7 +99,7 @@ class AppStore {
     instapaper: null,
     instapaperNotice: null,
     savedFilter: Saved.defaultSavedFilter,
-    justSaved: null,
+    sheet: null,
   };
   private listeners = new Set<() => void>();
   private syncTimer: ReturnType<typeof setTimeout> | null = null;
@@ -466,7 +469,7 @@ class AppStore {
 
   // Saved (saved.ts): always the library's items; a connected service syncs them (syncInstapaper).
 
-  /** Saves an article to To read and opens the dialog to file it (folder and tags) at once. */
+  /** Saves an article to To read and opens the sheet to file, like, tag and note it at once (#143). */
   saveArticle = (url: string, title: string) => {
     let key: string | null = null;
     this.updateLibrary((lib) => {
@@ -474,18 +477,34 @@ class AppStore {
       key = item?.key ?? null;
       return out;
     });
-    this.set({ justSaved: key });
+    this.set({ sheet: key ? { kind: "justSaved", key } : null });
   };
 
-  /** The dialog for the article just saved was closed. */
-  closeJustSaved = () => this.set({ justSaved: null });
+  /** Add link: the sheet asks for the address; nothing is saved until Save. */
+  addLink = () => this.set({ sheet: { kind: "new" } });
+
+  /** Organise a saved item: its folder, tags with Like, and note. */
+  openOrganise = (key: string) => this.set({ sheet: { kind: "organise", key } });
+
+  closeSheet = () => this.set({ sheet: null });
+
+  /** Saves a new link where the sheet says; false when it isn't a web address. */
+  saveNew = (url: string, choice: SaveChoice): boolean => {
+    let saved = false;
+    this.updateLibrary((lib) => {
+      const [out, item] = saveNew(lib, url, null, Date.now(), choice);
+      saved = item !== null;
+      return out;
+    });
+    return saved;
+  };
+
+  /** Writes what the sheet says about a saved item. */
+  organise = (key: string, choice: SaveChoice) => this.updateLibrary((lib) => applyChoice(lib, key, choice));
 
   likeItem = (key: string, liked: boolean) => this.updateLibrary((lib) => setLiked(lib, key, liked));
   archiveItem = (key: string, archived: boolean) => this.updateLibrary((lib) => Saved.archiveItem(lib, key, archived));
   /** Into a folder, or To read with null. */
-  fileItem = (key: string, folder: string | null) => this.updateLibrary((lib) => Saved.fileItem(lib, key, folder));
-  tagItem = (key: string, tags: string[]) => this.updateLibrary((lib) => setTags(lib, key, tags));
-  setItemNote = (key: string, note: string) => this.updateLibrary((lib) => Saved.setNote(lib, key, note));
   removeItem = (key: string) => this.updateLibrary((lib) => Saved.removeSaved(lib, key));
 
   /** Folders and tags (Folders and tags). Renaming to another's name joins the two. */

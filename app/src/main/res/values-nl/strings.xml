@@ -234,7 +234,6 @@
     <string name="raindrop_problem_later">Raindrop.io vroeg even te wachten. De rest gaat later.</string>
     <string name="source_instapaper">In Instapaper</string>
     <string name="source_raindrop">In Raindrop.io</string>
-    <string name="save_to_service">Bewaren in</string>
     <string name="saved_remove_both_body">Instapaper en Raindrop.io bewaren dit artikel allebei. Verwijder het uit beide, of uit één (dan blijft het in Bewaard, in de andere).</string>
     <string name="saved_remove_only_from">Alleen uit %1$s</string>
     <string name="saved_remove_from_both">Uit beide verwijderen</string>
@@ -293,13 +292,13 @@
     </plurals>
     <string name="bookmarks_title">Bladwijzers</string>
     <string name="save_title">Bewaren in Reader</string>
+    <string name="organise_title">Ordenen</string>
     <string name="highlights_title">Markeringen</string>
     <string name="setting_tag_with_folder_title">Taggen met de map van de feed</string>
     <string name="setting_tag_with_folder_summary">Een artikel dat je uit een feed bewaart, krijgt de naam van zijn map als tag.</string>
     <string name="saved_title">Bewaard</string>
     <string name="saved_folders">Mappen</string>
     <string name="folder_field">Map</string>
-    <string name="folder_field_help">Laat leeg om het in Te lezen te houden.</string>
     <string name="file_in">Opbergen in %1$s</string>
     <string name="action_file">Opbergen</string>
     <string name="file_title">In een map opbergen</string>

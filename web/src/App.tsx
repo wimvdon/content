@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArticleList } from "./components/ArticleList";
 import { ArticleView } from "./components/ArticleView";
 import { AddFeedDialog, ManageDialog, SettingsDialog } from "./components/Dialogs";
-import { JustSavedDialog } from "./components/SavedActions";
+import { SaveSheet } from "./components/SaveSheet";
 import { SavedManageDialog } from "./components/SavedManage";
 import { NavigationBar } from "./components/NavigationBar";
 import { SearchPanel } from "./components/SearchPanel";
@@ -71,7 +71,7 @@ export default function App() {
   // Keyboard: j/k next and previous, m read/unread, o open on the website, r refresh.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (dialog || e.metaKey || e.ctrlKey || e.altKey || (e.target as HTMLElement).closest("input, textarea, select")) return;
+      if (dialog || state.sheet || e.metaKey || e.ctrlKey || e.altKey || (e.target as HTMLElement).closest("input, textarea, select")) return;
       const index = openArticle ? visible.findIndex((a) => articleKey(a) === articleKey(openArticle)) : -1;
       if (e.key === "j" || e.key === "k") {
         const next = visible[e.key === "j" ? index + 1 : Math.max(index - 1, 0)];
@@ -93,7 +93,7 @@ export default function App() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [dialog, openArticle, visible, library.articles, open]);
+  }, [dialog, state.sheet, openArticle, visible, library.articles, open]);
 
   const importFile = async (file: File) => {
     const added = app.importOpml(await file.text());
@@ -173,7 +173,7 @@ export default function App() {
       />
       <SavedManageDialog open={dialog === "manageSaved"} onOpenChange={(o) => setDialog(o ? "manageSaved" : null)} />
       <SettingsDialog open={dialog === "settings"} onOpenChange={(o) => setDialog(o ? "settings" : null)} />
-      <JustSavedDialog />
+      <SaveSheet onMessage={(text) => setMessage({ text })} />
       <input
         ref={fileInput}
         type="file"

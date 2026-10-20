@@ -240,7 +240,6 @@
     <string name="raindrop_problem_later">Raindrop.io ha chiesto di aspettare un momento. Il resto seguirà.</string>
     <string name="source_instapaper">In Instapaper</string>
     <string name="source_raindrop">In Raindrop.io</string>
-    <string name="save_to_service">Salva in</string>
     <string name="saved_remove_both_body">Instapaper e Raindrop.io conservano entrambi questo articolo. Rimuovilo da entrambi o da uno solo (resta allora in Salvati, nell’altro).</string>
     <string name="saved_remove_only_from">Solo da %1$s</string>
     <string name="saved_remove_from_both">Rimuovi da entrambi</string>
@@ -305,13 +304,13 @@
     </plurals>
     <string name="bookmarks_title">Segnalibri</string>
     <string name="save_title">Salva in Reader</string>
+    <string name="organise_title">Organizza</string>
     <string name="highlights_title">Evidenziazioni</string>
     <string name="setting_tag_with_folder_title">Tagga con la cartella del feed</string>
     <string name="setting_tag_with_folder_summary">Un articolo salvato da un feed riceve il nome della sua cartella come tag.</string>
     <string name="saved_title">Salvati</string>
     <string name="saved_folders">Cartelle</string>
     <string name="folder_field">Cartella</string>
-    <string name="folder_field_help">Lascia vuoto per tenerlo in Da leggere.</string>
     <string name="file_in">Sposta in %1$s</string>
     <string name="action_file">Sposta</string>
     <string name="file_title">Sposta in una cartella</string>
