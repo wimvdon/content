@@ -207,9 +207,6 @@
     <string name="note_title">Note</string>
     <string name="duration_hours">%1$d h %2$d min</string>
     <string name="duration_minutes">%d min</string>
-    <string name="finish_title">Finished reading</string>
-    <string name="finish_archive_body">Done with it. Stays in your history.</string>
-    <string name="finish_with_note">1 note</string>
     <string name="reading_list_to_read">To read</string>
     <string name="reading_list_archive">Archive</string>
     <string name="reading_list_liked">Liked</string>
@@ -299,10 +296,6 @@
     <string name="saved_title">Saved</string>
     <string name="saved_folders">Folders</string>
     <string name="folder_field">Folder</string>
-    <string name="file_in">File in %1$s</string>
-    <string name="action_file">File</string>
-    <string name="file_title">File in a folder</string>
-    <string name="finish_file_body">In a folder, with your note and tags.</string>
     <string name="saved_to">Saved to %1$s</string>
     <string name="type_filter">Type</string>
     <string name="type_all">All types</string>

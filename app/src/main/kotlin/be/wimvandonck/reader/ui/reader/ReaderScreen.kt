@@ -101,8 +101,6 @@ class ReaderActions(
     /** Switches between the full article and the feed's text. */
     val onToggleFullText: () -> Unit,
     val onOpenLink: (String) -> Unit,
-    /** Keep as bookmark (#108), for a feed article not saved yet; null hides it. */
-    val onKeepAsBookmark: (() -> Unit)? = null,
 )
 
 /**
@@ -111,17 +109,12 @@ class ReaderActions(
  */
 class ReaderItem(
     val item: Item,
-    /** Every tag in use, to add one with a tap. */
-    val allTags: List<String>,
-    /** Every folder in use. */
-    val folders: List<String>,
     val onLike: () -> Unit,
     val onArchive: () -> Unit,
     /** Back to To read. */
     val onUnarchive: () -> Unit,
-    /** Files it in a folder (empty: To read), with its note and tags. */
-    val onFile: (folder: String, note: String, tags: List<String>) -> Unit,
-    val onTags: (List<String>) -> Unit,
+    /** Opens Organise (#139, #143): the folder, tags with Like, and the note. */
+    val onOrganise: () -> Unit,
     /** Out of Saved, with its note, tags and highlights. */
     val onRemove: () -> Unit,
     /** How far it was read, 0 to 1, as the reader scrolls. */
@@ -132,7 +125,12 @@ class ReaderItem(
     val onRemoveFrom: (String) -> Unit = {},
 )
 
-/** One article, in the reader's font, size, spacing and page colour. */
+/**
+ * One article, in the reader's font, size, spacing and page colour (#139). The top bar is for this
+ * reading (Back, Aa, Share, ⋮); the bar below is for this article in your library: one Save before
+ * it is saved, then its folder (which opens Organise), Like and Archive. The text ends with Read on
+ * website.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReaderScreen(
@@ -145,23 +143,16 @@ fun ReaderScreen(
     showImages: Boolean,
     snackbarHostState: SnackbarHostState,
     actions: ReaderActions,
-    /** On the reading list: its buttons replace Save and Mark as unread. */
+    /** In Saved: the bar below shows its folder, Like and Archive instead of Save. */
     item: ReaderItem? = null,
 ) {
     var showStyleSheet by rememberSaveable { mutableStateOf(false) }
-    var tagsOpen by rememberSaveable { mutableStateOf(false) }
     var removeOpen by rememberSaveable { mutableStateOf(false) }
-    var finishOpen by rememberSaveable { mutableStateOf(false) }
-    var finishChoice by rememberSaveable { mutableStateOf<FinishChoice?>(null) }
     var menuOpen by remember { mutableStateOf(false) }
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val hasLink = article?.link != null
     val onList = item?.item?.readingList != null
     val scrollState = rememberScrollState()
-    fun finish(choice: FinishChoice?) {
-        finishChoice = choice
-        finishOpen = true
-    }
     if (item != null && onList) ReadingProgress(scrollState, item.item.progress, item.onProgress)
 
     Scaffold(
@@ -179,25 +170,7 @@ fun ReaderScreen(
                     IconButton(onClick = { showStyleSheet = true }) {
                         Icon(painterResource(R.drawable.ic_text_format), contentDescription = stringResource(R.string.reader_text_settings))
                     }
-                    if (item != null && onList) {
-                        val liked = item.item.liked
-                        IconButton(onClick = item.onLike) {
-                            Icon(
-                                painterResource(if (liked) R.drawable.ic_favorite_filled else R.drawable.ic_favorite),
-                                contentDescription = stringResource(if (liked) R.string.action_unlike else R.string.action_like),
-                                tint = if (liked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
                     if (hasLink) {
-                        if (!onList) IconButton(onClick = actions.onSave) {
-                            Icon(
-                                painterResource(if (saveTarget is ShareTarget.App) R.drawable.ic_bookmark_add else R.drawable.ic_list),
-                                contentDescription =
-                                    (saveTarget as? ShareTarget.App)?.let { stringResource(R.string.action_save_to, it.label) }
-                                        ?: stringResource(R.string.action_save),
-                            )
-                        }
                         IconButton(onClick = actions.onShare) {
                             Icon(
                                 painterResource(R.drawable.ic_share),
@@ -230,35 +203,6 @@ fun ReaderScreen(
                                 },
                             )
                         }
-                        if (item != null && onList) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.tags_title)) },
-                                leadingIcon = { Icon(painterResource(R.drawable.ic_tags), contentDescription = null) },
-                                onClick = {
-                                    menuOpen = false
-                                    tagsOpen = true
-                                },
-                            )
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.saved_remove)) },
-                                leadingIcon = { Icon(painterResource(R.drawable.ic_delete), contentDescription = null) },
-                                onClick = {
-                                    menuOpen = false
-                                    removeOpen = true
-                                },
-                            )
-                        }
-                        val keep = actions.onKeepAsBookmark
-                        if (keep != null) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.file_title)) },
-                                leadingIcon = { Icon(painterResource(R.drawable.ic_folder), contentDescription = null) },
-                                onClick = {
-                                    menuOpen = false
-                                    keep()
-                                },
-                            )
-                        }
                         val markUnread = actions.onMarkUnread
                         if (markUnread != null) {
                             DropdownMenuItem(
@@ -267,6 +211,16 @@ fun ReaderScreen(
                                 onClick = {
                                     menuOpen = false
                                     markUnread()
+                                },
+                            )
+                        }
+                        if (item != null && onList) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.saved_remove)) },
+                                leadingIcon = { Icon(painterResource(R.drawable.ic_delete), contentDescription = null) },
+                                onClick = {
+                                    menuOpen = false
+                                    removeOpen = true
                                 },
                             )
                         }
@@ -281,32 +235,51 @@ fun ReaderScreen(
             )
         },
         bottomBar = {
-            // File and Archive for a saved article (#107, #119).
-            if (item != null && onList && article != null) {
+            // The library bar (#139): Save before, then the folder (Organise), Like and Archive.
+            if (article != null && (hasLink || onList)) {
                 BottomAppBar(containerColor = MaterialTheme.colorScheme.surfaceContainer) {
-                    val folder = Saved.folderOf(item.item)
-                    if (folder != null) {
-                        Row(Modifier.padding(start = 16.dp).weight(1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Icon(painterResource(R.drawable.ic_folder), contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Text(folder, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    if (item != null && onList) {
+                        val place =
+                            when {
+                                item.item.archived -> stringResource(R.string.reading_list_archive)
+                                else -> Saved.folderOf(item.item) ?: stringResource(R.string.reading_list_to_read)
+                            }
+                        TextButton(onClick = item.onOrganise, modifier = Modifier.padding(start = 8.dp).weight(1f, fill = false)) {
+                            Icon(painterResource(R.drawable.ic_folder), contentDescription = null)
+                            Text(place, modifier = Modifier.padding(start = 8.dp), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Icon(painterResource(R.drawable.ic_expand_more), contentDescription = null, modifier = Modifier.size(18.dp))
+                        }
+                        Spacer(Modifier.weight(1f))
+                        val liked = item.item.liked
+                        IconButton(onClick = item.onLike) {
+                            Icon(
+                                painterResource(if (liked) R.drawable.ic_favorite_filled else R.drawable.ic_favorite),
+                                contentDescription = stringResource(if (liked) R.string.action_unlike else R.string.action_like),
+                                tint = if (liked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        if (item.item.archived) {
+                            TextButton(onClick = item.onUnarchive, modifier = Modifier.padding(end = 8.dp)) {
+                                Icon(painterResource(R.drawable.ic_unarchive), contentDescription = null)
+                                Text(stringResource(R.string.action_unarchive), modifier = Modifier.padding(start = 8.dp))
+                            }
+                        } else {
+                            // At once, with Undo in the message: the article just read is the one most often done with.
+                            TextButton(onClick = item.onArchive, modifier = Modifier.padding(end = 8.dp)) {
+                                Icon(painterResource(R.drawable.ic_inventory), contentDescription = null)
+                                Text(stringResource(R.string.action_archive), modifier = Modifier.padding(start = 8.dp))
+                            }
                         }
                     } else {
                         Spacer(Modifier.weight(1f))
-                    }
-                    TextButton(onClick = { finish(FinishChoice.File) }) {
-                        Icon(painterResource(R.drawable.ic_folder), contentDescription = null)
-                        Text(stringResource(R.string.action_file), modifier = Modifier.padding(start = 8.dp))
-                    }
-                    if (item.item.archived) {
-                        TextButton(onClick = item.onUnarchive) {
-                            Icon(painterResource(R.drawable.ic_unarchive), contentDescription = null)
-                            Text(stringResource(R.string.action_unarchive), modifier = Modifier.padding(start = 8.dp))
-                        }
-                    } else {
-                        // Archive at once (Undo in the message); the sheet at the end of the text still asks.
-                        TextButton(onClick = item.onArchive) {
-                            Icon(painterResource(R.drawable.ic_inventory), contentDescription = null)
-                            Text(stringResource(R.string.action_archive), modifier = Modifier.padding(start = 8.dp))
+                        FilledTonalButton(onClick = actions.onSave, modifier = Modifier.padding(end = 16.dp)) {
+                            Icon(painterResource(if (saveTarget is ShareTarget.App) R.drawable.ic_bookmark_add else R.drawable.ic_list), contentDescription = null)
+                            Text(
+                                (saveTarget as? ShareTarget.App)?.let { stringResource(R.string.action_save_to, it.label) } ?: stringResource(R.string.action_save),
+                                modifier = Modifier.padding(start = 8.dp),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
                         }
                     }
                 }
@@ -330,26 +303,13 @@ fun ReaderScreen(
                 onOpenLink = actions.onOpenLink,
                 onOpenInBrowser = actions.onOpenInBrowser,
                 scrollState = scrollState,
-                onFinished = if (item != null && onList && !item.item.archived) ({ finish(null) }) else null,
                 modifier = Modifier.padding(innerPadding),
             )
         }
     }
 
     if (item != null) {
-        if (tagsOpen) TagsDialog(item.item, item.allTags, item.onTags, onDismiss = { tagsOpen = false })
         if (removeOpen) RemoveDialog(item.item, item.onRemove, onDismiss = { removeOpen = false }, services = item.services, onRemoveFrom = item.onRemoveFrom)
-        if (finishOpen) {
-            FinishSheet(
-                item = item.item,
-                initial = finishChoice,
-                folders = item.folders,
-                allTags = item.allTags,
-                onArchive = item.onArchive,
-                onFile = item.onFile,
-                onDismiss = { finishOpen = false },
-            )
-        }
     }
 
     if (showStyleSheet) {
@@ -386,8 +346,6 @@ private fun ArticleBody(
     onOpenLink: (String) -> Unit,
     onOpenInBrowser: () -> Unit,
     scrollState: ScrollState,
-    /** At the end of an article on the reading list: "Finished reading" opens the sheet that asks what's next. */
-    onFinished: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     val linkColor = MaterialTheme.colorScheme.primary
@@ -494,12 +452,6 @@ private fun ArticleBody(
                 OutlinedButton(onClick = onOpenInBrowser, modifier = Modifier.padding(top = 8.dp)) {
                     Icon(painterResource(R.drawable.ic_open_in_new), contentDescription = null)
                     Text(stringResource(R.string.reader_read_on_website), modifier = Modifier.padding(start = 8.dp))
-                }
-            }
-            if (onFinished != null) {
-                FilledTonalButton(onClick = onFinished, modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
-                    Icon(painterResource(R.drawable.ic_check_circle), contentDescription = null)
-                    Text(stringResource(R.string.finish_title), modifier = Modifier.padding(start = 8.dp))
                 }
             }
         }

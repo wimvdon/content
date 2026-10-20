@@ -1,4 +1,4 @@
-import { ALargeSmall, ArrowLeft, Circle, CircleCheck, ExternalLink, FileText, ListPlus, Share2 } from "lucide-react";
+import { ALargeSmall, ArrowLeft, Circle, CircleCheck, EllipsisVertical, ExternalLink, FileText, Share2, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { app, useApp } from "@/lib/app";
 import { extractArticle, needsFullText } from "@/lib/fullArticle";
@@ -10,7 +10,7 @@ import { hostOf, isItemArticle, siteOf, sourceOf } from "@/lib/saved";
 import { fetchViaProxy } from "@/lib/proxy";
 import { sanitizeArticle } from "@/lib/sanitize";
 import { FeedIcon } from "./FeedIcon";
-import { SavedActions } from "./SavedActions";
+import { LibraryBar, RemoveDialog } from "./SavedActions";
 import { pageClass, textStyle, useAppDark } from "./readerPage";
 import { ReaderStyleControls } from "./ReaderStyleControls";
 import { Button } from "./ui/button";
@@ -61,11 +61,11 @@ export function ArticleView({ article, onBack, onMessage }: { article: Article; 
   }, [useFull, link, loaded]);
   const fullHtml = useFull ? loaded?.html : undefined;
 
-  const base = article.link ?? feed?.siteUrl ?? article.feedUrl;
-  const html = useMemo(
-    () => sanitizeArticle(fullHtml ?? article.html, base, settings.showImages),
-    [fullHtml, article.html, base, settings.showImages],
-  );
+  const siteUrl = feed?.siteUrl ?? null;
+  const base = article.link ?? siteUrl ?? article.feedUrl;
+  const feedHtml = article.html;
+  const showImages = settings.showImages;
+  const html = useSanitized(fullHtml ?? feedHtml, base, showImages);
   const showHero = settings.showImages && article.imageUrl && !html.includes(article.imageUrl);
 
   const share = async () => {
@@ -80,6 +80,8 @@ export function ArticleView({ article, onBack, onMessage }: { article: Article; 
 
   // The dialog to file it (folder and tags) says it was saved.
   const saveArticle = () => article.link && app.saveArticle(article.link, article.title);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [removeOpen, setRemoveOpen] = useState(false);
 
   return (
     <article className="flex h-full min-w-0 flex-col" aria-label={article.title}>
@@ -88,51 +90,52 @@ export function ArticleView({ article, onBack, onMessage }: { article: Article; 
           <ArrowLeft />
         </Button>
         <div className="flex-1" />
+        {/* This reading (#139): Aa, Share and ⋮; the article in your library is in the bar below. */}
         <Button variant="ghost" size="icon" onClick={() => setTextOpen(true)} aria-label={t("textSettings")} title={t("textSettings")}>
           <ALargeSmall />
         </Button>
-        {canLoad ? (
-          <Button
-            variant={useFull ? "tonal" : "ghost"}
-            size="icon"
-            onClick={() => setUseFull(!useFull)}
-            aria-pressed={useFull}
-            aria-label={useFull ? t("showFeedText") : t("showFull")}
-            title={useFull ? t("showFeedText") : t("showFull")}
-          >
-            <FileText />
-          </Button>
-        ) : null}
-        {saved ? (
-          <SavedActions item={saved} onRemoved={() => fromSaved && onBack()} />
-        ) : fromSaved ? null : (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => app.setRead(new Set([articleKey(current)]), !current.read)}
-            aria-label={current.read ? t("markUnread") : t("markRead")}
-            title={(current.read ? t("markUnread") : t("markRead")) + " (m)"}
-          >
-            {current.read ? <Circle /> : <CircleCheck />}
-          </Button>
-        )}
         {article.link ? (
-          <>
-            {!saved && !fromSaved ? (
-              <Button variant="ghost" size="icon" onClick={saveArticle} aria-label={t("saveArticle")} title={t("saveArticle")}>
-                <ListPlus />
-              </Button>
-            ) : null}
-            <Button variant="ghost" size="icon" onClick={() => void share()} aria-label={t("share")} title={t("share")}>
-              <Share2 />
-            </Button>
-            <Button variant="ghost" size="icon" asChild>
-              <a href={article.link} target="_blank" rel="noopener noreferrer" aria-label={t("openWebsite")} title={t("openWebsite") + " (o)"}>
-                <ExternalLink />
-              </a>
-            </Button>
-          </>
+          <Button variant="ghost" size="icon" onClick={() => void share()} aria-label={t("share")} title={t("share")}>
+            <Share2 />
+          </Button>
         ) : null}
+        <div className="relative">
+          <Button variant="ghost" size="icon" onClick={() => setMenuOpen(!menuOpen)} aria-expanded={menuOpen} aria-label={t("moreOptions")} title={t("moreOptions")}>
+            <EllipsisVertical />
+          </Button>
+          {menuOpen ? (
+            <>
+              <div className="fixed inset-0 z-20" onClick={() => setMenuOpen(false)} aria-hidden="true" />
+              <div role="menu" className="absolute right-0 z-30 mt-1 w-60 rounded-xl border bg-card py-1 shadow-lg">
+                {canLoad ? (
+                  <MenuItem icon={<FileText />} label={useFull ? t("showFeedText") : t("showFull")} onClick={() => setUseFull(!useFull)} close={() => setMenuOpen(false)} />
+                ) : null}
+                {article.link ? (
+                  <a
+                    role="menuitem"
+                    href={article.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setMenuOpen(false)}
+                    className="flex w-full items-center gap-3 px-3 py-2 text-sm hover:bg-muted [&_svg]:size-4 [&_svg]:text-muted-foreground"
+                  >
+                    <ExternalLink />
+                    {t("openWebsite")}
+                  </a>
+                ) : null}
+                {!fromSaved ? (
+                  <MenuItem
+                    icon={current.read ? <Circle /> : <CircleCheck />}
+                    label={current.read ? t("markUnread") : t("markRead")}
+                    onClick={() => app.setRead(new Set([articleKey(current)]), !current.read)}
+                    close={() => setMenuOpen(false)}
+                  />
+                ) : null}
+                {saved ? <MenuItem icon={<Trash2 />} label={t("savedRemove")} onClick={() => setRemoveOpen(true)} close={() => setMenuOpen(false)} /> : null}
+              </div>
+            </>
+          ) : null}
+        </div>
       </div>
       <Dialog open={textOpen} onOpenChange={setTextOpen} title={t("textSettings")} closeLabel={t("close")}>
         <ReaderStyleControls />
@@ -173,6 +176,30 @@ export function ArticleView({ article, onBack, onMessage }: { article: Article; 
           ) : null}
         </div>
       </div>
+      <LibraryBar item={saved} onSave={article.link && !fromSaved ? saveArticle : null} />
+      {saved ? <RemoveDialog item={saved} open={removeOpen} onClose={() => setRemoveOpen(false)} onRemoved={() => fromSaved && onBack()} /> : null}
     </article>
   );
+}
+
+function MenuItem({ icon, label, onClick, close }: { icon: React.ReactNode; label: string; onClick: () => void; close: () => void }) {
+  return (
+    <button
+      type="button"
+      role="menuitem"
+      onClick={() => {
+        close();
+        onClick();
+      }}
+      className="flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left text-sm hover:bg-muted [&_svg]:size-4 [&_svg]:text-muted-foreground"
+    >
+      {icon}
+      {label}
+    </button>
+  );
+}
+
+/** The article's HTML made safe to show, worked out again only when it changes. */
+function useSanitized(html: string, base: string, showImages: boolean): string {
+  return useMemo(() => sanitizeArticle(html, base, showImages), [html, base, showImages]);
 }
