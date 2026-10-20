@@ -4,13 +4,13 @@ import { app, useApp } from "@/lib/app";
 import { extractArticle, needsFullText } from "@/lib/fullArticle";
 import { cached, cachedNow, keep } from "@/lib/fullArticleStore";
 import { formatDateTime, t } from "@/lib/i18n";
-import { hostOf, isInstapaperArticle, siteOf, sourceOf } from "@/lib/instapaperLibrary";
-import { problemText } from "@/lib/instapaperText";
+import { itemForArticle } from "@/lib/items";
 import { articleKey, sortTime, type Article } from "@/lib/library";
+import { hostOf, isItemArticle, siteOf, sourceOf } from "@/lib/saved";
 import { fetchViaProxy } from "@/lib/proxy";
 import { sanitizeArticle } from "@/lib/sanitize";
 import { FeedIcon } from "./FeedIcon";
-import { InstapaperActions } from "./InstapaperActions";
+import { SavedActions } from "./SavedActions";
 import { pageClass, textStyle, useAppDark } from "./readerPage";
 import { ReaderStyleControls } from "./ReaderStyleControls";
 import { Button } from "./ui/button";
@@ -22,18 +22,14 @@ type Full = { link: string; html: string | null };
 
 /** The parent gives each article its own key, so this state starts fresh for every article. */
 export function ArticleView({ article, onBack, onMessage }: { article: Article; onBack: () => void; onMessage: (text: string) => void }) {
-  const { library, settings, instapaperOpen } = useApp();
-  const [saving, setSaving] = useState(false);
-  // A saved article: no read state, the feed it came from (or its website) above it, Saved's actions.
-  const saved = isInstapaperArticle(article) && instapaperOpen && String(instapaperOpen.id) === article.id ? instapaperOpen : null;
+  const { library, settings } = useApp();
+  // A saved article (also a feed article that was saved): the feed it came from (or its website)
+  // above it, and Saved's actions instead of read state and Save.
+  const fromSaved = isItemArticle(article);
+  const found = fromSaved ? library.items.find((i) => i.key === article.id) : itemForArticle(library, article);
+  const saved = found?.readingList ? found : null;
   const site = hostOf(article.link);
-  const feed = isInstapaperArticle(article)
-    ? saved
-      ? sourceOf(saved, library)
-      : site
-        ? siteOf(site)
-        : undefined
-    : library.feeds.find((f) => f.url === article.feedUrl);
+  const feed = fromSaved ? (saved ? sourceOf(saved, library) : site ? siteOf(site) : undefined) : library.feeds.find((f) => f.url === article.feedUrl);
   const current = library.articles.find((a) => articleKey(a) === articleKey(article)) ?? article;
   const link = article.link;
   const canLoad = !!link;
@@ -82,19 +78,8 @@ export function ArticleView({ article, onBack, onMessage }: { article: Article; 
     }
   };
 
-  const saveToInstapaper = async () => {
-    const address = article.link;
-    if (!address || saving) return;
-    setSaving(true);
-    try {
-      // The dialog to file it (folder and tags) says it was saved.
-      await app.saveToInstapaper(address, article.title);
-    } catch (e) {
-      onMessage(problemText(e));
-    } finally {
-      setSaving(false);
-    }
-  };
+  // The dialog to file it (folder and tags) says it was saved.
+  const saveArticle = () => article.link && app.saveArticle(article.link, article.title);
 
   return (
     <article className="flex h-full min-w-0 flex-col" aria-label={article.title}>
@@ -119,8 +104,8 @@ export function ArticleView({ article, onBack, onMessage }: { article: Article; 
           </Button>
         ) : null}
         {saved ? (
-          <InstapaperActions bookmark={saved} onDeleted={onBack} />
-        ) : isInstapaperArticle(article) ? null : (
+          <SavedActions item={saved} onRemoved={() => fromSaved && onBack()} />
+        ) : fromSaved ? null : (
           <Button
             variant="ghost"
             size="icon"
@@ -133,15 +118,8 @@ export function ArticleView({ article, onBack, onMessage }: { article: Article; 
         )}
         {article.link ? (
           <>
-            {!isInstapaperArticle(article) ? (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => void saveToInstapaper()}
-                disabled={saving}
-                aria-label={t("saveArticle")}
-                title={t("saveArticle")}
-              >
+            {!saved && !fromSaved ? (
+              <Button variant="ghost" size="icon" onClick={saveArticle} aria-label={t("saveArticle")} title={t("saveArticle")}>
                 <BookmarkPlus />
               </Button>
             ) : null}
@@ -170,14 +148,15 @@ export function ArticleView({ article, onBack, onMessage }: { article: Article; 
           <h1 className={cn("text-3xl leading-tight font-bold", style.font === "serif" ? "font-serif" : "font-sans")}>{article.title}</h1>
           {article.author ? <p className="mt-2 text-sm text-muted-foreground">{article.author}</p> : null}
           {saved && saved.tags.length > 0 ? (
-            <ul className="mt-3 flex flex-wrap gap-1.5" aria-label={t("instapaperTags")}>
+            <ul className="mt-3 flex flex-wrap gap-1.5" aria-label={t("tags")}>
               {saved.tags.map((tag) => (
-                <li key={tag.id} className="rounded-full bg-muted px-2.5 py-0.5 text-xs text-muted-foreground">
-                  {tag.name}
+                <li key={tag} className="rounded-full bg-muted px-2.5 py-0.5 text-xs text-muted-foreground">
+                  {tag}
                 </li>
               ))}
             </ul>
           ) : null}
+          {saved?.note ? <p className="mt-4 rounded-xl bg-muted px-4 py-3 text-sm whitespace-pre-line">{saved.note}</p> : null}
           {showHero ? <img src={article.imageUrl!} alt="" referrerPolicy="no-referrer" className="mt-6 w-full rounded-xl bg-muted object-cover" onError={(e) => (e.currentTarget.style.display = "none")} /> : null}
           {useFull && !loaded ? <p className="mt-6 text-sm text-muted-foreground">{t("loadingFull")}</p> : null}
           {useFull && loaded && !loaded.html ? <p className="mt-6 text-sm text-muted-foreground">{t("fullFailed")}</p> : null}

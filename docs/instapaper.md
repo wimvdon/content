@@ -43,8 +43,9 @@ account apart (`LocalSaved`); those now live on the reading list, moved in once 
 ## The web app
 
 Saved looks and works the same signed in or not (the owner's rule: services sync, they don't change
-the screens): it is always the library's items (`web/src/lib/localSaved.ts` on `savedItems.ts`), with
-To read, the folders, Liked, the tags and the Archive. Signed in, `web/src/lib/serviceSync.ts` keeps
+the screens): it is always the library's items, with the Android app's rules (`web/src/lib/saved.ts`,
+#147): To read, All, the folders and the Archive as tabs, Liked and the tab's tags as chips, the type
+filter, and notes and highlights on the cards of a folder. Signed in, `web/src/lib/serviceSync.ts` keeps
 it the same as Instapaper in the background, by the Android app's rules (`ServiceSync.kt`): what
 changed there since the last look comes in (`since`), what changed here goes there (title, link,
 tags, like, archive, folder, reading progress), and an item kept in Raindrop.io isn't sent (#121).
@@ -80,7 +81,7 @@ One callback address serves both apps:
 |---|---|
 | Token swap, and the web app's Instapaper calls | `worker/src/instapaper.ts` (tests in `worker/test/instapaper.test.ts`) |
 | Web: client, sign-in helpers | `web/src/lib/instapaper.ts` |
-| Web: lists and reader | `web/src/lib/instapaperLibrary.ts` (tested), `Sidebar.tsx`, `ArticleList.tsx`, `InstapaperActions.tsx` in the reader, `InstapaperManage.tsx` in Manage; Save in `ArticleView.tsx`; sign-in in Settings |
+| Web: Saved and the reader | `web/src/lib/saved.ts` (tested), `Sidebar.tsx`, `ArticleList.tsx`, `SavedActions.tsx` in the reader, `SavedManage.tsx` in Folders and tags; Save in `ArticleView.tsx`; sign-in in Settings |
 | Android: client, sign-in, the reading list's service | `app/src/main/kotlin/be/wimvandonck/reader/instapaper/` (`InstapaperClient`, `InstapaperAuth`, `InstapaperAccount`, `InstapaperReadingList`) and `services/` (`ServiceSync`, `ServiceManager`) |
 | Android: the reading list's screens | `ui/home/ReadingListContent.kt`, `FolderTabs.kt` (`ReadingListTabRow`), `FeedDrawer.kt`, `ui/reader/ItemSheets.kt`, `ui/feeds/TagsManage.kt`, `ui/settings/ServicesScreen.kt` |
 | Android: App Link and backup exclusion | `AndroidManifest.xml`, `res/xml/data_extraction_rules.xml` |

@@ -3,21 +3,21 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArticleList } from "./components/ArticleList";
 import { ArticleView } from "./components/ArticleView";
 import { AddFeedDialog, ManageDialog, SettingsDialog } from "./components/Dialogs";
-import { JustSavedDialog } from "./components/InstapaperActions";
-import { InstapaperManageDialog } from "./components/InstapaperManage";
+import { JustSavedDialog } from "./components/SavedActions";
+import { SavedManageDialog } from "./components/SavedManage";
 import { NavigationBar } from "./components/NavigationBar";
 import { SearchPanel } from "./components/SearchPanel";
 import { Sidebar } from "./components/Sidebar";
 import { Button } from "./components/ui/button";
 import { app, useApp } from "./lib/app";
 import { plural, t } from "./lib/i18n";
-import { bookmarkArticle } from "./lib/instapaperLibrary";
 import { articleKey, articlesFor, type Article } from "./lib/library";
+import { itemArticle, savedItems } from "./lib/saved";
 
 /** Three panes on wide screens (feeds, list, article); one at a time on phones. */
 export default function App() {
   const state = useApp();
-  const { settings, library, selection, readThisVisit, instapaperNotice, savedCopied, instapaperList } = state;
+  const { settings, library, selection, readThisVisit, instapaperNotice, savedFilter } = state;
   // The open article belongs to the section it was opened in: another section closes it.
   const [opened, setOpened] = useState<{ article: Article; selection: typeof selection } | null>(null);
   const openArticle = opened?.selection === selection ? opened.article : null;
@@ -25,7 +25,7 @@ export default function App() {
   const [drawer, setDrawer] = useState(false);
   // Search takes the list's place until it is closed; the article opened from it stays open.
   const [searching, setSearching] = useState(false);
-  const [dialog, setDialog] = useState<"add" | "manage" | "manageInstapaper" | "settings" | null>(null);
+  const [dialog, setDialog] = useState<"add" | "manage" | "manageSaved" | "settings" | null>(null);
   const [message, setMessage] = useState<{ text: string; undo?: () => void } | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -54,16 +54,9 @@ export default function App() {
     const timer = setTimeout(() => app.clearInstapaperNotice(), 6000);
     return () => clearTimeout(timer);
   }, [instapaperNotice]);
-  // Articles saved in this browser that were copied to Instapaper after signing in: say so once.
-  useEffect(() => {
-    if (!savedCopied) return;
-    const timer = setTimeout(() => app.clearSavedCopied(), 6000);
-    return () => clearTimeout(timer);
-  }, [savedCopied]);
   const shown: { text: string; undo?: () => void } | null =
     message ??
-    (instapaperNotice ? { text: t(instapaperNotice === "signedIn" ? "instapaperSignedIn" : "instapaperSignInFailed") } : null) ??
-    (savedCopied ? { text: plural("savedCopied", savedCopied) } : null);
+    (instapaperNotice ? { text: t(instapaperNotice === "signedIn" ? "instapaperSignedIn" : "instapaperSignInFailed") } : null);
 
   const open = useCallback((a: Article) => {
     app.open(a);
@@ -71,8 +64,8 @@ export default function App() {
   }, [setOpenArticle]);
 
   const visible = useMemo(
-    () => (selection.kind === "instapaper" ? instapaperList.items.map((b) => bookmarkArticle(b, library)) : articlesFor(library, selection, settings.unreadOnly, readThisVisit)),
-    [library, selection, settings.unreadOnly, readThisVisit, instapaperList.items],
+    () => (selection.kind === "saved" ? savedItems(library, savedFilter).map((i) => itemArticle(i, library)) : articlesFor(library, selection, settings.unreadOnly, readThisVisit)),
+    [library, selection, settings.unreadOnly, readThisVisit, savedFilter],
   );
 
   // Keyboard: j/k next and previous, m read/unread, o open on the website, r refresh.
@@ -122,9 +115,9 @@ export default function App() {
         setDrawer(false);
         setDialog("manage");
       }}
-      onManageInstapaper={() => {
+      onManageSaved={() => {
         setDrawer(false);
-        setDialog("manageInstapaper");
+        setDialog("manageSaved");
       }}
       onSettings={() => {
         setDrawer(false);
@@ -178,7 +171,7 @@ export default function App() {
         onAddFeed={() => setDialog("add")}
         onImport={() => fileInput.current?.click()}
       />
-      <InstapaperManageDialog open={dialog === "manageInstapaper"} onOpenChange={(o) => setDialog(o ? "manageInstapaper" : null)} />
+      <SavedManageDialog open={dialog === "manageSaved"} onOpenChange={(o) => setDialog(o ? "manageSaved" : null)} />
       <SettingsDialog open={dialog === "settings"} onOpenChange={(o) => setDialog(o ? "settings" : null)} />
       <JustSavedDialog />
       <input

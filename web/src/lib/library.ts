@@ -1,5 +1,4 @@
 import type { ParsedFeed } from "./feedParser";
-import type { View as InstapaperView } from "./instapaper";
 import type { Item } from "./items";
 
 /**
@@ -48,12 +47,12 @@ export interface Library {
   readElsewhere: Record<string, number>;
 }
 
-/** What the list shows: feed articles, or one of the user's Instapaper lists (instapaperLibrary.ts). */
+/** What the list shows: feed articles, or Saved (its tab and filters are the app's savedFilter, saved.ts). */
 export type Selection =
   | { kind: "all" }
   | { kind: "folder"; folderId: string }
   | { kind: "feed"; feedUrl: string }
-  | { kind: "instapaper"; view: InstapaperView };
+  | { kind: "saved" };
 
 export const MAX_ARTICLES_PER_FEED = 200;
 export const MAX_HTML_LENGTH = 200_000;
@@ -186,7 +185,7 @@ export function includes(lib: Library, selection: Selection, a: Article): boolea
       return lib.feeds.find((f) => f.url === a.feedUrl)?.folderId === selection.folderId;
     case "feed":
       return a.feedUrl === selection.feedUrl;
-    case "instapaper":
+    case "saved":
       return false;
   }
 }

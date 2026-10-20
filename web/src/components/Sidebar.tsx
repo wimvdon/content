@@ -1,40 +1,39 @@
-import { Archive, ChevronDown, ChevronRight, Folder as FolderGlyph, Heart, Inbox, Rss, Settings as SettingsIcon, Tag as TagGlyph } from "lucide-react";
+import { Archive, Bookmark, BookOpen, ChevronDown, ChevronRight, Folder as FolderGlyph, Rss, Settings as SettingsIcon } from "lucide-react";
 import { useState } from "react";
 import { app, useApp } from "@/lib/app";
 import { t } from "@/lib/i18n";
-import type { View } from "@/lib/instapaper";
 import { unreadByFeed, type Selection } from "@/lib/library";
+import { folderCounts, sameTab, toReadCount, type SavedTab } from "@/lib/saved";
 import { FeedIcon } from "./FeedIcon";
 import { FolderIcon } from "./FolderIcon";
-import { ManageFeedsIcon, ManageInstapaperIcon } from "./ManageIcons";
+import { ManageFeedsIcon, ManageSavedIcon } from "./ManageIcons";
 import { cn } from "./ui/cn";
 
 /**
- * The app's navigation: Feeds and Saved (Instapaper when signed in, else this browser) as two
- * sections that fold open and shut: the one you're in is open, the other folded (folders and tags
- * remember theirs in this browser). Feeds: All articles, the folders with their feeds, the other
- * feeds. Saved (Instapaper): Saved, Liked, its folders, its tags and Archive. Then the ways to manage each,
- * and Settings. The same everywhere in the app, like the Android drawer.
+ * The app's navigation: Feeds and Saved as two sections that fold open and shut: the one you're in
+ * is open, the other folded (feed folders remember theirs in this browser). Feeds: All articles,
+ * the folders with their feeds, the other feeds. Saved: To read, All, its folders and Archive. Then
+ * the ways to manage each, and Settings. The same everywhere in the app, like the Android drawer.
  */
 export function Sidebar({
   onNavigate,
   onManage,
-  onManageInstapaper,
+  onManageSaved,
   onSettings,
 }: {
   onNavigate: () => void;
   onManage: () => void;
-  onManageInstapaper: () => void;
+  onManageSaved: () => void;
   onSettings: () => void;
 }) {
-  const { library, selection, instapaperFolders, instapaperTags } = useApp();
+  const { library, selection, savedFilter } = useApp();
   const counts = unreadByFeed(library);
   const total = library.feeds.reduce((n, f) => n + (counts.get(f.url) ?? 0), 0);
   const [collapsed, setCollapsed] = useState<Set<string>>(loadCollapsed);
   // The section you're in is open and the other folded, as in the Android drawer; a click on a
   // section's name folds it open or shut until you move to the other section.
-  const inSaved = selection.kind === "instapaper";
-  const sectionsFor = (saved: boolean) => ({ inSaved: saved, open: { [FEEDS]: !saved, [INSTAPAPER]: saved } as Record<string, boolean> });
+  const inSaved = selection.kind === "saved";
+  const sectionsFor = (saved: boolean) => ({ inSaved: saved, open: { [FEEDS]: !saved, [SAVED]: saved } as Record<string, boolean> });
   const [sections, setSections] = useState(() => sectionsFor(inSaved));
   if (sections.inSaved !== inSaved) setSections(sectionsFor(inSaved));
   const openSections = sections.inSaved === inSaved ? sections.open : sectionsFor(inSaved).open;
@@ -51,16 +50,20 @@ export function Sidebar({
       saveCollapsed(next);
       return next;
     });
-  const instapaperRow = (view: View, icon: React.ReactNode, label: string, count?: number, key?: string) => (
+  const savedRow = (tab: SavedTab, icon: React.ReactNode, label: string, count?: number, key?: string) => (
     <Row
       key={key}
-      selected={isSelected({ kind: "instapaper", view })}
-      onClick={() => select({ kind: "instapaper", view })}
+      selected={inSaved && sameTab(savedFilter.tab, tab)}
+      onClick={() => {
+        app.showSaved({ ...savedFilter, tab, tags: [] });
+        onNavigate();
+      }}
       icon={icon}
       label={label}
       count={count}
     />
   );
+  const toRead = toReadCount(library);
 
   return (
     <nav className="flex h-full flex-col" aria-label={t("navigation")}>
@@ -116,41 +119,16 @@ export function Sidebar({
             />
           ))}
         </Section>
-        {(
-          <Section id={INSTAPAPER} title={t("saved")} open={openSections[INSTAPAPER]} onToggle={toggleSection}>
-            {instapaperRow({ kind: "home" }, <Inbox />, t("saved"))}
-            {instapaperRow({ kind: "liked" }, <Heart />, t("instapaperLiked"))}
-            {instapaperFolders.map((folder) => instapaperRow({ kind: "folder", id: folder.id }, <FolderGlyph />, folder.title, folder.count, `f${folder.id}`))}
-            {instapaperTags.length > 0 ? (
-              <div className="mt-1">
-                <div className="flex items-center">
-                  <Chevron open={!collapsed.has(TAGS)} onClick={() => toggle(TAGS)} />
-                  <span className="px-3 py-2 text-sm text-muted-foreground">{t("instapaperTags")}</span>
-                </div>
-                {collapsed.has(TAGS)
-                  ? null
-                  : instapaperTags.map((tag) => (
-                      <Row
-                        key={`t${tag.id}`}
-                        className="pl-9"
-                        selected={isSelected({ kind: "instapaper", view: { kind: "tag", name: tag.name } })}
-                        onClick={() => select({ kind: "instapaper", view: { kind: "tag", name: tag.name } })}
-                        icon={<TagGlyph />}
-                        label={tag.name}
-                        count={tag.count}
-                      />
-                    ))}
-              </div>
-            ) : null}
-            {/* Archive last, set apart so it doesn't read as one of the tags. */}
-            <div className="mx-3 my-2 h-px bg-border" />
-            {instapaperRow({ kind: "archive" }, <Archive />, t("instapaperArchiveList"))}
-          </Section>
-        )}
+        <Section id={SAVED} title={t("saved")} count={openSections[SAVED] ? undefined : toRead} open={openSections[SAVED]} onToggle={toggleSection}>
+          {savedRow({ kind: "toread" }, <BookOpen />, t("toRead"), toRead)}
+          {savedRow({ kind: "all" }, <Bookmark />, t("all"))}
+          {[...folderCounts(library)].map(([name, count]) => savedRow({ kind: "folder", name }, <FolderGlyph />, name, count, `f:${name}`))}
+          {savedRow({ kind: "archive" }, <Archive />, t("archiveTab"))}
+        </Section>
       </div>
       <div className="border-t p-2">
         <Row selected={false} onClick={onManage} icon={<ManageFeedsIcon />} label={t("manageFeeds")} />
-        <Row selected={false} onClick={onManageInstapaper} icon={<ManageInstapaperIcon />} label={t("manageTags")} />
+        <Row selected={false} onClick={onManageSaved} icon={<ManageSavedIcon />} label={t("manageTags")} />
         <Row selected={false} onClick={onSettings} icon={<SettingsIcon className="size-5" />} label={t("settings")} />
       </div>
     </nav>
@@ -206,7 +184,7 @@ function Chevron({ open, onClick }: { open: boolean; onClick: () => void }) {
 
 /** The collapse keys of the two sections (folder ids are UUIDs, so they can't clash). */
 const FEEDS = "section-feeds";
-const INSTAPAPER = "section-instapaper";
+const SAVED = "section-saved";
 const COLLAPSED_KEY = "reader-sidebar-collapsed";
 
 /** What was folded shut, kept in this browser; empty when storage is blocked. */
@@ -226,9 +204,6 @@ function saveCollapsed(keys: Set<string>) {
     // Storage blocked: it is forgotten on reload.
   }
 }
-
-/** The collapse key of the Instapaper tags (folder ids are UUIDs, so it can't clash). */
-const TAGS = "instapaper-tags";
 
 function Row({
   selected,

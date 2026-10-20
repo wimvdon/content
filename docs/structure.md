@@ -94,8 +94,8 @@ Saved and Instapaper (#107, #109, #119): `data/Saved.kt` (tabs, filters, folders
 `instapaper/` (client, sign-in, account, `InstapaperReadingList`, and the files of Saved before #106
 for the move-in), `ui/home/SavedContent.kt`, `ui/reader/ItemSheets.kt`,
 `ui/feeds/TagsManage.kt`, `ui/settings/ServicesScreen.kt`. The web app: `web/src/lib/instapaper.ts`,
-`web/src/lib/instapaperLibrary.ts`, `web/src/lib/localSaved.ts` (Saved, always the library's items), `web/src/lib/serviceSync.ts` and `instapaperSync.ts` (Instapaper in the background),
-`web/src/components/InstapaperActions.tsx` and `InstapaperManage.tsx`, `worker/src/instapaper.ts`
+`web/src/lib/saved.ts` (Saved: tabs, filters, folders, cards, like Android's `Saved.kt`), `web/src/lib/localSaved.ts` and `savedItems.ts` (Saved before #106, moved in once), `web/src/lib/serviceSync.ts` and `instapaperSync.ts` (Instapaper in the background),
+`web/src/components/SavedActions.tsx` and `SavedManage.tsx`, `worker/src/instapaper.ts`
 (token swap and the web app's calls). See `docs/instapaper.md`. Raindrop.io (#112): `raindrop/`
 (client, sign-in, account, `RaindropSaved`), `worker/src/raindrop.ts`,
 `web/src/components/RaindropCallback.tsx` and `web/src/lib/raindrop.ts`. See `docs/raindrop.md`.
