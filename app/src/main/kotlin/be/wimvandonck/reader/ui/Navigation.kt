@@ -873,6 +873,19 @@ fun RssReaderNavigation(
         }
     }
 
+    /** Just saved: says where it went; from the list, Open goes to the article (#142). */
+    fun confirmSaved(
+        item: Item,
+        place: Place,
+    ) {
+        val text = resources.getString(R.string.saved_to, placeName(place))
+        if (addedFromReader) {
+            showMessage(text)
+        } else {
+            showMessage(text, resources.getString(R.string.action_open)) { push(Screen.Reader(ReadingLists.readerKey(item))) }
+        }
+    }
+
     // Right after something is saved (the reader, a swipe), or organising a saved one (a swipe
     // right in Saved): the one sheet (#143), which writes what it says when it closes.
     val sheetKey = addedKey ?: fileKey
@@ -885,16 +898,10 @@ fun RssReaderNavigation(
             allTags = library.itemTags(),
             onSave = { _, choice ->
                 editLibrary { SaveChoices.apply(it, sheetItem.key, choice) }
-                // Just saved: say where it went; from the list, Open goes to the article (#142).
-                if (addedKey != null) {
-                    val text = resources.getString(R.string.saved_to, placeName(choice.place))
-                    if (addedFromReader) {
-                        showMessage(text)
-                    } else {
-                        showMessage(text, resources.getString(R.string.action_open)) { push(Screen.Reader(ReadingLists.readerKey(sheetItem))) }
-                    }
-                }
+                if (addedKey != null) confirmSaved(sheetItem, choice.place)
             },
+            // Cancelled right after saving: it stays where it was saved (#156).
+            onCancel = { if (addedKey != null) confirmSaved(sheetItem, SaveChoices.of(sheetItem).place) },
             onDismiss = {
                 addedKey = null
                 fileKey = null

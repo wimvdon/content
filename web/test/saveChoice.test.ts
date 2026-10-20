@@ -19,12 +19,12 @@ describe("the save and Organise sheet (#143)", () => {
     expect(choiceOf(itemOf(lib, "a.example/3")!).place).toEqual({ kind: "archive" });
   });
 
-  it("offers To read, the folders, a folder being made, and Archive only for new saves", () => {
+  it("offers To read and Archive first, then the folders and a folder being made", () => {
     const folders = ["Brussels", "Research"];
-    expect(places(folders, { kind: "toread" }, false).map((p) => (p.kind === "folder" ? p.name : p.kind))).toEqual(["toread", "Brussels", "Research"]);
-    expect(places(folders, { kind: "folder", name: "Later" }, true).map((p) => (p.kind === "folder" ? p.name : p.kind))).toEqual(["toread", "Brussels", "Research", "Later", "archive"]);
-    expect(places(folders, { kind: "archive" }, false).at(-1)).toEqual({ kind: "archive" });
-    expect(places(folders, { kind: "folder", name: "research" }, false)).toHaveLength(3);
+    const names = (ps: ReturnType<typeof places>) => ps.map((p) => (p.kind === "folder" ? p.name : p.kind));
+    expect(names(places(folders, { kind: "toread" }))).toEqual(["toread", "archive", "Brussels", "Research"]);
+    expect(names(places(folders, { kind: "folder", name: "Later" }))).toEqual(["toread", "archive", "Brussels", "Research", "Later"]);
+    expect(places(folders, { kind: "folder", name: "research" })).toHaveLength(4);
   });
 
   it("joins a new folder with the folder of that name, and ignores a blank one", () => {

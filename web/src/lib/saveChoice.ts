@@ -32,13 +32,12 @@ export function choiceOf(i: Item): SaveChoice {
 }
 
 /**
- * The folder chips, in order: To read, each folder in use, then the one being made, and Archive
- * when `offerArchive` (only for a new save: a link kept for reference, never meant to be read).
+ * The folder chips, in order (#156): To read and Archive, the two places every article can be, then
+ * each folder in use and the one being made.
  */
-export function places(folders: string[], current: Place, offerArchive: boolean): Place[] {
+export function places(folders: string[], current: Place): Place[] {
   const made = current.kind === "folder" && !folders.some((f) => same(f, current.name)) ? [current] : [];
-  const archive: Place[] = offerArchive || current.kind === "archive" ? [{ kind: "archive" }] : [];
-  return [{ kind: "toread" }, ...folders.map((name): Place => ({ kind: "folder", name })), ...made, ...archive];
+  return [{ kind: "toread" }, { kind: "archive" }, ...folders.map((name): Place => ({ kind: "folder", name })), ...made];
 }
 
 /** A folder typed under New folder: the folder of that name when there is one (case ignored), null when blank. */

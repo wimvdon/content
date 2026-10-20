@@ -2,6 +2,14 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-20: Archive is a folder in the sheet, and every sheet can be cancelled (#156)
+
+The save and Organise sheet keeps organising simple: Tags hold Like and the tags, Folder holds where
+the article is. Archive is offered there always (not only for a new save), next to To read with
+their icons and a divider before the folders, because archiving is just another place. Every sheet
+has Cancel, and closing it is Cancel: only Save changes anything. Rejected: keeping a dismissed
+choice (it surprised you when you only wanted to look), and a separate Archive switch.
+
 ## 2026-10-20: Reader is the library; a service is somewhere it is also kept (#145)
 
 Services no longer own items (#121's `Item.service`). Connecting a service runs an **import**, once

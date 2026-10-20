@@ -153,9 +153,9 @@ enum class SheetKind {
 /**
  * The one sheet for an article (#143): saving one, filing one later, or tagging one saved last week.
  * In order: what is being saved (only for [SheetKind.New]: the address field for Add link, or the
- * shared link's title and site), the folder as chips (To read, the folders, New folder, and Archive
- * for a new save), the tags with Like in front, then the note. Then Save, and Cancel only when
- * nothing has been saved yet. Swiping away a sheet whose save already happened keeps what it says.
+ * shared link's title and site), the folder as chips (To read and Archive, a divider, the folders and
+ * New folder: #156), the tags with Like in front, then the note. Then Cancel and Save; closing the
+ * sheet is Cancel, so only Save changes anything.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -172,6 +172,8 @@ fun SaveSheet(
     title: String? = null,
     /** The sheet's state belongs to this article. */
     key: String? = url,
+    /** Cancel, or the sheet closed without Save. */
+    onCancel: () -> Unit = {},
 ) {
     var address by rememberSaveable(key) { mutableStateOf(url.orEmpty()) }
     // A typed address may leave out https://.
@@ -186,7 +188,12 @@ fun SaveSheet(
         }
         onDismiss()
     }
-    ModalBottomSheet(onDismissRequest = if (saved) save else onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+    // Cancel, or closing the sheet, changes nothing (#156); an article saved a moment ago stays where it went.
+    val cancel = {
+        onCancel()
+        onDismiss()
+    }
+    ModalBottomSheet(onDismissRequest = cancel, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(
             Modifier
                 .verticalScroll(rememberScrollState())
@@ -229,7 +236,7 @@ fun SaveSheet(
                 }
             }
             SheetSection(stringResource(R.string.folder_field))
-            FolderChips(choice.place, folders, offerArchive = kind == SheetKind.New, onChange = { choice = choice.copy(place = it) })
+            FolderChips(choice.place, folders, onChange = { choice = choice.copy(place = it) })
             SheetSection(stringResource(R.string.tags_title))
             TagsEditor(
                 tags = choice.tags,
@@ -259,7 +266,7 @@ fun SaveSheet(
                 modifier = Modifier.fillMaxWidth(),
             )
             Row(Modifier.align(Alignment.End), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (!saved) TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
+                TextButton(onClick = cancel) { Text(stringResource(R.string.action_cancel)) }
                 Button(enabled = saved || link != null, onClick = save) { Text(stringResource(R.string.action_save)) }
             }
         }
@@ -273,15 +280,14 @@ private fun SheetSection(title: String) {
 }
 
 /**
- * An item's one place (#119, #143), as chips to pick one: To read, each folder, Archive (when
- * offered), and New folder, the only thing left to type.
+ * An item's one place (#119, #143, #156), as chips to pick one: To read and Archive, each with its
+ * icon, then a divider, each folder, and New folder, the only thing left to type.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun FolderChips(
     place: Place,
     folders: List<String>,
-    offerArchive: Boolean,
     onChange: (Place) -> Unit,
 ) {
     var making by rememberSaveable { mutableStateOf(false) }
@@ -292,8 +298,8 @@ fun FolderChips(
         making = false
     }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        FlowRow(Modifier.selectableGroup(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            SaveChoices.places(folders, place, offerArchive).forEach { option ->
+        FlowRow(Modifier.selectableGroup(), horizontalArrangement = Arrangement.spacedBy(8.dp), itemVerticalAlignment = Alignment.CenterVertically) {
+            SaveChoices.places(folders, place).forEach { option ->
                 val selected = SaveChoices.same(option, place)
                 FilterChip(
                     selected = selected,
@@ -323,6 +329,8 @@ fun FolderChips(
                     },
                     modifier = Modifier.semantics { role = Role.RadioButton },
                 )
+                // The folders after To read and Archive, set apart as Like is from the tags.
+                if (option == Place.Archive) VerticalDivider(Modifier.height(24.dp))
             }
             if (!making) {
                 AssistChip(

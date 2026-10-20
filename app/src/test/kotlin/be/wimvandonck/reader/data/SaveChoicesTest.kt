@@ -25,17 +25,15 @@ class SaveChoicesTest {
     }
 
     @Test
-    fun `offers To read, the folders, a folder being made, and Archive only for new saves`() {
+    fun `offers To read and Archive first, then the folders and a folder being made`() {
         val folders = listOf("Brussels", "Research")
-        assertEquals(listOf(Place.ToRead, Place.Folder("Brussels"), Place.Folder("Research")), SaveChoices.places(folders, Place.ToRead, offerArchive = false))
+        assertEquals(listOf(Place.ToRead, Place.Archive, Place.Folder("Brussels"), Place.Folder("Research")), SaveChoices.places(folders, Place.ToRead))
         assertEquals(
-            listOf(Place.ToRead, Place.Folder("Brussels"), Place.Folder("Research"), Place.Folder("Later"), Place.Archive),
-            SaveChoices.places(folders, Place.Folder("Later"), offerArchive = true),
+            listOf(Place.ToRead, Place.Archive, Place.Folder("Brussels"), Place.Folder("Research"), Place.Folder("Later")),
+            SaveChoices.places(folders, Place.Folder("Later")),
         )
-        // An archived article organised from the reader still shows where it is.
-        assertEquals(Place.Archive, SaveChoices.places(folders, Place.Archive, offerArchive = false).last())
         // A folder already in use isn't offered twice, whatever its capitals.
-        assertEquals(3, SaveChoices.places(folders, Place.Folder("research"), offerArchive = false).size)
+        assertEquals(4, SaveChoices.places(folders, Place.Folder("research")).size)
     }
 
     @Test

@@ -57,20 +57,23 @@ function Sheet({
     }
     app.closeSheet();
   };
+  // Cancel, or closing the sheet, changes nothing (#156); an article saved a moment ago stays where it went.
+  const cancel = () => {
+    if (kind === "justSaved") onMessage(t("savedTo").replace("{place}", name(initial.place)));
+    app.closeSheet();
+  };
   const title = kind === "new" ? t("saveTitle") : kind === "organise" ? t("organiseTitle") : t("savedTo").replace("{place}", name(choice.place));
   return (
     <Dialog
       open
-      onOpenChange={(o) => !o && (saved ? save() : app.closeSheet())}
+      onOpenChange={(o) => !o && cancel()}
       title={title}
       closeLabel={t("close")}
       footer={
         <>
-          {!saved ? (
-            <Button variant="ghost" onClick={app.closeSheet}>
-              {t("cancel")}
-            </Button>
-          ) : null}
+          <Button variant="ghost" onClick={cancel}>
+            {t("cancel")}
+          </Button>
           <Button onClick={save} disabled={!saved && !link}>
             {t("saveArticle")}
           </Button>
@@ -82,7 +85,7 @@ function Sheet({
           <Input autoFocus value={address} onChange={(e) => setAddress(e.target.value)} placeholder={t("webAddress")} aria-label={t("webAddress")} type="url" inputMode="url" />
         ) : null}
         <Section title={t("folder")}>
-          <FolderChips place={choice.place} folders={savedFolders(library)} offerArchive={kind === "new"} onChange={(place) => setChoice({ ...choice, place })} />
+          <FolderChips place={choice.place} folders={savedFolders(library)} onChange={(place) => setChoice({ ...choice, place })} />
         </Section>
         <Section title={t("tags")}>
           <TagsRow
@@ -120,22 +123,24 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 const chip = "inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border px-3 text-sm";
 const on = "border-transparent bg-accent font-medium text-accent-foreground";
 
-/** The place as chips, pick one: To read, each folder, Archive (when offered), and New folder. */
-function FolderChips({ place, folders, offerArchive, onChange }: { place: Place; folders: string[]; offerArchive: boolean; onChange: (p: Place) => void }) {
+/** The place as chips, pick one (#156): To read and Archive, a divider, each folder, and New folder. */
+function FolderChips({ place, folders, onChange }: { place: Place; folders: string[]; onChange: (p: Place) => void }) {
   const [making, setMaking] = useState(false);
   const [name, setName] = useState("");
   return (
     <div className="space-y-2">
-      <div role="radiogroup" aria-label={t("folder")} className="flex flex-wrap gap-1.5">
-        {places(folders, place, offerArchive).map((option) => {
+      <div role="radiogroup" aria-label={t("folder")} className="flex flex-wrap items-center gap-1.5">
+        {places(folders, place).map((option) => {
           const selected = samePlace(option, place);
           const Icon = selected ? Check : option.kind === "toread" ? BookOpen : option.kind === "archive" ? Archive : FolderGlyph;
-          return (
+          return [
             <button key={option.kind === "folder" ? `f:${option.name}` : option.kind} type="button" role="radio" aria-checked={selected} onClick={() => onChange(option)} className={cn(chip, selected ? on : "hover:bg-muted")}>
               <Icon className="size-4" aria-hidden="true" />
               {option.kind === "toread" ? t("toRead") : option.kind === "archive" ? t("archive") : option.name}
-            </button>
-          );
+            </button>,
+            // The folders after To read and Archive, set apart as Like is from the tags.
+            option.kind === "archive" ? <span key="divider" className="mx-1 h-6 w-px bg-border" aria-hidden="true" /> : null,
+          ];
         })}
         {!making ? (
           <button type="button" onClick={() => setMaking(true)} className={cn(chip, "hover:bg-muted")}>
