@@ -1,4 +1,4 @@
-import { ALargeSmall, ArrowLeft, BookmarkPlus, Circle, CircleCheck, ExternalLink, FileText, Share2 } from "lucide-react";
+import { ALargeSmall, ArrowLeft, Circle, CircleCheck, ExternalLink, FileText, ListPlus, Share2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { app, useApp } from "@/lib/app";
 import { extractArticle, needsFullText } from "@/lib/fullArticle";
@@ -120,7 +120,7 @@ export function ArticleView({ article, onBack, onMessage }: { article: Article; 
           <>
             {!saved && !fromSaved ? (
               <Button variant="ghost" size="icon" onClick={saveArticle} aria-label={t("saveArticle")} title={t("saveArticle")}>
-                <BookmarkPlus />
+                <ListPlus />
               </Button>
             ) : null}
             <Button variant="ghost" size="icon" onClick={() => void share()} aria-label={t("share")} title={t("share")}>

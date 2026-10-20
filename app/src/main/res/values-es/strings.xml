@@ -89,6 +89,7 @@
     <string name="action_share_to">Compartir con %1$s</string>
     <string name="feeds_opml_hint">Pasa tus feeds desde o hacia otro lector, como Feedly.</string>
     <string name="action_save">Guardar</string>
+    <string name="action_open">Abrir</string>
     <string name="action_undo">Deshacer</string>
     <string name="folders_explanation">Pon los feeds en carpetas para leerlos juntos.</string>
     <string name="folder_all">Todos</string>
@@ -205,7 +206,6 @@
     <string name="action_unarchive">Volver a por leer</string>
     <string name="action_like">Me gusta</string>
     <string name="action_unlike">Ya no me gusta</string>
-    <string name="action_read_later">Leer más tarde</string>
     <string name="add_link_title">Añadir enlace</string>
     <string name="add_link_address">Dirección web</string>
     <string name="add_link_invalid">No es una dirección web.</string>
@@ -219,7 +219,6 @@
     <string name="reading_list_archive">Archivo</string>
     <string name="reading_list_liked">Me gusta</string>
     <string name="reading_list_about">unos %s</string>
-    <string name="reading_list_added">Guardado en Por leer</string>
     <string name="reading_list_empty_title">Nada que leer</string>
     <string name="reading_list_archive_empty_title">Aún no hay nada archivado</string>
     <string name="reading_list_none_title">No hay nada aquí</string>
@@ -327,7 +326,7 @@
     <string name="saved_folder_remove_body">¿Quitar la carpeta %1$s? Sus artículos vuelven a Por leer.</string>
     <string name="saved_remove">Quitar de Guardados</string>
     <string name="saved_remove_body">¿Quitar este artículo, con su nota, etiquetas y resaltados? Archivarlo lo mantiene buscable.</string>
-    <string name="saved_empty_body">Desliza un artículo de un feed a la izquierda, toca Leer más tarde en un artículo, comparte un enlace con Reader o añade uno aquí.</string>
+    <string name="saved_empty_body">Desliza un artículo de un feed a la izquierda, toca Guardar en un artículo, comparte un enlace con Reader o añade uno aquí.</string>
     <string name="manage_folders_tags_empty_title">Aún no hay carpetas ni etiquetas</string>
     <string name="manage_folders_tags_empty_body">Las carpetas y etiquetas de tus artículos guardados aparecen aquí para que puedas renombrarlas.</string>
 </resources>

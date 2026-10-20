@@ -90,6 +90,7 @@
     <string name="action_share_to">Share to %1$s</string>
     <string name="feeds_opml_hint">Move your feeds from or to another reader, such as Feedly.</string>
     <string name="action_save">Save</string>
+    <string name="action_open">Open</string>
     <string name="action_undo">Undo</string>
     <string name="folders_explanation">Put feeds in folders to read them together.</string>
     <string name="folder_all">All</string>
@@ -200,7 +201,6 @@
     <string name="action_unarchive">Back to read</string>
     <string name="action_like">Like</string>
     <string name="action_unlike">Unlike</string>
-    <string name="action_read_later">Read later</string>
     <string name="add_link_title">Add link</string>
     <string name="add_link_address">Web address</string>
     <string name="add_link_invalid">That isn’t a web address.</string>
@@ -214,7 +214,6 @@
     <string name="reading_list_archive">Archive</string>
     <string name="reading_list_liked">Liked</string>
     <string name="reading_list_about">about %s</string>
-    <string name="reading_list_added">Saved to To read</string>
     <string name="reading_list_empty_title">Nothing to read</string>
     <string name="reading_list_archive_empty_title">Nothing archived yet</string>
     <string name="reading_list_none_title">Nothing here</string>
@@ -316,7 +315,7 @@
     <string name="saved_folder_remove_body">Remove the folder %1$s? Its articles go back to To read.</string>
     <string name="saved_remove">Remove from Saved</string>
     <string name="saved_remove_body">Remove this article, with its note, tags and highlights? Archive keeps it searchable instead.</string>
-    <string name="saved_empty_body">Swipe a feed article left, tap Read later in an article, share a link to Reader or add one here.</string>
+    <string name="saved_empty_body">Swipe a feed article left, tap Save in an article, share a link to Reader or add one here.</string>
     <string name="manage_folders_tags_empty_title">No folders or tags yet</string>
     <string name="manage_folders_tags_empty_body">Folders and tags of your saved articles show here, so you can rename them.</string>
 </resources>

@@ -126,7 +126,7 @@ website (the same as **Read on website** at the end). In the top bar:
 | Button | What it does |
 |---|---|
 | **Aa** | Text settings: font (Sans or Serif), text size, spacing (Compact, Normal, Relaxed), background (Theme, Sepia or Dark) and **Auto dark** (the dark page whenever the app is dark, e.g. Sepia by day and dark at night). Changes apply right away and are remembered for every article. |
-| Open book | **Read later**: saves the article to **To read** (by default), or sends it to the app you chose or the share menu (see below). Once it is saved, the same screen shows Saved's buttons (below). |
+| List | **Save**: saves the article to **To read** (by default), or sends it to the app you chose or the share menu (see below). Once it is saved, the same screen shows Saved's buttons (below). |
 | ♥ | When saved: **Like** (the heart fills). |
 | Share | **Share**: the share menu, or straight to the app you chose. |
 | ⋮ | **Open in browser** and **Mark as unread**; a feed article not saved yet also has **File in a folder** (the save sheet); a saved one also **Tags** and **Remove from Saved**. Open in browser, and links in an article, open in a tab of your browser on top of Reader, with a **Save** button in its toolbar: it opens the save sheet over the page (see Saving from other apps); save or close it to keep reading. |
@@ -138,10 +138,12 @@ returns to where it was, in its folder). **File** opens a sheet with the folder,
 folder**; File is chosen first when the article has highlights or a note. Reader remembers how far you
 read and opens the article there again.
 
-After **Read later**, the sheet that opens says where it was saved, then has the **Folder** (To read,
+After **Save**, the sheet that opens says where it was saved, then has the **Folder** (To read,
 your folders, or **New folder** to make one), the **Tags** with **Like** in front, and a **Note**: one
 step from a feed article to its folder. **Save** keeps what you chose; closing the sheet keeps it too.
-The same sheet, called **Organise**, opens when you swipe a saved article right in Saved.
+The same sheet, called **Organise**, opens when you swipe a saved article right in Saved. When it
+closes, a message says where the article went; after a swipe, **Add link** or a link shared from
+another app it also has **Open**, which goes to the article in Saved.
 
 **Full articles.** Many feeds contain only the start of an article, or a few paragraphs with a
 "Read full article" link. Then the reader fetches the
@@ -192,7 +194,7 @@ a web link says "No link to save".
 - **Article list:** View (Small, Medium, Large) and **Mark as read on scroll**.
 - **Reader:** **Load full articles**, **Show images**, and the same text settings as **Aa**, with a preview in the page colour you chose.
 - **Save and share:** see above, and **Tag with the feed's folder** (on by default): an article you
-  save from a feed (Read later, the swipe, the save sheet) gets its folder's name as a tag, spelled
+  save from a feed (Save, the swipe, the save sheet) gets its folder's name as a tag, spelled
   like a tag you already use. It still goes to To read, not into a folder. Renaming or removing the
   folder later doesn't change tags already given. Each device keeps its own choice.
 - **Appearance:** Theme (System, Light, Dark) and Dynamic color (wallpaper colours instead of
@@ -226,8 +228,9 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
 - **Each article is in one place:** **To read** (where everything new arrives), **one folder**, or
   the **Archive**. Filing an article in a folder takes it out of To read; archiving it takes it out of
   its folder.
-- **Getting articles in:** **Read later** in an article; **swipe a feed article left** in the list
-  (swiping right still marks it read or unread; the message then offers **File** for the folder sheet); **Add link** (the button at the bottom right of
+- **Getting articles in:** **Save** in an article; **swipe a feed article left** in the list
+  (swiping right still marks it read or unread; the save sheet opens, then the message offers
+  **Open**); **Add link** (the button at the bottom right of
   Saved); and sharing a link to Reader from another app. These go to To read unless you pick a
   folder in the save sheet. A feed article you save stays the same article: its feed, text and
   picture come along, and it isn't copied.

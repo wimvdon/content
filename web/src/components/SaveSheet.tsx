@@ -18,7 +18,7 @@ import { Input } from "./ui/input";
  * the tags with Like in front, then the note. Closing a sheet whose save already happened keeps
  * what it says.
  */
-export function SaveSheet({ onMessage }: { onMessage: (text: string) => void }) {
+export function SaveSheet({ onMessage }: { onMessage: (text: string, openKey?: string) => void }) {
   const { sheet, library } = useApp();
   const item = sheet && sheet.kind !== "new" ? library.items.find((i) => i.key === sheet.key) : undefined;
   if (!sheet || (sheet.kind !== "new" && !item)) return null;
@@ -26,7 +26,17 @@ export function SaveSheet({ onMessage }: { onMessage: (text: string) => void }) 
   return <Sheet key={sheet.kind === "new" ? "new" : `${sheet.kind}:${sheet.key}`} kind={sheet.kind} initial={item ? choiceOf(item) : emptyChoice} itemKey={item?.key ?? null} onMessage={onMessage} />;
 }
 
-function Sheet({ kind, initial, itemKey, onMessage }: { kind: "new" | "justSaved" | "organise"; initial: SaveChoice; itemKey: string | null; onMessage: (text: string) => void }) {
+function Sheet({
+  kind,
+  initial,
+  itemKey,
+  onMessage,
+}: {
+  kind: "new" | "justSaved" | "organise";
+  initial: SaveChoice;
+  itemKey: string | null;
+  onMessage: (text: string, openKey?: string) => void;
+}) {
   const { library } = useApp();
   const [choice, setChoice] = useState(initial);
   const [address, setAddress] = useState("");
@@ -35,10 +45,15 @@ function Sheet({ kind, initial, itemKey, onMessage }: { kind: "new" | "justSaved
   const link = typed && isWebLink(typed) ? typed : null;
   const name = (place: Place) => (place.kind === "toread" ? t("toRead") : place.kind === "archive" ? t("archiveTab") : place.name);
   const save = () => {
+    const savedTo = t("savedTo").replace("{place}", name(choice.place));
     if (saved && itemKey) {
       if (JSON.stringify(choice) !== JSON.stringify(initial)) app.organise(itemKey, choice);
+      // Saved from the reader: already in the article, so no Open (#142).
+      if (kind === "justSaved") onMessage(savedTo);
     } else if (link) {
-      onMessage(app.saveNew(link, choice) ? t("savedTo").replace("{place}", name(choice.place)) : t("addLinkInvalid"));
+      const key = app.saveNew(link, choice);
+      if (key) onMessage(savedTo, key);
+      else onMessage(t("addLinkInvalid"));
     }
     app.closeSheet();
   };

@@ -451,7 +451,7 @@ private class Destination(
 private fun destinations(actions: HomeActions) =
     listOf(
         Destination(HomeSection.Feeds, R.drawable.ic_rss_feed, R.string.feeds_title, actions.onShowFeeds),
-        Destination(HomeSection.Saved, R.drawable.ic_reading_list, R.string.saved_title, actions.onShowSaved),
+        Destination(HomeSection.Saved, R.drawable.ic_list, R.string.saved_title, actions.onShowSaved),
     )
 
 /** From this width the destinations sit in a navigation rail instead of a bar (Material's medium window). */
@@ -568,7 +568,7 @@ private fun SwipeToToggleRead(
                 stringResource(if (article.read) R.string.action_mark_unread else R.string.action_mark_read),
                 onToggle,
             ),
-        left = SwipeAction(R.drawable.ic_reading_list, stringResource(R.string.action_read_later), onReadLater),
+        left = SwipeAction(R.drawable.ic_list, stringResource(R.string.action_save), onReadLater),
         modifier = modifier,
         content = content,
     )

@@ -192,10 +192,10 @@ fun ReaderScreen(
                     if (hasLink) {
                         if (!onList) IconButton(onClick = actions.onSave) {
                             Icon(
-                                painterResource(if (saveTarget is ShareTarget.App) R.drawable.ic_bookmark_add else R.drawable.ic_reading_list),
+                                painterResource(if (saveTarget is ShareTarget.App) R.drawable.ic_bookmark_add else R.drawable.ic_list),
                                 contentDescription =
                                     (saveTarget as? ShareTarget.App)?.let { stringResource(R.string.action_save_to, it.label) }
-                                        ?: stringResource(R.string.action_read_later),
+                                        ?: stringResource(R.string.action_save),
                             )
                         }
                         IconButton(onClick = actions.onShare) {
