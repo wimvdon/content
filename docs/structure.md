@@ -92,7 +92,7 @@ rss-reader/
 Saved and Instapaper (#107, #109, #119): `data/Saved.kt` (tabs, filters, folders),
 `data/ReadingLists.kt` (reading times, items as articles), `services/` (`ReadingListService`, `ServiceSync`, `ServiceManager`),
 `instapaper/` (client, sign-in, account, `InstapaperReadingList`, and the files of Saved before #106
-for the move-in), `ui/home/SavedContent.kt`, `ui/reader/ItemSheets.kt`,
+for the move-in), `ui/home/SavedContent.kt`, `ui/reader/ItemSheets.kt`, `ui/reader/SavedBar.kt` (the reader's place and tags menus, #156),
 `ui/feeds/TagsManage.kt`, `ui/settings/ServicesScreen.kt`. The web app: `web/src/lib/instapaper.ts`,
 `web/src/lib/saved.ts` (Saved: tabs, filters, folders, cards, like Android's `Saved.kt`), `web/src/lib/localSaved.ts` and `savedItems.ts` (Saved before #106, moved in once), `web/src/lib/serviceSync.ts` and `instapaperSync.ts` (Instapaper in the background),
 `web/src/components/SavedActions.tsx` and `SavedManage.tsx`, `worker/src/instapaper.ts`

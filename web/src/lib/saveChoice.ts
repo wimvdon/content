@@ -40,6 +40,20 @@ export function places(folders: string[], current: Place): Place[] {
   return [{ kind: "toread" }, { kind: "archive" }, ...folders.map((name): Place => ({ kind: "folder", name })), ...made];
 }
 
+/** The tag on or off (case ignored), as the reader's Tags menu does it (#156). */
+export function withTag(choice: SaveChoice, tag: string): SaveChoice {
+  const clean = tag.trim();
+  if (!clean) return choice;
+  const has = choice.tags.some((t) => same(t, clean));
+  return { ...choice, tags: has ? choice.tags.filter((t) => !same(t, clean)) : [...choice.tags, clean] };
+}
+
+/** What the reader's Tags button says (#156): the tags, else Liked, else null (just "Tags"). */
+export function tagsLabel(choice: SaveChoice, liked: string): string | null {
+  if (choice.tags.length > 0) return choice.tags.join(", ");
+  return choice.liked ? liked : null;
+}
+
 /** A folder typed under New folder: the folder of that name when there is one (case ignored), null when blank. */
 export function newFolder(name: string, folders: string[]): Place | null {
   const clean = name.trim();

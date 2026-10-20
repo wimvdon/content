@@ -141,10 +141,13 @@ website (the same as **Read on website** at the end). In the top bar:
 
 The bar at the bottom is the article in your library. Before it is saved it has one button,
 **Save**: it saves the article to **To read** (by default), or sends it to the app you chose or the
-share menu (see below). Once saved, the bar shows the **folder** it is in (tap it to **Organise**:
-the folder, the tags with Like, and the note), **♥ Like**, and **Archive**. **Archive** archives it
-at once and goes back to the list, with **Undo** in the message (it returns to where it was, in its
-folder); an archived article has **Back to read** instead. The text ends with **Read on website**.
+share menu (see below). Once saved, the bar has two buttons, grouped like the save sheet. On the left,
+**where it is** (To read, its folder or Archive): tap it for **To read** and **Archive**, then your
+folders and **New folder**. Picking **Archive** on the phone archives it and goes back to the list,
+with **Undo** in the message (it returns to where it was, in its folder); picking To read or a
+folder moves it there. On the right, **its tags** (or **Liked**, with a filled heart): tap it for
+**Like**, then your tags (a check shows the ones it has; tap to add or take one off) and **Add a
+tag**. New folder and Add a tag open **Organise**, where you can also write a note. The text ends with **Read on website**.
 Reader remembers how far you read and opens the article there again.
 
 After **Save**, the sheet that opens says where it was saved, then has the **Folder** (To read and
@@ -256,8 +259,8 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   **A folder looks like a page of notes**: cards in two columns, each with its picture, the title,
   your note (or else your first highlight, quoted, or else the article's description), the site,
   its tags and how many highlights it has.
-- In the reader, the bar at the bottom: the **folder** it is in (tap it to Organise: folder, tags with
-  Like, note), **♥** to like, and **Archive**. **Remove from Saved** is in ⋮; removing asks first and
+- In the reader, the bar at the bottom: **where it is** (To read and Archive, then your folders) and
+  **its tags** (Like, then your tags), each a menu. **Remove from Saved** is in ⋮; removing asks first and
   takes the note, tags and highlights with it (Archive keeps it searchable instead).
 - **☰ › Folders and tags**: every folder and every tag, with how many articles have it; tap one to
   rename it (renaming it to another one's name joins the two), or remove it: a tag from every

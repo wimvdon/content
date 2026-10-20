@@ -1,18 +1,24 @@
-import { Archive, ArchiveRestore, ChevronDown, Folder as FolderGlyph, Heart, ListPlus, Trash2 } from "lucide-react";
-import { app } from "@/lib/app";
+import { Archive, BookOpen, Check, ChevronDown, Folder as FolderGlyph, Heart, ListPlus, Plus, Tag, Trash2 } from "lucide-react";
+import { Fragment, useState } from "react";
+import { app, useApp } from "@/lib/app";
 import { t } from "@/lib/i18n";
 import type { Item } from "@/lib/items";
-import { folderOf } from "@/lib/saved";
+import { choiceOf, places, samePlace, tagsLabel, withTag, type Place } from "@/lib/saveChoice";
+import { savedFolders, tabTags } from "@/lib/saved";
 import { Button } from "./ui/button";
 import { cn } from "./ui/cn";
 import { Dialog } from "./ui/dialog";
 
 /**
- * The reader's library bar (#139), under the text: one Save before the article is saved; after,
- * its folder (which opens Organise: folder, tags with Like, note), Like and Archive (or Back to
- * read). The same as the Android app's bottom bar.
+ * The reader's library bar (#139, #156), under the text: one Save before the article is saved;
+ * after, two menus, as the Organise sheet groups it. **Folder** says where it is and offers To read
+ * and Archive, a divider, then the folders and New folder; **Tags** says its tags (or Liked) and
+ * offers Like, a divider, then the tags and Add a tag. New folder and Add a tag open Organise, the
+ * only place to type. The same as the Android app's bottom bar.
  */
 export function LibraryBar({ item, onSave }: { item: Item | null; onSave: (() => void) | null }) {
+  const { library } = useApp();
+  const [open, setOpen] = useState<"places" | "tags" | null>(null);
   if (!item) {
     if (!onSave) return null;
     return (
@@ -24,32 +30,104 @@ export function LibraryBar({ item, onSave }: { item: Item | null; onSave: (() =>
       </div>
     );
   }
-  const archived = item.readingList?.state === "archived";
-  const place = archived ? t("archiveTab") : (folderOf(item) ?? t("toRead"));
+  const choice = choiceOf(item);
+  const tags = tabTags(library, { kind: "all" });
+  const close = () => setOpen(null);
+  const organise = () => {
+    close();
+    app.openOrganise(item.key);
+  };
   return (
     <div className="flex items-center gap-1 border-t bg-muted/40 px-2 py-2">
-      <Button variant="ghost" onClick={() => app.openOrganise(item.key)} title={t("organiseTitle")} className="min-w-0">
-        <FolderGlyph />
-        <span className="truncate">{place}</span>
-        <ChevronDown />
-      </Button>
+      <div className="relative min-w-0">
+        <Button variant="ghost" onClick={() => setOpen(open === "places" ? null : "places")} aria-expanded={open === "places"} aria-haspopup="menu" title={t("folder")} className="max-w-full">
+          <PlaceIcon place={choice.place} />
+          <span className="truncate">{placeName(choice.place)}</span>
+          <ChevronDown />
+        </Button>
+        {open === "places" ? (
+          <Menu onClose={close}>
+            {places(savedFolders(library), choice.place).map((place) => (
+              <Fragment key={place.kind === "folder" ? `folder:${place.name}` : place.kind}>
+                <MenuChoice
+                  icon={<PlaceIcon place={place} />}
+                  label={placeName(place)}
+                  selected={samePlace(place, choice.place)}
+                  onClick={() => {
+                    close();
+                    if (!samePlace(place, choice.place)) app.organise(item.key, { ...choice, place });
+                  }}
+                />
+                {place.kind === "archive" ? <div className="my-1 h-px bg-border" aria-hidden="true" /> : null}
+              </Fragment>
+            ))}
+            <MenuChoice icon={<Plus />} label={t("newFolder")} onClick={organise} />
+          </Menu>
+        ) : null}
+      </div>
       <div className="flex-1" />
-      <Button
-        variant={item.liked ? "tonal" : "ghost"}
-        size="icon"
-        onClick={() => app.likeItem(item.key, !item.liked)}
-        aria-pressed={item.liked}
-        aria-label={item.liked ? t("unlike") : t("like")}
-        title={item.liked ? t("unlike") : t("like")}
-      >
-        <Heart className={cn(item.liked && "fill-current")} />
-      </Button>
-      {/* At once: the article just read is the one most often done with. */}
-      <Button variant="ghost" onClick={() => app.archiveItem(item.key, !archived)}>
-        {archived ? <ArchiveRestore /> : <Archive />}
-        {archived ? t("unarchive") : t("archive")}
-      </Button>
+      <div className="relative min-w-0">
+        <Button variant="ghost" onClick={() => setOpen(open === "tags" ? null : "tags")} aria-expanded={open === "tags"} aria-haspopup="menu" title={t("tags")} className="max-w-full">
+          {choice.liked ? <Heart className="fill-current text-primary" /> : <Tag />}
+          <span className="truncate">{tagsLabel(choice, t("liked")) ?? t("tags")}</span>
+          <ChevronDown />
+        </Button>
+        {open === "tags" ? (
+          <Menu onClose={close} alignEnd>
+            {/* Like and the tags leave the menu open: several can change at once. */}
+            <MenuChoice icon={<Heart className={cn(choice.liked && "fill-current")} />} label={t("like")} selected={choice.liked} onClick={() => app.likeItem(item.key, !choice.liked)} />
+            <div className="my-1 h-px bg-border" aria-hidden="true" />
+            {tags.map((tag) => (
+              <MenuChoice
+                key={tag}
+                icon={<Tag />}
+                label={tag}
+                selected={choice.tags.some((x) => x.toLowerCase() === tag.toLowerCase())}
+                onClick={() => app.organise(item.key, withTag(choice, tag))}
+              />
+            ))}
+            <MenuChoice icon={<Plus />} label={t("tagAdd")} onClick={organise} />
+          </Menu>
+        ) : null}
+      </div>
     </div>
+  );
+}
+
+function placeName(place: Place): string {
+  return place.kind === "toread" ? t("toRead") : place.kind === "archive" ? t("archiveTab") : place.name;
+}
+
+function PlaceIcon({ place }: { place: Place }) {
+  return place.kind === "toread" ? <BookOpen /> : place.kind === "archive" ? <Archive /> : <FolderGlyph />;
+}
+
+/** A menu above the bar, closed by a click outside it. */
+function Menu({ onClose, alignEnd, children }: { onClose: () => void; alignEnd?: boolean; children: React.ReactNode }) {
+  return (
+    <>
+      <div className="fixed inset-0 z-20" onClick={onClose} aria-hidden="true" />
+      <div role="menu" className={cn("absolute bottom-full z-30 mb-1 max-h-80 w-60 overflow-y-auto rounded-xl border bg-card py-1 shadow-lg", alignEnd ? "right-0" : "left-0")}>
+        {children}
+      </div>
+    </>
+  );
+}
+
+/** A menu line: its icon, its name, and a check when it is the one chosen (or on). */
+function MenuChoice({ icon, label, selected, onClick }: { icon: React.ReactNode; label: string; selected?: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      role={selected === undefined ? "menuitem" : "menuitemcheckbox"}
+      aria-checked={selected}
+      onClick={onClick}
+      className="flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left text-sm hover:bg-muted [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-muted-foreground"
+    >
+      {icon}
+      <span className="min-w-0 flex-1 truncate">{label}</span>
+      {selected ? <Check /> : null}
+    </button>
   );
 }
 
