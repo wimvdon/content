@@ -1,4 +1,4 @@
-import { Archive, Bookmark, BookOpen, CheckCheck, Folder as FolderGlyph, Heart, Highlighter, ListFilter, Menu, Newspaper, Quote, RefreshCw, Rss, Search, type LucideIcon } from "lucide-react";
+import { Archive, Bookmark, BookOpen, CheckCheck, Folder as FolderGlyph, Heart, Highlighter, Link2, ListFilter, Menu, Newspaper, Quote, RefreshCw, Rss, Search, type LucideIcon } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { app, useApp } from "@/lib/app";
 import { snippet } from "@/lib/html";
@@ -172,6 +172,9 @@ function SavedArticles({ openKey, onOpen, onMenu, onSearch }: { openKey: string 
         <div className="min-w-0 flex-1 px-2">
           <h1 className="truncate text-xl font-semibold">{t("saved")}</h1>
         </div>
+        <Button variant="ghost" size="icon" onClick={app.addLink} aria-label={t("addLink")} title={t("addLink")}>
+          <Link2 />
+        </Button>
         <TypeFilter type={filter.type} onChange={(type) => set({ type })} />
         <SearchButton onClick={onSearch} />
       </header>

@@ -234,7 +234,6 @@
     <string name="raindrop_problem_later">Raindrop.io bat, kurz zu warten. Der Rest folgt später.</string>
     <string name="source_instapaper">In Instapaper</string>
     <string name="source_raindrop">In Raindrop.io</string>
-    <string name="save_to_service">Speichern in</string>
     <string name="saved_remove_both_body">Instapaper und Raindrop.io behalten beide diesen Artikel. Entferne ihn aus beiden oder nur aus einem (dann bleibt er in Gespeichert, im anderen).</string>
     <string name="saved_remove_only_from">Nur aus %1$s</string>
     <string name="saved_remove_from_both">Aus beiden entfernen</string>
@@ -293,13 +292,13 @@
     </plurals>
     <string name="bookmarks_title">Lesezeichen</string>
     <string name="save_title">In Reader speichern</string>
+    <string name="organise_title">Ordnen</string>
     <string name="highlights_title">Markierungen</string>
     <string name="setting_tag_with_folder_title">Mit dem Ordner des Feeds taggen</string>
     <string name="setting_tag_with_folder_summary">Ein Artikel, den du aus einem Feed speicherst, bekommt den Namen seines Ordners als Tag.</string>
     <string name="saved_title">Gespeichert</string>
     <string name="saved_folders">Ordner</string>
     <string name="folder_field">Ordner</string>
-    <string name="folder_field_help">Leer lassen, um es in Zu lesen zu behalten.</string>
     <string name="file_in">In %1$s ablegen</string>
     <string name="action_file">Ablegen</string>
     <string name="file_title">In einem Ordner ablegen</string>

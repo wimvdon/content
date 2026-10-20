@@ -35,6 +35,9 @@ import androidx.lifecycle.repeatOnLifecycle
 import be.wimvandonck.reader.R
 import be.wimvandonck.reader.data.Item
 import be.wimvandonck.reader.data.ItemSearch
+import be.wimvandonck.reader.data.Place
+import be.wimvandonck.reader.data.SaveChoice
+import be.wimvandonck.reader.data.SaveChoices
 import be.wimvandonck.reader.data.Saved
 import be.wimvandonck.reader.data.SavedFilter
 import be.wimvandonck.reader.data.SavedTab
@@ -58,9 +61,7 @@ import be.wimvandonck.reader.ui.feeds.TagsManageScreen
 import be.wimvandonck.reader.ui.home.HomeSection
 import be.wimvandonck.reader.ui.home.SavedHome
 import be.wimvandonck.reader.ui.reader.SaveSheet
-import be.wimvandonck.reader.ui.reader.FinishChoice
-import be.wimvandonck.reader.ui.reader.FinishSheet
-import be.wimvandonck.reader.ui.reader.AddedSheet
+import be.wimvandonck.reader.ui.reader.SheetKind
 import be.wimvandonck.reader.ui.reader.ReaderItem
 import be.wimvandonck.reader.ui.reader.fontFamily
 import be.wimvandonck.reader.ui.settings.SaveServiceDialog
@@ -428,19 +429,24 @@ fun RssReaderNavigation() {
         }
     }
 
-    /** Saves a link from the save sheet (#119), says where it went, and fills in the page's title and picture. */
+    /** Where the sheet put an article, as the message says it: To read, the folder, or Archive. */
+    fun placeName(place: Place): String =
+        when (place) {
+            Place.ToRead -> resources.getString(R.string.reading_list_to_read)
+            Place.Archive -> resources.getString(R.string.reading_list_archive)
+            is Place.Folder -> place.name
+        }
+
+    /** Saves a link from the save sheet (#143), says where it went, and fills in the page's title and picture. */
     fun save(
         url: String,
         title: String?,
-        folder: String,
-        note: String,
-        tags: List<String>,
-        service: String? = null,
+        choice: SaveChoice,
     ) {
         app.appScope.launch {
             var saved: Item? = null
             repository.edit { library ->
-                val (updated, item) = Saved.save(library, url, title, System.currentTimeMillis(), folder, note, tags, service)
+                val (updated, item) = SaveChoices.saveNew(library, url, title, System.currentTimeMillis(), choice)
                 saved = item
                 if (item != null && current.tagWithFolder) updated.tagWithFeedFolder(item.key) else updated
             }
@@ -449,7 +455,7 @@ fun RssReaderNavigation() {
                 showMessage(resources.getString(R.string.add_link_invalid))
                 return@launch
             }
-            showMessage(resources.getString(R.string.saved_to, folder.trim().ifEmpty { resources.getString(R.string.reading_list_to_read) }))
+            showMessage(resources.getString(R.string.saved_to, placeName(choice.place)))
             repository.describe(item.key)
         }
     }
@@ -854,37 +860,22 @@ fun RssReaderNavigation() {
         }
     }
 
-    // Right after something goes on the reading list: like and tag it without leaving where you are.
-    val added = addedKey?.let { library.item(it) }
-    if (added != null) {
-        AddedSheet(
-            item = added,
-            allTags = library.itemTags(),
-            onLike = { editLibrary { it.setLiked(added.key, !added.liked) } },
-            onTags = { tags -> editLibrary { it.setTags(added.key, tags) } },
-            onDismiss = { addedKey = null },
-            folders = Saved.folders(library),
-            onFolder = { folder ->
-                editLibrary { Saved.file(it, added.key, folder) }
-                showMessage(resources.getString(R.string.saved_to, folder.ifEmpty { resources.getString(R.string.reading_list_to_read) }))
-            },
-        )
-    }
-
-    // Filing a saved item from the list (a swipe right): the same sheet as the reader's File.
-    val filing = fileKey?.let { library.item(it) }
-    if (filing != null) {
-        FinishSheet(
-            item = filing,
-            initial = FinishChoice.File,
+    // Right after something is saved (the reader, a swipe), or organising a saved one (a swipe
+    // right in Saved): the one sheet (#143), which writes what it says when it closes.
+    val sheetKey = addedKey ?: fileKey
+    val sheetItem = sheetKey?.let { library.item(it) }
+    if (sheetItem != null) {
+        SaveSheet(
+            kind = if (addedKey != null) SheetKind.JustSaved else SheetKind.Organise,
+            initial = SaveChoices.of(sheetItem),
             folders = Saved.folders(library),
             allTags = library.itemTags(),
-            onArchive = { archive(filing) },
-            onFile = { folder, note, tags ->
-                editLibrary { lib -> Saved.file(lib, filing.key, folder).changeItem(filing.key) { it.copy(note = note.trim()) }.setTags(filing.key, tags) }
-                showMessage(resources.getString(R.string.saved_to, folder.trim().ifEmpty { resources.getString(R.string.reading_list_to_read) }))
+            onSave = { _, choice -> editLibrary { SaveChoices.apply(it, sheetItem.key, choice) } },
+            onDismiss = {
+                addedKey = null
+                fileKey = null
             },
-            onDismiss = { fileKey = null },
+            key = sheetItem.key,
         )
     }
 
@@ -897,14 +888,14 @@ fun RssReaderNavigation() {
 
     if (saveOpen) {
         SaveSheet(
+            kind = SheetKind.New,
+            initial = SaveChoice(),
             url = saveUrl.ifEmpty { null },
             title = saveTitle,
             folders = Saved.folders(library),
             allTags = library.itemTags(),
-            onSave = { url, folder, note, tags, service -> save(url, saveTitle.takeIf { saveUrl.isNotEmpty() }, folder, note, tags, service) },
+            onSave = { url, choice -> url?.let { save(it, saveTitle.takeIf { saveUrl.isNotEmpty() }, choice) } },
             onDismiss = { saveOpen = false },
-            services = serviceStatuses.keys.toList(),
-            defaultService = app.services.defaultService(),
         )
     }
 

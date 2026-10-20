@@ -240,7 +240,6 @@
     <string name="raindrop_problem_later">Raindrop.io a demandé d’attendre un moment. Le reste suivra.</string>
     <string name="source_instapaper">Dans Instapaper</string>
     <string name="source_raindrop">Dans Raindrop.io</string>
-    <string name="save_to_service">Enregistrer dans</string>
     <string name="saved_remove_both_body">Instapaper et Raindrop.io gardent tous deux cet article. Retirez-le des deux, ou d’un seul (il reste alors dans Enregistrés, gardé dans l’autre).</string>
     <string name="saved_remove_only_from">Seulement de %1$s</string>
     <string name="saved_remove_from_both">Retirer des deux</string>
@@ -305,13 +304,13 @@
     </plurals>
     <string name="bookmarks_title">Signets</string>
     <string name="save_title">Enregistrer dans Reader</string>
+    <string name="organise_title">Organiser</string>
     <string name="highlights_title">Surlignages</string>
     <string name="setting_tag_with_folder_title">Taguer avec le dossier du flux</string>
     <string name="setting_tag_with_folder_summary">Un article enregistré depuis un flux reçoit le nom de son dossier comme tag.</string>
     <string name="saved_title">Enregistrés</string>
     <string name="saved_folders">Dossiers</string>
     <string name="folder_field">Dossier</string>
-    <string name="folder_field_help">Laissez vide pour le garder dans À lire.</string>
     <string name="file_in">Ranger dans %1$s</string>
     <string name="action_file">Ranger</string>
     <string name="file_title">Ranger dans un dossier</string>

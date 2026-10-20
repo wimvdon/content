@@ -2,6 +2,16 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-20: One save and Organise sheet, on Android and the web (#143)
+
+Saving, filing later and tagging an article used three sheets (`SaveSheet`, `AddedSheet`, the File
+half of `FinishSheet`) with a typed folder field and a help line. Now one `SaveSheet` serves every
+way in, in one order: what is saved (only before the save), the folder as chips (Archive only for a
+new save), the tags with Like in front, the note. Whether the save already happened decides the
+heading and Cancel. The rules are plain code (`SaveChoices` on Android, `saveChoice.ts` on the web),
+tested. The sheet no longer asks which service keeps the article: #145 answers that per folder.
+To read keeps its name. Rejected: one sheet per way in (the same question in three wordings).
+
 ## 2026-10-20: The web app's Saved works on the items directly, like Android's (#147)
 
 The web app's Saved still went through `LocalSaved`, Instapaper's shape (bookmarks with number ids,

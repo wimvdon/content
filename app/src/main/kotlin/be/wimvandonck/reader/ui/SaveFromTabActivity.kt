@@ -13,11 +13,15 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import be.wimvandonck.reader.R
 import be.wimvandonck.reader.data.Saved
 import be.wimvandonck.reader.data.Item
+import be.wimvandonck.reader.data.Place
+import be.wimvandonck.reader.data.SaveChoice
+import be.wimvandonck.reader.data.SaveChoices
 import be.wimvandonck.reader.data.itemTags
 import be.wimvandonck.reader.data.tagWithFeedFolder
 import be.wimvandonck.reader.instapaper.SharedLink
 import be.wimvandonck.reader.rssReaderApp
 import be.wimvandonck.reader.ui.reader.SaveSheet
+import be.wimvandonck.reader.ui.reader.SheetKind
 import be.wimvandonck.reader.ui.theme.RssReaderAppTheme
 import kotlinx.coroutines.launch
 
@@ -83,19 +87,20 @@ private fun SaveFromTab(
     val library = app.library.library.collectAsStateWithLifecycle().value ?: return
     val tagWithFolder = app.settings.settings.collectAsStateWithLifecycle().value?.tagWithFolder ?: true
 
-    // The save sheet, as for links shared to Reader (#108, #119): its folder, a note and tags.
+    // The one save sheet (#143), for a new save: the link, its folder (or Archive), Like, tags and a note.
     SaveSheet(
+        kind = SheetKind.New,
+        initial = SaveChoice(),
         url = link.url,
         title = link.title,
         folders = Saved.folders(library),
         allTags = library.itemTags(),
-        services = app.services.connected,
-        defaultService = app.services.defaultService(),
-        onSave = { url, folder, note, tags, service ->
+        onSave = { url, choice ->
+            if (url == null) return@SaveSheet
             app.appScope.launch {
                 var saved: Item? = null
                 app.library.edit { lib ->
-                    val (updated, item) = Saved.save(lib, url, link.title, System.currentTimeMillis(), folder, note, tags, service)
+                    val (updated, item) = SaveChoices.saveNew(lib, url, link.title, System.currentTimeMillis(), choice)
                     saved = item
                     if (item != null && tagWithFolder) updated.tagWithFeedFolder(item.key) else updated
                 }
@@ -104,7 +109,14 @@ private fun SaveFromTab(
                     if (item == null) {
                         resources.getString(R.string.add_link_invalid)
                     } else {
-                        resources.getString(R.string.saved_to, folder.trim().ifEmpty { resources.getString(R.string.reading_list_to_read) })
+                        resources.getString(
+                            R.string.saved_to,
+                            when (val place = choice.place) {
+                                Place.ToRead -> resources.getString(R.string.reading_list_to_read)
+                                Place.Archive -> resources.getString(R.string.reading_list_archive)
+                                is Place.Folder -> place.name
+                            },
+                        )
                     }
                 // The tab is back by then: the app's context outlives this screen.
                 Toast.makeText(app, message, Toast.LENGTH_SHORT).show()

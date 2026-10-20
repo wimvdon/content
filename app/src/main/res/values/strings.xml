@@ -235,7 +235,6 @@
     <string name="raindrop_problem_later">Raindrop.io asked to wait a moment. The rest goes later.</string>
     <string name="source_instapaper">In Instapaper</string>
     <string name="source_raindrop">In Raindrop.io</string>
-    <string name="save_to_service">Save to</string>
     <string name="saved_remove_both_body">Instapaper and Raindrop.io both keep this article. Remove it from both, or from one only (it then stays in Saved, kept in the other).</string>
     <string name="saved_remove_only_from">Only from %1$s</string>
     <string name="saved_remove_from_both">Remove from both</string>
@@ -294,13 +293,13 @@
     </plurals>
     <string name="bookmarks_title">Bookmarks</string>
     <string name="save_title">Save to Reader</string>
+    <string name="organise_title">Organise</string>
     <string name="highlights_title">Highlights</string>
     <string name="setting_tag_with_folder_title">Tag with the feed’s folder</string>
     <string name="setting_tag_with_folder_summary">An article you save from a feed gets its folder’s name as a tag.</string>
     <string name="saved_title">Saved</string>
     <string name="saved_folders">Folders</string>
     <string name="folder_field">Folder</string>
-    <string name="folder_field_help">Leave empty to keep it in To read.</string>
     <string name="file_in">File in %1$s</string>
     <string name="action_file">File</string>
     <string name="file_title">File in a folder</string>

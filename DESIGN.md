@@ -277,7 +277,14 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   File and Archive, and a tonal "Finished reading" button at the end of the text; each opens the
   Finished reading sheet (Archive / File in a folder as two radio rows with an icon and a line of
   help, then the folder field (empty: To read; folders in use as chips), note and tags; Cancel and the
-  action, "File in …", as buttons). The save sheet has the same folder field.
+  action, "File in …", as buttons).
+- One save and Organise sheet (#143), wherever you meet an article: a `ModalBottomSheet` with, in
+  this order, what is being saved (only before the save: the address field for Add link, or a shared
+  link's title and site), **Folder** as single-choice `FilterChip`s (To read, each folder, Archive
+  only for a new save, then a New folder `AssistChip`, the only thing to type), **Tags** in one row
+  like Saved's filter row (Like, a `VerticalDivider`, the tags as `InputChip`s, Add a tag), and
+  **Note** last, with the room. Section titles in Title Small, `primary`. Then Save, with Cancel only
+  when nothing is saved yet; the heading is "Save to Reader", "Saved to …" or "Organise".
 - The ☰ drawer: the Feeds section (All articles, the folders with their feeds, the other feeds),
   the Saved section (To read with its count, All, the folders with theirs, then Archive), then
   Manage feeds, Folders and tags, Connected services and Settings. Manage feeds shows what it manages with a pen (the

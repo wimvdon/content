@@ -240,7 +240,6 @@
     <string name="raindrop_problem_later">Raindrop.io pidió esperar un momento. El resto irá después.</string>
     <string name="source_instapaper">En Instapaper</string>
     <string name="source_raindrop">En Raindrop.io</string>
-    <string name="save_to_service">Guardar en</string>
     <string name="saved_remove_both_body">Instapaper y Raindrop.io guardan este artículo. Quítalo de ambos o solo de uno (entonces sigue en Guardados, en el otro).</string>
     <string name="saved_remove_only_from">Solo de %1$s</string>
     <string name="saved_remove_from_both">Quitar de ambos</string>
@@ -305,13 +304,13 @@
     </plurals>
     <string name="bookmarks_title">Marcadores</string>
     <string name="save_title">Guardar en Reader</string>
+    <string name="organise_title">Organizar</string>
     <string name="highlights_title">Resaltados</string>
     <string name="setting_tag_with_folder_title">Etiquetar con la carpeta del feed</string>
     <string name="setting_tag_with_folder_summary">Un artículo que guardas desde un feed recibe el nombre de su carpeta como etiqueta.</string>
     <string name="saved_title">Guardados</string>
     <string name="saved_folders">Carpetas</string>
     <string name="folder_field">Carpeta</string>
-    <string name="folder_field_help">Déjalo vacío para mantenerlo en Por leer.</string>
     <string name="file_in">Mover a %1$s</string>
     <string name="action_file">Mover</string>
     <string name="file_title">Mover a una carpeta</string>

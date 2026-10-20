@@ -138,9 +138,10 @@ returns to where it was, in its folder). **File** opens a sheet with the folder,
 folder**; File is chosen first when the article has highlights or a note. Reader remembers how far you
 read and opens the article there again.
 
-After **Read later**, the sheet that opens has **Like**, the **Folder** (empty: To read; type one or tap
-one you have) and **Tags**: one step from a feed article to its folder. The folder is set when you tap
-**Done** or close the sheet.
+After **Read later**, the sheet that opens says where it was saved, then has the **Folder** (To read,
+your folders, or **New folder** to make one), the **Tags** with **Like** in front, and a **Note**: one
+step from a feed article to its folder. **Save** keeps what you chose; closing the sheet keeps it too.
+The same sheet, called **Organise**, opens when you swipe a saved article right in Saved.
 
 **Full articles.** Many feeds contain only the start of an article, or a few paragraphs with a
 "Read full article" link. Then the reader fetches the
@@ -177,9 +178,10 @@ same, and what is in Saved is also kept in the connected service.
 
 **Saving from other apps.** In Chrome or any app that shares links, tap Share and pick
 **Reader**. Only the **Save to Reader** sheet opens, over the app you were in (the rest of Reader
-stays closed): the site, then the **Folder** (empty: To read; type one or tap one you have), a
-**Note** and **Tags** (and **Save to** with both services connected). **Save** saves it and says where
-it went, and you are back in that app; **Cancel** saves nothing. A
+stays closed): the site, then the **Folder** (To read, your folders, **Archive** for a link you keep
+for reference, or **New folder**), the **Tags** with **Like** in front, and a **Note**. **Save** saves
+it and says where it went, and you are back in that app; **Cancel** saves nothing. **Add link** in
+Saved opens the same sheet with a field for the address. A
 link shared without a title gets the page's own title, description and picture. Shared text without
 a web link says "No link to save".
 
@@ -249,9 +251,10 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
 - **☰ › Folders and tags**: every folder and every tag, with how many articles have it; tap one to
   rename it (renaming it to another one's name joins the two), or remove it: a tag from every
   article, a folder from its articles (they go back to To read).
-- **In the web app** Saved is the same: the same tabs, chips, type filter and cards. In a saved
-  article the buttons at the top like it, archive it (or put it back to read), file it in a folder,
-  tag it, write its **note**, or remove it from Saved.
+- **In the web app** Saved is the same: the same tabs, chips, type filter and cards, and **Add link**
+  (the link button next to the type filter). In a saved article the buttons at the top like it,
+  archive it (or put it back to read), **Organise** it (the same sheet: folder, tags with Like, note),
+  or remove it from Saved. **Save** on a feed article opens the same sheet after saving it.
 - **☰ › Connected services**: which service each section is connected to. Saved can be connected to
   Instapaper, Raindrop.io or both; feeds are Reader's own.
 - Bookmarks from before Saved moved into folders once: each into its collection's folder, the ones
@@ -299,7 +302,7 @@ the other unless you ask. Saved shows both, with a small mark on each article: a
 Instapaper, a **drop** for Raindrop.
 
 - The first time both are connected, Reader asks where new saves go; change it later in Connected
-  services › **New saves go to**, or for one save with **Save to** in the save sheet.
+  services › **New saves go to**.
 - An article in both shows once. Connected services › **Articles in both** chooses what reaches both
   copies: Archive, Liked and Tags (on), Folder (off).
 - Removing an article both keep asks: from both, or from one only (it then stays in Saved).
