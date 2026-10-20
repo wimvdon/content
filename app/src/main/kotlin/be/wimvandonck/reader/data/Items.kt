@@ -60,8 +60,8 @@ data class Item(
      */
     val folder: String? = null,
     /**
-     * The service it is kept in (#112, #121): "instapaper", "raindrop", or null while it is in none
-     * yet (it then goes to the default service). Nothing is copied from one service to another.
+     * The service it was kept in before #145 (#112, #121). No longer used: an item reaches every
+     * service whose scope covers it. Kept so the sync file stays the same on both platforms.
      */
     val service: String? = null,
     /** Bookmarks before #119; moved into folders when read (see [Saved.settle]). */

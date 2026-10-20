@@ -209,6 +209,7 @@ class InstapaperClient(
                 tags = (map["tags"] as? List<*>).orEmpty().mapNotNull(::parseTag),
                 imageUrl = (map["image"] as? String)?.takeIf { it.startsWith("https://") },
                 progress = (((map["progress"] as? Map<*, *>)?.get("percentage") as? Number)?.toFloat() ?: 0f).coerceIn(0f, 1f),
+                progressAt = ((map["progress"] as? Map<*, *>)?.get("timestamp")).asLong() ?: map["progress_timestamp"].asLong() ?: 0L,
             )
         }
 

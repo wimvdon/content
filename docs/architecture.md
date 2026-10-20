@@ -119,11 +119,14 @@ helpers), `InstapaperAuth` (sign-in address, callback parsing, token swap throug
 `InstapaperAccount` (the token in its own DataStore file). `raindrop/` is the same for Raindrop.io
 (#112): `RaindropSaved` (collections as folders, an Archive collection, the whole account listed each
 time as it has no `since`), `RaindropClient`, `RaindropAuth` (OAuth 2 through the Worker) and
-`RaindropAccount`. With both connected (#121) every item remembers its service (`Item.service`):
-`ServiceSync` sends an item only to its own service, new ones to the default (`Settings.saveService`,
-asked once or picked per save), so nothing is copied between them; an article both have is the first
-one's, and the other's copy only shares what `DuplicateSync` says (`ServiceSync.share`).
-`ServiceManager` waits until both accounts are read before the first sync, keeps which service has
-each item (`presence`, for the marks in Saved), removes from one service only (`removeFrom`) and
-runs the opt-in copy (`ServiceCopy`). `ui/settings/ServicesScreen.kt` shows the connected services. See
+`RaindropAccount`. Reader is the library and a service is somewhere it is also kept (#145): each
+service has a scope (`data/ServiceScope.kt`: everything in Saved, or some folders, a synced
+setting), and an item reaches every service whose scope covers it. Connecting waits for an import
+(`ServiceSync.import`, once: everything or some folders, each article where it belongs); then
+`ServiceSync.run` keeps the scope in step per field (rows are what was last seen or sent, so a value
+is never sent back right after it came in; both sides changed, the later change wins). Leaving the
+scope archives an article there, never deletes it. Raindrop's nested collections keep their origin
+(`ServiceState.origins`). `ServiceManager` runs the import, the syncs, the count before a scope
+change (`leaving`) and removing from one service only (`removeFrom`). `ui/settings/ServicesScreen.kt`
+lists the services; `ServiceScreen` is one service's account, import and scope. See
 `instapaper.md` and `raindrop.md`.

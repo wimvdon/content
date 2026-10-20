@@ -1,12 +1,13 @@
 package be.wimvandonck.reader.services
 
-import be.wimvandonck.reader.data.DuplicateSync
 import be.wimvandonck.reader.data.Item
 import be.wimvandonck.reader.data.ItemKeys
 import be.wimvandonck.reader.data.Library
 import be.wimvandonck.reader.data.ReadingListEntry
 import be.wimvandonck.reader.data.ReadingState
 import be.wimvandonck.reader.data.Saved
+import be.wimvandonck.reader.data.ServiceImport
+import be.wimvandonck.reader.data.ServiceScope
 import be.wimvandonck.reader.data.changeItem
 import be.wimvandonck.reader.data.cleanTags
 import be.wimvandonck.reader.data.item
@@ -17,126 +18,153 @@ import be.wimvandonck.reader.sync.SyncRows
 import kotlin.math.abs
 
 /**
- * What this device last saw of the reading list at a service: the service's cursor and each
- * article as the service had it, by item key (the base for merging, with its id there).
+ * What this device last saw at a service: the service's cursor, each article as the service had it
+ * by item key (what was last seen or sent: the base for merging, with its id there and whether it is
+ * in step with Reader), and where each folder came from there ([ReadingListService.origins]).
  */
 data class ServiceState(
     val cursor: String? = null,
     val rows: Map<String, RemoteEntry> = emptyMap(),
+    val origins: Map<String, String> = emptyMap(),
 )
 
 /** How a service sync ended: the state to keep, and why it stopped early (null when it got through). */
 data class ServiceSyncResult(
     val state: ServiceState,
     val problem: ServiceProblem?,
+    /** How many articles an import brought in. */
+    val imported: Int = 0,
 )
 
 /**
- * Keeps the reading list and a connected service the same (#109): reads what changed at the service
- * since last time and merges it three ways with the article as last seen there and Reader's own
- * (the same rules as per-item sync: a change on one side wins, both changed, Reader wins, an edit
- * beats a removal; tags as a set), then sends the service what changed in Reader. A membership
- * change only calls this section's service. A failed call keeps Reader's data as it is and is tried
- * again on the next sync. Plain Kotlin, tested with a fake service.
+ * Keeps Saved and a connected service in step within the service's scope (#109, #145). Reader is
+ * the library; a service is somewhere it is also kept. Per field: what changed here is sent, what
+ * changed there comes in, and when the same field changed on both sides between two rounds the later
+ * change wins. A value is never sent just because the two sides differ, and never sent back right
+ * after it came in, because each row is what was last seen or sent there. An article that leaves the
+ * scope is archived there, never deleted; one removed from Reader is removed there. Connecting starts
+ * with [import], once. A failed call keeps Reader's data as it is and is tried again on the next
+ * sync. Plain Kotlin, tested with a fake service.
  */
 object ServiceSync {
     suspend fun run(
         service: ReadingListService,
         state: ServiceState,
-        /** New items kept in no service yet go to this one (the default service for saves, #121). */
-        isDefault: Boolean = true,
+        scope: ServiceScope = ServiceScope.Everything,
         /** False for the quick sync after a change here (see [ReadingListService.changes]). */
         full: Boolean = true,
-        /** What a copy of another service's item shares with it (#121). */
-        shared: DuplicateSync = DuplicateSync(),
-        /** Items other connected services have, with one such service's id (#121). */
-        elsewhere: Map<String, String> = emptyMap(),
+        /** When each item last changed here, by key, for "the later change wins". */
+        editedAt: Map<String, Long> = emptyMap(),
+        /** Items other connected services keep in step, by key: a deletion in this one leaves them in Saved. */
+        elsewhere: Set<String> = emptySet(),
         update: suspend ((Library) -> Library) -> Library,
     ): ServiceSyncResult {
         val rows = HashMap(state.rows)
         var cursor = state.cursor
         val progress = ServiceFeature.Progress in service.features
         val notes = ServiceFeature.Notes in service.features
+        if (service.origins.isEmpty()) service.origins = state.origins
+        fun result(problem: ServiceProblem?) = ServiceSyncResult(ServiceState(cursor, rows, service.origins.ifEmpty { state.origins }), problem)
         try {
             val changes = service.changes(cursor, full)
-            update { library -> takeIn(library, rows, changes, progress, service.id, shared, elsewhere) }
+            // A first look without an import record here (another device imported): what isn't in
+            // Reader yet stays there, as it would after that import.
+            val adopt = cursor != null
+            update { library -> takeIn(library, rows, changes, progress, scope, adopt, editedAt, elsewhere) }
             cursor = changes.cursor
         } catch (e: ServiceException) {
-            return ServiceSyncResult(ServiceState(cursor, rows), e.problem)
+            return result(e.problem)
         }
-        // What this service already has (synced before items knew their service) is its own.
-        var library =
-            update { lib ->
-                val unclaimed = lib.items.filter { it.service == null && it.readingList != null && it.key in rows }
-                unclaimed.fold(lib) { acc, item -> acc.changeItem(item.key) { it.copy(service = service.id) } }
-            }
         try {
+            var library = update { it }
             for (item in library.items) {
                 if (item.readingList == null) continue
                 val have = rows[item.key]
-                // Only what belongs to this service goes there: nothing is copied between services (#121).
-                if (have == null && item.service != service.id && !(item.service == null && isDefault)) continue
-                val own = entryOf(item, have?.remoteId.orEmpty(), notes)
-                // A copy of another service's item gets only what the two copies share.
-                val want = if (have != null && isCopy(item, service.id)) share(shared, own, have) else own
-                if (have == null) {
-                    var added = service.add(item.url, item.title, item.tags, item.archived, Saved.folderOf(item), if (notes) item.note else "")
-                    // Kept there now: no other service takes it.
-                    if (item.service == null) library = update { lib -> lib.changeItem(item.key) { if (it.service == null) it.copy(service = service.id) else it } }
-                    var target = want.copy(remoteId = added.remoteId)
-                    // Saved without a title (its address stands in): the service's title is better.
-                    if (item.title == item.url && added.title.isNotBlank() && added.title != item.url) {
-                        target = target.copy(title = added.title)
-                        library =
-                            update { lib ->
-                                lib.changeItem(item.key) { i ->
-                                    if (i.title != i.url) i else i.copy(title = added.title, description = i.description.ifBlank { added.description }, imageUrl = i.imageUrl ?: added.imageUrl)
-                                }
-                            }
+                val inScope = scope.covers(item)
+                when {
+                    have != null && have.linked && !inScope -> {
+                        // Left the scope: archived there, which is what filing it elsewhere meant here.
+                        rows[item.key] = (if (have.archived) have else service.update(have, have.copy(archived = true, folder = null))).copy(linked = false)
                     }
-                    if (!sameCore(added, target, progress)) added = service.update(added, target)
-                    rows[item.key] = added
-                } else if (!sameCore(have, want, progress)) {
-                    rows[item.key] = service.update(have, want)
+                    !inScope -> Unit
+                    have == null -> {
+                        var added = service.add(item.url, item.title, item.tags, item.archived, Saved.folderOf(item), if (notes) item.note else "")
+                        var target = entryOf(item, added.remoteId, notes)
+                        // Saved without a title (its address stands in): the service's title is better.
+                        if (item.title == item.url && added.title.isNotBlank() && added.title != item.url) {
+                            target = target.copy(title = added.title)
+                            library =
+                                update { lib ->
+                                    lib.changeItem(item.key) { i ->
+                                        if (i.title != i.url) i else i.copy(title = added.title, description = i.description.ifBlank { added.description }, imageUrl = i.imageUrl ?: added.imageUrl)
+                                    }
+                                }
+                        }
+                        if (!sameCore(added, target, progress)) added = service.update(added, target)
+                        rows[item.key] = added.copy(linked = true)
+                    }
+                    else -> {
+                        // In step (again): only what differs from what was last seen or sent goes.
+                        val want = entryOf(item, have.remoteId, notes)
+                        rows[item.key] = (if (sameCore(have, want, progress)) have else service.update(have, want)).copy(linked = true)
+                    }
                 }
             }
             library = update { it }
-            val gone = rows.keys.filter { library.item(it)?.readingList == null }
-            // A safety net: a reading list that lost most of its articles at once is more likely a
-            // damaged library than the user's wish, so nothing is removed at the service then.
-            if (gone.size > MAX_SAFE_REMOVALS && gone.size * 2 > rows.size) return ServiceSyncResult(ServiceState(cursor, rows), ServiceProblem.Refused)
+            val gone = rows.filter { (key, row) -> row.linked && library.item(key)?.readingList == null }.keys
+            // A safety net: a library that lost most of its articles at once is more likely damaged
+            // than the user's wish, so nothing is removed at the service then.
+            val linked = rows.values.count { it.linked }
+            if (gone.size > MAX_SAFE_REMOVALS && gone.size * 2 > linked) return result(ServiceProblem.Refused)
             for (key in gone) {
                 service.remove(rows.getValue(key).remoteId)
                 rows.remove(key)
             }
         } catch (e: ServiceException) {
-            return ServiceSyncResult(ServiceState(cursor, rows), e.problem)
+            return result(e.problem)
         }
-        return ServiceSyncResult(ServiceState(cursor, rows), null)
+        return result(null)
     }
 
-    /** True when [item] is kept in another service and [serviceId] has a copy of it (#121). */
-    fun isCopy(
-        item: Item,
-        serviceId: String?,
-    ): Boolean = item.service != null && serviceId != null && item.service != serviceId
-
     /**
-     * [keep] with the fields the two copies of an article share taken from [from] (#121): archive,
-     * like, tags and folder as [shared] says; an archived one is in no folder.
+     * Brings in what the service has, once, when it is connected (#145): everything, or what
+     * [what] picks. Each article arrives where it belongs, as it is (archived in the Archive, a
+     * collection in its folder, liked, its tags and note); one Reader has already keeps its own
+     * values and gains the service's tags. What isn't imported is remembered as seen, so it stays
+     * there until it changes. Afterwards [run] keeps the scope in step.
      */
-    fun share(
-        shared: DuplicateSync,
-        from: RemoteEntry,
-        keep: RemoteEntry,
-    ): RemoteEntry {
-        val archived = if (shared.archive) from.archived else keep.archived
-        return keep.copy(
-            archived = archived,
-            liked = if (shared.liked) from.liked else keep.liked,
-            tags = if (shared.tags) from.tags else keep.tags,
-            folder = if (archived) null else if (shared.folder) from.folder else keep.folder,
-        )
+    suspend fun import(
+        service: ReadingListService,
+        state: ServiceState,
+        what: ServiceImport,
+        update: suspend ((Library) -> Library) -> Library,
+    ): ServiceSyncResult {
+        val rows = HashMap(state.rows)
+        val progress = ServiceFeature.Progress in service.features
+        if (service.origins.isEmpty()) service.origins = state.origins
+        var count = 0
+        try {
+            val changes = service.changes(null, full = true)
+            update { library ->
+                var result = library
+                for (remote in changes.entries) {
+                    val key = ItemKeys.of(remote.url) ?: continue
+                    if (!what.includes(remote.folder, remote.archived)) {
+                        if (rows[key]?.linked != true) rows[key] = remote.copy(linked = false)
+                        continue
+                    }
+                    val item = result.item(key)
+                    val local = item?.takeIf { it.readingList != null }?.let { entryOf(it, remote.remoteId, remote.note != null) }
+                    result = put(result, key, item, if (local != null) merge(null, local, remote, progress) else remote, remote)
+                    rows[key] = remote.copy(linked = true)
+                    count++
+                }
+                result
+            }
+            return ServiceSyncResult(ServiceState(changes.cursor, rows, service.origins), null, count)
+        } catch (e: ServiceException) {
+            return ServiceSyncResult(state, e.problem)
+        }
     }
 
     /** A saved item as a service entry (the core only; its note when the service keeps notes). */
@@ -189,16 +217,18 @@ object ServiceSync {
 
     /**
      * The library after taking in what changed at the service; [rows] then holds the service's
-     * articles as seen now.
+     * articles as seen now. Only what changed there comes in, and only within [scope]; a new
+     * article there is taken in when [adopt].
      */
     fun takeIn(
         library: Library,
         rows: MutableMap<String, RemoteEntry>,
         changes: RemoteChanges,
         progress: Boolean,
-        serviceId: String? = null,
-        shared: DuplicateSync = DuplicateSync(),
-        elsewhere: Map<String, String> = emptyMap(),
+        scope: ServiceScope = ServiceScope.Everything,
+        adopt: Boolean = true,
+        editedAt: Map<String, Long> = emptyMap(),
+        elsewhere: Set<String> = emptySet(),
     ): Library {
         var result = library
         val byRemoteId = rows.entries.associate { (key, entry) -> entry.remoteId to key }
@@ -209,58 +239,95 @@ object ServiceSync {
             val key = byRemoteId[remote.remoteId] ?: ItemKeys.of(remote.url) ?: continue
             val base = rows[key]
             val item = result.item(key)
-            val local = item?.takeIf { it.readingList != null }?.let { entryOf(it, remote.remoteId, remote.note != null) }
-            val merged: RemoteEntry? =
-                when {
-                    // A copy of another service's item: only what the copies share comes in.
-                    local != null && isCopy(item, serviceId) -> share(shared, merge(base, local, remote, progress), local).takeIf { !sameCore(it, local, progress) }
-                    local != null -> merge(base, local, remote, progress)
-                    // Taken off the reading list here and not sent yet: it stays off, unless the service changed it since.
-                    base != null && sameCore(base, remote, progress) -> null
-                    else -> remote
+            val saved = item?.takeIf { it.readingList != null }
+            val linked = base?.linked == true
+            val changedThere = base == null || !sameCore(base, remote, progress)
+            val landsInScope = scope.coversPlace(remote.folder, remote.archived)
+            var link = linked
+            when {
+                // In step: per field, what changed there comes in.
+                saved != null && linked -> {
+                    val local = entryOf(saved, remote.remoteId, remote.note != null)
+                    val remoteLater = remote.changedAt > 0 && remote.changedAt > (editedAt[key] ?: 0L)
+                    result = put(result, key, saved, merge(base, local, remote, progress, remoteLater), remote)
                 }
-            if (merged != null) result = put(result, key, item, merged, remote, serviceId)
-            rows[key] = remote
+                // The same link in both, not in step yet: it joins when Reader's is in the scope.
+                saved != null -> {
+                    if (scope.covers(saved)) {
+                        result = put(result, key, saved, merge(null, entryOf(saved, remote.remoteId, remote.note != null), remote, progress), remote)
+                        link = true
+                    }
+                }
+                // Taken out of Saved here and not sent yet: it stays out, unless it changed there since.
+                linked -> if (changedThere) result = put(result, key, item, remote, remote) else Unit
+                // Seen there before but not in step (not imported, or left the scope): only a change
+                // there that lands in the scope brings it in.
+                base != null -> {
+                    if (changedThere && landsInScope) {
+                        result = put(result, key, item, remote, remote)
+                        link = true
+                    }
+                }
+                // New there.
+                else -> {
+                    if (adopt && landsInScope) {
+                        result = put(result, key, item, remote, remote)
+                        link = true
+                    }
+                }
+            }
+            rows[key] = remote.copy(linked = link)
         }
         for (gone in deleted.distinct()) {
             val key = byRemoteId[gone] ?: continue
             val base = rows.remove(key) ?: continue
+            if (!base.linked) continue
             val item = result.item(key) ?: continue
             if (item.readingList == null) continue
-            // Deleted from a copy: the item stays, kept in its own service (#121).
-            if (isCopy(item, serviceId)) continue
-            // Changed here since: the edit stays (and is saved again); otherwise it leaves the reading list.
+            // Changed here since: the edit stays (and is saved again); otherwise it leaves Saved.
             if (!sameCore(base, entryOf(item, base.remoteId, base.note != null), progress)) continue
-            // Another service still has it: it stays in Saved, kept there now; nothing is deleted
-            // in the other service by a deletion in this one.
-            val other = elsewhere[key]
-            if (other != null && other != serviceId) {
-                result = result.putItem(item.copy(service = other))
-                continue
-            }
+            // Another service keeps it in step: it stays in Saved, and nothing is deleted there.
+            if (key in elsewhere) continue
             result = result.putItem(if (item.bookmark != null) item.copy(readingList = null) else item.copy(readingList = null, liked = false, tags = emptyList()))
         }
         return result
     }
 
-    /** Three-way merge of the core: a change on one side wins; both changed, Reader's. */
+    /**
+     * Three-way merge of the core: a field changed on one side takes that side's value; changed on
+     * both, the later change wins ([remoteLater]: the service's; otherwise Reader's). Tags as a set.
+     */
     fun merge(
         base: RemoteEntry?,
         local: RemoteEntry,
         remote: RemoteEntry,
         progress: Boolean,
+        remoteLater: Boolean = false,
     ): RemoteEntry {
         fun <T> pick(
             b: T?,
             l: T,
             r: T,
-        ): T = if (l == b) r else l
+        ): T =
+            when {
+                l == b -> r
+                r == b || b == null -> l
+                remoteLater -> r
+                else -> l
+            }
+        val folder =
+            when {
+                local.folder.equals(base?.folder, ignoreCase = true) -> remote.folder
+                remote.folder.equals(base?.folder, ignoreCase = true) || base == null -> local.folder
+                remoteLater -> remote.folder
+                else -> local.folder
+            }
         return local.copy(
             title = pick(base?.title, local.title, remote.title),
             archived = pick(base?.archived, local.archived, remote.archived),
             liked = pick(base?.liked, local.liked, remote.liked),
             tags = SyncRows.mergeTags(base?.tags.orEmpty(), local.tags, remote.tags),
-            folder = if (local.folder.equals(base?.folder, ignoreCase = true)) remote.folder else local.folder,
+            folder = folder,
             note = if (local.note == null || remote.note == null) local.note else pick(base?.note, local.note, remote.note),
             progress = if (progress) pick(base?.progress, local.progress, remote.progress) else local.progress,
         ).let { if (it.archived) it.copy(folder = null) else it }
@@ -272,10 +339,9 @@ object ServiceSync {
         item: Item?,
         entry: RemoteEntry,
         remote: RemoteEntry,
-        serviceId: String? = null,
     ): Library {
         val base = item ?: library.newItem(remote.url, remote.title, remote.addedAt, remote.description, remote.imageUrl)?.copy(key = key) ?: return library
-        return library.putItem(
+        val updated =
             base.copy(
                 title = entry.title.ifBlank { base.title },
                 description = base.description.ifBlank { remote.description },
@@ -285,11 +351,9 @@ object ServiceSync {
                 tags = cleanTags(entry.tags),
                 folder = entry.folder.takeIf { !entry.archived },
                 note = entry.note ?: base.note,
-                // Kept in this service from now on, unless it is saved in another already (a duplicate).
-                service = (if (base.readingList != null) base.service else null) ?: serviceId,
                 progress = entry.progress.coerceIn(0f, 1f),
-            ),
-        )
+            )
+        return if (updated == item) library else library.putItem(updated)
     }
 }
 
@@ -309,8 +373,18 @@ object ServiceRows {
                 "folder" to e.folder,
                 "note" to e.note,
                 "extra" to e.extra,
+                "changedAt" to e.changedAt,
+                "linked" to e.linked,
             ),
         )
+
+    /** Where each folder came from at the service ([ServiceState.origins]), as stored. */
+    fun encodeOrigins(origins: Map<String, String>): String = Json.write(origins)
+
+    fun decodeOrigins(text: String?): Map<String, String> {
+        val m = text?.takeIf { it.isNotEmpty() }?.let { runCatching { Json.parse(it) }.getOrNull() } as? Map<*, *> ?: return emptyMap()
+        return m.entries.mapNotNull { (k, v) -> (k as? String)?.let { name -> (v as? String)?.let { name to it } } }.toMap()
+    }
 
     fun decode(text: String): RemoteEntry? {
         val m = runCatching { Json.parse(text) }.getOrNull() as? Map<*, *> ?: return null
@@ -326,6 +400,9 @@ object ServiceRows {
             folder = (m["folder"] as? String)?.ifEmpty { null },
             note = m["note"] as? String,
             extra = m["extra"] as? String,
+            changedAt = (m["changedAt"] as? Number)?.toLong() ?: 0L,
+            // Rows from before #145 were all in step.
+            linked = m["linked"] != false,
         )
     }
 }

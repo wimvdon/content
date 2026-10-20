@@ -68,6 +68,7 @@ class InstapaperReadingList(
             tags = tags,
             folder = folder,
             progress = b.progress,
+            changedAt = b.progressAt * 1000,
         )
     }
 
@@ -131,6 +132,11 @@ class InstapaperReadingList(
             }
             want.copy(remoteId = have.remoteId, addedAt = have.addedAt, folder = want.folder.takeIf { !want.archived })
         }
+
+    override suspend fun folders(): List<String> = guarded { client.folders().map { it.title }.sortedBy { it.lowercase() } }
+
+    /** Instapaper's folders are flat: a name is enough to find one again. */
+    override var origins: Map<String, String> = emptyMap()
 
     override suspend fun remove(remoteId: String) =
         guarded {

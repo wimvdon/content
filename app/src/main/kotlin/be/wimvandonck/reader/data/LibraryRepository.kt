@@ -200,7 +200,7 @@ class LibraryRepository(
     /** What this device last saw of the reading list at [service] (services/ServiceSync.kt). */
     suspend fun serviceState(service: String): ServiceState {
         val rows = dao.serviceRows(service).mapNotNull { row -> ServiceRows.decode(row.data)?.let { row.itemKey to it } }.toMap()
-        return ServiceState(dao.meta("$service-cursor"), rows)
+        return ServiceState(dao.meta("$service-cursor"), rows, ServiceRows.decodeOrigins(dao.meta("$service-origins")))
     }
 
     /** Stores [next] after a service sync that started from [previous]; null forgets the service (signed out). */
@@ -215,7 +215,7 @@ class LibraryRepository(
         }
         val put = next.rows.filter { (key, entry) -> previous.rows[key] != entry }.map { (key, entry) -> ServiceRowRow(service, key, ServiceRows.encode(entry)) }
         val delete = previous.rows.keys.filter { it !in next.rows }
-        dao.writeServiceRows(service, put, delete, next.cursor ?: "")
+        dao.writeServiceRows(service, put, delete, next.cursor ?: "", ServiceRows.encodeOrigins(next.origins).takeIf { next.origins != previous.origins })
     }
 
     /** Forgets what was synced of the items (signed out, or another account). */

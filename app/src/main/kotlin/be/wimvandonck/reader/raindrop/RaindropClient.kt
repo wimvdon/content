@@ -27,6 +27,8 @@ data class Raindrop(
     val tags: List<String>,
     /** -1 is Unsorted, -99 the trash, otherwise a collection. */
     val collectionId: Long,
+    /** When it last changed, in milliseconds (0 when Raindrop doesn't say). */
+    val lastUpdate: Long = 0,
 )
 
 /** A Raindrop.io collection; [parentId] is null for a top-level one. */
@@ -179,6 +181,7 @@ class RaindropClient(
                 important = m["important"] == true,
                 tags = (m["tags"] as? List<*>).orEmpty().filterIsInstance<String>(),
                 collectionId = idOf(m["collection"]) ?: m["collectionId"].asLong() ?: -1L,
+                lastUpdate = (m["lastUpdate"] as? String)?.let { runCatching { Instant.parse(it).toEpochMilli() }.getOrNull() } ?: 0L,
             )
         }
 

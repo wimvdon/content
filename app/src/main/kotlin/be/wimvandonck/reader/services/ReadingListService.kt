@@ -55,6 +55,14 @@ data class RemoteEntry(
     val progress: Float = 0f,
     /** A detail only the service uses, kept with what was last seen. */
     val extra: String? = null,
+    /** When it last changed there, in milliseconds; 0 when the service doesn't say (#145: the later change wins). */
+    val changedAt: Long = 0,
+    /**
+     * In a row of what was last seen: true while it is in step with an article in Reader (in the
+     * service's scope, #145), false for one seen there but not imported, or archived there when it
+     * left the scope.
+     */
+    val linked: Boolean = true,
 )
 
 /** What changed at the service since a cursor. */
@@ -71,7 +79,7 @@ data class RemoteChanges(
 )
 
 /**
- * A service the reading list can be connected to (#109): Instapaper now, others later. Only
+ * A service Saved can be connected to (#109, #145): Instapaper and Raindrop.io. Only
  * implementations know a service's specifics; [ServiceSync] keeps Reader's reading list and the
  * service the same through these calls. Tests use a fake.
  */
@@ -108,4 +116,15 @@ interface ReadingListService {
 
     /** Takes the article off the service's list. */
     suspend fun remove(remoteId: String)
+
+    /** The service's folders by name, for choosing what to import (#145). */
+    suspend fun folders(): List<String>
+
+    /**
+     * Where each of Reader's folder names came from at the service, as an id there (#145): a
+     * nested collection arrives flat ("Research / Media"), and this keeps the link to it, so filing
+     * an article there later lands it in that collection. Read and set by [ServiceSync] around a
+     * sync, so it holds across restarts.
+     */
+    var origins: Map<String, String>
 }

@@ -1,13 +1,18 @@
 package be.wimvandonck.reader.sync
 
+import be.wimvandonck.reader.data.ServiceImport
+import be.wimvandonck.reader.data.ServiceScope
 import be.wimvandonck.reader.data.Settings
+import be.wimvandonck.reader.data.scopeOf
 
 /**
  * The settings in the sync file: shared names with text values, the same on Android and in the
  * web app (docs/sync.md). Each app reads the names it knows and keeps the others as they are, so a
  * setting only one of them has survives a sync by the other.
  *
- * Only settings about what the app does are synced (Load full articles, Mark as read on scroll).
+ * Only settings about what the app does are synced (Load full articles, Mark as read on scroll, and
+ * what each connected service syncs and what was imported from it, #145: "services.<id>.scope" and
+ * "services.<id>.imported").
  * How it looks stays on each device (#96): the theme, dynamic colour, the reader's font, size,
  * spacing and page colour, Show images and the list view, since people often want a different
  * view on a phone, a tablet and a computer. Older versions synced those as [DROPPED_VIEW]; the
@@ -32,7 +37,14 @@ object SyncSettings {
             "reader.autoDark", "showImages", "listView",
         )
 
-    private val known = setOf(FULL_ARTICLES, MARK_READ_ON_SCROLL)
+    /** The services whose scope and import record travel with the account (#145). */
+    val SERVICES = listOf("instapaper", "raindrop")
+
+    fun scopeName(service: String) = "services.$service.scope"
+
+    fun importName(service: String) = "services.$service.imported"
+
+    private val known = setOf(FULL_ARTICLES, MARK_READ_ON_SCROLL) + SERVICES.map(::scopeName)
 
     private fun dropped(name: String) = name == DROPPED_UNREAD_ONLY || name in DROPPED_VIEW || name.startsWith("instapaper.")
 
@@ -45,7 +57,9 @@ object SyncSettings {
             mapOf(
                 FULL_ARTICLES to settings.fullArticles.toString(),
                 MARK_READ_ON_SCROLL to settings.markReadOnScroll.toString(),
-            )
+            ) + SERVICES.associate { scopeName(it) to ServiceScope.encode(settings.scopeOf(it)) } +
+                // An import this device doesn't know of stays as the file has it.
+                settings.imports.entries.filter { it.key in SERVICES }.associate { importName(it.key) to ServiceImport.encode(it.value) }
         return base.filterKeys { it !in known && !dropped(it) } + mine
     }
 
@@ -58,9 +72,13 @@ object SyncSettings {
             key: String,
             current: Boolean,
         ) = values[key]?.toBooleanStrictOrNull() ?: current
+        val scopes = SERVICES.mapNotNull { id -> ServiceScope.decode(values[scopeName(id)])?.let { id to it } }.toMap()
+        val imports = SERVICES.mapNotNull { id -> ServiceImport.decode(values[importName(id)])?.let { id to it } }.toMap()
         return settings.copy(
             fullArticles = bool(FULL_ARTICLES, settings.fullArticles),
             markReadOnScroll = bool(MARK_READ_ON_SCROLL, settings.markReadOnScroll),
+            scopes = settings.scopes + scopes,
+            imports = settings.imports + imports,
         )
     }
 }

@@ -1,14 +1,17 @@
 /**
- * Keeps Saved and a connected service the same, as the Android app's services/ServiceSync.kt does
- * (#109, #119, #121): Saved is always the library's items, and the service only syncs. Reads what
- * changed at the service since last time and merges it three ways with the entry as last seen there
- * and Reader's own (a change on one side wins; both changed, Reader's; tags as a set), then sends
- * the service what changed here. An item kept in another service (its `service`) is not sent; a copy
- * of it here only shares archive, like and tags. A failed call keeps everything and is tried again.
+ * Keeps Saved and a connected service in step within the service's scope, as the Android app's
+ * services/ServiceSync.kt does (#109, #145). Reader is the library; a service is somewhere it is
+ * also kept. Per field: what changed here is sent, what changed there comes in, and when the same
+ * field changed on both sides between two rounds the later change wins. A value is never sent just
+ * because the two sides differ, or sent back right after it came in, because each row is what was
+ * last seen or sent there. An article that leaves the scope is archived there, never deleted; one
+ * removed from Reader is removed there. Connecting starts with importService, once. A failed call
+ * keeps everything and is tried again.
  */
 
 import { cleanTags, itemOf, keyOfLink, newItem, putItem, type Item } from "./items";
 import type { Library } from "./library";
+import { covers, coversPlace, EVERYTHING, includes, type ServiceImport, type ServiceScope } from "./serviceScope";
 import { mergeTags } from "./syncRows";
 
 /** An article at the service, as far as Saved syncs it. */
@@ -27,6 +30,10 @@ export interface RemoteEntry {
   folder: string | null;
   /** How far it was read, 0 to 1. */
   progress: number;
+  /** When it last changed there, in milliseconds; 0 when the service doesn't say. */
+  changedAt?: number;
+  /** In a row: false for one seen there but not in step (not imported, or archived when it left the scope). */
+  linked?: boolean;
 }
 
 export interface RemoteChanges {
@@ -45,6 +52,8 @@ export interface SavedSyncService {
   add(url: string, title: string, tags: string[], archived: boolean, folder: string | null): Promise<RemoteEntry>;
   update(have: RemoteEntry, want: RemoteEntry): Promise<RemoteEntry>;
   remove(remoteId: string): Promise<void>;
+  /** Its folders by name, for choosing what to import. */
+  folderNames(): Promise<string[]>;
 }
 
 /** What this browser last saw at the service: its cursor and each article as it had it, by item key. */
@@ -73,19 +82,26 @@ export interface ServiceSyncResult {
   state: ServiceSyncState;
   /** Why it stopped early, or null when everything got through. */
   problem: string | null;
+  /** How many articles an import brought in. */
+  imported?: number;
 }
 
+const isLinked = (row: RemoteEntry | undefined) => row !== undefined && row.linked !== false;
+
 /**
- * One sync with [service]. [update] applies a change to the library as it is right now and returns
- * the result, so changes made during the sync are kept. New items in no service yet go to this one
- * when [isDefault].
+ * One sync with [service] within [scope]. [update] applies a change to the library as it is right
+ * now and returns the result, so changes made during the sync are kept. [editedAt] says when each
+ * item last changed here, for "the later change wins"; [elsewhere] holds the items another service
+ * keeps in step.
  */
 export async function syncService(
   service: SavedSyncService,
   state: ServiceSyncState,
   update: (change: (lib: Library) => Library) => Library,
   now: number,
-  isDefault = true,
+  scope: ServiceScope = EVERYTHING,
+  editedAt: Record<string, number> = {},
+  elsewhere: Set<string> = new Set(),
 ): Promise<ServiceSyncResult> {
   const rows: Record<string, RemoteEntry> = { ...state.rows };
   let cursor = state.cursor;
@@ -93,34 +109,40 @@ export async function syncService(
   const problemOf = (e: unknown) => (e instanceof ServiceSyncError ? e.problem : "server");
   try {
     const changes = await service.changes(cursor);
-    update((lib) => takeIn(lib, rows, changes, progress, service.id, now));
+    // A first look without rows here (another device imported): what isn't in Reader yet stays there.
+    const adopt = cursor !== null;
+    update((lib) => takeIn(lib, rows, changes, progress, now, scope, adopt, editedAt, elsewhere));
     cursor = changes.cursor;
   } catch (e) {
     return { state: { cursor, rows }, problem: problemOf(e) };
   }
-  // What this service already has, synced before items knew their service, is its own.
-  let library = update((lib) => lib.items.reduce((acc, i) => (i.service === null && i.readingList && rows[i.key] ? putItem(acc, { ...i, service: service.id }) : acc), lib));
   try {
+    let library = update((lib) => lib);
     for (const item of library.items) {
       if (!item.readingList) continue;
       const have = rows[item.key];
-      // Only what belongs to this service goes there: nothing is copied between services (#121).
-      if (!have && item.service !== service.id && !(item.service === null && isDefault)) continue;
-      const own = entryOf(item, have?.remoteId ?? "");
-      const want = have && isCopy(item, service.id) ? share(own, have) : own;
-      if (!have) {
+      const inScope = covers(scope, item);
+      if (have && isLinked(have) && !inScope) {
+        // Left the scope: archived there, which is what filing it elsewhere meant here.
+        const archived = have.archived ? have : await service.update(have, { ...have, archived: true, folder: null });
+        rows[item.key] = { ...archived, linked: false };
+      } else if (!inScope) {
+        continue;
+      } else if (!have) {
         let added = await service.add(item.url, item.title, item.tags, item.readingList.state === "archived", folderOf(item));
-        if (item.service === null) library = update((lib) => changeKept(lib, item.key, (i) => (i.service === null ? { ...i, service: service.id } : i)));
-        const target = { ...want, remoteId: added.remoteId };
+        const target = { ...entryOf(item, added.remoteId) };
         if (!sameCore(added, target, progress)) added = await service.update(added, target);
-        rows[item.key] = added;
-      } else if (!sameCore(have, want, progress)) {
-        rows[item.key] = await service.update(have, want);
+        rows[item.key] = { ...added, linked: true };
+      } else {
+        // In step (again): only what differs from what was last seen or sent goes.
+        const want = entryOf(item, have.remoteId);
+        rows[item.key] = { ...(sameCore(have, want, progress) ? have : await service.update(have, want)), linked: true };
       }
     }
     library = update((lib) => lib);
-    const gone = Object.keys(rows).filter((key) => !itemOf(library, key)?.readingList);
-    if (gone.length > MAX_SAFE_REMOVALS && gone.length * 2 > Object.keys(rows).length) return { state: { cursor, rows }, problem: "refused" };
+    const gone = Object.keys(rows).filter((key) => isLinked(rows[key]) && !itemOf(library, key)?.readingList);
+    const linked = Object.values(rows).filter(isLinked).length;
+    if (gone.length > MAX_SAFE_REMOVALS && gone.length * 2 > linked) return { state: { cursor, rows }, problem: "refused" };
     for (const key of gone) {
       await service.remove(rows[key].remoteId);
       delete rows[key];
@@ -131,8 +153,58 @@ export async function syncService(
   return { state: { cursor, rows }, problem: null };
 }
 
-/** The library after what changed at the service; [rows] then holds the service's articles as seen now. */
-export function takeIn(lib: Library, rows: Record<string, RemoteEntry>, changes: RemoteChanges, progress: boolean, serviceId: string, now: number): Library {
+/**
+ * Brings in what the service has, once, when it is connected (#145): everything, or what [what]
+ * picks. Each article arrives where it belongs, as it is; one Reader has already keeps its own
+ * values and gains the service's tags. What isn't imported is remembered as seen, so it stays there
+ * until it changes.
+ */
+export async function importService(
+  service: SavedSyncService,
+  state: ServiceSyncState,
+  what: Pick<ServiceImport, "folders" | "archive">,
+  update: (change: (lib: Library) => Library) => Library,
+  now: number,
+): Promise<ServiceSyncResult> {
+  const rows: Record<string, RemoteEntry> = { ...state.rows };
+  let count = 0;
+  try {
+    const changes = await service.changes(null);
+    update((lib) => {
+      let result = lib;
+      for (const remote of changes.entries) {
+        const key = keyOfLink(remote.url);
+        if (!key) continue;
+        if (!includes(what, remote.folder, remote.archived)) {
+          if (!isLinked(rows[key])) rows[key] = { ...remote, linked: false };
+          continue;
+        }
+        const item = itemOf(result, key);
+        const local = item?.readingList ? entryOf(item, remote.remoteId) : null;
+        result = put(result, key, item, local ? merge(undefined, local, remote, service.progress) : remote, remote, now);
+        rows[key] = { ...remote, linked: true };
+        count++;
+      }
+      return result;
+    });
+    return { state: { cursor: changes.cursor, rows }, problem: null, imported: count };
+  } catch (e) {
+    return { state, problem: e instanceof ServiceSyncError ? e.problem : "server" };
+  }
+}
+
+/** The library after what changed at the service, within [scope]; [rows] then holds the service's articles as seen now. */
+export function takeIn(
+  lib: Library,
+  rows: Record<string, RemoteEntry>,
+  changes: RemoteChanges,
+  progress: boolean,
+  now: number,
+  scope: ServiceScope = EVERYTHING,
+  adopt = true,
+  editedAt: Record<string, number> = {},
+  elsewhere: Set<string> = new Set(),
+): Library {
   let result = lib;
   const byRemoteId = new Map(Object.entries(rows).map(([key, e]) => [e.remoteId, key]));
   for (const remote of changes.entries) {
@@ -140,22 +212,35 @@ export function takeIn(lib: Library, rows: Record<string, RemoteEntry>, changes:
     if (!key) continue;
     const base = rows[key];
     const item = itemOf(result, key);
-    const local = item?.readingList ? entryOf(item, remote.remoteId) : null;
-    let merged: RemoteEntry | null;
-    if (local && item && isCopy(item, serviceId)) {
-      // A copy of another service's item: only what the copies share comes in.
-      const shared = share(merge(base, local, remote, progress), local);
-      merged = sameCore(shared, local, progress) ? null : shared;
-    } else if (local) {
-      merged = merge(base, local, remote, progress);
-    } else if (base && sameCore(base, remote, progress)) {
-      // Taken out of Saved here and not sent yet: it stays out, unless the service changed it since.
-      merged = null;
-    } else {
-      merged = remote;
+    const saved = item?.readingList ? item : undefined;
+    const linked = isLinked(base);
+    const changedThere = !base || !sameCore(base, remote, progress);
+    const landsInScope = coversPlace(scope, remote.folder, remote.archived);
+    let link = linked;
+    if (saved && linked) {
+      // In step: per field, what changed there comes in.
+      const remoteLater = (remote.changedAt ?? 0) > 0 && (remote.changedAt ?? 0) > (editedAt[key] ?? 0);
+      result = put(result, key, saved, merge(base, entryOf(saved, remote.remoteId), remote, progress, remoteLater), remote, now);
+    } else if (saved) {
+      // The same link in both, not in step yet: it joins when Reader's is in the scope.
+      if (covers(scope, saved)) {
+        result = put(result, key, saved, merge(undefined, entryOf(saved, remote.remoteId), remote, progress), remote, now);
+        link = true;
+      }
+    } else if (linked) {
+      // Taken out of Saved here and not sent yet: it stays out, unless it changed there since.
+      if (changedThere) result = put(result, key, item, remote, remote, now);
+    } else if (base) {
+      // Seen there but not in step: only a change there that lands in the scope brings it in.
+      if (changedThere && landsInScope) {
+        result = put(result, key, item, remote, remote, now);
+        link = true;
+      }
+    } else if (adopt && landsInScope) {
+      result = put(result, key, item, remote, remote, now);
+      link = true;
     }
-    if (merged) result = put(result, key, item, merged, remote, serviceId, now);
-    rows[key] = remote;
+    rows[key] = { ...remote, linked: link };
   }
   for (const gone of changes.deleted) {
     const key = byRemoteId.get(gone);
@@ -163,37 +248,39 @@ export function takeIn(lib: Library, rows: Record<string, RemoteEntry>, changes:
     const base = rows[key];
     delete rows[key];
     const item = itemOf(result, key);
-    if (!base || !item?.readingList) continue;
-    // Deleted from a copy: the item stays, kept in its own service.
-    if (isCopy(item, serviceId)) continue;
+    if (!base || !isLinked(base) || !item?.readingList) continue;
     // Changed here since: the edit stays (and is sent again); otherwise it leaves Saved.
     if (!sameCore(base, entryOf(item, base.remoteId), progress)) continue;
+    // Another service keeps it in step: it stays in Saved.
+    if (elsewhere.has(key)) continue;
     result = putItem(result, { ...item, readingList: null, folder: null, liked: false, tags: [] });
   }
   return result;
 }
 
-/** Three-way merge of the core: a change on one side wins; both changed, Reader's. */
-export function merge(base: RemoteEntry | undefined, local: RemoteEntry, remote: RemoteEntry, progress: boolean): RemoteEntry {
-  const pick = <T>(b: T | undefined, l: T, r: T): T => (l === b ? r : l);
+/**
+ * Three-way merge of the core: a field changed on one side takes that side's value; changed on
+ * both, the later change wins ([remoteLater]: the service's; otherwise Reader's). Tags as a set.
+ */
+export function merge(base: RemoteEntry | undefined, local: RemoteEntry, remote: RemoteEntry, progress: boolean, remoteLater = false): RemoteEntry {
+  const pick = <T>(b: T | undefined, l: T, r: T): T => (l === b ? r : r === b || b === undefined ? l : remoteLater ? r : l);
+  const folder = sameName(local.folder, base?.folder ?? null)
+    ? remote.folder
+    : !base || sameName(remote.folder, base.folder)
+      ? local.folder
+      : remoteLater
+        ? remote.folder
+        : local.folder;
   const merged: RemoteEntry = {
     ...local,
     title: pick(base?.title, local.title, remote.title),
     archived: pick(base?.archived, local.archived, remote.archived),
     liked: pick(base?.liked, local.liked, remote.liked),
     tags: mergeTags(base?.tags ?? [], local.tags, remote.tags),
-    folder: sameName(local.folder, base?.folder ?? null) ? remote.folder : local.folder,
+    folder,
     progress: progress ? pick(base?.progress, local.progress, remote.progress) : local.progress,
   };
   return merged.archived ? { ...merged, folder: null } : merged;
-}
-
-/** True when [item] is kept in another service and [serviceId] has a copy of it (#121). */
-export const isCopy = (item: Item, serviceId: string) => item.service !== null && item.service !== serviceId;
-
-/** [keep] with what two copies of an article share taken from [from]: archive, like and tags (#121). */
-export function share(from: RemoteEntry, keep: RemoteEntry): RemoteEntry {
-  return { ...keep, archived: from.archived, liked: from.liked, tags: from.tags, folder: from.archived ? null : keep.folder };
 }
 
 /** A saved item as a service entry. */
@@ -230,12 +317,7 @@ const folderOf = (i: Item) => (i.readingList?.state === "toread" && i.folder?.tr
 
 const sameName = (a: string | null, b: string | null) => (a ?? "").trim().toLowerCase() === (b ?? "").trim().toLowerCase();
 
-function changeKept(lib: Library, key: string, change: (i: Item) => Item): Library {
-  const item = itemOf(lib, key);
-  return item ? putItem(lib, change(item)) : lib;
-}
-
-function put(lib: Library, key: string, item: Item | undefined, entry: RemoteEntry, remote: RemoteEntry, serviceId: string, now: number): Library {
+function put(lib: Library, key: string, item: Item | undefined, entry: RemoteEntry, remote: RemoteEntry, now: number): Library {
   const base = item ?? newItem(lib, remote.url, remote.title, now, remote.description, remote.imageUrl);
   if (!base) return lib;
   return putItem(lib, {
@@ -248,8 +330,6 @@ function put(lib: Library, key: string, item: Item | undefined, entry: RemoteEnt
     liked: entry.liked,
     tags: cleanTags(entry.tags),
     folder: entry.archived ? null : entry.folder,
-    // Kept in this service from now on, unless it is saved in another already (a duplicate).
-    service: (base.readingList ? base.service : null) ?? serviceId,
     progress: Math.min(1, Math.max(0, entry.progress)),
   });
 }

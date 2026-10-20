@@ -255,8 +255,9 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   (the link button next to the type filter). In an article the top bar is the reading (Aa, Share,
   ⋮) and the bar under it the library: **Save** before it is saved (it opens the same sheet), then
   its folder (**Organise**: folder, tags with Like, note), **Like** and **Archive**.
-- **☰ › Connected services**: which service each section is connected to. Saved can be connected to
-  Instapaper, Raindrop.io or both; feeds are Reader's own.
+- **☰ › Connected services**: the services Saved is also kept in, Instapaper, Raindrop.io or both,
+  each with what it syncs; tap one for its account, its import and **What it syncs**. Feeds are
+  Reader's own.
 - Bookmarks from before Saved moved into folders once: each into its collection's folder, the ones
   without a collection into a folder called **Bookmarks**.
 
@@ -267,10 +268,15 @@ Approve Reader there and you come back to the app (or the web page) signed in; R
 password. The same sign-in turns on sync (see Sync between devices) and connects Saved to
 Instapaper:
 
-- Everything in your Instapaper account comes into Saved, and everything in Saved goes to
-  Instapaper. From then on, what you add, file, archive, like or tag, and how far you read, goes both
-  ways, while the app is open (when it opens, a moment after a change, and when you pull down on
-  Saved).
+- **Import:** right after signing in, ☰ › Connected services › Instapaper asks what to bring in, once:
+  **Import everything**, or **Choose folders** (and its archive). Each article arrives where it
+  belongs: archived in the Archive, a folder in its folder, liked, with its tags. **Import again**
+  does it again later.
+- **What it syncs:** everything in Saved (the default), or **Only these folders** (To read counts as
+  one). What you add, file, archive, like or tag there, and how far you read, goes both ways, while
+  the app is open (when it opens, a moment after a change, and when you pull down on Saved). An
+  article you file out of those folders is archived in Instapaper, never deleted; unticking a folder
+  says first how many articles that is.
 - Instapaper's home list is **To read**, its **folders** are Saved's folders and its archive is the
   **Archive**. Filing into a folder Instapaper doesn't have yet makes it there.
 - The reader always shows Reader's own full article, for every account: an article that came in
@@ -288,26 +294,18 @@ Until Instapaper has approved Reader, only the owner's own account works; other 
 Approve Reader there and you come back connected ("Connected to Raindrop.io"). On a test build
 (Reader Dev) a page opens instead: tap **Open in Reader Dev**.
 
-- Everything in your Raindrop account comes into Saved: **Unsorted** is To read, **collections** are
-  folders (a collection inside another shows as "Parent / Child"), **favorites** are Liked, and tags
-  and notes come along. Archiving puts the article in a Raindrop collection called **Archive**
-  (made the first time).
+- Connecting asks what to **import**, once: everything, or some collections. **Unsorted** is To
+  read, **collections** are folders (a collection inside another shows as "Parent / Child"),
+  **favorites** are Liked, and tags and notes come along. Archiving puts the article in a Raindrop
+  collection called **Archive** (made the first time). **What it syncs** works as for Instapaper.
 - What you add, file, archive, like, tag or note goes to Raindrop while the app is open, and
   changes made in Raindrop come in when the app opens and when you pull down on Saved.
 - Removing an article from Saved moves it to Raindrop's trash.
 - **Disconnect** stops it on this device. Saved stays.
 
-**Instapaper and Raindrop together:** each keeps its own articles and nothing is copied from one to
-the other unless you ask. Saved shows both, with a small mark on each article: a serif **I** for
-Instapaper, a **drop** for Raindrop.
-
-- The first time both are connected, Reader asks where new saves go; change it later in Connected
-  services › **New saves go to**.
-- An article in both shows once. Connected services › **Articles in both** chooses what reaches both
-  copies: Archive, Liked and Tags (on), Folder (off).
-- Removing an article both keep asks: from both, or from one only (it then stays in Saved).
-- Connected services › **Copy between services** copies all articles of one service to the other,
-  once, after showing how many. Articles already there are skipped; you can cancel.
+**Instapaper and Raindrop together:** a save reaches every service whose **What it syncs** covers
+its folder; put the same folder in both and they stay in step with each other through Reader.
+Removing an article both keep asks: from both, or from one only (it then stays in Saved).
 
 Details: `raindrop.md`.
 

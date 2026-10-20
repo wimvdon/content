@@ -76,6 +76,7 @@ class RaindropSaved(
             tags = r.tags,
             folder = if (archived || r.collectionId < 0) null else folders[r.collectionId],
             note = r.note,
+            changedAt = r.lastUpdate,
         )
     }
 
@@ -123,6 +124,21 @@ class RaindropSaved(
         val id = remoteId.toLongOrNull() ?: return
         client.delete(id)
     }
+
+    override suspend fun folders(): List<String> {
+        readCollections()
+        return folders.filterKeys { it != archiveId }.values.sortedBy { it.lowercase() }
+    }
+
+    /**
+     * Each folder name's collection (#145), so a nested collection ("Research / Media") is found
+     * again before Raindrop is listed in this session, instead of a new top-level one being made.
+     */
+    override var origins: Map<String, String>
+        get() = folders.entries.associate { (id, name) -> name to id.toString() }
+        set(value) {
+            if (folders.isEmpty()) folders = value.entries.mapNotNull { (name, id) -> id.toLongOrNull()?.let { it to name } }.toMap()
+        }
 
 
     /** Where an item goes: the Archive collection (made when missing), a folder's collection (made when missing), or Unsorted. */

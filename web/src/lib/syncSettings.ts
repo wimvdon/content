@@ -1,11 +1,13 @@
 import type { Settings } from "./app";
+import { decodeImport, decodeScope, encodeImport, encodeScope, EVERYTHING, type ServiceImport, type ServiceScope } from "./serviceScope";
 
 /**
  * The settings in the sync file: shared names with text values, the same as the Android app's
  * SyncSettings (docs/sync.md). The web app reads the names it knows and keeps the others as they
  * are, so settings only the other app has survive a sync from the web.
  *
- * Only settings about what the app does are synced (Load full articles, Mark as read on scroll).
+ * Only settings about what the app does are synced (Load full articles, Mark as read on scroll, and
+ * what each connected service syncs and what was imported from it, #145).
  * How it looks stays in each browser and on each device (#96): the theme, the reader's font, size,
  * spacing and page colour, Show images and the list view.
  */
@@ -13,7 +15,12 @@ import type { Settings } from "./app";
 export const FULL_ARTICLES = "fullArticles";
 export const MARK_READ_ON_SCROLL = "markReadOnScroll";
 
-const KNOWN = new Set([FULL_ARTICLES, MARK_READ_ON_SCROLL]);
+/** The services whose scope and import record travel with the account (#145). */
+export const SERVICES = ["instapaper", "raindrop"];
+export const scopeName = (service: string) => `services.${service}.scope`;
+export const importName = (service: string) => `services.${service}.imported`;
+
+const KNOWN = new Set([FULL_ARTICLES, MARK_READ_ON_SCROLL, ...SERVICES.map(scopeName)]);
 
 /** View settings that older versions synced; each device keeps its own now (#96). */
 export const DROPPED_VIEW = new Set([
@@ -38,15 +45,31 @@ export function syncedSettings(settings: Settings, base: Record<string, string> 
     [FULL_ARTICLES]: String(settings.fullArticles),
     [MARK_READ_ON_SCROLL]: String(settings.markReadOnScroll),
   });
+  for (const id of SERVICES) {
+    out[scopeName(id)] = encodeScope(settings.scopes[id] ?? EVERYTHING);
+    // An import this browser doesn't know of stays as the file has it.
+    const record = settings.imports[id];
+    if (record) out[importName(id)] = encodeImport(record);
+  }
   return out;
 }
 
 /** settings with the synced values it understands; missing or unknown values change nothing. */
 export function applySynced(settings: Settings, values: Record<string, string>): Settings {
   const bool = (key: string, current: boolean) => (values[key] === "true" ? true : values[key] === "false" ? false : current);
+  const scopes: Record<string, ServiceScope> = { ...settings.scopes };
+  const imports: Record<string, ServiceImport> = { ...settings.imports };
+  for (const id of SERVICES) {
+    const scope = decodeScope(values[scopeName(id)]);
+    if (scope) scopes[id] = scope;
+    const record = decodeImport(values[importName(id)]);
+    if (record) imports[id] = record;
+  }
   return {
     ...settings,
     fullArticles: bool(FULL_ARTICLES, settings.fullArticles),
     markReadOnScroll: bool(MARK_READ_ON_SCROLL, settings.markReadOnScroll),
+    scopes,
+    imports,
   };
 }

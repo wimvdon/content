@@ -223,7 +223,6 @@
     <string name="services_reader">Reader</string>
     <string name="services_feeds_body">Reader garde vos flux. L’OPML permet de les importer et de les exporter.</string>
     <string name="services_reading_body">Reader garde vos articles enregistrés. Connectez-vous avec Instapaper pour les garder aussi là-bas.</string>
-    <string name="services_instapaper_body">Synchronisée avec le compte Instapaper de %s</string>
     <string name="services_problem_later">Instapaper a demandé d’attendre un moment. Le reste suivra.</string>
     <string name="section_raindrop">Raindrop.io</string>
     <string name="raindrop_connect">Connecter Raindrop.io</string>
@@ -234,43 +233,29 @@
     <string name="raindrop_sign_in_failed">La connexion à Raindrop.io a échoué. Réessayez.</string>
     <string name="raindrop_problem_signed_out">Raindrop.io n’accepte plus la connexion. Connectez-vous à nouveau.</string>
     <string name="raindrop_problem_later">Raindrop.io a demandé d’attendre un moment. Le reste suivra.</string>
-    <string name="source_instapaper">Dans Instapaper</string>
-    <string name="source_raindrop">Dans Raindrop.io</string>
+    <string name="services_syncs_everything">Synchronise tout ce qui est enregistré</string>
+    <string name="services_syncs_folders">Synchronise %1$s</string>
+    <string name="services_waiting_import">Connecté. Choisissez quoi importer.</string>
+    <string name="service_import_title">Importer</string>
+    <string name="service_import_body">Récupérez une fois ce que %1$s contient : tout, ou les dossiers choisis. Chaque article arrive à sa place, tel quel.</string>
+    <string name="service_import_all">Tout importer</string>
+    <string name="service_import_choose">Choisir des dossiers</string>
+    <string name="service_import_again">Importer à nouveau</string>
+    <string name="service_import_what">Que récupérer</string>
+    <string name="service_import_archive">Ses archives</string>
+    <string name="service_import_start">Importer</string>
+    <string name="service_import_failed">L’importation n’a pas abouti. Réessayez.</string>
+    <string name="service_scope_title">Ce qui est synchronisé</string>
+    <string name="service_scope_all">Tout ce qui est enregistré</string>
+    <string name="service_scope_some">Seulement ces dossiers</string>
+    <string name="service_scope_note">Les modifications vont dans les deux sens. Un article que vous sortez de ces dossiers est archivé dans %1$s, jamais supprimé.</string>
+    <string name="service_scope_leave_title">Les archiver dans %1$s ?</string>
+    <string name="service_scope_leave_confirm">Archiver là-bas</string>
     <string name="saved_remove_both_body">Instapaper et Raindrop.io gardent tous deux cet article. Retirez-le des deux, ou d’un seul (il reste alors dans Enregistrés, gardé dans l’autre).</string>
     <string name="saved_remove_only_from">Seulement de %1$s</string>
     <string name="saved_remove_from_both">Retirer des deux</string>
     <string name="saved_removed_from">Retiré de %1$s</string>
     <string name="saved_remove_from_failed">Impossible de le retirer de %1$s. Réessayez plus tard.</string>
-    <string name="duplicates_title">Articles dans les deux</string>
-    <string name="duplicates_body">Quand Instapaper et Raindrop.io gardent le même article, Reader l’affiche une fois. Ces changements vont aux deux copies :</string>
-    <string name="duplicates_archive">Archiver</string>
-    <string name="duplicates_liked">Aimés</string>
-    <string name="duplicates_tags">Tags</string>
-    <string name="duplicates_folder">Dossier</string>
-    <string name="duplicates_folder_body">Désactivé : chaque service garde ses propres dossiers</string>
-    <string name="duplicates_remove">Retirer</string>
-    <string name="duplicates_remove_body">Demande toujours s’il faut le retirer des deux ou d’un seul</string>
-    <string name="copy_title">Copier entre services</string>
-    <string name="copy_body">Rien n’est copié sans votre demande. La copie ajoute une fois les articles d’un service à l’autre ; ceux qui y sont déjà sont ignorés.</string>
-    <string name="copy_action">Copier les articles de %1$s vers %2$s</string>
-    <string name="copy_running">Copie de %1$d sur %2$d vers %3$s…</string>
-    <string name="copy_stopped">Arrêté après %1$d sur %2$d. Le reste n’a pas été copié vers %3$s.</string>
-    <string name="copy_nothing">%1$s a déjà tous ces articles.</string>
-    <string name="copy_start">Copier</string>
-    <string name="copy_note_to_instapaper">Les notes, ainsi que les surlignages, couvertures et types de Raindrop, restent dans Raindrop.io.</string>
-    <string name="copy_note_to_raindrop">La progression de lecture et les surlignages d’Instapaper restent dans Instapaper.</string>
-    <plurals name="copy_done">
-        <item quantity="one">%1$d article copié vers %2$s</item>
-        <item quantity="many">%1$d articles copiés vers %2$s</item>
-        <item quantity="other">%1$d articles copiés vers %2$s</item>
-    </plurals>
-    <plurals name="copy_confirm">
-        <item quantity="one">%1$d article sera ajouté à %2$s.</item>
-        <item quantity="many">%1$d articles seront ajoutés à %2$s.</item>
-        <item quantity="other">%1$d articles seront ajoutés à %2$s.</item>
-    </plurals>
-    <string name="save_service_title">Les nouveaux enregistrements vont dans</string>
-    <string name="save_service_question">Instapaper et Raindrop.io sont tous deux connectés. Chacun garde ses propres articles et rien n’est copié de l’un à l’autre. Où enregistrer les nouveaux articles ? Vous pouvez changer cela dans Services connectés.</string>
     <string name="tags_title">Tags</string>
     <string name="tags_add">Ajouter un tag</string>
     <string name="tags_remove">Retirer le tag</string>
@@ -322,4 +307,14 @@
     <string name="saved_empty_body">Balayez un article de flux vers la gauche, touchez Enregistrer dans un article, partagez un lien avec Reader ou ajoutez-en un ici.</string>
     <string name="manage_folders_tags_empty_title">Pas encore de dossiers ni de tags</string>
     <string name="manage_folders_tags_empty_body">Les dossiers et tags de vos articles enregistrés s’affichent ici, pour les renommer.</string>
+    <plurals name="service_imported">
+        <item quantity="one">%1$d article importé, %2$s</item>
+        <item quantity="many">%1$d articles importés, %2$s</item>
+        <item quantity="other">%1$d articles importés, %2$s</item>
+    </plurals>
+    <plurals name="service_scope_leave_body">
+        <item quantity="one">%1$d article sort de ce que %2$s synchronise. Il y est archivé, pas supprimé, et reste dans Reader.</item>
+        <item quantity="many">%1$d articles sortent de ce que %2$s synchronise. Ils y sont archivés, pas supprimés, et restent dans Reader.</item>
+        <item quantity="other">%1$d articles sortent de ce que %2$s synchronise. Ils y sont archivés, pas supprimés, et restent dans Reader.</item>
+    </plurals>
 </resources>

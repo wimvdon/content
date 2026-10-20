@@ -164,15 +164,19 @@ abstract class LibraryDao {
         put: List<ServiceRowRow>,
         delete: List<String>,
         cursor: String?,
+        /** Where its folders came from there (#145), when that changed. */
+        origins: String? = null,
     ) {
         if (cursor == null) {
             clearServiceRows(service)
             deleteMeta("$service-cursor")
+            deleteMeta("$service-origins")
             return
         }
         delete.chunked(CHUNK).forEach { deleteServiceRows(service, it) }
         put.chunked(CHUNK).forEach { upsertServiceRows(it) }
         putMeta(MetaRow("$service-cursor", cursor))
+        if (origins != null) putMeta(MetaRow("$service-origins", origins))
     }
 
     /** Stores what changed in the synced rows and the items version, all or nothing; [clear] forgets them all first. */
