@@ -44,7 +44,7 @@ import be.wimvandonck.reader.ui.theme.readableWidth
 /**
  * Folders and tags (☰): every folder of Saved with how many articles it has, then every tag with
  * how many articles have it. Tap to rename (renaming to another one's name joins the two), or remove
- * it: a tag from every article, a folder from its articles (they go back to To read).
+ * it: a tag from every article, a folder from its articles (they go to the Archive).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

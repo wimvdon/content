@@ -265,7 +265,7 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   takes the note, tags and highlights with it (Archive keeps it searchable instead).
 - **☰ › Folders and tags**: every folder and every tag, with how many articles have it; tap one to
   rename it (renaming it to another one's name joins the two), or remove it: a tag from every
-  article, a folder from its articles (they go back to To read).
+  article, a folder from its articles (they go to the Archive).
 - **In the web app** Saved is the same: the same tabs, chips, type filter and cards, and **Add link**
   (the link button next to the type filter). In an article the top bar is the reading (Aa, Share,
   ⋮) and the bar under it the library: **Save** before it is saved (it opens the same sheet), then

@@ -302,7 +302,7 @@
     <string name="menu_folders_tags">Cartelle e tag</string>
     <string name="saved_folder_rename">Rinomina cartella</string>
     <string name="saved_folder_remove">Rimuovi cartella</string>
-    <string name="saved_folder_remove_body">Rimuovere la cartella %1$s? I suoi articoli tornano in Da leggere.</string>
+    <string name="saved_folder_remove_body">Rimuovere la cartella %1$s? I suoi articoli vanno nell’Archivio.</string>
     <string name="saved_remove">Rimuovi da Salvati</string>
     <string name="saved_removed">Rimosso da Salvati</string>
     <string name="saved_remove_body">Rimuovere questo articolo, con nota, tag ed evidenziazioni? Archiviarlo lo mantiene ricercabile.</string>

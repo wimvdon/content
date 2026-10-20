@@ -142,7 +142,7 @@ and then (always before a release):
       full article, Open in browser, Mark as unread and Remove from Saved (asks first), no Tags.
       Nothing says "Finished reading", in any language.
       Leave an article halfway and open it again: it opens where you were. ☰ › Folders and tags
-      renames and removes folders (their articles go back to To read) and tags. An app updated from a
+      renames and removes folders (their articles go to the Archive, not back to To read) and tags. An app updated from a
       version with Bookmarks shows them in folders (their collection, or "Bookmarks").
       The Undo message after Mark all as read shows above the folder bar.
 - [ ] **Mark as read on scroll** on: scroll down the Unread list; the articles that leave the

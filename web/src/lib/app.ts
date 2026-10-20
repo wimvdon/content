@@ -567,7 +567,7 @@ class AppStore {
     const tab = this.state.savedFilter.tab;
     if (tab.kind === "folder" && tab.name.toLowerCase() === from.toLowerCase()) this.set({ savedFilter: { ...this.state.savedFilter, tab: { kind: "folder", name: to.trim() } } });
   };
-  /** Its articles go back to To read. */
+  /** Its articles go to the Archive. */
   removeSavedFolder = (name: string) => this.updateLibrary((lib) => Saved.removeFolder(lib, name));
   renameSavedTag = (from: string, to: string) => this.updateLibrary((lib) => renameTag(lib, from, to));
   removeSavedTag = (name: string) => this.updateLibrary((lib) => Saved.removeTag(lib, name));

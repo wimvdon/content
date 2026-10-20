@@ -302,7 +302,7 @@
     <string name="menu_folders_tags">Dossiers et tags</string>
     <string name="saved_folder_rename">Renommer le dossier</string>
     <string name="saved_folder_remove">Supprimer le dossier</string>
-    <string name="saved_folder_remove_body">Supprimer le dossier %1$s ? Ses articles retournent dans À lire.</string>
+    <string name="saved_folder_remove_body">Supprimer le dossier %1$s ? Ses articles vont dans les Archives.</string>
     <string name="saved_remove">Retirer des enregistrés</string>
     <string name="saved_removed">Retiré des enregistrés</string>
     <string name="saved_remove_body">Retirer cet article, avec sa note, ses tags et ses surlignages ? L’archiver le garde consultable.</string>

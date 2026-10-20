@@ -292,7 +292,7 @@
     <string name="menu_folders_tags">Ordner und Tags</string>
     <string name="saved_folder_rename">Ordner umbenennen</string>
     <string name="saved_folder_remove">Ordner entfernen</string>
-    <string name="saved_folder_remove_body">Den Ordner %1$s entfernen? Seine Artikel kommen zurück zu Zu lesen.</string>
+    <string name="saved_folder_remove_body">Den Ordner %1$s entfernen? Seine Artikel kommen ins Archiv.</string>
     <string name="saved_remove">Aus Gespeichert entfernen</string>
     <string name="saved_removed">Aus Gespeichert entfernt</string>
     <string name="saved_remove_body">Diesen Artikel mit Notiz, Tags und Markierungen entfernen? Archivieren hält ihn durchsuchbar.</string>

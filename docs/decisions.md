@@ -2,6 +2,13 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-20: Removing a Saved folder archives its articles
+
+A folder holds articles you filed away; removing the folder used to send them back to To read,
+turning filed work into unread work again. They now go to the Archive (still searchable, with
+their tags and notes), on Android and the web, and the confirmation says so. Rejected: keeping
+them in To read (the old behaviour) and asking each time.
+
 ## 2026-10-20: Remove right after Save, and a UI review of both apps
 
 Cancel on the "Saved to …" sheet kept the save, which read as if it undid it. It is now **Remove**

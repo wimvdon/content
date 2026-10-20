@@ -292,7 +292,7 @@
     <string name="menu_folders_tags">Mappen en tags</string>
     <string name="saved_folder_rename">Map hernoemen</string>
     <string name="saved_folder_remove">Map verwijderen</string>
-    <string name="saved_folder_remove_body">De map %1$s verwijderen? De artikels gaan terug naar Te lezen.</string>
+    <string name="saved_folder_remove_body">De map %1$s verwijderen? De artikels gaan naar het Archief.</string>
     <string name="saved_remove">Verwijderen uit Bewaard</string>
     <string name="saved_removed">Verwijderd uit Bewaard</string>
     <string name="saved_remove_body">Dit artikel verwijderen, met zijn notitie, tags en markeringen? Archiveren houdt het doorzoekbaar.</string>

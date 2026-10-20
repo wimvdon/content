@@ -20,7 +20,7 @@ export function SavedManageDialog({ open, onOpenChange }: { open: boolean; onOpe
 
 /**
  * The folders and tags of the saved articles, as on Android: rename either (to another's name joins
- * the two), remove a folder (its articles go back to To read) or a tag (the articles stay). Folders
+ * the two), remove a folder (its articles go to the Archive) or a tag (the articles stay). Folders
  * are made by filing an article in one, tags by adding them to an article.
  */
 function SavedManage() {

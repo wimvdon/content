@@ -4,6 +4,7 @@ import be.wimvandonck.reader.sync.SyncRows
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SavedTest {
@@ -92,13 +93,16 @@ class SavedTest {
     }
 
     @Test
-    fun `renaming a folder joins it with one of that name, removing one sends its items back to read`() {
+    fun `renaming a folder joins it with one of that name, removing one archives its items`() {
         val withOther = Saved.file(library, "a.example/1", "Later")
         assertEquals(listOf("Later"), Saved.folders(Saved.renameFolder(withOther, "work", "Later")))
         assertSame(library, Saved.renameFolder(library, "Work", " "))
+        val toRead = Saved.items(library, SavedFilter()).map { it.key }
         val removed = Saved.removeFolder(library, "WORK")
         assertEquals(emptyList<String>(), Saved.folders(removed))
-        assertEquals(4, Saved.items(removed, SavedFilter()).size)
+        // The folder's articles are archived, not back in To read.
+        assertTrue(Saved.items(removed, SavedFilter(SavedTab.Archive)).map { it.key }.containsAll(listOf("a.example/2", "a.example/3")))
+        assertEquals(toRead, Saved.items(removed, SavedFilter()).map { it.key })
     }
 
     @Test

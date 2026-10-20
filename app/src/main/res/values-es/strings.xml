@@ -302,7 +302,7 @@
     <string name="menu_folders_tags">Carpetas y etiquetas</string>
     <string name="saved_folder_rename">Renombrar carpeta</string>
     <string name="saved_folder_remove">Quitar carpeta</string>
-    <string name="saved_folder_remove_body">¿Quitar la carpeta %1$s? Sus artículos vuelven a Por leer.</string>
+    <string name="saved_folder_remove_body">¿Quitar la carpeta %1$s? Sus artículos van al Archivo.</string>
     <string name="saved_remove">Quitar de Guardados</string>
     <string name="saved_removed">Quitado de Guardados</string>
     <string name="saved_remove_body">¿Quitar este artículo, con su nota, etiquetas y resaltados? Archivarlo lo mantiene buscable.</string>

@@ -293,7 +293,7 @@
     <string name="menu_folders_tags">Folders and tags</string>
     <string name="saved_folder_rename">Rename folder</string>
     <string name="saved_folder_remove">Remove folder</string>
-    <string name="saved_folder_remove_body">Remove the folder %1$s? Its articles go back to To read.</string>
+    <string name="saved_folder_remove_body">Remove the folder %1$s? Its articles go to the Archive.</string>
     <string name="saved_remove">Remove from Saved</string>
     <string name="saved_removed">Removed from Saved</string>
     <string name="saved_remove_body">Remove this article, with its note, tags and highlights? Archive keeps it searchable instead.</string>
