@@ -1,44 +1,44 @@
-import { ArrowLeft, Search, X } from "lucide-react";
+import { ChevronDown, Search, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useApp } from "@/lib/app";
 import { t } from "@/lib/i18n";
 import { articleKey, type Article } from "@/lib/library";
-import { itemArticle, sourceOf } from "@/lib/saved";
-import { indexArticles, mix, searchArticles, searchItems, type SearchFilter } from "@/lib/search";
+import { itemArticle, savedFolders, sourceOf, tabTags, type SavedType } from "@/lib/saved";
+import { indexArticles, narrowed, noFilters, searchResults, type SearchFilter, type SearchFilters } from "@/lib/search";
 import { Empty, Row } from "./ArticleList";
 import { Button } from "./ui/button";
 import { FilterChip } from "./ui/chip";
+import { cn } from "./ui/cn";
 
 /**
- * Search, in place of the list: a field, chips for All, Feeds or Saved, and the matches below, mixed
- * and best first, each labelled Feed or Saved (like the Android app's search screen). The query
- * stays while an article is read, so the results are still there.
+ * The Search tab (#171), in place of the list: a field, chips for All, Feeds or Saved and that
+ * kind's filters (feeds: a folder or one feed; Saved: a folder, a tag and a type), and below the
+ * matches, mixed and best first, each labelled Feed or Saved under All (like the Android app's
+ * Search tab). With nothing typed it lists everything the filters let through, newest first. The
+ * query and filters stay while an article is read, so the results are still there.
  */
 export function SearchPanel({ openKey, onOpen, onClose }: { openKey: string | null; onOpen: (a: Article) => void; onClose: () => void }) {
   const { library } = useApp();
   const [query, setQuery] = useState(() => sessionQuery);
-  const [filter, setFilter] = useState<SearchFilter>("all");
+  const [filters, setFilters] = useState<SearchFilters>(() => sessionFilters);
   const input = useRef<HTMLInputElement>(null);
 
   useEffect(() => input.current?.focus(), []);
   useEffect(() => {
     sessionQuery = query;
-  }, [query]);
+    sessionFilters = filters;
+  }, [query, filters]);
 
   const index = useMemo(() => indexArticles(library), [library]);
   const feeds = useMemo(() => new Map(library.feeds.map((f) => [f.url, f])), [library.feeds]);
-  const hits = useMemo(
-    () => mix(query, searchArticles(index, query), searchItems(library.items, query), filter),
-    [index, library.items, query, filter],
-  );
-  const blank = query.trim() === "";
+  const hits = useMemo(() => searchResults(query, library, index, filters), [index, library, query, filters]);
+  const blank = query.trim() === "" && !narrowed(filters);
+  const all = filters.scope === "all";
 
   return (
     <section className="flex h-full min-w-0 flex-col" aria-label={t("search")}>
       <header className="flex items-center gap-1 px-2 pt-2 pb-1">
-        <Button variant="ghost" size="icon" onClick={onClose} aria-label={t("back")} title={t("back")}>
-          <ArrowLeft />
-        </Button>
+        <Search className="mx-2 size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
         <input
           ref={input}
           type="search"
@@ -72,13 +72,14 @@ export function SearchPanel({ openKey, onOpen, onClose }: { openKey: string | nu
             ["saved", t("saved")],
           ] as const
         ).map(([value, label]) => (
-          <FilterChip key={value} role="radio" selected={filter === value} onClick={() => setFilter(value)}>
+          <FilterChip key={value} role="radio" selected={filters.scope === value} onClick={() => setFilters({ ...noFilters, scope: value as SearchFilter })}>
             {label}
           </FilterChip>
         ))}
       </div>
+      <Narrow filters={filters} onChange={setFilters} />
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-6">
-        {blank ? (
+        {blank && hits.length === 0 ? (
           <Empty icon={Search} title={t("searchStartTitle")} text={t("searchStartBody")} />
         ) : hits.length === 0 ? (
           <Empty icon={Search} title={t("searchNoneTitle")} text={t("searchNoneBody")} />
@@ -89,7 +90,7 @@ export function SearchPanel({ openKey, onOpen, onClose }: { openKey: string | nu
                 const a = hit.article;
                 return (
                   <li key={articleKey(a)}>
-                    <Row article={a} feed={feeds.get(a.feedUrl)} open={openKey === articleKey(a)} onOpen={() => onOpen(a)} label={t("searchLabelFeed")} />
+                    <Row article={a} feed={feeds.get(a.feedUrl)} open={openKey === articleKey(a)} onOpen={() => onOpen(a)} label={all ? t("searchLabelFeed") : undefined} />
                   </li>
                 );
               }
@@ -102,7 +103,7 @@ export function SearchPanel({ openKey, onOpen, onClose }: { openKey: string | nu
                     open={openKey === articleKey(article)}
                     onOpen={() => onOpen(article)}
                     noReadState
-                    label={t("saved")}
+                    label={all ? t("saved") : undefined}
                   />
                 </li>
               );
@@ -114,5 +115,101 @@ export function SearchPanel({ openKey, onOpen, onClose }: { openKey: string | nu
   );
 }
 
-/** What was typed, kept while Search is closed for this visit (like the Android app). */
+/** The chosen kind's filters, as chips that open a menu; a chosen one shows its value. */
+function Narrow({ filters, onChange }: { filters: SearchFilters; onChange: (f: SearchFilters) => void }) {
+  const { library } = useApp();
+  const savedFolderNames = useMemo(() => savedFolders(library), [library]);
+  const tags = useMemo(() => tabTags(library, { kind: "all" }), [library]);
+  if (filters.scope === "all") return null;
+  const chips =
+    filters.scope === "feeds"
+      ? [
+          library.folders.length > 0 ? (
+            <MenuChip
+              key="folder"
+              label={t("folder")}
+              value={filters.feedFolderId}
+              options={[[null, t("searchAnyFolder")], ...library.folders.map((f): [string, string] => [f.id, f.title])]}
+              onPick={(feedFolderId) => onChange({ ...filters, feedFolderId, feedUrl: null })}
+            />
+          ) : null,
+          <MenuChip
+            key="feed"
+            label={t("searchLabelFeed")}
+            value={filters.feedUrl}
+            options={[
+              [null, t("searchAnyFeed")],
+              ...library.feeds.filter((f) => filters.feedFolderId === null || f.folderId === filters.feedFolderId).map((f): [string, string] => [f.url, f.title]),
+            ]}
+            onPick={(feedUrl) => onChange({ ...filters, feedUrl })}
+          />,
+        ]
+      : [
+          savedFolderNames.length > 0 ? (
+            <MenuChip
+              key="folder"
+              label={t("folder")}
+              value={filters.savedFolder}
+              options={[[null, t("searchAnyFolder")], ...savedFolderNames.map((f): [string, string] => [f, f])]}
+              onPick={(savedFolder) => onChange({ ...filters, savedFolder })}
+            />
+          ) : null,
+          tags.length > 0 ? (
+            <MenuChip
+              key="tag"
+              label={t("searchTag")}
+              value={filters.tag}
+              options={[[null, t("searchAnyTag")], ...tags.map((x): [string, string] => [x, x])]}
+              onPick={(tag) => onChange({ ...filters, tag })}
+            />
+          ) : null,
+          <MenuChip
+            key="type"
+            label={t("typeFilter")}
+            value={filters.type}
+            options={[
+              [null, t("typeAll")],
+              ["article", t("typeArticles")],
+              ["video", t("typeVideos")],
+              ["audio", t("typeAudio")],
+            ]}
+            onPick={(type) => onChange({ ...filters, type: type as SavedType | null })}
+          />,
+        ];
+  return <div className="flex flex-wrap gap-2 px-4 pb-3">{chips}</div>;
+}
+
+/**
+ * A filter chip that opens a menu of `options` (value and name; the first is "any"). It is the
+ * browser's own select, styled as a chip, so it works with the keyboard and screen readers.
+ */
+function MenuChip({ label, value, options, onPick }: { label: string; value: string | null; options: [string | null, string][]; onPick: (v: string | null) => void }) {
+  const chosen = options.find(([v]) => v !== null && v === value)?.[1];
+  return (
+    <label
+      className={cn(
+        "relative inline-flex h-8 cursor-pointer items-center gap-1 rounded-lg border px-3 text-sm",
+        chosen ? "border-transparent bg-accent font-medium text-accent-foreground" : "hover:bg-muted",
+      )}
+    >
+      <span className="max-w-40 truncate">{chosen ?? label}</span>
+      <ChevronDown className="size-4" aria-hidden="true" />
+      <select
+        aria-label={label}
+        value={value ?? ""}
+        onChange={(e) => onPick(e.target.value === "" ? null : e.target.value)}
+        className="absolute inset-0 cursor-pointer opacity-0"
+      >
+        {options.map(([v, name]) => (
+          <option key={v ?? ""} value={v ?? ""}>
+            {name}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+/** What was typed and the filters, kept while Search is closed for this visit (like the Android app). */
 let sessionQuery = "";
+let sessionFilters: SearchFilters = noFilters;

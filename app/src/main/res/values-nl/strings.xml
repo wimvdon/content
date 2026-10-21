@@ -187,9 +187,12 @@
     <string name="search_start_body">Vindt woorden in de titels en de tekst van de artikels uit je feeds.</string>
     <string name="search_none_title">Niets gevonden</string>
     <string name="search_none_body">Geen artikel bevat al deze woorden.</string>
-    <string name="search_start_title_saved">Alles doorzoeken</string>
     <string name="search_label_feed">Feed</string>
-    <string name="search_start_body_saved">Vindt woorden in de artikels uit je feeds, en in de titels, beschrijvingen, mappen, tags, notities en markeringen van je bewaarde artikels.</string>
+    <string name="search_any_folder">Elke map</string>
+    <string name="search_any_feed">Elke feed</string>
+    <string name="search_any_tag">Elke tag</string>
+    <string name="search_feed">Feed</string>
+    <string name="search_tag">Tag</string>
     <string name="search_section_none">Geen resultaten</string>
     <!-- A share from another app without a web link (#97). -->
     <string name="share_no_link">Geen link om te bewaren</string>

@@ -1,4 +1,4 @@
-import { Archive, Bookmark, BookOpen, CheckCheck, Circle, CircleCheck, Folder as FolderGlyph, Heart, Highlighter, Link2, ListFilter, Menu, Newspaper, Quote, RefreshCw, Rss, Search, type LucideIcon } from "lucide-react";
+import { Archive, BookOpen, CheckCheck, Circle, CircleCheck, Folder as FolderGlyph, Heart, Highlighter, Link2, ListFilter, Menu, Newspaper, Quote, RefreshCw, Rss, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useEscape } from "./ui/useEscape";
 import { app, useApp } from "@/lib/app";
@@ -20,20 +20,19 @@ type ListProps = {
   onAddFeed: () => void;
   onImport: () => void;
   onUndo: (keys: Set<string>) => void;
-  onSearch: () => void;
 };
 
 /** The articles of the chosen feed, folder or All articles, or Saved. */
 export function ArticleList(props: ListProps) {
   const { selection } = useApp();
   return selection.kind === "saved" ? (
-    <SavedArticles openKey={props.openKey} onOpen={props.onOpen} onMenu={props.onMenu} onSearch={props.onSearch} />
+    <SavedArticles openKey={props.openKey} onOpen={props.onOpen} onMenu={props.onMenu} />
   ) : (
     <FeedArticles {...props} />
   );
 }
 
-function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, onSearch }: ListProps) {
+function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo }: ListProps) {
   const { library, selection, settings, readThisVisit, refreshing, loaded, problems } = useApp();
   const articles = useMemo(
     () => articlesFor(library, selection, settings.unreadOnly, readThisVisit),
@@ -91,7 +90,6 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, on
             <p className="text-xs text-muted-foreground">{plural(settings.unreadOnly ? "unreadCount" : "unreadCountAll", unread)}</p>
           ) : null}
         </div>
-        <SearchButton onClick={onSearch} />
         {library.feeds.length > 0 ? (
           <>
             <Button variant="ghost" size="icon" onClick={() => void app.refresh()} disabled={refreshing} aria-label={t("refresh")} title={t("refresh") + " (r)"}>
@@ -171,14 +169,14 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, on
  * like the feeds; a folder is a collection, so its articles are cards with your note (or first
  * highlight, or the description), the site, tags and highlights.
  */
-function SavedArticles({ openKey, onOpen, onMenu, onSearch }: { openKey: string | null; onOpen: (a: Article) => void; onMenu: () => void; onSearch: () => void }) {
+function SavedArticles({ openKey, onOpen, onMenu }: { openKey: string | null; onOpen: (a: Article) => void; onMenu: () => void }) {
   const { library, savedFilter: filter, loaded } = useApp();
   const items = useMemo(() => savedItems(library, filter), [library, filter]);
   const folders = useMemo(() => savedFolders(library), [library]);
   const tags = useMemo(() => tabTags(library, filter.tab), [library, filter.tab]);
   const set = (change: Partial<SavedFilter>) => app.showSaved({ ...filter, ...change });
   const plain = !filter.likedOnly && filter.tags.length === 0 && filter.type === null;
-  const tabs: SavedTab[] = [{ kind: "toread" }, { kind: "all" }, ...folders.map((name): SavedTab => ({ kind: "folder", name })), { kind: "archive" }];
+  const tabs: SavedTab[] = [{ kind: "toread" }, ...folders.map((name): SavedTab => ({ kind: "folder", name })), { kind: "archive" }];
   return (
     <section className="flex h-full min-w-0 flex-col" aria-label={t("saved")}>
       <header className="flex items-center gap-1 px-2 pt-2 pb-1">
@@ -192,12 +190,11 @@ function SavedArticles({ openKey, onOpen, onMenu, onSearch }: { openKey: string 
           <Link2 />
         </Button>
         <TypeFilter type={filter.type} onChange={(type) => set({ type })} />
-        <SearchButton onClick={onSearch} />
       </header>
       <nav aria-label={t("saved")} className="flex shrink-0 overflow-x-auto border-b px-2 [scrollbar-width:none]">
         {tabs.map((tab) => {
           const selected = sameTab(tab, filter.tab);
-          const Icon = tab.kind === "toread" ? BookOpen : tab.kind === "all" ? Bookmark : tab.kind === "archive" ? Archive : FolderGlyph;
+          const Icon = tab.kind === "toread" ? BookOpen : tab.kind === "archive" ? Archive : FolderGlyph;
           return (
             <button
               key={tab.kind === "folder" ? `f:${tab.name}` : tab.kind}
@@ -405,16 +402,6 @@ function NoteCard({ item, feed, open, onOpen }: { item: Item; feed: Feed | undef
     </button>
   );
 }
-
-/** Search everything (feeds and saved), at the top of both lists like on Android. */
-function SearchButton({ onClick }: { onClick: () => void }) {
-  return (
-    <Button variant="ghost" size="icon" onClick={onClick} aria-label={t("search")} title={t("search") + " (/)"}>
-      <Search />
-    </Button>
-  );
-}
-
 
 /**
  * One article in a list. `label` says what kind it is (Search: Feed or Saved). With

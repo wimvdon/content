@@ -123,6 +123,11 @@ export default function App() {
 
   const sidebar = (
     <Sidebar
+      searching={searching}
+      onSearch={() => {
+        setDrawer(false);
+        setSearching(true);
+      }}
       onNavigate={() => {
         setDrawer(false);
         setSearching(false);
@@ -166,11 +171,10 @@ export default function App() {
               onAddFeed={() => setDialog("add")}
               onImport={() => fileInput.current?.click()}
               onUndo={undoMarkAll}
-              onSearch={() => setSearching(true)}
             />
           )}
         </div>
-        <NavigationBar onNavigate={() => setSearching(false)} />
+        <NavigationBar searching={searching} onSearch={() => setSearching(true)} onNavigate={() => setSearching(false)} />
       </main>
       <div className={`min-w-0 flex-1 ${openArticle ? "block" : "hidden lg:block"}`}>
         {openArticle ? (

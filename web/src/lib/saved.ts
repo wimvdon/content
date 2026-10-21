@@ -86,7 +86,9 @@ export function tabTags(lib: Library, tab: SavedTab): string[] {
 
 /** The filter without a folder or tags that are gone. */
 export function shownFilter(lib: Library, filter: SavedFilter): SavedFilter {
+  // All is no longer a tab: Search lists all of Saved (#171).
   const tab = filter.tab;
+  if (tab.kind === "all") return shownFilter(lib, { ...filter, tab: { kind: "toread" } });
   const withTab = tab.kind === "folder" && !savedFolders(lib).some((f) => same(f, tab.name)) ? { ...filter, tab: { kind: "toread" } as SavedTab } : filter;
   const tags = tabTags(lib, withTab.tab);
   const kept = withTab.tags.filter((t) => tags.some((x) => same(x, t)));

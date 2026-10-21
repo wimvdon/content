@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Item } from "../src/lib/items";
 import { emptyLibrary, type Article, type Library } from "../src/lib/library";
-import { indexArticles, mix, normalize, relevance, searchArticles, searchItems, type SearchHit } from "../src/lib/search";
+import { indexArticles, mix, narrowed, noFilters, normalize, relevance, searchArticles, searchItems, searchResults, type SearchHit } from "../src/lib/search";
 
 const article = (id: string, title: string, time: number, html = ""): Article => ({
   feedUrl: "https://feed.example/rss",
@@ -86,5 +86,47 @@ describe("search", () => {
     expect(names(mix("green tea", feeds, savedOnes))).toEqual(["saved:1", "feed:b", "feed:a", "saved:2"]);
     expect(names(mix("green tea", feeds, savedOnes, "feeds"))).toEqual(["feed:b", "feed:a"]);
     expect(names(mix("green tea", feeds, savedOnes, "saved"))).toEqual(["saved:1", "saved:2"]);
+  });
+});
+
+describe("search tab (#171)", () => {
+  const other = (id: string, title: string, time: number): Article => ({ ...article(id, title, time), feedUrl: "https://other.example/rss" });
+  const lib: Library = {
+    ...library([article("a", "Green tea", 1), other("b", "Black tea", 3)]),
+    feeds: [
+      { url: "https://feed.example/rss", title: "Food Blog", siteUrl: null, folderId: "f1", iconUrl: null, renamed: false },
+      { url: "https://other.example/rss", title: "Other", siteUrl: null, folderId: null, iconUrl: null, renamed: false },
+    ],
+    folders: [{ id: "f1", title: "Food" }] as Library["folders"],
+    items: [
+      saved(1, "Tea notes", 2, { folder: "Recipes", tags: ["Tea"] }),
+      saved(2, "Old tea", 4, { readingList: { state: "archived", addedAt: 4 } }),
+      saved(3, "Tea video", 5, { url: "https://www.youtube.com/watch?v=x", key: "site.example/3" }),
+      saved(4, "Bookmark only", 6, { readingList: null }),
+    ],
+  };
+  const all = (query: string, filters = noFilters) => names(searchResults(query, lib, indexArticles(lib), filters));
+
+  it("lists everything, newest first, with nothing typed (archived too, not bookmarks only)", () => {
+    expect(all("")).toEqual(["saved:3", "saved:2", "feed:b", "saved:1", "feed:a"]);
+    expect(all("", { ...noFilters, scope: "feeds" })).toEqual(["feed:b", "feed:a"]);
+    expect(all("", { ...noFilters, scope: "saved" })).toEqual(["saved:3", "saved:2", "saved:1"]);
+  });
+
+  it("filters feeds by folder and by feed", () => {
+    expect(all("", { ...noFilters, scope: "feeds", feedFolderId: "f1" })).toEqual(["feed:a"]);
+    expect(all("tea", { ...noFilters, scope: "feeds", feedUrl: "https://other.example/rss" })).toEqual(["feed:b"]);
+  });
+
+  it("filters Saved by folder, tag and type", () => {
+    expect(all("", { ...noFilters, scope: "saved", savedFolder: "recipes" })).toEqual(["saved:1"]);
+    expect(all("tea", { ...noFilters, scope: "saved", tag: "TEA" })).toEqual(["saved:1"]);
+    expect(all("", { ...noFilters, scope: "saved", type: "video" })).toEqual(["saved:3"]);
+  });
+
+  it("knows when filters beyond the kind are chosen", () => {
+    expect(narrowed(noFilters)).toBe(false);
+    expect(narrowed({ ...noFilters, scope: "saved" })).toBe(false);
+    expect(narrowed({ ...noFilters, tag: "x" })).toBe(true);
   });
 });

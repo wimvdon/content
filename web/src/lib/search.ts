@@ -8,7 +8,7 @@
 import { toPlainText } from "./html";
 import type { Item } from "./items";
 import { sortTime, type Article, type Library } from "./library";
-import { hostOf } from "./saved";
+import { folderOf, hostOf, typeOf, type SavedType } from "./saved";
 
 export const MAX_RESULTS = 200;
 
@@ -95,4 +95,59 @@ export function mix(query: string, feeds: Article[], saved: Item[], filter: Sear
   const fromSaved: SearchHit[] =
     filter === "feeds" ? [] : saved.map((item) => ({ kind: "saved", item, relevance: relevance(query, item.title), time: savedAt(item) }));
   return [...fromFeeds, ...fromSaved].sort((a, b) => b.relevance - a.relevance || b.time - a.time).slice(0, limit);
+}
+
+/** Search's kind and that kind's filters (#171): feeds by folder or one feed; Saved by folder, tag and type. */
+export interface SearchFilters {
+  scope: SearchFilter;
+  /** A folder of feeds (its id). */
+  feedFolderId: string | null;
+  /** One feed (its address). */
+  feedUrl: string | null;
+  /** A folder of Saved (its name, case ignored). */
+  savedFolder: string | null;
+  tag: string | null;
+  type: SavedType | null;
+}
+
+export const noFilters: SearchFilters = { scope: "all", feedFolderId: null, feedUrl: null, savedFolder: null, tag: null, type: null };
+
+/** Whether any filter beyond the kind is chosen. */
+export const narrowed = (f: SearchFilters) => f.feedFolderId !== null || f.feedUrl !== null || f.savedFolder !== null || f.tag !== null || f.type !== null;
+
+/** How many articles the list shows without words typed. */
+export const MAX_BROWSED = 500;
+
+const sameName = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
+
+/**
+ * What the Search tab lists (#171), like the Android app's SearchResults. With words typed, the
+ * matches as `mix` ranks them; without, everything, newest first: all feed articles, all of Saved
+ * (archived ones too), or both. Either way only what the filters let through.
+ */
+export function searchResults(query: string, library: Library, index: ArticleIndex, filters: SearchFilters): SearchHit[] {
+  const browsing = words(query).length === 0;
+  const articles = browsing ? library.articles : searchArticles(index, query);
+  const items = browsing ? library.items.filter((i) => i.readingList !== null) : searchItems(library.items, query);
+  const folderOfFeed = new Map(library.feeds.map((f) => [f.url, f.folderId]));
+  const feeds =
+    filters.scope === "saved"
+      ? []
+      : articles.filter(
+          (a) => (filters.feedUrl === null || a.feedUrl === filters.feedUrl) && (filters.feedFolderId === null || folderOfFeed.get(a.feedUrl) === filters.feedFolderId),
+        );
+  const saved =
+    filters.scope === "feeds"
+      ? []
+      : items.filter((i) => {
+          const folder = folderOf(i);
+          return (
+            (filters.savedFolder === null || (folder !== null && sameName(folder, filters.savedFolder))) &&
+            (filters.tag === null || i.tags.some((x) => sameName(x, filters.tag!))) &&
+            (filters.type === null || typeOf(i.url) === filters.type)
+          );
+        });
+  // Feed filters are about feeds: with one chosen under All, Saved's matches stay out too.
+  const onlyFeeds = filters.scope === "all" && (filters.feedUrl !== null || filters.feedFolderId !== null);
+  return mix(browsing ? "" : query, feeds, onlyFeeds ? [] : saved, filters.scope, browsing ? MAX_BROWSED : MAX_RESULTS);
 }
