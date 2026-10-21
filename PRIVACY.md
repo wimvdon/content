@@ -136,7 +136,9 @@ Reader account that signing in with Instapaper opens.
   only the address the web app asks for and passes it back; it stores none of it and logs
   nothing, and only the web app loads feeds through it. Cloudflare runs it, so Cloudflare sees which feed or page is
   loaded and your IP address, under Cloudflare's privacy policy. It keeps a copy of a feed for at
-  most five minutes in Cloudflare's cache, shared by everyone reading that feed. The Android app
+  most five minutes in Cloudflare's cache, shared by everyone reading that feed. For an article
+  page it passes on your browser's preferred languages (as your browser would), so the site
+  answers in your language; the site never sees your IP address, only Cloudflare's. The Android app
   uses it only to finish signing in to Instapaper and Raindrop.io and for sync (see above).
 - **Raindrop.io's return page** (`/raindrop/callback`) only shows buttons that hand the address
   Raindrop sent you back with to the Android app; it sends nothing anywhere.

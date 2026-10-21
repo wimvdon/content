@@ -7,7 +7,7 @@ import { formatDateTime, t } from "@/lib/i18n";
 import { itemForArticle, type Highlight } from "@/lib/items";
 import { articleKey, sortTime, type Article } from "@/lib/library";
 import { hostOf, isItemArticle, siteOf, sourceOf } from "@/lib/saved";
-import { fetchViaProxy } from "@/lib/proxy";
+import { FetchError, fetchViaProxy } from "@/lib/proxy";
 import { sanitizeArticle } from "@/lib/sanitize";
 import { FeedIcon } from "./FeedIcon";
 import { HighlightDialog, HighlightedText, HighlightsDialog } from "./Highlights";
@@ -20,8 +20,8 @@ import { cn } from "./ui/cn";
 import { Dialog } from "./ui/dialog";
 import { useEscape } from "./ui/useEscape";
 
-/** The full article for one address: loaded, or failed (no answer yet means it is loading). */
-type Full = { link: string; html: string | null };
+/** The full article for one address: loaded, or failed and why (no answer yet means it is loading). */
+type Full = { link: string; html: string | null; blocked?: boolean };
 
 /** The parent gives each article its own key, so this state starts fresh for every article. */
 /** Kept the same between renders, so the page isn't drawn again for nothing. */
@@ -63,12 +63,12 @@ export function ArticleView({
     (async () => {
       let html = await cached(link);
       if (!html) {
-        const page = await fetchViaProxy(link);
+        const page = await fetchViaProxy(link, true);
         html = extractArticle(page.text, page.url);
         if (html) void keep(link, html);
       }
       if (!cancelled) setFull({ link, html });
-    })().catch(() => !cancelled && setFull({ link, html: null }));
+    })().catch((e) => !cancelled && setFull({ link, html: null, blocked: e instanceof FetchError && e.kind === "blocked" }));
     return () => {
       cancelled = true;
     };
@@ -192,7 +192,20 @@ export function ArticleView({
           {saved?.note ? <p className="mt-4 rounded-xl bg-muted px-4 py-3 text-sm whitespace-pre-line">{saved.note}</p> : null}
           {showHero ? <img src={article.imageUrl!} alt="" referrerPolicy="no-referrer" className="mt-6 w-full rounded-xl bg-muted object-cover" onError={(e) => (e.currentTarget.style.display = "none")} /> : null}
           {useFull && !loaded ? <p className="mt-6 text-sm text-muted-foreground">{t("loadingFull")}</p> : null}
-          {useFull && loaded && !loaded.html ? <p className="mt-6 text-sm text-muted-foreground">{t("fullFailed")}</p> : null}
+          {useFull && loaded && !loaded.html ? (
+            // Why the full article isn't here, with the way to read it all the same.
+            <div className="mt-6 flex flex-wrap items-center gap-3 rounded-xl bg-muted px-4 py-3">
+              <p className="min-w-0 flex-1 text-sm text-muted-foreground">{t(loaded.blocked ? "fullBlocked" : "fullFailed")}</p>
+              {article.link ? (
+                <Button variant="tonal" size="sm" asChild>
+                  <a href={article.link} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink />
+                    {t("readOnWebsite")}
+                  </a>
+                </Button>
+              ) : null}
+            </div>
+          ) : null}
           <HighlightedText
             html={html}
             className="article mt-6"

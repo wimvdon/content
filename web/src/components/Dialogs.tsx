@@ -71,6 +71,7 @@ const addErrors: Record<string, Key> = {
   notFound: "errorNotFound",
   server: "errorServer",
   tooLarge: "errorTooLarge",
+  blocked: "errorBlocked",
 };
 
 export function ManageDialog({ open, onOpenChange, onAddFeed, onImport }: Props & { onAddFeed: () => void; onImport: () => void }) {

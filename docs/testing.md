@@ -316,3 +316,9 @@ Needs the Raindrop app registered and the Worker's `RAINDROP_CLIENT_ID` and `RAI
 - [ ] Archive, like and tag an article in the web app: the change shows in Instapaper's own app.
       Change one in Instapaper and reload the page: the change shows in the web app.
 - [ ] Sign out: Saved stays exactly as it was.
+
+## Web app: an article whose site blocks loading
+
+- [ ] Open a feed article from a site that blocks the web app (many big news sites do): instead of an
+      empty page or a vague error, a box says the website doesn't let the web app load it, with
+      **Read on website**. The feed's own text stays below it.
