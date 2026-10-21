@@ -101,3 +101,79 @@ object ItemSearch {
     private fun text(i: Item): String =
         (listOf(i.title, i.host, i.url, i.description, i.note, i.folder.orEmpty()) + i.tags + i.highlights.flatMap { listOf(it.quote, it.note) }).joinToString(" ")
 }
+
+/**
+ * Search's filters (#171): which kind (All, Feeds, Saved), then for feeds a folder or one feed, and
+ * for Saved a folder, a tag and a type. Only the chosen kind's filters apply; changing the kind
+ * clears them.
+ */
+data class SearchFilters(
+    val scope: SearchFilter = SearchFilter.All,
+    /** A folder of feeds (its id). */
+    val feedFolderId: String? = null,
+    /** One feed (its address). */
+    val feedUrl: String? = null,
+    /** A folder of Saved (its name, case ignored). */
+    val savedFolder: String? = null,
+    val tag: String? = null,
+    val type: SavedType? = null,
+) {
+    /** Whether any filter beyond the kind is chosen. */
+    val narrowed: Boolean get() = feedFolderId != null || feedUrl != null || savedFolder != null || tag != null || type != null
+
+    /** The kind [scope], without the other kind's filters. */
+    fun withScope(scope: SearchFilter): SearchFilters = SearchFilters(scope)
+}
+
+/**
+ * What the Search tab lists (#171). With words typed, the matches ([feedMatches] and [itemMatches],
+ * found by ArticleSearch and ItemSearch) as Search ranks them; without, everything, newest first:
+ * all feed articles, all of Saved (archived ones too), or both. Either way only what the filters
+ * let through. Plain Kotlin, unit tested; the web app does the same in web/src/lib/search.ts.
+ */
+object SearchResults {
+    /** How many articles the list shows without words typed. */
+    const val MAX_BROWSED = 500
+
+    fun of(
+        query: String,
+        library: Library,
+        feedMatches: List<Article>,
+        itemMatches: List<Item>,
+        filters: SearchFilters,
+    ): List<SearchHit> {
+        val browsing = ArticleSearch.words(query).isEmpty()
+        val articles = if (browsing) library.articles else feedMatches
+        val items = if (browsing) library.items.filter { it.readingList != null } else itemMatches
+        val folderOfFeed = library.feeds.associate { it.url to it.folderId }
+        val feeds =
+            when (filters.scope) {
+                SearchFilter.Saved -> emptyList()
+                else ->
+                    articles.filter { a ->
+                        (filters.feedUrl == null || a.feedUrl == filters.feedUrl) &&
+                            (filters.feedFolderId == null || folderOfFeed[a.feedUrl] == filters.feedFolderId)
+                    }
+            }
+        val saved =
+            when (filters.scope) {
+                SearchFilter.Feeds -> emptyList()
+                else ->
+                    items.filter { i ->
+                        i.readingList != null &&
+                            (filters.savedFolder == null || Saved.folderOf(i)?.equals(filters.savedFolder, ignoreCase = true) == true) &&
+                            (filters.tag == null || i.tags.any { it.equals(filters.tag, ignoreCase = true) }) &&
+                            (filters.type == null || Saved.typeOf(i.url) == filters.type)
+                    }
+            }
+        // Feed filters are about feeds: with one chosen under All, Saved's matches stay out too.
+        val onlyFeeds = filters.scope == SearchFilter.All && (filters.feedUrl != null || filters.feedFolderId != null)
+        return MixedSearch.mix(
+            if (browsing) "" else query,
+            feeds,
+            if (onlyFeeds) emptyList() else saved,
+            filters.scope,
+            if (browsing) MAX_BROWSED else ArticleSearch.MAX_RESULTS,
+        )
+    }
+}
