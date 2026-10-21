@@ -1,0 +1,9 @@
+{
+  "about": "A page without an article gives none.",
+  "url": "https://example.com/",
+  "html": "<!DOCTYPE html>\n<html><head><title>Page</title><script>var x = \"<p>not text</p>\";</script><style>p { color: red }</style></head>\n<body><nav><a href=\"/\">Home</a></nav><p>Too short.</p></body></html>",
+  "text": [],
+  "htmlContains": [],
+  "absent": [],
+  "noArticle": true
+}

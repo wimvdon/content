@@ -12,6 +12,16 @@ which the web reader explains with Read on website. This doesn't get past real b
 stored copy of saved articles and a browser extension (#168, later) do that. Rejected: pretending to
 be Chrome (dishonest and easily detected), paid scraping services and residential proxies (cost, and
 they would see every page read).
+## 2026-10-21: The web app cleans up articles the same way as the Android app
+
+The owner found the web reader full of leftovers. Both apps use Readability, but Android prepares the
+page first (glossary buttons, hidden parts, a div per paragraph, split containers) and turns the
+result into simple HTML (kept tags only, absolute links, known video players, no repeated title or
+byline); the web app showed Readability's output as it was. `web/src/lib/articleExtractor.ts` now
+takes Android's steps one for one, and `testdata/articles/` holds sample pages that both test suites
+read, so the two can't drift apart. Rejected: running the Kotlin code in the browser (Kotlin/JS or
+Wasm would change the whole web build). The browser's cache of full articles starts again (v2), so
+articles already opened are cleaned the new way.
 
 ## 2026-10-20: Highlights and notes in the reader, without Instapaper copying (#102)
 

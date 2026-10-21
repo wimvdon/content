@@ -1,0 +1,15 @@
+{
+  "about": "Joins an article split into look-alike containers with ads in between (Ars Technica).",
+  "url": "https://example.com/",
+  "html": "<!DOCTYPE html>\n<html><head><title>Page</title><script>var x = \"<p>not text</p>\";</script><style>p { color: red }</style></head>\n<body><main><article class=\"double-column\"><div class=\"my-2.5 mx-auto\"><div class=\"relative\">\n  <div class=\"post-content post-content-double\"><p>First part. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p><p>This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p><p>This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p></div>\n</div><div class=\"hidden lg:block\"><div class=\"ad ad--rail\"></div></div></div>\n<div class=\"ad-wrapper\"><div class=\"ad ad--mid-content\"><p>Advertisement text that is long enough to count.</p></div></div><div class=\"my-2.5 mx-auto\"><div class=\"relative\">\n  <div class=\"post-content post-content-double\"><p>Second part. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p><p>This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p><p>This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p></div>\n</div><div class=\"hidden lg:block\"><div class=\"ad ad--rail\"></div></div></div>\n<div class=\"ad-wrapper\"><div class=\"ad ad--mid-content\"><p>Advertisement text that is long enough to count.</p></div></div><div class=\"my-2.5 mx-auto\"><div class=\"relative\">\n  <div class=\"post-content post-content-double\"><p>Third part. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p><p>This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p><p>This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p></div>\n</div><div class=\"hidden lg:block\"><div class=\"ad ad--rail\"></div></div></div>\n<div class=\"ad-wrapper\"><div class=\"ad ad--mid-content\"><p>Advertisement text that is long enough to count.</p></div></div></article></main></body></html>",
+  "text": [
+    "First part",
+    "Second part",
+    "Third part"
+  ],
+  "htmlContains": [],
+  "absent": [
+    "Advertisement"
+  ],
+  "noArticle": false
+}

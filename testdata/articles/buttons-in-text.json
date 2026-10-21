@@ -1,0 +1,13 @@
+{
+  "about": "Keeps words a site puts in buttons inside the text; drops real buttons.",
+  "url": "https://example.com/",
+  "html": "<!DOCTYPE html>\n<html><head><title>Page</title><script>var x = \"<p>not text</p>\";</script><style>p { color: red }</style></head>\n<body><article><p>At 280 <button type=\"button\">light years</button> from here. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p><button>Share</button></article></body></html>",
+  "text": [
+    "At 280 light years from here."
+  ],
+  "htmlContains": [],
+  "absent": [
+    "Share"
+  ],
+  "noArticle": false
+}

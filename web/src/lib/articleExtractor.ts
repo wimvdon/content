@@ -1,0 +1,265 @@
+/**
+ * Finds the article in a web page and returns it as simple HTML (paragraphs, headings, lists,
+ * quotes, links, text styles, pictures and embedded videos), the way "reader view" in browsers
+ * does. The same steps as the Android app's feed/ArticleExtractor.kt, so both apps show the same
+ * article: the page is prepared for Readability (Firefox Reader View's engine), and its result is
+ * turned into the reader's simple HTML (only the tags below, absolute links, known video players).
+ * The shared sample pages in /testdata/articles check that both give the same text.
+ */
+
+import { Readability } from "@mozilla/readability";
+import { escapeHtml, toPlainText } from "./html";
+
+/** Below this many characters of text the page is not treated as an article. */
+export const MIN_TEXT_LENGTH = 250;
+
+/** Tags kept in the result; other elements are replaced by their content. */
+const KEPT_TAGS = new Set([
+  "p", "br", "h1", "h2", "h3", "h4", "h5", "h6", "ul", "ol", "li", "blockquote", "pre", "code",
+  "em", "i", "strong", "b", "u", "s", "sub", "sup", "a", "hr", "dl", "dt", "dd",
+  "figure", "figcaption", "img", "iframe", "video",
+]);
+
+/** Never part of what the reader shows, wherever Readability leaves them. */
+const DROPPED_TAGS = new Set([
+  "script", "style", "noscript", "template", "svg", "math", "textarea", "object", "select", "canvas",
+  "nav", "header", "footer", "aside", "form", "button", "input", "audio", "dialog", "menu",
+]);
+
+/** Embedded players worth a card in the reader; other iframes are usually ads or widgets. */
+const KNOWN_EMBEDS =
+  /youtube\.com|youtube-nocookie\.com|youtu\.be|vimeo\.com|twitter\.com|x\.com|instagram\.com|spotify\.com|soundcloud\.com|codepen\.io|dailymotion\.com|tiktok\.com|bsky\.app/i;
+
+const BLOCK_TAGS = new Set(["p", "h1", "h2", "h3", "h4", "h5", "h6", "ul", "ol", "li", "blockquote", "pre", "hr", "dl", "dt", "dd", "div", "section", "article", "main", "td", "tr", "table"]);
+
+/** Elements that make their own block in the result. */
+const BLOCK_LIKE = new Set([...BLOCK_TAGS, "figure", "figcaption"]);
+
+/** Elements whose content is running text: a button in there is a word of it (a glossary term). */
+const TEXT_TAGS = ["p", "li", "dd", "td", "h1", "h2", "h3", "h4", "h5", "h6"];
+
+/** Elements that start a block of their own; a `<div>` without any inside is a paragraph. */
+const BLOCK_SELECTOR = "p, div, section, article, main, header, footer, aside, nav, ul, ol, dl, table, blockquote, pre, figure, form, hr, h1, h2, h3, h4, h5, h6";
+
+/** From this many characters a paragraph counts as real text. */
+const PARAGRAPH_LENGTH = 80;
+
+/** Shorter headings only count as the title when they match it exactly. */
+const MIN_TITLE_LENGTH = 10;
+
+const DETAIL_BLOCKS = new Set(["p", "div", "li", "ul", "section", "header", "footer", "span"]);
+
+/** The article of `html` (downloaded from `pageUrl`) as simple HTML, or null when none is found. */
+export function extractArticle(html: string, pageUrl: string): string | null {
+  if (!html.trim()) return null;
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const base = doc.createElement("base");
+  base.href = pageUrl;
+  doc.head.prepend(base);
+  const titles = [doc.querySelector('meta[property="og:title"]')?.getAttribute("content"), doc.title].filter((t): t is string => !!t);
+  // Readability drops buttons, also the ones some sites put around words of the text.
+  for (const button of doc.querySelectorAll(TEXT_TAGS.map((t) => `${t} button`).join(", "))) unwrap(button);
+  // What the page hides is not part of what a reader sees.
+  for (const hidden of doc.querySelectorAll('[hidden], [aria-hidden="true"], .hidden, .d-none')) hidden.remove();
+  for (const styled of doc.querySelectorAll("[style]")) if (/display:\s*none/i.test(styled.getAttribute("style") ?? "")) styled.remove();
+  divsToParagraphs(doc);
+  joinSplitText(doc);
+  let parsed: { title?: string | null; content?: string | null } | null;
+  try {
+    parsed = new Readability(doc).parse();
+  } catch {
+    // A page Readability can't handle has no article for the reader.
+    parsed = null;
+  }
+  if (!parsed?.content) return null;
+  const content = new DOMParser().parseFromString(`<body>${parsed.content}</body>`, "text/html").body;
+  // The reader shows the title above the article already.
+  const allTitles = [...titles, ...(parsed.title ? [parsed.title] : [])];
+  [...content.querySelectorAll("h1, h2")].find((h) => allTitles.some((t) => isTitle(text(h), t)))?.remove();
+  dropPageDetails(content, pageUrl);
+  const result = serialize(content, pageUrl).replace(/(\s*<br>\s*){3,}/g, "<br><br>").trim();
+  return toPlainText(result).length >= MIN_TEXT_LENGTH ? result : null;
+}
+
+/** An element's text as jsoup's text() gives it: whitespace collapsed, trimmed. */
+const text = (el: Element) => (el.textContent ?? "").replace(/\s+/g, " ").trim();
+
+function unwrap(el: Element) {
+  el.replaceWith(...el.childNodes);
+}
+
+/**
+ * Sites that write a `<div>` per paragraph: such a div becomes a `<p>` here, so that Readability
+ * keeps its links and bold words inside the paragraph instead of splitting it around them.
+ */
+function divsToParagraphs(doc: Document) {
+  for (const div of doc.body.querySelectorAll("div")) {
+    if (div.querySelector(BLOCK_SELECTOR) === null && text(div).length >= PARAGRAPH_LENGTH) {
+      const p = doc.createElement("p");
+      for (const attr of div.attributes) p.setAttribute(attr.name, attr.value);
+      p.append(...div.childNodes);
+      div.replaceWith(p);
+    }
+  }
+}
+
+/**
+ * Articles split into look-alike containers with ads or videos in between (several
+ * `<div class="post-content">` on some WordPress sites): Readability keeps only one of them, so the
+ * text of the others moves into the first. Only containers that each hold several real paragraphs
+ * count, so a list of teaser cards stays as it is.
+ */
+function joinSplitText(doc: Document) {
+  const parts = [...doc.body.querySelectorAll("div[class], section[class]")].filter(
+    (el) => [...el.children].filter((c) => c.localName === "p" && text(c).length >= PARAGRAPH_LENGTH).length >= 2,
+  );
+  const groups = new Map<string, Element[]>();
+  for (const part of parts) {
+    const key = `${part.localName} ${(part.getAttribute("class") ?? "").trim()}`;
+    groups.set(key, [...(groups.get(key) ?? []), part]);
+  }
+  const candidates = [...groups.values()].filter((g) => g.length >= 2 && g.every((a) => !g.some((b) => a !== b && a.contains(b))));
+  if (candidates.length === 0) return;
+  const size = (g: Element[]) => g.reduce((sum, el) => sum + text(el).length, 0);
+  const group = candidates.reduce((best, g) => (size(g) > size(best) ? g : best));
+  const [first, ...rest] = group;
+  for (const part of rest) {
+    first.append(...part.childNodes);
+    part.remove();
+  }
+}
+
+/**
+ * Short lines about the page rather than the article: a byline with its date (a `<time>`) or a
+ * link to the page itself ("54 comments").
+ */
+function dropPageDetails(content: HTMLElement, pageUrl: string) {
+  const page = pageUrl.split("#")[0];
+  const links = [...content.querySelectorAll("a[href]")].filter((a) => {
+    const href = absolute(pageUrl, a.getAttribute("href") ?? "");
+    return href !== null && href.split("#")[0] === page && href.includes("#");
+  });
+  for (const detail of [...content.querySelectorAll("time"), ...links]) {
+    if (!detail.isConnected) continue;
+    let block: Element | null = detail;
+    while (block && block !== content && !DETAIL_BLOCKS.has(block.localName)) block = block.parentElement;
+    const found = block ?? detail;
+    if (found !== content && text(found).length < PARAGRAPH_LENGTH) found.remove();
+    else if (found === content) detail.remove();
+  }
+}
+
+/** Whether `heading` is the page's `title`, which often ends in the site's name ("Title | Site"). */
+function isTitle(heading: string, title: string): boolean {
+  const normalized = (s: string) =>
+    s
+      .toLowerCase()
+      .replace(/[^\p{L}\p{N}]+/gu, " ")
+      .trim();
+  const h = normalized(heading);
+  const t = normalized(title);
+  return h !== "" && (h === t || (h.length >= MIN_TITLE_LENGTH && t.startsWith(`${h} `)));
+}
+
+// ---- Writing the result -------------------------------------------------------------------
+
+function serialize(el: Element, pageUrl: string): string {
+  let out = "";
+  for (const child of el.childNodes) {
+    if (child.nodeType === Node.TEXT_NODE) out += escapeHtml((child as Text).data);
+    else if (child.nodeType === Node.ELEMENT_NODE) out += serializeElement(child as Element, pageUrl);
+  }
+  return out;
+}
+
+function serializeElement(el: Element, pageUrl: string): string {
+  const tag = el.localName;
+  if (DROPPED_TAGS.has(tag)) return "";
+  if (!KEPT_TAGS.has(tag)) {
+    // A container holding only text and inline elements is a paragraph (sites that use a <div>
+    // per paragraph); one holding blocks just passes them on.
+    if (BLOCK_TAGS.has(tag) && !hasBlockDescendant(el)) {
+      const inner = serialize(el, pageUrl);
+      return toPlainText(inner) ? `<p>${inner.trim()}</p>` : "";
+    }
+    return serialize(el, pageUrl);
+  }
+  if (tag === "br" || tag === "hr") return `<${tag}>`;
+  if (tag === "img") {
+    let out = "<img";
+    for (const name of ["src", "data-src", "data-lazy-src"]) {
+      const value = el.getAttribute(name);
+      const url = value !== null ? absolute(pageUrl, value) : null;
+      if (url) out += attr(name, url);
+    }
+    for (const name of ["srcset", "data-srcset"]) {
+      const value = el.getAttribute(name);
+      if (value !== null) out += attr(name, resolveSrcset(pageUrl, value));
+    }
+    for (const name of ["width", "height", "alt"]) {
+      const value = el.getAttribute(name);
+      if (value !== null) out += attr(name, value);
+    }
+    return `${out}>`;
+  }
+  if (tag === "iframe") {
+    const raw = el.getAttribute("src") ?? el.getAttribute("data-src");
+    const src = raw !== null ? absolute(pageUrl, raw) : null;
+    return src && KNOWN_EMBEDS.test(src) ? `<iframe${attr("src", src)}></iframe>` : "";
+  }
+  if (tag === "video") {
+    const raw = el.getAttribute("src") ?? el.querySelector("source[src]")?.getAttribute("src") ?? null;
+    const src = raw !== null ? absolute(pageUrl, raw) : null;
+    if (!src) return "";
+    const posterRaw = el.getAttribute("poster");
+    const poster = posterRaw !== null ? absolute(pageUrl, posterRaw) : null;
+    return `<video${attr("src", src)}${poster ? attr("poster", poster) : ""}></video>`;
+  }
+  if (tag === "a") {
+    const raw = el.getAttribute("href");
+    // Readability makes "#top" absolute; an anchor in the page itself is no link for the reader.
+    const href = raw !== null && !inPage(pageUrl, raw) ? absolute(pageUrl, raw) : null;
+    const inner = serialize(el, pageUrl);
+    return href ? `<a href="${escapeHtml(href)}">${inner}</a>` : inner;
+  }
+  const inner = serialize(el, pageUrl);
+  if (BLOCK_TAGS.has(tag) && !inner.trim()) return "";
+  return `<${tag}>${inner}</${tag}>`;
+}
+
+function hasBlockDescendant(el: Element): boolean {
+  return [...el.children].some((child) => BLOCK_LIKE.has(child.localName) || hasBlockDescendant(child));
+}
+
+const attr = (name: string, value: string) => ` ${name}="${escapeHtml(value)}"`;
+
+function resolveSrcset(base: string, srcset: string): string {
+  return srcset
+    .split(",")
+    .flatMap((part) => {
+      const [first, rest] = part.trim().split(/\s+(.*)/s);
+      const url = first ? absolute(base, first) : null;
+      if (!url) return [];
+      return [rest ? `${url} ${rest}` : url];
+    })
+    .join(", ");
+}
+
+/** Whether `href` only jumps within the page at `pageUrl` (`#top`, or the page's own address with a #part). */
+function inPage(pageUrl: string, href: string): boolean {
+  const url = absolute(pageUrl, href);
+  if (href.trim().startsWith("#")) return true;
+  return url !== null && url.includes("#") && url.split("#")[0] === new URL(pageUrl).toString().split("#")[0];
+}
+
+/** An absolute http(s) or mailto address, or null for in-page anchors, scripts and anything else. */
+function absolute(base: string, href: string): string | null {
+  const trimmed = href.trim();
+  if (trimmed.startsWith("#") || /^javascript:/i.test(trimmed)) return null;
+  try {
+    const url = new URL(trimmed.replace(/ /g, "%20"), base);
+    return ["http:", "https:", "mailto:"].includes(url.protocol) ? url.toString() : null;
+  } catch {
+    return null;
+  }
+}

@@ -1,15 +1,7 @@
-import { Readability } from "@mozilla/readability";
 import { toPlainText } from "./html";
 
-/** The readable article from a web page (Firefox's Reader View engine), as HTML, or null. */
-export function extractArticle(html: string, url: string): string | null {
-  const doc = new DOMParser().parseFromString(html, "text/html");
-  const base = doc.createElement("base");
-  base.href = url;
-  doc.head.prepend(base);
-  const article = new Readability(doc, { charThreshold: 300 }).parse();
-  return article?.content ?? null;
-}
+/** The readable article from a web page, the same way as the Android app (articleExtractor.ts). */
+export { extractArticle } from "./articleExtractor";
 
 /** Feed texts shorter than this (in characters of text) count as summaries, as on Android. */
 export const FULL_TEXT_THRESHOLD = 1500;
