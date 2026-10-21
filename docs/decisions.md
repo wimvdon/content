@@ -2,6 +2,18 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-21: Search is a tab of its own and replaces Saved's All tab (#171)
+
+Search moves from a magnifier in the top bar to the navigation bar (Feeds, Saved, Search; on the web
+also the sidebar), with filters per kind: feeds by folder or one feed, Saved by folder, tag and type.
+With nothing typed and no filters it lists everything newest first, so Saved's **All** tab (and the
+drawer's and sidebar's All row) went: it was the same list. The list without words is capped at 500
+articles, like the 200 search results, so a big library stays quick. The logic is plain Kotlin
+(`SearchResults`, unit tested) with the same rules in `web/src/lib/search.ts`. Rejected: keeping a
+Search button next to the tab (two ways to one place), and a filter sheet (chips that open a menu
+show the choice right away, as Material places filters on a list). The web's menus are the browser's
+own select, styled as a chip, so no new package.
+
 ## 2026-10-21: One stored text per saved article, in the Reader account
 
 So that highlights line up on every device (and future platforms), a saved article has one text,
@@ -12,6 +24,7 @@ free CPU time per request is far too short) and is blocked by the same sites. On
 whose full text is loaded are stored (feed texts are the same everywhere already). First one wins,
 so two devices can't overwrite each other. Encrypted like item rows. Rejected: a text per device
 (highlights drift), storing every feed article (storage for nothing).
+
 ## 2026-10-21: The feed loader asks for article pages as a browser does, and says when a site blocks it
 
 Many sites refuse the feed loader because it runs in a data center. What can be done from there

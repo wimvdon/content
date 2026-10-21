@@ -205,7 +205,15 @@ fun HomeScreen(
     val sectionFolderId = selectedFolder?.id ?: selectedFeed?.folderId
     val showFolderTabs = state.folders.isNotEmpty() && state.feeds.isNotEmpty()
     val unreadHere = state.unreadCounts[state.selection] ?: 0
-    val wide = with(LocalDensity.current) { LocalWindowInfo.current.containerSize.width.toDp() } >= WIDE_WINDOW
+    val wide = isWideWindow()
+    val tab = if (state.section == HomeSection.Saved) MainTab.Saved else MainTab.Feeds
+    val onTab: (MainTab) -> Unit = { t ->
+        when (t) {
+            MainTab.Feeds -> actions.onShowFeeds()
+            MainTab.Saved -> actions.onShowSaved()
+            MainTab.Search -> actions.onOpenSearch()
+        }
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -254,18 +262,7 @@ fun HomeScreen(
         LaunchedEffect(state.selection, state.section, reading?.filter, hasArticles) { scrollBehavior.state.heightOffset = 0f }
         // On wide windows the destinations move to a navigation rail at the side, in the same order.
         Row(Modifier.fillMaxSize()) {
-            if (wide) {
-                NavigationRail(Modifier.padding(top = 8.dp)) {
-                    destinations(actions).forEach { d ->
-                        NavigationRailItem(
-                            selected = state.section == d.section,
-                            onClick = { if (state.section != d.section) d.onShow() },
-                            icon = { Icon(painterResource(d.icon), contentDescription = null) },
-                            label = { Text(stringResource(d.label)) },
-                        )
-                    }
-                }
-            }
+            if (wide) MainNavigationRail(tab, onTab)
             Scaffold(
                 modifier = Modifier.weight(1f).nestedScroll(scrollBehavior.nestedScrollConnection),
                 snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -305,12 +302,6 @@ fun HomeScreen(
                             actions = {
                                 // The type filter (#119): next to search, as it is rarely changed.
                                 if (reading != null) TypeFilterButton(reading.filter, actions.onSavedFilter)
-                                // Search looks through everything (feeds and Saved), so it is on both destinations.
-                                if (state.feeds.isNotEmpty() || state.saved?.library?.items?.isNotEmpty() == true) {
-                                    IconButton(onClick = actions.onOpenSearch) {
-                                        Icon(painterResource(R.drawable.ic_search), contentDescription = stringResource(R.string.action_search))
-                                    }
-                                }
                             },
                             windowInsets = WindowInsets(0),
                             colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent, scrolledContainerColor = Color.Transparent),
@@ -336,19 +327,8 @@ fun HomeScreen(
                     }
                 },
                 bottomBar = {
-                    // Feeds and Saved are the app's top-level destinations.
-                    if (!wide) {
-                        NavigationBar {
-                            destinations(actions).forEach { d ->
-                                NavigationBarItem(
-                                    selected = state.section == d.section,
-                                    onClick = { if (state.section != d.section) d.onShow() },
-                                    icon = { Icon(painterResource(d.icon), contentDescription = null) },
-                                    label = { Text(stringResource(d.label)) },
-                                )
-                            }
-                        }
-                    }
+                    // Feeds, Saved and Search are the app's top-level destinations (#171).
+                    if (!wide) MainNavigationBar(tab, onTab)
                 },
                 floatingActionButton = {
                     // Marks everything in the section being viewed as read: All, a folder or a feed.
@@ -461,22 +441,6 @@ private fun TypeFilterButton(
     }
 }
 
-/** A top-level destination in the navigation bar or rail. */
-private class Destination(
-    val section: HomeSection,
-    val icon: Int,
-    val label: Int,
-    val onShow: () -> Unit,
-)
-
-private fun destinations(actions: HomeActions) =
-    listOf(
-        Destination(HomeSection.Feeds, R.drawable.ic_rss_feed, R.string.feeds_title, actions.onShowFeeds),
-        Destination(HomeSection.Saved, R.drawable.ic_list, R.string.saved_title, actions.onShowSaved),
-    )
-
-/** From this width the destinations sit in a navigation rail instead of a bar (Material's medium window). */
-private val WIDE_WINDOW = 600.dp
 
 private enum class HomeContent { NoFeeds, Loading, Empty, Articles }
 

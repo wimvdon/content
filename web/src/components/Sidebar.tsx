@@ -1,4 +1,4 @@
-import { Archive, Bookmark, BookOpen, ChevronDown, ChevronRight, Folder as FolderGlyph, Rss, Settings as SettingsIcon } from "lucide-react";
+import { Archive, BookOpen, ChevronDown, ChevronRight, Folder as FolderGlyph, Rss, Search, Settings as SettingsIcon } from "lucide-react";
 import { useState } from "react";
 import { app, useApp } from "@/lib/app";
 import { t } from "@/lib/i18n";
@@ -11,16 +11,21 @@ import { cn } from "./ui/cn";
 
 /**
  * The app's navigation: Feeds and Saved as two sections that fold open and shut: the one you're in
- * is open, the other folded (feed folders remember theirs in this browser). Feeds: All articles,
- * the folders with their feeds, the other feeds. Saved: To read, All, its folders and Archive. Then
+ * is open, the other folded (feed folders remember theirs in this browser). Search first (#171);
+ * Feeds: All articles, the folders with their feeds, the other feeds. Saved: To read, its folders
+ * and Archive. Then
  * the ways to manage each, and Settings. The same everywhere in the app, like the Android drawer.
  */
 export function Sidebar({
+  searching,
+  onSearch,
   onNavigate,
   onManage,
   onManageSaved,
   onSettings,
 }: {
+  searching: boolean;
+  onSearch: () => void;
   onNavigate: () => void;
   onManage: () => void;
   onManageSaved: () => void;
@@ -42,7 +47,7 @@ export function Sidebar({
     app.select(s);
     onNavigate();
   };
-  const isSelected = (s: Selection) => JSON.stringify(s) === JSON.stringify(selection);
+  const isSelected = (s: Selection) => !searching && JSON.stringify(s) === JSON.stringify(selection);
   const loose = library.feeds.filter((f) => !f.folderId);
   const toggle = (id: string) =>
     setCollapsed((c) => {
@@ -53,7 +58,7 @@ export function Sidebar({
   const savedRow = (tab: SavedTab, icon: React.ReactNode, label: string, count?: number, key?: string) => (
     <Row
       key={key}
-      selected={inSaved && sameTab(savedFilter.tab, tab)}
+      selected={!searching && inSaved && sameTab(savedFilter.tab, tab)}
       onClick={() => {
         app.showSaved({ ...savedFilter, tab, tags: [] });
         onNavigate();
@@ -73,6 +78,7 @@ export function Sidebar({
         <span className="text-lg font-semibold">Reader</span>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-2">
+        <Row selected={searching} onClick={onSearch} icon={<Search className="size-5" />} label={t("search")} />
         <Section id={FEEDS} title={t("feeds")} count={openSections[FEEDS] ? undefined : total} open={openSections[FEEDS]} onToggle={toggleSection}>
           <Row selected={isSelected({ kind: "all" })} onClick={() => select({ kind: "all" })} icon={<Rss className="size-5" />} label={t("allArticles")} count={total} />
           {library.folders.map((folder) => {
@@ -121,7 +127,6 @@ export function Sidebar({
         </Section>
         <Section id={SAVED} title={t("saved")} count={openSections[SAVED] ? undefined : toRead} open={openSections[SAVED]} onToggle={toggleSection}>
           {savedRow({ kind: "toread" }, <BookOpen />, t("toRead"), toRead)}
-          {savedRow({ kind: "all" }, <Bookmark />, t("all"))}
           {[...folderCounts(library)].map(([name, count]) => savedRow({ kind: "folder", name }, <FolderGlyph />, name, count, `f:${name}`))}
           {savedRow({ kind: "archive" }, <Archive />, t("archiveTab"))}
         </Section>

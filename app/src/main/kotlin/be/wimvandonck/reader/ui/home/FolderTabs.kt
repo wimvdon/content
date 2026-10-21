@@ -87,7 +87,7 @@ fun SavedTabRow(
     onChange: (SavedFilter) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val tabs = listOf<SavedTab>(SavedTab.ToRead, SavedTab.All) + folders.map(SavedTab::Folder) + SavedTab.Archive
+    val tabs = listOf<SavedTab>(SavedTab.ToRead) + folders.map(SavedTab::Folder) + SavedTab.Archive
     fun same(
         a: SavedTab,
         b: SavedTab,

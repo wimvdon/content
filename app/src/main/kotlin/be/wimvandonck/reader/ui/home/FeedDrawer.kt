@@ -257,7 +257,6 @@ private fun SavedSection(
         onClick = { onSelect(SavedFilter(tab)) },
     )
     item(SavedTab.ToRead, stringResource(R.string.reading_list_to_read), R.drawable.ic_reading_list, toReadCount)
-    item(SavedTab.All, stringResource(R.string.filter_all), R.drawable.ic_bookmarks_outline)
     if (folders.isNotEmpty()) {
         SectionHeading(stringResource(R.string.saved_folders))
         for ((folder, n) in folders) item(SavedTab.Folder(folder), folder, R.drawable.ic_folder, n)

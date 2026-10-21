@@ -78,20 +78,23 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
 
 ## Reading the list
 
-- The **bar at the bottom** switches between **Feeds** and **Saved** (on a tablet or in landscape it
-  sits at the left side).
+- The **bar at the bottom** switches between **Feeds**, **Saved** and **Search** (on a tablet or in
+  landscape it sits at the left side; on the web, wide windows have Search at the top of the sidebar).
 - **☰** opens the drawer with every place. **Feeds**: **All articles** (every feed), your
   folders with their feeds, the other feeds (each with its number of unread articles). The
-  **Saved** follows: To read, All, your folders and Archive (see Saved). The section you're in is
+  **Saved** follows: To read, your folders and Archive (see Saved). The section you're in is
   open and the other is folded shut, so the menu stays short; tap a section's name to fold it open or
   shut. Below them: **Manage feeds**, **Folders and tags**, **Connected services** and **Settings**.
-- **Search** (the magnifier at the top right, on Feeds and on Saved; on the web also the
-  **/** key) searches everything: the articles of all your feeds that are on the device (titles,
+- **Search** (the third tab; on the web also the **/** key) searches everything: the articles of all your feeds that are on the device (titles,
   text, feed names and authors) and Saved, archived articles too (titles, websites, descriptions,
   folders, tags, notes and highlights). Every word you type must appear; capitals and accents
   don't matter ("cafe" finds "Café"). The results are one list, best match first: the whole search
   in the title, then more of its words in the title, then the newest. Each result says **Feed** or
-  **Saved**. Chips above the results show **All**, only **Feeds** or only **Saved**.
+  **Saved** when both kinds are shown. Chips above the results show **All**, only **Feeds** or only
+  **Saved**. With **Feeds** chosen, two more chips narrow it to a **Folder** or one **Feed**; with
+  **Saved**, to a **Folder**, a **Tag** and a **Type** (Articles, Videos or Audio). With nothing typed,
+  Search lists everything those chips let through, newest first: with no filter that is all your
+  feed articles and all of Saved (archive included), which is where Saved's former **All** tab went.
 - Articles are grouped under **Today**, **Yesterday** and then the date; the date stays at the
   top while you scroll through that day.
 - Under the title you see how many articles are unread. Two chips just above the list
@@ -260,14 +263,14 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   Saved); and sharing a link to Reader from another app. These go to To read unless you pick a
   folder in the save sheet. A feed article you save stays the same article: its feed, text and
   picture come along, and it isn't copied.
-- **Swipe in To read, All and Archive:** left archives (with **Undo**; in Archive, back to read),
+- **Swipe in To read and Archive:** left archives (with **Undo**; in Archive, back to read),
   right opens **File in a folder**.
-- **Tabs** under the title: **To read**, **All** (everything, archive included), each **folder**, and
-  **Archive**. Under them, chips filter the tab: **Liked** (set apart by its heart), then the tab's
+- **Tabs** under the title: **To read**, each **folder**, and **Archive** (to see everything at
+  once, archive included, use Search with nothing typed and the **Saved** chip). Under them, chips filter the tab: **Liked** (set apart by its heart), then the tab's
   tags, most used first; pick several to see articles with all of them. The **filter button** next to
   search picks a type: Articles, Videos or Audio (read from the link: YouTube or Vimeo are videos,
   podcast and Spotify episode links are audio).
-- **To read, All and Archive look like your feeds**: the same rows, in the view you chose for the
+- **To read and Archive look like your feeds**: the same rows, in the view you chose for the
   feed list (Small, Medium, Large), with how many articles and about how long they take at the top.
   **A folder looks like a page of notes**: cards in two columns, each with its picture, the title,
   your note (or else your first highlight, quoted, or else the article's description), the site,

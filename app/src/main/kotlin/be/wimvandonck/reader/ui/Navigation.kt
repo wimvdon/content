@@ -76,7 +76,9 @@ import be.wimvandonck.reader.ui.settings.ServicesState
 import be.wimvandonck.reader.data.AddFeedResult
 import be.wimvandonck.reader.data.Article
 import be.wimvandonck.reader.data.ArticleSearch
-import be.wimvandonck.reader.data.MixedSearch
+import be.wimvandonck.reader.data.SearchFilters
+import be.wimvandonck.reader.data.SearchResults
+import be.wimvandonck.reader.ui.home.MainTab
 import be.wimvandonck.reader.data.SearchFilter
 import be.wimvandonck.reader.ui.home.SearchActions
 import be.wimvandonck.reader.ui.home.SearchScreen
@@ -312,8 +314,8 @@ fun RssReaderNavigation(
 
     // What was typed in Search; kept while reading a result, so Back returns to the same results.
     var searchQuery by rememberSaveable { mutableStateOf("") }
-    // Which kind of results Search shows (the chips): all, only feeds or only the reading list.
-    var searchFilter by rememberSaveable { mutableStateOf(SearchFilter.All) }
+    // Which kind of results Search shows (the chips) and that kind's filters (#171).
+    var searchFilters by rememberSaveable(stateSaver = SearchFiltersSaver) { mutableStateOf(SearchFilters()) }
 
     // Add feed dialog, shared by the list, the drawer and Settings.
     var addDialogOpen by rememberSaveable { mutableStateOf(false) }
@@ -618,10 +620,7 @@ fun RssReaderNavigation(
                                 onAddLink = { openSave(null, null) },
                                 onArchiveItem = ::archive,
                                 onFileItem = { fileKey = it.key },
-                                onOpenSearch = {
-                                    searchFilter = SearchFilter.All
-                                    push(Screen.Search)
-                                },
+                                onOpenSearch = { push(Screen.Search) },
                             ),
                     )
                 }
@@ -830,11 +829,12 @@ fun RssReaderNavigation(
                     SystemBarsFollowTheme(appDark)
                     // Preparing every article's text takes a moment with many feeds: off the main thread.
                     val search by produceState<ArticleSearch?>(null, library) { value = withContext(Dispatchers.Default) { ArticleSearch(library) } }
-                    val feedMatches = remember(search, searchQuery) { search?.search(searchQuery) }
+                    // Without words typed, the list is everything the filters let through (#171).
+                    val feedMatches = remember(search, searchQuery) { if (searchQuery.isBlank()) emptyList() else search?.search(searchQuery) }
                     val itemMatches = remember(library.items, searchQuery) { ItemSearch.search(library.items.filter { it.readingList != null }, searchQuery) }
                     val results =
-                        remember(feedMatches, itemMatches, searchQuery, searchFilter) {
-                            feedMatches?.let { MixedSearch.mix(searchQuery, it, itemMatches, searchFilter) }
+                        remember(library, feedMatches, itemMatches, searchQuery, searchFilters) {
+                            feedMatches?.let { SearchResults.of(searchQuery, library, it, itemMatches, searchFilters) }
                         }
                     SearchScreen(
                         state =
@@ -845,20 +845,26 @@ fun RssReaderNavigation(
                                 listView = current.listView,
                                 showImages = current.showImages,
                                 hasItems = library.items.any { it.readingList != null },
-                                filter = searchFilter,
+                                filters = searchFilters,
                                 library = library,
+                                feedFolders = library.folders,
+                                savedFolders = remember(library) { Saved.folders(library) },
+                                savedTags = remember(library) { Saved.tags(library, SavedTab.All) },
                             ),
                         actions =
                             SearchActions(
                                 onQueryChange = { searchQuery = it },
-                                onFilterChange = { searchFilter = it },
+                                onFiltersChange = { searchFilters = it },
                                 onOpenArticle = { article ->
                                     // Like from the list: it stays in the Unread list when you go back (#157).
                                     readThisVisit = readThisVisit + article.key
                                     push(Screen.Reader(article.key))
                                 },
                                 onOpenItem = ::openItem,
-                                onBack = ::pop,
+                                onTab = { tab ->
+                                    pop()
+                                    section = if (tab == MainTab.Saved) HomeSection.Saved else HomeSection.Feeds
+                                },
                             ),
                     )
                 }
@@ -1038,7 +1044,8 @@ private val SavedFilterSaver =
             val tab =
                 when (val t = f.tab) {
                     SavedTab.ToRead -> "toread"
-                    SavedTab.All -> "all"
+                    // No longer a tab: Search lists all of Saved (#171).
+                    SavedTab.All -> "toread"
                     SavedTab.Archive -> "archive"
                     is SavedTab.Folder -> "folder:" + t.name
                 }
@@ -1050,7 +1057,6 @@ private val SavedFilterSaver =
             SavedFilter(
                 tab =
                     when {
-                        tab == "all" -> SavedTab.All
                         tab == "archive" -> SavedTab.Archive
                         tab.startsWith("folder:") -> SavedTab.Folder(tab.removePrefix("folder:"))
                         else -> SavedTab.ToRead
@@ -1077,5 +1083,24 @@ private val SelectionSaver =
                 it.startsWith("feed:") -> FeedSelection.Single(it.removePrefix("feed:"))
                 else -> FeedSelection.All
             }
+        },
+    )
+
+/** Search's kind and filters (#171), kept across rotation and process death. */
+private val SearchFiltersSaver =
+    Saver<SearchFilters, String>(
+        save = { f ->
+            listOf(f.scope.name, f.feedFolderId, f.feedUrl, f.savedFolder, f.tag, f.type?.name).joinToString("\u0000") { it.orEmpty() }
+        },
+        restore = {
+            val parts = it.split('\u0000').map { p -> p.ifEmpty { null } }
+            SearchFilters(
+                scope = SearchFilter.entries.firstOrNull { s -> s.name == parts.getOrNull(0) } ?: SearchFilter.All,
+                feedFolderId = parts.getOrNull(1),
+                feedUrl = parts.getOrNull(2),
+                savedFolder = parts.getOrNull(3),
+                tag = parts.getOrNull(4),
+                type = SavedType.entries.firstOrNull { t -> t.name == parts.getOrNull(5) },
+            )
         },
     )

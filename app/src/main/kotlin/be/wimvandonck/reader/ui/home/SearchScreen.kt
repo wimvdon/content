@@ -1,6 +1,15 @@
 package be.wimvandonck.reader.ui.home
 
 import androidx.compose.foundation.horizontalScroll
+import be.wimvandonck.reader.data.SearchFilters
+import be.wimvandonck.reader.data.SavedType
+import be.wimvandonck.reader.data.Folder
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Row
@@ -61,25 +70,33 @@ data class SearchState(
     val feeds: List<Feed>,
     val listView: ListView,
     val showImages: Boolean,
-    /** The reading list is searched too; with something on it, chips pick the kind. */
+    /** Saved is searched too; with something in it, chips pick the kind. */
     val hasItems: Boolean = false,
-    val filter: SearchFilter = SearchFilter.All,
+    val filters: SearchFilters = SearchFilters(),
     /** So items show like the feed article they were saved from. */
     val library: Library? = null,
+    /** The feeds' folders, for the Folder filter. */
+    val feedFolders: List<Folder> = emptyList(),
+    /** Saved's folders and tags (most used first), for its filters. */
+    val savedFolders: List<String> = emptyList(),
+    val savedTags: List<String> = emptyList(),
 )
 
 class SearchActions(
     val onQueryChange: (String) -> Unit,
-    val onFilterChange: (SearchFilter) -> Unit = {},
+    val onFiltersChange: (SearchFilters) -> Unit = {},
     val onOpenArticle: (Article) -> Unit,
     val onOpenItem: (Item) -> Unit = {},
-    val onBack: () -> Unit,
+    /** Another top-level destination (Feeds or Saved). */
+    val onTab: (MainTab) -> Unit = {},
 )
 
 /**
- * Searches everything: the articles of every feed and the reading list (archived articles too). A
- * search field in the top bar, chips to show all results, only feeds or only the reading list, and
- * the matches below, mixed and best first, each labelled Feed or Reading list.
+ * The Search tab (#171): the articles of every feed and Saved (archived articles too). A search field
+ * in the top bar; chips for the kind (All, Feeds, Saved) and that kind's filters (feeds: a folder or
+ * one feed; Saved: a folder, a tag and a type); below, the matches, mixed and best first, each
+ * labelled Feed or Saved. With nothing typed it lists everything the filters let through, newest
+ * first, as the All views did.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -89,15 +106,16 @@ fun SearchScreen(
 ) {
     val focus = remember { FocusRequester() }
     val keyboard = LocalSoftwareKeyboardController.current
-    // Opening search starts typing at once.
-    LaunchedEffect(Unit) { if (state.query.isEmpty()) focus.requestFocus() }
+    val wide = isWideWindow()
+    Row(Modifier.fillMaxSize()) {
+    if (wide) MainNavigationRail(MainTab.Search, actions.onTab)
     Scaffold(
+        modifier = Modifier.weight(1f),
+        bottomBar = { if (!wide) MainNavigationBar(MainTab.Search, actions.onTab) },
         topBar = {
             TopAppBar(
                 navigationIcon = {
-                    IconButton(onClick = actions.onBack) {
-                        Icon(painterResource(R.drawable.ic_arrow_back), contentDescription = stringResource(R.string.action_back))
-                    }
+                    Icon(painterResource(R.drawable.ic_search), contentDescription = null, modifier = Modifier.padding(horizontal = 12.dp))
                 },
                 title = {
                     TextField(
@@ -132,15 +150,12 @@ fun SearchScreen(
     ) { innerPadding ->
         Column(Modifier.fillMaxSize().padding(innerPadding)) {
             val results = state.results
-            if (state.hasItems) FilterRow(state.filter, actions.onFilterChange)
+            if (state.hasItems) FilterRow(state.filters.scope) { actions.onFiltersChange(state.filters.withScope(it)) }
+            NarrowRow(state, actions.onFiltersChange)
             when {
                 results == null -> LinearProgressIndicator(Modifier.fillMaxWidth())
-                state.query.isBlank() ->
-                    if (!state.hasItems) {
-                        EmptyState(painterResource(R.drawable.ic_search), stringResource(R.string.search_start_title), body = stringResource(R.string.search_start_body))
-                    } else {
-                        EmptyState(painterResource(R.drawable.ic_search), stringResource(R.string.search_start_title_saved), body = stringResource(R.string.search_start_body_saved))
-                    }
+                results.isEmpty() && state.query.isBlank() && !state.filters.narrowed ->
+                    EmptyState(painterResource(R.drawable.ic_search), stringResource(R.string.search_start_title), body = stringResource(R.string.search_start_body))
                 results.isEmpty() ->
                     EmptyState(painterResource(R.drawable.ic_search), stringResource(R.string.search_none_title), body = stringResource(R.string.search_none_body))
                 else -> {
@@ -160,7 +175,7 @@ fun SearchScreen(
                                         feed = feedsByUrl[hit.article.feedUrl],
                                         view = state.listView,
                                         showImage = state.showImages,
-                                        label = feedLabel.takeIf { state.hasItems },
+                                        label = feedLabel.takeIf { state.hasItems && state.filters.scope == SearchFilter.All },
                                         onClick = { actions.onOpenArticle(hit.article) },
                                     )
                                 is SearchHit.FromItem ->
@@ -170,7 +185,7 @@ fun SearchScreen(
                                         view = state.listView,
                                         showImage = state.showImages,
                                         showReadState = false,
-                                        label = itemLabel,
+                                        label = itemLabel.takeIf { state.filters.scope == SearchFilter.All },
                                         onClick = { actions.onOpenItem(hit.item) },
                                     )
                             }
@@ -179,6 +194,7 @@ fun SearchScreen(
                 }
             }
         }
+    }
     }
 }
 
@@ -223,4 +239,126 @@ private fun FilterRow(
 @Composable
 private fun Note(text: String) {
     Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+}
+
+/**
+ * The chosen kind's filters (#171), as chips that open a menu: feeds by folder or by feed, Saved by
+ * folder, tag and type. A chosen filter shows its value and a check.
+ */
+@Composable
+private fun NarrowRow(
+    state: SearchState,
+    onChange: (SearchFilters) -> Unit,
+) {
+    val f = state.filters
+    val anyFolder = stringResource(R.string.search_any_folder)
+    val anyFeed = stringResource(R.string.search_any_feed)
+    val anyTag = stringResource(R.string.search_any_tag)
+    val chips: List<@Composable () -> Unit> =
+        when (f.scope) {
+            SearchFilter.All -> emptyList()
+            SearchFilter.Feeds -> {
+                val feeds = state.feeds.filter { f.feedFolderId == null || it.folderId == f.feedFolderId }
+                listOfNotNull(
+                    if (state.feedFolders.isEmpty()) {
+                        null
+                    } else {
+                        {
+                            MenuChip(
+                                label = stringResource(R.string.folder_field),
+                                chosen = state.feedFolders.firstOrNull { it.id == f.feedFolderId }?.title,
+                                options = listOf<Pair<String?, String>>(null to anyFolder) + state.feedFolders.map { it.id to it.title },
+                                onPick = { onChange(f.copy(feedFolderId = it, feedUrl = null)) },
+                            )
+                        }
+                    },
+                    {
+                        MenuChip(
+                            label = stringResource(R.string.search_feed),
+                            chosen = state.feeds.firstOrNull { it.url == f.feedUrl }?.title,
+                            options = listOf<Pair<String?, String>>(null to anyFeed) + feeds.map { it.url to it.title },
+                            onPick = { onChange(f.copy(feedUrl = it)) },
+                        )
+                    },
+                )
+            }
+            SearchFilter.Saved ->
+                listOfNotNull(
+                    if (state.savedFolders.isEmpty()) {
+                        null
+                    } else {
+                        {
+                            MenuChip(
+                                label = stringResource(R.string.folder_field),
+                                chosen = f.savedFolder,
+                                options = listOf<Pair<String?, String>>(null to anyFolder) + state.savedFolders.map { it to it },
+                                onPick = { onChange(f.copy(savedFolder = it)) },
+                            )
+                        }
+                    },
+                    if (state.savedTags.isEmpty()) {
+                        null
+                    } else {
+                        {
+                            MenuChip(
+                                label = stringResource(R.string.search_tag),
+                                chosen = f.tag,
+                                options = listOf<Pair<String?, String>>(null to anyTag) + state.savedTags.map { it to it },
+                                onPick = { onChange(f.copy(tag = it)) },
+                            )
+                        }
+                    },
+                    {
+                        val types = listOf(SavedType.Article to R.string.type_articles, SavedType.Video to R.string.type_videos, SavedType.Audio to R.string.type_audio)
+                        val names = types.associate { (t, label) -> t.name to stringResource(label) }
+                        MenuChip(
+                            label = stringResource(R.string.type_filter),
+                            chosen = f.type?.let { names[it.name] },
+                            options = listOf<Pair<String?, String>>(null to stringResource(R.string.type_all)) + types.map { (t, _) -> t.name to names.getValue(t.name) },
+                            onPick = { name -> onChange(f.copy(type = name?.let { SavedType.valueOf(it) })) },
+                        )
+                    },
+                )
+        }
+    if (chips.isEmpty()) return
+    Row(
+        Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) { chips.forEach { it() } }
+}
+
+/** A filter chip that opens a menu of [options] (value to name); the first is "any". */
+@Composable
+private fun MenuChip(
+    label: String,
+    chosen: String?,
+    options: List<Pair<String?, String>>,
+    onPick: (String?) -> Unit,
+) {
+    var open by remember { mutableStateOf(false) }
+    Box {
+        FilterChip(
+            selected = chosen != null,
+            onClick = { open = true },
+            label = { Text(chosen ?: label, maxLines = 1) },
+            leadingIcon =
+                if (chosen != null) {
+                    { Icon(painterResource(R.drawable.ic_check), contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) }
+                } else {
+                    null
+                },
+            trailingIcon = { Icon(painterResource(R.drawable.ic_expand_more), contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) },
+        )
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            options.forEach { (value, name) ->
+                DropdownMenuItem(
+                    text = { Text(name) },
+                    onClick = {
+                        open = false
+                        onPick(value)
+                    },
+                )
+            }
+        }
+    }
 }
