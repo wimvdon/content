@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Account, AccountData, MAX_DEVICES, MAX_ROWS, accountIdOf, documentText, itemChanges, knownVersionOf, sinceOf, type ItemsPage, type ItemsWritten, type Storage } from "../src/account";
+import { Account, AccountData, MAX_DEVICES, MAX_ROWS, MAX_TEXT_BYTES, accountIdOf, documentText, itemChanges, knownVersionOf, sinceOf, type ItemsPage, type ItemsWritten, type Storage } from "../src/account";
 import { handle, type Env } from "../src/index";
 import { TOKEN_URL } from "../src/instapaper";
 
@@ -186,6 +186,47 @@ describe("/account/sync", () => {
     const { env } = accounts();
     const key = await signIn(env);
     expect((await call({ ...env, ACCOUNTS: undefined }, "GET", "/account/sync", key)).status).toBe(503);
+  });
+});
+
+describe("/account/texts", () => {
+  it("keeps the first device's text of an article, and gives every device that one", async () => {
+    const { env } = accounts();
+    const phone = await signIn(env);
+    const laptop = await signIn(env);
+    const key = "example.com/story";
+    expect((await call(env, "GET", `/account/texts?key=${encodeURIComponent(key)}`, phone)).status).toBe(404);
+    let response = await call(env, "POST", "/account/texts", phone, { key, html: "<p>From the phone</p>" });
+    expect(response.status).toBe(201);
+    expect(await response.json()).toEqual({ html: "<p>From the phone</p>" });
+    // The laptop extracted the page too, a little differently: the stored one wins and comes back.
+    response = await call(env, "POST", "/account/texts", laptop, { key, html: "<p>From the laptop</p>" });
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ html: "<p>From the phone</p>" });
+    response = await call(env, "GET", `/account/texts?key=${encodeURIComponent(key)}`, laptop);
+    expect(response.headers.get("Access-Control-Allow-Origin")).toBe(APP);
+    expect(await response.json()).toEqual({ html: "<p>From the phone</p>" });
+  });
+
+  it("keeps texts per account, and refuses what isn't a text", async () => {
+    const { env } = accounts();
+    const mine = await signIn(env, 42);
+    const other = await signIn(env, 43);
+    await call(env, "POST", "/account/texts", mine, { key: "a/1", html: "<p>Mine</p>" });
+    expect((await call(env, "GET", "/account/texts?key=a%2F1", other)).status).toBe(404);
+    expect((await call(env, "GET", "/account/texts", mine)).status).toBe(400);
+    expect((await call(env, "POST", "/account/texts", mine, { key: "a/2" })).status).toBe(400);
+    expect((await call(env, "POST", "/account/texts", mine, { key: "a/3", html: "x".repeat(MAX_TEXT_BYTES + 1) })).status).toBe(413);
+    expect((await call(env, "GET", "/account/texts?key=a%2F1", null)).status).toBe(401);
+  });
+
+  it("goes with the rest of the account's data", async () => {
+    const { env } = accounts();
+    const phone = await signIn(env);
+    await call(env, "POST", "/account/texts", phone, { key: "a/1", html: "<p>Text</p>" });
+    await call(env, "DELETE", "/account", phone);
+    const again = await signIn(env);
+    expect((await call(env, "GET", "/account/texts?key=a%2F1", again)).status).toBe(404);
   });
 });
 

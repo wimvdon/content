@@ -8,6 +8,7 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import java.io.IOException
+import java.net.URLEncoder
 
 /** Why syncing failed. */
 enum class SyncProblem {
@@ -92,6 +93,21 @@ class AccountClient(
         return call(request("/account/items").post(body.toRequestBody(JSON_TYPE)).build()) { _, text -> itemsWrittenFrom(text) }
     }
 
+    /** The text stored for item [key] (one per saved article, shared by every device), or null when none is. */
+    suspend fun text(key: String): String? =
+        call(request("/account/texts?key=" + URLEncoder.encode(key, "UTF-8")).get().build(), alsoOk = 404) { code, body ->
+            if (code == 404) null else htmlFrom(body)
+        }
+
+    /** Stores [html] as item [key]'s text unless one is there already; gives back the one that is stored. */
+    suspend fun storeText(
+        key: String,
+        html: String,
+    ): String? {
+        val body = Json.write(linkedMapOf("key" to key, "html" to html)).toRequestBody(JSON_TYPE)
+        return call(request("/account/texts").post(body).build()) { _, answer -> htmlFrom(answer) }
+    }
+
     /** Forgets this device's key on the server. */
     suspend fun signOut() {
         call(request("/account/signout").post(ByteArray(0).toRequestBody()).build()) { _, _ -> }
@@ -145,6 +161,9 @@ class AccountClient(
                 503 -> SyncProblem.NotSetUp
                 else -> SyncProblem.ServerError
             }
+
+        /** The `html` of a stored-text answer, or null. */
+        fun htmlFrom(text: String): String? = (runCatching { Json.parse(text) }.getOrNull() as? Map<*, *>)?.get("html") as? String
 
         /** `{"version": n, "data": {...} | null}` as a [Versioned] with the document's JSON text. */
         fun documentFrom(text: String): Versioned {

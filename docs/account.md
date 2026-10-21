@@ -24,6 +24,8 @@ small storage: the device keys, one sync document and the item rows (`docs/sync.
 | `GET /account/sync` | The document and its version (`{"version": n, "data": {...} \| null}`); `304` when `If-None-Match: "n"` is still the latest |
 | `PUT /account/sync` | `{"baseVersion": n, "data": {...}}`: saved as version n + 1, or `409` with the current version and document when another device saved first |
 | `GET /account/items?since=n` | The item rows changed after items version n: `{"version": m, "rows": [{"key", "version", "data"}], "more": bool}`, at most 500 rows per page; ask again with `since=m` while `more` |
+| `GET /account/texts?key=…` | The stored text of a saved item (`{"html"}`), or `404` when none is stored |
+| `POST /account/texts` | `{"key", "html"}` (HTML up to 1 MB): stored when the item has no text yet (`201`); one already stored wins and comes back (`200`) |
 | `POST /account/items` | `{"rows": [{"key", "baseVersion", "data"}]}` (at most 500): each row is saved when its stored version is still `baseVersion` (0 for new), all with one new items version; the others come back in `conflicts` with what is stored now: `{"version", "saved": [{"key", "version"}], "conflicts": [...]}` |
 | `GET /account/live?key=…` | A WebSocket that sends `{"version": n, "items": m}` whenever a device saves (and once right after connecting) |
 | `POST /account/signout` | Forgets this device's key |
@@ -31,6 +33,18 @@ small storage: the device keys, one sync document and the item rows (`docs/sync.
 
 All calls send the key as `Authorization: Bearer <key>` (the WebSocket, which a browser can't give
 headers, in the address). A wrong or forgotten key gets `401`: the app then asks to sign in again.
+
+## Stored texts
+
+Each saved article gets one text in the account, the article as the reader shows it, so every
+device shows the same text and highlights find their passage in it (`data/SharedText.kt`,
+`web/src/lib/sharedText.ts`). The first device to open a saved article that needs its full text
+extracts it and stores it; every other device takes that text and doesn't fetch the page at all,
+which also helps the web app with sites that block the feed loader. When two devices extract it
+at the same moment, the one stored first wins and both show it. Offline or signed out, a device
+shows its own extraction. Texts are compressed and encrypted like item rows (tied to their account
+and item), and are deleted with the rest of the account. A text that is no longer saved stays until
+the account is deleted (later: removed with its item).
 
 ## Encryption
 
@@ -76,4 +90,6 @@ change (and one a minute only while the live connection is down); an idle connec
 (hibernation). The document (folders, feeds, settings) is small; everything that grows is an item
 row (at most 64 KB each), so an account has no size limit beyond the plan's 5 GB. Each saved row
 costs three storage writes (the free plan allows 100,000 a day): marking 500 articles read is 1,500.
-Rows that were deleted stay as small markers, so other devices learn of the removal.
+Rows that were deleted stay as small markers, so other devices learn of the removal. A stored text
+is typically 5 to 15 KB once compressed (one write when stored, one read per device that opens it),
+so 1,000 saved articles take some 5 to 15 MB of the 5 GB.

@@ -461,6 +461,18 @@ class AppStore {
     this.set({ instapaperNotice: null });
   }
 
+  /** The text stored in the account for saved item `key` (sharedText.ts); null without an account. */
+  storedText = async (key: string): Promise<string | null> => {
+    const account = this.accountKey();
+    return account ? new AccountClient(account).text(key) : null;
+  };
+
+  /** Stores `html` as saved item `key`'s text unless one is there; gives back the one that is stored. */
+  storeText = async (key: string, html: string): Promise<string | null> => {
+    const account = this.accountKey();
+    return account ? new AccountClient(account).storeText(key, html) : null;
+  };
+
   /** Signs out of Instapaper and the account in this browser; the library stays here. */
   async disconnectInstapaper() {
     const key = this.accountKey();

@@ -1,6 +1,5 @@
 package be.wimvandonck.reader.ui.home
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -12,7 +11,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.layout.Layout
@@ -36,12 +34,8 @@ fun CollapsingHeader(
     content: @Composable () -> Unit,
 ) {
     val state = scrollBehavior.state
-    // Material's "on scroll" colour once articles slide under the header.
-    val container by animateColorAsState(
-        if (state.overlappedFraction > 0.01f) MaterialTheme.colorScheme.surfaceContainer else MaterialTheme.colorScheme.surface,
-        label = "header",
-    )
-    Column(modifier.background(container).windowInsetsPadding(WindowInsets.statusBars.only(WindowInsetsSides.Top))) {
+    // The page's own colour, also while articles slide under it: no grey band behind the tabs and chips.
+    Column(modifier.background(MaterialTheme.colorScheme.surface).windowInsetsPadding(WindowInsets.statusBars.only(WindowInsetsSides.Top))) {
         Layout(
             content = {
                 Column(

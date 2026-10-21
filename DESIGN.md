@@ -324,7 +324,8 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   Settings lives in the drawer only.
   The header (a small `TopAppBar`, the folder tabs attached to it, then the chip row) is one block that slides away
   while scrolling down and comes back as soon as you scroll up (Material's "enter always"),
-  turning `surfaceContainer` once articles pass under it; articles sit under sticky day headers (Today,
+  staying on `surface` while articles pass under it (no grey band behind the tabs and chips, owner's
+  choice); articles sit under sticky day headers (Today,
   Yesterday, date) in `primary` Title Small; Mark all as read is an icon-only FAB. The drawer opens with the app's logo (the
   launcher icon: its feed symbol on white, in a circle with an `outlineVariant` edge) and name; the
   web app's sidebar and favicon use the same logo.

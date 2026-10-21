@@ -10,6 +10,9 @@
  *  - GET    /account/items?since=n  the items changed after items version n (#106, see below)
  *  - POST   /account/items   {"rows": [{"key", "baseVersion", "data"}]}: each row saved when nobody
  *                            changed it since baseVersion, else returned as a conflict
+ *  - GET    /account/texts?key=k  the stored text of item k (its article, as the reader shows it), or 404
+ *  - POST   /account/texts   {"key", "html"}: stores the text when the item has none yet (201); one
+ *                            already there wins and comes back (200), so every device shows the same
  *  - GET    /account/live    a WebSocket that says {"version": n, "items": m} whenever the document
  *                            or the items change
  *  - POST   /account/signout forgets this device's key
@@ -38,6 +41,9 @@ export const MAX_ROW_BYTES = 64 * 1024;
 export const MAX_KEY_LENGTH = 2048;
 /** The largest item save (its body). */
 export const MAX_ITEMS_BODY = 4 * 1024 * 1024;
+/** The largest stored article text (its HTML), and its save's body. */
+export const MAX_TEXT_BYTES = 1024 * 1024;
+const MAX_TEXT_BODY = MAX_TEXT_BYTES + MAX_KEY_LENGTH + 1024;
 
 /** The largest document a device may save (its JSON text). */
 export const MAX_DOCUMENT_BYTES = 8 * 1024 * 1024;
@@ -82,12 +88,13 @@ export async function handleAccount(request: Request, env: Env, url: URL): Promi
   if (ifNoneMatch) headers.set("If-None-Match", ifNoneMatch);
   if (route === "live") headers.set("Upgrade", "websocket");
   let body: string | undefined;
-  if (route === "write" || route === "writeItems") {
+  if (route === "write" || route === "writeItems" || route === "writeText") {
     body = await request.text();
-    if (body.length > (route === "write" ? MAX_DOCUMENT_BYTES + 1024 : MAX_ITEMS_BODY)) return plain(413, "Too large", cors);
+    const limit = route === "write" ? MAX_DOCUMENT_BYTES + 1024 : route === "writeText" ? MAX_TEXT_BODY : MAX_ITEMS_BODY;
+    if (body.length > limit) return plain(413, "Too large", cors);
   }
   const stub = env.ACCOUNTS.get(env.ACCOUNTS.idFromName(accountId));
-  const search = route === "items" ? url.search : "";
+  const search = route === "items" || route === "readText" ? url.search : "";
   const answer = await stub.fetch(`https://account/${route}${search}`, { method: request.method, headers, body });
   if (answer.webSocket) return answer;
   const out = new Headers(answer.headers);
@@ -95,13 +102,14 @@ export async function handleAccount(request: Request, env: Env, url: URL): Promi
   return new Response(answer.body, { status: answer.status, headers: out });
 }
 
-const KNOWN_PATHS = ["/account", "/account/sync", "/account/items", "/account/live", "/account/signout"];
+const KNOWN_PATHS = ["/account", "/account/sync", "/account/items", "/account/texts", "/account/live", "/account/signout"];
 
-type Route = "read" | "write" | "items" | "writeItems" | "live" | "signout" | "delete";
+type Route = "read" | "write" | "items" | "writeItems" | "readText" | "writeText" | "live" | "signout" | "delete";
 
 function routeOf(method: string, path: string): Route | null {
   if (path === "/account/sync") return method === "GET" ? "read" : method === "PUT" ? "write" : null;
   if (path === "/account/items") return method === "GET" ? "items" : method === "POST" ? "writeItems" : null;
+  if (path === "/account/texts") return method === "GET" ? "readText" : method === "POST" ? "writeText" : null;
   if (path === "/account/live") return method === "GET" ? "live" : null;
   if (path === "/account/signout") return method === "POST" ? "signout" : null;
   if (path === "/account") return method === "DELETE" ? "delete" : null;
@@ -340,6 +348,48 @@ export class AccountData {
     });
   }
 
+  /**
+   * The stored text of an item (the article as the reader shows it), so every device shows the same
+   * text and highlights find their passage in it. Null when none is stored.
+   */
+  async readText(key: string): Promise<string | null> {
+    const id = await this.textId(key);
+    const sealed = await this.storage.get<SealedRow>("t:" + id);
+    return sealed ? this.openText(id, sealed) : null;
+  }
+
+  /**
+   * Stores an item's text when it has none yet: the first device to extract the article decides,
+   * and every other one gets that text back. Throws TooLarge when it doesn't fit.
+   */
+  writeText(key: string, html: string): Promise<{ stored: boolean; html: string }> {
+    return this.serial(async () => {
+      const id = await this.textId(key);
+      const existing = await this.storage.get<SealedRow>("t:" + id);
+      if (existing) return { stored: false, html: await this.openText(id, existing) };
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const packed = await gzip(new TextEncoder().encode(html));
+      const data = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv, additionalData: this.textLabel(id) }, await this.cipher(), packed));
+      if (data.length > MAX_STORED_BYTES) throw new TooLarge();
+      await this.storage.put("t:" + id, { iv, data } satisfies SealedRow);
+      return { stored: true, html };
+    });
+  }
+
+  private async textId(key: string): Promise<string> {
+    return this.rowId(`text:${key}`);
+  }
+
+  private async openText(id: string, sealed: SealedRow): Promise<string> {
+    const packed = await crypto.subtle.decrypt({ name: "AES-GCM", iv: sealed.iv, additionalData: this.textLabel(id) }, await this.cipher(), sealed.data);
+    return new TextDecoder().decode(await gunzip(new Uint8Array(packed)));
+  }
+
+  /** Ties a stored text to its account and id, so it can't be moved to another item or account. */
+  private textLabel(id: string): Uint8Array {
+    return new TextEncoder().encode(`${this.accountId}:text:${id}`);
+  }
+
   private idKey: Promise<CryptoKey> | null = null;
 
   /** The stored id of a row: says nothing about the key without ACCOUNT_KEY. */
@@ -436,6 +486,20 @@ export function itemChanges(body: string): ItemChange[] | null {
   return changes;
 }
 
+/** What a device may store at /account/texts: an item key and its article's HTML; "tooLarge", or null. */
+export function textOf(body: string): { key: string; html: string } | "tooLarge" | null {
+  let value: unknown;
+  try {
+    value = JSON.parse(body);
+  } catch {
+    return null;
+  }
+  if (!isObject(value) || typeof value.key !== "string" || typeof value.html !== "string") return null;
+  if (value.key.length === 0 || value.key.length > MAX_KEY_LENGTH || value.html.length === 0) return null;
+  if (value.html.length > MAX_TEXT_BYTES) return "tooLarge";
+  return { key: value.key, html: value.html };
+}
+
 /** The since=n of /account/items (0 when missing), or null when it isn't a version. */
 export function sinceOf(url: string): number | null {
   const since = new URL(url).searchParams.get("since") ?? "0";
@@ -495,6 +559,24 @@ export async function answer(data: AccountData, route: string, request: Request)
       const changes = itemChanges(await request.text());
       if (!changes) return plain(400, `Send {"rows": [{"key", "baseVersion", "data"}]}, at most ${MAX_ROWS}`);
       return json(await data.writeItems(changes));
+    }
+    case "readText": {
+      const key = new URL(request.url).searchParams.get("key") ?? "";
+      if (!key || key.length > MAX_KEY_LENGTH) return plain(400, "Give key=<item key>");
+      const html = await data.readText(key);
+      return html === null ? plain(404, "No text stored") : json({ html });
+    }
+    case "writeText": {
+      const text = textOf(await request.text());
+      if (text === "tooLarge") return plain(413, "Too large");
+      if (!text) return plain(400, 'Send {"key": <item key>, "html": <the article>}');
+      try {
+        const result = await data.writeText(text.key, text.html);
+        return json({ html: result.html }, result.stored ? 201 : 200);
+      } catch (e) {
+        if (e instanceof TooLarge) return plain(413, "Too large");
+        throw e;
+      }
     }
     case "signout":
       await data.removeDevice(secret);

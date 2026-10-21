@@ -34,6 +34,7 @@ when the run fails.
 | `FeedFinderTest` | Address → feed with a fake web: direct feed, linked feed, common path, no feed, errors |
 | `ArticleExtractorTest` | Finding the article in pages through Readability4J (with and without `<article>`, split sections, a box per paragraph as on VRT NWS, look-alike containers with ads in between as on Ars Technica), dropping menus, sidebars, comments, scripts, hidden parts, the repeated title, the byline and the comments link, unclosed paragraphs, glossary words in buttons, a div per paragraph with its links, entities, unsafe links, charsets, when a feed text counts as a summary (short, or a teaser that links to its own article) |
 | `SharedArticlesTest` | The sample pages in `testdata/articles/`, which the web app's `articleExtractor.test.ts` reads too: both apps keep the same text and HTML and drop the same parts, so an article looks the same on the phone and on the web |
+| `SharedTextTest` | One text per saved article: the first device's is stored and every device shows it, two at once (the one stored first wins), offline the device's own, nothing stored for articles that aren't saved (the web app's `sharedText.test.ts` checks the same) |
 | `TextLayoutTest` | Article text as reader blocks: a block per paragraph (also from divs and double line breaks), headings, bulleted, numbered and nested lists, quotes, code |
 | `FullArticlesTest` | Loaded full articles are kept in the cache and not downloaded again; ones kept by an older extractor are extracted again and removed; a page that can't be downloaded fails |
 | `ArticleBlocksTest` | Splitting articles into text, pictures (captions, srcset, lazy-loaded, tracking pixels skipped, https) and embeds (YouTube, Vimeo, videos, others); first picture; same picture in other sizes; a caption written twice in a row shows once |
@@ -322,3 +323,14 @@ Needs the Raindrop app registered and the Worker's `RAINDROP_CLIENT_ID` and `RAI
 - [ ] Open a feed article from a site that blocks the web app (many big news sites do): instead of an
       empty page or a vague error, a box says the website doesn't let the web app load it, with
       **Read on website**. The feed's own text stays below it.
+
+## One text per saved article
+
+- [ ] Signed in on the phone and the web: save an article from a summary-only feed and open it on the
+      phone (the full article loads). Open it in the web app: the same text, also when the site blocks
+      the web app. A highlight made on one shows in the same place on the other.
+
+## Feeds and Saved header (Android)
+
+- [ ] Scroll the feed list or Saved: the area behind the folder tabs and chips stays the page's colour,
+      with no grey band.
