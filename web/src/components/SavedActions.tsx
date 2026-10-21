@@ -1,5 +1,5 @@
 import { Archive, BookOpen, Check, ChevronDown, Folder as FolderGlyph, Heart, ListPlus, Plus, Quote, Share2, Tag, Trash2 } from "lucide-react";
-import { Fragment, useState } from "react";
+import { useState } from "react";
 import { app, useApp } from "@/lib/app";
 import { plural, t } from "@/lib/i18n";
 import type { Item } from "@/lib/items";
@@ -83,20 +83,18 @@ export function LibraryBar({
         {open === "places" ? (
           <Menu onClose={close}>
             {places(savedFolders(library), choice.place).map((place) => (
-              <Fragment key={place.kind === "folder" ? `folder:${place.name}` : place.kind}>
-                <MenuChoice
-                  icon={<PlaceIcon place={place} />}
-                  label={placeName(place)}
-                  selected={samePlace(place, choice.place)}
-                  onClick={() => {
-                    close();
-                    if (samePlace(place, choice.place)) return;
-                    app.organise(item.key, { ...choice, place });
-                    if (place.kind === "archive") onArchived(() => app.organise(item.key, choice));
-                  }}
-                />
-                {place.kind === "archive" ? <div className="my-1 h-px bg-border" aria-hidden="true" /> : null}
-              </Fragment>
+              <MenuChoice
+                key={place.kind === "folder" ? `folder:${place.name}` : place.kind}
+                icon={<PlaceIcon place={place} />}
+                label={placeName(place)}
+                selected={samePlace(place, choice.place)}
+                onClick={() => {
+                  close();
+                  if (samePlace(place, choice.place)) return;
+                  app.organise(item.key, { ...choice, place });
+                  if (place.kind === "archive") onArchived(() => app.organise(item.key, choice));
+                }}
+              />
             ))}
             <MenuChoice icon={<Plus />} label={t("newFolder")} onClick={organise} />
           </Menu>
@@ -112,7 +110,6 @@ export function LibraryBar({
           <Menu onClose={close}>
             {/* Like and the tags leave the menu open: several can change at once. */}
             <MenuChoice icon={<Heart className={cn(choice.liked && "fill-current")} />} label={t("like")} selected={choice.liked} onClick={() => app.likeItem(item.key, !choice.liked)} />
-            <div className="my-1 h-px bg-border" aria-hidden="true" />
             {tags.map((tag) => (
               <MenuChoice
                 key={tag}

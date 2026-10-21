@@ -153,14 +153,12 @@ function FolderChips({ place, folders, onChange, name, setName }: { place: Place
         {places(folders, place).map((option) => {
           const selected = samePlace(option, place);
           const Icon = selected ? Check : option.kind === "toread" ? BookOpen : option.kind === "archive" ? Archive : FolderGlyph;
-          return [
+          return (
             <button key={option.kind === "folder" ? `f:${option.name}` : option.kind} type="button" role="radio" aria-checked={selected} onClick={() => onChange(option)} className={cn(chip, selected ? on : "hover:bg-muted")}>
               <Icon className="size-4" aria-hidden="true" />
               {option.kind === "toread" ? t("toRead") : option.kind === "archive" ? t("archive") : option.name}
-            </button>,
-            // The folders after To read and Archive, set apart as Like is from the tags.
-            option.kind === "archive" ? <span key="divider" className="mx-1 h-6 w-px bg-border" aria-hidden="true" /> : null,
-          ];
+            </button>
+          );
         })}
         {!making ? (
           <button type="button" onClick={() => setMaking(true)} className={cn(chip, "hover:bg-muted")}>
@@ -226,7 +224,6 @@ function TagsRow({
           <Heart className={cn("size-4", liked && "fill-current")} aria-hidden="true" />
           {t("like")}
         </button>
-        <span className="mx-1 h-6 w-px bg-border" aria-hidden="true" />
         {tags.map((x) => (
           <span key={x} className={cn(chip, on, "cursor-default pr-1.5")}>
             {x}

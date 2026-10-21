@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -61,8 +60,6 @@ internal fun RowScope.SavedBar(item: ReaderItem) {
                     placesOpen = false
                     if (!SaveChoices.same(option, choice.place)) item.onPlace(option)
                 }
-                // The folders after To read and Archive, as in the sheet.
-                if (option == Place.Archive) HorizontalDivider()
             }
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.folder_new)) },
@@ -94,7 +91,6 @@ internal fun RowScope.SavedBar(item: ReaderItem) {
         DropdownMenu(expanded = tagsOpen, onDismissRequest = { tagsOpen = false }) {
             // Like stays open on the menu, like the tags: several can change at once.
             MenuChoice(if (choice.liked) R.drawable.ic_favorite_filled else R.drawable.ic_favorite, stringResource(R.string.action_like), choice.liked, item.onLike)
-            HorizontalDivider()
             (item.tags + choice.tags.filterNot { t -> item.tags.any { it.equals(t, ignoreCase = true) } }).forEach { tag ->
                 MenuChoice(R.drawable.ic_label, tag, choice.tags.any { it.equals(tag, ignoreCase = true) }) { item.onTag(tag) }
             }

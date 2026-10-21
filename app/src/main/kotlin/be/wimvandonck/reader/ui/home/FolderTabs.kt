@@ -16,8 +16,6 @@ import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
-import androidx.compose.material3.VerticalDivider
-import androidx.compose.foundation.layout.height
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -152,7 +150,6 @@ fun SavedTabRow(
                     )
                 },
             )
-            if (tags.isNotEmpty()) VerticalDivider(Modifier.height(24.dp))
             tags.forEach { tag ->
                 val selected = filter.tags.any { it.equals(tag, ignoreCase = true) }
                 FilterChip(

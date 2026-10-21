@@ -225,7 +225,6 @@ function SavedArticles({ openKey, onOpen, onMenu }: { openKey: string | null; on
           <Heart className={cn("size-4", filter.likedOnly && "fill-current")} aria-hidden="true" />
           {t("liked")}
         </button>
-        {tags.length > 0 ? <span className="h-6 w-px shrink-0 bg-border" aria-hidden="true" /> : null}
         {tags.map((tag) => {
           const selected = filter.tags.some((x) => x.toLowerCase() === tag.toLowerCase());
           const others = filter.tags.filter((x) => x.toLowerCase() !== tag.toLowerCase());
