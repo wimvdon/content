@@ -82,9 +82,9 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   landscape it sits at the left side; on the web, wide windows have Search at the top of the sidebar).
 - **☰** opens the drawer with every place. **Feeds**: **All articles** (every feed), your
   folders with their feeds, the other feeds (each with its number of unread articles). The
-  **Saved** follows: To read, your folders and Archive (see Saved). The section you're in is
+  **Saved** follows: To read, your folders and Archive (see Saved). On the phone the section you're in is
   open and the other is folded shut, so the menu stays short; tap a section's name to fold it open or
-  shut. Below them: **Manage feeds**, **Folders and tags**, **Connected services** and **Settings**.
+  shut. On the web both sections stay open until you fold one, and stay as you left them. Below them: **Manage feeds**, **Folders and tags**, **Connected services** and **Settings**.
 - **Search** (the third tab; on the web also the **/** key) searches everything: the articles of all your feeds that are on the device (titles,
   text, feed names and authors) and Saved, archived articles too (titles, websites, descriptions,
   folders, tags, notes and highlights). Every word you type must appear; capitals and accents
