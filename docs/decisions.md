@@ -2,6 +2,17 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-21: The feed loader asks for article pages as a browser does, and says when a site blocks it
+
+Many sites refuse the feed loader because it runs in a data center. What can be done from there
+without paying or pretending: an honest browser-style name (`Mozilla/5.0 (compatible; Reader/web;
+…)`, as some sites refuse anything else), a browser's Accept header and the reader's languages for
+article pages, and a clear "blocked" answer (403) when a site still refuses or shows a bot check,
+which the web reader explains with Read on website. This doesn't get past real bot protection: the
+stored copy of saved articles and a browser extension (#168, later) do that. Rejected: pretending to
+be Chrome (dishonest and easily detected), paid scraping services and residential proxies (cost, and
+they would see every page read).
+
 ## 2026-10-20: Highlights and notes in the reader, without Instapaper copying (#102)
 
 Highlights were built in #124 but left as a draft: it waited for a matching test on Instapaper's

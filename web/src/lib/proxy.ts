@@ -2,7 +2,8 @@
 
 import { PROXY_URL } from "./config";
 
-export type FetchProblem = "offline" | "notFound" | "server" | "tooLarge";
+/** "blocked": the site refuses the feed loader (a bot check or a block of data centers). */
+export type FetchProblem = "offline" | "notFound" | "server" | "tooLarge" | "blocked";
 
 export class FetchError extends Error {
   readonly kind: FetchProblem;
@@ -18,14 +19,16 @@ export interface Fetched {
   url: string;
 }
 
-export async function fetchViaProxy(url: string): Promise<Fetched> {
+/** Loads `url` through the Worker; `page` asks for an article page as a browser would. */
+export async function fetchViaProxy(url: string, page = false): Promise<Fetched> {
   let response: Response;
   try {
-    response = await fetch(`${PROXY_URL}/?url=${encodeURIComponent(url)}`);
+    response = await fetch(`${PROXY_URL}/?url=${encodeURIComponent(url)}${page ? "&kind=page" : ""}`);
   } catch {
     throw new FetchError("offline");
   }
   if (response.status === 404) throw new FetchError("notFound");
+  if (response.status === 403) throw new FetchError("blocked");
   if (response.status === 413) throw new FetchError("tooLarge");
   if (!response.ok) throw new FetchError("server");
   const bytes = new Uint8Array(await response.arrayBuffer());

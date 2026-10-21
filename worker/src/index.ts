@@ -36,9 +36,18 @@ export interface Env {
 export const MAX_BYTES = 10 * 1024 * 1024;
 const MAX_REDIRECTS = 5;
 const CACHE_SECONDS = 300;
-const USER_AGENT = "RSSReader/web (+https://github.com/wimvdon/rss-reader)";
+/**
+ * Names Reader honestly, in the form browsers use ("Mozilla/5.0 (compatible; …)"), because some
+ * sites refuse any request whose name doesn't start like a browser's.
+ */
+export const USER_AGENT = "Mozilla/5.0 (compatible; Reader/web; +https://github.com/wimvdon/reader)";
 const ACCEPT =
   "application/rss+xml, application/atom+xml, application/xml;q=0.9, text/xml;q=0.9, text/html;q=0.8, */*;q=0.5";
+/** For an article page (`?kind=page`): what a browser asks for. */
+const PAGE_ACCEPT = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
+
+/** Answers that mean the site refuses the feed loader (a bot check, a block, too many requests). */
+const BLOCKED_STATUSES = new Set([401, 403, 429, 451, 503]);
 
 /** Content types that are feeds or pages; pictures and everything else load elsewhere or not at all. */
 const ALLOWED_TYPES = [/xml/, /rss/, /atom/, /^text\/html/, /^text\/plain/, /json/, /^application\/xhtml/];
@@ -72,6 +81,11 @@ export async function handle(request: Request, env: Env, fetcher: Fetcher): Prom
 
   const target = checkTarget(new URL(request.url).searchParams.get("url"));
   if (!target) return plain(400, "Give an https address as ?url=", cors);
+  // An article page is asked for as a browser asks for it, in the reader's own languages.
+  const page = requestUrl.searchParams.get("kind") === "page";
+  const language = request.headers.get("Accept-Language")?.slice(0, 200);
+  const headers: Record<string, string> = { "User-Agent": USER_AGENT, Accept: page ? PAGE_ACCEPT : ACCEPT };
+  if (page && language) headers["Accept-Language"] = language;
 
   let current = target;
   for (let i = 0; i <= MAX_REDIRECTS; i++) {
@@ -79,7 +93,7 @@ export async function handle(request: Request, env: Env, fetcher: Fetcher): Prom
     try {
       upstream = await fetcher(current, {
         redirect: "manual",
-        headers: { "User-Agent": USER_AGENT, Accept: ACCEPT },
+        headers,
         // Cloudflare's cache: many readers of one feed cost one download per few minutes.
         cf: { cacheTtl: CACHE_SECONDS, cacheEverything: true },
       } as RequestInit);
@@ -92,6 +106,10 @@ export async function handle(request: Request, env: Env, fetcher: Fetcher): Prom
       if (!next) return plain(502, "Bad redirect", cors);
       current = next;
       continue;
+    }
+    // Refused, or a "prove you're human" page instead of the page: the web app says so (403).
+    if (BLOCKED_STATUSES.has(upstream.status) || upstream.headers.get("cf-mitigated") === "challenge") {
+      return plain(403, "The site blocks the feed loader", cors);
     }
     if (!upstream.ok) return plain(upstream.status === 404 || upstream.status === 410 ? 404 : 502, "The site answered " + upstream.status, cors);
     const type = upstream.headers.get("Content-Type") ?? "";

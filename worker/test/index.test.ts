@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { checkTarget, handle, MAX_BYTES, type Env } from "../src/index";
+import { checkTarget, handle, MAX_BYTES, USER_AGENT, type Env } from "../src/index";
 
 const env: Env = { ALLOWED_ORIGINS: "https://app.example, http://localhost:5173" };
 const ask = (url: string, init: RequestInit = {}) =>
@@ -69,6 +69,43 @@ describe("handle", () => {
     const { fetcher } = site({ "https://a.example/gone": () => new Response("", { status: 404 }) });
     expect((await handle(ask("https://a.example/gone"), env, fetcher)).status).toBe(404);
     expect((await handle(ask("https://down.example/feed"), env, fetcher)).status).toBe(502);
+  });
+
+  it("says when a site blocks the feed loader, so the web app can tell the reader", async () => {
+    const { fetcher } = site({
+      "https://a.example/forbidden": () => new Response("no", { status: 403 }),
+      "https://a.example/busy": () => new Response("", { status: 429 }),
+      "https://a.example/check": () => new Response("<title>Just a moment...</title>", { headers: { "Content-Type": "text/html", "cf-mitigated": "challenge" } }),
+      "https://a.example/broken": () => new Response("", { status: 500 }),
+    });
+    for (const path of ["forbidden", "busy", "check"]) {
+      const response = await handle(ask(`https://a.example/${path}`), env, fetcher);
+      expect(response.status, path).toBe(403);
+      expect(response.headers.get("Access-Control-Allow-Origin")).toBe("https://app.example");
+    }
+    expect((await handle(ask("https://a.example/broken"), env, fetcher)).status).toBe(502);
+  });
+
+  it("asks for an article page as a browser does, in the reader's languages", async () => {
+    const sent: RequestInit[] = [];
+    const fetcher = async (_input: string, init?: RequestInit) => {
+      sent.push(init ?? {});
+      return new Response("<html></html>", { headers: { "Content-Type": "text/html" } });
+    };
+    const page = new Request("https://worker.example/?kind=page&url=" + encodeURIComponent("https://a.example/story"), {
+      headers: { Origin: "https://app.example", "Accept-Language": "nl-BE,nl;q=0.9,en;q=0.8" },
+    });
+    expect((await handle(page, env, fetcher)).status).toBe(200);
+    const headers = sent[0].headers as Record<string, string>;
+    expect(headers["User-Agent"]).toBe(USER_AGENT);
+    expect(headers["User-Agent"]).toMatch(/^Mozilla\/5\.0 \(compatible; Reader/);
+    expect(headers.Accept).toMatch(/^text\/html/);
+    expect(headers["Accept-Language"]).toBe("nl-BE,nl;q=0.9,en;q=0.8");
+    // A feed is asked for as a feed, without the reader's languages.
+    await handle(new Request("https://worker.example/?url=" + encodeURIComponent("https://a.example/feed"), { headers: { Origin: "https://app.example", "Accept-Language": "nl" } }), env, fetcher);
+    const feedHeaders = sent[1].headers as Record<string, string>;
+    expect(feedHeaders.Accept).toMatch(/^application\/rss\+xml/);
+    expect(feedHeaders["Accept-Language"]).toBeUndefined();
   });
 
   it("stops at the rate limit", async () => {
