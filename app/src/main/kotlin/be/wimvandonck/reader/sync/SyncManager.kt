@@ -170,6 +170,15 @@ class SyncManager(
         }
 
     /** Signs out of the account on the server (this device only), then here: Instapaper too. */
+    /** The text stored in the account for saved item [key] (docs/account.md); throws when it can't be asked. */
+    suspend fun storedText(key: String): String? = accountKey()?.let { AccountClient(http, it).text(key) }
+
+    /** Stores [html] as saved item [key]'s text unless one is there; gives back the one that is stored. */
+    suspend fun storeText(
+        key: String,
+        html: String,
+    ): String? = accountKey()?.let { AccountClient(http, it).storeText(key, html) }
+
     suspend fun signOut() {
         accountKey()?.let { key -> runCatching { AccountClient(http, key).signOut() } }
         instapaper.signOut()

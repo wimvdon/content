@@ -75,6 +75,19 @@ export class AccountClient {
     return { version: body.version, saved, conflicts: rowsOf(body.conflicts) };
   }
 
+  /** The text stored for item `key` (one per saved article, shared by every device), or null when none is. */
+  async text(key: string): Promise<string | null> {
+    const response = await this.call(`/account/texts?key=${encodeURIComponent(key)}`, {}, [404]);
+    if (response.status === 404) return null;
+    return htmlOf(await response.json().catch(() => null));
+  }
+
+  /** Stores `html` as item `key`'s text unless one is there already; gives back the one that is stored. */
+  async storeText(key: string, html: string): Promise<string | null> {
+    const response = await this.call("/account/texts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ key, html }) });
+    return htmlOf(await response.json().catch(() => null));
+  }
+
   /** Forgets this browser's key on the server. */
   async signOut(): Promise<void> {
     await this.call("/account/signout", { method: "POST" });
@@ -99,6 +112,11 @@ export class AccountClient {
     if (response.ok || response.status === 304 || alsoOk.includes(response.status)) return response;
     throw new SyncError(response.status === 401 ? "signedOut" : response.status === 503 ? "notSetUp" : "server");
   }
+}
+
+function htmlOf(body: unknown): string | null {
+  const html = (body as { html?: unknown } | null)?.html;
+  return typeof html === "string" ? html : null;
 }
 
 export function rowsOf(value: unknown): ItemRow[] {

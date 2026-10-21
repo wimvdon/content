@@ -39,6 +39,7 @@ import be.wimvandonck.reader.data.Place
 import be.wimvandonck.reader.data.SaveChoice
 import be.wimvandonck.reader.data.SaveChoices
 import be.wimvandonck.reader.data.Saved
+import be.wimvandonck.reader.data.SharedText
 import be.wimvandonck.reader.data.SavedFilter
 import be.wimvandonck.reader.data.SavedTab
 import be.wimvandonck.reader.data.SavedType
@@ -646,13 +647,21 @@ fun RssReaderNavigation(
                                 FullTextState.Off
                             } else {
                                 fullText = FullTextState.Loading
-                                when (val loaded = app.fullArticles.load(link)) {
-                                    is FullArticle.Loaded -> {
-                                        // Kept with the item, so its reading time is known.
-                                        item?.let { repository.putText(it.key, ReadingLists.EXTRACTED, loaded.html) }
-                                        FullTextState.Shown(loaded.html)
-                                    }
-                                    FullArticle.Failed -> FullTextState.Failed
+                                // A saved article shows the one text every device shows (stored in the account).
+                                val saved = item?.readingList != null
+                                val html =
+                                    SharedText.resolve(
+                                        saved,
+                                        stored = { item?.let { app.sync.storedText(it.key) } },
+                                        extract = { (app.fullArticles.load(link) as? FullArticle.Loaded)?.html },
+                                        store = { own -> item?.let { app.sync.storeText(it.key, own) } },
+                                    )
+                                if (html != null) {
+                                    // Kept with the item, so its reading time is known.
+                                    item?.let { repository.putText(it.key, ReadingLists.EXTRACTED, html) }
+                                    FullTextState.Shown(html)
+                                } else {
+                                    FullTextState.Failed
                                 }
                             }
                     }

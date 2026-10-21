@@ -41,7 +41,11 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   you saved (its address, title, picture address, the feed it came
   from, when you added it, whether you archived or liked it, its collection, tags, your note, your
   highlights with the highlighted passage and a few words around it, and how far you read it).
-  It does not hold article texts, your Instapaper token or your Instapaper password. While the app
+  For each article you saved it also keeps one copy of its text as the reader shows it (the
+  article cleaned up from its web page, with picture addresses but not the pictures), stored by
+  the first of your devices that opens it, so every device shows the same text and your
+  highlights line up. It doesn't hold the text of articles you only read in a feed, your
+  Instapaper token or your Instapaper password. While the app
   is on screen it also keeps a connection open to the feed loader that only says when the document
   changed. The document and each record are stored encrypted (AES-256-GCM, with a key for your
   account derived from a secret that only the feed loader has) in Cloudflare's storage (Durable
@@ -49,7 +53,7 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   decrypt them to send them to your devices; the owner could too, but doesn't look at them. Your account is found by a code derived from your Instapaper user number; each device gets
   its own key, of which only a scrambled form (hash) is stored. Nothing is logged. Cloudflare sees
   your IP address, under Cloudflare's privacy policy. **Sign out** (Settings › Account) forgets this
-  device's key; **Delete synced data** deletes the document, the records and every device's key from the server
+  device's key; **Delete synced data** deletes the document, the records, the stored article texts and every device's key from the server
   at once (your devices keep their own copy of the library).
 - **Instapaper (off unless you sign in).** Settings › Instapaper › Sign in opens Instapaper's own
   page in your browser, where you approve Reader; Reader never sees your Instapaper password.

@@ -8,6 +8,7 @@ import { itemForArticle, type Highlight } from "@/lib/items";
 import { articleKey, sortTime, type Article } from "@/lib/library";
 import { hostOf, isItemArticle, siteOf, sourceOf } from "@/lib/saved";
 import { FetchError, fetchViaProxy } from "@/lib/proxy";
+import { resolveText } from "@/lib/sharedText";
 import { sanitizeArticle } from "@/lib/sanitize";
 import { FeedIcon } from "./FeedIcon";
 import { HighlightDialog, HighlightedText, HighlightsDialog } from "./Highlights";
@@ -57,22 +58,30 @@ export function ArticleView({
   const style = settings.readerStyle;
 
   const loaded = full && full.link === link ? full : null;
+  // A saved article shows the one text every device shows, stored in the account (sharedText.ts).
+  const savedKey = saved?.key ?? null;
   useEffect(() => {
     if (!useFull || !link || loaded) return;
     let cancelled = false;
     (async () => {
-      let html = await cached(link);
-      if (!html) {
-        const page = await fetchViaProxy(link, true);
-        html = extractArticle(page.text, page.url);
-        if (html) void keep(link, html);
-      }
+      const html = await resolveText(
+        savedKey !== null,
+        () => (savedKey ? app.storedText(savedKey) : Promise.resolve(null)),
+        async () => {
+          const known = await cached(link);
+          if (known) return known;
+          const page = await fetchViaProxy(link, true);
+          return extractArticle(page.text, page.url);
+        },
+        (own) => (savedKey ? app.storeText(savedKey, own) : Promise.resolve(null)),
+      );
+      if (html) void keep(link, html);
       if (!cancelled) setFull({ link, html });
     })().catch((e) => !cancelled && setFull({ link, html: null, blocked: e instanceof FetchError && e.kind === "blocked" }));
     return () => {
       cancelled = true;
     };
-  }, [useFull, link, loaded]);
+  }, [useFull, link, loaded, savedKey]);
   const fullHtml = useFull ? loaded?.html : undefined;
 
   const siteUrl = feed?.siteUrl ?? null;

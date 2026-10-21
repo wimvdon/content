@@ -2,6 +2,16 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-21: One stored text per saved article, in the Reader account
+
+So that highlights line up on every device (and future platforms), a saved article has one text,
+stored in the account by the first device that extracts it; the others take it instead of
+fetching the page (as Instapaper, Pocket and Readwise keep one parsed copy on their servers). The
+devices extract, not the feed loader: parsing on the server would need the Workers paid plan (its
+free CPU time per request is far too short) and is blocked by the same sites. Only saved articles
+whose full text is loaded are stored (feed texts are the same everywhere already). First one wins,
+so two devices can't overwrite each other. Encrypted like item rows. Rejected: a text per device
+(highlights drift), storing every feed article (storage for nothing).
 ## 2026-10-21: The feed loader asks for article pages as a browser does, and says when a site blocks it
 
 Many sites refuse the feed loader because it runs in a data center. What can be done from there
