@@ -176,7 +176,7 @@
     <string name="action_close">Cerrar</string>
     <string name="action_done">Listo</string>
     <string name="section_account">Cuenta</string>
-    <string name="account_summary">Inicia sesión con Instapaper para mantener tus feeds, artículos leídos, artículos guardados y ajustes iguales en todos tus dispositivos, y tus artículos guardados en Instapaper.</string>
+    <string name="account_summary">Inicia sesión con Instapaper para mantener tus feeds, artículos leídos, elementos guardados y ajustes iguales en todos tus dispositivos, y tus elementos guardados en Instapaper.</string>
     <string name="sync_no_account">La sincronización está desactivada para este inicio de sesión. Vuelve a iniciar sesión para activarla.</string>
     <string name="sync_failed_signed_out">Se cerró la sesión de este dispositivo en tu cuenta. Vuelve a iniciar sesión.</string>
     <string name="account_delete_data">Eliminar datos sincronizados</string>
@@ -224,12 +224,12 @@
     <string name="services_title">Servicios conectados</string>
     <string name="services_reader">Reader</string>
     <string name="services_feeds_body">Reader guarda tus feeds. OPML los importa y exporta.</string>
-    <string name="services_reading_body">Reader guarda tus artículos. Inicia sesión con Instapaper para guardarlos también allí.</string>
+    <string name="services_reading_body">Reader guarda tus elementos. Inicia sesión con Instapaper para guardarlos también allí.</string>
     <string name="services_problem_later">Instapaper pidió esperar un momento. El resto irá después.</string>
     <string name="section_raindrop">Raindrop.io</string>
     <string name="raindrop_connect">Conectar Raindrop.io</string>
     <string name="raindrop_disconnect">Desconectar</string>
-    <string name="services_raindrop_off">Conecta Raindrop.io para guardar también allí tus artículos, carpetas y notas.</string>
+    <string name="services_raindrop_off">Conecta Raindrop.io para guardar también allí tus elementos, carpetas y notas.</string>
     <string name="services_raindrop_body">Sincronizado con tu cuenta de Raindrop.io</string>
     <string name="raindrop_sign_in_done">Conectado a Raindrop.io</string>
     <string name="raindrop_sign_in_failed">No se pudo conectar con Raindrop.io. Inténtalo de nuevo.</string>
@@ -239,7 +239,7 @@
     <string name="services_syncs_folders">Sincroniza %1$s</string>
     <string name="services_waiting_import">Conectado. Elige qué importar.</string>
     <string name="service_import_title">Importar</string>
-    <string name="service_import_body">Trae una vez lo que tiene %1$s: todo, o las carpetas que elijas. Cada artículo llega a su sitio, tal como está.</string>
+    <string name="service_import_body">Trae una vez lo que tiene %1$s: todo, o las carpetas que elijas. Cada elemento llega a su sitio, tal como está.</string>
     <string name="service_import_all">Importar todo</string>
     <string name="service_import_choose">Elegir carpetas</string>
     <string name="service_import_again">Importar de nuevo</string>
@@ -250,10 +250,10 @@
     <string name="service_scope_title">Qué sincroniza</string>
     <string name="service_scope_all">Todo lo guardado</string>
     <string name="service_scope_some">Solo estas carpetas</string>
-    <string name="service_scope_note">Los cambios van en ambos sentidos. Un artículo que saques de estas carpetas se archiva en %1$s, nunca se borra.</string>
+    <string name="service_scope_note">Los cambios van en ambos sentidos. Un elemento que saques de estas carpetas se archiva en %1$s, nunca se borra.</string>
     <string name="service_scope_leave_title">¿Archivarlos en %1$s?</string>
     <string name="service_scope_leave_confirm">Archivar allí</string>
-    <string name="saved_remove_both_body">Instapaper y Raindrop.io guardan este artículo. Quítalo de ambos o solo de uno (entonces sigue en Guardados, en el otro).</string>
+    <string name="saved_remove_both_body">Instapaper y Raindrop.io guardan este elemento. Quítalo de ambos o solo de uno (entonces sigue en Guardados, en el otro).</string>
     <string name="saved_remove_only_from">Solo de %1$s</string>
     <string name="saved_remove_from_both">Quitar de ambos</string>
     <string name="saved_removed_from">Quitado de %1$s</string>
@@ -264,11 +264,11 @@
     <string name="tags_rename">Cambiar nombre</string>
     <string name="tags_name">Nombre de la etiqueta</string>
     <string name="tags_remove_everywhere">Quitar la etiqueta de todo</string>
-    <string name="tags_remove_body">¿Quitar la etiqueta «%s» de todos los artículos? Los artículos se quedan.</string>
+    <string name="tags_remove_body">¿Quitar la etiqueta «%s» de todos los elementos? Los elementos se quedan.</string>
     <plurals name="articles_count">
-        <item quantity="one">%d artículo</item>
-        <item quantity="many">%d artículos</item>
-        <item quantity="other">%d artículos</item>
+        <item quantity="one">%d elemento</item>
+        <item quantity="many">%d elementos</item>
+        <item quantity="other">%d elementos</item>
     </plurals>
     <plurals name="highlights_count">
         <item quantity="one">%d resaltado</item>
@@ -276,9 +276,9 @@
         <item quantity="other">%d resaltados</item>
     </plurals>
     <plurals name="reading_list_count">
-        <item quantity="one">%d artículo</item>
-        <item quantity="many">%d artículos</item>
-        <item quantity="other">%d artículos</item>
+        <item quantity="one">%d elemento</item>
+        <item quantity="many">%d elementos</item>
+        <item quantity="other">%d elementos</item>
     </plurals>
     <plurals name="reading_list_to_read_count">
         <item quantity="one">%d por leer</item>
@@ -293,7 +293,7 @@
     <string name="highlight_title">Resaltado</string>
     <string name="highlight_remove">Quitar resaltado</string>
     <string name="highlight_approximate">Aproximado: este texto difiere de aquel en el que se hizo.</string>
-    <string name="highlight_not_found">No se encuentra en este texto. Se queda con el artículo.</string>
+    <string name="highlight_not_found">No se encuentra en este texto. Se queda con el elemento.</string>
     <string name="highlights_none">Selecciona texto y toca Resaltar.</string>
     <string name="setting_tag_with_folder_title">Etiquetar con la carpeta del feed</string>
     <string name="setting_tag_with_folder_summary">Un artículo que guardas desde un feed recibe el nombre de su carpeta como etiqueta.</string>
@@ -311,21 +311,21 @@
     <string name="menu_folders_tags">Carpetas y etiquetas</string>
     <string name="saved_folder_rename">Renombrar carpeta</string>
     <string name="saved_folder_remove">Quitar carpeta</string>
-    <string name="saved_folder_remove_body">¿Quitar la carpeta %1$s? Sus artículos van al Archivo.</string>
+    <string name="saved_folder_remove_body">¿Quitar la carpeta %1$s? Sus elementos van al Archivo.</string>
     <string name="saved_remove">Quitar de Guardados</string>
     <string name="saved_removed">Quitado de Guardados</string>
-    <string name="saved_remove_body">¿Quitar este artículo, con su nota, etiquetas y resaltados? Archivarlo lo mantiene buscable.</string>
+    <string name="saved_remove_body">¿Quitar este elemento, con su nota, etiquetas y resaltados? Archivarlo lo mantiene buscable.</string>
     <string name="saved_empty_body">Desliza un artículo de un feed a la izquierda, toca Guardar en un artículo, comparte un enlace con Reader o añade uno aquí.</string>
     <string name="manage_folders_tags_empty_title">Aún no hay carpetas ni etiquetas</string>
-    <string name="manage_folders_tags_empty_body">Las carpetas y etiquetas de tus artículos guardados aparecen aquí para que puedas renombrarlas.</string>
+    <string name="manage_folders_tags_empty_body">Las carpetas y etiquetas de tus elementos guardados aparecen aquí para que puedas renombrarlas.</string>
     <plurals name="service_imported">
-        <item quantity="one">%1$d artículo importado, %2$s</item>
-        <item quantity="many">%1$d artículos importados, %2$s</item>
-        <item quantity="other">%1$d artículos importados, %2$s</item>
+        <item quantity="one">%1$d elemento importado, %2$s</item>
+        <item quantity="many">%1$d elementos importados, %2$s</item>
+        <item quantity="other">%1$d elementos importados, %2$s</item>
     </plurals>
     <plurals name="service_scope_leave_body">
-        <item quantity="one">%1$d artículo deja de estar en lo que sincroniza %2$s. Se archiva allí, no se borra, y sigue en Reader.</item>
-        <item quantity="many">%1$d artículos dejan de estar en lo que sincroniza %2$s. Se archivan allí, no se borran, y siguen en Reader.</item>
-        <item quantity="other">%1$d artículos dejan de estar en lo que sincroniza %2$s. Se archivan allí, no se borran, y siguen en Reader.</item>
+        <item quantity="one">%1$d elemento deja de estar en lo que sincroniza %2$s. Se archiva allí, no se borra, y sigue en Reader.</item>
+        <item quantity="many">%1$d elementos dejan de estar en lo que sincroniza %2$s. Se archivan allí, no se borran, y siguen en Reader.</item>
+        <item quantity="other">%1$d elementos dejan de estar en lo que sincroniza %2$s. Se archivan allí, no se borran, y siguen en Reader.</item>
     </plurals>
 </resources>

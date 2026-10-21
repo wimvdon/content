@@ -176,7 +176,7 @@
     <string name="action_close">Fermer</string>
     <string name="action_done">OK</string>
     <string name="section_account">Compte</string>
-    <string name="account_summary">Connectez-vous avec Instapaper pour garder vos flux, articles lus, articles enregistrés et réglages identiques sur tous vos appareils, et vos articles enregistrés dans Instapaper.</string>
+    <string name="account_summary">Connectez-vous avec Instapaper pour garder vos flux, articles lus, éléments enregistrés et réglages identiques sur tous vos appareils, et vos éléments enregistrés dans Instapaper.</string>
     <string name="sync_no_account">La synchronisation est désactivée pour cette connexion. Reconnectez-vous pour l’activer.</string>
     <string name="sync_failed_signed_out">Cet appareil a été déconnecté de votre compte. Reconnectez-vous.</string>
     <string name="account_delete_data">Supprimer les données synchronisées</string>
@@ -224,12 +224,12 @@
     <string name="services_title">Services connectés</string>
     <string name="services_reader">Reader</string>
     <string name="services_feeds_body">Reader garde vos flux. L’OPML permet de les importer et de les exporter.</string>
-    <string name="services_reading_body">Reader garde vos articles enregistrés. Connectez-vous avec Instapaper pour les garder aussi là-bas.</string>
+    <string name="services_reading_body">Reader garde vos éléments enregistrés. Connectez-vous avec Instapaper pour les garder aussi là-bas.</string>
     <string name="services_problem_later">Instapaper a demandé d’attendre un moment. Le reste suivra.</string>
     <string name="section_raindrop">Raindrop.io</string>
     <string name="raindrop_connect">Connecter Raindrop.io</string>
     <string name="raindrop_disconnect">Déconnecter</string>
-    <string name="services_raindrop_off">Connectez Raindrop.io pour y garder aussi vos articles enregistrés, dossiers et notes.</string>
+    <string name="services_raindrop_off">Connectez Raindrop.io pour y garder aussi vos éléments enregistrés, dossiers et notes.</string>
     <string name="services_raindrop_body">Synchronisé avec votre compte Raindrop.io</string>
     <string name="raindrop_sign_in_done">Connecté à Raindrop.io</string>
     <string name="raindrop_sign_in_failed">La connexion à Raindrop.io a échoué. Réessayez.</string>
@@ -239,7 +239,7 @@
     <string name="services_syncs_folders">Synchronise %1$s</string>
     <string name="services_waiting_import">Connecté. Choisissez quoi importer.</string>
     <string name="service_import_title">Importer</string>
-    <string name="service_import_body">Récupérez une fois ce que %1$s contient : tout, ou les dossiers choisis. Chaque article arrive à sa place, tel quel.</string>
+    <string name="service_import_body">Récupérez une fois ce que %1$s contient : tout, ou les dossiers choisis. Chaque élément arrive à sa place, tel quel.</string>
     <string name="service_import_all">Tout importer</string>
     <string name="service_import_choose">Choisir des dossiers</string>
     <string name="service_import_again">Importer à nouveau</string>
@@ -250,10 +250,10 @@
     <string name="service_scope_title">Ce qui est synchronisé</string>
     <string name="service_scope_all">Tout ce qui est enregistré</string>
     <string name="service_scope_some">Seulement ces dossiers</string>
-    <string name="service_scope_note">Les modifications vont dans les deux sens. Un article que vous sortez de ces dossiers est archivé dans %1$s, jamais supprimé.</string>
+    <string name="service_scope_note">Les modifications vont dans les deux sens. Un élément que vous sortez de ces dossiers est archivé dans %1$s, jamais supprimé.</string>
     <string name="service_scope_leave_title">Les archiver dans %1$s ?</string>
     <string name="service_scope_leave_confirm">Archiver là-bas</string>
-    <string name="saved_remove_both_body">Instapaper et Raindrop.io gardent tous deux cet article. Retirez-le des deux, ou d’un seul (il reste alors dans Enregistrés, gardé dans l’autre).</string>
+    <string name="saved_remove_both_body">Instapaper et Raindrop.io gardent tous deux cet élément. Retirez-le des deux, ou d’un seul (il reste alors dans Enregistrés, gardé dans l’autre).</string>
     <string name="saved_remove_only_from">Seulement de %1$s</string>
     <string name="saved_remove_from_both">Retirer des deux</string>
     <string name="saved_removed_from">Retiré de %1$s</string>
@@ -264,11 +264,11 @@
     <string name="tags_rename">Renommer le tag</string>
     <string name="tags_name">Nom du tag</string>
     <string name="tags_remove_everywhere">Retirer le tag partout</string>
-    <string name="tags_remove_body">Retirer le tag « %s » de tous les articles ? Les articles restent.</string>
+    <string name="tags_remove_body">Retirer le tag « %s » de tous les éléments ? Les éléments restent.</string>
     <plurals name="articles_count">
-        <item quantity="one">%d article</item>
-        <item quantity="many">%d articles</item>
-        <item quantity="other">%d articles</item>
+        <item quantity="one">%d élément</item>
+        <item quantity="many">%d éléments</item>
+        <item quantity="other">%d éléments</item>
     </plurals>
     <plurals name="highlights_count">
         <item quantity="one">%d surlignage</item>
@@ -276,9 +276,9 @@
         <item quantity="other">%d surlignages</item>
     </plurals>
     <plurals name="reading_list_count">
-        <item quantity="one">%d article</item>
-        <item quantity="many">%d articles</item>
-        <item quantity="other">%d articles</item>
+        <item quantity="one">%d élément</item>
+        <item quantity="many">%d éléments</item>
+        <item quantity="other">%d éléments</item>
     </plurals>
     <plurals name="reading_list_to_read_count">
         <item quantity="one">%d à lire</item>
@@ -293,7 +293,7 @@
     <string name="highlight_title">Surlignage</string>
     <string name="highlight_remove">Supprimer le surlignage</string>
     <string name="highlight_approximate">Approximatif : ce texte diffère de celui où il a été fait.</string>
-    <string name="highlight_not_found">Introuvable dans ce texte. Il reste avec l’article.</string>
+    <string name="highlight_not_found">Introuvable dans ce texte. Il reste avec l’élément.</string>
     <string name="highlights_none">Sélectionnez du texte et touchez Surligner.</string>
     <string name="setting_tag_with_folder_title">Taguer avec le dossier du flux</string>
     <string name="setting_tag_with_folder_summary">Un article enregistré depuis un flux reçoit le nom de son dossier comme tag.</string>
@@ -311,21 +311,21 @@
     <string name="menu_folders_tags">Dossiers et tags</string>
     <string name="saved_folder_rename">Renommer le dossier</string>
     <string name="saved_folder_remove">Supprimer le dossier</string>
-    <string name="saved_folder_remove_body">Supprimer le dossier %1$s ? Ses articles vont dans les Archives.</string>
+    <string name="saved_folder_remove_body">Supprimer le dossier %1$s ? Ses éléments vont dans les Archives.</string>
     <string name="saved_remove">Retirer des enregistrés</string>
     <string name="saved_removed">Retiré des enregistrés</string>
-    <string name="saved_remove_body">Retirer cet article, avec sa note, ses tags et ses surlignages ? L’archiver le garde consultable.</string>
+    <string name="saved_remove_body">Retirer cet élément, avec sa note, ses tags et ses surlignages ? L’archiver le garde consultable.</string>
     <string name="saved_empty_body">Balayez un article de flux vers la gauche, touchez Enregistrer dans un article, partagez un lien avec Reader ou ajoutez-en un ici.</string>
     <string name="manage_folders_tags_empty_title">Pas encore de dossiers ni de tags</string>
-    <string name="manage_folders_tags_empty_body">Les dossiers et tags de vos articles enregistrés s’affichent ici, pour les renommer.</string>
+    <string name="manage_folders_tags_empty_body">Les dossiers et tags de vos éléments enregistrés s’affichent ici, pour les renommer.</string>
     <plurals name="service_imported">
-        <item quantity="one">%1$d article importé, %2$s</item>
-        <item quantity="many">%1$d articles importés, %2$s</item>
-        <item quantity="other">%1$d articles importés, %2$s</item>
+        <item quantity="one">%1$d élément importé, %2$s</item>
+        <item quantity="many">%1$d éléments importés, %2$s</item>
+        <item quantity="other">%1$d éléments importés, %2$s</item>
     </plurals>
     <plurals name="service_scope_leave_body">
-        <item quantity="one">%1$d article sort de ce que %2$s synchronise. Il y est archivé, pas supprimé, et reste dans Reader.</item>
-        <item quantity="many">%1$d articles sortent de ce que %2$s synchronise. Ils y sont archivés, pas supprimés, et restent dans Reader.</item>
-        <item quantity="other">%1$d articles sortent de ce que %2$s synchronise. Ils y sont archivés, pas supprimés, et restent dans Reader.</item>
+        <item quantity="one">%1$d élément sort de ce que %2$s synchronise. Il y est archivé, pas supprimé, et reste dans Reader.</item>
+        <item quantity="many">%1$d éléments sortent de ce que %2$s synchronise. Ils y sont archivés, pas supprimés, et restent dans Reader.</item>
+        <item quantity="other">%1$d éléments sortent de ce que %2$s synchronise. Ils y sont archivés, pas supprimés, et restent dans Reader.</item>
     </plurals>
 </resources>
