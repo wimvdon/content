@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -29,7 +28,6 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -81,10 +79,7 @@ fun TagsEditor(
     }
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), itemVerticalAlignment = Alignment.CenterVertically) {
-            if (leading != null) {
-                leading()
-                VerticalDivider(Modifier.height(24.dp))
-            }
+            if (leading != null) leading()
             tags.forEach { tag ->
                 InputChip(
                     selected = true,
@@ -356,8 +351,6 @@ fun FolderChips(
                     },
                     modifier = Modifier.semantics { role = Role.RadioButton },
                 )
-                // The folders after To read and Archive, set apart as Like is from the tags.
-                if (option == Place.Archive) VerticalDivider(Modifier.height(24.dp))
             }
             if (!making) {
                 AssistChip(

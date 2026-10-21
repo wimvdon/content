@@ -261,8 +261,8 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   short. Back from Saved or a feed section goes to All articles.
 - Feeds has scrollable primary tabs under the top app bar for its folders (All (feed symbol), then
   each folder with its icon and name), and the Unread and All chips under them. Saved (#119) has
-  scrollable tabs To read, All, each folder (folder icon) and Archive, and one row of filter chips:
-  Liked (heart, set apart by a vertical divider) then the tab's tags, most used first, several at
+  scrollable tabs To read, each folder (folder icon) and Archive (everything at once is Search, #171),
+  and one row of filter chips: Liked (heart) then the tab's tags, most used first, several at
   once. The type filter (Articles, Videos, Audio) is a filter-list icon button next to search, with a
   menu of radio items; it turns `primary` while a type is chosen. The Mark all read FAB is on Feeds
   only and only marks the section shown; Saved's FAB is Add link.
@@ -279,9 +279,9 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   full article as an `IconToggleButton`, on while it shows, then Aa and ⋮); the bottom app bar is
   this article in your library, on the left, with **Share** at its right end: a tonal **Save** before
   it is saved, then two text buttons with a drop-down arrow, side by side, grouped like the sheet (#156): its **place** (To read, the
-  folder or Archive, with its icon), a `DropdownMenu` of To read and Archive, a divider, the folders
+  folder or Archive, with its icon), a `DropdownMenu` of To read, Archive, the folders
   and New folder; and its **tags** (the tags, else Liked; a filled heart when liked, else a label, tinted like the folder icon),
-  a menu of Like, a divider, the tags with a check when on, and Add a tag. New folder and Add a tag
+  a menu of Like, the tags with a check when on, and Add a tag. New folder and Add a tag
   open Organise. The text ends with Read on website and nothing else. ⋮
   holds the rare ones: Open in browser, Mark as unread, Remove from Saved.
 - Highlights (#102): **Highlight** and **Note** join Copy and Share in the menu over selected text
@@ -297,9 +297,9 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
 - One save and Organise sheet (#143), wherever you meet an article: a `ModalBottomSheet` with, in
   this order, what is being saved (only before the save: the address field for Add link, or a shared
   link's title and site), **Folder** as single-choice `FilterChip`s (To read and Archive with
-  their icons, a `VerticalDivider`, each folder, then a New folder `AssistChip`, the only thing to
+  their icons, each folder, then a New folder `AssistChip`, the only thing to
   type; #156), **Tags** in one row
-  like Saved's filter row (Like, a `VerticalDivider`, the tags as `InputChip`s, Add a tag), and
+  like Saved's filter row (Like, the tags as `InputChip`s, Add a tag), and
   **Note** last, with the room. Section titles in Title Small, `primary`. Then Cancel and Save:
   closing the sheet is Cancel, so only Save changes anything; the heading is "Save to Reader", "Saved to …" or "Organise".
   Right after a save ("Saved to …"), **Remove** (error colour, trash icon) takes the place of Cancel
