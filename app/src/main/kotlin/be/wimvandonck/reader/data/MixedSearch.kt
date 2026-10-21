@@ -132,6 +132,12 @@ data class SearchFilters(
  * let through. Plain Kotlin, unit tested; the web app does the same in web/src/lib/search.ts.
  */
 object SearchResults {
+    /**
+     * Whether Search shows its results as notes (cards), like Saved's folders, rather than as rows
+     * like the feeds: Feeds is rows, All and Saved are notes.
+     */
+    fun showsNotes(scope: SearchFilter): Boolean = scope != SearchFilter.Feeds
+
     /** How many articles the list shows without words typed. */
     const val MAX_BROWSED = 500
 

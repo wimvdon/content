@@ -140,7 +140,7 @@ and then (always before a release):
 - [ ] **Navigation:** the ☰ drawer has the same sections on Feeds and on Saved; the section you're
       in is open and the other folded shut. Tapping a section's name folds it shut and open (folded,
       it shows its count). In a folder, a feed or Saved, Back goes to All; on All, Back closes the app.
-- [ ] **Saved:** tabs To read, All, each folder and Archive; the Liked chip and tag chips (several
+- [ ] **Saved:** tabs To read, each folder and Archive (To read as rows, folders and Archive as note cards); the Liked chip and tag chips (several
       at once) filter it; the filter button next to search picks Articles, Videos or Audio. To read,
       All and Archive look like the feed list (Settings › View applies); a folder shows notes in two
       columns (picture, title, note or description, site, tags). Add link asks for an address and a

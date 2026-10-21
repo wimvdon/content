@@ -147,6 +147,35 @@ class SavedTest {
     }
 
     @Test
+    fun `only To read is rows, folders and the Archive are notes`() {
+        assertEquals(false, Saved.showsNotes(SavedTab.ToRead))
+        assertEquals(true, Saved.showsNotes(SavedTab.Folder("Work")))
+        assertEquals(true, Saved.showsNotes(SavedTab.Archive))
+    }
+
+    @Test
+    fun `a note card of a saved item and of a feed article`() {
+        val item =
+            Item(
+                "www.a.example/1",
+                "https://www.a.example/1",
+                "A",
+                imageUrl = "https://a.example/p.jpg",
+                note = "Mine.",
+                tags = listOf("ai"),
+                liked = true,
+                highlights = listOf(Highlight("h1", "Words.", createdAt = 1)),
+                createdAt = 0,
+            )
+        assertEquals(NoteContent("A", "https://a.example/p.jpg", CardBody.Note("Mine."), "a.example", listOf("ai"), 1, true), Saved.note(item))
+        val article =
+            Article(feedUrl = "https://f.example/rss", id = "1", title = "B", link = "https://www.b.example/x", author = null, html = "<p>Start of <b>the</b> text.</p>", publishedAt = 1, fetchedAt = 1)
+        assertEquals(NoteContent("B", null, CardBody.Description("Start of the text."), "b.example"), Saved.note(article))
+        assertNull(Saved.note(article.copy(html = "", link = null)).body)
+        assertEquals("", Saved.note(article.copy(link = null)).host)
+    }
+
+    @Test
     fun `a card shows the note, else the first highlight, else the description`() {
         val highlight = Highlight("h1", "The author's words.", createdAt = 1)
         val second = Highlight("h2", "Later words.", createdAt = 2)

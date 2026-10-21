@@ -3,9 +3,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useApp } from "@/lib/app";
 import { t } from "@/lib/i18n";
 import { articleKey, type Article } from "@/lib/library";
-import { itemArticle, savedFolders, sourceOf, tabTags, type SavedType } from "@/lib/saved";
-import { indexArticles, narrowed, noFilters, searchResults, type SearchFilter, type SearchFilters } from "@/lib/search";
-import { Empty, Row } from "./ArticleList";
+import { articleNote, itemArticle, noteOf, savedFolders, sourceOf, tabTags, type SavedType } from "@/lib/saved";
+import { indexArticles, narrowed, noFilters, searchResults, showsNotes, type SearchFilter, type SearchFilters } from "@/lib/search";
+import { Empty, NoteCard, Row } from "./ArticleList";
 import { Button } from "./ui/button";
 import { FilterChip } from "./ui/chip";
 import { cn } from "./ui/cn";
@@ -83,6 +83,24 @@ export function SearchPanel({ openKey, onOpen, onClose }: { openKey: string | nu
           <Empty icon={Search} title={t("searchStartTitle")} text={t("searchStartBody")} />
         ) : hits.length === 0 ? (
           <Empty icon={Search} title={t("searchNoneTitle")} text={t("searchNoneBody")} />
+        ) : showsNotes(filters.scope) ? (
+          // All and Saved as notes, like Saved's folders; Feeds as rows, like the feeds.
+          <ul className="columns-[11rem] gap-2 px-1 pt-1">
+            {hits.map((hit) => {
+              const article = hit.kind === "feed" ? hit.article : itemArticle(hit.item, library);
+              return (
+                <li key={articleKey(article)} className="mb-2 break-inside-avoid">
+                  <NoteCard
+                    note={hit.kind === "feed" ? articleNote(hit.article) : noteOf(hit.item)}
+                    feed={hit.kind === "feed" ? feeds.get(hit.article.feedUrl) : sourceOf(hit.item, library)}
+                    open={openKey === articleKey(article)}
+                    onOpen={() => onOpen(article)}
+                    label={all ? (hit.kind === "feed" ? t("searchLabelFeed") : t("saved")) : undefined}
+                  />
+                </li>
+              );
+            })}
+          </ul>
         ) : (
           <ul className="space-y-1">
             {hits.map((hit) => {

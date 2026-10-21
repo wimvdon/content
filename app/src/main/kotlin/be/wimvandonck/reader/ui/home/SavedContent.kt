@@ -48,6 +48,7 @@ import be.wimvandonck.reader.data.CardBody
 import be.wimvandonck.reader.data.Feed
 import be.wimvandonck.reader.data.Item
 import be.wimvandonck.reader.data.Library
+import be.wimvandonck.reader.data.NoteContent
 import be.wimvandonck.reader.data.ListView
 import be.wimvandonck.reader.data.ReadingLists
 import be.wimvandonck.reader.data.Saved
@@ -71,15 +72,15 @@ data class SavedHome(
     val library: Library,
     /** Titles of notes in the reader's font. */
     val titleFont: FontFamily,
-    /** The feed list's view (Small, Medium, Large), which To read, All and Archive share. */
+    /** The feed list's view (Small, Medium, Large), which To read shares. */
     val listView: ListView = ListView.Medium,
 )
 
 /**
- * Saved (#119): To read, All and Archive look like the feeds, as they are lists to read through
- * (with how many and about how long on top); a folder is a collection, so its items are notes in a
+ * Saved (#119): To read looks like the feeds, as it is a list to read through (with how many and
+ * about how long on top); a folder and the Archive are collections, so their items are notes in a
  * staggered grid, as in Noter: picture, title, your note or the description, then site, tags and
- * highlights.
+ * highlights (Saved.showsNotes).
  */
 @Composable
 internal fun SavedContent(
@@ -116,12 +117,12 @@ internal fun SavedContent(
         }
         return
     }
-    if (home.filter.tab is SavedTab.Folder) NotesGrid(home, showImages, onOpen) else ArticleList(home, showImages, onOpen, onArchive, onFile)
+    if (Saved.showsNotes(home.filter.tab)) NotesGrid(home, showImages, onOpen) else ArticleList(home, showImages, onOpen, onArchive, onFile)
 }
 
 /**
- * To read, All and Archive: the feed list's rows, newest saved first. Swipe left to archive (or,
- * archived, back to read), right to organise it (#143).
+ * To read: the feed list's rows, newest saved first. Swipe left to archive, right to organise it
+ * (#143).
  */
 @Composable
 private fun ArticleList(
@@ -186,7 +187,7 @@ private fun Summary(
     )
 }
 
-/** A folder: its items as notes, two columns on a phone. */
+/** A folder or the Archive: its items as notes, two columns on a phone. */
 @Composable
 private fun NotesGrid(
     home: SavedHome,
@@ -205,25 +206,28 @@ private fun NotesGrid(
         item(key = "summary", span = StaggeredGridItemSpan.FullLine) { Summary(home, Modifier.padding(start = 4.dp, bottom = 4.dp)) }
         items(home.items, key = { it.key }) { item ->
             val source = remember(item, home.library) { ReadingLists.source(item, home.library) }
-            NoteCard(item, source, home.titleFont, showImages, onClick = { onOpen(item) }, modifier = Modifier.animateItem())
+            val note = remember(item) { Saved.note(item) }
+            NoteCard(note, source, home.titleFont, showImages, onClick = { onOpen(item) }, modifier = Modifier.animateItem())
         }
     }
 }
 
 /**
- * A saved item as a note (Noter's cards, after Google Keep): an outlined card with the picture on
- * top, the title, your note (else the first highlight, quoted, else the description), then the
- * site, the tags and the number of highlights.
+ * A note card (Noter's cards, after Google Keep): an outlined card with the picture on top, the
+ * title, for a saved item your note (else the first highlight, quoted, else the description), for a
+ * feed article the start of its text, then the site, the tags and the number of highlights. [label]
+ * says what kind it is in Search (Feed or Saved).
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun NoteCard(
-    item: Item,
+internal fun NoteCard(
+    note: NoteContent,
     source: Feed?,
     titleFont: FontFamily,
     showImage: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    label: String? = null,
 ) {
     OutlinedCard(
         onClick = onClick,
@@ -231,7 +235,7 @@ private fun NoteCard(
         colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         Column {
-            val image = item.imageUrl?.takeIf { showImage }
+            val image = note.imageUrl?.takeIf { showImage }
             if (image != null) {
                 var failed by remember(image) { mutableStateOf(false) }
                 if (!failed) {
@@ -245,13 +249,14 @@ private fun NoteCard(
                 }
             }
             Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (label != null) Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                 Text(
-                    item.title,
+                    note.title,
                     style = MaterialTheme.typography.titleMedium.copy(fontFamily = titleFont, fontWeight = FontWeight.Medium),
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
                 )
-                when (val body = Saved.cardBody(item)) {
+                when (val body = note.body) {
                     is CardBody.Quote ->
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Icon(painterResource(R.drawable.ic_quote), contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
@@ -275,19 +280,19 @@ private fun NoteCard(
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         if (source != null) FeedIcon(source, FeedIconSize.Small)
-                        Text(item.host, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                        Text(note.host, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
                     }
-                    for (tag in item.tags) {
+                    for (tag in note.tags) {
                         Text("#$tag", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary, maxLines = 1)
                     }
-                    if (item.highlights.isNotEmpty()) {
-                        val description = pluralStringResource(R.plurals.highlights_count, item.highlights.size, item.highlights.size)
+                    if (note.highlights > 0) {
+                        val description = pluralStringResource(R.plurals.highlights_count, note.highlights, note.highlights)
                         Row(Modifier.semantics(mergeDescendants = true) { contentDescription = description }, verticalAlignment = Alignment.CenterVertically) {
                             Icon(painterResource(R.drawable.ic_highlight), contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Text(item.highlights.size.toString(), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(note.highlights.toString(), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
-                    if (item.liked) {
+                    if (note.liked) {
                         Icon(
                             painterResource(R.drawable.ic_favorite_filled),
                             contentDescription = stringResource(R.string.reading_list_liked),

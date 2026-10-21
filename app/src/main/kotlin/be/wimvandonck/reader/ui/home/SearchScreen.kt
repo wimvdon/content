@@ -2,6 +2,12 @@ package be.wimvandonck.reader.ui.home
 
 import androidx.compose.foundation.horizontalScroll
 import be.wimvandonck.reader.data.SearchFilters
+import be.wimvandonck.reader.data.SearchResults
+import be.wimvandonck.reader.data.Saved
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.items
 import be.wimvandonck.reader.data.SavedType
 import be.wimvandonck.reader.data.Folder
 import androidx.compose.runtime.setValue
@@ -80,6 +86,8 @@ data class SearchState(
     /** Saved's folders and tags (most used first), for its filters. */
     val savedFolders: List<String> = emptyList(),
     val savedTags: List<String> = emptyList(),
+    /** Titles of note cards in the reader's font, as in Saved's folders. */
+    val titleFont: FontFamily = FontFamily.Default,
 )
 
 class SearchActions(
@@ -158,6 +166,7 @@ fun SearchScreen(
                     EmptyState(painterResource(R.drawable.ic_search), stringResource(R.string.search_start_title), body = stringResource(R.string.search_start_body))
                 results.isEmpty() ->
                     EmptyState(painterResource(R.drawable.ic_search), stringResource(R.string.search_none_title), body = stringResource(R.string.search_none_body))
+                SearchResults.showsNotes(state.filters.scope) -> SearchNotes(state, results, actions)
                 else -> {
                     val feedsByUrl = remember(state.feeds) { state.feeds.associateBy { it.url } }
                     val feedLabel = stringResource(R.string.search_label_feed)
@@ -195,6 +204,56 @@ fun SearchScreen(
             }
         }
     }
+    }
+}
+
+/**
+ * All and Saved as notes (#171 follow-up), like Saved's folders: a staggered grid of cards, two
+ * columns on a phone. Feeds stays a list of rows, like the feeds.
+ */
+@Composable
+private fun SearchNotes(
+    state: SearchState,
+    results: List<SearchHit>,
+    actions: SearchActions,
+) {
+    val feedsByUrl = remember(state.feeds) { state.feeds.associateBy { it.url } }
+    val feedLabel = stringResource(R.string.search_label_feed)
+    val itemLabel = stringResource(R.string.saved_title)
+    val labelled = state.hasItems && state.filters.scope == SearchFilter.All
+    LazyVerticalStaggeredGrid(
+        columns = StaggeredGridCells.Adaptive(160.dp),
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
+        verticalItemSpacing = 8.dp,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        items(results, key = { hit -> hit.key }) { hit ->
+            when (hit) {
+                is SearchHit.FromFeed -> {
+                    val note = remember(hit.article) { Saved.note(hit.article) }
+                    NoteCard(
+                        note,
+                        feedsByUrl[hit.article.feedUrl],
+                        state.titleFont,
+                        state.showImages,
+                        onClick = { actions.onOpenArticle(hit.article) },
+                        label = feedLabel.takeIf { labelled },
+                    )
+                }
+                is SearchHit.FromItem -> {
+                    val note = remember(hit.item) { Saved.note(hit.item) }
+                    NoteCard(
+                        note,
+                        ReadingLists.source(hit.item, state.library),
+                        state.titleFont,
+                        state.showImages,
+                        onClick = { actions.onOpenItem(hit.item) },
+                        label = itemLabel.takeIf { labelled },
+                    )
+                }
+            }
+        }
     }
 }
 
