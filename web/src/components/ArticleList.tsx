@@ -4,9 +4,8 @@ import { useEscape } from "./ui/useEscape";
 import { app, useApp } from "@/lib/app";
 import { snippet } from "@/lib/html";
 import { dayLabel, plural, t } from "@/lib/i18n";
-import type { Item } from "@/lib/items";
 import { articleKey, articlesFor, sortTime, unreadKeys, type Article, type Feed } from "@/lib/library";
-import { cardBody, hostOf, itemArticle, sameTab, savedFolders, savedItems, sourceOf, tabTags, type SavedFilter, type SavedTab, type SavedType } from "@/lib/saved";
+import { itemArticle, noteOf, sameTab, savedFolders, savedItems, showsNotes, sourceOf, tabTags, type NoteContent, type SavedFilter, type SavedTab, type SavedType } from "@/lib/saved";
 import { scrolledPast } from "@/lib/scrollRead";
 import { FeedIcon } from "./FeedIcon";
 import { Button } from "./ui/button";
@@ -164,10 +163,10 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo }: 
 }
 
 /**
- * Saved (#119, #147), as on Android: To read, All, each folder and Archive as tabs, then Liked and
- * the tab's tags as chips, and the type filter next to search. To read, All and Archive are lists
- * like the feeds; a folder is a collection, so its articles are cards with your note (or first
- * highlight, or the description), the site, tags and highlights.
+ * Saved (#119, #147), as on Android: To read, each folder and Archive as tabs, then Liked and the
+ * tab's tags as chips, and the type filter. To read is a list like the feeds; a folder and the
+ * Archive are collections, so their items are cards with your note (or first highlight, or the
+ * description), the site, tags and highlights.
  */
 function SavedArticles({ openKey, onOpen, onMenu }: { openKey: string | null; onOpen: (a: Article) => void; onMenu: () => void }) {
   const { library, savedFilter: filter, loaded } = useApp();
@@ -257,13 +256,13 @@ function SavedArticles({ openKey, onOpen, onMenu }: { openKey: string | null; on
         ) : (
           <>
             <p className="px-3 pt-3 pb-2 text-xs text-muted-foreground">{plural("savedCount", items.length)}</p>
-            {filter.tab.kind === "folder" ? (
+            {showsNotes(filter.tab) ? (
               <ul className="columns-[11rem] gap-2 px-1">
                 {items.map((item) => {
                   const article = itemArticle(item, library);
                   return (
                     <li key={item.key} className="mb-2 break-inside-avoid">
-                      <NoteCard item={item} feed={sourceOf(item, library)} open={openKey === articleKey(article)} onOpen={() => onOpen(article)} />
+                      <NoteCard note={noteOf(item)} feed={sourceOf(item, library)} open={openKey === articleKey(article)} onOpen={() => onOpen(article)} />
                     </li>
                   );
                 })}
@@ -352,15 +351,15 @@ function TypeFilter({ type, onChange }: { type: SavedType | null; onChange: (typ
 }
 
 /**
- * A saved article in a folder, as a note (Noter's cards): the picture on top, the title, your note
- * (else the first highlight, quoted, else the description), then the site, tags, highlights and a
- * heart when liked.
+ * A note card (Noter's cards): the picture on top, the title, for a saved item your note (else the
+ * first highlight, quoted, else the description), for a feed article the start of its text, then
+ * the site, tags, highlights and a heart when liked. `label` says what kind it is in Search.
  */
-function NoteCard({ item, feed, open, onOpen }: { item: Item; feed: Feed | undefined; open: boolean; onOpen: () => void }) {
+export function NoteCard({ note, feed, open, onOpen, label }: { note: NoteContent; feed: Feed | undefined; open: boolean; onOpen: () => void; label?: string }) {
   const { settings } = useApp();
-  const body = cardBody(item);
-  const image = settings.showImages ? item.imageUrl : null;
-  const highlights = item.highlights.length;
+  const body = note.body;
+  const image = settings.showImages ? note.imageUrl : null;
+  const highlights = note.highlights;
   return (
     <button
       type="button"
@@ -370,7 +369,8 @@ function NoteCard({ item, feed, open, onOpen }: { item: Item; feed: Feed | undef
     >
       {image ? <img src={image} alt="" loading="lazy" referrerPolicy="no-referrer" className="h-24 w-full bg-muted object-cover" onError={(e) => (e.currentTarget.style.display = "none")} /> : null}
       <div className="flex flex-col gap-2 px-4 py-3">
-        <h3 className="line-clamp-3 font-serif leading-snug font-medium">{item.title}</h3>
+        {label ? <span className="text-xs font-medium text-primary">{label}</span> : null}
+        <h3 className="line-clamp-3 font-serif leading-snug font-medium">{note.title}</h3>
         {body?.kind === "quote" ? (
           <p className="flex gap-2 text-sm">
             <Quote className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
@@ -382,9 +382,9 @@ function NoteCard({ item, feed, open, onOpen }: { item: Item; feed: Feed | undef
         <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs">
           <span className="flex min-w-0 items-center gap-1 text-muted-foreground">
             {feed ? <FeedIcon feed={feed} className="size-4" /> : null}
-            <span className="truncate">{hostOf(item.url)}</span>
+            <span className="truncate">{note.host}</span>
           </span>
-          {item.tags.map((tag) => (
+          {note.tags.map((tag) => (
             <span key={tag} className="font-medium text-primary">
               #{tag}
             </span>
@@ -395,7 +395,7 @@ function NoteCard({ item, feed, open, onOpen }: { item: Item; feed: Feed | undef
               {highlights}
             </span>
           ) : null}
-          {item.liked ? <Heart className="size-3.5 fill-current text-primary" aria-label={t("liked")} /> : null}
+          {note.liked ? <Heart className="size-3.5 fill-current text-primary" aria-label={t("liked")} /> : null}
         </div>
       </div>
     </button>

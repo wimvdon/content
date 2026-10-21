@@ -95,6 +95,7 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   **Saved**, to a **Folder**, a **Tag** and a **Type** (Articles, Videos or Audio). With nothing typed,
   Search lists everything those chips let through, newest first: with no filter that is all your
   feed articles and all of Saved (archive included), which is where Saved's former **All** tab went.
+  **All** and **Saved** show their results as notes, like a folder; **Feeds** shows rows, like your feeds.
 - Articles are grouped under **Today**, **Yesterday** and then the date; the date stays at the
   top while you scroll through that day.
 - Under the title you see how many articles are unread. Two chips just above the list
@@ -270,9 +271,9 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   tags, most used first; pick several to see articles with all of them. The **filter button** next to
   search picks a type: Articles, Videos or Audio (read from the link: YouTube or Vimeo are videos,
   podcast and Spotify episode links are audio).
-- **To read and Archive look like your feeds**: the same rows, in the view you chose for the
+- **To read looks like your feeds**: the same rows, in the view you chose for the
   feed list (Small, Medium, Large), with how many articles and about how long they take at the top.
-  **A folder looks like a page of notes**: cards in two columns, each with its picture, the title,
+  **A folder and the Archive look like a page of notes**: cards in two columns, each with its picture, the title,
   your note (or else your first highlight, quoted, or else the article's description), the site,
   its tags and how many highlights it has.
 - In the reader, the bar at the bottom: **where it is** (To read and Archive, then your folders) and

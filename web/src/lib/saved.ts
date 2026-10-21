@@ -5,7 +5,7 @@
  * Immutable: every change returns a new library.
  */
 
-import { escapeHtml } from "./html";
+import { escapeHtml, snippet } from "./html";
 import { addToReadingList, changeItem, cleanTags, feedArticleFor, putItem, setReadingState, type Item } from "./items";
 import { keyOf, type Article, type Feed, type Library } from "./library";
 
@@ -176,6 +176,40 @@ export function cardBody(i: Item): CardBody | null {
   if (highlight) return { kind: "quote", text: highlight.quote.trim() };
   if (i.description.trim()) return { kind: "description", text: i.description.trim() };
   return null;
+}
+
+/**
+ * Whether a tab shows its items as notes (cards) rather than as rows like the feeds. Only To read
+ * is a list to read through; a folder and the Archive are collections (like Android's Saved.showsNotes).
+ */
+export const showsNotes = (tab: SavedTab) => tab.kind !== "toread";
+
+/** One note card: a saved item, or a feed article shown the same way in Search's notes view. */
+export interface NoteContent {
+  title: string;
+  imageUrl: string | null;
+  body: CardBody | null;
+  host: string;
+  tags: string[];
+  highlights: number;
+  liked: boolean;
+}
+
+/** A saved item as a note card. */
+export const noteOf = (i: Item): NoteContent => ({
+  title: i.title,
+  imageUrl: i.imageUrl,
+  body: cardBody(i),
+  host: hostOf(i.url),
+  tags: i.tags,
+  highlights: i.highlights.length,
+  liked: i.liked,
+});
+
+/** A feed article as a note card (Search's notes view): the start of its text under the title. */
+export function articleNote(a: Article): NoteContent {
+  const text = snippet(a.html, 240);
+  return { title: a.title, imageUrl: a.imageUrl, body: text ? { kind: "description", text } : null, host: a.link ? hostOf(a.link) : "", tags: [], highlights: 0, liked: false };
 }
 
 /** The "feed" of saved items opened in the reader, so their key ("item <key>") never clashes with a feed's. */

@@ -1,5 +1,6 @@
 package be.wimvandonck.reader.data
 
+import be.wimvandonck.reader.feed.Html
 import java.net.URI
 
 /** Saved's tabs (#119): To read (the inbox), everything, one folder, or the archive. */
@@ -30,7 +31,7 @@ data class SavedFilter(
  * Saved (#119): one list for everything saved, the same whichever service it is kept in. An item is
  * in exactly one place: To read, one folder, or the archive. Plain Kotlin, unit tested.
  */
-/** What a card in a folder shows under its title, see [Saved.cardBody]. */
+/** What a note card shows under its title, see [Saved.cardBody]. */
 sealed interface CardBody {
     val text: String
 
@@ -41,7 +42,39 @@ sealed interface CardBody {
     data class Description(override val text: String) : CardBody
 }
 
+/**
+ * One note card (Noter's cards): a saved item, or a feed article shown the same way in Search's
+ * notes view. [highlights] is how many; [liked] shows a heart.
+ */
+data class NoteContent(
+    val title: String,
+    val imageUrl: String?,
+    val body: CardBody?,
+    val host: String,
+    val tags: List<String> = emptyList(),
+    val highlights: Int = 0,
+    val liked: Boolean = false,
+)
+
 object Saved {
+    /**
+     * Whether a tab shows its items as notes (cards) rather than as rows like the feeds. Only To
+     * read is a list to read through; a folder and the Archive are collections.
+     */
+    fun showsNotes(tab: SavedTab): Boolean = tab != SavedTab.ToRead
+
+    /** A saved item as a note card. */
+    fun note(item: Item): NoteContent = NoteContent(item.title, item.imageUrl, cardBody(item), item.host, item.tags, item.highlights.size, item.liked)
+
+    /** A feed article as a note card (Search's notes view): the start of its text under the title. */
+    fun note(article: Article): NoteContent =
+        NoteContent(
+            title = article.title,
+            imageUrl = article.imageUrl,
+            body = Html.snippet(article.html).takeIf { it.isNotBlank() }?.let(CardBody::Description),
+            host = ItemKeys.hostOf(article.link),
+        )
+
     /** The folder an item is in, or null (To read, archived, or not saved). */
     fun folderOf(item: Item): String? = item.folder?.takeIf { item.readingList?.state == ReadingState.ToRead }
 
@@ -191,7 +224,7 @@ object Saved {
     }
 
     /**
-     * The body of an item's card in a folder (#133): your note, else the first highlight (shown
+     * The body of an item's note card (#133): your note, else the first highlight (shown
      * quoted, as the author's words), else the website's description; null when it has none.
      */
     fun cardBody(item: Item): CardBody? =

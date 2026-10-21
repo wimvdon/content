@@ -81,4 +81,11 @@ class SearchResultsTest {
         assertEquals(true, filters.narrowed)
         assertEquals(false, SearchFilters(SearchFilter.Saved).narrowed)
     }
+
+    @Test
+    fun `Feeds shows rows, All and Saved show notes`() {
+        assertEquals(false, SearchResults.showsNotes(SearchFilter.Feeds))
+        assertEquals(true, SearchResults.showsNotes(SearchFilter.All))
+        assertEquals(true, SearchResults.showsNotes(SearchFilter.Saved))
+    }
 }

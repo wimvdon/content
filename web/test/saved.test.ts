@@ -3,7 +3,10 @@ import { itemOf, keepAsBookmark, setLiked, setTags, type Highlight, type Item } 
 import { addFeed, articleKey, articlesFor, emptyLibrary, mergeFeed, newFeed, type Library } from "../src/lib/library";
 import {
   archiveItem,
+  articleNote,
   cardBody,
+  noteOf,
+  showsNotes,
   defaultSavedFilter,
   fileItem,
   folderCounts,
@@ -175,5 +178,21 @@ describe("Saved (#119, #147)", () => {
   it("tags with setTags, shared by name", () => {
     const lib = setTags(sample(), "a.example/3", ["Work", "work", " news "]);
     expect(itemOf(lib, "a.example/3")?.tags).toEqual(["Work", "news"]);
+  });
+});
+
+describe("note cards (views)", () => {
+  it("shows only To read as rows; folders and the Archive as notes", () => {
+    expect(showsNotes({ kind: "toread" })).toBe(false);
+    expect(showsNotes({ kind: "folder", name: "Work" })).toBe(true);
+    expect(showsNotes({ kind: "archive" })).toBe(true);
+  });
+
+  it("makes a note card of a feed article and of a saved item", () => {
+    const article = { feedUrl: "f", id: "1", title: "B", link: "https://www.b.example/x", author: null, html: "<p>Start of <b>the</b> text.</p>", publishedAt: 1, fetchedAt: 1, read: false, imageUrl: null };
+    expect(articleNote(article)).toEqual({ title: "B", imageUrl: null, body: { kind: "description", text: "Start of the text." }, host: "b.example", tags: [], highlights: 0, liked: false });
+    expect(articleNote({ ...article, html: "", link: null }).body).toBeNull();
+    const item = { ...saveLink(emptyLibrary(), "https://www.a.example/1", "A", 1)[1]!, note: "Mine.", tags: ["ai"], liked: true };
+    expect(noteOf(item)).toMatchObject({ title: "A", body: { kind: "note", text: "Mine." }, host: "a.example", tags: ["ai"], highlights: 0, liked: true });
   });
 });

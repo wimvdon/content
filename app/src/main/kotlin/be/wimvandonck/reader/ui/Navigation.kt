@@ -850,6 +850,7 @@ fun RssReaderNavigation(
                                 feedFolders = library.folders,
                                 savedFolders = remember(library) { Saved.folders(library) },
                                 savedTags = remember(library) { Saved.tags(library, SavedTab.All) },
+                                titleFont = current.reader.font.fontFamily(),
                             ),
                         actions =
                             SearchActions(

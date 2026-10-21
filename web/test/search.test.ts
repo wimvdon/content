@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Item } from "../src/lib/items";
 import { emptyLibrary, type Article, type Library } from "../src/lib/library";
-import { indexArticles, mix, narrowed, noFilters, normalize, relevance, searchArticles, searchItems, searchResults, type SearchHit } from "../src/lib/search";
+import { indexArticles, mix, narrowed, noFilters, normalize, relevance, searchArticles, searchItems, searchResults, showsNotes, type SearchHit } from "../src/lib/search";
 
 const article = (id: string, title: string, time: number, html = ""): Article => ({
   feedUrl: "https://feed.example/rss",
@@ -128,5 +128,13 @@ describe("search tab (#171)", () => {
     expect(narrowed(noFilters)).toBe(false);
     expect(narrowed({ ...noFilters, scope: "saved" })).toBe(false);
     expect(narrowed({ ...noFilters, tag: "x" })).toBe(true);
+  });
+});
+
+describe("search views", () => {
+  it("shows Feeds as rows, All and Saved as notes", () => {
+    expect(showsNotes("feeds")).toBe(false);
+    expect(showsNotes("all")).toBe(true);
+    expect(showsNotes("saved")).toBe(true);
   });
 });

@@ -115,6 +115,9 @@ export const noFilters: SearchFilters = { scope: "all", feedFolderId: null, feed
 /** Whether any filter beyond the kind is chosen. */
 export const narrowed = (f: SearchFilters) => f.feedFolderId !== null || f.feedUrl !== null || f.savedFolder !== null || f.tag !== null || f.type !== null;
 
+/** Whether Search shows its results as notes (cards), like Saved's folders: Feeds is rows, All and Saved are notes. */
+export const showsNotes = (scope: SearchFilter) => scope !== "feeds";
+
 /** How many articles the list shows without words typed. */
 export const MAX_BROWSED = 500;
 
