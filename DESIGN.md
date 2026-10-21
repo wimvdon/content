@@ -258,7 +258,8 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   wherever the app is: Feeds and Saved are sections in it; each header (Title Small in
   `primary`, a fold arrow, the count while folded) folds its section open and shut. The section
   being shown is open and the other folded shut whenever you move between them, so the drawer stays
-  short. Back from Saved or a feed section goes to All articles.
+  short. The web's sidebar is always on screen, so there both stay open until you fold one, and stay
+  as you left them. Back from Saved or a feed section goes to All articles.
 - Feeds has scrollable primary tabs under the top app bar for its folders (All (feed symbol), then
   each folder with its icon and name), and the Unread and All chips under them. Saved (#119) has
   scrollable tabs To read, each folder (folder icon) and Archive (everything at once is Search, #171),
