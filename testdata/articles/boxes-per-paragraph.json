@@ -1,0 +1,19 @@
+{
+  "about": "Keeps every paragraph when each sits in boxes of its own (VRT NWS).",
+  "url": "https://example.com/",
+  "html": "<!DOCTYPE html>\n<html><head><title>Page</title><script>var x = \"<p>not text</p>\";</script><style>p { color: red }</style></head>\n<body>\n<article class=\"grid\"><div class=\"min-w-0\"><div class=\"flex flex-col\"><div class=\"flex flex-col gap-3\">\n  <div class=\"pb-4\"><div class=\"flex flex-col\">\n    <h1>Title</h1>\n    <div class=\"order-5 prose-article-body-r\"><p>Lead paragraph. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p></div>\n  </div></div>\n  <div class=\"pb-4\"><div class=\"bg-primary\"><div class=\"prose-article-body-m\">\n    <ul class=\"prose-article-body-r\"><li>Summary one. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</li><li>Summary two. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</li><li>Summary three. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</li></ul>\n  </div></div></div>\n  <div class=\"\"><div class=\"flex flex-col gap-4\"><p>Body 1. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p></div></div><div class=\"\"><div class=\"flex flex-col gap-4\"><p>Body 2. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p></div></div><div class=\"\"><div class=\"flex flex-col gap-4\"><p>Body 3. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p></div></div><div class=\"\"><div class=\"flex flex-col gap-4\"><p>Body 4. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p></div></div><div class=\"\"><div class=\"flex flex-col gap-4\"><p>Body 5. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p></div></div><div class=\"\"><div class=\"flex flex-col gap-4\"><p>Body 6. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p></div></div><div class=\"\"><div class=\"flex flex-col gap-4\"><p>Body 7. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p></div></div><div class=\"\"><div class=\"flex flex-col gap-4\"><p>Body 8. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p></div></div>\n</div></div></div></article></body></html>",
+  "text": [
+    "Lead paragraph",
+    "Body 1.",
+    "Body 2.",
+    "Body 3.",
+    "Body 4.",
+    "Body 5.",
+    "Body 6.",
+    "Body 7.",
+    "Body 8."
+  ],
+  "htmlContains": [],
+  "absent": [],
+  "noArticle": false
+}

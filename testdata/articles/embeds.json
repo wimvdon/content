@@ -1,0 +1,14 @@
+{
+  "about": "Keeps video embeds and drops other iframes.",
+  "url": "https://example.com/a/",
+  "html": "<!DOCTYPE html>\n<html><head><title>Page</title><script>var x = \"<p>not text</p>\";</script><style>p { color: red }</style></head>\n<body>\n<article><p>This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p>\n  <iframe src=\"https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0\" width=\"560\"></iframe>\n  <iframe src=\"https://ads.example.net/slot/123\"></iframe>\n  <video poster=\"/poster.jpg\"><source src=\"/clip.mp4\" type=\"video/mp4\"></video>\n  <p>This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p><p>This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p></article></body></html>",
+  "text": [],
+  "htmlContains": [
+    "<iframe src=\"https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0\"></iframe>",
+    "<video src=\"https://example.com/clip.mp4\" poster=\"https://example.com/poster.jpg\"></video>"
+  ],
+  "absent": [
+    "ads.example.net"
+  ],
+  "noArticle": false
+}
