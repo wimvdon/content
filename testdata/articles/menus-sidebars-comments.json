@@ -1,0 +1,28 @@
+{
+  "about": "Keeps the article; drops menus, sidebars, comments, the footer and scripts.",
+  "url": "https://example.com/posts/1",
+  "html": "<!DOCTYPE html>\n<html><head><title>Page</title><script>var x = \"<p>not text</p>\";</script><style>p { color: red }</style></head>\n<body>\n<header><nav><a href=\"/\">Home</a> <a href=\"/about\">About</a></nav></header>\n<div class=\"layout\">\n  <aside class=\"sidebar\"><p>Sidebar text that is long enough to look like a paragraph, almost.</p></aside>\n  <article>\n    <h1>Title</h1>\n    <p>This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p>\n    <p>Second: <a href=\"/more\">a <b>relative</b> link</a>, and <em>emphasis</em>. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p>\n    <figure><img src=\"x.jpg\"><figcaption>Caption</figcaption></figure>\n    <ul><li>One point<li>Another point</ul>\n    <p>More. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p><p>More. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p><p>More. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p><p>More. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p>\n    <script>track()</script>\n  </article>\n  <div id=\"comments\"><p>A comment that should not be in the article, even if it is long enough.</p></div>\n</div>\n<footer><p>Copyright notice and other footer text that nobody reads at all.</p></footer></body></html>",
+  "text": [
+    "This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.",
+    "Second: a relative link, and emphasis.",
+    "One point",
+    "Another point",
+    "Caption"
+  ],
+  "htmlContains": [
+    "<a href=\"https://example.com/more\">a <b>relative</b> link</a>",
+    "<em>emphasis</em>",
+    "<li>One point</li><li>Another point</li>",
+    "<figure><img src=\"https://example.com/posts/x.jpg\"><figcaption>Caption</figcaption></figure>"
+  ],
+  "absent": [
+    "Home",
+    "Sidebar",
+    "comment",
+    "Copyright",
+    "track()",
+    "not text",
+    "color: red"
+  ],
+  "noArticle": false
+}

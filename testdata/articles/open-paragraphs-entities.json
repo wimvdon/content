@@ -1,0 +1,12 @@
+{
+  "about": "Closes paragraphs the page leaves open, and decodes entities once.",
+  "url": "https://example.com/",
+  "html": "<!DOCTYPE html>\n<html><head><title>Page</title><script>var x = \"<p>not text</p>\";</script><style>p { color: red }</style></head>\n<body><article><p>Caf&eacute; &amp; more. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.<p>Next &lt;tag&gt;. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</article></body></html>",
+  "text": [],
+  "htmlContains": [
+    "<p>Café &amp; more.",
+    "<p>Next &lt;tag&gt;."
+  ],
+  "absent": [],
+  "noArticle": false
+}
