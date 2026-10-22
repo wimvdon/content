@@ -19,6 +19,8 @@ export interface SyncFeed {
   folderId: string | null;
   siteUrl: string | null;
   iconUrl: string | null;
+  /** Its tags (#187); left out of the file when there are none, so older apps read the same. */
+  tags?: string[];
 }
 
 /**
@@ -65,7 +67,7 @@ export const emptyDocument = (): SyncDocument => ({ folders: [], feeds: [], sett
 export function documentOf(lib: Library): SyncDocument {
   return {
     folders: lib.folders.map((f) => ({ id: f.id, title: f.title, icon: f.icon })),
-    feeds: lib.feeds.map((f) => ({ url: f.url, title: f.title, renamed: f.renamed, folderId: f.folderId, siteUrl: f.siteUrl, iconUrl: f.iconUrl })),
+    feeds: lib.feeds.map((f) => ({ url: f.url, title: f.title, renamed: f.renamed, folderId: f.folderId, siteUrl: f.siteUrl, iconUrl: f.iconUrl, ...(f.tags?.length ? { tags: f.tags } : {}) })),
     settings: {},
   };
 }
@@ -75,12 +77,18 @@ export function encode(doc: SyncDocument): string {
     format: FORMAT,
     version: VERSION,
     folders: doc.folders.map((f) => ({ id: f.id, title: f.title, icon: f.icon })),
-    feeds: doc.feeds.map((f) => ({ url: f.url, title: f.title, renamed: f.renamed, folderId: f.folderId, siteUrl: f.siteUrl, iconUrl: f.iconUrl })),
+    feeds: doc.feeds.map((f) => ({ url: f.url, title: f.title, renamed: f.renamed, folderId: f.folderId, siteUrl: f.siteUrl, iconUrl: f.iconUrl, ...(f.tags?.length ? { tags: f.tags } : {}) })),
     settings: Object.fromEntries(Object.keys(doc.settings).sort().map((k) => [k, doc.settings[k]])),
   });
 }
 
 /** Null when the text isn't a sync file, or is from a newer version (it is then left alone). */
+/** A feed's tags from the file, or nothing when it has none (#187). */
+function tagsOf(value: unknown): { tags?: string[] } {
+  const tags = Array.isArray(value) ? value.filter((t): t is string => typeof t === "string").map((t) => t.trim()).filter((t) => t) : [];
+  return tags.length ? { tags } : {};
+}
+
 export function decode(text: string): SyncDocument | null {
   let root: unknown;
   try {
@@ -106,6 +114,7 @@ export function decode(text: string): SyncDocument | null {
       folderId: typeof f.folderId === "string" && folderIds.has(f.folderId) ? f.folderId : null,
       siteUrl: typeof f.siteUrl === "string" && f.siteUrl ? f.siteUrl : null,
       iconUrl: typeof f.iconUrl === "string" && f.iconUrl ? f.iconUrl : null,
+      ...tagsOf(f.tags),
     });
   }
   const read: Record<string, number> = {};
@@ -180,6 +189,7 @@ export function apply(lib: Library, merged: SyncDocument): Library {
       folderId: f.folderId,
       siteUrl: f.siteUrl ?? old?.siteUrl ?? null,
       iconUrl: f.iconUrl ?? old?.iconUrl ?? null,
+      ...(f.tags?.length ? { tags: f.tags } : {}),
     };
   });
   const urls = new Set(feeds.map((f) => f.url));

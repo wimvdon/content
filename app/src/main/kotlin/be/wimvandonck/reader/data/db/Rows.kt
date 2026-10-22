@@ -24,6 +24,8 @@ data class FeedRow(
     val folderId: String?,
     val iconUrl: String?,
     val renamed: Boolean,
+    /** Its tags as JSON (#187). */
+    @ColumnInfo(defaultValue = "[]") val tags: String = "[]",
 )
 
 @Entity(tableName = "articles", indices = [Index("feedUrl")])

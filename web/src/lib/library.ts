@@ -13,6 +13,8 @@ export interface Feed {
   folderId: string | null;
   iconUrl: string | null;
   renamed: boolean;
+  /** Its tags (#187), which its articles inherit. A feed folder becomes its first tag (feedFoldersToTags). */
+  tags?: string[];
 }
 
 export interface Folder {
@@ -65,6 +67,19 @@ export const emptyLibrary = (): Library => ({ feeds: [], folders: [], articles: 
 export const keyOf = (feedUrl: string, id: string) => `${feedUrl} ${id}`;
 export const articleKey = (a: Article) => keyOf(a.feedUrl, a.id);
 export const sortTime = (a: Article) => a.publishedAt ?? a.fetchedAt;
+
+/**
+ * Feed folders become tags (#187): a feed in a folder that has no tags yet gets the folder's name as
+ * its tag. The same library when there is nothing to do. Applied after every change, so a feed synced
+ * in from an older app gets it too; the folder stays until the screens no longer use folders. Like the
+ * Android app's Library.feedFoldersToTags.
+ */
+export function feedFoldersToTags(lib: Library): Library {
+  const titles = new Map(lib.folders.map((f) => [f.id, f.title.trim()]));
+  const titleOf = (f: Feed) => (f.folderId ? titles.get(f.folderId) : undefined);
+  if (!lib.feeds.some((f) => !f.tags?.length && titleOf(f))) return lib;
+  return { ...lib, feeds: lib.feeds.map((f) => (!f.tags?.length && titleOf(f) ? { ...f, tags: [titleOf(f)!] } : f)) };
+}
 
 export function newFeed(url: string, title: string): Feed {
   return { url, title: title || url, siteUrl: null, folderId: null, iconUrl: null, renamed: false };

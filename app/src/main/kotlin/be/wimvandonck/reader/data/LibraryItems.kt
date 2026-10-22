@@ -150,17 +150,20 @@ fun Library.removeTag(name: String): Library =
 fun Library.tagCounts(): Map<String, Int> = itemTags().associateWith { tag -> items.count { item -> item.tags.any { it.equals(tag, ignoreCase = true) } } }
 
 /**
- * Tags a saved item with the folder of the feed it came from (#120), in the spelling of a tag
- * already in use. Nothing for a link that isn't a feed article or a feed outside folders. Later
- * changes to the folder don't touch tags already given.
+ * Tags a saved item with the tags of the feed it came from (#120, #187), each in the spelling of a
+ * tag already in use; a feed without tags gives its folder's name. Nothing for a link that isn't a
+ * feed article. Later changes to the feed don't touch tags already given.
  */
 fun Library.tagWithFeedFolder(key: String): Library {
     val item = item(key) ?: return this
     val article = ReadingLists.feedArticle(item, this) ?: return this
-    val folderId = feed(article.feedUrl)?.folderId ?: return this
-    val title = folders.firstOrNull { it.id == folderId }?.title?.trim()?.takeIf { it.isNotEmpty() } ?: return this
-    val tag = itemTags().firstOrNull { it.equals(title, ignoreCase = true) } ?: title
-    return setTags(key, item.tags + tag)
+    val feed = feed(article.feedUrl) ?: return this
+    val folderTitle = feed.folderId?.let { id -> folders.firstOrNull { it.id == id }?.title?.trim() }?.takeIf { it.isNotEmpty() }
+    val given = feed.tags.ifEmpty { listOfNotNull(folderTitle) }
+    if (given.isEmpty()) return this
+    val inUse = itemTags()
+    val add = given.map { t -> inUse.firstOrNull { it.equals(t, ignoreCase = true) } ?: t }.filter { t -> item.tags.none { it.equals(t, ignoreCase = true) } }
+    return if (add.isEmpty()) this else setTags(key, item.tags + add)
 }
 
 /**

@@ -94,4 +94,13 @@ class SyncDocumentTest {
                 """"settings":{"reader.textSize":"20","theme":"dark"}}"""
         assertEquals(web, SyncDocument.encode(SyncDocument.decode(web)!!))
     }
+
+    @Test
+    fun `a feed's tags go into the file and back, and are left out when there are none (#187)`() {
+        val tagged = SyncDocument(feeds = listOf(SyncFeed(a, "A", false, null, null, null, tags = listOf("News"))))
+        val text = SyncDocument.encode(tagged)
+        assertTrue(text.contains("\"tags\":[\"News\"]"))
+        assertEquals(tagged, SyncDocument.decode(text))
+        assertFalse(SyncDocument.encode(doc).contains("\"tags\""))
+    }
 }

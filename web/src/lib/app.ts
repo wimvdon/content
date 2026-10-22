@@ -212,7 +212,7 @@ class AppStore {
   private updateLibrary(change: (lib: L.Library) => L.Library, syncSoon = true) {
     const before = this.state.library;
     // A folder (from an older app, another device or filed here) becomes a tag (#187).
-    const library = Saved.foldersToTags(change(before));
+    const library = L.feedFoldersToTags(Saved.foldersToTags(change(before)));
     if (library === before) return;
     // When each saved item last changed here, for "the later change wins" with a service (#145).
     if (before.items !== library.items) {
