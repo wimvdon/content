@@ -93,7 +93,7 @@ android {
     buildTypes {
         debug {
             // Lets a pull request's debug APK be installed next to the released app, as
-            // "Reader Dev" (src/debug/res).
+            // "Content Dev" (src/debug/res).
             applicationIdSuffix = ".debug"
         }
         release {

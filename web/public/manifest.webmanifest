@@ -1,6 +1,6 @@
 {
-  "name": "Reader",
-  "short_name": "Reader",
+  "name": "Content",
+  "short_name": "Content",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

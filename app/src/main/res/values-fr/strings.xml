@@ -159,10 +159,10 @@
     <string name="sync_syncing">Synchronisation…</string>
     <string name="sync_last">Dernière synchronisation %1$s</string>
     <string name="sync_never">Pas encore synchronisé</string>
-    <string name="sync_failed_offline">Impossible de joindre le serveur de Reader. Vérifiez votre connexion.</string>
-    <string name="sync_failed_server">Le serveur de Reader a rencontré un problème. Réessayez plus tard.</string>
-    <string name="sync_failed_file">Vos données synchronisées viennent d’une version plus récente de Reader. Mettez l’app à jour.</string>
-    <string name="sync_failed_setup">La synchronisation n’est pas encore disponible sur le serveur de Reader.</string>
+    <string name="sync_failed_offline">Impossible de joindre le serveur de Content. Vérifiez votre connexion.</string>
+    <string name="sync_failed_server">Le serveur de Content a rencontré un problème. Réessayez plus tard.</string>
+    <string name="sync_failed_file">Vos données synchronisées viennent d’une version plus récente de Content. Mettez l’app à jour.</string>
+    <string name="sync_failed_setup">La synchronisation n’est pas encore disponible sur le serveur de Content.</string>
     <string name="section_instapaper">Instapaper</string>
     <string name="instapaper_sign_in">Se connecter avec Instapaper</string>
     <string name="instapaper_signed_in_as">Connecté en tant que %1$s</string>
@@ -170,7 +170,7 @@
     <string name="instapaper_sign_in_done">Connecté à Instapaper</string>
     <string name="instapaper_sign_in_failed">La connexion à Instapaper a échoué. Réessayez.</string>
     <string name="instapaper_problem_signed_out">Votre connexion à Instapaper ne fonctionne plus. Reconnectez-vous.</string>
-    <string name="instapaper_problem_not_approved">Instapaper n’a pas encore approuvé Reader pour votre compte.</string>
+    <string name="instapaper_problem_not_approved">Instapaper n’a pas encore approuvé Content pour votre compte.</string>
     <string name="instapaper_problem_rate_limited">Instapaper est occupé. Réessayez dans une minute.</string>
     <string name="instapaper_problem_invalid">Instapaper n’a pas pu le faire.</string>
     <string name="action_close">Fermer</string>
@@ -180,7 +180,7 @@
     <string name="sync_no_account">La synchronisation est désactivée pour cette connexion. Reconnectez-vous pour l’activer.</string>
     <string name="sync_failed_signed_out">Cet appareil a été déconnecté de votre compte. Reconnectez-vous.</string>
     <string name="account_delete_data">Supprimer les données synchronisées</string>
-    <string name="account_delete_confirm">Supprimer vos flux, articles lus et paramètres du serveur de Reader ? Ils restent sur cet appareil, et vous êtes déconnecté partout.</string>
+    <string name="account_delete_confirm">Supprimer vos flux, articles lus et paramètres du serveur de Content ? Ils restent sur cet appareil, et vous êtes déconnecté partout.</string>
     <string name="account_deleted">Données synchronisées supprimées</string>
     <string name="action_delete">Supprimer</string>
     <string name="menu_manage_feeds">Gérer les flux</string>
@@ -222,9 +222,9 @@
     <string name="reading_list_archive_empty_title">Rien d’archivé pour l’instant</string>
     <string name="reading_list_none_title">Rien ici</string>
     <string name="services_title">Services connectés</string>
-    <string name="services_reader">Reader</string>
-    <string name="services_feeds_body">Reader garde vos flux. L’OPML permet de les importer et de les exporter.</string>
-    <string name="services_reading_body">Reader garde vos éléments enregistrés. Connectez-vous avec Instapaper pour les garder aussi là-bas.</string>
+    <string name="services_reader">Content</string>
+    <string name="services_feeds_body">Content garde vos flux. L’OPML permet de les importer et de les exporter.</string>
+    <string name="services_reading_body">Content garde vos éléments enregistrés. Connectez-vous avec Instapaper pour les garder aussi là-bas.</string>
     <string name="services_problem_later">Instapaper a demandé d’attendre un moment. Le reste suivra.</string>
     <string name="section_raindrop">Raindrop.io</string>
     <string name="raindrop_connect">Connecter Raindrop.io</string>
@@ -286,7 +286,7 @@
         <item quantity="other">%d à lire</item>
     </plurals>
     <string name="bookmarks_title">Signets</string>
-    <string name="save_title">Enregistrer dans Reader</string>
+    <string name="save_title">Enregistrer dans Content</string>
     <string name="organise_title">Organiser</string>
     <string name="highlights_title">Surlignages</string>
     <string name="highlight_action">Surligner</string>
@@ -315,7 +315,7 @@
     <string name="saved_remove">Retirer des enregistrés</string>
     <string name="saved_removed">Retiré des enregistrés</string>
     <string name="saved_remove_body">Retirer cet élément, avec sa note, ses tags et ses surlignages ? L’archiver le garde consultable.</string>
-    <string name="saved_empty_body">Balayez un article de flux vers la gauche, touchez Enregistrer dans un article, partagez un lien avec Reader ou ajoutez-en un ici.</string>
+    <string name="saved_empty_body">Balayez un article de flux vers la gauche, touchez Enregistrer dans un article, partagez un lien avec Content ou ajoutez-en un ici.</string>
     <string name="manage_folders_tags_empty_title">Pas encore de dossiers ni de tags</string>
     <string name="manage_folders_tags_empty_body">Les dossiers et tags de vos éléments enregistrés s’affichent ici, pour les renommer.</string>
     <plurals name="service_imported">
@@ -324,8 +324,8 @@
         <item quantity="other">%1$d éléments importés, %2$s</item>
     </plurals>
     <plurals name="service_scope_leave_body">
-        <item quantity="one">%1$d élément sort de ce que %2$s synchronise. Il y est archivé, pas supprimé, et reste dans Reader.</item>
-        <item quantity="many">%1$d éléments sortent de ce que %2$s synchronise. Ils y sont archivés, pas supprimés, et restent dans Reader.</item>
-        <item quantity="other">%1$d éléments sortent de ce que %2$s synchronise. Ils y sont archivés, pas supprimés, et restent dans Reader.</item>
+        <item quantity="one">%1$d élément sort de ce que %2$s synchronise. Il y est archivé, pas supprimé, et reste dans Content.</item>
+        <item quantity="many">%1$d éléments sortent de ce que %2$s synchronise. Ils y sont archivés, pas supprimés, et restent dans Content.</item>
+        <item quantity="other">%1$d éléments sortent de ce que %2$s synchronise. Ils y sont archivés, pas supprimés, et restent dans Content.</item>
     </plurals>
 </resources>

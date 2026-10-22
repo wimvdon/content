@@ -153,10 +153,10 @@
     <string name="sync_syncing">Wird synchronisiert…</string>
     <string name="sync_last">Zuletzt synchronisiert %1$s</string>
     <string name="sync_never">Noch nicht synchronisiert</string>
-    <string name="sync_failed_offline">Der Server von Reader ist nicht erreichbar. Prüfe deine Verbindung.</string>
-    <string name="sync_failed_server">Der Server von Reader hatte ein Problem. Versuche es später noch einmal.</string>
-    <string name="sync_failed_file">Deine synchronisierten Daten stammen von einer neueren Version von Reader. Aktualisiere die App.</string>
-    <string name="sync_failed_setup">Die Synchronisierung ist auf dem Server von Reader noch nicht verfügbar.</string>
+    <string name="sync_failed_offline">Der Server von Content ist nicht erreichbar. Prüfe deine Verbindung.</string>
+    <string name="sync_failed_server">Der Server von Content hatte ein Problem. Versuche es später noch einmal.</string>
+    <string name="sync_failed_file">Deine synchronisierten Daten stammen von einer neueren Version von Content. Aktualisiere die App.</string>
+    <string name="sync_failed_setup">Die Synchronisierung ist auf dem Server von Content noch nicht verfügbar.</string>
     <string name="section_instapaper">Instapaper</string>
     <string name="instapaper_sign_in">Mit Instapaper anmelden</string>
     <string name="instapaper_signed_in_as">Angemeldet als %1$s</string>
@@ -164,7 +164,7 @@
     <string name="instapaper_sign_in_done">Bei Instapaper angemeldet</string>
     <string name="instapaper_sign_in_failed">Die Anmeldung bei Instapaper hat nicht geklappt. Versuche es erneut.</string>
     <string name="instapaper_problem_signed_out">Deine Instapaper-Anmeldung funktioniert nicht mehr. Melde dich erneut an.</string>
-    <string name="instapaper_problem_not_approved">Instapaper hat Reader für dein Konto noch nicht freigegeben.</string>
+    <string name="instapaper_problem_not_approved">Instapaper hat Content für dein Konto noch nicht freigegeben.</string>
     <string name="instapaper_problem_rate_limited">Instapaper ist ausgelastet. Versuche es in einer Minute erneut.</string>
     <string name="instapaper_problem_invalid">Instapaper konnte das nicht ausführen.</string>
     <string name="action_close">Schließen</string>
@@ -174,7 +174,7 @@
     <string name="sync_no_account">Die Synchronisierung ist für diese Anmeldung aus. Melde dich erneut an, um sie einzuschalten.</string>
     <string name="sync_failed_signed_out">Dieses Gerät wurde von deinem Konto abgemeldet. Melde dich erneut an.</string>
     <string name="account_delete_data">Synchronisierte Daten löschen</string>
-    <string name="account_delete_confirm">Deine Feeds, gelesenen Artikel und Einstellungen vom Server von Reader löschen? Sie bleiben auf diesem Gerät, und du wirst überall abgemeldet.</string>
+    <string name="account_delete_confirm">Deine Feeds, gelesenen Artikel und Einstellungen vom Server von Content löschen? Sie bleiben auf diesem Gerät, und du wirst überall abgemeldet.</string>
     <string name="account_deleted">Synchronisierte Daten gelöscht</string>
     <string name="action_delete">Löschen</string>
     <string name="menu_manage_feeds">Feeds verwalten</string>
@@ -216,9 +216,9 @@
     <string name="reading_list_archive_empty_title">Noch nichts archiviert</string>
     <string name="reading_list_none_title">Hier ist nichts</string>
     <string name="services_title">Verbundene Dienste</string>
-    <string name="services_reader">Reader</string>
-    <string name="services_feeds_body">Reader bewahrt deine Feeds. Mit OPML holst du sie herein und heraus.</string>
-    <string name="services_reading_body">Reader behält deine gespeicherten Elemente. Melde dich mit Instapaper an, um sie auch dort zu behalten.</string>
+    <string name="services_reader">Content</string>
+    <string name="services_feeds_body">Content bewahrt deine Feeds. Mit OPML holst du sie herein und heraus.</string>
+    <string name="services_reading_body">Content behält deine gespeicherten Elemente. Melde dich mit Instapaper an, um sie auch dort zu behalten.</string>
     <string name="services_problem_later">Instapaper bat, kurz zu warten. Der Rest folgt später.</string>
     <string name="section_raindrop">Raindrop.io</string>
     <string name="raindrop_connect">Raindrop.io verbinden</string>
@@ -276,7 +276,7 @@
         <item quantity="other">%d zu lesen</item>
     </plurals>
     <string name="bookmarks_title">Lesezeichen</string>
-    <string name="save_title">In Reader speichern</string>
+    <string name="save_title">In Content speichern</string>
     <string name="organise_title">Ordnen</string>
     <string name="highlights_title">Markierungen</string>
     <string name="highlight_action">Markieren</string>
@@ -305,7 +305,7 @@
     <string name="saved_remove">Aus Gespeichert entfernen</string>
     <string name="saved_removed">Aus Gespeichert entfernt</string>
     <string name="saved_remove_body">Dieses Element mit Notiz, Tags und Markierungen entfernen? Archivieren hält es durchsuchbar.</string>
-    <string name="saved_empty_body">Wische einen Feed-Artikel nach links, tippe in einem Artikel auf Speichern, teile einen Link mit Reader oder füge hier einen hinzu.</string>
+    <string name="saved_empty_body">Wische einen Feed-Artikel nach links, tippe in einem Artikel auf Speichern, teile einen Link mit Content oder füge hier einen hinzu.</string>
     <string name="manage_folders_tags_empty_title">Noch keine Ordner oder Tags</string>
     <string name="manage_folders_tags_empty_body">Ordner und Tags deiner gespeicherten Elemente erscheinen hier, damit du sie umbenennen kannst.</string>
     <plurals name="service_imported">
@@ -313,7 +313,7 @@
         <item quantity="other">%1$d Elemente importiert, %2$s</item>
     </plurals>
     <plurals name="service_scope_leave_body">
-        <item quantity="one">%1$d Element fällt aus dem, was %2$s synchronisiert. Es wird dort archiviert, nicht gelöscht, und bleibt in Reader.</item>
-        <item quantity="other">%1$d Elemente fallen aus dem, was %2$s synchronisiert. Sie werden dort archiviert, nicht gelöscht, und bleiben in Reader.</item>
+        <item quantity="one">%1$d Element fällt aus dem, was %2$s synchronisiert. Es wird dort archiviert, nicht gelöscht, und bleibt in Content.</item>
+        <item quantity="other">%1$d Elemente fallen aus dem, was %2$s synchronisiert. Sie werden dort archiviert, nicht gelöscht, und bleiben in Content.</item>
     </plurals>
 </resources>
