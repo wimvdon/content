@@ -54,6 +54,8 @@ export type Selection =
   | { kind: "all" }
   | { kind: "folder"; folderId: string }
   | { kind: "feed"; feedUrl: string }
+  /** The feeds with one tag (#187): the Feed tab's chips. */
+  | { kind: "tag"; tag: string }
   | { kind: "saved" };
 
 export const MAX_ARTICLES_PER_FEED = 200;
@@ -237,6 +239,8 @@ export function includes(lib: Library, selection: Selection, a: Article): boolea
       return lib.feeds.find((f) => f.url === a.feedUrl)?.folderId === selection.folderId;
     case "feed":
       return a.feedUrl === selection.feedUrl;
+    case "tag":
+      return (lib.feeds.find((f) => f.url === a.feedUrl)?.tags ?? []).some((t) => t.toLowerCase() === selection.tag.toLowerCase());
     case "saved":
       return false;
   }
@@ -263,11 +267,20 @@ export function unreadByFeed(lib: Library): Map<string, number> {
 export function sameSelection(a: Selection, b: Selection): boolean {
   if (a.kind === "folder" && b.kind === "folder") return a.folderId === b.folderId;
   if (a.kind === "feed" && b.kind === "feed") return a.feedUrl === b.feedUrl;
+  if (a.kind === "tag" && b.kind === "tag") return a.tag.toLowerCase() === b.tag.toLowerCase();
   return a.kind === b.kind;
 }
 
 export function selectionExists(lib: Library, s: Selection): Selection {
   if (s.kind === "folder" && !lib.folders.some((f) => f.id === s.folderId)) return { kind: "all" };
   if (s.kind === "feed" && !lib.feeds.some((f) => f.url === s.feedUrl)) return { kind: "all" };
+  if (s.kind === "tag" && !feedTags(lib).some((t) => t.toLowerCase() === s.tag.toLowerCase())) return { kind: "all" };
   return s;
+}
+
+/** Every feed tag (#187), sorted (case ignored): the Feed tab's chips. */
+export function feedTags(lib: Library): string[] {
+  const seen = new Map<string, string>();
+  for (const f of lib.feeds) for (const t of f.tags ?? []) if (!seen.has(t.toLowerCase())) seen.set(t.toLowerCase(), t);
+  return [...seen.values()].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 }

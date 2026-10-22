@@ -1,10 +1,10 @@
-import { Archive, BookOpen, CheckCheck, Circle, CircleCheck, Folder as FolderGlyph, Highlighter, Link2, ListFilter, Menu, Newspaper, Quote, RefreshCw, Rss, Search, type LucideIcon } from "lucide-react";
+import { Archive, BookOpen, CheckCheck, Circle, CircleCheck, Folder as FolderGlyph, Highlighter, Link2, ListFilter, Menu, Newspaper, Quote, RefreshCw, Rss, Search, X, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useEscape } from "./ui/useEscape";
 import { app, useApp } from "@/lib/app";
 import { snippet } from "@/lib/html";
 import { dayLabel, plural, t } from "@/lib/i18n";
-import { articleKey, articlesFor, sortTime, unreadKeys, type Article, type Feed } from "@/lib/library";
+import { articleKey, articlesFor, feedTags, sortTime, unreadKeys, type Article, type Feed } from "@/lib/library";
 import { itemArticle, noteOf, savedItems, showsNotes, sourceOf, tabTags, type NoteContent, type SavedFilter, type SavedType } from "@/lib/saved";
 import { scrolledPast } from "@/lib/scrollRead";
 import { FeedIcon } from "./FeedIcon";
@@ -41,6 +41,7 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, on
   );
   const feeds = useMemo(() => new Map(library.feeds.map((f) => [f.url, f])), [library.feeds]);
   const unread = unreadKeys(library, selection).size;
+  const tags = useMemo(() => feedTags(library), [library]);
   const title =
     selection.kind === "folder"
       ? (library.folders.find((f) => f.id === selection.folderId)?.title ?? "")
@@ -81,49 +82,31 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, on
 
   return (
     <section className="flex h-full min-w-0 flex-col" aria-label={title}>
-      <header className="flex items-center gap-1 px-2 pt-2 pb-1">
-        <Button variant="ghost" size="icon" className="lg:hidden" onClick={onMenu} aria-label={t("openMenu")}>
-          <Menu />
-        </Button>
-        <div className="min-w-0 flex-1 px-2">
-          <h1 className="truncate text-xl font-semibold">{title}</h1>
-          {library.feeds.length > 0 ? (
-            <p className="text-xs text-muted-foreground">{plural(settings.unreadOnly ? "unreadCount" : "unreadCountAll", unread)}</p>
-          ) : null}
-        </div>
-        <SearchButton onSearch={onSearch} />
+      <SearchBar onMenu={onMenu} onSearch={onSearch}>
         {library.feeds.length > 0 ? (
           <>
             <Button variant="ghost" size="icon" onClick={() => void app.refresh()} disabled={refreshing} aria-label={t("refresh")} title={t("refresh") + " (r)"}>
               <RefreshCw className={cn(refreshing && "animate-spin")} />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              disabled={unread === 0}
-              onClick={() => onUndo(app.markAllRead())}
-              aria-label={t("markAllRead")}
-              title={t("markAllRead")}
-            >
+            <Button variant="ghost" size="icon" disabled={unread === 0} onClick={() => onUndo(app.markAllRead())} aria-label={t("markAllRead")} title={t("markAllRead")}>
               <CheckCheck />
             </Button>
           </>
         ) : null}
-      </header>
-      <HomeTabs />
+      </SearchBar>
       {library.feeds.length > 0 ? (
-        <div className="flex items-center gap-2 px-4 pt-2 pb-3">
-          {/* Unread or All: two filter chips, one chosen, in a row above the list (as on Android). */}
-          <div role="radiogroup" aria-label={t("filter")} className="flex gap-2">
-            <FilterChip role="radio" selected={settings.unreadOnly} onClick={() => app.setUnreadOnly(true)}>
-              {t("unread")}
-            </FilterChip>
-            <FilterChip role="radio" selected={!settings.unreadOnly} onClick={() => app.setUnreadOnly(false)}>
-              {t("all")}
-            </FilterChip>
-          </div>
-          {problems.size > 0 ? <span className="text-xs text-destructive">{plural("feedsFailed", problems.size)}</span> : null}
-        </div>
+        <>
+          <TwoTabs first={t("unread")} second={t("all")} firstSelected={settings.unreadOnly} onFirst={() => app.setUnreadOnly(true)} onSecond={() => app.setUnreadOnly(false)} />
+          <TagChips
+            tags={tags}
+            selected={selection.kind === "tag" ? selection.tag : null}
+            onSelect={(tag) => app.select(tag === null ? { kind: "all" } : { kind: "tag", tag })}
+            // A feed or folder chosen elsewhere is a filter too: the X goes back to every feed.
+            filtered={selection.kind !== "all"}
+            onClear={() => app.select({ kind: "all" })}
+          />
+          {problems.size > 0 ? <p className="px-4 pb-1 text-xs text-destructive">{plural("feedsFailed", problems.size)}</p> : null}
+        </>
       ) : null}
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-6" role="feed" aria-busy={refreshing} onScroll={onScroll} ref={listRef}>
         {!loaded || (refreshing && library.articles.length === 0) ? (
@@ -180,31 +163,20 @@ function SavedArticles({ openKey, onOpen, onMenu, onSearch }: { openKey: string 
   const plain = filter.tags.length === 0 && filter.type === null;
   return (
     <section className="flex h-full min-w-0 flex-col" aria-label={t("saved")}>
-      <header className="flex items-center gap-1 px-2 pt-2 pb-1">
-        <Button variant="ghost" size="icon" className="lg:hidden" onClick={onMenu} aria-label={t("openMenu")}>
-          <Menu />
-        </Button>
-        <div className="min-w-0 flex-1 px-2">
-          <h1 className="truncate text-xl font-semibold">{t("saved")}</h1>
-        </div>
-        <SearchButton onSearch={onSearch} />
+      <SearchBar onMenu={onMenu} onSearch={onSearch}>
         <Button variant="ghost" size="icon" onClick={app.addLink} aria-label={t("addLink")} title={t("addLink")}>
           <Link2 />
         </Button>
         <TypeFilter type={filter.type} onChange={(type) => set({ type })} />
-      </header>
-      <HomeTabs />
-      <div role="group" aria-label={t("filter")} className="flex shrink-0 items-center gap-2 overflow-x-auto px-4 py-2 [scrollbar-width:none]">
-        {tags.map((tag) => {
-          const selected = filter.tags.some((x) => x.toLowerCase() === tag.toLowerCase());
-          const others = filter.tags.filter((x) => x.toLowerCase() !== tag.toLowerCase());
-          return (
-            <FilterChip key={tag} selected={selected} onClick={() => set({ tags: selected ? others : [...others, tag] })}>
-              {tag}
-            </FilterChip>
-          );
-        })}
-      </div>
+      </SearchBar>
+      <TwoTabs
+        first={t("toRead")}
+        second={t("all")}
+        firstSelected={filter.tab.kind !== "all"}
+        onFirst={() => set({ tab: { kind: "toread" }, tags: [] })}
+        onSecond={() => set({ tab: { kind: "all" }, tags: [] })}
+      />
+      <TagChips tags={tags} selected={filter.tags[0] ?? null} onSelect={(tag) => set({ tags: tag === null ? [] : [tag] })} filtered={!plain} onClear={() => set({ tags: [], type: null })} />
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-6" role="feed">
         {!loaded ? (
           <Skeletons />
@@ -258,49 +230,75 @@ function SavedArticles({ openKey, onOpen, onMenu, onSearch }: { openKey: string 
 }
 
 /** A tab's name: To read, All, Archive or the folder's own. */
-/** The title bar's Search button (#183): Search no longer has a place in a navigation bar. */
-function SearchButton({ onSearch }: { onSearch: () => void }) {
-  return (
-    <Button variant="ghost" size="icon" onClick={onSearch} aria-label={t("search")} title={t("search") + " (/)"}>
-      <Search />
-    </Button>
-  );
-}
-
 /**
- * Feed, Saved and Archive as tabs under the title (#183), as on Android: they replace the navigation
- * bar. Feed again while in it goes back to every feed.
+ * The title bar as a large search bar (#189), as on Android: ☰ at its start, then "Search articles",
+ * which opens Search, and the list's own buttons at its end.
  */
-function HomeTabs() {
-  const { selection, savedFilter } = useApp();
-  const current = selection.kind !== "saved" ? "feed" : savedFilter.tab.kind === "archive" ? "archive" : "saved";
-  const tabs: { id: "feed" | "saved" | "archive"; label: string; go: () => void }[] = [
-    { id: "feed", label: t("feedTab"), go: () => (current === "feed" ? app.select({ kind: "all" }) : app.showSection(false)) },
-    { id: "saved", label: t("saved"), go: () => app.showSaved({ ...savedFilter, tab: { kind: "toread" } }) },
-    { id: "archive", label: t("archiveTab"), go: () => app.showSaved({ ...savedFilter, tab: { kind: "archive" } }) },
-  ];
+function SearchBar({ onMenu, onSearch, children }: { onMenu: () => void; onSearch: () => void; children?: React.ReactNode }) {
   return (
-    <nav aria-label={t("navigation")} className="flex shrink-0 border-b px-2">
-      {tabs.map((tab) => (
-        <button
-          key={tab.id}
-          type="button"
-          aria-current={current === tab.id ? "page" : undefined}
-          onClick={tab.go}
-          className={cn(
-            "flex-1 cursor-pointer border-b-[3px] px-3 py-3 text-sm font-medium whitespace-nowrap",
-            current === tab.id ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground",
-          )}
-        >
-          {tab.label}
+    <header className="shrink-0 px-3 pt-3 pb-1">
+      <div className="flex h-14 items-center gap-1 rounded-full bg-muted px-1">
+        <Button variant="ghost" size="icon" onClick={onMenu} aria-label={t("openMenu")}>
+          <Menu />
+        </Button>
+        <button type="button" onClick={onSearch} title={t("search") + " (/)"} className="min-w-0 flex-1 cursor-pointer truncate px-2 text-left text-muted-foreground">
+          {t("searchHint")}
         </button>
-      ))}
-    </nav>
+        {children}
+        <Button variant="ghost" size="icon" onClick={onSearch} aria-label={t("search")}>
+          <Search />
+        </Button>
+      </div>
+    </header>
   );
 }
 
+/** Two tabs under the search bar: Unread | All in Feed, To read | All in Saved. */
+function TwoTabs({ first, second, firstSelected, onFirst, onSecond }: { first: string; second: string; firstSelected: boolean; onFirst: () => void; onSecond: () => void }) {
+  const tab = (label: string, selected: boolean, go: () => void) => (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={selected}
+      onClick={() => !selected && go()}
+      className={cn(
+        "flex-1 cursor-pointer border-b-[3px] px-3 py-3 text-sm font-medium whitespace-nowrap",
+        selected ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground",
+      )}
+    >
+      {label}
+    </button>
+  );
+  return (
+    <div role="tablist" className="flex shrink-0 border-b px-2">
+      {tab(first, firstSelected, onFirst)}
+      {tab(second, !firstSelected, onSecond)}
+    </div>
+  );
+}
 
-/** The type filter: a filter button next to search, with All types, Articles, Videos and Audio. */
+/** The tags as chips, one at a time; while a filter is on, an X at the end clears it. */
+function TagChips({ tags, selected, onSelect, filtered, onClear }: { tags: string[]; selected: string | null; onSelect: (tag: string | null) => void; filtered: boolean; onClear: () => void }) {
+  if (tags.length === 0 && !filtered) return null;
+  return (
+    <div role="group" aria-label={t("filter")} className="flex shrink-0 items-center gap-2 overflow-x-auto px-4 py-2 [scrollbar-width:none]">
+      {tags.map((tag) => {
+        const on = selected !== null && tag.toLowerCase() === selected.toLowerCase();
+        return (
+          <FilterChip key={tag} selected={on} onClick={() => onSelect(on ? null : tag)}>
+            {tag}
+          </FilterChip>
+        );
+      })}
+      {filtered ? (
+        <Button variant="ghost" size="icon" onClick={onClear} aria-label={t("clear")} title={t("clear")}>
+          <X />
+        </Button>
+      ) : null}
+    </div>
+  );
+}
+
 function TypeFilter({ type, onChange }: { type: SavedType | null; onChange: (type: SavedType | null) => void }) {
   const [open, setOpen] = useState(false);
   useEscape(open, () => setOpen(false));

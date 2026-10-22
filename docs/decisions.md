@@ -2,6 +2,21 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-22: Feed | Saved at the bottom, a search bar at the top (#189)
+
+- Replaces the Feed, Saved and Archive tabs of #183 after trying them. The navigation bar is back
+  with two places: **Feed** and **Saved** (a rail on wide Android windows; the web app shows the bar
+  everywhere).
+- The title bar is a large search bar: ☰ at its start, "Search articles" opens Search.
+- Under it, two tabs: **Unread | All** in Feed, **To read | All** in Saved (All includes the
+  archive, which is no longer a tab of its own).
+- Then the tags as chips, **one at a time**, with an X at the end that clears the filter. In Feed
+  they are the feeds' tags (#187, a new `FeedSelection.Tagged` / selection kind `tag`); in Saved the
+  items' tags.
+- Saved always shows notes (cards), To read too.
+- The ☰ menu holds only what you manage (feeds, tags, connected services on Android, settings);
+  it no longer lists folders, feeds or Saved's tabs. The web app's sidebar became the same menu.
+
 ## 2026-10-22: Feed, Saved and Archive as tabs under the title (#183, Android)
 
 - The navigation bar (and the rail on wide windows) is gone. Three tabs under the title choose what

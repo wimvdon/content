@@ -102,9 +102,9 @@ export function tabTags(lib: Library, tab: SavedTab): string[] {
 
 /** The filter without a folder or tags that are gone. */
 export function shownFilter(lib: Library, filter: SavedFilter): SavedFilter {
-  // All is no longer a tab: Search lists all of Saved (#171).
+  // To read and All are the tabs (#189); the Archive is part of All.
   const tab = filter.tab;
-  if (tab.kind === "all") return shownFilter(lib, { ...filter, tab: { kind: "toread" } });
+  if (tab.kind === "archive") return shownFilter(lib, { ...filter, tab: { kind: "all" } });
   const withTab = tab.kind === "folder" && !savedFolders(lib).some((f) => same(f, tab.name)) ? { ...filter, tab: { kind: "toread" } as SavedTab } : filter;
   const tags = tabTags(lib, withTab.tab);
   const kept = withTab.tags.filter((t) => tags.some((x) => same(x, t)));
@@ -198,7 +198,8 @@ export function cardBody(i: Item): CardBody | null {
  * Whether a tab shows its items as notes (cards) rather than as rows like the feeds. Only To read
  * is a list to read through; a folder and the Archive are collections (like Android's Saved.showsNotes).
  */
-export const showsNotes = (tab: SavedTab) => tab.kind !== "toread";
+/** Saved is always notes (#189). */
+export const showsNotes = (_tab: SavedTab) => true;
 
 /** One note card: a saved item, or a feed article shown the same way in Search's notes view. */
 export interface NoteContent {

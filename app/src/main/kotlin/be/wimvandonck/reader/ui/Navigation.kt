@@ -1030,8 +1030,7 @@ private val SavedFilterSaver =
             val tab =
                 when (val t = f.tab) {
                     SavedTab.ToRead -> "toread"
-                    // No longer a tab: Search lists all of Saved (#171).
-                    SavedTab.All -> "toread"
+                    SavedTab.All -> "all"
                     SavedTab.Archive -> "archive"
                     is SavedTab.Folder -> "folder:" + t.name
                 }
@@ -1043,7 +1042,9 @@ private val SavedFilterSaver =
             SavedFilter(
                 tab =
                     when {
-                        tab == "archive" -> SavedTab.Archive
+                        tab == "all" -> SavedTab.All
+                        // The Archive is no longer a tab of its own (#189): All includes it.
+                        tab == "archive" -> SavedTab.All
                         tab.startsWith("folder:") -> SavedTab.Folder(tab.removePrefix("folder:"))
                         else -> SavedTab.ToRead
                     },
@@ -1060,12 +1061,14 @@ private val SelectionSaver =
                 FeedSelection.All -> ""
                 is FeedSelection.InFolder -> "folder:" + it.folderId
                 is FeedSelection.Single -> "feed:" + it.feedUrl
+                is FeedSelection.Tagged -> "tag:" + it.tag
             }
         },
         restore = {
             when {
                 it.startsWith("folder:") -> FeedSelection.InFolder(it.removePrefix("folder:"))
                 it.startsWith("feed:") -> FeedSelection.Single(it.removePrefix("feed:"))
+                it.startsWith("tag:") -> FeedSelection.Tagged(it.removePrefix("tag:"))
                 else -> FeedSelection.All
             }
         },

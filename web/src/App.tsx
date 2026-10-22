@@ -2,6 +2,7 @@ import * as D from "@radix-ui/react-dialog";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArticleList } from "./components/ArticleList";
 import { ArticleView } from "./components/ArticleView";
+import { NavigationBar } from "./components/NavigationBar";
 import { AddFeedDialog, ManageDialog, SettingsDialog } from "./components/Dialogs";
 import { SaveSheet } from "./components/SaveSheet";
 import { SavedManageDialog } from "./components/SavedManage";
@@ -122,15 +123,6 @@ export default function App() {
 
   const sidebar = (
     <Sidebar
-      searching={searching}
-      onSearch={() => {
-        setDrawer(false);
-        setSearching(true);
-      }}
-      onNavigate={() => {
-        setDrawer(false);
-        setSearching(false);
-      }}
       onManage={() => {
         setDrawer(false);
         setDialog("manage");
@@ -148,11 +140,10 @@ export default function App() {
 
   return (
     <div className="flex h-full">
-      <aside className="hidden w-72 shrink-0 border-r bg-muted/40 lg:block">{sidebar}</aside>
       <D.Root open={drawer} onOpenChange={setDrawer}>
         <D.Portal>
-          <D.Overlay className="fixed inset-0 z-40 bg-black/40 lg:hidden" />
-          <D.Content className="fixed inset-y-0 left-0 z-50 w-80 max-w-[85vw] bg-background shadow-xl lg:hidden" aria-describedby={undefined}>
+          <D.Overlay className="fixed inset-0 z-40 bg-black/40" />
+          <D.Content className="fixed inset-y-0 left-0 z-50 w-80 max-w-[85vw] bg-background shadow-xl" aria-describedby={undefined}>
             <D.Title className="sr-only">{t("navigation")}</D.Title>
             {sidebar}
           </D.Content>
@@ -174,6 +165,7 @@ export default function App() {
             />
           )}
         </div>
+        <NavigationBar searching={searching} onNavigate={() => setSearching(false)} />
       </main>
       <div className={`min-w-0 flex-1 ${openArticle ? "block" : "hidden lg:block"}`}>
         {openArticle ? (

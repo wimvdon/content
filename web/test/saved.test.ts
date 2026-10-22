@@ -183,7 +183,7 @@ describe("Saved (#119, #147)", () => {
 
 describe("note cards (views)", () => {
   it("shows only To read as rows; folders and the Archive as notes", () => {
-    expect(showsNotes({ kind: "toread" })).toBe(false);
+    expect(showsNotes({ kind: "toread" })).toBe(true);
     expect(showsNotes({ kind: "folder", name: "Work" })).toBe(true);
     expect(showsNotes({ kind: "archive" })).toBe(true);
   });

@@ -191,37 +191,19 @@ fun HomeScreen(
 ) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    val selectedFeed = (state.selection as? FeedSelection.Single)?.let { s -> state.feeds.firstOrNull { it.url == s.feedUrl } }
-    val selectedFolder = (state.selection as? FeedSelection.InFolder)?.let { s -> state.folders.firstOrNull { it.id == s.folderId } }
     // Saved replaces the feed sections: its own title, tabs and chips, no Mark all read.
     val reading = state.saved?.takeIf { state.section == HomeSection.Saved }
     val inFeeds = reading == null
-    val title =
-        when {
-            reading != null -> stringResource(R.string.saved_title)
-            else -> selectedFeed?.title ?: selectedFolder?.title ?: stringResource(R.string.feeds_all)
-        }
     val unreadHere = state.unreadCounts[state.selection] ?: 0
-    // Feed, Saved and Archive as tabs under the title (#183); the navigation bar is gone.
-    val homeTab =
-        when {
-            reading == null -> HomeTab.Feed
-            reading.filter.tab == SavedTab.Archive -> HomeTab.Archive
-            else -> HomeTab.Saved
-        }
-    val savedFilter = state.saved?.filter ?: SavedFilter()
-    val onHomeTab: (HomeTab) -> Unit = { t ->
+    val feedTags = remember(state.feeds) { state.feeds.flatMap { it.tags }.distinctBy { it.lowercase() }.sortedBy { it.lowercase() } }
+    val wide = isWideWindow()
+    // Feed and Saved in the navigation bar (#189); Search opens from the search bar.
+    val tab = if (state.section == HomeSection.Saved) MainTab.Saved else MainTab.Feeds
+    val onTab: (MainTab) -> Unit = { t ->
         when (t) {
-            // Feed again while in it: back to every feed.
-            HomeTab.Feed -> if (inFeeds) actions.onSelect(FeedSelection.All) else actions.onShowFeeds()
-            HomeTab.Saved -> {
-                actions.onShowSaved()
-                actions.onSavedFilter(savedFilter.copy(tab = SavedTab.ToRead))
-            }
-            HomeTab.Archive -> {
-                actions.onShowSaved()
-                actions.onSavedFilter(savedFilter.copy(tab = SavedTab.Archive))
-            }
+            MainTab.Feeds -> actions.onShowFeeds()
+            MainTab.Saved -> actions.onShowSaved()
+            MainTab.Search -> actions.onOpenSearch()
         }
     }
 
@@ -270,67 +252,55 @@ fun HomeScreen(
         val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(canScroll = { hasArticles })
         // Another section, or a list with nothing left to scroll, shows the header again.
         LaunchedEffect(state.selection, state.section, reading?.filter, hasArticles) { scrollBehavior.state.heightOffset = 0f }
+        // On wide windows Feed and Saved move to a navigation rail at the side.
         Row(Modifier.fillMaxSize()) {
+            if (wide) MainNavigationRail(tab, onTab)
             Scaffold(
                 modifier = Modifier.weight(1f).nestedScroll(scrollBehavior.nestedScrollConnection),
                 snackbarHost = { SnackbarHost(snackbarHostState) },
                 topBar = {
                     CollapsingHeader(scrollBehavior) {
-                        TopAppBar(
-                            title = {
-                                Column {
-                                    Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                    // Saved: how many to read, on To read only (the list's summary line counts the others).
-                                    if (reading != null && reading.filter.tab == SavedTab.ToRead) {
-                                        Text(
-                                            pluralStringResource(R.plurals.reading_list_to_read_count, state.toReadCount, state.toReadCount),
-                                            style = MaterialTheme.typography.labelMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            maxLines = 1,
-                                        )
-                                    } else if (state.feeds.isNotEmpty()) {
-                                        Text(
-                                            if (state.unreadOnly) {
-                                                pluralStringResource(R.plurals.home_subtitle_unread, unreadHere, unreadHere)
-                                            } else {
-                                                pluralStringResource(R.plurals.home_subtitle_all, unreadHere, unreadHere)
-                                            },
-                                            style = MaterialTheme.typography.labelMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            maxLines = 1,
-                                        )
-                                    }
-                                }
-                            },
-                            navigationIcon = {
-                                IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                                    Icon(painterResource(R.drawable.ic_menu), contentDescription = stringResource(R.string.action_open_menu))
-                                }
-                            },
-                            actions = {
-                                IconButton(onClick = actions.onOpenSearch) {
-                                    Icon(painterResource(R.drawable.ic_search), contentDescription = stringResource(R.string.action_search))
-                                }
-                                // The type filter (#119): next to search, as it is rarely changed.
-                                if (reading != null) TypeFilterButton(reading.filter, actions.onSavedFilter)
-                            },
-                            windowInsets = WindowInsets(0),
-                            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent, scrolledContainerColor = Color.Transparent),
+                        HomeSearchBar(
+                            onMenu = { scope.launch { drawerState.open() } },
+                            onSearch = actions.onOpenSearch,
+                            // The type filter (#119), in Saved only.
+                            trailing = { if (reading != null) TypeFilterButton(reading.filter, actions.onSavedFilter) },
                         )
-                        HomeTabRow(homeTab, onHomeTab)
-                        // Saved and Archive: their tags as chips (folders became tags, #187).
                         if (reading != null) {
-                            SavedTabRow(filter = reading.filter, folders = emptyList(), tags = reading.tags, onChange = actions.onSavedFilter, showTabs = false)
-                        }
-                        // Filter chips sit in a row of their own under the tabs, above the list they filter.
-                        if (state.feeds.isNotEmpty() && inFeeds) {
-                            ReadFilter(
-                                unreadOnly = state.unreadOnly,
-                                onUnreadOnlyChange = actions.onUnreadOnlyChange,
+                            TwoTabs(
+                                first = stringResource(R.string.reading_list_to_read),
+                                second = stringResource(R.string.filter_all),
+                                firstSelected = reading.filter.tab != SavedTab.All,
+                                onFirst = { actions.onSavedFilter(reading.filter.copy(tab = SavedTab.ToRead, tags = emptySet())) },
+                                onSecond = { actions.onSavedFilter(reading.filter.copy(tab = SavedTab.All, tags = emptySet())) },
+                            )
+                            TagChips(
+                                tags = reading.tags,
+                                selected = reading.filter.tags.firstOrNull(),
+                                onSelect = { t -> actions.onSavedFilter(reading.filter.copy(tags = setOfNotNull(t))) },
+                                filtered = reading.filter.tags.isNotEmpty() || reading.filter.type != null,
+                                onClear = { actions.onSavedFilter(reading.filter.copy(tags = emptySet(), type = null)) },
+                            )
+                        } else if (state.feeds.isNotEmpty()) {
+                            TwoTabs(
+                                first = stringResource(R.string.filter_unread),
+                                second = stringResource(R.string.filter_all),
+                                firstSelected = state.unreadOnly,
+                                onFirst = { actions.onUnreadOnlyChange(true) },
+                                onSecond = { actions.onUnreadOnlyChange(false) },
+                            )
+                            TagChips(
+                                tags = feedTags,
+                                selected = (state.selection as? FeedSelection.Tagged)?.tag,
+                                onSelect = { t -> actions.onSelect(if (t == null) FeedSelection.All else FeedSelection.Tagged(t)) },
+                                // A feed or folder chosen elsewhere is a filter too: the X goes back to every feed.
+                                filtered = state.selection != FeedSelection.All,
+                                onClear = { actions.onSelect(FeedSelection.All) },
                             )
                         }
                     }
                 },
+                bottomBar = { if (!wide) MainNavigationBar(tab, onTab) },
                 floatingActionButton = {
                     // Marks everything in the section being viewed as read: All, a folder or a feed.
                     if (state.feeds.isNotEmpty() && unreadHere > 0 && inFeeds) {
