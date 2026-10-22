@@ -40,7 +40,7 @@ internal fun RowScope.SavedBar(item: ReaderItem) {
     val choice = SaveChoices.of(item.item)
     var placesOpen by remember { mutableStateOf(false) }
     var tagsOpen by remember { mutableStateOf(false) }
-    val folderLabel = stringResource(R.string.folder_field)
+    val folderLabel = stringResource(R.string.saved_place)
     val tagsTitle = stringResource(R.string.tags_title)
     Box(Modifier.padding(start = 8.dp).weight(1f, fill = false)) {
         // Read out as "Folder: To read", a menu, not as an action called "To read".
@@ -61,14 +61,6 @@ internal fun RowScope.SavedBar(item: ReaderItem) {
                     if (!SaveChoices.same(option, choice.place)) item.onPlace(option)
                 }
             }
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.folder_new)) },
-                leadingIcon = { Icon(painterResource(R.drawable.ic_add), contentDescription = null) },
-                onClick = {
-                    placesOpen = false
-                    item.onOrganise()
-                },
-            )
         }
     }
     // Next to the folder: the bar's right end is Share.
