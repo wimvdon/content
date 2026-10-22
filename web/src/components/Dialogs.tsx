@@ -82,7 +82,7 @@ export function ManageDialog({ open, onOpenChange, onAddFeed, onImport }: Props 
     const blob = new Blob([app.exportOpml()], { type: "text/x-opml" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "rss-reader-feeds.opml";
+    a.download = "content-feeds.opml";
     a.click();
     URL.revokeObjectURL(a.href);
   };

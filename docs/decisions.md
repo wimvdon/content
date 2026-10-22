@@ -2,6 +2,14 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-22: The APK is called content-<version>.apk
+
+- The Gradle project name, which names the APK and the mapping file, is now `content` (#178).
+  The package name stays `be.wimvandonck.reader`, so phones keep updating the installed app.
+- Names that aren't shown to users stay: the Cloudflare Workers (`rss-reader-web`,
+  `rss-reader-worker`), the web app's browser database (renaming it would lose its data) and the
+  sync file's format name.
+
 ## 2026-10-22: Feed | Saved at the bottom, a search bar at the top (#189)
 
 - Replaces the Feed, Saved and Archive tabs of #183 after trying them. The navigation bar is back
