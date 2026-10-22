@@ -129,7 +129,7 @@ private fun ServiceRow(
                 id in state.waiting -> Text(stringResource(R.string.services_waiting_import), color = MaterialTheme.colorScheme.primary)
                 status is ServiceStatus.Syncing -> Text(stringResource(R.string.sync_syncing))
                 status is ServiceStatus.Failed -> Text(stringResource(status.problem.messageRes(id)), color = MaterialTheme.colorScheme.error)
-                else -> Text(scopeLine(state.scopes[id] ?: ServiceScope.Everything))
+                else -> Text(scopeLine(ServiceScope.Everything))
             }
         },
         leadingContent = { Icon(painterResource(R.drawable.ic_reading_list), contentDescription = null) },
@@ -211,7 +211,7 @@ fun ServiceScreen(
         }
         if (connected) {
             item(key = "import") { ImportSection(id, name, state, actions) }
-            item(key = "scope") { ScopeSection(id, name, state, actions) }
+            // What it syncs was a choice of folders; folders became tags (#187), so everything syncs.
         }
     }
 }

@@ -9,7 +9,7 @@ also opens the user's Reader account, which syncs the library (`docs/account.md`
 The reading list is Reader's own (items of the library, `data/Items.kt`): it works without an
 account. Signing in first asks what to **import** (#145): everything Instapaper has, or some of its
 folders (and its archive), once; each article arrives where it belongs, as it is. From then on
-`services/ServiceManager.kt` keeps Instapaper's **scope** (everything in Saved, or some folders) in
+`services/ServiceManager.kt` keeps Instapaper in step with everything in Saved (the choice of folders went with #187) in
 step both ways through `services/ServiceSync.kt` and `instapaper/InstapaperReadingList.kt`, while
 the app is on screen: when it comes on screen or signs in, two seconds after a change to the reading
 list, on pull-to-refresh and on Sync now. Never in the background. An article filed out of the
@@ -29,10 +29,9 @@ scope is archived at Instapaper, never deleted.
   with `progress`), and removal from the reading list (`DELETE /bookmarks/{id}`). A failure (offline,
   `429`, a server error) stops the sync and keeps everything in Reader; the rest goes next time. A
   refused token (`401`) signs out.
-- **Folders** are Saved's folders (#119): home is To read, a folder is a folder (`/move` with the
-  folder's id), the archive is the archive. Filing into a folder Instapaper doesn't have makes it
-  there (`POST /folders`). Before #119 folders showed as tags; the first sync after the update takes
-  that tag off and files the article in its folder instead.
+- **Folders** became tags (#187). Content neither reads nor changes Instapaper's folders: an
+  article in one there is in To read here, and stays in its folder there. When the update first
+  runs, each saved article's folder becomes a tag, which then goes to Instapaper as a tag.
 - **Archived** maps to Instapaper's archive. Its like (the old "star") is neither read nor sent since Liked was removed (#188).
 - **The text** is always Reader's own (#134): a saved article is read like a feed article, through
   `ArticleExtractor`. Instapaper's parsed text (`GET /bookmarks/{id}/parse`) is not used: it is only

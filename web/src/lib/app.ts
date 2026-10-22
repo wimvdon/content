@@ -156,6 +156,8 @@ class AppStore {
       settings: merged,
       instapaper: instapaper?.token ? { ...instapaper, accountKey: instapaper.accountKey ?? null } : null,
     });
+    // Folders became tags (#187): the library read from this browser moves over once.
+    this.updateLibrary((lib) => lib);
     this.resolveLibrary();
     if (location.pathname === CALLBACK_PATH) await this.finishInstapaperSignIn(location.search);
     this.syncWhileVisible();
@@ -209,7 +211,8 @@ class AppStore {
   // Library changes: stored at once, synced a few seconds later.
   private updateLibrary(change: (lib: L.Library) => L.Library, syncSoon = true) {
     const before = this.state.library;
-    const library = change(before);
+    // A folder (from an older app, another device or filed here) becomes a tag (#187).
+    const library = Saved.foldersToTags(change(before));
     if (library === before) return;
     // When each saved item last changed here, for "the later change wins" with a service (#145).
     if (before.items !== library.items) {
@@ -615,7 +618,8 @@ class AppStore {
           return this.state.library;
         },
         Date.now(),
-        this.state.settings.scopes[INSTAPAPER_ID] ?? EVERYTHING,
+        // Folders became tags (#187), so a scope of folders means nothing any more: everything in Saved syncs.
+        EVERYTHING,
         { ...this.editedAt },
       ).finally(() => this.set({ instapaperBusy: false }));
       // Signed out meanwhile: what was synced belongs to the old sign-in.

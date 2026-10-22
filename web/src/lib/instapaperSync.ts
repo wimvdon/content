@@ -1,8 +1,8 @@
 /**
  * Instapaper as Saved's service in the web app (#109, #119), on API v2 through the Worker, the same
  * as the Android app's InstapaperReadingList.kt: `since` keeps this browser's copy of the account up
- * to date; home is To read, Instapaper's folders are Saved's folders (one Reader files into is made
- * there when missing), the archive is the archive. Only this file knows Instapaper's ways.
+ * to date; home is To read and the archive is the archive. Folders became tags (#187): Content
+ * neither reads nor changes Instapaper's folders. Only this file knows Instapaper's ways.
  */
 
 import { InstapaperError, type Bookmark, type InstapaperApi } from "./instapaper";
@@ -15,12 +15,11 @@ const PAGE = 500;
 /** How much earlier than the request the next `since` starts, for clocks that differ. */
 const CURSOR_MARGIN_S = 300;
 
-type Api = Pick<InstapaperApi, "changesSince" | "folders" | "tags" | "save" | "setTags" | "move" | "createFolder" | "updateBookmark" | "remove">;
+type Api = Pick<InstapaperApi, "changesSince" | "folders" | "tags" | "save" | "setTags" | "move" | "updateBookmark" | "remove">;
 
 export class InstapaperSync implements SavedSyncService {
   readonly id = INSTAPAPER_ID;
   readonly progress = true;
-  private folders = new Map<number, string>();
   private tagIds = new Map<string, number>();
 
   private readonly api: Api;
@@ -35,7 +34,6 @@ export class InstapaperSync implements SavedSyncService {
     return guarded(async () => {
       // Recorded before asking, a little early, so nothing changed meanwhile is missed.
       const asked = Math.floor(this.now() / 1000) - CURSOR_MARGIN_S;
-      this.folders = new Map((await this.api.folders()).map((f) => [f.id, f.title]));
       this.tagIds = new Map((await this.api.tags()).map((t) => [t.name.toLowerCase(), t.id]));
       const since = Number(cursor) || 1;
       const entries: RemoteEntry[] = [];
@@ -55,7 +53,7 @@ export class InstapaperSync implements SavedSyncService {
     });
   }
 
-  /** A bookmark as an entry, with its folder's name. Articles without a web address are left out. */
+  /** A bookmark as an entry. Articles without a web address are left out. */
   entryOf(b: Bookmark): RemoteEntry | null {
     const url = b.url;
     if (!url) return null;
@@ -70,7 +68,8 @@ export class InstapaperSync implements SavedSyncService {
       // Liked is gone (#188): Instapaper's like is neither read nor sent.
       liked: false,
       tags: (b.tags ?? []).map((t) => t.name),
-      folder: !b.archived && b.folder_id !== null ? (this.folders.get(b.folder_id) ?? null) : null,
+      // Folders became tags (#187): Content reads no Instapaper folder and leaves them alone.
+      folder: null,
       progress: Math.min(1, Math.max(0, b.progress?.percentage ?? 0)),
       // Instapaper's only change time is the progress's.
       changedAt: (b.progress?.timestamp ?? 0) * 1000,
@@ -81,7 +80,7 @@ export class InstapaperSync implements SavedSyncService {
     return guarded(async () => (await this.api.folders()).map((f) => f.title).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase())));
   }
 
-  add(url: string, title: string, tags: string[], archived: boolean, folder: string | null): Promise<RemoteEntry> {
+  add(url: string, title: string, tags: string[], archived: boolean, _folder: string | null): Promise<RemoteEntry> {
     return guarded(async () => {
       let saved = await this.api.save(url, title && title !== url ? title : undefined);
       if (!saved?.id) throw new ServiceSyncError("refused");
@@ -89,10 +88,6 @@ export class InstapaperSync implements SavedSyncService {
       if (archived && !saved.archived) {
         await this.api.move(saved.id, "archive");
         saved = { ...saved, archived: true, folder_id: null };
-      } else if (!archived && folder) {
-        const id = await this.folderId(folder);
-        if (saved.folder_id !== id) await this.api.move(saved.id, id);
-        saved = { ...saved, folder_id: id };
       }
       const entry = this.entryOf(saved);
       if (!entry) throw new ServiceSyncError("refused");
@@ -100,13 +95,6 @@ export class InstapaperSync implements SavedSyncService {
     });
   }
 
-  /** The id of the folder called [title] (case ignored), made at Instapaper when there is none. */
-  private async folderId(title: string): Promise<number> {
-    for (const [id, name] of this.folders) if (name.toLowerCase() === title.toLowerCase()) return id;
-    const made = await this.api.createFolder(title);
-    this.folders.set(made.id, made.title);
-    return made.id;
-  }
 
   update(have: RemoteEntry, want: RemoteEntry): Promise<RemoteEntry> {
     return guarded(async () => {
@@ -116,13 +104,10 @@ export class InstapaperSync implements SavedSyncService {
       const added = want.tags.filter((t) => !has(have.tags, t));
       const removeIds = have.tags.filter((t) => !has(want.tags, t)).flatMap((t) => (this.tagIds.has(t.toLowerCase()) ? [this.tagIds.get(t.toLowerCase())!] : []));
       if (added.length > 0 || removeIds.length > 0) await this.api.setTags(id, added, removeIds);
-      // One place: the archive, a folder, or home (To read).
-      const folderChanged = (want.folder ?? "").toLowerCase() !== (have.folder ?? "").toLowerCase();
+      // The archive or home (To read). Folders became tags (#187): an article in a folder there stays in it.
       if (want.archived) {
         if (!have.archived) await this.api.move(id, "archive");
-      } else if (want.folder) {
-        if (have.archived || folderChanged) await this.api.move(id, await this.folderId(want.folder));
-      } else if (have.archived || have.folder) {
+      } else if (have.archived) {
         await this.api.move(id, "home");
       }
       const progressChanged = Math.abs(want.progress - have.progress) >= 0.01;
@@ -133,7 +118,7 @@ export class InstapaperSync implements SavedSyncService {
           at: Math.floor(this.now() / 1000),
         });
       }
-      return { ...want, remoteId: have.remoteId, addedAt: have.addedAt, folder: want.archived ? null : want.folder };
+      return { ...want, remoteId: have.remoteId, addedAt: have.addedAt, folder: null };
     });
   }
 

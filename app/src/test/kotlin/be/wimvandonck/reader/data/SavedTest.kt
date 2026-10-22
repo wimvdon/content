@@ -186,4 +186,15 @@ class SavedTest {
         assertEquals(CardBody.Description("The site's summary."), Saved.cardBody(item))
         assertNull(Saved.cardBody(item.copy(description = "")))
     }
+
+    @Test
+    fun `folders become tags, once, and a library without folders stays the same (#187)`() {
+        val moved = Saved.foldersToTags(library)
+        assertEquals(listOf("ai", "news", "Work"), moved.item("a.example/2")!!.tags)
+        // A tag of the same name, case ignored, isn't added twice.
+        assertEquals(listOf("ai", "work"), moved.item("a.example/3")!!.tags)
+        assertTrue(moved.items.none { it.folder != null })
+        assertTrue(Saved.folders(moved).isEmpty())
+        assertSame(moved, Saved.foldersToTags(moved))
+    }
 }

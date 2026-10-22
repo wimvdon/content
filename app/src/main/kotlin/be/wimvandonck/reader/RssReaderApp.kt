@@ -11,7 +11,6 @@ import be.wimvandonck.reader.data.FullArticles
 import be.wimvandonck.reader.data.IconCatalog
 import be.wimvandonck.reader.data.LibraryRepository
 import be.wimvandonck.reader.data.ServiceScope
-import be.wimvandonck.reader.data.scopeOf
 import be.wimvandonck.reader.data.SettingsStore
 import be.wimvandonck.reader.feed.FeedFetcher
 import be.wimvandonck.reader.instapaper.InstapaperAccount
@@ -66,7 +65,8 @@ class RssReaderApp :
             library,
             instapaper,
             http,
-            scopeOf = { id -> settings.settings.value?.scopeOf(id) ?: ServiceScope.Everything },
+            // Folders became tags (#187), so a scope of folders means nothing any more: everything in Saved syncs.
+            scopeOf = { ServiceScope.Everything },
             importOf = { id -> settings.settings.value?.imports?.get(id) },
             recordImport = { id, record -> settings.setImport(id, record) },
         )

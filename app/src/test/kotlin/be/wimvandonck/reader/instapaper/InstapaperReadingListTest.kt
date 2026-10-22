@@ -74,7 +74,8 @@ class InstapaperReadingListTest {
             assertEquals(listOf("900"), changes.deleted)
             val x = changes.entries.last()
             assertEquals(listOf("Recipes"), x.tags)
-            assertEquals("Work", x.folder)
+            // Folders became tags (#187): the folder there is not read.
+            assertNull(x.folder)
             assertEquals(0.42f, x.progress, 0.001f)
             assertEquals(1_755_000_000_000L, x.addedAt)
             // The next sync starts a little before this one.
@@ -113,7 +114,7 @@ class InstapaperReadingListTest {
         }
 
     @Test
-    fun `sends only what changed, and leaving the folder moves it home`() =
+    fun `sends only what changed, and leaves an Instapaper folder alone`() =
         runBlocking {
             answer = { _, path, _ ->
                 when {
@@ -131,7 +132,6 @@ class InstapaperReadingListTest {
             assertEquals(
                 listOf(
                     """POST /bookmarks/5/tags {"add_tags":[{"name":"new"}],"remove_tags":[{"id":9}]}""",
-                    """POST /bookmarks/5/move {"section":"home"}""",
                     """POST /bookmarks/5 {"title":"Better","progress":{"percentage":0.5,"timestamp":1755000600}}""",
                 ),
                 calls,
@@ -141,11 +141,10 @@ class InstapaperReadingListTest {
         }
 
     @Test
-    fun `filing into a folder that isn't at Instapaper yet makes it there`() =
+    fun `folders are neither made nor filed into (#187)`() =
         runBlocking {
-            answer = { method, path, _ ->
+            answer = { _, path, _ ->
                 when {
-                    method == "POST" && path == "/folders" -> 200 to """{"id":4,"title":"later","position":2}"""
                     path.startsWith("/folders") -> 200 to """{"folders":[{"id":3,"title":"Work","position":1}]}"""
                     path.startsWith("/tags") -> 200 to """{"tags":[]}"""
                     path.startsWith("/bookmarks?") -> 200 to """{"bookmarks":[],"deleted_ids":[]}"""
@@ -154,14 +153,10 @@ class InstapaperReadingListTest {
             }
             service.changes("5")
             calls.clear()
-            val have = RemoteEntry("5", "https://a.example/5", "T", addedAt = 1, archived = false, liked = false, tags = emptyList(), folder = "Work")
+            val have = RemoteEntry("5", "https://a.example/5", "T", addedAt = 1, archived = false, liked = false, tags = emptyList(), folder = null)
             val after = service.update(have, have.copy(folder = "later"))
-            assertEquals(listOf("""POST /folders {"title":"later"}""", """POST /bookmarks/5/move {"section":"4"}"""), calls)
-            assertEquals("later", after.folder)
-            // The same name again (case ignored) uses the folder just made.
-            calls.clear()
-            service.update(have, have.copy(folder = "LATER"))
-            assertEquals(listOf("""POST /bookmarks/5/move {"section":"4"}"""), calls)
+            assertEquals(emptyList<String>(), calls)
+            assertNull(after.folder)
         }
 
     @Test

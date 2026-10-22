@@ -10,6 +10,7 @@ import {
   defaultSavedFilter,
   fileItem,
   folderCounts,
+  foldersToTags,
   hostOf,
   itemArticle,
   removeFolder,
@@ -193,5 +194,17 @@ describe("note cards (views)", () => {
     expect(articleNote({ ...article, html: "", link: null }).body).toBeNull();
     const item = { ...saveLink(emptyLibrary(), "https://www.a.example/1", "A", 1)[1]!, note: "Mine.", tags: ["ai"], liked: true };
     expect(noteOf(item)).toMatchObject({ title: "A", body: { kind: "note", text: "Mine." }, host: "a.example", tags: ["ai"], highlights: 0, liked: true });
+  });
+});
+
+describe("folders become tags (#187)", () => {
+  it("moves each folder into the item's tags, once, case ignored", () => {
+    let lib = save(emptyLibrary(), "https://a.example/1", 1, "Work", ["ai"]);
+    lib = save(lib, "https://a.example/2", 2, "work", ["Work"]);
+    const moved = foldersToTags(lib);
+    expect(itemOf(moved, "a.example/1")).toMatchObject({ folder: null, tags: ["ai", "Work"] });
+    expect(itemOf(moved, "a.example/2")).toMatchObject({ folder: null, tags: ["Work"] });
+    expect(savedFolders(moved)).toEqual([]);
+    expect(foldersToTags(moved)).toBe(moved);
   });
 });

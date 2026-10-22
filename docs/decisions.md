@@ -2,6 +2,19 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-22: Saved's folders become tags (#187, first step)
+
+- One way to group: tags. Each saved article's folder becomes a tag with the same name (once; a tag
+  of that name isn't added twice), on Android when the library is read and after every change
+  (`Saved.foldersToTags`, next to `Saved.settle`), and in the web app after every change. A folder
+  synced in from an older app becomes a tag the same way.
+- Instapaper syncs tags and the archive only. Content no longer reads Instapaper's folders, makes
+  them or files into them; articles in a folder there stay in it.
+- What Instapaper syncs is always everything in Saved: a scope of folders means nothing now, and
+  leaving the scope would archive articles there. The choice is gone from both apps.
+- Still to come in #187: feed folders become feed tags, and the folder controls go from the
+  screens (#183 to #186).
+
 ## 2026-10-22: A service's article finds the saved one without tracking parameters
 
 - Duplicates appeared in Saved after saving, though Instapaper had each article once. Each device
