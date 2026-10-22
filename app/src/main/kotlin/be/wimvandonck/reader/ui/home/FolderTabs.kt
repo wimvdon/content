@@ -86,6 +86,8 @@ fun SavedTabRow(
     tags: List<String>,
     onChange: (SavedFilter) -> Unit,
     modifier: Modifier = Modifier,
+    /** False under the home tabs (#183), which choose To read or the Archive: only the tag chips. */
+    showTabs: Boolean = true,
 ) {
     val tabs = listOf<SavedTab>(SavedTab.ToRead) + folders.map(SavedTab::Folder) + SavedTab.Archive
     fun same(
@@ -93,7 +95,7 @@ fun SavedTabRow(
         b: SavedTab,
     ) = if (a is SavedTab.Folder && b is SavedTab.Folder) a.name.equals(b.name, ignoreCase = true) else a == b
     Column(modifier) {
-        PrimaryScrollableTabRow(
+        if (showTabs) PrimaryScrollableTabRow(
             selectedTabIndex = tabs.indexOfFirst { same(it, filter.tab) }.coerceAtLeast(0),
             edgePadding = 16.dp,
             containerColor = Color.Transparent,
