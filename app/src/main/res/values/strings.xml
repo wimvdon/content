@@ -22,6 +22,7 @@
     <string name="action_open_in_browser">Open in browser</string>
     <string name="action_share">Share</string>
     <string name="feeds_title">Feeds</string>
+    <string name="home_tab_feed">Feed</string>
     <string name="feeds_add">Add feed</string>
     <string name="feeds_import">Import OPML</string>
     <string name="feeds_export">Export OPML</string>

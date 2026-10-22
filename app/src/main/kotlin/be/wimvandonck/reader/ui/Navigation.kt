@@ -853,6 +853,7 @@ fun RssReaderNavigation(
                                     pop()
                                     section = if (tab == MainTab.Saved) HomeSection.Saved else HomeSection.Feeds
                                 },
+                                onBack = ::pop,
                             ),
                     )
                 }

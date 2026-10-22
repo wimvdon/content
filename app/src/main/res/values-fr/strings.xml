@@ -21,6 +21,7 @@
     <string name="action_open_in_browser">Ouvrir dans le navigateur</string>
     <string name="action_share">Partager</string>
     <string name="feeds_title">Flux</string>
+    <string name="home_tab_feed">Flux</string>
     <string name="feeds_add">Ajouter un flux</string>
     <string name="feeds_import">Importer un OPML</string>
     <string name="feeds_export">Exporter en OPML</string>

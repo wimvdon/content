@@ -2,6 +2,16 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-22: Feed, Saved and Archive as tabs under the title (#183, Android)
+
+- The navigation bar (and the rail on wide windows) is gone. Three tabs under the title choose what
+  the list shows: **Feed** (the feeds' articles), **Saved** (To read) and **Archive**. Tapping Feed
+  again goes back to every feed.
+- Search opens from a button in the title bar and has a back button of its own.
+- The feed folder tabs are gone; a folder or a feed can still be picked in the ☰ drawer until feed
+  management moves there (#186). Saved shows its tags as chips under the tabs.
+- The web app follows in its own change.
+
 ## 2026-10-22: Feeds get tags (#187, second step)
 
 - A feed now has tags, stored on Android in a new column (database version 6, an automatic

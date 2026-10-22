@@ -97,6 +97,8 @@ class SearchActions(
     val onOpenItem: (Item) -> Unit = {},
     /** Another top-level destination (Feeds or Saved). */
     val onTab: (MainTab) -> Unit = {},
+    /** Back to the list (#183): Search opens from the title bar's search button. */
+    val onBack: () -> Unit = {},
 )
 
 /**
@@ -114,16 +116,15 @@ fun SearchScreen(
 ) {
     val focus = remember { FocusRequester() }
     val keyboard = LocalSoftwareKeyboardController.current
-    val wide = isWideWindow()
     Row(Modifier.fillMaxSize()) {
-    if (wide) MainNavigationRail(MainTab.Search, actions.onTab)
     Scaffold(
         modifier = Modifier.weight(1f),
-        bottomBar = { if (!wide) MainNavigationBar(MainTab.Search, actions.onTab) },
         topBar = {
             TopAppBar(
                 navigationIcon = {
-                    Icon(painterResource(R.drawable.ic_search), contentDescription = null, modifier = Modifier.padding(horizontal = 12.dp))
+                    IconButton(onClick = actions.onBack) {
+                        Icon(painterResource(R.drawable.ic_arrow_back), contentDescription = stringResource(R.string.action_back))
+                    }
                 },
                 title = {
                     TextField(

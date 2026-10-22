@@ -201,17 +201,27 @@ fun HomeScreen(
             reading != null -> stringResource(R.string.saved_title)
             else -> selectedFeed?.title ?: selectedFolder?.title ?: stringResource(R.string.feeds_all)
         }
-    // The selected folder tab: the folder being viewed, or the folder of the feed being viewed.
-    val sectionFolderId = selectedFolder?.id ?: selectedFeed?.folderId
-    val showFolderTabs = state.folders.isNotEmpty() && state.feeds.isNotEmpty()
     val unreadHere = state.unreadCounts[state.selection] ?: 0
-    val wide = isWideWindow()
-    val tab = if (state.section == HomeSection.Saved) MainTab.Saved else MainTab.Feeds
-    val onTab: (MainTab) -> Unit = { t ->
+    // Feed, Saved and Archive as tabs under the title (#183); the navigation bar is gone.
+    val homeTab =
+        when {
+            reading == null -> HomeTab.Feed
+            reading.filter.tab == SavedTab.Archive -> HomeTab.Archive
+            else -> HomeTab.Saved
+        }
+    val savedFilter = state.saved?.filter ?: SavedFilter()
+    val onHomeTab: (HomeTab) -> Unit = { t ->
         when (t) {
-            MainTab.Feeds -> actions.onShowFeeds()
-            MainTab.Saved -> actions.onShowSaved()
-            MainTab.Search -> actions.onOpenSearch()
+            // Feed again while in it: back to every feed.
+            HomeTab.Feed -> if (inFeeds) actions.onSelect(FeedSelection.All) else actions.onShowFeeds()
+            HomeTab.Saved -> {
+                actions.onShowSaved()
+                actions.onSavedFilter(savedFilter.copy(tab = SavedTab.ToRead))
+            }
+            HomeTab.Archive -> {
+                actions.onShowSaved()
+                actions.onSavedFilter(savedFilter.copy(tab = SavedTab.Archive))
+            }
         }
     }
 
@@ -260,9 +270,7 @@ fun HomeScreen(
         val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(canScroll = { hasArticles })
         // Another section, or a list with nothing left to scroll, shows the header again.
         LaunchedEffect(state.selection, state.section, reading?.filter, hasArticles) { scrollBehavior.state.heightOffset = 0f }
-        // On wide windows the destinations move to a navigation rail at the side, in the same order.
         Row(Modifier.fillMaxSize()) {
-            if (wide) MainNavigationRail(tab, onTab)
             Scaffold(
                 modifier = Modifier.weight(1f).nestedScroll(scrollBehavior.nestedScrollConnection),
                 snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -300,22 +308,19 @@ fun HomeScreen(
                                 }
                             },
                             actions = {
+                                IconButton(onClick = actions.onOpenSearch) {
+                                    Icon(painterResource(R.drawable.ic_search), contentDescription = stringResource(R.string.action_search))
+                                }
                                 // The type filter (#119): next to search, as it is rarely changed.
                                 if (reading != null) TypeFilterButton(reading.filter, actions.onSavedFilter)
                             },
                             windowInsets = WindowInsets(0),
                             colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent, scrolledContainerColor = Color.Transparent),
                         )
+                        HomeTabRow(homeTab, onHomeTab)
+                        // Saved and Archive: their tags as chips (folders became tags, #187).
                         if (reading != null) {
-                            SavedTabRow(filter = reading.filter, folders = reading.folders, tags = reading.tags, onChange = actions.onSavedFilter)
-                        }
-                        if (showFolderTabs && inFeeds) {
-                            FolderTabs(
-                                folders = state.folders,
-                                selectedFolderId = sectionFolderId,
-                                onSelectAll = { actions.onSelect(FeedSelection.All) },
-                                onSelectFolder = { actions.onSelect(FeedSelection.InFolder(it.id)) },
-                            )
+                            SavedTabRow(filter = reading.filter, folders = emptyList(), tags = reading.tags, onChange = actions.onSavedFilter, showTabs = false)
                         }
                         // Filter chips sit in a row of their own under the tabs, above the list they filter.
                         if (state.feeds.isNotEmpty() && inFeeds) {
@@ -325,10 +330,6 @@ fun HomeScreen(
                             )
                         }
                     }
-                },
-                bottomBar = {
-                    // Feeds, Saved and Search are the app's top-level destinations (#171).
-                    if (!wide) MainNavigationBar(tab, onTab)
                 },
                 floatingActionButton = {
                     // Marks everything in the section being viewed as read: All, a folder or a feed.
