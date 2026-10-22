@@ -42,6 +42,7 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, on
   const feeds = useMemo(() => new Map(library.feeds.map((f) => [f.url, f])), [library.feeds]);
   const unread = unreadKeys(library, selection).size;
   const tags = useMemo(() => feedTags(library), [library]);
+  const oneFeed = selection.kind === "feed" ? (feeds.get(selection.feedUrl)?.title ?? null) : null;
   const title =
     selection.kind === "folder"
       ? (library.folders.find((f) => f.id === selection.folderId)?.title ?? "")
@@ -98,9 +99,10 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, on
         <>
           <TwoTabs first={t("unread")} second={t("all")} firstSelected={settings.unreadOnly} onFirst={() => app.setUnreadOnly(true)} onSecond={() => app.setUnreadOnly(false)} />
           <TagChips
-            tags={tags}
-            selected={selection.kind === "tag" ? selection.tag : null}
-            onSelect={(tag) => app.select(tag === null ? { kind: "all" } : { kind: "tag", tag })}
+            // One feed chosen by its name (#185): its chip comes first, chosen.
+            tags={oneFeed ? [oneFeed, ...tags] : tags}
+            selected={oneFeed ?? (selection.kind === "tag" ? selection.tag : null)}
+            onSelect={(tag) => app.select(tag === null || tag === oneFeed ? { kind: "all" } : { kind: "tag", tag })}
             // A feed or folder chosen elsewhere is a filter too: the X goes back to every feed.
             filtered={selection.kind !== "all"}
             onClear={() => app.select({ kind: "all" })}
@@ -137,7 +139,14 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, on
               <ul className="space-y-1">
                 {list.map((a) => (
                   <li key={articleKey(a)}>
-                    <Row article={a} feed={showFeedName ? feeds.get(a.feedUrl) : undefined} open={openKey === articleKey(a)} onOpen={() => onOpen(a)} onToggleRead={() => app.toggleRead(a)} />
+                    <Row
+                      article={a}
+                      feed={showFeedName ? feeds.get(a.feedUrl) : undefined}
+                      open={openKey === articleKey(a)}
+                      onOpen={() => onOpen(a)}
+                      onToggleRead={() => app.toggleRead(a)}
+                      onFeedClick={() => app.select({ kind: "feed", feedUrl: a.feedUrl })}
+                    />
                   </li>
                 ))}
               </ul>
@@ -412,6 +421,7 @@ export function Row({
   noReadState,
   label,
   onToggleRead,
+  onFeedClick,
 }: {
   article: Article;
   feed: Feed | undefined;
@@ -420,8 +430,10 @@ export function Row({
   noReadState?: boolean;
   label?: string;
   onToggleRead?: () => void;
+  /** Clicking the feed's name shows only that feed (#185). */
+  onFeedClick?: () => void;
 }) {
-  const row = <RowButton article={article} feed={feed} open={open} onOpen={onOpen} noReadState={noReadState} label={label} />;
+  const row = <RowButton article={article} feed={feed} open={open} onOpen={onOpen} noReadState={noReadState} label={label} onFeedClick={onFeedClick} />;
   if (!onToggleRead) return row;
   const toggle = article.read ? t("markUnread") : t("markRead");
   return (
@@ -447,6 +459,7 @@ function RowButton({
   onOpen,
   noReadState,
   label,
+  onFeedClick,
 }: {
   article: Article;
   feed: Feed | undefined;
@@ -454,6 +467,7 @@ function RowButton({
   onOpen: () => void;
   noReadState?: boolean;
   label?: string;
+  onFeedClick?: () => void;
 }) {
   const { settings } = useApp();
   const view = settings.listView;
@@ -477,7 +491,28 @@ function RowButton({
       <div className={cn("min-w-0 flex-1", view === "large" && "px-3 pb-3", view === "large" && !image && "pt-3")}>
         {feed || label ? (
           <div className="mb-1 flex items-center gap-1.5 text-xs font-medium text-primary">
-            {feed ? (
+            {feed && onFeedClick ? (
+              // Inside the row's button, so a span that acts as a button (#185).
+              <span
+                role="button"
+                tabIndex={0}
+                title={feed.title}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onFeedClick();
+                }}
+                onKeyDown={(e) => {
+                  if (e.key !== "Enter" && e.key !== " ") return;
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onFeedClick();
+                }}
+                className="flex min-w-0 items-center gap-1.5 rounded-full hover:underline"
+              >
+                <FeedIcon feed={feed} className="size-4" />
+                <span className="truncate">{feed.title}</span>
+              </span>
+            ) : feed ? (
               <>
                 <FeedIcon feed={feed} className="size-4" />
                 <span className="truncate">{feed.title}</span>
