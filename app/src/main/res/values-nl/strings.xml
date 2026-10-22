@@ -153,10 +153,10 @@
     <string name="sync_syncing">Bezig met synchroniseren…</string>
     <string name="sync_last">Laatst gesynchroniseerd %1$s</string>
     <string name="sync_never">Nog niet gesynchroniseerd</string>
-    <string name="sync_failed_offline">De server van Reader is niet bereikbaar. Controleer je verbinding.</string>
-    <string name="sync_failed_server">De server van Reader had een probleem. Probeer het later opnieuw.</string>
-    <string name="sync_failed_file">Je gesynchroniseerde gegevens komen van een nieuwere versie van Reader. Werk de app bij.</string>
-    <string name="sync_failed_setup">Synchronisatie is nog niet beschikbaar op de server van Reader.</string>
+    <string name="sync_failed_offline">De server van Content is niet bereikbaar. Controleer je verbinding.</string>
+    <string name="sync_failed_server">De server van Content had een probleem. Probeer het later opnieuw.</string>
+    <string name="sync_failed_file">Je gesynchroniseerde gegevens komen van een nieuwere versie van Content. Werk de app bij.</string>
+    <string name="sync_failed_setup">Synchronisatie is nog niet beschikbaar op de server van Content.</string>
     <string name="section_instapaper">Instapaper</string>
     <string name="instapaper_sign_in">Inloggen met Instapaper</string>
     <string name="instapaper_signed_in_as">Ingelogd als %1$s</string>
@@ -164,7 +164,7 @@
     <string name="instapaper_sign_in_done">Ingelogd bij Instapaper</string>
     <string name="instapaper_sign_in_failed">Inloggen bij Instapaper is niet gelukt. Probeer het opnieuw.</string>
     <string name="instapaper_problem_signed_out">Je Instapaper-login werkt niet meer. Log opnieuw in.</string>
-    <string name="instapaper_problem_not_approved">Instapaper heeft Reader nog niet goedgekeurd voor jouw account.</string>
+    <string name="instapaper_problem_not_approved">Instapaper heeft Content nog niet goedgekeurd voor jouw account.</string>
     <string name="instapaper_problem_rate_limited">Instapaper is druk bezig. Probeer het over een minuut opnieuw.</string>
     <string name="instapaper_problem_invalid">Instapaper kon dat niet uitvoeren.</string>
     <string name="action_close">Sluiten</string>
@@ -174,7 +174,7 @@
     <string name="sync_no_account">Synchronisatie staat uit voor deze login. Log opnieuw in om ze aan te zetten.</string>
     <string name="sync_failed_signed_out">Dit apparaat is uitgelogd uit je account. Log opnieuw in.</string>
     <string name="account_delete_data">Gesynchroniseerde gegevens verwijderen</string>
-    <string name="account_delete_confirm">Je feeds, gelezen artikelen en instellingen van de server van Reader verwijderen? Ze blijven op dit apparaat, en je wordt overal uitgelogd.</string>
+    <string name="account_delete_confirm">Je feeds, gelezen artikelen en instellingen van de server van Content verwijderen? Ze blijven op dit apparaat, en je wordt overal uitgelogd.</string>
     <string name="account_deleted">Gesynchroniseerde gegevens verwijderd</string>
     <string name="action_delete">Verwijderen</string>
     <string name="menu_manage_feeds">Feeds beheren</string>
@@ -216,9 +216,9 @@
     <string name="reading_list_archive_empty_title">Nog niets gearchiveerd</string>
     <string name="reading_list_none_title">Niets hier</string>
     <string name="services_title">Gekoppelde diensten</string>
-    <string name="services_reader">Reader</string>
-    <string name="services_feeds_body">Reader bewaart je feeds. Met OPML zet je ze erin en eruit.</string>
-    <string name="services_reading_body">Reader bewaart je items zelf. Meld je aan met Instapaper om ze daar ook te bewaren.</string>
+    <string name="services_reader">Content</string>
+    <string name="services_feeds_body">Content bewaart je feeds. Met OPML zet je ze erin en eruit.</string>
+    <string name="services_reading_body">Content bewaart je items zelf. Meld je aan met Instapaper om ze daar ook te bewaren.</string>
     <string name="services_problem_later">Instapaper vroeg even te wachten. De rest gaat later.</string>
     <string name="section_raindrop">Raindrop.io</string>
     <string name="raindrop_connect">Raindrop.io koppelen</string>
@@ -276,7 +276,7 @@
         <item quantity="other">%d te lezen</item>
     </plurals>
     <string name="bookmarks_title">Bladwijzers</string>
-    <string name="save_title">Bewaren in Reader</string>
+    <string name="save_title">Bewaren in Content</string>
     <string name="organise_title">Ordenen</string>
     <string name="highlights_title">Markeringen</string>
     <string name="highlight_action">Markeren</string>
@@ -305,7 +305,7 @@
     <string name="saved_remove">Verwijderen uit Bewaard</string>
     <string name="saved_removed">Verwijderd uit Bewaard</string>
     <string name="saved_remove_body">Dit item verwijderen, met zijn notitie, tags en markeringen? Archiveren houdt het doorzoekbaar.</string>
-    <string name="saved_empty_body">Veeg een artikel uit een feed naar links, tik op Opslaan in een artikel, deel een link met Reader of voeg er hier een toe.</string>
+    <string name="saved_empty_body">Veeg een artikel uit een feed naar links, tik op Opslaan in een artikel, deel een link met Content of voeg er hier een toe.</string>
     <string name="manage_folders_tags_empty_title">Nog geen mappen of tags</string>
     <string name="manage_folders_tags_empty_body">Mappen en tags van je bewaarde items verschijnen hier, zodat je ze kunt hernoemen.</string>
     <plurals name="service_imported">
@@ -313,7 +313,7 @@
         <item quantity="other">%1$d items geïmporteerd, %2$s</item>
     </plurals>
     <plurals name="service_scope_leave_body">
-        <item quantity="one">%1$d item valt buiten wat %2$s synchroniseert. Het wordt daar gearchiveerd, niet verwijderd, en blijft in Reader.</item>
-        <item quantity="other">%1$d items vallen buiten wat %2$s synchroniseert. Ze worden daar gearchiveerd, niet verwijderd, en blijven in Reader.</item>
+        <item quantity="one">%1$d item valt buiten wat %2$s synchroniseert. Het wordt daar gearchiveerd, niet verwijderd, en blijft in Content.</item>
+        <item quantity="other">%1$d items vallen buiten wat %2$s synchroniseert. Ze worden daar gearchiveerd, niet verwijderd, en blijven in Content.</item>
     </plurals>
 </resources>

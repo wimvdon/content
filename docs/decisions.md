@@ -2,6 +2,18 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-22: The app is called Content (#178)
+
+- The app shows feeds and saved articles together, so "Reader" no longer described it. Every
+  user-visible name is now Content: the launcher name, the test build ("Content Dev"), the web app's
+  title and install name, and the texts that mention the app in every language.
+- The package name stays `be.wimvandonck.reader`: changing it would make phones refuse to update
+  the installed app. Code names (classes, files, the worker's user agent) also stay; they are not
+  shown to users.
+- "Reader" as the name of the reading view (Settings › Reader) stays: that is the view, not the app.
+- New icon: the same parts as the old feed symbol (a dot and two thick, round-ended arcs) and the
+  same sky → azure → navy gradient, arranged as a C.
+
 ## 2026-10-21: Search is a tab of its own and replaces Saved's All tab (#171)
 
 Search moves from a magnifier in the top bar to the navigation bar (Feeds, Saved, Search; on the web
