@@ -46,6 +46,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.semantics.Role
 import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -289,10 +291,19 @@ fun HomeScreen(
                                 onFirst = { actions.onUnreadOnlyChange(true) },
                                 onSecond = { actions.onUnreadOnlyChange(false) },
                             )
+                            // One feed chosen by its name (#185): its chip comes first, chosen.
+                            val oneFeed = (state.selection as? FeedSelection.Single)?.let { s -> state.feeds.firstOrNull { it.url == s.feedUrl }?.title }
                             TagChips(
-                                tags = feedTags,
-                                selected = (state.selection as? FeedSelection.Tagged)?.tag,
-                                onSelect = { t -> actions.onSelect(if (t == null) FeedSelection.All else FeedSelection.Tagged(t)) },
+                                tags = listOfNotNull(oneFeed) + feedTags,
+                                selected = oneFeed ?: (state.selection as? FeedSelection.Tagged)?.tag,
+                                onSelect = { t ->
+                                    actions.onSelect(
+                                        when {
+                                            t == null || (oneFeed != null && t == oneFeed) -> FeedSelection.All
+                                            else -> FeedSelection.Tagged(t)
+                                        },
+                                    )
+                                },
                                 // A feed or folder chosen elsewhere is a filter too: the X goes back to every feed.
                                 filtered = state.selection != FeedSelection.All,
                                 onClear = { actions.onSelect(FeedSelection.All) },
@@ -413,6 +424,7 @@ private fun TypeFilterButton(
 }
 
 
+
 private enum class HomeContent { NoFeeds, Loading, Empty, Articles }
 
 private const val SKELETON_ROWS = 6
@@ -471,6 +483,7 @@ private fun ArticleList(
                         view = state.listView,
                         showImage = state.showImages,
                         onClick = { actions.onOpenArticle(article) },
+                        onFeedClick = { actions.onSelect(FeedSelection.Single(article.feedUrl)) },
                     )
                 }
             }
@@ -634,6 +647,8 @@ internal fun ArticleRow(
     /** What kind of article this is, shown at the end of its top line (Search: Feed or Saved). */
     label: String? = null,
     modifier: Modifier = Modifier,
+    /** Tapping the feed's name shows only that feed (#185); null where it isn't a filter. */
+    onFeedClick: (() -> Unit)? = null,
 ) {
     val shown = if (showReadState) article else article.copy(read = false)
     val time =
@@ -657,7 +672,7 @@ internal fun ArticleRow(
         when (view) {
             ListView.Small -> {
                 Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    MetaLine(shown, feed, time, showReadState, label)
+                    MetaLine(shown, feed, time, showReadState, label, onFeedClick)
                     ArticleTitle(shown, MaterialTheme.typography.titleSmall, maxLines = 2)
                 }
             }
@@ -665,7 +680,7 @@ internal fun ArticleRow(
             ListView.Medium -> {
                 Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        MetaLine(shown, feed, time, showReadState, label)
+                        MetaLine(shown, feed, time, showReadState, label, onFeedClick)
                         ArticleTitle(shown, MaterialTheme.typography.titleMedium, maxLines = 3)
                         Snippet(snippet, maxLines = 2)
                     }
@@ -677,7 +692,7 @@ internal fun ArticleRow(
                 Column {
                     if (image != null) LargePicture(image)
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        MetaLine(shown, feed, time, showReadState, label)
+                        MetaLine(shown, feed, time, showReadState, label, onFeedClick)
                         ArticleTitle(shown, MaterialTheme.typography.titleLarge, maxLines = 3)
                         Snippet(snippet, maxLines = 3)
                     }
@@ -695,6 +710,7 @@ private fun MetaLine(
     time: String,
     showUnreadDot: Boolean,
     label: String?,
+    onFeedClick: (() -> Unit)? = null,
 ) {
     val unreadLabel = stringResource(R.string.article_unread)
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -707,15 +723,23 @@ private fun MetaLine(
             )
         }
         if (feed != null) {
-            FeedIcon(feed, FeedIconSize.Small)
-            Text(
-                text = feed.title,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f, fill = false),
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier =
+                    Modifier
+                        .weight(1f, fill = false)
+                        .then(if (onFeedClick != null) Modifier.clip(CircleShape).clickable(role = Role.Button, onClick = onFeedClick) else Modifier),
+            ) {
+                FeedIcon(feed, FeedIconSize.Small)
+                Text(
+                    text = feed.title,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
         Text(
             text = time,
