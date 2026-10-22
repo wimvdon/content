@@ -2,6 +2,20 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-22: A service's article finds the saved one without tracking parameters
+
+- Duplicates appeared in Saved after saving, though Instapaper had each article once. Each device
+  keeps its own list of which Instapaper article is which item. A device that hadn't sent an
+  article matched it by its exact link, and Instapaper can keep a link without the feed's
+  tracking parameters (`utm_source` and the like), so it made a second item, which then synced
+  everywhere.
+- Now, when a device meets an Instapaper article it hasn't linked yet, it first looks for a saved
+  item whose link is the same apart from tracking parameters (`ItemKeys.loose`, `looseKeyOfLink`)
+  and isn't linked to another article there. Item keys themselves don't change.
+- Duplicates made before this stay for now. Removing one by hand can remove the article at
+  Instapaper too (the copy is linked to it on the device that made it), so a careful cleanup is a
+  separate change.
+
 ## 2026-10-22: Liked is removed (#188)
 
 - No Like button, no Liked chip and no heart on cards, on Android and the web. Tags do the job.

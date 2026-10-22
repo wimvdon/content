@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { InstapaperError, type Bookmark, type ChangesPage, type Folder, type Tag } from "../src/lib/instapaper";
 import { InstapaperSync } from "../src/lib/instapaperSync";
-import { addToReadingList, changeItem, itemOf, setLiked, setReadingState, setTags } from "../src/lib/items";
+import { addToReadingList, changeItem, itemOf, looseKeyOfLink, setLiked, setReadingState, setTags } from "../src/lib/items";
 import { emptyLibrary, type Library } from "../src/lib/library";
 import { covers, EVERYTHING, TO_READ, withFolder, type ServiceScope } from "../src/lib/serviceScope";
 import { emptyServiceSyncState, importService, ServiceSyncError, syncService, type RemoteChanges, type RemoteEntry, type SavedSyncService, type ServiceSyncState } from "../src/lib/serviceSync";
@@ -327,5 +327,32 @@ describe("Instapaper as Saved's service (instapaperSync.ts)", () => {
     await sync.remove("5");
     api.removeFails = new InstapaperError("auth");
     await expect(sync.remove("5")).rejects.toMatchObject({ problem: "auth" });
+  });
+});
+
+describe("no duplicates from links kept without tracking parameters", () => {
+  it("an article another device sent joins the saved one when connecting", async () => {
+    const { box, service, sync } = setup();
+    box.lib = addToReadingList(box.lib, "https://a.example/1?utm_source=rss&id=7", "One", 10)[0];
+    service.put(remote("9", "https://a.example/1?id=7"));
+    expect(await sync()).toBeNull();
+    expect(box.lib.items.filter((i) => i.readingList)).toHaveLength(1);
+    expect(box.state.rows["a.example/1?utm_source=rss&id=7"]?.remoteId).toBe("9");
+    expect(service.entries.size).toBe(1);
+  });
+  it("after connecting too, a new article there finds the saved one", async () => {
+    const { box, service, sync } = setup();
+    box.state = { ...box.state, cursor: "0" };
+    box.lib = addToReadingList(box.lib, "https://www.b.example/post/?utm_medium=feed", "Post", 10)[0];
+    service.put(remote("3", "https://b.example/post"));
+    expect(await sync()).toBeNull();
+    expect(box.lib.items.filter((i) => i.readingList)).toHaveLength(1);
+    expect(Object.values(box.state.rows).filter((r) => r.remoteId === "3")).toHaveLength(1);
+    expect(service.entries.size).toBe(1);
+  });
+  it("tracking parameters don't make another article, other parameters do", () => {
+    expect(looseKeyOfLink("http://www.a.example/x/?utm_source=rss&id=2&fbclid=z")).toBe(looseKeyOfLink("https://a.example/x?id=2"));
+    expect(looseKeyOfLink("https://a.example/x?utm_campaign=y")).toBe("a.example/x");
+    expect(looseKeyOfLink("https://a.example/x?id=2")).not.toBe(looseKeyOfLink("https://a.example/x?id=3"));
   });
 });

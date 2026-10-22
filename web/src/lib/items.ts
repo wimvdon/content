@@ -76,6 +76,27 @@ export function keyOfLink(url: string | null | undefined): string | null {
   return key || null;
 }
 
+const TRACKING = /^(utm_.*|fbclid|gclid|dclid|msclkid|mc_cid|mc_eid|igshid|_hsenc|_hsmi|mkt_tok|ref_src|cmpid|ocid)$/;
+
+/**
+ * keyOfLink without tracking parameters (utm_… and the like), for recognising the same article when
+ * a service stores its link without them. Never an item's key: only to find one that exists
+ * (serviceSync.ts keyFor), like the Android app's ItemKeys.loose.
+ */
+export function looseKeyOfLink(url: string | null | undefined): string | null {
+  const key = keyOfLink(url);
+  if (!key) return null;
+  const q = key.indexOf("?");
+  if (q < 0) return key;
+  const base = key.slice(0, q).replace(/\/+$/, "");
+  const kept = key
+    .slice(q + 1)
+    .split("&")
+    .filter((p) => p !== "" && !TRACKING.test(p.split("=")[0]))
+    .sort();
+  return kept.length === 0 ? base : `${base}?${kept.join("&")}`;
+}
+
 /** Web addresses only, so a saved item can't carry a script. */
 export const isWebLink = (url: string | null | undefined): url is string => !!url && /^https?:\/\//i.test(url);
 
