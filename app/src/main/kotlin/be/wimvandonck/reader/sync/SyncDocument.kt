@@ -18,6 +18,8 @@ data class SyncFeed(
     val folderId: String?,
     val siteUrl: String?,
     val iconUrl: String?,
+    /** Its tags (#187); left out of the file when there are none, so older apps read the same. */
+    val tags: List<String> = emptyList(),
 )
 
 /**
@@ -49,7 +51,7 @@ data class SyncDocument(
         fun of(library: Library): SyncDocument =
             SyncDocument(
                 folders = library.folders.map { SyncFolder(it.id, it.title, it.icon) },
-                feeds = library.feeds.map { SyncFeed(it.url, it.title, it.renamed, it.folderId, it.siteUrl, it.iconUrl) },
+                feeds = library.feeds.map { SyncFeed(it.url, it.title, it.renamed, it.folderId, it.siteUrl, it.iconUrl, it.tags) },
             )
 
         fun encode(doc: SyncDocument): String =
@@ -60,14 +62,14 @@ data class SyncDocument(
                     "folders" to doc.folders.map { linkedMapOf("id" to it.id, "title" to it.title, "icon" to it.icon) },
                     "feeds" to
                         doc.feeds.map {
-                            linkedMapOf(
+                            linkedMapOf<String, Any?>(
                                 "url" to it.url,
                                 "title" to it.title,
                                 "renamed" to it.renamed,
                                 "folderId" to it.folderId,
                                 "siteUrl" to it.siteUrl,
                                 "iconUrl" to it.iconUrl,
-                            )
+                            ).also { m -> if (it.tags.isNotEmpty()) m["tags"] = it.tags }
                         },
                     "settings" to doc.settings.toSortedMap(),
                 ),
@@ -101,6 +103,7 @@ data class SyncDocument(
                         folderId = (m["folderId"] as? String)?.takeIf { it in folderIds },
                         siteUrl = (m["siteUrl"] as? String)?.ifEmpty { null },
                         iconUrl = (m["iconUrl"] as? String)?.ifEmpty { null },
+                        tags = (m["tags"] as? List<*>).orEmpty().filterIsInstance<String>().map { it.trim() }.filter { it.isNotEmpty() },
                     )
                 }.distinctBy { it.url }
             val read =

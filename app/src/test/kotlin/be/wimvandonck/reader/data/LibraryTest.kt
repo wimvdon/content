@@ -289,4 +289,16 @@ class LibraryTest {
         assertTrue(again.article(Article.keyOf(a, "2"))!!.read)
         assertFalse(again.article(Article.keyOf(a, "1"))!!.read)
     }
+
+    @Test
+    fun `a feed's folder becomes its tag once, and a feed with tags keeps them (#187)`() {
+        val library =
+            Library(
+                feeds = listOf(Feed("https://a/feed", "A", folderId = "f1"), Feed("https://b/feed", "B", folderId = "f1", tags = listOf("Mine")), Feed("https://c/feed", "C")),
+                folders = listOf(Folder("f1", "News")),
+            )
+        val moved = library.feedFoldersToTags()
+        assertEquals(listOf(listOf("News"), listOf("Mine"), emptyList()), moved.feeds.map { it.tags })
+        assertSame(moved, moved.feedFoldersToTags())
+    }
 }

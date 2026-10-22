@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { emptyLibrary, mergeFeed, addFeed, newFeed, type Library } from "../src/lib/library";
+import { emptyLibrary, mergeFeed, addFeed, newFeed, feedFoldersToTags, type Library } from "../src/lib/library";
 import * as S from "../src/lib/sync";
 import * as SS from "../src/lib/syncSettings";
 import { defaultSettings } from "../src/lib/app";
@@ -198,5 +198,29 @@ describe("synced settings", () => {
     expect(S.merge(b, local, remote).settings).toEqual({ theme: "dark", fullArticles: "false" });
     const fresh = { ...base, settings: { theme: "system", listView: "medium" } };
     expect(S.merge(null, fresh, { ...base, settings: { theme: "dark" } }).settings).toEqual({ theme: "dark", listView: "medium" });
+  });
+});
+
+describe("feed tags (#187)", () => {
+  it("go into the file and back, and are left out when there are none", () => {
+    const doc: S.SyncDocument = { folders: [], feeds: [{ ...feed("https://a/feed"), tags: ["News"] }, feed("https://b/feed")], settings: {} };
+    const text = S.encode(doc);
+    expect(text).toContain('"iconUrl":null,"tags":["News"]}');
+    expect(text.match(/"tags"/g)).toHaveLength(1);
+    expect(S.decode(text)!.feeds).toEqual(doc.feeds);
+  });
+  it("a feed's folder becomes its tag once; a feed with tags keeps them", () => {
+    const lib: Library = {
+      ...emptyLibrary(),
+      folders: [{ id: "f1", title: "News", icon: "folder" }],
+      feeds: [
+        { ...newFeed("https://a/feed", "A"), folderId: "f1" },
+        { ...newFeed("https://b/feed", "B"), folderId: "f1", tags: ["Mine"] },
+        newFeed("https://c/feed", "C"),
+      ],
+    };
+    const moved = feedFoldersToTags(lib);
+    expect(moved.feeds.map((f) => f.tags)).toEqual([["News"], ["Mine"], undefined]);
+    expect(feedFoldersToTags(moved)).toBe(moved);
   });
 });

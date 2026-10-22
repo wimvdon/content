@@ -2,6 +2,17 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-22: Feeds get tags (#187, second step)
+
+- A feed now has tags, stored on Android in a new column (database version 6, an automatic
+  migration) and in the sync file as an optional `tags` list, left out when empty so older apps read
+  the same file. The web app keeps them with the feed in the browser.
+- A feed in a folder that has no tags yet gets the folder's name as its tag, when the library is
+  read and after every change (`feedFoldersToTags`). The folder itself stays until the screens stop
+  using folders (#183 to #186).
+- Saving a feed article tags it with its feed's tags (#120 used the folder's name; that is the
+  fallback for a feed without tags).
+
 ## 2026-10-22: Saved's folders become tags (#187, first step)
 
 - One way to group: tags. Each saved article's folder becomes a tag with the same name (once; a tag

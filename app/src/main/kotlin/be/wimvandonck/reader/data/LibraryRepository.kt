@@ -104,7 +104,7 @@ class LibraryRepository(
         val read = LibraryRows.library(dao.read())
         // Bookmarks from before #119 move into folders once.
         // Folders become tags (#187), also those of the bookmarks just moved in.
-        val settled = Saved.foldersToTags(Saved.settle(read, bookmarksFolder))
+        val settled = Saved.foldersToTags(Saved.settle(read, bookmarksFolder)).feedFoldersToTags()
         if (settled !== read) dao.write(LibraryChanges.between(read, settled))
         return settled
     }
@@ -132,7 +132,7 @@ class LibraryRepository(
             val (changed, value) = change(old)
             // A bookmark synced in from a device that hasn't moved to folders yet moves in too.
             // And a folder (from an older app, or filed here) becomes a tag (#187).
-            val updated = Saved.foldersToTags(Saved.settle(changed, bookmarksFolder))
+            val updated = Saved.foldersToTags(Saved.settle(changed, bookmarksFolder)).feedFoldersToTags()
             if (updated !== old) {
                 val changes = LibraryChanges.between(old, updated)
                 if (!changes.isEmpty) dao.write(changes)

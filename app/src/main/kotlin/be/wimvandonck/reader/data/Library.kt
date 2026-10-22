@@ -14,6 +14,8 @@ data class Feed(
     val iconUrl: String? = null,
     /** True when the user gave the feed its own name, which refreshes then keep. */
     val renamed: Boolean = false,
+    /** Its tags (#187), which its articles inherit. A feed folder becomes its first tag: see [feedFoldersToTags]. */
+    val tags: List<String> = emptyList(),
 )
 
 /** A group of feeds with its own title and icon; it gets a tab in the bottom bar. */
@@ -80,6 +82,18 @@ data class Library(
     val readElsewhere: Map<String, Long> = emptyMap(),
 ) {
     fun feed(url: String): Feed? = feeds.firstOrNull { it.url == url }
+
+    /**
+     * Feed folders become tags (#187): a feed in a folder that has no tags yet gets the folder's
+     * name as its tag. The same library when there is nothing to do. Applied when the library is
+     * read and after every change, so a feed synced in from an older app gets it too. The folder
+     * itself stays until the screens no longer use folders.
+     */
+    fun feedFoldersToTags(): Library {
+        val titles = folders.associate { it.id to it.title.trim() }
+        if (feeds.none { it.tags.isEmpty() && !titles[it.folderId].isNullOrEmpty() }) return this
+        return copy(feeds = feeds.map { f -> titles[f.folderId]?.takeIf { f.tags.isEmpty() && it.isNotEmpty() }?.let { f.copy(tags = listOf(it)) } ?: f })
+    }
 
     fun folder(id: String): Folder? = folders.firstOrNull { it.id == id }
 

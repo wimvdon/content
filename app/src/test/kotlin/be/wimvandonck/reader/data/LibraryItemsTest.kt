@@ -135,4 +135,11 @@ class LibraryItemsTest {
         assertNotNull(removed.item(item.key)!!.readingList)
         assertSame(withArticle, withArticle.addHighlight("mailto:x@example.com", null, h, 1))
     }
+
+    @Test
+    fun `a saved feed article gets its feed's tags (#187)`() {
+        val tagged = withArticle.copy(feeds = withArticle.feeds.map { it.copy(tags = listOf("News", "Brussels")) })
+        val (library, item) = tagged.addToReadingList("https://example.com/story", null, 1)
+        assertEquals(listOf("News", "Brussels"), library.tagWithFeedFolder(item!!.key).item(item.key)!!.tags)
+    }
 }

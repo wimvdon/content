@@ -41,7 +41,8 @@ The account's document (it was `rss-reader-sync.json` in Google Drive before), U
       "renamed": false,
       "folderId": "…uuid… or null",
       "siteUrl": "https://example.com or null",
-      "iconUrl": "https://example.com/icon.png or null"
+      "iconUrl": "https://example.com/icon.png or null",
+      "tags": ["News"]
     }
   ],
   "settings": { "fullArticles": "true", "markReadOnScroll": "false" }
@@ -50,6 +51,9 @@ The account's document (it was `rss-reader-sync.json` in Google Drive before), U
 
 - `folders` and `feeds` are in the user's order.
 - `icon` is a Material Symbols name from the app's icon catalog.
+- A feed's `tags` (#187) are left out when it has none, so the file reads the same for older
+  apps, which ignore the field. An older app that writes the file back drops them; a feed in a
+  folder then gets its folder's name as its tag again.
 - Version 2 files also held `read`, the read articles (key `<feed url> <article id>`, value the
   article's date); they are per-item rows now (below). A version 3 app reading a version 2 file keeps
   those marks for the articles it doesn't have and syncs them as rows; it never writes `read` back.

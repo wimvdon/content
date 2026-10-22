@@ -92,6 +92,7 @@ object SyncMerge {
                     folderId = f.folderId,
                     siteUrl = f.siteUrl ?: existing[f.url]?.siteUrl,
                     iconUrl = f.iconUrl ?: existing[f.url]?.iconUrl,
+                    tags = f.tags,
                 )
             }
         val urls = feeds.mapTo(HashSet()) { it.url }
