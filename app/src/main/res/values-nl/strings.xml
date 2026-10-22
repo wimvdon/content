@@ -200,7 +200,6 @@
     <string name="action_archive">Archiveren</string>
     <string name="saved_archived">Gearchiveerd</string>
     <string name="action_unarchive">Terug naar te lezen</string>
-    <string name="action_like">Leuk</string>
     <string name="action_unlike">Niet meer leuk</string>
     <string name="add_link_title">Link toevoegen</string>
     <string name="add_link_address">Webadres</string>
@@ -210,7 +209,6 @@
     <string name="duration_minutes">%d min</string>
     <string name="reading_list_to_read">Te lezen</string>
     <string name="reading_list_archive">Archief</string>
-    <string name="reading_list_liked">Leuk gevonden</string>
     <string name="reading_list_about">ongeveer %s</string>
     <string name="reading_list_empty_title">Niets te lezen</string>
     <string name="reading_list_archive_empty_title">Nog niets gearchiveerd</string>

@@ -1,4 +1,4 @@
-import { Archive, BookOpen, CheckCheck, Circle, CircleCheck, Folder as FolderGlyph, Heart, Highlighter, Link2, ListFilter, Menu, Newspaper, Quote, RefreshCw, Rss, type LucideIcon } from "lucide-react";
+import { Archive, BookOpen, CheckCheck, Circle, CircleCheck, Folder as FolderGlyph, Highlighter, Link2, ListFilter, Menu, Newspaper, Quote, RefreshCw, Rss, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useEscape } from "./ui/useEscape";
 import { app, useApp } from "@/lib/app";
@@ -174,7 +174,7 @@ function SavedArticles({ openKey, onOpen, onMenu }: { openKey: string | null; on
   const folders = useMemo(() => savedFolders(library), [library]);
   const tags = useMemo(() => tabTags(library, filter.tab), [library, filter.tab]);
   const set = (change: Partial<SavedFilter>) => app.showSaved({ ...filter, ...change });
-  const plain = !filter.likedOnly && filter.tags.length === 0 && filter.type === null;
+  const plain = filter.tags.length === 0 && filter.type === null;
   const tabs: SavedTab[] = [{ kind: "toread" }, ...folders.map((name): SavedTab => ({ kind: "folder", name })), { kind: "archive" }];
   return (
     <section className="flex h-full min-w-0 flex-col" aria-label={t("saved")}>
@@ -212,18 +212,6 @@ function SavedArticles({ openKey, onOpen, onMenu }: { openKey: string | null; on
         })}
       </nav>
       <div role="group" aria-label={t("filter")} className="flex shrink-0 items-center gap-2 overflow-x-auto px-4 py-2 [scrollbar-width:none]">
-        <button
-          type="button"
-          aria-pressed={filter.likedOnly}
-          onClick={() => set({ likedOnly: !filter.likedOnly })}
-          className={cn(
-            "inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border px-3 text-sm",
-            filter.likedOnly ? "border-transparent bg-accent font-medium text-accent-foreground" : "hover:bg-muted",
-          )}
-        >
-          <Heart className={cn("size-4", filter.likedOnly && "fill-current")} aria-hidden="true" />
-          {t("liked")}
-        </button>
         {tags.map((tag) => {
           const selected = filter.tags.some((x) => x.toLowerCase() === tag.toLowerCase());
           const others = filter.tags.filter((x) => x.toLowerCase() !== tag.toLowerCase());
@@ -245,7 +233,7 @@ function SavedArticles({ openKey, onOpen, onMenu }: { openKey: string | null; on
           >
             {/* Filtered to nothing: one click back to the whole tab; an empty To read offers Add link. */}
             {!plain ? (
-              <Button onClick={() => set({ likedOnly: false, tags: [], type: null })}>{t("showAll")}</Button>
+              <Button onClick={() => set({ tags: [], type: null })}>{t("showAll")}</Button>
             ) : filter.tab.kind === "toread" ? (
               <Button variant="tonal" onClick={app.addLink}>
                 <Link2 />
@@ -395,7 +383,6 @@ export function NoteCard({ note, feed, open, onOpen, label }: { note: NoteConten
               {highlights}
             </span>
           ) : null}
-          {note.liked ? <Heart className="size-3.5 fill-current text-primary" aria-label={t("liked")} /> : null}
         </div>
       </div>
     </button>

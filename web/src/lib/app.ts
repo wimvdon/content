@@ -12,7 +12,7 @@ import {
   type Session as InstapaperSession,
 } from "./instapaper";
 import { INSTAPAPER_ID, InstapaperSync } from "./instapaperSync";
-import { addHighlight, removeHighlight, renameTag, setHighlightNote, setLiked, type Highlight, type Item } from "./items";
+import { addHighlight, removeHighlight, renameTag, setHighlightNote, type Highlight, type Item } from "./items";
 import { applyChoice, saveNew, undoSave, type SaveChoice } from "./saveChoice";
 import * as Saved from "./saved";
 import { emptyServiceSyncState, importService, syncService, type ServiceSyncState } from "./serviceSync";
@@ -66,7 +66,7 @@ export interface State {
   instapaper: InstapaperSession | null;
   /** The result of coming back from Instapaper's sign-in page, shown once. */
   instapaperNotice: "signedIn" | "failed" | null;
-  /** Saved's tab, Liked, tags and type (saved.ts), while Saved is shown. */
+  /** Saved's tab, tags and type (saved.ts), while Saved is shown. */
   savedFilter: Saved.SavedFilter;
   /** The save and Organise sheet while it is open (#143): Add link, just saved, or organising a saved item. */
   sheet: Sheet | null;
@@ -549,7 +549,7 @@ class AppStore {
   /** Add link: the sheet asks for the address; nothing is saved until Save. */
   addLink = () => this.set({ sheet: { kind: "new" } });
 
-  /** Organise a saved item: its folder, tags with Like, and note. */
+  /** Organise a saved item: its folder, tags and note. */
   openOrganise = (key: string) => this.set({ sheet: { kind: "organise", key } });
 
   closeSheet = () => this.set({ sheet: null });
@@ -573,7 +573,6 @@ class AppStore {
   setHighlightNote = (key: string, id: string, note: string) => this.updateLibrary((lib) => setHighlightNote(lib, key, id, note));
   removeHighlight = (key: string, id: string) => this.updateLibrary((lib) => removeHighlight(lib, key, id));
 
-  likeItem = (key: string, liked: boolean) => this.updateLibrary((lib) => setLiked(lib, key, liked));
   archiveItem = (key: string, archived: boolean) => this.updateLibrary((lib) => Saved.archiveItem(lib, key, archived));
   /** Into a folder, or To read with null. */
   removeItem = (key: string) => this.updateLibrary((lib) => Saved.removeSaved(lib, key));

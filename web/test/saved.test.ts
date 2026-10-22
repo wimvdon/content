@@ -73,7 +73,6 @@ describe("Saved (#119, #147)", () => {
   it("filters by Liked, every chosen tag and the type", () => {
     const lib = sample();
     const all = { kind: "all" } as const;
-    expect(keys(savedItems(lib, filter({ tab: all, likedOnly: true })))).toEqual(["youtu.be/x"]);
     expect(keys(savedItems(lib, filter({ tab: all, tags: ["AI"] })))).toEqual(["a.example/2", "a.example/1"]);
     expect(keys(savedItems(lib, filter({ tab: all, tags: ["ai", "news"] })))).toEqual(["a.example/1"]);
     expect(keys(savedItems(lib, filter({ tab: all, type: "video" })))).toEqual(["youtu.be/x"]);

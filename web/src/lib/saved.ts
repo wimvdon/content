@@ -14,15 +14,14 @@ export type SavedTab = { kind: "toread" } | { kind: "all" } | { kind: "folder"; 
 /** What kind of page a saved link is, read from its link. */
 export type SavedType = "article" | "video" | "audio";
 
-/** What Saved shows: a tab, and within it only liked ones, only some tags (all of them), one type. */
+/** What Saved shows: a tab, and within it only some tags (all of them), one type. */
 export interface SavedFilter {
   tab: SavedTab;
-  likedOnly: boolean;
   tags: string[];
   type: SavedType | null;
 }
 
-export const defaultSavedFilter: SavedFilter = { tab: { kind: "toread" }, likedOnly: false, tags: [], type: null };
+export const defaultSavedFilter: SavedFilter = { tab: { kind: "toread" }, tags: [], type: null };
 
 const same = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
 
@@ -52,7 +51,6 @@ export function savedItems(lib: Library, filter: SavedFilter): Item[] {
     .filter(
       (i) =>
         isIn(i, filter.tab) &&
-        (!filter.likedOnly || i.liked) &&
         filter.tags.every((t) => i.tags.some((x) => same(x, t))) &&
         (filter.type === null || typeOf(i.url) === filter.type),
     )

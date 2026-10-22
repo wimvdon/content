@@ -56,7 +56,6 @@ import be.wimvandonck.reader.data.itemTags
 import be.wimvandonck.reader.data.tagWithFeedFolder
 import be.wimvandonck.reader.data.removeTag
 import be.wimvandonck.reader.data.renameTag
-import be.wimvandonck.reader.data.setLiked
 import be.wimvandonck.reader.data.setReadingState
 import be.wimvandonck.reader.data.tagCounts
 import be.wimvandonck.reader.feed.FeedDiscovery
@@ -714,7 +713,6 @@ fun RssReaderNavigation(
                                                 editLibrary { SaveChoices.apply(it, i.key, SaveChoices.of(i).copy(place = place)) }
                                             }
                                         },
-                                        onLike = { editLibrary { it.setLiked(i.key, !i.liked) } },
                                         onTag = { tag -> editLibrary { lib -> lib.item(i.key)?.let { now -> SaveChoices.apply(lib, i.key, SaveChoices.withTag(SaveChoices.of(now), tag)) } ?: lib } },
                                         onOrganise = { fileKey = i.key },
                                         onRemove = {
@@ -1024,7 +1022,7 @@ private fun readingMinutes(
         item.key to ReadingLists.minutes(words)
     }
 
-/** Saved's tab, Liked, tags and type, kept across rotation and process death. */
+/** Saved's tab, tags and type, kept across rotation and process death. */
 private val SavedFilterSaver =
     Saver<SavedFilter, String>(
         save = { f ->
@@ -1036,7 +1034,7 @@ private val SavedFilterSaver =
                     SavedTab.Archive -> "archive"
                     is SavedTab.Folder -> "folder:" + t.name
                 }
-            listOf(tab, f.likedOnly.toString(), f.type?.name.orEmpty(), f.tags.joinToString("\u0001")).joinToString("\u0000")
+            listOf(tab, "", f.type?.name.orEmpty(), f.tags.joinToString("\u0001")).joinToString("\u0000")
         },
         restore = {
             val parts = it.split('\u0000')
@@ -1048,7 +1046,6 @@ private val SavedFilterSaver =
                         tab.startsWith("folder:") -> SavedTab.Folder(tab.removePrefix("folder:"))
                         else -> SavedTab.ToRead
                     },
-                likedOnly = parts.getOrNull(1) == "true",
                 type = SavedType.entries.firstOrNull { t -> t.name == parts.getOrNull(2) },
                 tags = parts.getOrNull(3)?.split('\u0001')?.filter { t -> t.isNotEmpty() }?.toSet().orEmpty(),
             )

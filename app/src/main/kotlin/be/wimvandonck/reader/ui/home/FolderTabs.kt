@@ -138,18 +138,6 @@ fun SavedTabRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            FilterChip(
-                selected = filter.likedOnly,
-                onClick = { onChange(filter.copy(likedOnly = !filter.likedOnly)) },
-                label = { Text(stringResource(R.string.reading_list_liked)) },
-                leadingIcon = {
-                    Icon(
-                        painterResource(if (filter.likedOnly) R.drawable.ic_favorite_filled else R.drawable.ic_favorite),
-                        contentDescription = null,
-                        modifier = Modifier.size(FilterChipDefaults.IconSize),
-                    )
-                },
-            )
             tags.forEach { tag ->
                 val selected = filter.tags.any { it.equals(tag, ignoreCase = true) }
                 FilterChip(

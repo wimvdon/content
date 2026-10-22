@@ -15,7 +15,7 @@ const PAGE = 500;
 /** How much earlier than the request the next `since` starts, for clocks that differ. */
 const CURSOR_MARGIN_S = 300;
 
-type Api = Pick<InstapaperApi, "changesSince" | "folders" | "tags" | "save" | "setTags" | "move" | "like" | "createFolder" | "updateBookmark" | "remove">;
+type Api = Pick<InstapaperApi, "changesSince" | "folders" | "tags" | "save" | "setTags" | "move" | "createFolder" | "updateBookmark" | "remove">;
 
 export class InstapaperSync implements SavedSyncService {
   readonly id = INSTAPAPER_ID;
@@ -67,7 +67,8 @@ export class InstapaperSync implements SavedSyncService {
       imageUrl: b.image?.startsWith("https://") ? b.image : null,
       addedAt: b.time * 1000,
       archived: b.archived,
-      liked: b.liked,
+      // Liked is gone (#188): Instapaper's like is neither read nor sent.
+      liked: false,
       tags: (b.tags ?? []).map((t) => t.name),
       folder: !b.archived && b.folder_id !== null ? (this.folders.get(b.folder_id) ?? null) : null,
       progress: Math.min(1, Math.max(0, b.progress?.percentage ?? 0)),
@@ -112,7 +113,6 @@ export class InstapaperSync implements SavedSyncService {
       const id = Number(have.remoteId);
       if (!Number.isFinite(id)) throw new ServiceSyncError("refused");
       const has = (list: string[], tag: string) => list.some((t) => t.toLowerCase() === tag.toLowerCase());
-      if (want.liked !== have.liked) await this.api.like(id, want.liked);
       const added = want.tags.filter((t) => !has(have.tags, t));
       const removeIds = have.tags.filter((t) => !has(want.tags, t)).flatMap((t) => (this.tagIds.has(t.toLowerCase()) ? [this.tagIds.get(t.toLowerCase())!] : []));
       if (added.length > 0 || removeIds.length > 0) await this.api.setTags(id, added, removeIds);

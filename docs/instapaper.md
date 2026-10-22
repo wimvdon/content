@@ -25,8 +25,7 @@ scope is archived at Instapaper, never deleted.
   removal; tags as a set (`ServiceSync.merge`). An article seen there but not imported stays there
   until it changes.
 - **Sending changes:** what differs from the last-seen article is sent: new articles
-  (`POST /bookmarks` with title and tags, then `/move` to archive), archive (`/move`), like
-  (`/like`), tags (`/tags`, removed by id), the title and reading progress (`POST /bookmarks/{id}`
+  (`POST /bookmarks` with title and tags, then `/move` to archive), archive (`/move`), tags (`/tags`, removed by id), the title and reading progress (`POST /bookmarks/{id}`
   with `progress`), and removal from the reading list (`DELETE /bookmarks/{id}`). A failure (offline,
   `429`, a server error) stops the sync and keeps everything in Reader; the rest goes next time. A
   refused token (`401`) signs out.
@@ -34,7 +33,7 @@ scope is archived at Instapaper, never deleted.
   folder's id), the archive is the archive. Filing into a folder Instapaper doesn't have makes it
   there (`POST /folders`). Before #119 folders showed as tags; the first sync after the update takes
   that tag off and files the article in its folder instead.
-- **Liked** maps to Instapaper's liked (the old "star"); **archived** to its archive.
+- **Archived** maps to Instapaper's archive. Its like (the old "star") is neither read nor sent since Liked was removed (#188).
 - **The text** is always Reader's own (#134): a saved article is read like a feed article, through
   `ArticleExtractor`. Instapaper's parsed text (`GET /bookmarks/{id}/parse`) is not used: it is only
   given to the account that registered the app, and no Instaparser key is bought (#113). Texts kept
@@ -49,11 +48,11 @@ account apart (`LocalSaved`); those now live on the reading list, moved in once 
 
 Saved looks and works the same signed in or not (the owner's rule: services sync, they don't change
 the screens): it is always the library's items, with the Android app's rules (`web/src/lib/saved.ts`,
-#147): To read, All, the folders and the Archive as tabs, Liked and the tab's tags as chips, the type
+#147): To read, All, the folders and the Archive as tabs, the tab's tags as chips, the type
 filter, and notes and highlights on the cards of a folder. Signed in, `web/src/lib/serviceSync.ts` keeps
 it the same as Instapaper in the background, by the Android app's rules (`ServiceSync.kt`): what
 changed there since the last look comes in (`since`), what changed here goes there (title, link,
-tags, like, archive, folder, reading progress), within Instapaper's scope; the web app has the same
+tags, archive, folder, reading progress), within Instapaper's scope; the web app has the same
 import and scope in Settings › Instapaper (#145, `serviceSync.ts`, `serviceScope.ts`).
 `web/src/lib/instapaperSync.ts` is Instapaper's side (`InstapaperReadingList.kt`'s twin), through the
 Worker. It runs after every sync with the Reader account (when the page opens, a moment after a

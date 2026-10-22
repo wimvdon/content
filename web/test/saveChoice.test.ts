@@ -63,10 +63,11 @@ describe("the reader's Tags menu (#156)", () => {
     expect(withTag(choice, "news").tags).toEqual([]);
     expect(withTag(choice, "  ")).toBe(choice);
   });
-  it("shows the tags, else Liked, else nothing", () => {
-    expect(tagsLabel({ ...emptyChoice, liked: true, tags: ["News", "Brussels"] }, "Liked")).toBe("News, Brussels");
-    expect(tagsLabel({ ...emptyChoice, liked: true }, "Liked")).toBe("Liked");
-    expect(tagsLabel(emptyChoice, "Liked")).toBeNull();
+  it("shows the tags, else nothing", () => {
+    expect(tagsLabel({ ...emptyChoice, tags: ["News", "Brussels"] })).toBe("News, Brussels");
+    // Liked is gone (#188): an old like doesn't show.
+    expect(tagsLabel({ ...emptyChoice, liked: true })).toBeNull();
+    expect(tagsLabel(emptyChoice)).toBeNull();
   });
 });
 
