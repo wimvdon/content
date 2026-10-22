@@ -1,11 +1,11 @@
-import { Archive, BookOpen, CheckCheck, Circle, CircleCheck, Folder as FolderGlyph, Highlighter, Link2, ListFilter, Menu, Newspaper, Quote, RefreshCw, Rss, type LucideIcon } from "lucide-react";
+import { Archive, BookOpen, CheckCheck, Circle, CircleCheck, Folder as FolderGlyph, Highlighter, Link2, ListFilter, Menu, Newspaper, Quote, RefreshCw, Rss, Search, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useEscape } from "./ui/useEscape";
 import { app, useApp } from "@/lib/app";
 import { snippet } from "@/lib/html";
 import { dayLabel, plural, t } from "@/lib/i18n";
 import { articleKey, articlesFor, sortTime, unreadKeys, type Article, type Feed } from "@/lib/library";
-import { itemArticle, noteOf, sameTab, savedFolders, savedItems, showsNotes, sourceOf, tabTags, type NoteContent, type SavedFilter, type SavedTab, type SavedType } from "@/lib/saved";
+import { itemArticle, noteOf, savedItems, showsNotes, sourceOf, tabTags, type NoteContent, type SavedFilter, type SavedType } from "@/lib/saved";
 import { scrolledPast } from "@/lib/scrollRead";
 import { FeedIcon } from "./FeedIcon";
 import { Button } from "./ui/button";
@@ -19,19 +19,21 @@ type ListProps = {
   onAddFeed: () => void;
   onImport: () => void;
   onUndo: (keys: Set<string>) => void;
+  /** Opens Search (the title bar's button, #183). */
+  onSearch: () => void;
 };
 
 /** The articles of the chosen feed, folder or All articles, or Saved. */
 export function ArticleList(props: ListProps) {
   const { selection } = useApp();
   return selection.kind === "saved" ? (
-    <SavedArticles openKey={props.openKey} onOpen={props.onOpen} onMenu={props.onMenu} />
+    <SavedArticles openKey={props.openKey} onOpen={props.onOpen} onMenu={props.onMenu} onSearch={props.onSearch} />
   ) : (
     <FeedArticles {...props} />
   );
 }
 
-function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo }: ListProps) {
+function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, onSearch }: ListProps) {
   const { library, selection, settings, readThisVisit, refreshing, loaded, problems } = useApp();
   const articles = useMemo(
     () => articlesFor(library, selection, settings.unreadOnly, readThisVisit),
@@ -89,6 +91,7 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo }: 
             <p className="text-xs text-muted-foreground">{plural(settings.unreadOnly ? "unreadCount" : "unreadCountAll", unread)}</p>
           ) : null}
         </div>
+        <SearchButton onSearch={onSearch} />
         {library.feeds.length > 0 ? (
           <>
             <Button variant="ghost" size="icon" onClick={() => void app.refresh()} disabled={refreshing} aria-label={t("refresh")} title={t("refresh") + " (r)"}>
@@ -107,6 +110,7 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo }: 
           </>
         ) : null}
       </header>
+      <HomeTabs />
       {library.feeds.length > 0 ? (
         <div className="flex items-center gap-2 px-4 pt-2 pb-3">
           {/* Unread or All: two filter chips, one chosen, in a row above the list (as on Android). */}
@@ -163,19 +167,17 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo }: 
 }
 
 /**
- * Saved (#119, #147), as on Android: To read, each folder and Archive as tabs, then Liked and the
+ * Saved (#119, #147), as on Android: To read or the Archive (the home tabs, #183), then the
  * tab's tags as chips, and the type filter. To read is a list like the feeds; a folder and the
  * Archive are collections, so their items are cards with your note (or first highlight, or the
  * description), the site, tags and highlights.
  */
-function SavedArticles({ openKey, onOpen, onMenu }: { openKey: string | null; onOpen: (a: Article) => void; onMenu: () => void }) {
+function SavedArticles({ openKey, onOpen, onMenu, onSearch }: { openKey: string | null; onOpen: (a: Article) => void; onMenu: () => void; onSearch: () => void }) {
   const { library, savedFilter: filter, loaded } = useApp();
   const items = useMemo(() => savedItems(library, filter), [library, filter]);
-  const folders = useMemo(() => savedFolders(library), [library]);
   const tags = useMemo(() => tabTags(library, filter.tab), [library, filter.tab]);
   const set = (change: Partial<SavedFilter>) => app.showSaved({ ...filter, ...change });
   const plain = filter.tags.length === 0 && filter.type === null;
-  const tabs: SavedTab[] = [{ kind: "toread" }, ...folders.map((name): SavedTab => ({ kind: "folder", name })), { kind: "archive" }];
   return (
     <section className="flex h-full min-w-0 flex-col" aria-label={t("saved")}>
       <header className="flex items-center gap-1 px-2 pt-2 pb-1">
@@ -185,32 +187,13 @@ function SavedArticles({ openKey, onOpen, onMenu }: { openKey: string | null; on
         <div className="min-w-0 flex-1 px-2">
           <h1 className="truncate text-xl font-semibold">{t("saved")}</h1>
         </div>
+        <SearchButton onSearch={onSearch} />
         <Button variant="ghost" size="icon" onClick={app.addLink} aria-label={t("addLink")} title={t("addLink")}>
           <Link2 />
         </Button>
         <TypeFilter type={filter.type} onChange={(type) => set({ type })} />
       </header>
-      <nav aria-label={t("saved")} className="flex shrink-0 overflow-x-auto border-b px-2 [scrollbar-width:none]">
-        {tabs.map((tab) => {
-          const selected = sameTab(tab, filter.tab);
-          const Icon = tab.kind === "toread" ? BookOpen : tab.kind === "archive" ? Archive : FolderGlyph;
-          return (
-            <button
-              key={tab.kind === "folder" ? `f:${tab.name}` : tab.kind}
-              type="button"
-              aria-current={selected ? "page" : undefined}
-              onClick={() => !selected && set({ tab, tags: [] })}
-              className={cn(
-                "flex shrink-0 cursor-pointer items-center gap-1.5 border-b-[3px] px-3 py-3 text-sm font-medium whitespace-nowrap",
-                selected ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <Icon className="size-4" aria-hidden="true" />
-              <span className="max-w-40 truncate">{tabName(tab)}</span>
-            </button>
-          );
-        })}
-      </nav>
+      <HomeTabs />
       <div role="group" aria-label={t("filter")} className="flex shrink-0 items-center gap-2 overflow-x-auto px-4 py-2 [scrollbar-width:none]">
         {tags.map((tag) => {
           const selected = filter.tags.some((x) => x.toLowerCase() === tag.toLowerCase());
@@ -275,18 +258,47 @@ function SavedArticles({ openKey, onOpen, onMenu }: { openKey: string | null; on
 }
 
 /** A tab's name: To read, All, Archive or the folder's own. */
-function tabName(tab: SavedTab): string {
-  switch (tab.kind) {
-    case "toread":
-      return t("toRead");
-    case "all":
-      return t("all");
-    case "archive":
-      return t("archiveTab");
-    case "folder":
-      return tab.name;
-  }
+/** The title bar's Search button (#183): Search no longer has a place in a navigation bar. */
+function SearchButton({ onSearch }: { onSearch: () => void }) {
+  return (
+    <Button variant="ghost" size="icon" onClick={onSearch} aria-label={t("search")} title={t("search") + " (/)"}>
+      <Search />
+    </Button>
+  );
 }
+
+/**
+ * Feed, Saved and Archive as tabs under the title (#183), as on Android: they replace the navigation
+ * bar. Feed again while in it goes back to every feed.
+ */
+function HomeTabs() {
+  const { selection, savedFilter } = useApp();
+  const current = selection.kind !== "saved" ? "feed" : savedFilter.tab.kind === "archive" ? "archive" : "saved";
+  const tabs: { id: "feed" | "saved" | "archive"; label: string; go: () => void }[] = [
+    { id: "feed", label: t("feedTab"), go: () => (current === "feed" ? app.select({ kind: "all" }) : app.showSection(false)) },
+    { id: "saved", label: t("saved"), go: () => app.showSaved({ ...savedFilter, tab: { kind: "toread" } }) },
+    { id: "archive", label: t("archiveTab"), go: () => app.showSaved({ ...savedFilter, tab: { kind: "archive" } }) },
+  ];
+  return (
+    <nav aria-label={t("navigation")} className="flex shrink-0 border-b px-2">
+      {tabs.map((tab) => (
+        <button
+          key={tab.id}
+          type="button"
+          aria-current={current === tab.id ? "page" : undefined}
+          onClick={tab.go}
+          className={cn(
+            "flex-1 cursor-pointer border-b-[3px] px-3 py-3 text-sm font-medium whitespace-nowrap",
+            current === tab.id ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground",
+          )}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </nav>
+  );
+}
+
 
 /** The type filter: a filter button next to search, with All types, Articles, Videos and Audio. */
 function TypeFilter({ type, onChange }: { type: SavedType | null; onChange: (type: SavedType | null) => void }) {

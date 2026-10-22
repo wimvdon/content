@@ -5,7 +5,6 @@ import { ArticleView } from "./components/ArticleView";
 import { AddFeedDialog, ManageDialog, SettingsDialog } from "./components/Dialogs";
 import { SaveSheet } from "./components/SaveSheet";
 import { SavedManageDialog } from "./components/SavedManage";
-import { NavigationBar } from "./components/NavigationBar";
 import { SearchPanel } from "./components/SearchPanel";
 import { Sidebar } from "./components/Sidebar";
 import { Button } from "./components/ui/button";
@@ -171,10 +170,10 @@ export default function App() {
               onAddFeed={() => setDialog("add")}
               onImport={() => fileInput.current?.click()}
               onUndo={undoMarkAll}
+              onSearch={() => setSearching(true)}
             />
           )}
         </div>
-        <NavigationBar searching={searching} onSearch={() => setSearching(true)} onNavigate={() => setSearching(false)} />
       </main>
       <div className={`min-w-0 flex-1 ${openArticle ? "block" : "hidden lg:block"}`}>
         {openArticle ? (
