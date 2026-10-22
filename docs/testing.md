@@ -184,10 +184,10 @@ and then (always before a release):
 
 ## Reading a crash from a release build
 Release builds are minified, so stack traces show short names like `a.b.c`. Download
-`rss-reader-<version>-mapping.txt` from the matching GitHub Release and decode the trace with R8's
+`content-<version>-mapping.txt` from the matching GitHub Release and decode the trace with R8's
 `retrace` (Android SDK `cmdline-tools/latest/bin/retrace`):
 ```sh
-retrace rss-reader-<version>-mapping.txt stacktrace.txt
+retrace content-<version>-mapping.txt stacktrace.txt
 ```
 Or ask Claude Code to do it: give it the stack trace and the version.
 

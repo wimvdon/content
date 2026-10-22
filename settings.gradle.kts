@@ -21,5 +21,5 @@ dependencyResolutionManagement {
 }
 
 // Also used as the APK file name prefix: <rootProject.name>-<version>.apk
-rootProject.name = "rss-reader"
+rootProject.name = "content"
 include(":app")

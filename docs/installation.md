@@ -37,7 +37,7 @@ Without Android Studio, point Gradle at the SDK with `sdk.dir=/path/to/sdk` in `
 ## Testing a pull request
 
 Open the pull request › **Checks** › **CI** › **Artifacts** and install
-`rss-reader-<version>-debug.apk`. Debug builds have the application ID
+`content-<version>-debug.apk`. Debug builds have the application ID
 `be.wimvandonck.reader.debug` and the name **Reader Dev**, so they install next to the
 released app with their own feeds and settings. Uninstall it when you're done testing.
 
@@ -110,7 +110,7 @@ Pushing a tag (`git tag v1.2.3 && git push origin v1.2.3`) also releases.
 The workflow **refuses** to publish when you're not on `main`, when the tag already exists, when the
 version would not be higher than the last one, or when nothing changed since the last release.
 
-Each release also includes `rss-reader-<version>-mapping.txt`. You need it to read crash stack traces
+Each release also includes `content-<version>-mapping.txt`. You need it to read crash stack traces
 from release builds (see [testing.md](testing.md)).
 
 **Version numbers:** a release `X.Y.Z` gets `versionCode = X*10000 + Y*100 + Z` (so `Y` and `Z`
