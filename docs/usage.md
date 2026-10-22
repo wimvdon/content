@@ -149,8 +149,8 @@ share menu (see below). Once saved, Save makes way for two buttons side by side,
 **where it is** (To read, its folder or Archive): tap it for **To read** and **Archive**, then your
 folders and **New folder**. Picking **Archive** on the phone archives it and goes back to the list,
 with **Undo** in the message (it returns to where it was, in its folder); picking To read or a
-folder moves it there. Next to it, **its tags** (or **Liked**, with a filled heart): tap it for
-**Like**, then your tags (a check shows the ones it has; tap to add or take one off) and **Add a
+folder moves it there. Next to it, **its tags**: tap it for
+your tags (a check shows the ones it has; tap to add or take one off) and **Add a
 tag**. New folder and Add a tag open **Organise**, where you can also write a note. The text ends with **Read on website**.
 Reader remembers how far you read and opens the article there again.
 
@@ -167,8 +167,8 @@ their notes sync between your devices with your Reader account, and Saved's card
 one when the article has no note. On the phone a highlight stays within one paragraph.
 
 After **Save**, the sheet that opens says where it was saved, then has the **Folder** (To read and
-**Archive** first, then your folders, or **New folder** to make one), the **Tags** with **Like** in
-front, and a **Note**: one step from a feed article to its folder. **Save** keeps what you chose,
+**Archive** first, then your folders, or **New folder** to make one), the **Tags**,
+and a **Note**: one step from a feed article to its folder. **Save** keeps what you chose,
 also a folder or tag you typed but didn't add yet. **Remove** takes the save back, as if you never
 saved it ("Removed from Saved"); closing the sheet keeps it where it was just saved, unchanged.
 The same sheet, called **Organise**, opens when you swipe a saved article right in Saved. When it
@@ -197,7 +197,7 @@ The reader has a **Save** button (bookmark) and a **Share** button. In **Setting
 share** you choose, for each, where it sends the article:
 
 - **Saved, in this app** (Save only, and its default): the article goes to **To read** in Saved,
-  and a sheet opens to like and tag it (see Saved).
+  and a sheet opens to tag it (see Saved).
 - **an app**, picked from the apps on your phone that accept shared links: the article goes
   straight there, without the share menu.
 - **Share menu**: Android's share menu opens, so you pick an app each time. This is Share's
@@ -211,7 +211,7 @@ same, and what is in Saved is also kept in the connected service.
 **Saving from other apps.** In Chrome or any app that shares links, tap Share and pick
 **Reader**. Only the **Save to Reader** sheet opens, over the app you were in (the rest of Reader
 stays closed): the site, then the **Folder** (To read, **Archive** for a link you keep
-for reference, your folders, or **New folder**), the **Tags** with **Like** in front, and a **Note**. **Save** saves
+for reference, your folders, or **New folder**), the **Tags**, and a **Note**. **Save** saves
 it and says where it went, and you are back in that app; **Cancel** saves nothing. **Add link** in
 Saved opens the same sheet with a field for the address. A
 link shared without a title gets the page's own title, description and picture. Shared text without
@@ -267,7 +267,7 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
 - **Swipe in To read and Archive:** left archives (with **Undo**; in Archive, back to read),
   right opens **File in a folder**.
 - **Tabs** under the title: **To read**, each **folder**, and **Archive** (to see everything at
-  once, archive included, use Search with nothing typed and the **Saved** chip). Under them, chips filter the tab: **Liked** (set apart by its heart), then the tab's
+  once, archive included, use Search with nothing typed and the **Saved** chip). Under them, chips filter the tab: the tab's
   tags, most used first; pick several to see articles with all of them. The **filter button** next to
   search picks a type: Articles, Videos or Audio (read from the link: YouTube or Vimeo are videos,
   podcast and Spotify episode links are audio).
@@ -277,7 +277,7 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   your note (or else your first highlight, quoted, or else the article's description), the site,
   its tags and how many highlights it has.
 - In the reader, the bar at the bottom: **where it is** (To read and Archive, then your folders) and
-  **its tags** (Like, then your tags), each a menu. **Remove from Saved** is in ⋮; removing asks first and
+  **its tags**, each a menu. **Remove from Saved** is in ⋮; removing asks first and
   takes the note, tags and highlights with it (Archive keeps it searchable instead).
 - **☰ › Folders and tags**: every folder and every tag, with how many articles have it; tap one to
   rename it (renaming it to another one's name joins the two), or remove it: a tag from every
@@ -286,7 +286,7 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   (the link button next to the type filter). In an article the top bar is the reading (the full
   article, Aa, ⋮) and the bar under it the library, with Share at its right end: **Save** before it is saved (it opens the same sheet), then
   the same two menus as on the phone: **where it is** (To read and Archive, your folders) and **its
-  tags** (Like, your tags). Archiving goes back to the list with **Undo**. Keys: **j**/**k** next
+  tags**. Archiving goes back to the list with **Undo**. Keys: **j**/**k** next
   and previous, **m** read or unread, **o** open on the website, **r** refresh, **/** search, and
   **Esc** closes a menu, then the article.
 - **☰ › Connected services**: the service Saved is also kept in, Instapaper,
@@ -304,10 +304,10 @@ Instapaper:
 
 - **Import:** right after signing in, ☰ › Connected services › Instapaper asks what to bring in, once:
   **Import everything**, or **Choose folders** (and its archive). Each article arrives where it
-  belongs: archived in the Archive, a folder in its folder, liked, with its tags. **Import again**
+  belongs: archived in the Archive, a folder in its folder, with its tags. **Import again**
   does it again later.
 - **What it syncs:** everything in Saved (the default), or **Only these folders** (To read counts as
-  one). What you add, file, archive, like or tag there, and how far you read, goes both ways, while
+  one). What you add, file, archive or tag there, and how far you read, goes both ways, while
   the app is open (when it opens, a moment after a change, and when you pull down on Saved). An
   article you file out of those folders is archived in Instapaper, never deleted; unticking a folder
   says first how many articles that is.

@@ -249,20 +249,6 @@ fun SaveSheet(
                 onChange = { choice = choice.copy(tags = it) },
                 name = tagName,
                 onNameChange = { tagName = it },
-                leading = {
-                    FilterChip(
-                        selected = choice.liked,
-                        onClick = { choice = choice.copy(liked = !choice.liked) },
-                        label = { Text(stringResource(R.string.action_like)) },
-                        leadingIcon = {
-                            Icon(
-                                painterResource(if (choice.liked) R.drawable.ic_favorite_filled else R.drawable.ic_favorite),
-                                contentDescription = null,
-                                modifier = Modifier.size(FilterChipDefaults.IconSize),
-                            )
-                        },
-                    )
-                },
             )
             SheetSection(stringResource(R.string.note_title))
             OutlinedTextField(

@@ -361,7 +361,7 @@ fun HomeScreen(
                             actions.onOpenItem,
                             onArchive = actions.onArchiveItem,
                             onFile = actions.onFileItem,
-                            onClearFilters = { actions.onSavedFilter(reading.filter.copy(likedOnly = false, tags = emptySet(), type = null)) },
+                            onClearFilters = { actions.onSavedFilter(reading.filter.copy(tags = emptySet(), type = null)) },
                         )
                     }
                 } else {

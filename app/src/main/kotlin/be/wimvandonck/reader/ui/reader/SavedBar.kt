@@ -73,15 +73,14 @@ internal fun RowScope.SavedBar(item: ReaderItem) {
     }
     // Next to the folder: the bar's right end is Share.
     Box(Modifier.weight(1f, fill = false)) {
-        val liked = stringResource(R.string.reading_list_liked)
-        val tagsSpoken = "$tagsTitle: ${SaveChoices.tagsLabel(choice, liked) ?: "–"}"
+        val tagsSpoken = "$tagsTitle: ${SaveChoices.tagsLabel(choice) ?: "–"}"
         TextButton(onClick = { tagsOpen = true }, modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = tagsSpoken; role = Role.DropdownList }) {
             Icon(
-                painterResource(if (choice.liked) R.drawable.ic_favorite_filled else R.drawable.ic_label),
+                painterResource(R.drawable.ic_label),
                 contentDescription = null,
             )
             Text(
-                SaveChoices.tagsLabel(choice, liked) ?: stringResource(R.string.tags_title),
+                SaveChoices.tagsLabel(choice) ?: stringResource(R.string.tags_title),
                 modifier = Modifier.padding(start = 8.dp),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -89,8 +88,6 @@ internal fun RowScope.SavedBar(item: ReaderItem) {
             Icon(painterResource(R.drawable.ic_expand_more), contentDescription = null, modifier = Modifier.size(18.dp))
         }
         DropdownMenu(expanded = tagsOpen, onDismissRequest = { tagsOpen = false }) {
-            // Like stays open on the menu, like the tags: several can change at once.
-            MenuChoice(if (choice.liked) R.drawable.ic_favorite_filled else R.drawable.ic_favorite, stringResource(R.string.action_like), choice.liked, item.onLike)
             (item.tags + choice.tags.filterNot { t -> item.tags.any { it.equals(t, ignoreCase = true) } }).forEach { tag ->
                 MenuChoice(R.drawable.ic_label, tag, choice.tags.any { it.equals(tag, ignoreCase = true) }) { item.onTag(tag) }
             }

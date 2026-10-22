@@ -64,7 +64,8 @@ class InstapaperReadingList(
             imageUrl = b.imageUrl,
             addedAt = b.time * 1000,
             archived = b.archived,
-            liked = b.liked,
+            // Liked is gone (#188): Instapaper's like is neither read nor sent.
+            liked = false,
             tags = tags,
             folder = folder,
             progress = b.progress,
@@ -109,7 +110,6 @@ class InstapaperReadingList(
         guarded {
             val id = have.remoteId.toLongOrNull() ?: throw ServiceException(ServiceProblem.Refused)
             fun List<String>.has(tag: String) = any { it.equals(tag, ignoreCase = true) }
-            if (want.liked != have.liked) client.like(id, want.liked)
             val removed = have.tags.filter { !want.tags.has(it) }
             val added = want.tags.filter { !have.tags.has(it) }
             val removeIds = removed.mapNotNull { tagIds[it.lowercase()] }

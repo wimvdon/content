@@ -200,7 +200,6 @@
     <string name="action_archive">Archivieren</string>
     <string name="saved_archived">Archiviert</string>
     <string name="action_unarchive">Wieder zu lesen</string>
-    <string name="action_like">Gefällt mir</string>
     <string name="action_unlike">Gefällt mir nicht mehr</string>
     <string name="add_link_title">Link hinzufügen</string>
     <string name="add_link_address">Webadresse</string>
@@ -210,7 +209,6 @@
     <string name="duration_minutes">%d Min.</string>
     <string name="reading_list_to_read">Zu lesen</string>
     <string name="reading_list_archive">Archiv</string>
-    <string name="reading_list_liked">Gefällt mir</string>
     <string name="reading_list_about">etwa %s</string>
     <string name="reading_list_empty_title">Nichts zu lesen</string>
     <string name="reading_list_archive_empty_title">Noch nichts archiviert</string>

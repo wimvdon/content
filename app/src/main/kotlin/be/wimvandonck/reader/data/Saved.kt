@@ -19,10 +19,9 @@ sealed interface SavedTab {
 /** What kind of page a saved link is, for the type filter (#119): read from its link. */
 enum class SavedType { Article, Video, Audio }
 
-/** What Saved shows: a tab, and within it only liked ones, only some tags (all of them), one type. */
+/** What Saved shows: a tab, and within it only some tags (all of them), one type. */
 data class SavedFilter(
     val tab: SavedTab = SavedTab.ToRead,
-    val likedOnly: Boolean = false,
     val tags: Set<String> = emptySet(),
     val type: SavedType? = null,
 )
@@ -99,7 +98,6 @@ object Saved {
         library.items
             .filter { item ->
                 isIn(item, filter.tab) &&
-                    (!filter.likedOnly || item.liked) &&
                     filter.tags.all { t -> item.tags.any { it.equals(t, ignoreCase = true) } } &&
                     (filter.type == null || typeOf(item.url) == filter.type)
             }.sortedByDescending { it.readingList!!.addedAt }

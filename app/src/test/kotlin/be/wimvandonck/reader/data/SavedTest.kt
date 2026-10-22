@@ -57,8 +57,7 @@ class SavedTest {
     }
 
     @Test
-    fun `liked, tags (all of them) and the type filter within a tab`() {
-        assertEquals(listOf("a.example/3"), keys(SavedFilter(SavedTab.All, likedOnly = true)))
+    fun `tags (all of them) and the type filter within a tab`() {
         assertEquals(listOf("a.example/3", "a.example/2"), keys(SavedFilter(SavedTab.All, tags = setOf("AI"))))
         assertEquals(listOf("a.example/2"), keys(SavedFilter(SavedTab.All, tags = setOf("ai", "news"))))
         assertEquals(listOf("youtu.be/x"), keys(SavedFilter(SavedTab.All, type = SavedType.Video)))

@@ -2,6 +2,14 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-22: Liked is removed (#188)
+
+- No Like button, no Liked chip and no heart on cards, on Android and the web. Tags do the job.
+- Instapaper's like (the old "star") is no longer read or sent; stars already there stay.
+- The `liked` field stays in the database and the sync format for now, unused, so no database
+  migration is needed and an older app on another device reads the same file. Old likes simply
+  no longer show.
+
 ## 2026-10-22: Raindrop.io is removed (#179)
 
 - Instapaper stays the only connected service. Raindrop.io's code is gone from the Android app

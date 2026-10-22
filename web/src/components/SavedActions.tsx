@@ -1,4 +1,4 @@
-import { Archive, BookOpen, Check, ChevronDown, Folder as FolderGlyph, Heart, ListPlus, Plus, Quote, Share2, Tag, Trash2 } from "lucide-react";
+import { Archive, BookOpen, Check, ChevronDown, Folder as FolderGlyph, ListPlus, Plus, Quote, Share2, Tag, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { app, useApp } from "@/lib/app";
 import { plural, t } from "@/lib/i18n";
@@ -102,14 +102,12 @@ export function LibraryBar({
       </div>
       <div className="relative min-w-0">
         <Button variant="ghost" onClick={() => setOpen(open === "tags" ? null : "tags")} aria-expanded={open === "tags"} aria-haspopup="menu" title={t("tags")} className="max-w-full">
-          {choice.liked ? <Heart className="fill-current text-primary" /> : <Tag />}
-          <span className="truncate">{tagsLabel(choice, t("liked")) ?? t("tags")}</span>
+          <Tag />
+          <span className="truncate">{tagsLabel(choice) ?? t("tags")}</span>
           <ChevronDown />
         </Button>
         {open === "tags" ? (
           <Menu onClose={close}>
-            {/* Like and the tags leave the menu open: several can change at once. */}
-            <MenuChoice icon={<Heart className={cn(choice.liked && "fill-current")} />} label={t("like")} selected={choice.liked} onClick={() => app.likeItem(item.key, !choice.liked)} />
             {tags.map((tag) => (
               <MenuChoice
                 key={tag}

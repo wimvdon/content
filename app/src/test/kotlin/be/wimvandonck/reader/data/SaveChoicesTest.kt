@@ -93,10 +93,11 @@ class SaveChoicesTest {
     }
 
     @Test
-    fun `the Tags button shows the tags, else Liked, else nothing`() {
-        assertEquals("News, Brussels", SaveChoices.tagsLabel(SaveChoice(liked = true, tags = listOf("News", "Brussels")), "Liked"))
-        assertEquals("Liked", SaveChoices.tagsLabel(SaveChoice(liked = true), "Liked"))
-        assertNull(SaveChoices.tagsLabel(SaveChoice(), "Liked"))
+    fun `the Tags button shows the tags, else nothing`() {
+        assertEquals("News, Brussels", SaveChoices.tagsLabel(SaveChoice(tags = listOf("News", "Brussels"))))
+        // Liked is gone (#188): an old like doesn't show.
+        assertNull(SaveChoices.tagsLabel(SaveChoice(liked = true)))
+        assertNull(SaveChoices.tagsLabel(SaveChoice()))
     }
 
     @Test
