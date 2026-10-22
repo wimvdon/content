@@ -75,7 +75,7 @@ export function LibraryBar({
   return (
     <div className="flex items-center gap-1 border-t bg-muted/40 px-2 py-2">
       <div className="relative min-w-0">
-        <Button variant="ghost" onClick={() => setOpen(open === "places" ? null : "places")} aria-expanded={open === "places"} aria-haspopup="menu" title={t("folder")} className="max-w-full">
+        <Button variant="ghost" onClick={() => setOpen(open === "places" ? null : "places")} aria-expanded={open === "places"} aria-haspopup="menu" title={t("savedPlace")} className="max-w-full">
           <PlaceIcon place={choice.place} />
           <span className="truncate">{placeName(choice.place)}</span>
           <ChevronDown />
@@ -96,7 +96,6 @@ export function LibraryBar({
                 }}
               />
             ))}
-            <MenuChoice icon={<Plus />} label={t("newFolder")} onClick={organise} />
           </Menu>
         ) : null}
       </div>

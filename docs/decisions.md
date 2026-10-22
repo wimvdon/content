@@ -2,6 +2,15 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-22: Folders for feeds, tags for saved (#186)
+
+- Feeds stay grouped in folders, as in OPML; saved articles are grouped with tags. Simpler than
+  tags everywhere.
+- A feed's tag (#196) now always mirrors its folder: moving a feed or renaming a folder moves its
+  Feed chip too, and a feed outside folders has no tag. No separate feed-tag editing.
+- The save and Organise sheets and the reader's place menu no longer offer New folder: To read or
+  Archive, plus tags. ☰ › Folders and tags is now ☰ › Tags.
+
 ## 2026-10-22: The APK is called content-<version>.apk
 
 - The Gradle project name, which names the APK and the mapping file, is now `content` (#178).

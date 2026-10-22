@@ -240,7 +240,7 @@ fun SaveSheet(
                     }
                 }
             }
-            SheetSection(stringResource(R.string.folder_field))
+            SheetSection(stringResource(R.string.saved_place))
             FolderChips(choice.place, folders, onChange = { choice = choice.copy(place = it) }, name = folderName, onNameChange = { folderName = it })
             SheetSection(stringResource(R.string.tags_title))
             TagsEditor(
@@ -338,13 +338,7 @@ fun FolderChips(
                     modifier = Modifier.semantics { role = Role.RadioButton },
                 )
             }
-            if (!making) {
-                AssistChip(
-                    onClick = { making = true },
-                    label = { Text(stringResource(R.string.folder_new)) },
-                    leadingIcon = { Icon(painterResource(R.drawable.ic_add), contentDescription = null, modifier = Modifier.size(18.dp)) },
-                )
-            }
+            // Saved has no folders any more (#186): To read or Archive, and tags below.
         }
         if (making) {
             OutlinedTextField(

@@ -290,6 +290,7 @@
     <string name="saved_title">Guardados</string>
     <string name="saved_folders">Carpetas</string>
     <string name="folder_field">Carpeta</string>
+    <string name="saved_place">Dónde</string>
     <string name="saved_to">Guardado en %1$s</string>
     <string name="type_filter">Tipo</string>
     <string name="type_filter_on">Tipo: %1$s</string>
@@ -298,7 +299,7 @@
     <string name="type_articles">Artículos</string>
     <string name="type_videos">Vídeos</string>
     <string name="type_audio">Audio</string>
-    <string name="menu_folders_tags">Carpetas y etiquetas</string>
+    <string name="menu_folders_tags">Etiquetas</string>
     <string name="saved_folder_rename">Renombrar carpeta</string>
     <string name="saved_folder_remove">Quitar carpeta</string>
     <string name="saved_folder_remove_body">¿Quitar la carpeta %1$s? Sus elementos van al Archivo.</string>

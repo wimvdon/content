@@ -71,16 +71,34 @@ export const articleKey = (a: Article) => keyOf(a.feedUrl, a.id);
 export const sortTime = (a: Article) => a.publishedAt ?? a.fetchedAt;
 
 /**
- * Feed folders become tags (#187): a feed in a folder that has no tags yet gets the folder's name as
- * its tag. The same library when there is nothing to do. Applied after every change, so a feed synced
- * in from an older app gets it too; the folder stays until the screens no longer use folders. Like the
- * Android app's Library.feedFoldersToTags.
+ * A feed's tag mirrors its folder (#186): feeds are grouped in folders, as in OPML, and the Feed tab's
+ * chips filter on that tag. A feed in a folder has the folder's name as its only tag, a feed outside
+ * folders none, so moving a feed or renaming a folder moves its chip too. The same library when
+ * everything already matches. Applied after every change. Like the Android app's Library.feedFoldersToTags.
  */
 export function feedFoldersToTags(lib: Library): Library {
   const titles = new Map(lib.folders.map((f) => [f.id, f.title.trim()]));
-  const titleOf = (f: Feed) => (f.folderId ? titles.get(f.folderId) : undefined);
-  if (!lib.feeds.some((f) => !f.tags?.length && titleOf(f))) return lib;
-  return { ...lib, feeds: lib.feeds.map((f) => (!f.tags?.length && titleOf(f) ? { ...f, tags: [titleOf(f)!] } : f)) };
+  const mirror = (f: Feed): string[] => {
+    const title = f.folderId ? titles.get(f.folderId) : undefined;
+    return title ? [title] : [];
+  };
+  const same = (f: Feed) => {
+    const want = mirror(f);
+    const have = f.tags ?? [];
+    return have.length === want.length && have.every((t, i) => t === want[i]);
+  };
+  if (lib.feeds.every(same)) return lib;
+  return {
+    ...lib,
+    feeds: lib.feeds.map((f) => {
+      if (same(f)) return f;
+      const want = mirror(f);
+      if (want.length) return { ...f, tags: want };
+      const rest = { ...f };
+      delete rest.tags;
+      return rest;
+    }),
+  };
 }
 
 export function newFeed(url: string, title: string): Feed {

@@ -291,14 +291,19 @@ class LibraryTest {
     }
 
     @Test
-    fun `a feed's folder becomes its tag once, and a feed with tags keeps them (#187)`() {
+    fun `a feed's tag always mirrors its folder (#186)`() {
         val library =
             Library(
-                feeds = listOf(Feed("https://a/feed", "A", folderId = "f1"), Feed("https://b/feed", "B", folderId = "f1", tags = listOf("Mine")), Feed("https://c/feed", "C")),
-                folders = listOf(Folder("f1", "News")),
+                feeds = listOf(Feed("https://a/feed", "A", folderId = "f1"), Feed("https://b/feed", "B", folderId = "f1", tags = listOf("Old")), Feed("https://c/feed", "C", tags = listOf("Gone"))),
+                folders = listOf(Folder("f1", "News"), Folder("f2", "Tech")),
             )
-        val moved = library.feedFoldersToTags()
-        assertEquals(listOf(listOf("News"), listOf("Mine"), emptyList()), moved.feeds.map { it.tags })
-        assertSame(moved, moved.feedFoldersToTags())
+        val mirrored = library.feedFoldersToTags()
+        assertEquals(listOf(listOf("News"), listOf("News"), emptyList()), mirrored.feeds.map { it.tags })
+        assertSame(mirrored, mirrored.feedFoldersToTags())
+        // Moved to another folder, or the folder renamed: the tag follows.
+        val moved = mirrored.moveFeed("https://a/feed", "f2").feedFoldersToTags()
+        assertEquals(listOf("Tech"), moved.feed("https://a/feed")!!.tags)
+        val renamed = moved.copy(folders = moved.folders.map { if (it.id == "f1") it.copy(title = "World") else it }).feedFoldersToTags()
+        assertEquals(listOf("World"), renamed.feed("https://b/feed")!!.tags)
     }
 }

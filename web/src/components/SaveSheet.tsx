@@ -103,7 +103,7 @@ function Sheet({
         {kind === "new" ? (
           <Input autoFocus value={address} onChange={(e) => setAddress(e.target.value)} onKeyDown={(e) => e.key === "Enter" && link && save()} placeholder={t("webAddress")} aria-label={t("webAddress")} type="url" inputMode="url" />
         ) : null}
-        <Section title={t("folder")}>
+        <Section title={t("savedPlace")}>
           <FolderChips place={choice.place} folders={savedFolders(library)} onChange={(place) => setChoice({ ...choice, place })} name={folderName} setName={setFolderName} />
         </Section>
         <Section title={t("tags")}>
@@ -147,7 +147,7 @@ function FolderChips({ place, folders, onChange, name, setName }: { place: Place
   const [making, setMaking] = useState(false);
   return (
     <div className="space-y-2">
-      <div role="radiogroup" aria-label={t("folder")} className="flex flex-wrap items-center gap-1.5">
+      <div role="radiogroup" aria-label={t("savedPlace")} className="flex flex-wrap items-center gap-1.5">
         {places(folders, place).map((option) => {
           const selected = samePlace(option, place);
           const Icon = selected ? Check : option.kind === "toread" ? BookOpen : option.kind === "archive" ? Archive : FolderGlyph;
@@ -158,12 +158,7 @@ function FolderChips({ place, folders, onChange, name, setName }: { place: Place
             </button>
           );
         })}
-        {!making ? (
-          <button type="button" onClick={() => setMaking(true)} className={cn(chip, "hover:bg-muted")}>
-            <Plus className="size-4" aria-hidden="true" />
-            {t("newFolder")}
-          </button>
-        ) : null}
+        {/* Saved has no folders any more (#186): To read or Archive, and tags below. */}
       </div>
       {making ? (
         <form

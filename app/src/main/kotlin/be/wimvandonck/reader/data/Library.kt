@@ -87,15 +87,17 @@ data class Library(
     fun feed(url: String): Feed? = feeds.firstOrNull { it.url == url }
 
     /**
-     * Feed folders become tags (#187): a feed in a folder that has no tags yet gets the folder's
-     * name as its tag. The same library when there is nothing to do. Applied when the library is
-     * read and after every change, so a feed synced in from an older app gets it too. The folder
-     * itself stays until the screens no longer use folders.
+     * A feed's tag mirrors its folder (#186): feeds are grouped in folders, as in OPML, and the Feed
+     * tab's chips filter on that tag. A feed in a folder has the folder's name as its only tag, a
+     * feed outside folders none, so moving a feed or renaming a folder moves its chip too. The same
+     * library when everything already matches. Applied when the library is read and after every
+     * change, so a feed synced in from an older app gets it too.
      */
     fun feedFoldersToTags(): Library {
         val titles = folders.associate { it.id to it.title.trim() }
-        if (feeds.none { it.tags.isEmpty() && !titles[it.folderId].isNullOrEmpty() }) return this
-        return copy(feeds = feeds.map { f -> titles[f.folderId]?.takeIf { f.tags.isEmpty() && it.isNotEmpty() }?.let { f.copy(tags = listOf(it)) } ?: f })
+        fun mirror(f: Feed): List<String> = listOfNotNull(titles[f.folderId]?.takeIf { it.isNotEmpty() })
+        if (feeds.all { it.tags == mirror(it) }) return this
+        return copy(feeds = feeds.map { f -> mirror(f).let { t -> if (f.tags == t) f else f.copy(tags = t) } })
     }
 
     fun folder(id: String): Folder? = folders.firstOrNull { it.id == id }

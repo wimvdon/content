@@ -209,18 +209,21 @@ describe("feed tags (#187)", () => {
     expect(text.match(/"tags"/g)).toHaveLength(1);
     expect(S.decode(text)!.feeds).toEqual(doc.feeds);
   });
-  it("a feed's folder becomes its tag once; a feed with tags keeps them", () => {
+  it("a feed's tag always mirrors its folder (#186)", () => {
     const lib: Library = {
       ...emptyLibrary(),
       folders: [{ id: "f1", title: "News", icon: "folder" }],
       feeds: [
         { ...newFeed("https://a/feed", "A"), folderId: "f1" },
-        { ...newFeed("https://b/feed", "B"), folderId: "f1", tags: ["Mine"] },
+        { ...newFeed("https://b/feed", "B"), folderId: "f1", tags: ["Old"] },
         newFeed("https://c/feed", "C"),
       ],
     };
     const moved = feedFoldersToTags(lib);
-    expect(moved.feeds.map((f) => f.tags)).toEqual([["News"], ["Mine"], undefined]);
+    expect(moved.feeds.map((f) => f.tags)).toEqual([["News"], ["News"], undefined]);
     expect(feedFoldersToTags(moved)).toBe(moved);
+    // The folder renamed: the tag follows.
+    const renamed = feedFoldersToTags({ ...moved, folders: [{ id: "f1", title: "World", icon: "folder" }] });
+    expect(renamed.feeds[0].tags).toEqual(["World"]);
   });
 });
