@@ -63,6 +63,9 @@ sealed interface FeedSelection {
     data class InFolder(val folderId: String) : FeedSelection
 
     data class Single(val feedUrl: String) : FeedSelection
+
+    /** The feeds with one tag (#187): the Feed tab's chips. */
+    data class Tagged(val tag: String) : FeedSelection
 }
 
 /**
@@ -313,7 +316,11 @@ data class Library(
             FeedSelection.All -> selection
             is FeedSelection.InFolder -> if (folder(selection.folderId) != null) selection else FeedSelection.All
             is FeedSelection.Single -> if (feed(selection.feedUrl) != null) selection else FeedSelection.All
+            is FeedSelection.Tagged -> if (feedTags().any { it.equals(selection.tag, ignoreCase = true) }) selection else FeedSelection.All
         }
+
+    /** Every feed tag (#187), sorted (case ignored): the Feed tab's chips. */
+    fun feedTags(): List<String> = feeds.flatMap { it.tags }.distinctBy { it.lowercase() }.sortedBy { it.lowercase() }
 
     /** Unread counts for All, every folder and every feed, for the drawer. */
     fun unreadCounts(): Map<FeedSelection, Int> =
@@ -321,6 +328,7 @@ data class Library(
             put(FeedSelection.All, unreadCount(FeedSelection.All))
             folders.forEach { put(FeedSelection.InFolder(it.id), unreadCount(FeedSelection.InFolder(it.id))) }
             feeds.forEach { put(FeedSelection.Single(it.url), unreadCount(FeedSelection.Single(it.url))) }
+            feedTags().forEach { put(FeedSelection.Tagged(it), unreadCount(FeedSelection.Tagged(it))) }
         }
 
     fun unreadCount(selection: FeedSelection): Int = articles.count { selection.includes(it) && !it.read }
@@ -330,6 +338,7 @@ data class Library(
             FeedSelection.All -> feed(article.feedUrl) != null
             is FeedSelection.InFolder -> feed(article.feedUrl)?.folderId == folderId
             is FeedSelection.Single -> article.feedUrl == feedUrl
+            is FeedSelection.Tagged -> feed(article.feedUrl)?.tags.orEmpty().any { it.equals(tag, ignoreCase = true) }
         }
 
     companion object {

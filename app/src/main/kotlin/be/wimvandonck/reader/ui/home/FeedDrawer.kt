@@ -54,11 +54,8 @@ import be.wimvandonck.reader.data.SavedFilter
 import be.wimvandonck.reader.data.SavedTab
 
 /**
- * The app's navigation: Feeds and Saved as sections that fold open and shut. Feeds: All articles,
- * each folder with its feeds and the feeds outside folders (each with its unread count). Saved: To
- * read, All, its folders and Archive. Then Manage feeds, Folders and tags, Connected services and
- * Settings. The same wherever the app is (DESIGN.md), with the section being shown open and the
- * other folded shut.
+ * The ☰ menu: the app's name, then what you manage: feeds, tags, connected services and settings.
+ * Feed and Saved are in the navigation bar, and their tabs and tag chips choose what the list shows.
  */
 @Composable
 fun FeedDrawer(
@@ -76,13 +73,6 @@ fun FeedDrawer(
     toReadCount: Int = 0,
     onSavedFilter: (SavedFilter) -> Unit = {},
 ) {
-    // While Saved is shown, no feed section is selected.
-    @Suppress("NAME_SHADOWING")
-    val selection: FeedSelection? = selection.takeIf { !inSaved }
-    // The section you're in is open, the other folded shut, so the drawer stays short. Folding by
-    // hand lasts until you go to the other section.
-    var feedsOpen by rememberSaveable(inSaved) { mutableStateOf(!inSaved) }
-    var savedOpen by rememberSaveable(inSaved) { mutableStateOf(inSaved) }
     ModalDrawerSheet {
         Column(
             Modifier
@@ -112,54 +102,7 @@ fun FeedDrawer(
                     modifier = Modifier.semantics { heading() },
                 )
             }
-            SectionHeader(
-                title = stringResource(R.string.feeds_title),
-                open = feedsOpen,
-                // Folded shut, the header keeps the unread count.
-                count = if (feedsOpen) 0 else unreadCounts[FeedSelection.All] ?: 0,
-                onToggle = { feedsOpen = !feedsOpen },
-            )
-            AnimatedVisibility(visible = feedsOpen, enter = expandVertically(), exit = shrinkVertically()) {
-                Column {
-                    NavigationDrawerItem(
-                        label = { Text(stringResource(R.string.feeds_all)) },
-                        icon = { Icon(painterResource(R.drawable.ic_rss_feed), contentDescription = null) },
-                        badge = { UnreadBadge(unreadCounts[FeedSelection.All] ?: 0) },
-                        selected = selection == FeedSelection.All,
-                        onClick = { onSelect(FeedSelection.All) },
-                    )
-                    for (folder in folders) {
-                        val folderSelection = FeedSelection.InFolder(folder.id)
-                        NavigationDrawerItem(
-                            label = { Text(folder.title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                            icon = { Icon(rememberFolderIconPainter(folder.icon), contentDescription = null) },
-                            badge = { UnreadBadge(unreadCounts[folderSelection] ?: 0) },
-                            selected = selection == folderSelection,
-                            onClick = { onSelect(folderSelection) },
-                        )
-                        for (feed in feeds.filter { it.folderId == folder.id }) {
-                            FeedItem(feed, selection, unreadCounts, onSelect, Modifier.padding(start = 24.dp))
-                        }
-                    }
-                    val loose = feeds.filter { feed -> feed.folderId == null || folders.none { it.id == feed.folderId } }
-                    if (loose.isNotEmpty() && folders.isNotEmpty()) HorizontalDivider(Modifier.padding(vertical = 8.dp, horizontal = 16.dp))
-                    for (feed in loose) {
-                        FeedItem(feed, selection, unreadCounts, onSelect)
-                    }
-                }
-            }
-            if (saved != null) {
-                SectionHeader(
-                    title = stringResource(R.string.saved_title),
-                    open = savedOpen,
-                    count = if (savedOpen) 0 else toReadCount,
-                    onToggle = { savedOpen = !savedOpen },
-                    modifier = Modifier.padding(top = 8.dp),
-                )
-                AnimatedVisibility(visible = savedOpen, enter = expandVertically(), exit = shrinkVertically()) {
-                    Column { SavedSection(saved.filter.tab.takeIf { inSaved }, Saved.folderCounts(saved.library), toReadCount, onSavedFilter) }
-                }
-            }
+            // Feed and Saved are the navigation bar's (#183); the menu holds what you manage.
             HorizontalDivider(Modifier.padding(vertical = 12.dp, horizontal = 16.dp))
             NavigationDrawerItem(
                 label = { Text(stringResource(R.string.menu_manage_feeds)) },

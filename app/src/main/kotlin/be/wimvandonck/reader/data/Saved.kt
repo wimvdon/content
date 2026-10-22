@@ -60,7 +60,8 @@ object Saved {
      * Whether a tab shows its items as notes (cards) rather than as rows like the feeds. Only To
      * read is a list to read through; a folder and the Archive are collections.
      */
-    fun showsNotes(tab: SavedTab): Boolean = tab != SavedTab.ToRead
+    @Suppress("UNUSED_PARAMETER")
+    fun showsNotes(tab: SavedTab): Boolean = true
 
     /** A saved item as a note card. */
     fun note(item: Item): NoteContent = NoteContent(item.title, item.imageUrl, cardBody(item), item.host, item.tags, item.highlights.size, item.liked)

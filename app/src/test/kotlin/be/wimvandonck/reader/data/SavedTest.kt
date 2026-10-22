@@ -147,7 +147,8 @@ class SavedTest {
 
     @Test
     fun `only To read is rows, folders and the Archive are notes`() {
-        assertEquals(false, Saved.showsNotes(SavedTab.ToRead))
+        // Saved is always notes now, To read too.
+        assertEquals(true, Saved.showsNotes(SavedTab.ToRead))
         assertEquals(true, Saved.showsNotes(SavedTab.Folder("Work")))
         assertEquals(true, Saved.showsNotes(SavedTab.Archive))
     }
