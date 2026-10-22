@@ -92,8 +92,6 @@ import be.wimvandonck.reader.data.needsFullText
 import be.wimvandonck.reader.data.wantsFullText
 import be.wimvandonck.reader.instapaper.InstapaperNotice
 import be.wimvandonck.reader.instapaper.InstapaperState
-import be.wimvandonck.reader.raindrop.RaindropNotice
-import be.wimvandonck.reader.raindrop.RaindropState
 import be.wimvandonck.reader.rssReaderApp
 import be.wimvandonck.reader.ui.feeds.FeedsActions
 import be.wimvandonck.reader.ui.feeds.FeedsScreen
@@ -197,8 +195,6 @@ fun RssReaderNavigation(
     val servicesWaiting by app.services.waiting.collectAsStateWithLifecycle()
     val instapaperState by app.instapaper.state.collectAsStateWithLifecycle()
     val instapaperNotice by app.instapaper.notice.collectAsStateWithLifecycle()
-    val raindropState by app.raindrop.state.collectAsStateWithLifecycle()
-    val raindropNotice by app.raindrop.notice.collectAsStateWithLifecycle()
     val current = settings ?: Settings()
     val library = libraryOrNull ?: Library()
     val snackbar = remember { SnackbarHostState() }
@@ -374,13 +370,6 @@ fun RssReaderNavigation(
         val notice = instapaperNotice ?: return@LaunchedEffect
         showMessage(resources.getString(if (notice == InstapaperNotice.SignedIn) R.string.instapaper_sign_in_done else R.string.instapaper_sign_in_failed))
         app.instapaper.clearNotice()
-    }
-
-    // Coming back from Raindrop's sign-in page.
-    LaunchedEffect(raindropNotice) {
-        val notice = raindropNotice ?: return@LaunchedEffect
-        showMessage(resources.getString(if (notice == RaindropNotice.SignedIn) R.string.raindrop_sign_in_done else R.string.raindrop_sign_in_failed))
-        app.raindrop.clearNotice()
     }
 
     // Sync while the app is on screen: when it comes back, live while it stays, and every minute
@@ -889,7 +878,6 @@ fun RssReaderNavigation(
                     val servicesState =
                         ServicesState(
                             instapaper = instapaperState,
-                            raindrop = raindropState,
                             statuses = serviceStatuses,
                             scopes = current.scopes,
                             imports = current.imports,
@@ -901,8 +889,6 @@ fun RssReaderNavigation(
                             onBack = ::pop,
                             onSignIn = { uiScope.launch { ExternalApps.openLink(context, app.instapaper.begin()) } },
                             onSignOut = { app.appScope.launch { app.sync.signOut() } },
-                            onConnectRaindrop = { uiScope.launch { ExternalApps.openLink(context, app.raindrop.begin()) } },
-                            onDisconnectRaindrop = { app.appScope.launch { app.raindrop.signOut() } },
                             onSyncNow = { app.appScope.launch { app.services.sync() } },
                             onOpenService = { id -> push(Screen.Service(id)) },
                             onLoadFolders = { id, result -> uiScope.launch { result(app.services.folders(id)) } },

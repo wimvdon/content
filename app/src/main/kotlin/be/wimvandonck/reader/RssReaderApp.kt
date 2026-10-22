@@ -15,7 +15,6 @@ import be.wimvandonck.reader.data.scopeOf
 import be.wimvandonck.reader.data.SettingsStore
 import be.wimvandonck.reader.feed.FeedFetcher
 import be.wimvandonck.reader.instapaper.InstapaperAccount
-import be.wimvandonck.reader.raindrop.RaindropAccount
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -60,16 +59,12 @@ class RssReaderApp :
     /** Sync with the user's Reader account, which signing in with Instapaper opens. See sync/ and docs/account.md. */
     val sync: SyncManager by lazy { SyncManager(this, appScope, library, settings, instapaper, http) }
 
-    /** Raindrop.io, connected in Connected services (#112). See raindrop/. */
-    val raindrop: RaindropAccount by lazy { RaindropAccount(this, appScope, http) }
-
-    /** Saved's connected services (Instapaper, Raindrop). See services/. */
+    /** Saved's connected service (Instapaper). See services/. */
     val services: ServiceManager by lazy {
         ServiceManager(
             appScope,
             library,
             instapaper,
-            raindrop,
             http,
             scopeOf = { id -> settings.settings.value?.scopeOf(id) ?: ServiceScope.Everything },
             importOf = { id -> settings.settings.value?.imports?.get(id) },
@@ -88,6 +83,8 @@ class RssReaderApp :
         super.onCreate()
         // Read the folder icons in the background now, so the first screen doesn't wait for them.
         appScope.launch { iconCatalog }
+        // Raindrop.io was removed (#179): its sign-in, kept only on this device, goes with it.
+        appScope.launch { File(filesDir, "datastore/raindrop.preferences_pb").delete() }
     }
 
     /** The article list refreshes once per app start; later refreshes are pull-to-refresh. */

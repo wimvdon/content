@@ -41,8 +41,6 @@ import be.wimvandonck.reader.data.ServiceImport
 import be.wimvandonck.reader.data.ServiceScope
 import be.wimvandonck.reader.instapaper.InstapaperReadingList
 import be.wimvandonck.reader.instapaper.InstapaperState
-import be.wimvandonck.reader.raindrop.RaindropSaved
-import be.wimvandonck.reader.raindrop.RaindropState
 import be.wimvandonck.reader.services.ServiceProblem
 import be.wimvandonck.reader.services.ServiceStatus
 import be.wimvandonck.reader.ui.theme.SettingsBlock
@@ -54,7 +52,6 @@ import java.util.Date
 /** What Connected services and a service's own screen show (#109, #112, #145). */
 data class ServicesState(
     val instapaper: InstapaperState,
-    val raindrop: RaindropState,
     /** Each connected service's status, by id. */
     val statuses: Map<String, ServiceStatus>,
     /** What each service syncs, by id. */
@@ -71,8 +68,6 @@ class ServicesActions(
     val onBack: () -> Unit,
     val onSignIn: () -> Unit,
     val onSignOut: () -> Unit = {},
-    val onConnectRaindrop: () -> Unit,
-    val onDisconnectRaindrop: () -> Unit,
     val onSyncNow: () -> Unit,
     /** Opens a connected service's own screen. */
     val onOpenService: (String) -> Unit = {},
@@ -112,7 +107,6 @@ fun ServicesScreen(
         item(key = "saved") {
             SettingsSection(title = stringResource(R.string.saved_title)) {
                 ServiceRow(InstapaperReadingList.ID, state, actions)
-                ServiceRow(RaindropSaved.ID, state, actions)
             }
         }
     }
@@ -131,24 +125,20 @@ private fun ServiceRow(
         headlineContent = { Text(stringResource(serviceName(id))) },
         supportingContent = {
             when {
-                !connected -> Text(stringResource(if (id == RaindropSaved.ID) R.string.services_raindrop_off else R.string.services_reading_body))
+                !connected -> Text(stringResource(R.string.services_reading_body))
                 id in state.waiting -> Text(stringResource(R.string.services_waiting_import), color = MaterialTheme.colorScheme.primary)
                 status is ServiceStatus.Syncing -> Text(stringResource(R.string.sync_syncing))
                 status is ServiceStatus.Failed -> Text(stringResource(status.problem.messageRes(id)), color = MaterialTheme.colorScheme.error)
                 else -> Text(scopeLine(state.scopes[id] ?: ServiceScope.Everything))
             }
         },
-        leadingContent = { Icon(painterResource(if (id == RaindropSaved.ID) R.drawable.ic_bookmark else R.drawable.ic_reading_list), contentDescription = null) },
+        leadingContent = { Icon(painterResource(R.drawable.ic_reading_list), contentDescription = null) },
         modifier = if (connected) Modifier.selectable(selected = false, role = Role.Button, onClick = { actions.onOpenService(id) }) else Modifier,
     )
-    val loading = if (id == RaindropSaved.ID) state.raindrop == RaindropState.Loading else state.instapaper is InstapaperState.Loading
+    val loading = state.instapaper is InstapaperState.Loading
     if (!connected && !loading) {
         SettingsBlock {
-            if (id == RaindropSaved.ID) {
-                Button(onClick = actions.onConnectRaindrop) { Text(stringResource(R.string.raindrop_connect)) }
-            } else {
-                Button(onClick = actions.onSignIn) { Text(stringResource(R.string.instapaper_sign_in)) }
-            }
+            Button(onClick = actions.onSignIn) { Text(stringResource(R.string.instapaper_sign_in)) }
         }
     }
 }
@@ -165,7 +155,7 @@ private fun scopeLine(scope: ServiceScope): String {
 private fun connected(
     id: String,
     state: ServicesState,
-): Boolean = if (id == RaindropSaved.ID) state.raindrop == RaindropState.SignedIn else state.instapaper is InstapaperState.SignedIn
+): Boolean = id == InstapaperReadingList.ID && state.instapaper is InstapaperState.SignedIn
 
 /**
  * One service's screen (#145): the account, what was imported (or the import, once, right after
@@ -193,7 +183,7 @@ fun ServiceScreen(
                     headlineContent = {
                         Text(
                             (state.instapaper as? InstapaperState.SignedIn)?.session?.username?.takeIf { id == InstapaperReadingList.ID && it.isNotEmpty() }
-                                ?: stringResource(if (id == RaindropSaved.ID) R.string.services_raindrop_body else R.string.section_instapaper),
+                                ?: stringResource(R.string.section_instapaper),
                         )
                     },
                     supportingContent = {
@@ -211,8 +201,8 @@ fun ServiceScreen(
                             FilledTonalButton(onClick = actions.onSyncNow, enabled = status !is ServiceStatus.Syncing) { Text(stringResource(R.string.sync_now)) }
                         }
                         if (connected) {
-                            OutlinedButton(onClick = if (id == RaindropSaved.ID) actions.onDisconnectRaindrop else actions.onSignOut) {
-                                Text(stringResource(if (id == RaindropSaved.ID) R.string.raindrop_disconnect else R.string.instapaper_sign_out))
+                            OutlinedButton(onClick = actions.onSignOut) {
+                                Text(stringResource(R.string.instapaper_sign_out))
                             }
                         }
                     }
@@ -404,12 +394,14 @@ private fun CheckRow(
 }
 
 /** A service's name, by id. */
-fun serviceName(id: String): Int = if (id == RaindropSaved.ID) R.string.section_raindrop else R.string.section_instapaper
+@Suppress("UNUSED_PARAMETER")
+fun serviceName(id: String): Int = R.string.section_instapaper
 
+@Suppress("UNUSED_PARAMETER")
 private fun ServiceProblem.messageRes(service: String): Int =
     when (this) {
-        ServiceProblem.SignedOut -> if (service == RaindropSaved.ID) R.string.raindrop_problem_signed_out else R.string.instapaper_problem_signed_out
-        ServiceProblem.RateLimited -> if (service == RaindropSaved.ID) R.string.raindrop_problem_later else R.string.services_problem_later
+        ServiceProblem.SignedOut -> R.string.instapaper_problem_signed_out
+        ServiceProblem.RateLimited -> R.string.services_problem_later
         ServiceProblem.Offline -> R.string.problem_offline
         ServiceProblem.Refused -> R.string.problem_server
     }

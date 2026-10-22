@@ -220,15 +220,6 @@
     <string name="services_feeds_body">Content bewahrt deine Feeds. Mit OPML holst du sie herein und heraus.</string>
     <string name="services_reading_body">Content behält deine gespeicherten Elemente. Melde dich mit Instapaper an, um sie auch dort zu behalten.</string>
     <string name="services_problem_later">Instapaper bat, kurz zu warten. Der Rest folgt später.</string>
-    <string name="section_raindrop">Raindrop.io</string>
-    <string name="raindrop_connect">Raindrop.io verbinden</string>
-    <string name="raindrop_disconnect">Trennen</string>
-    <string name="services_raindrop_off">Verbinde Raindrop.io, um deine gespeicherten Elemente, Ordner und Notizen auch dort zu behalten.</string>
-    <string name="services_raindrop_body">Mit deinem Raindrop.io-Konto synchronisiert</string>
-    <string name="raindrop_sign_in_done">Mit Raindrop.io verbunden</string>
-    <string name="raindrop_sign_in_failed">Die Verbindung mit Raindrop.io hat nicht geklappt. Versuche es erneut.</string>
-    <string name="raindrop_problem_signed_out">Raindrop.io akzeptiert die Verbindung nicht mehr. Verbinde dich erneut.</string>
-    <string name="raindrop_problem_later">Raindrop.io bat, kurz zu warten. Der Rest folgt später.</string>
     <string name="services_syncs_everything">Synchronisiert alles in Gespeichert</string>
     <string name="services_syncs_folders">Synchronisiert %1$s</string>
     <string name="services_waiting_import">Verbunden. Wähle, was importiert wird.</string>

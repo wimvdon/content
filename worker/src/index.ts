@@ -5,12 +5,11 @@
  * app's own address(es), and only passes feeds and web pages, up to MAX_BYTES.
  *
  * Instapaper sign-in and the web app's Instapaper calls live in instapaper.ts (/instapaper/...),
- * Raindrop.io sign-in for the Android app in raindrop.ts (/raindrop/...), Reader accounts (the synced, encrypted library) in account.ts (/account/...).
+ * Reader accounts (the synced, encrypted library) in account.ts (/account/...).
  */
 
 import { handleAccount } from "./account";
 import { handleInstapaper } from "./instapaper";
-import { handleRaindrop } from "./raindrop";
 
 export { Account } from "./account";
 
@@ -22,10 +21,6 @@ export interface Env {
   INSTAPAPER_REDIRECT_URI?: string;
   /** The client secret. Only ever a Worker secret, never in this repository. */
   INSTAPAPER_CLIENT_SECRET?: string;
-  /** Raindrop.io (#112): the app's client ID and secret, both Worker secrets, and the fixed callback address. */
-  RAINDROP_CLIENT_ID?: string;
-  RAINDROP_CLIENT_SECRET?: string;
-  RAINDROP_REDIRECT_URI?: string;
   /** The accounts' Durable Objects (wrangler.toml) and the secret their data is encrypted with. */
   ACCOUNTS?: DurableObjectNamespace;
   ACCOUNT_KEY?: string;
@@ -61,7 +56,6 @@ export default {
 export async function handle(request: Request, env: Env, fetcher: Fetcher): Promise<Response> {
   const requestUrl = new URL(request.url);
   if (requestUrl.pathname.startsWith("/instapaper/")) return handleInstapaper(request, env, fetcher, requestUrl);
-  if (requestUrl.pathname.startsWith("/raindrop/")) return handleRaindrop(request, env, fetcher, requestUrl);
   if (requestUrl.pathname === "/account" || requestUrl.pathname.startsWith("/account/")) return handleAccount(request, env, requestUrl);
   const origin = request.headers.get("Origin");
   const allowed = (env.ALLOWED_ORIGINS ?? "")

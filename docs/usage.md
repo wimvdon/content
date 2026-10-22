@@ -205,7 +205,7 @@ share** you choose, for each, where it sends the article:
 
 If the chosen app has been uninstalled, the button opens the share menu instead and says so.
 
-Connecting Instapaper or Raindrop.io changes nothing here: the buttons and their choices stay the
+Connecting Instapaper changes nothing here: the buttons and their choices stay the
 same, and what is in Saved is also kept in the connected service.
 
 **Saving from other apps.** In Chrome or any app that shares links, tap Share and pick
@@ -289,8 +289,8 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   tags** (Like, your tags). Archiving goes back to the list with **Undo**. Keys: **j**/**k** next
   and previous, **m** read or unread, **o** open on the website, **r** refresh, **/** search, and
   **Esc** closes a menu, then the article.
-- **☰ › Connected services**: the services Saved is also kept in, Instapaper, Raindrop.io or both,
-  each with what it syncs; tap one for its account, its import and **What it syncs**. Feeds are
+- **☰ › Connected services**: the service Saved is also kept in, Instapaper,
+  with what it syncs; tap one for its account, its import and **What it syncs**. Feeds are
   Reader's own.
 - Bookmarks from before Saved moved into folders once: each into its collection's folder, the ones
   without a collection into a folder called **Bookmarks**.
@@ -322,26 +322,6 @@ Instapaper:
 Until Instapaper has approved Reader, only the owner's own account works; other accounts see
 "Instapaper hasn't approved Reader for your account yet." Setup and details: `instapaper.md`.
 
-## Raindrop.io
-
-☰ › **Connected services** › **Connect Raindrop.io** opens Raindrop's own page in your browser.
-Approve Reader there and you come back connected ("Connected to Raindrop.io"). On a test build
-(Reader Dev) a page opens instead: tap **Open in Reader Dev**.
-
-- Connecting asks what to **import**, once: everything, or some collections. **Unsorted** is To
-  read, **collections** are folders (a collection inside another shows as "Parent / Child"),
-  **favorites** are Liked, and tags and notes come along. Archiving puts the article in a Raindrop
-  collection called **Archive** (made the first time). **What it syncs** works as for Instapaper.
-- What you add, file, archive, like, tag or note goes to Raindrop while the app is open, and
-  changes made in Raindrop come in when the app opens and when you pull down on Saved.
-- Removing an article from Saved moves it to Raindrop's trash.
-- **Disconnect** stops it on this device. Saved stays.
-
-**Instapaper and Raindrop together:** a save reaches every service whose **What it syncs** covers
-its folder; put the same folder in both and they stay in step with each other through Reader.
-Removing an article both keep asks: from both, or from one only (it then stays in Saved).
-
-Details: `raindrop.md`.
 
 ## Common problems
 

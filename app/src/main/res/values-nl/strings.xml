@@ -220,15 +220,6 @@
     <string name="services_feeds_body">Content bewaart je feeds. Met OPML zet je ze erin en eruit.</string>
     <string name="services_reading_body">Content bewaart je items zelf. Meld je aan met Instapaper om ze daar ook te bewaren.</string>
     <string name="services_problem_later">Instapaper vroeg even te wachten. De rest gaat later.</string>
-    <string name="section_raindrop">Raindrop.io</string>
-    <string name="raindrop_connect">Raindrop.io koppelen</string>
-    <string name="raindrop_disconnect">Ontkoppelen</string>
-    <string name="services_raindrop_off">Koppel Raindrop.io om je bewaarde items, mappen en notities daar ook te bewaren.</string>
-    <string name="services_raindrop_body">Gesynchroniseerd met je Raindrop.io-account</string>
-    <string name="raindrop_sign_in_done">Gekoppeld met Raindrop.io</string>
-    <string name="raindrop_sign_in_failed">Koppelen met Raindrop.io is niet gelukt. Probeer het opnieuw.</string>
-    <string name="raindrop_problem_signed_out">Raindrop.io aanvaardt de koppeling niet meer. Koppel opnieuw.</string>
-    <string name="raindrop_problem_later">Raindrop.io vroeg even te wachten. De rest gaat later.</string>
     <string name="services_syncs_everything">Synchroniseert alles in Bewaard</string>
     <string name="services_syncs_folders">Synchroniseert %1$s</string>
     <string name="services_waiting_import">Verbonden. Kies wat je wilt importeren.</string>

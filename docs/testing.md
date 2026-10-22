@@ -63,8 +63,6 @@ when the run fails.
 | `ReadingListsTest` | Reading times and minutes left, an item shown like its feed article (or with its description), its source (feed or website with favicon) |
 | `ServiceSyncTest` | Saved and a fake service (#145): connecting imports the whole account, folders in and out (filing, archiving leaves the folder), adding, archiving, liking and tagging sent once, what came in not sent back, removing sent (a bookmark stays), changes on both sides to other fields both kept, the same field: the later change wins (Reader's without a time from the service), deleted at the service leaves Saved unless changed here or another service keeps it in step, removed here but changed there stays, a link the service has joins it, a failure keeps everything and the rest goes next time, progress, notes; a save reaches every service whose scope covers its folder, a scope losing a folder archives its articles there (never deletes) and gaining it brings them back, an import lands each article in its place and leaves the rest there until it changes, another device's import, folder origins kept, entries stored and read back (rows from before #145 in step); the web app's `test/serviceSync.test.ts` covers the same rules |
 | `InstapaperReadingListTest` | Instapaper as the reading list's service, with recorded answers: `since` page by page with deletions and folders, filing into a folder made there when missing, the first sync asks for everything, adding with tags and archive, only changes sent (taking the folder's tag off moves it home), problems mapped |
-| `RaindropSavedTest` | Raindrop.io as Saved's service, with recorded answers: the whole account page by page, collections as folders ("Parent / Child"), the Archive collection, favorites and notes; the quick sync listing at most every three minutes; adding to Unsorted, a folder or the archive, making missing collections once; updates sending only what changed; removing (already gone counts); a refused token renewed once, then signed out; busy and broken answers; a flattened folder finding its nested collection from the stored origins; when a raindrop last changed |
-| `RaindropAuthTest` | The callback's code and state (or why not), the sign-in address with a fresh state, the Worker's tokens, and swapping a code: done, refused, failed or offline |
 | `PageInfoTest` | A page's title, description and picture (Open Graph first, https pictures only) for links saved without a title |
 | `ArticleSearchTest` | Search: every word, case and accents ignored, title, text, feed name and author, title matches first, removed feeds left out |
 | `FeedArrangementTest` | Manage page order: rows per folder, dragging feeds between folders and out of them, forbidden moves, reordering folders |
@@ -215,32 +213,6 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
 - [ ] Signed out: **Save** keeps the article in Saved; the sheet offers Like and
       tags; the articles are still there after restarting the app.
 
-## Raindrop.io (by hand)
-
-Needs the Raindrop app registered and the Worker's `RAINDROP_CLIENT_ID` and `RAINDROP_CLIENT_SECRET`
-(see `raindrop.md`). A debug build works too: the return page has an **Open in Reader Dev** button.
-
-- [ ] ☰ › Connected services › **Connect Raindrop.io**: approve in the browser, come back with
-      "Connected to Raindrop.io"; the screen shows "Synced with your Raindrop.io account".
-- [ ] Raindrop's Unsorted shows under To read, its collections as folders (nested ones as
-      "Parent / Child"), favorites as liked, with tags and notes.
-- [ ] Save an article (only Raindrop connected): it appears in Raindrop's Unsorted within seconds.
-      File it in a new folder: the collection is made. Archive it: it moves to the "Archive" collection.
-- [ ] Change a raindrop in Raindrop's app, then pull down on Saved: the change shows in Reader.
-- [ ] Remove an article from Saved: it is in Raindrop's trash.
-- [ ] **Import (#145):** connect a service: its row says "Connected. Choose what to import." and
-      nothing syncs yet. Tap it › **Choose folders**, keep one folder and untick the rest: only
-      that folder's articles arrive, in that folder (a nested collection as "Parent / Child");
-      the screen then says "Imported N articles, <date>". The others stay in the service and in
-      the service only, until one changes there.
-- [ ] **What it syncs:** pick **Only these folders** and untick one with articles: a dialog says how
-      many are archived there; confirm: they are archived in the service (not deleted) and stay in
-      Reader. File an article out of a ticked folder: it is archived there too.
-- [ ] With Instapaper connected too, give Raindrop only "Research": a save to To read reaches
-      Instapaper only; filed in Research it reaches both, and liking it there reaches the other.
-- [ ] No article row or card shows a service mark; Connected services shows only the services.
-- [ ] Remove an article both keep: Reader asks; **Only from Raindrop.io** leaves it in Saved and in Instapaper.
-- [ ] **Disconnect**: the screen shows Connect again; Saved keeps its articles.
 
 ## Sharing to Reader (#103)
 

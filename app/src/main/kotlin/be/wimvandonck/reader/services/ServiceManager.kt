@@ -9,16 +9,11 @@ import be.wimvandonck.reader.instapaper.InstapaperAccount
 import be.wimvandonck.reader.instapaper.InstapaperClient
 import be.wimvandonck.reader.instapaper.InstapaperReadingList
 import be.wimvandonck.reader.instapaper.InstapaperState
-import be.wimvandonck.reader.raindrop.RaindropAccount
-import be.wimvandonck.reader.raindrop.RaindropClient
-import be.wimvandonck.reader.raindrop.RaindropSaved
-import be.wimvandonck.reader.raindrop.RaindropState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
@@ -49,8 +44,8 @@ sealed interface ServiceStatus {
 }
 
 /**
- * Connects Saved to its services while the app is in use (#109, #112, #145): Instapaper and
- * Raindrop.io, each when connected. Connecting waits for an import ([import]), done once; from then
+ * Connects Saved to its services while the app is in use (#109, #145): Instapaper, when
+ * connected. Connecting waits for an import ([import]), done once; from then
  * on each service syncs its scope both ways, so an article reaches every service whose scope covers
  * it. Syncs when started, a moment after Saved changes, on refresh and on request; never in the
  * background. Disconnecting forgets what was synced and keeps Saved.
@@ -59,7 +54,6 @@ class ServiceManager(
     private val scope: CoroutineScope,
     private val library: LibraryRepository,
     private val instapaper: InstapaperAccount,
-    private val raindrop: RaindropAccount,
     private val http: OkHttpClient,
     /** What each service syncs (a setting, #145). */
     private val scopeOf: (String) -> ServiceScope = { ServiceScope.Everything },
@@ -100,17 +94,15 @@ class ServiceManager(
         if (started) return
         started = true
         scope.launch {
-            // Both accounts are read before the first sync, so neither looks like the only one for a moment.
-            val instapaperTokens = instapaper.state.filter { it != InstapaperState.Loading }.map { (it as? InstapaperState.SignedIn)?.session?.token }
-            val raindropOn = raindrop.state.filter { it != RaindropState.Loading }.map { it == RaindropState.SignedIn }
-            var last: Pair<String?, Boolean>? = null
-            combine(instapaperTokens, raindropOn) { token, on -> token to on }
+            // Raindrop.io is no longer a service (#179): what was synced with it, and its import, are forgotten.
+            lock.withLock { library.saveServiceState(RAINDROP_ID, library.serviceState(RAINDROP_ID), null) }
+            if (importOf(RAINDROP_ID) != null) recordImport(RAINDROP_ID, null)
+            instapaper.state
+                .filter { it != InstapaperState.Loading }
+                .map { (it as? InstapaperState.SignedIn)?.session?.token }
                 .distinctUntilChanged()
-                .collect { now ->
-                    val (token, on) = now
-                    if (last == null || last?.first != token) connect(InstapaperReadingList.ID, token?.let { InstapaperReadingList(InstapaperClient(http, it)) })
-                    if (last == null || last?.second != on) connect(RaindropSaved.ID, if (on) RaindropSaved(RaindropClient(http, raindrop::token, raindrop::refresh)) else null)
-                    last = now
+                .collect { token ->
+                    connect(InstapaperReadingList.ID, token?.let { InstapaperReadingList(InstapaperClient(http, it)) })
                     if (services.isNotEmpty()) sync()
                 }
         }
@@ -218,10 +210,7 @@ class ServiceManager(
         library.saveServiceState(id, state, result.state)
         _statuses.update { if (id in services) it + (id to (result.problem?.let { p -> ServiceStatus.Failed(p) } ?: ServiceStatus.Idle)) else it - id }
         if (result.problem == ServiceProblem.SignedOut) {
-            when (id) {
-                InstapaperReadingList.ID -> instapaper.signOut()
-                RaindropSaved.ID -> raindrop.signOut()
-            }
+            if (id == InstapaperReadingList.ID) instapaper.signOut()
         }
     }
 
@@ -284,6 +273,9 @@ class ServiceManager(
         /** A row of changes (archiving several, tagging) goes as one sync. */
         const val CHANGE_DELAY_MS = 2_000L
 
-        val ORDER = listOf(InstapaperReadingList.ID, RaindropSaved.ID)
+        val ORDER = listOf(InstapaperReadingList.ID)
+
+        /** The id Raindrop.io had as a service, until #179 removed it. */
+        const val RAINDROP_ID = "raindrop"
     }
 }

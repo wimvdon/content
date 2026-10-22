@@ -2,6 +2,18 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-22: Raindrop.io is removed (#179)
+
+- Instapaper stays the only connected service. Raindrop.io's code is gone from the Android app
+  (`raindrop/`), the web app (its return page) and the feed loader (the token swap).
+- When the app starts, it forgets what it had synced with Raindrop and its import record, and
+  deletes the Raindrop sign-in file. Saved itself is not touched: articles that came from Raindrop
+  stay in Saved, in their folders.
+- The synced settings keep the name `services.raindrop.*` in their list for now, so an older app
+  on another device and this one read the same file; it is unused.
+- The Worker secrets `RAINDROP_CLIENT_ID` and `RAINDROP_CLIENT_SECRET` can be deleted in
+  Cloudflare.
+
 ## 2026-10-22: The app is called Content (#178)
 
 - The app shows feeds and saved articles together, so "Reader" no longer described it. Every
