@@ -9,8 +9,8 @@ import be.wimvandonck.reader.services.ServiceProblem
 
 /**
  * Instapaper as Saved's service (#107, #109, #119), on API v2: `since` keeps a full copy of the
- * account on the device. Home is To read, Instapaper's folders are Saved's folders (a folder Reader
- * files into is made there when it doesn't exist yet), the archive is the archive. Only this class
+ * account on the device. Home is To read and the archive is the archive. Folders became tags (#187):
+ * Content neither reads nor changes Instapaper's folders; an article in one there is in To read here. Only this class
  * knows Instapaper's ways; ServiceSync sees the core.
  */
 class InstapaperReadingList(
@@ -54,7 +54,6 @@ class InstapaperReadingList(
     /** A bookmark as an entry, with its folder. Articles without a web address are left out. */
     fun entryOf(b: InstapaperBookmark): RemoteEntry? {
         val url = b.link ?: return null
-        val folder = b.folderId?.let { folders[it] }?.takeIf { !b.archived }
         val tags = b.tags.map { it.name }
         return RemoteEntry(
             remoteId = b.id.toString(),
@@ -67,7 +66,8 @@ class InstapaperReadingList(
             // Liked is gone (#188): Instapaper's like is neither read nor sent.
             liked = false,
             tags = tags,
-            folder = folder,
+            // Folders became tags (#187): Content reads no Instapaper folder and leaves them alone.
+            folder = null,
             progress = b.progress,
             changedAt = b.progressAt * 1000,
         )
@@ -87,21 +87,10 @@ class InstapaperReadingList(
             if (archived && !saved.archived) {
                 client.move(saved.id, "archive")
                 saved = saved.copy(archived = true, folderId = null)
-            } else if (!archived && folder != null) {
-                val id = folderId(folder)
-                if (saved.folderId != id) client.move(saved.id, id.toString())
-                saved = saved.copy(folderId = id)
             }
             entryOf(saved) ?: throw ServiceException(ServiceProblem.Refused)
         }
 
-    /** The id of the folder called [title] (case ignored), made at Instapaper when there is none. */
-    private suspend fun folderId(title: String): Long {
-        folders.entries.firstOrNull { it.value.equals(title, ignoreCase = true) }?.let { return it.key }
-        val made = client.createFolder(title)
-        folders = folders + (made.id to made.title)
-        return made.id
-    }
 
     override suspend fun update(
         have: RemoteEntry,
@@ -114,12 +103,10 @@ class InstapaperReadingList(
             val added = want.tags.filter { !have.tags.has(it) }
             val removeIds = removed.mapNotNull { tagIds[it.lowercase()] }
             if (added.isNotEmpty() || removeIds.isNotEmpty()) client.setTags(id, added, removeIds)
-            // One place: the archive, a folder, or home (To read).
-            val folderChanged = !want.folder.equals(have.folder, ignoreCase = true)
+            // The archive or home (To read). Folders became tags (#187): an article in a folder there stays in it.
             when {
                 want.archived -> if (!have.archived) client.move(id, "archive")
-                want.folder != null -> if (have.archived || folderChanged) client.move(id, folderId(want.folder).toString())
-                have.archived || have.folder != null -> client.move(id, "home")
+                have.archived -> client.move(id, "home")
             }
             val progressChanged = kotlin.math.abs(want.progress - have.progress) >= 0.01f
             if (want.title != have.title || progressChanged) {
@@ -130,7 +117,7 @@ class InstapaperReadingList(
                     progressAt = now() / 1000,
                 )
             }
-            want.copy(remoteId = have.remoteId, addedAt = have.addedAt, folder = want.folder.takeIf { !want.archived })
+            want.copy(remoteId = have.remoteId, addedAt = have.addedAt, folder = null)
         }
 
     override suspend fun folders(): List<String> = guarded { client.folders().map { it.title }.sortedBy { it.lowercase() } }

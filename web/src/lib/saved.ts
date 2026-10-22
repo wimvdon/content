@@ -57,6 +57,24 @@ export function savedItems(lib: Library, filter: SavedFilter): Item[] {
     .sort((a, b) => b.readingList!.addedAt - a.readingList!.addedAt);
 }
 
+/**
+ * Folders became tags (#187): an item filed in a folder gets the folder's name as a tag instead, and
+ * leaves the folder. The same library when nothing is in a folder. Applied after every change, so a
+ * folder synced in from an older app or another device becomes a tag too. Like Saved.foldersToTags.
+ */
+export function foldersToTags(lib: Library): Library {
+  if (!lib.items.some((i) => i.folder)) return lib;
+  return {
+    ...lib,
+    items: lib.items.map((i) => {
+      const folder = i.folder?.trim();
+      if (i.folder === null || i.folder === undefined) return i;
+      const tags = !folder || i.tags.some((t) => t.toLowerCase() === folder.toLowerCase()) ? i.tags : [...i.tags, folder];
+      return { ...i, folder: null, tags };
+    }),
+  };
+}
+
 /** Every folder in use, sorted (case ignored). */
 export function savedFolders(lib: Library): string[] {
   const seen = new Map<string, string>();

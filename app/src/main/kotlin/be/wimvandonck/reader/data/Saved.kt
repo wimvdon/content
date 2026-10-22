@@ -103,6 +103,24 @@ object Saved {
             }.sortedByDescending { it.readingList!!.addedAt }
 
     /** Every folder in use, sorted (case ignored). */
+    /**
+     * Folders became tags (#187): an item filed in a folder gets the folder's name as a tag instead,
+     * and leaves the folder. The same library when nothing is in a folder. Applied when the library
+     * is read and after every change, so a folder synced in from an older app or another device
+     * becomes a tag too.
+     */
+    fun foldersToTags(library: Library): Library {
+        if (library.items.none { it.folder != null }) return library
+        return library.copy(
+            items =
+                library.items.map { item ->
+                    val folder = item.folder?.trim() ?: return@map item
+                    val tags = if (folder.isEmpty() || item.tags.any { it.equals(folder, ignoreCase = true) }) item.tags else item.tags + folder
+                    item.copy(folder = null, tags = tags)
+                },
+        )
+    }
+
     fun folders(library: Library): List<String> = library.items.mapNotNull(::folderOf).distinctBy { it.lowercase() }.sortedBy { it.lowercase() }
 
     /** How many items each folder has. */

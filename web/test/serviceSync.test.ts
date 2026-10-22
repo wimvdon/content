@@ -277,7 +277,7 @@ function bookmark(id: number, url: string | null, patch: Partial<Bookmark> = {})
 }
 
 describe("Instapaper as Saved's service (instapaperSync.ts)", () => {
-  it("reads every change since the cursor, page by page, with folders, deletions and progress", async () => {
+  it("reads every change since the cursor, page by page, with deletions and progress, and no folders (#187)", async () => {
     const api = new FakeApi();
     api.bookmarks = [...Array.from({ length: 499 }, (_, i) => bookmark(i + 1, `https://a.example/${i}`)), bookmark(600, "https://b.example/x", { folder_id: 3, progress: { percentage: 0.42 }, tags: [{ id: 9, name: "Recipes", slug: "recipes", count: 1 }] }), bookmark(601, null)];
     api.deleted = [900];
@@ -288,33 +288,33 @@ describe("Instapaper as Saved's service (instapaperSync.ts)", () => {
     // 499 and the one with an address from the second page; the private one without an address is left out.
     expect(changes.entries).toHaveLength(500);
     expect(changes.deleted).toEqual(["900"]);
-    expect(changes.entries.at(-1)).toMatchObject({ folder: "Work", tags: ["Recipes"], progress: 0.42, addedAt: 1_755_000_000_000 });
+    expect(changes.entries.at(-1)).toMatchObject({ folder: null, tags: ["Recipes"], progress: 0.42, addedAt: 1_755_000_000_000 });
     // The next one starts a little before this one.
     expect(changes.cursor).toBe(String(1_755_000_600 - 300));
   });
 
-  it("adds with tags into a folder (made when missing) or the archive", async () => {
+  it("adds with tags, or into the archive, never into a folder (#187)", async () => {
     const api = new FakeApi();
     const sync = new InstapaperSync(api);
     await sync.changes(null);
     api.calls = [];
     const filed = await sync.add("https://c.example/1", "C", ["x"], false, "New");
-    expect(api.calls).toEqual(["save https://c.example/1 C", "tags 50 +x -", "folder New", "move 50 7"]);
-    expect(filed.folder).toBe("New");
+    expect(api.calls).toEqual(["save https://c.example/1 C", "tags 50 +x -"]);
+    expect(filed.folder).toBeNull();
     api.calls = [];
     const archived = await sync.add("https://c.example/2", "https://c.example/2", [], true, null);
     expect(api.calls).toEqual(["save https://c.example/2", "move 50 archive"]);
     expect(archived.archived).toBe(true);
   });
 
-  it("updates only what changed: tags by id, one place, title and progress (never the like, #188)", async () => {
+  it("updates only what changed: tags by id, the archive, title and progress (never the like or a folder)", async () => {
     const api = new FakeApi();
     const sync = new InstapaperSync(api, () => 2_000_000);
     await sync.changes(null);
     api.calls = [];
     const have = remote("5", "https://a/5", { tags: ["Recipes"], folder: null });
     await sync.update(have, { ...have, liked: true, tags: ["new"], folder: "Work", title: "Better", progress: 0.5 });
-    expect(api.calls).toEqual(["tags 5 +new -9", "move 5 3", "update 5 Better 0.5"]);
+    expect(api.calls).toEqual(["tags 5 +new -9", "update 5 Better 0.5"]);
     api.calls = [];
     await sync.update(have, { ...have, archived: true });
     expect(api.calls).toEqual(["move 5 archive"]);
