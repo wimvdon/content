@@ -9,7 +9,7 @@
  * keeps everything and is tried again.
  */
 
-import { cleanTags, itemOf, keyOfLink, newItem, putItem, type Item } from "./items";
+import { cleanTags, itemOf, keyOfLink, looseKeyOfLink, newItem, putItem, type Item } from "./items";
 import type { Library } from "./library";
 import { covers, coversPlace, EVERYTHING, includes, type ServiceImport, type ServiceScope } from "./serviceScope";
 import { mergeTags } from "./syncRows";
@@ -172,8 +172,9 @@ export async function importService(
     const changes = await service.changes(null);
     update((lib) => {
       let result = lib;
+      const loose = looseIndex(lib, rows);
       for (const remote of changes.entries) {
-        const key = keyOfLink(remote.url);
+        const key = keyFor(result, rows, loose, remote.url);
         if (!key) continue;
         if (!includes(what, remote.folder, remote.archived)) {
           if (!isLinked(rows[key])) rows[key] = { ...remote, linked: false };
@@ -207,8 +208,9 @@ export function takeIn(
 ): Library {
   let result = lib;
   const byRemoteId = new Map(Object.entries(rows).map(([key, e]) => [e.remoteId, key]));
+  const loose = looseIndex(lib, rows);
   for (const remote of changes.entries) {
-    const key = byRemoteId.get(remote.remoteId) ?? keyOfLink(remote.url);
+    const key = byRemoteId.get(remote.remoteId) ?? keyFor(result, rows, loose, remote.url);
     if (!key) continue;
     const base = rows[key];
     const item = itemOf(result, key);
@@ -262,6 +264,32 @@ export function takeIn(
  * Three-way merge of the core: a field changed on one side takes that side's value; changed on
  * both, the later change wins ([remoteLater]: the service's; otherwise Reader's). Tags as a set.
  */
+/**
+ * Saved items not yet in step with this service, by their link without tracking parameters: where an
+ * article the service has but this browser hasn't linked can belong. Another device may have sent it,
+ * and the service may keep its link without those parameters; matching only the exact link then made
+ * a second item (a duplicate here, not at the service). Like the Android app's ServiceSync.looseIndex.
+ */
+export function looseIndex(lib: Library, rows: Record<string, RemoteEntry>): Map<string, string> {
+  const index = new Map<string, string>();
+  for (const item of lib.items) {
+    if (!item.readingList || isLinked(rows[item.key])) continue;
+    const loose = looseKeyOfLink(item.url);
+    if (loose && !index.has(loose)) index.set(loose, item.key);
+  }
+  return index;
+}
+
+/** The item a service's link belongs to: the same link, else a saved item from [loose] not yet linked, else a new one. */
+export function keyFor(lib: Library, rows: Record<string, RemoteEntry>, loose: Map<string, string>, url: string): string | null {
+  const exact = keyOfLink(url);
+  if (!exact) return null;
+  if (itemOf(lib, exact) || rows[exact]) return exact;
+  const looseKey = looseKeyOfLink(url);
+  const match = looseKey ? loose.get(looseKey) : undefined;
+  return match && !isLinked(rows[match]) ? match : exact;
+}
+
 export function merge(base: RemoteEntry | undefined, local: RemoteEntry, remote: RemoteEntry, progress: boolean, remoteLater = false): RemoteEntry {
   const pick = <T>(b: T | undefined, l: T, r: T): T => (l === b ? r : r === b || b === undefined ? l : remoteLater ? r : l);
   const folder = sameName(local.folder, base?.folder ?? null)

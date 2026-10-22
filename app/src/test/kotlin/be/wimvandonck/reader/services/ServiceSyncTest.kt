@@ -507,4 +507,33 @@ class ServiceSyncTest {
         // Rows from before #145 were all in step.
         assertTrue(ServiceRows.decode("""{"id":"1","url":"https://a/1"}""")!!.linked)
     }
+
+    @Test
+    fun `an article another device sent, kept there without tracking parameters, joins the saved one`() {
+        library = library.addToReadingList("https://a.example/1?utm_source=rss&id=7", "One", 10).first
+        service.put(remote("9", "https://a.example/1?id=7"))
+        assertNull(sync())
+        assertEquals(1, library.items.count { it.readingList != null })
+        assertEquals("9", state.rows["a.example/1?utm_source=rss&id=7"]?.remoteId)
+        assertEquals(1, service.entries.size)
+    }
+
+    @Test
+    fun `after connecting too, a new article there finds the saved one by its link without tracking parameters`() {
+        state = ServiceState(cursor = "0")
+        library = library.addToReadingList("https://www.b.example/post/?utm_medium=feed", "Post", 10).first
+        service.put(remote("3", "https://b.example/post"))
+        assertNull(sync())
+        assertEquals(1, library.items.count { it.readingList != null })
+        assertTrue(state.rows.values.single { it.remoteId == "3" }.linked)
+        assertEquals(1, service.entries.size)
+    }
+
+    @Test
+    fun `tracking parameters don't make another article, other parameters do`() {
+        val loose = be.wimvandonck.reader.data.ItemKeys::loose
+        assertEquals(loose("https://a.example/x?id=2"), loose("http://www.a.example/x/?utm_source=rss&id=2&fbclid=z"))
+        assertEquals(loose("https://a.example/x"), loose("https://a.example/x?utm_campaign=y"))
+        assertTrue(loose("https://a.example/x?id=2") != loose("https://a.example/x?id=3"))
+    }
 }

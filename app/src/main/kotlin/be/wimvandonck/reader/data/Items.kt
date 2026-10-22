@@ -105,6 +105,22 @@ object ItemKeys {
             .ifEmpty { null }
     }
 
+    /**
+     * [of] without tracking parameters (utm_… and the like), for recognising the same article
+     * when a service stores its link without them. Never used as an item's key: only to find
+     * one that already exists (ServiceSync.keyFor).
+     */
+    fun loose(url: String?): String? {
+        val key = of(url) ?: return null
+        val q = key.indexOf('?')
+        if (q < 0) return key
+        val base = key.substring(0, q).trimEnd('/')
+        val kept = key.substring(q + 1).split('&').filter { it.isNotEmpty() && !TRACKING.matches(it.substringBefore('=')) }.sorted()
+        return if (kept.isEmpty()) base else base + "?" + kept.joinToString("&")
+    }
+
+    private val TRACKING = Regex("utm_.*|fbclid|gclid|dclid|msclkid|mc_cid|mc_eid|igshid|_hsenc|_hsmi|mkt_tok|ref_src|cmpid|ocid")
+
     /** True for addresses an item may have: web addresses only, so a saved item can't carry a script. */
     fun isWebLink(url: String?): Boolean = url != null && (url.startsWith("https://", ignoreCase = true) || url.startsWith("http://", ignoreCase = true))
 

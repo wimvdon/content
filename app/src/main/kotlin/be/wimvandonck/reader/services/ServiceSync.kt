@@ -147,8 +147,9 @@ object ServiceSync {
             val changes = service.changes(null, full = true)
             update { library ->
                 var result = library
+                val loose = looseIndex(library, rows)
                 for (remote in changes.entries) {
-                    val key = ItemKeys.of(remote.url) ?: continue
+                    val key = keyFor(result, rows, loose, remote.url) ?: continue
                     if (!what.includes(remote.folder, remote.archived)) {
                         if (rows[key]?.linked != true) rows[key] = remote.copy(linked = false)
                         continue
@@ -212,6 +213,38 @@ object ServiceSync {
     /** Removing more than this many articles at once, and more than half, is held back (see [run]). */
     const val MAX_SAFE_REMOVALS = 20
 
+    /**
+     * Saved items not yet in step with this service, by [ItemKeys.loose] link: where an article
+     * the service has but this device hasn't linked can belong. Another device may have sent it,
+     * and the service may keep its link without tracking parameters; matching only the exact link
+     * then made a second item (a duplicate here, not at the service).
+     */
+    fun looseIndex(
+        library: Library,
+        rows: Map<String, RemoteEntry>,
+    ): Map<String, String> {
+        val index = HashMap<String, String>()
+        for (item in library.items) {
+            if (item.readingList == null || rows[item.key]?.linked == true) continue
+            val loose = ItemKeys.loose(item.url) ?: continue
+            index.putIfAbsent(loose, item.key)
+        }
+        return index
+    }
+
+    /** The item a service's link belongs to: the same link, else a saved item from [loose] not yet linked, else a new one. */
+    fun keyFor(
+        library: Library,
+        rows: Map<String, RemoteEntry>,
+        loose: Map<String, String>,
+        url: String,
+    ): String? {
+        val exact = ItemKeys.of(url) ?: return null
+        if (library.item(exact) != null || rows.containsKey(exact)) return exact
+        val match = ItemKeys.loose(url)?.let { loose[it] } ?: return exact
+        return match.takeIf { rows[it]?.linked != true } ?: exact
+    }
+
     /** Progress changes smaller than this aren't worth a call. */
     private const val PROGRESS_STEP = 0.01f
 
@@ -232,11 +265,12 @@ object ServiceSync {
     ): Library {
         var result = library
         val byRemoteId = rows.entries.associate { (key, entry) -> entry.remoteId to key }
+        val loose = looseIndex(library, rows)
         // A complete list says what was deleted there: what it had before and hasn't now.
         val listed = changes.entries.mapTo(HashSet()) { it.remoteId }
         val deleted = if (changes.complete) changes.deleted + rows.values.map { it.remoteId }.filter { it !in listed } else changes.deleted
         for (remote in changes.entries) {
-            val key = byRemoteId[remote.remoteId] ?: ItemKeys.of(remote.url) ?: continue
+            val key = byRemoteId[remote.remoteId] ?: keyFor(result, rows, loose, remote.url) ?: continue
             val base = rows[key]
             val item = result.item(key)
             val saved = item?.takeIf { it.readingList != null }
