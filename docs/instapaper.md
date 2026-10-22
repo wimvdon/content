@@ -58,8 +58,7 @@ import and scope in Settings › Instapaper (#145, `serviceSync.ts`, `serviceSco
 `web/src/lib/instapaperSync.ts` is Instapaper's side (`InstapaperReadingList.kt`'s twin), through the
 Worker. It runs after every sync with the Reader account (when the page opens, a moment after a
 change, and when it comes back into view). This browser's copy of what Instapaper had is kept in
-IndexedDB (`instapaperSync`) and forgotten on sign-out; Saved stays. Raindrop.io isn't in the web
-app yet.
+IndexedDB (`instapaperSync`) and forgotten on sign-out; Saved stays.
 
 ## How sign-in works
 

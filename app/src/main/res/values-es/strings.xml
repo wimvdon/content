@@ -226,15 +226,6 @@
     <string name="services_feeds_body">Content guarda tus feeds. OPML los importa y exporta.</string>
     <string name="services_reading_body">Content guarda tus elementos. Inicia sesión con Instapaper para guardarlos también allí.</string>
     <string name="services_problem_later">Instapaper pidió esperar un momento. El resto irá después.</string>
-    <string name="section_raindrop">Raindrop.io</string>
-    <string name="raindrop_connect">Conectar Raindrop.io</string>
-    <string name="raindrop_disconnect">Desconectar</string>
-    <string name="services_raindrop_off">Conecta Raindrop.io para guardar también allí tus elementos, carpetas y notas.</string>
-    <string name="services_raindrop_body">Sincronizado con tu cuenta de Raindrop.io</string>
-    <string name="raindrop_sign_in_done">Conectado a Raindrop.io</string>
-    <string name="raindrop_sign_in_failed">No se pudo conectar con Raindrop.io. Inténtalo de nuevo.</string>
-    <string name="raindrop_problem_signed_out">Raindrop.io ya no acepta la conexión. Vuelve a conectar.</string>
-    <string name="raindrop_problem_later">Raindrop.io pidió esperar un momento. El resto irá después.</string>
     <string name="services_syncs_everything">Sincroniza todo lo guardado</string>
     <string name="services_syncs_folders">Sincroniza %1$s</string>
     <string name="services_waiting_import">Conectado. Elige qué importar.</string>

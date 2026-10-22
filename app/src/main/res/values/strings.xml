@@ -221,15 +221,6 @@
     <string name="services_feeds_body">Content keeps your feeds. OPML moves them in and out.</string>
     <string name="services_reading_body">Content keeps your saved items. Sign in with Instapaper to keep them there too.</string>
     <string name="services_problem_later">Instapaper asked to wait a moment. The rest goes later.</string>
-    <string name="section_raindrop">Raindrop.io</string>
-    <string name="raindrop_connect">Connect Raindrop.io</string>
-    <string name="raindrop_disconnect">Disconnect</string>
-    <string name="services_raindrop_off">Connect Raindrop.io to keep your saved items, folders and notes there too.</string>
-    <string name="services_raindrop_body">Synced with your Raindrop.io account</string>
-    <string name="raindrop_sign_in_done">Connected to Raindrop.io</string>
-    <string name="raindrop_sign_in_failed">Connecting to Raindrop.io didn’t work. Try again.</string>
-    <string name="raindrop_problem_signed_out">Raindrop.io no longer accepts the connection. Connect again.</string>
-    <string name="raindrop_problem_later">Raindrop.io asked to wait a moment. The rest goes later.</string>
     <string name="services_syncs_everything">Syncs everything in Saved</string>
     <string name="services_syncs_folders">Syncs %1$s</string>
     <string name="services_waiting_import">Connected. Choose what to import.</string>

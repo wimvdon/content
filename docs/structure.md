@@ -96,9 +96,7 @@ for the move-in), `ui/home/SavedContent.kt`, `ui/reader/ItemSheets.kt`, `ui/read
 `ui/feeds/TagsManage.kt`, `ui/settings/ServicesScreen.kt`. The web app: `web/src/lib/instapaper.ts`,
 `web/src/lib/saved.ts` (Saved: tabs, filters, folders, cards, like Android's `Saved.kt`), `web/src/lib/localSaved.ts` and `savedItems.ts` (Saved before #106, moved in once), `web/src/lib/serviceSync.ts` and `instapaperSync.ts` (Instapaper in the background), `web/src/lib/articleExtractor.ts` (reader view, the same steps as `ArticleExtractor.kt`; sample pages both test on in `testdata/articles/`),
 `web/src/components/SavedActions.tsx` and `SavedManage.tsx`, `worker/src/instapaper.ts`
-(token swap and the web app's calls). See `docs/instapaper.md`. Raindrop.io (#112): `raindrop/`
-(client, sign-in, account, `RaindropSaved`), `worker/src/raindrop.ts`,
-`web/src/components/RaindropCallback.tsx` and `web/src/lib/raindrop.ts`. See `docs/raindrop.md`.
+(token swap and the web app's calls). See `docs/instapaper.md`.
 
 Reader account (sync): `worker/src/account.ts` (accounts, encrypted document, live connection),
 `app/src/main/kotlin/be/wimvandonck/reader/sync/`, `web/src/lib/account.ts` and

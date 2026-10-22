@@ -118,17 +118,14 @@ again), `ServiceManager` (when to sync, while the app is on screen; the service'
 `instapaper/InstapaperReadingList.kt` knows Instapaper (API v2 `since`, folders as tags, parsed text,
 progress). `instapaper/` also holds `InstapaperClient` (API v2 over OkHttp, with pure parsing
 helpers), `InstapaperAuth` (sign-in address, callback parsing, token swap through the Worker) and
-`InstapaperAccount` (the token in its own DataStore file). `raindrop/` is the same for Raindrop.io
-(#112): `RaindropSaved` (collections as folders, an Archive collection, the whole account listed each
-time as it has no `since`), `RaindropClient`, `RaindropAuth` (OAuth 2 through the Worker) and
-`RaindropAccount`. Reader is the library and a service is somewhere it is also kept (#145): each
+`InstapaperAccount` (the token in its own DataStore file). Raindrop.io was a second
+service until #179 removed it. Reader is the library and a service is somewhere it is also kept (#145): each
 service has a scope (`data/ServiceScope.kt`: everything in Saved, or some folders, a synced
 setting), and an item reaches every service whose scope covers it. Connecting waits for an import
 (`ServiceSync.import`, once: everything or some folders, each article where it belongs); then
 `ServiceSync.run` keeps the scope in step per field (rows are what was last seen or sent, so a value
 is never sent back right after it came in; both sides changed, the later change wins). Leaving the
-scope archives an article there, never deletes it. Raindrop's nested collections keep their origin
-(`ServiceState.origins`). `ServiceManager` runs the import, the syncs, the count before a scope
+scope archives an article there, never deletes it. `ServiceManager` runs the import, the syncs, the count before a scope
 change (`leaving`) and removing from one service only (`removeFrom`). `ui/settings/ServicesScreen.kt`
 lists the services; `ServiceScreen` is one service's account, import and scope. See
-`instapaper.md` and `raindrop.md`.
+`instapaper.md`.
