@@ -319,7 +319,6 @@
     <string name="account_email_send">Inviami un link di accesso</string>
     <string name="account_email_sent">Inviato a %1$s. Apri il link di quell’email su questo dispositivo.</string>
     <string name="account_email_failed">Non è stato possibile inviare l’email. Controlla l’indirizzo e la connessione.</string>
-    <string name="account_sign_in_instapaper">Oppure accedi con Instapaper</string>
     <string name="account_sign_out">Esci</string>
     <string name="account_add_email">Aggiungi un indirizzo email</string>
     <string name="account_add_email_summary">Così anche un link inviato a quell’indirizzo ti fa accedere, alla stessa libreria.</string>

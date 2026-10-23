@@ -308,7 +308,6 @@
     <string name="account_email_send">Anmeldelink per E-Mail senden</string>
     <string name="account_email_sent">An %1$s gesendet. Öffne den Link in dieser E-Mail auf diesem Gerät.</string>
     <string name="account_email_failed">Die E-Mail konnte nicht gesendet werden. Prüfe die Adresse und deine Verbindung.</string>
-    <string name="account_sign_in_instapaper">Oder mit Instapaper anmelden</string>
     <string name="account_sign_out">Abmelden</string>
     <string name="account_add_email">E-Mail-Adresse hinzufügen</string>
     <string name="account_add_email_summary">Dann meldet dich auch ein Link an diese Adresse an, mit derselben Bibliothek.</string>

@@ -472,8 +472,7 @@ class AppStore {
       const session = await exchangeCode(answer.code);
       await remove(INSTAPAPER_SYNC_KEY).catch(() => undefined);
       await remove(INSTAPAPER_HIGHLIGHTS_KEY).catch(() => undefined);
-      // Signing in with Instapaper opens a Content account when this browser has none (#166).
-      if (!this.state.account && session.accountKey) await this.setAccount({ key: session.accountKey, email: null });
+      // Instapaper is only a connected service (#215): the account it would open isn't kept.
       await this.setInstapaper({ ...session, accountKey: null });
       this.set({ instapaperNotice: "signedIn" });
       this.updateLive();

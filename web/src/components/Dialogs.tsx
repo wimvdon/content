@@ -387,8 +387,8 @@ export function SettingsDialog({ open, onOpenChange, onImport }: Props & { onImp
 }
 
 /**
- * The Content account (#166, docs/account.md): sign in with an emailed link (or with Instapaper,
- * which opens one too). Signed in: who (the address and its Gravatar picture), how sync is doing,
+ * The Content account (#166, docs/account.md): sign in with an emailed link. Instapaper is only a
+ * connected service (#215). Signed in: who (the address and its Gravatar picture), how sync is doing,
  * Sync now, Add email address (an account opened with Instapaper), Sign out and Delete synced data.
  */
 function AccountSection() {
@@ -444,9 +444,6 @@ function AccountSection() {
         <>
           <p className="text-sm text-muted-foreground">{t("accountSummary")}</p>
           <EmailLinkForm />
-          <Button variant="ghost" onClick={() => app.connectInstapaper()}>
-            {t("accountSignInInstapaper")}
-          </Button>
         </>
       )}
       <Dialog

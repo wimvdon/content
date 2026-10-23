@@ -199,7 +199,7 @@ Or ask Claude Code to do it: give it the stack trace and the version.
 Sign-in needs the real Instapaper, the Worker's secret and a verified App Link, so it can't be tested
 in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
 
-- [ ] Settings › Account › **Sign in with Instapaper** opens Instapaper; approving returns to the app
+- [ ] Settings › Connected services › Instapaper › **Sign in with Instapaper** opens Instapaper; approving returns to the app
       with "Signed in to Instapaper", and Settings shows your user name.
 - [ ] Right after signing in, everything in the Instapaper account appears in Saved (archived ones
       under Archive, Instapaper's folders as folders), and what was in Saved appears in Instapaper.

@@ -2,6 +2,14 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-23: Instapaper no longer signs you in (#215)
+
+- Signing in or making an account is done with an email link only; Instapaper is only a connected
+  service that syncs Saved. Connecting Instapaper no longer opens or signs in to a Content account
+  (the app ignores the account key the feed loader still sends).
+- Devices signed in with Instapaper before #166 keep their account: its key moved to the Content
+  account then, and **Add an email address** links an address to it.
+
 ## 2026-10-23: Signing in to sites you pay for (#180)
 
 - Android: the site's own sign-in page in a WebView (part of Android, no new library); Done keeps the

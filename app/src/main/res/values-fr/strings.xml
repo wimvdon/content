@@ -319,7 +319,6 @@
     <string name="account_email_send">M’envoyer un lien de connexion</string>
     <string name="account_email_sent">Envoyé à %1$s. Ouvrez le lien de cet e-mail sur cet appareil.</string>
     <string name="account_email_failed">L’e-mail n’a pas pu être envoyé. Vérifiez l’adresse et votre connexion.</string>
-    <string name="account_sign_in_instapaper">Ou se connecter avec Instapaper</string>
     <string name="account_sign_out">Se déconnecter</string>
     <string name="account_add_email">Ajouter une adresse e-mail</string>
     <string name="account_add_email_summary">Un lien envoyé à cette adresse vous connecte alors aussi, à la même bibliothèque.</string>

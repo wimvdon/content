@@ -42,8 +42,8 @@ import be.wimvandonck.reader.ui.theme.SettingsBlock
 import be.wimvandonck.reader.ui.theme.SettingsSection
 
 /**
- * The Content account (#166, docs/account.md): sign in with an emailed link (or with Instapaper,
- * which opens one too); it syncs feeds, read articles, Saved and settings. Signed in: who (the email
+ * The Content account (#166, docs/account.md): sign in with an emailed link; it syncs feeds, read
+ * articles, Saved and settings. Instapaper is only a connected service (#215). Signed in: who (the email
  * address and its Gravatar picture), how sync is doing, Sync now, Add email address (an account
  * opened with Instapaper), Sign out and Delete synced data. Shown once the stored sign-in is known.
  */
@@ -54,7 +54,6 @@ fun AccountSection(
     status: SyncStatus,
     lastSyncedAt: Long?,
     onSendLink: (email: String, result: (Boolean) -> Unit) -> Unit,
-    onSignInInstapaper: () -> Unit,
     onSyncNow: () -> Unit,
     onSignOut: () -> Unit,
     onDeleteData: () -> Unit,
@@ -70,9 +69,6 @@ fun AccountSection(
                 leadingContent = { Icon(painterResource(R.drawable.ic_cloud_sync), contentDescription = null) },
             )
             EmailLinkForm(R.string.account_email_send, onSendLink)
-            SettingsBlock {
-                TextButton(onClick = onSignInInstapaper) { Text(stringResource(R.string.account_sign_in_instapaper)) }
-            }
             return@SettingsSection
         }
         val email = state.session.email
