@@ -99,7 +99,20 @@ class InstapaperAccount(
     /** The signed-in account once read from storage, or null. */
     suspend fun session(): InstapaperSession? = (state.first { it != InstapaperState.Loading } as? InstapaperState.SignedIn)?.session
 
-    /** Signs out of Instapaper and the Reader account on this device (SyncManager forgets the sync). */
+    /**
+     * The Content account key this sign-in opened, handed over once (#166): the Content account
+     * keeps it from then on (sync/ContentAccount.kt), so disconnecting Instapaper doesn't sign out.
+     */
+    suspend fun takeAccountKey(): String? {
+        var key: String? = null
+        dataStore.edit { prefs ->
+            key = prefs[ACCOUNT_KEY]?.takeIf { it.isNotEmpty() }
+            prefs.remove(ACCOUNT_KEY)
+        }
+        return key
+    }
+
+    /** Disconnects Instapaper on this device. The Content account stays signed in (#166). */
     suspend fun signOut() {
         dataStore.edit { prefs ->
             prefs.remove(TOKEN)

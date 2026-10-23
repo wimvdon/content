@@ -5,6 +5,8 @@ main = "src/index.ts"
 compatibility_date = "2026-10-01"
 workers_dev = true
 send_metrics = false
+# Variables added in the dashboard survive a deploy (secrets always do).
+keep_vars = true
 
 # Nothing is logged: no request logs, no traces.
 [observability]
@@ -19,6 +21,10 @@ ALLOWED_ORIGINS = "https://rss-reader-web.wim-d57.workers.dev,https://rss-reader
 INSTAPAPER_CLIENT_ID = "94f820c94dc04d0386c71d7b0c26bd80"
 # Must equal a callback URI registered with the Instapaper application, character for character.
 INSTAPAPER_REDIRECT_URI = "https://rss-reader-web.wim-d57.workers.dev/instapaper/callback"
+# Sign-in links (#166): sent from this address through Resend (RESEND_API_KEY is a secret), and
+# opening the web app (the Android app opens the same address as an App Link).
+EMAIL_FROM = "Content <signin@resend.wimvandonck.be>"
+WEB_APP_ORIGIN = "https://rss-reader-web.wim-d57.workers.dev"
 
 # 120 requests per minute per IP address (a full refresh of 100 feeds fits).
 [[ratelimits]]

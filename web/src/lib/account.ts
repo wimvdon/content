@@ -238,3 +238,68 @@ export class LiveUpdates {
     }, retryDelay(this.failures));
   }
 }
+
+/** Signed in to a Content account (#166): this browser's device key, and the email address when there is one. */
+export interface AccountSession {
+  key: string;
+  email: string | null;
+}
+
+/** Where an emailed sign-in link opens the web app. */
+export const SIGNIN_PATH = "/signin";
+
+/** What an emailed link gave (#166): a device key for a sign-in (null when it added the address), and the address. */
+export interface EmailLinkResult {
+  key: string | null;
+  email: string;
+}
+
+/** Why an emailed link couldn't be used. */
+export type EmailLinkProblem = "expired" | "taken" | "failed";
+
+/** The token of an emailed link's address part ("#token=..."), or null. */
+export function emailLinkToken(hash: string): string | null {
+  const params = new URLSearchParams(hash.replace(/^#/, ""));
+  return params.get("token") || null;
+}
+
+/**
+ * Emails a sign-in link to email (#166, worker/src/email.ts); with a device key, a link that adds
+ * the address to that account. Throws a SyncError when it couldn't be sent.
+ */
+export async function sendEmailLink(email: string, key: string | null, doFetch: Fetch = browserFetch, base = PROXY_URL): Promise<void> {
+  let response: Response;
+  try {
+    response = await doFetch(base + (key ? "/account/email/add" : "/account/email/start"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...(key ? { Authorization: `Bearer ${key}` } : {}) },
+      body: JSON.stringify({ email: email.trim() }),
+    });
+  } catch {
+    throw new SyncError("offline");
+  }
+  if (!response.ok) throw new SyncError(response.status === 401 ? "signedOut" : response.status === 503 ? "notSetUp" : "server");
+}
+
+/** Uses an emailed link's token: a sign-in or an added address, or why it didn't work. */
+export async function finishEmailLink(token: string, doFetch: Fetch = browserFetch, base = PROXY_URL): Promise<EmailLinkResult | EmailLinkProblem> {
+  try {
+    const response = await doFetch(base + "/account/email/finish", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token }) });
+    if (response.status === 410) return "expired";
+    if (response.status === 409) return "taken";
+    if (!response.ok) return "failed";
+    const body = (await response.json().catch(() => null)) as { key?: unknown; email?: unknown } | null;
+    if (typeof body?.email !== "string" || !body.email) return "failed";
+    return { key: typeof body.key === "string" && body.key ? body.key : null, email: body.email };
+  } catch {
+    return "failed";
+  }
+}
+
+/** The account's picture (#166): Gravatar's for the address (SHA-256 of it, trimmed and in lower case); 404 when it has none. */
+export async function gravatarUrl(email: string, size = 96): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(email.trim().toLowerCase()));
+  const hash = [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
+  return `https://gravatar.com/avatar/${hash}?s=${size}&d=404`;
+}
+

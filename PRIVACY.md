@@ -1,9 +1,9 @@
 # Privacy policy
 
-_Last updated: 2026-10-23 (copying highlights to Instapaper)_
+_Last updated: 2026-10-23 (signing in with your email address)_
 
 Reader has no analytics, advertising or crash reporting. It works without an account. If you sign
-in with Instapaper, that sign-in is also your Reader account: Reader then keeps your feed list,
+in (with your email address, or with Instapaper), Reader keeps your feed list,
 read articles, saved articles (with their folders, notes, tags and highlights) and settings on its own
 server (the owner's Cloudflare Worker), encrypted, so your devices stay the same.
 
@@ -29,7 +29,17 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   The icon is shown next to the feed's name. These servers see the same as for the feed.
   A saved article from a website you don't follow shows that website's `/favicon.ico`, loaded from
   the same website the article itself comes from.
-- **Sync with your Reader account (off unless you sign in with Instapaper).** While the app is
+- **Signing in with your email address (#166).** Settings › Account › Email me a sign-in link
+  sends the address you type to the owner's feed loader, which emails you a link through Resend
+  (resend.com, from resend.wimvandonck.be), under Resend's privacy policy: Resend sees the address
+  and the email. The link works once, for 30 minutes. The feed loader doesn't store the address:
+  it keeps only a scrambled code of it (HMAC, with a secret only the feed loader has) to find your
+  account, and the ids of used links. The app keeps the address on your device, to show it and
+  your picture: signed in with an address, the app loads your picture from Gravatar
+  (gravatar.com/avatar/ followed by a scrambled form, SHA-256, of the address), under Gravatar's
+  privacy policy; there is none when the address has no Gravatar. Turn pictures off in Settings ›
+  Reader › Show images to skip it.
+- **Sync with your Reader account (off unless you sign in).** While the app is
   on screen (when it opens, a second after a change, on refresh, on Sync now, and at once when
   another of your devices changed something; never in the background) it reads and saves your data
   in your account on the owner's feed loader (a Cloudflare Worker, built from `worker/`, at
@@ -50,7 +60,7 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   changed. The document and each record are stored encrypted (AES-256-GCM, with a key for your
   account derived from a secret that only the feed loader has) in Cloudflare's storage (Durable
   Objects), the records under scrambled names that don't show their addresses. The feed loader can
-  decrypt them to send them to your devices; the owner could too, but doesn't look at them. Your account is found by a code derived from your Instapaper user number; each device gets
+  decrypt them to send them to your devices; the owner could too, but doesn't look at them. Your account is found by a code derived from your email address or your Instapaper user number; each device gets
   its own key, of which only a scrambled form (hash) is stored. Nothing is logged. Cloudflare sees
   your IP address, under Cloudflare's privacy policy. **Sign out** (Settings › Account) forgets this
   device's key; **Delete synced data** deletes the document, the records, the stored article texts and every device's key from the server
@@ -98,9 +108,9 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   the web, the browser's storage). Without an account it is not sent anywhere; signed in, see above.
 - The text of full articles you opened, and recently shown pictures, in the app's cache (Android
   may clear it).
-- If you signed in to Instapaper: the access token, your Instapaper user name and this device's
-  Reader account key, in a file of their own (`datastore/instapaper`) that Android's backup and
-  phone-to-phone transfer leave out.
+- If you signed in: this device's Reader account key and your email address, in a file of their
+  own (`datastore/account`); if you connected Instapaper: the access token and your Instapaper user
+  name (`datastore/instapaper`). Android's backup and phone-to-phone transfer leave both out.
 
 Android's own backup (to your Google account, if you turned that on) and phone-to-phone transfer
 include the feed list, articles, read state, settings and the articles saved without an account, not the cache and not the Instapaper sign-in. Removing a feed deletes its articles; uninstalling the app deletes everything.

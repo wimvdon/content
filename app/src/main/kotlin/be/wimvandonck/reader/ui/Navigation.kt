@@ -90,6 +90,7 @@ import be.wimvandonck.reader.data.Settings
 import be.wimvandonck.reader.data.needsFullText
 import be.wimvandonck.reader.data.wantsFullText
 import be.wimvandonck.reader.instapaper.InstapaperNotice
+import be.wimvandonck.reader.sync.AccountNotice
 import be.wimvandonck.reader.instapaper.InstapaperState
 import be.wimvandonck.reader.rssReaderApp
 import be.wimvandonck.reader.ui.feeds.FeedsActions
@@ -195,6 +196,8 @@ fun RssReaderNavigation(
     val notCopied by app.services.notCopied.collectAsStateWithLifecycle()
     val instapaperState by app.instapaper.state.collectAsStateWithLifecycle()
     val instapaperNotice by app.instapaper.notice.collectAsStateWithLifecycle()
+    val accountState by app.account.state.collectAsStateWithLifecycle()
+    val accountNotice by app.account.notice.collectAsStateWithLifecycle()
     val current = settings ?: Settings()
     val library = libraryOrNull ?: Library()
     val snackbar = remember { SnackbarHostState() }
@@ -370,6 +373,23 @@ fun RssReaderNavigation(
         val notice = instapaperNotice ?: return@LaunchedEffect
         showMessage(resources.getString(if (notice == InstapaperNotice.SignedIn) R.string.instapaper_sign_in_done else R.string.instapaper_sign_in_failed))
         app.instapaper.clearNotice()
+    }
+
+    // An emailed sign-in link opened here (#166): say how it went, once.
+    LaunchedEffect(accountNotice) {
+        val notice = accountNotice ?: return@LaunchedEffect
+        showMessage(
+            resources.getString(
+                when (notice) {
+                    AccountNotice.SignedIn -> R.string.account_link_signed_in
+                    AccountNotice.EmailAdded -> R.string.account_link_added
+                    AccountNotice.LinkExpired -> R.string.account_link_expired
+                    AccountNotice.EmailTaken -> R.string.account_link_taken
+                    AccountNotice.Failed -> R.string.account_link_failed
+                },
+            ),
+        )
+        app.account.clearNotice()
     }
 
     // Sync while the app is on screen: when it comes back, live while it stays, and every minute
@@ -750,7 +770,7 @@ fun RssReaderNavigation(
                                 settings = current,
                                 shareApps = shareApps,
                                 syncStatus = syncStatus,
-                                instapaper = instapaperState,
+                                account = accountState,
                             ),
                         snackbarHostState = snackbar,
                         actions =
@@ -774,6 +794,9 @@ fun RssReaderNavigation(
                                     }
                                 },
                                 onSignOut = { app.appScope.launch { app.sync.signOut() } },
+                                onSendLink = { email, result ->
+                                    uiScope.launch { result(runCatching { app.account.sendLink(email) }.isSuccess) }
+                                },
                                 onDeleteAccountData = {
                                     app.appScope.launch {
                                         val deleted = app.sync.deleteAccountData()
@@ -891,7 +914,8 @@ fun RssReaderNavigation(
                         ServicesActions(
                             onBack = ::pop,
                             onSignIn = { uiScope.launch { ExternalApps.openLink(context, app.instapaper.begin()) } },
-                            onSignOut = { app.appScope.launch { app.sync.signOut() } },
+                            // Disconnects Instapaper only; the Content account stays signed in (#166).
+                            onSignOut = { app.appScope.launch { app.instapaper.signOut() } },
                             onSyncNow = { app.appScope.launch { app.services.sync() } },
                             onOpenService = { id -> push(Screen.Service(id)) },
                             onLoadFolders = { id, result -> uiScope.launch { result(app.services.folders(id)) } },

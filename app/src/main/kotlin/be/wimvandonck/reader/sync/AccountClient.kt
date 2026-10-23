@@ -212,3 +212,90 @@ class AccountClient(
         ): String = base.replaceFirst("http", "ws") + "/account/live?key=" + java.net.URLEncoder.encode(key, "UTF-8")
     }
 }
+
+/** An emailed link that couldn't be used (#166), with what to tell the user. */
+class EmailLinkException(
+    val notice: AccountNotice,
+    cause: Throwable? = null,
+) : Exception(notice.name, cause)
+
+/** What an emailed link gave: a device key for a sign-in (null when it added the address), and the address. */
+data class EmailLinkResult(
+    val key: String?,
+    val email: String,
+)
+
+/**
+ * Signing in with an emailed link at the feed loader (#166, worker/src/email.ts): asking for a
+ * link, and using one. A [SyncException] says why asking failed.
+ */
+class EmailLinks(
+    private val http: OkHttpClient,
+    private val base: String = AccountClient.BASE_URL,
+) {
+    /** Emails a sign-in link to [email]; with [key], a link that adds it to that account. */
+    suspend fun send(
+        email: String,
+        key: String?,
+    ) {
+        val body = Json.write(mapOf("email" to email.trim())).toRequestBody(JSON_TYPE)
+        val request =
+            Request
+                .Builder()
+                .url(base + if (key != null) "/account/email/add" else "/account/email/start")
+                .apply { if (key != null) header("Authorization", "Bearer $key") }
+                .post(body)
+                .build()
+        val code = execute(request) { it.code }
+        if (code !in 200..299) throw SyncException(if (code == 400) SyncProblem.ServerError else AccountClient.problemOf(code))
+    }
+
+    suspend fun finish(token: String): EmailLinkResult {
+        val body = Json.write(mapOf("token" to token)).toRequestBody(JSON_TYPE)
+        val request = Request.Builder().url("$base/account/email/finish").post(body).build()
+        val (code, text) =
+            try {
+                execute(request) { it.code to it.body.string() }
+            } catch (e: SyncException) {
+                throw EmailLinkException(AccountNotice.Failed, e)
+            }
+        when (code) {
+            410 -> throw EmailLinkException(AccountNotice.LinkExpired)
+            409 -> throw EmailLinkException(AccountNotice.EmailTaken)
+        }
+        return (if (code == 200) resultFrom(text) else null) ?: throw EmailLinkException(AccountNotice.Failed)
+    }
+
+    private suspend fun <T> execute(
+        request: Request,
+        read: (Response) -> T,
+    ): T =
+        withContext(Dispatchers.IO) {
+            try {
+                http.newCall(request).execute().use(read)
+            } catch (e: IOException) {
+                throw SyncException(SyncProblem.Offline, e)
+            }
+        }
+
+    companion object {
+        /** Where an emailed link opens: the web app's address, which this app opens as an App Link. */
+        const val LINK_PREFIX = "https://rss-reader-web.wim-d57.workers.dev/signin"
+
+        private val JSON_TYPE = "application/json; charset=utf-8".toMediaType()
+
+        /** The token of an emailed link ("…/signin#token=…"), or null when it isn't one. */
+        fun tokenOf(link: String): String? {
+            if (!link.startsWith(LINK_PREFIX)) return null
+            val fragment = link.substringAfter('#', "")
+            return fragment.split('&').firstOrNull { it.startsWith("token=") }?.removePrefix("token=")?.takeIf { it.isNotEmpty() }
+        }
+
+        /** The answer of a used link: {"key", "email"} or {"email"}. */
+        fun resultFrom(text: String): EmailLinkResult? {
+            val map = runCatching { Json.parse(text) }.getOrNull() as? Map<*, *> ?: return null
+            val email = (map["email"] as? String)?.takeIf { it.isNotEmpty() } ?: return null
+            return EmailLinkResult((map["key"] as? String)?.takeIf { it.isNotEmpty() }, email)
+        }
+    }
+}

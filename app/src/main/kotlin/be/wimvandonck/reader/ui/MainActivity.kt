@@ -10,6 +10,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import be.wimvandonck.reader.instapaper.InstapaperAuth
 import be.wimvandonck.reader.rssReaderApp
+import be.wimvandonck.reader.sync.EmailLinks
 import be.wimvandonck.reader.ui.theme.RssReaderAppTheme
 import kotlinx.coroutines.launch
 
@@ -44,11 +45,16 @@ class MainActivity : ComponentActivity() {
         const val EXTRA_OPEN_ARTICLE = "be.wimvandonck.reader.extra.OPEN_ARTICLE"
     }
 
-    /** Instapaper sends the user back through an Android App Link; this finishes the sign-in. */
+    /**
+     * Instapaper sends the user back through an Android App Link, and an emailed sign-in link opens
+     * here the same way (#166); this finishes either.
+     */
     private fun finishInstapaperSignIn(intent: Intent?) {
         val link = intent?.takeIf { it.action == Intent.ACTION_VIEW }?.dataString ?: return
-        if (!InstapaperAuth.isCallback(link)) return
         val app = rssReaderApp
-        app.appScope.launch { app.instapaper.finish(link) }
+        when {
+            InstapaperAuth.isCallback(link) -> app.appScope.launch { app.instapaper.finish(link) }
+            EmailLinks.tokenOf(link) != null -> app.appScope.launch { app.account.finish(link) }
+        }
     }
 }

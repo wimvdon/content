@@ -165,7 +165,6 @@
     <string name="sync_failed_setup">La synchronisation n’est pas encore disponible sur le serveur de Content.</string>
     <string name="section_instapaper">Instapaper</string>
     <string name="instapaper_sign_in">Se connecter avec Instapaper</string>
-    <string name="instapaper_signed_in_as">Connecté en tant que %1$s</string>
     <string name="instapaper_sign_out">Se déconnecter</string>
     <string name="instapaper_sign_in_done">Connecté à Instapaper</string>
     <string name="instapaper_sign_in_failed">La connexion à Instapaper a échoué. Réessayez.</string>
@@ -176,8 +175,7 @@
     <string name="action_close">Fermer</string>
     <string name="action_done">OK</string>
     <string name="section_account">Compte</string>
-    <string name="account_summary">Connectez-vous avec Instapaper pour garder vos flux, articles lus, éléments enregistrés et réglages identiques sur tous vos appareils, et vos éléments enregistrés dans Instapaper.</string>
-    <string name="sync_no_account">La synchronisation est désactivée pour cette connexion. Reconnectez-vous pour l’activer.</string>
+    <string name="account_summary">Connectez-vous avec votre adresse e-mail pour garder vos flux, articles lus, Enregistrés et réglages identiques sur tous vos appareils.</string>
     <string name="sync_failed_signed_out">Cet appareil a été déconnecté de votre compte. Reconnectez-vous.</string>
     <string name="account_delete_data">Supprimer les données synchronisées</string>
     <string name="account_delete_confirm">Supprimer vos flux, articles lus et paramètres du serveur de Content ? Ils restent sur cet appareil, et vous êtes déconnecté partout.</string>
@@ -319,4 +317,18 @@
         <item quantity="many">%1$d éléments sortent de ce que %2$s synchronise. Ils y sont archivés, pas supprimés, et restent dans Content.</item>
         <item quantity="other">%1$d éléments sortent de ce que %2$s synchronise. Ils y sont archivés, pas supprimés, et restent dans Content.</item>
     </plurals>
+    <string name="account_title">Compte Content</string>
+    <string name="account_email">Adresse e-mail</string>
+    <string name="account_email_send">M’envoyer un lien de connexion</string>
+    <string name="account_email_sent">Envoyé à %1$s. Ouvrez le lien de cet e-mail sur cet appareil.</string>
+    <string name="account_email_failed">L’e-mail n’a pas pu être envoyé. Vérifiez l’adresse et votre connexion.</string>
+    <string name="account_sign_in_instapaper">Ou se connecter avec Instapaper</string>
+    <string name="account_sign_out">Se déconnecter</string>
+    <string name="account_add_email">Ajouter une adresse e-mail</string>
+    <string name="account_add_email_summary">Un lien envoyé à cette adresse vous connecte alors aussi, à la même bibliothèque.</string>
+    <string name="account_link_signed_in">Connecté</string>
+    <string name="account_link_added">Adresse e-mail ajoutée</string>
+    <string name="account_link_expired">Ce lien est déjà utilisé ou trop ancien. Demandez-en un nouveau.</string>
+    <string name="account_link_taken">Cette adresse appartient déjà à un autre compte Content.</string>
+    <string name="account_link_failed">La connexion n’a pas fonctionné. Réessayez.</string>
 </resources>

@@ -19,7 +19,17 @@ export function InstapaperSettings() {
   const { instapaper, instapaperWaiting, instapaperBusy, settings } = useApp();
   const [failed, setFailed] = useState(false);
   const [choosing, setChoosing] = useState<string[] | null>(null);
-  if (!instapaper) return null;
+  // Instapaper is a connected service, separate from the Content account (#166).
+  if (!instapaper) {
+    return (
+      <section className="space-y-2">
+        <h3 className="text-sm font-medium text-primary">{NAME}</h3>
+        <Button variant="outline" onClick={() => app.connectInstapaper()}>
+          {t("instapaperSignIn")}
+        </Button>
+      </section>
+    );
+  }
   const record = settings.imports[INSTAPAPER_ID];
   const run = (what: Pick<ServiceImport, "folders" | "archive">) => {
     setFailed(false);
@@ -57,6 +67,9 @@ export function InstapaperSettings() {
           </Button>
         </div>
       </div>
+      <Button variant="ghost" onClick={() => void app.disconnectInstapaper()}>
+        {t("instapaperSignOut")}
+      </Button>
       {/* What it syncs was a choice of folders; folders became tags (#187), so everything in Saved syncs. */}
       <div className="space-y-2">
         <h4 className="text-sm font-medium">{t("highlightsTitle")}</h4>

@@ -32,7 +32,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- Where Instapaper sends the user back after signing in. Verified against
+            <!-- Where Instapaper sends the user back after signing in, and where an emailed sign-in
+                 link opens (#166). Verified against
                  https://rss-reader-web.wim-d57.workers.dev/.well-known/assetlinks.json (web/public). -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
@@ -41,6 +42,7 @@
                 <data android:scheme="https" />
                 <data android:host="rss-reader-web.wim-d57.workers.dev" />
                 <data android:path="/instapaper/callback" />
+                <data android:path="/signin" />
             </intent-filter>
         </activity>
 

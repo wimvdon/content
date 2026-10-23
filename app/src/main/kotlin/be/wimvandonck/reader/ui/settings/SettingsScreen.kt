@@ -27,7 +27,7 @@ import be.wimvandonck.reader.data.ReaderStyle
 import be.wimvandonck.reader.data.ShareTarget
 import be.wimvandonck.reader.data.Settings
 import be.wimvandonck.reader.data.ThemeMode
-import be.wimvandonck.reader.instapaper.InstapaperState
+import be.wimvandonck.reader.sync.AccountState
 import be.wimvandonck.reader.sync.SyncStatus
 import be.wimvandonck.reader.ui.ExternalApps
 import be.wimvandonck.reader.ui.reader.ReaderStyleControls
@@ -47,7 +47,7 @@ data class SettingsState(
     val settings: Settings,
     val shareApps: List<ExternalApps.ShareApp>,
     val syncStatus: SyncStatus = SyncStatus.Idle,
-    val instapaper: InstapaperState = InstapaperState.Loading,
+    val account: AccountState = AccountState.Loading,
 )
 
 class SettingsActions(
@@ -66,6 +66,8 @@ class SettingsActions(
     val onSyncNow: () -> Unit,
     val onSignOut: () -> Unit,
     val onDeleteAccountData: () -> Unit,
+    /** Emails a sign-in link (or, signed in, one that adds the address); gives back whether it was sent (#166). */
+    val onSendLink: (email: String, result: (Boolean) -> Unit) -> Unit = { _, _ -> },
 )
 
 /** Everything that can be set, as one list of sections in the order DESIGN.md gives. */
@@ -83,10 +85,12 @@ fun SettingsScreen(
     ) {
         item(key = "account") {
             AccountSection(
-                state = state.instapaper,
+                state = state.account,
                 status = state.syncStatus,
                 lastSyncedAt = state.settings.lastSyncedAt,
-                onSignIn = actions.onSignIn,
+                onSendLink = actions.onSendLink,
+                onSignInInstapaper = actions.onSignIn,
+                showImages = state.settings.showImages,
                 onSyncNow = actions.onSyncNow,
                 onSignOut = actions.onSignOut,
                 onDeleteData = actions.onDeleteAccountData,

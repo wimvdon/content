@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { AccountClient, LiveUpdates, SyncError, type SyncProblem } from "./account";
+import { AccountClient, emailLinkToken, finishEmailLink, LiveUpdates, sendEmailLink, SIGNIN_PATH, SyncError, type AccountSession, type EmailLinkProblem, type SyncProblem } from "./account";
 import { findFeed } from "./discovery";
 import { parseFeed } from "./feedParser";
 import {
@@ -69,6 +69,10 @@ export interface State {
   instapaper: InstapaperSession | null;
   /** The result of coming back from Instapaper's sign-in page, shown once. */
   instapaperNotice: "signedIn" | "failed" | null;
+  /** The Content account in this browser (#166): its device key and email address. Kept in this browser only. */
+  account: AccountSession | null;
+  /** The result of opening an emailed sign-in link, shown once. */
+  accountNotice: "signedIn" | "emailAdded" | EmailLinkProblem | null;
   /** Saved's tab, Liked, tags and type (saved.ts), while Saved is shown. */
   savedFilter: Saved.SavedFilter;
   /** The save and Organise sheet while it is open (#143): Add link, just saved, or organising a saved item. */
@@ -117,6 +121,8 @@ class AppStore {
     syncStatus: { kind: "idle" },
     instapaper: null,
     instapaperNotice: null,
+    account: null,
+    accountNotice: null,
     savedFilter: Saved.defaultSavedFilter,
     sheet: null,
     instapaperWaiting: false,
@@ -153,22 +159,31 @@ class AppStore {
   async init() {
     if (this.started) return;
     this.started = true;
-    const [library, settings, instapaper] = await Promise.all([
+    const [library, settings, instapaper, stored] = await Promise.all([
       loadLibrary().catch(() => undefined),
       load<Partial<Settings>>("settings").catch(() => undefined),
       load<InstapaperSession>("instapaper").catch(() => undefined),
+      load<AccountSession>("account").catch(() => undefined),
     ]);
+    // Before #166 the account key came with the Instapaper sign-in; the account keeps it now.
+    let account = stored?.key ? { key: stored.key, email: stored.email ?? null } : null;
+    if (!account && instapaper?.accountKey) {
+      account = { key: instapaper.accountKey, email: null };
+      await save("account", account).catch(() => undefined);
+    }
     const merged = { ...defaultSettings, ...settings, readerStyle: readerStyleOf(settings?.readerStyle), scopes: settings?.scopes ?? {}, imports: settings?.imports ?? {} };
     this.set({
       loaded: true,
       library: library ?? L.emptyLibrary(),
       settings: merged,
-      instapaper: instapaper?.token ? { ...instapaper, accountKey: instapaper.accountKey ?? null } : null,
+      instapaper: instapaper?.token ? { ...instapaper, accountKey: null } : null,
+      account,
     });
     // Folders became tags (#187): the library read from this browser moves over once.
     this.updateLibrary((lib) => lib);
     this.resolveLibrary();
     if (location.pathname === CALLBACK_PATH) await this.finishInstapaperSignIn(location.search);
+    if (location.pathname === SIGNIN_PATH) await this.finishEmailLink(location.hash);
     this.syncWhileVisible();
     if (this.accountKey() || this.state.instapaper) await this.sync();
     if (this.state.library.feeds.length > 0) await this.refresh(false);
@@ -209,7 +224,7 @@ class AppStore {
   private syncedItemsVersion: number | null = null;
 
   private accountKey(): string | null {
-    return this.state.instapaper?.accountKey ?? null;
+    return this.state.account?.key ?? null;
   }
 
   /** Syncs unless the last sync was only seconds ago. */
@@ -458,10 +473,11 @@ class AppStore {
     }
     try {
       const session = await exchangeCode(answer.code);
-      await this.forgetSync();
       await remove(INSTAPAPER_SYNC_KEY).catch(() => undefined);
       await remove(INSTAPAPER_HIGHLIGHTS_KEY).catch(() => undefined);
-      await this.setInstapaper(session);
+      // Signing in with Instapaper opens a Content account when this browser has none (#166).
+      if (!this.state.account && session.accountKey) await this.setAccount({ key: session.accountKey, email: null });
+      await this.setInstapaper({ ...session, accountKey: null });
       this.set({ instapaperNotice: "signedIn" });
       this.updateLive();
       void this.sync();
@@ -472,6 +488,64 @@ class AppStore {
 
   clearInstapaperNotice() {
     this.set({ instapaperNotice: null });
+  }
+
+  // The Content account (#166, docs/account.md): an emailed sign-in link, or opened by Instapaper.
+
+  /** Emails a sign-in link to email (signed in: a link that adds it to this account). False when it couldn't be sent. */
+  sendEmailLink = async (email: string): Promise<boolean> => {
+    try {
+      await sendEmailLink(email, this.accountKey());
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  private async finishEmailLink(hash: string) {
+    history.replaceState(null, "", "/");
+    const token = emailLinkToken(hash);
+    const result = token ? await finishEmailLink(token) : "failed";
+    if (typeof result === "string") {
+      this.set({ accountNotice: result });
+      return;
+    }
+    if (result.key) {
+      // Another account than the one signed in here: start from this browser's library again.
+      const before = this.accountKey();
+      if (before && before.split(".")[0] !== result.key.split(".")[0]) await this.forgetSync();
+      await this.setAccount({ key: result.key, email: result.email });
+      this.set({ accountNotice: "signedIn" });
+      this.updateLive();
+      void this.sync();
+    } else {
+      if (this.state.account) await this.setAccount({ ...this.state.account, email: result.email });
+      this.set({ accountNotice: "emailAdded" });
+    }
+  }
+
+  clearAccountNotice() {
+    this.set({ accountNotice: null });
+  }
+
+  private async setAccount(account: AccountSession | null) {
+    if (account) await save("account", account).catch(() => undefined);
+    else await remove("account").catch(() => undefined);
+    this.set({ account });
+  }
+
+  /** Signs out of the Content account in this browser; the library stays here, and Instapaper stays connected. */
+  async signOutAccount() {
+    const key = this.accountKey();
+    if (key) void new AccountClient(key).signOut().catch(() => undefined);
+    await this.forgetAccount();
+  }
+
+  private async forgetAccount() {
+    await this.forgetSync();
+    await this.setAccount(null);
+    this.updateLive();
+    this.set({ syncStatus: { kind: "idle" } });
   }
 
   /** The text stored in the account for saved item `key` (sharedText.ts); null without an account. */
@@ -486,10 +560,8 @@ class AppStore {
     return account ? new AccountClient(account).storeText(key, html) : null;
   };
 
-  /** Signs out of Instapaper and the account in this browser; the library stays here. */
+  /** Disconnects Instapaper in this browser; the Content account stays signed in (#166). */
   async disconnectInstapaper() {
-    const key = this.accountKey();
-    if (key) void new AccountClient(key).signOut().catch(() => undefined);
     await this.signOutHere();
   }
 
@@ -506,12 +578,11 @@ class AppStore {
         return false;
       }
     }
-    await this.signOutHere();
+    await this.forgetAccount();
     return true;
   }
 
   private async signOutHere() {
-    await this.forgetSync();
     // Disconnected: what was synced with Instapaper, and its import, are forgotten; Saved stays.
     await remove(INSTAPAPER_SYNC_KEY).catch(() => undefined);
     await remove(INSTAPAPER_HIGHLIGHTS_KEY).catch(() => undefined);
@@ -520,8 +591,6 @@ class AppStore {
     delete imports[INSTAPAPER_ID];
     this.updateSettings({ imports });
     await this.setInstapaper(null);
-    this.updateLive();
-    this.set({ syncStatus: { kind: "idle" } });
   }
 
   /** Forgets what was synced, so the next account starts by combining this browser's library with its own. */

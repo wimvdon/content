@@ -9,8 +9,6 @@ import androidx.datastore.dataStoreFile
 import be.wimvandonck.reader.data.Item
 import be.wimvandonck.reader.data.LibraryRepository
 import be.wimvandonck.reader.data.SettingsStore
-import be.wimvandonck.reader.instapaper.InstapaperAccount
-import be.wimvandonck.reader.instapaper.InstapaperState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.coroutineScope
@@ -61,7 +59,7 @@ class SyncManager(
     private val scope: CoroutineScope,
     private val library: LibraryRepository,
     private val settings: SettingsStore,
-    private val instapaper: InstapaperAccount,
+    private val account: ContentAccount,
     private val http: OkHttpClient,
     private val clock: () -> Long = System::currentTimeMillis,
 ) {
@@ -103,9 +101,9 @@ class SyncManager(
         }
         scope.launch {
             // Signing in starts with a fresh base (the new account's document is combined with this
-            // library); signing out, here or because Instapaper refused the token, forgets it.
-            instapaper.state
-                .filter { it != InstapaperState.Loading }
+            // library); signing out, here or because the key no longer works, forgets it.
+            account.state
+                .filter { it != AccountState.Loading }
                 .map { accountKeyOf(it) }
                 .distinctUntilChanged()
                 .drop(1)
@@ -148,7 +146,7 @@ class SyncManager(
     suspend fun whileVisible() =
         coroutineScope {
             launch {
-                instapaper.state.map { accountKeyOf(it) }.distinctUntilChanged().collect { key ->
+                account.state.map { accountKeyOf(it) }.distinctUntilChanged().collect { key ->
                     live?.stop()
                     live =
                         key?.let {
@@ -169,7 +167,6 @@ class SyncManager(
             }
         }
 
-    /** Signs out of the account on the server (this device only), then here: Instapaper too. */
     /** The text stored in the account for saved item [key] (docs/account.md); throws when it can't be asked. */
     suspend fun storedText(key: String): String? = accountKey()?.let { AccountClient(http, it).text(key) }
 
@@ -179,9 +176,10 @@ class SyncManager(
         html: String,
     ): String? = accountKey()?.let { AccountClient(http, it).storeText(key, html) }
 
+    /** Signs out of the account on the server (this device only), then here. Instapaper stays connected (#166). */
     suspend fun signOut() {
         accountKey()?.let { key -> runCatching { AccountClient(http, key).signOut() } }
-        instapaper.signOut()
+        account.forget()
     }
 
     /** Deletes everything the account keeps, then signs out here. False when the server couldn't be reached. */
@@ -192,13 +190,13 @@ class SyncManager(
         } catch (e: SyncException) {
             return false
         }
-        instapaper.signOut()
+        account.forget()
         return true
     }
 
-    private suspend fun accountKey(): String? = instapaper.session()?.accountKey
+    private suspend fun accountKey(): String? = account.session()?.key
 
-    private fun accountKeyOf(state: InstapaperState): String? = (state as? InstapaperState.SignedIn)?.session?.accountKey
+    private fun accountKeyOf(state: AccountState): String? = (state as? AccountState.SignedIn)?.session?.key
 
     private suspend fun syncLocked() {
         val key = accountKey() ?: return

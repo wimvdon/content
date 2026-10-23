@@ -15,6 +15,8 @@ import be.wimvandonck.reader.data.SettingsStore
 import be.wimvandonck.reader.feed.FeedFetcher
 import be.wimvandonck.reader.instapaper.InstapaperAccount
 import be.wimvandonck.reader.instapaper.InstapaperReadingList
+import be.wimvandonck.reader.instapaper.InstapaperState
+import be.wimvandonck.reader.sync.ContentAccount
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -56,8 +58,11 @@ class RssReaderApp :
     val instapaper: InstapaperAccount by lazy { InstapaperAccount(this, appScope, http) }
 
 
-    /** Sync with the user's Reader account, which signing in with Instapaper opens. See sync/ and docs/account.md. */
-    val sync: SyncManager by lazy { SyncManager(this, appScope, library, settings, instapaper, http) }
+    /** The user's Content account on this device: an emailed sign-in link, or opened by Instapaper (#166). See docs/account.md. */
+    val account: ContentAccount by lazy { ContentAccount(this, appScope, http) }
+
+    /** Sync with the user's Content account. See sync/ and docs/account.md. */
+    val sync: SyncManager by lazy { SyncManager(this, appScope, library, settings, account, http) }
 
     /** Saved's connected service (Instapaper). See services/. */
     val services: ServiceManager by lazy {
@@ -87,6 +92,12 @@ class RssReaderApp :
         appScope.launch { iconCatalog }
         // Raindrop.io was removed (#179): its sign-in, kept only on this device, goes with it.
         appScope.launch { File(filesDir, "datastore/raindrop.preferences_pb").delete() }
+        // Signing in with Instapaper opens a Content account; the account keeps its key (#166).
+        appScope.launch {
+            instapaper.state.collect { state ->
+                if ((state as? InstapaperState.SignedIn)?.session?.accountKey != null) instapaper.takeAccountKey()?.let { account.adopt(it) }
+            }
+        }
     }
 
     /** The article list refreshes once per app start; later refreshes are pull-to-refresh. */

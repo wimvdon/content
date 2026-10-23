@@ -2,6 +2,18 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-23: Signing in with an email link (#166)
+
+- A Content account no longer depends on Instapaper: an emailed link (no password) signs in, and
+  Instapaper becomes a connected service only. Accounts opened with Instapaper keep working and can
+  add an address once, after which either way opens the same library.
+- The emails go through Resend (the owner's choice), from resend.wimvandonck.be.
+- The link's token is signed, not stored: nothing is kept for links never opened. Used link ids and
+  which account an address opens are kept under an HMAC of the address, never the address itself.
+- A link, not a code to type: the issue asked for one, and it opens the app through the existing App
+  Link. A debug build can't verify App Links, so there it opens the web app.
+- The picture comes from Gravatar (the issue's choice), skipped when pictures are off.
+
 ## 2026-10-23: Copying highlights to Instapaper (#164)
 
 - One way only: Content's highlights get copies in Instapaper; highlights made in Instapaper's own

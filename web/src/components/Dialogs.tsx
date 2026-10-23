@@ -1,6 +1,7 @@
 import { ArrowDown, ArrowUp, Pencil, Plus, Trash2 } from "lucide-react";
 import { ConfirmRemove } from "./ConfirmRemove";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { gravatarUrl } from "@/lib/account";
 import { app, useApp, type ListView, type Theme } from "@/lib/app";
 import { formatRelative, t, type Key } from "@/lib/i18n";
 import { searchIcons } from "@/lib/icons";
@@ -378,57 +379,66 @@ export function SettingsDialog({ open, onOpenChange }: Props) {
 }
 
 /**
- * The account: signing in with Instapaper also syncs the library (docs/account.md). Signed in, it
- * shows who, how sync is doing, Sync now, Sign out and Delete synced data.
+ * The Content account (#166, docs/account.md): sign in with an emailed link (or with Instapaper,
+ * which opens one too). Signed in: who (the address and its Gravatar picture), how sync is doing,
+ * Sync now, Add email address (an account opened with Instapaper), Sign out and Delete synced data.
  */
 function AccountSection() {
-  const { settings, syncStatus, instapaper } = useApp();
+  const { settings, syncStatus, account } = useApp();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleteFailed, setDeleteFailed] = useState(false);
-  const statusText = !instapaper?.accountKey
-    ? t("syncNoAccount")
-    : syncStatus.kind === "syncing"
+  const statusText =
+    syncStatus.kind === "syncing"
       ? t("syncing")
       : syncStatus.kind === "failed"
         ? t(syncProblems[syncStatus.problem])
         : settings.lastSyncedAt
           ? t("lastSynced").replace("{when}", formatRelative(settings.lastSyncedAt))
           : t("notSyncedYet");
-  const failed = syncStatus.kind === "failed" || (instapaper !== null && !instapaper.accountKey);
+  const failed = syncStatus.kind === "failed";
   return (
     <section className="space-y-2">
       <h3 className="text-sm font-medium text-primary">{t("account")}</h3>
-      {instapaper ? (
+      {account ? (
         <>
-          <p className="text-sm font-medium">{t("instapaperSignedInAs").replace("{name}", instapaper.username || "Instapaper")}</p>
-          <p className={cn("text-sm", failed ? "text-destructive" : "text-muted-foreground")} role={failed ? "alert" : undefined}>
-            {statusText}
-          </p>
+          <div className="flex items-center gap-3">
+            {account.email && settings.showImages ? <Gravatar key={account.email} email={account.email} /> : null}
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium">{account.email ?? t("accountTitle")}</p>
+              <p className={cn("text-sm", failed ? "text-destructive" : "text-muted-foreground")} role={failed ? "alert" : undefined}>
+                {statusText}
+              </p>
+            </div>
+          </div>
           <div className="flex flex-wrap gap-2 pt-1">
-            {instapaper.accountKey && !(syncStatus.kind === "failed" && syncStatus.problem === "signedOut") ? (
+            {!(syncStatus.kind === "failed" && syncStatus.problem === "signedOut") ? (
               <Button variant="tonal" onClick={() => void app.sync()} disabled={syncStatus.kind === "syncing"}>
                 {t("syncNow")}
               </Button>
-            ) : (
-              <Button onClick={() => app.connectInstapaper()}>{t("instapaperSignIn")}</Button>
-            )}
-            <Button variant="ghost" onClick={() => void app.disconnectInstapaper()}>
-              {t("instapaperSignOut")}
-            </Button>
-            {instapaper.accountKey ? (
-              <Button variant="ghost" className="text-destructive" onClick={() => setConfirmDelete(true)}>
-                {t("deleteAccountData")}
-              </Button>
             ) : null}
+            <Button variant="ghost" onClick={() => void app.signOutAccount()}>
+              {t("accountSignOut")}
+            </Button>
+            <Button variant="ghost" className="text-destructive" onClick={() => setConfirmDelete(true)}>
+              {t("deleteAccountData")}
+            </Button>
           </div>
           {deleteFailed ? <p className="text-sm text-destructive" role="alert">{t("syncOffline")}</p> : null}
+          {account.email ? null : (
+            <div className="space-y-2 pt-2">
+              <p className="text-sm font-medium">{t("accountAddEmail")}</p>
+              <p className="text-sm text-muted-foreground">{t("accountAddEmailSummary")}</p>
+              <EmailLinkForm />
+            </div>
+          )}
         </>
       ) : (
         <>
           <p className="text-sm text-muted-foreground">{t("accountSummary")}</p>
-          <div className="pt-1">
-            <Button onClick={() => app.connectInstapaper()}>{t("instapaperSignIn")}</Button>
-          </div>
+          <EmailLinkForm />
+          <Button variant="ghost" onClick={() => app.connectInstapaper()}>
+            {t("accountSignInInstapaper")}
+          </Button>
         </>
       )}
       <Dialog
@@ -467,3 +477,73 @@ const syncProblems: Record<string, Key> = {
   unreadableFile: "syncUnreadable",
   notSetUp: "syncNotSetUp",
 };
+
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** An email address and a button that emails a link to it; then says to open the email. */
+function EmailLinkForm() {
+  const [email, setEmail] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sentTo, setSentTo] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
+  const valid = EMAIL.test(email.trim());
+  const send = () => {
+    if (!valid || sending) return;
+    const to = email.trim();
+    setSending(true);
+    setFailed(false);
+    void app.sendEmailLink(to).then((ok) => {
+      setSending(false);
+      if (ok) setSentTo(to);
+      else setFailed(true);
+    });
+  };
+  return (
+    <form
+      className="space-y-2"
+      onSubmit={(e) => {
+        e.preventDefault();
+        send();
+      }}
+    >
+      <div className="space-y-1">
+        <Label htmlFor="account-email">{t("accountEmail")}</Label>
+        <Input
+          id="account-email"
+          type="email"
+          autoComplete="email"
+          value={email}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            setFailed(false);
+          }}
+        />
+      </div>
+      <Button type="submit" disabled={!valid || sending}>
+        {t("accountEmailSend")}
+      </Button>
+      {sentTo ? <p className="text-sm">{t("accountEmailSent").replace("{email}", sentTo)}</p> : null}
+      {failed ? (
+        <p className="text-sm text-destructive" role="alert">
+          {t("accountEmailFailed")}
+        </p>
+      ) : null}
+    </form>
+  );
+}
+
+/** The Gravatar picture of the address, or nothing when it has none. */
+function Gravatar({ email }: { email: string }) {
+  const [src, setSrc] = useState<string | null>(null);
+  const [missing, setMissing] = useState(false);
+  useEffect(() => {
+    let current = true;
+    void gravatarUrl(email).then((url) => current && setSrc(url));
+    return () => {
+      current = false;
+    };
+  }, [email]);
+  if (!src || missing) return null;
+  return <img src={src} alt="" className="size-10 shrink-0 rounded-full" onError={() => setMissing(true)} />;
+}
+

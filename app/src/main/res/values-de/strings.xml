@@ -159,7 +159,6 @@
     <string name="sync_failed_setup">Die Synchronisierung ist auf dem Server von Content noch nicht verfügbar.</string>
     <string name="section_instapaper">Instapaper</string>
     <string name="instapaper_sign_in">Mit Instapaper anmelden</string>
-    <string name="instapaper_signed_in_as">Angemeldet als %1$s</string>
     <string name="instapaper_sign_out">Abmelden</string>
     <string name="instapaper_sign_in_done">Bei Instapaper angemeldet</string>
     <string name="instapaper_sign_in_failed">Die Anmeldung bei Instapaper hat nicht geklappt. Versuche es erneut.</string>
@@ -170,8 +169,7 @@
     <string name="action_close">Schließen</string>
     <string name="action_done">Fertig</string>
     <string name="section_account">Konto</string>
-    <string name="account_summary">Melde dich mit Instapaper an, um deine Feeds, gelesenen Artikel, gespeicherten Elemente und Einstellungen auf allen Geräten gleich zu halten, und deine gespeicherten Elemente in Instapaper.</string>
-    <string name="sync_no_account">Die Synchronisierung ist für diese Anmeldung aus. Melde dich erneut an, um sie einzuschalten.</string>
+    <string name="account_summary">Melde dich mit deiner E-Mail-Adresse an, damit Feeds, gelesene Artikel, Gespeichert und Einstellungen auf allen Geräten gleich bleiben.</string>
     <string name="sync_failed_signed_out">Dieses Gerät wurde von deinem Konto abgemeldet. Melde dich erneut an.</string>
     <string name="account_delete_data">Synchronisierte Daten löschen</string>
     <string name="account_delete_confirm">Deine Feeds, gelesenen Artikel und Einstellungen vom Server von Content löschen? Sie bleiben auf diesem Gerät, und du wirst überall abgemeldet.</string>
@@ -307,4 +305,18 @@
         <item quantity="one">%1$d Element fällt aus dem, was %2$s synchronisiert. Es wird dort archiviert, nicht gelöscht, und bleibt in Content.</item>
         <item quantity="other">%1$d Elemente fallen aus dem, was %2$s synchronisiert. Sie werden dort archiviert, nicht gelöscht, und bleiben in Content.</item>
     </plurals>
+    <string name="account_title">Content-Konto</string>
+    <string name="account_email">E-Mail-Adresse</string>
+    <string name="account_email_send">Anmeldelink per E-Mail senden</string>
+    <string name="account_email_sent">An %1$s gesendet. Öffne den Link in dieser E-Mail auf diesem Gerät.</string>
+    <string name="account_email_failed">Die E-Mail konnte nicht gesendet werden. Prüfe die Adresse und deine Verbindung.</string>
+    <string name="account_sign_in_instapaper">Oder mit Instapaper anmelden</string>
+    <string name="account_sign_out">Abmelden</string>
+    <string name="account_add_email">E-Mail-Adresse hinzufügen</string>
+    <string name="account_add_email_summary">Dann meldet dich auch ein Link an diese Adresse an, mit derselben Bibliothek.</string>
+    <string name="account_link_signed_in">Angemeldet</string>
+    <string name="account_link_added">E-Mail-Adresse hinzugefügt</string>
+    <string name="account_link_expired">Dieser Link wurde schon benutzt oder ist zu alt. Fordere einen neuen an.</string>
+    <string name="account_link_taken">Diese Adresse gehört schon zu einem anderen Content-Konto.</string>
+    <string name="account_link_failed">Die Anmeldung hat nicht geklappt. Versuche es noch einmal.</string>
 </resources>

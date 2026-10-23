@@ -5,10 +5,12 @@
  * app's own address(es), and only passes feeds and web pages, up to MAX_BYTES.
  *
  * Instapaper sign-in and the web app's Instapaper calls live in instapaper.ts (/instapaper/...),
- * Reader accounts (the synced, encrypted library) in account.ts (/account/...).
+ * Reader accounts (the synced, encrypted library) in account.ts (/account/...), signing in with
+ * an emailed link in email.ts (/account/email/...).
  */
 
 import { handleAccount } from "./account";
+import { handleEmail } from "./email";
 import { handleInstapaper } from "./instapaper";
 
 export { Account } from "./account";
@@ -24,6 +26,10 @@ export interface Env {
   /** The accounts' Durable Objects (wrangler.toml) and the secret their data is encrypted with. */
   ACCOUNTS?: DurableObjectNamespace;
   ACCOUNT_KEY?: string;
+  /** Sign-in emails (#166, email.ts): Resend's API key (a secret), the sender, and where links point. */
+  RESEND_API_KEY?: string;
+  EMAIL_FROM?: string;
+  WEB_APP_ORIGIN?: string;
   /** Optional Cloudflare rate limiting binding (see wrangler.toml). */
   LIMITER?: { limit(options: { key: string }): Promise<{ success: boolean }> };
 }
@@ -56,6 +62,7 @@ export default {
 export async function handle(request: Request, env: Env, fetcher: Fetcher): Promise<Response> {
   const requestUrl = new URL(request.url);
   if (requestUrl.pathname.startsWith("/instapaper/")) return handleInstapaper(request, env, fetcher, requestUrl);
+  if (requestUrl.pathname.startsWith("/account/email/")) return handleEmail(request, env, requestUrl, fetcher);
   if (requestUrl.pathname === "/account" || requestUrl.pathname.startsWith("/account/")) return handleAccount(request, env, requestUrl);
   const origin = request.headers.get("Origin");
   const allowed = (env.ALLOWED_ORIGINS ?? "")
