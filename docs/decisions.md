@@ -2,6 +2,23 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-23: One chip row: the state, then the groups (#205)
+
+- After #189 and #203 there were four overlapping controls (navigation bar, ☰ sections, tabs,
+  chips), and ☰ listed groups in Feeds (folders) but states in Saved (To read, All).
+- Now three levels, the same in both places: the **navigation bar** says where (Feeds, Saved); a
+  **state chip** at the start of the chip row says what of it (Feeds: Unread or All; Saved: To
+  read, **Archive** or All, so the archive can be seen on its own again); the **group chips** after
+  it say which group (folders; tags). The Unread | All and To read | All tabs are gone.
+- ☰ lists exactly the groups (All articles and folders with feeds; All saved and tags), never the
+  states, and picking there keeps the state. Counts are what is unread or still to read.
+- Saved's chips show every tag, whichever state, and a chosen tag stays when the state changes, as
+  a folder does with Unread and All.
+- A folder picked in ☰ and its chip are one choice (they showed the same feeds but lit up apart).
+- The web app's bottom bar is gone in wide windows, where the menu at the left does its job.
+- Rejected: keeping the tabs and only fixing ☰ (folders would stay second to a read filter), and a
+  separate tabs row for the states (a whole row for a filter).
+
 ## 2026-10-23: The web sidebar stays open on wide windows again
 
 - #189 made the web app's ☰ menu a slide-out drawer at every width, which the owner didn't want.

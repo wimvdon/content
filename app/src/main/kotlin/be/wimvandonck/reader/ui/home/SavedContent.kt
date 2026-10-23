@@ -64,7 +64,7 @@ data class SavedHome(
     val items: List<Item>,
     /** Every folder, for the tabs. */
     val folders: List<String>,
-    /** The tags of the tab shown, most used first, for the chips. */
+    /** Every tag in Saved, most used first, for the chips (whichever state is shown). */
     val tags: List<String>,
     /** About how many minutes each item takes to read, by item key, when its text is known. */
     val minutes: Map<String, Int>,

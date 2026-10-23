@@ -108,11 +108,13 @@ import be.wimvandonck.reader.data.Article
 import be.wimvandonck.reader.data.Feed
 import be.wimvandonck.reader.data.Folder
 import be.wimvandonck.reader.data.Item
+import be.wimvandonck.reader.data.Saved
 import be.wimvandonck.reader.data.SavedFilter
 import be.wimvandonck.reader.data.SavedTab
 import be.wimvandonck.reader.data.SavedType
 import be.wimvandonck.reader.data.FeedSelection
 import be.wimvandonck.reader.data.ScrollRead
+import be.wimvandonck.reader.data.chipTag
 import kotlinx.coroutines.flow.distinctUntilChanged
 import be.wimvandonck.reader.feed.Html
 import be.wimvandonck.reader.ui.theme.AppShapes
@@ -269,33 +271,35 @@ fun HomeScreen(
                             trailing = { if (reading != null) TypeFilterButton(reading.filter, actions.onSavedFilter) },
                         )
                         if (reading != null) {
-                            TwoTabs(
-                                first = stringResource(R.string.reading_list_to_read),
-                                second = stringResource(R.string.filter_all),
-                                firstSelected = reading.filter.tab != SavedTab.All,
-                                onFirst = { actions.onSavedFilter(reading.filter.copy(tab = SavedTab.ToRead, tags = emptySet())) },
-                                onSecond = { actions.onSavedFilter(reading.filter.copy(tab = SavedTab.All, tags = emptySet())) },
-                            )
+                            val stateLabels =
+                                listOf(
+                                    stringResource(R.string.reading_list_to_read),
+                                    stringResource(R.string.reading_list_archive),
+                                    stringResource(R.string.filter_all),
+                                )
                             TagChips(
                                 tags = reading.tags,
                                 selected = reading.filter.tags.firstOrNull(),
                                 onSelect = { t -> actions.onSavedFilter(reading.filter.copy(tags = setOfNotNull(t))) },
                                 filtered = reading.filter.tags.isNotEmpty() || reading.filter.type != null,
                                 onClear = { actions.onSavedFilter(reading.filter.copy(tags = emptySet(), type = null)) },
+                                state = {
+                                    StateChip(
+                                        options = stateLabels,
+                                        selected = Saved.states.indexOf(reading.filter.tab).coerceAtLeast(0),
+                                        onSelect = { i -> actions.onSavedFilter(reading.filter.copy(tab = Saved.states[i])) },
+                                        filtering = reading.filter.tab != SavedTab.All,
+                                    )
+                                },
                             )
                         } else if (state.feeds.isNotEmpty()) {
-                            TwoTabs(
-                                first = stringResource(R.string.filter_unread),
-                                second = stringResource(R.string.filter_all),
-                                firstSelected = state.unreadOnly,
-                                onFirst = { actions.onUnreadOnlyChange(true) },
-                                onSecond = { actions.onUnreadOnlyChange(false) },
-                            )
+                            val stateLabels = listOf(stringResource(R.string.filter_unread), stringResource(R.string.filter_all))
                             // One feed chosen by its name (#185): its chip comes first, chosen.
                             val oneFeed = (state.selection as? FeedSelection.Single)?.let { s -> state.feeds.firstOrNull { it.url == s.feedUrl }?.title }
                             TagChips(
                                 tags = listOfNotNull(oneFeed) + feedTags,
-                                selected = oneFeed ?: (state.selection as? FeedSelection.Tagged)?.tag,
+                                // A folder picked in ☰ lights up its chip: the folder's name is its feeds' tag.
+                                selected = oneFeed ?: state.selection.chipTag(state.folders),
                                 onSelect = { t ->
                                     actions.onSelect(
                                         when {
@@ -307,6 +311,14 @@ fun HomeScreen(
                                 // A feed or folder chosen elsewhere is a filter too: the X goes back to every feed.
                                 filtered = state.selection != FeedSelection.All,
                                 onClear = { actions.onSelect(FeedSelection.All) },
+                                state = {
+                                    StateChip(
+                                        options = stateLabels,
+                                        selected = if (state.unreadOnly) 0 else 1,
+                                        onSelect = { i -> actions.onUnreadOnlyChange(i == 0) },
+                                        filtering = state.unreadOnly,
+                                    )
+                                },
                             )
                         }
                     }

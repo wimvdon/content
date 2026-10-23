@@ -260,11 +260,15 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   being shown is open and the other folded shut whenever you move between them, so the drawer stays
   short. The web's sidebar is always on screen, so there both stay open until you fold one, and stay
   as you left them. Back from Saved or a feed section goes to All articles.
-- Feeds has scrollable primary tabs under the top app bar for its folders (All (feed symbol), then
-  each folder with its icon and name), and the Unread and All chips under them. Saved (#119) has
-  scrollable tabs To read, each folder (folder icon) and Archive (everything at once is Search, #171),
-  and one row of filter chips: Liked (heart) then the tab's tags, most used first, several at
-  once. The type filter (Articles, Videos, Audio) is a filter-list icon button next to search, with a
+- Three levels, the same in Feeds and Saved (#205): the navigation bar says where (Feeds or Saved);
+  one row of chips under the search bar says which group and which state. The row starts with the
+  **state chip**, a filter chip with a drop-down arrow and a menu of radio items (Feeds: Unread or
+  All; Saved: To read, Archive or All), lit while it leaves things out. A divider, then the groups,
+  one at a time: the folders in Feeds, the tags in Saved (every tag, most used first, whichever
+  state). An X at the end clears the group. The ☰ drawer lists the same groups (All articles and the
+  folders with their feeds; All saved and the tags), never the states, with what is unread or still
+  to read as counts; picking there keeps the state. A folder picked in the drawer and its chip are
+  one choice and light up together. The type filter (Articles, Videos, Audio) is a filter-list icon button next to search, with a
   menu of radio items; it turns `primary` while a type is chosen. The Mark all read FAB is on Feeds
   only and only marks the section shown; Saved's FAB is Add link.
 - Saved's lists look like what they are for: To read, All and Archive are read through, so they use
@@ -317,10 +321,9 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   `surfaceContainer`, read rows on `surfaceContainerLow`; the feed name is in `primary`. Swiping
   right past 30% of the width toggles read, swiping left saves the article ("Save", a list) and
   opens the save sheet (haptic tick at the threshold, row springs back); the drawer opens from the ☰ button only. The top bar shows the section and its unread count, with no ⋮ menu (refresh is pull-down; adding
-  feeds lives on Manage feeds). Unread | All are two Material 3 filter chips used as one choice,
-  **Unread** and **All**, in a chip row of its own under the folder tabs (16dp sides, 8dp above and
-  below, like the chips on the reading list and in Search): the chosen one is filled
-  with a check, so which list is shown reads at a glance. The web app has the same chips. The top bar holds only icon buttons, as Material 3's top app bar does.
+  feeds lives on Manage feeds). Unread or All is the state chip at the start of the chip row
+  (16dp sides, 8dp above and below, like the chips in Search), lit while it shows Unread only.
+  The web app has the same chip. The top bar holds only icon buttons, as Material 3's top app bar does.
   In a narrow window the web app has the same Feeds | Saved navigation bar at the bottom.
   Settings lives in the drawer only.
   The header (a small `TopAppBar`, the folder tabs attached to it, then the chip row) is one block that slides away

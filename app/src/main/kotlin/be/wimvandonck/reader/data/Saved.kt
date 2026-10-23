@@ -140,14 +140,24 @@ object Saved {
             .sortedWith(compareByDescending<Map.Entry<String, List<String>>> { it.value.size }.thenBy { it.key })
             .map { it.value.first() }
 
-    /** The filter without a folder or tags that are gone. */
+    /**
+     * The states Saved's state chip offers (#205): To read, Archive or everything. A tag stays
+     * chosen when the state changes, as a folder does with Unread and All in Feeds.
+     */
+    val states: List<SavedTab> = listOf(SavedTab.ToRead, SavedTab.Archive, SavedTab.All)
+
+    /** How many items still to read carry each tag, for ☰ (as Feeds counts unread articles). */
+    fun toReadTagCounts(library: Library): Map<String, Int> =
+        tags(library, SavedTab.All).associateWith { tag -> library.items.count { item -> isIn(item, SavedTab.ToRead) && item.tags.any { it.equals(tag, ignoreCase = true) } } }
+
+    /** The filter without a folder or tags that are gone (from all of Saved, not just the state shown). */
     fun shown(
         library: Library,
         filter: SavedFilter,
     ): SavedFilter {
         val tab = filter.tab
         val withTab = if (tab is SavedTab.Folder && folders(library).none { it.equals(tab.name, ignoreCase = true) }) filter.copy(tab = SavedTab.ToRead) else filter
-        val tags = tags(library, withTab.tab)
+        val tags = tags(library, SavedTab.All)
         val kept = withTab.tags.filterTo(LinkedHashSet()) { t -> tags.any { it.equals(t, ignoreCase = true) } }
         return if (kept.size == withTab.tags.size) withTab else withTab.copy(tags = kept)
     }

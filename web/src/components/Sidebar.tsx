@@ -1,10 +1,9 @@
-import { Bookmark, BookOpen, ChevronDown, ChevronRight, Rss, Settings as SettingsIcon, Tag as TagGlyph } from "lucide-react";
+import { Bookmark, ChevronDown, ChevronRight, Rss, Settings as SettingsIcon, Tag as TagGlyph } from "lucide-react";
 import { useState } from "react";
 import { app, useApp } from "@/lib/app";
 import { t } from "@/lib/i18n";
-import { itemTags } from "@/lib/items";
-import { unreadByFeed } from "@/lib/library";
-import { toReadCount } from "@/lib/saved";
+import { choosesFolder, unreadByFeed } from "@/lib/library";
+import { toReadCount, toReadTagCounts } from "@/lib/saved";
 import { FeedIcon } from "./FeedIcon";
 import { FolderIcon } from "./FolderIcon";
 import { ManageFeedsIcon, ManageSavedIcon } from "./ManageIcons";
@@ -74,8 +73,7 @@ export function Sidebar({
   };
 
   const toRead = toReadCount(library);
-  const allSavedCount = library.items.filter((i) => i.readingList !== null).length;
-  const tags = itemTags(library);
+  const tagCounts = toReadTagCounts(library);
   const loose = library.feeds.filter((f) => !f.folderId);
 
   return (
@@ -114,7 +112,7 @@ export function Sidebar({
                 <div className="flex items-center">
                   <Chevron open={open} onClick={() => toggleFolder(folder.id)} />
                   <Row
-                    selected={!inSaved && selection.kind === "folder" && selection.folderId === folder.id}
+                    selected={!inSaved && choosesFolder(selection, folder)}
                     onClick={() => {
                       app.select({ kind: "folder", folderId: folder.id });
                       onNavigate?.();
@@ -165,7 +163,9 @@ export function Sidebar({
           />
         </Section>
 
-        {/* Saved section: To read, All, Tags, and Manage tags */}
+        {/* Saved section: All saved and the tags, as the chips (#205), and Manage tags. The state (To
+            read, Archive, All) is the chip's; picking here keeps it. Counts are what is still to read,
+            as Feeds counts what is unread. */}
         <Section
           id={SAVED}
           title={t("saved")}
@@ -174,37 +174,26 @@ export function Sidebar({
           onToggle={toggleSection}
         >
           <Row
-            selected={inSaved && savedFilter.tab.kind === "toread" && savedFilter.tags.length === 0}
+            selected={inSaved && savedFilter.tags.length === 0}
             onClick={() => {
-              app.showSaved({ tab: { kind: "toread" }, tags: [], type: null });
-              onNavigate?.();
-            }}
-            icon={<BookOpen className="size-5" />}
-            label={t("toRead")}
-            count={toRead}
-          />
-          <Row
-            selected={inSaved && savedFilter.tab.kind === "all" && savedFilter.tags.length === 0}
-            onClick={() => {
-              app.showSaved({ tab: { kind: "all" }, tags: [], type: null });
+              app.showSaved({ ...savedFilter, tags: [] });
               onNavigate?.();
             }}
             icon={<Bookmark className="size-5" />}
-            label={t("all")}
-            count={allSavedCount}
+            label={t("allSaved")}
+            count={toRead}
           />
-          {tags.length > 0 ? (
+          {tagCounts.size > 0 ? (
             <div className="mt-2">
               <span className="px-3 py-1 text-xs font-medium text-muted-foreground">{t("tags")}</span>
-              {tags.map((tag) => {
-                const tagCount = library.items.filter((i) => i.tags.some((t) => t.toLowerCase() === tag.toLowerCase())).length;
+              {[...tagCounts].map(([tag, tagCount]) => {
                 const isSelected = inSaved && savedFilter.tags.some((t) => t.toLowerCase() === tag.toLowerCase());
                 return (
                   <Row
                     key={`tag:${tag}`}
                     selected={isSelected}
                     onClick={() => {
-                      app.showSaved({ tab: { kind: "all" }, tags: [tag], type: null });
+                      app.showSaved({ ...savedFilter, tags: [tag] });
                       onNavigate?.();
                     }}
                     icon={<TagGlyph className="size-5" />}

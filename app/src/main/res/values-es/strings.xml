@@ -289,6 +289,7 @@
     <string name="setting_tag_with_folder_title">Etiquetar con la carpeta del feed</string>
     <string name="setting_tag_with_folder_summary">Un artículo que guardas desde un feed recibe el nombre de su carpeta como etiqueta.</string>
     <string name="saved_title">Guardados</string>
+    <string name="saved_all">Todos los guardados</string>
     <string name="saved_folders">Carpetas</string>
     <string name="folder_field">Carpeta</string>
     <string name="saved_place">Dónde</string>

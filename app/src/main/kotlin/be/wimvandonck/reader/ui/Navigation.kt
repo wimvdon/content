@@ -530,7 +530,7 @@ fun RssReaderNavigation(
                                         filter = shownFilter,
                                         items = savedItems,
                                         folders = remember(library) { Saved.folders(library) },
-                                        tags = remember(library, shownFilter.tab) { Saved.tags(library, shownFilter.tab) },
+                                        tags = remember(library) { Saved.tags(library, SavedTab.All) },
                                         minutes = minutes,
                                         library = library,
                                         titleFont = current.reader.font.fontFamily(),
@@ -1043,8 +1043,7 @@ private val SavedFilterSaver =
                 tab =
                     when {
                         tab == "all" -> SavedTab.All
-                        // The Archive is no longer a tab of its own (#189): All includes it.
-                        tab == "archive" -> SavedTab.All
+                        tab == "archive" -> SavedTab.Archive
                         tab.startsWith("folder:") -> SavedTab.Folder(tab.removePrefix("folder:"))
                         else -> SavedTab.ToRead
                     },

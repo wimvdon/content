@@ -279,6 +279,7 @@
     <string name="setting_tag_with_folder_title">Taggen met de map van de feed</string>
     <string name="setting_tag_with_folder_summary">Een artikel dat je uit een feed bewaart, krijgt de naam van zijn map als tag.</string>
     <string name="saved_title">Bewaard</string>
+    <string name="saved_all">Alles in Bewaard</string>
     <string name="saved_folders">Mappen</string>
     <string name="folder_field">Map</string>
     <string name="saved_place">Waar</string>

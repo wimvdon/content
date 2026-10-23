@@ -50,9 +50,9 @@ import be.wimvandonck.reader.R
 import be.wimvandonck.reader.data.Feed
 import be.wimvandonck.reader.data.FeedSelection
 import be.wimvandonck.reader.data.Folder
+import be.wimvandonck.reader.data.Saved
 import be.wimvandonck.reader.data.SavedFilter
-import be.wimvandonck.reader.data.SavedTab
-import be.wimvandonck.reader.data.tagCounts
+import be.wimvandonck.reader.data.choosesFolder
 
 /**
  * The ☰ menu: Feeds and Saved as two collapsible sections, plus connected services and settings.
@@ -134,7 +134,7 @@ fun FeedDrawer(
                             label = { Text(folder.title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                             icon = { Icon(rememberFolderIconPainter(folder.icon), contentDescription = null) },
                             badge = { UnreadBadge(unreadCounts[folderSelection] ?: 0) },
-                            selected = selection == folderSelection,
+                            selected = selection?.choosesFolder(folder) == true,
                             onClick = { onSelect(folderSelection) },
                         )
                         for (feed in feeds.filter { it.folderId == folder.id }) {
@@ -156,10 +156,11 @@ fun FeedDrawer(
                 }
             }
 
-            // Saved section: To read, All, Tags, followed by Manage tags.
+            // Saved section: All saved and the tags, as the chips (#205), followed by Manage tags. The
+            // state (To read, Archive, All) is the chip's; picking here keeps it. Counts are what is
+            // still to read, as Feeds counts what is unread.
             if (saved != null) {
-                val allCount = remember(saved.library) { saved.library.items.count { it.readingList != null } }
-                val tagCounts = remember(saved.library) { saved.library.tagCounts() }
+                val tagCounts = remember(saved.library) { Saved.toReadTagCounts(saved.library) }
                 SectionHeader(
                     title = stringResource(R.string.saved_title),
                     open = savedOpen,
@@ -170,18 +171,11 @@ fun FeedDrawer(
                 AnimatedVisibility(visible = savedOpen, enter = expandVertically(), exit = shrinkVertically()) {
                     Column {
                         NavigationDrawerItem(
-                            label = { Text(stringResource(R.string.reading_list_to_read), maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                            icon = { Icon(painterResource(R.drawable.ic_reading_list), contentDescription = null) },
-                            badge = { UnreadBadge(toReadCount) },
-                            selected = inSaved && saved.filter.tab == SavedTab.ToRead && saved.filter.tags.isEmpty(),
-                            onClick = { onSavedFilter(SavedFilter(SavedTab.ToRead)) },
-                        )
-                        NavigationDrawerItem(
-                            label = { Text(stringResource(R.string.filter_all), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                            label = { Text(stringResource(R.string.saved_all), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                             icon = { Icon(painterResource(R.drawable.ic_bookmarks_outline), contentDescription = null) },
-                            badge = { UnreadBadge(allCount) },
-                            selected = inSaved && saved.filter.tab == SavedTab.All && saved.filter.tags.isEmpty(),
-                            onClick = { onSavedFilter(SavedFilter(SavedTab.All)) },
+                            badge = { UnreadBadge(toReadCount) },
+                            selected = inSaved && saved.filter.tags.isEmpty(),
+                            onClick = { onSavedFilter(saved.filter.copy(tags = emptySet())) },
                         )
                         if (tagCounts.isNotEmpty()) {
                             SectionHeading(stringResource(R.string.tags_title))
@@ -192,7 +186,7 @@ fun FeedDrawer(
                                     icon = { Icon(painterResource(R.drawable.ic_label), contentDescription = null) },
                                     badge = { UnreadBadge(count) },
                                     selected = tagSelected,
-                                    onClick = { onSavedFilter(SavedFilter(tab = SavedTab.All, tags = setOf(tag))) },
+                                    onClick = { onSavedFilter(saved.filter.copy(tags = setOf(tag))) },
                                 )
                             }
                         }

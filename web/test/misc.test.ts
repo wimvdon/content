@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { feedLinks, findFeed, normalizeUrl } from "../src/lib/discovery";
 import { searchIcons, parseIcons } from "../src/lib/icons";
-import { emptyLibrary, articlesFor, setRead, removeFolder, addFolder, addFeed, newFeed, moveFeed, renameFeed, mergeFeed, reorder, unreadKeys, removeFeed, sameSelection, MAX_ARTICLES_PER_FEED, moveWithinFolder } from "../src/lib/library";
+import { emptyLibrary, articlesFor, setRead, removeFolder, addFolder, addFeed, newFeed, moveFeed, renameFeed, mergeFeed, reorder, unreadKeys, removeFeed, sameSelection, MAX_ARTICLES_PER_FEED, moveWithinFolder, chipTag, choosesFolder } from "../src/lib/library";
 import { importOpml, parseOpml, writeOpml } from "../src/lib/opml";
 import { FetchError } from "../src/lib/proxy";
 import { sanitizeArticle } from "../src/lib/sanitize";
@@ -84,6 +84,17 @@ describe("read marks that leave this browser (#157)", () => {
     expect(sameSelection({ kind: "folder", folderId: "f" }, { kind: "folder", folderId: "f" })).toBe(true);
     expect(sameSelection({ kind: "feed", feedUrl: "a" }, { kind: "feed", feedUrl: "b" })).toBe(false);
     expect(sameSelection({ kind: "all" }, { kind: "saved" })).toBe(false);
+  });
+  it("treats a folder and its chip as one choice", () => {
+    const lib = { ...emptyLibrary(), folders: [{ id: "f1", title: "Tech", icon: "folder" }, { id: "f2", title: "News", icon: "folder" }] };
+    expect(chipTag(lib, { kind: "folder", folderId: "f1" })).toBe("Tech");
+    expect(chipTag(lib, { kind: "tag", tag: "news" })).toBe("news");
+    expect(chipTag(lib, { kind: "folder", folderId: "gone" })).toBeNull();
+    expect(chipTag(lib, { kind: "all" })).toBeNull();
+    expect(choosesFolder({ kind: "folder", folderId: "f1" }, lib.folders[0])).toBe(true);
+    expect(choosesFolder({ kind: "tag", tag: "TECH" }, lib.folders[0])).toBe(true);
+    expect(choosesFolder({ kind: "tag", tag: "Tech" }, lib.folders[1])).toBe(false);
+    expect(choosesFolder({ kind: "feed", feedUrl: "a" }, lib.folders[0])).toBe(false);
   });
 });
 

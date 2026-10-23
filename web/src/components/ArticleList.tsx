@@ -1,11 +1,11 @@
-import { Archive, BookOpen, CheckCheck, Circle, CircleCheck, Folder as FolderGlyph, Highlighter, Link2, ListFilter, Menu, Newspaper, Quote, RefreshCw, Rss, Search, X, type LucideIcon } from "lucide-react";
+import { Archive, BookOpen, CheckCheck, ChevronDown, Circle, CircleCheck, Folder as FolderGlyph, Highlighter, Link2, ListFilter, Menu, Newspaper, Quote, RefreshCw, Rss, Search, X, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useEscape } from "./ui/useEscape";
 import { app, useApp } from "@/lib/app";
 import { snippet } from "@/lib/html";
 import { dayLabel, plural, t } from "@/lib/i18n";
-import { articleKey, articlesFor, feedTags, sortTime, unreadKeys, type Article, type Feed } from "@/lib/library";
-import { itemArticle, noteOf, savedItems, showsNotes, sourceOf, tabTags, type NoteContent, type SavedFilter, type SavedType } from "@/lib/saved";
+import { articleKey, articlesFor, chipTag, feedTags, sortTime, unreadKeys, type Article, type Feed } from "@/lib/library";
+import { itemArticle, noteOf, sameTab, savedItems, savedStates, showsNotes, sourceOf, tabTags, type NoteContent, type SavedFilter, type SavedType } from "@/lib/saved";
 import { scrolledPast } from "@/lib/scrollRead";
 import { FeedIcon } from "./FeedIcon";
 import { Button } from "./ui/button";
@@ -97,11 +97,12 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, on
       </SearchBar>
       {library.feeds.length > 0 ? (
         <>
-          <TwoTabs first={t("unread")} second={t("all")} firstSelected={settings.unreadOnly} onFirst={() => app.setUnreadOnly(true)} onSecond={() => app.setUnreadOnly(false)} />
           <TagChips
+            state={<StateChip options={[t("unread"), t("all")]} selected={settings.unreadOnly ? 0 : 1} onSelect={(i) => app.setUnreadOnly(i === 0)} filtering={settings.unreadOnly} />}
             // One feed chosen by its name (#185): its chip comes first, chosen.
             tags={oneFeed ? [oneFeed, ...tags] : tags}
-            selected={oneFeed ?? (selection.kind === "tag" ? selection.tag : null)}
+            // A folder picked in the menu lights up its chip: the folder's name is its feeds' tag.
+            selected={oneFeed ?? chipTag(library, selection)}
             onSelect={(tag) => app.select(tag === null || tag === oneFeed ? { kind: "all" } : { kind: "tag", tag })}
             // A feed or folder chosen elsewhere is a filter too: the X goes back to every feed.
             filtered={selection.kind !== "all"}
@@ -167,7 +168,8 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, on
 function SavedArticles({ openKey, onOpen, onMenu, onSearch }: { openKey: string | null; onOpen: (a: Article) => void; onMenu: () => void; onSearch: () => void }) {
   const { library, savedFilter: filter, loaded } = useApp();
   const items = useMemo(() => savedItems(library, filter), [library, filter]);
-  const tags = useMemo(() => tabTags(library, filter.tab), [library, filter.tab]);
+  // Every tag in Saved, whichever state is shown: a tag stays chosen when the state changes.
+  const tags = useMemo(() => tabTags(library, { kind: "all" }), [library]);
   const set = (change: Partial<SavedFilter>) => app.showSaved({ ...filter, ...change });
   const plain = filter.tags.length === 0 && filter.type === null;
   return (
@@ -178,14 +180,21 @@ function SavedArticles({ openKey, onOpen, onMenu, onSearch }: { openKey: string 
         </Button>
         <TypeFilter type={filter.type} onChange={(type) => set({ type })} />
       </SearchBar>
-      <TwoTabs
-        first={t("toRead")}
-        second={t("all")}
-        firstSelected={filter.tab.kind !== "all"}
-        onFirst={() => set({ tab: { kind: "toread" }, tags: [] })}
-        onSecond={() => set({ tab: { kind: "all" }, tags: [] })}
+      <TagChips
+        state={
+          <StateChip
+            options={[t("toRead"), t("archiveTab"), t("all")]}
+            selected={Math.max(0, savedStates.findIndex((s) => sameTab(s, filter.tab)))}
+            onSelect={(i) => set({ tab: savedStates[i] })}
+            filtering={filter.tab.kind !== "all"}
+          />
+        }
+        tags={tags}
+        selected={filter.tags[0] ?? null}
+        onSelect={(tag) => set({ tags: tag === null ? [] : [tag] })}
+        filtered={!plain}
+        onClear={() => set({ tags: [], type: null })}
       />
-      <TagChips tags={tags} selected={filter.tags[0] ?? null} onSelect={(tag) => set({ tags: tag === null ? [] : [tag] })} filtered={!plain} onClear={() => set({ tags: [], type: null })} />
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-6" role="feed">
         {!loaded ? (
           <Skeletons />
@@ -262,35 +271,82 @@ function SearchBar({ onMenu, onSearch, children }: { onMenu: () => void; onSearc
   );
 }
 
-/** Two tabs under the search bar: Unread | All in Feed, To read | All in Saved. */
-function TwoTabs({ first, second, firstSelected, onFirst, onSecond }: { first: string; second: string; firstSelected: boolean; onFirst: () => void; onSecond: () => void }) {
-  const tab = (label: string, selected: boolean, go: () => void) => (
-    <button
-      type="button"
-      role="tab"
-      aria-selected={selected}
-      onClick={() => !selected && go()}
-      className={cn(
-        "flex-1 cursor-pointer border-b-[3px] px-3 py-3 text-sm font-medium whitespace-nowrap",
-        selected ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground",
-      )}
-    >
-      {label}
-    </button>
-  );
+/**
+ * The state chip at the start of the chip row (#205): what of the place is shown, Unread or All in
+ * Feeds, To read, Archive or All in Saved. A menu picks another; it is lit while it leaves things out.
+ */
+function StateChip({ options, selected, onSelect, filtering }: { options: string[]; selected: number; onSelect: (index: number) => void; filtering: boolean }) {
+  const [at, setAt] = useState<{ top: number; left: number } | null>(null);
+  useEscape(at !== null, () => setAt(null));
   return (
-    <div role="tablist" className="flex shrink-0 border-b px-2">
-      {tab(first, firstSelected, onFirst)}
-      {tab(second, !firstSelected, onSecond)}
-    </div>
+    <>
+      <button
+        type="button"
+        aria-haspopup="true"
+        aria-expanded={at !== null}
+        onClick={(e) => {
+          // The chip row scrolls sideways, so the menu is placed on the page, under the chip.
+          const r = e.currentTarget.getBoundingClientRect();
+          setAt({ top: r.bottom + 4, left: r.left });
+        }}
+        className={cn(
+          "inline-flex h-8 shrink-0 cursor-pointer items-center gap-1 rounded-lg border pr-2 pl-3 text-sm",
+          filtering ? "border-transparent bg-accent font-medium text-accent-foreground" : "hover:bg-muted",
+        )}
+      >
+        {options[selected]}
+        <ChevronDown className="size-4" />
+      </button>
+      {at ? (
+        <>
+          <div className="fixed inset-0 z-20" onClick={() => setAt(null)} aria-hidden="true" />
+          <div role="radiogroup" aria-label={t("filter")} style={{ top: at.top, left: at.left }} className="fixed z-30 w-44 rounded-xl border bg-card py-1 shadow-lg">
+            {options.map((label, i) => (
+              <button
+                key={label}
+                type="button"
+                role="radio"
+                aria-checked={i === selected}
+                onClick={() => {
+                  setAt(null);
+                  if (i !== selected) onSelect(i);
+                }}
+                className="flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left text-sm hover:bg-muted"
+              >
+                <span className={cn("size-4 rounded-full border-2", i === selected ? "border-primary bg-primary shadow-[inset_0_0_0_2px_var(--color-card)]" : "border-muted-foreground")} />
+                {label}
+              </button>
+            ))}
+          </div>
+        </>
+      ) : null}
+    </>
   );
 }
 
-/** The tags as chips, one at a time; while a filter is on, an X at the end clears it. */
-function TagChips({ tags, selected, onSelect, filtered, onClear }: { tags: string[]; selected: string | null; onSelect: (tag: string | null) => void; filtered: boolean; onClear: () => void }) {
-  if (tags.length === 0 && !filtered) return null;
+/**
+ * The chip row under the search bar: the state chip, then the groups as chips, one at a time
+ * (folders in Feeds, tags in Saved). While a group or another filter is on, an X at the end clears it.
+ */
+function TagChips({
+  state,
+  tags,
+  selected,
+  onSelect,
+  filtered,
+  onClear,
+}: {
+  state: React.ReactNode;
+  tags: string[];
+  selected: string | null;
+  onSelect: (tag: string | null) => void;
+  filtered: boolean;
+  onClear: () => void;
+}) {
   return (
     <div role="group" aria-label={t("filter")} className="flex shrink-0 items-center gap-2 overflow-x-auto px-4 py-2 [scrollbar-width:none]">
+      {state}
+      {tags.length > 0 ? <span className="h-6 w-px shrink-0 bg-border" aria-hidden="true" /> : null}
       {tags.map((tag) => {
         const on = selected !== null && tag.toLowerCase() === selected.toLowerCase();
         return (

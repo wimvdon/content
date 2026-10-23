@@ -297,6 +297,22 @@ export function selectionExists(lib: Library, s: Selection): Selection {
 }
 
 /** Every feed tag (#187), sorted (case ignored): the Feed tab's chips. */
+/**
+ * The chip a selection shows as chosen: its tag, or a folder's name, which is its feeds' tag (#201).
+ * So a folder picked in the menu lights up its chip, as picking the chip does. Like chipTag on Android.
+ */
+export function chipTag(lib: Library, selection: Selection): string | null {
+  if (selection.kind === "tag") return selection.tag;
+  if (selection.kind === "folder") return lib.folders.find((f) => f.id === selection.folderId)?.title ?? null;
+  return null;
+}
+
+/** Whether a folder's row in the menu is the one chosen: picked there, or its chip picked (same feeds). */
+export function choosesFolder(selection: Selection, folder: Folder): boolean {
+  if (selection.kind === "folder") return selection.folderId === folder.id;
+  return selection.kind === "tag" && selection.tag.toLowerCase() === folder.title.toLowerCase();
+}
+
 export function feedTags(lib: Library): string[] {
   const seen = new Map<string, string>();
   for (const f of lib.feeds) for (const t of f.tags ?? []) if (!seen.has(t.toLowerCase())) seen.set(t.toLowerCase(), t);

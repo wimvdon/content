@@ -280,6 +280,7 @@
     <string name="setting_tag_with_folder_title">Tag with the feed’s folder</string>
     <string name="setting_tag_with_folder_summary">An article you save from a feed gets its folder’s name as a tag.</string>
     <string name="saved_title">Saved</string>
+    <string name="saved_all">All saved</string>
     <string name="saved_folders">Folders</string>
     <string name="folder_field">Folder</string>
     <string name="saved_place">Where</string>

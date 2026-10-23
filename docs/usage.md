@@ -78,14 +78,19 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
 
 ## Reading the list
 
-- The **bar at the bottom** switches between **Feeds**, **Saved** and **Search** (on a tablet or in
-  landscape it sits at the left side; on the web, wide windows have Search at the top of the sidebar).
-- **☰** opens the drawer (on the web, a wide window shows it at the left all the time, without ☰). It has two collapsible sections: **Feeds** (All articles, your
+- The **bar at the bottom** switches between **Feeds** and **Saved** (on a tablet or in landscape it
+  sits at the left side; on the web, a wide window has no bar: the menu at the left does it).
+- Under the search bar, one row of chips. The first chip says **what you see**: in Feeds **Unread**
+  or **All**, in Saved **To read**, **Archive** or **All**; tap it to pick another. After it come
+  your **folders** (Feeds) or your **tags** (Saved): tap one to show only that, tap it again or the
+  **X** to show everything again. Changing the first chip keeps the folder or tag you picked.
+- **☰** opens the drawer (on the web, a wide window shows it at the left all the time, without ☰).
+  It has two collapsible sections with the same choices as the chips: **Feeds** (All articles, your
   folders with their feeds, the other feeds, each with its unread count, and **Manage feeds**) and
-  **Saved** (**To read**, **All**, **Tags** with their counts, and **Manage tags**). The section you're
-  in is open and the other is folded shut automatically; tap a section's name to fold it open or shut.
-  Below them: **Connected services** and **Settings**.
-- **Search** (the third tab; on the web also the **/** key) searches everything: the articles of all your feeds that are on the device (titles,
+  **Saved** (**All saved** and your **Tags**, each with how many are still to read, and **Manage
+  tags**). The section you're in is open and the other is folded shut automatically; tap a
+  section's name to fold it open or shut. Below them: **Connected services** and **Settings**.
+- **Search** (tap the search bar; on the web also the **/** key) searches everything: the articles of all your feeds that are on the device (titles,
   text, feed names and authors) and Saved, archived articles too (titles, websites, descriptions,
   folders, tags, notes and highlights). Every word you type must appear; capitals and accents
   don't matter ("cafe" finds "Café"). The results are one list, best match first: the whole search
