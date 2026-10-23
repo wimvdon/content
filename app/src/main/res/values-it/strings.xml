@@ -226,23 +226,7 @@
     <string name="services_reading_body">Content conserva i tuoi elementi salvati. Accedi con Instapaper per conservarli anche lì.</string>
     <string name="services_problem_later">Instapaper ha chiesto di aspettare un momento. Il resto seguirà.</string>
     <string name="services_syncs_everything">Sincronizza tutto in Salvati</string>
-    <string name="services_syncs_folders">Sincronizza %1$s</string>
-    <string name="services_waiting_import">Connesso. Scegli cosa importare.</string>
     <string name="service_import_title">Importa</string>
-    <string name="service_import_body">Porta dentro una volta ciò che ha %1$s: tutto, o le cartelle che scegli. Ogni elemento arriva al suo posto, così com’è.</string>
-    <string name="service_import_all">Importa tutto</string>
-    <string name="service_import_choose">Scegli cartelle</string>
-    <string name="service_import_again">Importa di nuovo</string>
-    <string name="service_import_what">Cosa portare dentro</string>
-    <string name="service_import_archive">Il suo archivio</string>
-    <string name="service_import_start">Importa</string>
-    <string name="service_import_failed">L’importazione non è riuscita. Riprova.</string>
-    <string name="service_scope_title">Cosa sincronizza</string>
-    <string name="service_scope_all">Tutto in Salvati</string>
-    <string name="service_scope_some">Solo queste cartelle</string>
-    <string name="service_scope_note">Le modifiche vanno in entrambe le direzioni. Un elemento che togli da queste cartelle viene archiviato in %1$s, mai eliminato.</string>
-    <string name="service_scope_leave_title">Archiviarli in %1$s?</string>
-    <string name="service_scope_leave_confirm">Archivia lì</string>
     <string name="saved_remove_both_body">Instapaper e Raindrop.io conservano entrambi questo elemento. Rimuovilo da entrambi o da uno solo (resta allora in Salvati, nell’altro).</string>
     <string name="saved_remove_only_from">Solo da %1$s</string>
     <string name="saved_remove_from_both">Rimuovi da entrambi</string>
@@ -311,11 +295,6 @@
         <item quantity="one">%1$d elemento importato, %2$s</item>
         <item quantity="many">%1$d elementi importati, %2$s</item>
         <item quantity="other">%1$d elementi importati, %2$s</item>
-    </plurals>
-    <plurals name="service_scope_leave_body">
-        <item quantity="one">%1$d elemento esce da ciò che %2$s sincronizza. Viene archiviato lì, non eliminato, e resta in Content.</item>
-        <item quantity="many">%1$d elementi escono da ciò che %2$s sincronizza. Vengono archiviati lì, non eliminati, e restano in Content.</item>
-        <item quantity="other">%1$d elementi escono da ciò che %2$s sincronizza. Vengono archiviati lì, non eliminati, e restano in Content.</item>
     </plurals>
     <string name="account_title">Account Content</string>
     <string name="account_email">Indirizzo email</string>

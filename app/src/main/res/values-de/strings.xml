@@ -220,23 +220,7 @@
     <string name="services_reading_body">Content behält deine gespeicherten Elemente. Melde dich mit Instapaper an, um sie auch dort zu behalten.</string>
     <string name="services_problem_later">Instapaper bat, kurz zu warten. Der Rest folgt später.</string>
     <string name="services_syncs_everything">Synchronisiert alles in Gespeichert</string>
-    <string name="services_syncs_folders">Synchronisiert %1$s</string>
-    <string name="services_waiting_import">Verbunden. Wähle, was importiert wird.</string>
     <string name="service_import_title">Importieren</string>
-    <string name="service_import_body">Hol einmal herein, was %1$s hat: alles oder die Ordner, die du wählst. Jedes Element kommt an seinen Platz, so wie es ist.</string>
-    <string name="service_import_all">Alles importieren</string>
-    <string name="service_import_choose">Ordner wählen</string>
-    <string name="service_import_again">Erneut importieren</string>
-    <string name="service_import_what">Was hereinholen</string>
-    <string name="service_import_archive">Sein Archiv</string>
-    <string name="service_import_start">Importieren</string>
-    <string name="service_import_failed">Der Import hat nicht geklappt. Versuche es noch einmal.</string>
-    <string name="service_scope_title">Was synchronisiert wird</string>
-    <string name="service_scope_all">Alles in Gespeichert</string>
-    <string name="service_scope_some">Nur diese Ordner</string>
-    <string name="service_scope_note">Änderungen gehen in beide Richtungen. Ein Element, das du aus diesen Ordnern nimmst, wird in %1$s archiviert, nie gelöscht.</string>
-    <string name="service_scope_leave_title">In %1$s archivieren?</string>
-    <string name="service_scope_leave_confirm">Dort archivieren</string>
     <string name="saved_remove_both_body">Instapaper und Raindrop.io behalten beide dieses Element. Entferne es aus beiden oder nur aus einem (dann bleibt es in Gespeichert, im anderen).</string>
     <string name="saved_remove_only_from">Nur aus %1$s</string>
     <string name="saved_remove_from_both">Aus beiden entfernen</string>
@@ -300,10 +284,6 @@
     <plurals name="service_imported">
         <item quantity="one">%1$d Element importiert, %2$s</item>
         <item quantity="other">%1$d Elemente importiert, %2$s</item>
-    </plurals>
-    <plurals name="service_scope_leave_body">
-        <item quantity="one">%1$d Element fällt aus dem, was %2$s synchronisiert. Es wird dort archiviert, nicht gelöscht, und bleibt in Content.</item>
-        <item quantity="other">%1$d Elemente fallen aus dem, was %2$s synchronisiert. Sie werden dort archiviert, nicht gelöscht, und bleiben in Content.</item>
     </plurals>
     <string name="account_title">Content-Konto</string>
     <string name="account_email">E-Mail-Adresse</string>

@@ -7,8 +7,8 @@ also opens the user's Reader account, which syncs the library (`docs/account.md`
 ## The reading list and Instapaper (Android)
 
 The reading list is Reader's own (items of the library, `data/Items.kt`): it works without an
-account. Signing in first asks what to **import** (#145): everything Instapaper has, or some of its
-folders (and its archive), once; each article arrives where it belongs, as it is. From then on
+account. Connecting first brings in everything Instapaper has, once, with nothing to choose (the
+first sync does it, `ServiceManager.sync`); each article arrives where it belongs, as it is. From then on
 `services/ServiceManager.kt` keeps Instapaper in step with everything in Saved (the choice of folders went with #187) in
 step both ways through `services/ServiceSync.kt` and `instapaper/InstapaperReadingList.kt`, while
 the app is on screen: when it comes on screen or signs in, two seconds after a change to the reading
@@ -53,7 +53,7 @@ filter, and notes and highlights on the cards of a folder. Signed in, `web/src/l
 it the same as Instapaper in the background, by the Android app's rules (`ServiceSync.kt`): what
 changed there since the last look comes in (`since`), what changed here goes there (title, link,
 tags, like, archive, folder, reading progress), within Instapaper's scope; the web app has the same
-import and scope in Settings › Instapaper (#145, `serviceSync.ts`, `serviceScope.ts`).
+import, done by its first sync (#145, `serviceSync.ts`), and Settings › Instapaper says how many came in.
 `web/src/lib/instapaperSync.ts` is Instapaper's side (`InstapaperReadingList.kt`'s twin), through the
 Worker. It runs after every sync with the Reader account (when the page opens, a moment after a
 change, and when it comes back into view). This browser's copy of what Instapaper had is kept in

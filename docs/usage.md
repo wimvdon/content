@@ -308,8 +308,8 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   tags** (Like, your tags). Archiving goes back to the list with **Undo**. Keys: **j**/**k** next
   and previous, **m** read or unread, **o** open on the website, **r** refresh, **/** search, and
   **Esc** closes a menu, then the article.
-- **☰ › Connected services**: the service Saved is also kept in, Instapaper,
-  with what it syncs; tap one for its account, its import and **What it syncs**. Feeds are
+- **☰ › Connected services**: the service Saved is also kept in, Instapaper; tap it for its
+  account, what was brought in and copying highlights. Everything in Saved syncs. Feeds are
   Reader's own.
 - Bookmarks from before Saved moved into folders once: each into its collection's folder, the ones
   without a collection into a folder called **Bookmarks**.
@@ -321,17 +321,13 @@ Approve Reader there and you come back to the app (or the web page) signed in; R
 password. The same sign-in turns on sync (see Sync between devices) and connects Saved to
 Instapaper:
 
-- **Import:** right after signing in, ☰ › Connected services › Instapaper asks what to bring in, once:
-  **Import everything**, or **Choose folders** (and its archive). Each article arrives where it
-  belongs: archived in the Archive, a folder in its folder, liked, with its tags. **Import again**
-  does it again later.
-- **What it syncs:** everything in Saved (the default), or **Only these folders** (To read counts as
-  one). What you add, file, archive, like or tag there, and how far you read, goes both ways, while
-  the app is open (when it opens, a moment after a change, and when you pull down on Saved). An
-  article you file out of those folders is archived in Instapaper, never deleted; unticking a folder
-  says first how many articles that is.
-- Instapaper's home list is **To read**, its **folders** are Saved's folders and its archive is the
-  **Archive**. Filing into a folder Instapaper doesn't have yet makes it there.
+- **Everything comes in:** right after connecting, everything Instapaper has comes into Saved,
+  once, with nothing to choose. Each article arrives where it belongs: archived in the Archive,
+  liked, with its tags. ☰ › Connected services › Instapaper says how many articles came in.
+- **Everything syncs:** everything in Saved. What you add, archive, like or tag there, and how far
+  you read, goes both ways, while the app is open (when it opens, a moment after a change, and when
+  you pull down on Saved). Articles in Instapaper's folders arrive in To read.
+- Instapaper's home list is **To read** and its archive is the **Archive**.
 - The reader always shows Reader's own full article, for every account: an article that came in
   from Instapaper reads exactly like one saved from a feed.
 - If Instapaper doesn't answer or asks to wait, nothing is lost: the rest goes the next time.

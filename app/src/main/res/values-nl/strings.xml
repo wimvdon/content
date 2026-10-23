@@ -220,23 +220,7 @@
     <string name="services_reading_body">Content bewaart je items zelf. Meld je aan met Instapaper om ze daar ook te bewaren.</string>
     <string name="services_problem_later">Instapaper vroeg even te wachten. De rest gaat later.</string>
     <string name="services_syncs_everything">Synchroniseert alles in Bewaard</string>
-    <string name="services_syncs_folders">Synchroniseert %1$s</string>
-    <string name="services_waiting_import">Verbonden. Kies wat je wilt importeren.</string>
     <string name="service_import_title">Importeren</string>
-    <string name="service_import_body">Haal één keer binnen wat %1$s heeft: alles, of de mappen die je kiest. Elk item komt waar het hoort, zoals het is.</string>
-    <string name="service_import_all">Alles importeren</string>
-    <string name="service_import_choose">Mappen kiezen</string>
-    <string name="service_import_again">Opnieuw importeren</string>
-    <string name="service_import_what">Wat binnenhalen</string>
-    <string name="service_import_archive">Het archief</string>
-    <string name="service_import_start">Importeren</string>
-    <string name="service_import_failed">Het importeren is niet gelukt. Probeer het opnieuw.</string>
-    <string name="service_scope_title">Wat het synchroniseert</string>
-    <string name="service_scope_all">Alles in Bewaard</string>
-    <string name="service_scope_some">Alleen deze mappen</string>
-    <string name="service_scope_note">Wijzigingen gaan beide kanten op. Een item dat je uit deze mappen haalt, wordt gearchiveerd in %1$s, nooit verwijderd.</string>
-    <string name="service_scope_leave_title">Archiveren in %1$s?</string>
-    <string name="service_scope_leave_confirm">Daar archiveren</string>
     <string name="saved_remove_both_body">Instapaper en Raindrop.io bewaren dit item allebei. Verwijder het uit beide, of uit één (dan blijft het in Bewaard, in de andere).</string>
     <string name="saved_remove_only_from">Alleen uit %1$s</string>
     <string name="saved_remove_from_both">Uit beide verwijderen</string>
@@ -300,10 +284,6 @@
     <plurals name="service_imported">
         <item quantity="one">%1$d item geïmporteerd, %2$s</item>
         <item quantity="other">%1$d items geïmporteerd, %2$s</item>
-    </plurals>
-    <plurals name="service_scope_leave_body">
-        <item quantity="one">%1$d item valt buiten wat %2$s synchroniseert. Het wordt daar gearchiveerd, niet verwijderd, en blijft in Content.</item>
-        <item quantity="other">%1$d items vallen buiten wat %2$s synchroniseert. Ze worden daar gearchiveerd, niet verwijderd, en blijven in Content.</item>
     </plurals>
     <string name="account_title">Content-account</string>
     <string name="account_email">E-mailadres</string>
