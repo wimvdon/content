@@ -1,11 +1,11 @@
-import { Archive, BookOpen, CheckCheck, ChevronDown, Circle, CircleCheck, Folder as FolderGlyph, Heart, Highlighter, Link2, ListFilter, Menu, Newspaper, Quote, RefreshCw, Rss, Search, X, type LucideIcon } from "lucide-react";
+import { Archive, BookOpen, CheckCheck, ChevronDown, Circle, CircleCheck, Folder as FolderGlyph, Heart, Highlighter, Link2, Menu, Newspaper, Quote, RefreshCw, Rss, Search, X, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useEscape } from "./ui/useEscape";
 import { app, useApp } from "@/lib/app";
 import { snippet } from "@/lib/html";
 import { dayLabel, plural, t } from "@/lib/i18n";
 import { articleKey, articlesFor, chipTag, feedTags, sortTime, unreadKeys, type Article, type Feed } from "@/lib/library";
-import { itemArticle, noteOf, sameTab, savedItems, savedStates, showsNotes, sourceOf, tabTags, type NoteContent, type SavedFilter, type SavedType } from "@/lib/saved";
+import { itemArticle, noteOf, sameTab, savedItems, savedStates, showsNotes, sourceOf, tabTags, type NoteContent, type SavedFilter } from "@/lib/saved";
 import { scrolledPast } from "@/lib/scrollRead";
 import { FeedIcon } from "./FeedIcon";
 import { Button } from "./ui/button";
@@ -171,14 +171,13 @@ function SavedArticles({ openKey, onOpen, onMenu, onSearch }: { openKey: string 
   // Every tag in Saved, whichever state is shown: a tag stays chosen when the state changes.
   const tags = useMemo(() => tabTags(library, { kind: "all" }), [library]);
   const set = (change: Partial<SavedFilter>) => app.showSaved({ ...filter, ...change });
-  const plain = !filter.likedOnly && filter.tags.length === 0 && filter.type === null;
+  const plain = !filter.likedOnly && filter.tags.length === 0;
   return (
     <section className="flex h-full min-w-0 flex-col" aria-label={t("saved")}>
       <SearchBar onMenu={onMenu} onSearch={onSearch}>
         <Button variant="ghost" size="icon" onClick={app.addLink} aria-label={t("addLink")} title={t("addLink")}>
           <Link2 />
         </Button>
-        <TypeFilter type={filter.type} onChange={(type) => set({ type })} />
       </SearchBar>
       <TagChips
         state={
@@ -208,7 +207,7 @@ function SavedArticles({ openKey, onOpen, onMenu, onSearch }: { openKey: string 
         selected={filter.tags[0] ?? null}
         onSelect={(tag) => set({ tags: tag === null ? [] : [tag], likedOnly: false })}
         filtered={!plain}
-        onClear={() => set({ likedOnly: false, tags: [], type: null })}
+        onClear={() => set({ likedOnly: false, tags: [] })}
       />
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-6" role="feed">
         {!loaded ? (
@@ -221,7 +220,7 @@ function SavedArticles({ openKey, onOpen, onMenu, onSearch }: { openKey: string 
           >
             {/* Filtered to nothing: one click back to the whole tab; an empty To read offers Add link. */}
             {!plain ? (
-              <Button onClick={() => set({ likedOnly: false, tags: [], type: null })}>{t("showAll")}</Button>
+              <Button onClick={() => set({ likedOnly: false, tags: [] })}>{t("showAll")}</Button>
             ) : filter.tab.kind === "toread" ? (
               <Button variant="tonal" onClick={app.addLink}>
                 <Link2 />
@@ -378,55 +377,6 @@ function TagChips({
         <Button variant="ghost" size="icon" onClick={onClear} aria-label={t("clear")} title={t("clear")}>
           <X />
         </Button>
-      ) : null}
-    </div>
-  );
-}
-
-function TypeFilter({ type, onChange }: { type: SavedType | null; onChange: (type: SavedType | null) => void }) {
-  const [open, setOpen] = useState(false);
-  useEscape(open, () => setOpen(false));
-  const options: [SavedType | null, string][] = [
-    [null, t("typeAll")],
-    ["article", t("typeArticles")],
-    ["video", t("typeVideos")],
-    ["audio", t("typeAudio")],
-  ];
-  return (
-    <div className="relative">
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => setOpen(!open)}
-        aria-expanded={open}
-        aria-label={t("typeFilter")}
-        title={t("typeFilter")}
-        className={cn(type !== null && "text-primary")}
-      >
-        <ListFilter />
-      </Button>
-      {open ? (
-        <>
-          <div className="fixed inset-0 z-20" onClick={() => setOpen(false)} aria-hidden="true" />
-          <div role="radiogroup" aria-label={t("typeFilter")} className="absolute right-0 z-30 mt-1 w-44 rounded-xl border bg-card py-1 shadow-lg">
-            {options.map(([value, label]) => (
-              <button
-                key={value ?? "all"}
-                type="button"
-                role="radio"
-                aria-checked={type === value}
-                onClick={() => {
-                  setOpen(false);
-                  onChange(value);
-                }}
-                className="flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left text-sm hover:bg-muted"
-              >
-                <span className={cn("size-4 rounded-full border-2", type === value ? "border-primary bg-primary shadow-[inset_0_0_0_2px_var(--color-card)]" : "border-muted-foreground")} />
-                {label}
-              </button>
-            ))}
-          </div>
-        </>
       ) : null}
     </div>
   );

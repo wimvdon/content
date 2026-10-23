@@ -51,15 +51,10 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationBar
@@ -113,7 +108,6 @@ import be.wimvandonck.reader.data.Item
 import be.wimvandonck.reader.data.Saved
 import be.wimvandonck.reader.data.SavedFilter
 import be.wimvandonck.reader.data.SavedTab
-import be.wimvandonck.reader.data.SavedType
 import be.wimvandonck.reader.data.FeedSelection
 import be.wimvandonck.reader.data.ScrollRead
 import be.wimvandonck.reader.data.chipTag
@@ -269,8 +263,6 @@ fun HomeScreen(
                         HomeSearchBar(
                             onMenu = { scope.launch { drawerState.open() } },
                             onSearch = actions.onOpenSearch,
-                            // The type filter (#119), in Saved only.
-                            trailing = { if (reading != null) TypeFilterButton(reading.filter, actions.onSavedFilter) },
                         )
                         if (reading != null) {
                             val stateLabels =
@@ -283,8 +275,8 @@ fun HomeScreen(
                                 tags = reading.tags,
                                 selected = reading.filter.tags.firstOrNull(),
                                 onSelect = { t -> actions.onSavedFilter(reading.filter.copy(likedOnly = false, tags = setOfNotNull(t))) },
-                                filtered = reading.filter.likedOnly || reading.filter.tags.isNotEmpty() || reading.filter.type != null,
-                                onClear = { actions.onSavedFilter(reading.filter.copy(likedOnly = false, tags = emptySet(), type = null)) },
+                                filtered = reading.filter.likedOnly || reading.filter.tags.isNotEmpty(),
+                                onClear = { actions.onSavedFilter(reading.filter.copy(likedOnly = false, tags = emptySet())) },
                                 state = {
                                     StateChip(
                                         options = stateLabels,
@@ -373,7 +365,7 @@ fun HomeScreen(
                             actions.onOpenItem,
                             onArchive = actions.onArchiveItem,
                             onFile = actions.onFileItem,
-                            onClearFilters = { actions.onSavedFilter(reading.filter.copy(likedOnly = false, tags = emptySet(), type = null)) },
+                            onClearFilters = { actions.onSavedFilter(reading.filter.copy(likedOnly = false, tags = emptySet())) },
                         )
                     }
                 } else {
@@ -409,51 +401,6 @@ fun HomeScreen(
         }
     }
 }
-
-/** The type filter (#119): a filter button next to search, with All types, Articles, Videos and Audio. */
-@Composable
-private fun TypeFilterButton(
-    filter: SavedFilter,
-    onChange: (SavedFilter) -> Unit,
-) {
-    var open by remember { mutableStateOf(false) }
-    Box {
-        IconButton(onClick = { open = true }) {
-            Icon(
-                painterResource(R.drawable.ic_filter_list),
-                contentDescription =
-                    filter.type?.let { type ->
-                        stringResource(
-                            R.string.type_filter_on,
-                            stringResource(
-                                when (type) {
-                                    SavedType.Article -> R.string.type_articles
-                                    SavedType.Video -> R.string.type_videos
-                                    SavedType.Audio -> R.string.type_audio
-                                },
-                            ),
-                        )
-                    } ?: stringResource(R.string.type_filter),
-                tint = if (filter.type != null) MaterialTheme.colorScheme.primary else LocalContentColor.current,
-            )
-        }
-        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-            listOf(null to R.string.type_all, SavedType.Article to R.string.type_articles, SavedType.Video to R.string.type_videos, SavedType.Audio to R.string.type_audio)
-                .forEach { (type, label) ->
-                    DropdownMenuItem(
-                        text = { Text(stringResource(label)) },
-                        leadingIcon = { RadioButton(selected = filter.type == type, onClick = null) },
-                        onClick = {
-                            open = false
-                            onChange(filter.copy(type = type))
-                        },
-                    )
-                }
-        }
-    }
-}
-
-
 
 private enum class HomeContent { NoFeeds, Loading, Empty, Articles }
 

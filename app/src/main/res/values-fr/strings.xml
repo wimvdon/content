@@ -296,13 +296,7 @@
     <string name="folder_field">Dossier</string>
     <string name="saved_place">Où</string>
     <string name="saved_to">Enregistré dans %1$s</string>
-    <string name="type_filter">Type</string>
-    <string name="type_filter_on">Type : %1$s</string>
     <string name="action_open_menu">Ouvrir le menu</string>
-    <string name="type_all">Tous les types</string>
-    <string name="type_articles">Articles</string>
-    <string name="type_videos">Vidéos</string>
-    <string name="type_audio">Audio</string>
     <string name="menu_folders_tags">Tags</string>
     <string name="saved_folder_rename">Renommer le dossier</string>
     <string name="saved_folder_remove">Supprimer le dossier</string>

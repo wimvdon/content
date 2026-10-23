@@ -8,7 +8,7 @@
 import { toPlainText } from "./html";
 import type { Item } from "./items";
 import { sortTime, type Article, type Library } from "./library";
-import { folderOf, hostOf, typeOf, type SavedType } from "./saved";
+import { folderOf, hostOf } from "./saved";
 
 export const MAX_RESULTS = 200;
 
@@ -107,13 +107,12 @@ export interface SearchFilters {
   /** A folder of Saved (its name, case ignored). */
   savedFolder: string | null;
   tag: string | null;
-  type: SavedType | null;
 }
 
-export const noFilters: SearchFilters = { scope: "all", feedFolderId: null, feedUrl: null, savedFolder: null, tag: null, type: null };
+export const noFilters: SearchFilters = { scope: "all", feedFolderId: null, feedUrl: null, savedFolder: null, tag: null };
 
 /** Whether any filter beyond the kind is chosen. */
-export const narrowed = (f: SearchFilters) => f.feedFolderId !== null || f.feedUrl !== null || f.savedFolder !== null || f.tag !== null || f.type !== null;
+export const narrowed = (f: SearchFilters) => f.feedFolderId !== null || f.feedUrl !== null || f.savedFolder !== null || f.tag !== null;
 
 /** Whether Search shows its results as notes (cards), like Saved's folders: Feeds is rows, All and Saved are notes. */
 export const showsNotes = (scope: SearchFilter) => scope !== "feeds";
@@ -146,8 +145,7 @@ export function searchResults(query: string, library: Library, index: ArticleInd
           const folder = folderOf(i);
           return (
             (filters.savedFolder === null || (folder !== null && sameName(folder, filters.savedFolder))) &&
-            (filters.tag === null || i.tags.some((x) => sameName(x, filters.tag!))) &&
-            (filters.type === null || typeOf(i.url) === filters.type)
+            (filters.tag === null || i.tags.some((x) => sameName(x, filters.tag!)))
           );
         });
   // Feed filters are about feeds: with one chosen under All, Saved's matches stay out too.

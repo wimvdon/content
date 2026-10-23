@@ -97,7 +97,7 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   in the title, then more of its words in the title, then the newest. Each result says **Feed** or
   **Saved** when both kinds are shown. Chips above the results show **All**, only **Feeds** or only
   **Saved**. With **Feeds** chosen, two more chips narrow it to a **Folder** or one **Feed**; with
-  **Saved**, to a **Folder**, a **Tag** and a **Type** (Articles, Videos or Audio). With nothing typed,
+  **Saved**, to a **Folder** and a **Tag**. With nothing typed,
   Search lists everything those chips let through, newest first: with no filter that is all your
   feed articles and all of Saved (archive included), which is where Saved's former **All** tab went.
   **All** and **Saved** show their results as notes, like a folder; **Feeds** shows rows, like your feeds.
@@ -272,9 +272,7 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
 - **Swipe in To read and Archive:** left archives (with **Undo**; in Archive, back to read),
   right opens **File in a folder**.
 - **The chips** under the search bar: first **To read**, **Archive** or **All** (tap it to pick),
-  then **Liked** (set apart by its heart) and your tags, most used first, one at a time. The
-  **filter button** next to search picks a type: Articles, Videos or Audio (read from the link:
-  YouTube or Vimeo are videos, podcast and Spotify episode links are audio).
+  then **Liked** (set apart by its heart) and your tags, most used first, one at a time.
 - **To read looks like your feeds**: the same rows, in the view you chose for the
   feed list (Small, Medium, Large), with how many articles and about how long they take at the top.
   **A folder and the Archive look like a page of notes**: cards in two columns, each with its picture, the title,
@@ -286,8 +284,8 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
 - **☰ › Folders and tags**: every folder and every tag, with how many articles have it; tap one to
   rename it (renaming it to another one's name joins the two), or remove it: a tag from every
   article, a folder from its articles (they go to the Archive).
-- **In the web app** Saved is the same: the same tabs, chips, type filter and cards, and **Add link**
-  (the link button next to the type filter). In an article the top bar is the reading (the full
+- **In the web app** Saved is the same: the same chips and cards, and **Add link**
+  (the link button in the search bar). In an article the top bar is the reading (the full
   article, Aa, ⋮) and the bar under it the library, with Share at its right end: **Save** before it is saved (it opens the same sheet), then
   the same two menus as on the phone: **where it is** (To read and Archive, your folders) and **its
   tags** (Like, your tags). Archiving goes back to the list with **Undo**. Keys: **j**/**k** next

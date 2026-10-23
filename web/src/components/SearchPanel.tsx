@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useApp } from "@/lib/app";
 import { t } from "@/lib/i18n";
 import { articleKey, type Article } from "@/lib/library";
-import { articleNote, itemArticle, noteOf, savedFolders, sourceOf, tabTags, type SavedType } from "@/lib/saved";
+import { articleNote, itemArticle, noteOf, savedFolders, sourceOf, tabTags } from "@/lib/saved";
 import { indexArticles, narrowed, noFilters, searchResults, showsNotes, type SearchFilter, type SearchFilters } from "@/lib/search";
 import { Empty, NoteCard, Row } from "./ArticleList";
 import { Button } from "./ui/button";
@@ -181,18 +181,6 @@ function Narrow({ filters, onChange }: { filters: SearchFilters; onChange: (f: S
               onPick={(tag) => onChange({ ...filters, tag })}
             />
           ) : null,
-          <MenuChip
-            key="type"
-            label={t("typeFilter")}
-            value={filters.type}
-            options={[
-              [null, t("typeAll")],
-              ["article", t("typeArticles")],
-              ["video", t("typeVideos")],
-              ["audio", t("typeAudio")],
-            ]}
-            onPick={(type) => onChange({ ...filters, type: type as SavedType | null })}
-          />,
         ];
   return <div className="flex flex-wrap gap-2 px-4 pb-3">{chips}</div>;
 }

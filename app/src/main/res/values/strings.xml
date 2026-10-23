@@ -287,13 +287,7 @@
     <string name="folder_field">Folder</string>
     <string name="saved_place">Where</string>
     <string name="saved_to">Saved to %1$s</string>
-    <string name="type_filter">Type</string>
-    <string name="type_filter_on">Type: %1$s</string>
     <string name="action_open_menu">Open menu</string>
-    <string name="type_all">All types</string>
-    <string name="type_articles">Articles</string>
-    <string name="type_videos">Videos</string>
-    <string name="type_audio">Audio</string>
     <string name="menu_folders_tags">Tags</string>
     <string name="saved_folder_rename">Rename folder</string>
     <string name="saved_folder_remove">Remove folder</string>

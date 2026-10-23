@@ -11,18 +11,14 @@ import { keyOf, type Article, type Feed, type Library } from "./library";
 
 export type SavedTab = { kind: "toread" } | { kind: "all" } | { kind: "folder"; name: string } | { kind: "archive" };
 
-/** What kind of page a saved link is, read from its link. */
-export type SavedType = "article" | "video" | "audio";
-
-/** What Saved shows: a tab, and within it only liked ones, only some tags (all of them), one type. */
+/** What Saved shows: a tab, and within it only liked ones or only some tags (all of them). */
 export interface SavedFilter {
   tab: SavedTab;
   likedOnly: boolean;
   tags: string[];
-  type: SavedType | null;
 }
 
-export const defaultSavedFilter: SavedFilter = { tab: { kind: "toread" }, likedOnly: false, tags: [], type: null };
+export const defaultSavedFilter: SavedFilter = { tab: { kind: "toread" }, likedOnly: false, tags: [] };
 
 const same = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
 
@@ -53,8 +49,7 @@ export function savedItems(lib: Library, filter: SavedFilter): Item[] {
       (i) =>
         isIn(i, filter.tab) &&
         (!filter.likedOnly || i.liked) &&
-        filter.tags.every((t) => i.tags.some((x) => same(x, t))) &&
-        (filter.type === null || typeOf(i.url) === filter.type),
+        filter.tags.every((t) => i.tags.some((x) => same(x, t))),
     )
     .sort((a, b) => b.readingList!.addedAt - a.readingList!.addedAt);
 }
@@ -177,24 +172,6 @@ export function removeFolder(lib: Library, name: string): Library {
 /** Takes a tag off every item; the items stay. */
 export function removeTag(lib: Library, name: string): Library {
   return { ...lib, items: lib.items.map((i) => (i.tags.some((t) => same(t, name)) ? { ...i, tags: i.tags.filter((t) => !same(t, name)) } : i)) };
-}
-
-const VIDEO_HOSTS = new Set(["youtu.be", "vimeo.com", "dailymotion.com", "twitch.tv", "ted.com", "tiktok.com"]);
-const AUDIO_HOSTS = new Set(["podcasts.apple.com", "overcast.fm", "pca.st", "castro.fm", "soundcloud.com", "podcasts.google.com", "pod.link", "podbean.com", "anchor.fm"]);
-
-/** A link's type: a video site, a podcast or audio site, else an article. */
-export function typeOf(url: string): SavedType {
-  let parsed: URL;
-  try {
-    parsed = new URL(url.trim());
-  } catch {
-    return "article";
-  }
-  const host = parsed.hostname.toLowerCase().replace(/^www\./, "").replace(/^m\./, "");
-  const path = parsed.pathname;
-  if (VIDEO_HOSTS.has(host) || (host === "youtube.com" && (path.startsWith("/watch") || path.startsWith("/shorts") || path.startsWith("/live")))) return "video";
-  if (AUDIO_HOSTS.has(host) || (host === "open.spotify.com" && (path.startsWith("/episode") || path.startsWith("/show")))) return "audio";
-  return "article";
 }
 
 /** What a card in a folder shows under its title (#133): your note, else the first highlight, else the description. */
