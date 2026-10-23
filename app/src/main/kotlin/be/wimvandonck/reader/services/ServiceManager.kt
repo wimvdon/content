@@ -61,6 +61,8 @@ class ServiceManager(
     private val importOf: (String) -> ServiceImport? = { null },
     /** Records an import, or forgets it (null) when the service is disconnected. */
     private val recordImport: suspend (String, ServiceImport?) -> Unit = { _, _ -> },
+    /** Whether highlights are copied to each service (#164, a setting on this device, off by default). */
+    private val copiesHighlights: (String) -> Boolean = { false },
     private val clock: () -> Long = System::currentTimeMillis,
 ) {
     private val _statuses = MutableStateFlow<Map<String, ServiceStatus>>(emptyMap())
@@ -77,6 +79,11 @@ class ServiceManager(
 
     /** The connected services waiting for their import: nothing syncs with them until then. */
     val waiting: StateFlow<Set<String>> = _waiting.asStateFlow()
+
+    private val _notCopied = MutableStateFlow<Map<String, Set<String>>>(emptyMap())
+
+    /** The highlights a service refused for its plan's limit (#164), by item key: "Not in Instapaper". */
+    val notCopied: StateFlow<Map<String, Set<String>>> = _notCopied.asStateFlow()
 
     private val lock = Mutex()
 
@@ -144,13 +151,22 @@ class ServiceManager(
     private suspend fun refreshPresence() {
         val map = HashMap<String, MutableSet<String>>()
         val waiting = HashSet<String>()
+        val notCopied = HashMap<String, MutableSet<String>>()
         for (id in services.keys) {
-            val rows = library.serviceState(id).rows
+            val state = library.serviceState(id)
+            val rows = state.rows
             for ((key, row) in rows) if (row.linked) map.getOrPut(key) { LinkedHashSet() } += id
             if (importOf(id) == null && rows.isEmpty()) waiting += id
+            if (copiesHighlights(id)) {
+                for ((key, links) in state.highlights) {
+                    val refused = HighlightCopy.notCopied(links)
+                    if (refused.isNotEmpty()) notCopied.getOrPut(key) { HashSet() } += refused
+                }
+            }
         }
         _presence.value = map
         _waiting.value = waiting
+        _notCopied.value = notCopied
     }
 
     /** The connected services' ids, Instapaper first. */
@@ -168,10 +184,11 @@ class ServiceManager(
                 for (other in services.keys) {
                     if (other != id) library.serviceState(other).rows.filterValues { it.linked }.keys.forEach { elsewhere += it }
                 }
-                val result =
+                var result =
                     ServiceSync.run(service, state, scopeOf(id), full = full, editedAt = HashMap(editedAt), elsewhere = elsewhere) { change ->
                         library.edit(change)
                     }
+                if (result.problem == null && service is HighlightService && copiesHighlights(id)) result = copyHighlights(service, result)
                 finish(id, state, result)
             }
         }
@@ -212,6 +229,30 @@ class ServiceManager(
         if (result.problem == ServiceProblem.SignedOut) {
             if (id == InstapaperReadingList.ID) instapaper.signOut()
         }
+    }
+
+    /**
+     * Copies the highlights of each article in step with the service there (#164). Only articles
+     * with something to do cost a call; it stops at the first problem and goes on next time.
+     */
+    private suspend fun copyHighlights(
+        service: HighlightService,
+        result: ServiceSyncResult,
+    ): ServiceSyncResult {
+        val lib = library.library.filterNotNull().first()
+        val state = result.state
+        val links = state.highlights.filterKeys { state.rows[it]?.linked == true }.toMutableMap()
+        val now = clock()
+        for ((key, row) in state.rows) {
+            if (!row.linked) continue
+            val item = lib.item(key)?.takeIf { it.readingList != null } ?: continue
+            val before = links[key].orEmpty()
+            if (!HighlightCopy.pending(item.highlights, before, now)) continue
+            val pushed = HighlightCopy.push(service, row.remoteId, item.highlights, before, now)
+            links[key] = pushed.links
+            if (pushed.problem != null) return result.copy(state = state.copy(highlights = links), problem = pushed.problem)
+        }
+        return result.copy(state = state.copy(highlights = links))
     }
 
     /** The folders [id] has, for choosing what to import; null when it couldn't be asked. */
@@ -265,9 +306,12 @@ class ServiceManager(
         val title: String,
         val note: String,
         val progress: Int,
+        /** Each highlight's id and note: a new, changed or deleted one is copied (#164). */
+        val highlights: List<Pair<String, String>>,
     )
 
-    private fun core(item: Item) = Core(item.key, item.readingList?.state, item.folder, item.liked, item.tags, item.title, item.note, (item.progress * 100).toInt())
+    private fun core(item: Item) =
+        Core(item.key, item.readingList?.state, item.folder, item.liked, item.tags, item.title, item.note, (item.progress * 100).toInt(), item.highlights.map { it.id to it.note })
 
     private companion object {
         /** A row of changes (archiving several, tagging) goes as one sync. */

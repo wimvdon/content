@@ -276,6 +276,10 @@
     <string name="highlight_remove">Markierung entfernen</string>
     <string name="highlight_approximate">Ungefähr: Dieser Text weicht von dem ab, in dem sie gemacht wurde.</string>
     <string name="highlight_not_found">In diesem Text nicht gefunden. Sie bleibt beim Element.</string>
+    <string name="highlight_not_in_instapaper">Noch nicht in Instapaper. Morgen neuer Versuch.</string>
+    <string name="instapaper_copy_highlights">Markierungen zu Instapaper kopieren</string>
+    <string name="instapaper_copy_highlights_summary">Deine Markierungen gehen auch zum Artikel in Instapaper. Kostenlose Konten erlauben fünf pro Monat; die übrigen bleiben in Content und werden einen Tag später erneut versucht.</string>
+    <string name="services_problem_limit">Instapaper erlaubt diesen Monat keine weiteren Markierungen.</string>
     <string name="highlights_none">Wähle Text aus und tippe auf Markieren.</string>
     <string name="setting_tag_with_folder_title">Mit dem Ordner des Feeds taggen</string>
     <string name="setting_tag_with_folder_summary">Ein Artikel, den du aus einem Feed speicherst, bekommt den Namen seines Ordners als Tag.</string>

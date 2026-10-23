@@ -24,7 +24,8 @@ type Fetcher = (input: string, init?: RequestInit) => Promise<Response>;
 /**
  * The Instapaper calls the web app may make: bookmarks (list or what changed since a time, save,
  * delete, change the title or reading progress, move to the archive, home or a folder, like, tag),
- * folders (list, create, delete, reorder) and tags (list, create, rename).
+ * folders (list, create, delete, reorder), tags (list, create, rename) and a bookmark's highlights
+ * (list, make, delete; #164).
  */
 const API_ROUTES: { method: string; path: RegExp }[] = [
   { method: "GET", path: /^\/bookmarks$/ },
@@ -35,6 +36,9 @@ const API_ROUTES: { method: string; path: RegExp }[] = [
   { method: "POST", path: /^\/bookmarks\/\d+\/like$/ },
   { method: "DELETE", path: /^\/bookmarks\/\d+\/like$/ },
   { method: "POST", path: /^\/bookmarks\/\d+\/tags$/ },
+  { method: "GET", path: /^\/bookmarks\/\d+\/highlights$/ },
+  { method: "POST", path: /^\/bookmarks\/\d+\/highlights$/ },
+  { method: "DELETE", path: /^\/highlights\/\d+$/ },
   { method: "GET", path: /^\/folders$/ },
   { method: "POST", path: /^\/folders$/ },
   { method: "POST", path: /^\/folders\/reorder$/ },

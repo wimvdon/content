@@ -25,6 +25,36 @@ enum class ServiceProblem {
     RateLimited,
     Offline,
     Refused,
+
+    /** A plan's limit was reached (Instapaper: five highlights a month on a free account). */
+    LimitReached,
+}
+
+/** A highlight as the service has it (#164): its id there, the passage and its note. */
+data class RemoteHighlight(
+    val remoteId: String,
+    val text: String,
+    val note: String = "",
+)
+
+/**
+ * A service that can keep copies of highlights (#164). Only copies: Content keeps its highlights
+ * either way. [addHighlight] throws [ServiceProblem.LimitReached] when the plan allows no more.
+ */
+interface HighlightService {
+    /** The article's highlights there. */
+    suspend fun highlights(remoteId: String): List<RemoteHighlight>
+
+    /** Makes a highlight of the [position]th occurrence (from 0) of [text] in the article [remoteId]. */
+    suspend fun addHighlight(
+        remoteId: String,
+        text: String,
+        note: String,
+        position: Int,
+    ): RemoteHighlight
+
+    /** Deletes one; one already gone is fine. */
+    suspend fun removeHighlight(highlightId: String)
 }
 
 class ServiceException(

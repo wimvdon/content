@@ -225,6 +225,17 @@ describe("/instapaper/api", () => {
     expect(calls).toEqual([]);
   });
 
+  it("passes a bookmark's highlights on (#164)", async () => {
+    const { fetcher, calls } = upstream(() => jsonResponse([]));
+    const ask = (path: string, method = "GET") => handle(apiRequest(path, { method, headers: BEARER }), env, fetcher);
+    expect((await ask("/bookmarks/7/highlights")).status).toBe(200);
+    expect((await ask("/bookmarks/7/highlights", "POST")).status).toBe(200);
+    expect((await ask("/highlights/9", "DELETE")).status).toBe(200);
+    expect(calls).toHaveLength(3);
+    expect((await ask("/highlights/9")).status).toBe(405);
+    expect((await ask("/bookmarks/7/highlights", "DELETE")).status).toBe(405);
+  });
+
   it("refuses everything outside the list of calls", async () => {
     const { fetcher, calls } = upstream(() => jsonResponse({}));
     const ask = (path: string, method = "GET") => handle(apiRequest(path, { method, headers: BEARER }), env, fetcher);

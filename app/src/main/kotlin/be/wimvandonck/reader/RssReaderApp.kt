@@ -14,6 +14,7 @@ import be.wimvandonck.reader.data.ServiceScope
 import be.wimvandonck.reader.data.SettingsStore
 import be.wimvandonck.reader.feed.FeedFetcher
 import be.wimvandonck.reader.instapaper.InstapaperAccount
+import be.wimvandonck.reader.instapaper.InstapaperReadingList
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -69,6 +70,7 @@ class RssReaderApp :
             scopeOf = { ServiceScope.Everything },
             importOf = { id -> settings.settings.value?.imports?.get(id) },
             recordImport = { id, record -> settings.setImport(id, record) },
+            copiesHighlights = { id -> id == InstapaperReadingList.ID && settings.settings.value?.copyHighlights == true },
         )
     }
 

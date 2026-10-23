@@ -37,7 +37,7 @@ export function ArticleView({
   onBack: () => void;
   onMessage: (text: string, action?: { label: string; run: () => void }) => void;
 }) {
-  const { library, settings } = useApp();
+  const { library, settings, instapaperNotCopied } = useApp();
   // A saved article (also a feed article that was saved): the feed it came from (or its website)
   // above it, and Saved's actions instead of read state and Save.
   const fromSaved = isItemArticle(article);
@@ -265,6 +265,7 @@ export function ArticleView({
         <HighlightsDialog
           highlights={highlights}
           anchors={anchors}
+          notCopied={found ? instapaperNotCopied[found.key] : undefined}
           onOpen={(id) => {
             setListOpen(false);
             setOpenHighlight(id);

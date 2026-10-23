@@ -144,6 +144,8 @@ data class Settings(
     val scopes: Map<String, ServiceScope> = emptyMap(),
     /** What was imported from each service when it was connected (#145), by service id. */
     val imports: Map<String, ServiceImport> = emptyMap(),
+    /** Copy highlights to Instapaper (#164); on this device only, off by default (free accounts get five a month). */
+    val copyHighlights: Boolean = false,
     /** When the last sync succeeded, or null. */
     val lastSyncedAt: Long? = null,
 )

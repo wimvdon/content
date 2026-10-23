@@ -7,6 +7,7 @@ import { TO_READ, type ServiceImport } from "@/lib/serviceScope";
 import { Button } from "./ui/button";
 import { cn } from "./ui/cn";
 import { Dialog } from "./ui/dialog";
+import { SwitchRow } from "./ui/switch";
 
 const NAME = "Instapaper";
 
@@ -57,6 +58,10 @@ export function InstapaperSettings() {
         </div>
       </div>
       {/* What it syncs was a choice of folders; folders became tags (#187), so everything in Saved syncs. */}
+      <div className="space-y-2">
+        <h4 className="text-sm font-medium">{t("highlightsTitle")}</h4>
+        <SwitchRow title={t("copyHighlights")} summary={t("copyHighlightsSummary")} checked={settings.copyHighlights} onChange={app.setCopyHighlights} />
+      </div>
       {choosing ? (
         <ImportDialog
           folders={choosing}

@@ -286,6 +286,10 @@
     <string name="highlight_remove">Supprimer le surlignage</string>
     <string name="highlight_approximate">Approximatif : ce texte diffère de celui où il a été fait.</string>
     <string name="highlight_not_found">Introuvable dans ce texte. Il reste avec l’élément.</string>
+    <string name="highlight_not_in_instapaper">Pas encore dans Instapaper. Nouvel essai demain.</string>
+    <string name="instapaper_copy_highlights">Copier les surlignages vers Instapaper</string>
+    <string name="instapaper_copy_highlights_summary">Les surlignages que vous faites vont aussi à l’article dans Instapaper. Les comptes gratuits en permettent cinq par mois ; les autres restent dans Content et sont réessayés un jour plus tard.</string>
+    <string name="services_problem_limit">Instapaper n’autorise plus de surlignages ce mois-ci.</string>
     <string name="highlights_none">Sélectionnez du texte et touchez Surligner.</string>
     <string name="setting_tag_with_folder_title">Taguer avec le dossier du flux</string>
     <string name="setting_tag_with_folder_summary">Un article enregistré depuis un flux reçoit le nom de son dossier comme tag.</string>

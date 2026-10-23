@@ -19,6 +19,7 @@ import be.wimvandonck.reader.feed.ParsedFeed
 import be.wimvandonck.reader.feed.PageInfo
 import be.wimvandonck.reader.feed.SiteIcon
 import be.wimvandonck.reader.services.ServiceRows
+import be.wimvandonck.reader.services.HighlightCopy
 import be.wimvandonck.reader.services.ServiceState
 import be.wimvandonck.reader.sync.ItemRow
 import be.wimvandonck.reader.sync.ItemSyncState
@@ -202,7 +203,7 @@ class LibraryRepository(
     /** What this device last saw of the reading list at [service] (services/ServiceSync.kt). */
     suspend fun serviceState(service: String): ServiceState {
         val rows = dao.serviceRows(service).mapNotNull { row -> ServiceRows.decode(row.data)?.let { row.itemKey to it } }.toMap()
-        return ServiceState(dao.meta("$service-cursor"), rows, ServiceRows.decodeOrigins(dao.meta("$service-origins")))
+        return ServiceState(dao.meta("$service-cursor"), rows, ServiceRows.decodeOrigins(dao.meta("$service-origins")), HighlightCopy.decode(dao.meta("$service-highlights")))
     }
 
     /** Stores [next] after a service sync that started from [previous]; null forgets the service (signed out). */
@@ -217,7 +218,14 @@ class LibraryRepository(
         }
         val put = next.rows.filter { (key, entry) -> previous.rows[key] != entry }.map { (key, entry) -> ServiceRowRow(service, key, ServiceRows.encode(entry)) }
         val delete = previous.rows.keys.filter { it !in next.rows }
-        dao.writeServiceRows(service, put, delete, next.cursor ?: "", ServiceRows.encodeOrigins(next.origins).takeIf { next.origins != previous.origins })
+        dao.writeServiceRows(
+            service,
+            put,
+            delete,
+            next.cursor ?: "",
+            ServiceRows.encodeOrigins(next.origins).takeIf { next.origins != previous.origins },
+            HighlightCopy.encode(next.highlights).takeIf { next.highlights != previous.highlights },
+        )
     }
 
     /** Forgets what was synced of the items (signed out, or another account). */

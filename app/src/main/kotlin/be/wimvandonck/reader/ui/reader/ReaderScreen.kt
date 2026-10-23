@@ -553,6 +553,7 @@ private fun HighlightDialogs(
         HighlightsSheet(
             highlights = highlights.highlights,
             anchors = anchors,
+            notCopied = highlights.notCopied,
             onOpen = {
                 onListOpenChange(false)
                 onOpenIdChange(it)

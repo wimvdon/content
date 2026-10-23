@@ -67,6 +67,8 @@ class SettingsStore(
 
     suspend fun setTagWithFolder(enabled: Boolean) = edit { it[TAG_WITH_FOLDER] = enabled }
 
+    suspend fun setCopyHighlights(enabled: Boolean) = edit { it[COPY_HIGHLIGHTS] = enabled }
+
     /** What [service] syncs (#145). */
     suspend fun setScope(
         service: String,
@@ -139,6 +141,7 @@ class SettingsStore(
             tagWithFolder = p[TAG_WITH_FOLDER] ?: defaults.tagWithFolder,
             scopes = ServiceSettings.readScopes(p[SCOPES]),
             imports = ServiceSettings.readImports(p[IMPORTS]),
+            copyHighlights = p[COPY_HIGHLIGHTS] ?: defaults.copyHighlights,
             lastSyncedAt = p[LAST_SYNCED_AT],
         )
     }
@@ -166,6 +169,7 @@ class SettingsStore(
         val TAG_WITH_FOLDER = booleanPreferencesKey("tag_with_folder")
         val SCOPES = stringPreferencesKey("service_scopes")
         val IMPORTS = stringPreferencesKey("service_imports")
+        val COPY_HIGHLIGHTS = booleanPreferencesKey("copy_highlights_instapaper")
         val LAST_SYNCED_AT = longPreferencesKey("last_synced_at")
     }
 }

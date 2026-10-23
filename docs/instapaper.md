@@ -120,10 +120,34 @@ Instapaper application, `INSTAPAPER_REDIRECT_URI` in `worker/wrangler.toml`,
 `INSTAPAPER_REDIRECT_URI` in `web/src/lib/config.ts`, and `InstapaperAuth.REDIRECT_URI` with the
 intent filter in `AndroidManifest.xml`.
 
+## Copying highlights (#164)
+
+Opt-in: ☰ › Connected services › Instapaper › **Copy highlights to Instapaper** (Android) or
+Settings › Instapaper (web). Off by default, because free Instapaper accounts can make five
+highlights a month. It is a setting of each device or browser, not synced.
+
+- After each Instapaper sync, every article in step with Instapaper whose highlights changed gets
+  them copied: `services/HighlightCopy.kt` (Android) and `web/src/lib/highlightCopy.ts` (web), with the
+  same rules and tests. An article with nothing new costs no call.
+- Before copying an article's highlights, the app asks Instapaper which it already has; one with the
+  same passage (typographic differences ignored) counts as the copy. So two devices with copying on
+  don't make the same highlight twice.
+- A changed note deletes the copy and makes it again (Instapaper can't edit one). A highlight deleted
+  in Content is deleted in Instapaper. One deleted in Instapaper is not made again.
+- Instapaper answers 403 when the month's highlights are used up. The highlight stays in Content,
+  its list shows "Not in Instapaper yet", and it is tried again a day later.
+- Which copy belongs to which highlight is kept per device (`<service>-highlights` in the database's
+  meta table on Android, `instapaperHighlights` in IndexedDB on the web) and forgotten on sign-out.
+- Instapaper places the highlight at the nth occurrence of the passage in *its* text, using
+  Content's occurrence number. When a passage appears more than once, Instapaper may mark another
+  occurrence; Content's highlight is never affected.
+- The web app goes through the feed loader, which allows only these three highlight calls
+  (`GET`/`POST /bookmarks/<id>/highlights`, `DELETE /highlights/<id>`).
+
 ## Not supported
 
-- Highlights in Instapaper: Reader's own highlights come with #102, copying them to Instapaper is
-  optional there.
+- Highlights made in Instapaper's own apps don't come into Content (copying goes one way, see
+  "Copying highlights" above).
 - Instapaper's parsed text for accounts other than the owner's (it needs an Instaparser key).
 - Signing in from a debug build's App Link: debug APKs are signed with a different key every CI run
   and have another package name (`.debug`), so Android doesn't verify the link for them and opens the
