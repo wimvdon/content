@@ -47,8 +47,9 @@ internal fun RowScope.SavedBar(item: ReaderItem) {
         val placeSpoken = "$folderLabel: ${placeName(choice.place)}"
         TextButton(onClick = { placesOpen = true }, modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = placeSpoken; role = Role.DropdownList }) {
             Icon(painterResource(placeIcon(choice.place)), contentDescription = null)
-            Text(placeName(choice.place), modifier = Modifier.padding(start = 8.dp), maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Icon(painterResource(R.drawable.ic_expand_more), contentDescription = null, modifier = Modifier.size(18.dp))
+            // The name gives way (ellipsis) before the arrow does: the arrow keeps its size.
+            Text(placeName(choice.place), modifier = Modifier.padding(start = 8.dp).weight(1f, fill = false), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Icon(painterResource(R.drawable.ic_expand_more), contentDescription = null, modifier = Modifier.padding(start = 4.dp).size(18.dp))
         }
         DropdownMenu(expanded = placesOpen, onDismissRequest = { placesOpen = false }) {
             SaveChoices.places(item.folders, choice.place).forEach { option ->
@@ -74,11 +75,11 @@ internal fun RowScope.SavedBar(item: ReaderItem) {
             )
             Text(
                 SaveChoices.tagsLabel(choice, liked) ?: stringResource(R.string.tags_title),
-                modifier = Modifier.padding(start = 8.dp),
+                modifier = Modifier.padding(start = 8.dp).weight(1f, fill = false),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            Icon(painterResource(R.drawable.ic_expand_more), contentDescription = null, modifier = Modifier.size(18.dp))
+            Icon(painterResource(R.drawable.ic_expand_more), contentDescription = null, modifier = Modifier.padding(start = 4.dp).size(18.dp))
         }
         DropdownMenu(expanded = tagsOpen, onDismissRequest = { tagsOpen = false }) {
             // Like stays open on the menu, like the tags: several can change at once.

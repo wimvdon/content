@@ -101,7 +101,7 @@ export function Sidebar({
               onNavigate?.();
             }}
             icon={<Rss className="size-5" />}
-            label={t("allArticles")}
+            label={t("feedTab")}
             count={total}
           />
           {library.folders.map((folder) => {
@@ -181,40 +181,39 @@ export function Sidebar({
               onNavigate?.();
             }}
             icon={<Bookmark className="size-5" />}
-            label={t("allSaved")}
+            label={t("saved")}
             count={toRead}
           />
-          <Row
-            selected={inSaved && savedFilter.likedOnly}
-            onClick={() => {
-              app.showSaved({ ...savedFilter, likedOnly: true, tags: [] });
-              onNavigate?.();
-            }}
-            icon={<Heart className="size-5" />}
-            label={t("liked")}
-            count={likedToRead}
-          />
-          {tagCounts.size > 0 ? (
-            <div className="mt-2">
-              <span className="px-3 py-1 text-xs font-medium text-muted-foreground">{t("tags")}</span>
-              {[...tagCounts].map(([tag, tagCount]) => {
-                const isSelected = inSaved && savedFilter.tags.some((t) => t.toLowerCase() === tag.toLowerCase());
-                return (
-                  <Row
-                    key={`tag:${tag}`}
-                    selected={isSelected}
-                    onClick={() => {
-                      app.showSaved({ ...savedFilter, likedOnly: false, tags: [tag] });
-                      onNavigate?.();
-                    }}
-                    icon={<TagGlyph className="size-5" />}
-                    label={tag}
-                    count={tagCount}
-                  />
-                );
-              })}
-            </div>
-          ) : null}
+          {/* Under Tags: Liked first, as on the chips, then the tags. */}
+          <div className="mt-2">
+            <span className="px-3 py-1 text-xs font-medium text-muted-foreground">{t("tags")}</span>
+            <Row
+              selected={inSaved && savedFilter.likedOnly}
+              onClick={() => {
+                app.showSaved({ ...savedFilter, likedOnly: true, tags: [] });
+                onNavigate?.();
+              }}
+              icon={<Heart className="size-5" />}
+              label={t("liked")}
+              count={likedToRead}
+            />
+            {[...tagCounts].map(([tag, tagCount]) => {
+              const isSelected = inSaved && savedFilter.tags.some((t) => t.toLowerCase() === tag.toLowerCase());
+              return (
+                <Row
+                  key={`tag:${tag}`}
+                  selected={isSelected}
+                  onClick={() => {
+                    app.showSaved({ ...savedFilter, likedOnly: false, tags: [tag] });
+                    onNavigate?.();
+                  }}
+                  icon={<TagGlyph className="size-5" />}
+                  label={tag}
+                  count={tagCount}
+                />
+              );
+            })}
+          </div>
           <div className="mx-3 my-2 h-px bg-border" />
           <Row
             onClick={onManageSaved}

@@ -1,7 +1,7 @@
 import { ALargeSmall, ArrowLeft, Circle, CircleCheck, EllipsisVertical, ExternalLink, FileText, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { app, useApp } from "@/lib/app";
-import { extractArticle, needsFullText } from "@/lib/fullArticle";
+import { extractArticle, needsFullText, wantsFullText } from "@/lib/fullArticle";
 import { cached, cachedNow, keep } from "@/lib/fullArticleStore";
 import { formatDateTime, t } from "@/lib/i18n";
 import { itemForArticle, type Highlight } from "@/lib/items";
@@ -48,7 +48,7 @@ export function ArticleView({
   const current = library.articles.find((a) => articleKey(a) === articleKey(article)) ?? article;
   const link = article.link;
   const canLoad = !!link;
-  const [useFull, setUseFull] = useState(() => settings.fullArticles && canLoad && needsFullText(article.html, link));
+  const [useFull, setUseFull] = useState(() => canLoad && wantsFullText(settings.fullArticles, !fromSaved, needsFullText(article.html, link), !!saved));
   const [full, setFull] = useState<Full | null>(() => {
     const known = link ? cachedNow(link) : null;
     return link && known ? { link, html: known } : null;
@@ -126,7 +126,8 @@ export function ArticleView({
         </Button>
         <div className="flex-1" />
         {/* This reading (#139): the full article, Aa and ⋮; the article in your library, and Share, are in the bar below. */}
-        {canLoad ? (
+        {/* Not for a saved article: it always shows the whole article (#208). */}
+        {canLoad && !saved ? (
           <Button
             variant={useFull ? "tonal" : "ghost"}
             size="icon"

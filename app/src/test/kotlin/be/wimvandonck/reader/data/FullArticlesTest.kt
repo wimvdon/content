@@ -68,5 +68,8 @@ class FullArticlesTest {
         assertFalse(wantsFullText(choice = null, setting = true, hasFeedText = true, isSummary = false))
         assertFalse(wantsFullText(choice = false, setting = false, hasFeedText = false, isSummary = true))
         assertTrue(wantsFullText(choice = true, setting = false, hasFeedText = true, isSummary = false))
+        // Saved: the whole article whenever the text is short, whatever the setting or an old choice.
+        assertTrue(wantsFullText(choice = false, setting = false, hasFeedText = true, isSummary = true, saved = true))
+        assertFalse(wantsFullText(choice = true, setting = true, hasFeedText = true, isSummary = false, saved = true))
     }
 }

@@ -122,7 +122,7 @@ fun FeedDrawer(
             AnimatedVisibility(visible = feedsOpen, enter = expandVertically(), exit = shrinkVertically()) {
                 Column {
                     NavigationDrawerItem(
-                        label = { Text(stringResource(R.string.feeds_all)) },
+                        label = { Text(stringResource(R.string.home_tab_feed)) },
                         icon = { Icon(painterResource(R.drawable.ic_rss_feed), contentDescription = null) },
                         badge = { UnreadBadge(unreadCounts[FeedSelection.All] ?: 0) },
                         selected = selection == FeedSelection.All,
@@ -156,7 +156,7 @@ fun FeedDrawer(
                 }
             }
 
-            // Saved section: All saved and the tags, as the chips (#205), followed by Manage tags. The
+            // Saved section: Saved (everything) and, under Tags, Liked and the tags, as the chips (#205), followed by Manage tags. The
             // state (To read, Archive, All) is the chip's; picking here keeps it. Counts are what is
             // still to read, as Feeds counts what is unread.
             if (saved != null) {
@@ -172,12 +172,14 @@ fun FeedDrawer(
                 AnimatedVisibility(visible = savedOpen, enter = expandVertically(), exit = shrinkVertically()) {
                     Column {
                         NavigationDrawerItem(
-                            label = { Text(stringResource(R.string.saved_all), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                            label = { Text(stringResource(R.string.saved_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                             icon = { Icon(painterResource(R.drawable.ic_bookmarks_outline), contentDescription = null) },
                             badge = { UnreadBadge(toReadCount) },
                             selected = inSaved && !saved.filter.likedOnly && saved.filter.tags.isEmpty(),
                             onClick = { onSavedFilter(saved.filter.copy(likedOnly = false, tags = emptySet())) },
                         )
+                        // Under Tags: Liked first, as on the chips, then the tags.
+                        SectionHeading(stringResource(R.string.tags_title))
                         NavigationDrawerItem(
                             label = { Text(stringResource(R.string.reading_list_liked), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                             icon = { Icon(painterResource(R.drawable.ic_favorite), contentDescription = null) },
@@ -185,18 +187,15 @@ fun FeedDrawer(
                             selected = inSaved && saved.filter.likedOnly,
                             onClick = { onSavedFilter(saved.filter.copy(likedOnly = true, tags = emptySet())) },
                         )
-                        if (tagCounts.isNotEmpty()) {
-                            SectionHeading(stringResource(R.string.tags_title))
-                            for ((tag, count) in tagCounts) {
-                                val tagSelected = inSaved && saved.filter.tags.any { it.equals(tag, ignoreCase = true) }
-                                NavigationDrawerItem(
-                                    label = { Text(tag, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                                    icon = { Icon(painterResource(R.drawable.ic_label), contentDescription = null) },
-                                    badge = { UnreadBadge(count) },
-                                    selected = tagSelected,
-                                    onClick = { onSavedFilter(saved.filter.copy(likedOnly = false, tags = setOf(tag))) },
-                                )
-                            }
+                        for ((tag, count) in tagCounts) {
+                            val tagSelected = inSaved && saved.filter.tags.any { it.equals(tag, ignoreCase = true) }
+                            NavigationDrawerItem(
+                                label = { Text(tag, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                                icon = { Icon(painterResource(R.drawable.ic_label), contentDescription = null) },
+                                badge = { UnreadBadge(count) },
+                                selected = tagSelected,
+                                onClick = { onSavedFilter(saved.filter.copy(likedOnly = false, tags = setOf(tag))) },
+                            )
                         }
                         HorizontalDivider(Modifier.padding(vertical = 8.dp, horizontal = 16.dp))
                         NavigationDrawerItem(

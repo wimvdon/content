@@ -85,9 +85,9 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   your **folders** (Feeds) or **Liked** and your **tags** (Saved): tap one to show only that, tap it again or the
   **X** to show everything again. Changing the first chip keeps the folder or tag you picked.
 - **☰** opens the drawer (on the web, a wide window shows it at the left all the time, without ☰).
-  It has two collapsible sections with the same choices as the chips: **Feeds** (All articles, your
+  It has two collapsible sections with the same choices as the chips: **Feeds** (**Feed**, your
   folders with their feeds, the other feeds, each with its unread count, and **Manage feeds**) and
-  **Saved** (**All saved**, **Liked** and your **Tags**, each with how many are still to read, and
+  **Saved** (**Saved**, then under **Tags** first **Liked** and then your tags, each with how many are still to read, and
   **Manage tags**). The section you're in is open and the other is folded shut automatically; tap a
   section's name to fold it open or shut. Below them: **Connected services** and **Settings**.
 - **Search** (tap the search bar; on the web also the **/** key) searches everything: the articles of all your feeds that are on the device (titles,
@@ -144,7 +144,7 @@ website (the same as **Read on website** at the end). In the top bar:
 
 | Button | What it does |
 |---|---|
-| Full article (page icon) | **Show full article** / **Show feed text**: the whole article from the website, or the feed's own text. It is lit while the full article shows. |
+| Full article (page icon) | **Show full article** / **Show feed text**: the whole article from the website, or the feed's own text. It is lit while the full article shows. Not in a saved article: that always shows the whole article. |
 | **Aa** | Text settings: font (Sans or Serif), text size, spacing (Compact, Normal, Relaxed), background (Theme, Sepia or Dark) and **Auto dark** (the dark page whenever the app is dark, e.g. Sepia by day and dark at night). Changes apply right away and are remembered for every article. |
 | ⋮ | **Open in browser**, **Mark as unread** (back to the list, where it waits unread; the web app keeps the article open and offers **Mark as read** too), and for a saved article **Remove from Saved**. Open in browser, and links in an article, open in a tab of your browser on top of Reader, with a **Save** button in its toolbar: it opens the save sheet over the page (see Saving from other apps); save or close it to keep reading. |
 
@@ -173,7 +173,8 @@ one when the article has no note. On the phone a highlight stays within one para
 
 After **Save**, the sheet that opens says where it was saved, then has the **Folder** (To read and
 **Archive** first, then your folders, or **New folder** to make one), the **Tags** with **Like** in
-front, and a **Note**: one step from a feed article to its folder. **Save** keeps what you chose,
+front (every tag you use, tap to turn one on or off; **New tag** makes one that doesn't exist yet),
+and a **Note**: one step from a feed article to its folder. **Save** keeps what you chose,
 also a folder or tag you typed but didn't add yet. **Remove** takes the save back, as if you never
 saved it ("Removed from Saved"); closing the sheet keeps it where it was just saved, unchanged.
 The same sheet, called **Organise**, opens when you swipe a saved article right in Saved. When it
@@ -276,8 +277,9 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
 - **To read looks like your feeds**: the same rows, in the view you chose for the
   feed list (Small, Medium, Large), with how many articles and about how long they take at the top.
   **A folder and the Archive look like a page of notes**: cards in two columns, each with its picture, the title,
-  your note (or else your first highlight, quoted, or else the article's description), the site,
-  its tags and how many highlights it has.
+  a few lines of your first highlight (quoted) or else the article's description, a glimpse of your
+  note in small letters, its tags as small chips, then the site, a marker icon with how many
+  highlights it has, and a heart when liked.
 - In the reader, the bar at the bottom: **where it is** (To read and Archive, then your folders) and
   **its tags** (Like, then your tags), each a menu. **Remove from Saved** is in ⋮; removing asks first and
   takes the note, tags and highlights with it (Archive keeps it searchable instead).

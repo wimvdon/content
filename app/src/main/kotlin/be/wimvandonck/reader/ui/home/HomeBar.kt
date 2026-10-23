@@ -146,16 +146,11 @@ fun TagChips(
         liked?.invoke()
         tags.forEach { tag ->
             val on = selected != null && tag.equals(selected, ignoreCase = true)
+            // No check mark: it would widen the chip and push the others along. The fill shows it.
             FilterChip(
                 selected = on,
                 onClick = { onSelect(if (on) null else tag) },
                 label = { Text(tag) },
-                leadingIcon =
-                    if (on) {
-                        { Icon(painterResource(R.drawable.ic_check), contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) }
-                    } else {
-                        null
-                    },
             )
         }
         if (filtered) {

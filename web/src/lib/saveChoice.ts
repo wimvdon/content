@@ -68,6 +68,21 @@ export function withTag(choice: SaveChoice, tag: string): SaveChoice {
   return { ...choice, tags: has ? choice.tags.filter((t) => !same(t, clean)) : [...choice.tags, clean] };
 }
 
+/**
+ * The tags the save sheet offers: every tag in use, then the item's own that aren't in use elsewhere
+ * yet (a new one goes last), each once (case ignored). The order doesn't change when a tag is turned
+ * on or off, so the chips stay put. Like SaveChoices.tagChoices on Android.
+ */
+export function tagChoices(allTags: string[], tags: string[]): string[] {
+  const seen = new Set<string>();
+  return [...allTags, ...tags].filter((t) => {
+    const key = t.trim().toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 /** What the reader's Tags button says (#156): the tags, else Liked, else null (just "Tags"). */
 export function tagsLabel(choice: SaveChoice, liked: string): string | null {
   if (choice.tags.length > 0) return choice.tags.join(", ");

@@ -93,7 +93,6 @@
     <string name="action_undo">Ongedaan maken</string>
     <string name="folders_explanation">Zet feeds in mappen om ze samen te lezen.</string>
     <string name="folder_all">Alle</string>
-    <string name="feeds_all">Alle artikels</string>
     <string name="filter_unread">Ongelezen</string>
     <string name="filter_all">Alle</string>
     <string name="folder_new">Nieuwe map</string>
@@ -246,7 +245,7 @@
     <string name="saved_removed_from">Verwijderd uit %1$s</string>
     <string name="saved_remove_from_failed">Verwijderen uit %1$s is niet gelukt. Probeer het later opnieuw.</string>
     <string name="tags_title">Tags</string>
-    <string name="tags_add">Tag toevoegen</string>
+    <string name="tags_add">Nieuwe tag</string>
     <string name="tags_remove">Tag verwijderen</string>
     <string name="tags_rename">Tag hernoemen</string>
     <string name="tags_name">Naam van de tag</string>
@@ -281,7 +280,6 @@
     <string name="setting_tag_with_folder_title">Taggen met de map van de feed</string>
     <string name="setting_tag_with_folder_summary">Een artikel dat je uit een feed bewaart, krijgt de naam van zijn map als tag.</string>
     <string name="saved_title">Bewaard</string>
-    <string name="saved_all">Alles in Bewaard</string>
     <string name="saved_folders">Mappen</string>
     <string name="folder_field">Map</string>
     <string name="saved_place">Waar</string>

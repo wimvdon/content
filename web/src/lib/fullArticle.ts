@@ -7,6 +7,15 @@ export { extractArticle } from "./articleExtractor";
 export const FULL_TEXT_THRESHOLD = 1500;
 
 /**
+ * Whether the reader starts with the full article, like the Android app's wantsFullText: for a
+ * summary when the setting is on or there is no feed text (an added link). A saved article always
+ * shows the whole article when its text is short, and offers no switch back to the short intro (#208).
+ */
+export function wantsFullText(setting: boolean, hasFeedText: boolean, isSummary: boolean, saved: boolean): boolean {
+  return saved ? isSummary : isSummary && (setting || !hasFeedText);
+}
+
+/**
  * True when a feed's text looks like a summary, so the full article is worth loading (like the
  * Android app's needsFullText): it is short, or it links to the article itself ("Read full
  * article", "Continue reading"), which feeds do under a teaser of a few paragraphs.

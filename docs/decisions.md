@@ -2,6 +2,23 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-23: Saved polish: menu names, tags in the sheet, cards, the reader (#208)
+
+- ☰'s first rows are named after the places: **Feed** and **Saved** (were All articles and All
+  saved). Liked sits under Tags, first, as on the chips.
+- The save sheet shows every tag in use as a chip to turn on or off; **New tag** (was Add a tag)
+  only makes a tag that doesn't exist yet. All tags rather than a few recent ones: there are few,
+  and a steady list is easier to find your way in.
+- Chips don't move: no check mark and no bold on a chosen group chip (its fill shows it), so its
+  width stays the same; the order never depends on what is chosen.
+- Cards: the text is three lines at most (the first highlight, else the description); the note
+  shows apart, small, two lines; tags are small chips instead of #words; the highlight count keeps
+  its marker icon.
+- A saved article always shows the whole article when its text is short, and the reader drops the
+  switch back to the feed's text there: in Saved that is a useless short intro.
+- In the bar under a saved article the label gives way before the drop-down arrow, which used to
+  shrink with a long list of tags.
+
 ## 2026-10-23: No more types in Saved
 
 - The owner found the type filter (Articles, Videos, Audio) not worth its place: it is gone from

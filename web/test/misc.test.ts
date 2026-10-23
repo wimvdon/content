@@ -6,7 +6,7 @@ import { importOpml, parseOpml, writeOpml } from "../src/lib/opml";
 import { FetchError } from "../src/lib/proxy";
 import { sanitizeArticle } from "../src/lib/sanitize";
 import { embedFor, videoEmbed } from "../src/lib/embeds";
-import { needsFullText, touch } from "../src/lib/fullArticle";
+import { needsFullText, touch, wantsFullText } from "../src/lib/fullArticle";
 import { articleKey, type Article } from "../src/lib/library";
 import { defaultReaderStyle, MAX_TEXT_SIZE, MIN_TEXT_SIZE, pageBackground, readerStyleOf, withTextSize } from "../src/lib/readerStyle";
 import { scrolledPast } from "../src/lib/scrollRead";
@@ -235,6 +235,14 @@ describe("full articles", () => {
     expect(needsFullText(long + '<a href="http://www.a.example/post/#more">Read full article</a>', "https://a.example/post")).toBe(true);
     expect(needsFullText(long + '<a href="https://a.example/other">Elsewhere</a>', "https://a.example/post")).toBe(false);
     expect(needsFullText(long, null)).toBe(false);
+  });
+
+  it("starts with the full article for summaries, always when saved (#208)", () => {
+    expect(wantsFullText(true, true, true, false)).toBe(true);
+    expect(wantsFullText(false, true, true, false)).toBe(false);
+    expect(wantsFullText(false, false, true, false)).toBe(true);
+    expect(wantsFullText(false, true, true, true)).toBe(true);
+    expect(wantsFullText(true, true, false, true)).toBe(false);
   });
 
   it("keeps the most recently opened articles", () => {

@@ -30,8 +30,6 @@ data class SavedFilter(
 sealed interface CardBody {
     val text: String
 
-    data class Note(override val text: String) : CardBody
-
     data class Quote(override val text: String) : CardBody
 
     data class Description(override val text: String) : CardBody
@@ -39,7 +37,8 @@ sealed interface CardBody {
 
 /**
  * One note card (Noter's cards): a saved item, or a feed article shown the same way in Search's
- * notes view. [highlights] is how many; [liked] shows a heart.
+ * notes view. [highlights] is how many; [liked] shows a heart; [note] is your note, shown small
+ * under the text.
  */
 data class NoteContent(
     val title: String,
@@ -49,6 +48,7 @@ data class NoteContent(
     val tags: List<String> = emptyList(),
     val highlights: Int = 0,
     val liked: Boolean = false,
+    val note: String = "",
 )
 
 object Saved {
@@ -60,7 +60,7 @@ object Saved {
     fun showsNotes(tab: SavedTab): Boolean = true
 
     /** A saved item as a note card. */
-    fun note(item: Item): NoteContent = NoteContent(item.title, item.imageUrl, cardBody(item), item.host, item.tags, item.highlights.size, item.liked)
+    fun note(item: Item): NoteContent = NoteContent(item.title, item.imageUrl, cardBody(item), item.host, item.tags, item.highlights.size, item.liked, item.note.trim())
 
     /** A feed article as a note card (Search's notes view): the start of its text under the title. */
     fun note(article: Article): NoteContent =
@@ -250,12 +250,12 @@ object Saved {
     }
 
     /**
-     * The body of an item's note card (#133): your note, else the first highlight (shown
-     * quoted, as the author's words), else the website's description; null when it has none.
+     * The text of an item's note card (#133): the first highlight (shown quoted, as the author's
+     * words), else the website's description; null when it has neither. Your note shows apart,
+     * smaller ([NoteContent.note]).
      */
     fun cardBody(item: Item): CardBody? =
         when {
-            item.note.isNotBlank() -> CardBody.Note(item.note.trim())
             item.highlights.any { it.quote.isNotBlank() } -> CardBody.Quote(item.highlights.first { it.quote.isNotBlank() }.quote.trim())
             item.description.isNotBlank() -> CardBody.Description(item.description.trim())
             else -> null

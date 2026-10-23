@@ -183,7 +183,8 @@ fun ReaderScreen(
                 },
                 actions = {
                     // The full article or the feed's text, one tap away: on while the full article shows.
-                    if (hasLink) {
+                    // Not for a saved article: it always shows the whole article (#208).
+                    if (hasLink && !onList) {
                         val showingFull = fullText is FullTextState.Shown || fullText is FullTextState.Loading
                         IconToggleButton(checked = showingFull, onCheckedChange = { actions.onToggleFullText() }) {
                             Icon(

@@ -24,6 +24,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -40,6 +41,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -256,6 +258,7 @@ internal fun NoteCard(
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
                 )
+                // The text, kept short: the first highlight, quoted, or the site's description.
                 when (val body = note.body) {
                     is CardBody.Quote ->
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -263,7 +266,7 @@ internal fun NoteCard(
                             Text(
                                 body.text,
                                 style = MaterialTheme.typography.bodyMedium.copy(fontFamily = titleFont),
-                                maxLines = 4,
+                                maxLines = 3,
                                 overflow = TextOverflow.Ellipsis,
                             )
                         }
@@ -273,18 +276,50 @@ internal fun NoteCard(
                             body.text,
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 10,
+                            maxLines = 3,
                             overflow = TextOverflow.Ellipsis,
                         )
                 }
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                // Your note, small: a glimpse, the whole of it is in the article.
+                if (note.note.isNotEmpty()) {
+                    val noteTitle = stringResource(R.string.note_title)
+                    Row(
+                        Modifier.semantics(mergeDescendants = true) { contentDescription = "$noteTitle: ${note.note}" },
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Icon(painterResource(R.drawable.ic_note), contentDescription = null, modifier = Modifier.size(14.dp).padding(top = 1.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(
+                            note.note,
+                            style = MaterialTheme.typography.labelMedium.copy(fontStyle = FontStyle.Italic),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
+                // The tags as small chips (#208), not as #words.
+                if (note.tags.isNotEmpty()) {
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        for (tag in note.tags) {
+                            Surface(shape = MaterialTheme.shapes.small, color = MaterialTheme.colorScheme.secondaryContainer) {
+                                Text(
+                                    tag,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                )
+                            }
+                        }
+                    }
+                }
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Row(Modifier.weight(1f, fill = false), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         if (source != null) FeedIcon(source, FeedIconSize.Small)
-                        Text(note.host, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                        Text(note.host, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
-                    for (tag in note.tags) {
-                        Text("#$tag", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary, maxLines = 1)
-                    }
+                    // How many highlights (your markings and their notes).
                     if (note.highlights > 0) {
                         val description = pluralStringResource(R.plurals.highlights_count, note.highlights, note.highlights)
                         Row(Modifier.semantics(mergeDescendants = true) { contentDescription = description }, verticalAlignment = Alignment.CenterVertically) {
