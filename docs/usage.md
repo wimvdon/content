@@ -346,4 +346,4 @@ Until Instapaper has approved Reader, only the owner's own account works; other 
 | "No feed found at this address" | Try the site's feed address instead; look for an RSS or feed link on the site. |
 | "Couldn't connect" | Check the internet connection and pull down to try again. |
 | A feed shows only short summaries | That is what the site publishes; tap **Read on website**. |
-| Not sure Save worked | A "Saved to To read" sheet opens; the article is in **Saved › To read**. |
+| Not sure Save worked | The **Save** sheet opens and the message says "Saved to To read"; the article is in **Saved › To read**. |
