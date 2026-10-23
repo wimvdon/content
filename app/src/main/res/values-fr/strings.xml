@@ -69,6 +69,11 @@
     <string name="saved_shared_new">Nouveaux articles partagés avec vous</string>
     <string name="saved_move_to_read">Mettre dans À lire</string>
     <string name="share_user_message">Message (facultatif)</string>
+    <string name="notify_shared_setting">Me prévenir quand quelque chose est partagé avec moi</string>
+    <string name="notify_shared_summary">Sur ce téléphone, même quand Content n’est pas ouvert.</string>
+    <string name="notify_shared_denied">Les notifications sont désactivées pour Content. Autorisez-les dans les paramètres Android › Applications › Content.</string>
+    <string name="notify_shared_channel">Partagés avec vous</string>
+    <string name="notify_shared_text">Quelque chose a été partagé avec vous.</string>
     <string name="saved_shared">Partagés avec moi</string>
     <string name="share_user_menu">Envoyer à un utilisateur de Content</string>
     <string name="share_user_title">Envoyer à un utilisateur de Content</string>

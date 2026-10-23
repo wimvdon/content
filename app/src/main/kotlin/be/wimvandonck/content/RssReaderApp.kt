@@ -14,6 +14,7 @@ import be.wimvandonck.content.data.ServiceScope
 import be.wimvandonck.content.data.SettingsStore
 import be.wimvandonck.content.feed.FeedFetcher
 import be.wimvandonck.content.instapaper.InstapaperAccount
+import be.wimvandonck.content.push.PushNotifications
 import be.wimvandonck.content.data.SiteSignInStore
 import be.wimvandonck.content.feed.SiteSignIns
 import be.wimvandonck.content.instapaper.InstapaperReadingList
@@ -86,6 +87,9 @@ class RssReaderApp :
         )
     }
 
+    /** Notifications when something is shared (#235). See push/. */
+    val push: PushNotifications by lazy { PushNotifications(this, settings, sync) }
+
     /** Sites signed in to (#180): their cookies go with requests to them. On this device only. */
     val siteSignIns: SiteSignInStore by lazy { SiteSignInStore(this, appScope) }
 
@@ -102,6 +106,11 @@ class RssReaderApp :
         appScope.launch { iconCatalog }
         // Raindrop.io was removed (#179): its sign-in, kept only on this device, goes with it.
         appScope.launch { File(filesDir, "datastore/raindrop.preferences_pb").delete() }
+        // Notifications (#235): Firebase starts when the build has its settings; signing out turns them off.
+        push.start()
+        appScope.launch {
+            account.state.collect { state -> if (state is AccountState.SignedOut) push.signedOut() }
+        }
         // Direct share (#235): the people shared with, in Android's share menu, while signed in.
         appScope.launch {
             combine(settings.settings.filterNotNull(), account.state) { s, state ->

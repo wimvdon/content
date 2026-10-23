@@ -59,7 +59,7 @@ small storage: the device keys, one sync document and the item rows (`docs/sync.
 | `GET /account/inbox` | What others shared with this account: `{"messages": [...]}` |
 | `POST /account/inbox/done` | `{"ids"}`: taken in, so they leave the inbox |
 | `GET /account/push/key` | `{"publicKey"}`: the VAPID public key for Web Push (#235), or `404` when notifications aren't set up |
-| `PUT /account/push` | `{"kind": "web", "endpoint"}`: where this device gets a notification when something is shared with the account (one per device, encrypted, forgotten on sign-out); `DELETE` takes it back. Sharing then pokes every device's address with an empty, VAPID-signed Web Push message and forgets addresses the push service says are gone |
+| `PUT /account/push` | `{"kind": "web", "endpoint"}` (a browser) or `{"kind": "fcm", "token"}` (the Android app's Firebase token): where this device gets a notification when something is shared with the account (one per device, encrypted, forgotten on sign-out); `DELETE` takes it back. Sharing then pokes every device's address with an empty, VAPID-signed Web Push message and forgets addresses the push service says are gone |
 | `POST /account/profile` | `{"email"}`: `{"name"}`, the name on that address's Gravatar profile, or `""` (#234). The feed loader asks Gravatar (`api.gravatar.com/v3/profiles/<SHA-256 of the address>`); sharing also fills in the sender's name this way when the device sent none |
 | `POST /account/signout` | Forgets this device's key |
 | `DELETE /account` | Deletes the document and every device key |
@@ -116,6 +116,10 @@ For email sign-in (#166), the Resend API key goes in the same place, as a **Secr
 `[vars]` of `wrangler.toml`). The sender (`EMAIL_FROM`) and where links point (`WEB_APP_ORIGIN`)
 are in `wrangler.toml`; the domain resend.wimvandonck.be must be verified in Resend. Without the
 key, Email me a sign-in link says the email couldn't be sent (`503`).
+
+For Android notifications, the Firebase service account's JSON key goes in the same place as the
+**Secret** `FCM_SERVICE_ACCOUNT` (`docs/installation.md`, "Notifications"); the feed loader signs in to
+Google with it and sends each phone a data-only message (`{"kind": "shared"}`).
 
 For notifications when something is shared (#235, `worker/src/push.ts`), the private half of the
 VAPID key pair goes in the same place, as a **Secret** named `VAPID_PRIVATE_KEY` (its public half is

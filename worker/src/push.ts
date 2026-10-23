@@ -7,6 +7,9 @@
  *    in wrangler.toml as VAPID_PUBLIC_KEY, the private half the secret VAPID_PRIVATE_KEY). The page's
  *    service worker shows "Shared with you" and opens Saved › Shared with me. Nothing about what was
  *    shared goes through the browser's push service.
+ *  - an Android phone through Firebase Cloud Messaging, with a data-only message ({"kind": "shared"})
+ *    sent with the service account in the secret FCM_SERVICE_ACCOUNT (its JSON key file). The app
+ *    shows the notification in its own language.
  *
  * Without the keys, nothing is sent and devices are told there are no notifications.
  */
@@ -15,25 +18,33 @@ import type { Env } from "./index";
 
 type Fetcher = (input: string, init?: RequestInit) => Promise<Response>;
 
-export type PushTarget = { kind: "web"; endpoint: string };
+export type PushTarget = { kind: "web"; endpoint: string } | { kind: "fcm"; token: string };
 
 /** How long a push service keeps a poke for a device that is offline. */
 const TTL_SECONDS = 24 * 60 * 60;
 
 /** A push target a device may register, or null when it isn't one. */
 export function pushTargetOf(body: unknown): PushTarget | null {
-  const b = body as { kind?: unknown; endpoint?: unknown } | null;
+  const b = body as { kind?: unknown; endpoint?: unknown; token?: unknown } | null;
   if (b?.kind === "web" && typeof b.endpoint === "string" && b.endpoint.startsWith("https://") && b.endpoint.length <= 2048) {
     return { kind: "web", endpoint: b.endpoint };
   }
+  if (b?.kind === "fcm" && typeof b.token === "string" && /^[\w:.-]{20,4096}$/.test(b.token)) return { kind: "fcm", token: b.token };
   return null;
 }
 
-/** Whether notifications can be sent: both halves of the VAPID key pair are set. */
+/** Whether browsers can get notifications: both halves of the VAPID key pair are set. */
 export const pushReady = (env: Env) => Boolean(env.VAPID_PUBLIC_KEY && env.VAPID_PRIVATE_KEY);
+
+/** Whether Android phones can get notifications: the Firebase service account is set. */
+export const fcmReady = (env: Env) => Boolean(env.FCM_SERVICE_ACCOUNT);
+
+/** Whether any notification can be sent. */
+export const anyPushReady = (env: Env) => pushReady(env) || fcmReady(env);
 
 /** Pokes one device: "sent", "gone" (the address no longer works: forget it) or "failed". */
 export async function poke(target: PushTarget, env: Env, fetcher: Fetcher, now = Date.now()): Promise<"sent" | "gone" | "failed"> {
+  if (target.kind === "fcm") return sendFcm(target.token, env, fetcher, now);
   if (!pushReady(env)) return "failed";
   try {
     const audience = new URL(target.endpoint).origin;
@@ -80,4 +91,72 @@ export function toBase64Url(bytes: Uint8Array): string {
 export function fromBase64Url(text: string): Uint8Array {
   const plain = atob(text.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(text.length / 4) * 4, "="));
   return Uint8Array.from(plain, (c) => c.charCodeAt(0));
+}
+
+// Firebase Cloud Messaging (HTTP v1) for the Android app.
+
+interface ServiceAccount {
+  client_email: string;
+  private_key: string;
+  project_id: string;
+}
+
+/** The service account in FCM_SERVICE_ACCOUNT, or null when it isn't one. */
+export function serviceAccountOf(text: string | undefined): ServiceAccount | null {
+  try {
+    const parsed = JSON.parse(text ?? "") as Partial<ServiceAccount>;
+    return parsed.client_email && parsed.private_key && parsed.project_id ? (parsed as ServiceAccount) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Google's access token, kept while it is valid (an hour) by this copy of the feed loader. */
+let accessToken: { value: string; until: number; account: string } | null = null;
+
+/** An OAuth access token for sending with FCM: a JWT signed with the service account's key, swapped at Google. */
+async function fcmAccessToken(account: ServiceAccount, fetcher: Fetcher, now: number): Promise<string | null> {
+  if (accessToken && accessToken.account === account.client_email && accessToken.until > now + 60_000) return accessToken.value;
+  const pem = account.private_key.replace(/-----[^-]+-----/g, "").replace(/\s+/g, "");
+  const key = await crypto.subtle.importKey("pkcs8", fromBase64Url(pem), { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["sign"]);
+  const encode = (value: unknown) => toBase64Url(new TextEncoder().encode(JSON.stringify(value)));
+  const iat = Math.floor(now / 1000);
+  const unsigned = `${encode({ alg: "RS256", typ: "JWT" })}.${encode({ iss: account.client_email, scope: "https://www.googleapis.com/auth/firebase.messaging", aud: "https://oauth2.googleapis.com/token", iat, exp: iat + 3600 })}`;
+  const signature = new Uint8Array(await crypto.subtle.sign("RSASSA-PKCS1-v1_5", key, new TextEncoder().encode(unsigned)));
+  const answer = await fetcher("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer", assertion: `${unsigned}.${toBase64Url(signature)}` }).toString(),
+  });
+  if (!answer.ok) return null;
+  const body = (await answer.json()) as { access_token?: string; expires_in?: number };
+  if (!body.access_token) return null;
+  accessToken = { value: body.access_token, until: now + (body.expires_in ?? 3600) * 1000, account: account.client_email };
+  return body.access_token;
+}
+
+/** Sends the data-only "shared" message to one phone. */
+async function sendFcm(token: string, env: Env, fetcher: Fetcher, now: number): Promise<"sent" | "gone" | "failed"> {
+  const account = serviceAccountOf(env.FCM_SERVICE_ACCOUNT);
+  if (!account) return "failed";
+  try {
+    const bearer = await fcmAccessToken(account, fetcher, now);
+    if (!bearer) return "failed";
+    const answer = await fetcher(`https://fcm.googleapis.com/v1/projects/${encodeURIComponent(account.project_id)}/messages:send`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${bearer}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ message: { token, data: { kind: "shared" }, android: { priority: "high", ttl: "86400s" } } }),
+    });
+    // An app that was uninstalled or a token that was replaced: forget it.
+    if (answer.status === 404) return "gone";
+    if (answer.status === 400 && /UNREGISTERED|INVALID_ARGUMENT/.test(await answer.text())) return "gone";
+    return answer.ok ? "sent" : "failed";
+  } catch {
+    return "failed";
+  }
+}
+
+/** Forgets the cached access token (tests). */
+export function resetFcmToken(): void {
+  accessToken = null;
 }

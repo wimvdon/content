@@ -177,6 +177,13 @@ jobs:
           echo "### Signing key SHA-1: \`$sha1\`" >> "$GITHUB_STEP_SUMMARY"
           echo "For the Android client in Google Cloud (docs/sync.md, \"Google Cloud setup\")." >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Firebase settings for notifications (#235)
+        # From the repository secret, when there is one; without it the app builds without notifications.
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then printf '%s' "$GOOGLE_SERVICES_JSON" > app/google-services.json; fi
+
       - name: Test and lint
         run: ./gradlew testDebugUnitTest lintDebug
 
@@ -212,7 +219,7 @@ jobs:
 
       - name: Remove signing key
         if: always()
-        run: rm -f keystore.properties "$RUNNER_TEMP/release.keystore"
+        run: rm -f keystore.properties "$RUNNER_TEMP/release.keystore" app/google-services.json
 
       - name: Upload APK
         uses: actions/upload-artifact@v7

@@ -526,7 +526,13 @@ fun RssReaderNavigation(
     LaunchedEffect(openRequest) {
         val key = openRequest ?: return@LaunchedEffect
         section = HomeSection.Saved
-        push(Screen.Reader(key))
+        // The notification (#235): Saved › Shared with me, not an article.
+        if (key == MainActivity.OPEN_SHARED) {
+            savedFilter = savedFilter.copy(tab = SavedTab.Shared, likedOnly = false, tags = emptySet())
+            while (backStack.size > 1) pop()
+        } else {
+            push(Screen.Reader(key))
+        }
         onOpened()
     }
 
@@ -834,6 +840,7 @@ fun RssReaderNavigation(
                                 syncStatus = syncStatus,
                                 account = accountState,
                                 accountName = accountName,
+                                notifyShared = current.notifyShared.takeIf { app.push.available },
                                 instapaperConnected = instapaperState is InstapaperState.SignedIn,
                                 hasFeeds = library.feeds.isNotEmpty(),
                                 siteSignIns = siteSignIns.map { it.site },
@@ -866,6 +873,18 @@ fun RssReaderNavigation(
                                 onRemoveSiteSignIn = { site ->
                                     siteSignIns.firstOrNull { it.site == site }?.let { forgetSiteCookies(it.site, it.cookie) }
                                     app.appScope.launch { app.siteSignIns.remove(site) }
+                                },
+                                onNotifyShared = { on, result ->
+                                    uiScope.launch {
+                                        if (on) {
+                                            val ok = app.push.turnOn()
+                                            if (!ok) showMessage(resources.getString(R.string.sync_failed_offline))
+                                            result(ok)
+                                        } else {
+                                            app.push.turnOff()
+                                            result(true)
+                                        }
+                                    }
                                 },
                                 onSendLink = { email, result ->
                                     uiScope.launch { result(runCatching { app.account.sendLink(email) }.isSuccess) }

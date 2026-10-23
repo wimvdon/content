@@ -69,6 +69,11 @@
     <string name="saved_shared_new">Neue Artikel mit dir geteilt</string>
     <string name="saved_move_to_read">Nach Zu lesen</string>
     <string name="share_user_message">Nachricht (optional)</string>
+    <string name="notify_shared_setting">Benachrichtigen, wenn etwas mit mir geteilt wird</string>
+    <string name="notify_shared_summary">Auf diesem Telefon, auch wenn Content nicht offen ist.</string>
+    <string name="notify_shared_denied">Benachrichtigungen sind für Content aus. Erlaube sie in den Android-Einstellungen › Apps › Content.</string>
+    <string name="notify_shared_channel">Mit dir geteilt</string>
+    <string name="notify_shared_text">Es wurde etwas mit dir geteilt.</string>
     <string name="saved_shared">Mit mir geteilt</string>
     <string name="share_user_menu">An einen Content-Nutzer senden</string>
     <string name="share_user_title">An einen Content-Nutzer senden</string>

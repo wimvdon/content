@@ -34,6 +34,8 @@ export interface Env {
   /** Notifications (#235, push.ts): the VAPID key pair, public in wrangler.toml, private a secret. */
   VAPID_PUBLIC_KEY?: string;
   VAPID_PRIVATE_KEY?: string;
+  /** Notifications on Android (#235, push.ts): the Firebase service account's JSON key, a secret. */
+  FCM_SERVICE_ACCOUNT?: string;
   /** Optional Cloudflare rate limiting binding (see wrangler.toml). */
   LIMITER?: { limit(options: { key: string }): Promise<{ success: boolean }> };
 }

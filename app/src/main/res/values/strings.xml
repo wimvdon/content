@@ -70,6 +70,11 @@
     <string name="saved_shared_new">New articles shared with you</string>
     <string name="saved_move_to_read">Move to To read</string>
     <string name="share_user_message">Message (optional)</string>
+    <string name="notify_shared_setting">Notify me when something is shared with me</string>
+    <string name="notify_shared_summary">On this phone, even when Content isn’t open.</string>
+    <string name="notify_shared_denied">Notifications are off for Content. Allow them in Android’s settings › Apps › Content.</string>
+    <string name="notify_shared_channel">Shared with you</string>
+    <string name="notify_shared_text">Something was shared with you.</string>
     <string name="saved_shared">Shared with me</string>
     <string name="share_user_menu">Send to a Content user</string>
     <string name="share_user_title">Send to a Content user</string>

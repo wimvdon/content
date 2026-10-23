@@ -118,6 +118,13 @@ class AccountClient(
         return call(request("/account/profile").post(body).build()) { _, text -> Gravatar.nameFrom(text) }
     }
 
+    /** Gives the feed loader this phone's Firebase token for notifications (#235), or with null takes it back. */
+    suspend fun setPush(token: String?) {
+        val r = request("/account/push")
+        val built = if (token == null) r.delete().build() else r.put(Json.write(linkedMapOf("kind" to "fcm", "token" to token)).toRequestBody(JSON_TYPE)).build()
+        call(built) { _, _ -> }
+    }
+
     /** Whether [email] has a Content account (#167), to say so before sharing with it. */
     suspend fun hasAccount(email: String): Boolean {
         val body = Json.write(mapOf("email" to email.trim())).toRequestBody(JSON_TYPE)

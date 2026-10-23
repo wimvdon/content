@@ -51,6 +51,9 @@ rss-reader/
         │   │   │   ├── Settings.kt            Theme, reader style, Save target (plain Kotlin)
         │   │   │   ├── SettingsStore.kt       Preferences DataStore
 │   │   │   └── FullArticles.kt        Full articles for summary-only feeds, cached
+        │   │   ├── push/                      Notifications when something is shared (#235): Firebase
+        │   │   │   ├── PushNotifications.kt   On/off, token to the feed loader, the notification
+        │   │   │   └── SharedMessagingService.kt  Firebase's pokes and new tokens
         │   │   ├── sync/
         │   │   │   ├── SyncDocument.kt        The sync file: folders, feeds, read marks (plain Kotlin)
         │   │   │   ├── SyncMerge.kt           Three-way merge with the last synced file (plain Kotlin)
