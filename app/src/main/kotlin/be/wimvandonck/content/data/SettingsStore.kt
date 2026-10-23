@@ -84,6 +84,9 @@ class SettingsStore(
         it[IMPORTS] = ServiceSettings.writeImports(if (record == null) all - service else all + (service to record))
     }
 
+    /** Remembers that [email] was just shared with (#235), first among the recipients. */
+    suspend fun rememberRecipient(email: String) = edit { it[RECIPIENTS] = Recipients.encode(Recipients.remember(Recipients.decode(it[RECIPIENTS]).orEmpty(), email)) }
+
     /** Takes the synced settings from another device (see SyncSettings); the rest stays as it is. */
     suspend fun applySynced(values: Map<String, String>) =
         edit { prefs ->
@@ -104,6 +107,7 @@ class SettingsStore(
                 prefs[LIST_VIEW] = s.listView.name
                 prefs[SCOPES] = ServiceSettings.writeScopes(s.scopes)
                 prefs[IMPORTS] = ServiceSettings.writeImports(s.imports)
+                prefs[RECIPIENTS] = Recipients.encode(s.recipients)
             }
         }
 
@@ -141,6 +145,7 @@ class SettingsStore(
             tagWithFolder = p[TAG_WITH_FOLDER] ?: defaults.tagWithFolder,
             scopes = ServiceSettings.readScopes(p[SCOPES]),
             imports = ServiceSettings.readImports(p[IMPORTS]),
+            recipients = Recipients.decode(p[RECIPIENTS]).orEmpty(),
             copyHighlights = p[COPY_HIGHLIGHTS] ?: defaults.copyHighlights,
             lastSyncedAt = p[LAST_SYNCED_AT],
         )
@@ -169,6 +174,7 @@ class SettingsStore(
         val TAG_WITH_FOLDER = booleanPreferencesKey("tag_with_folder")
         val SCOPES = stringPreferencesKey("service_scopes")
         val IMPORTS = stringPreferencesKey("service_imports")
+        val RECIPIENTS = stringPreferencesKey("share_recipients")
         val COPY_HIGHLIGHTS = booleanPreferencesKey("copy_highlights_instapaper")
         val LAST_SYNCED_AT = longPreferencesKey("last_synced_at")
     }

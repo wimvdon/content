@@ -34,6 +34,7 @@ class SyncSettingsTest {
             mapOf(
                 SyncSettings.FULL_ARTICLES to "false",
                 SyncSettings.MARK_READ_ON_SCROLL to "true",
+                SyncSettings.RECIPIENTS to "[]",
                 "services.instapaper.scope" to "*",
                 "services.raindrop.scope" to "*",
             ),
@@ -119,5 +120,16 @@ class SyncSettingsTest {
         assertEquals(fromFile["services.raindrop.imported"], SyncSettings.of(Settings(), fromFile)["services.raindrop.imported"])
         // Unreadable values change nothing.
         assertEquals(Settings(), SyncSettings.applyTo(Settings(), mapOf("services.raindrop.scope" to "{", "services.raindrop.imported" to "x")))
+    }
+
+    @Test
+    fun `the people shared with travel with the account (#235)`() {
+        val mine = Settings(recipients = listOf("ann@example.com", "bob@example.com"))
+        val values = SyncSettings.of(mine)
+        assertEquals("""["ann@example.com","bob@example.com"]""", values[SyncSettings.RECIPIENTS])
+        assertEquals(mine.recipients, SyncSettings.applyTo(Settings(), values).recipients)
+        // Missing or not a list: this device's stay.
+        assertEquals(mine.recipients, SyncSettings.applyTo(mine, emptyMap()).recipients)
+        assertEquals(mine.recipients, SyncSettings.applyTo(mine, mapOf(SyncSettings.RECIPIENTS to "nonsense")).recipients)
     }
 }

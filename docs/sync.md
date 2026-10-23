@@ -68,6 +68,7 @@ The account's document (it was `rss-reader-sync.json` in Google Drive before), U
   | `fullArticles` | `true`, `false` | both |
   | `markReadOnScroll` | `true`, `false` | both |
   | `services.instapaper.scope`, `services.raindrop.scope` | what the service syncs (#145): `*` for everything in Saved, else a JSON list of folder names, `""` for To read | both |
+  | `sharing.recipients` | the people shared with (#235): a JSON list of email addresses in lower case, most recent first, at most 12 | both |
   | `services.instapaper.imported`, `services.raindrop.imported` | what was imported when it was connected: `{"at": ms, "count": n, "folders": [...] or null, "archive": true}`; an app without one keeps the file's | both |
 
   View settings stay on each device (#96), because people often want a different view on a
