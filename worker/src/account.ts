@@ -32,6 +32,7 @@
  * version of the save that last changed them: "changes since a version" is one list in version order.
  */
 
+import type { PushTarget } from "./push";
 import { emailClaim } from "./email";
 import type { Env } from "./index";
 
@@ -274,7 +275,52 @@ export class AccountData {
       const devices = (await this.storage.get<Record<string, Device>>("devices")) ?? {};
       delete devices[hash];
       await this.storage.put("devices", devices);
+      // Its push address goes with it (#235).
+      await this.storage.delete(`p:${hash}`);
     });
+  }
+
+  // Push addresses (#235, push.ts): one per device, under the device's hash, encrypted.
+
+  /** Sets (or with null forgets) where the device with this secret gets notifications. */
+  setPushTarget(secret: string, target: PushTarget | null): Promise<void> {
+    return this.serial(async () => {
+      const hash = await sha256(secret);
+      if (!target) {
+        await this.storage.delete(`p:${hash}`);
+        return;
+      }
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const plain = new TextEncoder().encode(JSON.stringify(target));
+      const data = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv, additionalData: this.pushLabel(hash) }, await this.cipher(), plain));
+      await this.storage.put(`p:${hash}`, { iv, data } satisfies SealedRow);
+    });
+  }
+
+  /** Every device's push address, by device hash. */
+  async pushTargets(): Promise<{ device: string; target: PushTarget }[]> {
+    const out: { device: string; target: PushTarget }[] = [];
+    for (const [key, sealed] of await this.storage.list<SealedRow>({ prefix: "p:" })) {
+      const device = key.slice(2);
+      try {
+        const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: sealed.iv, additionalData: this.pushLabel(device) }, await this.cipher(), sealed.data);
+        out.push({ device, target: JSON.parse(new TextDecoder().decode(plain)) as PushTarget });
+      } catch {
+        // Not readable: left out.
+      }
+    }
+    return out;
+  }
+
+  /** Forgets push addresses that no longer work. */
+  dropPushTargets(devices: string[]): Promise<void> {
+    return this.serial(async () => {
+      for (const device of devices) await this.storage.delete(`p:${device}`);
+    });
+  }
+
+  private pushLabel(device: string): Uint8Array {
+    return new TextEncoder().encode(`${this.accountId}:push:${device}`);
   }
 
   deleteAll(): Promise<void> {
@@ -677,6 +723,20 @@ export class Account {
       if (route === "inbox") return new Response(JSON.stringify({ messages: await this.data.inbox() }), { headers: { "Content-Type": "application/json" } });
       const body = JSON.parse(await request.text()) as { ids?: unknown };
       await this.data.inboxDone(Array.isArray(body.ids) ? body.ids.filter((x): x is string => typeof x === "string") : []);
+      return new Response(null, { status: 204 });
+    }
+    // Push addresses (#235, push.ts): set by a device for itself; read and pruned by the feed loader when sharing.
+    if (route === "pushSet") {
+      const secret = request.headers.get("X-Secret") ?? "";
+      if (!(await this.data.knows(secret))) return plain(401, "Sign in again");
+      const body = JSON.parse(await request.text()) as { target?: unknown };
+      await this.data.setPushTarget(secret, body.target === null ? null : (body.target as PushTarget));
+      return new Response(null, { status: 204 });
+    }
+    if (route === "pushTargets") return new Response(JSON.stringify({ targets: await this.data.pushTargets() }), { headers: { "Content-Type": "application/json" } });
+    if (route === "pushDrop") {
+      const body = JSON.parse(await request.text()) as { devices?: unknown };
+      await this.data.dropPushTargets(Array.isArray(body.devices) ? body.devices.filter((x): x is string => typeof x === "string") : []);
       return new Response(null, { status: 204 });
     }
     // An address's directory (email.ts): which account it opens and which links were used.

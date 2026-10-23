@@ -83,6 +83,20 @@ export class AccountClient {
     return profileNameOf(await response.json().catch(() => null));
   }
 
+  /** The feed loader's VAPID public key for notifications (#235), or null when it has none. */
+  async pushKey(): Promise<string | null> {
+    const response = await this.call("/account/push/key", {}, [404]);
+    if (response.status === 404) return null;
+    const key = ((await response.json().catch(() => null)) as { publicKey?: unknown } | null)?.publicKey;
+    return typeof key === "string" && key ? key : null;
+  }
+
+  /** Gives the feed loader this browser's push address (#235), or with null takes it back. */
+  async setPush(endpoint: string | null): Promise<void> {
+    if (endpoint === null) await this.call("/account/push", { method: "DELETE" });
+    else await this.call("/account/push", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kind: "web", endpoint }) });
+  }
+
   /** Whether email has a Content account (#167), to say so before sharing with it. */
   async hasAccount(email: string): Promise<boolean> {
     const response = await this.call("/account/share/check", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: email.trim() }) });

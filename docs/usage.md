@@ -243,6 +243,11 @@ to (Send to a Content user) appear in Android's share menu, at the top, with the
 or first letter. Pick one and **Send to a Content user** opens over the app you were in, with their
 address filled in; add a message if you like and tap **Send**.
 
+**Notifications** (#235, web app). Settings › Account › **Notify me when something is shared with me**
+asks your browser's permission; from then on the browser shows "Something was shared with you", even
+with Content closed, and clicking it opens Saved › Shared with me. Per browser; signing out turns it
+off.
+
 **Saving from other apps.** In Chrome or any app that shares links, tap Share and pick
 **Reader**. Only the **Save to Reader** sheet opens, over the app you were in (the rest of Reader
 stays closed): the site, then the **Folder** (To read, **Archive** for a link you keep

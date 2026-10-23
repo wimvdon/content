@@ -10,6 +10,10 @@
  *                               "from" isn't an address of the sender's own account.
  *  - GET  /account/inbox       {"messages": [...]}: what was shared with this account, oldest first.
  *  - POST /account/inbox/done  {"ids": [...]}: taken in, so it leaves the inbox.
+ *  - GET  /account/push/key    {"publicKey"}: the VAPID public key for Web Push (#235), or 404 when
+ *                               notifications aren't set up on this server.
+ *  - PUT  /account/push        {"kind": "web", "endpoint"}: where this device gets notifications when
+ *                               something is shared with it (push.ts); DELETE forgets it.
  *  - POST /account/profile     {"email"}: {"name"}, the name on that address's Gravatar profile (#234),
  *                               or "" when it has none. The feed loader asks Gravatar, so devices
  *                               don't send the address's hash to Gravatar themselves for names.
@@ -25,6 +29,7 @@
 import { allowedOrigins, corsHeaders, plain } from "./account";
 import { emailIdOf, normalEmail } from "./email";
 import type { Env } from "./index";
+import { poke, pushReady, pushTargetOf, type PushTarget } from "./push";
 
 type Fetcher = (input: string, init?: RequestInit) => Promise<Response>;
 
@@ -42,7 +47,7 @@ export async function handleShare(request: Request, env: Env, url: URL, fetcher:
   const cors = origin ? corsHeaders(origin) : {};
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
   const route = routeOf(request.method, url.pathname);
-  if (!route) return plain(["/account/share", "/account/share/check", "/account/inbox", "/account/inbox/done", "/account/profile"].includes(url.pathname) ? 405 : 404, "Not available", cors);
+  if (!route) return plain(["/account/share", "/account/share/check", "/account/inbox", "/account/inbox/done", "/account/profile", "/account/push", "/account/push/key"].includes(url.pathname) ? 405 : 404, "Not available", cors);
   if (!env.ACCOUNTS || !env.ACCOUNT_KEY) return plain(503, "Accounts aren't set up on this server", cors);
   if (env.LIMITER) {
     const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
@@ -55,6 +60,17 @@ export async function handleShare(request: Request, env: Env, url: URL, fetcher:
   const ns = env.ACCOUNTS;
   const own = ns.get(ns.idFromName(accountId));
   const auth = { "X-Account": accountId, "X-Secret": secret };
+
+  if (route === "pushKey") return pushReady(env) ? json({ publicKey: env.VAPID_PUBLIC_KEY }, cors) : plain(404, "No notifications on this server", cors);
+  if (route === "pushSet" || route === "pushForget") {
+    let target: PushTarget | null = null;
+    if (route === "pushSet") {
+      target = pushTargetOf(await request.json().catch(() => null));
+      if (!target) return plain(400, "Not a push address", cors);
+    }
+    const answer = await own.fetch("https://account/pushSet", { method: "POST", headers: auth, body: JSON.stringify({ target }) });
+    return withCors(answer, cors);
+  }
 
   if (route === "inbox" || route === "inboxDone") {
     const body = route === "inboxDone" ? await request.text() : undefined;
@@ -106,10 +122,11 @@ export async function handleShare(request: Request, env: Env, url: URL, fetcher:
     body: JSON.stringify({ id, at: Date.now(), from: message.from, items: message.items, tag: message.tag, message: message.message }),
   });
   if (!added.ok) return plain(503, "Try again", cors);
+  if (pushReady(env)) await notify(inbox, to, env, fetcher);
   return new Response(null, { status: 204, headers: cors });
 }
 
-type Route = "check" | "share" | "inbox" | "inboxDone" | "profile";
+type Route = "check" | "share" | "inbox" | "inboxDone" | "profile" | "pushKey" | "pushSet" | "pushForget";
 
 function routeOf(method: string, path: string): Route | null {
   if (path === "/account/share/check") return method === "POST" ? "check" : null;
@@ -117,6 +134,8 @@ function routeOf(method: string, path: string): Route | null {
   if (path === "/account/inbox") return method === "GET" ? "inbox" : null;
   if (path === "/account/inbox/done") return method === "POST" ? "inboxDone" : null;
   if (path === "/account/profile") return method === "POST" ? "profile" : null;
+  if (path === "/account/push/key") return method === "GET" ? "pushKey" : null;
+  if (path === "/account/push") return method === "PUT" ? "pushSet" : method === "DELETE" ? "pushForget" : null;
   return null;
 }
 
@@ -138,6 +157,19 @@ export function shareOf(body: Record<string, unknown>): { to: string; from: { em
   // A short message for the receiver (#167), shown with what was shared.
   const message = clip(body.message).slice(0, MAX_MESSAGE) || null;
   return { to, from: { email: fromEmail, name: clip(fromBody?.name).slice(0, 100) }, items, tag, message };
+}
+
+/** Pokes every device of the receiver (#235); addresses that no longer work are forgotten. Never fails the share. */
+async function notify(inbox: DurableObjectStub, account: string, env: Env, fetcher: Fetcher): Promise<void> {
+  try {
+    const answer = await inbox.fetch("https://account/pushTargets", { headers: { "X-Account": account } });
+    const { targets } = (await answer.json()) as { targets: { device: string; target: PushTarget }[] };
+    const results = await Promise.all(targets.map(async (t) => ({ device: t.device, result: await poke(t.target, env, fetcher) })));
+    const gone = results.filter((r) => r.result === "gone").map((r) => r.device);
+    if (gone.length > 0) await inbox.fetch("https://account/pushDrop", { method: "POST", headers: { "X-Account": account }, body: JSON.stringify({ devices: gone }) });
+  } catch {
+    // A notification is a nicety; the share itself is in the inbox.
+  }
 }
 
 /**

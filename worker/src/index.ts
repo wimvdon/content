@@ -31,6 +31,9 @@ export interface Env {
   RESEND_API_KEY?: string;
   EMAIL_FROM?: string;
   WEB_APP_ORIGIN?: string;
+  /** Notifications (#235, push.ts): the VAPID key pair, public in wrangler.toml, private a secret. */
+  VAPID_PUBLIC_KEY?: string;
+  VAPID_PRIVATE_KEY?: string;
   /** Optional Cloudflare rate limiting binding (see wrangler.toml). */
   LIMITER?: { limit(options: { key: string }): Promise<{ success: boolean }> };
 }
@@ -64,7 +67,7 @@ export async function handle(request: Request, env: Env, fetcher: Fetcher): Prom
   const requestUrl = new URL(request.url);
   if (requestUrl.pathname.startsWith("/instapaper/")) return handleInstapaper(request, env, fetcher, requestUrl);
   if (requestUrl.pathname.startsWith("/account/email/")) return handleEmail(request, env, requestUrl, fetcher);
-  if (requestUrl.pathname.startsWith("/account/share") || requestUrl.pathname.startsWith("/account/inbox") || requestUrl.pathname === "/account/profile") return handleShare(request, env, requestUrl, fetcher);
+  if (requestUrl.pathname.startsWith("/account/share") || requestUrl.pathname.startsWith("/account/inbox") || requestUrl.pathname === "/account/profile" || requestUrl.pathname.startsWith("/account/push")) return handleShare(request, env, requestUrl, fetcher);
   if (requestUrl.pathname === "/account" || requestUrl.pathname.startsWith("/account/")) return handleAccount(request, env, requestUrl);
   const origin = request.headers.get("Origin");
   const allowed = (env.ALLOWED_ORIGINS ?? "")

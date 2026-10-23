@@ -58,6 +58,8 @@ small storage: the device keys, one sync document and the item rows (`docs/sync.
 | `POST /account/share` | `{"to", "from": {"email", "name"}, "items": [...], "tag"?, "message"?}`: into the other account's inbox; `404` without an account there, `403` when `from` isn't this account's address |
 | `GET /account/inbox` | What others shared with this account: `{"messages": [...]}` |
 | `POST /account/inbox/done` | `{"ids"}`: taken in, so they leave the inbox |
+| `GET /account/push/key` | `{"publicKey"}`: the VAPID public key for Web Push (#235), or `404` when notifications aren't set up |
+| `PUT /account/push` | `{"kind": "web", "endpoint"}`: where this device gets a notification when something is shared with the account (one per device, encrypted, forgotten on sign-out); `DELETE` takes it back. Sharing then pokes every device's address with an empty, VAPID-signed Web Push message and forgets addresses the push service says are gone |
 | `POST /account/profile` | `{"email"}`: `{"name"}`, the name on that address's Gravatar profile, or `""` (#234). The feed loader asks Gravatar (`api.gravatar.com/v3/profiles/<SHA-256 of the address>`); sharing also fills in the sender's name this way when the device sent none |
 | `POST /account/signout` | Forgets this device's key |
 | `DELETE /account` | Deletes the document and every device key |
@@ -114,6 +116,11 @@ For email sign-in (#166), the Resend API key goes in the same place, as a **Secr
 `[vars]` of `wrangler.toml`). The sender (`EMAIL_FROM`) and where links point (`WEB_APP_ORIGIN`)
 are in `wrangler.toml`; the domain resend.wimvandonck.be must be verified in Resend. Without the
 key, Email me a sign-in link says the email couldn't be sent (`503`).
+
+For notifications when something is shared (#235, `worker/src/push.ts`), the private half of the
+VAPID key pair goes in the same place, as a **Secret** named `VAPID_PRIVATE_KEY` (its public half is
+`VAPID_PUBLIC_KEY` in `wrangler.toml`). Without it, `GET /account/push/key` answers `404` and the
+apps don't offer notifications. A new pair means every browser has to turn notifications on again.
 
 Without it, sign-in still works for Instapaper, sync says it isn't available, and the account calls
 answer `503`. **Never change or lose the key**: the stored documents can then no longer be read and

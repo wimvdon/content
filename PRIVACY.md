@@ -1,6 +1,6 @@
 # Privacy policy
 
-_Last updated: 2026-10-23 (people you shared with)_
+_Last updated: 2026-10-23 (notifications in the web app)_
 
 Reader has no analytics, advertising or crash reporting. It works without an account. If you sign
 in (with your email address, or with Instapaper), Reader keeps your feed list,
@@ -111,6 +111,13 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   encrypted like everything in an account, until one of their devices takes it in, and is then
   deleted from the server. Nothing is shared unless you share it, and nobody can send something in
   your name: the feed loader checks the address is yours.
+- **Notifications (#235, off unless you turn them on).** In the web app, Settings › Account › Notify
+  me when something is shared with me asks your browser's permission and gives the owner's feed
+  loader this browser's push address (made by your browser's push service: Google's for Chrome and
+  Edge, Mozilla's for Firefox, Apple's for Safari). It is kept encrypted in your account and forgotten
+  when you turn notifications off or sign out. When someone shares with you, the feed loader sends an
+  empty message to that address; the push service sees that a message went to your browser, not what
+  was shared or by whom, and your browser shows "Something was shared with you".
 - **Reporting a badly cleaned-up article** (⋮ › Report a problem with this article, #181): Send
   opens a pre-filled "new issue" page on github.com in your browser, with the article's link, what
   you picked, your comment, and the app's name and version; not the article's text. Nothing is sent
