@@ -2,8 +2,9 @@
  * Finds the article in a web page and returns it as simple HTML (paragraphs, headings, lists,
  * quotes, links, text styles, pictures and embedded videos), the way "reader view" in browsers
  * does. The same steps as the Android app's feed/ArticleExtractor.kt, so both apps show the same
- * article: the page is prepared for Readability (Firefox Reader View's engine), and its result is
- * turned into the reader's simple HTML (only the tags below, absolute links, known video players).
+ * article: Readability (Firefox Reader View's engine) as it is (#236: no changes to the page before
+ * it or to what it finds), its result turned into the reader's simple HTML (only the tags below,
+ * absolute links, known video players), without the title the reader shows above it.
  * The shared sample pages in /testdata/articles check that both give the same text.
  */
 
@@ -35,19 +36,8 @@ const BLOCK_TAGS = new Set(["p", "h1", "h2", "h3", "h4", "h5", "h6", "ul", "ol",
 /** Elements that make their own block in the result. */
 const BLOCK_LIKE = new Set([...BLOCK_TAGS, "figure", "figcaption"]);
 
-/** Elements whose content is running text: a button in there is a word of it (a glossary term). */
-const TEXT_TAGS = ["p", "li", "dd", "td", "h1", "h2", "h3", "h4", "h5", "h6"];
-
-/** Elements that start a block of their own; a `<div>` without any inside is a paragraph. */
-const BLOCK_SELECTOR = "p, div, section, article, main, header, footer, aside, nav, ul, ol, dl, table, blockquote, pre, figure, form, hr, h1, h2, h3, h4, h5, h6";
-
-/** From this many characters a paragraph counts as real text. */
-const PARAGRAPH_LENGTH = 80;
-
 /** Shorter headings only count as the title when they match it exactly. */
 const MIN_TITLE_LENGTH = 10;
-
-const DETAIL_BLOCKS = new Set(["p", "div", "li", "ul", "section", "header", "footer", "span"]);
 
 /** The article of `html` (downloaded from `pageUrl`) as simple HTML, or null when none is found. */
 export function extractArticle(html: string, pageUrl: string): string | null {
@@ -57,13 +47,6 @@ export function extractArticle(html: string, pageUrl: string): string | null {
   base.href = pageUrl;
   doc.head.prepend(base);
   const titles = [doc.querySelector('meta[property="og:title"]')?.getAttribute("content"), doc.title].filter((t): t is string => !!t);
-  // Readability drops buttons, also the ones some sites put around words of the text.
-  for (const button of doc.querySelectorAll(TEXT_TAGS.map((t) => `${t} button`).join(", "))) unwrap(button);
-  // What the page hides is not part of what a reader sees.
-  for (const hidden of doc.querySelectorAll('[hidden], [aria-hidden="true"], .hidden, .d-none')) hidden.remove();
-  for (const styled of doc.querySelectorAll("[style]")) if (/display:\s*none/i.test(styled.getAttribute("style") ?? "")) styled.remove();
-  divsToParagraphs(doc);
-  joinSplitText(doc);
   let parsed: { title?: string | null; content?: string | null } | null;
   try {
     parsed = new Readability(doc).parse();
@@ -76,78 +59,12 @@ export function extractArticle(html: string, pageUrl: string): string | null {
   // The reader shows the title above the article already.
   const allTitles = [...titles, ...(parsed.title ? [parsed.title] : [])];
   [...content.querySelectorAll("h1, h2")].find((h) => allTitles.some((t) => isTitle(text(h), t)))?.remove();
-  dropPageDetails(content, pageUrl);
   const result = serialize(content, pageUrl).replace(/(\s*<br>\s*){3,}/g, "<br><br>").trim();
   return toPlainText(result).length >= MIN_TEXT_LENGTH ? result : null;
 }
 
 /** An element's text as jsoup's text() gives it: whitespace collapsed, trimmed. */
 const text = (el: Element) => (el.textContent ?? "").replace(/\s+/g, " ").trim();
-
-function unwrap(el: Element) {
-  el.replaceWith(...el.childNodes);
-}
-
-/**
- * Sites that write a `<div>` per paragraph: such a div becomes a `<p>` here, so that Readability
- * keeps its links and bold words inside the paragraph instead of splitting it around them.
- */
-function divsToParagraphs(doc: Document) {
-  for (const div of doc.body.querySelectorAll("div")) {
-    if (div.querySelector(BLOCK_SELECTOR) === null && text(div).length >= PARAGRAPH_LENGTH) {
-      const p = doc.createElement("p");
-      for (const attr of div.attributes) p.setAttribute(attr.name, attr.value);
-      p.append(...div.childNodes);
-      div.replaceWith(p);
-    }
-  }
-}
-
-/**
- * Articles split into look-alike containers with ads or videos in between (several
- * `<div class="post-content">` on some WordPress sites): Readability keeps only one of them, so the
- * text of the others moves into the first. Only containers that each hold several real paragraphs
- * count, so a list of teaser cards stays as it is.
- */
-function joinSplitText(doc: Document) {
-  const parts = [...doc.body.querySelectorAll("div[class], section[class]")].filter(
-    (el) => [...el.children].filter((c) => c.localName === "p" && text(c).length >= PARAGRAPH_LENGTH).length >= 2,
-  );
-  const groups = new Map<string, Element[]>();
-  for (const part of parts) {
-    const key = `${part.localName} ${(part.getAttribute("class") ?? "").trim()}`;
-    groups.set(key, [...(groups.get(key) ?? []), part]);
-  }
-  const candidates = [...groups.values()].filter((g) => g.length >= 2 && g.every((a) => !g.some((b) => a !== b && a.contains(b))));
-  if (candidates.length === 0) return;
-  const size = (g: Element[]) => g.reduce((sum, el) => sum + text(el).length, 0);
-  const group = candidates.reduce((best, g) => (size(g) > size(best) ? g : best));
-  const [first, ...rest] = group;
-  for (const part of rest) {
-    first.append(...part.childNodes);
-    part.remove();
-  }
-}
-
-/**
- * Short lines about the page rather than the article: a byline with its date (a `<time>`) or a
- * link to the page itself ("54 comments").
- */
-function dropPageDetails(content: HTMLElement, pageUrl: string) {
-  const page = pageUrl.split("#")[0];
-  const links = [...content.querySelectorAll("a[href]")].filter((a) => {
-    const href = absolute(pageUrl, a.getAttribute("href") ?? "");
-    return href !== null && href.split("#")[0] === page && href.includes("#");
-  });
-  for (const detail of [...content.querySelectorAll("time"), ...links]) {
-    if (!detail.isConnected) continue;
-    let block: Element | null = detail;
-    while (block && block !== content && !DETAIL_BLOCKS.has(block.localName)) block = block.parentElement;
-    const found = block ?? detail;
-    if (found !== content && text(found).length < PARAGRAPH_LENGTH) found.remove();
-    else if (found === content) detail.remove();
-  }
-}
 
 /** Whether `heading` is the page's `title`, which often ends in the site's name ("Title | Site"). */
 function isTitle(heading: string, title: string): boolean {

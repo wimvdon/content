@@ -1,5 +1,5 @@
 {
-  "about": "Drops the repeated title, the byline with its date and the comments link.",
+  "about": "Drops the repeated title (the reader shows it above); the rest is Readability's (#236).",
   "url": "https://example.com/2026/story",
   "html": "<html><head><title>The real title | Example News</title><meta property=\"og:title\" content=\"The real title\"></head>\n<body><article>\n  <h1>The real title</h1>\n  <div class=\"meta\"><a href=\"/authors/jo\">Jo Writer</a> – <time datetime=\"2026-10-15\">Oct 15, 2026</time></div>\n  <p>This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p><p>More. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p><p>More. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p><p>More. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p><p>More. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p>\n  <h2>A heading inside the article</h2>\n  <p>This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p>\n  <p><a href=\"https://example.com/2026/story#comments\">54 Comments</a></p>\n</article></body></html>",
   "text": [],
@@ -7,9 +7,7 @@
     "<h2>A heading inside the article</h2>"
   ],
   "absent": [
-    "The real title",
-    "Jo Writer",
-    "Comments"
+    "The real title"
   ],
   "noArticle": false
 }

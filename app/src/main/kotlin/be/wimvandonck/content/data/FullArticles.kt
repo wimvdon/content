@@ -126,6 +126,6 @@ class FullArticles(
          * Starts the names of cached articles. Raise the number when [ArticleExtractor] finds
          * articles differently, so articles kept from before are extracted again.
          */
-        const val PREFIX = "v3-"
+        const val PREFIX = "v4-"
     }
 }
