@@ -1,12 +1,38 @@
 # Reader account
 
-Signing in with Instapaper (Settings › Account, web: Settings › Account) also signs in to the
-user's **Reader account**: the feed loader (`worker/`, on Cloudflare) keeps the user's feeds,
+Signing in with an emailed link (#166) or with Instapaper (Settings › Account, web: Settings ›
+Account) signs in to the user's **Reader account**: the feed loader (`worker/`, on Cloudflare) keeps the user's feeds,
 folders, read articles and settings there, so every device and the web app show the same. There is
 no Reader password: Instapaper confirms who the user is, and other ways to sign in can be added
 later.
 
-## How it works
+## Signing in with an email link (#166)
+
+1. Settings › Account: type the address, tap **Email me a sign-in link**. The app calls
+   `POST /account/email/start` (`worker/src/email.ts`), which emails a link through Resend:
+   `https://rss-reader-web.wim-d57.workers.dev/signin#token=…`. Always `204`, whether or not the
+   address has an account.
+2. The token is signed with a key derived from `ACCOUNT_KEY` and holds the address, when it ends (30
+   minutes) and a random id. Nothing is stored until it is used.
+3. Opening the link: on Android the App Link opens the app (`/signin` next to the Instapaper
+   callback in `AndroidManifest.xml`; a debug build opens the web app instead), on the web the page
+   reads the token. Both call `POST /account/email/finish {"token"}` and get `{"key", "email"}`. A
+   link works once (`410` after), on the device or browser it is opened on.
+4. Which account an address opens lives in its own Durable Object, named after an HMAC of the address:
+   the account id (set the first time) and the used link ids. The address itself is not stored.
+   A new address gets a new account (its id derived from that HMAC).
+5. **Adding an address to an account opened with Instapaper:** Settings › Account › Add an email
+   address calls `POST /account/email/add` with the device key; the emailed link adds the address to
+   that account (`{"email"}`), so either way in opens the same library. An address that already
+   opens another account is refused (`409`).
+
+The account key lives in its own file (`sync/ContentAccount.kt`, DataStore `account`; web:
+IndexedDB `account`), apart from the Instapaper sign-in: disconnecting Instapaper doesn't sign out,
+and signing out keeps Instapaper connected. Devices signed in before #166 move their key there.
+The picture next to the address comes from Gravatar (`sync/Gravatar.kt`, `gravatarUrl` in
+`web/src/lib/account.ts`).
+
+## How it works (Instapaper)
 
 1. The app swaps Instapaper's one-time sign-in code at the feed loader (`POST /instapaper/token`,
    `docs/instapaper.md`). Instapaper's answer names the Instapaper user.
@@ -62,7 +88,7 @@ End-to-end encryption (a passphrase on every device) was considered and not chos
 
 ## Signing out and deleting
 
-- **Sign out** forgets this device's key on the server and the Instapaper sign-in on the device.
+- **Sign out** forgets this device's key on the server and on the device. Instapaper stays connected (#166).
   The library stays on the device; other devices keep syncing.
 - **Delete synced data** (Settings › Account) deletes the document, the item rows and every device key. Every
   device is signed out of sync; the library stays on each device. Signing in again starts a new
@@ -77,6 +103,12 @@ and `[[migrations]]`); there is no database to create. Only the encryption secre
    characters, or `openssl rand -base64 32`). Keep a copy in the password manager.
 2. Cloudflare dashboard › Workers & Pages › `rss-reader-worker` › Settings › Variables and Secrets ›
    Add, type **Secret**, name `ACCOUNT_KEY`, the key as value. (Or `npx wrangler secret put ACCOUNT_KEY` in `worker/`.)
+
+For email sign-in (#166), the Resend API key goes in the same place, as a **Secret** named
+`RESEND_API_KEY` (a plain text variable would be removed by the next deploy, which writes the
+`[vars]` of `wrangler.toml`). The sender (`EMAIL_FROM`) and where links point (`WEB_APP_ORIGIN`)
+are in `wrangler.toml`; the domain resend.wimvandonck.be must be verified in Resend. Without the
+key, Email me a sign-in link says the email couldn't be sent (`503`).
 
 Without it, sign-in still works for Instapaper, sync says it isn't available, and the account calls
 answer `503`. **Never change or lose the key**: the stored documents can then no longer be read and

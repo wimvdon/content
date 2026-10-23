@@ -165,7 +165,6 @@
     <string name="sync_failed_setup">La sincronizzazione non è ancora disponibile sul server di Content.</string>
     <string name="section_instapaper">Instapaper</string>
     <string name="instapaper_sign_in">Accedi con Instapaper</string>
-    <string name="instapaper_signed_in_as">Accesso effettuato come %1$s</string>
     <string name="instapaper_sign_out">Esci</string>
     <string name="instapaper_sign_in_done">Accesso a Instapaper effettuato</string>
     <string name="instapaper_sign_in_failed">Accesso a Instapaper non riuscito. Riprova.</string>
@@ -176,8 +175,7 @@
     <string name="action_close">Chiudi</string>
     <string name="action_done">Fine</string>
     <string name="section_account">Account</string>
-    <string name="account_summary">Accedi con Instapaper per mantenere uguali su tutti i dispositivi feed, articoli letti, elementi salvati e impostazioni, e i tuoi elementi salvati in Instapaper.</string>
-    <string name="sync_no_account">La sincronizzazione è disattivata per questo accesso. Accedi di nuovo per attivarla.</string>
+    <string name="account_summary">Accedi con il tuo indirizzo email per mantenere uguali feed, articoli letti, Salvati e impostazioni su tutti i tuoi dispositivi.</string>
     <string name="sync_failed_signed_out">Questo dispositivo è stato disconnesso dal tuo account. Accedi di nuovo.</string>
     <string name="account_delete_data">Elimina i dati sincronizzati</string>
     <string name="account_delete_confirm">Eliminare feed, articoli letti e impostazioni dal server di Content? Restano su questo dispositivo e verrai disconnesso ovunque.</string>
@@ -319,4 +317,18 @@
         <item quantity="many">%1$d elementi escono da ciò che %2$s sincronizza. Vengono archiviati lì, non eliminati, e restano in Content.</item>
         <item quantity="other">%1$d elementi escono da ciò che %2$s sincronizza. Vengono archiviati lì, non eliminati, e restano in Content.</item>
     </plurals>
+    <string name="account_title">Account Content</string>
+    <string name="account_email">Indirizzo email</string>
+    <string name="account_email_send">Inviami un link di accesso</string>
+    <string name="account_email_sent">Inviato a %1$s. Apri il link di quell’email su questo dispositivo.</string>
+    <string name="account_email_failed">Non è stato possibile inviare l’email. Controlla l’indirizzo e la connessione.</string>
+    <string name="account_sign_in_instapaper">Oppure accedi con Instapaper</string>
+    <string name="account_sign_out">Esci</string>
+    <string name="account_add_email">Aggiungi un indirizzo email</string>
+    <string name="account_add_email_summary">Così anche un link inviato a quell’indirizzo ti fa accedere, alla stessa libreria.</string>
+    <string name="account_link_signed_in">Accesso effettuato</string>
+    <string name="account_link_added">Indirizzo email aggiunto</string>
+    <string name="account_link_expired">Quel link è già stato usato o è troppo vecchio. Chiedine uno nuovo.</string>
+    <string name="account_link_taken">Quell’indirizzo appartiene già a un altro account Content.</string>
+    <string name="account_link_failed">L’accesso non è riuscito. Riprova.</string>
 </resources>

@@ -165,7 +165,6 @@
     <string name="sync_failed_setup">La sincronización aún no está disponible en el servidor de Content.</string>
     <string name="section_instapaper">Instapaper</string>
     <string name="instapaper_sign_in">Iniciar sesión con Instapaper</string>
-    <string name="instapaper_signed_in_as">Sesión iniciada como %1$s</string>
     <string name="instapaper_sign_out">Cerrar sesión</string>
     <string name="instapaper_sign_in_done">Sesión iniciada en Instapaper</string>
     <string name="instapaper_sign_in_failed">No se pudo iniciar sesión en Instapaper. Inténtalo de nuevo.</string>
@@ -176,8 +175,7 @@
     <string name="action_close">Cerrar</string>
     <string name="action_done">Listo</string>
     <string name="section_account">Cuenta</string>
-    <string name="account_summary">Inicia sesión con Instapaper para mantener tus feeds, artículos leídos, elementos guardados y ajustes iguales en todos tus dispositivos, y tus elementos guardados en Instapaper.</string>
-    <string name="sync_no_account">La sincronización está desactivada para este inicio de sesión. Vuelve a iniciar sesión para activarla.</string>
+    <string name="account_summary">Inicia sesión con tu correo para mantener tus fuentes, artículos leídos, Guardados y ajustes iguales en todos tus dispositivos.</string>
     <string name="sync_failed_signed_out">Se cerró la sesión de este dispositivo en tu cuenta. Vuelve a iniciar sesión.</string>
     <string name="account_delete_data">Eliminar datos sincronizados</string>
     <string name="account_delete_confirm">¿Eliminar tus feeds, artículos leídos y ajustes del servidor de Content? Se quedan en este dispositivo y se cierra tu sesión en todas partes.</string>
@@ -319,4 +317,18 @@
         <item quantity="many">%1$d elementos dejan de estar en lo que sincroniza %2$s. Se archivan allí, no se borran, y siguen en Content.</item>
         <item quantity="other">%1$d elementos dejan de estar en lo que sincroniza %2$s. Se archivan allí, no se borran, y siguen en Content.</item>
     </plurals>
+    <string name="account_title">Cuenta de Content</string>
+    <string name="account_email">Correo electrónico</string>
+    <string name="account_email_send">Enviarme un enlace de acceso</string>
+    <string name="account_email_sent">Enviado a %1$s. Abre el enlace de ese correo en este dispositivo.</string>
+    <string name="account_email_failed">No se pudo enviar el correo. Revisa la dirección y tu conexión.</string>
+    <string name="account_sign_in_instapaper">O inicia sesión con Instapaper</string>
+    <string name="account_sign_out">Cerrar sesión</string>
+    <string name="account_add_email">Añadir un correo electrónico</string>
+    <string name="account_add_email_summary">Así un enlace enviado a esa dirección también te da acceso, a la misma biblioteca.</string>
+    <string name="account_link_signed_in">Sesión iniciada</string>
+    <string name="account_link_added">Correo añadido</string>
+    <string name="account_link_expired">Ese enlace ya se usó o es demasiado antiguo. Pide uno nuevo.</string>
+    <string name="account_link_taken">Esa dirección ya pertenece a otra cuenta de Content.</string>
+    <string name="account_link_failed">No se pudo iniciar sesión. Inténtalo de nuevo.</string>
 </resources>

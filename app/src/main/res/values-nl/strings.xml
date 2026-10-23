@@ -159,7 +159,6 @@
     <string name="sync_failed_setup">Synchronisatie is nog niet beschikbaar op de server van Content.</string>
     <string name="section_instapaper">Instapaper</string>
     <string name="instapaper_sign_in">Inloggen met Instapaper</string>
-    <string name="instapaper_signed_in_as">Ingelogd als %1$s</string>
     <string name="instapaper_sign_out">Uitloggen</string>
     <string name="instapaper_sign_in_done">Ingelogd bij Instapaper</string>
     <string name="instapaper_sign_in_failed">Inloggen bij Instapaper is niet gelukt. Probeer het opnieuw.</string>
@@ -170,8 +169,7 @@
     <string name="action_close">Sluiten</string>
     <string name="action_done">Klaar</string>
     <string name="section_account">Account</string>
-    <string name="account_summary">Meld je aan met Instapaper om je feeds, gelezen artikels, bewaarde items en instellingen op al je toestellen gelijk te houden, en je bewaarde items in Instapaper.</string>
-    <string name="sync_no_account">Synchronisatie staat uit voor deze login. Log opnieuw in om ze aan te zetten.</string>
+    <string name="account_summary">Meld je aan met je e-mailadres om je feeds, gelezen artikels, Bewaard en instellingen op al je toestellen gelijk te houden.</string>
     <string name="sync_failed_signed_out">Dit apparaat is uitgelogd uit je account. Log opnieuw in.</string>
     <string name="account_delete_data">Gesynchroniseerde gegevens verwijderen</string>
     <string name="account_delete_confirm">Je feeds, gelezen artikelen en instellingen van de server van Content verwijderen? Ze blijven op dit apparaat, en je wordt overal uitgelogd.</string>
@@ -307,4 +305,18 @@
         <item quantity="one">%1$d item valt buiten wat %2$s synchroniseert. Het wordt daar gearchiveerd, niet verwijderd, en blijft in Content.</item>
         <item quantity="other">%1$d items vallen buiten wat %2$s synchroniseert. Ze worden daar gearchiveerd, niet verwijderd, en blijven in Content.</item>
     </plurals>
+    <string name="account_title">Content-account</string>
+    <string name="account_email">E-mailadres</string>
+    <string name="account_email_send">Mail me een aanmeldlink</string>
+    <string name="account_email_sent">Verstuurd naar %1$s. Open de link in die e-mail op dit toestel.</string>
+    <string name="account_email_failed">De e-mail kon niet verstuurd worden. Controleer het adres en je verbinding.</string>
+    <string name="account_sign_in_instapaper">Of meld je aan met Instapaper</string>
+    <string name="account_sign_out">Afmelden</string>
+    <string name="account_add_email">E-mailadres toevoegen</string>
+    <string name="account_add_email_summary">Dan meldt een link naar dat adres je ook aan, bij dezelfde bibliotheek.</string>
+    <string name="account_link_signed_in">Aangemeld</string>
+    <string name="account_link_added">E-mailadres toegevoegd</string>
+    <string name="account_link_expired">Die link is al gebruikt of te oud. Vraag een nieuwe.</string>
+    <string name="account_link_taken">Dat adres hoort al bij een ander Content-account.</string>
+    <string name="account_link_failed">Aanmelden is niet gelukt. Probeer opnieuw.</string>
 </resources>

@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- What Android may back up to the user's Google account / copy to a new phone: the feed list,
      read state, downloaded articles, settings and the articles saved without an Instapaper account
-     (datastore/saved). The Instapaper sign-in (datastore/instapaper) and the Raindrop tokens
+     (datastore/saved). The Content account key (datastore/account), the Instapaper sign-in (datastore/instapaper) and the Raindrop tokens
      (datastore/raindrop) are secrets and stay out of backups (it reaches other devices only through the user's own Drive
      sync file). Full articles live in the cache folder, which Android never
      backs up. -->
 <data-extraction-rules>
     <cloud-backup>
+        <exclude domain="file" path="datastore/account.preferences_pb" />
         <exclude domain="file" path="datastore/instapaper.preferences_pb" />
         <exclude domain="file" path="datastore/raindrop.preferences_pb" />
     </cloud-backup>
     <device-transfer>
+        <exclude domain="file" path="datastore/account.preferences_pb" />
         <exclude domain="file" path="datastore/instapaper.preferences_pb" />
         <exclude domain="file" path="datastore/raindrop.preferences_pb" />
     </device-transfer>

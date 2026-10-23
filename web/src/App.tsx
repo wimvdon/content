@@ -20,7 +20,7 @@ type Message = { text: string; action?: { label: string; run: () => void } };
 /** Three panes on wide screens (feeds, list, article); one at a time on phones. */
 export default function App() {
   const state = useApp();
-  const { settings, library, selection, readThisVisit, instapaperNotice, savedFilter } = state;
+  const { settings, library, selection, readThisVisit, instapaperNotice, accountNotice, savedFilter } = state;
   // The open article belongs to the section it was opened in: another section closes it.
   const [opened, setOpened] = useState<{ article: Article; selection: typeof selection } | null>(null);
   const openArticle = opened?.selection === selection ? opened.article : null;
@@ -58,9 +58,17 @@ export default function App() {
     const timer = setTimeout(() => app.clearInstapaperNotice(), 6000);
     return () => clearTimeout(timer);
   }, [instapaperNotice]);
+  // An emailed sign-in link opened here (#166): the same.
+  useEffect(() => {
+    if (!accountNotice) return;
+    const timer = setTimeout(() => app.clearAccountNotice(), 6000);
+    return () => clearTimeout(timer);
+  }, [accountNotice]);
+  const accountMessages = { signedIn: "accountLinkSignedIn", emailAdded: "accountLinkAdded", expired: "accountLinkExpired", taken: "accountLinkTaken", failed: "accountLinkFailed" } as const;
   const shown: Message | null =
     message ??
-    (instapaperNotice ? { text: t(instapaperNotice === "signedIn" ? "instapaperSignedIn" : "instapaperSignInFailed") } : null);
+    (instapaperNotice ? { text: t(instapaperNotice === "signedIn" ? "instapaperSignedIn" : "instapaperSignInFailed") } : null) ??
+    (accountNotice ? { text: t(accountMessages[accountNotice]) } : null);
 
   const open = useCallback((a: Article) => {
     app.open(a);

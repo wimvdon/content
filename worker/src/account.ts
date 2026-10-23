@@ -1,8 +1,8 @@
 /**
  * Reader accounts: one sync document per account, kept encrypted, shared by the user's devices
- * (docs/sync.md, docs/account.md). For now the only way in is signing in with Instapaper: when
- * instapaper.ts swaps the sign-in code it learns the Instapaper user ID and asks for a device key
- * here ([newDeviceKey]).
+ * (docs/sync.md, docs/account.md). Two ways in: signing in with Instapaper (when instapaper.ts
+ * swaps the sign-in code it learns the Instapaper user ID and asks for a device key here,
+ * [newDeviceKey]) and an emailed sign-in link (email.ts, #166).
  *
  *  - GET    /account/sync    the document and its version (304 with If-None-Match: "<version>")
  *  - PUT    /account/sync    {"baseVersion": n, "data": {...}}: saved as n + 1, or 409 with the
@@ -32,6 +32,7 @@
  * version of the save that last changed them: "changes since a version" is one list in version order.
  */
 
+import { emailClaim } from "./email";
 import type { Env } from "./index";
 
 /** The most item rows one save may send, and one read returns (more come on the next page). */
@@ -122,7 +123,12 @@ function routeOf(method: string, path: string): Route | null {
  */
 export async function newDeviceKey(env: Env, provider: "instapaper", userId: number): Promise<string | null> {
   if (!env.ACCOUNTS || !env.ACCOUNT_KEY) return null;
-  const accountId = await accountIdOf(env.ACCOUNT_KEY, provider, userId);
+  return addDeviceKey(env, await accountIdOf(env.ACCOUNT_KEY, provider, userId));
+}
+
+/** A new device key for the account [accountId] (an email sign-in, email.ts), or null when that didn't work. */
+export async function addDeviceKey(env: Env, accountId: string): Promise<string | null> {
+  if (!env.ACCOUNTS) return null;
   const stub = env.ACCOUNTS.get(env.ACCOUNTS.idFromName(accountId));
   const answer = await stub.fetch("https://account/device", { method: "POST", headers: { "X-Account": accountId } });
   if (!answer.ok) return null;
@@ -131,7 +137,7 @@ export async function newDeviceKey(env: Env, provider: "instapaper", userId: num
 }
 
 /** The account of a sign-in: the same every time, and meaningless without ACCOUNT_KEY. */
-export async function accountIdOf(masterKey: string, provider: string, userId: number): Promise<string> {
+export async function accountIdOf(masterKey: string, provider: string, userId: number | string): Promise<string> {
   const key = await crypto.subtle.importKey("raw", await derive(masterKey, "reader-account-id", 32), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
   const mac = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(`${provider}:${userId}`));
   return hex(new Uint8Array(mac)).slice(0, 32);
@@ -604,6 +610,10 @@ export class Account {
     this.data ??= new AccountData(this.state.storage, this.env.ACCOUNT_KEY, accountId);
     const route = new URL(request.url).pathname.slice(1);
 
+    // An address's directory (email.ts): which account it opens and which links were used.
+    if (route === "emailClaim") return emailClaim(this.state.storage, await request.text(), Date.now());
+    if (route === "knows") return (await this.data.knows(request.headers.get("X-Secret") ?? "")) ? new Response(null, { status: 204 }) : plain(401, "Sign in again");
+
     if (route === "live") {
       if (!(await this.data.knows(request.headers.get("X-Secret") ?? ""))) return plain(401, "Sign in again");
       const [client, server] = Object.values(new WebSocketPair());
@@ -650,7 +660,7 @@ export class Account {
 // ---------------------------------------------------------------------------------------------
 
 /** HKDF-SHA-256 of the master key (any text of at least 32 characters) for one purpose. */
-async function derive(masterKey: string, purpose: string, bytes: number): Promise<ArrayBuffer> {
+export async function derive(masterKey: string, purpose: string, bytes: number): Promise<ArrayBuffer> {
   if (masterKey.length < 32) throw new Error("ACCOUNT_KEY must be at least 32 characters");
   const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(masterKey), "HKDF", false, ["deriveBits"]);
   return crypto.subtle.deriveBits({ name: "HKDF", hash: "SHA-256", salt: new Uint8Array(0), info: new TextEncoder().encode(purpose) }, base, bytes * 8);
@@ -673,11 +683,11 @@ async function pipe(bytes: Uint8Array, stream: CompressionStream | Decompression
   return new Uint8Array(await out.arrayBuffer());
 }
 
-function hex(bytes: Uint8Array): string {
+export function hex(bytes: Uint8Array): string {
   return [...bytes].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-function base64url(bytes: Uint8Array): string {
+export function base64url(bytes: Uint8Array): string {
   return btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
@@ -692,14 +702,14 @@ function documentResponse(status: number, version: number, text: string | null):
   });
 }
 
-function allowedOrigins(env: Env): string[] {
+export function allowedOrigins(env: Env): string[] {
   return (env.ALLOWED_ORIGINS ?? "")
     .split(",")
     .map((o) => o.trim())
     .filter(Boolean);
 }
 
-function corsHeaders(origin: string): Record<string, string> {
+export function corsHeaders(origin: string): Record<string, string> {
   return {
     "Access-Control-Allow-Origin": origin,
     "Access-Control-Allow-Methods": "GET, PUT, POST, DELETE, OPTIONS",
@@ -717,6 +727,6 @@ function json(value: unknown, status = 200): Response {
   });
 }
 
-function plain(status: number, text: string, headers: Record<string, string> = {}): Response {
+export function plain(status: number, text: string, headers: Record<string, string> = {}): Response {
   return new Response(text, { status, headers: { ...headers, "Content-Type": "text/plain; charset=utf-8" } });
 }

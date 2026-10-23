@@ -57,10 +57,18 @@ after them. A feed added while a folder is open goes into that folder.
 
 ## Sync between devices
 
-Sign in with Instapaper (Settings › **Account** › **Sign in with Instapaper**, see below) on every
-phone and in the web app, and your feeds, folders, read articles and settings stay the same on all
+Sign in on every phone and in the web app, and your feeds, folders, read articles and settings stay the same on all
 of them. Reader keeps them in your Reader account on its own server, encrypted. A phone signing in
 for the first time combines its feeds with the account's and takes the settings you already have.
+
+**Signing in:** Settings › **Account**: type your email address and tap **Email me a sign-in link**.
+Open the link in that email on the same phone (it opens Content) or in the same browser. A link
+works once, for 30 minutes. No password. Your Gravatar picture shows next to your address, if you
+have one. **Or sign in with Instapaper** also opens an account; signed in that way, **Add an email
+address** once, and from then on a link to that address opens the same library. Instapaper itself
+is a connected service (☰ › Connected services, web: Settings › Instapaper): connecting or
+disconnecting it doesn't sign you in or out.
+
 Only Load full articles and Mark as read on scroll sync. How the app looks (theme, the reader's
 font, size, spacing and page colour, Show images and the list view) stays on each device, so a
 phone and a laptop can each have their own. The Save and Share apps stay per phone too.
@@ -70,7 +78,7 @@ something** (an article read on the laptop turns read on the phone within a seco
 second after you read an article or change a feed, when you refresh, and when you tap **Sync now**.
 The line under your name in Settings › Account says when it last did, or what went wrong.
 
-- **Sign out** stops syncing on this device (and signs out of Instapaper here). Your feeds stay.
+- **Sign out** stops syncing on this device. Your feeds stay, and Instapaper stays connected.
 - **Delete synced data** removes everything Reader keeps for your account from its server and
   signs out every device. Each device keeps its own feeds and read articles.
 
@@ -229,8 +237,9 @@ a web link says "No link to save".
 
 ## Settings
 
-- **Account:** sign in with Instapaper to sync and to save to Instapaper; signed in, **Sync now**,
-  **Sign out** and **Delete synced data** (see Sync between devices).
+- **Account:** sign in with an emailed link (or with Instapaper) to sync; signed in, your address,
+  **Sync now**, **Sign out**, **Delete synced data** and, for an account opened with Instapaper,
+  **Add an email address** (see Sync between devices).
 - **Article list:** View (Small, Medium, Large) and **Mark as read on scroll**.
 - **Reader:** **Load full articles**, **Show images**, and the same text settings as **Aa**, with a preview in the page colour you chose.
 - **Save and share:** see above, and **Tag with the feed's folder** (on by default): an article you
