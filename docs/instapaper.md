@@ -122,7 +122,7 @@ intent filter in `AndroidManifest.xml`.
 
 ## Syncing highlights (#164)
 
-Opt-in: ☰ › Connected services › Instapaper › **Sync highlights with Instapaper** (Android) or
+Opt-in: Settings › Connected services › Instapaper › **Sync highlights with Instapaper** (Android) or
 Settings › Instapaper (web). Off by default, because free Instapaper accounts can make five
 highlights a month. It is a setting of each device or browser, not synced.
 

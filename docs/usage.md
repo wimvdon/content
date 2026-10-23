@@ -28,7 +28,7 @@ sit on a light tile, so dark logos stay visible in dark mode.
 
 Export your feeds as an **OPML** file in your old reader (in Inoreader: Preferences ›
 Import/Export; Feedly, NetNewsWire and most others have the same), then tap **Import OPML** (on
-the empty start screen or on the **Manage feeds** page) and pick the file. All feeds are added (feeds
+the empty start screen or in **Settings**, under Move to or from another reader) and pick the file. All feeds are added (feeds
 you already follow are skipped), in the same folders as in your old reader, and the app downloads
 their articles. **Export OPML** does the reverse, folders included. Read and starred states don't
 come along.
@@ -66,7 +66,7 @@ Open the link in that email on the same phone (it opens Content) or in the same 
 works once, for 30 minutes. No password. Your Gravatar picture shows next to your address, if you
 have one. **Or sign in with Instapaper** also opens an account; signed in that way, **Add an email
 address** once, and from then on a link to that address opens the same library. Instapaper itself
-is a connected service (☰ › Connected services, web: Settings › Instapaper): connecting or
+is a connected service (Settings › Connected services, web: Settings › Instapaper): connecting or
 disconnecting it doesn't sign you in or out.
 
 Only Load full articles and Mark as read on scroll sync. How the app looks (theme, the reader's
@@ -97,7 +97,7 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   folders with their feeds, the other feeds, each with its unread count, and **Manage feeds**) and
   **Saved** (**Saved**, then under **Tags** first **Liked** and then your tags, each with how many are still to read, and
   **Manage tags**). The section you're in is open and the other is folded shut automatically; tap a
-  section's name to fold it open or shut. Below them: **Connected services** and **Settings**.
+  section's name to fold it open or shut. Below them: **Settings** (with Connected services and OPML in it).
 - **Search** (tap the search bar; on the web also the **/** key) searches everything: the articles of all your feeds that are on the device (titles,
   text, feed names and authors) and Saved, archived articles too (titles, websites, descriptions,
   folders, tags, notes and highlights). Every word you type must appear; capitals and accents
@@ -178,7 +178,7 @@ newer version; when the text changed it is lighter and underlined ("approximate"
 isn't there at all it is listed as "not found". A highlight is never thrown away. Highlights and
 their notes sync between your devices with your Reader account, and Saved's cards show the first
 one when the article has no note. On the phone a highlight stays within one paragraph.
-With Instapaper connected, **Sync highlights with Instapaper** (☰ › Connected services › Instapaper
+With Instapaper connected, **Sync highlights with Instapaper** (Settings › Connected services › Instapaper
 on the phone, Settings › Instapaper on the web; off by default) keeps them the same both ways: yours
 go to the article in Instapaper, and ones you make, change or delete in Instapaper's own apps come
 into Content (when the article opens, or at the next sync). Free Instapaper accounts allow five new
@@ -253,8 +253,8 @@ a web link says "No link to save".
 
 Your feeds are managed on their own page, **☰ › Manage feeds** ("Feeds and folders"): every feed with its address (or why
   its last download failed), grouped by folder. Add, rename, reorder (drag) or remove feeds (a
-  removed feed's articles go too), create, edit, reorder and remove folders, put feeds in folders, and **Import OPML** /
-  **Export OPML** to move your feeds between readers.
+  removed feed's articles go too), create, edit, reorder and remove folders, and put feeds in folders. **Import OPML** /
+  **Export OPML**, to move your feeds between readers, are in Settings.
 
 ## Backup and moving to a new phone
 
@@ -308,7 +308,7 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   tags** (Like, your tags). Archiving goes back to the list with **Undo**. Keys: **j**/**k** next
   and previous, **m** read or unread, **o** open on the website, **r** refresh, **/** search, and
   **Esc** closes a menu, then the article.
-- **☰ › Connected services**: the service Saved is also kept in, Instapaper; tap it for its
+- **Settings › Connected services**: the service Saved is also kept in, Instapaper; tap it for its
   account, what was brought in and copying highlights. Everything in Saved syncs. Feeds are
   Reader's own.
 - Bookmarks from before Saved moved into folders once: each into its collection's folder, the ones
@@ -323,7 +323,7 @@ Instapaper:
 
 - **Everything comes in:** right after connecting, everything Instapaper has comes into Saved,
   once, with nothing to choose. Each article arrives where it belongs: archived in the Archive,
-  liked, with its tags. ☰ › Connected services › Instapaper says how many articles came in.
+  liked, with its tags. Settings › Connected services › Instapaper says how many articles came in.
 - **Everything syncs:** everything in Saved. What you add, archive, like or tag there, and how far
   you read, goes both ways, while the app is open (when it opens, a moment after a change, and when
   you pull down on Saved). Articles in Instapaper's folders arrive in To read.

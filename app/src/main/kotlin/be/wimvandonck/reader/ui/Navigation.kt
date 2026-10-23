@@ -617,7 +617,6 @@ fun RssReaderNavigation(
                                 onOpenSettings = { push(Screen.Settings) },
                                 onOpenFeeds = { push(Screen.Feeds) },
                                 onOpenTagsManage = { push(Screen.Tags) },
-                                onOpenServices = { push(Screen.Services) },
                                 onShowFeeds = { section = HomeSection.Feeds },
                                 onShowSaved = { section = HomeSection.Saved },
                                 onSavedFilter = {
@@ -780,6 +779,8 @@ fun RssReaderNavigation(
                                 shareApps = shareApps,
                                 syncStatus = syncStatus,
                                 account = accountState,
+                                instapaperConnected = instapaperState is InstapaperState.SignedIn,
+                                hasFeeds = library.feeds.isNotEmpty(),
                             ),
                         snackbarHostState = snackbar,
                         actions =
@@ -803,6 +804,9 @@ fun RssReaderNavigation(
                                     }
                                 },
                                 onSignOut = { app.appScope.launch { app.sync.signOut() } },
+                                onOpenServices = { push(Screen.Services) },
+                                onImportOpml = importOpml,
+                                onExportOpml = exportOpml,
                                 onSendLink = { email, result ->
                                     uiScope.launch { result(runCatching { app.account.sendLink(email) }.isSuccess) }
                                 },
@@ -841,8 +845,6 @@ fun RssReaderNavigation(
                                 onAddFolder = { title, icon -> app.appScope.launch { repository.addFolder(title, icon) } },
                                 onUpdateFolder = { folder -> app.appScope.launch { repository.updateFolder(folder.id, folder.title, folder.icon) } },
                                 onRemoveFolder = { folder -> app.appScope.launch { repository.removeFolder(folder.id) } },
-                                onImportOpml = importOpml,
-                                onExportOpml = exportOpml,
                             ),
                     )
                 }

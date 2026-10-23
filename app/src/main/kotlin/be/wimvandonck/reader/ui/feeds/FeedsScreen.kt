@@ -92,8 +92,6 @@ class FeedsActions(
     val onAddFolder: (title: String, icon: String) -> Unit,
     val onUpdateFolder: (Folder) -> Unit,
     val onRemoveFolder: (Folder) -> Unit,
-    val onImportOpml: () -> Unit,
-    val onExportOpml: () -> Unit,
 )
 
 /**
@@ -324,20 +322,6 @@ fun FeedsScreen(
                             }
                         }
                     }
-                }
-            }
-            item(key = "opml") {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 24.dp)) {
-                    Heading(stringResource(R.string.feeds_opml_title))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedButton(onClick = actions.onImportOpml, modifier = Modifier.weight(1f)) {
-                            Text(stringResource(R.string.feeds_import))
-                        }
-                        OutlinedButton(onClick = actions.onExportOpml, enabled = state.feeds.isNotEmpty(), modifier = Modifier.weight(1f)) {
-                            Text(stringResource(R.string.feeds_export))
-                        }
-                    }
-                    Hint(stringResource(R.string.feeds_opml_hint))
                 }
             }
         }

@@ -315,9 +315,9 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   and takes the save back; closing keeps it. A folder or tag still being typed is taken by Save.
 - The ☰ drawer: two sections that collapse and expand automatically when you're in them: the Feeds section (Feed, the folders with their feeds, the other feeds, then Manage feeds),
   the Saved section (Saved with its count, then under Tags Liked and the tags with their counts, then Manage tags), then
-  Connected services and Settings. Manage feeds shows what it manages with a pen (the
-  feed symbol with a pen); Tags has a tag, Connected services two arrows (Material Symbols'
-  shapes).
+  Settings. Connected services (Instapaper) and Import/Export OPML live in Settings, not in the
+  drawer. Manage feeds shows what it manages with a pen (the feed symbol with a pen); Tags has a
+  tag (Material Symbols' shapes).
 - Site icons sit on a fixed light tile (`#F4F4F4`, rounded, 10% padding) in light and dark mode,
   so logos drawn for light browser tabs keep their contrast; the letter fallback uses
   `tertiaryContainer`.

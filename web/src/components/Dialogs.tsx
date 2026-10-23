@@ -75,18 +75,20 @@ const addErrors: Record<string, Key> = {
   blocked: "errorBlocked",
 };
 
-export function ManageDialog({ open, onOpenChange, onAddFeed, onImport }: Props & { onAddFeed: () => void; onImport: () => void }) {
+/** Downloads the feed list as an OPML file. */
+function exportOpml() {
+  const blob = new Blob([app.exportOpml()], { type: "text/x-opml" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "content-feeds.opml";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+export function ManageDialog({ open, onOpenChange, onAddFeed }: Props & { onAddFeed: () => void }) {
   const { library } = useApp();
   const [editFeed, setEditFeed] = useState<Feed | null>(null);
   const [editFolder, setEditFolder] = useState<Folder | "new" | null>(null);
-  const exportOpml = () => {
-    const blob = new Blob([app.exportOpml()], { type: "text/x-opml" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "content-feeds.opml";
-    a.click();
-    URL.revokeObjectURL(a.href);
-  };
   const groups: [Folder | null, Feed[]][] = [
     ...library.folders.map((f) => [f, library.feeds.filter((x) => x.folderId === f.id)] as [Folder, Feed[]]),
     [null, library.feeds.filter((x) => !x.folderId)],
@@ -101,12 +103,6 @@ export function ManageDialog({ open, onOpenChange, onAddFeed, onImport }: Props 
         wide
         footer={
           <>
-            <Button variant="ghost" onClick={onImport}>
-              {t("importOpml")}
-            </Button>
-            <Button variant="ghost" onClick={exportOpml} disabled={library.feeds.length === 0}>
-              {t("exportOpml")}
-            </Button>
             <Button variant="tonal" onClick={() => setEditFolder("new")}>
               <Plus />
               {t("newFolder")}
@@ -322,13 +318,25 @@ function FolderDialog({ folder, onClose }: { folder: Folder | "new" | null; onCl
 }
 
 /** Settings in the order DESIGN.md gives: the account first, then the app's own, then appearance. */
-export function SettingsDialog({ open, onOpenChange }: Props) {
-  const { settings } = useApp();
+export function SettingsDialog({ open, onOpenChange, onImport }: Props & { onImport: () => void }) {
+  const { settings, library } = useApp();
   return (
     <Dialog open={open} onOpenChange={onOpenChange} title={t("settings")} closeLabel={t("close")} wide>
       <div className="space-y-6">
         <AccountSection />
         <InstapaperSettings />
+        <section className="space-y-2">
+          <h3 className="text-sm font-medium text-primary">{t("opmlTitle")}</h3>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={onImport}>
+              {t("importOpml")}
+            </Button>
+            <Button variant="outline" onClick={exportOpml} disabled={library.feeds.length === 0}>
+              {t("exportOpml")}
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">{t("opmlHint")}</p>
+        </section>
         <section className="space-y-2">
           <h3 className="text-sm font-medium text-primary">{t("articleList")}</h3>
           <div className="flex flex-wrap items-center justify-between gap-2 py-1">
