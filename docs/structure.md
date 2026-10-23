@@ -101,3 +101,7 @@ for the move-in), `ui/home/SavedContent.kt`, `ui/reader/ItemSheets.kt`, `ui/read
 Reader account (sync): `worker/src/account.ts` (accounts, encrypted document, live connection),
 `app/src/main/kotlin/be/wimvandonck/reader/sync/`, `web/src/lib/account.ts` and
 `web/src/lib/sync.ts`. See `docs/account.md` and `docs/sync.md`.
+
+## `extension/`
+
+The optional browser extension for the web app (#168): it loads pages from the user's own browser and saves the page being viewed. See `extension/README.md`.
