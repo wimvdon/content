@@ -179,6 +179,7 @@
     <string name="account_deleted">Gesynchroniseerde gegevens verwijderd</string>
     <string name="action_delete">Verwijderen</string>
     <string name="menu_manage_feeds">Feeds beheren</string>
+    <string name="menu_manage_tags">Tags beheren</string>
     <string name="action_collapse">Inklappen</string>
     <string name="action_expand">Uitklappen</string>
     <string name="action_search">Zoeken</string>

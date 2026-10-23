@@ -135,10 +135,9 @@ and then (always before a release):
       the Bookmarks chip shows only bookmarks.
 - [ ] **Navigation bar:** a bar at the bottom has Feeds and Saved (a rail at the left in
       landscape on a tablet). The Mark all read and Add link buttons and messages sit above the bar.
-- [ ] **Navigation:** the ☰ drawer has the same sections on Feeds and on Saved; the section you're
-      in is open and the other folded shut. Tapping a section's name folds it shut and open (folded,
-      it shows its count). On the web sidebar both sections start open, moving between Feeds and
-      Saved folds nothing, and a section you folded stays folded after a reload. In a folder, a feed or Saved, Back goes to All; on All, Back closes the app.
+- [ ] **Navigation:** the ☰ drawer has two sections on Feeds and on Saved: Feeds (folders, feeds, Manage feeds) and Saved (To read, All, Tags, Manage tags); the section you're
+      in is open and the other folded shut automatically. Tapping a section's name folds it shut and open (folded,
+      it shows its count). In a folder, a feed or Saved, Back goes to All; on All, Back closes the app.
 - [ ] **Saved:** tabs To read, All, each folder and Archive; the Liked chip and tag chips (several
       at once) filter it; the filter button next to search picks Articles, Videos or Audio. To read,
       All and Archive look like the feed list (Settings › View applies); a folder shows notes in two

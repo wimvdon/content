@@ -2,6 +2,17 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-23: Two collapsible sections in the hamburger menu
+
+- The ☰ hamburger menu is structured into two main sections: **Feeds** and **Saved**.
+- Each section collapses and expands automatically depending on which section you are in (moving
+  to Saved expands Saved and folds Feeds shut, and vice versa), keeping the menu compact. Manual
+  folding lasts until you switch sections.
+- **Feeds** contains: All articles, folders with their feeds, loose feeds, and **Manage feeds**.
+- **Saved** contains: **To read**, **All**, **Tags** (listing each tag with item counts), and
+  **Manage tags**.
+- Connected services and Settings remain at the bottom of the drawer.
+
 ## 2026-10-22: Folders for feeds, tags for saved (#186)
 
 - Feeds stay grouped in folders, as in OPML; saved articles are grouped with tags. Simpler than

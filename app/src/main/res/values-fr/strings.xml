@@ -185,6 +185,7 @@
     <string name="account_deleted">Données synchronisées supprimées</string>
     <string name="action_delete">Supprimer</string>
     <string name="menu_manage_feeds">Gérer les flux</string>
+    <string name="menu_manage_tags">Gérer les tags</string>
     <string name="action_collapse">Réduire</string>
     <string name="action_expand">Développer</string>
     <string name="action_search">Rechercher</string>
