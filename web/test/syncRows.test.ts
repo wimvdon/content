@@ -273,6 +273,7 @@ describe("per-item sync (#106)", () => {
       "note",
       "highlights",
       "progress",
+      "sharedBy",
     ]);
     expect(itemData(item).progress).toBe(457);
   });

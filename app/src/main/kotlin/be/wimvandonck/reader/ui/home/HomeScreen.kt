@@ -269,9 +269,9 @@ fun HomeScreen(
                             TagChips(
                                 tags = reading.tags,
                                 selected = reading.filter.tags.firstOrNull(),
-                                onSelect = { t -> actions.onSavedFilter(reading.filter.copy(likedOnly = false, tags = setOfNotNull(t))) },
-                                filtered = reading.filter.likedOnly || reading.filter.tags.isNotEmpty(),
-                                onClear = { actions.onSavedFilter(reading.filter.copy(likedOnly = false, tags = emptySet())) },
+                                onSelect = { t -> actions.onSavedFilter(reading.filter.copy(likedOnly = false, sharedOnly = false, tags = setOfNotNull(t))) },
+                                filtered = reading.filter.likedOnly || reading.filter.sharedOnly || reading.filter.tags.isNotEmpty(),
+                                onClear = { actions.onSavedFilter(reading.filter.copy(likedOnly = false, sharedOnly = false, tags = emptySet())) },
                                 state = {
                                     StateChip(
                                         options = stateLabels,
@@ -285,7 +285,7 @@ fun HomeScreen(
                                     val on = reading.filter.likedOnly
                                     FilterChip(
                                         selected = on,
-                                        onClick = { actions.onSavedFilter(reading.filter.copy(likedOnly = !on, tags = emptySet())) },
+                                        onClick = { actions.onSavedFilter(reading.filter.copy(likedOnly = !on, sharedOnly = false, tags = emptySet())) },
                                         label = { Text(stringResource(R.string.reading_list_liked)) },
                                         leadingIcon = {
                                             Icon(
@@ -295,6 +295,17 @@ fun HomeScreen(
                                             )
                                         },
                                     )
+                                    // Shared with you (#167): a group like Liked, once something was shared.
+                                    val anyShared = remember(reading.library) { Saved.sharedToReadCount(reading.library) != null }
+                                    if (anyShared) {
+                                        val shared = reading.filter.sharedOnly
+                                        FilterChip(
+                                            selected = shared,
+                                            onClick = { actions.onSavedFilter(reading.filter.copy(likedOnly = false, sharedOnly = !shared, tags = emptySet())) },
+                                            label = { Text(stringResource(R.string.saved_shared)) },
+                                            leadingIcon = { Icon(painterResource(R.drawable.ic_group), contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) },
+                                        )
+                                    }
                                 },
                             )
                         } else if (state.feeds.isNotEmpty()) {
@@ -360,7 +371,7 @@ fun HomeScreen(
                             actions.onOpenItem,
                             onArchive = actions.onArchiveItem,
                             onFile = actions.onFileItem,
-                            onClearFilters = { actions.onSavedFilter(reading.filter.copy(likedOnly = false, tags = emptySet())) },
+                            onClearFilters = { actions.onSavedFilter(reading.filter.copy(likedOnly = false, sharedOnly = false, tags = emptySet())) },
                         )
                     }
                 } else {

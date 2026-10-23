@@ -48,6 +48,7 @@ object SyncRows {
             "highlights" to i.highlights.map(LibraryRows::highlightMap),
             // In thousandths, so both apps write the same number.
             "progress" to Math.round(i.progress * 1000).toLong(),
+            "sharedBy" to i.sharedBy?.let(LibraryRows::sharedByMap),
         )
 
     /**
@@ -90,6 +91,7 @@ object SyncRows {
             note = data["note"] as? String ?: "",
             highlights = (data["highlights"] as? List<*>).orEmpty().mapNotNull(LibraryRows::highlightOf).distinctBy { it.id },
             progress = (((data["progress"] as? Number)?.toDouble() ?: 0.0) / 1000).toFloat().coerceIn(0f, 1f),
+            sharedBy = LibraryRows.sharedByOf(data["sharedBy"]),
         )
     }
 
@@ -204,6 +206,8 @@ object SyncRows {
             note = pick(b?.note, l.note, r.note),
             highlights = mergeHighlights(b?.highlights.orEmpty(), l.highlights, r.highlights),
             progress = pick(b?.progress, l.progress, r.progress),
+            // Who shared it doesn't change once known.
+            sharedBy = l.sharedBy ?: r.sharedBy,
         )
     }
 

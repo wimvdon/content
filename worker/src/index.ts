@@ -11,6 +11,7 @@
 
 import { handleAccount } from "./account";
 import { handleEmail } from "./email";
+import { handleShare } from "./share";
 import { handleInstapaper } from "./instapaper";
 
 export { Account } from "./account";
@@ -63,6 +64,7 @@ export async function handle(request: Request, env: Env, fetcher: Fetcher): Prom
   const requestUrl = new URL(request.url);
   if (requestUrl.pathname.startsWith("/instapaper/")) return handleInstapaper(request, env, fetcher, requestUrl);
   if (requestUrl.pathname.startsWith("/account/email/")) return handleEmail(request, env, requestUrl, fetcher);
+  if (requestUrl.pathname.startsWith("/account/share") || requestUrl.pathname.startsWith("/account/inbox")) return handleShare(request, env, requestUrl);
   if (requestUrl.pathname === "/account" || requestUrl.pathname.startsWith("/account/")) return handleAccount(request, env, requestUrl);
   const origin = request.headers.get("Origin");
   const allowed = (env.ALLOWED_ORIGINS ?? "")

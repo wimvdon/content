@@ -1,11 +1,12 @@
-import { Archive, BookOpen, CheckCheck, ChevronDown, Circle, CircleCheck, Folder as FolderGlyph, Heart, Highlighter, Link2, Menu, Newspaper, Quote, RefreshCw, Rss, Search, StickyNote, X, type LucideIcon } from "lucide-react";
+import { Archive, BookOpen, Users, CheckCheck, ChevronDown, Circle, CircleCheck, Folder as FolderGlyph, Heart, Highlighter, Link2, Menu, Newspaper, Quote, RefreshCw, Rss, Search, StickyNote, X, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useEscape } from "./ui/useEscape";
 import { app, useApp } from "@/lib/app";
 import { snippet } from "@/lib/html";
 import { dayLabel, plural, t } from "@/lib/i18n";
 import { articleKey, articlesFor, chipTag, feedTags, sortTime, unreadKeys, type Article, type Feed } from "@/lib/library";
-import { itemArticle, noteOf, sameTab, savedItems, savedStates, showsNotes, sourceOf, tabTags, type NoteContent, type SavedFilter } from "@/lib/saved";
+import { itemArticle, noteOf, sameTab, savedItems, savedStates, sharedToReadCount, showsNotes, sourceOf, tabTags, type NoteContent, type SavedFilter } from "@/lib/saved";
+import { sharedByLabel } from "@/lib/sharing";
 import { scrolledPast } from "@/lib/scrollRead";
 import { FeedIcon } from "./FeedIcon";
 import { Button } from "./ui/button";
@@ -171,7 +172,8 @@ function SavedArticles({ openKey, onOpen, onMenu, onSearch }: { openKey: string 
   // Every tag in Saved, whichever state is shown: a tag stays chosen when the state changes.
   const tags = useMemo(() => tabTags(library, { kind: "all" }), [library]);
   const set = (change: Partial<SavedFilter>) => app.showSaved({ ...filter, ...change });
-  const plain = !filter.likedOnly && filter.tags.length === 0;
+  const plain = !filter.likedOnly && !filter.sharedOnly && filter.tags.length === 0;
+  const anyShared = sharedToReadCount(library) !== null;
   return (
     <section className="flex h-full min-w-0 flex-col" aria-label={t("saved")}>
       <SearchBar onMenu={onMenu} onSearch={onSearch}>
@@ -193,7 +195,7 @@ function SavedArticles({ openKey, onOpen, onMenu, onSearch }: { openKey: string 
           <button
             type="button"
             aria-pressed={filter.likedOnly}
-            onClick={() => set({ likedOnly: !filter.likedOnly, tags: [] })}
+            onClick={() => set({ likedOnly: !filter.likedOnly, sharedOnly: false, tags: [] })}
             className={cn(
               "inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border px-3 text-sm",
               filter.likedOnly ? "border-transparent bg-accent text-accent-foreground" : "hover:bg-muted",
@@ -203,11 +205,27 @@ function SavedArticles({ openKey, onOpen, onMenu, onSearch }: { openKey: string 
             {t("liked")}
           </button>
         }
+        shared={
+          anyShared ? (
+            <button
+              type="button"
+              aria-pressed={Boolean(filter.sharedOnly)}
+              onClick={() => set({ sharedOnly: !filter.sharedOnly, likedOnly: false, tags: [] })}
+              className={cn(
+                "inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border px-3 text-sm",
+                filter.sharedOnly ? "border-transparent bg-accent text-accent-foreground" : "hover:bg-muted",
+              )}
+            >
+              <Users className="size-4" aria-hidden="true" />
+              {t("savedShared")}
+            </button>
+          ) : null
+        }
         tags={tags}
         selected={filter.tags[0] ?? null}
-        onSelect={(tag) => set({ tags: tag === null ? [] : [tag], likedOnly: false })}
+        onSelect={(tag) => set({ tags: tag === null ? [] : [tag], likedOnly: false, sharedOnly: false })}
         filtered={!plain}
-        onClear={() => set({ likedOnly: false, tags: [] })}
+        onClear={() => set({ likedOnly: false, sharedOnly: false, tags: [] })}
       />
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-6" role="feed">
         {!loaded ? (
@@ -220,7 +238,7 @@ function SavedArticles({ openKey, onOpen, onMenu, onSearch }: { openKey: string 
           >
             {/* Filtered to nothing: one click back to the whole tab; an empty To read offers Add link. */}
             {!plain ? (
-              <Button onClick={() => set({ likedOnly: false, tags: [] })}>{t("showAll")}</Button>
+              <Button onClick={() => set({ likedOnly: false, sharedOnly: false, tags: [] })}>{t("showAll")}</Button>
             ) : filter.tab.kind === "toread" ? (
               <Button variant="tonal" onClick={app.addLink}>
                 <Link2 />
@@ -345,6 +363,7 @@ function StateChip({ options, selected, onSelect, filtering }: { options: string
 function TagChips({
   state,
   liked,
+  shared,
   tags,
   selected,
   onSelect,
@@ -354,6 +373,8 @@ function TagChips({
   state: React.ReactNode;
   /** Saved's Liked chip (#206), the first group. */
   liked?: React.ReactNode;
+  /** Saved's Shared chip (#167), after Liked. */
+  shared?: React.ReactNode;
   tags: string[];
   selected: string | null;
   onSelect: (tag: string | null) => void;
@@ -365,6 +386,7 @@ function TagChips({
       {state}
       {tags.length > 0 || liked ? <span className="h-6 w-px shrink-0 bg-border" aria-hidden="true" /> : null}
       {liked}
+      {shared}
       {tags.map((tag) => {
         const on = selected !== null && tag.toLowerCase() === selected.toLowerCase();
         return (
@@ -427,6 +449,13 @@ export function NoteCard({ note, feed, open, onOpen, label }: { note: NoteConten
                 {tag}
               </span>
             ))}
+          </div>
+        ) : null}
+        {/* Who shared it (#167). */}
+        {note.sharedBy ? (
+          <div className="flex items-center gap-1 text-xs font-medium text-primary">
+            <Users className="size-3.5 shrink-0" aria-hidden="true" />
+            <span className="truncate">{t("shareUserFrom").replace("{name}", sharedByLabel(note.sharedBy))}</span>
           </div>
         ) : null}
         <div className="flex items-center gap-1.5 text-xs">

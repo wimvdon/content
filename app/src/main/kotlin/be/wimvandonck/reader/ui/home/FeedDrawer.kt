@@ -161,6 +161,7 @@ fun FeedDrawer(
             if (saved != null) {
                 val tagCounts = remember(saved.library) { Saved.toReadTagCounts(saved.library) }
                 val likedToRead = remember(saved.library) { Saved.likedToReadCount(saved.library) }
+                val sharedToRead = remember(saved.library) { Saved.sharedToReadCount(saved.library) }
                 SectionHeader(
                     title = stringResource(R.string.saved_title),
                     open = savedOpen,
@@ -174,8 +175,8 @@ fun FeedDrawer(
                             label = { Text(stringResource(R.string.saved_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                             icon = { Icon(painterResource(R.drawable.ic_bookmarks_outline), contentDescription = null) },
                             badge = { UnreadBadge(toReadCount) },
-                            selected = inSaved && !saved.filter.likedOnly && saved.filter.tags.isEmpty(),
-                            onClick = { onSavedFilter(saved.filter.copy(likedOnly = false, tags = emptySet())) },
+                            selected = inSaved && !saved.filter.likedOnly && !saved.filter.sharedOnly && saved.filter.tags.isEmpty(),
+                            onClick = { onSavedFilter(saved.filter.copy(likedOnly = false, sharedOnly = false, tags = emptySet())) },
                         )
                         // Under Tags: Liked first, as on the chips, then the tags.
                         SectionHeading(stringResource(R.string.tags_title))
@@ -184,8 +185,18 @@ fun FeedDrawer(
                             icon = { Icon(painterResource(R.drawable.ic_favorite), contentDescription = null) },
                             badge = { UnreadBadge(likedToRead) },
                             selected = inSaved && saved.filter.likedOnly,
-                            onClick = { onSavedFilter(saved.filter.copy(likedOnly = true, tags = emptySet())) },
+                            onClick = { onSavedFilter(saved.filter.copy(likedOnly = true, sharedOnly = false, tags = emptySet())) },
                         )
+                        // Shared with you (#167): once something was shared, after Liked.
+                        if (sharedToRead != null) {
+                            NavigationDrawerItem(
+                                label = { Text(stringResource(R.string.saved_shared), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                                icon = { Icon(painterResource(R.drawable.ic_group), contentDescription = null) },
+                                badge = { UnreadBadge(sharedToRead) },
+                                selected = inSaved && saved.filter.sharedOnly,
+                                onClick = { onSavedFilter(saved.filter.copy(likedOnly = false, sharedOnly = true, tags = emptySet())) },
+                            )
+                        }
                         for ((tag, count) in tagCounts) {
                             val tagSelected = inSaved && saved.filter.tags.any { it.equals(tag, ignoreCase = true) }
                             NavigationDrawerItem(
@@ -193,7 +204,7 @@ fun FeedDrawer(
                                 icon = { Icon(painterResource(R.drawable.ic_label), contentDescription = null) },
                                 badge = { UnreadBadge(count) },
                                 selected = tagSelected,
-                                onClick = { onSavedFilter(saved.filter.copy(likedOnly = false, tags = setOf(tag))) },
+                                onClick = { onSavedFilter(saved.filter.copy(likedOnly = false, sharedOnly = false, tags = setOf(tag))) },
                             )
                         }
                         HorizontalDivider(Modifier.padding(vertical = 8.dp, horizontal = 16.dp))

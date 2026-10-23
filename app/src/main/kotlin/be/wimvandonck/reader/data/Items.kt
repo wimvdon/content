@@ -73,6 +73,8 @@ data class Item(
     val highlights: List<Highlight> = emptyList(),
     /** How far it has been read, 0 to 1. */
     val progress: Float = 0f,
+    /** Who shared it with you (#167), or null. */
+    val sharedBy: SharedBy? = null,
 ) {
     /** The site's name without "www.", or empty. */
     val host: String get() = ItemKeys.hostOf(url)

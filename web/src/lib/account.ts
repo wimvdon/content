@@ -6,6 +6,8 @@
  */
 
 import { PROXY_URL } from "./config";
+import type { SharedBy } from "./items";
+import { inboxOf, type InboxMessage, type SharedArticle } from "./sharing";
 import type { ItemChange, ItemRow, ItemsPage, ItemsWritten, RowData } from "./syncRows";
 
 export type SyncProblem = "offline" | "signedOut" | "server" | "unreadableFile" | "notSetUp";
@@ -73,6 +75,28 @@ export class AccountClient {
       if (typeof s?.key === "string" && typeof s.version === "number") saved[s.key] = s.version;
     }
     return { version: body.version, saved, conflicts: rowsOf(body.conflicts) };
+  }
+
+  /** Whether email has a Content account (#167), to say so before sharing with it. */
+  async hasAccount(email: string): Promise<boolean> {
+    const response = await this.call("/account/share/check", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: email.trim() }) });
+    return ((await response.json().catch(() => null)) as { exists?: unknown } | null)?.exists === true;
+  }
+
+  /** Shares articles with the Content user at `to` (#167), as `from`; false when the address has no account. */
+  async share(to: string, from: SharedBy, items: SharedArticle[], tag: string | null): Promise<boolean> {
+    const response = await this.call("/account/share", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ to: to.trim(), from, items, tag }) }, [404]);
+    return response.status !== 404;
+  }
+
+  /** What other Content users shared with this account and no device has taken in yet. */
+  async inbox(): Promise<InboxMessage[]> {
+    return inboxOf(await (await this.call("/account/inbox", {})).json().catch(() => null));
+  }
+
+  /** Takes messages out of the inbox once they are in the library. */
+  async inboxDone(ids: string[]): Promise<void> {
+    await this.call("/account/inbox/done", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ids }) });
   }
 
   /** The text stored for item `key` (one per saved article, shared by every device), or null when none is. */

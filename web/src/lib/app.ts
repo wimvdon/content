@@ -20,6 +20,7 @@ import { emptyServiceSyncState, importService, syncService, type ServiceSyncStat
 import { EVERYTHING, type ServiceImport, type ServiceScope } from "./serviceScope";
 import { changesBetween, loadItemSyncState, loadLibrary, writeItemSyncState, writeLibrary } from "./libraryStore";
 import { emptyItemSyncState, syncItems } from "./syncRows";
+import { takeInShared, type InboxMessage, type Received, type SharedArticle } from "./sharing";
 import * as L from "./library";
 import { importOpml, parseOpml, writeOpml } from "./opml";
 import { fetchViaProxy, FetchError } from "./proxy";
@@ -71,6 +72,8 @@ export interface State {
   instapaperNotice: "signedIn" | "failed" | null;
   /** The Content account in this browser (#166): its device key and email address. Kept in this browser only. */
   account: AccountSession | null;
+  /** What other Content users just shared (#167), said once. */
+  received: Received | null;
   /** The result of opening an emailed sign-in link, shown once. */
   accountNotice: "signedIn" | "emailAdded" | EmailLinkProblem | null;
   /** Saved's tab, Liked, tags and type (saved.ts), while Saved is shown. */
@@ -121,6 +124,7 @@ class AppStore {
     instapaperNotice: null,
     account: null,
     accountNotice: null,
+    received: null,
     savedFilter: Saved.defaultSavedFilter,
     sheet: null,
     instapaperBusy: false,
@@ -527,6 +531,39 @@ class AppStore {
     }
   }
 
+  /** What other Content users shared (#167): into Saved, then out of the inbox; says what arrived. */
+  private async takeInShared(client: AccountClient) {
+    const inbox = await client.inbox().catch(() => [] as InboxMessage[]);
+    if (inbox.length === 0) return;
+    let received: Received | null = null;
+    this.updateLibrary((lib) => {
+      const result = takeInShared(lib, inbox, Date.now());
+      received = result.received;
+      return result.library;
+    });
+    await client.inboxDone(inbox.map((m) => m.id)).catch(() => undefined);
+    if (received && (received as Received).count > 0) this.set({ received });
+  }
+
+  clearReceived() {
+    this.set({ received: null });
+  }
+
+  /** Whether the account can share (#167): signed in, with an email address so they see who it's from. */
+  canShare = () => Boolean(this.state.account?.email);
+
+  /** Sends articles to a Content user (#167); `tag` when they go as a tag. */
+  shareWithUser = async (to: string, items: SharedArticle[], tag: string | null): Promise<"sent" | "noAccount" | "noEmail" | "signedOut" | "offline" | "failed"> => {
+    const account = this.state.account;
+    if (!account) return "signedOut";
+    if (!account.email) return "noEmail";
+    try {
+      return (await new AccountClient(account.key).share(to, { email: account.email, name: "" }, items, tag)) ? "sent" : "noAccount";
+    } catch (e) {
+      return e instanceof SyncError && e.problem === "offline" ? "offline" : "failed";
+    }
+  };
+
   clearAccountNotice() {
     this.set({ accountNotice: null });
   }
@@ -847,6 +884,7 @@ class AppStore {
       if (this.accountKey() !== key) return;
       await writeItemSyncState(items, nextItems);
       this.syncedItemsVersion = nextItems.version;
+      await this.takeInShared(new AccountClient(key));
       this.updateSettings({ lastSyncedAt: Date.now() }, false);
       this.set({ syncStatus: { kind: "idle" } });
       if (newFeeds) void this.refresh(false);

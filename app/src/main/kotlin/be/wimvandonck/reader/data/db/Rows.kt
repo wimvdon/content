@@ -70,6 +70,8 @@ data class ItemRow(
     val note: String,
     val highlights: String,
     val progress: Float,
+    /** Who shared it (#167), as {"email", "name"}, or null. */
+    @ColumnInfo(defaultValue = "NULL") val sharedBy: String? = null,
 )
 
 /**

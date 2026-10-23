@@ -1,6 +1,8 @@
-import { ALargeSmall, ArrowLeft, Circle, CircleCheck, EllipsisVertical, ExternalLink, FileText, Flag, Trash2 } from "lucide-react";
+import { ALargeSmall, ArrowLeft, Circle, CircleCheck, EllipsisVertical, ExternalLink, FileText, Flag, Trash2, Users } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { app, useApp } from "@/lib/app";
+import { sharedArticle } from "@/lib/sharing";
+import { ShareWithUserDialog } from "./ShareWithUser";
 import { MAX_REPORT_COMMENT, REPORT_PROBLEMS, reportUrl, type ReportProblem } from "@/lib/articleReport";
 import { extractArticle, needsFullText, wantsFullText } from "@/lib/fullArticle";
 import { cached, cachedNow, keep } from "@/lib/fullArticleStore";
@@ -38,7 +40,7 @@ export function ArticleView({
   onBack: () => void;
   onMessage: (text: string, action?: { label: string; run: () => void }) => void;
 }) {
-  const { library, settings, instapaperNotCopied } = useApp();
+  const { library, settings, instapaperNotCopied, account } = useApp();
   // A saved article (also a feed article that was saved): the feed it came from (or its website)
   // above it, and Saved's actions instead of read state and Save.
   const fromSaved = isItemArticle(article);
@@ -112,6 +114,7 @@ export function ArticleView({
   useEscape(menuOpen, () => setMenuOpen(false));
   const [removeOpen, setRemoveOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [shareUserOpen, setShareUserOpen] = useState(false);
   // Highlights (#102): those of the article's item; one open, a new one waiting for its note, the list.
   const highlights = found?.highlights ?? NO_HIGHLIGHTS;
   // A saved article's highlights made in Instapaper's own apps come in when it opens (#164).
@@ -178,6 +181,7 @@ export function ArticleView({
                     close={() => setMenuOpen(false)}
                   />
                 ) : null}
+                {article.link && account ? <MenuItem icon={<Users />} label={t("shareUserMenu")} onClick={() => setShareUserOpen(true)} close={() => setMenuOpen(false)} /> : null}
                 {article.link ? <MenuItem icon={<Flag />} label={t("reportMenu")} onClick={() => setReportOpen(true)} close={() => setMenuOpen(false)} /> : null}
                 {saved ? <MenuItem icon={<Trash2 />} label={t("savedRemove")} onClick={() => setRemoveOpen(true)} close={() => setMenuOpen(false)} /> : null}
               </div>
@@ -279,6 +283,14 @@ export function ArticleView({
             setOpenHighlight(id);
           }}
           onClose={() => setListOpen(false)}
+        />
+      ) : null}
+      {shareUserOpen && article.link ? (
+        <ShareWithUserDialog
+          what={t("shareUserArticle")}
+          items={[found ? sharedArticle(found) : { url: article.link, title: article.title }]}
+          tag={null}
+          onClose={() => setShareUserOpen(false)}
         />
       ) : null}
       {reportOpen && article.link ? <ReportDialog link={article.link} onClose={() => setReportOpen(false)} /> : null}

@@ -1,8 +1,6 @@
 # Privacy policy
 
-_Last updated: 2026-10-23 (the browser extension)_
-
-_Last updated: 2026-10-23 (signing in to sites you pay for)_
+_Last updated: 2026-10-23 (sharing with other Content users)_
 
 Reader has no analytics, advertising or crash reporting. It works without an account. If you sign
 in (with your email address, or with Instapaper), Reader keeps your feed list,
@@ -98,6 +96,14 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   are never synced and never sent to the owner's feed loader. From then on the app sends them only
   to that site (and its subdomains), over https, when it loads that site's feeds and articles, so
   articles you pay for load in full. Settings › Sites you're signed in to › Remove forgets them.
+- **Sharing with another Content user (#167).** Only when you send something: ⋮ › Send to a
+  Content user (one article) or Manage tags › the people icon (a tag's articles). The app first asks
+  the owner's feed loader whether the address you typed has a Content account. What you send (each
+  article's address, title, picture address and short description, and the tag's name) and your own
+  email address go to that person's account, so their Saved shows it came from you. It waits there,
+  encrypted like everything in an account, until one of their devices takes it in, and is then
+  deleted from the server. Nothing is shared unless you share it, and nobody can send something in
+  your name: the feed loader checks the address is yours.
 - **Reporting a badly cleaned-up article** (⋮ › Report a problem with this article, #181): Send
   opens a pre-filled "new issue" page on github.com in your browser, with the article's link, what
   you picked, your comment, and the app's name and version; not the article's text. Nothing is sent

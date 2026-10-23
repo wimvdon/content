@@ -6,7 +6,7 @@
  */
 
 import { escapeHtml, snippet } from "./html";
-import { addToReadingList, changeItem, cleanTags, feedArticleFor, putItem, recentTags, setReadingState, type Item } from "./items";
+import { addToReadingList, changeItem, cleanTags, feedArticleFor, putItem, recentTags, setReadingState, type Item, type SharedBy } from "./items";
 import { keyOf, type Article, type Feed, type Library } from "./library";
 
 export type SavedTab = { kind: "toread" } | { kind: "all" } | { kind: "folder"; name: string } | { kind: "archive" };
@@ -15,6 +15,8 @@ export type SavedTab = { kind: "toread" } | { kind: "all" } | { kind: "folder"; 
 export interface SavedFilter {
   tab: SavedTab;
   likedOnly: boolean;
+  /** Only what other Content users shared with you (#167). */
+  sharedOnly?: boolean;
   tags: string[];
 }
 
@@ -49,6 +51,7 @@ export function savedItems(lib: Library, filter: SavedFilter): Item[] {
       (i) =>
         isIn(i, filter.tab) &&
         (!filter.likedOnly || i.liked) &&
+        (!filter.sharedOnly || Boolean(i.sharedBy)) &&
         filter.tags.every((t) => i.tags.some((x) => same(x, t))),
     )
     .sort((a, b) => b.readingList!.addedAt - a.readingList!.addedAt);
@@ -102,6 +105,10 @@ export function tabTags(lib: Library, tab: SavedTab): string[] {
 export const savedStates: SavedTab[] = [{ kind: "toread" }, { kind: "archive" }, { kind: "all" }];
 
 /** How many liked items are still to read, for the menu's Liked row (#206). */
+/** How many shared items are still to read, for the menu's Shared row (#167); null when nothing was ever shared. */
+export const sharedToReadCount = (lib: Library): number | null =>
+  lib.items.some((i) => i.sharedBy && i.readingList) ? lib.items.filter((i) => i.sharedBy && isIn(i, { kind: "toread" })).length : null;
+
 export const likedToReadCount = (lib: Library) => lib.items.filter((i) => i.liked && isIn(i, { kind: "toread" })).length;
 
 /** How many items still to read carry each tag, for the menu (as Feeds counts unread articles). */
@@ -203,6 +210,8 @@ export interface NoteContent {
   liked: boolean;
   /** Your note, shown small under the text. */
   note: string;
+  /** Who shared it (#167). */
+  sharedBy?: SharedBy | null;
 }
 
 /** A saved item as a note card. */
@@ -215,6 +224,7 @@ export const noteOf = (i: Item): NoteContent => ({
   highlights: i.highlights.length,
   liked: i.liked,
   note: i.note.trim(),
+  sharedBy: i.sharedBy ?? null,
 });
 
 /** A feed article as a note card (Search's notes view): the start of its text under the title. */

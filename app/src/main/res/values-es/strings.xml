@@ -66,6 +66,24 @@
     <string name="reader_background_dark">Oscuro</string>
     <string name="reader_preview">La buena tipografía es invisible: notas la historia, no las letras.</string>
     <string name="reader_read_on_website">Leer en el sitio web</string>
+    <string name="saved_shared">Compartido contigo</string>
+    <string name="share_user_menu">Enviar a un usuario de Content</string>
+    <string name="share_user_title">Enviar a un usuario de Content</string>
+    <string name="share_user_article">Este artículo va a sus Guardados, Por leer.</string>
+    <string name="share_user_send">Enviar</string>
+    <string name="share_user_sent">Enviado a %1$s</string>
+    <string name="share_user_no_account">No hay ninguna cuenta de Content para esta dirección.</string>
+    <string name="share_user_no_email">Añade primero un correo a tu cuenta (Ajustes › Cuenta), para que vean de quién viene.</string>
+    <string name="share_user_signed_out">Inicia sesión primero en tu cuenta de Content.</string>
+    <string name="share_user_from">De %1$s</string>
+    <plurals name="share_user_tag">
+        <item quantity="one">Todo lo etiquetado %1$s (%2$d artículo) va a sus Guardados, Por leer, con esa etiqueta.</item>
+        <item quantity="other">Todo lo etiquetado %1$s (%2$d artículos) va a sus Guardados, Por leer, con esa etiqueta.</item>
+    </plurals>
+    <plurals name="share_user_received">
+        <item quantity="one">%1$s compartió %2$d artículo contigo</item>
+        <item quantity="other">%1$s compartió %2$d artículos contigo</item>
+    </plurals>
     <string name="site_sign_in_menu">Iniciar sesión en este sitio</string>
     <string name="site_sign_in_title">Iniciar sesión en %1$s</string>
     <string name="site_sign_in_done">Listo</string>

@@ -6,7 +6,7 @@
  * a read row only the article's date.
  */
 
-import { cleanTags, isWebLink, itemOf as itemByKey, putItem, type Highlight, type Item } from "./items";
+import { cleanTags, isWebLink, itemOf as itemByKey, putItem, type Highlight, type Item, type SharedBy } from "./items";
 import { articleKey, setRead, sortTime, type Article, type Library } from "./library";
 import { KEEP_READ_MS } from "./sync";
 
@@ -71,6 +71,7 @@ export function itemData(i: Item): RowData {
     highlights: i.highlights.map((h) => ({ id: h.id, quote: h.quote, prefix: h.prefix, suffix: h.suffix, occurrence: h.occurrence, note: h.note, createdAt: h.createdAt })),
     // In thousandths, so both apps write the same number.
     progress: Math.round(i.progress * 1000),
+    sharedBy: i.sharedBy ? { email: i.sharedBy.email, name: i.sharedBy.name } : null,
   };
 }
 
@@ -127,7 +128,14 @@ export function itemOfRow(key: string, data: RowData, local: Item | undefined): 
       return [parsed];
     }),
     progress: Math.min(1, Math.max(0, (Number(data.progress) || 0) / 1000)),
+    sharedBy: sharedByOf(data.sharedBy),
   };
+}
+
+function sharedByOf(v: unknown): SharedBy | null {
+  const m = obj(v);
+  const email = str(m?.email);
+  return m && email ? { email, name: str(m.name) ?? "" } : null;
 }
 
 export const readData = (time: number): RowData => ({ time });
@@ -217,6 +225,8 @@ export function mergeItems(b: Item | null, l: Item, r: Item): Item {
     note: pick("note"),
     highlights: mergeHighlights(b?.highlights ?? [], l.highlights, r.highlights),
     progress: pick("progress"),
+    // Who shared it doesn't change once known.
+    sharedBy: l.sharedBy ?? r.sharedBy ?? null,
   };
 }
 

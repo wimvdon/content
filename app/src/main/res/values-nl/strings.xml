@@ -66,6 +66,24 @@
     <string name="reader_background_dark">Donker</string>
     <string name="reader_preview">Goede typografie zie je niet: je merkt het verhaal op, niet de letters.</string>
     <string name="reader_read_on_website">Lezen op website</string>
+    <string name="saved_shared">Met jou gedeeld</string>
+    <string name="share_user_menu">Naar een Content-gebruiker sturen</string>
+    <string name="share_user_title">Naar een Content-gebruiker sturen</string>
+    <string name="share_user_article">Dit artikel komt in hun Bewaard, Te lezen.</string>
+    <string name="share_user_send">Versturen</string>
+    <string name="share_user_sent">Verstuurd naar %1$s</string>
+    <string name="share_user_no_account">Er is geen Content-account voor dit adres.</string>
+    <string name="share_user_no_email">Voeg eerst een e-mailadres toe aan je account (Instellingen › Account), zodat ze zien van wie het komt.</string>
+    <string name="share_user_signed_out">Meld je eerst aan bij je Content-account.</string>
+    <string name="share_user_from">Van %1$s</string>
+    <plurals name="share_user_tag">
+        <item quantity="one">Alles met de tag %1$s (%2$d artikel) komt in hun Bewaard, Te lezen, met die tag.</item>
+        <item quantity="other">Alles met de tag %1$s (%2$d artikels) komt in hun Bewaard, Te lezen, met die tag.</item>
+    </plurals>
+    <plurals name="share_user_received">
+        <item quantity="one">%1$s deelde %2$d artikel met jou</item>
+        <item quantity="other">%1$s deelde %2$d artikels met jou</item>
+    </plurals>
     <string name="site_sign_in_menu">Aanmelden bij deze site</string>
     <string name="site_sign_in_title">Aanmelden bij %1$s</string>
     <string name="site_sign_in_done">Klaar</string>
