@@ -11,9 +11,9 @@ import {
   parseCallback,
   type Session as InstapaperSession,
 } from "./instapaper";
-import { notCopied, pendingCopy, pushHighlights, type HighlightLink } from "./highlightCopy";
+import { applyHighlights, notCopied, syncHighlights, type HighlightLink } from "./highlightCopy";
 import { INSTAPAPER_ID, InstapaperSync } from "./instapaperSync";
-import { addHighlight, removeHighlight, renameTag, setHighlightNote, setLiked, type Highlight, type Item } from "./items";
+import { addHighlight, changeItem, removeHighlight, renameTag, setHighlightNote, setLiked, type Highlight, type Item } from "./items";
 import { applyChoice, saveNew, undoSave, type SaveChoice } from "./saveChoice";
 import * as Saved from "./saved";
 import { emptyServiceSyncState, importService, syncService, type ServiceSyncState } from "./serviceSync";
@@ -730,16 +730,20 @@ class AppStore {
     for (const [key, byId] of Object.entries(stored)) if (state.rows[key] && state.rows[key].linked !== false) links[key] = byId;
     const now = Date.now();
     const items = new Map(this.state.library.items.map((i) => [i.key, i]));
+    const look = new Set(this.lookAt);
+    this.lookAt.clear();
     try {
       for (const [key, row] of Object.entries(state.rows)) {
         if (row.linked === false) continue;
         const item = items.get(key);
         if (!item?.readingList) continue;
-        const before = links[key] ?? {};
-        if (!pendingCopy(item.highlights, before, now)) continue;
-        const pushed = await pushHighlights(service, row.remoteId, item.highlights, before, now);
-        links[key] = pushed.links;
-        if (pushed.problem) break;
+        const synced = await syncHighlights(service, INSTAPAPER_ID, row.remoteId, item.highlights, links[key] ?? {}, now, look.has(key));
+        links[key] = synced.links;
+        // Highlights made, deleted or changed in Instapaper's own apps come in.
+        if (synced.highlights !== item.highlights) {
+          this.updateLibrary((lib) => changeItem(lib, key, (i) => ({ ...i, highlights: applyHighlights(i.highlights, item.highlights, synced.highlights) })));
+        }
+        if (synced.problem) break;
       }
     } finally {
       await save(INSTAPAPER_HIGHLIGHTS_KEY, links).catch(() => undefined);
@@ -755,6 +759,16 @@ class AppStore {
     }
     this.set({ instapaperNotCopied: out });
   }
+
+  /** Saved items whose highlights are looked up at Instapaper on the next sync (opened in the reader). */
+  private lookAt = new Set<string>();
+
+  /** A saved article opened (#164): its highlights in Instapaper are looked up now, so ones made there come in. */
+  lookAtHighlights = (key: string) => {
+    if (!this.state.instapaper || !this.state.settings.copyHighlights) return;
+    this.lookAt.add(key);
+    void this.syncInstapaper().catch(() => undefined);
+  };
 
   /** Copying highlights to Instapaper on or off (#164); on, it copies at once. */
   setCopyHighlights = (on: boolean) => {

@@ -14,6 +14,16 @@ Newest first. Add an entry for every notable choice: what was decided, why, and 
   Link. A debug build can't verify App Links, so there it opens the web app.
 - The picture comes from Gravatar (the issue's choice), skipped when pictures are off.
 
+## 2026-10-23: Highlights sync both ways with Instapaper
+
+- The owner asked for both ways, replacing the one-way copy below: highlights made, changed or
+  deleted in Instapaper's own apps now come into Content too. They are looked up when a saved
+  article opens and whenever its highlights are sent, so a list of every article's highlights is
+  never fetched on each sync (one call per article would be too many).
+- A highlight deleted in Instapaper is now deleted in Content (it used to stay and not be made
+  again). A note changed on both sides keeps Content's.
+- The switch is renamed **Sync highlights with Instapaper**.
+
 ## 2026-10-23: Copying highlights to Instapaper (#164)
 
 - One way only: Content's highlights get copies in Instapaper; highlights made in Instapaper's own

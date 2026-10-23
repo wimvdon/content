@@ -81,9 +81,10 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   Instapaper what you take off the reading list. On the app owner's own account it also asks
   Instapaper for its text of an article you open, which is kept on your device only. The web app
   reads and changes your saved list (archive, like, delete, move to a folder, tags, folders).
-  **Copy highlights to Instapaper** (off unless you turn it on, per device): the passage you
-  highlighted and its note go to that article in Instapaper, and the app reads the article's highlights
-  there first so none is made twice. Signing out deletes the token and the account key from
+  **Sync highlights with Instapaper** (off unless you turn it on, per device): the passage you
+  highlighted and its note go to that article in Instapaper, and the app reads the article's
+  highlights there (when you open it, and before sending), so ones made in Instapaper come into
+  Content and none is made twice. Signing out deletes the token and the account key from
   your device; the token stays valid at Instapaper until you revoke it there.
 - **Raindrop.io is no longer supported** (#179). The app no longer talks to raindrop.io. Updating
   the app deletes a Raindrop sign-in it still kept; revoke the app in Raindrop's settings to end

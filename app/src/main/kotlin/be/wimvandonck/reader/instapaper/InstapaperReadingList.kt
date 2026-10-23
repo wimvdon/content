@@ -142,7 +142,7 @@ class InstapaperReadingList(
     override suspend fun highlights(remoteId: String): List<RemoteHighlight> =
         guarded {
             val id = remoteId.toLongOrNull() ?: throw ServiceException(ServiceProblem.Refused)
-            client.highlights(id).map { RemoteHighlight(it.id.toString(), it.text, it.note) }
+            client.highlights(id).map { RemoteHighlight(it.id.toString(), it.text, it.note, it.position, it.time * 1000) }
         }
 
     override suspend fun addHighlight(

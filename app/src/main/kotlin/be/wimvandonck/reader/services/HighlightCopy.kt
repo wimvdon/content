@@ -5,8 +5,8 @@ import be.wimvandonck.reader.data.Highlight
 import be.wimvandonck.reader.sync.Json
 
 /**
- * What became of one highlight at a service: its copy there ([remoteId]) with the note it was sent
- * with, or when the service refused it for its plan's limit ([refusedAt]).
+ * What became of one highlight at a service: its copy there ([remoteId]) with the note it was last
+ * seen or sent with, or when the service refused it for its plan's limit ([refusedAt]).
  */
 data class HighlightLink(
     val remoteId: String? = null,
@@ -15,11 +15,12 @@ data class HighlightLink(
 )
 
 /**
- * Copies Content's highlights to a service (#164), when the user turned that on. Content keeps
- * them either way; the service only gets copies. Before copying an article's highlights, the ones
- * the service already has are looked up, and one with the same passage counts as the copy (another
- * device may have sent it). A changed note is sent as a new highlight (the old one deleted), since
- * a service can't edit one; a highlight deleted here is deleted there. A plan's limit keeps the
+ * Keeps an article's highlights the same in Content and a service (#164), when the user turned that
+ * on. Both ways: a highlight made in the service's own apps comes into Content (placed by its passage
+ * and which occurrence it is), one deleted there is deleted here, and a note changed there comes in;
+ * Content's go there. One with the same passage on both sides is the same highlight (another device
+ * may have sent it). A note changed here is sent as a new highlight (the old one deleted), since a
+ * service can't edit one; a highlight deleted here is deleted there. A plan's limit keeps the
  * highlight in Content, marked as not copied, and it is tried again a day later. Plain Kotlin,
  * tested with a fake service.
  */
@@ -27,7 +28,13 @@ object HighlightCopy {
     /** A highlight refused for a plan's limit is tried again after this long. */
     const val RETRY_MS = 24 * 60 * 60 * 1000L
 
-    /** Whether an article's highlights need a call: one new, with a changed note, deleted here, or due for a retry. */
+    /** Ids of highlights that came from a service start like this ("instapaper-501"). */
+    fun idFor(
+        service: String,
+        remoteId: String,
+    ) = "$service-$remoteId"
+
+    /** Whether an article's highlights need sending: one new, with a changed note, deleted here, or due for a retry. */
     fun pending(
         highlights: List<Highlight>,
         links: Map<String, HighlightLink>,
@@ -46,20 +53,94 @@ object HighlightCopy {
         }
     }
 
-    /** What [push] left: the links, and why it stopped early (null when it got through). */
-    data class Pushed(
+    /** What [sync] left: the article's highlights and links, and why it stopped early (null when it got through). */
+    data class Synced(
+        val highlights: List<Highlight>,
         val links: Map<String, HighlightLink>,
         val problem: ServiceProblem?,
     )
 
-    /** Copies [highlights] to the article [remoteId] at [service]; [links] is what was copied before. */
-    suspend fun push(
+    /**
+     * Syncs the highlights of the article [remoteId] at [service]: what changed there comes in, then
+     * what changed here goes there. Without [look], an article with nothing to send costs no call.
+     */
+    suspend fun sync(
+        service: HighlightService,
+        serviceId: String,
+        remoteId: String,
+        highlights: List<Highlight>,
+        links: Map<String, HighlightLink>,
+        now: Long,
+        look: Boolean = false,
+    ): Synced {
+        if (!look && !pending(highlights, links, now)) return Synced(highlights, links, null)
+        val remote =
+            try {
+                service.highlights(remoteId)
+            } catch (e: ServiceException) {
+                return Synced(highlights, links, e.problem)
+            }
+        val (taken, takenLinks) = takeIn(serviceId, highlights, links, remote)
+        return push(service, remoteId, taken, takenLinks, now)
+    }
+
+    /**
+     * The article's highlights and links after taking in what the service has: one deleted there goes
+     * here too, a note changed there (and not here) comes in, one with the same passage as a highlight
+     * here is linked to it, and the rest become Content's.
+     */
+    fun takeIn(
+        serviceId: String,
+        highlights: List<Highlight>,
+        links: Map<String, HighlightLink>,
+        remote: List<RemoteHighlight>,
+    ): Pair<List<Highlight>, Map<String, HighlightLink>> {
+        val byId = remote.associateBy { it.remoteId }
+        val out = links.toMutableMap()
+        // Deleted there: deleted here too.
+        val gone = links.filterValues { it.remoteId != null && it.remoteId !in byId }.keys
+        gone.forEach(out::remove)
+        val result =
+            highlights.filter { it.id !in gone }.mapTo(ArrayList()) { h ->
+                val link = out[h.id]
+                val there = link?.remoteId?.let(byId::get)
+                // A note changed there and not here comes in.
+                if (link != null && there != null && there.note.trim() != link.note && h.note == link.note) {
+                    out[h.id] = link.copy(note = there.note.trim())
+                    h.copy(note = there.note.trim())
+                } else {
+                    h
+                }
+            }
+        val linked = out.values.mapNotNullTo(HashSet()) { it.remoteId }
+        for (r in remote) {
+            if (r.remoteId in linked || r.text.isBlank()) continue
+            val text = Anchors.fold(r.text)
+            val index = result.indexOfFirst { h -> out[h.id]?.remoteId == null && Anchors.fold(h.quote) == text }
+            if (index >= 0) {
+                // The same passage: the same highlight; a note only there comes in.
+                val h = result[index]
+                val note = h.note.ifBlank { r.note.trim() }
+                result[index] = h.copy(note = note)
+                out[h.id] = HighlightLink(r.remoteId, r.note.trim())
+            } else {
+                val made = Highlight(id = idFor(serviceId, r.remoteId), quote = r.text.trim(), occurrence = r.position, note = r.note.trim(), createdAt = r.createdAt)
+                result += made
+                out[made.id] = HighlightLink(r.remoteId, made.note)
+            }
+            linked += r.remoteId
+        }
+        return result to out
+    }
+
+    /** Sends what changed here: new ones made there, changed notes made again, deleted ones deleted there. */
+    private suspend fun push(
         service: HighlightService,
         remoteId: String,
         highlights: List<Highlight>,
         links: Map<String, HighlightLink>,
         now: Long,
-    ): Pushed {
+    ): Synced {
         val out = links.toMutableMap()
         try {
             val ids = highlights.mapTo(HashSet()) { it.id }
@@ -67,17 +148,6 @@ object HighlightCopy {
                 if (id in ids) continue
                 link.remoteId?.let { service.removeHighlight(it) }
                 out.remove(id)
-            }
-            // Copies made before (by another device, or before this one forgot): the same passage is the copy.
-            if (highlights.any { out[it.id]?.remoteId == null }) {
-                val taken = out.values.mapNotNullTo(HashSet()) { it.remoteId }
-                for (r in service.highlights(remoteId)) {
-                    if (r.remoteId in taken) continue
-                    val text = Anchors.fold(r.text)
-                    val same = highlights.firstOrNull { h -> out[h.id]?.remoteId == null && Anchors.fold(h.quote) == text } ?: continue
-                    out[same.id] = HighlightLink(r.remoteId, r.note.trim())
-                    taken += r.remoteId
-                }
             }
             var limitReached = false
             for (h in highlights.sortedBy { it.createdAt }) {
@@ -104,9 +174,31 @@ object HighlightCopy {
                 }
             }
         } catch (e: ServiceException) {
-            return Pushed(out, e.problem)
+            return Synced(highlights, out, e.problem)
         }
-        return Pushed(out, null)
+        return Synced(highlights, out, null)
+    }
+
+    /**
+     * [current] (the item's highlights now) with what a sync changed from [before] to [after]: added,
+     * removed and changed notes. A highlight changed here meanwhile keeps that change.
+     */
+    fun apply(
+        current: List<Highlight>,
+        before: List<Highlight>,
+        after: List<Highlight>,
+    ): List<Highlight> {
+        val was = before.associateBy { it.id }
+        val now = after.associateBy { it.id }
+        val removed = was.keys - now.keys
+        val result =
+            current.filter { it.id !in removed }.map { h ->
+                val b = was[h.id]
+                val a = now[h.id]
+                if (b != null && a != null && a.note != b.note && h.note == b.note) h.copy(note = a.note) else h
+            }
+        val have = result.mapTo(HashSet()) { it.id }
+        return result + after.filter { it.id !in was && it.id !in have }
     }
 
     /** The highlights the service refused (shown as "Not in Instapaper"). */

@@ -127,7 +127,7 @@ export class InstapaperSync implements SavedSyncService, HighlightService {
   highlights(remoteId: string): Promise<RemoteHighlight[]> {
     return guarded(async () => {
       const list = (await this.api.highlights?.(numberOf(remoteId))) ?? [];
-      return list.map((h) => ({ remoteId: String(h.id), text: h.text, note: h.note ?? "" }));
+      return list.map((h) => ({ remoteId: String(h.id), text: h.text, note: h.note ?? "", position: h.position ?? 0, createdAt: (h.time ?? 0) * 1000 }));
     });
   }
 

@@ -675,6 +675,8 @@ fun RssReaderNavigation(
                     }
                     // Opening a feed article marks it as read.
                     LaunchedEffect(screen.articleKey) { fromFeed?.let { a -> app.appScope.launch { repository.setRead(a.key, true) } } }
+                    // A saved article's highlights made in Instapaper's own apps come in when it opens (#164).
+                    LaunchedEffect(screen.articleKey) { item?.takeIf { it.readingList != null }?.let { app.services.lookAtHighlights(it.key) } }
                     SystemBarsFollowTheme(current.reader.isDark(appDark))
                     ReaderTheme(style = current.reader, appearance = current.appearance, appDark = appDark) {
                         ReaderScreen(

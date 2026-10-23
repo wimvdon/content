@@ -252,6 +252,7 @@ class InstapaperClient(
                 text = (map["text"] as? String).orEmpty(),
                 note = (map["note"] as? String).orEmpty(),
                 position = (map["position"].asLong() ?: 0L).toInt(),
+                time = map["time"].asLong() ?: 0L,
             )
         }
 
