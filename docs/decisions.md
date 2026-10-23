@@ -30,6 +30,18 @@ Newest first. Add an entry for every notable choice: what was decided, why, and 
   with a tab for each, on Android and the web. ☰ keeps Manage feeds under Feeds and Manage tags under
   Saved, each opening the screen on its own tab; switching tabs doesn't add a step to Back.
 
+## 2026-10-23: Remembered recipients (#235)
+
+- Send to a Content user offers the last twelve people you sent to as chips above the address,
+  each with their Gravatar picture (else their first letter) and name (else the address); one tap
+  fills in the address. Sending adds the person, first.
+- Kept with the synced settings (`sharing.recipients`, `docs/sync.md`), so every device offers the
+  same people, rather than a new kind of row: a short list that changes rarely. Not a contacts list:
+  nobody is added except by sending them something. No way to remove one yet; the list drops the
+  oldest past twelve.
+- Android hands the list to the dialog through a CompositionLocal set around the navigation in
+  `MainActivity`, because the dialog opens from the reader and from Manage tags.
+
 ## 2026-10-23: Names from Gravatar (#234)
 
 - Your name in Settings › Account, and the name people see on what you share, come from your public

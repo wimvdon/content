@@ -278,8 +278,16 @@ class SyncManager(
     /** What arrived from other Content users (#167), to say so once. */
     val received: SharedFlow<Received> = _received.asSharedFlow()
 
-    /** The name on [email]'s Gravatar profile (#234): "" when it has none, null when it couldn't be asked. */
-    suspend fun profileName(email: String): String? = accountKey()?.let { key -> runCatching { AccountClient(http, key).profileName(email) }.getOrNull() }
+    /** The name on [email]'s Gravatar profile (#234): "" when it has none, null when it couldn't be asked. Asked once per address while the app runs. */
+    suspend fun profileName(email: String): String? {
+        val clean = email.trim().lowercase()
+        names[clean]?.let { return it }
+        val name = accountKey()?.let { key -> runCatching { AccountClient(http, key).profileName(clean) }.getOrNull() }
+        if (name != null) names[clean] = name
+        return name
+    }
+
+    private val names = java.util.concurrent.ConcurrentHashMap<String, String>()
 
     /** Whether [email] has a Content account, or null when it couldn't be asked. */
     suspend fun hasAccount(email: String): Boolean? = accountKey()?.let { key -> runCatching { AccountClient(http, key).hasAccount(email) }.getOrNull() }
@@ -294,7 +302,13 @@ class SyncManager(
         val session = account.session() ?: return ShareResult.SignedOut
         val email = session.email ?: return ShareResult.NoEmail
         return try {
-            if (AccountClient(http, session.key).share(to, SharedBy(email), items, tag, message)) ShareResult.Sent else ShareResult.NoAccount
+            if (AccountClient(http, session.key).share(to, SharedBy(email), items, tag, message)) {
+                // Offered first next time, on every device (#235).
+                settings.rememberRecipient(to)
+                ShareResult.Sent
+            } else {
+                ShareResult.NoAccount
+            }
         } catch (e: SyncException) {
             if (e.problem == SyncProblem.Offline) ShareResult.Offline else ShareResult.Failed
         }

@@ -1,4 +1,5 @@
 import type { Settings } from "./app";
+import { decodeRecipients, encodeRecipients } from "./recipients";
 import { decodeImport, decodeScope, encodeImport, encodeScope, EVERYTHING, type ServiceImport, type ServiceScope } from "./serviceScope";
 
 /**
@@ -7,20 +8,23 @@ import { decodeImport, decodeScope, encodeImport, encodeScope, EVERYTHING, type 
  * are, so settings only the other app has survive a sync from the web.
  *
  * Only settings about what the app does are synced (Load full articles, Mark as read on scroll, and
- * what each connected service syncs and what was imported from it, #145).
+ * what each connected service syncs and what was imported from it, #145, and the people shared with,
+ * #235).
  * How it looks stays in each browser and on each device (#96): the theme, the reader's font, size,
  * spacing and page colour, Show images and the list view.
  */
 
 export const FULL_ARTICLES = "fullArticles";
 export const MARK_READ_ON_SCROLL = "markReadOnScroll";
+/** The people shared with (#235), a JSON list of addresses, most recent first. */
+export const RECIPIENTS = "sharing.recipients";
 
 /** The services whose scope and import record travel with the account (#145). */
 export const SERVICES = ["instapaper", "raindrop"];
 export const scopeName = (service: string) => `services.${service}.scope`;
 export const importName = (service: string) => `services.${service}.imported`;
 
-const KNOWN = new Set([FULL_ARTICLES, MARK_READ_ON_SCROLL, ...SERVICES.map(scopeName)]);
+const KNOWN = new Set([FULL_ARTICLES, MARK_READ_ON_SCROLL, RECIPIENTS, ...SERVICES.map(scopeName)]);
 
 /** View settings that older versions synced; each device keeps its own now (#96). */
 export const DROPPED_VIEW = new Set([
@@ -44,6 +48,7 @@ export function syncedSettings(settings: Settings, base: Record<string, string> 
   Object.assign(out, {
     [FULL_ARTICLES]: String(settings.fullArticles),
     [MARK_READ_ON_SCROLL]: String(settings.markReadOnScroll),
+    [RECIPIENTS]: encodeRecipients(settings.recipients),
   });
   for (const id of SERVICES) {
     out[scopeName(id)] = encodeScope(settings.scopes[id] ?? EVERYTHING);
@@ -71,5 +76,6 @@ export function applySynced(settings: Settings, values: Record<string, string>):
     markReadOnScroll: bool(MARK_READ_ON_SCROLL, settings.markReadOnScroll),
     scopes,
     imports,
+    recipients: decodeRecipients(values[RECIPIENTS]) ?? settings.recipients,
   };
 }

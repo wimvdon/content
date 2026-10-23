@@ -1,10 +1,12 @@
-import { useState } from "react";
-import { app } from "@/lib/app";
+import { useEffect, useState } from "react";
+import { gravatarUrl } from "@/lib/account";
+import { app, useApp } from "@/lib/app";
 import { t, type Key } from "@/lib/i18n";
 import type { SharedArticle } from "@/lib/sharing";
 import { Button } from "./ui/button";
 import { Dialog } from "./ui/dialog";
 import { Input, Label } from "./ui/input";
+import { cn } from "./ui/cn";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -20,10 +22,12 @@ const PROBLEMS: Record<string, Key> = {
 };
 
 /**
- * Send to a Content user (#167): their email address; Send says first when it has no Content
- * account. `what` says what goes (this article, or a tag's articles).
+ * Send to a Content user (#167): their email address, or one click on someone shared with before
+ * (#235, with their Gravatar picture and name); Send says first when it has no Content account.
+ * `what` says what goes (this article, or a tag's articles).
  */
 export function ShareWithUserDialog({ what, items, tag, onClose }: { what: string; items: SharedArticle[]; tag: string | null; onClose: () => void }) {
+  const { settings } = useApp();
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
@@ -72,6 +76,22 @@ export function ShareWithUserDialog({ what, items, tag, onClose }: { what: strin
           }}
         >
           <p className="text-sm">{what}</p>
+          {settings.recipients.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {settings.recipients.map((address) => (
+                <RecipientChip
+                  key={address}
+                  email={address}
+                  images={settings.showImages}
+                  selected={email.trim().toLowerCase() === address}
+                  onPick={() => {
+                    setEmail(address);
+                    setProblem(null);
+                  }}
+                />
+              ))}
+            </div>
+          ) : null}
           <div className="space-y-1">
             <Label htmlFor="share-user-email">{t("accountEmail")}</Label>
             <Input
@@ -104,5 +124,42 @@ export function ShareWithUserDialog({ what, items, tag, onClose }: { what: strin
         </form>
       )}
     </Dialog>
+  );
+}
+
+/** Someone shared with before (#235): their Gravatar picture (else their first letter) and name (else address). */
+function RecipientChip({ email, images, selected, onPick }: { email: string; images: boolean; selected: boolean; onPick: () => void }) {
+  const [name, setName] = useState<string | null>(null);
+  const [src, setSrc] = useState<string | null>(null);
+  const [missing, setMissing] = useState(false);
+  useEffect(() => {
+    let current = true;
+    void app.profileName(email).then((found) => current && setName(found || null));
+    if (images) void gravatarUrl(email, 64).then((url) => current && setSrc(url));
+    return () => {
+      current = false;
+    };
+  }, [email, images]);
+  const label = name ?? email;
+  return (
+    <button
+      type="button"
+      aria-pressed={selected}
+      onClick={onPick}
+      title={email}
+      className={cn(
+        "inline-flex h-8 max-w-full cursor-pointer items-center gap-1.5 rounded-lg border pr-3 pl-1 text-sm",
+        selected ? "border-transparent bg-accent text-accent-foreground" : "hover:bg-muted",
+      )}
+    >
+      {src && !missing ? (
+        <img src={src} alt="" className="size-6 shrink-0 rounded-full" onError={() => setMissing(true)} />
+      ) : (
+        <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-medium text-primary" aria-hidden="true">
+          {label.slice(0, 1).toUpperCase()}
+        </span>
+      )}
+      <span className="truncate">{label}</span>
+    </button>
   );
 }

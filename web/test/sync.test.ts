@@ -157,7 +157,7 @@ describe("synced settings", () => {
 
   it("use the same names and values as the Android app and come back the same", () => {
     const values = SS.syncedSettings({ ...settings, markReadOnScroll: true });
-    expect(values).toEqual({ fullArticles: "false", markReadOnScroll: "true", "services.instapaper.scope": "*", "services.raindrop.scope": "*" });
+    expect(values).toEqual({ fullArticles: "false", markReadOnScroll: "true", "sharing.recipients": "[]", "services.instapaper.scope": "*", "services.raindrop.scope": "*" });
     const applied = SS.applySynced(defaultSettings, values);
     expect(applied.fullArticles).toBe(false);
     expect(applied.markReadOnScroll).toBe(true);

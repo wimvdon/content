@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { rememberRecipient } from "./recipients";
 import { AccountClient, emailLinkToken, finishEmailLink, LiveUpdates, sendEmailLink, SIGNIN_PATH, SyncError, type AccountSession, type EmailLinkProblem, type SyncProblem } from "./account";
 import { findFeed } from "./discovery";
 import { parseFeed } from "./feedParser";
@@ -52,6 +53,8 @@ export interface Settings {
   imports: Record<string, ServiceImport>;
   /** Copy highlights to Instapaper (#164); in this browser only, off by default (free accounts get five a month). */
   copyHighlights: boolean;
+  /** The people shared with (#235), most recent first; synced (recipients.ts). */
+  recipients: string[];
 }
 
 export type SyncStatus = { kind: "idle" } | { kind: "syncing" } | { kind: "failed"; problem: SyncProblem };
@@ -106,6 +109,7 @@ export const defaultSettings: Settings = {
   scopes: {},
   imports: {},
   copyHighlights: false,
+  recipients: [],
 };
 
 const PARALLEL = 4;
@@ -172,7 +176,7 @@ class AppStore {
       account = { key: instapaper.accountKey, email: null };
       await save("account", account).catch(() => undefined);
     }
-    const merged = { ...defaultSettings, ...settings, readerStyle: readerStyleOf(settings?.readerStyle), scopes: settings?.scopes ?? {}, imports: settings?.imports ?? {} };
+    const merged = { ...defaultSettings, ...settings, readerStyle: readerStyleOf(settings?.readerStyle), scopes: settings?.scopes ?? {}, imports: settings?.imports ?? {}, recipients: Array.isArray(settings?.recipients) ? settings.recipients : [] };
     this.set({
       loaded: true,
       library: library ?? L.emptyLibrary(),
@@ -552,16 +556,23 @@ class AppStore {
   /** Whether the account can share (#167): signed in, with an email address so they see who it's from. */
   canShare = () => Boolean(this.state.account?.email);
 
-  /** The name on email's Gravatar profile (#234): "" when it has none, null when it couldn't be asked. */
+  /** The name on email's Gravatar profile (#234): "" when it has none, null when it couldn't be asked. Asked once per address on this page. */
   profileName = async (email: string): Promise<string | null> => {
+    const clean = email.trim().toLowerCase();
+    const known = this.names.get(clean);
+    if (known !== undefined) return known;
     const account = this.state.account;
     if (!account) return null;
     try {
-      return await new AccountClient(account.key).profileName(email);
+      const name = await new AccountClient(account.key).profileName(clean);
+      this.names.set(clean, name);
+      return name;
     } catch {
       return null;
     }
   };
+
+  private names = new Map<string, string>();
 
   /** Sends articles to a Content user (#167); `tag` when they go as a tag. */
   shareWithUser = async (to: string, items: SharedArticle[], tag: string | null, message = ""): Promise<"sent" | "noAccount" | "noEmail" | "signedOut" | "offline" | "failed"> => {
@@ -569,7 +580,10 @@ class AppStore {
     if (!account) return "signedOut";
     if (!account.email) return "noEmail";
     try {
-      return (await new AccountClient(account.key).share(to, { email: account.email, name: "" }, items, tag, message)) ? "sent" : "noAccount";
+      if (!(await new AccountClient(account.key).share(to, { email: account.email, name: "" }, items, tag, message))) return "noAccount";
+      // Offered first next time, on every device (#235).
+      this.updateSettings({ recipients: rememberRecipient(this.state.settings.recipients, to) });
+      return "sent";
     } catch (e) {
       return e instanceof SyncError && e.problem === "offline" ? "offline" : "failed";
     }

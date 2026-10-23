@@ -1,5 +1,6 @@
 package be.wimvandonck.content.sync
 
+import be.wimvandonck.content.data.Recipients
 import be.wimvandonck.content.data.ServiceImport
 import be.wimvandonck.content.data.ServiceScope
 import be.wimvandonck.content.data.Settings
@@ -12,7 +13,7 @@ import be.wimvandonck.content.data.scopeOf
  *
  * Only settings about what the app does are synced (Load full articles, Mark as read on scroll, and
  * what each connected service syncs and what was imported from it, #145: "services.<id>.scope" and
- * "services.<id>.imported").
+ * "services.<id>.imported"), and the people shared with (#235: [RECIPIENTS]).
  * How it looks stays on each device (#96): the theme, dynamic colour, the reader's font, size,
  * spacing and page colour, Show images and the list view, since people often want a different
  * view on a phone, a tablet and a computer. Older versions synced those as [DROPPED_VIEW]; the
@@ -26,6 +27,9 @@ import be.wimvandonck.content.data.scopeOf
 object SyncSettings {
     const val FULL_ARTICLES = "fullArticles"
     const val MARK_READ_ON_SCROLL = "markReadOnScroll"
+
+    /** The people shared with (#235), a JSON list of addresses, most recent first. */
+    const val RECIPIENTS = "sharing.recipients"
 
     /** Unread | All, synced by older versions. */
     const val DROPPED_UNREAD_ONLY = "unreadOnly"
@@ -44,7 +48,7 @@ object SyncSettings {
 
     fun importName(service: String) = "services.$service.imported"
 
-    private val known = setOf(FULL_ARTICLES, MARK_READ_ON_SCROLL) + SERVICES.map(::scopeName)
+    private val known = setOf(FULL_ARTICLES, MARK_READ_ON_SCROLL, RECIPIENTS) + SERVICES.map(::scopeName)
 
     private fun dropped(name: String) = name == DROPPED_UNREAD_ONLY || name in DROPPED_VIEW || name.startsWith("instapaper.")
 
@@ -57,6 +61,7 @@ object SyncSettings {
             mapOf(
                 FULL_ARTICLES to settings.fullArticles.toString(),
                 MARK_READ_ON_SCROLL to settings.markReadOnScroll.toString(),
+                RECIPIENTS to Recipients.encode(settings.recipients),
             ) + SERVICES.associate { scopeName(it) to ServiceScope.encode(settings.scopeOf(it)) } +
                 // An import this device doesn't know of stays as the file has it.
                 settings.imports.entries.filter { it.key in SERVICES }.associate { importName(it.key) to ServiceImport.encode(it.value) }
@@ -79,6 +84,7 @@ object SyncSettings {
             markReadOnScroll = bool(MARK_READ_ON_SCROLL, settings.markReadOnScroll),
             scopes = settings.scopes + scopes,
             imports = settings.imports + imports,
+            recipients = Recipients.decode(values[RECIPIENTS]) ?: settings.recipients,
         )
     }
 }

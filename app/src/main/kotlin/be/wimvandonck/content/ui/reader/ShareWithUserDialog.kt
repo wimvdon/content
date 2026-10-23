@@ -2,9 +2,12 @@ package be.wimvandonck.content.ui.reader
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -18,14 +21,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import be.wimvandonck.content.R
 import be.wimvandonck.content.sync.ShareResult
 
 /**
- * Send to a Content user (#167): their email address; Send says first when it has no Content
- * account. [what] says what goes ("this article", or a tag's articles).
+ * Send to a Content user (#167): their email address, or one tap on someone shared with before
+ * (#235, with their Gravatar picture and name); Send says first when it has no Content account.
+ * [what] says what goes ("this article", or a tag's articles).
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ShareWithUserDialog(
     what: String,
@@ -38,12 +44,29 @@ fun ShareWithUserDialog(
     var sending by rememberSaveable { mutableStateOf(false) }
     var problem by rememberSaveable { mutableStateOf<ShareResult?>(null) }
     val valid = Regex("""^[^\s@]+@[^\s@]+\.[^\s@]+$""").matches(email.trim())
+    val recipients = LocalShareRecipients.current
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.share_user_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(what, style = MaterialTheme.typography.bodyMedium)
+                if (recipients.emails.isNotEmpty()) {
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        for (address in recipients.emails) {
+                            val name = recipientName(recipients, address)
+                            FilterChip(
+                                selected = email.trim().equals(address, ignoreCase = true),
+                                onClick = {
+                                    email = address
+                                    problem = null
+                                },
+                                label = { Text(name ?: address, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                                leadingIcon = { RecipientAvatar(address, name, recipients.showImages) },
+                            )
+                        }
+                    }
+                }
                 OutlinedTextField(
                     value = email,
                     onValueChange = {
