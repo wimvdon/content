@@ -30,6 +30,22 @@ Newest first. Add an entry for every notable choice: what was decided, why, and 
   with a tab for each, on Android and the web. ☰ keeps Manage feeds under Feeds and Manage tags under
   Saved, each opening the screen on its own tab; switching tabs doesn't add a step to Back.
 
+## 2026-10-23: Readability as it is (#236)
+
+- At the owner's request, the article extractors no longer change the page before Readability or
+  its result after it: gone are keeping glossary words in buttons, removing hidden parts, turning a
+  div per paragraph into a paragraph, joining an article split over look-alike containers (Ars
+  Technica), and dropping the byline and comments link. Both apps show what Readability4J (Android)
+  and Readability.js (web) find.
+- Kept, because they are about showing the result rather than finding it: the reader's simple HTML
+  (safe tags, absolute links, known video players), leaving out the heading that repeats the title
+  shown above it, and the minimum length for an article.
+- The two libraries now differ in small ways the removed steps used to even out (a div per
+  paragraph: Readability4J may split it around a link). The shared sample pages check the text, not
+  the exact paragraphs, there; the samples for the removed steps are gone.
+- Cached full articles get a new version (Android `v4-`, web `fullArticle-v3:`), so they are
+  extracted again. Texts already stored in the account (sharedText) stay as they were stored.
+
 ## 2026-10-23: Android notifications through Firebase (#235)
 
 - At the owner's request (and with their OK for the new library and permission), the Android app can

@@ -6,8 +6,8 @@ import { load, remove, save } from "./storage";
  * reload. Only a cache: anything that fails just means the article loads again. The version in
  * the keys lets a better extractor load articles again.
  */
-const INDEX = "fullArticles-v2";
-const PREFIX = "fullArticle-v2:";
+const INDEX = "fullArticles-v3";
+const PREFIX = "fullArticle-v3:";
 
 const memory = new Map<string, string>();
 let index: Promise<CacheIndex> | null = null;

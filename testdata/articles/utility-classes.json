@@ -1,5 +1,5 @@
 {
-  "about": "Utility class names don't hide the article; hidden text and share buttons go.",
+  "about": "Utility class names don't hide the article; real buttons go.",
   "url": "https://example.com/",
   "html": "<!DOCTYPE html>\n<html><head><title>Page</title><script>var x = \"<p>not text</p>\";</script><style>p { color: red }</style></head>\n<body>\n<div class=\"relative overflow-hidden shadow-lg\">\n  <div class=\"text-lg leading-7 md:hidden-none\">\n    <p>This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p><p>This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p>\n    <p class=\"md:hidden\">Visible on phones. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p>\n    <p class=\"hidden\">Hidden everywhere. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p>\n    <p>More. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p><p>More. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p><p>More. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p><p>More. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p>\n    <div class=\"share-buttons\"><a href=\"https://facebook.com/share\">Share this on Facebook</a> <a href=\"https://x.com/share\">Share this on X</a> <button>Copy link</button></div>\n  </div>\n</div></body></html>",
   "text": [
@@ -7,7 +7,6 @@
   ],
   "htmlContains": [],
   "absent": [
-    "Hidden everywhere.",
     "Share this"
   ],
   "noArticle": false
