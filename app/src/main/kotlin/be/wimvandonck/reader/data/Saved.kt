@@ -128,13 +128,7 @@ object Saved {
         library: Library,
         tab: SavedTab,
     ): List<String> =
-        library.items
-            .filter { isIn(it, tab) }
-            .flatMap { it.tags }
-            .groupBy { it.lowercase() }
-            .entries
-            .sortedWith(compareByDescending<Map.Entry<String, List<String>>> { it.value.size }.thenBy { it.key })
-            .map { it.value.first() }
+        library.items.filter { isIn(it, tab) }.recentTags()
 
     /**
      * The states Saved's state chip offers (#205): To read, Archive or everything. A tag stays

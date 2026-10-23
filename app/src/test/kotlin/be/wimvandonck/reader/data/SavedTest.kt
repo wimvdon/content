@@ -61,9 +61,9 @@ class SavedTest {
         assertEquals(listOf("a.example/3"), keys(SavedFilter(SavedTab.All, likedOnly = true)))
         assertEquals(listOf("a.example/3", "a.example/2"), keys(SavedFilter(SavedTab.All, tags = setOf("AI"))))
         assertEquals(listOf("a.example/2"), keys(SavedFilter(SavedTab.All, tags = setOf("ai", "news"))))
-        // Chips: the tab's tags, most used first.
+        // Chips: the tab's tags, most recently used first (#220): "old" is on the article saved last.
         assertEquals(listOf("ai", "news"), Saved.tags(library, SavedTab.Folder("Work")))
-        assertEquals(listOf("ai", "news", "old"), Saved.tags(library, SavedTab.All))
+        assertEquals(listOf("old", "ai", "news"), Saved.tags(library, SavedTab.All))
     }
 
     @Test
@@ -204,5 +204,12 @@ class SavedTest {
         assertTrue(moved.items.none { it.folder != null })
         assertTrue(Saved.folders(moved).isEmpty())
         assertSame(moved, Saved.foldersToTags(moved))
+    }
+
+    @Test
+    fun `the tag of the article saved last comes first, equal times alphabetically (#220)`() {
+        fun item(key: String, at: Long, vararg tags: String) = Item(key = key, url = "https://a.example/$key", title = key, createdAt = at, readingList = ReadingListEntry(ReadingState.ToRead, at), tags = tags.toList())
+        val items = listOf(item("1", 10, "zebra", "Apple"), item("2", 20, "middle"), item("3", 5, "apple"))
+        assertEquals(listOf("middle", "Apple", "zebra"), items.recentTags())
     }
 }
