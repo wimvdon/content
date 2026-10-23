@@ -66,10 +66,13 @@
     <string name="reader_background_dark">Scuro</string>
     <string name="reader_preview">La buona tipografia è invisibile: noti la storia, non le lettere.</string>
     <string name="reader_read_on_website">Leggi sul sito</string>
-    <string name="saved_shared">Condiviso con te</string>
+    <string name="saved_shared_new">Nuovi articoli condivisi con te</string>
+    <string name="saved_move_to_read">Sposta in Da leggere</string>
+    <string name="share_user_message">Messaggio (facoltativo)</string>
+    <string name="saved_shared">Condiviso con me</string>
     <string name="share_user_menu">Invia a un utente di Content</string>
     <string name="share_user_title">Invia a un utente di Content</string>
-    <string name="share_user_article">Questo articolo va nei suoi Salvati, Da leggere.</string>
+    <string name="share_user_article">Questo articolo va nei suoi Salvati, Condiviso con me.</string>
     <string name="share_user_send">Invia</string>
     <string name="share_user_sent">Inviato a %1$s</string>
     <string name="share_user_no_account">Non c’è un account Content per questo indirizzo.</string>
@@ -77,8 +80,8 @@
     <string name="share_user_signed_out">Accedi prima al tuo account Content.</string>
     <string name="share_user_from">Da %1$s</string>
     <plurals name="share_user_tag">
-        <item quantity="one">Tutto ciò che ha il tag %1$s (%2$d articolo) va nei suoi Salvati, Da leggere, con quel tag.</item>
-        <item quantity="other">Tutto ciò che ha il tag %1$s (%2$d articoli) va nei suoi Salvati, Da leggere, con quel tag.</item>
+        <item quantity="one">Tutto ciò che ha il tag %1$s (%2$d articolo) va nei suoi Salvati, Condiviso con me, con quel tag.</item>
+        <item quantity="other">Tutto ciò che ha il tag %1$s (%2$d articoli) va nei suoi Salvati, Condiviso con me, con quel tag.</item>
     </plurals>
     <plurals name="share_user_received">
         <item quantity="one">%1$s ha condiviso %2$d articolo con te</item>

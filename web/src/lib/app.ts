@@ -553,12 +553,12 @@ class AppStore {
   canShare = () => Boolean(this.state.account?.email);
 
   /** Sends articles to a Content user (#167); `tag` when they go as a tag. */
-  shareWithUser = async (to: string, items: SharedArticle[], tag: string | null): Promise<"sent" | "noAccount" | "noEmail" | "signedOut" | "offline" | "failed"> => {
+  shareWithUser = async (to: string, items: SharedArticle[], tag: string | null, message = ""): Promise<"sent" | "noAccount" | "noEmail" | "signedOut" | "offline" | "failed"> => {
     const account = this.state.account;
     if (!account) return "signedOut";
     if (!account.email) return "noEmail";
     try {
-      return (await new AccountClient(account.key).share(to, { email: account.email, name: "" }, items, tag)) ? "sent" : "noAccount";
+      return (await new AccountClient(account.key).share(to, { email: account.email, name: "" }, items, tag, message)) ? "sent" : "noAccount";
     } catch (e) {
       return e instanceof SyncError && e.problem === "offline" ? "offline" : "failed";
     }
@@ -700,6 +700,8 @@ class AppStore {
   likeItem = (key: string, liked: boolean) => this.updateLibrary((lib) => setLiked(lib, key, liked));
   archiveItem = (key: string, archived: boolean) => this.updateLibrary((lib) => Saved.archiveItem(lib, key, archived));
   /** Into a folder, or To read with null. */
+  /** Puts an item shared with you in To read or the Archive (#167). */
+  placeShared = (key: string, state: "toread" | "archived") => this.updateLibrary((lib) => Saved.placeShared(lib, key, state, Date.now()));
   removeItem = (key: string) => this.updateLibrary((lib) => Saved.removeSaved(lib, key));
 
   /** Folders and tags (Folders and tags). Renaming to another's name joins the two. */

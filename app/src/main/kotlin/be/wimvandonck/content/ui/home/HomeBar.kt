@@ -1,5 +1,8 @@
 package be.wimvandonck.content.ui.home
 
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -93,6 +96,8 @@ fun StateChip(
     onSelect: (Int) -> Unit,
     /** Whether the chosen state leaves things out (everything but All). */
     filtering: Boolean,
+    /** The options with something new (#167): a dot on them, and on the chip. */
+    dots: Set<Int> = emptySet(),
 ) {
     var open by remember { mutableStateOf(false) }
     Box {
@@ -100,6 +105,7 @@ fun StateChip(
             selected = filtering,
             onClick = { open = true },
             label = { Text(options[selected], maxLines = 1) },
+            leadingIcon = if (dots.isNotEmpty()) ({ NewDot() }) else null,
             trailingIcon = { Icon(painterResource(R.drawable.ic_expand_more), contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) },
         )
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
@@ -107,6 +113,7 @@ fun StateChip(
                 DropdownMenuItem(
                     text = { Text(label) },
                     leadingIcon = { RadioButton(selected = index == selected, onClick = null) },
+                    trailingIcon = if (index in dots) ({ NewDot() }) else null,
                     onClick = {
                         open = false
                         if (index != selected) onSelect(index)
@@ -159,4 +166,16 @@ fun TagChips(
             }
         }
     }
+}
+
+/** Something new waits there (#167): a small dot in the primary colour. */
+@Composable
+fun NewDot(modifier: Modifier = Modifier) {
+    val label = stringResource(R.string.saved_shared_new)
+    Box(
+        modifier
+            .size(8.dp)
+            .background(MaterialTheme.colorScheme.primary, CircleShape)
+            .semantics { contentDescription = label },
+    )
 }

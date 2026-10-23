@@ -77,13 +77,14 @@ describe("sharing with other Content users (#167)", () => {
     const { call, signIn } = setup();
     const ann = await signIn("ann@example.com");
     const bob = await signIn("bob@example.com");
-    const sent = await call("POST", "/account/share", ann, { to: "bob@example.com", from: { email: "ann@example.com", name: "Ann" }, items: [article], tag: "Reading club" });
+    const sent = await call("POST", "/account/share", ann, { to: "bob@example.com", from: { email: "ann@example.com", name: "Ann" }, items: [article], tag: "Reading club", message: "  Read this one!  " });
     expect(sent.status).toBe(204);
     const inbox = (await (await call("GET", "/account/inbox", bob)).json()) as { messages: { id: string; from: unknown; items: unknown[]; tag: string }[] };
     expect(inbox.messages).toHaveLength(1);
     expect(inbox.messages[0].from).toEqual({ email: "ann@example.com", name: "Ann" });
     expect(inbox.messages[0].items).toEqual([{ url: "https://example.com/a", title: "An article", imageUrl: null, description: "" }]);
     expect(inbox.messages[0].tag).toBe("Reading club");
+    expect((inbox.messages[0] as unknown as { message: string }).message).toBe("Read this one!");
     // Ann's own inbox stays empty.
     expect(((await (await call("GET", "/account/inbox", ann)).json()) as { messages: unknown[] }).messages).toEqual([]);
     expect((await call("POST", "/account/inbox/done", bob, { ids: [inbox.messages[0].id] })).status).toBe(204);

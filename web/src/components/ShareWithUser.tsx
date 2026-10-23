@@ -8,6 +8,9 @@ import { Input, Label } from "./ui/input";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+/** The longest message for the receiver (the feed loader keeps as much). */
+const MAX_MESSAGE = 1000;
+
 const PROBLEMS: Record<string, Key> = {
   noAccount: "shareUserNoAccount",
   noEmail: "shareUserNoEmail",
@@ -22,6 +25,7 @@ const PROBLEMS: Record<string, Key> = {
  */
 export function ShareWithUserDialog({ what, items, tag, onClose }: { what: string; items: SharedArticle[]; tag: string | null; onClose: () => void }) {
   const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   const [sent, setSent] = useState<string | null>(null);
@@ -30,7 +34,7 @@ export function ShareWithUserDialog({ what, items, tag, onClose }: { what: strin
     if (!valid || sending) return;
     setSending(true);
     setProblem(null);
-    void app.shareWithUser(email.trim(), items, tag).then((result) => {
+    void app.shareWithUser(email.trim(), items, tag, message.trim()).then((result) => {
       setSending(false);
       if (result === "sent") setSent(email.trim());
       else setProblem(result);
@@ -79,6 +83,17 @@ export function ShareWithUserDialog({ what, items, tag, onClose }: { what: strin
                 setEmail(e.target.value);
                 setProblem(null);
               }}
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="share-user-message">{t("shareUserMessage")}</Label>
+            <textarea
+              id="share-user-message"
+              rows={2}
+              maxLength={MAX_MESSAGE}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              className="w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
           </div>
           {problem ? (

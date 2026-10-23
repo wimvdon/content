@@ -1,12 +1,14 @@
-import { Archive, BookmarkPlus, BookOpen, CheckCheck, ChevronDown, Circle, CircleCheck, Folder as FolderGlyph, Heart, Highlighter, Link2, Menu, Newspaper, Quote, RefreshCw, Rss, Search, Share2, StickyNote, Tag as TagIcon, Users, X, type LucideIcon } from "lucide-react";
+import { Archive, BookmarkPlus, BookOpen, Inbox, CheckCheck, ChevronDown, Circle, CircleCheck, Folder as FolderGlyph, Heart, Highlighter, Link2, Menu, Newspaper, Quote, RefreshCw, Rss, Search, Share2, StickyNote, Tag as TagIcon, Users, X, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useEscape } from "./ui/useEscape";
 import { app, useApp } from "@/lib/app";
 import { snippet } from "@/lib/html";
 import { dayLabel, plural, t } from "@/lib/i18n";
 import { articleKey, articlesFor, chipTag, feedTags, sortTime, unreadKeys, type Article, type Feed } from "@/lib/library";
-import { itemArticle, noteOf, sameTab, savedItems, savedStates, sharedToReadCount, showsNotes, sourceOf, tabTags, type NoteContent, type SavedFilter } from "@/lib/saved";
+import { itemArticle, noteOf, sameTab, savedItems, savedStates, sharedWaiting, showsNotes, sourceOf, tabTags, type NoteContent, type SavedFilter } from "@/lib/saved";
 import { sharedByLabel } from "@/lib/sharing";
+import { waitingShared } from "@/lib/items";
+import { NewDot } from "./NewDot";
 import { scrolledPast } from "@/lib/scrollRead";
 import { FeedIcon } from "./FeedIcon";
 import { Button } from "./ui/button";
@@ -187,8 +189,9 @@ function SavedArticles({ openKey, onOpen, onMenu, onSearch }: { openKey: string 
   // Every tag in Saved, whichever state is shown: a tag stays chosen when the state changes.
   const tags = useMemo(() => tabTags(library, { kind: "all" }), [library]);
   const set = (change: Partial<SavedFilter>) => app.showSaved({ ...filter, ...change });
-  const plain = !filter.likedOnly && !filter.sharedOnly && filter.tags.length === 0;
-  const anyShared = sharedToReadCount(library) !== null;
+  const plain = !filter.likedOnly && filter.tags.length === 0;
+  // Something shared with you waits (#167): a dot on the state chip and on Shared with me.
+  const waiting = sharedWaiting(library) > 0;
   return (
     <section className="flex h-full min-w-0 flex-col" aria-label={t("saved")}>
       <SearchBar onMenu={onMenu} onSearch={onSearch}>
@@ -199,10 +202,11 @@ function SavedArticles({ openKey, onOpen, onMenu, onSearch }: { openKey: string 
       <TagChips
         state={
           <StateChip
-            options={[t("toRead"), t("archiveTab"), t("all")]}
+            options={[t("toRead"), t("savedShared"), t("archiveTab"), t("all")]}
             selected={Math.max(0, savedStates.findIndex((s) => sameTab(s, filter.tab)))}
             onSelect={(i) => set({ tab: savedStates[i] })}
             filtering={filter.tab.kind !== "all"}
+            dots={waiting ? [savedStates.findIndex((s) => s.kind === "shared")] : []}
           />
         }
         // Liked is a group like a tag (#206): one at a time, before the tags.
@@ -210,7 +214,7 @@ function SavedArticles({ openKey, onOpen, onMenu, onSearch }: { openKey: string 
           <button
             type="button"
             aria-pressed={filter.likedOnly}
-            onClick={() => set({ likedOnly: !filter.likedOnly, sharedOnly: false, tags: [] })}
+            onClick={() => set({ likedOnly: !filter.likedOnly, tags: [] })}
             className={cn(
               "inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border px-3 text-sm",
               filter.likedOnly ? "border-transparent bg-accent text-accent-foreground" : "hover:bg-muted",
@@ -220,40 +224,24 @@ function SavedArticles({ openKey, onOpen, onMenu, onSearch }: { openKey: string 
             {t("liked")}
           </button>
         }
-        shared={
-          anyShared ? (
-            <button
-              type="button"
-              aria-pressed={Boolean(filter.sharedOnly)}
-              onClick={() => set({ sharedOnly: !filter.sharedOnly, likedOnly: false, tags: [] })}
-              className={cn(
-                "inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border px-3 text-sm",
-                filter.sharedOnly ? "border-transparent bg-accent text-accent-foreground" : "hover:bg-muted",
-              )}
-            >
-              <Users className="size-4" aria-hidden="true" />
-              {t("savedShared")}
-            </button>
-          ) : null
-        }
         tags={tags}
         selected={filter.tags[0] ?? null}
-        onSelect={(tag) => set({ tags: tag === null ? [] : [tag], likedOnly: false, sharedOnly: false })}
+        onSelect={(tag) => set({ tags: tag === null ? [] : [tag], likedOnly: false })}
         filtered={!plain}
-        onClear={() => set({ likedOnly: false, sharedOnly: false, tags: [] })}
+        onClear={() => set({ likedOnly: false, tags: [] })}
       />
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-6" role="feed">
         {!loaded ? (
           <Skeletons />
         ) : items.length === 0 ? (
           <Empty
-            icon={filter.tab.kind === "archive" ? Archive : filter.tab.kind === "folder" ? FolderGlyph : BookOpen}
+            icon={filter.tab.kind === "archive" ? Archive : filter.tab.kind === "folder" ? FolderGlyph : filter.tab.kind === "shared" ? Users : BookOpen}
             title={plain && filter.tab.kind === "toread" ? t("nothingToRead") : plain && filter.tab.kind === "archive" ? t("nothingArchived") : t("savedNoneTitle")}
             text={plain && filter.tab.kind === "toread" ? t("savedEmptyBody") : undefined}
           >
             {/* Filtered to nothing: one click back to the whole tab; an empty To read offers Add link. */}
             {!plain ? (
-              <Button onClick={() => set({ likedOnly: false, sharedOnly: false, tags: [] })}>{t("showAll")}</Button>
+              <Button onClick={() => set({ likedOnly: false, tags: [] })}>{t("showAll")}</Button>
             ) : filter.tab.kind === "toread" ? (
               <Button variant="tonal" onClick={app.addLink}>
                 <Link2 />
@@ -270,9 +258,15 @@ function SavedArticles({ openKey, onOpen, onMenu, onSearch }: { openKey: string 
                   const article = itemArticle(item, library);
                   return (
                     <li key={item.key} className="mb-2 break-inside-avoid">
-                      {/* Right-click or press and hold (#221): Organise and Share. */}
+                      {/* Right-click or press and hold (#221): Organise and Share; shared with you, first To read or the Archive (#167). */}
                       <WithRowMenu
                         items={[
+                          ...(waitingShared(item)
+                            ? [
+                                { icon: <Inbox />, label: t("savedMoveToRead"), onClick: () => app.placeShared(item.key, "toread") },
+                                { icon: <Archive />, label: t("archive"), onClick: () => app.placeShared(item.key, "archived") },
+                              ]
+                            : []),
                           { icon: <TagIcon />, label: t("organiseTitle"), onClick: () => app.openOrganise(item.key) },
                           { icon: <Share2 />, label: t("share"), onClick: () => void shareLink(item.title, item.url) },
                         ]}
@@ -330,7 +324,7 @@ function SearchBar({ onMenu, onSearch, children }: { onMenu: () => void; onSearc
  * The state chip at the start of the chip row (#205): what of the place is shown, Unread or All in
  * Feeds, To read, Archive or All in Saved. A menu picks another; it is lit while it leaves things out.
  */
-function StateChip({ options, selected, onSelect, filtering }: { options: string[]; selected: number; onSelect: (index: number) => void; filtering: boolean }) {
+function StateChip({ options, selected, onSelect, filtering, dots = [] }: { options: string[]; selected: number; onSelect: (index: number) => void; filtering: boolean; dots?: number[] }) {
   const [at, setAt] = useState<{ top: number; left: number } | null>(null);
   useEscape(at !== null, () => setAt(null));
   return (
@@ -349,6 +343,7 @@ function StateChip({ options, selected, onSelect, filtering }: { options: string
           filtering ? "border-transparent bg-accent text-accent-foreground" : "hover:bg-muted",
         )}
       >
+        {dots.length > 0 ? <NewDot className="mr-0.5" /> : null}
         {options[selected]}
         <ChevronDown className="size-4" />
       </button>
@@ -369,7 +364,8 @@ function StateChip({ options, selected, onSelect, filtering }: { options: string
                 className="flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left text-sm hover:bg-muted"
               >
                 <span className={cn("size-4 rounded-full border-2", i === selected ? "border-primary bg-primary shadow-[inset_0_0_0_2px_var(--color-card)]" : "border-muted-foreground")} />
-                {label}
+                <span className="flex-1">{label}</span>
+                {dots.includes(i) ? <NewDot /> : null}
               </button>
             ))}
           </div>
@@ -386,7 +382,6 @@ function StateChip({ options, selected, onSelect, filtering }: { options: string
 function TagChips({
   state,
   liked,
-  shared,
   tags,
   selected,
   onSelect,
@@ -396,8 +391,6 @@ function TagChips({
   state: React.ReactNode;
   /** Saved's Liked chip (#206), the first group. */
   liked?: React.ReactNode;
-  /** Saved's Shared chip (#167), after Liked. */
-  shared?: React.ReactNode;
   tags: string[];
   selected: string | null;
   onSelect: (tag: string | null) => void;
@@ -409,7 +402,6 @@ function TagChips({
       {state}
       {tags.length > 0 || liked ? <span className="h-6 w-px shrink-0 bg-border" aria-hidden="true" /> : null}
       {liked}
-      {shared}
       {tags.map((tag) => {
         const on = selected !== null && tag.toLowerCase() === selected.toLowerCase();
         return (
@@ -481,6 +473,8 @@ export function NoteCard({ note, feed, open, onOpen, label }: { note: NoteConten
             <span className="truncate">{t("shareUserFrom").replace("{name}", sharedByLabel(note.sharedBy))}</span>
           </div>
         ) : null}
+        {/* Their message (#167). */}
+        {note.sharedBy?.message?.trim() ? <p className="line-clamp-3 text-xs italic">{note.sharedBy.message.trim()}</p> : null}
         <div className="flex items-center gap-1.5 text-xs">
           <span className="flex min-w-0 items-center gap-1 text-muted-foreground">
             {feed ? <FeedIcon feed={feed} className="size-4" /> : null}

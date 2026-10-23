@@ -1,5 +1,6 @@
 package be.wimvandonck.content.ui.home
 
+import be.wimvandonck.content.data.ReadingState
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.foundation.combinedClickable
@@ -163,6 +164,8 @@ class HomeActions(
     /** Long-press › Share (#221): a feed article, or a saved item. */
     val onShareArticle: (Article) -> Unit = {},
     val onShareItem: (Item) -> Unit = {},
+    /** Puts an item shared with you in To read or the Archive (#167). */
+    val onPlaceShared: (Item, ReadingState) -> Unit = { _, _ -> },
     val onRefresh: () -> Unit,
     val onMarkAllRead: () -> Unit,
     /** Articles that scrolled off the top, with Mark as read on scroll on. */
@@ -199,6 +202,7 @@ fun HomeScreen(
     val scope = rememberCoroutineScope()
     // Saved replaces the feed sections: its own title, tabs and chips, no Mark all read.
     val reading = state.saved?.takeIf { state.section == HomeSection.Saved }
+    val sharedWaiting = state.saved?.let { remember(it.library) { Saved.sharedWaiting(it.library) } } ?: 0
     val inFeeds = reading == null
     val unreadHere = state.unreadCounts[state.selection] ?: 0
     val feedTags = remember(state.feeds) { state.feeds.flatMap { it.tags }.distinctBy { it.lowercase() }.sortedBy { it.lowercase() } }
@@ -256,7 +260,7 @@ fun HomeScreen(
         LaunchedEffect(state.selection, state.section, reading?.filter, hasArticles) { scrollBehavior.state.heightOffset = 0f }
         // On wide windows Feed and Saved move to a navigation rail at the side.
         Row(Modifier.fillMaxSize()) {
-            if (wide) MainNavigationRail(tab, onTab)
+            if (wide) MainNavigationRail(tab, onTab, savedDot = sharedWaiting > 0)
             Scaffold(
                 modifier = Modifier.weight(1f).nestedScroll(scrollBehavior.nestedScrollConnection),
                 snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -270,21 +274,25 @@ fun HomeScreen(
                             val stateLabels =
                                 listOf(
                                     stringResource(R.string.reading_list_to_read),
+                                    stringResource(R.string.saved_shared),
                                     stringResource(R.string.reading_list_archive),
                                     stringResource(R.string.filter_all),
                                 )
+                            val waiting = remember(reading.library) { Saved.sharedWaiting(reading.library) }
                             TagChips(
                                 tags = reading.tags,
                                 selected = reading.filter.tags.firstOrNull(),
-                                onSelect = { t -> actions.onSavedFilter(reading.filter.copy(likedOnly = false, sharedOnly = false, tags = setOfNotNull(t))) },
-                                filtered = reading.filter.likedOnly || reading.filter.sharedOnly || reading.filter.tags.isNotEmpty(),
-                                onClear = { actions.onSavedFilter(reading.filter.copy(likedOnly = false, sharedOnly = false, tags = emptySet())) },
+                                onSelect = { t -> actions.onSavedFilter(reading.filter.copy(likedOnly = false, tags = setOfNotNull(t))) },
+                                filtered = reading.filter.likedOnly || reading.filter.tags.isNotEmpty(),
+                                onClear = { actions.onSavedFilter(reading.filter.copy(likedOnly = false, tags = emptySet())) },
                                 state = {
                                     StateChip(
                                         options = stateLabels,
                                         selected = Saved.states.indexOf(reading.filter.tab).coerceAtLeast(0),
                                         onSelect = { i -> actions.onSavedFilter(reading.filter.copy(tab = Saved.states[i])) },
                                         filtering = reading.filter.tab != SavedTab.All,
+                                        // Something shared with you waits (#167): a dot on the chip and on Shared with me.
+                                        dots = if (waiting > 0) setOf(Saved.states.indexOf(SavedTab.Shared)) else emptySet(),
                                     )
                                 },
                                 // Liked is a group like a tag (#206): one at a time, before the tags.
@@ -292,7 +300,7 @@ fun HomeScreen(
                                     val on = reading.filter.likedOnly
                                     FilterChip(
                                         selected = on,
-                                        onClick = { actions.onSavedFilter(reading.filter.copy(likedOnly = !on, sharedOnly = false, tags = emptySet())) },
+                                        onClick = { actions.onSavedFilter(reading.filter.copy(likedOnly = !on, tags = emptySet())) },
                                         label = { Text(stringResource(R.string.reading_list_liked)) },
                                         leadingIcon = {
                                             Icon(
@@ -302,17 +310,6 @@ fun HomeScreen(
                                             )
                                         },
                                     )
-                                    // Shared with you (#167): a group like Liked, once something was shared.
-                                    val anyShared = remember(reading.library) { Saved.sharedToReadCount(reading.library) != null }
-                                    if (anyShared) {
-                                        val shared = reading.filter.sharedOnly
-                                        FilterChip(
-                                            selected = shared,
-                                            onClick = { actions.onSavedFilter(reading.filter.copy(likedOnly = false, sharedOnly = !shared, tags = emptySet())) },
-                                            label = { Text(stringResource(R.string.saved_shared)) },
-                                            leadingIcon = { Icon(painterResource(R.drawable.ic_group), contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) },
-                                        )
-                                    }
                                 },
                             )
                         } else if (state.feeds.isNotEmpty()) {
@@ -346,7 +343,7 @@ fun HomeScreen(
                         }
                     }
                 },
-                bottomBar = { if (!wide) MainNavigationBar(tab, onTab) },
+                bottomBar = { if (!wide) MainNavigationBar(tab, onTab, savedDot = sharedWaiting > 0) },
                 floatingActionButton = {
                     // Marks everything in the section being viewed as read: All, a folder or a feed.
                     if (state.feeds.isNotEmpty() && unreadHere > 0 && inFeeds) {
@@ -379,7 +376,8 @@ fun HomeScreen(
                             onArchive = actions.onArchiveItem,
                             onFile = actions.onFileItem,
                             onShare = actions.onShareItem,
-                            onClearFilters = { actions.onSavedFilter(reading.filter.copy(likedOnly = false, sharedOnly = false, tags = emptySet())) },
+                            onPlace = actions.onPlaceShared,
+                            onClearFilters = { actions.onSavedFilter(reading.filter.copy(likedOnly = false, tags = emptySet())) },
                         )
                     }
                 } else {

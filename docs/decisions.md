@@ -30,6 +30,20 @@ Newest first. Add an entry for every notable choice: what was decided, why, and 
   with a tab for each, on Android and the web. ☰ keeps Manage feeds under Feeds and Manage tags under
   Saved, each opening the screen on its own tab; switching tabs doesn't add a step to Back.
 
+## 2026-10-23: Shared with me, a place of its own in Saved (#167)
+
+- At the owner's request, what other Content users send no longer lands in To read: it waits in
+  **Shared with me**, a fourth state in Saved's state chip (To read, Shared with me, Archive, All),
+  until it is moved to To read or the Archive (or removed). This replaces the "Shared with you" chip
+  and menu row of the first version.
+- A dot (no count) on the state chip, on Shared with me in its menu, on Saved in the menu at the left
+  and on the Saved tab says something waits. No push notification yet: that needs Web Push and
+  Firebase, each its own change.
+- The sender can add a message (up to 1000 characters); the card shows it under "From …".
+- In the sync format, `sharedBy` gains `message`, `at` and `waits` (`docs/sync.md`). An item that only
+  waits has no `readingList`; `waits` keeps it from being dropped. Older apps read it as an item with
+  nothing on it, which is why both apps change together.
+
 ## 2026-10-23: Long-press menus, and swiping saves (#221)
 
 - A feed article: press and hold for **Mark as read/unread**, **Save** and **Share**; swiping

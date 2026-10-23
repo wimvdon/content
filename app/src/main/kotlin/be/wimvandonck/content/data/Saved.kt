@@ -13,6 +13,9 @@ sealed interface SavedTab {
     ) : SavedTab
 
     data object Archive : SavedTab
+
+    /** What other Content users shared with you, until you put it in To read or the Archive (#167). */
+    data object Shared : SavedTab
 }
 
 /** What Saved shows: a tab, and within it only liked ones or only some tags (all of them). */
@@ -20,8 +23,6 @@ data class SavedFilter(
     val tab: SavedTab = SavedTab.ToRead,
     val likedOnly: Boolean = false,
     val tags: Set<String> = emptySet(),
-    /** Only what other Content users shared with you (#167). */
-    val sharedOnly: Boolean = false,
 )
 
 /**
@@ -82,12 +83,14 @@ object Saved {
         item: Item,
         tab: SavedTab,
     ): Boolean {
+        if (tab == SavedTab.Shared) return item.waitingShared
         val reading = item.readingList ?: return false
         return when (tab) {
             SavedTab.All -> true
             SavedTab.Archive -> reading.state == ReadingState.Archived
             SavedTab.ToRead -> reading.state == ReadingState.ToRead && item.folder == null
             is SavedTab.Folder -> folderOf(item).equals(tab.name, ignoreCase = true)
+            SavedTab.Shared -> false
         }
     }
 
@@ -100,9 +103,8 @@ object Saved {
             .filter { item ->
                 isIn(item, filter.tab) &&
                     (!filter.likedOnly || item.liked) &&
-                    (!filter.sharedOnly || item.sharedBy != null) &&
                     filter.tags.all { t -> item.tags.any { it.equals(t, ignoreCase = true) } }
-            }.sortedByDescending { it.readingList!!.addedAt }
+            }.sortedByDescending { it.readingList?.addedAt ?: it.sharedBy?.at ?: it.createdAt }
 
     /** Every folder in use, sorted (case ignored). */
     /**
@@ -139,10 +141,10 @@ object Saved {
      * The states Saved's state chip offers (#205): To read, Archive or everything. A tag stays
      * chosen when the state changes, as a folder does with Unread and All in Feeds.
      */
-    val states: List<SavedTab> = listOf(SavedTab.ToRead, SavedTab.Archive, SavedTab.All)
+    val states: List<SavedTab> = listOf(SavedTab.ToRead, SavedTab.Shared, SavedTab.Archive, SavedTab.All)
 
-    /** How many shared items are still to read, for ☰'s Shared row (#167); null when nothing was ever shared. */
-    fun sharedToReadCount(library: Library): Int? = if (library.items.none { it.sharedBy != null && it.readingList != null }) null else library.items.count { it.sharedBy != null && isIn(it, SavedTab.ToRead) }
+    /** How many shared items wait in Shared with me (#167): a dot on Saved while there are any. */
+    fun sharedWaiting(library: Library): Int = library.items.count { it.waitingShared }
 
     /** How many liked items are still to read, for ☰'s Liked row (#206). */
     fun likedToReadCount(library: Library): Int = library.items.count { it.liked && isIn(it, SavedTab.ToRead) }

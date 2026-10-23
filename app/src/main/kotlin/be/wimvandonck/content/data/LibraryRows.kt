@@ -101,12 +101,12 @@ object LibraryRows {
             sharedBy = row.sharedBy?.let { runCatching { Json.parse(it) }.getOrNull() }.let(::sharedByOf),
         )
 
-    fun sharedByMap(s: SharedBy): Map<String, Any?> = linkedMapOf("email" to s.email, "name" to s.name)
+    fun sharedByMap(s: SharedBy): Map<String, Any?> = linkedMapOf("email" to s.email, "name" to s.name, "message" to s.message, "at" to s.at, "waits" to s.waits)
 
     fun sharedByOf(value: Any?): SharedBy? {
         val m = value as? Map<*, *> ?: return null
         val email = (m["email"] as? String)?.takeIf { it.isNotBlank() } ?: return null
-        return SharedBy(email, m["name"] as? String ?: "")
+        return SharedBy(email, m["name"] as? String ?: "", m["message"] as? String ?: "", (m["at"] as? Number)?.toLong() ?: 0L, m["waits"] == true)
     }
 
     fun highlightMap(h: Highlight): Map<String, Any?> =

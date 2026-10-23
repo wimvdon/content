@@ -17,16 +17,32 @@ class SharingTest {
     ) = Item(key = key, url = "https://$key", title = key, createdAt = at, readingList = ReadingListEntry(ReadingState.ToRead, at), tags = tags.toList())
 
     @Test
-    fun `shared articles land in To read, marked with who shared them and the tag`() {
-        val message = InboxMessage("m1", ann, listOf(SharedArticle("https://a.example/1", "One"), SharedArticle("https://a.example/2", "Two")), tag = "Reading club")
+    fun `shared articles wait in Shared with me, with who shared them, the message and the tag`() {
+        val message = InboxMessage("m1", ann, listOf(SharedArticle("https://a.example/1", "One"), SharedArticle("https://a.example/2", "Two")), tag = "Reading club", message = " Read these ")
         val (lib, got) = Sharing.takeIn(Library(), listOf(message), 100)
         assertEquals(2, got.count)
         assertEquals(listOf(ann), got.from)
         val one = lib.item("a.example/1")!!
-        assertEquals(ReadingState.ToRead, one.readingList?.state)
-        assertEquals(ann, one.sharedBy)
+        assertNull(one.readingList)
+        assertTrue(one.waitingShared)
+        assertEquals(ann.copy(message = "Read these", at = 100, waits = true), one.sharedBy)
         assertEquals(listOf("Reading club"), one.tags)
-        assertEquals(listOf("a.example/2", "a.example/1").toSet(), Saved.items(lib, SavedFilter(SavedTab.All, sharedOnly = true)).map { it.key }.toSet())
+        assertEquals(setOf("a.example/1", "a.example/2"), Saved.items(lib, SavedFilter(SavedTab.Shared)).map { it.key }.toSet())
+        assertTrue(Saved.items(lib, SavedFilter(SavedTab.ToRead)).isEmpty())
+        assertEquals(2, Saved.sharedWaiting(lib))
+    }
+
+    @Test
+    fun `put in Saved it leaves Shared with me, and removing it later drops it`() {
+        val (lib, _) = Sharing.takeIn(Library(), listOf(InboxMessage("m", ann, listOf(SharedArticle("https://a.example/1", "One")), message = "Hi")), 100)
+        val toRead = lib.changeItem("a.example/1") { it.copy(readingList = ReadingListEntry(ReadingState.ToRead, 200)) }
+        val item = toRead.item("a.example/1")!!
+        assertEquals(false, item.waitingShared)
+        assertEquals("Hi", item.sharedBy?.message)
+        assertEquals(0, Saved.sharedWaiting(toRead))
+        assertEquals(listOf("a.example/1"), Saved.items(toRead, SavedFilter(SavedTab.ToRead)).map { it.key })
+        // Removed from Saved: gone, not back in Shared with me.
+        assertNull(toRead.setReadingState("a.example/1", null).item("a.example/1"))
     }
 
     @Test
@@ -50,19 +66,19 @@ class SharingTest {
 
     @Test
     fun `who shared it syncs with the item and stays once known`() {
-        val item = saved("a.example/1", 1).copy(sharedBy = ann)
+        val item = saved("a.example/1", 1).copy(sharedBy = ann.copy(message = "Hi", at = 5))
         val data = SyncRows.itemData(item)
-        assertEquals(ann, SyncRows.itemOf(item.key, data, null)?.sharedBy)
+        assertEquals(item.sharedBy, SyncRows.itemOf(item.key, data, null)?.sharedBy)
         assertNull(SyncRows.itemOf(item.key, SyncRows.itemData(item.copy(sharedBy = null)), null)?.sharedBy)
-        assertEquals(ann, SyncRows.mergeItems(null, item.copy(sharedBy = null), item).sharedBy)
+        assertEquals(item.sharedBy, SyncRows.mergeItems(null, item.copy(sharedBy = null), item).sharedBy)
         assertEquals(item, LibraryRows.item(LibraryRows.item(item)))
     }
 
     @Test
     fun `reads the inbox the account sends`() {
-        val text = """{"messages":[{"id":"m1","at":1,"from":{"email":"ann@example.com","name":"Ann"},"items":[{"url":"https://a.example/1","title":"One","imageUrl":"http://x"}],"tag":null},{"id":"bad"}]}"""
+        val text = """{"messages":[{"id":"m1","at":1,"from":{"email":"ann@example.com","name":"Ann"},"items":[{"url":"https://a.example/1","title":"One","imageUrl":"http://x"}],"tag":null,"message":"Hi"},{"id":"bad"}]}"""
         val messages = AccountClient.inboxFrom(text)
-        assertEquals(listOf(InboxMessage("m1", ann, listOf(SharedArticle("https://a.example/1", "One")), null)), messages)
+        assertEquals(listOf(InboxMessage("m1", ann, listOf(SharedArticle("https://a.example/1", "One")), null, "Hi")), messages)
         assertTrue(AccountClient.inboxFrom("nonsense").isEmpty())
     }
 }

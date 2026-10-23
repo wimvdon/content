@@ -93,7 +93,7 @@ and JSON data (`null` once deleted):
 
 | Key | Data |
 |---|---|
-| `item:<item key>` | A saved item (`data/Items.kt`): `url`, `title`, `imageUrl`, `feedUrl`, `articleId`, `createdAt`, `readingList` (`{"state": "toread" \| "archived", "addedAt"}` or `null`), `folder` (its folder while to read, #119, or `null`), `bookmark` (`{"addedAt", "collection"}` or `null`; from before #119, moved into `folder` by the Android app), `service` (the service it is kept in, `"instapaper"` or `"raindrop"`, #121, or `null`), `liked`, `tags`, `note`, `highlights` (each `{"id", "quote", "prefix", "suffix", "occurrence", "note", "createdAt"}`) and `progress` (thousandths, 0 to 1000) |
+| `item:<item key>` | A saved item (`data/Items.kt`): `url`, `title`, `imageUrl`, `feedUrl`, `articleId`, `createdAt`, `readingList` (`{"state": "toread" \| "archived", "addedAt"}` or `null`), `folder` (its folder while to read, #119, or `null`), `bookmark` (`{"addedAt", "collection"}` or `null`; from before #119, moved into `folder` by the Android app), `service` (the service it is kept in, `"instapaper"` or `"raindrop"`, #121, or `null`), `liked`, `tags`, `note`, `highlights` (each `{"id", "quote", "prefix", "suffix", "occurrence", "note", "createdAt"}`), `progress` (thousandths, 0 to 1000) and `sharedBy` (who shared it with you, #167: `{"email", "name", "message", "at", "waits"}` or `null`; `waits` is true while it waits in Saved › Shared with me, without `readingList`) |
 | `read:<feed url> <article id>` | A read feed article: `{"time": <the article's date in ms>}` |
 
 - The item key is the link without `http(s)://`, `www.`, a trailing slash and the `#part`, in lower

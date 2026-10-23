@@ -206,8 +206,8 @@ object SyncRows {
             note = pick(b?.note, l.note, r.note),
             highlights = mergeHighlights(b?.highlights.orEmpty(), l.highlights, r.highlights),
             progress = pick(b?.progress, l.progress, r.progress),
-            // Who shared it doesn't change once known.
-            sharedBy = l.sharedBy ?: r.sharedBy,
+            // Who shared it: once known it stays; whether it still waits follows the side that changed it.
+            sharedBy = if (l.sharedBy == null || r.sharedBy == null) l.sharedBy ?: r.sharedBy else pick(b?.sharedBy, l.sharedBy, r.sharedBy),
         )
     }
 

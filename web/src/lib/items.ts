@@ -65,11 +65,21 @@ export interface Item {
   sharedBy?: SharedBy | null;
 }
 
-/** Who shared an item with you (#167): their email address and name (may be empty). */
+/**
+ * Who shared an item with you (#167): their email address and name (may be empty), their message,
+ * when, and whether it still waits in Saved › Shared with me (until you put it in To read or the
+ * Archive, or remove it). Like the Android app's SharedBy.
+ */
 export interface SharedBy {
   email: string;
   name: string;
+  message?: string;
+  at?: number;
+  waits?: boolean;
 }
+
+/** Waiting in Saved › Shared with me (#167): shared with you, not put in To read or the Archive yet. */
+export const waitingShared = (i: Item) => i.readingList === null && i.sharedBy?.waits === true;
 
 /** An address without what doesn't change the page (http(s), www., a trailing slash, the #part), lower case. */
 export function keyOfLink(url: string | null | undefined): string | null {
@@ -110,7 +120,7 @@ export const isWebLink = (url: string | null | undefined): url is string => !!ur
 
 /** False when nothing of the user's is left on it, so it can be dropped. */
 export const isKept = (i: Item) =>
-  i.readingList !== null || i.bookmark !== null || i.liked || i.tags.length > 0 || i.note.trim() !== "" || i.highlights.length > 0;
+  i.readingList !== null || i.bookmark !== null || i.liked || i.tags.length > 0 || i.note.trim() !== "" || i.highlights.length > 0 || i.sharedBy?.waits === true;
 
 export const itemOf = (lib: Library, key: string): Item | undefined => lib.items.find((i) => i.key === key);
 
@@ -157,7 +167,9 @@ export function newItem(lib: Library, url: string, title: string | null | undefi
 }
 
 /** Adds or replaces an item; an item with nothing of the user's left on it is dropped. */
-export function putItem(lib: Library, item: Item): Library {
+export function putItem(lib: Library, given: Item): Library {
+  // Put in Saved, a shared item no longer waits in Shared with me (#167): removing it later drops it.
+  const item = given.readingList && given.sharedBy?.waits ? { ...given, sharedBy: { ...given.sharedBy, waits: false } } : given;
   const index = lib.items.findIndex((i) => i.key === item.key);
   if (!isKept(item)) return index < 0 ? lib : { ...lib, items: lib.items.filter((_, i) => i !== index) };
   if (index < 0) return { ...lib, items: [...lib.items, item] };

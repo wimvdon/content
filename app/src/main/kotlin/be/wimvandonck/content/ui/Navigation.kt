@@ -1,5 +1,6 @@
 package be.wimvandonck.content.ui
 
+import be.wimvandonck.content.data.ReadingListEntry
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -658,6 +659,10 @@ fun RssReaderNavigation(
                                 onArchiveItem = ::archive,
                                 onFileItem = { fileKey = it.key },
                                 onShareArticle = { article -> send(article, current.shareTarget) },
+                                onPlaceShared = { item, state ->
+                                    val now = System.currentTimeMillis()
+                                    editLibrary { lib -> lib.changeItem(item.key) { it.copy(readingList = ReadingListEntry(state, now)) } }
+                                },
                                 onShareItem = { item -> send(ReadingLists.article(item, library), current.shareTarget) },
                                 onOpenSearch = { push(Screen.Search) },
                             ),
@@ -748,10 +753,10 @@ fun RssReaderNavigation(
                                     onSignIn = article?.link?.takeIf { SiteSignIns.siteOf(it) != null }?.let { link -> { push(Screen.SiteSignIn(link)) } },
                                     onShareWithUser =
                                         article?.link?.takeIf { accountState is AccountState.SignedIn }?.let { link ->
-                                            { email, result ->
+                                            { email, message, result ->
                                                 uiScope.launch {
                                                     val shared = item?.let { Sharing.article(it) } ?: SharedArticle(link, article?.title ?: link)
-                                                    val r = app.sync.share(email, listOf(shared), null)
+                                                    val r = app.sync.share(email, listOf(shared), null, message)
                                                     result(r)
                                                     if (r == ShareResult.Sent) showMessage(resources.getString(R.string.share_user_sent, email))
                                                 }
@@ -981,9 +986,9 @@ fun RssReaderNavigation(
                         onTab = ::showManageTab,
                         onShareTag =
                             if (accountState is AccountState.SignedIn) {
-                                { tag, email, result ->
+                                { tag, email, message, result ->
                                     uiScope.launch {
-                                        val r = app.sync.share(email, Sharing.tagArticles(library, tag), tag)
+                                        val r = app.sync.share(email, Sharing.tagArticles(library, tag), tag, message)
                                         result(r)
                                         if (r == ShareResult.Sent) showMessage(resources.getString(R.string.share_user_sent, email))
                                     }
@@ -1144,10 +1149,11 @@ private val SavedFilterSaver =
                     SavedTab.ToRead -> "toread"
                     SavedTab.All -> "all"
                     SavedTab.Archive -> "archive"
+                    SavedTab.Shared -> "shared"
                     is SavedTab.Folder -> "folder:" + t.name
                 }
-            // The third slot was the type (dropped); Shared uses it now (#167).
-            listOf(tab, f.likedOnly.toString(), if (f.sharedOnly) "shared" else "", f.tags.joinToString("\u0001")).joinToString("\u0000")
+            // The third slot was the type (dropped); it stays empty so older saved states still read.
+            listOf(tab, f.likedOnly.toString(), "", f.tags.joinToString("\u0001")).joinToString("\u0000")
         },
         restore = {
             val parts = it.split('\u0000')
@@ -1157,11 +1163,11 @@ private val SavedFilterSaver =
                     when {
                         tab == "all" -> SavedTab.All
                         tab == "archive" -> SavedTab.Archive
+                        tab == "shared" -> SavedTab.Shared
                         tab.startsWith("folder:") -> SavedTab.Folder(tab.removePrefix("folder:"))
                         else -> SavedTab.ToRead
                     },
                 likedOnly = parts.getOrNull(1) == "true",
-                sharedOnly = parts.getOrNull(2) == "shared",
                 tags = parts.getOrNull(3)?.split('\u0001')?.filter { t -> t.isNotEmpty() }?.toSet().orEmpty(),
             )
         },

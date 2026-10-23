@@ -67,10 +67,13 @@
     <string name="reader_background_dark">Dark</string>
     <string name="reader_preview">Good typography is invisible: you notice the story, not the letters.</string>
     <string name="reader_read_on_website">Read on website</string>
-    <string name="saved_shared">Shared with you</string>
+    <string name="saved_shared_new">New articles shared with you</string>
+    <string name="saved_move_to_read">Move to To read</string>
+    <string name="share_user_message">Message (optional)</string>
+    <string name="saved_shared">Shared with me</string>
     <string name="share_user_menu">Send to a Content user</string>
     <string name="share_user_title">Send to a Content user</string>
-    <string name="share_user_article">This article goes to their Saved, To read.</string>
+    <string name="share_user_article">This article goes to their Saved, Shared with me.</string>
     <string name="share_user_send">Send</string>
     <string name="share_user_sent">Sent to %1$s</string>
     <string name="share_user_no_account">There\'s no Content account for this address.</string>
@@ -78,8 +81,8 @@
     <string name="share_user_signed_out">Sign in to your Content account first.</string>
     <string name="share_user_from">From %1$s</string>
     <plurals name="share_user_tag">
-        <item quantity="one">Everything tagged %1$s (%2$d article) goes to their Saved, To read, with that tag.</item>
-        <item quantity="other">Everything tagged %1$s (%2$d articles) goes to their Saved, To read, with that tag.</item>
+        <item quantity="one">Everything tagged %1$s (%2$d article) goes to their Saved, Shared with me, with that tag.</item>
+        <item quantity="other">Everything tagged %1$s (%2$d articles) goes to their Saved, Shared with me, with that tag.</item>
     </plurals>
     <plurals name="share_user_received">
         <item quantity="one">%1$s shared %2$d article with you</item>
