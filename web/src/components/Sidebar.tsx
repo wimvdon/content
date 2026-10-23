@@ -1,9 +1,10 @@
-import { Bookmark, ChevronDown, ChevronRight, Heart, Rss, Settings as SettingsIcon, Tag as TagGlyph, Users } from "lucide-react";
+import { Bookmark, ChevronDown, ChevronRight, Heart, Rss, Settings as SettingsIcon, Tag as TagGlyph } from "lucide-react";
 import { useState } from "react";
 import { app, useApp } from "@/lib/app";
 import { t } from "@/lib/i18n";
 import { choosesFolder, unreadByFeed } from "@/lib/library";
-import { likedToReadCount, sharedToReadCount, toReadCount, toReadTagCounts } from "@/lib/saved";
+import { likedToReadCount, sharedWaiting, toReadCount, toReadTagCounts } from "@/lib/saved";
+import { NewDot } from "./NewDot";
 import { FeedIcon } from "./FeedIcon";
 import { FolderIcon } from "./FolderIcon";
 import { ManageFeedsIcon, ManageSavedIcon } from "./ManageIcons";
@@ -75,7 +76,7 @@ export function Sidebar({
   const toRead = toReadCount(library);
   const tagCounts = toReadTagCounts(library);
   const likedToRead = likedToReadCount(library);
-  const sharedToRead = sharedToReadCount(library);
+  const waiting = sharedWaiting(library) > 0;
   const loose = library.feeds.filter((f) => !f.folderId);
 
   return (
@@ -176,14 +177,15 @@ export function Sidebar({
           onToggle={toggleSection}
         >
           <Row
-            selected={inSaved && !savedFilter.likedOnly && !savedFilter.sharedOnly && savedFilter.tags.length === 0}
+            selected={inSaved && !savedFilter.likedOnly && savedFilter.tags.length === 0}
             onClick={() => {
-              app.showSaved({ ...savedFilter, likedOnly: false, sharedOnly: false, tags: [] });
+              app.showSaved({ ...savedFilter, likedOnly: false, tags: [] });
               onNavigate?.();
             }}
             icon={<Bookmark className="size-5" />}
             label={t("saved")}
             count={toRead}
+            dot={waiting}
           />
           {/* Under Tags: Liked first, as on the chips, then the tags. */}
           <div className="mt-2">
@@ -191,26 +193,13 @@ export function Sidebar({
             <Row
               selected={inSaved && savedFilter.likedOnly}
               onClick={() => {
-                app.showSaved({ ...savedFilter, likedOnly: true, sharedOnly: false, tags: [] });
+                app.showSaved({ ...savedFilter, likedOnly: true, tags: [] });
                 onNavigate?.();
               }}
               icon={<Heart className="size-5" />}
               label={t("liked")}
               count={likedToRead}
             />
-            {/* Shared with you (#167): once something was shared, after Liked. */}
-            {sharedToRead !== null ? (
-              <Row
-                selected={inSaved && Boolean(savedFilter.sharedOnly)}
-                onClick={() => {
-                  app.showSaved({ ...savedFilter, likedOnly: false, sharedOnly: true, tags: [] });
-                  onNavigate?.();
-                }}
-                icon={<Users className="size-5" />}
-                label={t("savedShared")}
-                count={sharedToRead}
-              />
-            ) : null}
             {[...tagCounts].map(([tag, tagCount]) => {
               const isSelected = inSaved && savedFilter.tags.some((t) => t.toLowerCase() === tag.toLowerCase());
               return (
@@ -218,7 +207,7 @@ export function Sidebar({
                   key={`tag:${tag}`}
                   selected={isSelected}
                   onClick={() => {
-                    app.showSaved({ ...savedFilter, likedOnly: false, sharedOnly: false, tags: [tag] });
+                    app.showSaved({ ...savedFilter, likedOnly: false, tags: [tag] });
                     onNavigate?.();
                   }}
                   icon={<TagGlyph className="size-5" />}
@@ -297,6 +286,7 @@ function Row({
   icon,
   label,
   count,
+  dot,
   className,
 }: {
   selected?: boolean;
@@ -304,6 +294,8 @@ function Row({
   icon: React.ReactNode;
   label: string;
   count?: number;
+  /** Something new waits there (#167). */
+  dot?: boolean;
   className?: string;
 }) {
   return (
@@ -319,6 +311,7 @@ function Row({
     >
       <span className="shrink-0 text-muted-foreground [&>*]:size-5">{icon}</span>
       <span className="min-w-0 flex-1 truncate">{label}</span>
+      {dot ? <NewDot /> : null}
       {count !== undefined && count > 0 ? <span className="text-xs text-muted-foreground tabular-nums">{count}</span> : null}
     </button>
   );

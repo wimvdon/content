@@ -81,7 +81,10 @@ data class Item(
 
     /** False when nothing of the user's is left on it, so it can be dropped. */
     val kept: Boolean
-        get() = readingList != null || bookmark != null || liked || tags.isNotEmpty() || note.isNotBlank() || highlights.isNotEmpty()
+        get() = readingList != null || bookmark != null || liked || tags.isNotEmpty() || note.isNotBlank() || highlights.isNotEmpty() || sharedBy?.waits == true
+
+    /** Waiting in Saved › Shared with me (#167): shared with you, not put in To read or the Archive yet. */
+    val waitingShared: Boolean get() = readingList == null && sharedBy?.waits == true
 
     val onReadingList: Boolean get() = readingList != null
 

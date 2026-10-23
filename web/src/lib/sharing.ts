@@ -1,7 +1,8 @@
 /**
  * Sharing with other Content users (#167), as the Android app's data/Sharing.kt does. Sending picks
- * what goes (one article, or a tag's articles); receiving puts each shared article in Saved, To read,
- * marked with who shared it (and the tag it was shared as). A one-time copy.
+ * what goes (one article, or a tag's articles) with a message; receiving puts each shared article in
+ * Saved › Shared with me, marked with who shared it, their message and the tag it was shared as. A
+ * one-time copy.
  */
 
 import { cleanTags, itemOf, keyOfLink, newItem, putItem, type Item, type SharedBy } from "./items";
@@ -20,6 +21,8 @@ export interface InboxMessage {
   from: SharedBy;
   items: SharedArticle[];
   tag?: string | null;
+  /** The sender's message, or empty. */
+  message?: string;
 }
 
 /** What taking in the inbox brought: from whom, and how many articles. */
@@ -46,8 +49,9 @@ export function tagArticles(lib: Library, tag: string): SharedArticle[] {
 export const sharedByLabel = (s: SharedBy) => s.name.trim() || s.email;
 
 /**
- * The library with messages taken in: each article in Saved (To read, unless it is there already),
- * with who shared it (an article already shared keeps its first sender) and the tag it was shared as.
+ * The library with messages taken in: each article waits in Saved › Shared with me with who shared it,
+ * their message and the tag it was shared as; one already in Saved stays where it is. An article
+ * already shared keeps its first sender.
  */
 export function takeInShared(lib: Library, messages: InboxMessage[], now: number): { library: Library; received: Received } {
   let result = lib;
@@ -64,8 +68,7 @@ export function takeInShared(lib: Library, messages: InboxMessage[], now: number
       const tags = tag && !base.tags.some((t) => t.toLowerCase() === tag.toLowerCase()) ? [...base.tags, tag] : base.tags;
       const updated: Item = {
         ...base,
-        readingList: base.readingList ?? { state: "toread", addedAt: now },
-        sharedBy: base.sharedBy ?? message.from,
+        sharedBy: base.sharedBy ?? { ...message.from, message: message.message?.trim() ?? "", at: now, waits: base.readingList === null },
         tags: cleanTags(tags),
       };
       if (JSON.stringify(updated) !== JSON.stringify(existing)) {
@@ -91,6 +94,6 @@ export function inboxOf(body: unknown): InboxMessage[] {
       if (!a || typeof a.url !== "string") return [];
       return [{ url: a.url, title: typeof a.title === "string" ? a.title : a.url, imageUrl: typeof a.imageUrl === "string" && a.imageUrl.startsWith("https://") ? a.imageUrl : null, description: typeof a.description === "string" ? a.description : "" }];
     });
-    return [{ id: m.id, from: { email: from.email, name: typeof from.name === "string" ? from.name : "" }, items, tag: typeof m.tag === "string" && m.tag.trim() ? m.tag : null }];
+    return [{ id: m.id, from: { email: from.email, name: typeof from.name === "string" ? from.name : "" }, items, tag: typeof m.tag === "string" && m.tag.trim() ? m.tag : null, message: typeof m.message === "string" ? m.message : "" }];
   });
 }

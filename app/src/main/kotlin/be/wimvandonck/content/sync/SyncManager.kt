@@ -286,11 +286,12 @@ class SyncManager(
         to: String,
         items: List<SharedArticle>,
         tag: String?,
+        message: String = "",
     ): ShareResult {
         val session = account.session() ?: return ShareResult.SignedOut
         val email = session.email ?: return ShareResult.NoEmail
         return try {
-            if (AccountClient(http, session.key).share(to, SharedBy(email), items, tag)) ShareResult.Sent else ShareResult.NoAccount
+            if (AccountClient(http, session.key).share(to, SharedBy(email), items, tag, message)) ShareResult.Sent else ShareResult.NoAccount
         } catch (e: SyncException) {
             if (e.problem == SyncProblem.Offline) ShareResult.Offline else ShareResult.Failed
         }

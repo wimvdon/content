@@ -155,7 +155,7 @@ website (the same as **Read on website** at the end). In the top bar:
 |---|---|
 | Full article (page icon) | **Show full article** / **Show feed text**: the whole article from the website, or the feed's own text. It is lit while the full article shows. Not in a saved article: that always shows the whole article. |
 | **Aa** | Text settings: font (Sans or Serif), text size, spacing (Compact, Normal, Relaxed), background (Theme, Sepia or Dark) and **Auto dark** (the dark page whenever the app is dark, e.g. Sepia by day and dark at night). Changes apply right away and are remembered for every article. |
-| ⋮ | **Open in browser**, **Mark as unread** (back to the list, where it waits unread; the web app keeps the article open and offers **Mark as read** too), **Sign in to this site** (#180: for a site you pay for, such as standaard.be; sign in on its page and tap **Done**, and from then on its articles load in full; Settings › Sites you're signed in to lists them, with **Remove**), **Send to a Content user** (#167: type their email address; the article lands in their Saved, To read, and they see it came from you; it says so first when the address has no Content account), **Report a problem with this article** (#181: pick what is wrong, add a comment if you like, and **Send** opens a pre-filled report on GitHub in your browser, with the article's link but not its text; submit it there), and for a saved article **Remove from Saved**. Open in browser, and links in an article, open in a tab of your browser on top of Reader, with a **Save** button in its toolbar: it opens the save sheet over the page (see Saving from other apps); save or close it to keep reading. |
+| ⋮ | **Open in browser**, **Mark as unread** (back to the list, where it waits unread; the web app keeps the article open and offers **Mark as read** too), **Sign in to this site** (#180: for a site you pay for, such as standaard.be; sign in on its page and tap **Done**, and from then on its articles load in full; Settings › Sites you're signed in to lists them, with **Remove**), **Send to a Content user** (#167: type their email address and, if you like, a message; the article lands in their Saved › Shared with me, and they see it came from you, with your message; it says so first when the address has no Content account), **Report a problem with this article** (#181: pick what is wrong, add a comment if you like, and **Send** opens a pre-filled report on GitHub in your browser, with the article's link but not its text; submit it there), and for a saved article **Remove from Saved**. Open in browser, and links in an article, open in a tab of your browser on top of Reader, with a **Save** button in its toolbar: it opens the save sheet over the page (see Saving from other apps); save or close it to keep reading. |
 
 The bar at the bottom is the article in your library, with **Share** at its right end (the share
 menu, or straight to the app you chose). Before it is saved it has **Save** on the left: it saves the article to **To read** (by default), or sends it to the app you chose or the
@@ -196,6 +196,14 @@ The same sheet, called **Organise**, opens when you press and hold a saved artic
 and pick **Organise** (web: right-click it); **Share** is in that menu too. Cards don't swipe. When it
 closes, a message says where the article went; after a swipe, **Add link** or a link shared from
 another app it also has **Open**, which goes to the article in Saved.
+
+**Shared with me** (#167). What other Content users send you waits in Saved's state chip under
+**Shared with me** (To read, Shared with me, Archive, All), not in To read. Each card says who it
+is from, with their message. While something waits there, a dot shows on the state chip, on
+Shared with me in its menu, on **Saved** in ☰ and on the **Saved** tab at the bottom. Press and hold
+a card (web: right-click it) for **Move to To read** or **Archive**, or **Organise** to tag it; once
+moved it is a saved article like any other. There are no phone notifications yet: the dots show
+when the app opens.
 
 **Full articles.** Many feeds contain only the start of an article, or a few paragraphs with a
 "Read full article" link. Then the reader fetches the

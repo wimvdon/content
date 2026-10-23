@@ -114,7 +114,7 @@ class ReaderActions(
     /** Signs in to the article's site (#180), so articles you pay for load in full. Null without an https link. */
     val onSignIn: (() -> Unit)? = null,
     /** Sends the article to a Content user (#167); null when signed out or without a link. */
-    val onShareWithUser: ((email: String, result: (ShareResult) -> Unit) -> Unit)? = null,
+    val onShareWithUser: ((email: String, message: String, result: (ShareResult) -> Unit) -> Unit)? = null,
     /** Reports a badly cleaned-up article (#181): a pre-filled GitHub issue in the browser. Null without a link. */
     val onReport: ((ArticleReport.Problem, String) -> Unit)? = null,
 )

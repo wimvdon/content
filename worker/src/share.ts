@@ -5,7 +5,7 @@
  *
  *  - POST /account/share/check {"email"}: {"exists": bool}, whether the address has a Content account,
  *                               so the app can say so before sending.
- *  - POST /account/share       {"to", "from": {"email", "name"}, "items": [{"url", "title", ...}], "tag"?}:
+ *  - POST /account/share       {"to", "from": {"email", "name"}, "items": [{"url", "title", ...}], "tag"?, "message"?}:
  *                               204 once in their inbox; 404 when the address has no account; 403 when
  *                               "from" isn't an address of the sender's own account.
  *  - GET  /account/inbox       {"messages": [...]}: what was shared with this account, oldest first.
@@ -25,6 +25,8 @@ const KEY_PATTERN = /^([0-9a-f]{32})\.([A-Za-z0-9_-]{43})$/;
 export const MAX_SHARED_ITEMS = 500;
 const MAX_BODY = 512 * 1024;
 const MAX_TEXT = 2048;
+/** The longest message for the receiver. */
+export const MAX_MESSAGE = 1000;
 
 export async function handleShare(request: Request, env: Env, url: URL): Promise<Response> {
   const origin = request.headers.get("Origin");
@@ -86,7 +88,7 @@ export async function handleShare(request: Request, env: Env, url: URL): Promise
   const added = await inbox.fetch("https://account/inboxAdd", {
     method: "POST",
     headers: { "X-Account": to },
-    body: JSON.stringify({ id, at: Date.now(), from: message.from, items: message.items, tag: message.tag }),
+    body: JSON.stringify({ id, at: Date.now(), from: message.from, items: message.items, tag: message.tag, message: message.message }),
   });
   if (!added.ok) return plain(503, "Try again", cors);
   return new Response(null, { status: 204, headers: cors });
@@ -103,7 +105,7 @@ function routeOf(method: string, path: string): Route | null {
 }
 
 /** What a device may share, cleaned up, or null when it isn't one. */
-export function shareOf(body: Record<string, unknown>): { to: string; from: { email: string; name: string }; items: { url: string; title: string; imageUrl: string | null; description: string }[]; tag: string | null } | null {
+export function shareOf(body: Record<string, unknown>): { to: string; from: { email: string; name: string }; items: { url: string; title: string; imageUrl: string | null; description: string }[]; tag: string | null; message: string | null } | null {
   const to = normalEmail(body.to);
   const fromBody = body.from as Record<string, unknown> | null;
   const fromEmail = normalEmail(fromBody?.email);
@@ -117,7 +119,9 @@ export function shareOf(body: Record<string, unknown>): { to: string; from: { em
     items.push({ url, title: clip(item?.title) || url, imageUrl, description: clip(item?.description) });
   }
   const tag = clip(body.tag).slice(0, 100) || null;
-  return { to, from: { email: fromEmail, name: clip(fromBody?.name).slice(0, 100) }, items, tag };
+  // A short message for the receiver (#167), shown with what was shared.
+  const message = clip(body.message).slice(0, MAX_MESSAGE) || null;
+  return { to, from: { email: fromEmail, name: clip(fromBody?.name).slice(0, 100) }, items, tag, message };
 }
 
 function clip(value: unknown): string {

@@ -174,6 +174,8 @@ export interface InboxMessage {
   from: { email: string; name: string };
   items: { url: string; title: string; imageUrl?: string | null; description?: string }[];
   tag?: string | null;
+  /** A short message from the sender. */
+  message?: string | null;
 }
 
 /** Messages kept per inbox; older ones go. */

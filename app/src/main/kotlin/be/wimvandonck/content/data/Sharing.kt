@@ -1,9 +1,16 @@
 package be.wimvandonck.content.data
 
-/** Who shared an item with you (#167): their email address and name (the name may be empty). */
+/**
+ * Who shared an item with you (#167): their email address and name (the name may be empty), their
+ * message, when, and whether it still [waits] in Saved › Shared with me (until you put it in To read
+ * or the Archive, or remove it).
+ */
 data class SharedBy(
     val email: String,
     val name: String = "",
+    val message: String = "",
+    val at: Long = 0,
+    val waits: Boolean = false,
 ) {
     /** How the app names them: the name, else the address. */
     val label: String get() = name.ifBlank { email }
@@ -24,6 +31,8 @@ data class InboxMessage(
     val items: List<SharedArticle>,
     /** The tag it was shared as, or null for single articles. */
     val tag: String? = null,
+    /** The sender's message, or empty. */
+    val message: String = "",
 )
 
 /** What taking in the inbox brought: from whom, and how many articles. */
@@ -56,9 +65,9 @@ object Sharing {
             .map(::article)
 
     /**
-     * The library with [messages] taken in: each article in Saved (To read, unless it is there
-     * already), with who shared it (an article already shared keeps its first sender) and the tag it
-     * was shared as. Returns what arrived.
+     * The library with [messages] taken in: each article waits in Saved › Shared with me with who
+     * shared it, their message and the tag it was shared as; one already in Saved stays where it is.
+     * An article already shared keeps its first sender. Returns what arrived.
      */
     fun takeIn(
         library: Library,
@@ -76,8 +85,7 @@ object Sharing {
                 val tags = message.tag?.takeIf { t -> base.tags.none { it.equals(t, ignoreCase = true) } }?.let { base.tags + it } ?: base.tags
                 val updated =
                     base.copy(
-                        readingList = base.readingList ?: ReadingListEntry(ReadingState.ToRead, now),
-                        sharedBy = base.sharedBy ?: message.from,
+                        sharedBy = base.sharedBy ?: message.from.copy(message = message.message.trim(), at = now, waits = base.readingList == null),
                         tags = cleanTags(tags),
                     )
                 if (updated != existing) {

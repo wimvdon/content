@@ -1,5 +1,6 @@
 package be.wimvandonck.content.ui.home
 
+import be.wimvandonck.content.data.ReadingState
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -94,11 +95,13 @@ internal fun SavedContent(
     onFile: (Item) -> Unit = {},
     /** Long-press › Share (#221). */
     onShare: (Item) -> Unit = {},
+    /** Long-press in Shared with me › To read or Archive (#167). */
+    onPlace: (Item, ReadingState) -> Unit = { _, _ -> },
     /** Clears Liked and the tags, for an empty list they filtered out. */
     onClearFilters: () -> Unit = {},
 ) {
     if (home.items.isEmpty()) {
-        val plain = !home.filter.likedOnly && !home.filter.sharedOnly && home.filter.tags.isEmpty()
+        val plain = !home.filter.likedOnly && home.filter.tags.isEmpty()
         val toRead = home.filter.tab == SavedTab.ToRead && plain
         EmptyState(
             painterResource(
@@ -122,7 +125,7 @@ internal fun SavedContent(
         }
         return
     }
-    if (Saved.showsNotes(home.filter.tab)) NotesGrid(home, showImages, onOpen, onFile, onShare) else ArticleList(home, showImages, onOpen, onArchive, onFile)
+    if (Saved.showsNotes(home.filter.tab)) NotesGrid(home, showImages, onOpen, onFile, onShare, onPlace) else ArticleList(home, showImages, onOpen, onArchive, onFile)
 }
 
 /**
@@ -200,9 +203,12 @@ private fun NotesGrid(
     onOpen: (Item) -> Unit,
     onFile: (Item) -> Unit,
     onShare: (Item) -> Unit,
+    onPlace: (Item, ReadingState) -> Unit,
 ) {
     val organiseLabel = stringResource(R.string.organise_title)
     val shareLabel = stringResource(R.string.action_share)
+    val toReadLabel = stringResource(R.string.saved_move_to_read)
+    val archiveLabel = stringResource(R.string.action_archive)
     val gridState = rememberSaveable(home.filter, saver = LazyStaggeredGridState.Saver) { LazyStaggeredGridState() }
     LazyVerticalStaggeredGrid(
         state = gridState,
@@ -224,7 +230,14 @@ private fun NotesGrid(
                 onClick = { onOpen(item) },
                 modifier = Modifier.animateItem(),
                 // Long-press (#221): Organise (tags, note) and Share. No swipes on cards.
-                menu = listOf(RowMenuAction(R.drawable.ic_label, organiseLabel) { onFile(item) }, RowMenuAction(R.drawable.ic_share, shareLabel) { onShare(item) }),
+                menu =
+                    listOfNotNull(
+                        // Shared with me (#167): put it in To read or the Archive.
+                        if (item.waitingShared) RowMenuAction(R.drawable.ic_reading_list, toReadLabel) { onPlace(item, ReadingState.ToRead) } else null,
+                        if (item.waitingShared) RowMenuAction(R.drawable.ic_inventory, archiveLabel) { onPlace(item, ReadingState.Archived) } else null,
+                        RowMenuAction(R.drawable.ic_label, organiseLabel) { onFile(item) },
+                        RowMenuAction(R.drawable.ic_share, shareLabel) { onShare(item) },
+                    ),
             )
         }
     }
@@ -342,6 +355,9 @@ internal fun NoteCard(
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         Icon(painterResource(R.drawable.ic_group), contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.primary)
                         Text(stringResource(R.string.share_user_from, by.label), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                    if (by.message.isNotBlank()) {
+                        Text(by.message, style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic, maxLines = 3, overflow = TextOverflow.Ellipsis)
                     }
                 }
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
