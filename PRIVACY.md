@@ -1,6 +1,6 @@
 # Privacy policy
 
-_Last updated: 2026-10-23 (signing in with your email address)_
+_Last updated: 2026-10-23 (reporting a badly cleaned-up article)_
 
 Reader has no analytics, advertising or crash reporting. It works without an account. If you sign
 in (with your email address, or with Instapaper), Reader keeps your feed list,
@@ -89,6 +89,11 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
 - **Raindrop.io is no longer supported** (#179). The app no longer talks to raindrop.io. Updating
   the app deletes a Raindrop sign-in it still kept; revoke the app in Raindrop's settings to end
   it there too.
+- **Reporting a badly cleaned-up article** (⋮ › Report a problem with this article, #181): Send
+  opens a pre-filled "new issue" page on github.com in your browser, with the article's link, what
+  you picked, your comment, and the app's name and version; not the article's text. Nothing is sent
+  until you submit it there with your GitHub account, and the issue is then public, under GitHub's
+  privacy policy.
 - **Links you open** (Read on website, links in articles) open in your browser, under the
   website's own privacy policy.
 - **Links you add or share to Reader.** A link put on the reading list without a title (Add link,

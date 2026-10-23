@@ -66,6 +66,15 @@
     <string name="reader_background_dark">Donker</string>
     <string name="reader_preview">Goede typografie zie je niet: je merkt het verhaal op, niet de letters.</string>
     <string name="reader_read_on_website">Lezen op website</string>
+    <string name="report_menu">Probleem met dit artikel melden</string>
+    <string name="report_title">Wat is er mis met dit artikel?</string>
+    <string name="report_text_missing">Er ontbreekt tekst</string>
+    <string name="report_junk">Er staat rommel in</string>
+    <string name="report_pictures">Afbeeldingen kloppen niet</string>
+    <string name="report_other">Iets anders</string>
+    <string name="report_comment">Opmerking (optioneel)</string>
+    <string name="report_hint">Versturen opent een ingevulde melding op GitHub in je browser, met de link van het artikel (niet de tekst). Verstuur ze daar.</string>
+    <string name="report_send">Versturen</string>
     <string name="reader_article_gone">Dit artikel is niet meer beschikbaar.</string>
     <string name="reader_show_full">Volledig artikel tonen</string>
     <string name="reader_show_feed_text">Tekst uit feed tonen</string>

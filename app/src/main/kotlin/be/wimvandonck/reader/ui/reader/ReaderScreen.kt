@@ -65,6 +65,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import be.wimvandonck.reader.R
+import be.wimvandonck.reader.data.ArticleReport
 import androidx.compose.ui.res.pluralStringResource
 import java.util.UUID
 import be.wimvandonck.reader.data.Highlight
@@ -109,6 +110,8 @@ class ReaderActions(
     /** Switches between the full article and the feed's text. */
     val onToggleFullText: () -> Unit,
     val onOpenLink: (String) -> Unit,
+    /** Reports a badly cleaned-up article (#181): a pre-filled GitHub issue in the browser. Null without a link. */
+    val onReport: ((ArticleReport.Problem, String) -> Unit)? = null,
 )
 
 /**
@@ -163,6 +166,7 @@ fun ReaderScreen(
     var highlightsOpen by rememberSaveable { mutableStateOf(false) }
     var showStyleSheet by rememberSaveable { mutableStateOf(false) }
     var removeOpen by rememberSaveable { mutableStateOf(false) }
+    var reportOpen by rememberSaveable { mutableStateOf(false) }
     var menuOpen by remember { mutableStateOf(false) }
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val hasLink = article?.link != null
@@ -218,6 +222,16 @@ fun ReaderScreen(
                                 onClick = {
                                     menuOpen = false
                                     markUnread()
+                                },
+                            )
+                        }
+                        if (actions.onReport != null) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.report_menu)) },
+                                leadingIcon = { Icon(painterResource(R.drawable.ic_flag), contentDescription = null) },
+                                onClick = {
+                                    menuOpen = false
+                                    reportOpen = true
                                 },
                             )
                         }
@@ -312,6 +326,17 @@ fun ReaderScreen(
     }
 
     if (item != null) {
+        if (reportOpen) {
+            actions.onReport?.let { report ->
+                ReportDialog(
+                    onSend = { problem, comment ->
+                        reportOpen = false
+                        report(problem, comment)
+                    },
+                    onDismiss = { reportOpen = false },
+                )
+            }
+        }
         if (removeOpen) RemoveDialog(item.item, item.onRemove, onDismiss = { removeOpen = false }, services = item.services, onRemoveFrom = item.onRemoveFrom)
     }
 
