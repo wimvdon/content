@@ -276,8 +276,8 @@
     <string name="highlight_approximate">Approximate: this text differs from the one it was made on.</string>
     <string name="highlight_not_found">Not found in this text. It stays with the item.</string>
     <string name="highlight_not_in_instapaper">Not in Instapaper yet. Tried again tomorrow.</string>
-    <string name="instapaper_copy_highlights">Copy highlights to Instapaper</string>
-    <string name="instapaper_copy_highlights_summary">Highlights you make go to the article in Instapaper too. Free accounts can make five a month; the rest stay in Content and are tried again a day later.</string>
+    <string name="instapaper_copy_highlights">Sync highlights with Instapaper</string>
+    <string name="instapaper_copy_highlights_summary">Highlights go both ways: yours to the article in Instapaper, and ones made in Instapaper into Content. Free accounts can make five a month; the rest stay in Content and are tried again a day later.</string>
     <string name="services_problem_limit">Instapaper allows no more highlights this month.</string>
     <string name="highlights_none">Select text and tap Highlight to mark it.</string>
     <string name="setting_tag_with_folder_title">Tag with the feed’s folder</string>

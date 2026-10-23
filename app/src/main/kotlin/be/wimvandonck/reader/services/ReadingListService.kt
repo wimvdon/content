@@ -30,11 +30,13 @@ enum class ServiceProblem {
     LimitReached,
 }
 
-/** A highlight as the service has it (#164): its id there, the passage and its note. */
+/** A highlight as the service has it (#164): its id there, the passage, its note, which occurrence (from 0) and when it was made. */
 data class RemoteHighlight(
     val remoteId: String,
     val text: String,
     val note: String = "",
+    val position: Int = 0,
+    val createdAt: Long = 0,
 )
 
 /**

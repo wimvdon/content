@@ -45,6 +45,8 @@ export interface InstapaperHighlight {
   text: string;
   note?: string;
   position?: number;
+  /** When it was made, in seconds. */
+  time?: number;
 }
 
 export interface Folder {

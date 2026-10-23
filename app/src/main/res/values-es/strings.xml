@@ -285,8 +285,8 @@
     <string name="highlight_approximate">Aproximado: este texto difiere de aquel en el que se hizo.</string>
     <string name="highlight_not_found">No se encuentra en este texto. Se queda con el elemento.</string>
     <string name="highlight_not_in_instapaper">Aún no está en Instapaper. Se reintenta mañana.</string>
-    <string name="instapaper_copy_highlights">Copiar resaltados a Instapaper</string>
-    <string name="instapaper_copy_highlights_summary">Los resaltados que hagas van también al artículo en Instapaper. Las cuentas gratuitas permiten cinco al mes; el resto se queda en Content y se vuelve a intentar un día después.</string>
+    <string name="instapaper_copy_highlights">Sincronizar resaltados con Instapaper</string>
+    <string name="instapaper_copy_highlights_summary">Los resaltados van en los dos sentidos: los tuyos al artículo en Instapaper, y los hechos en Instapaper a Content. Las cuentas gratuitas permiten cinco al mes; el resto se queda en Content y se vuelve a intentar un día después.</string>
     <string name="services_problem_limit">Instapaper no permite más resaltados este mes.</string>
     <string name="highlights_none">Selecciona texto y toca Resaltar.</string>
     <string name="setting_tag_with_folder_title">Etiquetar con la carpeta del feed</string>

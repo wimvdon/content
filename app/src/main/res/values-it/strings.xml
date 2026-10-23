@@ -285,8 +285,8 @@
     <string name="highlight_approximate">Approssimativa: questo testo è diverso da quello in cui è stata fatta.</string>
     <string name="highlight_not_found">Non trovata in questo testo. Resta con l’elemento.</string>
     <string name="highlight_not_in_instapaper">Non ancora in Instapaper. Si riprova domani.</string>
-    <string name="instapaper_copy_highlights">Copia le evidenziazioni su Instapaper</string>
-    <string name="instapaper_copy_highlights_summary">Le evidenziazioni che fai vanno anche all’articolo in Instapaper. Gli account gratuiti ne permettono cinque al mese; le altre restano in Content e vengono riprovate un giorno dopo.</string>
+    <string name="instapaper_copy_highlights">Sincronizza le evidenziazioni con Instapaper</string>
+    <string name="instapaper_copy_highlights_summary">Le evidenziazioni vanno in entrambe le direzioni: le tue all’articolo in Instapaper, e quelle fatte in Instapaper in Content. Gli account gratuiti ne permettono cinque al mese; le altre restano in Content e vengono riprovate un giorno dopo.</string>
     <string name="services_problem_limit">Instapaper non consente altre evidenziazioni questo mese.</string>
     <string name="highlights_none">Seleziona del testo e tocca Evidenzia.</string>
     <string name="setting_tag_with_folder_title">Tagga con la cartella del feed</string>

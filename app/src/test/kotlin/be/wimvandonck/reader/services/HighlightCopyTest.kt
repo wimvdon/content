@@ -32,7 +32,7 @@ class HighlightCopyTest {
             fail?.let { throw ServiceException(it) }
             if (made >= limit) throw ServiceException(ServiceProblem.LimitReached)
             made++
-            val h = RemoteHighlight("r$made", text, note)
+            val h = RemoteHighlight("r$made", text, note, position)
             have[h.remoteId] = h
             return h
         }
@@ -49,42 +49,100 @@ class HighlightCopyTest {
         at: Long = 0,
     ) = Highlight(id = id, quote = quote, note = note, createdAt = at)
 
+    private suspend fun FakeHighlights.sync(
+        highlights: List<Highlight>,
+        links: Map<String, HighlightLink>,
+        now: Long = 0,
+        look: Boolean = false,
+    ) = HighlightCopy.sync(this, "instapaper", "1", highlights, links, now, look)
+
     @Test
     fun `copies new highlights and links them`() =
         runBlocking {
             val service = FakeHighlights()
-            val pushed = HighlightCopy.push(service, "1", listOf(h("a", "One"), h("b", "Two", "note", 1)), emptyMap(), 0)
-            assertNull(pushed.problem)
+            val all = listOf(h("a", "One"), h("b", "Two", "note", 1))
+            val synced = service.sync(all, emptyMap())
+            assertNull(synced.problem)
             assertEquals(setOf("One", "Two"), service.have.values.map { it.text }.toSet())
             assertEquals("note", service.have.values.first { it.text == "Two" }.note)
-            assertFalse(HighlightCopy.pending(listOf(h("a", "One"), h("b", "Two", "note", 1)), pushed.links, 0))
+            assertEquals(all, synced.highlights)
+            assertFalse(HighlightCopy.pending(all, synced.links, 0))
         }
 
     @Test
-    fun `nothing to do costs no call`() {
-        val links = mapOf("a" to HighlightLink("r1", ""))
-        assertFalse(HighlightCopy.pending(listOf(h("a", "One")), links, 0))
-        assertTrue(HighlightCopy.pending(listOf(h("a", "One", "changed")), links, 0))
-        assertTrue(HighlightCopy.pending(emptyList(), links, 0))
-        assertTrue(HighlightCopy.pending(listOf(h("b", "Two")), emptyMap(), 0))
-    }
+    fun `nothing to send costs no call unless asked to look`() =
+        runBlocking {
+            val links = mapOf("a" to HighlightLink("r1", ""))
+            assertFalse(HighlightCopy.pending(listOf(h("a", "One")), links, 0))
+            assertTrue(HighlightCopy.pending(listOf(h("a", "One", "changed")), links, 0))
+            assertTrue(HighlightCopy.pending(emptyList(), links, 0))
+            assertTrue(HighlightCopy.pending(listOf(h("b", "Two")), emptyMap(), 0))
+            val service = FakeHighlights()
+            service.have["r1"] = RemoteHighlight("r1", "One")
+            service.sync(listOf(h("a", "One")), links)
+            assertEquals(0, service.listed)
+            service.sync(listOf(h("a", "One")), links, look = true)
+            assertEquals(1, service.listed)
+        }
 
     @Test
     fun `a passage already there is not copied twice`() =
         runBlocking {
             val service = FakeHighlights()
             service.have["x"] = RemoteHighlight("x", "It’s here", "")
-            val pushed = HighlightCopy.push(service, "1", listOf(h("a", "It's here")), emptyMap(), 0)
+            val synced = service.sync(listOf(h("a", "It's here")), emptyMap())
             assertEquals(0, service.made)
-            assertEquals("x", pushed.links["a"]?.remoteId)
+            assertEquals("x", synced.links["a"]?.remoteId)
+        }
+
+    @Test
+    fun `a highlight made there comes in`() =
+        runBlocking {
+            val service = FakeHighlights()
+            service.have["r9"] = RemoteHighlight("r9", " A passage ", "Their note", position = 2, createdAt = 5000)
+            val synced = service.sync(emptyList(), emptyMap(), look = true)
+            assertEquals(listOf(Highlight(id = "instapaper-r9", quote = "A passage", occurrence = 2, note = "Their note", createdAt = 5000)), synced.highlights)
+            assertEquals(HighlightLink("r9", "Their note"), synced.links["instapaper-r9"])
+            // Nothing sent back.
+            assertEquals(0, service.made)
+            assertFalse(HighlightCopy.pending(synced.highlights, synced.links, 0))
+        }
+
+    @Test
+    fun `a highlight deleted there is deleted here`() =
+        runBlocking {
+            val service = FakeHighlights()
+            val first = service.sync(listOf(h("a", "One"), h("b", "Two")), emptyMap())
+            service.have.remove(first.links.getValue("a").remoteId)
+            val second = service.sync(first.highlights, first.links, look = true)
+            assertEquals(listOf("b"), second.highlights.map { it.id })
+            assertNull(second.links["a"])
+            assertEquals(1, service.have.size)
+        }
+
+    @Test
+    fun `a note changed there comes in, unless it changed here too`() =
+        runBlocking {
+            val service = FakeHighlights()
+            val first = service.sync(listOf(h("a", "One", "old")), emptyMap())
+            val remoteId = first.links.getValue("a").remoteId!!
+            service.have[remoteId] = service.have.getValue(remoteId).copy(note = "theirs")
+            val taken = service.sync(first.highlights, first.links, look = true)
+            assertEquals("theirs", taken.highlights.single().note)
+            assertEquals(1, service.made)
+            // Changed on both sides: this one goes there.
+            service.have[remoteId] = service.have.getValue(remoteId).copy(note = "theirs again")
+            val both = service.sync(listOf(h("a", "One", "mine")), taken.links, look = true)
+            assertEquals("mine", both.highlights.single().note)
+            assertEquals("mine", service.have.values.single().note)
         }
 
     @Test
     fun `a changed note makes the highlight again`() =
         runBlocking {
             val service = FakeHighlights()
-            val first = HighlightCopy.push(service, "1", listOf(h("a", "One")), emptyMap(), 0)
-            val second = HighlightCopy.push(service, "1", listOf(h("a", "One", "new note")), first.links, 0)
+            val first = service.sync(listOf(h("a", "One")), emptyMap())
+            val second = service.sync(listOf(h("a", "One", "new note")), first.links)
             assertEquals(1, service.have.size)
             assertEquals("new note", service.have.values.single().note)
             assertEquals("new note", second.links["a"]?.note)
@@ -94,8 +152,8 @@ class HighlightCopyTest {
     fun `a highlight deleted here is deleted there`() =
         runBlocking {
             val service = FakeHighlights()
-            val first = HighlightCopy.push(service, "1", listOf(h("a", "One")), emptyMap(), 0)
-            val second = HighlightCopy.push(service, "1", emptyList(), first.links, 0)
+            val first = service.sync(listOf(h("a", "One")), emptyMap())
+            val second = service.sync(emptyList(), first.links)
             assertTrue(service.have.isEmpty())
             assertTrue(second.links.isEmpty())
         }
@@ -105,14 +163,13 @@ class HighlightCopyTest {
         runBlocking {
             val service = FakeHighlights(limit = 1)
             val all = listOf(h("a", "One", at = 1), h("b", "Two", at = 2), h("c", "Three", at = 3))
-            val pushed = HighlightCopy.push(service, "1", all, emptyMap(), 1000)
-            assertNull(pushed.problem)
-            assertEquals(setOf("b", "c"), HighlightCopy.notCopied(pushed.links))
-            // Not yet a day: nothing to do.
-            assertFalse(HighlightCopy.pending(all, pushed.links, 1000 + HighlightCopy.RETRY_MS - 1))
-            assertTrue(HighlightCopy.pending(all, pushed.links, 1000 + HighlightCopy.RETRY_MS))
+            val synced = service.sync(all, emptyMap(), now = 1000)
+            assertNull(synced.problem)
+            assertEquals(setOf("b", "c"), HighlightCopy.notCopied(synced.links))
+            assertFalse(HighlightCopy.pending(all, synced.links, 1000 + HighlightCopy.RETRY_MS - 1))
+            assertTrue(HighlightCopy.pending(all, synced.links, 1000 + HighlightCopy.RETRY_MS))
             service.limit = 3
-            val later = HighlightCopy.push(service, "1", all, pushed.links, 1000 + HighlightCopy.RETRY_MS)
+            val later = service.sync(all, synced.links, now = 1000 + HighlightCopy.RETRY_MS)
             assertTrue(HighlightCopy.notCopied(later.links).isEmpty())
             assertEquals(3, service.have.size)
         }
@@ -122,10 +179,22 @@ class HighlightCopyTest {
         runBlocking {
             val service = FakeHighlights()
             service.fail = ServiceProblem.Offline
-            val pushed = HighlightCopy.push(service, "1", listOf(h("a", "One")), emptyMap(), 0)
-            assertEquals(ServiceProblem.Offline, pushed.problem)
-            assertTrue(HighlightCopy.pending(listOf(h("a", "One")), pushed.links, 0))
+            val synced = service.sync(listOf(h("a", "One")), emptyMap())
+            assertEquals(ServiceProblem.Offline, synced.problem)
+            assertTrue(HighlightCopy.pending(listOf(h("a", "One")), synced.links, 0))
         }
+
+    @Test
+    fun `what a sync changed lands on the highlights as they are now`() {
+        val before = listOf(h("a", "One"), h("b", "Two", "old"))
+        val after = listOf(h("b", "Two", "theirs"), h("instapaper-r9", "New"))
+        // Meanwhile: "c" added here.
+        val current = before + h("c", "Three")
+        assertEquals(listOf(h("b", "Two", "theirs"), h("c", "Three"), h("instapaper-r9", "New")), HighlightCopy.apply(current, before, after))
+        // A note changed here meanwhile keeps that change.
+        val edited = listOf(h("a", "One"), h("b", "Two", "mine"))
+        assertEquals("mine", HighlightCopy.apply(edited, before, after).first { it.id == "b" }.note)
+    }
 
     @Test
     fun `links are stored and read back`() {

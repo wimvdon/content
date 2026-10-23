@@ -120,34 +120,37 @@ Instapaper application, `INSTAPAPER_REDIRECT_URI` in `worker/wrangler.toml`,
 `INSTAPAPER_REDIRECT_URI` in `web/src/lib/config.ts`, and `InstapaperAuth.REDIRECT_URI` with the
 intent filter in `AndroidManifest.xml`.
 
-## Copying highlights (#164)
+## Syncing highlights (#164)
 
-Opt-in: ☰ › Connected services › Instapaper › **Copy highlights to Instapaper** (Android) or
+Opt-in: ☰ › Connected services › Instapaper › **Sync highlights with Instapaper** (Android) or
 Settings › Instapaper (web). Off by default, because free Instapaper accounts can make five
 highlights a month. It is a setting of each device or browser, not synced.
 
-- After each Instapaper sync, every article in step with Instapaper whose highlights changed gets
-  them copied: `services/HighlightCopy.kt` (Android) and `web/src/lib/highlightCopy.ts` (web), with the
-  same rules and tests. An article with nothing new costs no call.
-- Before copying an article's highlights, the app asks Instapaper which it already has; one with the
-  same passage (typographic differences ignored) counts as the copy. So two devices with copying on
-  don't make the same highlight twice.
-- A changed note deletes the copy and makes it again (Instapaper can't edit one). A highlight deleted
-  in Content is deleted in Instapaper. One deleted in Instapaper is not made again.
-- Instapaper answers 403 when the month's highlights are used up. The highlight stays in Content,
-  its list shows "Not in Instapaper yet", and it is tried again a day later.
+Both ways, with the same rules and tests on Android (`services/HighlightCopy.kt`) and the web
+(`web/src/lib/highlightCopy.ts`):
+
+- **When:** after each Instapaper sync, for every article in step with Instapaper that has something
+  to send (an article with nothing new costs no call), and when a saved article is opened in the
+  reader (its highlights in Instapaper are looked up then, so ones made there come in).
+- **Instapaper → Content:** a highlight made in Instapaper's own apps becomes a Content highlight
+  (id `instapaper-<id>`), placed by its passage and which occurrence it is. One deleted there is
+  deleted here. A note changed there comes in, unless it changed here too (then Content's wins).
+- **Content → Instapaper:** new ones are made there; a changed note deletes the copy and makes it
+  again (Instapaper can't edit one); one deleted in Content is deleted there.
+- **No doubles:** a highlight with the same passage on both sides (typographic differences ignored)
+  is the same one, so two devices with the switch on don't make it twice.
+- **The limit:** Instapaper answers 403 when the month's highlights are used up. The highlight stays
+  in Content, its list shows "Not in Instapaper yet", and it is tried again a day later.
 - Which copy belongs to which highlight is kept per device (`<service>-highlights` in the database's
-  meta table on Android, `instapaperHighlights` in IndexedDB on the web) and forgotten on sign-out.
-- Instapaper places the highlight at the nth occurrence of the passage in *its* text, using
-  Content's occurrence number. When a passage appears more than once, Instapaper may mark another
-  occurrence; Content's highlight is never affected.
+  meta table on Android, `instapaperHighlights` in IndexedDB on the web) and forgotten on disconnect.
+- Instapaper places a highlight at the nth occurrence of the passage in *its* text, using Content's
+  occurrence number, and the other way round. When a passage appears more than once, the two may mark
+  different occurrences.
 - The web app goes through the feed loader, which allows only these three highlight calls
   (`GET`/`POST /bookmarks/<id>/highlights`, `DELETE /highlights/<id>`).
 
 ## Not supported
 
-- Highlights made in Instapaper's own apps don't come into Content (copying goes one way, see
-  "Copying highlights" above).
 - Instapaper's parsed text for accounts other than the owner's (it needs an Instaparser key).
 - Signing in from a debug build's App Link: debug APKs are signed with a different key every CI run
   and have another package name (`.debug`), so Android doesn't verify the link for them and opens the

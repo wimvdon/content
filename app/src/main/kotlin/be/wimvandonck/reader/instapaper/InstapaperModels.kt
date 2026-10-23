@@ -13,6 +13,8 @@ data class InstapaperHighlight(
     val text: String,
     val note: String = "",
     val position: Int = 0,
+    /** When it was made, in seconds. */
+    val time: Long = 0,
 )
 
 data class InstapaperFolder(

@@ -2,6 +2,7 @@ package be.wimvandonck.reader.services
 
 import be.wimvandonck.reader.data.Item
 import be.wimvandonck.reader.data.LibraryRepository
+import be.wimvandonck.reader.data.changeItem
 import be.wimvandonck.reader.data.ServiceImport
 import be.wimvandonck.reader.data.ServiceScope
 import be.wimvandonck.reader.data.item
@@ -243,16 +244,32 @@ class ServiceManager(
         val state = result.state
         val links = state.highlights.filterKeys { state.rows[it]?.linked == true }.toMutableMap()
         val now = clock()
+        val look = lookAt.toSet()
+        lookAt.removeAll(look)
         for ((key, row) in state.rows) {
             if (!row.linked) continue
             val item = lib.item(key)?.takeIf { it.readingList != null } ?: continue
-            val before = links[key].orEmpty()
-            if (!HighlightCopy.pending(item.highlights, before, now)) continue
-            val pushed = HighlightCopy.push(service, row.remoteId, item.highlights, before, now)
-            links[key] = pushed.links
-            if (pushed.problem != null) return result.copy(state = state.copy(highlights = links), problem = pushed.problem)
+            val synced = HighlightCopy.sync(service, (service as ReadingListService).id, row.remoteId, item.highlights, links[key].orEmpty(), now, look = key in look)
+            links[key] = synced.links
+            if (synced.highlights != item.highlights) {
+                library.edit { l -> l.changeItem(key) { i -> i.copy(highlights = HighlightCopy.apply(i.highlights, item.highlights, synced.highlights)) } }
+            }
+            if (synced.problem != null) return result.copy(state = state.copy(highlights = links), problem = synced.problem)
         }
         return result.copy(state = state.copy(highlights = links))
+    }
+
+    /** Saved items whose highlights are looked up at the service on the next sync (opened in the reader). */
+    private val lookAt: MutableSet<String> = java.util.concurrent.ConcurrentHashMap.newKeySet()
+
+    /**
+     * An article opened in the reader (#164): its highlights at the service are looked up now, so
+     * ones made in the service's own apps come in, even when nothing here changed.
+     */
+    fun lookAtHighlights(key: String) {
+        if (services.keys.none(copiesHighlights)) return
+        lookAt += key
+        scope.launch { sync(full = false) }
     }
 
     /** The folders [id] has, for choosing what to import; null when it couldn't be asked. */

@@ -275,8 +275,8 @@
     <string name="highlight_approximate">Bij benadering: deze tekst verschilt van die waarin hij gemaakt is.</string>
     <string name="highlight_not_found">Niet gevonden in deze tekst. Hij blijft bij het item.</string>
     <string name="highlight_not_in_instapaper">Nog niet in Instapaper. Morgen opnieuw geprobeerd.</string>
-    <string name="instapaper_copy_highlights">Markeringen naar Instapaper kopiëren</string>
-    <string name="instapaper_copy_highlights_summary">Markeringen die je maakt gaan ook naar het artikel in Instapaper. Gratis accounts kunnen er vijf per maand maken; de rest blijft in Content en wordt een dag later opnieuw geprobeerd.</string>
+    <string name="instapaper_copy_highlights">Markeringen synchroniseren met Instapaper</string>
+    <string name="instapaper_copy_highlights_summary">Markeringen gaan in beide richtingen: die van jou naar het artikel in Instapaper, en die in Instapaper gemaakt naar Content. Gratis accounts kunnen er vijf per maand maken; de rest blijft in Content en wordt een dag later opnieuw geprobeerd.</string>
     <string name="services_problem_limit">Instapaper staat deze maand geen markeringen meer toe.</string>
     <string name="highlights_none">Selecteer tekst en tik op Markeren.</string>
     <string name="setting_tag_with_folder_title">Taggen met de map van de feed</string>

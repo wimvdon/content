@@ -112,6 +112,11 @@ export function ArticleView({
   const [removeOpen, setRemoveOpen] = useState(false);
   // Highlights (#102): those of the article's item; one open, a new one waiting for its note, the list.
   const highlights = found?.highlights ?? NO_HIGHLIGHTS;
+  // A saved article's highlights made in Instapaper's own apps come in when it opens (#164).
+  const lookKey = found?.readingList ? found.key : null;
+  useEffect(() => {
+    if (lookKey) app.lookAtHighlights(lookKey);
+  }, [lookKey]);
   const anchors = useAnchors(html, highlights);
   const [openHighlight, setOpenHighlight] = useState<string | null>(null);
   const [draft, setDraft] = useState<Highlight | null>(null);
