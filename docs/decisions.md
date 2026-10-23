@@ -30,6 +30,19 @@ Newest first. Add an entry for every notable choice: what was decided, why, and 
   with a tab for each, on Android and the web. ☰ keeps Manage feeds under Feeds and Manage tags under
   Saved, each opening the screen on its own tab; switching tabs doesn't add a step to Back.
 
+## 2026-10-23: Web notifications when something is shared (#235)
+
+- At the owner's request, the web app can notify you when something is shared with you, even with
+  the tab closed: Web Push from the feed loader (`worker/src/push.ts`) to a small service worker
+  (`web/public/sw.js`). Opt-in per browser in Settings › Account; signing out turns it off.
+- The push carries no payload, so it needs only a VAPID signature (ES256 with WebCrypto), no message
+  encryption and no library; the browser's push service learns nothing about what was shared. The
+  notification says "Something was shared with you" and opens Saved › Shared with me.
+- The service worker's text comes in its address from `i18n.ts` (`?title=…&body=…`), so the wording
+  stays in one place; a plain file in `public/`, not built, so it works in every browser.
+- One push address per device, under its device key's hash, so the Android app can add its Firebase
+  token the same way (next change).
+
 ## 2026-10-23: Direct share to people (#235)
 
 - The four most recent recipients are published as Android sharing shortcuts (`ui/DirectShare.kt`,

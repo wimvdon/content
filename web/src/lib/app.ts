@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { rememberRecipient } from "./recipients";
+import { notificationsOn, refreshServiceWorker, turnOff as turnOffNotifications, turnOn as turnOnNotifications, type TurnOnResult } from "./notifications";
 import { AccountClient, emailLinkToken, finishEmailLink, LiveUpdates, sendEmailLink, SIGNIN_PATH, SyncError, type AccountSession, type EmailLinkProblem, type SyncProblem } from "./account";
 import { findFeed } from "./discovery";
 import { parseFeed } from "./feedParser";
@@ -189,6 +190,19 @@ class AppStore {
     this.resolveLibrary();
     if (location.pathname === CALLBACK_PATH) await this.finishInstapaperSignIn(location.search);
     if (location.pathname === SIGNIN_PATH) await this.finishEmailLink(location.hash);
+    // A notification's click (#235, public/sw.js): ?open=shared, or a message to an open page.
+    if (new URLSearchParams(location.search).get("open") === "shared") {
+      history.replaceState(null, "", "/");
+      this.showSaved({ ...this.state.savedFilter, tab: { kind: "shared" }, likedOnly: false, tags: [] });
+    }
+    if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
+      navigator.serviceWorker.addEventListener("message", (e: MessageEvent) => {
+        if ((e.data as { kind?: unknown } | null)?.kind !== "openShared") return;
+        this.showSaved({ ...this.state.savedFilter, tab: { kind: "shared" }, likedOnly: false, tags: [] });
+        void this.sync();
+      });
+      void refreshServiceWorker();
+    }
     // "Save to Content" from the browser extension (#168): ?save=<address>&title=<title>.
     const toSave = new URLSearchParams(location.search).get("save");
     if (toSave && /^https?:\/\//.test(toSave)) {
@@ -553,6 +567,21 @@ class AppStore {
     this.set({ received: null });
   }
 
+  /** Notifications in this browser (#235, notifications.ts): on, or off and why it can't be on. */
+  notificationsOn = () => notificationsOn();
+
+  turnOnNotifications = async (): Promise<TurnOnResult | "signedOut"> => {
+    const account = this.state.account;
+    if (!account) return "signedOut";
+    try {
+      return await turnOnNotifications(new AccountClient(account.key));
+    } catch {
+      return "failed";
+    }
+  };
+
+  turnOffNotifications = () => turnOffNotifications(this.state.account ? new AccountClient(this.state.account.key) : null);
+
   /** Whether the account can share (#167): signed in, with an email address so they see who it's from. */
   canShare = () => Boolean(this.state.account?.email);
 
@@ -603,6 +632,8 @@ class AppStore {
   async signOutAccount() {
     const key = this.accountKey();
     if (key) void new AccountClient(key).signOut().catch(() => undefined);
+    // The feed loader forgets this browser's push address with its key; the browser drops it too (#235).
+    void turnOffNotifications(null);
     await this.forgetAccount();
   }
 

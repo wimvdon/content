@@ -1,14 +1,15 @@
 import { cn } from "./cn";
 
 /** An on/off setting: the whole row is the switch. */
-export function SwitchRow({ title, summary, checked, onChange }: { title: string; summary?: string; checked: boolean; onChange: (v: boolean) => void }) {
+export function SwitchRow({ title, summary, checked, onChange, disabled = false }: { title: string; summary?: string; checked: boolean; onChange: (v: boolean) => void; disabled?: boolean }) {
   return (
     <button
       type="button"
       role="switch"
       aria-checked={checked}
+      disabled={disabled}
       onClick={() => onChange(!checked)}
-      className="flex w-full cursor-pointer items-center gap-4 rounded-lg py-2 text-left"
+      className="flex w-full cursor-pointer items-center gap-4 rounded-lg py-2 text-left disabled:cursor-default disabled:opacity-60"
     >
       <span className="min-w-0 flex-1">
         <span className="block text-sm font-medium">{title}</span>

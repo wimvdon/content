@@ -25,6 +25,9 @@ INSTAPAPER_REDIRECT_URI = "https://rss-reader-web.wim-d57.workers.dev/instapaper
 # opening the web app (the Android app opens the same address as an App Link).
 EMAIL_FROM = "Content <signin@resend.wimvandonck.be>"
 WEB_APP_ORIGIN = "https://rss-reader-web.wim-d57.workers.dev"
+# Notifications when something is shared with you (#235, src/push.ts): the public half of the VAPID
+# key pair. The private half is NOT here: set it as a Worker secret named VAPID_PRIVATE_KEY.
+VAPID_PUBLIC_KEY = "BNxDkb73QhMVGb40MyiJtum9jpTaOHqeEmpxRWuVRvHiF-0dKAJarvVQxJoM6AUVeopOE4rOKo859OK-wcTK8Sk"
 
 # 120 requests per minute per IP address (a full refresh of 100 feeds fits).
 [[ratelimits]]

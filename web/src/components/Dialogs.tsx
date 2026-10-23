@@ -18,6 +18,7 @@ import { ReaderStyleControls } from "./ReaderStyleControls";
 import { InstapaperSettings } from "./ServiceSettings";
 import { SavedManage } from "./SavedManage";
 import { SwitchRow } from "./ui/switch";
+import { pushSupported } from "@/lib/notifications";
 
 type Props = { open: boolean; onOpenChange: (open: boolean) => void };
 
@@ -464,6 +465,7 @@ function AccountSection() {
             </Button>
           </div>
           {deleteFailed ? <p className="text-sm text-destructive" role="alert">{t("syncOffline")}</p> : null}
+          <NotificationsSwitch />
           {account.email ? null : (
             <div className="space-y-2 pt-2">
               <p className="text-sm font-medium">{t("accountAddEmail")}</p>
@@ -584,3 +586,43 @@ function Gravatar({ email }: { email: string }) {
   return <img src={src} alt="" className="size-10 shrink-0 rounded-full" onError={() => setMissing(true)} />;
 }
 
+/**
+ * Notify me when something is shared with me (#235): Web Push in this browser. Hidden where the
+ * browser can't; says so when the browser's permission was refused.
+ */
+function NotificationsSwitch() {
+  const [on, setOn] = useState<boolean | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [problem, setProblem] = useState<"denied" | "unavailable" | "failed" | null>(null);
+  useEffect(() => {
+    let current = true;
+    void app.notificationsOn().then((value) => current && setOn(value));
+    return () => {
+      current = false;
+    };
+  }, []);
+  if (!pushSupported() || on === null || problem === "unavailable") return null;
+  const change = async (value: boolean) => {
+    setBusy(true);
+    setProblem(null);
+    if (value) {
+      const result = await app.turnOnNotifications();
+      if (result === "on") setOn(true);
+      else setProblem(result === "signedOut" ? "failed" : result);
+    } else {
+      await app.turnOffNotifications();
+      setOn(false);
+    }
+    setBusy(false);
+  };
+  return (
+    <div className="pt-1">
+      <SwitchRow title={t("pushSetting")} summary={t("pushSettingSummary")} checked={on} disabled={busy} onChange={(v) => void change(v)} />
+      {problem ? (
+        <p className="text-sm text-destructive" role="alert">
+          {t(problem === "denied" ? "pushDenied" : "syncServer")}
+        </p>
+      ) : null}
+    </div>
+  );
+}
