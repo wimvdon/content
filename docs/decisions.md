@@ -2,6 +2,12 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-23: The web sidebar stays open on wide windows again
+
+- #189 made the web app's ☰ menu a slide-out drawer at every width, which the owner didn't want.
+  Wide windows (Tailwind `lg`, 1024px and up) show it at the left all the time again, without ☰;
+  narrow windows keep the drawer.
+
 ## 2026-10-23: Two collapsible sections in the hamburger menu
 
 - The ☰ hamburger menu is structured into two main sections: **Feeds** and **Saved**.

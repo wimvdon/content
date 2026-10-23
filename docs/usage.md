@@ -80,7 +80,7 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
 
 - The **bar at the bottom** switches between **Feeds**, **Saved** and **Search** (on a tablet or in
   landscape it sits at the left side; on the web, wide windows have Search at the top of the sidebar).
-- **☰** opens the drawer. It has two collapsible sections: **Feeds** (All articles, your
+- **☰** opens the drawer (on the web, a wide window shows it at the left all the time, without ☰). It has two collapsible sections: **Feeds** (All articles, your
   folders with their feeds, the other feeds, each with its unread count, and **Manage feeds**) and
   **Saved** (**To read**, **All**, **Tags** with their counts, and **Manage tags**). The section you're
   in is open and the other is folded shut automatically; tap a section's name to fold it open or shut.
