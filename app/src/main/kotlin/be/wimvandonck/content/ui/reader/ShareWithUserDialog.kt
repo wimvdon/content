@@ -35,11 +35,13 @@ import be.wimvandonck.content.sync.ShareResult
 @Composable
 fun ShareWithUserDialog(
     what: String,
+    /** Filled in already: a person picked in Android's share menu (#235). */
+    initialEmail: String = "",
     onSend: (email: String, message: String, result: (ShareResult) -> Unit) -> Unit,
     onDone: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    var email by rememberSaveable { mutableStateOf("") }
+    var email by rememberSaveable { mutableStateOf(initialEmail) }
     var message by rememberSaveable { mutableStateOf("") }
     var sending by rememberSaveable { mutableStateOf(false) }
     var problem by rememberSaveable { mutableStateOf<ShareResult?>(null) }

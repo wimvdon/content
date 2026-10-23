@@ -30,6 +30,15 @@ Newest first. Add an entry for every notable choice: what was decided, why, and 
   with a tab for each, on Android and the web. ☰ keeps Manage feeds under Feeds and Manage tags under
   Saved, each opening the screen on its own tab; switching tabs doesn't add a step to Back.
 
+## 2026-10-23: Direct share to people (#235)
+
+- The four most recent recipients are published as Android sharing shortcuts (`ui/DirectShare.kt`,
+  `res/xml/shortcuts.xml`), so the system share menu offers them. Picking one opens Send to a Content
+  user over the other app (the share alias's screen), with the address filled in.
+- AndroidX Core's `ShortcutManagerCompat`, already in the app; no new library. Only while signed in;
+  signing out takes them away. Their icons are the Gravatar picture (Show images on) or the first
+  letter, drawn once when the list changes.
+
 ## 2026-10-23: Remembered recipients (#235)
 
 - Send to a Content user offers the last twelve people you sent to as chips above the address,
