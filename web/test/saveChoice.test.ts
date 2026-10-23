@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { itemOf } from "../src/lib/items";
 import { emptyLibrary, type Library } from "../src/lib/library";
-import { applyChoice, choiceOf, emptyChoice, newFolder, places, saveNew, tagsLabel, undoSave, withTag, withTyped } from "../src/lib/saveChoice";
+import { applyChoice, choiceOf, emptyChoice, newFolder, places, saveNew, tagChoices, tagsLabel, undoSave, withTag, withTyped } from "../src/lib/saveChoice";
 import { archiveItem, folderOf, isIn, saveLink } from "../src/lib/saved";
 
 function sample(): Library {
@@ -62,6 +62,13 @@ describe("the reader's Tags menu (#156)", () => {
     expect(withTag(choice, " Brussels ").tags).toEqual(["News", "Brussels"]);
     expect(withTag(choice, "news").tags).toEqual([]);
     expect(withTag(choice, "  ")).toBe(choice);
+  });
+  it("offers every tag in a steady order, a new one last", () => {
+    const all = ["ai", "News"];
+    expect(tagChoices(all, [])).toEqual(["ai", "News"]);
+    // Turning one on doesn't move it; a tag made in the sheet comes last, once.
+    expect(tagChoices(all, ["news"])).toEqual(["ai", "News"]);
+    expect(tagChoices(all, ["Brussels", "AI"])).toEqual(["ai", "News", "Brussels"]);
   });
   it("shows the tags, else Liked, else nothing", () => {
     expect(tagsLabel({ ...emptyChoice, liked: true, tags: ["News", "Brussels"] }, "Liked")).toBe("News, Brussels");

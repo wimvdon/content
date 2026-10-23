@@ -1,4 +1,4 @@
-import { Archive, BookOpen, CheckCheck, ChevronDown, Circle, CircleCheck, Folder as FolderGlyph, Heart, Highlighter, Link2, Menu, Newspaper, Quote, RefreshCw, Rss, Search, X, type LucideIcon } from "lucide-react";
+import { Archive, BookOpen, CheckCheck, ChevronDown, Circle, CircleCheck, Folder as FolderGlyph, Heart, Highlighter, Link2, Menu, Newspaper, Quote, RefreshCw, Rss, Search, StickyNote, X, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useEscape } from "./ui/useEscape";
 import { app, useApp } from "@/lib/app";
@@ -196,7 +196,7 @@ function SavedArticles({ openKey, onOpen, onMenu, onSearch }: { openKey: string 
             onClick={() => set({ likedOnly: !filter.likedOnly, tags: [] })}
             className={cn(
               "inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border px-3 text-sm",
-              filter.likedOnly ? "border-transparent bg-accent font-medium text-accent-foreground" : "hover:bg-muted",
+              filter.likedOnly ? "border-transparent bg-accent text-accent-foreground" : "hover:bg-muted",
             )}
           >
             <Heart className={cn("size-4", filter.likedOnly && "fill-current")} aria-hidden="true" />
@@ -305,7 +305,7 @@ function StateChip({ options, selected, onSelect, filtering }: { options: string
         }}
         className={cn(
           "inline-flex h-8 shrink-0 cursor-pointer items-center gap-1 rounded-lg border pr-2 pl-3 text-sm",
-          filtering ? "border-transparent bg-accent font-medium text-accent-foreground" : "hover:bg-muted",
+          filtering ? "border-transparent bg-accent text-accent-foreground" : "hover:bg-muted",
         )}
       >
         {options[selected]}
@@ -368,7 +368,7 @@ function TagChips({
       {tags.map((tag) => {
         const on = selected !== null && tag.toLowerCase() === selected.toLowerCase();
         return (
-          <FilterChip key={tag} selected={on} onClick={() => onSelect(on ? null : tag)}>
+          <FilterChip key={tag} selected={on} check={false} onClick={() => onSelect(on ? null : tag)}>
             {tag}
           </FilterChip>
         );
@@ -403,31 +403,45 @@ export function NoteCard({ note, feed, open, onOpen, label }: { note: NoteConten
       <div className="flex flex-col gap-2 px-4 py-3">
         {label ? <span className="text-xs font-medium text-primary">{label}</span> : null}
         <h3 className="line-clamp-3 font-serif leading-snug font-medium">{note.title}</h3>
+        {/* The text, kept short: the first highlight, quoted, or the site's description. */}
         {body?.kind === "quote" ? (
           <p className="flex gap-2 text-sm">
             <Quote className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
-            <span className="line-clamp-4 font-serif">{body.text}</span>
+            <span className="line-clamp-3 font-serif">{body.text}</span>
           </p>
         ) : body ? (
-          <p className="line-clamp-[10] text-sm whitespace-pre-line text-muted-foreground">{body.text}</p>
+          <p className="line-clamp-3 text-sm text-muted-foreground">{body.text}</p>
         ) : null}
-        <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs">
+        {/* Your note, small: a glimpse, the whole of it is in the article. */}
+        {note.note ? (
+          <p className="flex gap-1.5 text-xs text-muted-foreground italic" aria-label={`${t("note")}: ${note.note}`}>
+            <StickyNote className="mt-px size-3.5 shrink-0" aria-hidden="true" />
+            <span className="line-clamp-2">{note.note}</span>
+          </p>
+        ) : null}
+        {/* The tags as small chips (#208), not as #words. */}
+        {note.tags.length > 0 ? (
+          <div className="flex flex-wrap gap-1">
+            {note.tags.map((tag) => (
+              <span key={tag} className="max-w-full truncate rounded-md bg-accent px-2 py-0.5 text-xs text-accent-foreground">
+                {tag}
+              </span>
+            ))}
+          </div>
+        ) : null}
+        <div className="flex items-center gap-1.5 text-xs">
           <span className="flex min-w-0 items-center gap-1 text-muted-foreground">
             {feed ? <FeedIcon feed={feed} className="size-4" /> : null}
             <span className="truncate">{note.host}</span>
           </span>
-          {note.tags.map((tag) => (
-            <span key={tag} className="font-medium text-primary">
-              #{tag}
-            </span>
-          ))}
+          {/* How many highlights (your markings and their notes). */}
           {highlights > 0 ? (
-            <span className="flex items-center gap-0.5 text-muted-foreground" aria-label={plural("highlightsCount", highlights)}>
+            <span className="flex shrink-0 items-center gap-0.5 text-muted-foreground" aria-label={plural("highlightsCount", highlights)}>
               <Highlighter className="size-3.5" aria-hidden="true" />
               {highlights}
             </span>
           ) : null}
-          {note.liked ? <Heart className="size-3.5 fill-current text-primary" aria-label={t("liked")} /> : null}
+          {note.liked ? <Heart className="size-3.5 shrink-0 fill-current text-primary" aria-label={t("liked")} /> : null}
         </div>
       </div>
     </button>

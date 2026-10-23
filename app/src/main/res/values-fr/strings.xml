@@ -93,7 +93,6 @@
     <string name="action_undo">Annuler</string>
     <string name="folders_explanation">Rangez vos flux dans des dossiers pour les lire ensemble.</string>
     <string name="folder_all">Tous</string>
-    <string name="feeds_all">Tous les articles</string>
     <string name="filter_unread">Non lus</string>
     <string name="filter_all">Tous</string>
     <string name="folder_new">Nouveau dossier</string>
@@ -252,7 +251,7 @@
     <string name="saved_removed_from">Retiré de %1$s</string>
     <string name="saved_remove_from_failed">Impossible de le retirer de %1$s. Réessayez plus tard.</string>
     <string name="tags_title">Tags</string>
-    <string name="tags_add">Ajouter un tag</string>
+    <string name="tags_add">Nouveau tag</string>
     <string name="tags_remove">Retirer le tag</string>
     <string name="tags_rename">Renommer le tag</string>
     <string name="tags_name">Nom du tag</string>
@@ -291,7 +290,6 @@
     <string name="setting_tag_with_folder_title">Taguer avec le dossier du flux</string>
     <string name="setting_tag_with_folder_summary">Un article enregistré depuis un flux reçoit le nom de son dossier comme tag.</string>
     <string name="saved_title">Enregistrés</string>
-    <string name="saved_all">Tous les enregistrés</string>
     <string name="saved_folders">Dossiers</string>
     <string name="folder_field">Dossier</string>
     <string name="saved_place">Où</string>

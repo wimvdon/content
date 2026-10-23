@@ -104,6 +104,16 @@ object SaveChoices {
         return choice.copy(tags = if (has) choice.tags.filterNot { it.equals(clean, ignoreCase = true) } else choice.tags + clean)
     }
 
+    /**
+     * The tags the save sheet offers: every tag in use, then the item's own that aren't in use
+     * elsewhere yet (a new one goes last), each once (case ignored). The order doesn't change when
+     * a tag is turned on or off, so the chips stay put.
+     */
+    fun tagChoices(
+        allTags: List<String>,
+        tags: List<String>,
+    ): List<String> = (allTags + tags).distinctBy { it.trim().lowercase() }
+
     /** What the reader's Tags button says (#156): the tags, else Liked, else null (just "Tags"). */
     fun tagsLabel(
         choice: SaveChoice,

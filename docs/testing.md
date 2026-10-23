@@ -256,7 +256,7 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
       its tags (or "Tags"). Tap the first: To read and Archive with their icons, a line, your
       folders, New folder. Pick **Archive**: back in the list with "Archived" and **Undo**; Undo puts
       it back in its folder. Pick a folder: the button shows that folder.
-- [ ] Tap the tags button: Like, a line, your tags with a check on its own, Add a tag. Tap Like
+- [ ] Tap the tags button: Like, a line, your tags with a check on its own, New tag. Tap Like
       and a tag: the menu stays open, the button shows the tags (a filled heart when liked).
       Web app: the same two menus under the article.
 - [ ] **Add link** and a link shared from another app: the sheet asks for the address (or shows the
@@ -278,7 +278,8 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
 - [ ] Saved shows **To read**, **All**, each folder and **Archive** as tabs, with **Liked** and the
       tab's tags as chips under them.
 - [ ] A folder shows cards: your note, else the first highlight (with a quote mark), else the
-      description, then the site, `#tags`, the highlight count and a heart when liked.
+      description (three lines), a glimpse of the note, the tags as chips, then the site, the
+      highlight count and a heart when liked.
 - [ ] In a saved article, the note button opens the note; write one and close it: the card in its
       folder shows it, it shows above the text, and Search finds it. A note written on the phone
       shows here after a sync, and the other way round.

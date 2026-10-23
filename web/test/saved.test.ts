@@ -157,7 +157,7 @@ describe("Saved (#119, #147)", () => {
   it("shows on a card the note, else the first highlight, else the description (#133)", () => {
     const highlight: Highlight = { id: "h", quote: "The author's words.", prefix: "", suffix: "", occurrence: 0, note: "", createdAt: 1 };
     const item = { ...saveLink(emptyLibrary(), "https://a.example/1", "A", 1)[1]!, description: "The site's summary." };
-    expect(cardBody({ ...item, note: " Mine. ", highlights: [highlight] })).toEqual({ kind: "note", text: "Mine." });
+    expect(cardBody({ ...item, note: " Mine. ", highlights: [highlight] })).toEqual({ kind: "quote", text: highlight.quote });
     expect(cardBody({ ...item, highlights: [{ ...highlight, quote: " " }, { ...highlight, quote: "Later words." }] })).toEqual({ kind: "quote", text: "Later words." });
     expect(cardBody(item)).toEqual({ kind: "description", text: "The site's summary." });
     expect(cardBody({ ...item, description: "" })).toBeNull();
@@ -198,10 +198,10 @@ describe("note cards (views)", () => {
 
   it("makes a note card of a feed article and of a saved item", () => {
     const article = { feedUrl: "f", id: "1", title: "B", link: "https://www.b.example/x", author: null, html: "<p>Start of <b>the</b> text.</p>", publishedAt: 1, fetchedAt: 1, read: false, imageUrl: null };
-    expect(articleNote(article)).toEqual({ title: "B", imageUrl: null, body: { kind: "description", text: "Start of the text." }, host: "b.example", tags: [], highlights: 0, liked: false });
+    expect(articleNote(article)).toEqual({ title: "B", imageUrl: null, body: { kind: "description", text: "Start of the text." }, host: "b.example", tags: [], highlights: 0, liked: false, note: "" });
     expect(articleNote({ ...article, html: "", link: null }).body).toBeNull();
     const item = { ...saveLink(emptyLibrary(), "https://www.a.example/1", "A", 1)[1]!, note: "Mine.", tags: ["ai"], liked: true };
-    expect(noteOf(item)).toMatchObject({ title: "A", body: { kind: "note", text: "Mine." }, host: "a.example", tags: ["ai"], highlights: 0, liked: true });
+    expect(noteOf(item)).toMatchObject({ title: "A", body: null, note: "Mine.", host: "a.example", tags: ["ai"], highlights: 0, liked: true });
   });
 });
 

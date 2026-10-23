@@ -265,8 +265,10 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   **state chip**, a filter chip with a drop-down arrow and a menu of radio items (Feeds: Unread or
   All; Saved: To read, Archive or All), lit while it leaves things out. A divider, then the groups,
   one at a time: the folders in Feeds, the tags in Saved (every tag, most used first, whichever
-  state), with Liked (heart) before the tags (#206). An X at the end clears the group. The ☰ drawer lists the same groups (All articles and the
-  folders with their feeds; All saved, Liked and the tags), never the states, with what is unread or still
+  state), with Liked (heart) before the tags (#206). Group chips have no check mark and chosen
+  ones keep their weight, so a chip never changes width and the row never moves (#208). An X at
+  the end clears the group. The ☰ drawer lists the same groups (Feed and the
+  folders with their feeds; Saved, then under Tags Liked and the tags), never the states, with what is unread or still
   to read as counts; picking there keeps the state. A folder picked in the drawer and its chip are
   one choice and light up together. The Mark all read FAB is on Feeds
   only and only marks the section shown; Saved's FAB is Add link.
@@ -275,18 +277,20 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   about how long; a folder is a collection to browse, so its items are notes in Noter's style:
   `OutlinedCard`s on `surface` in a staggered grid (cells at least 160dp: two columns on a phone),
   the picture on top (96dp, cropped), the title (Title Medium, Medium weight, the reader's font, up to
-  three lines), the note or else the description (Body Medium, `onSurfaceVariant`, up to ten lines),
-  or, with highlights and no note, the first highlight instead of the description (a `primary`
-  quote mark and the reader's font in `onSurface`, up to four lines),
-  then the site's icon and name, `#tags` in `primary`, the highlight count and a heart when liked.
+  three lines), the first highlight (a `primary` quote mark and the reader's font in `onSurface`) or
+  else the description (Body Medium, `onSurfaceVariant`), up to three lines either way; then your
+  note, small (Label Medium, italic, `onSurfaceVariant`, a note icon, up to two lines); the tags as
+  small chips (Label Small on `secondaryContainer`, small shape); then the site's icon and name, a
+  marker icon with the highlight count and a heart when liked (#208).
   The reader's actions follow one rule (#139): the top bar is this reading (Back, the
-  full article as an `IconToggleButton`, on while it shows, then Aa and ⋮); the bottom app bar is
+  full article as an `IconToggleButton`, on while it shows, but not for a saved article, which
+  always shows the whole article (#208), then Aa and ⋮); the bottom app bar is
   this article in your library, on the left, with **Share** at its right end: a tonal **Save** before
   it is saved, then two text buttons with a drop-down arrow, side by side, grouped like the sheet (#156): its **place** (To read, the
   folder or Archive, with its icon), a `DropdownMenu` of To read, Archive, the folders
   and New folder; and its **tags** (the tags, else Liked; a filled heart when liked, else a label, tinted like the folder icon),
-  a menu of Like, the tags with a check when on, and Add a tag. New folder and Add a tag
-  open Organise. The text ends with Read on website and nothing else. ⋮
+  a menu of Like, the tags with a check when on, and New tag. New folder and New tag
+  open Organise. The label gives way (ellipsis) before the drop-down arrow, which keeps its 18dp. The text ends with Read on website and nothing else. ⋮
   holds the rare ones: Open in browser, Mark as unread, Remove from Saved.
 - Highlights (#102): **Highlight** and **Note** join Copy and Share in the menu over selected text
   (the web: a small bar above the selection). A highlight is a marker yellow (`#FFD54F` at 45 %)
@@ -303,13 +307,14 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   link's title and site), **Folder** as single-choice `FilterChip`s (To read and Archive with
   their icons, each folder, then a New folder `AssistChip`, the only thing to
   type; #156), **Tags** in one row
-  like Saved's filter row (Like, the tags as `InputChip`s, Add a tag), and
+  (Like, then every tag in use as a `FilterChip` without a check mark, in a steady order so nothing
+  moves when one is chosen, then a New tag `AssistChip` that opens a field to make a new one), and
   **Note** last, with the room. Section titles in Title Small, `primary`. Then Cancel and Save:
   closing the sheet is Cancel, so only Save changes anything; the heading is "Save to Reader", "Saved to …" or "Organise".
   Right after a save ("Saved to …"), **Remove** (error colour, trash icon) takes the place of Cancel
   and takes the save back; closing keeps it. A folder or tag still being typed is taken by Save.
-- The ☰ drawer: two sections that collapse and expand automatically when you're in them: the Feeds section (All articles, the folders with their feeds, the other feeds, then Manage feeds),
-  the Saved section (To read with its count, All with its count, Tags with their counts, then Manage tags), then
+- The ☰ drawer: two sections that collapse and expand automatically when you're in them: the Feeds section (Feed, the folders with their feeds, the other feeds, then Manage feeds),
+  the Saved section (Saved with its count, then under Tags Liked and the tags with their counts, then Manage tags), then
   Connected services and Settings. Manage feeds shows what it manages with a pen (the
   feed symbol with a pen); Tags has a tag, Connected services two arrows (Material Symbols'
   shapes).

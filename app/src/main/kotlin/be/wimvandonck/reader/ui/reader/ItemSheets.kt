@@ -22,7 +22,6 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
@@ -56,9 +55,9 @@ import be.wimvandonck.reader.feed.FeedDiscovery
 import be.wimvandonck.reader.ui.settings.serviceName
 
 /**
- * An item's tags in one row, the same shape as Saved's filter row (#143): an optional [leading] chip
- * (Like, set apart by a divider), the tags as removable chips, then Add a tag, which opens a field
- * with the other tags in use to add with a tap. [onChange] gets the whole new list.
+ * An item's tags (#143): an optional [leading] chip (Like), then every tag in use as a chip to tap
+ * on or off, in a steady order so nothing moves when one is chosen, then New tag, which opens a field
+ * to make a tag that doesn't exist yet. [onChange] gets the whole new list.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -72,22 +71,22 @@ fun TagsEditor(
     onNameChange: (String) -> Unit,
 ) {
     var adding by rememberSaveable { mutableStateOf(false) }
-    val others = allTags.filter { tag -> tags.none { it.equals(tag, ignoreCase = true) } }
+    val shown = SaveChoices.tagChoices(allTags, tags)
+    fun has(tag: String) = tags.any { it.equals(tag, ignoreCase = true) }
     fun add(tag: String) {
         val clean = tag.trim()
-        if (clean.isNotEmpty() && tags.none { it.equals(clean, ignoreCase = true) }) onChange(tags + clean)
+        if (clean.isNotEmpty() && !has(clean)) onChange(tags + clean)
     }
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), itemVerticalAlignment = Alignment.CenterVertically) {
             if (leading != null) leading()
-            tags.forEach { tag ->
-                InputChip(
-                    selected = true,
-                    onClick = { onChange(tags - tag) },
+            shown.forEach { tag ->
+                val on = has(tag)
+                // No check mark: the fill shows it, and the chips keep their width and place.
+                FilterChip(
+                    selected = on,
+                    onClick = { onChange(if (on) tags.filterNot { it.equals(tag, ignoreCase = true) } else tags + tag) },
                     label = { Text(tag) },
-                    trailingIcon = {
-                        Icon(painterResource(R.drawable.ic_close), contentDescription = stringResource(R.string.tags_remove), modifier = Modifier.size(18.dp))
-                    },
                 )
             }
             if (!adding) {
@@ -121,17 +120,6 @@ fun TagsEditor(
                 },
                 modifier = Modifier.fillMaxWidth(),
             )
-            if (others.isNotEmpty()) {
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    others.forEach { tag ->
-                        AssistChip(
-                            onClick = { add(tag) },
-                            label = { Text(tag) },
-                            leadingIcon = { Icon(painterResource(R.drawable.ic_add), contentDescription = null, modifier = Modifier.size(18.dp)) },
-                        )
-                    }
-                }
-            }
         }
     }
 }

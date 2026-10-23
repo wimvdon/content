@@ -93,7 +93,6 @@
     <string name="action_undo">Deshacer</string>
     <string name="folders_explanation">Pon los feeds en carpetas para leerlos juntos.</string>
     <string name="folder_all">Todos</string>
-    <string name="feeds_all">Todos los artículos</string>
     <string name="filter_unread">Sin leer</string>
     <string name="filter_all">Todos</string>
     <string name="folder_new">Nueva carpeta</string>
@@ -252,7 +251,7 @@
     <string name="saved_removed_from">Quitado de %1$s</string>
     <string name="saved_remove_from_failed">No se pudo quitar de %1$s. Inténtalo más tarde.</string>
     <string name="tags_title">Etiquetas</string>
-    <string name="tags_add">Añadir etiqueta</string>
+    <string name="tags_add">Nueva etiqueta</string>
     <string name="tags_remove">Quitar etiqueta</string>
     <string name="tags_rename">Cambiar nombre</string>
     <string name="tags_name">Nombre de la etiqueta</string>
@@ -291,7 +290,6 @@
     <string name="setting_tag_with_folder_title">Etiquetar con la carpeta del feed</string>
     <string name="setting_tag_with_folder_summary">Un artículo que guardas desde un feed recibe el nombre de su carpeta como etiqueta.</string>
     <string name="saved_title">Guardados</string>
-    <string name="saved_all">Todos los guardados</string>
     <string name="saved_folders">Carpetas</string>
     <string name="folder_field">Carpeta</string>
     <string name="saved_place">Dónde</string>

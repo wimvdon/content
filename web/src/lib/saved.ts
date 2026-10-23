@@ -174,11 +174,13 @@ export function removeTag(lib: Library, name: string): Library {
   return { ...lib, items: lib.items.map((i) => (i.tags.some((t) => same(t, name)) ? { ...i, tags: i.tags.filter((t) => !same(t, name)) } : i)) };
 }
 
-/** What a card in a folder shows under its title (#133): your note, else the first highlight, else the description. */
-export type CardBody = { kind: "note" | "quote" | "description"; text: string };
+/**
+ * What a card shows under its title (#133): the first highlight (quoted), else the description. Your
+ * note shows apart, smaller (NoteContent.note). Like Saved.cardBody on Android.
+ */
+export type CardBody = { kind: "quote" | "description"; text: string };
 
 export function cardBody(i: Item): CardBody | null {
-  if (i.note.trim()) return { kind: "note", text: i.note.trim() };
   const highlight = i.highlights.find((h) => h.quote.trim());
   if (highlight) return { kind: "quote", text: highlight.quote.trim() };
   if (i.description.trim()) return { kind: "description", text: i.description.trim() };
@@ -201,6 +203,8 @@ export interface NoteContent {
   tags: string[];
   highlights: number;
   liked: boolean;
+  /** Your note, shown small under the text. */
+  note: string;
 }
 
 /** A saved item as a note card. */
@@ -212,12 +216,13 @@ export const noteOf = (i: Item): NoteContent => ({
   tags: i.tags,
   highlights: i.highlights.length,
   liked: i.liked,
+  note: i.note.trim(),
 });
 
 /** A feed article as a note card (Search's notes view): the start of its text under the title. */
 export function articleNote(a: Article): NoteContent {
   const text = snippet(a.html, 240);
-  return { title: a.title, imageUrl: a.imageUrl, body: text ? { kind: "description", text } : null, host: a.link ? hostOf(a.link) : "", tags: [], highlights: 0, liked: false };
+  return { title: a.title, imageUrl: a.imageUrl, body: text ? { kind: "description", text } : null, host: a.link ? hostOf(a.link) : "", tags: [], highlights: 0, liked: false, note: "" };
 }
 
 /** The "feed" of saved items opened in the reader, so their key ("item <key>") never clashes with a feed's. */

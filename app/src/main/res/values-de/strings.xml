@@ -93,7 +93,6 @@
     <string name="action_undo">Rückgängig</string>
     <string name="folders_explanation">Lege Feeds in Ordner, um sie zusammen zu lesen.</string>
     <string name="folder_all">Alle</string>
-    <string name="feeds_all">Alle Artikel</string>
     <string name="filter_unread">Ungelesen</string>
     <string name="filter_all">Alle</string>
     <string name="folder_new">Neuer Ordner</string>
@@ -246,7 +245,7 @@
     <string name="saved_removed_from">Aus %1$s entfernt</string>
     <string name="saved_remove_from_failed">Entfernen aus %1$s hat nicht geklappt. Versuche es später erneut.</string>
     <string name="tags_title">Tags</string>
-    <string name="tags_add">Tag hinzufügen</string>
+    <string name="tags_add">Neuer Tag</string>
     <string name="tags_remove">Tag entfernen</string>
     <string name="tags_rename">Tag umbenennen</string>
     <string name="tags_name">Tag-Name</string>
@@ -281,7 +280,6 @@
     <string name="setting_tag_with_folder_title">Mit dem Ordner des Feeds taggen</string>
     <string name="setting_tag_with_folder_summary">Ein Artikel, den du aus einem Feed speicherst, bekommt den Namen seines Ordners als Tag.</string>
     <string name="saved_title">Gespeichert</string>
-    <string name="saved_all">Alle gespeicherten</string>
     <string name="saved_folders">Ordner</string>
     <string name="folder_field">Ordner</string>
     <string name="saved_place">Wo</string>

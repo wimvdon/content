@@ -93,6 +93,15 @@ class SaveChoicesTest {
     }
 
     @Test
+    fun `the sheet offers every tag in a steady order, a new one last`() {
+        val all = listOf("ai", "News")
+        assertEquals(listOf("ai", "News"), SaveChoices.tagChoices(all, emptyList()))
+        // Turning one on doesn't move it; a tag made in the sheet comes last, once.
+        assertEquals(listOf("ai", "News"), SaveChoices.tagChoices(all, listOf("news")))
+        assertEquals(listOf("ai", "News", "Brussels"), SaveChoices.tagChoices(all, listOf("Brussels", "AI")))
+    }
+
+    @Test
     fun `the Tags button shows the tags, else Liked, else nothing`() {
         assertEquals("News, Brussels", SaveChoices.tagsLabel(SaveChoice(liked = true, tags = listOf("News", "Brussels")), "Liked"))
         assertEquals("Liked", SaveChoices.tagsLabel(SaveChoice(liked = true), "Liked"))

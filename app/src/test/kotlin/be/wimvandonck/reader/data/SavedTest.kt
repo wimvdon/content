@@ -173,7 +173,7 @@ class SavedTest {
                 highlights = listOf(Highlight("h1", "Words.", createdAt = 1)),
                 createdAt = 0,
             )
-        assertEquals(NoteContent("A", "https://a.example/p.jpg", CardBody.Note("Mine."), "a.example", listOf("ai"), 1, true), Saved.note(item))
+        assertEquals(NoteContent("A", "https://a.example/p.jpg", CardBody.Quote("Words."), "a.example", listOf("ai"), 1, true, "Mine."), Saved.note(item))
         val article =
             Article(feedUrl = "https://f.example/rss", id = "1", title = "B", link = "https://www.b.example/x", author = null, html = "<p>Start of <b>the</b> text.</p>", publishedAt = 1, fetchedAt = 1)
         assertEquals(NoteContent("B", null, CardBody.Description("Start of the text."), "b.example"), Saved.note(article))
@@ -182,11 +182,12 @@ class SavedTest {
     }
 
     @Test
-    fun `a card shows the note, else the first highlight, else the description`() {
+    fun `a card shows the first highlight, else the description, and the note apart`() {
         val highlight = Highlight("h1", "The author's words.", createdAt = 1)
         val second = Highlight("h2", "Later words.", createdAt = 2)
         val item = Item("a.example/1", "https://a.example/1", "A", description = "The site's summary.", createdAt = 0)
-        assertEquals(CardBody.Note("Mine."), Saved.cardBody(item.copy(note = " Mine. ", highlights = listOf(highlight))))
+        assertEquals(CardBody.Quote("The author's words."), Saved.cardBody(item.copy(note = " Mine. ", highlights = listOf(highlight))))
+        assertEquals("Mine.", Saved.note(item.copy(note = " Mine. ")).note)
         assertEquals(CardBody.Quote("The author's words."), Saved.cardBody(item.copy(highlights = listOf(highlight, second))))
         // A highlight without a quote doesn't count.
         assertEquals(CardBody.Quote("Later words."), Saved.cardBody(item.copy(highlights = listOf(highlight.copy(quote = " "), second))))

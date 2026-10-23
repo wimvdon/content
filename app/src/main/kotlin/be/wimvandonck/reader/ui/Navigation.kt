@@ -625,7 +625,7 @@ fun RssReaderNavigation(
                     // summary; the reader's menu switches between the two (null: follow the setting).
                     var fullTextChoice by rememberSaveable(screen.articleKey) { mutableStateOf<Boolean?>(null) }
                     val isSummary = remember(article?.html, article?.link) { article != null && needsFullText(article.html, article.link) }
-                    val wantFullText = article?.link != null && wantsFullText(fullTextChoice, current.fullArticles, fromFeed != null, isSummary)
+                    val wantFullText = article?.link != null && wantsFullText(fullTextChoice, current.fullArticles, fromFeed != null, isSummary, saved = item?.readingList != null)
                     var fullText by remember(screen.articleKey) { mutableStateOf<FullTextState>(FullTextState.Off) }
                     LaunchedEffect(screen.articleKey, wantFullText) {
                         val link = article?.link

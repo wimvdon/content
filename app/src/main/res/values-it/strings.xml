@@ -93,7 +93,6 @@
     <string name="action_undo">Annulla</string>
     <string name="folders_explanation">Metti i feed in cartelle per leggerli insieme.</string>
     <string name="folder_all">Tutti</string>
-    <string name="feeds_all">Tutti gli articoli</string>
     <string name="filter_unread">Non letti</string>
     <string name="filter_all">Tutti</string>
     <string name="folder_new">Nuova cartella</string>
@@ -252,7 +251,7 @@
     <string name="saved_removed_from">Rimosso da %1$s</string>
     <string name="saved_remove_from_failed">Impossibile rimuoverlo da %1$s. Riprova più tardi.</string>
     <string name="tags_title">Tag</string>
-    <string name="tags_add">Aggiungi tag</string>
+    <string name="tags_add">Nuovo tag</string>
     <string name="tags_remove">Rimuovi tag</string>
     <string name="tags_rename">Rinomina tag</string>
     <string name="tags_name">Nome del tag</string>
@@ -291,7 +290,6 @@
     <string name="setting_tag_with_folder_title">Tagga con la cartella del feed</string>
     <string name="setting_tag_with_folder_summary">Un articolo salvato da un feed riceve il nome della sua cartella come tag.</string>
     <string name="saved_title">Salvati</string>
-    <string name="saved_all">Tutti i salvati</string>
     <string name="saved_folders">Cartelle</string>
     <string name="folder_field">Cartella</string>
     <string name="saved_place">Dove</string>
