@@ -107,7 +107,7 @@ delete, reorder) and tags (list, create, rename). The Android app calls Instapap
    `INSTAPAPER_CLIENT_SECRET`. (Or `npx wrangler secret put INSTAPAPER_CLIENT_SECRET` in `worker/`.)
    Secrets survive deployments; a plain variable would not.
 3. **App Links** need `assetlinks.json` on the callback's website, with the package name
-   `be.wimvandonck.reader` and the SHA-256 fingerprint of the release signing key. If the signing key
+   `be.wimvandonck.content` (and, until everyone has moved over, the old `be.wimvandonck.reader`) and the SHA-256 fingerprint of the release signing key. If the signing key
    ever changes, update the fingerprint here. Check it after each deployment:
    `https://rss-reader-web.wim-d57.workers.dev/.well-known/assetlinks.json` must show that file, not
    the web app's page.

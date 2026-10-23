@@ -35,7 +35,7 @@ rss-reader/
     ├── build.gradle.kts              App ID, versioning, signing, languages, lint, dependencies
     ├── proguard-rules.pro            Stack trace settings for release builds
     └── src/
-        ├── debug/res/values/strings.xml   "Reader Dev" name for debug builds
+        ├── debug/res/values/strings.xml   "Content Dev" name for debug builds
         ├── main/
         │   ├── AndroidManifest.xml   Internet permission, Instapaper package visibility, activity
         │   ├── kotlin/be/wimvandonck/content/

@@ -8,9 +8,11 @@ plugins {
 
 // ---------------------------------------------------------------------------
 // App identity: the ONE place to change the package / application ID. Once the app is
-// released it must never change again (phones would treat it as a different app).
+// released it must never change again (phones would treat it as a different app). It changed
+// once, from be.wimvandonck.reader to be.wimvandonck.content, at the owner's request (see
+// docs/decisions.md): that made Content a new app next to the old one.
 // ---------------------------------------------------------------------------
-val appId = "be.wimvandonck.reader"
+val appId = "be.wimvandonck.content"
 
 // ---------------------------------------------------------------------------
 // Versioning
@@ -67,9 +69,7 @@ val keystoreProperties = Properties().apply {
 }
 
 android {
-    // The code's package: Content's own name. Not the application id above, which phones
-    // know the installed app by and which must never change.
-    namespace = "be.wimvandonck.content"
+    namespace = appId
     compileSdk = 37
 
     defaultConfig {

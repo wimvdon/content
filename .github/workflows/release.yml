@@ -268,7 +268,7 @@ jobs:
   #   permissions:
   #     contents: read
   #   env:
-  #     PACKAGE_NAME: be.wimvandonck.reader
+  #     PACKAGE_NAME: be.wimvandonck.content
   #   steps:
   #     - uses: actions/checkout@v7
   #       with:

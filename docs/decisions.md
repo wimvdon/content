@@ -2,6 +2,18 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-23: The app ID is be.wimvandonck.content
+
+- At the owner's request, the application id changed from `be.wimvandonck.reader` to
+  `be.wimvandonck.content` (debug builds: `be.wimvandonck.content.debug`), before Firebase was set up
+  so the push notifications are registered under the new name.
+- Android treats it as a new app: it installs next to the old one, which doesn't update to it. Signing
+  in with your email brings back the library (feeds, Saved, highlights, synced settings); Instapaper,
+  sites signed in to and per-device settings are set up again. The old app is then uninstalled by hand.
+- `assetlinks.json` lists both packages, so sign-in links and the Instapaper callback open the new
+  app, and the old one keeps working until it is removed. Same signing key for both.
+- The launcher alias from the package rename isn't needed any more and is gone.
+
 ## 2026-10-23: The code's package is be.wimvandonck.content
 
 - The Kotlin package (and Android's `namespace`) is now `be.wimvandonck.content`, after the app's
