@@ -102,8 +102,8 @@ and then (always before a release):
 - [ ] Open an article from a summary-only feed (e.g. `theverge.com`): the full article loads.
       ⋮ › Show feed text / Show full article switches; Settings › Reader › Load full articles off
       stops it.
-- [ ] **Backup:** with a cable and `adb`, `adb shell bmgr backupnow be.wimvandonck.reader`,
-      uninstall, reinstall, `adb shell bmgr restore be.wimvandonck.reader` (or set up a
+- [ ] **Backup:** with a cable and `adb`, `adb shell bmgr backupnow be.wimvandonck.content`,
+      uninstall, reinstall, `adb shell bmgr restore be.wimvandonck.content` (or set up a
       new phone from backup): feeds and settings come back.
 - [ ] **Pictures:** list rows show thumbnails; the reader shows the picture above the title and
       pictures between paragraphs; a YouTube embed shows a card with a preview that opens YouTube.
@@ -222,7 +222,7 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
 
 ## Sharing to Reader (#103)
 
-- [ ] In Chrome, Share › **Reader Dev**: only the save sheet slides up over Chrome; Reader's own
+- [ ] In Chrome, Share › **Content Dev**: only the save sheet slides up over Chrome; Reader's own
       screens don't open. **Save** shows where it went and you are back in Chrome.
 - [ ] Share plain text without a link: "No link to save", and nothing else opens.
 - [ ] Reader's own Share button doesn't list Reader itself.

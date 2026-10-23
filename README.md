@@ -1,6 +1,6 @@
 # Content
 
-Feeds and saved articles in one app, on Android and the web. Formerly called Reader; the package name (`be.wimvandonck.reader`) stays the same so installed apps keep updating.
+Feeds and saved articles in one app, on Android and the web. Formerly called Reader. Its app ID changed from `be.wimvandonck.reader` to `be.wimvandonck.content` (2026-10-23): the new app installs next to the old one, which you then uninstall.
 
 ## 📚 Documentation
 | | |

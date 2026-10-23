@@ -38,7 +38,7 @@ Without Android Studio, point Gradle at the SDK with `sdk.dir=/path/to/sdk` in `
 
 Open the pull request › **Checks** › **CI** › **Artifacts** and install
 `content-<version>-debug.apk`. Debug builds have the application ID
-`be.wimvandonck.reader.debug` and the name **Reader Dev**, so they install next to the
+`be.wimvandonck.content.debug` and the name **Content Dev**, so they install next to the
 released app with their own feeds and settings. Uninstall it when you're done testing.
 
 ## Signing key
@@ -127,7 +127,7 @@ must stay below 100). All other builds are named after `git describe`, e.g. `1.2
 2. In Google Cloud, create a service account, create a JSON key for it, and in the Play Console
    (**Users and permissions**) invite its e-mail with the "Release to testing tracks" permission.
 3. Add the JSON as the repository secret `PLAY_SERVICE_ACCOUNT_JSON`.
-4. Uncomment the job (`PACKAGE_NAME` is already set to `be.wimvandonck.reader`). It runs after every published release.
+4. Uncomment the job (`PACKAGE_NAME` is already set to `be.wimvandonck.content`). It runs after every published release.
 
 ## GitHub settings
 
