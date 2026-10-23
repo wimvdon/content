@@ -193,20 +193,11 @@ fun SaveSheet(
                 .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            val toRead = stringResource(R.string.reading_list_to_read)
+            // Just "Save" (#229): the sheet itself picks To read or the Archive, so the title doesn't name one.
             Text(
                 when (kind) {
-                    SheetKind.New -> stringResource(R.string.save_title)
+                    SheetKind.New, SheetKind.JustSaved -> stringResource(R.string.action_save)
                     SheetKind.Organise -> stringResource(R.string.organise_title)
-                    SheetKind.JustSaved ->
-                        stringResource(
-                            R.string.saved_to,
-                            when (val place = initial.place) {
-                                Place.ToRead -> toRead
-                                Place.Archive -> stringResource(R.string.reading_list_archive)
-                                is Place.Folder -> place.name
-                            },
-                        )
                 },
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.semantics { heading() },
