@@ -6,7 +6,7 @@
  */
 
 import { escapeHtml, snippet } from "./html";
-import { addToReadingList, changeItem, cleanTags, feedArticleFor, putItem, setReadingState, type Item } from "./items";
+import { addToReadingList, changeItem, cleanTags, feedArticleFor, putItem, recentTags, setReadingState, type Item } from "./items";
 import { keyOf, type Article, type Feed, type Library } from "./library";
 
 export type SavedTab = { kind: "toread" } | { kind: "all" } | { kind: "folder"; name: string } | { kind: "archive" };
@@ -90,11 +90,9 @@ export function folderCounts(lib: Library): Map<string, number> {
 /** How many items are in To read (outside folders). */
 export const toReadCount = (lib: Library) => lib.items.filter((i) => isIn(i, { kind: "toread" })).length;
 
-/** The tags in a tab, most used first, for its chips. */
+/** The tags in a tab, most recently used first (#220), for its chips. */
 export function tabTags(lib: Library, tab: SavedTab): string[] {
-  const groups = new Map<string, string[]>();
-  for (const i of lib.items) if (isIn(i, tab)) for (const t of i.tags) groups.set(t.toLowerCase(), [...(groups.get(t.toLowerCase()) ?? []), t]);
-  return [...groups.entries()].sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0])).map(([, names]) => names[0]);
+  return recentTags(lib.items.filter((i) => isIn(i, tab)));
 }
 
 /**

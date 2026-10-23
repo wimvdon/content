@@ -2,6 +2,13 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-23: Tags in the order you last used them (#220)
+
+- Everywhere tags are listed (Saved's chips, the menu under Tags, the save sheet, Manage tags), the
+  tag of the article saved last comes first: by the newest article that carries it (when it was put
+  in Saved). Equal times go alphabetically. Before, the chips went by how many articles had the tag
+  and the rest alphabetically, which kept new tags at the end.
+
 ## 2026-10-23: The sign-in email is in English only (#219)
 
 - Every text in the apps is in every language; the sign-in email is the one exception. The feed

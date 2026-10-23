@@ -189,7 +189,24 @@ export const setTags = (lib: Library, key: string, tags: string[]) => changeItem
 
 /** Every tag on any item, sorted (case ignored). */
 export function itemTags(lib: Library): string[] {
-  return cleanTags(lib.items.flatMap((i) => i.tags)).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+  return recentTags(lib.items);
+}
+
+/**
+ * The tags of items, most recently used first (#220): the tag of the article saved last comes first
+ * (when it was put in Saved, else when the item was made). Equal times go alphabetically.
+ */
+export function recentTags(items: Item[]): string[] {
+  const latest = new Map<string, { name: string; time: number }>();
+  for (const item of items) {
+    const time = item.readingList?.addedAt ?? item.createdAt;
+    for (const tag of cleanTags(item.tags)) {
+      const key = tag.toLowerCase();
+      const seen = latest.get(key);
+      if (!seen || time > seen.time) latest.set(key, { name: seen?.name ?? tag, time });
+    }
+  }
+  return [...latest.entries()].sort((a, b) => b[1].time - a[1].time || a[0].localeCompare(b[0])).map(([, v]) => v.name);
 }
 
 /** Renames a tag on every item; renaming to another tag's name joins the two. */

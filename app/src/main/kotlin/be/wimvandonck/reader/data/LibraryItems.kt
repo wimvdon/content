@@ -114,7 +114,24 @@ fun Library.setTags(
 ): Library = changeItem(key) { it.copy(tags = cleanTags(tags)) }
 
 /** Every tag on any item, sorted (case ignored). */
-fun Library.itemTags(): List<String> = items.flatMap { it.tags }.distinctBy { it.lowercase() }.sortedBy { it.lowercase() }
+fun Library.itemTags(): List<String> = items.recentTags()
+
+/**
+ * The tags of [this], most recently used first (#220): the tag of the article saved last comes
+ * first (when it was put in Saved, else when the item was made). Equal times go alphabetically.
+ */
+fun List<Item>.recentTags(): List<String> {
+    val latest = LinkedHashMap<String, Pair<String, Long>>()
+    for (item in this) {
+        val time = item.readingList?.addedAt ?: item.createdAt
+        for (tag in item.tags) {
+            val key = tag.lowercase()
+            val seen = latest[key]
+            if (seen == null || time > seen.second) latest[key] = (seen?.first ?: tag) to time
+        }
+    }
+    return latest.entries.sortedWith(compareByDescending<Map.Entry<String, Pair<String, Long>>> { it.value.second }.thenBy { it.key }).map { it.value.first }
+}
 
 /** Renames a tag on every item; renaming to the name of another tag joins the two. */
 fun Library.renameTag(
