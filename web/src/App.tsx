@@ -141,10 +141,11 @@ export default function App() {
 
   return (
     <div className="flex h-full">
+      <aside className="hidden w-72 shrink-0 border-r bg-muted/40 lg:block">{sidebar}</aside>
       <D.Root open={drawer} onOpenChange={setDrawer}>
         <D.Portal>
-          <D.Overlay className="fixed inset-0 z-40 bg-black/40" />
-          <D.Content className="fixed inset-y-0 left-0 z-50 w-80 max-w-[85vw] bg-background shadow-xl" aria-describedby={undefined}>
+          <D.Overlay className="fixed inset-0 z-40 bg-black/40 lg:hidden" />
+          <D.Content className="fixed inset-y-0 left-0 z-50 w-80 max-w-[85vw] bg-background shadow-xl lg:hidden" aria-describedby={undefined}>
             <D.Title className="sr-only">{t("navigation")}</D.Title>
             {sidebar}
           </D.Content>

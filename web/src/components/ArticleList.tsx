@@ -247,7 +247,7 @@ function SearchBar({ onMenu, onSearch, children }: { onMenu: () => void; onSearc
   return (
     <header className="shrink-0 px-3 pt-3 pb-1">
       <div className="flex h-14 items-center gap-1 rounded-full bg-muted px-1">
-        <Button variant="ghost" size="icon" onClick={onMenu} aria-label={t("openMenu")}>
+        <Button variant="ghost" size="icon" className="lg:hidden" onClick={onMenu} aria-label={t("openMenu")}>
           <Menu />
         </Button>
         <button type="button" onClick={onSearch} title={t("search") + " (/)"} className="min-w-0 flex-1 cursor-pointer truncate px-2 text-left text-muted-foreground">
