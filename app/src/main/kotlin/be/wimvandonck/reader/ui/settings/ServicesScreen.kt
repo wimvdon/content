@@ -17,6 +17,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.Switch
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
@@ -62,6 +63,8 @@ data class ServicesState(
     val waiting: Set<String> = emptySet(),
     /** Saved's folders, for the scope. */
     val folders: List<String> = emptyList(),
+    /** Copy highlights to Instapaper (#164). */
+    val copyHighlights: Boolean = false,
 )
 
 class ServicesActions(
@@ -78,6 +81,7 @@ class ServicesActions(
     /** Counts what a new scope would take out of the service, and gives the number back. */
     val onCountLeaving: (id: String, scope: ServiceScope, result: (Int) -> Unit) -> Unit = { _, _, _ -> },
     val onScopeChange: (id: String, scope: ServiceScope) -> Unit = { _, _ -> },
+    val onCopyHighlightsChange: (Boolean) -> Unit = {},
 )
 
 /**
@@ -211,6 +215,18 @@ fun ServiceScreen(
         }
         if (connected) {
             item(key = "import") { ImportSection(id, name, state, actions) }
+            if (id == InstapaperReadingList.ID) {
+                item(key = "highlights") {
+                    SettingsSection(title = stringResource(R.string.highlights_title)) {
+                        ListItem(
+                            headlineContent = { Text(stringResource(R.string.instapaper_copy_highlights)) },
+                            supportingContent = { Text(stringResource(R.string.instapaper_copy_highlights_summary)) },
+                            trailingContent = { Switch(checked = state.copyHighlights, onCheckedChange = null) },
+                            modifier = Modifier.toggleable(value = state.copyHighlights, role = Role.Switch, onValueChange = actions.onCopyHighlightsChange),
+                        )
+                    }
+                }
+            }
             // What it syncs was a choice of folders; folders became tags (#187), so everything syncs.
         }
     }
@@ -404,4 +420,5 @@ private fun ServiceProblem.messageRes(service: String): Int =
         ServiceProblem.RateLimited -> R.string.services_problem_later
         ServiceProblem.Offline -> R.string.problem_offline
         ServiceProblem.Refused -> R.string.problem_server
+        ServiceProblem.LimitReached -> R.string.services_problem_limit
     }

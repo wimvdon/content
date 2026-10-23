@@ -7,6 +7,14 @@ data class InstapaperTag(
     val name: String,
 )
 
+/** A highlight on a bookmark (#164): the passage, its note and which occurrence it is (from 0). */
+data class InstapaperHighlight(
+    val id: Long,
+    val text: String,
+    val note: String = "",
+    val position: Int = 0,
+)
+
 data class InstapaperFolder(
     val id: Long,
     val title: String,

@@ -189,7 +189,20 @@ export function HighlightDialog({
 }
 
 /** Every highlight of the article, in the order they were made; click one to see or change it. */
-export function HighlightsDialog({ highlights, anchors, onOpen, onClose }: { highlights: Highlight[]; anchors: Map<string, Anchor>; onOpen: (id: string) => void; onClose: () => void }) {
+export function HighlightsDialog({
+  highlights,
+  anchors,
+  notCopied,
+  onOpen,
+  onClose,
+}: {
+  highlights: Highlight[];
+  anchors: Map<string, Anchor>;
+  /** The ones Instapaper refused (#164): "Not in Instapaper", tried again a day later. */
+  notCopied?: string[];
+  onOpen: (id: string) => void;
+  onClose: () => void;
+}) {
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()} title={`${t("highlightsTitle")} · ${highlights.length}`} closeLabel={t("close")}>
       {highlights.length === 0 ? <p className="text-sm text-muted-foreground">{t("highlightsNone")}</p> : null}
@@ -204,6 +217,7 @@ export function HighlightsDialog({ highlights, anchors, onOpen, onClose }: { hig
                 <div className="pl-[15px]">
                   <Status anchor={anchors.get(h.id)} />
                 </div>
+                {notCopied?.includes(h.id) ? <p className="pl-[15px] text-xs font-medium text-muted-foreground">{t("highlightNotInInstapaper")}</p> : null}
               </button>
             </li>
           ))}

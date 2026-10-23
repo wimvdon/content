@@ -192,6 +192,7 @@ fun RssReaderNavigation(
     // Which services keep each saved item in step: removing one both keep asks which (#145).
     val servicePresence by app.services.presence.collectAsStateWithLifecycle()
     val servicesWaiting by app.services.waiting.collectAsStateWithLifecycle()
+    val notCopied by app.services.notCopied.collectAsStateWithLifecycle()
     val instapaperState by app.instapaper.state.collectAsStateWithLifecycle()
     val instapaperNotice by app.instapaper.notice.collectAsStateWithLifecycle()
     val current = settings ?: Settings()
@@ -674,6 +675,7 @@ fun RssReaderNavigation(
                                         onAdd = { h -> editLibrary { it.addHighlight(link, article?.title, h, System.currentTimeMillis()) } },
                                         onNote = { id, note -> item?.let { i -> editLibrary { it.setHighlightNote(i.key, id, note) } } },
                                         onRemove = { id -> item?.let { i -> editLibrary { it.removeHighlight(i.key, id) } } },
+                                        notCopied = item?.let { notCopied[it.key] }.orEmpty(),
                                     )
                                 },
                             actions =
@@ -882,6 +884,7 @@ fun RssReaderNavigation(
                             scopes = current.scopes,
                             imports = current.imports,
                             waiting = servicesWaiting,
+                            copyHighlights = current.copyHighlights,
                             folders = remember(library) { Saved.folders(library) },
                         )
                     val servicesActions =
@@ -900,6 +903,12 @@ fun RssReaderNavigation(
                                 }
                             },
                             onCountLeaving = { id, scope, result -> uiScope.launch { result(app.services.leaving(id, scope)) } },
+                            onCopyHighlightsChange = { on ->
+                                app.appScope.launch {
+                                    app.settings.setCopyHighlights(on)
+                                    if (on) app.services.sync()
+                                }
+                            },
                             onScopeChange = { id, scope ->
                                 app.appScope.launch {
                                     app.settings.setScope(id, scope)

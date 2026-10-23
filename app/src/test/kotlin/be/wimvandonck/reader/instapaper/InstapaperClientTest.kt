@@ -100,4 +100,12 @@ class InstapaperClientTest {
             assertEquals(InstapaperProblem.ServerError, error.problem)
         }
     }
+
+    @Test
+    fun `reads highlights, bare or wrapped`() {
+        val one = """{"id": 7, "text": "A passage", "note": "Mine", "position": 2}"""
+        val wrapped = InstapaperClient.parseHighlights("""{"highlights": [$one, {"id": 8, "text": " "}]}""")
+        assertEquals(listOf(InstapaperHighlight(7, "A passage", "Mine", 2)), wrapped)
+        assertEquals(wrapped, InstapaperClient.parseHighlights("[$one]"))
+    }
 }

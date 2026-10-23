@@ -170,6 +170,10 @@ newer version; when the text changed it is lighter and underlined ("approximate"
 isn't there at all it is listed as "not found". A highlight is never thrown away. Highlights and
 their notes sync between your devices with your Reader account, and Saved's cards show the first
 one when the article has no note. On the phone a highlight stays within one paragraph.
+Signed in with Instapaper, **Copy highlights to Instapaper** (☰ › Connected services › Instapaper on
+the phone, Settings › Instapaper on the web; off by default) also puts them on the article in
+Instapaper. Free Instapaper accounts allow five a month: the others stay in Content, say "Not in
+Instapaper yet" in the list of highlights, and are tried again the next day.
 
 After **Save**, the sheet that opens says where it was saved, then has the **Folder** (To read and
 **Archive** first, then your folders, or **New folder** to make one), the **Tags** with **Like** in

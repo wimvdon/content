@@ -49,6 +49,8 @@ class ReaderHighlights(
     val onAdd: (Highlight) -> Unit,
     val onNote: (id: String, note: String) -> Unit,
     val onRemove: (id: String) -> Unit,
+    /** The ones Instapaper refused (#164): "Not in Instapaper", tried again a day later. */
+    val notCopied: Set<String> = emptySet(),
 )
 
 /** One highlight: its passage, how it was found, its note to edit, and Remove. */
@@ -106,6 +108,7 @@ fun HighlightsSheet(
     anchors: Map<String, Anchor>,
     onOpen: (String) -> Unit,
     onDismiss: () -> Unit,
+    notCopied: Set<String> = emptySet(),
 ) {
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
@@ -135,6 +138,14 @@ fun HighlightsSheet(
                         Text(h.note, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(start = 15.dp))
                     }
                     Box(Modifier.padding(start = 15.dp)) { Status(anchors[h.id]) }
+                    if (h.id in notCopied) {
+                        Text(
+                            stringResource(R.string.highlight_not_in_instapaper),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = 15.dp),
+                        )
+                    }
                 }
             }
         }

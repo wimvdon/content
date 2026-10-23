@@ -6,6 +6,7 @@
  */
 
 import { InstapaperError, type Bookmark, type InstapaperApi } from "./instapaper";
+import type { HighlightService, RemoteHighlight } from "./highlightCopy";
 import { ServiceSyncError, type RemoteChanges, type RemoteEntry, type SavedSyncService } from "./serviceSync";
 
 export const INSTAPAPER_ID = "instapaper";
@@ -15,9 +16,10 @@ const PAGE = 500;
 /** How much earlier than the request the next `since` starts, for clocks that differ. */
 const CURSOR_MARGIN_S = 300;
 
-type Api = Pick<InstapaperApi, "changesSince" | "folders" | "tags" | "save" | "setTags" | "move" | "like" | "updateBookmark" | "remove">;
+type Api = Pick<InstapaperApi, "changesSince" | "folders" | "tags" | "save" | "setTags" | "move" | "like" | "updateBookmark" | "remove"> &
+  Partial<Pick<InstapaperApi, "highlights" | "addHighlight" | "deleteHighlight">>;
 
-export class InstapaperSync implements SavedSyncService {
+export class InstapaperSync implements SavedSyncService, HighlightService {
   readonly id = INSTAPAPER_ID;
   readonly progress = true;
   private tagIds = new Map<string, number>();
@@ -122,6 +124,41 @@ export class InstapaperSync implements SavedSyncService {
     });
   }
 
+  highlights(remoteId: string): Promise<RemoteHighlight[]> {
+    return guarded(async () => {
+      const list = (await this.api.highlights?.(numberOf(remoteId))) ?? [];
+      return list.map((h) => ({ remoteId: String(h.id), text: h.text, note: h.note ?? "" }));
+    });
+  }
+
+  addHighlight(remoteId: string, text: string, note: string, position: number): Promise<RemoteHighlight> {
+    return guarded(async () => {
+      if (!this.api.addHighlight) throw new ServiceSyncError("refused");
+      try {
+        const made = await this.api.addHighlight(numberOf(remoteId), text, note, position);
+        if (typeof made?.id !== "number") throw new ServiceSyncError("server");
+        return { remoteId: String(made.id), text: made.text ?? text, note: made.note ?? note };
+      } catch (e) {
+        // Instapaper answers 403 when a free account used its highlights for the month.
+        if (e instanceof InstapaperError && e.problem === "notApproved") throw new ServiceSyncError("limit");
+        throw e;
+      }
+    });
+  }
+
+  removeHighlight(highlightId: string): Promise<void> {
+    return guarded(async () => {
+      const id = Number(highlightId);
+      if (!Number.isFinite(id)) return;
+      try {
+        await this.api.deleteHighlight?.(id);
+      } catch (e) {
+        // Already gone at Instapaper: that is what was wanted.
+        if (!(e instanceof InstapaperError && e.problem === "invalid")) throw e;
+      }
+    });
+  }
+
   remove(remoteId: string): Promise<void> {
     return guarded(async () => {
       const id = Number(remoteId);
@@ -134,6 +171,12 @@ export class InstapaperSync implements SavedSyncService {
       }
     });
   }
+}
+
+function numberOf(remoteId: string): number {
+  const id = Number(remoteId);
+  if (!Number.isFinite(id)) throw new ServiceSyncError("refused");
+  return id;
 }
 
 /** Instapaper's problems as the sync's: "auth" means signed out. */

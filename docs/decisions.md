@@ -2,6 +2,17 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-23: Copying highlights to Instapaper (#164)
+
+- One way only: Content's highlights get copies in Instapaper; highlights made in Instapaper's own
+  apps don't come in. Bringing them in depends on finding Instapaper's passage in Content's text,
+  which #102's matching test was meant to measure first.
+- Duplicates are avoided by looking at the article's highlights in Instapaper before copying (same
+  passage = the copy), not by syncing Instapaper's highlight ids through the Content account. One
+  extra call per article with something to copy, and no change to the sync format.
+- The switch is per device, off by default, because of the free plan's five highlights a month.
+- A highlight deleted in Instapaper is not made again, so deleting it there sticks.
+
 ## 2026-10-23: Saved polish: menu names, tags in the sheet, cards, the reader (#208)
 
 - ☰'s first rows are named after the places: **Feed** and **Saved** (were All articles and All

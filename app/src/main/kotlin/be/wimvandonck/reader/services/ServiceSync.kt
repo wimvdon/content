@@ -26,6 +26,8 @@ data class ServiceState(
     val cursor: String? = null,
     val rows: Map<String, RemoteEntry> = emptyMap(),
     val origins: Map<String, String> = emptyMap(),
+    /** What became of each saved article's highlights there (#164), by item key and highlight id. */
+    val highlights: Map<String, Map<String, HighlightLink>> = emptyMap(),
 )
 
 /** How a service sync ended: the state to keep, and why it stopped early (null when it got through). */
@@ -64,7 +66,7 @@ object ServiceSync {
         val progress = ServiceFeature.Progress in service.features
         val notes = ServiceFeature.Notes in service.features
         if (service.origins.isEmpty()) service.origins = state.origins
-        fun result(problem: ServiceProblem?) = ServiceSyncResult(ServiceState(cursor, rows, service.origins.ifEmpty { state.origins }), problem)
+        fun result(problem: ServiceProblem?) = ServiceSyncResult(ServiceState(cursor, rows, service.origins.ifEmpty { state.origins }, state.highlights), problem)
         try {
             val changes = service.changes(cursor, full)
             // A first look without an import record here (another device imported): what isn't in
@@ -162,7 +164,7 @@ object ServiceSync {
                 }
                 result
             }
-            return ServiceSyncResult(ServiceState(changes.cursor, rows, service.origins), null, count)
+            return ServiceSyncResult(ServiceState(changes.cursor, rows, service.origins, state.highlights), null, count)
         } catch (e: ServiceException) {
             return ServiceSyncResult(state, e.problem)
         }

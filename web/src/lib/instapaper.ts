@@ -39,6 +39,14 @@ export interface ChangesPage {
   deleted_ids: number[];
 }
 
+/** A highlight on a bookmark (#164). */
+export interface InstapaperHighlight {
+  id: number;
+  text: string;
+  note?: string;
+  position?: number;
+}
+
 export interface Folder {
   id: number;
   title: string;
@@ -219,6 +227,22 @@ export class InstapaperApi {
 
   async remove(id: number): Promise<void> {
     await this.call("DELETE", `/bookmarks/${id}`);
+  }
+
+  /** A bookmark's highlights (#164), bare or wrapped as {"highlights": [...]}. */
+  async highlights(bookmarkId: number): Promise<InstapaperHighlight[]> {
+    const answer = await this.call<InstapaperHighlight[] | { highlights?: InstapaperHighlight[] }>("GET", `/bookmarks/${bookmarkId}/highlights`);
+    const list = Array.isArray(answer) ? answer : (answer?.highlights ?? []);
+    return list.filter((h) => typeof h?.id === "number" && h.text?.trim());
+  }
+
+  /** Makes a highlight of the position-th occurrence (from 0) of text; 403 when a free account used its five a month. */
+  addHighlight(bookmarkId: number, text: string, note: string, position: number): Promise<InstapaperHighlight> {
+    return this.call("POST", `/bookmarks/${bookmarkId}/highlights`, { text, ...(note.trim() ? { note } : {}), position });
+  }
+
+  async deleteHighlight(id: number): Promise<void> {
+    await this.call("DELETE", `/highlights/${id}`);
   }
 
   /** Tags to add (by name, created if new) and tags to remove (by id). Returns the bookmark's tags afterwards. */

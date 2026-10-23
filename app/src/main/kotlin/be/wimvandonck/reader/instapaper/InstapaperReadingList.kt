@@ -1,6 +1,8 @@
 package be.wimvandonck.reader.instapaper
 
+import be.wimvandonck.reader.services.HighlightService
 import be.wimvandonck.reader.services.ReadingListService
+import be.wimvandonck.reader.services.RemoteHighlight
 import be.wimvandonck.reader.services.RemoteChanges
 import be.wimvandonck.reader.services.RemoteEntry
 import be.wimvandonck.reader.services.ServiceException
@@ -17,10 +19,11 @@ class InstapaperReadingList(
     private val client: InstapaperClient,
     /** The time now, in milliseconds. */
     private val now: () -> Long = System::currentTimeMillis,
-) : ReadingListService {
+) : ReadingListService,
+    HighlightService {
     override val id = ID
 
-    override val features = setOf(ServiceFeature.Progress)
+    override val features = setOf(ServiceFeature.Progress, ServiceFeature.Highlights)
 
     /** The account's folders by id, read with the changes. */
     private var folders: Map<Long, String> = emptyMap()
@@ -130,6 +133,42 @@ class InstapaperReadingList(
             val id = remoteId.toLongOrNull() ?: return@guarded
             try {
                 client.delete(id)
+            } catch (e: InstapaperException) {
+                // Already gone at Instapaper: that is what was wanted.
+                if (e.problem != InstapaperProblem.Invalid) throw e
+            }
+        }
+
+    override suspend fun highlights(remoteId: String): List<RemoteHighlight> =
+        guarded {
+            val id = remoteId.toLongOrNull() ?: throw ServiceException(ServiceProblem.Refused)
+            client.highlights(id).map { RemoteHighlight(it.id.toString(), it.text, it.note) }
+        }
+
+    override suspend fun addHighlight(
+        remoteId: String,
+        text: String,
+        note: String,
+        position: Int,
+    ): RemoteHighlight =
+        guarded {
+            val id = remoteId.toLongOrNull() ?: throw ServiceException(ServiceProblem.Refused)
+            val made =
+                try {
+                    client.addHighlight(id, text, note, position)
+                } catch (e: InstapaperException) {
+                    // Instapaper answers 403 when a free account used its highlights for the month.
+                    if (e.problem == InstapaperProblem.NotApproved) throw ServiceException(ServiceProblem.LimitReached, e)
+                    throw e
+                }
+            RemoteHighlight(made.id.toString(), made.text, made.note)
+        }
+
+    override suspend fun removeHighlight(highlightId: String) =
+        guarded {
+            val id = highlightId.toLongOrNull() ?: return@guarded
+            try {
+                client.deleteHighlight(id)
             } catch (e: InstapaperException) {
                 // Already gone at Instapaper: that is what was wanted.
                 if (e.problem != InstapaperProblem.Invalid) throw e

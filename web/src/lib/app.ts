@@ -11,6 +11,7 @@ import {
   parseCallback,
   type Session as InstapaperSession,
 } from "./instapaper";
+import { notCopied, pendingCopy, pushHighlights, type HighlightLink } from "./highlightCopy";
 import { INSTAPAPER_ID, InstapaperSync } from "./instapaperSync";
 import { addHighlight, removeHighlight, renameTag, setHighlightNote, setLiked, type Highlight, type Item } from "./items";
 import { applyChoice, saveNew, undoSave, type SaveChoice } from "./saveChoice";
@@ -48,6 +49,8 @@ export interface Settings {
   scopes: Record<string, ServiceScope>;
   /** What was imported from each service when it was connected (#145), by id. */
   imports: Record<string, ServiceImport>;
+  /** Copy highlights to Instapaper (#164); in this browser only, off by default (free accounts get five a month). */
+  copyHighlights: boolean;
 }
 
 export type SyncStatus = { kind: "idle" } | { kind: "syncing" } | { kind: "failed"; problem: SyncProblem };
@@ -74,6 +77,8 @@ export interface State {
   instapaperWaiting: boolean;
   /** Instapaper's sync is running (an import or a sync). */
   instapaperBusy: boolean;
+  /** The highlights Instapaper refused for its limit (#164), by item key: "Not in Instapaper". */
+  instapaperNotCopied: Record<string, string[]>;
 }
 
 export type Sheet = { kind: "new" } | { kind: "justSaved" | "organise"; key: string };
@@ -81,6 +86,8 @@ export type Sheet = { kind: "new" } | { kind: "justSaved" | "organise"; key: str
 const INSTAPAPER_STATE_KEY = "instapaper-sign-in-state";
 /** This browser's copy of what Instapaper had (serviceSync.ts), in IndexedDB. */
 const INSTAPAPER_SYNC_KEY = "instapaperSync";
+/** What became of the highlights copied to Instapaper (highlightCopy.ts), by item key and highlight id, in IndexedDB. */
+const INSTAPAPER_HIGHLIGHTS_KEY = "instapaperHighlights";
 
 export const defaultSettings: Settings = {
   lastSyncedAt: null,
@@ -93,6 +100,7 @@ export const defaultSettings: Settings = {
   listView: "medium",
   scopes: {},
   imports: {},
+  copyHighlights: false,
 };
 
 const PARALLEL = 4;
@@ -113,6 +121,7 @@ class AppStore {
     sheet: null,
     instapaperWaiting: false,
     instapaperBusy: false,
+    instapaperNotCopied: {},
   };
   private listeners = new Set<() => void>();
   private syncTimer: ReturnType<typeof setTimeout> | null = null;
@@ -451,6 +460,7 @@ class AppStore {
       const session = await exchangeCode(answer.code);
       await this.forgetSync();
       await remove(INSTAPAPER_SYNC_KEY).catch(() => undefined);
+      await remove(INSTAPAPER_HIGHLIGHTS_KEY).catch(() => undefined);
       await this.setInstapaper(session);
       this.set({ instapaperNotice: "signedIn" });
       this.updateLive();
@@ -504,6 +514,8 @@ class AppStore {
     await this.forgetSync();
     // Disconnected: what was synced with Instapaper, and its import, are forgotten; Saved stays.
     await remove(INSTAPAPER_SYNC_KEY).catch(() => undefined);
+    await remove(INSTAPAPER_HIGHLIGHTS_KEY).catch(() => undefined);
+    this.set({ instapaperNotCopied: {} });
     const imports = { ...this.state.settings.imports };
     delete imports[INSTAPAPER_ID];
     this.updateSettings({ imports });
@@ -611,8 +623,9 @@ class AppStore {
       this.set({ instapaperWaiting: waiting });
       if (waiting) return;
       this.set({ instapaperBusy: true });
+      const service = new InstapaperSync(new InstapaperApi(session.token));
       const result = await syncService(
-        new InstapaperSync(new InstapaperApi(session.token)),
+        service,
         state,
         (change) => {
           this.updateLibrary(change);
@@ -622,7 +635,14 @@ class AppStore {
         // Folders became tags (#187), so a scope of folders means nothing any more: everything in Saved syncs.
         EVERYTHING,
         { ...this.editedAt },
-      ).finally(() => this.set({ instapaperBusy: false }));
+      )
+        .then(async (result) => {
+          if (!result.problem && this.state.settings.copyHighlights && this.state.instapaper?.token === session.token) {
+            await this.copyHighlights(service, result.state).catch(() => undefined);
+          }
+          return result;
+        })
+        .finally(() => this.set({ instapaperBusy: false }));
       // Signed out meanwhile: what was synced belongs to the old sign-in.
       if (this.state.instapaper?.token !== session.token) return;
       await save(INSTAPAPER_SYNC_KEY, result.state).catch(() => undefined);
@@ -630,6 +650,49 @@ class AppStore {
     })().finally(() => (this.instapaperSyncing = null));
     return this.instapaperSyncing;
   }
+
+  /**
+   * Copies the highlights of each article in step with Instapaper there (#164), as the Android app
+   * does. Only articles with something to do cost a call; it stops at the first problem and goes on next time.
+   */
+  private async copyHighlights(service: InstapaperSync, state: ServiceSyncState): Promise<void> {
+    const stored = (await load<Record<string, Record<string, HighlightLink>>>(INSTAPAPER_HIGHLIGHTS_KEY).catch(() => undefined)) ?? {};
+    const links: Record<string, Record<string, HighlightLink>> = {};
+    for (const [key, byId] of Object.entries(stored)) if (state.rows[key] && state.rows[key].linked !== false) links[key] = byId;
+    const now = Date.now();
+    const items = new Map(this.state.library.items.map((i) => [i.key, i]));
+    try {
+      for (const [key, row] of Object.entries(state.rows)) {
+        if (row.linked === false) continue;
+        const item = items.get(key);
+        if (!item?.readingList) continue;
+        const before = links[key] ?? {};
+        if (!pendingCopy(item.highlights, before, now)) continue;
+        const pushed = await pushHighlights(service, row.remoteId, item.highlights, before, now);
+        links[key] = pushed.links;
+        if (pushed.problem) break;
+      }
+    } finally {
+      await save(INSTAPAPER_HIGHLIGHTS_KEY, links).catch(() => undefined);
+      this.showNotCopied(links);
+    }
+  }
+
+  private showNotCopied(links: Record<string, Record<string, HighlightLink>>) {
+    const out: Record<string, string[]> = {};
+    for (const [key, byId] of Object.entries(links)) {
+      const refused = [...notCopied(byId)];
+      if (refused.length > 0) out[key] = refused;
+    }
+    this.set({ instapaperNotCopied: out });
+  }
+
+  /** Copying highlights to Instapaper on or off (#164); on, it copies at once. */
+  setCopyHighlights = (on: boolean) => {
+    this.updateSettings({ copyHighlights: on });
+    if (on) void this.syncInstapaper().catch(() => undefined);
+    else this.set({ instapaperNotCopied: {} });
+  };
 
   /** When each saved item last changed here, by key (kept for this visit). */
   private editedAt: Record<string, number> = {};
