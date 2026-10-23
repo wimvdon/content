@@ -110,6 +110,8 @@ class ReaderActions(
     /** Switches between the full article and the feed's text. */
     val onToggleFullText: () -> Unit,
     val onOpenLink: (String) -> Unit,
+    /** Signs in to the article's site (#180), so articles you pay for load in full. Null without an https link. */
+    val onSignIn: (() -> Unit)? = null,
     /** Reports a badly cleaned-up article (#181): a pre-filled GitHub issue in the browser. Null without a link. */
     val onReport: ((ArticleReport.Problem, String) -> Unit)? = null,
 )
@@ -222,6 +224,17 @@ fun ReaderScreen(
                                 onClick = {
                                     menuOpen = false
                                     markUnread()
+                                },
+                            )
+                        }
+                        val signIn = actions.onSignIn
+                        if (signIn != null) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.site_sign_in_menu)) },
+                                leadingIcon = { Icon(painterResource(R.drawable.ic_login), contentDescription = null) },
+                                onClick = {
+                                    menuOpen = false
+                                    signIn()
                                 },
                             )
                         }

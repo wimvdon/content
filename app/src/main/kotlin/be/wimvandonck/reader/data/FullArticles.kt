@@ -91,6 +91,11 @@ class FullArticles(
         return FullArticle.Loaded(html)
     }
 
+    /** Forgets the stored text of [link], so the next [load] downloads it again (after signing in, #180). */
+    suspend fun forget(link: String) {
+        withContext(Dispatchers.IO) { File(cacheDir, name(link)).delete() }
+    }
+
     private suspend fun readCached(file: File): String? =
         withContext(Dispatchers.IO) {
             try {

@@ -34,6 +34,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import be.wimvandonck.reader.R
 import be.wimvandonck.reader.data.ArticleReport
+import be.wimvandonck.reader.feed.SiteSignIn
+import be.wimvandonck.reader.feed.SiteSignIns
+import be.wimvandonck.reader.ui.reader.SiteSignInScreen
+import be.wimvandonck.reader.ui.reader.forgetSiteCookies
 import be.wimvandonck.reader.data.Item
 import be.wimvandonck.reader.data.ItemSearch
 import be.wimvandonck.reader.data.Place
@@ -139,6 +143,9 @@ sealed interface Screen {
     /** Search through every feed's articles and Saved. */
     data object Search : Screen
 
+    /** Signing in to a site (#180), at this address. */
+    data class SiteSignIn(val url: String) : Screen
+
     companion object {
         fun encode(screen: Screen): String =
             when (screen) {
@@ -150,6 +157,7 @@ sealed interface Screen {
                 is Service -> "service:" + screen.id
                 Search -> "search"
                 is Reader -> "reader:" + screen.articleKey
+                is SiteSignIn -> "signin:" + screen.url
             }
 
         fun decode(text: String): Screen =
@@ -161,6 +169,7 @@ sealed interface Screen {
                 text.startsWith("service:") -> Service(text.removePrefix("service:"))
                 text == "search" -> Search
                 text.startsWith("reader:") -> Reader(text.removePrefix("reader:"))
+                text.startsWith("signin:") -> SiteSignIn(text.removePrefix("signin:"))
                 else -> Home
             }
     }
@@ -198,6 +207,7 @@ fun RssReaderNavigation(
     val instapaperNotice by app.instapaper.notice.collectAsStateWithLifecycle()
     val accountState by app.account.state.collectAsStateWithLifecycle()
     val accountNotice by app.account.notice.collectAsStateWithLifecycle()
+    val siteSignIns by app.siteSignIns.signIns.collectAsStateWithLifecycle()
     val current = settings ?: Settings()
     val library = libraryOrNull ?: Library()
     val snackbar = remember { SnackbarHostState() }
@@ -647,15 +657,18 @@ fun RssReaderNavigation(
                     val isSummary = remember(article?.html, article?.link) { article != null && needsFullText(article.html, article.link) }
                     val wantFullText = article?.link != null && wantsFullText(fullTextChoice, current.fullArticles, fromFeed != null, isSummary, saved = item?.readingList != null)
                     var fullText by remember(screen.articleKey) { mutableStateOf<FullTextState>(FullTextState.Off) }
-                    LaunchedEffect(screen.articleKey, wantFullText) {
+                    // Signed in to the article's site (#180): its text loads again, with the sign-in.
+                    val signedIn = article?.link?.let { SiteSignIns.forUrl(it, siteSignIns) }
+                    LaunchedEffect(screen.articleKey, wantFullText, signedIn?.savedAt) {
                         val link = article?.link
                         fullText =
                             if (!wantFullText || link == null) {
                                 FullTextState.Off
                             } else {
                                 fullText = FullTextState.Loading
-                                // A saved article shows the one text every device shows (stored in the account).
-                                val saved = item?.readingList != null
+                                // A saved article shows the one text every device shows (stored in the account),
+                                // unless this device is signed in to its site: then its own full text (#180).
+                                val saved = item?.readingList != null && signedIn == null
                                 val html =
                                     SharedText.resolve(
                                         saved,
@@ -711,6 +724,7 @@ fun RssReaderNavigation(
                                     },
                                     onShare = { article?.let { send(it, current.shareTarget) } },
                                     onOpenInBrowser = { article?.let { a -> a.link?.let { ExternalApps.openInTab(context, it, a.title) } } },
+                                    onSignIn = article?.link?.takeIf { SiteSignIns.siteOf(it) != null }?.let { link -> { push(Screen.SiteSignIn(link)) } },
                                     onReport =
                                         article?.link?.let { link ->
                                             { problem, comment ->
@@ -781,6 +795,7 @@ fun RssReaderNavigation(
                                 account = accountState,
                                 instapaperConnected = instapaperState is InstapaperState.SignedIn,
                                 hasFeeds = library.feeds.isNotEmpty(),
+                                siteSignIns = siteSignIns.map { it.site },
                             ),
                         snackbarHostState = snackbar,
                         actions =
@@ -807,6 +822,10 @@ fun RssReaderNavigation(
                                 onOpenServices = { push(Screen.Services) },
                                 onImportOpml = importOpml,
                                 onExportOpml = exportOpml,
+                                onRemoveSiteSignIn = { site ->
+                                    siteSignIns.firstOrNull { it.site == site }?.let { forgetSiteCookies(it.site, it.cookie) }
+                                    app.appScope.launch { app.siteSignIns.remove(site) }
+                                },
                                 onSendLink = { email, result ->
                                     uiScope.launch { result(runCatching { app.account.sendLink(email) }.isSuccess) }
                                 },
@@ -846,6 +865,26 @@ fun RssReaderNavigation(
                                 onUpdateFolder = { folder -> app.appScope.launch { repository.updateFolder(folder.id, folder.title, folder.icon) } },
                                 onRemoveFolder = { folder -> app.appScope.launch { repository.removeFolder(folder.id) } },
                             ),
+                    )
+                }
+
+                is Screen.SiteSignIn -> {
+                    SystemBarsFollowTheme(appDark)
+                    SiteSignInScreen(
+                        url = screen.url,
+                        onBack = ::pop,
+                        onDone = { site, cookie ->
+                            pop()
+                            if (cookie == null) {
+                                showMessage(resources.getString(R.string.site_sign_in_nothing, site))
+                            } else {
+                                app.appScope.launch {
+                                    app.siteSignIns.save(SiteSignIn(site, cookie, System.currentTimeMillis()))
+                                    app.fullArticles.forget(screen.url)
+                                }
+                                showMessage(resources.getString(R.string.site_sign_in_saved, site))
+                            }
+                        },
                     )
                 }
 

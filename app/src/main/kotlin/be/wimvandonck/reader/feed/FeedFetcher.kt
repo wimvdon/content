@@ -11,11 +11,14 @@ import java.net.URL
 /**
  * Downloads feeds and web pages over HTTPS. The app's only network code apart from pictures (Coil)
  * sync (sync/AccountClient.kt, sync/LiveUpdates.kt) and Instapaper (instapaper/): it fetches
- * exactly the addresses the user subscribed to (or typed), sends no cookies or identifiers,
- * and follows at most [MAX_REDIRECTS] redirects.
+ * exactly the addresses the user subscribed to (or typed), sends no identifiers, and follows at
+ * most [MAX_REDIRECTS] redirects. The only cookies it sends are a site's own sign-in, to that site
+ * ([cookieFor], #180), so the articles you pay for load in full.
  */
 class FeedFetcher(
     private val userAgent: String,
+    /** The sign-in cookies for an address, or null (feed/SiteSignIns.kt). */
+    private val cookieFor: (String) -> String? = { null },
 ) {
     suspend fun fetch(url: String): Fetched =
         withContext(Dispatchers.IO) {
@@ -34,6 +37,7 @@ class FeedFetcher(
                     connection.useCaches = false
                     connection.setRequestProperty("User-Agent", userAgent)
                     connection.setRequestProperty("Accept", ACCEPT)
+                    cookieFor(current)?.let { connection.setRequestProperty("Cookie", it) }
                     val code = connection.responseCode
                     when {
                         code in 300..399 -> {

@@ -66,6 +66,15 @@
     <string name="reader_background_dark">Sombre</string>
     <string name="reader_preview">Une bonne typographie est invisible : on remarque l\'histoire, pas les lettres.</string>
     <string name="reader_read_on_website">Lire sur le site</string>
+    <string name="site_sign_in_menu">Se connecter à ce site</string>
+    <string name="site_sign_in_title">Se connecter à %1$s</string>
+    <string name="site_sign_in_done">OK</string>
+    <string name="site_sign_in_saved">Connecté à %1$s. Ses articles se chargent en entier.</string>
+    <string name="site_sign_in_nothing">%1$s n’a enregistré aucune connexion. Connectez-vous d’abord sur la page, puis touchez OK.</string>
+    <string name="site_sign_ins_title">Sites où vous êtes connecté</string>
+    <string name="site_sign_ins_none">Vous payez un site ? Ouvrez un de ses articles, puis ⋮ › Se connecter à ce site. La connexion reste sur ce téléphone et ne va qu’à ce site.</string>
+    <string name="site_sign_ins_hint">Leurs connexions restent sur ce téléphone et ne vont qu’à ce site, pour que les articles que vous payez se chargent en entier.</string>
+    <string name="site_sign_in_remove">Supprimer</string>
     <string name="report_menu">Signaler un problème avec cet article</string>
     <string name="report_title">Qu’est-ce qui ne va pas avec cet article ?</string>
     <string name="report_text_missing">Du texte manque</string>

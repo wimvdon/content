@@ -21,6 +21,7 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -58,6 +59,8 @@ data class SettingsState(
     val instapaperConnected: Boolean = false,
     /** There are feeds to export. */
     val hasFeeds: Boolean = false,
+    /** Sites signed in to (#180). */
+    val siteSignIns: List<String> = emptyList(),
 )
 
 class SettingsActions(
@@ -82,6 +85,8 @@ class SettingsActions(
     val onOpenServices: () -> Unit = {},
     val onImportOpml: () -> Unit = {},
     val onExportOpml: () -> Unit = {},
+    /** Forgets a site's sign-in (#180). */
+    val onRemoveSiteSignIn: (String) -> Unit = {},
 )
 
 /** Everything that can be set, as one list of sections in the order DESIGN.md gives. */
@@ -118,6 +123,23 @@ fun SettingsScreen(
                     leadingContent = { Icon(painterResource(R.drawable.ic_reading_list), contentDescription = null) },
                     modifier = Modifier.clickable(role = Role.Button, onClick = actions.onOpenServices),
                 )
+            }
+        }
+        item(key = "sites") {
+            SettingsSection(title = stringResource(R.string.site_sign_ins_title)) {
+                for (site in state.siteSignIns) {
+                    ListItem(
+                        headlineContent = { Text(site) },
+                        trailingContent = { TextButton(onClick = { actions.onRemoveSiteSignIn(site) }) { Text(stringResource(R.string.site_sign_in_remove)) } },
+                    )
+                }
+                SettingsBlock {
+                    Text(
+                        stringResource(if (state.siteSignIns.isEmpty()) R.string.site_sign_ins_none else R.string.site_sign_ins_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         }
         item(key = "opml") {

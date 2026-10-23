@@ -14,6 +14,8 @@ import be.wimvandonck.reader.data.ServiceScope
 import be.wimvandonck.reader.data.SettingsStore
 import be.wimvandonck.reader.feed.FeedFetcher
 import be.wimvandonck.reader.instapaper.InstapaperAccount
+import be.wimvandonck.reader.data.SiteSignInStore
+import be.wimvandonck.reader.feed.SiteSignIns
 import be.wimvandonck.reader.instapaper.InstapaperReadingList
 import be.wimvandonck.reader.instapaper.InstapaperState
 import be.wimvandonck.reader.sync.ContentAccount
@@ -47,7 +49,7 @@ class RssReaderApp :
 
     private val fetcher: FeedFetcher by lazy {
         val version = runCatching { packageManager.getPackageInfo(packageName, 0).versionName }.getOrNull().orEmpty()
-        FeedFetcher(userAgent = "RSSReader/$version (Android)")
+        FeedFetcher(userAgent = "RSSReader/$version (Android)", cookieFor = { url -> SiteSignIns.cookieFor(url, siteSignIns.signIns.value) })
     }
 
     val library: LibraryRepository by lazy { LibraryRepository(this, appScope, fetch = fetcher::fetch) }
@@ -78,6 +80,9 @@ class RssReaderApp :
             copiesHighlights = { id -> id == InstapaperReadingList.ID && settings.settings.value?.copyHighlights == true },
         )
     }
+
+    /** Sites signed in to (#180): their cookies go with requests to them. On this device only. */
+    val siteSignIns: SiteSignInStore by lazy { SiteSignInStore(this, appScope) }
 
     val fullArticles: FullArticles by lazy { FullArticles(File(cacheDir, "articles"), fetch = fetcher::fetch) }
 
