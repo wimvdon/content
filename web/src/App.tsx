@@ -5,7 +5,6 @@ import { ArticleView } from "./components/ArticleView";
 import { NavigationBar } from "./components/NavigationBar";
 import { AddFeedDialog, ManageDialog, SettingsDialog } from "./components/Dialogs";
 import { SaveSheet } from "./components/SaveSheet";
-import { SavedManageDialog } from "./components/SavedManage";
 import { SearchPanel } from "./components/SearchPanel";
 import { Sidebar } from "./components/Sidebar";
 import { Button } from "./components/ui/button";
@@ -195,11 +194,12 @@ export default function App() {
 
       <AddFeedDialog key={dialog === "add" ? "open" : "closed"} open={dialog === "add"} onOpenChange={(o) => setDialog(o ? "add" : null)} folderId={selection.kind === "folder" ? selection.folderId : null} />
       <ManageDialog
-        open={dialog === "manage"}
+        open={dialog === "manage" || dialog === "manageSaved"}
         onOpenChange={(o) => setDialog(o ? "manage" : null)}
+        tab={dialog === "manageSaved" ? "tags" : "feeds"}
+        onTab={(tab) => setDialog(tab === "tags" ? "manageSaved" : "manage")}
         onAddFeed={() => setDialog("add")}
       />
-      <SavedManageDialog open={dialog === "manageSaved"} onOpenChange={(o) => setDialog(o ? "manageSaved" : null)} />
       <SettingsDialog open={dialog === "settings"} onOpenChange={(o) => setDialog(o ? "settings" : null)} onImport={() => fileInput.current?.click()} />
       <SaveSheet
         onMessage={(text, openKey) =>

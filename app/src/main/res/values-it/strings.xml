@@ -146,7 +146,7 @@
     <string name="list_view_small">Piccola</string>
     <string name="list_view_medium">Media</string>
     <string name="list_view_large">Grande</string>
-    <string name="feeds_page_title">Feed e cartelle</string>
+    <string name="manage_title">Feed e tag</string>
     <string name="feeds_opml_title">Da o verso un altro lettore</string>
     <string name="reader_auto_dark_title">Scuro automatico</string>
     <string name="reader_auto_dark_summary">Pagina scura quando l’app è scura</string>
@@ -317,7 +317,6 @@
     <string name="saved_place">Dove</string>
     <string name="saved_to">Salvato in %1$s</string>
     <string name="action_open_menu">Apri menu</string>
-    <string name="menu_folders_tags">Tag</string>
     <string name="saved_folder_rename">Rinomina cartella</string>
     <string name="saved_folder_remove">Rimuovi cartella</string>
     <string name="saved_folder_remove_body">Rimuovere la cartella %1$s? I suoi elementi vanno nell’Archivio.</string>

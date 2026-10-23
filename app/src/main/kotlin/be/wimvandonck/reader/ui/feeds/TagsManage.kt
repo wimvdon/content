@@ -60,6 +60,8 @@ fun TagsManageScreen(
     folders: Map<String, Int> = emptyMap(),
     onRenameFolder: (String, String) -> Unit = { _, _ -> },
     onRemoveFolder: (String) -> Unit = {},
+    /** Switches to the Feeds tab of Feeds and tags (#222). */
+    onTab: (ManageTab) -> Unit = {},
     /** Sends a tag's articles to a Content user (#167); null when signed out. */
     onShareTag: ((tag: String, email: String, result: (ShareResult) -> Unit) -> Unit)? = null,
 ) {
@@ -71,17 +73,8 @@ fun TagsManageScreen(
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            LargeTopAppBar(
-                title = { Text(stringResource(R.string.menu_folders_tags)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(painterResource(R.drawable.ic_arrow_back), contentDescription = stringResource(R.string.action_back))
-                    }
-                },
-                scrollBehavior = scrollBehavior,
-            )
-        },
+        // One screen with the feeds (#222): its tabs switch between the two.
+        topBar = { ManageTopBar(ManageTab.Tags, onTab, onBack, scrollBehavior) },
     ) { innerPadding ->
         if (tags.isEmpty() && folders.isEmpty()) {
             EmptyState(

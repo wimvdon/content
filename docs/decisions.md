@@ -2,6 +2,12 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-23: Feeds and tags on one screen (#222)
+
+- Managing feeds (with their folders) and managing Saved's tags is one screen, **Feeds and tags**,
+  with a tab for each, on Android and the web. ☰ keeps Manage feeds under Feeds and Manage tags under
+  Saved, each opening the screen on its own tab; switching tabs doesn't add a step to Back.
+
 ## 2026-10-23: Long-press menus, and swiping saves (#221)
 
 - A feed article: press and hold for **Mark as read/unread**, **Save** and **Share**; swiping

@@ -33,6 +33,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import be.wimvandonck.reader.R
+import be.wimvandonck.reader.ui.feeds.ManageTab
 import be.wimvandonck.reader.data.ArticleReport
 import be.wimvandonck.reader.data.SharedArticle
 import be.wimvandonck.reader.data.Sharing
@@ -256,6 +257,12 @@ fun RssReaderNavigation(
 
     fun pop() {
         if (backStack.size > 1) screenStates.removeState(Screen.encode(backStack.removeAt(backStack.lastIndex)))
+    }
+
+    /** Feeds and tags (#222): a tab replaces the shown screen, so Back leaves at once. */
+    fun showManageTab(tab: ManageTab) {
+        val next = if (tab == ManageTab.Feeds) Screen.Feeds else Screen.Tags
+        if (backStack.lastOrNull() != next) backStack[backStack.lastIndex] = next
     }
 
     fun showMessage(text: String) {
@@ -889,6 +896,7 @@ fun RssReaderNavigation(
                                 onAddFolder = { title, icon -> app.appScope.launch { repository.addFolder(title, icon) } },
                                 onUpdateFolder = { folder -> app.appScope.launch { repository.updateFolder(folder.id, folder.title, folder.icon) } },
                                 onRemoveFolder = { folder -> app.appScope.launch { repository.removeFolder(folder.id) } },
+                                onTab = ::showManageTab,
                             ),
                     )
                 }
@@ -970,6 +978,7 @@ fun RssReaderNavigation(
                         onRemove = { tag -> editLibrary { it.removeTag(tag) } },
                         onRenameFolder = { from, to -> editLibrary { Saved.renameFolder(it, from, to) } },
                         onRemoveFolder = { name -> editLibrary { Saved.removeFolder(it, name) } },
+                        onTab = ::showManageTab,
                         onShareTag =
                             if (accountState is AccountState.SignedIn) {
                                 { tag, email, result ->

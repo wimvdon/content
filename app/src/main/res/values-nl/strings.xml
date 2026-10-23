@@ -146,7 +146,7 @@
     <string name="list_view_small">Klein</string>
     <string name="list_view_medium">Middel</string>
     <string name="list_view_large">Groot</string>
-    <string name="feeds_page_title">Feeds en mappen</string>
+    <string name="manage_title">Feeds en tags</string>
     <string name="feeds_opml_title">Van of naar een andere lezer</string>
     <string name="reader_auto_dark_title">Automatisch donker</string>
     <string name="reader_auto_dark_summary">Donkere pagina wanneer de app donker is</string>
@@ -307,7 +307,6 @@
     <string name="saved_place">Waar</string>
     <string name="saved_to">Bewaard in %1$s</string>
     <string name="action_open_menu">Menu openen</string>
-    <string name="menu_folders_tags">Tags</string>
     <string name="saved_folder_rename">Map hernoemen</string>
     <string name="saved_folder_remove">Map verwijderen</string>
     <string name="saved_folder_remove_body">De map %1$s verwijderen? De items gaan naar het Archief.</string>

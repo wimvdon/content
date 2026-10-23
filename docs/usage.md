@@ -253,7 +253,7 @@ a web link says "No link to save".
 - **Appearance:** Theme (System, Light, Dark) and Dynamic color (wallpaper colours instead of
   the app's blue).
 
-Your feeds are managed on their own page, **☰ › Manage feeds** ("Feeds and folders"): every feed with its address (or why
+Your feeds and tags are managed on one page, **Feeds and tags** (#222), with a tab for each: **☰ › Manage feeds** opens it on Feeds, **☰ › Manage tags** on Tags. Feeds: every feed with its address (or why
   its last download failed), grouped by folder. Add, rename, reorder (drag) or remove feeds (a
   removed feed's articles go too), create, edit, reorder and remove folders, and put feeds in folders. **Import OPML** /
   **Export OPML**, to move your feeds between readers, are in Settings.
