@@ -18,11 +18,16 @@ import be.wimvandonck.content.data.SiteSignInStore
 import be.wimvandonck.content.feed.SiteSignIns
 import be.wimvandonck.content.instapaper.InstapaperReadingList
 import be.wimvandonck.content.instapaper.InstapaperState
+import be.wimvandonck.content.sync.AccountState
 import be.wimvandonck.content.sync.ContentAccount
+import be.wimvandonck.content.ui.DirectShare
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import be.wimvandonck.content.services.ServiceManager
 import be.wimvandonck.content.sync.SyncManager
@@ -97,6 +102,14 @@ class RssReaderApp :
         appScope.launch { iconCatalog }
         // Raindrop.io was removed (#179): its sign-in, kept only on this device, goes with it.
         appScope.launch { File(filesDir, "datastore/raindrop.preferences_pb").delete() }
+        // Direct share (#235): the people shared with, in Android's share menu, while signed in.
+        appScope.launch {
+            combine(settings.settings.filterNotNull(), account.state) { s, state ->
+                (if (state is AccountState.SignedIn) s.recipients else emptyList()) to s.showImages
+            }.distinctUntilChanged().collect { (recipients, showImages) ->
+                DirectShare.publish(this@RssReaderApp, recipients, showImages, sync::profileName)
+            }
+        }
         // Signed in with Instapaper before #166: that account key moves to the Content account, once.
         appScope.launch {
             instapaper.state.collect { state ->

@@ -238,6 +238,11 @@ If the chosen app has been uninstalled, the button opens the share menu instead 
 Connecting Instapaper changes nothing here: the buttons and their choices stay the
 same, and what is in Saved is also kept in the connected service.
 
+**Sending from other apps to a person** (#235). Signed in, the last few people you sent something
+to (Send to a Content user) appear in Android's share menu, at the top, with their Gravatar picture
+or first letter. Pick one and **Send to a Content user** opens over the app you were in, with their
+address filled in; add a message if you like and tap **Send**.
+
 **Saving from other apps.** In Chrome or any app that shares links, tap Share and pick
 **Reader**. Only the **Save to Reader** sheet opens, over the app you were in (the rest of Reader
 stays closed): the site, then the **Folder** (To read, **Archive** for a link you keep

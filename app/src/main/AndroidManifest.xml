@@ -31,6 +31,10 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- Direct share (#235): the people shared with, in Android's share menu. -->
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
 
             <!-- Where Instapaper sends the user back after signing in, and where an emailed sign-in
                  link opens (#166). Verified against
@@ -56,7 +60,8 @@
             android:theme="@style/Theme.RssReader.Translucent" />
 
         <!-- Links shared from other apps (#97, #103): only the save sheet, over the app that shared
-             it, not the whole of Reader. An alias, so the tab's own screen stays unexported. -->
+             it, not the whole of Reader. An alias, so the tab's own screen stays unexported. Shared
+             to a person in the share menu (#235, res/xml/shortcuts.xml): Send to a Content user. -->
         <activity-alias
             android:name=".ui.ShareActivity"
             android:targetActivity=".ui.SaveFromTabActivity"
