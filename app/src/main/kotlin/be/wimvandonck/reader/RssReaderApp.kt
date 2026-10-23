@@ -97,7 +97,7 @@ class RssReaderApp :
         appScope.launch { iconCatalog }
         // Raindrop.io was removed (#179): its sign-in, kept only on this device, goes with it.
         appScope.launch { File(filesDir, "datastore/raindrop.preferences_pb").delete() }
-        // Signing in with Instapaper opens a Content account; the account keeps its key (#166).
+        // Signed in with Instapaper before #166: that account key moves to the Content account, once.
         appScope.launch {
             instapaper.state.collect { state ->
                 if ((state as? InstapaperState.SignedIn)?.session?.accountKey != null) instapaper.takeAccountKey()?.let { account.adopt(it) }

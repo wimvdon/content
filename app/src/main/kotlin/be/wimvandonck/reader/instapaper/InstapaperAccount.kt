@@ -88,7 +88,8 @@ class InstapaperAccount(
                     prefs[TOKEN] = session.token
                     prefs[USERNAME] = session.username
                     if (session.userId != null) prefs[USER_ID] = session.userId else prefs.remove(USER_ID)
-                    if (session.accountKey != null) prefs[ACCOUNT_KEY] = session.accountKey else prefs.remove(ACCOUNT_KEY)
+                    // Instapaper is only a connected service (#215): the account it would open isn't kept.
+                    prefs.remove(ACCOUNT_KEY)
                 }
                 InstapaperNotice.SignedIn
             } catch (e: InstapaperException) {
@@ -100,8 +101,8 @@ class InstapaperAccount(
     suspend fun session(): InstapaperSession? = (state.first { it != InstapaperState.Loading } as? InstapaperState.SignedIn)?.session
 
     /**
-     * The Content account key this sign-in opened, handed over once (#166): the Content account
-     * keeps it from then on (sync/ContentAccount.kt), so disconnecting Instapaper doesn't sign out.
+     * The Content account key an Instapaper sign-in from before #166 opened, handed over once: the
+     * Content account keeps it from then on (sync/ContentAccount.kt). New sign-ins keep none (#215).
      */
     suspend fun takeAccountKey(): String? {
         var key: String? = null

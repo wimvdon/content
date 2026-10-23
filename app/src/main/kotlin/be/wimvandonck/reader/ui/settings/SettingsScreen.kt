@@ -108,7 +108,6 @@ fun SettingsScreen(
                 status = state.syncStatus,
                 lastSyncedAt = state.settings.lastSyncedAt,
                 onSendLink = actions.onSendLink,
-                onSignInInstapaper = actions.onSignIn,
                 showImages = state.settings.showImages,
                 onSyncNow = actions.onSyncNow,
                 onSignOut = actions.onSignOut,

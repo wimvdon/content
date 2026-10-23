@@ -309,7 +309,6 @@
     <string name="account_email_send">Email me a sign-in link</string>
     <string name="account_email_sent">Sent to %1$s. Open the link in that email on this device.</string>
     <string name="account_email_failed">The email couldn\'t be sent. Check the address and your connection.</string>
-    <string name="account_sign_in_instapaper">Or sign in with Instapaper</string>
     <string name="account_sign_out">Sign out</string>
     <string name="account_add_email">Add an email address</string>
     <string name="account_add_email_summary">Then a link sent to it signs you in too, to the same library.</string>

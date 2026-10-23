@@ -64,9 +64,9 @@ for the first time combines its feeds with the account's and takes the settings 
 **Signing in:** Settings › **Account**: type your email address and tap **Email me a sign-in link**.
 Open the link in that email on the same phone (it opens Content) or in the same browser. A link
 works once, for 30 minutes. No password. Your Gravatar picture shows next to your address, if you
-have one. **Or sign in with Instapaper** also opens an account; signed in that way, **Add an email
-address** once, and from then on a link to that address opens the same library. Instapaper itself
-is a connected service (Settings › Connected services, web: Settings › Instapaper): connecting or
+have one. An account opened with Instapaper before email sign-in keeps working there: **Add an
+email address** once, and from then on a link to that address opens the same library. Instapaper
+itself is only a connected service (#215), not a way to sign in (Settings › Connected services, web: Settings › Instapaper): connecting or
 disconnecting it doesn't sign you in or out.
 
 Only Load full articles and Mark as read on scroll sync. How the app looks (theme, the reader's
@@ -316,10 +316,10 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
 
 ## Instapaper account
 
-Settings › **Account** › **Sign in with Instapaper** opens Instapaper's own page in your browser.
-Approve Reader there and you come back to the app (or the web page) signed in; Reader never sees your
-password. The same sign-in turns on sync (see Sync between devices) and connects Saved to
-Instapaper:
+Settings › **Connected services** › Instapaper › **Sign in with Instapaper** (web: Settings ›
+Instapaper) opens Instapaper's own page in your browser. Approve it there and you come back
+connected; the app never sees your Instapaper password. Instapaper only keeps Saved in step: it is
+not how you sign in to Content (#215, see Sync between devices):
 
 - **Everything comes in:** right after connecting, everything Instapaper has comes into Saved,
   once, with nothing to choose. Each article arrives where it belongs: archived in the Archive,
