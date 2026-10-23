@@ -1,6 +1,7 @@
 /** Loads feeds and pages through the Cloudflare Worker (worker/), because browsers block most of them otherwise. */
 
 import { PROXY_URL } from "./config";
+import { extensionPresent, fetchViaExtension } from "./extension";
 
 /** "blocked": the site refuses the feed loader (a bot check or a block of data centers). */
 export type FetchProblem = "offline" | "notFound" | "server" | "tooLarge" | "blocked";
@@ -19,8 +20,39 @@ export interface Fetched {
   url: string;
 }
 
-/** Loads `url` through the Worker; `page` asks for an article page as a browser would. */
+/**
+ * Loads `url`; `page` asks for an article page as a browser would. With the browser extension
+ * installed (#168), an article page comes from the user's own browser (their sign-ins included),
+ * and a feed the feed loader is refused comes that way too; otherwise through the Worker.
+ */
 export async function fetchViaProxy(url: string, page = false): Promise<Fetched> {
+  if (page && extensionPresent()) {
+    const own = await fromExtension(url);
+    if (own) return own;
+  }
+  try {
+    return await fromWorker(url, page);
+  } catch (e) {
+    if (!page && e instanceof FetchError && e.kind === "blocked" && extensionPresent()) {
+      const own = await fromExtension(url);
+      if (own) return own;
+    }
+    throw e;
+  }
+}
+
+/** The page from the extension, or null when it couldn't (the Worker is asked then). */
+async function fromExtension(url: string): Promise<Fetched | null> {
+  try {
+    const answer = await fetchViaExtension(url);
+    return { text: decodeText(answer.bytes, answer.contentType), url: answer.url };
+  } catch {
+    return null;
+  }
+}
+
+/** Loads `url` through the Worker. */
+async function fromWorker(url: string, page: boolean): Promise<Fetched> {
   let response: Response;
   try {
     response = await fetch(`${PROXY_URL}/?url=${encodeURIComponent(url)}${page ? "&kind=page" : ""}`);

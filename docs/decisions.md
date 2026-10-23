@@ -2,6 +2,18 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-23: A browser extension for the web app (#168)
+
+- Manifest V3, one folder (`extension/`), plain JavaScript without a build step or dependencies, for
+  Chrome, Edge and Firefox. Installed by hand for now; publishing (Chrome's $5 fee, Firefox free) later.
+- The web app and the extension talk through window messages; the extension's bridge runs only on
+  the web app's address, so no other site can use it to fetch pages with the user's cookies.
+- Article pages come from the extension when it is installed (sign-ins and paywalls you pay for
+  work, #180); feeds keep using the feed loader, and the extension only when the loader is refused.
+- **Save to Content** opens the web app with `?save=` instead of handing over the page's HTML: the
+  web app then loads the page through the extension anyway, and the extension needs no access to the
+  Content account.
+
 ## 2026-10-23: Instapaper no longer signs you in (#215)
 
 - Signing in or making an account is done with an email link only; Instapaper is only a connected

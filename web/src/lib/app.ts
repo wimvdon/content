@@ -181,6 +181,13 @@ class AppStore {
     this.resolveLibrary();
     if (location.pathname === CALLBACK_PATH) await this.finishInstapaperSignIn(location.search);
     if (location.pathname === SIGNIN_PATH) await this.finishEmailLink(location.hash);
+    // "Save to Content" from the browser extension (#168): ?save=<address>&title=<title>.
+    const toSave = new URLSearchParams(location.search).get("save");
+    if (toSave && /^https?:\/\//.test(toSave)) {
+      const title = new URLSearchParams(location.search).get("title") ?? "";
+      history.replaceState(null, "", "/");
+      this.saveArticle(toSave, title.trim() || toSave);
+    }
     this.syncWhileVisible();
     if (this.accountKey() || this.state.instapaper) await this.sync();
     if (this.state.library.feeds.length > 0) await this.refresh(false);

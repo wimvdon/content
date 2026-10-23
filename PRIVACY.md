@@ -1,5 +1,7 @@
 # Privacy policy
 
+_Last updated: 2026-10-23 (the browser extension)_
+
 _Last updated: 2026-10-23 (signing in to sites you pay for)_
 
 Reader has no analytics, advertising or crash reporting. It works without an account. If you sign
@@ -178,3 +180,13 @@ Reader account that signing in with Instapaper opens.
 If this changes, this file will be updated **before** the change is released.
 
 Questions: open an issue in this repository.
+
+## The browser extension (optional, #168)
+
+The Content browser extension (`extension/`) only works with the Content web app: it runs on the web
+app's own address and nowhere else. When the web app opens an article, it asks the extension to load
+that page from your browser, with your browser's cookies for that site (so sites you're signed in to
+load as you see them); that request goes from your computer straight to the site, not through the
+owner's feed loader. **Save to Content** opens the web app with the page's address and title. The
+extension keeps nothing, sends nothing anywhere else, and doesn't look at the sites you visit. It
+asks for access to all sites only because articles can be on any site.
