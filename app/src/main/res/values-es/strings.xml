@@ -185,6 +185,7 @@
     <string name="account_deleted">Datos sincronizados eliminados</string>
     <string name="action_delete">Eliminar</string>
     <string name="menu_manage_feeds">Gestionar feeds</string>
+    <string name="menu_manage_tags">Gestionar etiquetas</string>
     <string name="action_collapse">Contraer</string>
     <string name="action_expand">Expandir</string>
     <string name="action_search">Buscar</string>

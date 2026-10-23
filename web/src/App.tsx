@@ -123,6 +123,7 @@ export default function App() {
 
   const sidebar = (
     <Sidebar
+      onNavigate={() => setDrawer(false)}
       onManage={() => {
         setDrawer(false);
         setDialog("manage");

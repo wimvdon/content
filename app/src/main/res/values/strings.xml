@@ -180,6 +180,7 @@
     <string name="account_deleted">Synced data deleted</string>
     <string name="action_delete">Delete</string>
     <string name="menu_manage_feeds">Manage feeds</string>
+    <string name="menu_manage_tags">Manage tags</string>
     <string name="action_collapse">Collapse</string>
     <string name="action_expand">Expand</string>
     <string name="action_search">Search</string>

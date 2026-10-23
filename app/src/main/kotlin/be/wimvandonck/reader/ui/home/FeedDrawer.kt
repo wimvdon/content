@@ -1,31 +1,24 @@
 package be.wimvandonck.reader.ui.home
 
-import androidx.compose.foundation.Image
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.selection.toggleable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -34,14 +27,22 @@ import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -49,13 +50,13 @@ import be.wimvandonck.reader.R
 import be.wimvandonck.reader.data.Feed
 import be.wimvandonck.reader.data.FeedSelection
 import be.wimvandonck.reader.data.Folder
-import be.wimvandonck.reader.data.Saved
 import be.wimvandonck.reader.data.SavedFilter
 import be.wimvandonck.reader.data.SavedTab
+import be.wimvandonck.reader.data.tagCounts
 
 /**
- * The ☰ menu: the app's name, then what you manage: feeds, tags, connected services and settings.
- * Feed and Saved are in the navigation bar, and their tabs and tag chips choose what the list shows.
+ * The ☰ menu: Feeds and Saved as two collapsible sections, plus connected services and settings.
+ * Each section collapses and expands automatically when you are in it.
  */
 @Composable
 fun FeedDrawer(
@@ -73,6 +74,14 @@ fun FeedDrawer(
     toReadCount: Int = 0,
     onSavedFilter: (SavedFilter) -> Unit = {},
 ) {
+    // While Saved is shown, no feed section is selected.
+    @Suppress("NAME_SHADOWING")
+    val selection: FeedSelection? = selection.takeIf { !inSaved }
+    // The section you're in is open, the other folded shut, so the drawer stays short. Folding by
+    // hand lasts until you go to the other section.
+    var feedsOpen by rememberSaveable(inSaved) { mutableStateOf(!inSaved) }
+    var savedOpen by rememberSaveable(inSaved) { mutableStateOf(inSaved) }
+
     ModalDrawerSheet {
         Column(
             Modifier
@@ -102,20 +111,104 @@ fun FeedDrawer(
                     modifier = Modifier.semantics { heading() },
                 )
             }
-            // Feed and Saved are the navigation bar's (#183); the menu holds what you manage.
+
+            // Feeds section: folders and feeds, followed by Manage feeds.
+            SectionHeader(
+                title = stringResource(R.string.feeds_title),
+                open = feedsOpen,
+                count = if (feedsOpen) 0 else unreadCounts[FeedSelection.All] ?: 0,
+                onToggle = { feedsOpen = !feedsOpen },
+            )
+            AnimatedVisibility(visible = feedsOpen, enter = expandVertically(), exit = shrinkVertically()) {
+                Column {
+                    NavigationDrawerItem(
+                        label = { Text(stringResource(R.string.feeds_all)) },
+                        icon = { Icon(painterResource(R.drawable.ic_rss_feed), contentDescription = null) },
+                        badge = { UnreadBadge(unreadCounts[FeedSelection.All] ?: 0) },
+                        selected = selection == FeedSelection.All,
+                        onClick = { onSelect(FeedSelection.All) },
+                    )
+                    for (folder in folders) {
+                        val folderSelection = FeedSelection.InFolder(folder.id)
+                        NavigationDrawerItem(
+                            label = { Text(folder.title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                            icon = { Icon(rememberFolderIconPainter(folder.icon), contentDescription = null) },
+                            badge = { UnreadBadge(unreadCounts[folderSelection] ?: 0) },
+                            selected = selection == folderSelection,
+                            onClick = { onSelect(folderSelection) },
+                        )
+                        for (feed in feeds.filter { it.folderId == folder.id }) {
+                            FeedItem(feed, selection, unreadCounts, onSelect, Modifier.padding(start = 24.dp))
+                        }
+                    }
+                    val loose = feeds.filter { feed -> feed.folderId == null || folders.none { it.id == feed.folderId } }
+                    if (loose.isNotEmpty() && folders.isNotEmpty()) HorizontalDivider(Modifier.padding(vertical = 8.dp, horizontal = 16.dp))
+                    for (feed in loose) {
+                        FeedItem(feed, selection, unreadCounts, onSelect)
+                    }
+                    HorizontalDivider(Modifier.padding(vertical = 8.dp, horizontal = 16.dp))
+                    NavigationDrawerItem(
+                        label = { Text(stringResource(R.string.menu_manage_feeds)) },
+                        icon = { Icon(painterResource(R.drawable.ic_manage_feeds), contentDescription = null) },
+                        selected = false,
+                        onClick = onOpenFeeds,
+                    )
+                }
+            }
+
+            // Saved section: To read, All, Tags, followed by Manage tags.
+            if (saved != null) {
+                val allCount = remember(saved.library) { saved.library.items.count { it.readingList != null } }
+                val tagCounts = remember(saved.library) { saved.library.tagCounts() }
+                SectionHeader(
+                    title = stringResource(R.string.saved_title),
+                    open = savedOpen,
+                    count = if (savedOpen) 0 else toReadCount,
+                    onToggle = { savedOpen = !savedOpen },
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+                AnimatedVisibility(visible = savedOpen, enter = expandVertically(), exit = shrinkVertically()) {
+                    Column {
+                        NavigationDrawerItem(
+                            label = { Text(stringResource(R.string.reading_list_to_read), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                            icon = { Icon(painterResource(R.drawable.ic_reading_list), contentDescription = null) },
+                            badge = { UnreadBadge(toReadCount) },
+                            selected = inSaved && saved.filter.tab == SavedTab.ToRead && saved.filter.tags.isEmpty(),
+                            onClick = { onSavedFilter(SavedFilter(SavedTab.ToRead)) },
+                        )
+                        NavigationDrawerItem(
+                            label = { Text(stringResource(R.string.filter_all), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                            icon = { Icon(painterResource(R.drawable.ic_bookmarks_outline), contentDescription = null) },
+                            badge = { UnreadBadge(allCount) },
+                            selected = inSaved && saved.filter.tab == SavedTab.All && saved.filter.tags.isEmpty(),
+                            onClick = { onSavedFilter(SavedFilter(SavedTab.All)) },
+                        )
+                        if (tagCounts.isNotEmpty()) {
+                            SectionHeading(stringResource(R.string.tags_title))
+                            for ((tag, count) in tagCounts) {
+                                val tagSelected = inSaved && saved.filter.tags.any { it.equals(tag, ignoreCase = true) }
+                                NavigationDrawerItem(
+                                    label = { Text(tag, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                                    icon = { Icon(painterResource(R.drawable.ic_label), contentDescription = null) },
+                                    badge = { UnreadBadge(count) },
+                                    selected = tagSelected,
+                                    onClick = { onSavedFilter(SavedFilter(tab = SavedTab.All, tags = setOf(tag))) },
+                                )
+                            }
+                        }
+                        HorizontalDivider(Modifier.padding(vertical = 8.dp, horizontal = 16.dp))
+                        NavigationDrawerItem(
+                            label = { Text(stringResource(R.string.menu_manage_tags)) },
+                            icon = { Icon(painterResource(R.drawable.ic_tags), contentDescription = null) },
+                            selected = false,
+                            onClick = onOpenTagsManage,
+                        )
+                    }
+                }
+            }
+
+            // Services and Settings live at the bottom.
             HorizontalDivider(Modifier.padding(vertical = 12.dp, horizontal = 16.dp))
-            NavigationDrawerItem(
-                label = { Text(stringResource(R.string.menu_manage_feeds)) },
-                icon = { Icon(painterResource(R.drawable.ic_manage_feeds), contentDescription = null) },
-                selected = false,
-                onClick = onOpenFeeds,
-            )
-            NavigationDrawerItem(
-                label = { Text(stringResource(R.string.menu_folders_tags)) },
-                icon = { Icon(painterResource(R.drawable.ic_tags), contentDescription = null) },
-                selected = false,
-                onClick = onOpenTagsManage,
-            )
             NavigationDrawerItem(
                 label = { Text(stringResource(R.string.services_title)) },
                 icon = { Icon(painterResource(R.drawable.ic_sync_alt), contentDescription = null) },
@@ -175,38 +268,6 @@ private fun SectionHeader(
             modifier = Modifier.rotate(turn),
         )
     }
-}
-
-/** Saved in the drawer: To read with its count, All, each folder with its count, then Archive. */
-@Composable
-private fun SavedSection(
-    /** The tab shown, or null while Feeds is shown. */
-    shown: SavedTab?,
-    folders: Map<String, Int>,
-    toReadCount: Int,
-    onSelect: (SavedFilter) -> Unit,
-) {
-    @Composable
-    fun item(
-        tab: SavedTab,
-        label: String,
-        icon: Int,
-        badge: Int = 0,
-    ) = NavigationDrawerItem(
-        label = { Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-        icon = { Icon(painterResource(icon), contentDescription = null) },
-        badge = { UnreadBadge(badge) },
-        selected = if (shown is SavedTab.Folder && tab is SavedTab.Folder) shown.name.equals(tab.name, ignoreCase = true) else shown == tab,
-        onClick = { onSelect(SavedFilter(tab)) },
-    )
-    item(SavedTab.ToRead, stringResource(R.string.reading_list_to_read), R.drawable.ic_reading_list, toReadCount)
-    if (folders.isNotEmpty()) {
-        SectionHeading(stringResource(R.string.saved_folders))
-        for ((folder, n) in folders) item(SavedTab.Folder(folder), folder, R.drawable.ic_folder, n)
-    }
-    // Archive last, set apart so it doesn't read as one of the folders.
-    HorizontalDivider(Modifier.padding(vertical = 8.dp, horizontal = 16.dp))
-    item(SavedTab.Archive, stringResource(R.string.reading_list_archive), R.drawable.ic_inventory)
 }
 
 @Composable
