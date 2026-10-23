@@ -1,4 +1,4 @@
-import { Archive, BookOpen, Check, Folder as FolderGlyph, Plus, Trash2, X } from "lucide-react";
+import { Archive, BookOpen, Check, Folder as FolderGlyph, Heart, Plus, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import { app, useApp } from "@/lib/app";
 import { normalizeUrl } from "@/lib/discovery";
@@ -111,6 +111,8 @@ function Sheet({
             tags={choice.tags}
             allTags={itemTags(library)}
             onChange={(tags) => setChoice({ ...choice, tags })}
+            liked={choice.liked}
+            onLike={() => setChoice({ ...choice, liked: !choice.liked })}
             name={tagName}
             setName={setTagName}
           />
@@ -190,12 +192,16 @@ function TagsRow({
   tags,
   allTags,
   onChange,
+  liked,
+  onLike,
   name,
   setName,
 }: {
   tags: string[];
   allTags: string[];
   onChange: (tags: string[]) => void;
+  liked: boolean;
+  onLike: () => void;
   name: string;
   setName: (name: string) => void;
 }) {
@@ -209,6 +215,10 @@ function TagsRow({
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap items-center gap-1.5">
+        <button type="button" aria-pressed={liked} onClick={onLike} className={cn(chip, liked ? on : "hover:bg-muted")}>
+          <Heart className={cn("size-4", liked && "fill-current")} aria-hidden="true" />
+          {t("like")}
+        </button>
         {tags.map((x) => (
           <span key={x} className={cn(chip, on, "cursor-default pr-1.5")}>
             {x}

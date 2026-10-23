@@ -130,6 +130,8 @@ fun TagChips(
     filtered: Boolean,
     onClear: () -> Unit,
     state: @Composable () -> Unit,
+    /** Saved's Liked chip (#206), the first group. */
+    liked: (@Composable () -> Unit)? = null,
 ) {
     Row(
         Modifier
@@ -140,7 +142,8 @@ fun TagChips(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         state()
-        if (tags.isNotEmpty()) VerticalDivider(Modifier.height(24.dp))
+        if (tags.isNotEmpty() || liked != null) VerticalDivider(Modifier.height(24.dp))
+        liked?.invoke()
         tags.forEach { tag ->
             val on = selected != null && tag.equals(selected, ignoreCase = true)
             FilterChip(

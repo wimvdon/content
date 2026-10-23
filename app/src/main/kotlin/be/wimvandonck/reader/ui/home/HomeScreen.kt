@@ -53,6 +53,8 @@ import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.RadioButton
@@ -280,15 +282,31 @@ fun HomeScreen(
                             TagChips(
                                 tags = reading.tags,
                                 selected = reading.filter.tags.firstOrNull(),
-                                onSelect = { t -> actions.onSavedFilter(reading.filter.copy(tags = setOfNotNull(t))) },
-                                filtered = reading.filter.tags.isNotEmpty() || reading.filter.type != null,
-                                onClear = { actions.onSavedFilter(reading.filter.copy(tags = emptySet(), type = null)) },
+                                onSelect = { t -> actions.onSavedFilter(reading.filter.copy(likedOnly = false, tags = setOfNotNull(t))) },
+                                filtered = reading.filter.likedOnly || reading.filter.tags.isNotEmpty() || reading.filter.type != null,
+                                onClear = { actions.onSavedFilter(reading.filter.copy(likedOnly = false, tags = emptySet(), type = null)) },
                                 state = {
                                     StateChip(
                                         options = stateLabels,
                                         selected = Saved.states.indexOf(reading.filter.tab).coerceAtLeast(0),
                                         onSelect = { i -> actions.onSavedFilter(reading.filter.copy(tab = Saved.states[i])) },
                                         filtering = reading.filter.tab != SavedTab.All,
+                                    )
+                                },
+                                // Liked is a group like a tag (#206): one at a time, before the tags.
+                                liked = {
+                                    val on = reading.filter.likedOnly
+                                    FilterChip(
+                                        selected = on,
+                                        onClick = { actions.onSavedFilter(reading.filter.copy(likedOnly = !on, tags = emptySet())) },
+                                        label = { Text(stringResource(R.string.reading_list_liked)) },
+                                        leadingIcon = {
+                                            Icon(
+                                                painterResource(if (on) R.drawable.ic_favorite_filled else R.drawable.ic_favorite),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(FilterChipDefaults.IconSize),
+                                            )
+                                        },
                                     )
                                 },
                             )
@@ -355,7 +373,7 @@ fun HomeScreen(
                             actions.onOpenItem,
                             onArchive = actions.onArchiveItem,
                             onFile = actions.onFileItem,
-                            onClearFilters = { actions.onSavedFilter(reading.filter.copy(tags = emptySet(), type = null)) },
+                            onClearFilters = { actions.onSavedFilter(reading.filter.copy(likedOnly = false, tags = emptySet(), type = null)) },
                         )
                     }
                 } else {

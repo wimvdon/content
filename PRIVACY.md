@@ -67,10 +67,10 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   because browsers aren't allowed to call Instapaper), under Instapaper's privacy policy. The
   Android app keeps your reading list and your Instapaper account the same while it is open: it
   reads everything in your account and what changed since its last look, and sends the title, link,
-  tags, archive and reading progress of the articles on your reading list, and removes from
+  tags, like, archive and reading progress of the articles on your reading list, and removes from
   Instapaper what you take off the reading list. On the app owner's own account it also asks
   Instapaper for its text of an article you open, which is kept on your device only. The web app
-  reads and changes your saved list (archive, delete, move to a folder, tags, folders). Signing out deletes the token and the account key from
+  reads and changes your saved list (archive, like, delete, move to a folder, tags, folders). Signing out deletes the token and the account key from
   your device; the token stays valid at Instapaper until you revoke it there.
 - **Raindrop.io is no longer supported** (#179). The app no longer talks to raindrop.io. Updating
   the app deletes a Raindrop sign-in it still kept; revoke the app in Raindrop's settings to end
@@ -144,7 +144,7 @@ Reader account that signing in with Instapaper opens.
   token (and this browser's Reader account key) through the feed loader. Both are kept in the
   browser's storage (IndexedDB) only. While the page is open, Saved is kept the same as your
   Instapaper account through the feed loader to www.instapaper.com: it reads what changed there and
-  sends the title, link, tags, archive, folder and reading progress of your saved articles,
+  sends the title, link, tags, like, archive, folder and reading progress of your saved articles,
   and removes there what you remove from Saved. The loader passes
   the token on, and keeps and logs nothing.
 - Removing the site's data in your browser deletes everything the web app stored.

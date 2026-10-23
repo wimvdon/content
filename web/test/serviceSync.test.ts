@@ -307,14 +307,14 @@ describe("Instapaper as Saved's service (instapaperSync.ts)", () => {
     expect(archived.archived).toBe(true);
   });
 
-  it("updates only what changed: tags by id, the archive, title and progress (never the like or a folder)", async () => {
+  it("updates only what changed: like, tags by id, the archive, title and progress (never a folder)", async () => {
     const api = new FakeApi();
     const sync = new InstapaperSync(api, () => 2_000_000);
     await sync.changes(null);
     api.calls = [];
     const have = remote("5", "https://a/5", { tags: ["Recipes"], folder: null });
     await sync.update(have, { ...have, liked: true, tags: ["new"], folder: "Work", title: "Better", progress: 0.5 });
-    expect(api.calls).toEqual(["tags 5 +new -9", "update 5 Better 0.5"]);
+    expect(api.calls).toEqual(["like 5 true", "tags 5 +new -9", "update 5 Better 0.5"]);
     api.calls = [];
     await sync.update(have, { ...have, archived: true });
     expect(api.calls).toEqual(["move 5 archive"]);

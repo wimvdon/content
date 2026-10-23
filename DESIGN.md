@@ -265,8 +265,8 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   **state chip**, a filter chip with a drop-down arrow and a menu of radio items (Feeds: Unread or
   All; Saved: To read, Archive or All), lit while it leaves things out. A divider, then the groups,
   one at a time: the folders in Feeds, the tags in Saved (every tag, most used first, whichever
-  state). An X at the end clears the group. The ☰ drawer lists the same groups (All articles and the
-  folders with their feeds; All saved and the tags), never the states, with what is unread or still
+  state), with Liked (heart) before the tags (#206). An X at the end clears the group. The ☰ drawer lists the same groups (All articles and the
+  folders with their feeds; All saved, Liked and the tags), never the states, with what is unread or still
   to read as counts; picking there keeps the state. A folder picked in the drawer and its chip are
   one choice and light up together. The type filter (Articles, Videos, Audio) is a filter-list icon button next to search, with a
   menu of radio items; it turns `primary` while a type is chosen. The Mark all read FAB is on Feeds

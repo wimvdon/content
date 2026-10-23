@@ -131,6 +131,7 @@ class InstapaperReadingListTest {
             val after = service.update(have, have.copy(liked = true, tags = listOf("new"), folder = null, progress = 0.5f, title = "Better"))
             assertEquals(
                 listOf(
+                    "POST /bookmarks/5/like",
                     """POST /bookmarks/5/tags {"add_tags":[{"name":"new"}],"remove_tags":[{"id":9}]}""",
                     """POST /bookmarks/5 {"title":"Better","progress":{"percentage":0.5,"timestamp":1755000600}}""",
                 ),

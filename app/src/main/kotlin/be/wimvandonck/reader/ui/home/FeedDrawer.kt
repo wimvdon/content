@@ -161,6 +161,7 @@ fun FeedDrawer(
             // still to read, as Feeds counts what is unread.
             if (saved != null) {
                 val tagCounts = remember(saved.library) { Saved.toReadTagCounts(saved.library) }
+                val likedToRead = remember(saved.library) { Saved.likedToReadCount(saved.library) }
                 SectionHeader(
                     title = stringResource(R.string.saved_title),
                     open = savedOpen,
@@ -174,8 +175,15 @@ fun FeedDrawer(
                             label = { Text(stringResource(R.string.saved_all), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                             icon = { Icon(painterResource(R.drawable.ic_bookmarks_outline), contentDescription = null) },
                             badge = { UnreadBadge(toReadCount) },
-                            selected = inSaved && saved.filter.tags.isEmpty(),
-                            onClick = { onSavedFilter(saved.filter.copy(tags = emptySet())) },
+                            selected = inSaved && !saved.filter.likedOnly && saved.filter.tags.isEmpty(),
+                            onClick = { onSavedFilter(saved.filter.copy(likedOnly = false, tags = emptySet())) },
+                        )
+                        NavigationDrawerItem(
+                            label = { Text(stringResource(R.string.reading_list_liked), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                            icon = { Icon(painterResource(R.drawable.ic_favorite), contentDescription = null) },
+                            badge = { UnreadBadge(likedToRead) },
+                            selected = inSaved && saved.filter.likedOnly,
+                            onClick = { onSavedFilter(saved.filter.copy(likedOnly = true, tags = emptySet())) },
                         )
                         if (tagCounts.isNotEmpty()) {
                             SectionHeading(stringResource(R.string.tags_title))
@@ -186,7 +194,7 @@ fun FeedDrawer(
                                     icon = { Icon(painterResource(R.drawable.ic_label), contentDescription = null) },
                                     badge = { UnreadBadge(count) },
                                     selected = tagSelected,
-                                    onClick = { onSavedFilter(saved.filter.copy(tags = setOf(tag))) },
+                                    onClick = { onSavedFilter(saved.filter.copy(likedOnly = false, tags = setOf(tag))) },
                                 )
                             }
                         }

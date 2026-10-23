@@ -104,8 +104,16 @@ object SaveChoices {
         return choice.copy(tags = if (has) choice.tags.filterNot { it.equals(clean, ignoreCase = true) } else choice.tags + clean)
     }
 
-    /** What the reader's Tags button says (#156): the tags, else null (just "Tags"). Liked is gone (#188). */
-    fun tagsLabel(choice: SaveChoice): String? = choice.tags.takeIf { it.isNotEmpty() }?.joinToString(", ")
+    /** What the reader's Tags button says (#156): the tags, else Liked, else null (just "Tags"). */
+    fun tagsLabel(
+        choice: SaveChoice,
+        liked: String,
+    ): String? =
+        when {
+            choice.tags.isNotEmpty() -> choice.tags.joinToString(", ")
+            choice.liked -> liked
+            else -> null
+        }
 
     fun same(
         a: Place,
