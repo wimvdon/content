@@ -2,6 +2,16 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-23: The code's package is be.wimvandonck.content
+
+- The Kotlin package (and Android's `namespace`) is now `be.wimvandonck.content`, after the app's
+  name. The **application id stays `be.wimvandonck.reader`**: phones know the installed app by it,
+  and changing it would make Content a different app that can't update the old one (CLAUDE.md).
+- The launcher entry keeps its old component name (`be.wimvandonck.reader.ui.MainActivity`) through
+  an activity-alias, so home-screen icons and shortcuts keep working after the update.
+- Room's exported schemas moved with the database class (`app/schemas/be.wimvandonck.content...`);
+  the database file and its tables are unchanged.
+
 ## 2026-10-23: Feeds and tags on one screen (#222)
 
 - Managing feeds (with their folders) and managing Saved's tags is one screen, **Feeds and tags**,

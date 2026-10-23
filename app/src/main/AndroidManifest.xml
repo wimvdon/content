@@ -27,10 +27,6 @@
             android:exported="true"
             android:launchMode="singleTask"
             android:windowSoftInputMode="adjustResize">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
 
             <!-- Where Instapaper sends the user back after signing in, and where an emailed sign-in
                  link opens (#166). Verified against
@@ -45,6 +41,18 @@
                 <data android:path="/signin" />
             </intent-filter>
         </activity>
+
+        <!-- The launcher's entry, under the component name the app had before its code moved to
+             be.wimvandonck.content: home-screen icons and shortcuts point at this name. -->
+        <activity-alias
+            android:name="be.wimvandonck.reader.ui.MainActivity"
+            android:exported="true"
+            android:targetActivity=".ui.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
 
         <!-- The custom tab's Save button (#95): the save sheet on top of the tab. Not exported:
              only the tab's PendingIntent, made by this app, opens it. Rotating keeps the sheet. -->

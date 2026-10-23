@@ -79,7 +79,7 @@ rss-reader/
 ├── CLAUDE.md           Rules for Claude Code sessions
 ├── DESIGN.md           Design language shared with the sibling apps
 ├── scripts/            Release helpers (versioning, keystore secret) with tests
-├── app/src/main/kotlin/be/wimvandonck/reader/
+├── app/src/main/kotlin/be/wimvandonck/content/
 │   ├── RssReaderApp.kt Application: settings, library, background scope
 │   ├── data/           Library (feeds, articles, read state), settings, storage
 │   ├── feed/           Download, RSS/Atom parsing, dates, HTML, feed discovery, OPML

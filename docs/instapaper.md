@@ -86,7 +86,7 @@ One callback address serves both apps:
 | Token swap, and the web app's Instapaper calls | `worker/src/instapaper.ts` (tests in `worker/test/instapaper.test.ts`) |
 | Web: client, sign-in helpers | `web/src/lib/instapaper.ts` |
 | Web: Saved and the reader | `web/src/lib/saved.ts` (tested), `Sidebar.tsx`, `ArticleList.tsx`, `SavedActions.tsx` in the reader, `SavedManage.tsx` in Folders and tags; Save in `ArticleView.tsx`; sign-in in Settings |
-| Android: client, sign-in, the reading list's service | `app/src/main/kotlin/be/wimvandonck/reader/instapaper/` (`InstapaperClient`, `InstapaperAuth`, `InstapaperAccount`, `InstapaperReadingList`) and `services/` (`ServiceSync`, `ServiceManager`) |
+| Android: client, sign-in, the reading list's service | `app/src/main/kotlin/be/wimvandonck/content/instapaper/` (`InstapaperClient`, `InstapaperAuth`, `InstapaperAccount`, `InstapaperReadingList`) and `services/` (`ServiceSync`, `ServiceManager`) |
 | Android: the reading list's screens | `ui/home/ReadingListContent.kt`, `FolderTabs.kt` (`ReadingListTabRow`), `FeedDrawer.kt`, `ui/reader/ItemSheets.kt`, `ui/feeds/TagsManage.kt`, `ui/settings/ServicesScreen.kt` |
 | Android: App Link and backup exclusion | `AndroidManifest.xml`, `res/xml/data_extraction_rules.xml` |
 | App Link proof for the website | `web/public/.well-known/assetlinks.json` |
