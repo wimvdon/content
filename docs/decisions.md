@@ -2,6 +2,16 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-23: Reporting a badly cleaned-up article (#181)
+
+- A report opens a pre-filled "new issue" page on GitHub in the browser (label `parser`), which the
+  user submits with their GitHub account. Chosen over sending it through the feed loader with a
+  token that may create issues: no new secret to keep, nothing sent without the user seeing it, and
+  only someone with a GitHub account (the owner) is expected to report.
+- The report holds the article's link, the problem, the comment and the app's name and version,
+  never the article's text. A reported page can become a test in `testdata/articles/`.
+- The title and labels are in English, for the repository; the dialog is translated.
+
 ## 2026-10-23: Instapaper syncs everything, with nothing to choose
 
 - Connecting Instapaper brings in everything it has, once, as the first sync; the choice of what to

@@ -33,6 +33,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import be.wimvandonck.reader.R
+import be.wimvandonck.reader.data.ArticleReport
 import be.wimvandonck.reader.data.Item
 import be.wimvandonck.reader.data.ItemSearch
 import be.wimvandonck.reader.data.Place
@@ -711,6 +712,13 @@ fun RssReaderNavigation(
                                     },
                                     onShare = { article?.let { send(it, current.shareTarget) } },
                                     onOpenInBrowser = { article?.let { a -> a.link?.let { ExternalApps.openInTab(context, it, a.title) } } },
+                                    onReport =
+                                        article?.link?.let { link ->
+                                            { problem, comment ->
+                                                val version = runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull().orEmpty()
+                                                ExternalApps.openLink(context, ArticleReport.url(link, problem, comment, "Android", version))
+                                            }
+                                        },
                                     onMarkUnread =
                                         feedArticle?.let { a ->
                                             {

@@ -1,9 +1,10 @@
-import { ALargeSmall, ArrowLeft, Circle, CircleCheck, EllipsisVertical, ExternalLink, FileText, Trash2 } from "lucide-react";
+import { ALargeSmall, ArrowLeft, Circle, CircleCheck, EllipsisVertical, ExternalLink, FileText, Flag, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { app, useApp } from "@/lib/app";
+import { MAX_REPORT_COMMENT, REPORT_PROBLEMS, reportUrl, type ReportProblem } from "@/lib/articleReport";
 import { extractArticle, needsFullText, wantsFullText } from "@/lib/fullArticle";
 import { cached, cachedNow, keep } from "@/lib/fullArticleStore";
-import { formatDateTime, t } from "@/lib/i18n";
+import { formatDateTime, t, type Key } from "@/lib/i18n";
 import { itemForArticle, type Highlight } from "@/lib/items";
 import { articleKey, sortTime, type Article } from "@/lib/library";
 import { hostOf, isItemArticle, siteOf, sourceOf } from "@/lib/saved";
@@ -110,6 +111,7 @@ export function ArticleView({
   const [menuOpen, setMenuOpen] = useState(false);
   useEscape(menuOpen, () => setMenuOpen(false));
   const [removeOpen, setRemoveOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
   // Highlights (#102): those of the article's item; one open, a new one waiting for its note, the list.
   const highlights = found?.highlights ?? NO_HIGHLIGHTS;
   // A saved article's highlights made in Instapaper's own apps come in when it opens (#164).
@@ -176,6 +178,7 @@ export function ArticleView({
                     close={() => setMenuOpen(false)}
                   />
                 ) : null}
+                {article.link ? <MenuItem icon={<Flag />} label={t("reportMenu")} onClick={() => setReportOpen(true)} close={() => setMenuOpen(false)} /> : null}
                 {saved ? <MenuItem icon={<Trash2 />} label={t("savedRemove")} onClick={() => setRemoveOpen(true)} close={() => setMenuOpen(false)} /> : null}
               </div>
             </>
@@ -278,6 +281,7 @@ export function ArticleView({
           onClose={() => setListOpen(false)}
         />
       ) : null}
+      {reportOpen && article.link ? <ReportDialog link={article.link} onClose={() => setReportOpen(false)} /> : null}
       {saved ? <RemoveDialog item={saved} open={removeOpen} onClose={() => setRemoveOpen(false)} onRemoved={() => fromSaved && onBack()} /> : null}
     </article>
   );
@@ -304,3 +308,60 @@ function MenuItem({ icon, label, onClick, close }: { icon: React.ReactNode; labe
 function useSanitized(html: string, base: string, showImages: boolean): string {
   return useMemo(() => sanitizeArticle(html, base, showImages), [html, base, showImages]);
 }
+
+const REPORT_LABELS: Record<ReportProblem, Key> = { textMissing: "reportTextMissing", junkLeft: "reportJunk", picturesWrong: "reportPictures", other: "reportOther" };
+
+/**
+ * Report a problem with this article (#181): what is wrong and an optional comment. Send opens a
+ * pre-filled GitHub issue in a new tab, where the user submits it; the article's text isn't sent.
+ */
+function ReportDialog({ link, onClose }: { link: string; onClose: () => void }) {
+  const [problem, setProblem] = useState<ReportProblem>("textMissing");
+  const [comment, setComment] = useState("");
+  return (
+    <Dialog
+      open
+      onOpenChange={(o) => !o && onClose()}
+      title={t("reportTitle")}
+      closeLabel={t("close")}
+      footer={
+        <>
+          <Button variant="ghost" onClick={onClose}>
+            {t("cancel")}
+          </Button>
+          <Button
+            onClick={() => {
+              window.open(reportUrl(link, problem, comment, "Web"), "_blank", "noopener,noreferrer");
+              onClose();
+            }}
+          >
+            {t("reportSend")}
+          </Button>
+        </>
+      }
+    >
+      <div className="space-y-3">
+        <div role="radiogroup" className="space-y-1">
+          {(Object.keys(REPORT_PROBLEMS) as ReportProblem[]).map((p) => (
+            <label key={p} className="flex cursor-pointer items-center gap-3 rounded-lg px-1 py-1.5 text-sm hover:bg-muted">
+              <input type="radio" name="report-problem" checked={problem === p} onChange={() => setProblem(p)} className="accent-primary" />
+              {t(REPORT_LABELS[p])}
+            </label>
+          ))}
+        </div>
+        <label className="block space-y-1 text-sm">
+          <span className="font-medium">{t("reportComment")}</span>
+          <textarea
+            value={comment}
+            maxLength={MAX_REPORT_COMMENT}
+            onChange={(e) => setComment(e.target.value)}
+            rows={3}
+            className="w-full rounded-lg border bg-card px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+          />
+        </label>
+        <p className="text-xs text-muted-foreground">{t("reportHint")}</p>
+      </div>
+    </Dialog>
+  );
+}
+

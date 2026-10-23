@@ -66,6 +66,15 @@
     <string name="reader_background_dark">Oscuro</string>
     <string name="reader_preview">La buena tipografía es invisible: notas la historia, no las letras.</string>
     <string name="reader_read_on_website">Leer en el sitio web</string>
+    <string name="report_menu">Informar de un problema con este artículo</string>
+    <string name="report_title">¿Qué le pasa a este artículo?</string>
+    <string name="report_text_missing">Falta texto</string>
+    <string name="report_junk">Queda contenido sobrante</string>
+    <string name="report_pictures">Las imágenes están mal</string>
+    <string name="report_other">Otra cosa</string>
+    <string name="report_comment">Comentario (opcional)</string>
+    <string name="report_hint">Enviar abre un informe ya rellenado en GitHub en tu navegador, con el enlace del artículo (no su texto). Envíalo allí.</string>
+    <string name="report_send">Enviar</string>
     <string name="reader_article_gone">Este artículo ya no está disponible.</string>
     <string name="reader_show_full">Mostrar el artículo completo</string>
     <string name="reader_show_feed_text">Mostrar el texto del feed</string>

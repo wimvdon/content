@@ -67,6 +67,15 @@
     <string name="reader_background_dark">Dark</string>
     <string name="reader_preview">Good typography is invisible: you notice the story, not the letters.</string>
     <string name="reader_read_on_website">Read on website</string>
+    <string name="report_menu">Report a problem with this article</string>
+    <string name="report_title">What\'s wrong with this article?</string>
+    <string name="report_text_missing">Text is missing</string>
+    <string name="report_junk">Junk is left in</string>
+    <string name="report_pictures">Pictures are wrong</string>
+    <string name="report_other">Something else</string>
+    <string name="report_comment">Comment (optional)</string>
+    <string name="report_hint">Send opens a pre-filled report on GitHub in your browser, with the article\'s link (not its text). Submit it there.</string>
+    <string name="report_send">Send</string>
     <string name="reader_article_gone">This article is no longer available.</string>
     <string name="reader_show_full">Show full article</string>
     <string name="reader_show_feed_text">Show feed text</string>

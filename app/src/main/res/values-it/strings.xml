@@ -66,6 +66,15 @@
     <string name="reader_background_dark">Scuro</string>
     <string name="reader_preview">La buona tipografia è invisibile: noti la storia, non le lettere.</string>
     <string name="reader_read_on_website">Leggi sul sito</string>
+    <string name="report_menu">Segnala un problema con questo articolo</string>
+    <string name="report_title">Cosa non va in questo articolo?</string>
+    <string name="report_text_missing">Manca del testo</string>
+    <string name="report_junk">È rimasto del contenuto inutile</string>
+    <string name="report_pictures">Le immagini sono sbagliate</string>
+    <string name="report_other">Altro</string>
+    <string name="report_comment">Commento (facoltativo)</string>
+    <string name="report_hint">Invia apre una segnalazione precompilata su GitHub nel browser, con il link dell’articolo (non il testo). Inviala lì.</string>
+    <string name="report_send">Invia</string>
     <string name="reader_article_gone">Questo articolo non è più disponibile.</string>
     <string name="reader_show_full">Mostra l\'articolo completo</string>
     <string name="reader_show_feed_text">Mostra il testo del feed</string>
