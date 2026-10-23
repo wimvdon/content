@@ -2,6 +2,15 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-23: Instapaper syncs everything, with nothing to choose
+
+- Connecting Instapaper brings in everything it has, once, as the first sync; the choice of what to
+  import (everything, or some folders and the archive) and Import again are gone, on Android and the
+  web. With Raindrop.io gone (#179) and folders turned into tags (#187), Instapaper is the only
+  service and there is nothing left to choose between.
+- The settings that kept a scope (`scopes`) stay readable, so older devices and synced settings
+  don't break; nothing sets them any more.
+
 ## 2026-10-23: Signing in with an email link (#166)
 
 - A Content account no longer depends on Instapaper: an emailed link (no password) signs in, and

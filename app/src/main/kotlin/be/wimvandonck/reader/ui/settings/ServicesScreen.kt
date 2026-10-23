@@ -39,7 +39,6 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.ui.unit.dp
 import be.wimvandonck.reader.R
 import be.wimvandonck.reader.data.ServiceImport
-import be.wimvandonck.reader.data.ServiceScope
 import be.wimvandonck.reader.instapaper.InstapaperReadingList
 import be.wimvandonck.reader.instapaper.InstapaperState
 import be.wimvandonck.reader.services.ServiceProblem
@@ -55,14 +54,8 @@ data class ServicesState(
     val instapaper: InstapaperState,
     /** Each connected service's status, by id. */
     val statuses: Map<String, ServiceStatus>,
-    /** What each service syncs, by id. */
-    val scopes: Map<String, ServiceScope> = emptyMap(),
-    /** What was imported from each, by id. */
+    /** What was brought in from each when it was connected, by id. */
     val imports: Map<String, ServiceImport> = emptyMap(),
-    /** The connected services still waiting for their import. */
-    val waiting: Set<String> = emptySet(),
-    /** Saved's folders, for the scope. */
-    val folders: List<String> = emptyList(),
     /** Copy highlights to Instapaper (#164). */
     val copyHighlights: Boolean = false,
 )
@@ -74,13 +67,6 @@ class ServicesActions(
     val onSyncNow: () -> Unit,
     /** Opens a connected service's own screen. */
     val onOpenService: (String) -> Unit = {},
-    /** Reads the service's folders, for choosing what to import, and gives them back (null: it couldn't). */
-    val onLoadFolders: (id: String, result: (List<String>?) -> Unit) -> Unit = { _, _ -> },
-    /** Imports from a service; gives back whether it got through. */
-    val onImport: (id: String, what: ServiceImport, result: (Boolean) -> Unit) -> Unit = { _, _, _ -> },
-    /** Counts what a new scope would take out of the service, and gives the number back. */
-    val onCountLeaving: (id: String, scope: ServiceScope, result: (Int) -> Unit) -> Unit = { _, _, _ -> },
-    val onScopeChange: (id: String, scope: ServiceScope) -> Unit = { _, _ -> },
     val onCopyHighlightsChange: (Boolean) -> Unit = {},
 )
 
@@ -130,10 +116,9 @@ private fun ServiceRow(
         supportingContent = {
             when {
                 !connected -> Text(stringResource(R.string.services_reading_body))
-                id in state.waiting -> Text(stringResource(R.string.services_waiting_import), color = MaterialTheme.colorScheme.primary)
                 status is ServiceStatus.Syncing -> Text(stringResource(R.string.sync_syncing))
                 status is ServiceStatus.Failed -> Text(stringResource(status.problem.messageRes(id)), color = MaterialTheme.colorScheme.error)
-                else -> Text(scopeLine(ServiceScope.Everything))
+                else -> Text(stringResource(R.string.services_syncs_everything))
             }
         },
         leadingContent = { Icon(painterResource(R.drawable.ic_reading_list), contentDescription = null) },
@@ -147,24 +132,14 @@ private fun ServiceRow(
     }
 }
 
-/** What a service syncs, in a line: everything, or its folders. */
-@Composable
-private fun scopeLine(scope: ServiceScope): String {
-    val folders = scope.folders ?: return stringResource(R.string.services_syncs_everything)
-    val toRead = stringResource(R.string.reading_list_to_read)
-    val names = folders.map { if (it == ServiceScope.TO_READ) toRead else it }.sortedWith(compareBy({ it != toRead }, { it.lowercase() }))
-    return stringResource(R.string.services_syncs_folders, names.joinToString(", "))
-}
-
 private fun connected(
     id: String,
     state: ServicesState,
 ): Boolean = id == InstapaperReadingList.ID && state.instapaper is InstapaperState.SignedIn
 
 /**
- * One service's screen (#145): the account, what was imported (or the import, once, right after
- * connecting), and what it syncs, both ways: everything in Saved, or only some folders. Unticking a
- * folder says first how many articles it archives there.
+ * One service's screen (#145): the account, what was brought in when it was connected, and copying
+ * highlights. Everything in Saved syncs, both ways: there is nothing to choose.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -201,7 +176,7 @@ fun ServiceScreen(
                 SettingsBlock {
                     // Wraps rather than squeezes the two buttons in longer languages.
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        if (connected && id !in state.waiting) {
+                        if (connected) {
                             FilledTonalButton(onClick = actions.onSyncNow, enabled = status !is ServiceStatus.Syncing) { Text(stringResource(R.string.sync_now)) }
                         }
                         if (connected) {
@@ -214,7 +189,7 @@ fun ServiceScreen(
             }
         }
         if (connected) {
-            item(key = "import") { ImportSection(id, name, state, actions) }
+            item(key = "import") { ImportSection(id, state) }
             if (id == InstapaperReadingList.ID) {
                 item(key = "highlights") {
                     SettingsSection(title = stringResource(R.string.highlights_title)) {
@@ -227,185 +202,19 @@ fun ServiceScreen(
                     }
                 }
             }
-            // What it syncs was a choice of folders; folders became tags (#187), so everything syncs.
         }
     }
 }
 
-/** The import: once, right after connecting, then Import again when the service has drifted. */
-@OptIn(ExperimentalLayoutApi::class)
+/** What was brought in when it was connected; everything in Saved syncs, both ways. */
 @Composable
-private fun ImportSection(
-    id: String,
-    name: String,
-    state: ServicesState,
-    actions: ServicesActions,
-) {
-    var busy by remember { mutableStateOf(false) }
-    var failed by remember { mutableStateOf(false) }
-    // The service's folders while the dialog to choose them is open.
-    var choosing by remember { mutableStateOf<List<String>?>(null) }
-    val run = { what: ServiceImport ->
-        busy = true
-        failed = false
-        actions.onImport(id, what) { ok ->
-            busy = false
-            failed = !ok
-        }
-    }
-    val record = state.imports[id]
-    val waiting = id in state.waiting
+private fun ImportSection(id: String, state: ServicesState) {
+    val record = state.imports[id] ?: return
     SettingsSection(title = stringResource(R.string.service_import_title)) {
         SettingsBlock {
-            if (record != null) {
-                val date = DateFormat.getDateInstance(DateFormat.LONG).format(Date(record.at))
-                Text(pluralStringResource(R.plurals.service_imported, record.count, record.count, date), style = MaterialTheme.typography.bodyLarge)
-            } else if (waiting) {
-                Text(stringResource(R.string.service_import_body, name), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            if (failed) Text(stringResource(R.string.service_import_failed), color = MaterialTheme.colorScheme.error)
-            if (busy) {
-                CircularProgressIndicator()
-            } else {
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (waiting) {
-                        Button(onClick = { run(ServiceImport(0, 0)) }) { Text(stringResource(R.string.service_import_all)) }
-                    }
-                    OutlinedButton(onClick = {
-                        busy = true
-                        actions.onLoadFolders(id) { folders ->
-                            busy = false
-                            if (folders == null) failed = true else choosing = folders
-                        }
-                    }) { Text(stringResource(if (waiting) R.string.service_import_choose else R.string.service_import_again)) }
-                }
-            }
+            val date = DateFormat.getDateInstance(DateFormat.LONG).format(Date(record.at))
+            Text(pluralStringResource(R.plurals.service_imported, record.count, record.count, date), style = MaterialTheme.typography.bodyLarge)
         }
-    }
-    choosing?.let { folders ->
-        ImportDialog(
-            folders = folders,
-            onImport = {
-                choosing = null
-                run(it)
-            },
-            onDismiss = { choosing = null },
-        )
-    }
-}
-
-/** What to bring in: everything, or To read, some folders and the archive. */
-@Composable
-private fun ImportDialog(
-    folders: List<String>,
-    onImport: (ServiceImport) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    var picked by remember { mutableStateOf(setOf(ServiceScope.TO_READ) + folders) }
-    var archive by remember { mutableStateOf(true) }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.service_import_what)) },
-        text = {
-            Column(Modifier.verticalScroll(rememberScrollState())) {
-                CheckRow(stringResource(R.string.reading_list_to_read), ServiceScope.TO_READ in picked) { on -> picked = if (on) picked + ServiceScope.TO_READ else picked - ServiceScope.TO_READ }
-                for (folder in folders) CheckRow(folder, folder in picked) { on -> picked = if (on) picked + folder else picked - folder }
-                CheckRow(stringResource(R.string.service_import_archive), archive) { archive = it }
-            }
-        },
-        confirmButton = {
-            TextButton(
-                enabled = picked.isNotEmpty() || archive,
-                onClick = {
-                    val everything = archive && picked.size == folders.size + 1
-                    onImport(ServiceImport(0, 0, folders = if (everything) null else picked, archive = archive))
-                },
-            ) { Text(stringResource(R.string.service_import_start)) }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
-    )
-}
-
-/** What the service syncs, both ways: everything in Saved, or only the folders ticked (To read counts as one). */
-@Composable
-private fun ScopeSection(
-    id: String,
-    name: String,
-    state: ServicesState,
-    actions: ServicesActions,
-) {
-    val scope = state.scopes[id] ?: ServiceScope.Everything
-    // A narrower scope waiting for its confirmation, with how many articles it archives there.
-    var asking by remember { mutableStateOf<Pair<ServiceScope, Int>?>(null) }
-    val change = { next: ServiceScope ->
-        actions.onCountLeaving(id, next) { count -> if (count == 0) actions.onScopeChange(id, next) else asking = next to count }
-    }
-    SettingsSection(title = stringResource(R.string.service_scope_title)) {
-        Column(Modifier.selectableGroup()) {
-            RadioRow(stringResource(R.string.service_scope_all), scope.everything) { if (!scope.everything) actions.onScopeChange(id, ServiceScope.Everything) }
-            RadioRow(stringResource(R.string.service_scope_some), !scope.everything) {
-                // Starts from every folder there is, so nothing leaves until a folder is unticked.
-                if (scope.everything) change(ServiceScope(setOf(ServiceScope.TO_READ) + state.folders))
-            }
-        }
-        if (!scope.everything) {
-            Column(Modifier.fillMaxWidth()) {
-                val toRead = stringResource(R.string.reading_list_to_read)
-                CheckRow(toRead, !scope.everything && scope.coversPlace(null, archived = false), indent = true) { on -> change(scope.with(null, on)) }
-                for (folder in state.folders) {
-                    CheckRow(folder, scope.coversPlace(folder, archived = false), indent = true) { on -> change(scope.with(folder, on)) }
-                }
-            }
-        }
-        SettingsBlock {
-            Text(stringResource(R.string.service_scope_note, name), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-    }
-    asking?.let { (next, count) ->
-        AlertDialog(
-            onDismissRequest = { asking = null },
-            title = { Text(stringResource(R.string.service_scope_leave_title, name)) },
-            text = { Text(pluralStringResource(R.plurals.service_scope_leave_body, count, count, name)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    asking = null
-                    actions.onScopeChange(id, next)
-                }) { Text(stringResource(R.string.service_scope_leave_confirm)) }
-            },
-            dismissButton = { TextButton(onClick = { asking = null }) { Text(stringResource(R.string.action_cancel)) } },
-        )
-    }
-}
-
-@Composable
-private fun RadioRow(
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-) {
-    ListItem(
-        headlineContent = { Text(label) },
-        leadingContent = { RadioButton(selected = selected, onClick = null) },
-        modifier = Modifier.selectable(selected = selected, role = Role.RadioButton, onClick = onClick),
-    )
-}
-
-@Composable
-private fun CheckRow(
-    label: String,
-    checked: Boolean,
-    indent: Boolean = false,
-    onChange: (Boolean) -> Unit,
-) {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .toggleable(value = checked, role = Role.Checkbox, onValueChange = onChange)
-            .then(if (indent) Modifier.padding(start = 56.dp) else Modifier),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Checkbox(checked = checked, onCheckedChange = null, modifier = Modifier.padding(12.dp))
-        Text(label, style = MaterialTheme.typography.bodyLarge)
     }
 }
 

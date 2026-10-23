@@ -17,7 +17,7 @@ import { addHighlight, changeItem, removeHighlight, renameTag, setHighlightNote,
 import { applyChoice, saveNew, undoSave, type SaveChoice } from "./saveChoice";
 import * as Saved from "./saved";
 import { emptyServiceSyncState, importService, syncService, type ServiceSyncState } from "./serviceSync";
-import { covers, EVERYTHING, type ServiceImport, type ServiceScope } from "./serviceScope";
+import { EVERYTHING, type ServiceImport, type ServiceScope } from "./serviceScope";
 import { changesBetween, loadItemSyncState, loadLibrary, writeItemSyncState, writeLibrary } from "./libraryStore";
 import { emptyItemSyncState, syncItems } from "./syncRows";
 import * as L from "./library";
@@ -77,8 +77,6 @@ export interface State {
   savedFilter: Saved.SavedFilter;
   /** The save and Organise sheet while it is open (#143): Add link, just saved, or organising a saved item. */
   sheet: Sheet | null;
-  /** Instapaper is connected and waits for its import (#145): nothing syncs with it until then. */
-  instapaperWaiting: boolean;
   /** Instapaper's sync is running (an import or a sync). */
   instapaperBusy: boolean;
   /** The highlights Instapaper refused for its limit (#164), by item key: "Not in Instapaper". */
@@ -125,7 +123,6 @@ class AppStore {
     accountNotice: null,
     savedFilter: Saved.defaultSavedFilter,
     sheet: null,
-    instapaperWaiting: false,
     instapaperBusy: false,
     instapaperNotCopied: {},
   };
@@ -686,13 +683,25 @@ class AppStore {
       const session = this.state.instapaper;
       if (!session) return;
       await this.libraryLoaded;
-      const state = await this.instapaperState();
-      // Connected and not imported yet: it waits for the import (#145). Connected before #145: already in step.
-      const waiting = !this.state.settings.imports[INSTAPAPER_ID] && Object.keys(state.rows).length === 0;
-      this.set({ instapaperWaiting: waiting });
-      if (waiting) return;
+      let state = await this.instapaperState();
       this.set({ instapaperBusy: true });
       const service = new InstapaperSync(new InstapaperApi(session.token));
+      // Just connected: everything Instapaper has comes in first, once; there is nothing to choose
+      // (everything syncs). Connected before #145: already in step, no import.
+      if (!this.state.settings.imports[INSTAPAPER_ID] && Object.keys(state.rows).length === 0) {
+        const imported = await importService(service, state, { folders: null, archive: true }, (change) => {
+          this.updateLibrary(change);
+          return this.state.library;
+        }, Date.now());
+        if (imported.problem || this.state.instapaper?.token !== session.token) {
+          this.set({ instapaperBusy: false });
+          if (imported.problem === "auth") await this.disconnectInstapaper();
+          return;
+        }
+        await save(INSTAPAPER_SYNC_KEY, imported.state).catch(() => undefined);
+        this.updateSettings({ imports: { ...this.state.settings.imports, [INSTAPAPER_ID]: { folders: null, archive: true, at: Date.now(), count: imported.imported ?? 0 } } });
+        state = imported.state;
+      }
       const result = await syncService(
         service,
         state,
@@ -784,57 +793,6 @@ class AppStore {
     const state = (await load<ServiceSyncState>(INSTAPAPER_SYNC_KEY).catch(() => undefined)) ?? emptyServiceSyncState;
     return { cursor: state.cursor ?? null, rows: state.rows ?? {} };
   }
-
-  /** Instapaper's folders, for choosing what to import; null when it couldn't be asked. */
-  instapaperFolderNames = async (): Promise<string[] | null> => {
-    const session = this.state.instapaper;
-    if (!session) return null;
-    return new InstapaperSync(new InstapaperApi(session.token)).folderNames().catch(() => null);
-  };
-
-  /** Brings in what Instapaper has, once (#145), then syncs. False when it didn't get through. */
-  importInstapaper = async (what: Pick<ServiceImport, "folders" | "archive">): Promise<boolean> => {
-    const session = this.state.instapaper;
-    if (!session) return false;
-    await this.instapaperSyncing?.catch(() => undefined);
-    this.set({ instapaperBusy: true });
-    try {
-      await this.libraryLoaded;
-      const result = await importService(
-        new InstapaperSync(new InstapaperApi(session.token)),
-        await this.instapaperState(),
-        what,
-        (change) => {
-          this.updateLibrary(change);
-          return this.state.library;
-        },
-        Date.now(),
-      );
-      if (result.problem || this.state.instapaper?.token !== session.token) return false;
-      await save(INSTAPAPER_SYNC_KEY, result.state).catch(() => undefined);
-      this.updateSettings({ imports: { ...this.state.settings.imports, [INSTAPAPER_ID]: { ...what, at: Date.now(), count: result.imported ?? 0 } } });
-      this.set({ instapaperWaiting: false });
-    } finally {
-      this.set({ instapaperBusy: false });
-    }
-    await this.syncInstapaper().catch(() => undefined);
-    return true;
-  };
-
-  /** How many articles in step with Instapaper a scope of [next] would take out (they are archived there). */
-  instapaperLeaving = async (next: ServiceScope): Promise<number> => {
-    const rows = (await this.instapaperState()).rows;
-    return Object.entries(rows).filter(([key, row]) => {
-      const item = this.state.library.items.find((i) => i.key === key);
-      return row.linked !== false && item?.readingList && !covers(next, item);
-    }).length;
-  };
-
-  /** What Instapaper syncs (#145); syncs at once. */
-  setInstapaperScope = (scope: ServiceScope) => {
-    this.updateSettings({ scopes: { ...this.state.settings.scopes, [INSTAPAPER_ID]: scope } });
-    void this.syncInstapaper();
-  };
 
   // Sync with the Reader account, the same way as the Android app (docs/sync.md).
 

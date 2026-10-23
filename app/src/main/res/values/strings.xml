@@ -221,23 +221,7 @@
     <string name="services_reading_body">Content keeps your saved items. Sign in with Instapaper to keep them there too.</string>
     <string name="services_problem_later">Instapaper asked to wait a moment. The rest goes later.</string>
     <string name="services_syncs_everything">Syncs everything in Saved</string>
-    <string name="services_syncs_folders">Syncs %1$s</string>
-    <string name="services_waiting_import">Connected. Choose what to import.</string>
     <string name="service_import_title">Import</string>
-    <string name="service_import_body">Bring in what %1$s has, once: everything, or the folders you pick. Each item arrives where it belongs, as it is.</string>
-    <string name="service_import_all">Import everything</string>
-    <string name="service_import_choose">Choose folders</string>
-    <string name="service_import_again">Import again</string>
-    <string name="service_import_what">What to bring in</string>
-    <string name="service_import_archive">Its archive</string>
-    <string name="service_import_start">Import</string>
-    <string name="service_import_failed">The import didn’t get through. Try again.</string>
-    <string name="service_scope_title">What it syncs</string>
-    <string name="service_scope_all">Everything in Saved</string>
-    <string name="service_scope_some">Only these folders</string>
-    <string name="service_scope_note">Changes travel both ways. An item you file out of these folders is archived in %1$s, never deleted.</string>
-    <string name="service_scope_leave_title">Archive them in %1$s?</string>
-    <string name="service_scope_leave_confirm">Archive there</string>
     <string name="saved_remove_both_body">Instapaper and Raindrop.io both keep this item. Remove it from both, or from one only (it then stays in Saved, kept in the other).</string>
     <string name="saved_remove_only_from">Only from %1$s</string>
     <string name="saved_remove_from_both">Remove from both</string>
@@ -301,10 +285,6 @@
     <plurals name="service_imported">
         <item quantity="one">Imported %1$d item, %2$s</item>
         <item quantity="other">Imported %1$d items, %2$s</item>
-    </plurals>
-    <plurals name="service_scope_leave_body">
-        <item quantity="one">%1$d item leaves what %2$s syncs. It is archived there, not deleted, and stays in Content.</item>
-        <item quantity="other">%1$d items leave what %2$s syncs. They are archived there, not deleted, and stay in Content.</item>
     </plurals>
     <string name="account_title">Content account</string>
     <string name="account_email">Email address</string>

@@ -76,11 +76,6 @@ class ServiceManager(
     /** Which connected services keep each saved item in step, by item key (removing asks which). */
     val presence: StateFlow<Map<String, Set<String>>> = _presence.asStateFlow()
 
-    private val _waiting = MutableStateFlow<Set<String>>(emptySet())
-
-    /** The connected services waiting for their import: nothing syncs with them until then. */
-    val waiting: StateFlow<Set<String>> = _waiting.asStateFlow()
-
     private val _notCopied = MutableStateFlow<Map<String, Set<String>>>(emptyMap())
 
     /** The highlights a service refused for its plan's limit (#164), by item key: "Not in Instapaper". */
@@ -151,13 +146,11 @@ class ServiceManager(
 
     private suspend fun refreshPresence() {
         val map = HashMap<String, MutableSet<String>>()
-        val waiting = HashSet<String>()
         val notCopied = HashMap<String, MutableSet<String>>()
         for (id in services.keys) {
             val state = library.serviceState(id)
             val rows = state.rows
             for ((key, row) in rows) if (row.linked) map.getOrPut(key) { LinkedHashSet() } += id
-            if (importOf(id) == null && rows.isEmpty()) waiting += id
             if (copiesHighlights(id)) {
                 for ((key, links) in state.highlights) {
                     val refused = HighlightCopy.notCopied(links)
@@ -166,21 +159,30 @@ class ServiceManager(
             }
         }
         _presence.value = map
-        _waiting.value = waiting
         _notCopied.value = notCopied
     }
 
     /** The connected services' ids, Instapaper first. */
     val connected: List<String> get() = services.keys.toList()
 
-    /** Syncs every connected service that has had its import; [full] is false for the quick sync after a change. */
+    /**
+     * Syncs every connected service; [full] is false for the quick sync after a change. A service
+     * just connected first brings in everything it has, once: everything syncs, there is nothing to
+     * choose (Instapaper is the only service, and its folders became tags, #187).
+     */
     suspend fun sync(full: Boolean = true) {
         for ((id, service) in services) {
             lock.withLock {
-                val state = library.serviceState(id)
-                // Connected before #145: everything was already in step, so it needs no import.
-                if (importOf(id) == null && state.rows.isEmpty()) return@withLock
+                var state = library.serviceState(id)
                 _statuses.update { it + (id to ServiceStatus.Syncing) }
+                // Connected before #145: everything was already in step, so it needs no import.
+                if (importOf(id) == null && state.rows.isEmpty()) {
+                    val imported = ServiceSync.import(service, state, ServiceImport(0, 0)) { change -> library.edit(change) }
+                    finish(id, state, imported)
+                    if (imported.problem != null) return@withLock
+                    recordImport(id, ServiceImport(clock(), imported.imported))
+                    state = library.serviceState(id)
+                }
                 val elsewhere = HashSet<String>()
                 for (other in services.keys) {
                     if (other != id) library.serviceState(other).rows.filterValues { it.linked }.keys.forEach { elsewhere += it }
@@ -194,30 +196,6 @@ class ServiceManager(
             }
         }
         lock.withLock { refreshPresence() }
-    }
-
-    /**
-     * Brings in what [id] has, once (#145): everything, or the folders in [what] (and its archive
-     * when asked). Then syncs. False when it didn't get through.
-     */
-    suspend fun import(
-        id: String,
-        what: ServiceImport,
-    ): Boolean {
-        val service = services[id] ?: return false
-        val result =
-            lock.withLock {
-                _statuses.update { it + (id to ServiceStatus.Syncing) }
-                val state = library.serviceState(id)
-                val result = ServiceSync.import(service, state, what) { change -> library.edit(change) }
-                finish(id, state, result)
-                if (result.problem == null) recordImport(id, what.copy(at = clock(), count = result.imported))
-                refreshPresence()
-                result
-            }
-        if (result.problem != null) return false
-        sync()
-        return true
     }
 
     private suspend fun finish(
@@ -270,26 +248,6 @@ class ServiceManager(
         if (services.keys.none(copiesHighlights)) return
         lookAt += key
         scope.launch { sync(full = false) }
-    }
-
-    /** The folders [id] has, for choosing what to import; null when it couldn't be asked. */
-    suspend fun folders(id: String): List<String>? {
-        val service = services[id] ?: return null
-        return try {
-            service.folders()
-        } catch (e: ServiceException) {
-            null
-        }
-    }
-
-    /** How many articles in step with [id] a scope of [next] would take out (they are archived there). */
-    suspend fun leaving(
-        id: String,
-        next: ServiceScope,
-    ): Int {
-        val lib = library.library.filterNotNull().first()
-        val rows = lock.withLock { library.serviceState(id).rows }
-        return rows.count { (key, row) -> row.linked && lib.item(key)?.let { it.readingList != null && !next.covers(it) } == true }
     }
 
     /**

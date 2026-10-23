@@ -226,23 +226,7 @@
     <string name="services_reading_body">Content guarda tus elementos. Inicia sesión con Instapaper para guardarlos también allí.</string>
     <string name="services_problem_later">Instapaper pidió esperar un momento. El resto irá después.</string>
     <string name="services_syncs_everything">Sincroniza todo lo guardado</string>
-    <string name="services_syncs_folders">Sincroniza %1$s</string>
-    <string name="services_waiting_import">Conectado. Elige qué importar.</string>
     <string name="service_import_title">Importar</string>
-    <string name="service_import_body">Trae una vez lo que tiene %1$s: todo, o las carpetas que elijas. Cada elemento llega a su sitio, tal como está.</string>
-    <string name="service_import_all">Importar todo</string>
-    <string name="service_import_choose">Elegir carpetas</string>
-    <string name="service_import_again">Importar de nuevo</string>
-    <string name="service_import_what">Qué traer</string>
-    <string name="service_import_archive">Su archivo</string>
-    <string name="service_import_start">Importar</string>
-    <string name="service_import_failed">La importación no se completó. Inténtalo de nuevo.</string>
-    <string name="service_scope_title">Qué sincroniza</string>
-    <string name="service_scope_all">Todo lo guardado</string>
-    <string name="service_scope_some">Solo estas carpetas</string>
-    <string name="service_scope_note">Los cambios van en ambos sentidos. Un elemento que saques de estas carpetas se archiva en %1$s, nunca se borra.</string>
-    <string name="service_scope_leave_title">¿Archivarlos en %1$s?</string>
-    <string name="service_scope_leave_confirm">Archivar allí</string>
     <string name="saved_remove_both_body">Instapaper y Raindrop.io guardan este elemento. Quítalo de ambos o solo de uno (entonces sigue en Guardados, en el otro).</string>
     <string name="saved_remove_only_from">Solo de %1$s</string>
     <string name="saved_remove_from_both">Quitar de ambos</string>
@@ -311,11 +295,6 @@
         <item quantity="one">%1$d elemento importado, %2$s</item>
         <item quantity="many">%1$d elementos importados, %2$s</item>
         <item quantity="other">%1$d elementos importados, %2$s</item>
-    </plurals>
-    <plurals name="service_scope_leave_body">
-        <item quantity="one">%1$d elemento deja de estar en lo que sincroniza %2$s. Se archiva allí, no se borra, y sigue en Content.</item>
-        <item quantity="many">%1$d elementos dejan de estar en lo que sincroniza %2$s. Se archivan allí, no se borran, y siguen en Content.</item>
-        <item quantity="other">%1$d elementos dejan de estar en lo que sincroniza %2$s. Se archivan allí, no se borran, y siguen en Content.</item>
     </plurals>
     <string name="account_title">Cuenta de Content</string>
     <string name="account_email">Correo electrónico</string>

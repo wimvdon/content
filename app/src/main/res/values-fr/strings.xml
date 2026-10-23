@@ -226,23 +226,7 @@
     <string name="services_reading_body">Content garde vos éléments enregistrés. Connectez-vous avec Instapaper pour les garder aussi là-bas.</string>
     <string name="services_problem_later">Instapaper a demandé d’attendre un moment. Le reste suivra.</string>
     <string name="services_syncs_everything">Synchronise tout ce qui est enregistré</string>
-    <string name="services_syncs_folders">Synchronise %1$s</string>
-    <string name="services_waiting_import">Connecté. Choisissez quoi importer.</string>
     <string name="service_import_title">Importer</string>
-    <string name="service_import_body">Récupérez une fois ce que %1$s contient : tout, ou les dossiers choisis. Chaque élément arrive à sa place, tel quel.</string>
-    <string name="service_import_all">Tout importer</string>
-    <string name="service_import_choose">Choisir des dossiers</string>
-    <string name="service_import_again">Importer à nouveau</string>
-    <string name="service_import_what">Que récupérer</string>
-    <string name="service_import_archive">Ses archives</string>
-    <string name="service_import_start">Importer</string>
-    <string name="service_import_failed">L’importation n’a pas abouti. Réessayez.</string>
-    <string name="service_scope_title">Ce qui est synchronisé</string>
-    <string name="service_scope_all">Tout ce qui est enregistré</string>
-    <string name="service_scope_some">Seulement ces dossiers</string>
-    <string name="service_scope_note">Les modifications vont dans les deux sens. Un élément que vous sortez de ces dossiers est archivé dans %1$s, jamais supprimé.</string>
-    <string name="service_scope_leave_title">Les archiver dans %1$s ?</string>
-    <string name="service_scope_leave_confirm">Archiver là-bas</string>
     <string name="saved_remove_both_body">Instapaper et Raindrop.io gardent tous deux cet élément. Retirez-le des deux, ou d’un seul (il reste alors dans Enregistrés, gardé dans l’autre).</string>
     <string name="saved_remove_only_from">Seulement de %1$s</string>
     <string name="saved_remove_from_both">Retirer des deux</string>
@@ -311,11 +295,6 @@
         <item quantity="one">%1$d élément importé, %2$s</item>
         <item quantity="many">%1$d éléments importés, %2$s</item>
         <item quantity="other">%1$d éléments importés, %2$s</item>
-    </plurals>
-    <plurals name="service_scope_leave_body">
-        <item quantity="one">%1$d élément sort de ce que %2$s synchronise. Il y est archivé, pas supprimé, et reste dans Content.</item>
-        <item quantity="many">%1$d éléments sortent de ce que %2$s synchronise. Ils y sont archivés, pas supprimés, et restent dans Content.</item>
-        <item quantity="other">%1$d éléments sortent de ce que %2$s synchronise. Ils y sont archivés, pas supprimés, et restent dans Content.</item>
     </plurals>
     <string name="account_title">Compte Content</string>
     <string name="account_email">Adresse e-mail</string>

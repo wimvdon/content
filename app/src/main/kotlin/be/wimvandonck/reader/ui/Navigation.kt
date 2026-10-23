@@ -192,7 +192,6 @@ fun RssReaderNavigation(
     val serviceStatuses by app.services.statuses.collectAsStateWithLifecycle()
     // Which services keep each saved item in step: removing one both keep asks which (#145).
     val servicePresence by app.services.presence.collectAsStateWithLifecycle()
-    val servicesWaiting by app.services.waiting.collectAsStateWithLifecycle()
     val notCopied by app.services.notCopied.collectAsStateWithLifecycle()
     val instapaperState by app.instapaper.state.collectAsStateWithLifecycle()
     val instapaperNotice by app.instapaper.notice.collectAsStateWithLifecycle()
@@ -906,11 +905,8 @@ fun RssReaderNavigation(
                         ServicesState(
                             instapaper = instapaperState,
                             statuses = serviceStatuses,
-                            scopes = current.scopes,
                             imports = current.imports,
-                            waiting = servicesWaiting,
                             copyHighlights = current.copyHighlights,
-                            folders = remember(library) { Saved.folders(library) },
                         )
                     val servicesActions =
                         ServicesActions(
@@ -920,25 +916,10 @@ fun RssReaderNavigation(
                             onSignOut = { app.appScope.launch { app.instapaper.signOut() } },
                             onSyncNow = { app.appScope.launch { app.services.sync() } },
                             onOpenService = { id -> push(Screen.Service(id)) },
-                            onLoadFolders = { id, result -> uiScope.launch { result(app.services.folders(id)) } },
-                            onImport = { id, what, result ->
-                                // Kept going if the screen is left; the answer comes back if it is still there.
-                                app.appScope.launch {
-                                    val ok = app.services.import(id, what)
-                                    withContext(Dispatchers.Main) { result(ok) }
-                                }
-                            },
-                            onCountLeaving = { id, scope, result -> uiScope.launch { result(app.services.leaving(id, scope)) } },
                             onCopyHighlightsChange = { on ->
                                 app.appScope.launch {
                                     app.settings.setCopyHighlights(on)
                                     if (on) app.services.sync()
-                                }
-                            },
-                            onScopeChange = { id, scope ->
-                                app.appScope.launch {
-                                    app.settings.setScope(id, scope)
-                                    app.services.sync()
                                 }
                             },
                         )
