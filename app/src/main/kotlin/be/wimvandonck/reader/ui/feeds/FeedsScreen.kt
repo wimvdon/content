@@ -84,6 +84,8 @@ data class FeedsState(
 )
 
 class FeedsActions(
+    /** Switches to the Tags tab of Feeds and tags (#222). */
+    val onTab: (ManageTab) -> Unit = {},
     val onBack: () -> Unit,
     val onAddFeed: () -> Unit,
     val onRemoveFeed: (Feed) -> Unit,
@@ -205,17 +207,8 @@ fun FeedsScreen(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         contentWindowInsets = ScaffoldDefaults.contentWindowInsets.union(WindowInsets.ime),
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            LargeTopAppBar(
-                title = { Text(stringResource(R.string.feeds_page_title)) },
-                navigationIcon = {
-                    IconButton(onClick = actions.onBack) {
-                        Icon(painterResource(R.drawable.ic_arrow_back), contentDescription = stringResource(R.string.action_back))
-                    }
-                },
-                scrollBehavior = scrollBehavior,
-            )
-        },
+        // One screen with Saved's tags (#222): its tabs switch between the two.
+        topBar = { ManageTopBar(ManageTab.Feeds, actions.onTab, actions.onBack, scrollBehavior) },
     ) { innerPadding ->
         LazyColumn(
             state = listState,

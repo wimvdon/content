@@ -146,7 +146,7 @@
     <string name="list_view_small">Klein</string>
     <string name="list_view_medium">Mittel</string>
     <string name="list_view_large">Groß</string>
-    <string name="feeds_page_title">Feeds und Ordner</string>
+    <string name="manage_title">Feeds und Tags</string>
     <string name="feeds_opml_title">Von oder zu einem anderen Reader</string>
     <string name="reader_auto_dark_title">Automatisch dunkel</string>
     <string name="reader_auto_dark_summary">Dunkle Seite, wenn die App dunkel ist</string>
@@ -307,7 +307,6 @@
     <string name="saved_place">Wo</string>
     <string name="saved_to">In %1$s gespeichert</string>
     <string name="action_open_menu">Menü öffnen</string>
-    <string name="menu_folders_tags">Tags</string>
     <string name="saved_folder_rename">Ordner umbenennen</string>
     <string name="saved_folder_remove">Ordner entfernen</string>
     <string name="saved_folder_remove_body">Den Ordner %1$s entfernen? Seine Elemente kommen ins Archiv.</string>

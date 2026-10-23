@@ -16,6 +16,7 @@ import { Input, Label, Select } from "./ui/input";
 import { Segmented } from "./ui/segmented";
 import { ReaderStyleControls } from "./ReaderStyleControls";
 import { InstapaperSettings } from "./ServiceSettings";
+import { SavedManage } from "./SavedManage";
 import { SwitchRow } from "./ui/switch";
 
 type Props = { open: boolean; onOpenChange: (open: boolean) => void };
@@ -85,7 +86,11 @@ function exportOpml() {
   URL.revokeObjectURL(a.href);
 }
 
-export function ManageDialog({ open, onOpenChange, onAddFeed }: Props & { onAddFeed: () => void }) {
+/**
+ * Feeds and tags is one dialog (#222), as on Android: tabs for the feeds with their folders, and for
+ * Saved's folders and tags. ☰'s Manage feeds and Manage tags open it on their tab.
+ */
+export function ManageDialog({ open, onOpenChange, onAddFeed, tab, onTab }: Props & { onAddFeed: () => void; tab: "feeds" | "tags"; onTab: (tab: "feeds" | "tags") => void }) {
   const { library } = useApp();
   const [editFeed, setEditFeed] = useState<Feed | null>(null);
   const [editFolder, setEditFolder] = useState<Folder | "new" | null>(null);
@@ -98,23 +103,37 @@ export function ManageDialog({ open, onOpenChange, onAddFeed }: Props & { onAddF
       <Dialog
         open={open}
         onOpenChange={onOpenChange}
-        title={t("feedsAndFolders")}
+        title={t("manageTitle")}
         closeLabel={t("close")}
         wide
         footer={
-          <>
-            <Button variant="tonal" onClick={() => setEditFolder("new")}>
-              <Plus />
-              {t("newFolder")}
-            </Button>
-            <Button onClick={onAddFeed}>
-              <Plus />
-              {t("addFeed")}
-            </Button>
-          </>
+          tab === "feeds" ? (
+            <>
+              <Button variant="tonal" onClick={() => setEditFolder("new")}>
+                <Plus />
+                {t("newFolder")}
+              </Button>
+              <Button onClick={onAddFeed}>
+                <Plus />
+                {t("addFeed")}
+              </Button>
+            </>
+          ) : undefined
         }
       >
-        <div className="space-y-4">
+        <div className="mb-4">
+          <Segmented
+            value={tab}
+            onChange={onTab}
+            label={t("manageTitle")}
+            options={[
+              { value: "feeds", label: t("feeds") },
+              { value: "tags", label: t("tags") },
+            ]}
+          />
+        </div>
+        {tab === "tags" ? <SavedManage /> : null}
+        <div className={cn("space-y-4", tab === "tags" && "hidden")}>
           {groups.map(([folder, feeds], gi) => (
             <section key={folder?.id ?? "none"} className="rounded-xl bg-muted/60 p-2">
               <div className="flex items-center gap-2 px-2 py-1">

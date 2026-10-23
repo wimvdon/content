@@ -147,7 +147,7 @@
     <string name="list_view_small">Small</string>
     <string name="list_view_medium">Medium</string>
     <string name="list_view_large">Large</string>
-    <string name="feeds_page_title">Feeds and folders</string>
+    <string name="manage_title">Feeds and tags</string>
     <string name="feeds_opml_title">Move to or from another reader</string>
     <string name="reader_auto_dark_title">Auto dark</string>
     <string name="reader_auto_dark_summary">Dark page when the app is dark</string>
@@ -308,7 +308,6 @@
     <string name="saved_place">Where</string>
     <string name="saved_to">Saved to %1$s</string>
     <string name="action_open_menu">Open menu</string>
-    <string name="menu_folders_tags">Tags</string>
     <string name="saved_folder_rename">Rename folder</string>
     <string name="saved_folder_remove">Remove folder</string>
     <string name="saved_folder_remove_body">Remove the folder %1$s? Its items go to the Archive.</string>

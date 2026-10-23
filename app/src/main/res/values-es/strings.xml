@@ -146,7 +146,7 @@
     <string name="list_view_small">Pequeña</string>
     <string name="list_view_medium">Mediana</string>
     <string name="list_view_large">Grande</string>
-    <string name="feeds_page_title">Feeds y carpetas</string>
+    <string name="manage_title">Fuentes y etiquetas</string>
     <string name="feeds_opml_title">Desde o hacia otro lector</string>
     <string name="reader_auto_dark_title">Oscuro automático</string>
     <string name="reader_auto_dark_summary">Página oscura cuando la app está oscura</string>
@@ -317,7 +317,6 @@
     <string name="saved_place">Dónde</string>
     <string name="saved_to">Guardado en %1$s</string>
     <string name="action_open_menu">Abrir menú</string>
-    <string name="menu_folders_tags">Etiquetas</string>
     <string name="saved_folder_rename">Renombrar carpeta</string>
     <string name="saved_folder_remove">Quitar carpeta</string>
     <string name="saved_folder_remove_body">¿Quitar la carpeta %1$s? Sus elementos van al Archivo.</string>

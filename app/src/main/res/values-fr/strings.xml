@@ -146,7 +146,7 @@
     <string name="list_view_small">Petit</string>
     <string name="list_view_medium">Moyen</string>
     <string name="list_view_large">Grand</string>
-    <string name="feeds_page_title">Flux et dossiers</string>
+    <string name="manage_title">Flux et tags</string>
     <string name="feeds_opml_title">Depuis ou vers un autre lecteur</string>
     <string name="reader_auto_dark_title">Sombre automatique</string>
     <string name="reader_auto_dark_summary">Page sombre quand l’app est sombre</string>
@@ -317,7 +317,6 @@
     <string name="saved_place">Où</string>
     <string name="saved_to">Enregistré dans %1$s</string>
     <string name="action_open_menu">Ouvrir le menu</string>
-    <string name="menu_folders_tags">Tags</string>
     <string name="saved_folder_rename">Renommer le dossier</string>
     <string name="saved_folder_remove">Supprimer le dossier</string>
     <string name="saved_folder_remove_body">Supprimer le dossier %1$s ? Ses éléments vont dans les Archives.</string>

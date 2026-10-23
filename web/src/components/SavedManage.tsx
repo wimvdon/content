@@ -8,24 +8,15 @@ import { itemTags } from "@/lib/items";
 import { folderCounts } from "@/lib/saved";
 import { ConfirmRemove } from "./ConfirmRemove";
 import { Button } from "./ui/button";
-import { Dialog } from "./ui/dialog";
 import { Input } from "./ui/input";
 
 /** Saved's folders and tags: their own page, apart from the feeds' folders (Manage feeds). */
-export function SavedManageDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange} title={t("savedManageTitle")} closeLabel={t("close")} wide>
-      <SavedManage />
-    </Dialog>
-  );
-}
-
 /**
  * The folders and tags of the saved articles, as on Android: rename either (to another's name joins
  * the two), remove a folder (its articles go to the Archive) or a tag (the articles stay). Folders
  * are made by filing an article in one, tags by adding them to an article.
  */
-function SavedManage() {
+export function SavedManage() {
   const { library, account } = useApp();
   const folders = [...folderCounts(library)];
   const tags = itemTags(library);
