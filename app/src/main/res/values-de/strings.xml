@@ -66,6 +66,24 @@
     <string name="reader_background_dark">Dunkel</string>
     <string name="reader_preview">Gute Typografie ist unsichtbar: Du bemerkst die Geschichte, nicht die Buchstaben.</string>
     <string name="reader_read_on_website">Auf der Website lesen</string>
+    <string name="saved_shared">Mit dir geteilt</string>
+    <string name="share_user_menu">An einen Content-Nutzer senden</string>
+    <string name="share_user_title">An einen Content-Nutzer senden</string>
+    <string name="share_user_article">Dieser Artikel landet in ihrem Gespeichert, Zu lesen.</string>
+    <string name="share_user_send">Senden</string>
+    <string name="share_user_sent">An %1$s gesendet</string>
+    <string name="share_user_no_account">Für diese Adresse gibt es kein Content-Konto.</string>
+    <string name="share_user_no_email">Füge zuerst eine E-Mail-Adresse zu deinem Konto hinzu (Einstellungen › Konto), damit man sieht, von wem es ist.</string>
+    <string name="share_user_signed_out">Melde dich zuerst bei deinem Content-Konto an.</string>
+    <string name="share_user_from">Von %1$s</string>
+    <plurals name="share_user_tag">
+        <item quantity="one">Alles mit dem Tag %1$s (%2$d Artikel) landet in ihrem Gespeichert, Zu lesen, mit diesem Tag.</item>
+        <item quantity="other">Alles mit dem Tag %1$s (%2$d Artikel) landet in ihrem Gespeichert, Zu lesen, mit diesem Tag.</item>
+    </plurals>
+    <plurals name="share_user_received">
+        <item quantity="one">%1$s hat %2$d Artikel mit dir geteilt</item>
+        <item quantity="other">%1$s hat %2$d Artikel mit dir geteilt</item>
+    </plurals>
     <string name="site_sign_in_menu">Bei dieser Website anmelden</string>
     <string name="site_sign_in_title">Bei %1$s anmelden</string>
     <string name="site_sign_in_done">Fertig</string>

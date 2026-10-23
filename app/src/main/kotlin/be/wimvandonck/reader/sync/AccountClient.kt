@@ -1,5 +1,9 @@
 package be.wimvandonck.reader.sync
 
+import be.wimvandonck.reader.data.InboxMessage
+import be.wimvandonck.reader.data.LibraryRows
+import be.wimvandonck.reader.data.SharedArticle
+import be.wimvandonck.reader.data.SharedBy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -108,6 +112,43 @@ class AccountClient(
         return call(request("/account/texts").post(body).build()) { _, answer -> htmlFrom(answer) }
     }
 
+    /** Whether [email] has a Content account (#167), to say so before sharing with it. */
+    suspend fun hasAccount(email: String): Boolean {
+        val body = Json.write(mapOf("email" to email.trim())).toRequestBody(JSON_TYPE)
+        return call(request("/account/share/check").post(body).build()) { _, text -> (runCatching { Json.parse(text) }.getOrNull() as? Map<*, *>)?.get("exists") == true }
+    }
+
+    /**
+     * Shares [items] with the Content user at [to] (#167), as [from] (an address of this account);
+     * [tag] when they are shared as a tag. False when the address has no account.
+     */
+    suspend fun share(
+        to: String,
+        from: SharedBy,
+        items: List<SharedArticle>,
+        tag: String?,
+    ): Boolean {
+        val body =
+            Json.write(
+                linkedMapOf(
+                    "to" to to.trim(),
+                    "from" to linkedMapOf("email" to from.email, "name" to from.name),
+                    "items" to items.map { linkedMapOf("url" to it.url, "title" to it.title, "imageUrl" to it.imageUrl, "description" to it.description) },
+                    "tag" to tag,
+                ),
+            ).toRequestBody(JSON_TYPE)
+        return call(request("/account/share").post(body).build(), alsoOk = 404) { code, _ -> code != 404 }
+    }
+
+    /** What other Content users shared with this account and no device has taken in yet. */
+    suspend fun inbox(): List<InboxMessage> = call(request("/account/inbox").get().build()) { _, text -> inboxFrom(text) }
+
+    /** Takes messages out of the inbox once they are in the library. */
+    suspend fun inboxDone(ids: List<String>) {
+        val body = Json.write(mapOf("ids" to ids)).toRequestBody(JSON_TYPE)
+        call(request("/account/inbox/done").post(body).build()) { _, _ -> }
+    }
+
     /** Forgets this device's key on the server. */
     suspend fun signOut() {
         call(request("/account/signout").post(ByteArray(0).toRequestBody()).build()) { _, _ -> }
@@ -161,6 +202,23 @@ class AccountClient(
                 503 -> SyncProblem.NotSetUp
                 else -> SyncProblem.ServerError
             }
+
+        /** The messages of an inbox answer; ones that aren't one are left out. */
+        fun inboxFrom(text: String): List<InboxMessage> {
+            val list = ((runCatching { Json.parse(text) }.getOrNull() as? Map<*, *>)?.get("messages") as? List<*>).orEmpty()
+            return list.mapNotNull { v ->
+                val m = v as? Map<*, *> ?: return@mapNotNull null
+                val id = m["id"] as? String ?: return@mapNotNull null
+                val from = LibraryRows.sharedByOf(m["from"]) ?: return@mapNotNull null
+                val items =
+                    (m["items"] as? List<*>).orEmpty().mapNotNull { i ->
+                        val a = i as? Map<*, *> ?: return@mapNotNull null
+                        val url = a["url"] as? String ?: return@mapNotNull null
+                        SharedArticle(url, a["title"] as? String ?: url, (a["imageUrl"] as? String)?.takeIf { it.startsWith("https://") }, a["description"] as? String ?: "")
+                    }
+                InboxMessage(id, from, items, (m["tag"] as? String)?.takeIf { it.isNotBlank() })
+            }
+        }
 
         /** The `html` of a stored-text answer, or null. */
         fun htmlFrom(text: String): String? = (runCatching { Json.parse(text) }.getOrNull() as? Map<*, *>)?.get("html") as? String

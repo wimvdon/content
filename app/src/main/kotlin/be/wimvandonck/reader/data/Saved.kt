@@ -20,6 +20,8 @@ data class SavedFilter(
     val tab: SavedTab = SavedTab.ToRead,
     val likedOnly: Boolean = false,
     val tags: Set<String> = emptySet(),
+    /** Only what other Content users shared with you (#167). */
+    val sharedOnly: Boolean = false,
 )
 
 /**
@@ -49,6 +51,8 @@ data class NoteContent(
     val highlights: Int = 0,
     val liked: Boolean = false,
     val note: String = "",
+    /** Who shared it (#167), or null. */
+    val sharedBy: SharedBy? = null,
 )
 
 object Saved {
@@ -60,7 +64,7 @@ object Saved {
     fun showsNotes(tab: SavedTab): Boolean = true
 
     /** A saved item as a note card. */
-    fun note(item: Item): NoteContent = NoteContent(item.title, item.imageUrl, cardBody(item), item.host, item.tags, item.highlights.size, item.liked, item.note.trim())
+    fun note(item: Item): NoteContent = NoteContent(item.title, item.imageUrl, cardBody(item), item.host, item.tags, item.highlights.size, item.liked, item.note.trim(), item.sharedBy)
 
     /** A feed article as a note card (Search's notes view): the start of its text under the title. */
     fun note(article: Article): NoteContent =
@@ -96,6 +100,7 @@ object Saved {
             .filter { item ->
                 isIn(item, filter.tab) &&
                     (!filter.likedOnly || item.liked) &&
+                    (!filter.sharedOnly || item.sharedBy != null) &&
                     filter.tags.all { t -> item.tags.any { it.equals(t, ignoreCase = true) } }
             }.sortedByDescending { it.readingList!!.addedAt }
 
@@ -135,6 +140,9 @@ object Saved {
      * chosen when the state changes, as a folder does with Unread and All in Feeds.
      */
     val states: List<SavedTab> = listOf(SavedTab.ToRead, SavedTab.Archive, SavedTab.All)
+
+    /** How many shared items are still to read, for ☰'s Shared row (#167); null when nothing was ever shared. */
+    fun sharedToReadCount(library: Library): Int? = if (library.items.none { it.sharedBy != null && it.readingList != null }) null else library.items.count { it.sharedBy != null && isIn(it, SavedTab.ToRead) }
 
     /** How many liked items are still to read, for ☰'s Liked row (#206). */
     fun likedToReadCount(library: Library): Int = library.items.count { it.liked && isIn(it, SavedTab.ToRead) }

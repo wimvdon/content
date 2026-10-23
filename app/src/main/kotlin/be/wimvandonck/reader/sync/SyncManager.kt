@@ -8,6 +8,13 @@ import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.dataStoreFile
 import be.wimvandonck.reader.data.Item
 import be.wimvandonck.reader.data.LibraryRepository
+import be.wimvandonck.reader.data.Received
+import be.wimvandonck.reader.data.SharedArticle
+import be.wimvandonck.reader.data.SharedBy
+import be.wimvandonck.reader.data.Sharing
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import be.wimvandonck.reader.data.SettingsStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
@@ -252,6 +259,41 @@ class SyncManager(
         library.saveItemSyncState(items, nextItems)
         syncedItemsVersion = nextItems.version
         if (newFeeds) scope.launch { library.refreshAll() }
+        // What other Content users shared (#167): into Saved, then out of the inbox.
+        val inbox = runCatching { target.inbox() }.getOrDefault(emptyList())
+        if (inbox.isNotEmpty()) {
+            var received: Received? = null
+            library.edit { lib ->
+                val (next, got) = Sharing.takeIn(lib, inbox, clock())
+                received = got
+                next
+            }
+            runCatching { target.inboxDone(inbox.map { it.id }) }
+            received?.takeIf { it.count > 0 }?.let { _received.tryEmit(it) }
+        }
+    }
+
+    private val _received = MutableSharedFlow<Received>(extraBufferCapacity = 4)
+
+    /** What arrived from other Content users (#167), to say so once. */
+    val received: SharedFlow<Received> = _received.asSharedFlow()
+
+    /** Whether [email] has a Content account, or null when it couldn't be asked. */
+    suspend fun hasAccount(email: String): Boolean? = accountKey()?.let { key -> runCatching { AccountClient(http, key).hasAccount(email) }.getOrNull() }
+
+    /** Shares with a Content user (#167): [ShareResult] says how it went. */
+    suspend fun share(
+        to: String,
+        items: List<SharedArticle>,
+        tag: String?,
+    ): ShareResult {
+        val session = account.session() ?: return ShareResult.SignedOut
+        val email = session.email ?: return ShareResult.NoEmail
+        return try {
+            if (AccountClient(http, session.key).share(to, SharedBy(email), items, tag)) ShareResult.Sent else ShareResult.NoAccount
+        } catch (e: SyncException) {
+            if (e.problem == SyncProblem.Offline) ShareResult.Offline else ShareResult.Failed
+        }
     }
 
     internal companion object {
@@ -277,3 +319,6 @@ private object TextSerializer : Serializer<String> {
         output.write(t.encodeToByteArray())
     }
 }
+
+/** How sharing with a Content user went (#167). */
+enum class ShareResult { Sent, NoAccount, NoEmail, SignedOut, Offline, Failed }

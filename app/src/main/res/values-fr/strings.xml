@@ -66,6 +66,24 @@
     <string name="reader_background_dark">Sombre</string>
     <string name="reader_preview">Une bonne typographie est invisible : on remarque l\'histoire, pas les lettres.</string>
     <string name="reader_read_on_website">Lire sur le site</string>
+    <string name="saved_shared">Partagé avec vous</string>
+    <string name="share_user_menu">Envoyer à un utilisateur de Content</string>
+    <string name="share_user_title">Envoyer à un utilisateur de Content</string>
+    <string name="share_user_article">Cet article va dans ses Enregistrés, À lire.</string>
+    <string name="share_user_send">Envoyer</string>
+    <string name="share_user_sent">Envoyé à %1$s</string>
+    <string name="share_user_no_account">Il n’y a pas de compte Content pour cette adresse.</string>
+    <string name="share_user_no_email">Ajoutez d’abord une adresse e-mail à votre compte (Réglages › Compte), pour qu’on voie de qui il vient.</string>
+    <string name="share_user_signed_out">Connectez-vous d’abord à votre compte Content.</string>
+    <string name="share_user_from">De %1$s</string>
+    <plurals name="share_user_tag">
+        <item quantity="one">Tout ce qui porte le tag %1$s (%2$d article) va dans ses Enregistrés, À lire, avec ce tag.</item>
+        <item quantity="other">Tout ce qui porte le tag %1$s (%2$d articles) va dans ses Enregistrés, À lire, avec ce tag.</item>
+    </plurals>
+    <plurals name="share_user_received">
+        <item quantity="one">%1$s a partagé %2$d article avec vous</item>
+        <item quantity="other">%1$s a partagé %2$d articles avec vous</item>
+    </plurals>
     <string name="site_sign_in_menu">Se connecter à ce site</string>
     <string name="site_sign_in_title">Se connecter à %1$s</string>
     <string name="site_sign_in_done">OK</string>

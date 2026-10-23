@@ -9,6 +9,7 @@ import { SavedManageDialog } from "./components/SavedManage";
 import { SearchPanel } from "./components/SearchPanel";
 import { Sidebar } from "./components/Sidebar";
 import { Button } from "./components/ui/button";
+import { sharedByLabel } from "@/lib/sharing";
 import { app, useApp } from "./lib/app";
 import { plural, t } from "./lib/i18n";
 import { articleKey, articlesFor, type Article } from "./lib/library";
@@ -20,7 +21,7 @@ type Message = { text: string; action?: { label: string; run: () => void } };
 /** Three panes on wide screens (feeds, list, article); one at a time on phones. */
 export default function App() {
   const state = useApp();
-  const { settings, library, selection, readThisVisit, instapaperNotice, accountNotice, savedFilter } = state;
+  const { settings, library, selection, readThisVisit, instapaperNotice, accountNotice, received, savedFilter } = state;
   // The open article belongs to the section it was opened in: another section closes it.
   const [opened, setOpened] = useState<{ article: Article; selection: typeof selection } | null>(null);
   const openArticle = opened?.selection === selection ? opened.article : null;
@@ -58,6 +59,12 @@ export default function App() {
     const timer = setTimeout(() => app.clearInstapaperNotice(), 6000);
     return () => clearTimeout(timer);
   }, [instapaperNotice]);
+  // Something another Content user shared arrived (#167): the same.
+  useEffect(() => {
+    if (!received) return;
+    const timer = setTimeout(() => app.clearReceived(), 6000);
+    return () => clearTimeout(timer);
+  }, [received]);
   // An emailed sign-in link opened here (#166): the same.
   useEffect(() => {
     if (!accountNotice) return;
@@ -68,7 +75,8 @@ export default function App() {
   const shown: Message | null =
     message ??
     (instapaperNotice ? { text: t(instapaperNotice === "signedIn" ? "instapaperSignedIn" : "instapaperSignInFailed") } : null) ??
-    (accountNotice ? { text: t(accountMessages[accountNotice]) } : null);
+    (accountNotice ? { text: t(accountMessages[accountNotice]) } : null) ??
+    (received ? { text: t("shareUserReceived").replace("{names}", received.from.map(sharedByLabel).join(", ")).replace("{count}", plural("articleCount", received.count)) } : null);
 
   const open = useCallback((a: Article) => {
     app.open(a);

@@ -167,6 +167,18 @@ interface Stored {
   data: Uint8Array;
 }
 
+/** Something another Content user shared (#167): who, the articles, and the tag they were shared as (if any). */
+export interface InboxMessage {
+  id: string;
+  at: number;
+  from: { email: string; name: string };
+  items: { url: string; title: string; imageUrl?: string | null; description?: string }[];
+  tag?: string | null;
+}
+
+/** Messages kept per inbox; older ones go. */
+export const MAX_INBOX = 200;
+
 /** One item as the apps send and get it: its key, the items version that last changed it, its data (null: deleted). */
 export interface ItemRow {
   key: string;
@@ -396,6 +408,49 @@ export class AccountData {
     return new TextEncoder().encode(`${this.accountId}:text:${id}`);
   }
 
+  // The inbox (#167): what other Content users shared with this account, until a device takes it in.
+
+  /** Adds a message shared with this account; the oldest go past MAX_INBOX. */
+  addToInbox(message: InboxMessage): Promise<void> {
+    return this.serial(async () => {
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const plain = new TextEncoder().encode(JSON.stringify(message));
+      const data = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv, additionalData: this.inboxLabel(message.id) }, await this.cipher(), plain));
+      await this.storage.put(`i:${String(message.at).padStart(15, "0")}:${message.id}`, { iv, data } satisfies SealedRow);
+      const all = [...(await this.storage.list<SealedRow>({ prefix: "i:" })).keys()];
+      for (const key of all.slice(0, Math.max(0, all.length - MAX_INBOX))) await this.storage.delete(key);
+    });
+  }
+
+  /** What is waiting in the inbox, oldest first. */
+  async inbox(): Promise<InboxMessage[]> {
+    const out: InboxMessage[] = [];
+    for (const [key, sealed] of await this.storage.list<SealedRow>({ prefix: "i:" })) {
+      const id = key.slice(key.lastIndexOf(":") + 1);
+      try {
+        const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: sealed.iv, additionalData: this.inboxLabel(id) }, await this.cipher(), sealed.data);
+        out.push(JSON.parse(new TextDecoder().decode(plain)) as InboxMessage);
+      } catch {
+        // Not readable (moved, or damaged): left out.
+      }
+    }
+    return out;
+  }
+
+  /** Takes messages out of the inbox once a device has taken them in. */
+  inboxDone(ids: string[]): Promise<void> {
+    return this.serial(async () => {
+      const wanted = new Set(ids);
+      for (const key of (await this.storage.list<SealedRow>({ prefix: "i:" })).keys()) {
+        if (wanted.has(key.slice(key.lastIndexOf(":") + 1))) await this.storage.delete(key);
+      }
+    });
+  }
+
+  private inboxLabel(id: string): Uint8Array {
+    return new TextEncoder().encode(`${this.accountId}:inbox:${id}`);
+  }
+
   private idKey: Promise<CryptoKey> | null = null;
 
   /** The stored id of a row: says nothing about the key without ACCOUNT_KEY. */
@@ -610,8 +665,24 @@ export class Account {
     this.data ??= new AccountData(this.state.storage, this.env.ACCOUNT_KEY, accountId);
     const route = new URL(request.url).pathname.slice(1);
 
+    // The inbox (share.ts, #167): added by the feed loader for a sender, read and emptied by this account's devices.
+    if (route === "inboxAdd") {
+      await this.data.addToInbox(JSON.parse(await request.text()) as InboxMessage);
+      return new Response(null, { status: 204 });
+    }
+    if (route === "inbox" || route === "inboxDone") {
+      if (!(await this.data.knows(request.headers.get("X-Secret") ?? ""))) return plain(401, "Sign in again");
+      if (route === "inbox") return new Response(JSON.stringify({ messages: await this.data.inbox() }), { headers: { "Content-Type": "application/json" } });
+      const body = JSON.parse(await request.text()) as { ids?: unknown };
+      await this.data.inboxDone(Array.isArray(body.ids) ? body.ids.filter((x): x is string => typeof x === "string") : []);
+      return new Response(null, { status: 204 });
+    }
     // An address's directory (email.ts): which account it opens and which links were used.
     if (route === "emailClaim") return emailClaim(this.state.storage, await request.text(), Date.now());
+    if (route === "emailAccount") {
+      const account = await this.state.storage.get<string>("account");
+      return account ? new Response(JSON.stringify({ account }), { headers: { "Content-Type": "application/json" } }) : plain(404, "No account");
+    }
     if (route === "knows") return (await this.data.knows(request.headers.get("X-Secret") ?? "")) ? new Response(null, { status: 204 }) : plain(401, "Sign in again");
 
     if (route === "live") {

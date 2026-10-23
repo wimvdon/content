@@ -2,6 +2,7 @@ package be.wimvandonck.reader.ui.feeds
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -38,6 +39,8 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import be.wimvandonck.reader.R
+import be.wimvandonck.reader.sync.ShareResult
+import be.wimvandonck.reader.ui.reader.ShareWithUserDialog
 import be.wimvandonck.reader.ui.theme.EmptyState
 import be.wimvandonck.reader.ui.theme.readableWidth
 
@@ -57,7 +60,10 @@ fun TagsManageScreen(
     folders: Map<String, Int> = emptyMap(),
     onRenameFolder: (String, String) -> Unit = { _, _ -> },
     onRemoveFolder: (String) -> Unit = {},
+    /** Sends a tag's articles to a Content user (#167); null when signed out. */
+    onShareTag: ((tag: String, email: String, result: (ShareResult) -> Unit) -> Unit)? = null,
 ) {
+    var sharing by rememberSaveable { mutableStateOf<String?>(null) }
     // What is being renamed or removed: "t:<tag>" or "c:<folder>".
     var renaming by rememberSaveable { mutableStateOf<String?>(null) }
     var removing by rememberSaveable { mutableStateOf<String?>(null) }
@@ -119,8 +125,15 @@ fun TagsManageScreen(
                         supportingContent = { Text(pluralStringResource(R.plurals.articles_count, count, count)) },
                         leadingContent = { Icon(painterResource(R.drawable.ic_label), contentDescription = null) },
                         trailingContent = {
-                            IconButton(onClick = { removing = "t:$tag" }) {
-                                Icon(painterResource(R.drawable.ic_delete), contentDescription = stringResource(R.string.tags_remove_everywhere))
+                            Row {
+                                if (onShareTag != null) {
+                                    IconButton(onClick = { sharing = tag }) {
+                                        Icon(painterResource(R.drawable.ic_group), contentDescription = stringResource(R.string.share_user_menu))
+                                    }
+                                }
+                                IconButton(onClick = { removing = "t:$tag" }) {
+                                    Icon(painterResource(R.drawable.ic_delete), contentDescription = stringResource(R.string.tags_remove_everywhere))
+                                }
                             }
                         },
                         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
@@ -147,6 +160,17 @@ fun TagsManageScreen(
             },
             dismissButton = { TextButton(onClick = { renaming = null }) { Text(stringResource(R.string.action_cancel)) } },
         )
+    }
+    val share = onShareTag
+    sharing?.let { tag ->
+        if (share != null) {
+            ShareWithUserDialog(
+                what = pluralStringResource(R.plurals.share_user_tag, tags[tag] ?: 0, tag, tags[tag] ?: 0),
+                onSend = { email, result -> share(tag, email, result) },
+                onDone = { sharing = null },
+                onDismiss = { sharing = null },
+            )
+        }
     }
     removing?.let { target ->
         val folder = target.startsWith("c:")

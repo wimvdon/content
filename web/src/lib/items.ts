@@ -61,6 +61,14 @@ export interface Item {
   highlights: Highlight[];
   /** How far it has been read, 0 to 1. */
   progress: number;
+  /** Who shared it with you (#167); absent or null when nobody did. */
+  sharedBy?: SharedBy | null;
+}
+
+/** Who shared an item with you (#167): their email address and name (may be empty). */
+export interface SharedBy {
+  email: string;
+  name: string;
 }
 
 /** An address without what doesn't change the page (http(s), www., a trailing slash, the #part), lower case. */

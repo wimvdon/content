@@ -2,6 +2,21 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-23: Sharing with other Content users (#167)
+
+- A one-time copy, as the issue suggested to start: one article, or everything with a tag. It lands
+  in the other person's Saved, To read (a shared tag keeps its name as a tag there) and is theirs from
+  then on; later changes on either side don't follow.
+- Where shared things go in Saved (the question on the issue): a **Shared with you** group next to
+  Liked, on the chips and in ☰ under Tags, once something was ever shared. Each card says who it is
+  from. Not a separate section: a shared article is a saved article like any other.
+- Delivery goes through an inbox in the recipient's account on the feed loader (`worker/src/share.ts`),
+  encrypted and emptied as soon as a device takes it in during sync. Sending needs an email address
+  on your own account, which the feed loader checks, so nobody can send in someone else's name.
+- Notifications: for now the app says it in a message when something arrives. Choosing between none,
+  in the app, a web notification or an email is left for later.
+- The Android database gets a column for who shared an item (version 7, an automatic migration).
+
 ## 2026-10-23: Tags in the order you last used them (#220)
 
 - Everywhere tags are listed (Saved's chips, the menu under Tags, the save sheet, Manage tags), the

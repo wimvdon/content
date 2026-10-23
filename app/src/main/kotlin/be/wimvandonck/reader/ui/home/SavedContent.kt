@@ -95,7 +95,7 @@ internal fun SavedContent(
     onClearFilters: () -> Unit = {},
 ) {
     if (home.items.isEmpty()) {
-        val plain = !home.filter.likedOnly && home.filter.tags.isEmpty()
+        val plain = !home.filter.likedOnly && !home.filter.sharedOnly && home.filter.tags.isEmpty()
         val toRead = home.filter.tab == SavedTab.ToRead && plain
         EmptyState(
             painterResource(
@@ -312,6 +312,13 @@ internal fun NoteCard(
                                 )
                             }
                         }
+                    }
+                }
+                // Who shared it (#167).
+                note.sharedBy?.let { by ->
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Icon(painterResource(R.drawable.ic_group), contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.primary)
+                        Text(stringResource(R.string.share_user_from, by.label), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
