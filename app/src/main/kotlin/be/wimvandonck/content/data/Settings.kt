@@ -146,6 +146,8 @@ data class Settings(
     val imports: Map<String, ServiceImport> = emptyMap(),
     /** Copy highlights to Instapaper (#164); on this device only, off by default (free accounts get five a month). */
     val copyHighlights: Boolean = false,
+    /** Notifications when something is shared (#235); on this phone only, off until turned on. */
+    val notifyShared: Boolean = false,
     /** The people shared with (#235), most recent first; synced (see Recipients). */
     val recipients: List<String> = emptyList(),
     /** When the last sync succeeded, or null. */

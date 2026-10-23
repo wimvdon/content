@@ -243,7 +243,9 @@ to (Send to a Content user) appear in Android's share menu, at the top, with the
 or first letter. Pick one and **Send to a Content user** opens over the app you were in, with their
 address filled in; add a message if you like and tap **Send**.
 
-**Notifications** (#235, web app). Settings › Account › **Notify me when something is shared with me**
+**Notifications** (#235). Settings › Account › **Notify me when something is shared with me**, on the
+phone and in the web app. On the phone it asks Android's permission and then shows "Something was
+shared with you" even when Content is closed; tap it for Saved › Shared with me. In the web app it
 asks your browser's permission; from then on the browser shows "Something was shared with you", even
 with Content closed, and clicking it opens Saved › Shared with me. Per browser; signing out turns it
 off.

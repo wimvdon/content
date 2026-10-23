@@ -13,6 +13,9 @@ output-metadata.json
 # Local configuration (machine-specific, never commit)
 local.properties
 
+# Firebase settings (#235): written by CI from the GOOGLE_SERVICES_JSON secret, never committed.
+app/google-services.json
+
 # Signing material (NEVER commit)
 keystore.properties
 *.jks

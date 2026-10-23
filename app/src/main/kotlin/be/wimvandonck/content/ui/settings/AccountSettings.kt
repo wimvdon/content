@@ -1,5 +1,14 @@
 package be.wimvandonck.content.ui.settings
 
+import androidx.core.content.ContextCompat
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.remember
+import androidx.compose.material3.Switch
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.compose.rememberLauncherForActivityResult
+import android.content.pm.PackageManager
+import android.Manifest
 import android.text.format.DateUtils
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
@@ -54,6 +63,10 @@ fun AccountSection(
     status: SyncStatus,
     /** The name on the address's Gravatar profile (#234), shown above the address. */
     name: String? = null,
+    /** Notify me when something is shared with me (#235): on or off, null when the build has no notifications. */
+    notifyShared: Boolean? = null,
+    /** Turns it on or off; the result says whether that worked. */
+    onNotifyShared: (Boolean, (Boolean) -> Unit) -> Unit = { _, _ -> },
     lastSyncedAt: Long?,
     onSendLink: (email: String, result: (Boolean) -> Unit) -> Unit,
     onSyncNow: () -> Unit,
@@ -121,6 +134,7 @@ fun AccountSection(
                 ) { Text(stringResource(R.string.account_delete_data)) }
             }
         }
+        if (notifyShared != null) NotifySharedSwitch(notifyShared, onNotifyShared)
         if (email == null) {
             // Opened with Instapaper: an address added once opens the same account.
             ListItem(
@@ -202,3 +216,52 @@ private fun EmailLinkForm(
 }
 
 private val EMAIL = Regex("""^[^\s@]+@[^\s@]+\.[^\s@]+$""")
+
+/**
+ * Notify me when something is shared with me (#235). Turning it on asks Android's permission first
+ * (Android 13 and later); refused, it says where to allow it.
+ */
+@Composable
+private fun NotifySharedSwitch(
+    on: Boolean,
+    onChange: (Boolean, (Boolean) -> Unit) -> Unit,
+) {
+    val context = LocalContext.current
+    var busy by remember { mutableStateOf(false) }
+    var denied by remember { mutableStateOf(false) }
+    val turnOn = {
+        busy = true
+        onChange(true) { busy = false }
+    }
+    val permission =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            denied = !granted
+            if (granted) turnOn()
+        }
+    ListItem(
+        headlineContent = { Text(stringResource(R.string.notify_shared_setting)) },
+        supportingContent = {
+            Text(
+                stringResource(if (denied) R.string.notify_shared_denied else R.string.notify_shared_summary),
+                color = if (denied) MaterialTheme.colorScheme.error else Color.Unspecified,
+            )
+        },
+        trailingContent = {
+            Switch(
+                checked = on,
+                enabled = !busy,
+                onCheckedChange = { value ->
+                    denied = false
+                    when {
+                        !value -> {
+                            busy = true
+                            onChange(false) { busy = false }
+                        }
+                        ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED -> turnOn()
+                        else -> permission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    }
+                },
+            )
+        },
+    )
+}

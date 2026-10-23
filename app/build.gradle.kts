@@ -68,6 +68,32 @@ val keystoreProperties = Properties().apply {
     if (keystorePropertiesFile.exists()) keystorePropertiesFile.inputStream().use { load(it) }
 }
 
+// ---------------------------------------------------------------------------
+// Notifications (#235): the app's Firebase settings, read from app/google-services.json when it is
+// there. CI and the release workflow write that file from the GOOGLE_SERVICES_JSON secret; it is
+// never committed (it holds an API key). Without it the build has empty settings and the app offers
+// no notifications. No google-services plugin: the app starts Firebase with these itself.
+// ---------------------------------------------------------------------------
+fun firebaseSettings(packageName: String): Map<String, String> {
+    val file = file("google-services.json")
+    if (!file.exists()) return emptyMap()
+    val json = groovy.json.JsonSlurper().parse(file) as Map<*, *>
+    val project = json["project_info"] as? Map<*, *> ?: return emptyMap()
+    val client =
+        (json["client"] as? List<*>)?.filterIsInstance<Map<*, *>>()?.firstOrNull { c ->
+            ((c["client_info"] as? Map<*, *>)?.get("android_client_info") as? Map<*, *>)?.get("package_name") == packageName
+        } ?: return emptyMap()
+    val apiKey = ((client["api_key"] as? List<*>)?.firstOrNull() as? Map<*, *>)?.get("current_key")
+    return mapOf(
+        "FIREBASE_APP_ID" to (client["client_info"] as Map<*, *>)["mobilesdk_app_id"],
+        "FIREBASE_API_KEY" to apiKey,
+        "FIREBASE_PROJECT_ID" to project["project_id"],
+        "FIREBASE_SENDER_ID" to project["project_number"],
+    ).mapValues { it.value?.toString().orEmpty() }
+}
+
+val firebaseNames = listOf("FIREBASE_APP_ID", "FIREBASE_API_KEY", "FIREBASE_PROJECT_ID", "FIREBASE_SENDER_ID")
+
 android {
     namespace = appId
     compileSdk = 37
@@ -97,12 +123,16 @@ android {
             // Lets a pull request's debug APK be installed next to the released app, as
             // "Content Dev" (src/debug/res).
             applicationIdSuffix = ".debug"
+            val firebase = firebaseSettings("$appId.debug")
+            firebaseNames.forEach { buildConfigField("String", it, "\"${firebase[it].orEmpty()}\"") }
         }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.findByName("release")
+            val firebase = firebaseSettings(appId)
+            firebaseNames.forEach { buildConfigField("String", it, "\"${firebase[it].orEmpty()}\"") }
         }
     }
 
@@ -113,6 +143,8 @@ android {
 
     buildFeatures {
         compose = true
+        // The Firebase settings above (#235).
+        buildConfig = true
     }
 
     androidResources {
@@ -151,6 +183,9 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
     implementation(libs.okhttp)
+    // Notifications when something is shared (#235, docs/decisions.md): Firebase Cloud Messaging only.
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
     // Reader view for full articles: Firefox Reader View's algorithm, on a current jsoup (see docs/decisions.md).
     implementation(libs.readability4j)
     implementation(libs.jsoup)

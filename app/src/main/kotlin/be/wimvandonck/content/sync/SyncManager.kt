@@ -289,6 +289,9 @@ class SyncManager(
 
     private val names = java.util.concurrent.ConcurrentHashMap<String, String>()
 
+    /** Gives the feed loader this phone's push token (#235), or with null takes it back. False when signed out or it failed. */
+    suspend fun setPush(token: String?): Boolean = accountKey()?.let { key -> runCatching { AccountClient(http, key).setPush(token) }.isSuccess } ?: false
+
     /** Whether [email] has a Content account, or null when it couldn't be asked. */
     suspend fun hasAccount(email: String): Boolean? = accountKey()?.let { key -> runCatching { AccountClient(http, key).hasAccount(email) }.getOrNull() }
 

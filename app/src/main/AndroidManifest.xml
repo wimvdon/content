@@ -3,6 +3,9 @@
 
     <!-- Downloads the feeds the user subscribes to. The only permission; see PRIVACY.md. -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Notifications when something is shared with you (#235), asked for only when they are turned
+         on in Settings › Account. See PRIVACY.md. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <!-- Lets Settings › Save and share list the apps that accept shared links, so the Save and
          Share buttons can send straight to one. Package visibility, not a permission. -->
@@ -73,6 +76,19 @@
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity-alias>
+        <!-- Firebase's pokes when something is shared (#235, push/). Not exported: only Firebase,
+             inside this app, starts it. -->
+        <service
+            android:name=".push.SharedMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+        <!-- No Firebase token until notifications are turned on (PushNotifications.turnOn). -->
+        <meta-data
+            android:name="firebase_messaging_auto_init_enabled"
+            android:value="false" />
     </application>
 
 </manifest>

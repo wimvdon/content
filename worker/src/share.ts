@@ -12,7 +12,7 @@
  *  - POST /account/inbox/done  {"ids": [...]}: taken in, so it leaves the inbox.
  *  - GET  /account/push/key    {"publicKey"}: the VAPID public key for Web Push (#235), or 404 when
  *                               notifications aren't set up on this server.
- *  - PUT  /account/push        {"kind": "web", "endpoint"}: where this device gets notifications when
+ *  - PUT  /account/push        {"kind": "web", "endpoint"} or {"kind": "fcm", "token"}: where this device gets notifications when
  *                               something is shared with it (push.ts); DELETE forgets it.
  *  - POST /account/profile     {"email"}: {"name"}, the name on that address's Gravatar profile (#234),
  *                               or "" when it has none. The feed loader asks Gravatar, so devices
@@ -29,7 +29,7 @@
 import { allowedOrigins, corsHeaders, plain } from "./account";
 import { emailIdOf, normalEmail } from "./email";
 import type { Env } from "./index";
-import { poke, pushReady, pushTargetOf, type PushTarget } from "./push";
+import { anyPushReady, poke, pushReady, pushTargetOf, type PushTarget } from "./push";
 
 type Fetcher = (input: string, init?: RequestInit) => Promise<Response>;
 
@@ -122,7 +122,7 @@ export async function handleShare(request: Request, env: Env, url: URL, fetcher:
     body: JSON.stringify({ id, at: Date.now(), from: message.from, items: message.items, tag: message.tag, message: message.message }),
   });
   if (!added.ok) return plain(503, "Try again", cors);
-  if (pushReady(env)) await notify(inbox, to, env, fetcher);
+  if (anyPushReady(env)) await notify(inbox, to, env, fetcher);
   return new Response(null, { status: 204, headers: cors });
 }
 

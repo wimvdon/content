@@ -56,6 +56,9 @@ class MainActivity : ComponentActivity() {
     companion object {
         /** The reader key of an article to open (ReadingLists.readerKey), from the share sheet's Open. */
         const val EXTRA_OPEN_ARTICLE = "be.wimvandonck.content.extra.OPEN_ARTICLE"
+
+        /** In [EXTRA_OPEN_ARTICLE]: not an article but Saved › Shared with me (#235, the notification). */
+        const val OPEN_SHARED = "shared-with-me"
     }
 
     /**

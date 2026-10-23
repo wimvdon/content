@@ -69,6 +69,11 @@
     <string name="saved_shared_new">Nieuwe artikels met jou gedeeld</string>
     <string name="saved_move_to_read">Naar Te lezen</string>
     <string name="share_user_message">Bericht (optioneel)</string>
+    <string name="notify_shared_setting">Meld het als er iets met mij gedeeld wordt</string>
+    <string name="notify_shared_summary">Op deze telefoon, ook als Content niet open is.</string>
+    <string name="notify_shared_denied">Meldingen staan uit voor Content. Sta ze toe in de Android-instellingen › Apps › Content.</string>
+    <string name="notify_shared_channel">Met jou gedeeld</string>
+    <string name="notify_shared_text">Er is iets met je gedeeld.</string>
     <string name="saved_shared">Met mij gedeeld</string>
     <string name="share_user_menu">Naar een Content-gebruiker sturen</string>
     <string name="share_user_title">Naar een Content-gebruiker sturen</string>

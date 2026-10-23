@@ -69,6 +69,8 @@ class SettingsStore(
 
     suspend fun setCopyHighlights(enabled: Boolean) = edit { it[COPY_HIGHLIGHTS] = enabled }
 
+    suspend fun setNotifyShared(enabled: Boolean) = edit { it[NOTIFY_SHARED] = enabled }
+
     /** What [service] syncs (#145). */
     suspend fun setScope(
         service: String,
@@ -147,6 +149,7 @@ class SettingsStore(
             imports = ServiceSettings.readImports(p[IMPORTS]),
             recipients = Recipients.decode(p[RECIPIENTS]).orEmpty(),
             copyHighlights = p[COPY_HIGHLIGHTS] ?: defaults.copyHighlights,
+            notifyShared = p[NOTIFY_SHARED] ?: defaults.notifyShared,
             lastSyncedAt = p[LAST_SYNCED_AT],
         )
     }
@@ -176,6 +179,7 @@ class SettingsStore(
         val IMPORTS = stringPreferencesKey("service_imports")
         val RECIPIENTS = stringPreferencesKey("share_recipients")
         val COPY_HIGHLIGHTS = booleanPreferencesKey("copy_highlights_instapaper")
+        val NOTIFY_SHARED = booleanPreferencesKey("notify_shared")
         val LAST_SYNCED_AT = longPreferencesKey("last_synced_at")
     }
 }

@@ -30,6 +30,23 @@ Newest first. Add an entry for every notable choice: what was decided, why, and 
   with a tab for each, on Android and the web. ☰ keeps Manage feeds under Feeds and Manage tags under
   Saved, each opening the screen on its own tab; switching tabs doesn't add a step to Back.
 
+## 2026-10-23: Android notifications through Firebase (#235)
+
+- At the owner's request (and with their OK for the new library and permission), the Android app can
+  notify you when something is shared with you: Firebase Cloud Messaging, the only way to wake an app
+  on Android without it running. New: `com.google.firebase:firebase-messaging` (through the Firebase
+  BOM; no Analytics), and the `POST_NOTIFICATIONS` permission, asked only when turned on.
+- Opt-in per phone (Settings › Account). Firebase's automatic start is off in the manifest, so no
+  token exists, and Google isn't contacted, until it is turned on; off or signed out deletes it.
+- No `google-services` Gradle plugin: `app/build.gradle.kts` reads `app/google-services.json` (from
+  the `GOOGLE_SERVICES_JSON` secret in CI) into BuildConfig, and the app starts Firebase with those
+  settings. Without the file the build works and the setting isn't shown.
+- The message is data-only (`{"kind": "shared"}`): the app shows its own text in the phone's language,
+  and taps open Saved › Shared with me. Nothing is downloaded in the background; the article comes in
+  with the next sync when the app opens.
+- The feed loader signs in to Google with the service account (`FCM_SERVICE_ACCOUNT`, an RS256 JWT
+  with WebCrypto) and keeps the access token for its hour.
+
 ## 2026-10-23: Web notifications when something is shared (#235)
 
 - At the owner's request, the web app can notify you when something is shared with you, even with

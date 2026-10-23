@@ -1,6 +1,6 @@
 # Privacy policy
 
-_Last updated: 2026-10-23 (notifications in the web app)_
+_Last updated: 2026-10-23 (notifications)_
 
 Reader has no analytics, advertising or crash reporting. It works without an account. If you sign
 in (with your email address, or with Instapaper), Reader keeps your feed list,
@@ -118,6 +118,15 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   when you turn notifications off or sign out. When someone shares with you, the feed loader sends an
   empty message to that address; the push service sees that a message went to your browser, not what
   was shared or by whom, and your browser shows "Something was shared with you".
+  On Android, Settings › Account › Notify me when something is shared with me asks Android's
+  permission to show notifications (the app's only permission besides the internet) and turns on
+  Google's Firebase Cloud Messaging (firebase.google.com, under Google's privacy policy): the phone
+  registers with Firebase, which gives it a token, and the token goes to the feed loader, kept like a
+  browser's push address. When someone shares with you, the feed loader asks Firebase to deliver a
+  message to that token saying only that something was shared; the app then shows "Something was
+  shared with you". Google sees the token, your IP address and that a message came, not what was
+  shared or by whom. Turning it off or signing out deletes the token. Until you turn it on, Firebase
+  isn't contacted at all. Firebase Analytics is not in the app.
 - **Reporting a badly cleaned-up article** (⋮ › Report a problem with this article, #181): Send
   opens a pre-filled "new issue" page on github.com in your browser, with the article's link, what
   you picked, your comment, and the app's name and version; not the article's text. Nothing is sent

@@ -57,6 +57,8 @@ data class SettingsState(
     val account: AccountState = AccountState.Loading,
     /** The name on the account address's Gravatar profile (#234), or null while unknown or without one. */
     val accountName: String? = null,
+    /** Notifications when something is shared (#235): null when the build has none. */
+    val notifyShared: Boolean? = null,
     /** Instapaper is connected (Connected services says so). */
     val instapaperConnected: Boolean = false,
     /** There are feeds to export. */
@@ -83,6 +85,8 @@ class SettingsActions(
     val onDeleteAccountData: () -> Unit,
     /** Emails a sign-in link (or, signed in, one that adds the address); gives back whether it was sent (#166). */
     val onSendLink: (email: String, result: (Boolean) -> Unit) -> Unit = { _, _ -> },
+    /** Turns notifications on or off (#235); the result says whether that worked. */
+    val onNotifyShared: (Boolean, (Boolean) -> Unit) -> Unit = { _, _ -> },
     /** Opens Connected services (Instapaper). */
     val onOpenServices: () -> Unit = {},
     val onImportOpml: () -> Unit = {},
@@ -108,6 +112,8 @@ fun SettingsScreen(
             AccountSection(
                 state = state.account,
                 name = state.accountName,
+                notifyShared = state.notifyShared,
+                onNotifyShared = actions.onNotifyShared,
                 status = state.syncStatus,
                 lastSyncedAt = state.settings.lastSyncedAt,
                 onSendLink = actions.onSendLink,
