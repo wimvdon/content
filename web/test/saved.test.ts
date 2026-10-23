@@ -15,6 +15,7 @@ import {
   itemArticle,
   removeFolder,
   isIn,
+  likedToReadCount,
   removeSaved,
   removeTag,
   renameFolder,
@@ -76,6 +77,7 @@ describe("Saved (#119, #147)", () => {
   it("filters by Liked, every chosen tag and the type", () => {
     const lib = sample();
     const all = { kind: "all" } as const;
+    expect(keys(savedItems(lib, filter({ tab: all, likedOnly: true })))).toEqual(["youtu.be/x"]);
     expect(keys(savedItems(lib, filter({ tab: all, tags: ["AI"] })))).toEqual(["a.example/2", "a.example/1"]);
     expect(keys(savedItems(lib, filter({ tab: all, tags: ["ai", "news"] })))).toEqual(["a.example/1"]);
     expect(keys(savedItems(lib, filter({ tab: all, type: "video" })))).toEqual(["youtu.be/x"]);
@@ -109,6 +111,9 @@ describe("Saved (#119, #147)", () => {
     expect(savedStates.map((s) => s.kind)).toEqual(["toread", "archive", "all"]);
     // The one in Work isn't in To read; the archived one isn't either.
     expect([...toReadTagCounts(lib)]).toEqual([["ai", 1], ["news", 1], ["old", 0]]);
+    // The liked video is in To read (#206).
+    expect(likedToReadCount(lib)).toBe(1);
+    expect(likedToReadCount(setLiked(lib, "youtu.be/x", false))).toBe(0);
   });
 
   it("saves a feed article as its own item, again to the top, into a folder with a note and tags", () => {

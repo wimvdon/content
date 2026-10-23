@@ -1,4 +1,4 @@
-import { Archive, BookOpen, CheckCheck, ChevronDown, Circle, CircleCheck, Folder as FolderGlyph, Highlighter, Link2, ListFilter, Menu, Newspaper, Quote, RefreshCw, Rss, Search, X, type LucideIcon } from "lucide-react";
+import { Archive, BookOpen, CheckCheck, ChevronDown, Circle, CircleCheck, Folder as FolderGlyph, Heart, Highlighter, Link2, ListFilter, Menu, Newspaper, Quote, RefreshCw, Rss, Search, X, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useEscape } from "./ui/useEscape";
 import { app, useApp } from "@/lib/app";
@@ -171,7 +171,7 @@ function SavedArticles({ openKey, onOpen, onMenu, onSearch }: { openKey: string 
   // Every tag in Saved, whichever state is shown: a tag stays chosen when the state changes.
   const tags = useMemo(() => tabTags(library, { kind: "all" }), [library]);
   const set = (change: Partial<SavedFilter>) => app.showSaved({ ...filter, ...change });
-  const plain = filter.tags.length === 0 && filter.type === null;
+  const plain = !filter.likedOnly && filter.tags.length === 0 && filter.type === null;
   return (
     <section className="flex h-full min-w-0 flex-col" aria-label={t("saved")}>
       <SearchBar onMenu={onMenu} onSearch={onSearch}>
@@ -189,11 +189,26 @@ function SavedArticles({ openKey, onOpen, onMenu, onSearch }: { openKey: string 
             filtering={filter.tab.kind !== "all"}
           />
         }
+        // Liked is a group like a tag (#206): one at a time, before the tags.
+        liked={
+          <button
+            type="button"
+            aria-pressed={filter.likedOnly}
+            onClick={() => set({ likedOnly: !filter.likedOnly, tags: [] })}
+            className={cn(
+              "inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border px-3 text-sm",
+              filter.likedOnly ? "border-transparent bg-accent font-medium text-accent-foreground" : "hover:bg-muted",
+            )}
+          >
+            <Heart className={cn("size-4", filter.likedOnly && "fill-current")} aria-hidden="true" />
+            {t("liked")}
+          </button>
+        }
         tags={tags}
         selected={filter.tags[0] ?? null}
-        onSelect={(tag) => set({ tags: tag === null ? [] : [tag] })}
+        onSelect={(tag) => set({ tags: tag === null ? [] : [tag], likedOnly: false })}
         filtered={!plain}
-        onClear={() => set({ tags: [], type: null })}
+        onClear={() => set({ likedOnly: false, tags: [], type: null })}
       />
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-6" role="feed">
         {!loaded ? (
@@ -206,7 +221,7 @@ function SavedArticles({ openKey, onOpen, onMenu, onSearch }: { openKey: string 
           >
             {/* Filtered to nothing: one click back to the whole tab; an empty To read offers Add link. */}
             {!plain ? (
-              <Button onClick={() => set({ tags: [], type: null })}>{t("showAll")}</Button>
+              <Button onClick={() => set({ likedOnly: false, tags: [], type: null })}>{t("showAll")}</Button>
             ) : filter.tab.kind === "toread" ? (
               <Button variant="tonal" onClick={app.addLink}>
                 <Link2 />
@@ -330,6 +345,7 @@ function StateChip({ options, selected, onSelect, filtering }: { options: string
  */
 function TagChips({
   state,
+  liked,
   tags,
   selected,
   onSelect,
@@ -337,6 +353,8 @@ function TagChips({
   onClear,
 }: {
   state: React.ReactNode;
+  /** Saved's Liked chip (#206), the first group. */
+  liked?: React.ReactNode;
   tags: string[];
   selected: string | null;
   onSelect: (tag: string | null) => void;
@@ -346,7 +364,8 @@ function TagChips({
   return (
     <div role="group" aria-label={t("filter")} className="flex shrink-0 items-center gap-2 overflow-x-auto px-4 py-2 [scrollbar-width:none]">
       {state}
-      {tags.length > 0 ? <span className="h-6 w-px shrink-0 bg-border" aria-hidden="true" /> : null}
+      {tags.length > 0 || liked ? <span className="h-6 w-px shrink-0 bg-border" aria-hidden="true" /> : null}
+      {liked}
       {tags.map((tag) => {
         const on = selected !== null && tag.toLowerCase() === selected.toLowerCase();
         return (
@@ -458,6 +477,7 @@ export function NoteCard({ note, feed, open, onOpen, label }: { note: NoteConten
               {highlights}
             </span>
           ) : null}
+          {note.liked ? <Heart className="size-3.5 fill-current text-primary" aria-label={t("liked")} /> : null}
         </div>
       </div>
     </button>

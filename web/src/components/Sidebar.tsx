@@ -1,9 +1,9 @@
-import { Bookmark, ChevronDown, ChevronRight, Rss, Settings as SettingsIcon, Tag as TagGlyph } from "lucide-react";
+import { Bookmark, ChevronDown, ChevronRight, Heart, Rss, Settings as SettingsIcon, Tag as TagGlyph } from "lucide-react";
 import { useState } from "react";
 import { app, useApp } from "@/lib/app";
 import { t } from "@/lib/i18n";
 import { choosesFolder, unreadByFeed } from "@/lib/library";
-import { toReadCount, toReadTagCounts } from "@/lib/saved";
+import { likedToReadCount, toReadCount, toReadTagCounts } from "@/lib/saved";
 import { FeedIcon } from "./FeedIcon";
 import { FolderIcon } from "./FolderIcon";
 import { ManageFeedsIcon, ManageSavedIcon } from "./ManageIcons";
@@ -74,6 +74,7 @@ export function Sidebar({
 
   const toRead = toReadCount(library);
   const tagCounts = toReadTagCounts(library);
+  const likedToRead = likedToReadCount(library);
   const loose = library.feeds.filter((f) => !f.folderId);
 
   return (
@@ -174,14 +175,24 @@ export function Sidebar({
           onToggle={toggleSection}
         >
           <Row
-            selected={inSaved && savedFilter.tags.length === 0}
+            selected={inSaved && !savedFilter.likedOnly && savedFilter.tags.length === 0}
             onClick={() => {
-              app.showSaved({ ...savedFilter, tags: [] });
+              app.showSaved({ ...savedFilter, likedOnly: false, tags: [] });
               onNavigate?.();
             }}
             icon={<Bookmark className="size-5" />}
             label={t("allSaved")}
             count={toRead}
+          />
+          <Row
+            selected={inSaved && savedFilter.likedOnly}
+            onClick={() => {
+              app.showSaved({ ...savedFilter, likedOnly: true, tags: [] });
+              onNavigate?.();
+            }}
+            icon={<Heart className="size-5" />}
+            label={t("liked")}
+            count={likedToRead}
           />
           {tagCounts.size > 0 ? (
             <div className="mt-2">
@@ -193,7 +204,7 @@ export function Sidebar({
                     key={`tag:${tag}`}
                     selected={isSelected}
                     onClick={() => {
-                      app.showSaved({ ...savedFilter, tags: [tag] });
+                      app.showSaved({ ...savedFilter, likedOnly: false, tags: [tag] });
                       onNavigate?.();
                     }}
                     icon={<TagGlyph className="size-5" />}

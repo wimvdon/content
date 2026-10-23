@@ -122,9 +122,10 @@ class ReaderItem(
     val tags: List<String>,
     /** Moves it: To read, a folder, or the Archive (done with it: back to the list, with Undo). */
     val onPlace: (Place) -> Unit,
+    val onLike: () -> Unit,
     /** A tag on or off. */
     val onTag: (String) -> Unit,
-    /** Opens Organise (#139, #143): the folder, tags and the note; New folder and Add a tag. */
+    /** Opens Organise (#139, #143): the folder, tags with Like, and the note; New folder and Add a tag. */
     val onOrganise: () -> Unit,
     /** Out of Saved, with its note, tags and highlights. */
     val onRemove: () -> Unit,

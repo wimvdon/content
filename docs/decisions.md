@@ -2,6 +2,17 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-23: Liked is back (#206)
+
+- Undoes #188 on the owner's wish: the Like in the save and Organise sheets and the reader's tags
+  menu, the heart on cards, and Instapaper's like (the old "star") read and sent again.
+- Liked is a group like a tag in the new navigation (#205): a ♥ Liked chip before the tags and a
+  Liked row in ☰ under All saved, one at a time with the tags, and it follows the state chip
+  (To read, Archive, All), so one rule holds everywhere. ☰ counts the liked items still to read.
+- Old likes come back as they were: the app kept them while Liked was hidden. An article that changed
+  at Instapaper during that day came in without its like and gets it back the next time it changes
+  there; no full re-read of the account is forced.
+
 ## 2026-10-23: One chip row: the state, then the groups (#205)
 
 - After #189 and #203 there were four overlapping controls (navigation bar, ☰ sections, tabs,

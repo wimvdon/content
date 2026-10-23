@@ -68,9 +68,10 @@ export function withTag(choice: SaveChoice, tag: string): SaveChoice {
   return { ...choice, tags: has ? choice.tags.filter((t) => !same(t, clean)) : [...choice.tags, clean] };
 }
 
-/** What the reader's Tags button says (#156): the tags, else null (just "Tags"). Liked is gone (#188). */
-export function tagsLabel(choice: SaveChoice): string | null {
-  return choice.tags.length > 0 ? choice.tags.join(", ") : null;
+/** What the reader's Tags button says (#156): the tags, else Liked, else null (just "Tags"). */
+export function tagsLabel(choice: SaveChoice, liked: string): string | null {
+  if (choice.tags.length > 0) return choice.tags.join(", ");
+  return choice.liked ? liked : null;
 }
 
 /** A folder typed under New folder: the folder of that name when there is one (case ignored), null when blank. */

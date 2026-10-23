@@ -57,7 +57,8 @@ class SavedTest {
     }
 
     @Test
-    fun `tags (all of them) and the type filter within a tab`() {
+    fun `liked, tags (all of them) and the type filter within a tab`() {
+        assertEquals(listOf("a.example/3"), keys(SavedFilter(SavedTab.All, likedOnly = true)))
         assertEquals(listOf("a.example/3", "a.example/2"), keys(SavedFilter(SavedTab.All, tags = setOf("AI"))))
         assertEquals(listOf("a.example/2"), keys(SavedFilter(SavedTab.All, tags = setOf("ai", "news"))))
         assertEquals(listOf("youtu.be/x"), keys(SavedFilter(SavedTab.All, type = SavedType.Video)))
@@ -87,6 +88,9 @@ class SavedTest {
         // Items in an old folder aren't in To read; the archived one isn't either.
         val toRead = library.copy(items = library.items + saved("c.example/6", 6, tags = listOf("AI")))
         assertEquals(mapOf("ai" to 1, "news" to 0, "old" to 0), Saved.toReadTagCounts(toRead))
+        // The liked one is in a folder, so not in To read; liking one in To read counts it.
+        assertEquals(0, Saved.likedToReadCount(library))
+        assertEquals(1, Saved.likedToReadCount(toRead.setLiked("c.example/6", true)))
     }
 
     @Test

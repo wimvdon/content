@@ -89,11 +89,11 @@ internal fun SavedContent(
     onOpen: (Item) -> Unit,
     onArchive: (Item) -> Unit = {},
     onFile: (Item) -> Unit = {},
-    /** Clears the tags and the type, for an empty list they filtered out. */
+    /** Clears Liked, the tags and the type, for an empty list they filtered out. */
     onClearFilters: () -> Unit = {},
 ) {
     if (home.items.isEmpty()) {
-        val plain = home.filter.tags.isEmpty() && home.filter.type == null
+        val plain = !home.filter.likedOnly && home.filter.tags.isEmpty() && home.filter.type == null
         val toRead = home.filter.tab == SavedTab.ToRead && plain
         EmptyState(
             painterResource(
@@ -291,6 +291,14 @@ internal fun NoteCard(
                             Icon(painterResource(R.drawable.ic_highlight), contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                             Text(note.highlights.toString(), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
+                    }
+                    if (note.liked) {
+                        Icon(
+                            painterResource(R.drawable.ic_favorite_filled),
+                            contentDescription = stringResource(R.string.reading_list_liked),
+                            modifier = Modifier.size(14.dp),
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
                     }
                 }
             }
