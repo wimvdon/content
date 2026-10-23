@@ -186,14 +186,16 @@ function webAppOrigin(env: Env): string {
   return (env.WEB_APP_ORIGIN ?? allowedOrigins(env)[0] ?? "").replace(/\/$/, "");
 }
 
-/** The sign-in email, in English and Dutch (the address alone doesn't say the language). */
+/**
+ * The sign-in email, in English only (#219): the one text that isn't in every language, since the
+ * address alone doesn't say which language to write in.
+ */
 export function emailContent(link: string, kind: "signin" | "add"): { subject: string; text: string; html: string } {
   const subject = kind === "signin" ? "Sign in to Content" : "Add this address to Content";
   const action = kind === "signin" ? "sign in to Content" : "add this address to your Content account";
-  const actionNl = kind === "signin" ? "je aan te melden bij Content" : "dit adres aan je Content-account toe te voegen";
-  const text = `Open this link to ${action}:\n${link}\n\nIt works once, for 30 minutes. Didn't ask for it? Ignore this email.\n\nOpen deze link om ${actionNl}. Hij werkt één keer, 30 minuten lang. Niet gevraagd? Negeer deze e-mail.\n`;
+  const text = `Open this link to ${action}:\n${link}\n\nIt works once, for 30 minutes. Didn't ask for it? Ignore this email.\n`;
   const safe = link.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
-  const html = `<p>Open this link to ${action}:</p><p><a href="${safe}">${kind === "signin" ? "Sign in" : "Add address"}</a></p><p>It works once, for 30 minutes. Didn't ask for it? Ignore this email.</p><p lang="nl">Open deze link om ${actionNl}. Hij werkt één keer, 30 minuten lang. Niet gevraagd? Negeer deze e-mail.</p>`;
+  const html = `<p>Open this link to ${action}:</p><p><a href="${safe}">${kind === "signin" ? "Sign in" : "Add address"}</a></p><p>It works once, for 30 minutes. Didn't ask for it? Ignore this email.</p>`;
   return { subject, text, html };
 }
 

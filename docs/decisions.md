@@ -2,6 +2,13 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-23: The sign-in email is in English only (#219)
+
+- Every text in the apps is in every language; the sign-in email is the one exception. The feed
+  loader only knows the address it writes to, not the reader's language, and two languages in one
+  email read worse than one.
+- Dutch: Delete synced data is now **Account voor Content verwijderen** (#218).
+
 ## 2026-10-23: A browser extension for the web app (#168)
 
 - Manifest V3, one folder (`extension/`), plain JavaScript without a build step or dependencies, for

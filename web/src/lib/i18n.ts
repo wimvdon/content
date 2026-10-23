@@ -254,7 +254,7 @@ const nl: Pack = {
     feeds: "Feeds",
     delete: "Verwijderen",
     deleteAccountConfirm: "Je feeds, gelezen artikelen en instellingen van de server van Content verwijderen? Ze blijven op dit apparaat, en je wordt overal uitgelogd.",
-    deleteAccountData: "Gesynchroniseerde gegevens verwijderen",
+    deleteAccountData: "Account voor Content verwijderen",
     syncNotSetUp: "Synchronisatie is nog niet beschikbaar op de server van Content.",
     syncSignedOut: "Dit apparaat is uitgelogd uit je account. Log opnieuw in.",
     accountTitle: "Content-account",

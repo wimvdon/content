@@ -189,7 +189,7 @@
     <string name="section_account">Account</string>
     <string name="account_summary">Meld je aan met je e-mailadres om je feeds, gelezen artikels, Bewaard en instellingen op al je toestellen gelijk te houden.</string>
     <string name="sync_failed_signed_out">Dit apparaat is uitgelogd uit je account. Log opnieuw in.</string>
-    <string name="account_delete_data">Gesynchroniseerde gegevens verwijderen</string>
+    <string name="account_delete_data">Account voor Content verwijderen</string>
     <string name="account_delete_confirm">Je feeds, gelezen artikelen en instellingen van de server van Content verwijderen? Ze blijven op dit apparaat, en je wordt overal uitgelogd.</string>
     <string name="account_deleted">Gesynchroniseerde gegevens verwijderd</string>
     <string name="action_delete">Verwijderen</string>
