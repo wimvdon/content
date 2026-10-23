@@ -289,6 +289,7 @@
     <string name="setting_tag_with_folder_title">Tagga con la cartella del feed</string>
     <string name="setting_tag_with_folder_summary">Un articolo salvato da un feed riceve il nome della sua cartella come tag.</string>
     <string name="saved_title">Salvati</string>
+    <string name="saved_all">Tutti i salvati</string>
     <string name="saved_folders">Cartelle</string>
     <string name="folder_field">Cartella</string>
     <string name="saved_place">Dove</string>

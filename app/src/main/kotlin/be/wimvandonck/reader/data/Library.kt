@@ -69,6 +69,25 @@ sealed interface FeedSelection {
 }
 
 /**
+ * The chip a selection shows as chosen: its tag, or a folder's name, which is its feeds' tag (#201).
+ * So a folder picked in ☰ lights up its chip, as picking the chip does.
+ */
+fun FeedSelection.chipTag(folders: List<Folder>): String? =
+    when (this) {
+        is FeedSelection.Tagged -> tag
+        is FeedSelection.InFolder -> folders.firstOrNull { it.id == folderId }?.title
+        else -> null
+    }
+
+/** Whether [folder]'s row in ☰ is the one chosen: picked there, or its chip picked (same feeds). */
+fun FeedSelection.choosesFolder(folder: Folder): Boolean =
+    when (this) {
+        is FeedSelection.InFolder -> folderId == folder.id
+        is FeedSelection.Tagged -> tag.equals(folder.title, ignoreCase = true)
+        else -> false
+    }
+
+/**
  * Everything the app knows about the user's reading: the subscriptions and their articles, with
  * read state, and the [items] on the reading list or in Bookmarks (LibraryItems.kt). Immutable;
  * every change returns a new value.

@@ -22,10 +22,12 @@ import {
   savedFolders,
   savedItems,
   setNote,
+  savedStates,
   shownFilter,
   sourceOf,
   tabTags,
   toReadCount,
+  toReadTagCounts,
   typeOf,
   type SavedFilter,
 } from "../src/lib/saved";
@@ -91,9 +93,22 @@ describe("Saved (#119, #147)", () => {
   it("drops a folder or tags that are gone from the filter", () => {
     const lib = sample();
     expect(shownFilter(lib, filter({ tab: { kind: "folder", name: "Gone" } })).tab).toEqual({ kind: "toread" });
-    expect(shownFilter(lib, filter({ tags: ["news", "old"] })).tags).toEqual(["news"]);
+    expect(shownFilter(lib, filter({ tags: ["news", "gone"] })).tags).toEqual(["news"]);
     const same = filter({ tags: ["news"] });
     expect(shownFilter(lib, same)).toBe(same);
+  });
+
+  it("keeps a tag chosen in another state, and counts what is still to read per tag (#205)", () => {
+    const lib = sample();
+    // "old" is only archived: To read with it shows nothing, but the tag stays chosen.
+    const toReadOld = filter({ tags: ["old"] });
+    expect(shownFilter(lib, toReadOld)).toBe(toReadOld);
+    expect(savedItems(lib, toReadOld)).toEqual([]);
+    expect(keys(savedItems(lib, { ...toReadOld, tab: { kind: "archive" } }))).toEqual(["a.example/4"]);
+    expect(shownFilter(lib, filter({ tab: { kind: "archive" } })).tab).toEqual({ kind: "archive" });
+    expect(savedStates.map((s) => s.kind)).toEqual(["toread", "archive", "all"]);
+    // The one in Work isn't in To read; the archived one isn't either.
+    expect([...toReadTagCounts(lib)]).toEqual([["ai", 1], ["news", 1], ["old", 0]]);
   });
 
   it("saves a feed article as its own item, again to the top, into a folder with a note and tags", () => {

@@ -77,6 +77,19 @@ class SavedTest {
     }
 
     @Test
+    fun `a tag stays chosen in another state, and the drawer counts what is still to read`() {
+        // "old" is only in the Archive: To read with it shows nothing, but the tag stays chosen.
+        val toReadOld = SavedFilter(SavedTab.ToRead, tags = setOf("old"))
+        assertSame(toReadOld, Saved.shown(library, toReadOld))
+        assertEquals(emptyList<String>(), keys(toReadOld))
+        assertEquals(listOf("a.example/4"), keys(toReadOld.copy(tab = SavedTab.Archive)))
+        assertEquals(listOf(SavedTab.ToRead, SavedTab.Archive, SavedTab.All), Saved.states)
+        // Items in an old folder aren't in To read; the archived one isn't either.
+        val toRead = library.copy(items = library.items + saved("c.example/6", 6, tags = listOf("AI")))
+        assertEquals(mapOf("ai" to 1, "news" to 0, "old" to 0), Saved.toReadTagCounts(toRead))
+    }
+
+    @Test
     fun `filing moves an item into a folder or back to read, archiving leaves the folder`() {
         val filed = Saved.file(library, "a.example/1", " Later ")
         assertEquals("Later", Saved.folderOf(filed.item("a.example/1")!!))

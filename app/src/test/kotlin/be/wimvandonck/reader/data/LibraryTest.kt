@@ -306,4 +306,17 @@ class LibraryTest {
         val renamed = moved.copy(folders = moved.folders.map { if (it.id == "f1") it.copy(title = "World") else it }).feedFoldersToTags()
         assertEquals(listOf("World"), renamed.feed("https://b/feed")!!.tags)
     }
+
+    @Test
+    fun `a folder and its chip are one choice`() {
+        val folders = listOf(Folder("f1", "Tech"), Folder("f2", "News"))
+        assertEquals("Tech", FeedSelection.InFolder("f1").chipTag(folders))
+        assertEquals("news", FeedSelection.Tagged("news").chipTag(folders))
+        assertNull(FeedSelection.InFolder("gone").chipTag(folders))
+        assertNull(FeedSelection.All.chipTag(folders))
+        assertTrue(FeedSelection.InFolder("f1").choosesFolder(folders[0]))
+        assertTrue(FeedSelection.Tagged("TECH").choosesFolder(folders[0]))
+        assertFalse(FeedSelection.Tagged("Tech").choosesFolder(folders[1]))
+        assertFalse(FeedSelection.Single("https://a/feed").choosesFolder(folders[0]))
+    }
 }

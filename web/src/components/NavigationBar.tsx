@@ -5,7 +5,8 @@ import { cn } from "./ui/cn";
 
 /**
  * Feed | Saved at the bottom (#189), like the Android app's navigation bar: each goes back to the
- * list last shown there. Search opens from the search bar at the top.
+ * list last shown there. Search opens from the search bar at the top. Not in wide windows: the menu
+ * at the left has Feeds and Saved there.
  */
 export function NavigationBar({ searching, onNavigate }: { searching: boolean; onNavigate: () => void }) {
   const { selection } = useApp();
@@ -27,7 +28,7 @@ export function NavigationBar({ searching, onNavigate }: { searching: boolean; o
     </button>
   );
   return (
-    <nav className="flex border-t bg-muted/40" aria-label={t("navigation")}>
+    <nav className="flex border-t bg-muted/40 lg:hidden" aria-label={t("navigation")}>
       {item(!searching && !inSaved, false, Rss, t("feedTab"))}
       {item(!searching && inSaved, true, List, t("saved"))}
     </nav>

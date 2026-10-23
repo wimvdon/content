@@ -100,13 +100,22 @@ export function tabTags(lib: Library, tab: SavedTab): string[] {
   return [...groups.entries()].sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0])).map(([, names]) => names[0]);
 }
 
-/** The filter without a folder or tags that are gone. */
+/**
+ * The states Saved's state chip offers (#205): To read, Archive or everything. A tag stays chosen
+ * when the state changes, as a folder does with Unread and All in Feeds.
+ */
+export const savedStates: SavedTab[] = [{ kind: "toread" }, { kind: "archive" }, { kind: "all" }];
+
+/** How many items still to read carry each tag, for the menu (as Feeds counts unread articles). */
+export function toReadTagCounts(lib: Library): Map<string, number> {
+  return new Map(tabTags(lib, { kind: "all" }).map((tag) => [tag, lib.items.filter((i) => isIn(i, { kind: "toread" }) && i.tags.some((x) => same(x, tag))).length]));
+}
+
+/** The filter without a folder or tags that are gone (from all of Saved, not just the state shown). */
 export function shownFilter(lib: Library, filter: SavedFilter): SavedFilter {
-  // To read and All are the tabs (#189); the Archive is part of All.
   const tab = filter.tab;
-  if (tab.kind === "archive") return shownFilter(lib, { ...filter, tab: { kind: "all" } });
   const withTab = tab.kind === "folder" && !savedFolders(lib).some((f) => same(f, tab.name)) ? { ...filter, tab: { kind: "toread" } as SavedTab } : filter;
-  const tags = tabTags(lib, withTab.tab);
+  const tags = tabTags(lib, { kind: "all" });
   const kept = withTab.tags.filter((t) => tags.some((x) => same(x, t)));
   return kept.length === withTab.tags.length ? withTab : { ...withTab, tags: kept };
 }

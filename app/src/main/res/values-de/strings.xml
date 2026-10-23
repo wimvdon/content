@@ -279,6 +279,7 @@
     <string name="setting_tag_with_folder_title">Mit dem Ordner des Feeds taggen</string>
     <string name="setting_tag_with_folder_summary">Ein Artikel, den du aus einem Feed speicherst, bekommt den Namen seines Ordners als Tag.</string>
     <string name="saved_title">Gespeichert</string>
+    <string name="saved_all">Alle gespeicherten</string>
     <string name="saved_folders">Ordner</string>
     <string name="folder_field">Ordner</string>
     <string name="saved_place">Wo</string>

@@ -289,6 +289,7 @@
     <string name="setting_tag_with_folder_title">Taguer avec le dossier du flux</string>
     <string name="setting_tag_with_folder_summary">Un article enregistré depuis un flux reçoit le nom de son dossier comme tag.</string>
     <string name="saved_title">Enregistrés</string>
+    <string name="saved_all">Tous les enregistrés</string>
     <string name="saved_folders">Dossiers</string>
     <string name="folder_field">Dossier</string>
     <string name="saved_place">Où</string>
