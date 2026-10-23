@@ -202,7 +202,7 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
       with "Signed in to Instapaper", and Settings shows your user name.
 - [ ] Right after signing in, everything in the Instapaper account appears in Saved (archived ones
       under Archive, Instapaper's folders as folders), and what was in Saved appears in Instapaper.
-      ☰ › Connected services says Saved is synced with your account.
+      Settings › Connected services says Saved is synced with your account.
 - [ ] **Save** on a feed article: it appears in Instapaper's Unread list within seconds.
       Archive, like, tag and remove it in Reader: each change shows in Instapaper. Do the same in
       Instapaper's own app and pull down on the reading list: the change shows in Reader.

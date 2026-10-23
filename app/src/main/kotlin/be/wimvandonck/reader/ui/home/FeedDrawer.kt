@@ -68,7 +68,6 @@ fun FeedDrawer(
     onOpenSettings: () -> Unit,
     onOpenFeeds: () -> Unit,
     onOpenTagsManage: () -> Unit = {},
-    onOpenServices: () -> Unit = {},
     saved: SavedHome? = null,
     inSaved: Boolean = false,
     toReadCount: Int = 0,
@@ -208,14 +207,8 @@ fun FeedDrawer(
                 }
             }
 
-            // Services and Settings live at the bottom.
+            // Settings lives at the bottom; Connected services and OPML are in it.
             HorizontalDivider(Modifier.padding(vertical = 12.dp, horizontal = 16.dp))
-            NavigationDrawerItem(
-                label = { Text(stringResource(R.string.services_title)) },
-                icon = { Icon(painterResource(R.drawable.ic_sync_alt), contentDescription = null) },
-                selected = false,
-                onClick = onOpenServices,
-            )
             NavigationDrawerItem(
                 label = { Text(stringResource(R.string.menu_settings)) },
                 icon = { Icon(painterResource(R.drawable.ic_settings), contentDescription = null) },

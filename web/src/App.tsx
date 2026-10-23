@@ -190,10 +190,9 @@ export default function App() {
         open={dialog === "manage"}
         onOpenChange={(o) => setDialog(o ? "manage" : null)}
         onAddFeed={() => setDialog("add")}
-        onImport={() => fileInput.current?.click()}
       />
       <SavedManageDialog open={dialog === "manageSaved"} onOpenChange={(o) => setDialog(o ? "manageSaved" : null)} />
-      <SettingsDialog open={dialog === "settings"} onOpenChange={(o) => setDialog(o ? "settings" : null)} />
+      <SettingsDialog open={dialog === "settings"} onOpenChange={(o) => setDialog(o ? "settings" : null)} onImport={() => fileInput.current?.click()} />
       <SaveSheet
         onMessage={(text, openKey) =>
           // Not in the article yet: Open goes there, in Saved (#142).

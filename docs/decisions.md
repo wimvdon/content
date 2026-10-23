@@ -2,6 +2,14 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-23: Connected services and OPML move into Settings
+
+- The ☰ menu keeps only places to go (Feed, folders, Saved, tags) and Settings. Connected services
+  (Instapaper) and Import/Export OPML are things you set up once, so they move into Settings, on
+  Android and the web. The empty start screen keeps its Import OPML button for a first start.
+- Settings' order: Account, Connected services, Move to or from another reader (OPML), then the
+  reading settings.
+
 ## 2026-10-23: Reporting a badly cleaned-up article (#181)
 
 - A report opens a pre-filled "new issue" page on GitHub in the browser (label `parser`), which the

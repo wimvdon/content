@@ -5,11 +5,16 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -20,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import be.wimvandonck.reader.R
 import be.wimvandonck.reader.data.ListView
@@ -48,6 +54,10 @@ data class SettingsState(
     val shareApps: List<ExternalApps.ShareApp>,
     val syncStatus: SyncStatus = SyncStatus.Idle,
     val account: AccountState = AccountState.Loading,
+    /** Instapaper is connected (Connected services says so). */
+    val instapaperConnected: Boolean = false,
+    /** There are feeds to export. */
+    val hasFeeds: Boolean = false,
 )
 
 class SettingsActions(
@@ -68,6 +78,10 @@ class SettingsActions(
     val onDeleteAccountData: () -> Unit,
     /** Emails a sign-in link (or, signed in, one that adds the address); gives back whether it was sent (#166). */
     val onSendLink: (email: String, result: (Boolean) -> Unit) -> Unit = { _, _ -> },
+    /** Opens Connected services (Instapaper). */
+    val onOpenServices: () -> Unit = {},
+    val onImportOpml: () -> Unit = {},
+    val onExportOpml: () -> Unit = {},
 )
 
 /** Everything that can be set, as one list of sections in the order DESIGN.md gives. */
@@ -95,6 +109,27 @@ fun SettingsScreen(
                 onSignOut = actions.onSignOut,
                 onDeleteData = actions.onDeleteAccountData,
             )
+        }
+        item(key = "services") {
+            SettingsSection(title = stringResource(R.string.services_title)) {
+                ListItem(
+                    headlineContent = { Text(stringResource(R.string.section_instapaper)) },
+                    supportingContent = { Text(stringResource(if (state.instapaperConnected) R.string.services_syncs_everything else R.string.services_reading_body)) },
+                    leadingContent = { Icon(painterResource(R.drawable.ic_reading_list), contentDescription = null) },
+                    modifier = Modifier.clickable(role = Role.Button, onClick = actions.onOpenServices),
+                )
+            }
+        }
+        item(key = "opml") {
+            SettingsSection(title = stringResource(R.string.feeds_opml_title)) {
+                SettingsBlock {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(onClick = actions.onImportOpml, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.feeds_import)) }
+                        OutlinedButton(onClick = actions.onExportOpml, enabled = state.hasFeeds, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.feeds_export)) }
+                    }
+                    Text(stringResource(R.string.feeds_opml_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
         }
         item(key = "list") { ListSection(state.settings, actions) }
         item(key = "reader") { ReaderSection(state.settings, actions) }

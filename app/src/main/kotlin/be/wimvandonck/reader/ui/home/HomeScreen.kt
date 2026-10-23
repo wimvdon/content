@@ -166,7 +166,6 @@ class HomeActions(
     val onOpenFeeds: () -> Unit,
     /** Folders and tags (renaming and removing them). */
     val onOpenTagsManage: () -> Unit = {},
-    val onOpenServices: () -> Unit = {},
     /** The navigation bar's destinations. */
     val onShowFeeds: () -> Unit = {},
     val onShowSaved: () -> Unit = {},
@@ -232,10 +231,6 @@ fun HomeScreen(
                 onOpenTagsManage = {
                     scope.launch { drawerState.close() }
                     actions.onOpenTagsManage()
-                },
-                onOpenServices = {
-                    scope.launch { drawerState.close() }
-                    actions.onOpenServices()
                 },
                 saved = state.saved,
                 inSaved = reading != null,
