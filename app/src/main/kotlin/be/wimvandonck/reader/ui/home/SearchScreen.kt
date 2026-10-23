@@ -8,7 +8,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
-import be.wimvandonck.reader.data.SavedType
 import be.wimvandonck.reader.data.Folder
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
@@ -367,16 +366,6 @@ private fun NarrowRow(
                                 onPick = { onChange(f.copy(tag = it)) },
                             )
                         }
-                    },
-                    {
-                        val types = listOf(SavedType.Article to R.string.type_articles, SavedType.Video to R.string.type_videos, SavedType.Audio to R.string.type_audio)
-                        val names = types.associate { (t, label) -> t.name to stringResource(label) }
-                        MenuChip(
-                            label = stringResource(R.string.type_filter),
-                            chosen = f.type?.let { names[it.name] },
-                            options = listOf<Pair<String?, String>>(null to stringResource(R.string.type_all)) + types.map { (t, _) -> t.name to names.getValue(t.name) },
-                            onPick = { name -> onChange(f.copy(type = name?.let { SavedType.valueOf(it) })) },
-                        )
                     },
                 )
         }

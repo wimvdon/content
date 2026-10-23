@@ -107,7 +107,7 @@ before #119 into folders when the library is read or a row syncs in. `data/Readi
 reading times and an item as a list/reader `Article` (with the feed article's text when the library
 still has it). `ui/home/SavedContent.kt` shows it: To read, All and Archive with the feed list's
 `ArticleRow`, a folder as notes (`NoteCard`, after Noter) in a staggered grid; `ui/home/FolderTabs.kt`
-(`SavedTabRow`) its tabs and chips, `HomeScreen` the type filter button; `ui/reader/ItemSheets.kt`
+(`SavedTabRow`) its old tabs, `HomeBar.kt` the chip row; `ui/reader/ItemSheets.kt`
 the sheets (added, tags, Finished reading with Archive or File, the save sheet with `FolderField`),
 and `ReaderScreen` its buttons (`ReaderItem`) and reading progress.
 

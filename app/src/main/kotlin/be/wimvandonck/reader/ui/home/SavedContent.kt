@@ -89,11 +89,11 @@ internal fun SavedContent(
     onOpen: (Item) -> Unit,
     onArchive: (Item) -> Unit = {},
     onFile: (Item) -> Unit = {},
-    /** Clears Liked, the tags and the type, for an empty list they filtered out. */
+    /** Clears Liked and the tags, for an empty list they filtered out. */
     onClearFilters: () -> Unit = {},
 ) {
     if (home.items.isEmpty()) {
-        val plain = !home.filter.likedOnly && home.filter.tags.isEmpty() && home.filter.type == null
+        val plain = !home.filter.likedOnly && home.filter.tags.isEmpty()
         val toRead = home.filter.tab == SavedTab.ToRead && plain
         EmptyState(
             painterResource(

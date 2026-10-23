@@ -2,6 +2,13 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-23: No more types in Saved
+
+- The owner found the type filter (Articles, Videos, Audio) not worth its place: it is gone from
+  Saved's search bar and from Search's chips, on Android and the web.
+- A type was never stored: it was read from the link each time (`typeOf`), so the database and the
+  sync file don't change. The guessing code, its texts and its tests went with it.
+
 ## 2026-10-23: Liked is back (#206)
 
 - Undoes #188 on the owner's wish: the Like in the save and Organise sheets and the reader's tags

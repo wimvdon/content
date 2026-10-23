@@ -42,7 +42,6 @@ import be.wimvandonck.reader.data.Saved
 import be.wimvandonck.reader.data.SharedText
 import be.wimvandonck.reader.data.SavedFilter
 import be.wimvandonck.reader.data.SavedTab
-import be.wimvandonck.reader.data.SavedType
 import be.wimvandonck.reader.data.ReadingLists
 import be.wimvandonck.reader.data.ReadingState
 import be.wimvandonck.reader.data.addToReadingList
@@ -1036,7 +1035,7 @@ private val SavedFilterSaver =
                     SavedTab.Archive -> "archive"
                     is SavedTab.Folder -> "folder:" + t.name
                 }
-            listOf(tab, f.likedOnly.toString(), f.type?.name.orEmpty(), f.tags.joinToString("\u0001")).joinToString("\u0000")
+            listOf(tab, f.likedOnly.toString(), "", f.tags.joinToString("\u0001")).joinToString("\u0000")
         },
         restore = {
             val parts = it.split('\u0000')
@@ -1050,7 +1049,6 @@ private val SavedFilterSaver =
                         else -> SavedTab.ToRead
                     },
                 likedOnly = parts.getOrNull(1) == "true",
-                type = SavedType.entries.firstOrNull { t -> t.name == parts.getOrNull(2) },
                 tags = parts.getOrNull(3)?.split('\u0001')?.filter { t -> t.isNotEmpty() }?.toSet().orEmpty(),
             )
         },
@@ -1080,7 +1078,7 @@ private val SelectionSaver =
 private val SearchFiltersSaver =
     Saver<SearchFilters, String>(
         save = { f ->
-            listOf(f.scope.name, f.feedFolderId, f.feedUrl, f.savedFolder, f.tag, f.type?.name).joinToString("\u0000") { it.orEmpty() }
+            listOf(f.scope.name, f.feedFolderId, f.feedUrl, f.savedFolder, f.tag).joinToString("\u0000") { it.orEmpty() }
         },
         restore = {
             val parts = it.split('\u0000').map { p -> p.ifEmpty { null } }
@@ -1090,7 +1088,6 @@ private val SearchFiltersSaver =
                 feedUrl = parts.getOrNull(2),
                 savedFolder = parts.getOrNull(3),
                 tag = parts.getOrNull(4),
-                type = SavedType.entries.firstOrNull { t -> t.name == parts.getOrNull(5) },
             )
         },
     )

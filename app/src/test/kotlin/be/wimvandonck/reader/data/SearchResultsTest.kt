@@ -60,10 +60,9 @@ class SearchResultsTest {
     }
 
     @Test
-    fun `Saved by folder, tag (case ignored) and type`() {
+    fun `Saved by folder and tag (case ignored)`() {
         assertEquals(listOf("a.example/1"), browse(SearchFilters(SearchFilter.Saved, savedFolder = "work")))
         assertEquals(listOf("a.example/2", "a.example/1"), browse(SearchFilters(SearchFilter.Saved, tag = "ai")))
-        assertEquals(listOf("youtu.be/x"), browse(SearchFilters(SearchFilter.Saved, type = SavedType.Video)))
     }
 
     @Test

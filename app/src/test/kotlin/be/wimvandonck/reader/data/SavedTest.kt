@@ -57,11 +57,10 @@ class SavedTest {
     }
 
     @Test
-    fun `liked, tags (all of them) and the type filter within a tab`() {
+    fun `liked and tags (all of them) within a tab`() {
         assertEquals(listOf("a.example/3"), keys(SavedFilter(SavedTab.All, likedOnly = true)))
         assertEquals(listOf("a.example/3", "a.example/2"), keys(SavedFilter(SavedTab.All, tags = setOf("AI"))))
         assertEquals(listOf("a.example/2"), keys(SavedFilter(SavedTab.All, tags = setOf("ai", "news"))))
-        assertEquals(listOf("youtu.be/x"), keys(SavedFilter(SavedTab.All, type = SavedType.Video)))
         // Chips: the tab's tags, most used first.
         assertEquals(listOf("ai", "news"), Saved.tags(library, SavedTab.Folder("Work")))
         assertEquals(listOf("ai", "news", "old"), Saved.tags(library, SavedTab.All))
@@ -139,16 +138,6 @@ class SavedTest {
         assertEquals("Bookmarks", Saved.folderOf(settled.item("c.example/2")!!))
         assertEquals(3L, settled.item("c.example/2")!!.readingList?.addedAt)
         assertSame(settled, Saved.settle(settled, "Bookmarks"))
-    }
-
-    @Test
-    fun `a link's type comes from its address`() {
-        assertEquals(SavedType.Video, Saved.typeOf("https://www.youtube.com/watch?v=1"))
-        assertEquals(SavedType.Video, Saved.typeOf("https://vimeo.com/123"))
-        assertEquals(SavedType.Audio, Saved.typeOf("https://open.spotify.com/episode/abc"))
-        assertEquals(SavedType.Audio, Saved.typeOf("https://overcast.fm/+abc"))
-        assertEquals(SavedType.Article, Saved.typeOf("https://open.spotify.com/track/abc"))
-        assertEquals(SavedType.Article, Saved.typeOf("https://example.com/story"))
     }
 
     @Test

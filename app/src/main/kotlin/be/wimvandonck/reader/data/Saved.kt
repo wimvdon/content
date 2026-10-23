@@ -1,7 +1,6 @@
 package be.wimvandonck.reader.data
 
 import be.wimvandonck.reader.feed.Html
-import java.net.URI
 
 /** Saved's tabs (#119): To read (the inbox), everything, one folder, or the archive. */
 sealed interface SavedTab {
@@ -16,15 +15,11 @@ sealed interface SavedTab {
     data object Archive : SavedTab
 }
 
-/** What kind of page a saved link is, for the type filter (#119): read from its link. */
-enum class SavedType { Article, Video, Audio }
-
-/** What Saved shows: a tab, and within it only liked ones, only some tags (all of them), one type. */
+/** What Saved shows: a tab, and within it only liked ones or only some tags (all of them). */
 data class SavedFilter(
     val tab: SavedTab = SavedTab.ToRead,
     val likedOnly: Boolean = false,
     val tags: Set<String> = emptySet(),
-    val type: SavedType? = null,
 )
 
 /**
@@ -101,8 +96,7 @@ object Saved {
             .filter { item ->
                 isIn(item, filter.tab) &&
                     (!filter.likedOnly || item.liked) &&
-                    filter.tags.all { t -> item.tags.any { it.equals(t, ignoreCase = true) } } &&
-                    (filter.type == null || typeOf(item.url) == filter.type)
+                    filter.tags.all { t -> item.tags.any { it.equals(t, ignoreCase = true) } }
             }.sortedByDescending { it.readingList!!.addedAt }
 
     /** Every folder in use, sorted (case ignored). */
@@ -266,19 +260,4 @@ object Saved {
             item.description.isNotBlank() -> CardBody.Description(item.description.trim())
             else -> null
         }
-
-    /** A link's type: a video site, a podcast or audio site, else an article. */
-    fun typeOf(url: String): SavedType {
-        val uri = runCatching { URI(url.trim()) }.getOrNull() ?: return SavedType.Article
-        val host = uri.host.orEmpty().lowercase().removePrefix("www.").removePrefix("m.")
-        val path = uri.path.orEmpty()
-        return when {
-            host in VIDEO_HOSTS || (host == "youtube.com" && (path.startsWith("/watch") || path.startsWith("/shorts") || path.startsWith("/live"))) -> SavedType.Video
-            host in AUDIO_HOSTS || (host == "open.spotify.com" && (path.startsWith("/episode") || path.startsWith("/show"))) -> SavedType.Audio
-            else -> SavedType.Article
-        }
-    }
-
-    private val VIDEO_HOSTS = setOf("youtu.be", "vimeo.com", "dailymotion.com", "twitch.tv", "ted.com", "tiktok.com")
-    private val AUDIO_HOSTS = setOf("podcasts.apple.com", "overcast.fm", "pca.st", "castro.fm", "soundcloud.com", "podcasts.google.com", "pod.link", "podbean.com", "anchor.fm")
 }

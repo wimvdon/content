@@ -29,7 +29,6 @@ import {
   tabTags,
   toReadCount,
   toReadTagCounts,
-  typeOf,
   type SavedFilter,
 } from "../src/lib/saved";
 
@@ -74,14 +73,12 @@ describe("Saved (#119, #147)", () => {
     expect(toReadCount(lib)).toBe(2);
   });
 
-  it("filters by Liked, every chosen tag and the type", () => {
+  it("filters by Liked and every chosen tag", () => {
     const lib = sample();
     const all = { kind: "all" } as const;
     expect(keys(savedItems(lib, filter({ tab: all, likedOnly: true })))).toEqual(["youtu.be/x"]);
     expect(keys(savedItems(lib, filter({ tab: all, tags: ["AI"] })))).toEqual(["a.example/2", "a.example/1"]);
     expect(keys(savedItems(lib, filter({ tab: all, tags: ["ai", "news"] })))).toEqual(["a.example/1"]);
-    expect(keys(savedItems(lib, filter({ tab: all, type: "video" })))).toEqual(["youtu.be/x"]);
-    expect(savedItems(lib, filter({ tab: all, type: "audio" }))).toEqual([]);
   });
 
   it("lists folders in use and the tab's tags, most used first", () => {
@@ -155,15 +152,6 @@ describe("Saved (#119, #147)", () => {
   it("keeps a note, trimmed", () => {
     const lib = setNote(sample(), "a.example/1", "  A thought  ");
     expect(itemOf(lib, "a.example/1")?.note).toBe("A thought");
-  });
-
-  it("knows videos and audio from their links", () => {
-    expect(typeOf("https://www.youtube.com/watch?v=1")).toBe("video");
-    expect(typeOf("https://m.youtube.com/shorts/1")).toBe("video");
-    expect(typeOf("https://youtube.com/@channel")).toBe("article");
-    expect(typeOf("https://open.spotify.com/episode/1")).toBe("audio");
-    expect(typeOf("https://overcast.fm/+abc")).toBe("audio");
-    expect(typeOf("not a link")).toBe("article");
   });
 
   it("shows on a card the note, else the first highlight, else the description (#133)", () => {

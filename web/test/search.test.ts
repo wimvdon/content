@@ -118,10 +118,9 @@ describe("search tab (#171)", () => {
     expect(all("tea", { ...noFilters, scope: "feeds", feedUrl: "https://other.example/rss" })).toEqual(["feed:b"]);
   });
 
-  it("filters Saved by folder, tag and type", () => {
+  it("filters Saved by folder and tag", () => {
     expect(all("", { ...noFilters, scope: "saved", savedFolder: "recipes" })).toEqual(["saved:1"]);
     expect(all("tea", { ...noFilters, scope: "saved", tag: "TEA" })).toEqual(["saved:1"]);
-    expect(all("", { ...noFilters, scope: "saved", type: "video" })).toEqual(["saved:3"]);
   });
 
   it("knows when filters beyond the kind are chosen", () => {

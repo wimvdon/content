@@ -296,13 +296,7 @@
     <string name="folder_field">Cartella</string>
     <string name="saved_place">Dove</string>
     <string name="saved_to">Salvato in %1$s</string>
-    <string name="type_filter">Tipo</string>
-    <string name="type_filter_on">Tipo: %1$s</string>
     <string name="action_open_menu">Apri menu</string>
-    <string name="type_all">Tutti i tipi</string>
-    <string name="type_articles">Articoli</string>
-    <string name="type_videos">Video</string>
-    <string name="type_audio">Audio</string>
     <string name="menu_folders_tags">Tag</string>
     <string name="saved_folder_rename">Rinomina cartella</string>
     <string name="saved_folder_remove">Rimuovi cartella</string>

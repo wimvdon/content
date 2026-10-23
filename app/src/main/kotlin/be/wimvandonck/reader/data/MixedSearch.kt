@@ -116,10 +116,9 @@ data class SearchFilters(
     /** A folder of Saved (its name, case ignored). */
     val savedFolder: String? = null,
     val tag: String? = null,
-    val type: SavedType? = null,
 ) {
     /** Whether any filter beyond the kind is chosen. */
-    val narrowed: Boolean get() = feedFolderId != null || feedUrl != null || savedFolder != null || tag != null || type != null
+    val narrowed: Boolean get() = feedFolderId != null || feedUrl != null || savedFolder != null || tag != null
 
     /** The kind [scope], without the other kind's filters. */
     fun withScope(scope: SearchFilter): SearchFilters = SearchFilters(scope)
@@ -168,8 +167,7 @@ object SearchResults {
                     items.filter { i ->
                         i.readingList != null &&
                             (filters.savedFolder == null || Saved.folderOf(i)?.equals(filters.savedFolder, ignoreCase = true) == true) &&
-                            (filters.tag == null || i.tags.any { it.equals(filters.tag, ignoreCase = true) }) &&
-                            (filters.type == null || Saved.typeOf(i.url) == filters.type)
+                            (filters.tag == null || i.tags.any { it.equals(filters.tag, ignoreCase = true) })
                     }
             }
         // Feed filters are about feeds: with one chosen under All, Saved's matches stay out too.

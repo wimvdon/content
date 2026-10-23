@@ -268,8 +268,7 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   state), with Liked (heart) before the tags (#206). An X at the end clears the group. The ☰ drawer lists the same groups (All articles and the
   folders with their feeds; All saved, Liked and the tags), never the states, with what is unread or still
   to read as counts; picking there keeps the state. A folder picked in the drawer and its chip are
-  one choice and light up together. The type filter (Articles, Videos, Audio) is a filter-list icon button next to search, with a
-  menu of radio items; it turns `primary` while a type is chosen. The Mark all read FAB is on Feeds
+  one choice and light up together. The Mark all read FAB is on Feeds
   only and only marks the section shown; Saved's FAB is Add link.
 - Saved's lists look like what they are for: To read, All and Archive are read through, so they use
   the feed list's rows and its view setting (Small, Medium, Large), under a line with how many and
