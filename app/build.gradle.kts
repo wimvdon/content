@@ -67,7 +67,9 @@ val keystoreProperties = Properties().apply {
 }
 
 android {
-    namespace = appId
+    // The code's package: Content's own name. Not the application id above, which phones
+    // know the installed app by and which must never change.
+    namespace = "be.wimvandonck.content"
     compileSdk = 37
 
     defaultConfig {
