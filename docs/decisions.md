@@ -30,6 +30,17 @@ Newest first. Add an entry for every notable choice: what was decided, why, and 
   with a tab for each, on Android and the web. ☰ keeps Manage feeds under Feeds and Manage tags under
   Saved, each opening the screen on its own tab; switching tabs doesn't add a step to Back.
 
+## 2026-10-23: Names from Gravatar (#234)
+
+- Your name in Settings › Account, and the name people see on what you share, come from your public
+  Gravatar profile (its display name), as the picture already did. Without a profile it stays the
+  email address.
+- The feed loader asks Gravatar (`POST /account/profile`), not the device, so Gravatar sees the feed
+  loader rather than each phone or browser, and the app's HTTP stays in `AccountClient`. Sharing
+  fills in the sender's Gravatar name on the feed loader, so a name arrives even from an older app.
+- Gravatar's v3 profile API is used without an API key (public fields only, with Gravatar's rate
+  limit); a failed lookup just shows the address.
+
 ## 2026-10-23: Shared with me, a place of its own in Saved (#167)
 
 - At the owner's request, what other Content users send no longer lands in To read: it waits in

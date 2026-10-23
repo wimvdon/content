@@ -39,7 +39,16 @@ function setup() {
   } as unknown as DurableObjectNamespace;
   const env: Env = { ALLOWED_ORIGINS: APP, ACCOUNTS: namespace, ACCOUNT_KEY: MASTER, RESEND_API_KEY: "re", WEB_APP_ORIGIN: APP };
   let lastText = "";
-  const fetcher = async (_: string, init?: RequestInit) => {
+  // Gravatar's profiles (#234), by the SHA-256 of the address; Resend's emails otherwise.
+  const profiles = new Map<string, string>();
+  const gravatarAsked: string[] = [];
+  const fetcher = async (input: string, init?: RequestInit) => {
+    if (input.startsWith("https://api.gravatar.com/v3/profiles/")) {
+      const hash = input.slice("https://api.gravatar.com/v3/profiles/".length);
+      gravatarAsked.push(hash);
+      const name = profiles.get(hash);
+      return name === undefined ? new Response('{"error":"Profile not found"}', { status: 404 }) : new Response(JSON.stringify({ hash, display_name: name }));
+    }
     lastText = JSON.parse(String(init?.body)).text;
     return new Response("{}");
   };
@@ -58,7 +67,13 @@ function setup() {
     const token = /#token=(\S+)/.exec(lastText)![1];
     return ((await (await call("POST", "/account/email/finish", null, { token })).json()) as { key: string }).key;
   };
-  return { call, signIn };
+  const addProfile = async (email: string, name: string) => profiles.set(await sha256(email), name);
+  return { call, signIn, addProfile, gravatarAsked };
+}
+
+async function sha256(text: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 const article = { url: "https://example.com/a", title: "An article" };
@@ -99,6 +114,29 @@ describe("sharing with other Content users (#167)", () => {
     expect((await call("POST", "/account/share", ann, { to: "nobody@example.com", from: { email: "ann@example.com", name: "" }, items: [article] })).status).toBe(404);
     expect((await call("POST", "/account/share", ann, { to: "bob@example.com", from: { email: "ann@example.com" }, items: [] })).status).toBe(400);
     expect((await call("GET", "/account/inbox", "0".repeat(32) + "." + "a".repeat(43))).status).toBe(401);
+  });
+
+  it("finds the name on an address's Gravatar profile (#234)", async () => {
+    const { call, signIn, addProfile, gravatarAsked } = setup();
+    const ann = await signIn("ann@example.com");
+    await addProfile("bob@example.com", " Bob Builder ");
+    expect(await (await call("POST", "/account/profile", ann, { email: " Bob@Example.com " })).json()).toEqual({ name: "Bob Builder" });
+    // Asked by the hash of the address, never the address itself.
+    expect(gravatarAsked).toEqual([await sha256("bob@example.com")]);
+    expect(await (await call("POST", "/account/profile", ann, { email: "nobody@example.com" })).json()).toEqual({ name: "" });
+    expect((await call("POST", "/account/profile", ann, { email: "not an address" })).status).toBe(400);
+    expect((await call("POST", "/account/profile", null, { email: "bob@example.com" })).status).toBe(401);
+    expect((await call("GET", "/account/profile", ann)).status).toBe(405);
+  });
+
+  it("names the sender from their Gravatar profile when the device sent no name (#234)", async () => {
+    const { call, signIn, addProfile } = setup();
+    const ann = await signIn("ann@example.com");
+    const bob = await signIn("bob@example.com");
+    await addProfile("ann@example.com", "Ann");
+    expect((await call("POST", "/account/share", ann, { to: "bob@example.com", from: { email: "ann@example.com", name: "" }, items: [article] })).status).toBe(204);
+    const inbox = (await (await call("GET", "/account/inbox", bob)).json()) as { messages: { from: unknown }[] };
+    expect(inbox.messages[0].from).toEqual({ email: "ann@example.com", name: "Ann" });
   });
 
   it("cleans up what is shared", () => {

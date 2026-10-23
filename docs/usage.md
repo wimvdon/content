@@ -63,7 +63,7 @@ for the first time combines its feeds with the account's and takes the settings 
 
 **Signing in:** Settings › **Account**: type your email address and tap **Email me a sign-in link**.
 Open the link in that email on the same phone (it opens Content) or in the same browser. A link
-works once, for 30 minutes. No password. Your Gravatar picture shows next to your address, if you
+works once, for 30 minutes. No password. Your Gravatar picture shows next to your address, and your Gravatar name above it (#234; also the name people see on what you share with them), if you
 have one. An account opened with Instapaper before email sign-in keeps working there: **Add an
 email address** once, and from then on a link to that address opens the same library. Instapaper
 itself is only a connected service (#215), not a way to sign in (Settings › Connected services, web: Settings › Instapaper): connecting or

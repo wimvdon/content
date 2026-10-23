@@ -77,6 +77,12 @@ export class AccountClient {
     return { version: body.version, saved, conflicts: rowsOf(body.conflicts) };
   }
 
+  /** The name on email's Gravatar profile (#234), which the feed loader looks up; "" when there is none. */
+  async profileName(email: string): Promise<string> {
+    const response = await this.call("/account/profile", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: email.trim() }) });
+    return profileNameOf(await response.json().catch(() => null));
+  }
+
   /** Whether email has a Content account (#167), to say so before sharing with it. */
   async hasAccount(email: string): Promise<boolean> {
     const response = await this.call("/account/share/check", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: email.trim() }) });
@@ -319,6 +325,12 @@ export async function finishEmailLink(token: string, doFetch: Fetch = browserFet
   } catch {
     return "failed";
   }
+}
+
+/** The name in the feed loader's answer to /account/profile (#234): {"name"}, or "" when there is none. */
+export function profileNameOf(body: unknown): string {
+  const name = (body as { name?: unknown } | null)?.name;
+  return typeof name === "string" ? name.trim() : "";
 }
 
 /** The account's picture (#166): Gravatar's for the address (SHA-256 of it, trimmed and in lower case); 404 when it has none. */

@@ -44,7 +44,7 @@ import be.wimvandonck.content.ui.theme.SettingsSection
 /**
  * The Content account (#166, docs/account.md): sign in with an emailed link; it syncs feeds, read
  * articles, Saved and settings. Instapaper is only a connected service (#215). Signed in: who (the email
- * address and its Gravatar picture), how sync is doing, Sync now, Add email address (an account
+ * address with its Gravatar picture and name, #234), how sync is doing, Sync now, Add email address (an account
  * opened with Instapaper), Sign out and Delete synced data. Shown once the stored sign-in is known.
  */
 @OptIn(ExperimentalLayoutApi::class)
@@ -52,6 +52,8 @@ import be.wimvandonck.content.ui.theme.SettingsSection
 fun AccountSection(
     state: AccountState,
     status: SyncStatus,
+    /** The name on the address's Gravatar profile (#234), shown above the address. */
+    name: String? = null,
     lastSyncedAt: Long?,
     onSendLink: (email: String, result: (Boolean) -> Unit) -> Unit,
     onSyncNow: () -> Unit,
@@ -74,7 +76,9 @@ fun AccountSection(
         val email = state.session.email
         val signedOutThere = (status as? SyncStatus.Failed)?.problem == SyncProblem.SignedOut
         ListItem(
-            headlineContent = { Text(email ?: stringResource(R.string.account_title)) },
+            headlineContent = { Text(name?.takeIf { it.isNotBlank() } ?: email ?: stringResource(R.string.account_title)) },
+            // With a name, the address goes under it.
+            overlineContent = if (email != null && !name.isNullOrBlank()) ({ Text(email) }) else null,
             supportingContent = {
                 when {
                     status is SyncStatus.Syncing -> Text(stringResource(R.string.sync_syncing))

@@ -1,6 +1,6 @@
 # Privacy policy
 
-_Last updated: 2026-10-23 (sharing with other Content users)_
+_Last updated: 2026-10-23 (names from Gravatar)_
 
 Reader has no analytics, advertising or crash reporting. It works without an account. If you sign
 in (with your email address, or with Instapaper), Reader keeps your feed list,
@@ -38,7 +38,10 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   your picture: signed in with an address, the app loads your picture from Gravatar
   (gravatar.com/avatar/ followed by a scrambled form, SHA-256, of the address), under Gravatar's
   privacy policy; there is none when the address has no Gravatar. Turn pictures off in Settings ›
-  Reader › Show images to skip it.
+  Reader › Show images to skip it. Your name comes from your public Gravatar profile too (#234): the
+  app asks the owner's feed loader, which asks Gravatar (api.gravatar.com) with the same scrambled
+  form of the address, so Gravatar sees the feed loader, not you. When you share with another Content
+  user, the feed loader looks up your Gravatar name the same way, so they see who it is from.
 - **Sync with your Reader account (off unless you sign in).** While the app is
   on screen (when it opens, a second after a change, on refresh, on Sync now, and at once when
   another of your devices changed something; never in the background) it reads and saves your data

@@ -55,6 +55,8 @@ data class SettingsState(
     val shareApps: List<ExternalApps.ShareApp>,
     val syncStatus: SyncStatus = SyncStatus.Idle,
     val account: AccountState = AccountState.Loading,
+    /** The name on the account address's Gravatar profile (#234), or null while unknown or without one. */
+    val accountName: String? = null,
     /** Instapaper is connected (Connected services says so). */
     val instapaperConnected: Boolean = false,
     /** There are feeds to export. */
@@ -105,6 +107,7 @@ fun SettingsScreen(
         item(key = "account") {
             AccountSection(
                 state = state.account,
+                name = state.accountName,
                 status = state.syncStatus,
                 lastSyncedAt = state.settings.lastSyncedAt,
                 onSendLink = actions.onSendLink,
