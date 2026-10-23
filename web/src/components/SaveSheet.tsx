@@ -66,7 +66,8 @@ function Sheet({
     if (kind === "justSaved") onMessage(t("savedTo").replace("{place}", name(initial.place)));
     app.closeSheet();
   };
-  const title = kind === "new" ? t("saveTitle") : kind === "organise" ? t("organiseTitle") : t("savedTo").replace("{place}", name(initial.place));
+  // Just "Save" (#229): the sheet itself picks To read or the Archive, so the title doesn't name one.
+  const title = kind === "organise" ? t("organiseTitle") : t("save");
   return (
     <Dialog
       open

@@ -286,7 +286,6 @@
         <item quantity="other">%d zu lesen</item>
     </plurals>
     <string name="bookmarks_title">Lesezeichen</string>
-    <string name="save_title">In Content speichern</string>
     <string name="organise_title">Ordnen</string>
     <string name="highlights_title">Markierungen</string>
     <string name="highlight_action">Markieren</string>

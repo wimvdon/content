@@ -287,7 +287,6 @@
         <item quantity="other">%d to read</item>
     </plurals>
     <string name="bookmarks_title">Bookmarks</string>
-    <string name="save_title">Save to Content</string>
     <string name="organise_title">Organise</string>
     <string name="highlights_title">Highlights</string>
     <string name="highlight_action">Highlight</string>
