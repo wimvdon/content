@@ -179,6 +179,9 @@ describe("signing in with an email link (#166)", () => {
     const { subject, text, html } = emailContent("https://app.example/signin#token=a&b", "signin");
     expect(subject).toBe("Sign in to Content");
     expect(text).toContain("30 minutes");
+    // English only (#219).
+    expect(text).not.toContain("Open deze link");
+    expect(html).not.toContain('lang="nl"');
     expect(html).toContain('href="https://app.example/signin#token=a&amp;b"');
     expect(LINK_MS).toBe(30 * 60 * 1000);
   });
