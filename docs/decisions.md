@@ -2,6 +2,14 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-23: Long-press menus, and swiping saves (#221)
+
+- A feed article: press and hold for **Mark as read/unread**, **Save** and **Share**; swiping
+  either way saves (marking read moved from the swipe into the menu). A saved article's card: press
+  and hold for **Organise** and **Share**; cards don't swipe.
+- The web app has the same menus on right-click, and on press and hold on a touch screen.
+- Screen readers get the menu's entries as actions on the row.
+
 ## 2026-10-23: Sharing with other Content users (#167)
 
 - A one-time copy, as the issue suggested to start: one article, or everything with a tag. It lands

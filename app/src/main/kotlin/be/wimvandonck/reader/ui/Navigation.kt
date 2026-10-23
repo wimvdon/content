@@ -650,6 +650,8 @@ fun RssReaderNavigation(
                                 onAddLink = { openSave(null, null) },
                                 onArchiveItem = ::archive,
                                 onFileItem = { fileKey = it.key },
+                                onShareArticle = { article -> send(article, current.shareTarget) },
+                                onShareItem = { item -> send(ReadingLists.article(item, library), current.shareTarget) },
                                 onOpenSearch = { push(Screen.Search) },
                             ),
                     )
