@@ -112,6 +112,12 @@ class AccountClient(
         return call(request("/account/texts").post(body).build()) { _, answer -> htmlFrom(answer) }
     }
 
+    /** The name on [email]'s Gravatar profile (#234), which the feed loader looks up; "" when there is none. */
+    suspend fun profileName(email: String): String {
+        val body = Json.write(mapOf("email" to email.trim())).toRequestBody(JSON_TYPE)
+        return call(request("/account/profile").post(body).build()) { _, text -> Gravatar.nameFrom(text) }
+    }
+
     /** Whether [email] has a Content account (#167), to say so before sharing with it. */
     suspend fun hasAccount(email: String): Boolean {
         val body = Json.write(mapOf("email" to email.trim())).toRequestBody(JSON_TYPE)

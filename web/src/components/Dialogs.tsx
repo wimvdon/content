@@ -407,13 +407,25 @@ export function SettingsDialog({ open, onOpenChange, onImport }: Props & { onImp
 
 /**
  * The Content account (#166, docs/account.md): sign in with an emailed link. Instapaper is only a
- * connected service (#215). Signed in: who (the address and its Gravatar picture), how sync is doing,
+ * connected service (#215). Signed in: who (the address with its Gravatar picture and name, #234), how sync is doing,
  * Sync now, Add email address (an account opened with Instapaper), Sign out and Delete synced data.
  */
 function AccountSection() {
   const { settings, syncStatus, account } = useApp();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleteFailed, setDeleteFailed] = useState(false);
+  // The name on the address's Gravatar profile (#234), asked once per address.
+  const [name, setName] = useState<{ email: string; name: string } | null>(null);
+  const email = account?.email ?? null;
+  useEffect(() => {
+    if (!email) return;
+    let current = true;
+    void app.profileName(email).then((found) => current && found !== null && setName({ email, name: found }));
+    return () => {
+      current = false;
+    };
+  }, [email]);
+  const shownName = name && name.email === email ? name.name : "";
   const statusText =
     syncStatus.kind === "syncing"
       ? t("syncing")
@@ -431,7 +443,8 @@ function AccountSection() {
           <div className="flex items-center gap-3">
             {account.email && settings.showImages ? <Gravatar key={account.email} email={account.email} /> : null}
             <div className="min-w-0">
-              <p className="truncate text-sm font-medium">{account.email ?? t("accountTitle")}</p>
+              {shownName ? <p className="truncate text-sm font-medium">{shownName}</p> : null}
+              <p className={cn("truncate text-sm", shownName ? "text-muted-foreground" : "font-medium")}>{account.email ?? t("accountTitle")}</p>
               <p className={cn("text-sm", failed ? "text-destructive" : "text-muted-foreground")} role={failed ? "alert" : undefined}>
                 {statusText}
               </p>

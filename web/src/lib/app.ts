@@ -552,6 +552,17 @@ class AppStore {
   /** Whether the account can share (#167): signed in, with an email address so they see who it's from. */
   canShare = () => Boolean(this.state.account?.email);
 
+  /** The name on email's Gravatar profile (#234): "" when it has none, null when it couldn't be asked. */
+  profileName = async (email: string): Promise<string | null> => {
+    const account = this.state.account;
+    if (!account) return null;
+    try {
+      return await new AccountClient(account.key).profileName(email);
+    } catch {
+      return null;
+    }
+  };
+
   /** Sends articles to a Content user (#167); `tag` when they go as a tag. */
   shareWithUser = async (to: string, items: SharedArticle[], tag: string | null, message = ""): Promise<"sent" | "noAccount" | "noEmail" | "signedOut" | "offline" | "failed"> => {
     const account = this.state.account;

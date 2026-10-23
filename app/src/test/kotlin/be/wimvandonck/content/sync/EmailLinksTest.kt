@@ -31,4 +31,12 @@ class EmailLinksTest {
         assertEquals(true, url.endsWith("?s=96&d=404"))
         assertEquals(64, url.removePrefix("https://gravatar.com/avatar/").substringBefore('?').length)
     }
+
+    @Test
+    fun `reads the Gravatar name the feed loader found (#234)`() {
+        assertEquals("Ann Example", Gravatar.nameFrom("""{"name":" Ann Example "}"""))
+        assertEquals("", Gravatar.nameFrom("""{"name":""}"""))
+        assertEquals("", Gravatar.nameFrom("""{}"""))
+        assertEquals("", Gravatar.nameFrom("not json"))
+    }
 }

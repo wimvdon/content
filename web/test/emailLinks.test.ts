@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { emailLinkToken, finishEmailLink, gravatarUrl, sendEmailLink } from "../src/lib/account";
+import { emailLinkToken, finishEmailLink, gravatarUrl, profileNameOf, sendEmailLink } from "../src/lib/account";
 
 const BASE = "https://worker.example";
 
@@ -38,6 +38,13 @@ describe("signing in with an email link (#166)", () => {
     expect(await finishEmailLink("t", answer(409), BASE)).toBe("taken");
     expect(await finishEmailLink("t", answer(500), BASE)).toBe("failed");
     expect(await finishEmailLink("t", answer(200, { key: "k.s" }), BASE)).toBe("failed");
+  });
+
+  it("reads the Gravatar name the feed loader found (#234)", () => {
+    expect(profileNameOf({ name: " Ann Example " })).toBe("Ann Example");
+    expect(profileNameOf({ name: "" })).toBe("");
+    expect(profileNameOf({})).toBe("");
+    expect(profileNameOf(null)).toBe("");
   });
 
   it("asks Gravatar for the address in one form", async () => {

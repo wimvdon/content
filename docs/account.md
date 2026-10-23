@@ -55,9 +55,10 @@ small storage: the device keys, one sync document and the item rows (`docs/sync.
 | `POST /account/items` | `{"rows": [{"key", "baseVersion", "data"}]}` (at most 500): each row is saved when its stored version is still `baseVersion` (0 for new), all with one new items version; the others come back in `conflicts` with what is stored now: `{"version", "saved": [{"key", "version"}], "conflicts": [...]}` |
 | `GET /account/live?key=…` | A WebSocket that sends `{"version": n, "items": m}` whenever a device saves (and once right after connecting) |
 | `POST /account/share/check` | `{"email"}`: `{"exists"}`, whether that address has a Content account (#167) |
-| `POST /account/share` | `{"to", "from": {"email", "name"}, "items": [...], "tag"?}`: into the other account's inbox; `404` without an account there, `403` when `from` isn't this account's address |
+| `POST /account/share` | `{"to", "from": {"email", "name"}, "items": [...], "tag"?, "message"?}`: into the other account's inbox; `404` without an account there, `403` when `from` isn't this account's address |
 | `GET /account/inbox` | What others shared with this account: `{"messages": [...]}` |
 | `POST /account/inbox/done` | `{"ids"}`: taken in, so they leave the inbox |
+| `POST /account/profile` | `{"email"}`: `{"name"}`, the name on that address's Gravatar profile, or `""` (#234). The feed loader asks Gravatar (`api.gravatar.com/v3/profiles/<SHA-256 of the address>`); sharing also fills in the sender's name this way when the device sent none |
 | `POST /account/signout` | Forgets this device's key |
 | `DELETE /account` | Deletes the document and every device key |
 

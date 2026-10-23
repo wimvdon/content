@@ -212,6 +212,9 @@ fun RssReaderNavigation(
     val instapaperState by app.instapaper.state.collectAsStateWithLifecycle()
     val instapaperNotice by app.instapaper.notice.collectAsStateWithLifecycle()
     val accountState by app.account.state.collectAsStateWithLifecycle()
+    // The name on the account address's Gravatar profile (#234), asked once per address.
+    val accountEmail = (accountState as? AccountState.SignedIn)?.session?.email
+    val accountName by produceState<String?>(null, accountEmail) { value = accountEmail?.let { app.sync.profileName(it) } }
     val accountNotice by app.account.notice.collectAsStateWithLifecycle()
     val siteSignIns by app.siteSignIns.signIns.collectAsStateWithLifecycle()
     val current = settings ?: Settings()
@@ -830,6 +833,7 @@ fun RssReaderNavigation(
                                 shareApps = shareApps,
                                 syncStatus = syncStatus,
                                 account = accountState,
+                                accountName = accountName,
                                 instapaperConnected = instapaperState is InstapaperState.SignedIn,
                                 hasFeeds = library.feeds.isNotEmpty(),
                                 siteSignIns = siteSignIns.map { it.site },

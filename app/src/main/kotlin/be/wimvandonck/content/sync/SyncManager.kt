@@ -278,6 +278,9 @@ class SyncManager(
     /** What arrived from other Content users (#167), to say so once. */
     val received: SharedFlow<Received> = _received.asSharedFlow()
 
+    /** The name on [email]'s Gravatar profile (#234): "" when it has none, null when it couldn't be asked. */
+    suspend fun profileName(email: String): String? = accountKey()?.let { key -> runCatching { AccountClient(http, key).profileName(email) }.getOrNull() }
+
     /** Whether [email] has a Content account, or null when it couldn't be asked. */
     suspend fun hasAccount(email: String): Boolean? = accountKey()?.let { key -> runCatching { AccountClient(http, key).hasAccount(email) }.getOrNull() }
 

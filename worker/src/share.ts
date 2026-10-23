@@ -10,6 +10,12 @@
  *                               "from" isn't an address of the sender's own account.
  *  - GET  /account/inbox       {"messages": [...]}: what was shared with this account, oldest first.
  *  - POST /account/inbox/done  {"ids": [...]}: taken in, so it leaves the inbox.
+ *  - POST /account/profile     {"email"}: {"name"}, the name on that address's Gravatar profile (#234),
+ *                               or "" when it has none. The feed loader asks Gravatar, so devices
+ *                               don't send the address's hash to Gravatar themselves for names.
+ *
+ * Sharing fills in the sender's name from their Gravatar profile when the device sent none, so the
+ * receiver sees a name.
  *
  * All with the device key ("Authorization: Bearer <key>"). The sender's address is checked against
  * the address directory (email.ts), so nobody can send as someone else. Messages are stored
@@ -20,6 +26,8 @@ import { allowedOrigins, corsHeaders, plain } from "./account";
 import { emailIdOf, normalEmail } from "./email";
 import type { Env } from "./index";
 
+type Fetcher = (input: string, init?: RequestInit) => Promise<Response>;
+
 const KEY_PATTERN = /^([0-9a-f]{32})\.([A-Za-z0-9_-]{43})$/;
 /** The most articles one share may hold (a tag's worth). */
 export const MAX_SHARED_ITEMS = 500;
@@ -28,13 +36,13 @@ const MAX_TEXT = 2048;
 /** The longest message for the receiver. */
 export const MAX_MESSAGE = 1000;
 
-export async function handleShare(request: Request, env: Env, url: URL): Promise<Response> {
+export async function handleShare(request: Request, env: Env, url: URL, fetcher: Fetcher): Promise<Response> {
   const origin = request.headers.get("Origin");
   if (origin && !allowedOrigins(env).includes(origin)) return plain(403, "Not allowed");
   const cors = origin ? corsHeaders(origin) : {};
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
   const route = routeOf(request.method, url.pathname);
-  if (!route) return plain(["/account/share", "/account/share/check", "/account/inbox", "/account/inbox/done"].includes(url.pathname) ? 405 : 404, "Not available", cors);
+  if (!route) return plain(["/account/share", "/account/share/check", "/account/inbox", "/account/inbox/done", "/account/profile"].includes(url.pathname) ? 405 : 404, "Not available", cors);
   if (!env.ACCOUNTS || !env.ACCOUNT_KEY) return plain(503, "Accounts aren't set up on this server", cors);
   if (env.LIMITER) {
     const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
@@ -72,6 +80,12 @@ export async function handleShare(request: Request, env: Env, url: URL): Promise
     return ((await answer.json()) as { account?: string }).account ?? null;
   };
 
+  if (route === "profile") {
+    const email = normalEmail(body.email);
+    if (!email) return plain(400, "Not an email address", cors);
+    return json({ name: await gravatarName(email, fetcher) }, cors);
+  }
+
   if (route === "check") {
     const email = normalEmail(body.email);
     if (!email) return plain(400, "Not an email address", cors);
@@ -81,6 +95,7 @@ export async function handleShare(request: Request, env: Env, url: URL): Promise
   const message = shareOf(body);
   if (!message) return plain(400, "Not a share", cors);
   if ((await accountOf(message.from.email)) !== accountId) return plain(403, "Add this address to your account first", cors);
+  if (!message.from.name) message.from.name = await gravatarName(message.from.email, fetcher);
   const to = await accountOf(message.to);
   if (!to) return plain(404, "No Content account for this address", cors);
   const inbox = ns.get(ns.idFromName(to));
@@ -94,13 +109,14 @@ export async function handleShare(request: Request, env: Env, url: URL): Promise
   return new Response(null, { status: 204, headers: cors });
 }
 
-type Route = "check" | "share" | "inbox" | "inboxDone";
+type Route = "check" | "share" | "inbox" | "inboxDone" | "profile";
 
 function routeOf(method: string, path: string): Route | null {
   if (path === "/account/share/check") return method === "POST" ? "check" : null;
   if (path === "/account/share") return method === "POST" ? "share" : null;
   if (path === "/account/inbox") return method === "GET" ? "inbox" : null;
   if (path === "/account/inbox/done") return method === "POST" ? "inboxDone" : null;
+  if (path === "/account/profile") return method === "POST" ? "profile" : null;
   return null;
 }
 
@@ -122,6 +138,23 @@ export function shareOf(body: Record<string, unknown>): { to: string; from: { em
   // A short message for the receiver (#167), shown with what was shared.
   const message = clip(body.message).slice(0, MAX_MESSAGE) || null;
   return { to, from: { email: fromEmail, name: clip(fromBody?.name).slice(0, 100) }, items, tag, message };
+}
+
+/**
+ * The name on the Gravatar profile of an address (#234): its display name, or "" when the address has
+ * no public profile or Gravatar doesn't answer. Gravatar finds a profile by the SHA-256 of the address.
+ */
+export async function gravatarName(email: string, fetcher: Fetcher): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(email.trim().toLowerCase()));
+  const hash = [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
+  try {
+    const answer = await fetcher(`https://api.gravatar.com/v3/profiles/${hash}`, { headers: { Accept: "application/json" } });
+    if (!answer.ok) return "";
+    const profile = (await answer.json()) as { display_name?: unknown } | null;
+    return typeof profile?.display_name === "string" ? profile.display_name.trim().slice(0, 100) : "";
+  } catch {
+    return "";
+  }
 }
 
 function clip(value: unknown): string {
