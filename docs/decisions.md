@@ -2,6 +2,20 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-23: Signing in to sites you pay for (#180)
+
+- Android: the site's own sign-in page in a WebView (part of Android, no new library); Done keeps the
+  cookies the site set for its address. They go only to that site and its subdomains, over https,
+  with the app's own requests (feeds and full articles). Works for any site, not one by one.
+- The cookies are secrets: their own DataStore file, out of backups and phone transfers like the
+  Instapaper and account keys, never synced, never sent to the feed loader. The WebView's own data
+  (`app_webview`) is left out of backups too.
+- A saved article from a signed-in site shows this phone's own full text instead of the one stored in
+  the account: the stored one is often the teaser another device got.
+- The web app can't read another site's cookies; there the browser extension (#168) does it.
+- Rejected: reading cookies from the phone's browser (not allowed), and typing a password into
+  Content (the site's own page is safer and handles two-step sign-ins).
+
 ## 2026-10-23: Connected services and OPML move into Settings
 
 - The ☰ menu keeps only places to go (Feed, folders, Saved, tags) and Settings. Connected services

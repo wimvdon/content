@@ -66,6 +66,15 @@
     <string name="reader_background_dark">Donker</string>
     <string name="reader_preview">Goede typografie zie je niet: je merkt het verhaal op, niet de letters.</string>
     <string name="reader_read_on_website">Lezen op website</string>
+    <string name="site_sign_in_menu">Aanmelden bij deze site</string>
+    <string name="site_sign_in_title">Aanmelden bij %1$s</string>
+    <string name="site_sign_in_done">Klaar</string>
+    <string name="site_sign_in_saved">Aangemeld bij %1$s. De artikels laden volledig.</string>
+    <string name="site_sign_in_nothing">%1$s gaf geen aanmelding. Meld je eerst aan op de pagina en tik dan op Klaar.</string>
+    <string name="site_sign_ins_title">Sites waar je aangemeld bent</string>
+    <string name="site_sign_ins_none">Betaal je voor een site? Open een van haar artikels, dan ⋮ › Aanmelden bij deze site. De aanmelding blijft op deze telefoon en gaat alleen naar die site.</string>
+    <string name="site_sign_ins_hint">Hun aanmeldingen blijven op deze telefoon en gaan alleen naar die site, zodat artikels waarvoor je betaalt volledig laden.</string>
+    <string name="site_sign_in_remove">Verwijderen</string>
     <string name="report_menu">Probleem met dit artikel melden</string>
     <string name="report_title">Wat is er mis met dit artikel?</string>
     <string name="report_text_missing">Er ontbreekt tekst</string>

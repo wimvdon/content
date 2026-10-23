@@ -66,6 +66,15 @@
     <string name="reader_background_dark">Dunkel</string>
     <string name="reader_preview">Gute Typografie ist unsichtbar: Du bemerkst die Geschichte, nicht die Buchstaben.</string>
     <string name="reader_read_on_website">Auf der Website lesen</string>
+    <string name="site_sign_in_menu">Bei dieser Website anmelden</string>
+    <string name="site_sign_in_title">Bei %1$s anmelden</string>
+    <string name="site_sign_in_done">Fertig</string>
+    <string name="site_sign_in_saved">Bei %1$s angemeldet. Ihre Artikel laden vollständig.</string>
+    <string name="site_sign_in_nothing">%1$s hat keine Anmeldung gesetzt. Melde dich zuerst auf der Seite an und tippe dann auf Fertig.</string>
+    <string name="site_sign_ins_title">Websites, bei denen du angemeldet bist</string>
+    <string name="site_sign_ins_none">Du bezahlst für eine Website? Öffne einen ihrer Artikel, dann ⋮ › Bei dieser Website anmelden. Die Anmeldung bleibt auf diesem Telefon und geht nur an diese Website.</string>
+    <string name="site_sign_ins_hint">Ihre Anmeldungen bleiben auf diesem Telefon und gehen nur an diese Website, damit Artikel, für die du bezahlst, vollständig laden.</string>
+    <string name="site_sign_in_remove">Entfernen</string>
     <string name="report_menu">Problem mit diesem Artikel melden</string>
     <string name="report_title">Was stimmt mit diesem Artikel nicht?</string>
     <string name="report_text_missing">Text fehlt</string>

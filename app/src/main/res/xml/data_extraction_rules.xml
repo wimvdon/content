@@ -7,11 +7,15 @@
      backs up. -->
 <data-extraction-rules>
     <cloud-backup>
+        <exclude domain="file" path="datastore/site_signins.preferences_pb" />
+        <exclude domain="root" path="app_webview" />
         <exclude domain="file" path="datastore/account.preferences_pb" />
         <exclude domain="file" path="datastore/instapaper.preferences_pb" />
         <exclude domain="file" path="datastore/raindrop.preferences_pb" />
     </cloud-backup>
     <device-transfer>
+        <exclude domain="file" path="datastore/site_signins.preferences_pb" />
+        <exclude domain="root" path="app_webview" />
         <exclude domain="file" path="datastore/account.preferences_pb" />
         <exclude domain="file" path="datastore/instapaper.preferences_pb" />
         <exclude domain="file" path="datastore/raindrop.preferences_pb" />

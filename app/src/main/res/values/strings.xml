@@ -67,6 +67,15 @@
     <string name="reader_background_dark">Dark</string>
     <string name="reader_preview">Good typography is invisible: you notice the story, not the letters.</string>
     <string name="reader_read_on_website">Read on website</string>
+    <string name="site_sign_in_menu">Sign in to this site</string>
+    <string name="site_sign_in_title">Sign in to %1$s</string>
+    <string name="site_sign_in_done">Done</string>
+    <string name="site_sign_in_saved">Signed in to %1$s. Its articles load in full.</string>
+    <string name="site_sign_in_nothing">%1$s set no sign-in. Sign in on the page first, then tap Done.</string>
+    <string name="site_sign_ins_title">Sites you\'re signed in to</string>
+    <string name="site_sign_ins_none">Paying for a site? Open one of its articles, then ⋮ › Sign in to this site. Its sign-in stays on this phone and only goes to that site.</string>
+    <string name="site_sign_ins_hint">Their sign-ins stay on this phone and only go to that site, so the articles you pay for load in full.</string>
+    <string name="site_sign_in_remove">Remove</string>
     <string name="report_menu">Report a problem with this article</string>
     <string name="report_title">What\'s wrong with this article?</string>
     <string name="report_text_missing">Text is missing</string>

@@ -1,6 +1,6 @@
 # Privacy policy
 
-_Last updated: 2026-10-23 (reporting a badly cleaned-up article)_
+_Last updated: 2026-10-23 (signing in to sites you pay for)_
 
 Reader has no analytics, advertising or crash reporting. It works without an account. If you sign
 in (with your email address, or with Instapaper), Reader keeps your feed list,
@@ -89,6 +89,13 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
 - **Raindrop.io is no longer supported** (#179). The app no longer talks to raindrop.io. Updating
   the app deletes a Raindrop sign-in it still kept; revoke the app in Raindrop's settings to end
   it there too.
+- **Sites you sign in to (Android, #180).** ⋮ › Sign in to this site opens that site's own page
+  in a small browser inside the app, where you sign in as on any website (the site sees what it
+  always sees, and its page loads its own scripts there). Done keeps the cookies that site set, on
+  this phone only, in a file of their own that Android's backup and phone transfer leave out; they
+  are never synced and never sent to the owner's feed loader. From then on the app sends them only
+  to that site (and its subdomains), over https, when it loads that site's feeds and articles, so
+  articles you pay for load in full. Settings › Sites you're signed in to › Remove forgets them.
 - **Reporting a badly cleaned-up article** (⋮ › Report a problem with this article, #181): Send
   opens a pre-filled "new issue" page on github.com in your browser, with the article's link, what
   you picked, your comment, and the app's name and version; not the article's text. Nothing is sent

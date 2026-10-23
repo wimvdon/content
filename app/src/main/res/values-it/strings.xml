@@ -66,6 +66,15 @@
     <string name="reader_background_dark">Scuro</string>
     <string name="reader_preview">La buona tipografia è invisibile: noti la storia, non le lettere.</string>
     <string name="reader_read_on_website">Leggi sul sito</string>
+    <string name="site_sign_in_menu">Accedi a questo sito</string>
+    <string name="site_sign_in_title">Accedi a %1$s</string>
+    <string name="site_sign_in_done">Fatto</string>
+    <string name="site_sign_in_saved">Accesso a %1$s effettuato. I suoi articoli si caricano interi.</string>
+    <string name="site_sign_in_nothing">%1$s non ha salvato alcun accesso. Accedi prima sulla pagina, poi tocca Fatto.</string>
+    <string name="site_sign_ins_title">Siti a cui hai effettuato l’accesso</string>
+    <string name="site_sign_ins_none">Paghi un sito? Apri uno dei suoi articoli, poi ⋮ › Accedi a questo sito. L’accesso resta su questo telefono e va solo a quel sito.</string>
+    <string name="site_sign_ins_hint">I loro accessi restano su questo telefono e vanno solo a quel sito, così gli articoli che paghi si caricano interi.</string>
+    <string name="site_sign_in_remove">Rimuovi</string>
     <string name="report_menu">Segnala un problema con questo articolo</string>
     <string name="report_title">Cosa non va in questo articolo?</string>
     <string name="report_text_missing">Manca del testo</string>
