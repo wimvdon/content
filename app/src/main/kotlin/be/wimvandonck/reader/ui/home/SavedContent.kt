@@ -1,5 +1,6 @@
 package be.wimvandonck.reader.ui.home
 
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -91,6 +92,8 @@ internal fun SavedContent(
     onOpen: (Item) -> Unit,
     onArchive: (Item) -> Unit = {},
     onFile: (Item) -> Unit = {},
+    /** Long-press › Share (#221). */
+    onShare: (Item) -> Unit = {},
     /** Clears Liked and the tags, for an empty list they filtered out. */
     onClearFilters: () -> Unit = {},
 ) {
@@ -119,7 +122,7 @@ internal fun SavedContent(
         }
         return
     }
-    if (Saved.showsNotes(home.filter.tab)) NotesGrid(home, showImages, onOpen) else ArticleList(home, showImages, onOpen, onArchive, onFile)
+    if (Saved.showsNotes(home.filter.tab)) NotesGrid(home, showImages, onOpen, onFile, onShare) else ArticleList(home, showImages, onOpen, onArchive, onFile)
 }
 
 /**
@@ -195,7 +198,11 @@ private fun NotesGrid(
     home: SavedHome,
     showImages: Boolean,
     onOpen: (Item) -> Unit,
+    onFile: (Item) -> Unit,
+    onShare: (Item) -> Unit,
 ) {
+    val organiseLabel = stringResource(R.string.organise_title)
+    val shareLabel = stringResource(R.string.action_share)
     val gridState = rememberSaveable(home.filter, saver = LazyStaggeredGridState.Saver) { LazyStaggeredGridState() }
     LazyVerticalStaggeredGrid(
         state = gridState,
@@ -209,7 +216,16 @@ private fun NotesGrid(
         items(home.items, key = { it.key }) { item ->
             val source = remember(item, home.library) { ReadingLists.source(item, home.library) }
             val note = remember(item) { Saved.note(item) }
-            NoteCard(note, source, home.titleFont, showImages, onClick = { onOpen(item) }, modifier = Modifier.animateItem())
+            NoteCard(
+                note,
+                source,
+                home.titleFont,
+                showImages,
+                onClick = { onOpen(item) },
+                modifier = Modifier.animateItem(),
+                // Long-press (#221): Organise (tags, note) and Share. No swipes on cards.
+                menu = listOf(RowMenuAction(R.drawable.ic_label, organiseLabel) { onFile(item) }, RowMenuAction(R.drawable.ic_share, shareLabel) { onShare(item) }),
+            )
         }
     }
 }
@@ -230,12 +246,19 @@ internal fun NoteCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     label: String? = null,
+    /** What a long press offers (#221). */
+    menu: List<RowMenuAction> = emptyList(),
 ) {
+    var menuOpen by remember { mutableStateOf(false) }
     OutlinedCard(
-        onClick = onClick,
-        modifier = modifier.fillMaxWidth(),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .clip(CardDefaults.outlinedShape)
+                .longPressMenu(menu, onClick) { menuOpen = true },
         colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
+        RowMenu(menu, menuOpen) { menuOpen = false }
         Column {
             val image = note.imageUrl?.takeIf { showImage }
             if (image != null) {

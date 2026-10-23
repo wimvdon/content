@@ -1,5 +1,9 @@
 package be.wimvandonck.reader.ui.home
 
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.ExperimentalFoundationApi
 import android.text.format.DateUtils
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animate
@@ -152,10 +156,13 @@ class HomeActions(
     val onSelect: (FeedSelection) -> Unit,
     val onUnreadOnlyChange: (Boolean) -> Unit,
     val onOpenArticle: (Article) -> Unit,
-    /** Swiped right: read becomes unread and the other way round. */
+    /** Long-press › Mark as read or unread (#221). */
     val onToggleRead: (Article) -> Unit,
-    /** Swiped left: saved, to read later (#107). */
+    /** Swiped either way, or long-press › Save: saved, to read later (#107, #221). */
     val onReadLater: (Article) -> Unit = {},
+    /** Long-press › Share (#221): a feed article, or a saved item. */
+    val onShareArticle: (Article) -> Unit = {},
+    val onShareItem: (Item) -> Unit = {},
     val onRefresh: () -> Unit,
     val onMarkAllRead: () -> Unit,
     /** Articles that scrolled off the top, with Mark as read on scroll on. */
@@ -371,6 +378,7 @@ fun HomeScreen(
                             actions.onOpenItem,
                             onArchive = actions.onArchiveItem,
                             onFile = actions.onFileItem,
+                            onShare = actions.onShareItem,
                             onClearFilters = { actions.onSavedFilter(reading.filter.copy(likedOnly = false, sharedOnly = false, tags = emptySet())) },
                         )
                     }
@@ -459,7 +467,7 @@ private fun ArticleList(
         days.forEach { (day, articles) ->
             stickyHeader(key = "day:$day") { DayHeader(day) }
             items(articles, key = { it.key }) { article ->
-                SwipeToToggleRead(article, onToggle = { actions.onToggleRead(article) }, onReadLater = { actions.onReadLater(article) }, modifier = Modifier.animateItem()) {
+                SwipeToSave(article, onSave = { actions.onReadLater(article) }, modifier = Modifier.animateItem()) {
                     ArticleRow(
                         article = article,
                         feed = if (showFeedName) feedsByUrl[article.feedUrl] else null,
@@ -467,6 +475,16 @@ private fun ArticleList(
                         showImage = state.showImages,
                         onClick = { actions.onOpenArticle(article) },
                         onFeedClick = { actions.onSelect(FeedSelection.Single(article.feedUrl)) },
+                        // Long-press (#221): read or unread, Save, Share.
+                        menu =
+                            listOfNotNull(
+                                RowMenuAction(
+                                    if (article.read) R.drawable.ic_mark_unread else R.drawable.ic_mark_read,
+                                    stringResource(if (article.read) R.string.action_mark_unread else R.string.action_mark_read),
+                                ) { actions.onToggleRead(article) },
+                                article.link?.let { RowMenuAction(R.drawable.ic_list, stringResource(R.string.action_save)) { actions.onReadLater(article) } },
+                                article.link?.let { RowMenuAction(R.drawable.ic_share, stringResource(R.string.action_share)) { actions.onShareArticle(article) } },
+                            ),
                     )
                 }
             }
@@ -509,25 +527,80 @@ private fun DayHeader(day: LocalDate) {
  * read; swiping left puts it on the reading list, to read later (#107).
  */
 @Composable
-private fun SwipeToToggleRead(
+private fun SwipeToSave(
     article: Article,
-    onToggle: () -> Unit,
-    onReadLater: () -> Unit,
+    onSave: () -> Unit,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
-    SwipeRow(
-        right =
-            SwipeAction(
-                if (article.read) R.drawable.ic_mark_unread else R.drawable.ic_mark_read,
-                stringResource(if (article.read) R.string.action_mark_unread else R.string.action_mark_read),
-                onToggle,
-            ),
-        // Only a link can be saved: without one there is nothing to swipe to.
-        left = if (article.link != null) SwipeAction(R.drawable.ic_list, stringResource(R.string.action_save), onReadLater) else null,
-        modifier = modifier,
-        content = content,
-    )
+    // Both ways save (#221); read or unread is in the long-press menu. Only a link can be saved.
+    val save = if (article.link != null) SwipeAction(R.drawable.ic_list, stringResource(R.string.action_save), onSave) else null
+    SwipeRow(right = save, left = save, modifier = modifier, content = content)
+}
+
+/** One entry of a row's long-press menu (#221). */
+internal class RowMenuAction(
+    val icon: Int,
+    val label: String,
+    val onClick: () -> Unit,
+)
+
+/**
+ * A row or card that opens [menu] on a long press (#221), with a short vibration; screen readers
+ * get the same entries as actions. Without entries it is a plain click.
+ */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+internal fun Modifier.longPressMenu(
+    menu: List<RowMenuAction>,
+    onClick: () -> Unit,
+    onOpen: () -> Unit,
+): Modifier {
+    val haptics = LocalHapticFeedback.current
+    return this
+        .combinedClickable(
+            onClick = onClick,
+            onLongClick =
+                if (menu.isEmpty()) {
+                    null
+                } else {
+                    {
+                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onOpen()
+                    }
+                },
+        ).semantics {
+            if (menu.isNotEmpty()) {
+                customActions =
+                    menu.map { action ->
+                        CustomAccessibilityAction(action.label) {
+                            action.onClick()
+                            true
+                        }
+                    }
+            }
+        }
+}
+
+/** The long-press menu itself, under the row. */
+@Composable
+internal fun RowMenu(
+    menu: List<RowMenuAction>,
+    open: Boolean,
+    onClose: () -> Unit,
+) {
+    DropdownMenu(expanded = open, onDismissRequest = onClose) {
+        for (action in menu) {
+            DropdownMenuItem(
+                text = { Text(action.label) },
+                leadingIcon = { Icon(painterResource(action.icon), contentDescription = null) },
+                onClick = {
+                    onClose()
+                    action.onClick()
+                },
+            )
+        }
+    }
 }
 
 /** What a swipe does: its icon and label behind the row, and the action. */
@@ -632,7 +705,10 @@ internal fun ArticleRow(
     modifier: Modifier = Modifier,
     /** Tapping the feed's name shows only that feed (#185); null where it isn't a filter. */
     onFeedClick: (() -> Unit)? = null,
+    /** What a long press offers (#221). */
+    menu: List<RowMenuAction> = emptyList(),
 ) {
+    var menuOpen by remember { mutableStateOf(false) }
     val shown = if (showReadState) article else article.copy(read = false)
     val time =
         remember(shown.sortTime) {
@@ -647,11 +723,15 @@ internal fun ArticleRow(
     val snippet = remember(shown.html) { Html.snippet(shown.html) }
     val image = shown.imageUrl?.takeIf { showImage && view != ListView.Small }
     Surface(
-        onClick = onClick,
         shape = AppShapes.Item,
         color = if (shown.read) MaterialTheme.colorScheme.surfaceContainerLow else MaterialTheme.colorScheme.surfaceContainer,
-        modifier = modifier.fillMaxWidth(),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .clip(AppShapes.Item)
+                .longPressMenu(menu, onClick) { menuOpen = true },
     ) {
+        RowMenu(menu, menuOpen) { menuOpen = false }
         when (view) {
             ListView.Small -> {
                 Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {

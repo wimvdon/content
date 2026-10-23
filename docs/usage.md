@@ -121,9 +121,10 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   same feed again, keeps it as it was; a refresh the app does by itself does too.
 - Scrolling down slides the title, the folder tabs and the **Unread** and **All** chips out of the way, so you see
   more articles; scroll up a little and they come straight back.
-- **Swipe** an article right past about a third of its width (you feel a short tick) to
-  mark it as read, or as unread when it was read; swipe it left to save it. In the web app, the
-  round button that appears on an article when you point at it does the same as swiping right,
+- **Swipe** a feed article either way past about a third of its width (you feel a short tick) to
+  save it (#221). **Press and hold** it for a menu: **Mark as read** (or unread), **Save** and
+  **Share**. In the web app, right-click it (or press and hold on a touch screen) for the same
+  menu; the round button that appears on an article when you point at it marks it read or unread,
   and so does **m** for the open article. The ☰ menu opens with the ☰ button only, so
   swiping never opens it by accident.
 - **Pull down** to download new articles. The app also does this once every time it starts. All
@@ -191,7 +192,8 @@ front (every tag you use, tap to turn one on or off; **New tag** makes one that 
 and a **Note**: one step from a feed article to its folder. **Save** keeps what you chose,
 also a folder or tag you typed but didn't add yet. **Remove** takes the save back, as if you never
 saved it ("Removed from Saved"); closing the sheet keeps it where it was just saved, unchanged.
-The same sheet, called **Organise**, opens when you swipe a saved article right in Saved. When it
+The same sheet, called **Organise**, opens when you press and hold a saved article's card in Saved
+and pick **Organise** (web: right-click it); **Share** is in that menu too. Cards don't swipe. When it
 closes, a message says where the article went; after a swipe, **Add link** or a link shared from
 another app it also has **Open**, which goes to the article in Saved.
 
@@ -279,9 +281,8 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
 - **Each article is in one place:** **To read** (where everything new arrives), **one folder**, or
   the **Archive**. Filing an article in a folder takes it out of To read; archiving it takes it out of
   its folder.
-- **Getting articles in:** **Save** in an article; **swipe a feed article left** in the list
-  (swiping right still marks it read or unread; the save sheet opens, then the message offers
-  **Open**); **Add link** (the button at the bottom right of
+- **Getting articles in:** **Save** in an article; **swipe a feed article** either way in the list,
+  or press and hold it › **Save** (the save sheet opens, then the message offers **Open**); **Add link** (the button at the bottom right of
   Saved); and sharing a link to Reader from another app. These go to To read unless you pick a
   folder in the save sheet. A feed article you save stays the same article: its feed, text and
   picture come along, and it isn't copied.

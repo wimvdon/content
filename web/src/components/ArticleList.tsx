@@ -1,4 +1,4 @@
-import { Archive, BookOpen, Users, CheckCheck, ChevronDown, Circle, CircleCheck, Folder as FolderGlyph, Heart, Highlighter, Link2, Menu, Newspaper, Quote, RefreshCw, Rss, Search, StickyNote, X, type LucideIcon } from "lucide-react";
+import { Archive, BookmarkPlus, BookOpen, CheckCheck, ChevronDown, Circle, CircleCheck, Folder as FolderGlyph, Heart, Highlighter, Link2, Menu, Newspaper, Quote, RefreshCw, Rss, Search, Share2, StickyNote, Tag as TagIcon, Users, X, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useEscape } from "./ui/useEscape";
 import { app, useApp } from "@/lib/app";
@@ -11,6 +11,8 @@ import { scrolledPast } from "@/lib/scrollRead";
 import { FeedIcon } from "./FeedIcon";
 import { Button } from "./ui/button";
 import { cn } from "./ui/cn";
+import { shareLink } from "@/lib/shareLink";
+import { WithRowMenu } from "./RowMenu";
 import { FilterChip } from "./ui/chip";
 
 type ListProps = {
@@ -141,14 +143,27 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, on
               <ul className="space-y-1">
                 {list.map((a) => (
                   <li key={articleKey(a)}>
-                    <Row
-                      article={a}
-                      feed={showFeedName ? feeds.get(a.feedUrl) : undefined}
-                      open={openKey === articleKey(a)}
-                      onOpen={() => onOpen(a)}
-                      onToggleRead={() => app.toggleRead(a)}
-                      onFeedClick={() => app.select({ kind: "feed", feedUrl: a.feedUrl })}
-                    />
+                    {/* Right-click or press and hold (#221): read or unread, Save, Share. */}
+                    <WithRowMenu
+                      items={[
+                        { icon: a.read ? <Circle /> : <CircleCheck />, label: a.read ? t("markUnread") : t("markRead"), onClick: () => app.toggleRead(a) },
+                        ...(a.link
+                          ? [
+                              { icon: <BookmarkPlus />, label: t("save"), onClick: () => app.saveArticle(a.link!, a.title) },
+                              { icon: <Share2 />, label: t("share"), onClick: () => void shareLink(a.title, a.link!) },
+                            ]
+                          : []),
+                      ]}
+                    >
+                      <Row
+                        article={a}
+                        feed={showFeedName ? feeds.get(a.feedUrl) : undefined}
+                        open={openKey === articleKey(a)}
+                        onOpen={() => onOpen(a)}
+                        onToggleRead={() => app.toggleRead(a)}
+                        onFeedClick={() => app.select({ kind: "feed", feedUrl: a.feedUrl })}
+                      />
+                    </WithRowMenu>
                   </li>
                 ))}
               </ul>
@@ -255,7 +270,15 @@ function SavedArticles({ openKey, onOpen, onMenu, onSearch }: { openKey: string 
                   const article = itemArticle(item, library);
                   return (
                     <li key={item.key} className="mb-2 break-inside-avoid">
-                      <NoteCard note={noteOf(item)} feed={sourceOf(item, library)} open={openKey === articleKey(article)} onOpen={() => onOpen(article)} />
+                      {/* Right-click or press and hold (#221): Organise and Share. */}
+                      <WithRowMenu
+                        items={[
+                          { icon: <TagIcon />, label: t("organiseTitle"), onClick: () => app.openOrganise(item.key) },
+                          { icon: <Share2 />, label: t("share"), onClick: () => void shareLink(item.title, item.url) },
+                        ]}
+                      >
+                        <NoteCard note={noteOf(item)} feed={sourceOf(item, library)} open={openKey === articleKey(article)} onOpen={() => onOpen(article)} />
+                      </WithRowMenu>
                     </li>
                   );
                 })}
