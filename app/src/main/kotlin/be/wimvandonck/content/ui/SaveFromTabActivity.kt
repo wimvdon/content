@@ -45,6 +45,7 @@ import be.wimvandonck.content.instapaper.SharedLink
 import be.wimvandonck.content.rssReaderApp
 import be.wimvandonck.content.sync.ShareResult
 import be.wimvandonck.content.ui.reader.SaveSheet
+import be.wimvandonck.content.ui.reader.ProvideShareRecipients
 import be.wimvandonck.content.ui.reader.ShareWithUserDialog
 import be.wimvandonck.content.ui.reader.SheetKind
 import be.wimvandonck.content.ui.theme.RssReaderAppTheme
@@ -101,7 +102,10 @@ class SaveFromTabActivity : ComponentActivity() {
         val send = button || person != null || alias?.endsWith(SEND_ALIAS) == true
         setContent {
             RssReaderAppTheme {
-                if (send) SendToPerson(link, person ?: intent.getStringExtra(ExternalApps.EXTRA_EMAIL).takeIf { button }.orEmpty(), onDone = ::finish) else SaveFromTab(link, onDone = ::finish)
+                // Send with Content offers the people shared with before here too (#249).
+                ProvideShareRecipients {
+                    if (send) SendToPerson(link, person ?: intent.getStringExtra(ExternalApps.EXTRA_EMAIL).takeIf { button }.orEmpty(), onDone = ::finish) else SaveFromTab(link, onDone = ::finish)
+                }
             }
         }
     }

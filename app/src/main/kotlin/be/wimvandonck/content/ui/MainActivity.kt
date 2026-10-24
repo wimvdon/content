@@ -5,17 +5,13 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import be.wimvandonck.content.instapaper.InstapaperAuth
 import be.wimvandonck.content.rssReaderApp
 import be.wimvandonck.content.sync.EmailLinks
-import be.wimvandonck.content.ui.reader.LocalShareRecipients
-import be.wimvandonck.content.ui.reader.ShareRecipients
+import be.wimvandonck.content.ui.reader.ProvideShareRecipients
 import be.wimvandonck.content.ui.theme.RssReaderAppTheme
 import kotlinx.coroutines.launch
 
@@ -33,13 +29,8 @@ class MainActivity : ComponentActivity() {
         }
         setContent {
             RssReaderAppTheme {
-                // Send to a Content user offers the people shared with before (#235), with their Gravatar names.
-                val app = rssReaderApp
-                val settings by app.settings.settings.collectAsStateWithLifecycle()
-                val emails = settings?.recipients.orEmpty()
-                val showImages = settings?.showImages ?: false
-                val recipients = remember(emails, showImages) { ShareRecipients(emails, showImages, app.sync::profileName) }
-                CompositionLocalProvider(LocalShareRecipients provides recipients) {
+                // Send with Content offers the people shared with before (#235), with their Gravatar names.
+                ProvideShareRecipients {
                     RssReaderNavigation(openRequest = openRequest, onOpened = { openRequest = null })
                 }
             }
