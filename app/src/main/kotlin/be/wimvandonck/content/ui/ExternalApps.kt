@@ -1,17 +1,22 @@
 package be.wimvandonck.content.ui
 
 import android.app.PendingIntent
+import android.service.chooser.ChooserAction
 import android.content.ActivityNotFoundException
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
+import android.graphics.drawable.Icon
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.net.toUri
 import be.wimvandonck.content.R
+import be.wimvandonck.content.data.ShareShortcuts
 import be.wimvandonck.content.data.ShareTarget
 
 /** Hand-offs to other apps: browser, share sheet and direct sharing to one app. */
@@ -72,19 +77,61 @@ object ExternalApps {
         }
     }
 
-    /** The system share sheet with the article's link, without Reader itself (it takes shares, #97). */
+    /** Action of the intent Send with Content's buttons in Content's own share menu send (#248). */
+    const val ACTION_SEND_TO_USER = "be.wimvandonck.content.action.SEND_TO_USER"
+    const val EXTRA_EMAIL = "be.wimvandonck.content.extra.EMAIL"
+
+    /**
+     * The system share sheet with the article's link, without Content's save alias (it has its own
+     * Save button, #97). Signed in, on Android 14 and later, Send with Content and the people shared
+     * with are buttons of their own in the sheet (#248), so the Send with Content alias and its people
+     * at the top are left out; before Android 14 those stay (#246).
+     */
     fun share(
         context: Context,
         title: String,
         url: String,
         chooserTitle: String,
-    ): Boolean =
-        start(
-            context,
+    ): Boolean {
+        val buttons = Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && DirectShare.signedIn
+        val excluded = listOfNotNull(ComponentName(context, SHARE_ACTIVITY), if (buttons) ComponentName(context, DirectShare.SEND_ACTIVITY) else null)
+        val chooser =
             Intent
                 .createChooser(shareIntent(title, url), chooserTitle)
-                .putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, arrayOf(ComponentName(context, SHARE_ACTIVITY))),
-        )
+                .putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, excluded.toTypedArray())
+        if (buttons) chooser.putExtra(Intent.EXTRA_CHOOSER_CUSTOM_ACTIONS, sendButtons(context, title, url))
+        return start(context, chooser)
+    }
+
+    /** Send with Content, then the people shared with (at most five buttons in all, Android's limit). */
+    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    private fun sendButtons(
+        context: Context,
+        title: String,
+        url: String,
+    ): Array<ChooserAction> {
+        fun open(
+            request: Int,
+            email: String?,
+        ): PendingIntent {
+            val intent =
+                Intent(context, SaveFromTabActivity::class.java)
+                    .setAction(ACTION_SEND_TO_USER)
+                    .putExtra(EXTRA_OPENED_URL, url)
+                    .putExtra(EXTRA_OPENED_TITLE, title)
+                    .putExtra(EXTRA_EMAIL, email)
+            return PendingIntent.getActivity(context, request, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        }
+        val send = ChooserAction.Builder(Icon.createWithResource(context, R.drawable.ic_group), context.getString(R.string.share_send_with_content), open(REQUEST_SEND, null)).build()
+        val people =
+            ShareShortcuts.buttons(DirectShare.people).mapIndexed { i, person ->
+                ChooserAction.Builder(Icon.createWithAdaptiveBitmap(person.picture), person.label, open(REQUEST_SEND + 1 + i, person.email)).build()
+            }
+        return (listOf(send) + people).toTypedArray()
+    }
+
+    /** Request codes of the buttons' PendingIntents (one each, so their extras don't overwrite each other). */
+    private const val REQUEST_SEND = 100
 
     /**
      * Sends the article where [target] says: the share sheet, or straight to one app's share

@@ -51,7 +51,7 @@ RssReaderApp ── SettingsStore ── DataStore "settings" (Preferences)
 | `ui/settings/` | Settings screen built from the shared `SettingsKit`: Account (Instapaper sign-in and sync, `AccountSettings.kt`), Article list, Reader, Save and Share targets, Appearance. |
 | `ui/theme/` | The app's palette and the shared design kit (see `DESIGN.md`). |
 | `ui/ExternalApps.kt` | Browser, share sheet, Instapaper and Play Store intents. Content's own share menu leaves out its save alias but keeps Send with Content and the people shared with (#246). |
-| `ui/DirectShare.kt` | Send with Content in Android's share menu (the `SendActivity` alias, enabled only while signed in) and the people shared with as sharing shortcuts (#235, #246). |
+| `ui/DirectShare.kt` | Send with Content in Android's share menu (the `SendActivity` alias, enabled only while signed in) and the people shared with as sharing shortcuts (#235, #246). In Content's own share sheet, on Android 14 and later, `ExternalApps.share` shows them as the sheet's custom action buttons instead (#248). |
 
 ## Data flow
 

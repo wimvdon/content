@@ -21,4 +21,13 @@ class ShareShortcutsTest {
         assertEquals(many.take(ShareShortcuts.MAX), ShareShortcuts.pick(many))
         assertEquals(emptyList<String>(), ShareShortcuts.pick(emptyList()))
     }
+
+    @Test
+    fun `the share sheet has Send with Content and at most four people, the most recent first`() {
+        val people = (1..12).map { "p$it@example.com" }
+        assertEquals(people.take(4), ShareShortcuts.buttons(people))
+        assertEquals(ShareShortcuts.MAX_BUTTONS, ShareShortcuts.buttons(people).size + 1)
+        // Direct share never offers more people than there are buttons for.
+        assertEquals(ShareShortcuts.buttons(ShareShortcuts.pick(people)), ShareShortcuts.pick(people))
+    }
 }

@@ -2,6 +2,17 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-24: Buttons for Send with Content in Content's own share sheet (#248)
+
+- At the owner's request, Content's own share sheet shows Send with Content and up to four recent
+  people as the sheet's custom action buttons (`EXTRA_CHOOSER_CUSTOM_ACTIONS`, Android 14 and later;
+  Android shows at most five). Each opens Send with Content over the app, with the person filled in.
+- There, the Send with Content alias and its Direct share people are left out of the sheet, so
+  nothing shows twice. Other apps' share menus keep the alias and the people (custom actions only
+  exist in the sheet an app opens itself). Before Android 14, Content's sheet works as in #246.
+- This replaces the rejection of custom actions in #246's entry: they are used alongside the alias,
+  not instead of it.
+
 ## 2026-10-24: Instapaper gets Content's text (#247)
 
 - At the owner's request, a new article goes to Instapaper with the text Content shows for it

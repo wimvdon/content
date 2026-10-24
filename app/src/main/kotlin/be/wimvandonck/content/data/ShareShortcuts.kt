@@ -11,6 +11,12 @@ object ShareShortcuts {
     /** How many people the share menu gets; it shows only the first few of an app anyway. */
     const val MAX = 4
 
+    /** Android shows at most five buttons of an app in its share sheet (#248): Send with Content, then people. */
+    const val MAX_BUTTONS = 5
+
+    /** The people with a button of their own in Content's share sheet (#248), after Send with Content. */
+    fun <T> buttons(people: List<T>): List<T> = people.take(MAX_BUTTONS - 1)
+
     private const val PREFIX = "share:"
 
     fun idOf(email: String): String = PREFIX + email.trim().lowercase()
