@@ -71,7 +71,7 @@ export function itemData(i: Item): RowData {
     highlights: i.highlights.map((h) => ({ id: h.id, quote: h.quote, prefix: h.prefix, suffix: h.suffix, occurrence: h.occurrence, note: h.note, createdAt: h.createdAt })),
     // In thousandths, so both apps write the same number.
     progress: Math.round(i.progress * 1000),
-    sharedBy: i.sharedBy ? { email: i.sharedBy.email, name: i.sharedBy.name, message: i.sharedBy.message ?? "", at: i.sharedBy.at ?? 0, waits: i.sharedBy.waits === true } : null,
+    sharedBy: i.sharedBy ? { email: i.sharedBy.email, name: i.sharedBy.name, at: i.sharedBy.at ?? 0, waits: i.sharedBy.waits === true, read: i.sharedBy.read === true } : null,
   };
 }
 
@@ -135,7 +135,7 @@ export function itemOfRow(key: string, data: RowData, local: Item | undefined): 
 function sharedByOf(v: unknown): SharedBy | null {
   const m = obj(v);
   const email = str(m?.email);
-  return m && email ? { email, name: str(m.name) ?? "", message: str(m.message) ?? "", at: num(m.at) ?? 0, waits: m.waits === true } : null;
+  return m && email ? { email, name: str(m.name) ?? "", at: num(m.at) ?? 0, waits: m.waits === true, read: m.read === true } : null;
 }
 
 export const readData = (time: number): RowData => ({ time });
@@ -225,7 +225,7 @@ export function mergeItems(b: Item | null, l: Item, r: Item): Item {
     note: pick("note"),
     highlights: mergeHighlights(b?.highlights ?? [], l.highlights, r.highlights),
     progress: pick("progress"),
-    // Who shared it: once known it stays; whether it still waits follows the side that changed it.
+    // Who shared it: once known it stays; the latest share, read and in the inbox follow the side that changed it.
     sharedBy: l.sharedBy && r.sharedBy ? pick("sharedBy") : (l.sharedBy ?? r.sharedBy ?? null),
   };
 }

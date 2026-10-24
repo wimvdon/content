@@ -1,19 +1,21 @@
-import { Archive, BookmarkPlus, BookOpen, Inbox, CheckCheck, ChevronDown, Circle, CircleCheck, Folder as FolderGlyph, Heart, Highlighter, Link2, Menu, Newspaper, Quote, RefreshCw, Rss, Search, Share2, StickyNote, Tag as TagIcon, Users, X, type LucideIcon } from "lucide-react";
+import { Archive, ArrowLeft, Bell, BookmarkPlus, BookOpen, CheckCheck, ChevronDown, Circle, CircleCheck, Folder as FolderGlyph, Heart, Highlighter, Link2, Menu, Newspaper, Quote, RefreshCw, Rss, Search, Share2, StickyNote, Tag as TagIcon, Trash2, Users, X, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useEscape } from "./ui/useEscape";
 import { app, useApp } from "@/lib/app";
 import { snippet } from "@/lib/html";
 import { dayLabel, plural, t } from "@/lib/i18n";
 import { articleKey, articlesFor, chipTag, feedTags, sortTime, unreadKeys, type Article, type Feed } from "@/lib/library";
-import { itemArticle, noteOf, sameTab, savedItems, savedStates, sharedWaiting, showsNotes, sourceOf, tabTags, type NoteContent, type SavedFilter } from "@/lib/saved";
+import { itemArticle, noteOf, sameTab, savedItems, savedStates, showsNotes, sourceOf, tabTags, type NoteContent, type SavedFilter } from "@/lib/saved";
 import { sharedByLabel } from "@/lib/sharing";
-import { waitingShared } from "@/lib/items";
+import { inboxItems, inboxUnread } from "@/lib/inbox";
+import type { SharedBy } from "@/lib/items";
 import { NewDot } from "./NewDot";
+import { Avatar } from "./ShareWithUser";
+import { useShare } from "./useShare";
 import { scrolledPast } from "@/lib/scrollRead";
 import { FeedIcon } from "./FeedIcon";
 import { Button } from "./ui/button";
 import { cn } from "./ui/cn";
-import { shareLink } from "@/lib/shareLink";
 import { WithRowMenu } from "./RowMenu";
 import { FilterChip } from "./ui/chip";
 
@@ -26,20 +28,25 @@ type ListProps = {
   onUndo: (keys: Set<string>) => void;
   /** Opens Search (the title bar's button, #183). */
   onSearch: () => void;
+  /** A message at the bottom, with at most one action (Undo). */
+  onMessage: (text: string, action?: { label: string; run: () => void }) => void;
 };
 
-/** The articles of the chosen feed, folder or All articles, or Saved. */
+/** The articles of the chosen feed, folder or All articles, Saved, or the inbox (#246). */
 export function ArticleList(props: ListProps) {
-  const { selection } = useApp();
-  return selection.kind === "saved" ? (
-    <SavedArticles openKey={props.openKey} onOpen={props.onOpen} onMenu={props.onMenu} onSearch={props.onSearch} />
+  const { selection, inboxOpen } = useApp();
+  return inboxOpen ? (
+    <InboxArticles openKey={props.openKey} onOpen={props.onOpen} onMessage={props.onMessage} />
+  ) : selection.kind === "saved" ? (
+    <SavedArticles openKey={props.openKey} onOpen={props.onOpen} onMenu={props.onMenu} onSearch={props.onSearch} onMessage={props.onMessage} />
   ) : (
     <FeedArticles {...props} />
   );
 }
 
-function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, onSearch }: ListProps) {
+function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, onSearch, onMessage }: ListProps) {
   const { library, selection, settings, readThisVisit, refreshing, loaded, problems } = useApp();
+  const [share, shareDialog] = useShare((text) => onMessage(text));
   const articles = useMemo(
     () => articlesFor(library, selection, settings.unreadOnly, readThisVisit),
     [library, selection, settings.unreadOnly, readThisVisit],
@@ -152,7 +159,7 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, on
                         ...(a.link
                           ? [
                               { icon: <BookmarkPlus />, label: t("save"), onClick: () => app.saveArticle(a.link!, a.title) },
-                              { icon: <Share2 />, label: t("share"), onClick: () => void shareLink(a.title, a.link!) },
+                              { icon: <Share2 />, label: t("share"), onClick: () => share(a.title, a.link!) },
                             ]
                           : []),
                       ]}
@@ -173,6 +180,7 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, on
           ))
         )}
       </div>
+      {shareDialog}
     </section>
   );
 }
@@ -183,15 +191,26 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, on
  * Archive are collections, so their items are cards with your note (or first highlight, or the
  * description), the site, tags and highlights.
  */
-function SavedArticles({ openKey, onOpen, onMenu, onSearch }: { openKey: string | null; onOpen: (a: Article) => void; onMenu: () => void; onSearch: () => void }) {
+function SavedArticles({
+  openKey,
+  onOpen,
+  onMenu,
+  onSearch,
+  onMessage,
+}: {
+  openKey: string | null;
+  onOpen: (a: Article) => void;
+  onMenu: () => void;
+  onSearch: () => void;
+  onMessage: ListProps["onMessage"];
+}) {
   const { library, savedFilter: filter, loaded } = useApp();
+  const [share, shareDialog] = useShare((text) => onMessage(text));
   const items = useMemo(() => savedItems(library, filter), [library, filter]);
   // Every tag in Saved, whichever state is shown: a tag stays chosen when the state changes.
   const tags = useMemo(() => tabTags(library, { kind: "all" }), [library]);
   const set = (change: Partial<SavedFilter>) => app.showSaved({ ...filter, ...change });
   const plain = !filter.likedOnly && filter.tags.length === 0;
-  // Something shared with you waits (#167): a dot on the state chip and on Shared with me.
-  const waiting = sharedWaiting(library) > 0;
   return (
     <section className="flex h-full min-w-0 flex-col" aria-label={t("saved")}>
       <SearchBar onMenu={onMenu} onSearch={onSearch}>
@@ -202,11 +221,10 @@ function SavedArticles({ openKey, onOpen, onMenu, onSearch }: { openKey: string 
       <TagChips
         state={
           <StateChip
-            options={[t("toRead"), t("savedShared"), t("archiveTab"), t("all")]}
+            options={[t("toRead"), t("archiveTab"), t("all")]}
             selected={Math.max(0, savedStates.findIndex((s) => sameTab(s, filter.tab)))}
             onSelect={(i) => set({ tab: savedStates[i] })}
             filtering={filter.tab.kind !== "all"}
-            dots={waiting ? [savedStates.findIndex((s) => s.kind === "shared")] : []}
           />
         }
         // Liked is a group like a tag (#206): one at a time, before the tags.
@@ -235,7 +253,7 @@ function SavedArticles({ openKey, onOpen, onMenu, onSearch }: { openKey: string 
           <Skeletons />
         ) : items.length === 0 ? (
           <Empty
-            icon={filter.tab.kind === "archive" ? Archive : filter.tab.kind === "folder" ? FolderGlyph : filter.tab.kind === "shared" ? Users : BookOpen}
+            icon={filter.tab.kind === "archive" ? Archive : filter.tab.kind === "folder" ? FolderGlyph : BookOpen}
             title={plain && filter.tab.kind === "toread" ? t("nothingToRead") : plain && filter.tab.kind === "archive" ? t("nothingArchived") : t("savedNoneTitle")}
             text={plain && filter.tab.kind === "toread" ? t("savedEmptyBody") : undefined}
           >
@@ -258,17 +276,11 @@ function SavedArticles({ openKey, onOpen, onMenu, onSearch }: { openKey: string 
                   const article = itemArticle(item, library);
                   return (
                     <li key={item.key} className="mb-2 break-inside-avoid">
-                      {/* Right-click or press and hold (#221): Organise and Share; shared with you, first To read or the Archive (#167). */}
+                      {/* Right-click or press and hold (#221): Organise and Share. */}
                       <WithRowMenu
                         items={[
-                          ...(waitingShared(item)
-                            ? [
-                                { icon: <Inbox />, label: t("savedMoveToRead"), onClick: () => app.placeShared(item.key, "toread") },
-                                { icon: <Archive />, label: t("archive"), onClick: () => app.placeShared(item.key, "archived") },
-                              ]
-                            : []),
                           { icon: <TagIcon />, label: t("organiseTitle"), onClick: () => app.openOrganise(item.key) },
-                          { icon: <Share2 />, label: t("share"), onClick: () => void shareLink(item.title, item.url) },
+                          { icon: <Share2 />, label: t("share"), onClick: () => share(item.title, item.url, item) },
                         ]}
                       >
                         <NoteCard note={noteOf(item)} feed={sourceOf(item, library)} open={openKey === articleKey(article)} onOpen={() => onOpen(article)} />
@@ -292,7 +304,101 @@ function SavedArticles({ openKey, onOpen, onMenu, onSearch }: { openKey: string 
           </>
         )}
       </div>
+      {shareDialog}
     </section>
+  );
+}
+
+/**
+ * The inbox (#246), as on Android: what other Content users shared with you, newest first, like a
+ * feed's articles with who sent it in place of the feed. Unread ones are bold with a dot; opening one
+ * reads it. Right-click or press and hold: read or unread, Save, Share, Remove from inbox.
+ */
+function InboxArticles({ openKey, onOpen, onMessage }: { openKey: string | null; onOpen: (a: Article) => void; onMessage: ListProps["onMessage"] }) {
+  const { library, settings, loaded } = useApp();
+  const items = useMemo(() => inboxItems(library), [library]);
+  const [share, shareDialog] = useShare((text) => onMessage(text));
+  return (
+    <section className="flex h-full min-w-0 flex-col" aria-label={t("inboxTitle")}>
+      <header className="flex shrink-0 items-center gap-1 px-3 pt-3 pb-1">
+        <Button variant="ghost" size="icon" onClick={() => app.showInbox(false)} aria-label={t("back")}>
+          <ArrowLeft />
+        </Button>
+        <h1 className="text-lg font-medium">{t("inboxTitle")}</h1>
+      </header>
+      <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-6" role="feed">
+        {!loaded ? (
+          <Skeletons />
+        ) : items.length === 0 ? (
+          <Empty icon={Bell} title={t("inboxEmptyTitle")} text={t("inboxEmptyBody")} />
+        ) : (
+          <ul className="space-y-1">
+            {items.map((item) => {
+              const by = item.sharedBy!;
+              const article = { ...itemArticle(item, library), read: by.read === true, publishedAt: by.at ?? null, fetchedAt: by.at ?? 0 };
+              const toggle = () => app.markInboxRead(item.key, by.read !== true);
+              return (
+                <li key={item.key}>
+                  <WithRowMenu
+                    items={[
+                      { icon: by.read ? <Circle /> : <CircleCheck />, label: by.read ? t("markUnread") : t("markRead"), onClick: toggle },
+                      // Already in Saved: nothing to save.
+                      ...(item.readingList ? [] : [{ icon: <BookmarkPlus />, label: t("save"), onClick: () => app.saveArticle(item.url, item.title) }]),
+                      { icon: <Share2 />, label: t("share"), onClick: () => share(item.title, item.url, item) },
+                      {
+                        icon: <Trash2 />,
+                        label: t("inboxRemove"),
+                        onClick: () => {
+                          const before = app.removeFromInbox(item.key);
+                          if (before) onMessage(t("inboxRemoved"), { label: t("undo"), run: () => app.restoreInbox(before) });
+                        },
+                      },
+                    ]}
+                  >
+                    <Row
+                      article={article}
+                      feed={undefined}
+                      source={<Sender by={by} images={settings.showImages} />}
+                      open={openKey === articleKey(article)}
+                      onOpen={() => {
+                        app.markInboxRead(item.key);
+                        onOpen(article);
+                      }}
+                      onToggleRead={toggle}
+                    />
+                  </WithRowMenu>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+      {shareDialog}
+    </section>
+  );
+}
+
+/** Who shared it: their Gravatar picture (else their first letter) and name (else their address). */
+function Sender({ by, images }: { by: SharedBy; images: boolean }) {
+  const label = sharedByLabel(by);
+  return (
+    <>
+      <Avatar email={by.email} label={label} images={images} className="size-4 text-[0.6rem]" />
+      <span className="truncate">{label}</span>
+    </>
+  );
+}
+
+/** The inbox's bell (#246), with a dot while something shared with you is unread; only while signed in. */
+function InboxBell() {
+  const { account, library } = useApp();
+  if (!account) return null;
+  const unread = inboxUnread(library) > 0;
+  return (
+    <Button variant="ghost" size="icon" className="relative" onClick={() => app.showInbox(true)} aria-label={t("inboxTitle")} title={t("inboxTitle")}>
+      <Bell />
+      {unread ? <NewDot className="absolute top-2 right-2" /> : null}
+    </Button>
   );
 }
 
@@ -312,6 +418,7 @@ function SearchBar({ onMenu, onSearch, children }: { onMenu: () => void; onSearc
           {t("searchHint")}
         </button>
         {children}
+        <InboxBell />
         <Button variant="ghost" size="icon" onClick={onSearch} aria-label={t("search")}>
           <Search />
         </Button>
@@ -324,7 +431,7 @@ function SearchBar({ onMenu, onSearch, children }: { onMenu: () => void; onSearc
  * The state chip at the start of the chip row (#205): what of the place is shown, Unread or All in
  * Feeds, To read, Archive or All in Saved. A menu picks another; it is lit while it leaves things out.
  */
-function StateChip({ options, selected, onSelect, filtering, dots = [] }: { options: string[]; selected: number; onSelect: (index: number) => void; filtering: boolean; dots?: number[] }) {
+function StateChip({ options, selected, onSelect, filtering }: { options: string[]; selected: number; onSelect: (index: number) => void; filtering: boolean }) {
   const [at, setAt] = useState<{ top: number; left: number } | null>(null);
   useEscape(at !== null, () => setAt(null));
   return (
@@ -343,7 +450,6 @@ function StateChip({ options, selected, onSelect, filtering, dots = [] }: { opti
           filtering ? "border-transparent bg-accent text-accent-foreground" : "hover:bg-muted",
         )}
       >
-        {dots.length > 0 ? <NewDot className="mr-0.5" /> : null}
         {options[selected]}
         <ChevronDown className="size-4" />
       </button>
@@ -365,7 +471,6 @@ function StateChip({ options, selected, onSelect, filtering, dots = [] }: { opti
               >
                 <span className={cn("size-4 rounded-full border-2", i === selected ? "border-primary bg-primary shadow-[inset_0_0_0_2px_var(--color-card)]" : "border-muted-foreground")} />
                 <span className="flex-1">{label}</span>
-                {dots.includes(i) ? <NewDot /> : null}
               </button>
             ))}
           </div>
@@ -473,8 +578,6 @@ export function NoteCard({ note, feed, open, onOpen, label }: { note: NoteConten
             <span className="truncate">{t("shareUserFrom").replace("{name}", sharedByLabel(note.sharedBy))}</span>
           </div>
         ) : null}
-        {/* Their message (#167). */}
-        {note.sharedBy?.message?.trim() ? <p className="line-clamp-3 text-xs italic">{note.sharedBy.message.trim()}</p> : null}
         <div className="flex items-center gap-1.5 text-xs">
           <span className="flex min-w-0 items-center gap-1 text-muted-foreground">
             {feed ? <FeedIcon feed={feed} className="size-4" /> : null}
@@ -508,6 +611,7 @@ export function Row({
   label,
   onToggleRead,
   onFeedClick,
+  source,
 }: {
   article: Article;
   feed: Feed | undefined;
@@ -518,8 +622,10 @@ export function Row({
   onToggleRead?: () => void;
   /** Clicking the feed's name shows only that feed (#185). */
   onFeedClick?: () => void;
+  /** Shown where the feed's name goes: who shared it, in the inbox (#246). */
+  source?: React.ReactNode;
 }) {
-  const row = <RowButton article={article} feed={feed} open={open} onOpen={onOpen} noReadState={noReadState} label={label} onFeedClick={onFeedClick} />;
+  const row = <RowButton article={article} feed={feed} open={open} onOpen={onOpen} noReadState={noReadState} label={label} onFeedClick={onFeedClick} source={source} />;
   if (!onToggleRead) return row;
   const toggle = article.read ? t("markUnread") : t("markRead");
   return (
@@ -546,6 +652,7 @@ function RowButton({
   noReadState,
   label,
   onFeedClick,
+  source,
 }: {
   article: Article;
   feed: Feed | undefined;
@@ -554,6 +661,7 @@ function RowButton({
   noReadState?: boolean;
   label?: string;
   onFeedClick?: () => void;
+  source?: React.ReactNode;
 }) {
   const { settings } = useApp();
   const view = settings.listView;
@@ -575,9 +683,11 @@ function RowButton({
     >
       {view === "large" && image ? <img src={image} alt="" loading="lazy" referrerPolicy="no-referrer" className="aspect-video w-full bg-muted object-cover" onError={hide} /> : null}
       <div className={cn("min-w-0 flex-1", view === "large" && "px-3 pb-3", view === "large" && !image && "pt-3")}>
-        {feed || label ? (
+        {feed || label || source ? (
           <div className="mb-1 flex items-center gap-1.5 text-xs font-medium text-primary">
-            {feed && onFeedClick ? (
+            {source ? (
+              <span className="flex min-w-0 items-center gap-1.5">{source}</span>
+            ) : feed && onFeedClick ? (
               // Inside the row's button, so a span that acts as a button (#185).
               <span
                 role="button"

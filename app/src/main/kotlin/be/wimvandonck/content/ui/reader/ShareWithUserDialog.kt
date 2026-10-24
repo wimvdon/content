@@ -37,12 +37,11 @@ fun ShareWithUserDialog(
     what: String,
     /** Filled in already: a person picked in Android's share menu (#235). */
     initialEmail: String = "",
-    onSend: (email: String, message: String, result: (ShareResult) -> Unit) -> Unit,
+    onSend: (email: String, result: (ShareResult) -> Unit) -> Unit,
     onDone: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     var email by rememberSaveable { mutableStateOf(initialEmail) }
-    var message by rememberSaveable { mutableStateOf("") }
     var sending by rememberSaveable { mutableStateOf(false) }
     var problem by rememberSaveable { mutableStateOf<ShareResult?>(null) }
     val valid = Regex("""^[^\s@]+@[^\s@]+\.[^\s@]+$""").matches(email.trim())
@@ -80,20 +79,13 @@ fun ShareWithUserDialog(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Send),
                     modifier = Modifier.fillMaxWidth(),
                 )
-                OutlinedTextField(
-                    value = message,
-                    onValueChange = { message = it.take(MAX_MESSAGE) },
-                    label = { Text(stringResource(R.string.share_user_message)) },
-                    minLines = 2,
-                    modifier = Modifier.fillMaxWidth(),
-                )
                 problem?.let { Text(stringResource(it.messageRes()), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
             }
         },
         confirmButton = {
             TextButton(enabled = valid && !sending, onClick = {
                 sending = true
-                onSend(email.trim(), message.trim()) { result ->
+                onSend(email.trim()) { result ->
                     sending = false
                     if (result == ShareResult.Sent) onDone() else problem = result
                 }
@@ -111,6 +103,3 @@ private fun ShareResult.messageRes(): Int =
         ShareResult.Offline -> R.string.problem_offline
         ShareResult.Sent, ShareResult.Failed -> R.string.problem_server
     }
-
-/** The longest message for the receiver (the feed loader keeps as much). */
-private const val MAX_MESSAGE = 1000

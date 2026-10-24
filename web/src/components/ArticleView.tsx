@@ -1,8 +1,7 @@
-import { ALargeSmall, ArrowLeft, Circle, CircleCheck, EllipsisVertical, ExternalLink, FileText, Flag, Trash2, Users } from "lucide-react";
+import { ALargeSmall, ArrowLeft, Circle, CircleCheck, EllipsisVertical, ExternalLink, FileText, Flag, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { app, useApp } from "@/lib/app";
-import { sharedArticle } from "@/lib/sharing";
-import { ShareWithUserDialog } from "./ShareWithUser";
+import { useShare } from "./useShare";
 import { MAX_REPORT_COMMENT, REPORT_PROBLEMS, reportUrl, type ReportProblem } from "@/lib/articleReport";
 import { extractArticle, needsFullText, wantsFullText } from "@/lib/fullArticle";
 import { cached, cachedNow, keep } from "@/lib/fullArticleStore";
@@ -40,7 +39,7 @@ export function ArticleView({
   onBack: () => void;
   onMessage: (text: string, action?: { label: string; run: () => void }) => void;
 }) {
-  const { library, settings, instapaperNotCopied, account } = useApp();
+  const { library, settings, instapaperNotCopied } = useApp();
   // A saved article (also a feed article that was saved): the feed it came from (or its website)
   // above it, and Saved's actions instead of read state and Save.
   const fromSaved = isItemArticle(article);
@@ -94,19 +93,8 @@ export function ArticleView({
   const html = useSanitized(fullHtml ?? feedHtml, base, showImages);
   const showHero = settings.showImages && article.imageUrl && !html.includes(article.imageUrl);
 
-  const share = async () => {
-    if (!article.link) return;
-    if (navigator.share) {
-      await navigator.share({ title: article.title, url: article.link }).catch(() => undefined);
-    } else {
-      // Copying can be refused (no permission): then the message shows the link to copy by hand.
-      const copied = await navigator.clipboard.writeText(article.link).then(
-        () => true,
-        () => false,
-      );
-      onMessage(copied ? t("linkCopied") : article.link);
-    }
-  };
+  // Share (#246): Send with Content and the people shared with before, then Other apps.
+  const [share, shareDialog] = useShare((text) => onMessage(text));
 
   // The dialog to file it (folder and tags) says it was saved.
   const saveArticle = () => article.link && app.saveArticle(article.link, article.title);
@@ -114,7 +102,6 @@ export function ArticleView({
   useEscape(menuOpen, () => setMenuOpen(false));
   const [removeOpen, setRemoveOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
-  const [shareUserOpen, setShareUserOpen] = useState(false);
   // Highlights (#102): those of the article's item; one open, a new one waiting for its note, the list.
   const highlights = found?.highlights ?? NO_HIGHLIGHTS;
   // A saved article's highlights made in Instapaper's own apps come in when it opens (#164).
@@ -181,7 +168,6 @@ export function ArticleView({
                     close={() => setMenuOpen(false)}
                   />
                 ) : null}
-                {article.link && account ? <MenuItem icon={<Users />} label={t("shareUserMenu")} onClick={() => setShareUserOpen(true)} close={() => setMenuOpen(false)} /> : null}
                 {article.link ? <MenuItem icon={<Flag />} label={t("reportMenu")} onClick={() => setReportOpen(true)} close={() => setMenuOpen(false)} /> : null}
                 {saved ? <MenuItem icon={<Trash2 />} label={t("savedRemove")} onClick={() => setRemoveOpen(true)} close={() => setMenuOpen(false)} /> : null}
               </div>
@@ -251,7 +237,7 @@ export function ArticleView({
       <LibraryBar
         item={saved}
         onSave={article.link && !fromSaved ? saveArticle : null}
-        onShare={article.link ? () => void share() : null}
+        onShare={article.link ? () => share(article.title, article.link!, found) : null}
         highlightCount={highlights.length}
         onHighlights={() => setListOpen(true)}
         onArchived={(undo) => {
@@ -285,14 +271,7 @@ export function ArticleView({
           onClose={() => setListOpen(false)}
         />
       ) : null}
-      {shareUserOpen && article.link ? (
-        <ShareWithUserDialog
-          what={t("shareUserArticle")}
-          items={[found ? sharedArticle(found) : { url: article.link, title: article.title }]}
-          tag={null}
-          onClose={() => setShareUserOpen(false)}
-        />
-      ) : null}
+      {shareDialog}
       {reportOpen && article.link ? <ReportDialog link={article.link} onClose={() => setReportOpen(false)} /> : null}
       {saved ? <RemoveDialog item={saved} open={removeOpen} onClose={() => setRemoveOpen(false)} onRemoved={() => fromSaved && onBack()} /> : null}
     </article>

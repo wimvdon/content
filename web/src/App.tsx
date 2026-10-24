@@ -75,7 +75,13 @@ export default function App() {
     message ??
     (instapaperNotice ? { text: t(instapaperNotice === "signedIn" ? "instapaperSignedIn" : "instapaperSignInFailed") } : null) ??
     (accountNotice ? { text: t(accountMessages[accountNotice]) } : null) ??
-    (received ? { text: t("shareUserReceived").replace("{names}", received.from.map(sharedByLabel).join(", ")).replace("{count}", plural("articleCount", received.count)) } : null);
+    (received
+      ? {
+          text: t("shareUserReceived").replace("{names}", received.from.map(sharedByLabel).join(", ")).replace("{count}", plural("articleCount", received.count)),
+          // Open goes to the inbox (#246).
+          action: { label: t("open"), run: () => app.showInbox(true) },
+        }
+      : null);
 
   const open = useCallback((a: Article) => {
     app.open(a);
@@ -179,6 +185,7 @@ export default function App() {
               onImport={() => fileInput.current?.click()}
               onUndo={undoMarkAll}
               onSearch={() => setSearching(true)}
+              onMessage={(text, action) => setMessage({ text, action })}
             />
           )}
         </div>

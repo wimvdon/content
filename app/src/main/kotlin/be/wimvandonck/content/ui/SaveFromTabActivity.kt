@@ -54,8 +54,9 @@ import kotlinx.coroutines.launch
  * The save sheet on a see-through screen (#95, #103): over the custom tab for its Save button, and
  * over the other app for a link shared to Reader (through the ShareActivity alias in the manifest),
  * without opening the whole app. Saving shows a message with Open (#142), then goes back to where the
- * user was; closing the sheet goes back at once. A link shared to a person in the share menu (#235)
- * opens Send to a Content user with them filled in instead.
+ * user was; closing the sheet goes back at once. A link shared to Send with Content (the SendActivity
+ * alias, #246), or to a person shown with it in the share menu (#235), opens Send with Content
+ * instead, with that person filled in.
  */
 class SaveFromTabActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -68,7 +69,8 @@ class SaveFromTabActivity : ComponentActivity() {
         }
         val shared = intent.action == Intent.ACTION_SEND
         // Other apps reach this screen only through the share alias, and only with a shared link.
-        if (!shared && intent.component?.className?.endsWith(SHARE_ALIAS) == true) {
+        val alias = intent.component?.className
+        if (!shared && (alias?.endsWith(SHARE_ALIAS) == true || alias?.endsWith(SEND_ALIAS) == true)) {
             finish()
             return
         }
@@ -90,11 +92,12 @@ class SaveFromTabActivity : ComponentActivity() {
             finish()
             return
         }
-        // A person picked in the share menu (#235): send it to them instead of saving it.
+        // Send with Content, or a person picked in the share menu (#235): send it instead of saving it.
         val person = if (shared) ShareShortcuts.emailOf(intent.getStringExtra(ShortcutManagerCompat.EXTRA_SHORTCUT_ID)) else null
+        val send = person != null || alias?.endsWith(SEND_ALIAS) == true
         setContent {
             RssReaderAppTheme {
-                if (person != null) SendToPerson(link, person, onDone = ::finish) else SaveFromTab(link, onDone = ::finish)
+                if (send) SendToPerson(link, person.orEmpty(), onDone = ::finish) else SaveFromTab(link, onDone = ::finish)
             }
         }
     }
@@ -102,6 +105,9 @@ class SaveFromTabActivity : ComponentActivity() {
     private companion object {
         /** The exported alias other apps share links to (AndroidManifest.xml). */
         const val SHARE_ALIAS = ".ShareActivity"
+
+        /** The exported alias for Send with Content (#246). */
+        const val SEND_ALIAS = ".SendActivity"
     }
 }
 
@@ -175,7 +181,7 @@ private fun SaveFromTab(
     }
 }
 
-/** Send to a Content user (#235), from Android's share menu, with the person picked there filled in. */
+/** Send with Content (#235, #246), from Android's share menu, with the person picked there (if any) filled in. */
 @Composable
 private fun SendToPerson(
     link: SharedLink,
@@ -189,9 +195,9 @@ private fun SendToPerson(
     ShareWithUserDialog(
         what = stringResource(R.string.share_user_article),
         initialEmail = email,
-        onSend = { to, message, result ->
+        onSend = { to, result ->
             scope.launch {
-                val r = app.sync.share(to, listOf(SharedArticle(link.url, link.title ?: link.url)), null, message)
+                val r = app.sync.share(to, listOf(SharedArticle(link.url, link.title ?: link.url)), null)
                 result(r)
                 if (r == ShareResult.Sent) Toast.makeText(context, resources.getString(R.string.share_user_sent, to), Toast.LENGTH_SHORT).show()
             }

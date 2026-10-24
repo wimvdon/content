@@ -47,9 +47,7 @@ fun Library.newItem(
 }
 
 /** Adds or replaces an item; an item with nothing of the user's left on it is dropped. */
-fun Library.putItem(given: Item): Library {
-    // Put in Saved, a shared item no longer waits in Shared with me (#167): removing it later drops it.
-    val item = if (given.readingList != null && given.sharedBy?.waits == true) given.copy(sharedBy = given.sharedBy.copy(waits = false)) else given
+fun Library.putItem(item: Item): Library {
     val index = items.indexOfFirst { it.key == item.key }
     return when {
         !item.kept -> if (index < 0) this else copy(items = items.filterIndexed { i, _ -> i != index })

@@ -1,16 +1,16 @@
 package be.wimvandonck.content.data
 
 /**
- * Who shared an item with you (#167): their email address and name (the name may be empty), their
- * message, when, and whether it still [waits] in Saved › Shared with me (until you put it in To read
- * or the Archive, or remove it).
+ * Who shared an item with you (#167): their email address and name (the name may be empty), when,
+ * whether it is in the inbox ([inInbox], until you remove it there; saving it doesn't) and whether
+ * you opened it there ([read]).
  */
 data class SharedBy(
     val email: String,
     val name: String = "",
-    val message: String = "",
     val at: Long = 0,
-    val waits: Boolean = false,
+    val inInbox: Boolean = false,
+    val read: Boolean = false,
 ) {
     /** How the app names them: the name, else the address. */
     val label: String get() = name.ifBlank { email }
@@ -31,8 +31,6 @@ data class InboxMessage(
     val items: List<SharedArticle>,
     /** The tag it was shared as, or null for single articles. */
     val tag: String? = null,
-    /** The sender's message, or empty. */
-    val message: String = "",
 )
 
 /** What taking in the inbox brought: from whom, and how many articles. */
@@ -43,9 +41,9 @@ data class Received(
 
 /**
  * Sharing with other Content users (#167). Sending picks what goes (one article, or a tag's
- * articles); receiving puts each shared article in Saved, To read, marked with who shared it (and
- * the tag it was shared as). A one-time copy: later changes on either side don't follow. Plain
- * Kotlin, unit tested; the web app's `sharing.ts` does the same.
+ * articles); receiving puts each shared article in the inbox, unread, marked with who shared it (and
+ * the tag it was shared as), whether or not it is in Saved too. A one-time copy: later changes on
+ * either side don't follow. Plain Kotlin, unit tested; the web app's `sharing.ts` does the same.
  */
 object Sharing {
     /** The most articles one share may hold. */
@@ -65,9 +63,9 @@ object Sharing {
             .map(::article)
 
     /**
-     * The library with [messages] taken in: each article waits in Saved › Shared with me with who
-     * shared it, their message and the tag it was shared as; one already in Saved stays where it is.
-     * An article already shared keeps its first sender. Returns what arrived.
+     * The library with [messages] taken in: each article is in the inbox, unread, with who shared it
+     * and the tag it was shared as. One already in Saved stays there as well; one shared again comes
+     * back unread with its latest sender. Returns what arrived.
      */
     fun takeIn(
         library: Library,
@@ -85,7 +83,7 @@ object Sharing {
                 val tags = message.tag?.takeIf { t -> base.tags.none { it.equals(t, ignoreCase = true) } }?.let { base.tags + it } ?: base.tags
                 val updated =
                     base.copy(
-                        sharedBy = base.sharedBy ?: message.from.copy(message = message.message.trim(), at = now, waits = base.readingList == null),
+                        sharedBy = message.from.copy(at = now, inInbox = true, read = false),
                         tags = cleanTags(tags),
                     )
                 if (updated != existing) {
@@ -96,5 +94,36 @@ object Sharing {
             }
         }
         return lib to Received(from.toList(), count)
+    }
+}
+
+/**
+ * The inbox (#246): what other Content users shared with you, newest first, read or unread, until you
+ * remove it. Saving an article from it keeps it there, as a feed article stays in its feed. Plain
+ * Kotlin, unit tested; the web app's `inbox.ts` does the same.
+ */
+object Inbox {
+    fun items(library: Library): List<Item> = library.items.filter { it.inInbox }.sortedByDescending { it.sharedBy!!.at }
+
+    /** How many are unread: the bell's dot shows while there are any. */
+    fun unread(library: Library): Int = library.items.count { it.inInbox && !it.sharedBy!!.read }
+
+    /** The library with item [key] marked read (or unread) in the inbox; the same when it isn't there. */
+    fun markRead(
+        library: Library,
+        key: String,
+        read: Boolean = true,
+    ): Library {
+        val item = library.item(key)?.takeIf { it.inInbox && it.sharedBy!!.read != read } ?: return library
+        return library.putItem(item.copy(sharedBy = item.sharedBy!!.copy(read = read)))
+    }
+
+    /** The library with item [key] out of the inbox; it stays in Saved if it is saved. */
+    fun remove(
+        library: Library,
+        key: String,
+    ): Library {
+        val item = library.item(key)?.takeIf { it.inInbox } ?: return library
+        return library.putItem(item.copy(sharedBy = item.sharedBy!!.copy(inInbox = false)))
     }
 }

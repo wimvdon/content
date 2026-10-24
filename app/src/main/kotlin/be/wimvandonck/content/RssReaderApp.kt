@@ -111,12 +111,14 @@ class RssReaderApp :
         appScope.launch {
             account.state.collect { state -> if (state is AccountState.SignedOut) push.signedOut() }
         }
-        // Direct share (#235): the people shared with, in Android's share menu, while signed in.
+        // Direct share (#235, #246): Send with Content and the people shared with, in Android's share
+        // menu, while signed in.
         appScope.launch {
             combine(settings.settings.filterNotNull(), account.state) { s, state ->
-                (if (state is AccountState.SignedIn) s.recipients else emptyList()) to s.showImages
-            }.distinctUntilChanged().collect { (recipients, showImages) ->
-                DirectShare.publish(this@RssReaderApp, recipients, showImages, sync::profileName)
+                Triple(state is AccountState.SignedIn, s.recipients, s.showImages)
+            }.distinctUntilChanged().collect { (signedIn, recipients, showImages) ->
+                DirectShare.showSendTarget(this@RssReaderApp, signedIn)
+                DirectShare.publish(this@RssReaderApp, if (signedIn) recipients else emptyList(), showImages, sync::profileName)
             }
         }
         // Signed in with Instapaper before #166: that account key moves to the Content account, once.

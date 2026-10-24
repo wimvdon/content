@@ -1,7 +1,9 @@
 package be.wimvandonck.content.ui
 
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
@@ -18,11 +20,27 @@ import coil3.request.SuccessResult
 import coil3.toBitmap
 
 /**
- * Direct share (#235): publishes the people shared with as sharing shortcuts, so Android's share
- * menu offers them at the top. Picking one opens the share screen (ShareActivity) with their address
- * filled in. Pictures come from Gravatar when Show images is on, else the first letter of the name.
+ * Direct share (#235, #246): Send with Content in Android's share menu (the SendActivity alias, only
+ * while signed in), and the people shared with as sharing shortcuts at the top of it, in every app's
+ * share menu and in Content's own. Picking one opens Send with Content with their address filled in.
+ * Pictures come from Gravatar when Show images is on, else the first letter of the name.
  */
 object DirectShare {
+    /** The alias that takes links to send to a Content user (AndroidManifest.xml). */
+    const val SEND_ACTIVITY = "be.wimvandonck.content.ui.SendActivity"
+
+    /** Shows Send with Content in the share menu while signed in, and hides it otherwise. */
+    fun showSendTarget(
+        context: Context,
+        signedIn: Boolean,
+    ) {
+        val state = if (signedIn) PackageManager.COMPONENT_ENABLED_STATE_ENABLED else PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+        val component = ComponentName(context, SEND_ACTIVITY)
+        if (context.packageManager.getComponentEnabledSetting(component) != state) {
+            context.packageManager.setComponentEnabledSetting(component, state, PackageManager.DONT_KILL_APP)
+        }
+    }
+
     suspend fun publish(
         context: Context,
         recipients: List<String>,

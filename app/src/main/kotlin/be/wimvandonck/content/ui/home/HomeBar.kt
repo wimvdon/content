@@ -15,6 +15,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -96,8 +99,6 @@ fun StateChip(
     onSelect: (Int) -> Unit,
     /** Whether the chosen state leaves things out (everything but All). */
     filtering: Boolean,
-    /** The options with something new (#167): a dot on them, and on the chip. */
-    dots: Set<Int> = emptySet(),
 ) {
     var open by remember { mutableStateOf(false) }
     Box {
@@ -105,7 +106,6 @@ fun StateChip(
             selected = filtering,
             onClick = { open = true },
             label = { Text(options[selected], maxLines = 1) },
-            leadingIcon = if (dots.isNotEmpty()) ({ NewDot() }) else null,
             trailingIcon = { Icon(painterResource(R.drawable.ic_expand_more), contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) },
         )
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
@@ -113,7 +113,6 @@ fun StateChip(
                 DropdownMenuItem(
                     text = { Text(label) },
                     leadingIcon = { RadioButton(selected = index == selected, onClick = null) },
-                    trailingIcon = if (index in dots) ({ NewDot() }) else null,
                     onClick = {
                         open = false
                         if (index != selected) onSelect(index)
@@ -168,14 +167,20 @@ fun TagChips(
     }
 }
 
-/** Something new waits there (#167): a small dot in the primary colour. */
+/**
+ * The inbox's bell in the search bar (#246), with Material's small badge while something shared with
+ * you is unread.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NewDot(modifier: Modifier = Modifier) {
-    val label = stringResource(R.string.saved_shared_new)
-    Box(
-        modifier
-            .size(8.dp)
-            .background(MaterialTheme.colorScheme.primary, CircleShape)
-            .semantics { contentDescription = label },
-    )
+fun InboxButton(
+    unread: Int,
+    onClick: () -> Unit,
+) {
+    val label = if (unread > 0) stringResource(R.string.inbox_open_unread) else stringResource(R.string.inbox_title)
+    IconButton(onClick = onClick) {
+        BadgedBox(badge = { if (unread > 0) Badge() }) {
+            Icon(painterResource(R.drawable.ic_notifications), contentDescription = label)
+        }
+    }
 }

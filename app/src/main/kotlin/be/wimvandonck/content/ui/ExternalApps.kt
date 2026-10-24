@@ -31,7 +31,10 @@ object ExternalApps {
     const val EXTRA_OPENED_URL = "be.wimvandonck.content.extra.OPENED_URL"
     const val EXTRA_OPENED_TITLE = "be.wimvandonck.content.extra.OPENED_TITLE"
 
-    /** The alias other apps share links to (AndroidManifest.xml, #103); left out of Reader's own share menu. */
+    /**
+     * The alias other apps share links to for saving (AndroidManifest.xml, #103); left out of
+     * Content's own share menu, which has a Save button of its own. Send with Content stays (#246).
+     */
     private const val SHARE_ACTIVITY = "be.wimvandonck.content.ui.ShareActivity"
 
     /**

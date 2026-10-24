@@ -75,7 +75,8 @@ rss-reader/
         │   │   └── ui/
         │   │       ├── MainActivity.kt, Navigation.kt   Entry, back stack, wiring
         │   │       ├── ExternalApps.kt        Browser, share, Instapaper, Play Store
-        │   │       ├── home/                  Article list, folder bar, feed drawer, Add feed dialog, messages
+        │   │       ├── DirectShare.kt         Send with Content and the people shared with, in the share menu
+        │   │       ├── home/                  Article list, folder bar, feed drawer, Add feed dialog, messages, inbox
         │   │       ├── reader/                Reader screen, text settings, reader colours
         │   │       ├── feeds/                 Feeds and folders page, folder dialogs
         │   │       ├── settings/              Settings screen, Save/Share targets

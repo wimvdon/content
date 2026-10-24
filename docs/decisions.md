@@ -2,6 +2,29 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-24: An inbox for what is shared, and sending from the share menu (#246)
+
+- At the owner's request, what other Content users send no longer goes into Saved (the Shared with
+  me state is gone): it lands in an **inbox** behind a bell in the search bar, shown only while
+  signed in. It works like a feed: newest first, unread in bold with a dot, read once opened, and a
+  dot on the bell while something is unread. It has no folders or tags of its own.
+- Saving from the inbox keeps the article there, as a feed article stays in its feed; removing it
+  from the inbox (with Undo) or from Saved leaves the other. An article already in Saved now arrives
+  in the inbox too, and the same article shared again comes back unread with its latest sender. This
+  fixes the earlier behaviour where an article that was already saved seemed not to arrive.
+- In the sync format, `sharedBy.waits` now means "in the inbox", independent of `readingList`, and
+  gains `read`; `message` is dropped (`docs/sync.md`). Both apps change together, as before.
+- The message to the receiver is dropped: it was rarely needed, and the inbox shows who sent it.
+- Sending lives in the share menu instead of a menu entry of its own: on Android a second share
+  alias, **Send with Content** (`ui.SendActivity`), enabled only while signed in, and the people
+  shared with as sharing shortcuts pointing at it. Content's own share menu now keeps them (it still
+  leaves out the save alias, which has its own button). The web app's Share opens Send with Content
+  with the people shared with, and Other apps for the browser's share menu. Sharing a whole tag stays
+  in Manage feeds and tags.
+- Rejected: custom actions in Android's share menu (`EXTRA_CHOOSER_CUSTOM_ACTIONS`): they only show in
+  Content's own menu, while the alias and shortcuts also work from every other app; and keeping
+  inbox articles in Saved with a flag (Saved and the inbox are different places for the owner).
+
 ## 2026-10-23: The app ID is be.wimvandonck.content
 
 - At the owner's request, the application id changed from `be.wimvandonck.reader` to

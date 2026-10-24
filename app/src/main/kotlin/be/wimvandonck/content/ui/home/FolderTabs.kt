@@ -110,7 +110,6 @@ fun SavedTabRow(
                                 SavedTab.ToRead -> stringResource(R.string.reading_list_to_read)
                                 SavedTab.All -> stringResource(R.string.filter_all)
                                 SavedTab.Archive -> stringResource(R.string.reading_list_archive)
-                                SavedTab.Shared -> stringResource(R.string.saved_shared)
                                 is SavedTab.Folder -> tab.name
                             },
                             maxLines = 1,
@@ -125,7 +124,6 @@ fun SavedTabRow(
                                     SavedTab.ToRead -> R.drawable.ic_reading_list
                                     SavedTab.All -> R.drawable.ic_bookmarks_outline
                                     SavedTab.Archive -> R.drawable.ic_inventory
-                                    SavedTab.Shared -> R.drawable.ic_group
                                     is SavedTab.Folder -> R.drawable.ic_folder
                                 },
                             ),

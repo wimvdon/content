@@ -259,7 +259,7 @@ class SyncManager(
         library.saveItemSyncState(items, nextItems)
         syncedItemsVersion = nextItems.version
         if (newFeeds) scope.launch { library.refreshAll() }
-        // What other Content users shared (#167): into Saved, then out of the inbox.
+        // What other Content users shared (#167): into the app's inbox (#246), then out of the account's.
         val inbox = runCatching { target.inbox() }.getOrDefault(emptyList())
         if (inbox.isNotEmpty()) {
             var received: Received? = null
@@ -300,12 +300,11 @@ class SyncManager(
         to: String,
         items: List<SharedArticle>,
         tag: String?,
-        message: String = "",
     ): ShareResult {
         val session = account.session() ?: return ShareResult.SignedOut
         val email = session.email ?: return ShareResult.NoEmail
         return try {
-            if (AccountClient(http, session.key).share(to, SharedBy(email), items, tag, message)) {
+            if (AccountClient(http, session.key).share(to, SharedBy(email), items, tag)) {
                 // Offered first next time, on every device (#235).
                 settings.rememberRecipient(to)
                 ShareResult.Sent

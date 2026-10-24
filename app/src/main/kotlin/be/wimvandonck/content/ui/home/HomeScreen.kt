@@ -148,6 +148,10 @@ data class HomeState(
     val saved: SavedHome? = null,
     /** How many articles are still to read, for the drawer and the navigation. */
     val toReadCount: Int = 0,
+    /** Signed in to a Content account: the inbox's bell shows (#246). */
+    val signedIn: Boolean = false,
+    /** How many articles shared with you are unread, for the bell's badge. */
+    val inboxUnread: Int = 0,
 )
 
 /** The app's top-level destinations (#119): Feeds and Saved. */
@@ -165,7 +169,8 @@ class HomeActions(
     val onShareArticle: (Article) -> Unit = {},
     val onShareItem: (Item) -> Unit = {},
     /** Puts an item shared with you in To read or the Archive (#167). */
-    val onPlaceShared: (Item, ReadingState) -> Unit = { _, _ -> },
+    /** Opens the inbox (#246): what other Content users shared with you. */
+    val onOpenInbox: () -> Unit = {},
     val onRefresh: () -> Unit,
     val onMarkAllRead: () -> Unit,
     /** Articles that scrolled off the top, with Mark as read on scroll on. */
@@ -202,7 +207,6 @@ fun HomeScreen(
     val scope = rememberCoroutineScope()
     // Saved replaces the feed sections: its own title, tabs and chips, no Mark all read.
     val reading = state.saved?.takeIf { state.section == HomeSection.Saved }
-    val sharedWaiting = state.saved?.let { remember(it.library) { Saved.sharedWaiting(it.library) } } ?: 0
     val inFeeds = reading == null
     val unreadHere = state.unreadCounts[state.selection] ?: 0
     val feedTags = remember(state.feeds) { state.feeds.flatMap { it.tags }.distinctBy { it.lowercase() }.sortedBy { it.lowercase() } }
@@ -260,7 +264,7 @@ fun HomeScreen(
         LaunchedEffect(state.selection, state.section, reading?.filter, hasArticles) { scrollBehavior.state.heightOffset = 0f }
         // On wide windows Feed and Saved move to a navigation rail at the side.
         Row(Modifier.fillMaxSize()) {
-            if (wide) MainNavigationRail(tab, onTab, savedDot = sharedWaiting > 0)
+            if (wide) MainNavigationRail(tab, onTab)
             Scaffold(
                 modifier = Modifier.weight(1f).nestedScroll(scrollBehavior.nestedScrollConnection),
                 snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -269,16 +273,15 @@ fun HomeScreen(
                         HomeSearchBar(
                             onMenu = { scope.launch { drawerState.open() } },
                             onSearch = actions.onOpenSearch,
+                            trailing = { if (state.signedIn) InboxButton(state.inboxUnread, actions.onOpenInbox) },
                         )
                         if (reading != null) {
                             val stateLabels =
                                 listOf(
                                     stringResource(R.string.reading_list_to_read),
-                                    stringResource(R.string.saved_shared),
                                     stringResource(R.string.reading_list_archive),
                                     stringResource(R.string.filter_all),
                                 )
-                            val waiting = remember(reading.library) { Saved.sharedWaiting(reading.library) }
                             TagChips(
                                 tags = reading.tags,
                                 selected = reading.filter.tags.firstOrNull(),
@@ -291,8 +294,6 @@ fun HomeScreen(
                                         selected = Saved.states.indexOf(reading.filter.tab).coerceAtLeast(0),
                                         onSelect = { i -> actions.onSavedFilter(reading.filter.copy(tab = Saved.states[i])) },
                                         filtering = reading.filter.tab != SavedTab.All,
-                                        // Something shared with you waits (#167): a dot on the chip and on Shared with me.
-                                        dots = if (waiting > 0) setOf(Saved.states.indexOf(SavedTab.Shared)) else emptySet(),
                                     )
                                 },
                                 // Liked is a group like a tag (#206): one at a time, before the tags.
@@ -343,7 +344,7 @@ fun HomeScreen(
                         }
                     }
                 },
-                bottomBar = { if (!wide) MainNavigationBar(tab, onTab, savedDot = sharedWaiting > 0) },
+                bottomBar = { if (!wide) MainNavigationBar(tab, onTab) },
                 floatingActionButton = {
                     // Marks everything in the section being viewed as read: All, a folder or a feed.
                     if (state.feeds.isNotEmpty() && unreadHere > 0 && inFeeds) {
@@ -376,7 +377,6 @@ fun HomeScreen(
                             onArchive = actions.onArchiveItem,
                             onFile = actions.onFileItem,
                             onShare = actions.onShareItem,
-                            onPlace = actions.onPlaceShared,
                             onClearFilters = { actions.onSavedFilter(reading.filter.copy(likedOnly = false, tags = emptySet())) },
                         )
                     }
@@ -705,6 +705,8 @@ internal fun ArticleRow(
     onFeedClick: (() -> Unit)? = null,
     /** What a long press offers (#221). */
     menu: List<RowMenuAction> = emptyList(),
+    /** Shown where the feed's name goes: who shared it, in the inbox (#246). */
+    source: (@Composable () -> Unit)? = null,
 ) {
     var menuOpen by remember { mutableStateOf(false) }
     val shown = if (showReadState) article else article.copy(read = false)
@@ -733,7 +735,7 @@ internal fun ArticleRow(
         when (view) {
             ListView.Small -> {
                 Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    MetaLine(shown, feed, time, showReadState, label, onFeedClick)
+                    MetaLine(shown, feed, time, showReadState, label, onFeedClick, source)
                     ArticleTitle(shown, MaterialTheme.typography.titleSmall, maxLines = 2)
                 }
             }
@@ -741,7 +743,7 @@ internal fun ArticleRow(
             ListView.Medium -> {
                 Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        MetaLine(shown, feed, time, showReadState, label, onFeedClick)
+                        MetaLine(shown, feed, time, showReadState, label, onFeedClick, source)
                         ArticleTitle(shown, MaterialTheme.typography.titleMedium, maxLines = 3)
                         Snippet(snippet, maxLines = 2)
                     }
@@ -753,7 +755,7 @@ internal fun ArticleRow(
                 Column {
                     if (image != null) LargePicture(image)
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        MetaLine(shown, feed, time, showReadState, label, onFeedClick)
+                        MetaLine(shown, feed, time, showReadState, label, onFeedClick, source)
                         ArticleTitle(shown, MaterialTheme.typography.titleLarge, maxLines = 3)
                         Snippet(snippet, maxLines = 3)
                     }
@@ -763,7 +765,7 @@ internal fun ArticleRow(
     }
 }
 
-/** Unread dot, feed icon and name, and age. */
+/** Unread dot, feed icon and name (or [source]), and age. */
 @Composable
 private fun MetaLine(
     article: Article,
@@ -772,6 +774,7 @@ private fun MetaLine(
     showUnreadDot: Boolean,
     label: String?,
     onFeedClick: (() -> Unit)? = null,
+    source: (@Composable () -> Unit)? = null,
 ) {
     val unreadLabel = stringResource(R.string.article_unread)
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -783,7 +786,13 @@ private fun MetaLine(
                     .clearAndSetSemantics { contentDescription = unreadLabel },
             )
         }
-        if (feed != null) {
+        if (source != null) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.weight(1f, fill = false),
+            ) { source() }
+        } else if (feed != null) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),

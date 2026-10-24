@@ -161,7 +161,6 @@ fun FeedDrawer(
             if (saved != null) {
                 val tagCounts = remember(saved.library) { Saved.toReadTagCounts(saved.library) }
                 val likedToRead = remember(saved.library) { Saved.likedToReadCount(saved.library) }
-                val sharedWaiting = remember(saved.library) { Saved.sharedWaiting(saved.library) }
                 SectionHeader(
                     title = stringResource(R.string.saved_title),
                     open = savedOpen,
@@ -174,12 +173,7 @@ fun FeedDrawer(
                         NavigationDrawerItem(
                             label = { Text(stringResource(R.string.saved_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                             icon = { Icon(painterResource(R.drawable.ic_bookmarks_outline), contentDescription = null) },
-                            badge = {
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    if (sharedWaiting > 0) NewDot()
-                                    UnreadBadge(toReadCount)
-                                }
-                            },
+                            badge = { UnreadBadge(toReadCount) },
                             selected = inSaved && !saved.filter.likedOnly && saved.filter.tags.isEmpty(),
                             onClick = { onSavedFilter(saved.filter.copy(likedOnly = false, tags = emptySet())) },
                         )
