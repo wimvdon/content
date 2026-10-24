@@ -29,11 +29,29 @@ object DirectShare {
     /** The alias that takes links to send to a Content user (AndroidManifest.xml). */
     const val SEND_ACTIVITY = "be.wimvandonck.content.ui.SendActivity"
 
+    /** A person offered in the share menu: their address, name (else address) and picture. */
+    class Recipient(
+        val email: String,
+        val label: String,
+        val picture: Bitmap,
+    )
+
+    /** Signed in, as last told to [showSendTarget]: Content's own share menu then offers Send with Content (#248). */
+    @Volatile
+    var signedIn: Boolean = false
+        private set
+
+    /** The people last published, most recent first, for the buttons in Content's own share menu (#248). */
+    @Volatile
+    var people: List<Recipient> = emptyList()
+        private set
+
     /** Shows Send with Content in the share menu while signed in, and hides it otherwise. */
     fun showSendTarget(
         context: Context,
         signedIn: Boolean,
     ) {
+        this.signedIn = signedIn
         val state = if (signedIn) PackageManager.COMPONENT_ENABLED_STATE_ENABLED else PackageManager.COMPONENT_ENABLED_STATE_DISABLED
         val component = ComponentName(context, SEND_ACTIVITY)
         if (context.packageManager.getComponentEnabledSetting(component) != state) {
@@ -47,16 +65,21 @@ object DirectShare {
         showImages: Boolean,
         nameOf: suspend (String) -> String?,
     ) {
-        val people = ShareShortcuts.pick(recipients)
+        val picked =
+            ShareShortcuts.pick(recipients).map { email ->
+                val label = nameOf(email)?.takeIf { it.isNotBlank() } ?: email
+                Recipient(email, label, picture(context, email, label, showImages))
+            }
+        people = picked
         val shortcuts =
-            people.mapIndexed { rank, email ->
-                val name = nameOf(email)?.takeIf { it.isNotBlank() }
-                val label = name ?: email
+            picked.mapIndexed { rank, person ->
+                val email = person.email
+                val label = person.label
                 ShortcutInfoCompat
                     .Builder(context, ShareShortcuts.idOf(email))
                     .setShortLabel(label)
                     .setLongLabel(email)
-                    .setIcon(IconCompat.createWithAdaptiveBitmap(picture(context, email, label, showImages)))
+                    .setIcon(IconCompat.createWithAdaptiveBitmap(person.picture))
                     .setIntent(Intent(context, MainActivity::class.java).setAction(Intent.ACTION_VIEW))
                     .setCategories(setOf(ShareShortcuts.CATEGORY))
                     .setPerson(Person.Builder().setName(label).setKey(email).build())

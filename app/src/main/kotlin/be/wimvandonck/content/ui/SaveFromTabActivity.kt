@@ -68,6 +68,8 @@ class SaveFromTabActivity : ComponentActivity() {
             return
         }
         val shared = intent.action == Intent.ACTION_SEND
+        // A Send with Content button in Content's own share menu (#248): only this app's PendingIntent opens it.
+        val button = intent.action == ExternalApps.ACTION_SEND_TO_USER
         // Other apps reach this screen only through the share alias, and only with a shared link.
         val alias = intent.component?.className
         if (!shared && (alias?.endsWith(SHARE_ALIAS) == true || alias?.endsWith(SEND_ALIAS) == true)) {
@@ -80,6 +82,8 @@ class SaveFromTabActivity : ComponentActivity() {
                     intent.getStringExtra(Intent.EXTRA_SUBJECT),
                     intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString(),
                 )
+            } else if (button) {
+                intent.getStringExtra(ExternalApps.EXTRA_OPENED_URL).let { url -> SharedLink.fromTab(url, url, intent.getStringExtra(ExternalApps.EXTRA_OPENED_TITLE)) }
             } else {
                 SharedLink.fromTab(
                     intent.dataString,
@@ -94,10 +98,10 @@ class SaveFromTabActivity : ComponentActivity() {
         }
         // Send with Content, or a person picked in the share menu (#235): send it instead of saving it.
         val person = if (shared) ShareShortcuts.emailOf(intent.getStringExtra(ShortcutManagerCompat.EXTRA_SHORTCUT_ID)) else null
-        val send = person != null || alias?.endsWith(SEND_ALIAS) == true
+        val send = button || person != null || alias?.endsWith(SEND_ALIAS) == true
         setContent {
             RssReaderAppTheme {
-                if (send) SendToPerson(link, person.orEmpty(), onDone = ::finish) else SaveFromTab(link, onDone = ::finish)
+                if (send) SendToPerson(link, person ?: intent.getStringExtra(ExternalApps.EXTRA_EMAIL).takeIf { button }.orEmpty(), onDone = ::finish) else SaveFromTab(link, onDone = ::finish)
             }
         }
     }

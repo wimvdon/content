@@ -242,8 +242,10 @@ same, and what is in Saved is also kept in the connected service.
 
 **Send with Content** (#235, #246). Signed in, Android's share menu has **Send with Content**, and
 at the top the last few people you sent something to, with their Gravatar picture or first letter.
-That is the same in Content's own share menu (Share in the reader, or Share in a row's or card's
-menu) and in any other app's. Pick a person and Send with Content opens over the app you were in
+In any other app's share menu they appear that way. In Content's own share menu (Share in the
+reader, or Share in a row's or card's menu), on Android 14 and later, they are buttons of their
+own in the sheet (#248): **Send with Content** first, then up to four people; before Android 14
+they appear as in other apps. Pick a person and Send with Content opens over the app you were in
 with their address filled in; tap **Send**. Pick Send with Content itself to type an address or tap
 one of the last twelve people you sent to. There is no separate menu entry for it: sharing is the
 way to send. In the web app, signed in, **Share** opens Send with Content with the same people, and
