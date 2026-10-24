@@ -91,6 +91,25 @@ class InstapaperReadingListTest {
         }
 
     @Test
+    fun `a new article goes with Content's text, or as a link alone when Instapaper refuses the text`() =
+        runBlocking {
+            answer = { _, _, _ -> 200 to bookmark(5, "https://a.example/5") }
+            service.add("https://a.example/5", "Five", emptyList(), archived = false, folder = null, note = "", content = "<p>Text</p>")
+            assertEquals(listOf("""POST /bookmarks {"url":"https://a.example/5","title":"Five","content":"<p>Text</p>"}"""), calls)
+            calls.clear()
+            answer = { _, _, body -> if (body.contains("content")) 413 to """{"error":"too large"}""" else 200 to bookmark(6, "https://a.example/6") }
+            val entry = service.add("https://a.example/6", "Six", emptyList(), archived = false, folder = null, note = "", content = "<p>Long</p>")
+            assertEquals("6", entry.remoteId)
+            assertEquals(
+                listOf(
+                    """POST /bookmarks {"url":"https://a.example/6","title":"Six","content":"<p>Long</p>"}""",
+                    """POST /bookmarks {"url":"https://a.example/6","title":"Six"}""",
+                ),
+                calls,
+            )
+        }
+
+    @Test
     fun `adds with tags and the archive`() =
         runBlocking {
             answer = { _, path, _ ->

@@ -35,6 +35,9 @@ class ServiceSyncTest {
         var failAfter = Int.MAX_VALUE
         val calls = mutableListOf<String>()
 
+        /** The article text each add brought, by address (#247). */
+        val contents = HashMap<String, String?>()
+
         private fun call(name: String) {
             if (failAfter-- <= 0) throw ServiceException(ServiceProblem.RateLimited)
             calls += name
@@ -72,8 +75,10 @@ class ServiceSyncTest {
             archived: Boolean,
             folder: String?,
             note: String,
+            content: String?,
         ): RemoteEntry {
             call("add $url")
+            contents[url] = content
             val existing = entries.values.firstOrNull { it.url == url }
             val entry =
                 (existing ?: RemoteEntry("${nextId++}", url, title, addedAt = 5, archived = false, liked = false, tags = emptyList()))
@@ -181,6 +186,40 @@ class ServiceSyncTest {
         assertEquals("Desc", two.description)
         // Nothing to send back.
         assertEquals(listOf("changes", "changes"), service.calls)
+    }
+
+    @Test
+    fun `a new article goes with Content's text to a service that takes it, only when saved recently`() {
+        val day = 24 * 60 * 60 * 1000L
+        val now = 30 * day
+        val texts = FakeService(features = setOf(ServiceFeature.Content))
+        var lib = Library().addToReadingList("https://b.example/new", "New", now - day).first
+        lib = lib.addToReadingList("https://b.example/old", "Old", now - 8 * day).first
+        val asked = mutableListOf<String>()
+        runBlocking {
+            ServiceSync.run(texts, ServiceState(), ServiceScope.Everything, textOf = { item -> asked += item.key; "<p>${item.title}</p>" }, now = now) { change -> change(lib).also { lib = it } }
+        }
+        assertEquals("<p>New</p>", texts.contents["https://b.example/new"])
+        // Saved more than a week ago (connecting brings the backlog): the service fetches the page itself.
+        assertNull(texts.contents["https://b.example/old"])
+        assertEquals(listOf("b.example/new"), asked)
+        // A service without the feature never asks for the text.
+        val plain = FakeService()
+        runBlocking {
+            ServiceSync.run(plain, ServiceState(), ServiceScope.Everything, textOf = { error("not asked") }, now = now) { change -> change(lib).also { lib = it } }
+        }
+        assertNull(plain.contents["https://b.example/new"])
+        assertTrue("https://b.example/new" in plain.contents)
+    }
+
+    @Test
+    fun `no text (offline, or the page can't be read) still adds the article`() {
+        val texts = FakeService(features = setOf(ServiceFeature.Content))
+        var lib = Library().addToReadingList("https://b.example/x", "X", 10).first
+        val result = runBlocking { ServiceSync.run(texts, ServiceState(), ServiceScope.Everything, textOf = { error("offline") }, now = 20) { change -> change(lib).also { lib = it } } }
+        assertNull(result.problem)
+        assertTrue("https://b.example/x" in texts.contents)
+        assertNull(texts.contents["https://b.example/x"])
     }
 
     @Test

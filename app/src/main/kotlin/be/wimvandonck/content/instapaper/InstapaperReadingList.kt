@@ -23,7 +23,7 @@ class InstapaperReadingList(
     HighlightService {
     override val id = ID
 
-    override val features = setOf(ServiceFeature.Progress, ServiceFeature.Highlights)
+    override val features = setOf(ServiceFeature.Progress, ServiceFeature.Highlights, ServiceFeature.Content)
 
     /** The account's folders by id, read with the changes. */
     private var folders: Map<Long, String> = emptyMap()
@@ -82,9 +82,21 @@ class InstapaperReadingList(
         archived: Boolean,
         folder: String?,
         note: String,
+        content: String?,
     ): RemoteEntry =
         guarded {
-            var saved = client.save(url, title.takeIf { it.isNotBlank() && it != url }) ?: throw ServiceException(ServiceProblem.Refused)
+            val named = title.takeIf { it.isNotBlank() && it != url }
+            // With Content's text (#247), so Instapaper shows the same article; should Instapaper
+            // refuse the text (too large, say), the link alone, as before.
+            var saved =
+                content?.let {
+                    try {
+                        client.save(url, named, it)
+                    } catch (e: InstapaperException) {
+                        if (e.problem != InstapaperProblem.Invalid && e.problem != InstapaperProblem.ServerError) throw e
+                        null
+                    }
+                } ?: client.save(url, named) ?: throw ServiceException(ServiceProblem.Refused)
             if (tags.isNotEmpty()) saved = saved.copy(tags = client.setTags(saved.id, tags, emptyList()))
             if (archived && !saved.archived) {
                 client.move(saved.id, "archive")

@@ -2,6 +2,19 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-24: Instapaper gets Content's text (#247)
+
+- At the owner's request, a new article goes to Instapaper with the text Content shows for it
+  (API v2's `content` on `POST /bookmarks`), so both show the same article. It is the one stored text
+  every device shows (`SharedText`), extracted once if no device has it yet.
+- Only for articles saved in the last seven days: connecting Instapaper to a large Saved would
+  otherwise load every article's page at once. Older ones go as links, as before.
+- Only on creation: Instapaper has no call to replace an article's text later.
+- Refused text (too large, or a server error) falls back to the link alone, so a sync never stops
+  on it. The feed loader allows 1 MiB for saving a bookmark, 64 KiB for its other Instapaper calls.
+- Rejected: sending the text later, when the article is first opened (Instapaper can't take it
+  after creation), and sending the feed's own text (it is often only a summary).
+
 ## 2026-10-24: An inbox for what is shared, and sending from the share menu (#246)
 
 - At the owner's request, what other Content users send no longer goes into Saved (the Shared with

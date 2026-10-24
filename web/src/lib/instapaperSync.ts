@@ -22,6 +22,7 @@ type Api = Pick<InstapaperApi, "changesSince" | "folders" | "tags" | "save" | "s
 export class InstapaperSync implements SavedSyncService, HighlightService {
   readonly id = INSTAPAPER_ID;
   readonly progress = true;
+  readonly content = true;
   private tagIds = new Map<string, number>();
 
   private readonly api: Api;
@@ -81,9 +82,18 @@ export class InstapaperSync implements SavedSyncService, HighlightService {
     return guarded(async () => (await this.api.folders()).map((f) => f.title).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase())));
   }
 
-  add(url: string, title: string, tags: string[], archived: boolean, _folder: string | null): Promise<RemoteEntry> {
+  add(url: string, title: string, tags: string[], archived: boolean, _folder: string | null, content: string | null = null): Promise<RemoteEntry> {
     return guarded(async () => {
-      let saved = await this.api.save(url, title && title !== url ? title : undefined);
+      const named = title && title !== url ? title : undefined;
+      // With Content's text (#247), so Instapaper shows the same article; should it refuse the text
+      // (too large, say), the link alone, as before.
+      let saved = content
+        ? await this.api.save(url, named, content).catch((e: unknown) => {
+            if (e instanceof InstapaperError && (e.problem === "invalid" || e.problem === "server")) return null;
+            throw e;
+          })
+        : null;
+      saved ??= await this.api.save(url, named);
       if (!saved?.id) throw new ServiceSyncError("refused");
       if (tags.length > 0) saved = { ...saved, tags: await this.api.setTags(saved.id, tags, []) };
       if (archived && !saved.archived) {

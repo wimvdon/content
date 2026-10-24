@@ -22,13 +22,16 @@ class InstapaperClient(
         limit: Int,
     ): InstapaperPage = parsePage(call("GET", listPath(view, offset, limit)))
 
+    /** Saves [url]; with [content], Content's HTML for it, which Instapaper shows instead of fetching the page (#247). */
     suspend fun save(
         url: String,
         title: String?,
+        content: String? = null,
     ): InstapaperBookmark? {
         val body = buildMap<String, Any?> {
             put("url", url)
             if (!title.isNullOrBlank()) put("title", title)
+            if (!content.isNullOrBlank()) put("content", content)
         }
         return parseBookmark(runCatching { Json.parse(call("POST", "/bookmarks", Json.write(body))) }.getOrNull())
     }

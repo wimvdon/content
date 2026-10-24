@@ -43,13 +43,19 @@ export interface RemoteChanges {
   cursor: string;
 }
 
+/** How recently an item must have been saved for its text to go with it (#247). */
+export const CONTENT_DAYS = 7;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
 /** A service Saved can sync with (Instapaper on the web). */
 export interface SavedSyncService {
   id: string;
   /** Whether it keeps reading progress. */
   progress: boolean;
+  /** Whether it takes the article's text with a new article (#247), so it shows what Content shows. */
+  content?: boolean;
   changes(cursor: string | null): Promise<RemoteChanges>;
-  add(url: string, title: string, tags: string[], archived: boolean, folder: string | null): Promise<RemoteEntry>;
+  add(url: string, title: string, tags: string[], archived: boolean, folder: string | null, content?: string | null): Promise<RemoteEntry>;
   update(have: RemoteEntry, want: RemoteEntry): Promise<RemoteEntry>;
   remove(remoteId: string): Promise<void>;
   /** Its folders by name, for choosing what to import. */
@@ -102,6 +108,12 @@ export async function syncService(
   scope: ServiceScope = EVERYTHING,
   editedAt: Record<string, number> = {},
   elsewhere: Set<string> = new Set(),
+  /**
+   * The text Content shows for a saved item (#247), sent with it when it is new there, or null (the
+   * service then fetches the page itself). Only for items saved in the last CONTENT_DAYS days, so
+   * connecting doesn't load every article at once. Like ServiceSync.kt.
+   */
+  textOf: (item: Item) => Promise<string | null> = async () => null,
 ): Promise<ServiceSyncResult> {
   const rows: Record<string, RemoteEntry> = { ...state.rows };
   let cursor = state.cursor;
@@ -129,7 +141,9 @@ export async function syncService(
       } else if (!inScope) {
         continue;
       } else if (!have) {
-        let added = await service.add(item.url, item.title, item.tags, item.readingList.state === "archived", folderOf(item));
+        const recent = now - item.readingList.addedAt <= CONTENT_DAYS * DAY_MS;
+        const text = service.content && recent ? await textOf(item).catch(() => null) : null;
+        let added = await service.add(item.url, item.title, item.tags, item.readingList.state === "archived", folderOf(item), text);
         const target = { ...entryOf(item, added.remoteId) };
         if (!sameCore(added, target, progress)) added = await service.update(added, target);
         rows[item.key] = { ...added, linked: true };
