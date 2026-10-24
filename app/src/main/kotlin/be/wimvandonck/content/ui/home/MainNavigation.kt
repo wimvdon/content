@@ -1,8 +1,5 @@
 package be.wimvandonck.content.ui.home
 
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Badge
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -44,15 +41,13 @@ fun isWideWindow(): Boolean = with(LocalDensity.current) { LocalWindowInfo.curre
 fun MainNavigationBar(
     selected: MainTab,
     onSelect: (MainTab) -> Unit,
-    /** Something shared with you waits in Saved (#167). */
-    savedDot: Boolean = false,
 ) {
     NavigationBar {
         BAR_TABS.forEach { tab ->
             NavigationBarItem(
                 selected = selected == tab,
                 onClick = { if (selected != tab) onSelect(tab) },
-                icon = { TabIcon(tab, savedDot && tab == MainTab.Saved) },
+                icon = { Icon(painterResource(tab.icon), contentDescription = null) },
                 label = { Text(stringResource(tab.label)) },
             )
         }
@@ -64,30 +59,15 @@ fun MainNavigationBar(
 fun MainNavigationRail(
     selected: MainTab,
     onSelect: (MainTab) -> Unit,
-    savedDot: Boolean = false,
 ) {
     NavigationRail(Modifier.padding(top = 8.dp)) {
         BAR_TABS.forEach { tab ->
             NavigationRailItem(
                 selected = selected == tab,
                 onClick = { if (selected != tab) onSelect(tab) },
-                icon = { TabIcon(tab, savedDot && tab == MainTab.Saved) },
+                icon = { Icon(painterResource(tab.icon), contentDescription = null) },
                 label = { Text(stringResource(tab.label)) },
             )
         }
-    }
-}
-
-/** A destination's icon, with Material's small badge when something new waits there. */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun TabIcon(
-    tab: MainTab,
-    dot: Boolean,
-) {
-    if (dot) {
-        BadgedBox(badge = { Badge() }) { Icon(painterResource(tab.icon), contentDescription = null) }
-    } else {
-        Icon(painterResource(tab.icon), contentDescription = null)
     }
 }

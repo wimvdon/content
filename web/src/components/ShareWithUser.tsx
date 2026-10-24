@@ -10,9 +10,6 @@ import { cn } from "./ui/cn";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-/** The longest message for the receiver (the feed loader keeps as much). */
-const MAX_MESSAGE = 1000;
-
 const PROBLEMS: Record<string, Key> = {
   noAccount: "shareUserNoAccount",
   noEmail: "shareUserNoEmail",
@@ -22,14 +19,26 @@ const PROBLEMS: Record<string, Key> = {
 };
 
 /**
- * Send to a Content user (#167): their email address, or one click on someone shared with before
+ * Send with Content (#167, #246): their email address, or one click on someone shared with before
  * (#235, with their Gravatar picture and name); Send says first when it has no Content account.
- * `what` says what goes (this article, or a tag's articles).
+ * `what` says what goes (this article, or a tag's articles). With `onOtherApps` it is the article's
+ * share sheet: Other apps (or Copy link) hands it to the browser's own share menu instead.
  */
-export function ShareWithUserDialog({ what, items, tag, onClose }: { what: string; items: SharedArticle[]; tag: string | null; onClose: () => void }) {
+export function ShareWithUserDialog({
+  what,
+  items,
+  tag,
+  onClose,
+  onOtherApps,
+}: {
+  what: string;
+  items: SharedArticle[];
+  tag: string | null;
+  onClose: () => void;
+  onOtherApps?: () => void;
+}) {
   const { settings } = useApp();
   const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   const [sent, setSent] = useState<string | null>(null);
@@ -38,7 +47,7 @@ export function ShareWithUserDialog({ what, items, tag, onClose }: { what: strin
     if (!valid || sending) return;
     setSending(true);
     setProblem(null);
-    void app.shareWithUser(email.trim(), items, tag, message.trim()).then((result) => {
+    void app.shareWithUser(email.trim(), items, tag).then((result) => {
       setSending(false);
       if (result === "sent") setSent(email.trim());
       else setProblem(result);
@@ -55,6 +64,18 @@ export function ShareWithUserDialog({ what, items, tag, onClose }: { what: strin
           <Button onClick={onClose}>{t("close")}</Button>
         ) : (
           <>
+            {onOtherApps ? (
+              <Button
+                variant="ghost"
+                className="mr-auto"
+                onClick={() => {
+                  onClose();
+                  onOtherApps();
+                }}
+              >
+                {typeof navigator !== "undefined" && "share" in navigator ? t("shareOtherApps") : t("copyLink")}
+              </Button>
+            ) : null}
             <Button variant="ghost" onClick={onClose}>
               {t("cancel")}
             </Button>
@@ -105,17 +126,6 @@ export function ShareWithUserDialog({ what, items, tag, onClose }: { what: strin
               }}
             />
           </div>
-          <div className="space-y-1">
-            <Label htmlFor="share-user-message">{t("shareUserMessage")}</Label>
-            <textarea
-              id="share-user-message"
-              rows={2}
-              maxLength={MAX_MESSAGE}
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              className="w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            />
-          </div>
           {problem ? (
             <p role="alert" className="text-sm text-destructive">
               {t(PROBLEMS[problem] ?? "syncServer")}
@@ -127,19 +137,36 @@ export function ShareWithUserDialog({ what, items, tag, onClose }: { what: strin
   );
 }
 
-/** Someone shared with before (#235): their Gravatar picture (else their first letter) and name (else address). */
-function RecipientChip({ email, images, selected, onPick }: { email: string; images: boolean; selected: boolean; onPick: () => void }) {
-  const [name, setName] = useState<string | null>(null);
+/** Their Gravatar picture (else their first letter of `label`) in a circle. */
+export function Avatar({ email, label, images, className = "size-6" }: { email: string; label: string; images: boolean; className?: string }) {
   const [src, setSrc] = useState<string | null>(null);
   const [missing, setMissing] = useState(false);
   useEffect(() => {
     let current = true;
-    void app.profileName(email).then((found) => current && setName(found || null));
     if (images) void gravatarUrl(email, 64).then((url) => current && setSrc(url));
     return () => {
       current = false;
     };
   }, [email, images]);
+  return src && !missing ? (
+    <img src={src} alt="" className={cn("shrink-0 rounded-full", className)} onError={() => setMissing(true)} />
+  ) : (
+    <span className={cn("flex shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-medium text-primary", className)} aria-hidden="true">
+      {label.slice(0, 1).toUpperCase()}
+    </span>
+  );
+}
+
+/** Someone shared with before (#235): their Gravatar picture (else their first letter) and name (else address). */
+function RecipientChip({ email, images, selected, onPick }: { email: string; images: boolean; selected: boolean; onPick: () => void }) {
+  const [name, setName] = useState<string | null>(null);
+  useEffect(() => {
+    let current = true;
+    void app.profileName(email).then((found) => current && setName(found || null));
+    return () => {
+      current = false;
+    };
+  }, [email]);
   const label = name ?? email;
   return (
     <button
@@ -152,13 +179,7 @@ function RecipientChip({ email, images, selected, onPick }: { email: string; ima
         selected ? "border-transparent bg-accent text-accent-foreground" : "hover:bg-muted",
       )}
     >
-      {src && !missing ? (
-        <img src={src} alt="" className="size-6 shrink-0 rounded-full" onError={() => setMissing(true)} />
-      ) : (
-        <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-medium text-primary" aria-hidden="true">
-          {label.slice(0, 1).toUpperCase()}
-        </span>
-      )}
+      <Avatar email={email} label={label} images={images} />
       <span className="truncate">{label}</span>
     </button>
   );

@@ -1,6 +1,6 @@
 package be.wimvandonck.content.ui
 
-import be.wimvandonck.content.data.ReadingListEntry
+import be.wimvandonck.content.data.Inbox
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -36,7 +36,6 @@ import androidx.lifecycle.repeatOnLifecycle
 import be.wimvandonck.content.R
 import be.wimvandonck.content.ui.feeds.ManageTab
 import be.wimvandonck.content.data.ArticleReport
-import be.wimvandonck.content.data.SharedArticle
 import be.wimvandonck.content.data.Sharing
 import be.wimvandonck.content.sync.AccountState
 import be.wimvandonck.content.sync.ShareResult
@@ -60,6 +59,7 @@ import be.wimvandonck.content.data.addHighlight
 import be.wimvandonck.content.data.removeHighlight
 import be.wimvandonck.content.data.setHighlightNote
 import be.wimvandonck.content.data.changeItem
+import be.wimvandonck.content.data.putItem
 import be.wimvandonck.content.data.item
 import be.wimvandonck.content.data.itemFor
 import be.wimvandonck.content.data.itemTags
@@ -111,6 +111,7 @@ import be.wimvandonck.content.ui.home.AddFeedDialog
 import be.wimvandonck.content.ui.home.HomeActions
 import be.wimvandonck.content.ui.home.HomeScreen
 import be.wimvandonck.content.ui.home.HomeState
+import be.wimvandonck.content.ui.home.InboxScreen
 import be.wimvandonck.content.ui.home.errorRes
 import be.wimvandonck.content.ui.reader.FullTextState
 import be.wimvandonck.content.ui.reader.ReaderActions
@@ -149,6 +150,9 @@ sealed interface Screen {
     /** Search through every feed's articles and Saved. */
     data object Search : Screen
 
+    /** What other Content users shared with you (#246). */
+    data object Inbox : Screen
+
     /** Signing in to a site (#180), at this address. */
     data class SiteSignIn(val url: String) : Screen
 
@@ -162,6 +166,7 @@ sealed interface Screen {
                 Services -> "services"
                 is Service -> "service:" + screen.id
                 Search -> "search"
+                Inbox -> "inbox"
                 is Reader -> "reader:" + screen.articleKey
                 is SiteSignIn -> "signin:" + screen.url
             }
@@ -174,6 +179,7 @@ sealed interface Screen {
                 text == "services" -> Services
                 text.startsWith("service:") -> Service(text.removePrefix("service:"))
                 text == "search" -> Search
+                text == "inbox" -> Inbox
                 text.startsWith("reader:") -> Reader(text.removePrefix("reader:"))
                 text.startsWith("signin:") -> SiteSignIn(text.removePrefix("signin:"))
                 else -> Home
@@ -404,7 +410,10 @@ fun RssReaderNavigation(
     LaunchedEffect(Unit) {
         app.sync.received.collect { got ->
             val names = got.from.joinToString(", ") { it.label }
-            showMessage(resources.getQuantityString(R.plurals.share_user_received, got.count, names, got.count))
+            // Open goes to the inbox (#246).
+            showMessage(resources.getQuantityString(R.plurals.share_user_received, got.count, names, got.count), resources.getString(R.string.action_open)) {
+                push(Screen.Inbox)
+            }
         }
     }
 
@@ -525,12 +534,12 @@ fun RssReaderNavigation(
 
     LaunchedEffect(openRequest) {
         val key = openRequest ?: return@LaunchedEffect
-        section = HomeSection.Saved
-        // The notification (#235): Saved › Shared with me, not an article.
+        // The notification (#235): the inbox (#246), not an article.
         if (key == MainActivity.OPEN_SHARED) {
-            savedFilter = savedFilter.copy(tab = SavedTab.Shared, likedOnly = false, tags = emptySet())
             while (backStack.size > 1) pop()
+            push(Screen.Inbox)
         } else {
+            section = HomeSection.Saved
             push(Screen.Reader(key))
         }
         onOpened()
@@ -597,6 +606,8 @@ fun RssReaderNavigation(
                                         listView = current.listView,
                                     ),
                                 toReadCount = remember(library) { library.items.count { Saved.isIn(it, SavedTab.ToRead) } },
+                                signedIn = accountState is AccountState.SignedIn,
+                                inboxUnread = remember(library) { Inbox.unread(library) },
                             ),
                         snackbarHostState = snackbar,
                         actions =
@@ -668,10 +679,7 @@ fun RssReaderNavigation(
                                 onArchiveItem = ::archive,
                                 onFileItem = { fileKey = it.key },
                                 onShareArticle = { article -> send(article, current.shareTarget) },
-                                onPlaceShared = { item, state ->
-                                    val now = System.currentTimeMillis()
-                                    editLibrary { lib -> lib.changeItem(item.key) { it.copy(readingList = ReadingListEntry(state, now)) } }
-                                },
+                                onOpenInbox = { push(Screen.Inbox) },
                                 onShareItem = { item -> send(ReadingLists.article(item, library), current.shareTarget) },
                                 onOpenSearch = { push(Screen.Search) },
                             ),
@@ -760,17 +768,6 @@ fun RssReaderNavigation(
                                     onShare = { article?.let { send(it, current.shareTarget) } },
                                     onOpenInBrowser = { article?.let { a -> a.link?.let { ExternalApps.openInTab(context, it, a.title) } } },
                                     onSignIn = article?.link?.takeIf { SiteSignIns.siteOf(it) != null }?.let { link -> { push(Screen.SiteSignIn(link)) } },
-                                    onShareWithUser =
-                                        article?.link?.takeIf { accountState is AccountState.SignedIn }?.let { link ->
-                                            { email, message, result ->
-                                                uiScope.launch {
-                                                    val shared = item?.let { Sharing.article(it) } ?: SharedArticle(link, article?.title ?: link)
-                                                    val r = app.sync.share(email, listOf(shared), null, message)
-                                                    result(r)
-                                                    if (r == ShareResult.Sent) showMessage(resources.getString(R.string.share_user_sent, email))
-                                                }
-                                            }
-                                        },
                                     onReport =
                                         article?.link?.let { link ->
                                             { problem, comment ->
@@ -949,6 +946,36 @@ fun RssReaderNavigation(
                     )
                 }
 
+                Screen.Inbox -> {
+                    InboxScreen(
+                        items = remember(library) { Inbox.items(library) },
+                        library = library,
+                        listView = current.listView,
+                        showImages = current.showImages,
+                        snackbarHostState = snackbar,
+                        onBack = ::pop,
+                        onOpen = { item ->
+                            editLibrary { Inbox.markRead(it, item.key) }
+                            openItem(item)
+                        },
+                        onToggleRead = { item -> editLibrary { Inbox.markRead(it, item.key, read = item.sharedBy?.read != true) } },
+                        onSave = { item ->
+                            if (current.saveTarget == ShareTarget.Saved) {
+                                readLater(item.url, item.title, inReader = false)
+                            } else {
+                                send(ReadingLists.article(item, library), current.saveTarget)
+                            }
+                        },
+                        onShare = { item -> send(ReadingLists.article(item, library), current.shareTarget) },
+                        onRemove = { item ->
+                            editLibrary { Inbox.remove(it, item.key) }
+                            showMessage(resources.getString(R.string.inbox_removed), resources.getString(R.string.action_undo)) {
+                                editLibrary { lib -> lib.item(item.key)?.let { lib.putItem(it.copy(sharedBy = item.sharedBy)) } ?: lib.putItem(item) }
+                            }
+                        },
+                    )
+                }
+
                 Screen.Search -> {
                     SystemBarsFollowTheme(appDark)
                     // Preparing every article's text takes a moment with many feeds: off the main thread.
@@ -1009,9 +1036,9 @@ fun RssReaderNavigation(
                         onTab = ::showManageTab,
                         onShareTag =
                             if (accountState is AccountState.SignedIn) {
-                                { tag, email, message, result ->
+                                { tag, email, result ->
                                     uiScope.launch {
-                                        val r = app.sync.share(email, Sharing.tagArticles(library, tag), tag, message)
+                                        val r = app.sync.share(email, Sharing.tagArticles(library, tag), tag)
                                         result(r)
                                         if (r == ShareResult.Sent) showMessage(resources.getString(R.string.share_user_sent, email))
                                     }
@@ -1172,7 +1199,6 @@ private val SavedFilterSaver =
                     SavedTab.ToRead -> "toread"
                     SavedTab.All -> "all"
                     SavedTab.Archive -> "archive"
-                    SavedTab.Shared -> "shared"
                     is SavedTab.Folder -> "folder:" + t.name
                 }
             // The third slot was the type (dropped); it stays empty so older saved states still read.
@@ -1186,7 +1212,6 @@ private val SavedFilterSaver =
                     when {
                         tab == "all" -> SavedTab.All
                         tab == "archive" -> SavedTab.Archive
-                        tab == "shared" -> SavedTab.Shared
                         tab.startsWith("folder:") -> SavedTab.Folder(tab.removePrefix("folder:"))
                         else -> SavedTab.ToRead
                     },

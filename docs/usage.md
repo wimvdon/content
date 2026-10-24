@@ -155,7 +155,7 @@ website (the same as **Read on website** at the end). In the top bar:
 |---|---|
 | Full article (page icon) | **Show full article** / **Show feed text**: the whole article from the website, or the feed's own text. It is lit while the full article shows. Not in a saved article: that always shows the whole article. |
 | **Aa** | Text settings: font (Sans or Serif), text size, spacing (Compact, Normal, Relaxed), background (Theme, Sepia or Dark) and **Auto dark** (the dark page whenever the app is dark, e.g. Sepia by day and dark at night). Changes apply right away and are remembered for every article. |
-| ⋮ | **Open in browser**, **Mark as unread** (back to the list, where it waits unread; the web app keeps the article open and offers **Mark as read** too), **Sign in to this site** (#180: for a site you pay for, such as standaard.be; sign in on its page and tap **Done**, and from then on its articles load in full; Settings › Sites you're signed in to lists them, with **Remove**), **Send to a Content user** (#167: type their email address (or tap someone you sent to before: the last twelve are offered, with their Gravatar picture and name, on all your devices) and, if you like, a message; the article lands in their Saved › Shared with me, and they see it came from you, with your message; it says so first when the address has no Content account), **Report a problem with this article** (#181: pick what is wrong, add a comment if you like, and **Send** opens a pre-filled report on GitHub in your browser, with the article's link but not its text; submit it there), and for a saved article **Remove from Saved**. Open in browser, and links in an article, open in a tab of your browser on top of Reader, with a **Save** button in its toolbar: it opens the save sheet over the page (see Saving from other apps); save or close it to keep reading. |
+| ⋮ | **Open in browser**, **Mark as unread** (back to the list, where it waits unread; the web app keeps the article open and offers **Mark as read** too), **Sign in to this site** (#180: for a site you pay for, such as standaard.be; sign in on its page and tap **Done**, and from then on its articles load in full; Settings › Sites you're signed in to lists them, with **Remove**), **Report a problem with this article** (#181: pick what is wrong, add a comment if you like, and **Send** opens a pre-filled report on GitHub in your browser, with the article's link but not its text; submit it there), and for a saved article **Remove from Saved**. Open in browser, and links in an article, open in a tab of your browser on top of Reader, with a **Save** button in its toolbar: it opens the save sheet over the page (see Saving from other apps); save or close it to keep reading. |
 
 The bar at the bottom is the article in your library, with **Share** at its right end (the share
 menu, or straight to the app you chose). Before it is saved it has **Save** on the left: it saves the article to **To read** (by default), or sends it to the app you chose or the
@@ -197,13 +197,15 @@ and pick **Organise** (web: right-click it); **Share** is in that menu too. Card
 closes, a message says where the article went; after a swipe, **Add link** or a link shared from
 another app it also has **Open**, which goes to the article in Saved.
 
-**Shared with me** (#167). What other Content users send you waits in Saved's state chip under
-**Shared with me** (To read, Shared with me, Archive, All), not in To read. Each card says who it
-is from, with their message. While something waits there, a dot shows on the state chip, on
-Shared with me in its menu, on **Saved** in ☰ and on the **Saved** tab at the bottom. Press and hold
-a card (web: right-click it) for **Move to To read** or **Archive**, or **Organise** to tag it; once
-moved it is a saved article like any other. There are no phone notifications yet: the dots show
-when the app opens.
+**Inbox** (#167, #246). Signed in, a bell sits in the search bar at the top. What other Content
+users send you lands in the inbox behind it, not in Saved: a list like a feed's, newest first, with
+who sent it (their Gravatar picture and name) where the feed's name would be. Unread ones are bold
+with a dot, and a dot on the bell says something unread waits; opening one marks it read. Swipe one
+to save it (it stays in the inbox, as a feed article stays in its feed), or press and hold (web:
+right-click) for **Mark as read/unread**, **Save**, **Share** and **Remove from inbox** (with
+**Undo**). Something already in Saved arrives in the inbox too, and stays where it is in Saved; the
+same article shared again comes back unread with its latest sender. Removing a saved article from
+Saved leaves it in the inbox. For a notification when something arrives, see Notifications below.
 
 **Full articles.** Many feeds contain only the start of an article, or a few paragraphs with a
 "Read full article" link. Then the reader fetches the
@@ -238,16 +240,21 @@ If the chosen app has been uninstalled, the button opens the share menu instead 
 Connecting Instapaper changes nothing here: the buttons and their choices stay the
 same, and what is in Saved is also kept in the connected service.
 
-**Sending from other apps to a person** (#235). Signed in, the last few people you sent something
-to (Send to a Content user) appear in Android's share menu, at the top, with their Gravatar picture
-or first letter. Pick one and **Send to a Content user** opens over the app you were in, with their
-address filled in; add a message if you like and tap **Send**.
+**Send with Content** (#235, #246). Signed in, Android's share menu has **Send with Content**, and
+at the top the last few people you sent something to, with their Gravatar picture or first letter.
+That is the same in Content's own share menu (Share in the reader, or Share in a row's or card's
+menu) and in any other app's. Pick a person and Send with Content opens over the app you were in
+with their address filled in; tap **Send**. Pick Send with Content itself to type an address or tap
+one of the last twelve people you sent to. There is no separate menu entry for it: sharing is the
+way to send. In the web app, signed in, **Share** opens Send with Content with the same people, and
+**Other apps** (or **Copy link** where the browser has no share menu) for everything else. To share
+a whole tag, use the share button next to it in Manage feeds and tags.
 
 **Notifications** (#235). Settings › Account › **Notify me when something is shared with me**, on the
 phone and in the web app. On the phone it asks Android's permission and then shows "Something was
-shared with you" even when Content is closed; tap it for Saved › Shared with me. In the web app it
+shared with you" even when Content is closed; tap it for the inbox. In the web app it
 asks your browser's permission; from then on the browser shows "Something was shared with you", even
-with Content closed, and clicking it opens Saved › Shared with me. Per browser; signing out turns it
+with Content closed, and clicking it opens the inbox. Per browser; signing out turns it
 off.
 
 **Saving from other apps.** In Chrome or any app that shares links, tap Share and pick

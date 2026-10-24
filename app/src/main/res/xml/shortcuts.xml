@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Direct share (#235): the people shared with appear in Android's share menu (DirectShare.kt
-     publishes them as sharing shortcuts in this category). Picking one opens the share screen with
-     their address filled in. -->
+     publishes them as sharing shortcuts in this category), Content's own included (#246). Picking
+     one opens Send with Content with their address filled in. -->
 <shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
-    <share-target android:targetClass="be.wimvandonck.content.ui.ShareActivity">
+    <share-target android:targetClass="be.wimvandonck.content.ui.SendActivity">
         <data android:mimeType="text/plain" />
         <category android:name="be.wimvandonck.content.category.SHARE_TO_USER" />
     </share-target>

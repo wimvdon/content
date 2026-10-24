@@ -83,7 +83,7 @@ class SavedTest {
         assertSame(toReadOld, Saved.shown(library, toReadOld))
         assertEquals(emptyList<String>(), keys(toReadOld))
         assertEquals(listOf("a.example/4"), keys(toReadOld.copy(tab = SavedTab.Archive)))
-        assertEquals(listOf(SavedTab.ToRead, SavedTab.Shared, SavedTab.Archive, SavedTab.All), Saved.states)
+        assertEquals(listOf(SavedTab.ToRead, SavedTab.Archive, SavedTab.All), Saved.states)
         // Items in an old folder aren't in To read; the archived one isn't either.
         val toRead = library.copy(items = library.items + saved("c.example/6", 6, tags = listOf("AI")))
         assertEquals(mapOf("ai" to 1, "news" to 0, "old" to 0), Saved.toReadTagCounts(toRead))

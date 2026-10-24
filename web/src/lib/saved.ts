@@ -6,11 +6,10 @@
  */
 
 import { escapeHtml, snippet } from "./html";
-import { addToReadingList, changeItem, cleanTags, feedArticleFor, putItem, recentTags, setReadingState, waitingShared, type Item, type SharedBy } from "./items";
+import { addToReadingList, changeItem, cleanTags, feedArticleFor, inInbox, putItem, recentTags, setReadingState, type Item, type SharedBy } from "./items";
 import { keyOf, type Article, type Feed, type Library } from "./library";
 
-/** "shared": what other Content users shared with you, until you put it in To read or the Archive (#167). */
-export type SavedTab = { kind: "toread" } | { kind: "all" } | { kind: "folder"; name: string } | { kind: "archive" } | { kind: "shared" };
+export type SavedTab = { kind: "toread" } | { kind: "all" } | { kind: "folder"; name: string } | { kind: "archive" };
 
 /** What Saved shows: a tab, and within it only liked ones or only some tags (all of them). */
 export interface SavedFilter {
@@ -29,7 +28,6 @@ export const sameTab = (a: SavedTab, b: SavedTab) => (a.kind === "folder" && b.k
 export const folderOf = (i: Item): string | null => (i.readingList?.state === "toread" && i.folder?.trim() ? i.folder.trim() : null);
 
 export function isIn(i: Item, tab: SavedTab): boolean {
-  if (tab.kind === "shared") return waitingShared(i);
   const reading = i.readingList;
   if (!reading) return false;
   switch (tab.kind) {
@@ -44,8 +42,8 @@ export function isIn(i: Item, tab: SavedTab): boolean {
   }
 }
 
-/** When an item came into Saved: put in To read or the Archive, else shared with you. */
-const savedAt = (i: Item) => i.readingList?.addedAt ?? i.sharedBy?.at ?? i.createdAt;
+/** When an item came into Saved. */
+const savedAt = (i: Item) => i.readingList?.addedAt ?? i.createdAt;
 
 /** The items the filter picks, newest saved first. */
 export function savedItems(lib: Library, filter: SavedFilter): Item[] {
@@ -104,10 +102,7 @@ export function tabTags(lib: Library, tab: SavedTab): string[] {
  * The states Saved's state chip offers (#205): To read, Archive or everything. A tag stays chosen
  * when the state changes, as a folder does with Unread and All in Feeds.
  */
-export const savedStates: SavedTab[] = [{ kind: "toread" }, { kind: "shared" }, { kind: "archive" }, { kind: "all" }];
-
-/** How many shared items wait in Shared with me (#167): a dot on Saved while there are any. */
-export const sharedWaiting = (lib: Library) => lib.items.filter(waitingShared).length;
+export const savedStates: SavedTab[] = [{ kind: "toread" }, { kind: "archive" }, { kind: "all" }];
 
 /** How many liked items are still to read, for the menu's Liked row (#206). */
 export const likedToReadCount = (lib: Library) => lib.items.filter((i) => i.liked && isIn(i, { kind: "toread" })).length;
@@ -145,10 +140,6 @@ export function saveLink(
   return [putItem(added, updated), updated];
 }
 
-/** Puts an item shared with you in To read or the Archive (#167). */
-export const placeShared = (lib: Library, key: string, state: "toread" | "archived", now: number) =>
-  changeItem(lib, key, (i) => (i.readingList ? i : { ...i, readingList: { state, addedAt: now } }));
-
 /** Puts an item in a folder, or To read with null (it stays saved; archived ones come back to read). */
 export function fileItem(lib: Library, key: string, folder: string | null): Library {
   return changeItem(lib, key, (i) => (i.readingList ? { ...i, readingList: { ...i.readingList, state: "toread" }, folder: folder?.trim() || null } : i));
@@ -159,9 +150,12 @@ export const archiveItem = (lib: Library, key: string, archived: boolean) => set
 
 export const setNote = (lib: Library, key: string, note: string) => changeItem(lib, key, (i) => ({ ...i, note: note.trim() }));
 
-/** Removes an item from Saved, with its note, tags and highlights. */
+/** Removes an item from Saved, with its note, tags and highlights; one in the inbox (#246) stays there. */
 export function removeSaved(lib: Library, key: string): Library {
-  return lib.items.some((i) => i.key === key) ? { ...lib, items: lib.items.filter((i) => i.key !== key) } : lib;
+  const item = lib.items.find((i) => i.key === key);
+  if (!item) return lib;
+  if (inInbox(item)) return putItem(lib, { ...item, readingList: null, folder: null, bookmark: null, liked: false, tags: [], note: "", highlights: [], progress: 0 });
+  return { ...lib, items: lib.items.filter((i) => i.key !== key) };
 }
 
 /** Renames a folder on every item; renaming it to another folder's name joins the two. */

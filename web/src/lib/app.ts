@@ -15,7 +15,8 @@ import {
 } from "./instapaper";
 import { applyHighlights, notCopied, syncHighlights, type HighlightLink } from "./highlightCopy";
 import { INSTAPAPER_ID, InstapaperSync } from "./instapaperSync";
-import { addHighlight, changeItem, removeHighlight, renameTag, setHighlightNote, setLiked, type Highlight, type Item } from "./items";
+import { addHighlight, changeItem, itemOf, putItem, removeHighlight, renameTag, setHighlightNote, setLiked, type Highlight, type Item } from "./items";
+import { markInboxRead, removeFromInbox } from "./inbox";
 import { applyChoice, saveNew, undoSave, type SaveChoice } from "./saveChoice";
 import * as Saved from "./saved";
 import { emptyServiceSyncState, importService, syncService, type ServiceSyncState } from "./serviceSync";
@@ -78,6 +79,8 @@ export interface State {
   account: AccountSession | null;
   /** What other Content users just shared (#167), said once. */
   received: Received | null;
+  /** The inbox is shown in place of the list (#246). */
+  inboxOpen: boolean;
   /** The result of opening an emailed sign-in link, shown once. */
   accountNotice: "signedIn" | "emailAdded" | EmailLinkProblem | null;
   /** Saved's tab, Liked, tags and type (saved.ts), while Saved is shown. */
@@ -130,6 +133,7 @@ class AppStore {
     account: null,
     accountNotice: null,
     received: null,
+    inboxOpen: false,
     savedFilter: Saved.defaultSavedFilter,
     sheet: null,
     instapaperBusy: false,
@@ -193,12 +197,12 @@ class AppStore {
     // A notification's click (#235, public/sw.js): ?open=shared, or a message to an open page.
     if (new URLSearchParams(location.search).get("open") === "shared") {
       history.replaceState(null, "", "/");
-      this.showSaved({ ...this.state.savedFilter, tab: { kind: "shared" }, likedOnly: false, tags: [] });
+      this.showInbox(true);
     }
     if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
       navigator.serviceWorker.addEventListener("message", (e: MessageEvent) => {
         if ((e.data as { kind?: unknown } | null)?.kind !== "openShared") return;
-        this.showSaved({ ...this.state.savedFilter, tab: { kind: "shared" }, likedOnly: false, tags: [] });
+        this.showInbox(true);
         void this.sync();
       });
       void refreshServiceWorker();
@@ -309,7 +313,7 @@ class AppStore {
     // articles read this visit in the Unread list (#157).
     const fresh = selection.kind !== "saved" && !L.sameSelection(selection, this.lastFeeds);
     if (selection.kind !== "saved") this.lastFeeds = selection;
-    this.set(fresh ? { selection, readThisVisit: new Set() } : { selection });
+    this.set(fresh ? { selection, readThisVisit: new Set(), inboxOpen: false } : { selection, inboxOpen: false });
   }
 
   /** Saved, on a tab and with filters (the sidebar, the tabs and the chips). */
@@ -320,6 +324,7 @@ class AppStore {
 
   /** Feeds or Saved, where it was last (the navigation bar). */
   showSection(saved: boolean) {
+    if (this.state.inboxOpen) this.set({ inboxOpen: false });
     if ((this.state.selection.kind === "saved") === saved) return;
     if (saved) this.showSaved();
     else this.select(L.selectionExists(this.state.library, this.lastFeeds));
@@ -549,7 +554,7 @@ class AppStore {
     }
   }
 
-  /** What other Content users shared (#167): into Saved, then out of the inbox; says what arrived. */
+  /** What other Content users shared (#167): into the app's inbox (#246), then out of the account's; says what arrived. */
   private async takeInShared(client: AccountClient) {
     const inbox = await client.inbox().catch(() => [] as InboxMessage[]);
     if (inbox.length === 0) return;
@@ -604,12 +609,12 @@ class AppStore {
   private names = new Map<string, string>();
 
   /** Sends articles to a Content user (#167); `tag` when they go as a tag. */
-  shareWithUser = async (to: string, items: SharedArticle[], tag: string | null, message = ""): Promise<"sent" | "noAccount" | "noEmail" | "signedOut" | "offline" | "failed"> => {
+  shareWithUser = async (to: string, items: SharedArticle[], tag: string | null): Promise<"sent" | "noAccount" | "noEmail" | "signedOut" | "offline" | "failed"> => {
     const account = this.state.account;
     if (!account) return "signedOut";
     if (!account.email) return "noEmail";
     try {
-      if (!(await new AccountClient(account.key).share(to, { email: account.email, name: "" }, items, tag, message))) return "noAccount";
+      if (!(await new AccountClient(account.key).share(to, { email: account.email, name: "" }, items, tag))) return "noAccount";
       // Offered first next time, on every device (#235).
       this.updateSettings({ recipients: rememberRecipient(this.state.settings.recipients, to) });
       return "sent";
@@ -756,8 +761,17 @@ class AppStore {
   likeItem = (key: string, liked: boolean) => this.updateLibrary((lib) => setLiked(lib, key, liked));
   archiveItem = (key: string, archived: boolean) => this.updateLibrary((lib) => Saved.archiveItem(lib, key, archived));
   /** Into a folder, or To read with null. */
-  /** Puts an item shared with you in To read or the Archive (#167). */
-  placeShared = (key: string, state: "toread" | "archived") => this.updateLibrary((lib) => Saved.placeShared(lib, key, state, Date.now()));
+  /** The inbox (#246) in place of the list, or the list again. */
+  showInbox = (open: boolean) => this.set({ inboxOpen: open });
+  markInboxRead = (key: string, read = true) => this.updateLibrary((lib) => markInboxRead(lib, key, read));
+  /** Out of the inbox; the item as it was, for Undo. */
+  removeFromInbox = (key: string): Item | undefined => {
+    const before = itemOf(this.state.library, key);
+    this.updateLibrary((lib) => removeFromInbox(lib, key));
+    return before;
+  };
+  /** Undo for removeFromInbox: back in the inbox as it was. */
+  restoreInbox = (item: Item) => this.updateLibrary((lib) => putItem(lib, { ...(itemOf(lib, item.key) ?? item), sharedBy: item.sharedBy }));
   removeItem = (key: string) => this.updateLibrary((lib) => Saved.removeSaved(lib, key));
 
   /** Folders and tags (Folders and tags). Renaming to another's name joins the two. */

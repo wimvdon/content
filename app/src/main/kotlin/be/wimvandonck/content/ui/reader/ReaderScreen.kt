@@ -66,7 +66,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import be.wimvandonck.content.R
 import be.wimvandonck.content.data.ArticleReport
-import be.wimvandonck.content.sync.ShareResult
 import androidx.compose.ui.res.pluralStringResource
 import java.util.UUID
 import be.wimvandonck.content.data.Highlight
@@ -113,8 +112,6 @@ class ReaderActions(
     val onOpenLink: (String) -> Unit,
     /** Signs in to the article's site (#180), so articles you pay for load in full. Null without an https link. */
     val onSignIn: (() -> Unit)? = null,
-    /** Sends the article to a Content user (#167); null when signed out or without a link. */
-    val onShareWithUser: ((email: String, message: String, result: (ShareResult) -> Unit) -> Unit)? = null,
     /** Reports a badly cleaned-up article (#181): a pre-filled GitHub issue in the browser. Null without a link. */
     val onReport: ((ArticleReport.Problem, String) -> Unit)? = null,
 )
@@ -172,7 +169,6 @@ fun ReaderScreen(
     var showStyleSheet by rememberSaveable { mutableStateOf(false) }
     var removeOpen by rememberSaveable { mutableStateOf(false) }
     var reportOpen by rememberSaveable { mutableStateOf(false) }
-    var shareUserOpen by rememberSaveable { mutableStateOf(false) }
     var menuOpen by remember { mutableStateOf(false) }
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val hasLink = article?.link != null
@@ -239,16 +235,6 @@ fun ReaderScreen(
                                 onClick = {
                                     menuOpen = false
                                     signIn()
-                                },
-                            )
-                        }
-                        if (actions.onShareWithUser != null) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.share_user_menu)) },
-                                leadingIcon = { Icon(painterResource(R.drawable.ic_group), contentDescription = null) },
-                                onClick = {
-                                    menuOpen = false
-                                    shareUserOpen = true
                                 },
                             )
                         }
@@ -353,16 +339,6 @@ fun ReaderScreen(
     }
 
     if (item != null) {
-        if (shareUserOpen) {
-            actions.onShareWithUser?.let { send ->
-                ShareWithUserDialog(
-                    what = stringResource(R.string.share_user_article),
-                    onSend = send,
-                    onDone = { shareUserOpen = false },
-                    onDismiss = { shareUserOpen = false },
-                )
-            }
-        }
         if (reportOpen) {
             actions.onReport?.let { report ->
                 ReportDialog(

@@ -13,9 +13,6 @@ sealed interface SavedTab {
     ) : SavedTab
 
     data object Archive : SavedTab
-
-    /** What other Content users shared with you, until you put it in To read or the Archive (#167). */
-    data object Shared : SavedTab
 }
 
 /** What Saved shows: a tab, and within it only liked ones or only some tags (all of them). */
@@ -83,14 +80,12 @@ object Saved {
         item: Item,
         tab: SavedTab,
     ): Boolean {
-        if (tab == SavedTab.Shared) return item.waitingShared
         val reading = item.readingList ?: return false
         return when (tab) {
             SavedTab.All -> true
             SavedTab.Archive -> reading.state == ReadingState.Archived
             SavedTab.ToRead -> reading.state == ReadingState.ToRead && item.folder == null
             is SavedTab.Folder -> folderOf(item).equals(tab.name, ignoreCase = true)
-            SavedTab.Shared -> false
         }
     }
 
@@ -104,7 +99,7 @@ object Saved {
                 isIn(item, filter.tab) &&
                     (!filter.likedOnly || item.liked) &&
                     filter.tags.all { t -> item.tags.any { it.equals(t, ignoreCase = true) } }
-            }.sortedByDescending { it.readingList?.addedAt ?: it.sharedBy?.at ?: it.createdAt }
+            }.sortedByDescending { it.readingList?.addedAt ?: it.createdAt }
 
     /** Every folder in use, sorted (case ignored). */
     /**
@@ -141,10 +136,7 @@ object Saved {
      * The states Saved's state chip offers (#205): To read, Archive or everything. A tag stays
      * chosen when the state changes, as a folder does with Unread and All in Feeds.
      */
-    val states: List<SavedTab> = listOf(SavedTab.ToRead, SavedTab.Shared, SavedTab.Archive, SavedTab.All)
-
-    /** How many shared items wait in Shared with me (#167): a dot on Saved while there are any. */
-    fun sharedWaiting(library: Library): Int = library.items.count { it.waitingShared }
+    val states: List<SavedTab> = listOf(SavedTab.ToRead, SavedTab.Archive, SavedTab.All)
 
     /** How many liked items are still to read, for ☰'s Liked row (#206). */
     fun likedToReadCount(library: Library): Int = library.items.count { it.liked && isIn(it, SavedTab.ToRead) }
@@ -205,7 +197,16 @@ object Saved {
     fun remove(
         library: Library,
         key: String,
-    ): Library = if (library.item(key) == null) library else library.copy(items = library.items.filter { it.key != key })
+    ): Library {
+        val item = library.item(key) ?: return library
+        // Still in the inbox (#246): it stays there, with nothing of Saved's left on it.
+        if (item.inInbox) {
+            return library.putItem(
+                item.copy(readingList = null, folder = null, bookmark = null, liked = false, tags = emptyList(), note = "", highlights = emptyList(), progress = 0f),
+            )
+        }
+        return library.copy(items = library.items.filter { it.key != key })
+    }
 
     /** Renames a folder on every item; renaming it to another folder's name joins the two. */
     fun renameFolder(

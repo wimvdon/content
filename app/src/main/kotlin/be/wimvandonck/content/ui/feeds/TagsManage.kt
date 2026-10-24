@@ -63,7 +63,7 @@ fun TagsManageScreen(
     /** Switches to the Feeds tab of Feeds and tags (#222). */
     onTab: (ManageTab) -> Unit = {},
     /** Sends a tag's articles to a Content user (#167); null when signed out. */
-    onShareTag: ((tag: String, email: String, message: String, result: (ShareResult) -> Unit) -> Unit)? = null,
+    onShareTag: ((tag: String, email: String, result: (ShareResult) -> Unit) -> Unit)? = null,
 ) {
     var sharing by rememberSaveable { mutableStateOf<String?>(null) }
     // What is being renamed or removed: "t:<tag>" or "c:<folder>".
@@ -159,7 +159,7 @@ fun TagsManageScreen(
         if (share != null) {
             ShareWithUserDialog(
                 what = pluralStringResource(R.plurals.share_user_tag, tags[tag] ?: 0, tag, tags[tag] ?: 0),
-                onSend = { email, message, result -> share(tag, email, message, result) },
+                onSend = { email, result -> share(tag, email, result) },
                 onDone = { sharing = null },
                 onDismiss = { sharing = null },
             )
