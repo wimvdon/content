@@ -16,6 +16,8 @@ import type { Env } from "./index";
 export const API_BASE = "https://www.instapaper.com/api/2";
 export const TOKEN_URL = "https://www.instapaper.com/oauth2/token";
 const MAX_BODY_BYTES = 64 * 1024;
+/** Saving a bookmark may carry the article's text (#247), so it may be larger. */
+export const MAX_SAVE_BYTES = 1024 * 1024;
 const USER_AGENT = "RSSReader/web (+https://github.com/wimvdon/reader)";
 const LIST_PARAMS = ["section", "folder_id", "tag", "limit", "offset", "since"];
 
@@ -137,7 +139,7 @@ async function forward(request: Request, fetcher: Fetcher, url: URL, cors: Recor
   let body: string | undefined;
   if (request.method === "POST") {
     body = await request.text();
-    if (body.length > MAX_BODY_BYTES) return plain(413, "Too large", cors);
+    if (body.length > (subPath === "/bookmarks" ? MAX_SAVE_BYTES : MAX_BODY_BYTES)) return plain(413, "Too large", cors);
   }
 
   let upstream: Response;

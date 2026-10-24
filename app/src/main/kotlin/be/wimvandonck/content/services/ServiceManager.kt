@@ -64,6 +64,8 @@ class ServiceManager(
     private val recordImport: suspend (String, ServiceImport?) -> Unit = { _, _ -> },
     /** Whether highlights are copied to each service (#164, a setting on this device, off by default). */
     private val copiesHighlights: (String) -> Boolean = { false },
+    /** The text Content shows for a saved item, sent with it to a service that takes it (#247). */
+    private val textOf: suspend (Item) -> String? = { null },
     private val clock: () -> Long = System::currentTimeMillis,
 ) {
     private val _statuses = MutableStateFlow<Map<String, ServiceStatus>>(emptyMap())
@@ -188,7 +190,7 @@ class ServiceManager(
                     if (other != id) library.serviceState(other).rows.filterValues { it.linked }.keys.forEach { elsewhere += it }
                 }
                 var result =
-                    ServiceSync.run(service, state, scopeOf(id), full = full, editedAt = HashMap(editedAt), elsewhere = elsewhere) { change ->
+                    ServiceSync.run(service, state, scopeOf(id), full = full, editedAt = HashMap(editedAt), elsewhere = elsewhere, textOf = textOf, now = clock()) { change ->
                         library.edit(change)
                     }
                 if (result.problem == null && service is HighlightService && copiesHighlights(id)) result = copyHighlights(service, result)

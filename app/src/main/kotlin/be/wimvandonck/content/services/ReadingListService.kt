@@ -14,6 +14,9 @@ enum class ServiceFeature {
 
     /** The item's note (Raindrop keeps one per bookmark). */
     Notes,
+
+    /** The article's text, sent with a new article so the service shows what Content shows (#247). */
+    Content,
 }
 
 /** Why a service call failed. A failure never loses anything in Reader; the change is tried again later. */
@@ -138,6 +141,8 @@ interface ReadingListService {
         archived: Boolean,
         folder: String? = null,
         note: String = "",
+        /** The article's HTML, for a service with [ServiceFeature.Content]; null to let it fetch the page itself. */
+        content: String? = null,
     ): RemoteEntry
 
     /** Applies the core fields of [want] that differ from [have] (the entry as last seen) and returns the entry afterwards. */

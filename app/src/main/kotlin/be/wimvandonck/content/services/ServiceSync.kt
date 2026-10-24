@@ -49,6 +49,11 @@ data class ServiceSyncResult(
  * sync. Plain Kotlin, tested with a fake service.
  */
 object ServiceSync {
+    /** How recently an item must have been saved for its text to go with it (#247). */
+    const val CONTENT_DAYS = 7L
+
+    private const val DAY_MS = 24 * 60 * 60 * 1000L
+
     suspend fun run(
         service: ReadingListService,
         state: ServiceState,
@@ -59,12 +64,20 @@ object ServiceSync {
         editedAt: Map<String, Long> = emptyMap(),
         /** Items other connected services keep in step, by key: a deletion in this one leaves them in Saved. */
         elsewhere: Set<String> = emptySet(),
+        /**
+         * The text Content shows for a saved item (#247), sent with it when it is new there, or null
+         * (then the service fetches the page itself). Only asked for items saved in the last
+         * [CONTENT_DAYS] days, so connecting a service doesn't load every article at once.
+         */
+        textOf: suspend (Item) -> String? = { null },
+        now: Long = System.currentTimeMillis(),
         update: suspend ((Library) -> Library) -> Library,
     ): ServiceSyncResult {
         val rows = HashMap(state.rows)
         var cursor = state.cursor
         val progress = ServiceFeature.Progress in service.features
         val notes = ServiceFeature.Notes in service.features
+        val content = ServiceFeature.Content in service.features
         if (service.origins.isEmpty()) service.origins = state.origins
         fun result(problem: ServiceProblem?) = ServiceSyncResult(ServiceState(cursor, rows, service.origins.ifEmpty { state.origins }, state.highlights), problem)
         try {
@@ -90,7 +103,9 @@ object ServiceSync {
                     }
                     !inScope -> Unit
                     have == null -> {
-                        var added = service.add(item.url, item.title, item.tags, item.archived, Saved.folderOf(item), if (notes) item.note else "")
+                        val recent = now - item.readingList.addedAt <= CONTENT_DAYS * DAY_MS
+                        val text = if (content && recent) runCatching { textOf(item) }.getOrNull() else null
+                        var added = service.add(item.url, item.title, item.tags, item.archived, Saved.folderOf(item), if (notes) item.note else "", text)
                         var target = entryOf(item, added.remoteId, notes)
                         // Saved without a title (its address stands in): the service's title is better.
                         if (item.title == item.url && added.title.isNotBlank() && added.title != item.url) {

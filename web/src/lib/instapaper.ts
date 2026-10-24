@@ -214,8 +214,9 @@ export class InstapaperApi {
   }
 
   /** Saving an address the account already has doesn't duplicate it; Instapaper moves it back to the top. */
-  save(url: string, title?: string): Promise<Bookmark> {
-    return this.call("POST", "/bookmarks", { url, ...(title ? { title } : {}) });
+  /** Saves `url`; with `content`, Content's HTML for it, which Instapaper shows instead of fetching the page (#247). */
+  save(url: string, title?: string, content?: string): Promise<Bookmark> {
+    return this.call("POST", "/bookmarks", { url, ...(title ? { title } : {}), ...(content ? { content } : {}) });
   }
 
   /** To the archive, back to Unread ("home"), or into a folder. */

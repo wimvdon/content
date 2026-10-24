@@ -7,7 +7,9 @@ import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.SingletonImageLoader
 import coil3.request.crossfade
+import be.wimvandonck.content.data.FullArticle
 import be.wimvandonck.content.data.FullArticles
+import be.wimvandonck.content.data.SharedText
 import be.wimvandonck.content.data.IconCatalog
 import be.wimvandonck.content.data.LibraryRepository
 import be.wimvandonck.content.data.ServiceScope
@@ -84,6 +86,15 @@ class RssReaderApp :
             importOf = { id -> settings.settings.value?.imports?.get(id) },
             recordImport = { id, record -> settings.setImport(id, record) },
             copiesHighlights = { id -> id == InstapaperReadingList.ID && settings.settings.value?.copyHighlights == true },
+            // The one text every device shows for a saved article (data/SharedText.kt), so Instapaper shows it too (#247).
+            textOf = { item ->
+                SharedText.resolve(
+                    saved = true,
+                    stored = { sync.storedText(item.key) },
+                    extract = { (fullArticles.load(item.url) as? FullArticle.Loaded)?.html },
+                    store = { html -> sync.storeText(item.key, html) },
+                )
+            },
         )
     }
 

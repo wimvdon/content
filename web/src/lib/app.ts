@@ -27,6 +27,9 @@ import { takeInShared, type InboxMessage, type Received, type SharedArticle } fr
 import * as L from "./library";
 import { importOpml, parseOpml, writeOpml } from "./opml";
 import { fetchViaProxy, FetchError } from "./proxy";
+import { resolveText } from "./sharedText";
+import { cached } from "./fullArticleStore";
+import { extractArticle } from "./fullArticle";
 import { defaultReaderStyle, readerStyleOf, type ReaderStyle } from "./readerStyle";
 import { load, remove, save } from "./storage";
 import * as S from "./sync";
@@ -828,6 +831,20 @@ class AppStore {
         // Folders became tags (#187), so a scope of folders means nothing any more: everything in Saved syncs.
         EVERYTHING,
         { ...this.editedAt },
+        new Set(),
+        // The one text every device shows for a saved article (sharedText.ts), so Instapaper shows it too (#247).
+        (item) =>
+          resolveText(
+            true,
+            () => this.storedText(item.key),
+            async () => {
+              const known = await cached(item.url);
+              if (known) return known;
+              const page = await fetchViaProxy(item.url, true);
+              return extractArticle(page.text, page.url);
+            },
+            (own) => this.storeText(item.key, own),
+          ),
       )
         .then(async (result) => {
           if (!result.problem && this.state.settings.copyHighlights && this.state.instapaper?.token === session.token) {

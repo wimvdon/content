@@ -25,7 +25,8 @@ scope is archived at Instapaper, never deleted.
   removal; tags as a set (`ServiceSync.merge`). An article seen there but not imported stays there
   until it changes.
 - **Sending changes:** what differs from the last-seen article is sent: new articles
-  (`POST /bookmarks` with title and tags, then `/move` to archive), archive (`/move`), like
+  (`POST /bookmarks` with title and tags, and for one saved in the last week the text Content
+  shows, see below; then `/move` to archive), archive (`/move`), like
   (`/like`), tags (`/tags`, removed by id), the title and reading progress (`POST /bookmarks/{id}`
   with `progress`), and removal from the reading list (`DELETE /bookmarks/{id}`). A failure (offline,
   `429`, a server error) stops the sync and keeps everything in Reader; the rest goes next time. A
@@ -38,6 +39,15 @@ scope is archived at Instapaper, never deleted.
   `ArticleExtractor`. Instapaper's parsed text (`GET /bookmarks/{id}/parse`) is not used: it is only
   given to the account that registered the app, and no Instaparser key is bought (#113). Texts kept
   before are deleted when the app starts.
+- **Instapaper gets that text too** (#247): a new article goes to Instapaper with `content`, the
+  article's HTML as Content shows it (the one stored text every device shows, `SharedText`; the
+  first device to need it extracts and stores it). So Instapaper shows what Content shows, and its
+  highlights find the same passages. Only for articles saved in the last week (`CONTENT_DAYS`), so
+  connecting doesn't load the whole backlog; older ones, and any whose page can't be read, go as a
+  link and Instapaper fetches the page itself, as before. Should Instapaper refuse the text (too large,
+  say), the link alone is sent. Only on creation: an article already in Instapaper keeps its text there.
+  The web app does the same through the feed loader, which allows up to 1 MiB for saving a bookmark
+  (64 KiB for its other calls).
 - A link saved without a title (shared or added) takes Instapaper's title when Instapaper knows it.
 - **Signing out** forgets what was synced with Instapaper; the reading list stays.
 

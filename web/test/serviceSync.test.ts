@@ -9,6 +9,9 @@ import { emptyServiceSyncState, importService, ServiceSyncError, syncService, ty
 /** A service in memory: what it has, a cursor per change, and calls that can fail. */
 class FakeService implements SavedSyncService {
   readonly progress = true;
+  content = false;
+  /** The article text each add brought, by address (#247). */
+  contents = new Map<string, string | null>();
   entries = new Map<string, RemoteEntry>();
   private changedAt = new Map<string, number>();
   private deletedAt = new Map<string, number>();
@@ -49,8 +52,9 @@ class FakeService implements SavedSyncService {
     };
   }
 
-  async add(url: string, title: string, tags: string[], archived: boolean, folder: string | null): Promise<RemoteEntry> {
+  async add(url: string, title: string, tags: string[], archived: boolean, folder: string | null, content: string | null = null): Promise<RemoteEntry> {
     this.call(`add ${url}`);
+    this.contents.set(url, content);
     const entry = remote(String(this.nextId++), url, { title, tags, archived, folder });
     this.put(entry);
     return entry;
@@ -118,6 +122,33 @@ describe("Saved and a service (serviceSync.ts)", () => {
     service.calls = [];
     await sync();
     expect(service.calls).toEqual(["changes"]);
+  });
+
+  it("sends a new article with Content's text to a service that takes it, only when saved recently (#247)", async () => {
+    const day = 24 * 60 * 60 * 1000;
+    const now = 30 * day;
+    const service = new FakeService();
+    service.content = true;
+    let lib = addToReadingList(emptyLibrary(), "https://b.example/new", "New", now - day)[0];
+    lib = addToReadingList(lib, "https://b.example/old", "Old", now - 8 * day)[0];
+    const asked: string[] = [];
+    const textOf = async (item: { key: string; title: string }) => {
+      asked.push(item.key);
+      return `<p>${item.title}</p>`;
+    };
+    await syncService(service, emptyServiceSyncState, (change) => (lib = change(lib)), now, EVERYTHING, {}, new Set(), textOf);
+    expect(service.contents.get("https://b.example/new")).toBe("<p>New</p>");
+    // Saved more than a week ago (connecting brings the backlog): the service fetches the page itself.
+    expect(service.contents.get("https://b.example/old")).toBeNull();
+    expect(asked).toEqual(["b.example/new"]);
+    // No text to be had (offline): added all the same; a service without the feature isn't asked.
+    const failing = new FakeService();
+    failing.content = true;
+    expect((await syncService(failing, emptyServiceSyncState, (change) => (lib = change(lib)), now, EVERYTHING, {}, new Set(), () => Promise.reject(new Error("offline")))).problem).toBeNull();
+    expect(failing.contents.get("https://b.example/new")).toBeNull();
+    const plain = new FakeService();
+    await syncService(plain, emptyServiceSyncState, (change) => (lib = change(lib)), now, EVERYTHING, {}, new Set(), () => Promise.reject(new Error("not asked")));
+    expect(plain.contents.has("https://b.example/new")).toBe(true);
   });
 
   it("merges three ways: a change on each side to other fields both stay; the same field, the later change", async () => {
@@ -242,8 +273,10 @@ class FakeApi {
   async tags() {
     return this.tagList;
   }
-  async save(url: string, title?: string): Promise<Bookmark> {
-    this.calls.push(`save ${url} ${title ?? ""}`.trim());
+  saveRefusesContent = false;
+  async save(url: string, title?: string, content?: string): Promise<Bookmark> {
+    this.calls.push(`save ${url} ${title ?? ""}${content ? ` +${content}` : ""}`.trim());
+    if (content && this.saveRefusesContent) throw new InstapaperError("invalid");
     return bookmark(50, url);
   }
   async setTags(id: number, add: string[], removeIds: number[]): Promise<Tag[]> {
@@ -305,6 +338,19 @@ describe("Instapaper as Saved's service (instapaperSync.ts)", () => {
     const archived = await sync.add("https://c.example/2", "https://c.example/2", [], true, null);
     expect(api.calls).toEqual(["save https://c.example/2", "move 50 archive"]);
     expect(archived.archived).toBe(true);
+  });
+
+  it("adds with Content's text, or the link alone when Instapaper refuses the text (#247)", async () => {
+    const api = new FakeApi();
+    const sync = new InstapaperSync(api);
+    await sync.changes(null);
+    api.calls = [];
+    await sync.add("https://c.example/1", "C", [], false, null, "<p>Text</p>");
+    expect(api.calls).toEqual(["save https://c.example/1 C +<p>Text</p>"]);
+    api.calls = [];
+    api.saveRefusesContent = true;
+    expect((await sync.add("https://c.example/2", "D", [], false, null, "<p>Long</p>")).remoteId).toBe("50");
+    expect(api.calls).toEqual(["save https://c.example/2 D +<p>Long</p>", "save https://c.example/2 D"]);
   });
 
   it("updates only what changed: like, tags by id, the archive, title and progress (never a folder)", async () => {

@@ -85,7 +85,9 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   Android app keeps your reading list and your Instapaper account the same while it is open: it
   reads everything in your account and what changed since its last look, and sends the title, link,
   tags, like, archive and reading progress of the articles on your reading list, and removes from
-  Instapaper what you take off the reading list. On the app owner's own account it also asks
+  Instapaper what you take off the reading list. An article you saved in the last week also goes
+  with the text Content shows for it (the article as Content took it from its website, #247), so
+  Instapaper shows the same text; the web app does the same. On the app owner's own account it also asks
   Instapaper for its text of an article you open, which is kept on your device only. The web app
   reads and changes your saved list (archive, like, delete, move to a folder, tags, folders).
   **Sync highlights with Instapaper** (off unless you turn it on, per device): the passage you

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { handle, type Env } from "../src/index";
-import { API_BASE, TOKEN_URL } from "../src/instapaper";
+import { API_BASE, MAX_SAVE_BYTES, TOKEN_URL } from "../src/instapaper";
 
 const APP = "https://app.example";
 const env: Env = {
@@ -168,6 +168,18 @@ describe("/instapaper/api", () => {
       expect((await handle(apiRequest(path, { method: "DELETE", headers: BEARER }), env, fetcher)).status).toBe(200);
     }
     expect(calls.map((c) => c.init?.method)).toEqual(["POST", "POST", "POST", "DELETE", "DELETE"]);
+  });
+
+  it("lets a saved bookmark carry the article's text (#247), and keeps other calls small", async () => {
+    const { fetcher, calls } = upstream(() => jsonResponse({ id: 7 }));
+    const post = (path: string, body: unknown) =>
+      handle(apiRequest(path, { method: "POST", headers: BEARER, body: JSON.stringify(body) }), env, fetcher);
+    const text = "<p>" + "x".repeat(200 * 1024) + "</p>";
+    expect((await post("/bookmarks", { url: "https://a.example/x", content: text })).status).toBe(200);
+    expect(JSON.parse(String(calls[0].init?.body)).content).toBe(text);
+    expect((await post("/bookmarks", { url: "https://a.example/x", content: "x".repeat(MAX_SAVE_BYTES) })).status).toBe(413);
+    expect((await post("/bookmarks/7/tags", { add_tags: [{ name: text }] })).status).toBe(413);
+    expect(calls).toHaveLength(1);
   });
 
   it("manages folders and tags", async () => {
