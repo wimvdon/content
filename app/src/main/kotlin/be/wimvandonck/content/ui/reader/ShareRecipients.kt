@@ -7,6 +7,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import be.wimvandonck.content.rssReaderApp
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -28,8 +33,23 @@ class ShareRecipients(
     val nameOf: suspend (String) -> String? = { null },
 )
 
-/** The recipients for the dialogs below the navigation, which opens them from the reader and Manage tags. */
+/** The recipients for Send with Content, which opens over the app (SaveFromTabActivity) and from Manage tags. */
 val LocalShareRecipients = staticCompositionLocalOf { ShareRecipients() }
+
+/**
+ * Gives [content] the people shared with before, with their Gravatar names and pictures (Show images),
+ * kept up to date. Around every screen that can open Send with Content: the app and the screen over
+ * other apps (#249).
+ */
+@Composable
+fun ProvideShareRecipients(content: @Composable () -> Unit) {
+    val app = LocalContext.current.rssReaderApp
+    val settings by app.settings.settings.collectAsStateWithLifecycle()
+    val emails = settings?.recipients.orEmpty()
+    val showImages = settings?.showImages ?: false
+    val recipients = remember(emails, showImages) { ShareRecipients(emails, showImages, app.sync::profileName) }
+    CompositionLocalProvider(LocalShareRecipients provides recipients, content)
+}
 
 /** A recipient's Gravatar name, or null while unknown or without one. */
 @Composable

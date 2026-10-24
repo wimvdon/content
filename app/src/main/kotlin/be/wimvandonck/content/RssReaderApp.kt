@@ -128,8 +128,11 @@ class RssReaderApp :
             combine(settings.settings.filterNotNull(), account.state) { s, state ->
                 Triple(state is AccountState.SignedIn, s.recipients, s.showImages)
             }.distinctUntilChanged().collect { (signedIn, recipients, showImages) ->
-                DirectShare.showSendTarget(this@RssReaderApp, signedIn)
-                DirectShare.publish(this@RssReaderApp, if (signedIn) recipients else emptyList(), showImages, sync::profileName)
+                // A failure here must not end the collecting: the next change would never be published (#249).
+                runCatching {
+                    DirectShare.showSendTarget(this@RssReaderApp, signedIn)
+                    DirectShare.publish(this@RssReaderApp, if (signedIn) recipients else emptyList(), showImages, sync::profileName)
+                }.onFailure { Log.w("RssReader", "Direct share not published", it) }
             }
         }
         // Signed in with Instapaper before #166: that account key moves to the Content account, once.

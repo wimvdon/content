@@ -16,6 +16,7 @@ import be.wimvandonck.content.data.ShareShortcuts
 import be.wimvandonck.content.sync.Gravatar
 import coil3.SingletonImageLoader
 import coil3.request.ImageRequest
+import coil3.request.allowHardware
 import coil3.request.SuccessResult
 import coil3.toBitmap
 
@@ -104,8 +105,12 @@ object DirectShare {
         canvas.drawColor(LETTER_BACKGROUND)
         val gravatar =
             if (showImages) {
-                val request = ImageRequest.Builder(context).data(Gravatar.url(email, 144)).build()
-                (SingletonImageLoader.get(context).execute(request) as? SuccessResult)?.image?.toBitmap()
+                // A software bitmap: Coil's hardware ones can't be drawn on this canvas, which threw
+                // and left the share menu without people (#249). Any other failure: the letter.
+                runCatching {
+                    val request = ImageRequest.Builder(context).data(Gravatar.url(email, 144)).allowHardware(false).build()
+                    (SingletonImageLoader.get(context).execute(request) as? SuccessResult)?.image?.toBitmap()
+                }.getOrNull()
             } else {
                 null
             }
