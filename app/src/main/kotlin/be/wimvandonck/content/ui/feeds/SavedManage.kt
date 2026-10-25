@@ -17,12 +17,8 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,7 +26,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -52,17 +47,15 @@ import be.wimvandonck.content.ui.theme.readableWidth
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SavedManageScreen(
+fun SavedManageTab(
     tags: Map<String, Int>,
-    snackbarHostState: SnackbarHostState,
-    onBack: () -> Unit,
+    /** The manage page's padding (ManageScreen), below its title bar and tabs. */
+    innerPadding: PaddingValues,
     onRename: (String, String) -> Unit,
     onRemove: (String) -> Unit,
     folders: Map<String, Int> = emptyMap(),
     onRenameFolder: (String, String) -> Unit = { _, _ -> },
     onRemoveFolder: (String) -> Unit = {},
-    /** Switches to the Feeds tab (#222). */
-    onTab: (ManageTab) -> Unit = {},
     tagWithFolder: Boolean = true,
     onTagWithFolderChange: (Boolean) -> Unit = {},
     instapaper: InstapaperSettingsState? = null,
@@ -74,83 +67,75 @@ fun SavedManageScreen(
     // What is being renamed or removed: "t:<tag>" or "c:<folder>".
     var renaming by rememberSaveable { mutableStateOf<String?>(null) }
     var removing by rememberSaveable { mutableStateOf<String?>(null) }
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        // One screen with the feeds (#222): its tabs switch between the two.
-        topBar = { ManageTopBar(ManageTab.Saved, onTab, onBack, scrollBehavior) },
-    ) { innerPadding ->
-        LazyColumn(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .readableWidth(),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 32.dp),
-        ) {
-            item(key = "tagWithFolder") {
-                SwitchSetting(
-                    title = stringResource(R.string.setting_tag_with_folder_title),
-                    summary = stringResource(R.string.setting_tag_with_folder_summary),
-                    checked = tagWithFolder,
-                    onCheckedChange = onTagWithFolderChange,
+    LazyColumn(
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .readableWidth(),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 32.dp),
+    ) {
+        item(key = "tagWithFolder") {
+            SwitchSetting(
+                title = stringResource(R.string.setting_tag_with_folder_title),
+                summary = stringResource(R.string.setting_tag_with_folder_summary),
+                checked = tagWithFolder,
+                onCheckedChange = onTagWithFolderChange,
+            )
+        }
+        if (instapaper != null) {
+            item(key = "instapaper") {
+                Column {
+                    Heading(stringResource(R.string.section_instapaper))
+                    InstapaperSettings(instapaper, onInstapaperSignIn, onInstapaperSync, onInstapaperSignOut, onInstapaperImport)
+                }
+            }
+        }
+        if (tags.isEmpty() && folders.isEmpty()) {
+            item(key = "empty") {
+                Column {
+                    Heading(stringResource(R.string.manage_folders_tags_empty_title))
+                    Text(
+                        stringResource(R.string.manage_folders_tags_empty_body),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                    )
+                }
+            }
+        }
+        if (folders.isNotEmpty()) {
+            item(key = "folders") { Heading(stringResource(R.string.saved_folders)) }
+            items(folders.entries.toList(), key = { "c:" + it.key }) { (folder, count) ->
+                ListItem(
+                    headlineContent = { Text(folder) },
+                    supportingContent = { Text(pluralStringResource(R.plurals.reading_list_count, count, count)) },
+                    leadingContent = { Icon(painterResource(R.drawable.ic_folder), contentDescription = null) },
+                    trailingContent = {
+                        IconButton(onClick = { removing = "c:$folder" }) {
+                            Icon(painterResource(R.drawable.ic_delete), contentDescription = stringResource(R.string.saved_folder_remove))
+                        }
+                    },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                    modifier = Modifier.clickable(role = Role.Button, onClickLabel = stringResource(R.string.saved_folder_rename)) { renaming = "c:$folder" },
                 )
             }
-            if (instapaper != null) {
-                item(key = "instapaper") {
-                    Column {
-                        Heading(stringResource(R.string.section_instapaper))
-                        InstapaperSettings(instapaper, onInstapaperSignIn, onInstapaperSync, onInstapaperSignOut, onInstapaperImport)
-                    }
-                }
-            }
-            if (tags.isEmpty() && folders.isEmpty()) {
-                item(key = "empty") {
-                    Column {
-                        Heading(stringResource(R.string.manage_folders_tags_empty_title))
-                        Text(
-                            stringResource(R.string.manage_folders_tags_empty_body),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                        )
-                    }
-                }
-            }
-            if (folders.isNotEmpty()) {
-                item(key = "folders") { Heading(stringResource(R.string.saved_folders)) }
-                items(folders.entries.toList(), key = { "c:" + it.key }) { (folder, count) ->
-                    ListItem(
-                        headlineContent = { Text(folder) },
-                        supportingContent = { Text(pluralStringResource(R.plurals.reading_list_count, count, count)) },
-                        leadingContent = { Icon(painterResource(R.drawable.ic_folder), contentDescription = null) },
-                        trailingContent = {
-                            IconButton(onClick = { removing = "c:$folder" }) {
-                                Icon(painterResource(R.drawable.ic_delete), contentDescription = stringResource(R.string.saved_folder_remove))
-                            }
-                        },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                        modifier = Modifier.clickable(role = Role.Button, onClickLabel = stringResource(R.string.saved_folder_rename)) { renaming = "c:$folder" },
-                    )
-                }
-            }
-            if (tags.isNotEmpty()) {
-                item(key = "tags") { Heading(stringResource(R.string.tags_title)) }
-                items(tags.entries.toList(), key = { "t:" + it.key }) { (tag, count) ->
-                    ListItem(
-                        headlineContent = { Text(tag) },
-                        supportingContent = { Text(pluralStringResource(R.plurals.articles_count, count, count)) },
-                        leadingContent = { Icon(painterResource(R.drawable.ic_label), contentDescription = null) },
-                        trailingContent = {
-                            IconButton(onClick = { removing = "t:$tag" }) {
-                                Icon(painterResource(R.drawable.ic_delete), contentDescription = stringResource(R.string.tags_remove_everywhere))
-                            }
-                        },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                        modifier = Modifier.clickable(role = Role.Button, onClickLabel = stringResource(R.string.tags_rename)) { renaming = "t:$tag" },
-                    )
-                }
+        }
+        if (tags.isNotEmpty()) {
+            item(key = "tags") { Heading(stringResource(R.string.tags_title)) }
+            items(tags.entries.toList(), key = { "t:" + it.key }) { (tag, count) ->
+                ListItem(
+                    headlineContent = { Text(tag) },
+                    supportingContent = { Text(pluralStringResource(R.plurals.articles_count, count, count)) },
+                    leadingContent = { Icon(painterResource(R.drawable.ic_label), contentDescription = null) },
+                    trailingContent = {
+                        IconButton(onClick = { removing = "t:$tag" }) {
+                            Icon(painterResource(R.drawable.ic_delete), contentDescription = stringResource(R.string.tags_remove_everywhere))
+                        }
+                    },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                    modifier = Modifier.clickable(role = Role.Button, onClickLabel = stringResource(R.string.tags_rename)) { renaming = "t:$tag" },
+                )
             }
         }
     }
