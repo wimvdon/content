@@ -27,14 +27,13 @@ import be.wimvandonck.content.R
 import be.wimvandonck.content.sync.ShareResult
 
 /**
- * Send to a Content user (#167): their email address, or one tap on someone shared with before
- * (#235, with their Gravatar picture and name); Send says first when it has no Content account.
- * [what] says what goes ("this article", or a tag's articles).
+ * Send with Content (#167): their email address, or one tap on someone shared with before (#235,
+ * with their Gravatar picture and name); Send says first when it has no Content account. The article
+ * goes to their inbox.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ShareWithUserDialog(
-    what: String,
     /** Filled in already: a person picked in Android's share menu (#235). */
     initialEmail: String = "",
     onSend: (email: String, result: (ShareResult) -> Unit) -> Unit,
@@ -51,7 +50,6 @@ fun ShareWithUserDialog(
         title = { Text(stringResource(R.string.share_user_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(what, style = MaterialTheme.typography.bodyMedium)
                 if (recipients.emails.isNotEmpty()) {
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         for (address in recipients.emails) {
@@ -98,7 +96,6 @@ fun ShareWithUserDialog(
 private fun ShareResult.messageRes(): Int =
     when (this) {
         ShareResult.NoAccount -> R.string.share_user_no_account
-        ShareResult.NoEmail -> R.string.share_user_no_email
         ShareResult.SignedOut -> R.string.share_user_signed_out
         ShareResult.Offline -> R.string.problem_offline
         ShareResult.Sent, ShareResult.Failed -> R.string.problem_server

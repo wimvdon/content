@@ -2,7 +2,6 @@ package be.wimvandonck.content.ui.settings
 
 import androidx.core.content.ContextCompat
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.remember
 import androidx.compose.material3.Switch
 import androidx.activity.result.contract.ActivityResultContracts
@@ -240,12 +239,7 @@ private fun NotifySharedSwitch(
         }
     ListItem(
         headlineContent = { Text(stringResource(R.string.notify_shared_setting)) },
-        supportingContent = {
-            Text(
-                stringResource(if (denied) R.string.notify_shared_denied else R.string.notify_shared_summary),
-                color = if (denied) MaterialTheme.colorScheme.error else Color.Unspecified,
-            )
-        },
+        supportingContent = if (denied) ({ Text(stringResource(R.string.notify_shared_denied), color = MaterialTheme.colorScheme.error) }) else null,
         trailingContent = {
             Switch(
                 checked = on,

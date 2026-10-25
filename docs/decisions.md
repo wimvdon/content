@@ -2,6 +2,53 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-25: Review round: simpler Instapaper, one manage screen, Content's own share sheet (#251)
+
+All asked for by the owner in one review, released as a major version.
+
+- **Instapaper without options.** Everything in Saved syncs both ways, highlights included (the
+  Copy highlights switch is gone, so is the scope that only ever meant everything). Connecting asks
+  once, **Import from Instapaper?**: import everything it has now, or not (then what is there stays
+  until it changes; Saved still goes there). The answer is the synced import record
+  (`services.instapaper.imported`, now `{"at", "count", "everything"}`); records from before count as
+  everything. `services.<id>.scope` is dropped from the sync file.
+- **One manage screen.** ☰'s Manage feeds and Manage tags became one **Manage feeds and Saved**
+  next to Settings, with a Feeds tab (now with OPML import and export) and a Saved tab (Tag with the
+  feed's folder, Instapaper, the tags). Settings lost those three. The same on the web.
+- **The ☰ menu** keeps Feeds and Saved open as you leave them (no more folding by itself); a feed
+  folder shows its feeds only while you are in it, so the list stays short.
+- **The reader's bar** for a saved article is its folder (opens Organise), the highlights and
+  Share: the folder and tags menus side by side didn't fit on a phone. Organise's "Where" is "Folder".
+- **Selection menu:** Highlight and Note come first. Compose only adds an app's items after its own,
+  so the reader builds the whole menu itself: Highlight, Note, Copy, Share, Select all, then the apps
+  that act on text (queried with `PROCESS_TEXT`, a package-visibility query, not a permission).
+  Rejected: keeping Compose's items (ours stayed in the overflow).
+- **Content's own share sheet** (Android) in place of Android's: Send with Content to the people
+  shared with (one tap sends) or another address, then the apps picked most in this sheet, Copy
+  link and More (Android's menu). Android doesn't tell an app which share targets someone uses, so
+  Content counts picks in its own sheet, on the phone only; until then well-known messaging and
+  mail apps come first. Rejected: `PACKAGE_USAGE_STATS` (a special permission, and it says which
+  apps are used, not where people share). The chooser buttons of #248 are gone with it.
+- **Launcher shortcuts:** the people (Direct share) are kept out of the launcher
+  (`setExcludedFromSurfaces`, Android 13 and later); the launcher's long-press menu offers the first
+  four feed folders instead.
+- **Reports** carry the text Content shows, cut at a word when the address would get too long
+  (then copied whole to the clipboard to paste). PRIVACY.md says so.
+- **The article parser** is Readability as it is: after it, only what the reader can't show is
+  dropped (scripts, drawings, form fields); our own dropping of nav, header, footer, aside, form,
+  dialog and menu blocks is gone. Android keeps Readability4J's "Extended" variant: it is the port
+  closest to today's Firefox Readability (lazy and noscript pictures), which plain Readability4J
+  predates.
+- **Sharing a whole tag is gone**, in both apps and the feed loader: one article at a time.
+- **Sign in to this site** only shows while you aren't signed in to that site.
+- **Removed, as the owner is the only user:** the move-in of the library and Saved from before
+  #106 (`LegacyLibrary`, `LibraryCodec`, `LocalSaved`, `savedItems.ts`, `localSaved.ts`), the move of
+  bookmarks from before #119, Raindrop.io's leftovers, the Content account key an Instapaper sign-in
+  used to bring (the feed loader no longer hands one out), the two-service remove dialog, the old
+  Save target values, and "From …" on Saved's cards (the inbox shows who shared).
+- **Fixed on the way:** reporting an article that isn't saved did nothing on Android; the web
+  app's privacy link pointed to the old repository.
+
 ## 2026-10-24: Buttons for Send with Content in Content's own share sheet (#248)
 
 - At the owner's request, Content's own share sheet shows Send with Content and up to four recent

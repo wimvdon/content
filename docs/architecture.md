@@ -45,13 +45,14 @@ RssReaderApp ── SettingsStore ── DataStore "settings" (Preferences)
 | `ui/reader/` | Reader screen, Text sheet, reader colours (theme, sepia, dark). `ReaderStyleControls` is shared with Settings. |
 | `web/` | The web app (see `web/README.md`): `src/lib/` holds the logic (feed parser with Android-compatible ids, library with its items (`items.ts`, one per link, like Android's), search (`search.ts`, like Android's), Saved (`saved.ts`, the Android app's rules: tabs, filters, folders, cards), sync merge and the Reader account with its live connection, IndexedDB storage (`libraryStore.ts`: an article and an item per record), feed loading through the Worker, Readability with a full-article cache, DOMPurify with embed cards, reader text settings, mark as read on scroll) and `src/lib/app.ts` the state the screens subscribe to; `src/components/` the screens. |
 | `worker/` | The Cloudflare Worker the web app loads feeds and pages through (CORS): one address per request, https and public hosts only, feeds and pages only, the web app's origin only, rate limited, nothing stored or logged. It also swaps the Instapaper sign-in code and keeps the Reader accounts: one Durable Object per account with the encrypted sync document and a live connection per open device (`src/account.ts`, `docs/account.md`).. Article pages (`?kind=page`) are asked for as a browser asks (its Accept header and the reader's languages); a site that refuses (401, 403, 429, 451, 503 or a Cloudflare bot check) gets a 403 "blocked" answer, which the web reader turns into "this site doesn't let the web app load it" with Read on website. |
-| `sync/` | Sync with the user's Reader account (see `docs/sync.md`, `docs/account.md`): `SyncRows` and `ItemSync` (per-item sync of Saved and read marks: the rows, their three-way merge, and one round of reading changes and saving this device's), `SyncDocument` (the shared JSON document: folders, feeds, settings), `SyncMerge` (three-way merge with the last synced document, applied to the `Library` in one update), `SyncRound` (read, merge, save with the version read, merge again after another device's save), `AccountClient` (the account's calls over OkHttp, with the device key from the Instapaper sign-in), `LiveUpdates` (the WebSocket that says when another device saved), and `SyncManager` (syncs while the app is on screen: on coming back, live, every minute only while the live connection is down (`whileVisible`), a second after a change, on refresh and on request, with the timing in `SyncTiming`; keeps the base and its version; keeps what it last synced of the items in the database). |
+| `sync/` | Sync with the user's Reader account (see `docs/sync.md`, `docs/account.md`): `SyncRows` and `ItemSync` (per-item sync of Saved and read marks: the rows, their three-way merge, and one round of reading changes and saving this device's), `SyncDocument` (the shared JSON document: folders, feeds, settings), `SyncMerge` (three-way merge with the last synced document, applied to the `Library` in one update), `SyncRound` (read, merge, save with the version read, merge again after another device's save), `AccountClient` (the account's calls over OkHttp, with the device key from the email sign-in), `LiveUpdates` (the WebSocket that says when another device saved), and `SyncManager` (syncs while the app is on screen: on coming back, live, every minute only while the live connection is down (`whileVisible`), a second after a change, on refresh and on request, with the timing in `SyncTiming`; keeps the base and its version; keeps what it last synced of the items in the database). |
 | `data/FeedArrangement.kt` | The manage page as a flat list of folder headers and feeds: which moves are allowed while dragging, and turning the dragged order back into folder order, feed order and each feed's folder. |
-| `ui/feeds/` | Manage feeds (feeds and folders) and Folders and tags (`TagsManage.kt`: rename and remove Saved's folders and tags). Manage feeds: drag and drop (own `LazyColumn` with a drag handle per row), feed dialog (rename, folder, remove) and folder dialog (`FolderDialogs.kt`), OPML import/export. |
-| `ui/settings/` | Settings screen built from the shared `SettingsKit`: Account (Instapaper sign-in and sync, `AccountSettings.kt`), Article list, Reader, Save and Share targets, Appearance. |
+| `ui/feeds/` | Manage feeds and Saved (#222, #251), one screen with a tab each (`ManageTabs.kt`): Feeds (`FeedsScreen.kt`: drag and drop with an own `LazyColumn` and a drag handle per row, feed dialog, folder dialog in `FolderDialogs.kt`, OPML import/export) and Saved (`SavedManage.kt`: Tag with the feed's folder, Instapaper, rename and remove Saved's tags). |
+| `ui/settings/` | Settings screen built from the shared `SettingsKit`: Account (email sign-in, sync and notifications, `AccountSettings.kt`), Sites you're signed in to, Article list, Reader, Save and Share targets, Appearance. `InstapaperSettings.kt` is shown in Manage › Saved. |
 | `ui/theme/` | The app's palette and the shared design kit (see `DESIGN.md`). |
-| `ui/ExternalApps.kt` | Browser, share sheet, Instapaper and Play Store intents. Content's own share menu leaves out its save alias but keeps Send with Content and the people shared with (#246). |
-| `ui/DirectShare.kt` | Send with Content in Android's share menu (the `SendActivity` alias, enabled only while signed in) and the people shared with as sharing shortcuts (#235, #246). In Content's own share sheet, on Android 14 and later, `ExternalApps.share` shows them as the sheet's custom action buttons instead (#248). |
+| `ui/ExternalApps.kt` | Browser, Android's share menu (More in Content's share sheet, without Content's own aliases), sending to one app, the apps that act on selected text (the reader's selection menu), Play Store intents. |
+| `ui/reader/ShareSheet.kt` | Content's own share sheet (#251): Send with Content to the people shared with or another address, the apps picked most in it (`data/ShareApps.kt` ranks them; the counts stay on the phone), Copy link and More. |
+| `ui/DirectShare.kt` | Send with Content in other apps' share menus (the `SendActivity` alias, enabled only while signed in) and the people shared with as sharing shortcuts (#235, #246), kept out of the launcher; the launcher's menu offers the feed folders instead (`data/ShareShortcuts.kt`: `LauncherFolders`, #251). |
 
 ## Data flow
 
@@ -103,14 +104,14 @@ Saved (#107, #119) is the library's items with a reading list place (`data/Items
 `LibraryItems.kt`): each is in one place, To read, one folder (`Item.folder`, only while to read)
 or the archive. `data/Saved.kt` gives its tabs and filters (`SavedTab`, `SavedFilter`: Liked, tags
 that must all match, the type read from the link), folders and their counts, chips, saving from the
-save sheet, filing, removing, renaming and removing folders, and `settle`, which moves bookmarks from
-before #119 into folders when the library is read or a row syncs in. `data/ReadingLists.kt` gives
+save sheet, filing, removing, renaming and removing folders, and `foldersToTags` (#187: a folder
+becomes a tag when the library is read or a row syncs in). `data/ReadingLists.kt` gives
 reading times and an item as a list/reader `Article` (with the feed article's text when the library
 still has it). `ui/home/SavedContent.kt` shows it: To read, All and Archive with the feed list's
 `ArticleRow`, a folder as notes (`NoteCard`, after Noter) in a staggered grid; `ui/home/FolderTabs.kt`
 (`SavedTabRow`) its old tabs, `HomeBar.kt` the chip row; `ui/reader/ItemSheets.kt`
-the sheets (added, tags, Finished reading with Archive or File, the save sheet with `FolderField`),
-and `ReaderScreen` its buttons (`ReaderItem`) and reading progress.
+the save and Organise sheet, and `ReaderScreen` its bar (`SavedBar.kt`: the folder, which opens
+Organise, #251) and reading progress.
 
 `services/` connects a section to a service (#109): `ReadingListService` (the core every
 reading-list service shares, the features it supports), `ServiceSync` (a three-way merge with the
@@ -119,14 +120,11 @@ again), `ServiceManager` (when to sync, while the app is on screen; the service'
 `instapaper/InstapaperReadingList.kt` knows Instapaper (API v2 `since`, folders as tags, parsed text,
 progress). `instapaper/` also holds `InstapaperClient` (API v2 over OkHttp, with pure parsing
 helpers), `InstapaperAuth` (sign-in address, callback parsing, token swap through the Worker) and
-`InstapaperAccount` (the token in its own DataStore file). Raindrop.io was a second
-service until #179 removed it. Reader is the library and a service is somewhere it is also kept (#145): each
-service has a scope (`data/ServiceScope.kt`: everything in Saved, or some folders, a synced
-setting), and an item reaches every service whose scope covers it. Connecting waits for an import
-(`ServiceSync.import`, once: everything or some folders, each article where it belongs); then
-`ServiceSync.run` keeps the scope in step per field (rows are what was last seen or sent, so a value
-is never sent back right after it came in; both sides changed, the later change wins). Leaving the
-scope archives an article there, never deletes it. `ServiceManager` runs the import, the syncs, the count before a scope
-change (`leaving`) and removing from one service only (`removeFrom`). `ui/settings/ServicesScreen.kt`
-lists the services; `ServiceScreen` is one service's account, import and scope. See
-`instapaper.md`.
+`InstapaperAccount` (the token in its own DataStore file). Content is the library and a service is
+somewhere it is also kept (#145): everything in Saved, both ways, highlights included, with nothing
+to choose (#251). Connecting asks once whether to import what the service has (`ServiceStatus.ImportChoice`,
+answered with `ServiceManager.chooseImport`; `ServiceSync.import` brings in everything, or marks it
+all as seen); the answer is a synced record (`data/ServiceImport.kt`). Then `ServiceSync.run` keeps
+everything in step per field (rows are what was last seen or sent, so a value is never sent back
+right after it came in; both sides changed, the later change wins). `ui/settings/InstapaperSettings.kt`
+is the Instapaper part of Manage › Saved and the import question. See `instapaper.md`.

@@ -41,9 +41,7 @@
     <string name="home_no_feeds_title">Aucun flux pour l\'instant</string>
     <string name="home_no_feeds_body">Ajoutez un site ou un flux que vous aimez, ou importez vos flux depuis un autre lecteur.</string>
     <string name="home_caught_up_title">Vous êtes à jour</string>
-    <string name="home_caught_up_body">Tirez vers le bas pour chercher de nouveaux articles.</string>
     <string name="home_no_articles_title">Aucun article pour l\'instant</string>
-    <string name="home_no_articles_body">Tirez vers le bas pour chercher de nouveaux articles.</string>
     <string name="home_show_all">Tout afficher</string>
     <string name="import_failed">Impossible de lire ce fichier.</string>
     <string name="import_nothing_new">Aucun nouveau flux dans ce fichier.</string>
@@ -67,13 +65,10 @@
     <string name="reader_preview">Une bonne typographie est invisible : on remarque l\'histoire, pas les lettres.</string>
     <string name="reader_read_on_website">Lire sur le site</string>
     <string name="notify_shared_setting">Me prévenir quand quelque chose est partagé avec moi</string>
-    <string name="notify_shared_summary">Sur ce téléphone, même quand Content n’est pas ouvert.</string>
     <string name="notify_shared_denied">Les notifications sont désactivées pour Content. Autorisez-les dans les paramètres Android › Applications › Content.</string>
     <string name="notify_shared_channel">Partagés avec vous</string>
     <string name="notify_shared_text">Quelque chose a été partagé avec vous.</string>
-    <string name="share_user_menu">Envoyer avec Content</string>
     <string name="share_user_title">Envoyer avec Content</string>
-    <string name="share_user_article">Cet article va dans sa boîte de réception.</string>
     <string name="share_send_with_content">Envoyer avec Content</string>
     <string name="inbox_title">Boîte de réception</string>
     <string name="inbox_open_unread">Boîte de réception, nouveaux articles</string>
@@ -84,13 +79,7 @@
     <string name="share_user_send">Envoyer</string>
     <string name="share_user_sent">Envoyé à %1$s</string>
     <string name="share_user_no_account">Il n’y a pas de compte Content pour cette adresse.</string>
-    <string name="share_user_no_email">Ajoutez d’abord une adresse e-mail à votre compte (Réglages › Compte), pour qu’on voie de qui il vient.</string>
     <string name="share_user_signed_out">Connectez-vous d’abord à votre compte Content.</string>
-    <string name="share_user_from">De %1$s</string>
-    <plurals name="share_user_tag">
-        <item quantity="one">Tout ce qui porte le tag %1$s (%2$d article) va dans sa boîte de réception, avec ce tag.</item>
-        <item quantity="other">Tout ce qui porte le tag %1$s (%2$d articles) va dans sa boîte de réception, avec ce tag.</item>
-    </plurals>
     <plurals name="share_user_received">
         <item quantity="one">%1$s a partagé %2$d article avec vous</item>
         <item quantity="other">%1$s a partagé %2$d articles avec vous</item>
@@ -111,7 +100,7 @@
     <string name="report_pictures">Les images sont fausses</string>
     <string name="report_other">Autre chose</string>
     <string name="report_comment">Commentaire (facultatif)</string>
-    <string name="report_hint">Envoyer ouvre un signalement prérempli sur GitHub dans votre navigateur, avec le lien de l’article (pas son texte). Envoyez-le là-bas.</string>
+    <string name="report_hint">Envoyer ouvre un signalement prérempli sur GitHub dans votre navigateur, avec le lien de l’article et le texte affiché par Content. Envoyez-le là-bas.</string>
     <string name="report_send">Envoyer</string>
     <string name="reader_article_gone">Cet article n\'est plus disponible.</string>
     <string name="reader_show_full">Afficher l\'article complet</string>
@@ -121,7 +110,7 @@
     <string name="reader_full_articles_title">Charger les articles complets</string>
     <string name="reader_full_articles_summary">Quand un flux ne contient qu\'un résumé, récupérer l\'article entier sur le site</string>
     <string name="reader_show_images_title">Afficher les images</string>
-    <string name="reader_show_images_summary">Dans les articles et la liste ; chargées depuis les sites</string>
+    <string name="reader_show_images_summary">Dans les articles et la liste</string>
     <string name="embed_youtube">Regarder sur YouTube</string>
     <string name="embed_vimeo">Regarder sur Vimeo</string>
     <string name="embed_video">Lire la vidéo</string>
@@ -134,7 +123,7 @@
     <string name="share_target_missing_short">%1$s n\'est pas installé</string>
     <string name="action_save_to">Enregistrer dans %1$s</string>
     <string name="action_share_to">Partager avec %1$s</string>
-    <string name="feeds_opml_hint">Transférez vos flux depuis ou vers un autre lecteur, comme Feedly.</string>
+    <string name="feeds_opml_hint">Transférez vos flux depuis ou vers un autre lecteur, comme Feedly ou Inoreader.</string>
     <string name="action_save">Enregistrer</string>
     <string name="action_open">Ouvrir</string>
     <string name="action_undo">Annuler</string>
@@ -157,13 +146,13 @@
     <string name="list_view_small">Petit</string>
     <string name="list_view_medium">Moyen</string>
     <string name="list_view_large">Grand</string>
-    <string name="manage_title">Flux et tags</string>
+    <string name="manage_title">Flux et Enregistrés</string>
     <string name="feeds_opml_title">Depuis ou vers un autre lecteur</string>
     <string name="reader_auto_dark_title">Sombre automatique</string>
     <string name="reader_auto_dark_summary">Page sombre quand l’app est sombre</string>
     <string name="day_today">Aujourd\'hui</string>
     <string name="day_yesterday">Hier</string>
-    <string name="folder_none_empty">Tous les flux sont dans un dossier. Faites glisser un flux ici pour le sortir de son dossier.</string>
+    <string name="folder_none_empty">Tous les flux sont dans un dossier.</string>
     <string name="feed_edit">Modifier le flux</string>
     <string name="feed_name">Nom</string>
     <string name="feed_name_hint">Laissez vide pour utiliser le nom du flux</string>
@@ -192,11 +181,6 @@
         <item quantity="many">%d non lus</item>
         <item quantity="other">%d non lus</item>
     </plurals>
-    <plurals name="home_subtitle_all">
-        <item quantity="one">Tous les articles · %d non lu</item>
-        <item quantity="many">Tous les articles · %d non lus</item>
-        <item quantity="other">Tous les articles · %d non lus</item>
-    </plurals>
     <plurals name="marked_read">
         <item quantity="one">%d article marqué comme lu</item>
         <item quantity="many">%d articles marqués comme lus</item>
@@ -219,17 +203,13 @@
     <string name="instapaper_problem_not_approved">Instapaper n’a pas encore approuvé Content pour votre compte.</string>
     <string name="instapaper_problem_rate_limited">Instapaper est occupé. Réessayez dans une minute.</string>
     <string name="instapaper_problem_invalid">Instapaper n’a pas pu le faire.</string>
-    <string name="action_close">Fermer</string>
-    <string name="action_done">OK</string>
     <string name="section_account">Compte</string>
-    <string name="account_summary">Connectez-vous avec votre adresse e-mail pour garder vos flux, articles lus, Enregistrés et réglages identiques sur tous vos appareils.</string>
+    <string name="account_summary">Connectez-vous avec votre adresse e-mail pour garder vos flux, articles lus et enregistrés et réglages identiques sur tous vos appareils.</string>
     <string name="sync_failed_signed_out">Cet appareil a été déconnecté de votre compte. Reconnectez-vous.</string>
     <string name="account_delete_data">Supprimer les données synchronisées</string>
     <string name="account_delete_confirm">Supprimer vos flux, articles lus et paramètres du serveur de Content ? Ils restent sur cet appareil, et vous êtes déconnecté partout.</string>
     <string name="account_deleted">Données synchronisées supprimées</string>
     <string name="action_delete">Supprimer</string>
-    <string name="menu_manage_feeds">Gérer les flux</string>
-    <string name="menu_manage_tags">Gérer les tags</string>
     <string name="action_collapse">Réduire</string>
     <string name="action_expand">Développer</string>
     <string name="action_search">Rechercher</string>
@@ -245,7 +225,6 @@
     <string name="search_any_tag">Tous les tags</string>
     <string name="search_feed">Flux</string>
     <string name="search_tag">Tag</string>
-    <string name="search_section_none">Aucun résultat</string>
     <!-- A share from another app without a web link (#97). -->
     <string name="share_no_link">Aucun lien à enregistrer</string>
     <string name="share_target_saved">Enregistrés, dans cette app</string>
@@ -253,7 +232,6 @@
     <string name="saved_archived">Archivé</string>
     <string name="action_unarchive">Remettre à lire</string>
     <string name="action_like">J’aime</string>
-    <string name="action_unlike">Je n’aime plus</string>
     <string name="add_link_title">Ajouter un lien</string>
     <string name="add_link_address">Adresse web</string>
     <string name="add_link_invalid">Ce n’est pas une adresse web.</string>
@@ -267,21 +245,12 @@
     <string name="reading_list_empty_title">Rien à lire</string>
     <string name="reading_list_archive_empty_title">Rien d’archivé pour l’instant</string>
     <string name="reading_list_none_title">Rien ici</string>
-    <string name="services_title">Services connectés</string>
-    <string name="services_reader">Content</string>
-    <string name="services_feeds_body">Content garde vos flux. L’OPML permet de les importer et de les exporter.</string>
     <string name="services_reading_body">Content garde vos éléments enregistrés. Connectez-vous avec Instapaper pour les garder aussi là-bas.</string>
     <string name="services_problem_later">Instapaper a demandé d’attendre un moment. Le reste suivra.</string>
     <string name="services_syncs_everything">Synchronise tout ce qui est enregistré</string>
     <string name="service_import_title">Importer</string>
-    <string name="saved_remove_both_body">Instapaper et Raindrop.io gardent tous deux cet élément. Retirez-le des deux, ou d’un seul (il reste alors dans Enregistrés, gardé dans l’autre).</string>
-    <string name="saved_remove_only_from">Seulement de %1$s</string>
-    <string name="saved_remove_from_both">Retirer des deux</string>
-    <string name="saved_removed_from">Retiré de %1$s</string>
-    <string name="saved_remove_from_failed">Impossible de le retirer de %1$s. Réessayez plus tard.</string>
     <string name="tags_title">Tags</string>
     <string name="tags_add">Nouveau tag</string>
-    <string name="tags_remove">Retirer le tag</string>
     <string name="tags_rename">Renommer le tag</string>
     <string name="tags_name">Nom du tag</string>
     <string name="tags_remove_everywhere">Retirer le tag partout</string>
@@ -301,12 +270,6 @@
         <item quantity="many">%d éléments</item>
         <item quantity="other">%d éléments</item>
     </plurals>
-    <plurals name="reading_list_to_read_count">
-        <item quantity="one">%d à lire</item>
-        <item quantity="many">%d à lire</item>
-        <item quantity="other">%d à lire</item>
-    </plurals>
-    <string name="bookmarks_title">Signets</string>
     <string name="organise_title">Organiser</string>
     <string name="highlights_title">Surlignages</string>
     <string name="highlight_action">Surligner</string>
@@ -315,8 +278,6 @@
     <string name="highlight_approximate">Approximatif : ce texte diffère de celui où il a été fait.</string>
     <string name="highlight_not_found">Introuvable dans ce texte. Il reste avec l’élément.</string>
     <string name="highlight_not_in_instapaper">Pas encore dans Instapaper. Nouvel essai demain.</string>
-    <string name="instapaper_copy_highlights">Synchroniser les surlignages avec Instapaper</string>
-    <string name="instapaper_copy_highlights_summary">Les surlignages vont dans les deux sens : les vôtres vers l’article dans Instapaper, et ceux faits dans Instapaper vers Content. Les comptes gratuits en permettent cinq par mois ; les autres restent dans Content et sont réessayés un jour plus tard.</string>
     <string name="services_problem_limit">Instapaper n’autorise plus de surlignages ce mois-ci.</string>
     <string name="highlights_none">Sélectionnez du texte et touchez Surligner.</string>
     <string name="setting_tag_with_folder_title">Taguer avec le dossier du flux</string>
@@ -324,7 +285,6 @@
     <string name="saved_title">Enregistrés</string>
     <string name="saved_folders">Dossiers</string>
     <string name="folder_field">Dossier</string>
-    <string name="saved_place">Où</string>
     <string name="saved_to">Enregistré dans %1$s</string>
     <string name="action_open_menu">Ouvrir le menu</string>
     <string name="saved_folder_rename">Renommer le dossier</string>
@@ -354,4 +314,11 @@
     <string name="account_link_expired">Ce lien est déjà utilisé ou trop ancien. Demandez-en un nouveau.</string>
     <string name="account_link_taken">Cette adresse appartient déjà à un autre compte Content.</string>
     <string name="account_link_failed">La connexion n’a pas fonctionné. Réessayez.</string>
+    <string name="action_refresh">Actualiser</string>
+    <string name="menu_manage">Gérer les flux et Enregistrés</string>
+    <string name="share_copy_link">Copier le lien</string>
+    <string name="share_more">Plus</string>
+    <string name="instapaper_import_title">Importer depuis Instapaper ?</string>
+    <string name="instapaper_import_body">Récupérer une fois tout ce qui se trouve maintenant dans votre Instapaper ? Dans tous les cas, Enregistrés et Instapaper restent identiques à partir de maintenant.</string>
+    <string name="instapaper_import_skip">Ne pas importer</string>
 </resources>

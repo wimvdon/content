@@ -46,18 +46,15 @@ class SettingsTest {
     }
 
     @Test
-    fun `save and share targets survive storage, and the old Save setting carries over`() {
+    fun `save and share targets survive storage`() {
         val app = ShareTarget.App("com.example.notes", "com.example.notes.ShareActivity", "Notes")
         assertEquals(app, ShareTarget.decode(ShareTarget.encode(app), ShareTarget.Sheet))
-        assertEquals(ShareTarget.Sheet, ShareTarget.decode(ShareTarget.encode(ShareTarget.Sheet), ShareTarget.Instapaper))
+        assertEquals(ShareTarget.Sheet, ShareTarget.decode(ShareTarget.encode(ShareTarget.Sheet), ShareTarget.Saved))
         assertEquals(ShareTarget.Saved, ShareTarget.decode(ShareTarget.encode(ShareTarget.Saved), ShareTarget.Sheet))
         val noActivity = ShareTarget.App("com.example.notes", null, "Notes")
         assertEquals(noActivity, ShareTarget.decode(ShareTarget.encode(noActivity), ShareTarget.Sheet))
-        // Values written by v0.0.1.
-        assertEquals(ShareTarget.Instapaper, ShareTarget.decode("Instapaper", ShareTarget.Sheet))
-        assertEquals(ShareTarget.Sheet, ShareTarget.decode("ShareMenu", ShareTarget.Instapaper))
         // Nothing stored, or something unreadable: the default.
-        assertEquals(ShareTarget.Instapaper, ShareTarget.decode(null, ShareTarget.Instapaper))
+        assertEquals(ShareTarget.Saved, ShareTarget.decode(null, ShareTarget.Saved))
         assertEquals(ShareTarget.Sheet, ShareTarget.decode("garbage", ShareTarget.Sheet))
     }
 

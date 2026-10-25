@@ -20,7 +20,7 @@ import { markInboxRead, removeFromInbox } from "./inbox";
 import { applyChoice, saveNew, undoSave, type SaveChoice } from "./saveChoice";
 import * as Saved from "./saved";
 import { emptyServiceSyncState, importService, syncService, type ServiceSyncState } from "./serviceSync";
-import { EVERYTHING, type ServiceImport, type ServiceScope } from "./serviceScope";
+import type { ServiceImport } from "./serviceImport";
 import { changesBetween, loadItemSyncState, loadLibrary, writeItemSyncState, writeLibrary } from "./libraryStore";
 import { emptyItemSyncState, syncItems } from "./syncRows";
 import { takeInShared, type InboxMessage, type Received, type SharedArticle } from "./sharing";
@@ -52,12 +52,8 @@ export interface Settings {
   /** Show article pictures, thumbnails and embed previews (they load from the sites). */
   showImages: boolean;
   listView: ListView;
-  /** What each service syncs (#145), by id; a service without one syncs everything in Saved. */
-  scopes: Record<string, ServiceScope>;
   /** What was imported from each service when it was connected (#145), by id. */
   imports: Record<string, ServiceImport>;
-  /** Copy highlights to Instapaper (#164); in this browser only, off by default (free accounts get five a month). */
-  copyHighlights: boolean;
   /** The people shared with (#235), most recent first; synced (recipients.ts). */
   recipients: string[];
 }
@@ -92,6 +88,8 @@ export interface State {
   sheet: Sheet | null;
   /** Instapaper's sync is running (an import or a sync). */
   instapaperBusy: boolean;
+  /** Just connected Instapaper: waits for the user to say whether to import what it has (#251). */
+  instapaperImportChoice: boolean;
   /** The highlights Instapaper refused for its limit (#164), by item key: "Not in Instapaper". */
   instapaperNotCopied: Record<string, string[]>;
 }
@@ -113,9 +111,7 @@ export const defaultSettings: Settings = {
   markReadOnScroll: false,
   showImages: true,
   listView: "medium",
-  scopes: {},
   imports: {},
-  copyHighlights: false,
   recipients: [],
 };
 
@@ -140,6 +136,7 @@ class AppStore {
     savedFilter: Saved.defaultSavedFilter,
     sheet: null,
     instapaperBusy: false,
+    instapaperImportChoice: false,
     instapaperNotCopied: {},
   };
   private listeners = new Set<() => void>();
@@ -178,18 +175,13 @@ class AppStore {
       load<InstapaperSession>("instapaper").catch(() => undefined),
       load<AccountSession>("account").catch(() => undefined),
     ]);
-    // Before #166 the account key came with the Instapaper sign-in; the account keeps it now.
-    let account = stored?.key ? { key: stored.key, email: stored.email ?? null } : null;
-    if (!account && instapaper?.accountKey) {
-      account = { key: instapaper.accountKey, email: null };
-      await save("account", account).catch(() => undefined);
-    }
-    const merged = { ...defaultSettings, ...settings, readerStyle: readerStyleOf(settings?.readerStyle), scopes: settings?.scopes ?? {}, imports: settings?.imports ?? {}, recipients: Array.isArray(settings?.recipients) ? settings.recipients : [] };
+    const account = stored?.key ? { key: stored.key, email: stored.email ?? null } : null;
+    const merged = { ...defaultSettings, ...settings, readerStyle: readerStyleOf(settings?.readerStyle), imports: settings?.imports ?? {}, recipients: Array.isArray(settings?.recipients) ? settings.recipients : [] };
     this.set({
       loaded: true,
       library: library ?? L.emptyLibrary(),
       settings: merged,
-      instapaper: instapaper?.token ? { ...instapaper, accountKey: null } : null,
+      instapaper: instapaper?.token ? { token: instapaper.token, userId: instapaper.userId ?? null, username: instapaper.username ?? "" } : null,
       account,
     });
     // Folders became tags (#187): the library read from this browser moves over once.
@@ -510,7 +502,7 @@ class AppStore {
       await remove(INSTAPAPER_SYNC_KEY).catch(() => undefined);
       await remove(INSTAPAPER_HIGHLIGHTS_KEY).catch(() => undefined);
       // Instapaper is only a connected service (#215): the account it would open isn't kept.
-      await this.setInstapaper({ ...session, accountKey: null });
+      await this.setInstapaper(session);
       this.set({ instapaperNotice: "signedIn" });
       this.updateLive();
       void this.sync();
@@ -611,13 +603,13 @@ class AppStore {
 
   private names = new Map<string, string>();
 
-  /** Sends articles to a Content user (#167); `tag` when they go as a tag. */
-  shareWithUser = async (to: string, items: SharedArticle[], tag: string | null): Promise<"sent" | "noAccount" | "noEmail" | "signedOut" | "offline" | "failed"> => {
+  /** Sends an article to a Content user (#167). */
+  shareWithUser = async (to: string, items: SharedArticle[]): Promise<"sent" | "noAccount" | "signedOut" | "offline" | "failed"> => {
     const account = this.state.account;
-    if (!account) return "signedOut";
-    if (!account.email) return "noEmail";
+    // Every account signs in with an email link, so it has an address; one without can't say who shares.
+    if (!account?.email) return "signedOut";
     try {
-      if (!(await new AccountClient(account.key).share(to, { email: account.email, name: "" }, items, tag))) return "noAccount";
+      if (!(await new AccountClient(account.key).share(to, { email: account.email, name: "" }, items))) return "noAccount";
       // Offered first next time, on every device (#235).
       this.updateSettings({ recipients: rememberRecipient(this.state.settings.recipients, to) });
       return "sent";
@@ -666,7 +658,7 @@ class AppStore {
 
   /** Disconnects Instapaper in this browser; the Content account stays signed in (#166). */
   async disconnectInstapaper() {
-    await this.signOutHere();
+    await this.forgetInstapaper();
   }
 
   /**
@@ -686,7 +678,7 @@ class AppStore {
     return true;
   }
 
-  private async signOutHere() {
+  private async forgetInstapaper() {
     // Disconnected: what was synced with Instapaper, and its import, are forgotten; Saved stays.
     await remove(INSTAPAPER_SYNC_KEY).catch(() => undefined);
     await remove(INSTAPAPER_HIGHLIGHTS_KEY).catch(() => undefined);
@@ -804,10 +796,15 @@ class AppStore {
       let state = await this.instapaperState();
       this.set({ instapaperBusy: true });
       const service = new InstapaperSync(new InstapaperApi(session.token));
-      // Just connected: everything Instapaper has comes in first, once; there is nothing to choose
-      // (everything syncs). Connected before #145: already in step, no import.
+      // Just connected: the user says first whether to import what Instapaper has (#251).
       if (!this.state.settings.imports[INSTAPAPER_ID] && Object.keys(state.rows).length === 0) {
-        const imported = await importService(service, state, { folders: null, archive: true }, (change) => {
+        const everything = this.importChoice;
+        this.importChoice = null;
+        if (everything === null) {
+          this.set({ instapaperBusy: false, instapaperImportChoice: true });
+          return;
+        }
+        const imported = await importService(service, state, everything, (change) => {
           this.updateLibrary(change);
           return this.state.library;
         }, Date.now());
@@ -817,7 +814,7 @@ class AppStore {
           return;
         }
         await save(INSTAPAPER_SYNC_KEY, imported.state).catch(() => undefined);
-        this.updateSettings({ imports: { ...this.state.settings.imports, [INSTAPAPER_ID]: { folders: null, archive: true, at: Date.now(), count: imported.imported ?? 0 } } });
+        this.updateSettings({ imports: { ...this.state.settings.imports, [INSTAPAPER_ID]: { at: Date.now(), count: imported.imported ?? 0, everything } } });
         state = imported.state;
       }
       const result = await syncService(
@@ -828,8 +825,6 @@ class AppStore {
           return this.state.library;
         },
         Date.now(),
-        // Folders became tags (#187), so a scope of folders means nothing any more: everything in Saved syncs.
-        EVERYTHING,
         { ...this.editedAt },
         new Set(),
         // The one text every device shows for a saved article (sharedText.ts), so Instapaper shows it too (#247).
@@ -847,7 +842,8 @@ class AppStore {
           ),
       )
         .then(async (result) => {
-          if (!result.problem && this.state.settings.copyHighlights && this.state.instapaper?.token === session.token) {
+          // Highlights always sync too (#164, #251): there is nothing to choose.
+          if (!result.problem && this.state.instapaper?.token === session.token) {
             await this.copyHighlights(service, result.state).catch(() => undefined);
           }
           return result;
@@ -906,16 +902,19 @@ class AppStore {
 
   /** A saved article opened (#164): its highlights in Instapaper are looked up now, so ones made there come in. */
   lookAtHighlights = (key: string) => {
-    if (!this.state.instapaper || !this.state.settings.copyHighlights) return;
+    if (!this.state.instapaper) return;
     this.lookAt.add(key);
     void this.syncInstapaper().catch(() => undefined);
   };
 
-  /** Copying highlights to Instapaper on or off (#164); on, it copies at once. */
-  setCopyHighlights = (on: boolean) => {
-    this.updateSettings({ copyHighlights: on });
-    if (on) void this.syncInstapaper().catch(() => undefined);
-    else this.set({ instapaperNotCopied: {} });
+  /** The answer to "Import from Instapaper?", for the sync it starts; null until asked. */
+  private importChoice: boolean | null = null;
+
+  /** Just connected Instapaper (#251): import what it has, once (everything), or not. Either way, everything syncs from then on. */
+  chooseInstapaperImport = (everything: boolean) => {
+    this.importChoice = everything;
+    this.set({ instapaperImportChoice: false });
+    void this.syncInstapaper().catch(() => undefined);
   };
 
   /** When each saved item last changed here, by key (kept for this visit). */

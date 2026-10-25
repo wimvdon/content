@@ -4,7 +4,6 @@ import be.wimvandonck.content.data.Item
 import be.wimvandonck.content.data.LibraryRepository
 import be.wimvandonck.content.data.changeItem
 import be.wimvandonck.content.data.ServiceImport
-import be.wimvandonck.content.data.ServiceScope
 import be.wimvandonck.content.data.item
 import be.wimvandonck.content.instapaper.InstapaperAccount
 import be.wimvandonck.content.instapaper.InstapaperClient
@@ -38,6 +37,9 @@ sealed interface ServiceStatus {
 
     data object Syncing : ServiceStatus
 
+    /** Just connected: waits for the user to say whether to import what the service has (#251). */
+    data object ImportChoice : ServiceStatus
+
     /** The last sync stopped early; what didn't get through goes next time. */
     data class Failed(
         val problem: ServiceProblem,
@@ -45,25 +47,21 @@ sealed interface ServiceStatus {
 }
 
 /**
- * Connects Saved to its services while the app is in use (#109, #145): Instapaper, when
- * connected. Connecting waits for an import ([import]), done once; from then
- * on each service syncs its scope both ways, so an article reaches every service whose scope covers
- * it. Syncs when started, a moment after Saved changes, on refresh and on request; never in the
- * background. Disconnecting forgets what was synced and keeps Saved.
+ * Connects Saved to its services while the app is in use (#109, #145): Instapaper, when connected.
+ * Connecting asks once whether to import what the service has ([chooseImport], #251); from then on
+ * everything in Saved syncs both ways, highlights included (#164). Syncs when started, a moment
+ * after Saved changes, on refresh and on request; never in the background. Disconnecting forgets
+ * what was synced and keeps Saved.
  */
 class ServiceManager(
     private val scope: CoroutineScope,
     private val library: LibraryRepository,
     private val instapaper: InstapaperAccount,
     private val http: OkHttpClient,
-    /** What each service syncs (a setting, #145). */
-    private val scopeOf: (String) -> ServiceScope = { ServiceScope.Everything },
     /** What was imported from each service, or null before its import (a setting, #145). */
     private val importOf: (String) -> ServiceImport? = { null },
     /** Records an import, or forgets it (null) when the service is disconnected. */
     private val recordImport: suspend (String, ServiceImport?) -> Unit = { _, _ -> },
-    /** Whether highlights are copied to each service (#164, a setting on this device, off by default). */
-    private val copiesHighlights: (String) -> Boolean = { false },
     /** The text Content shows for a saved item, sent with it to a service that takes it (#247). */
     private val textOf: suspend (Item) -> String? = { null },
     private val clock: () -> Long = System::currentTimeMillis,
@@ -72,11 +70,6 @@ class ServiceManager(
 
     /** Each connected service's status, by id. */
     val statuses: StateFlow<Map<String, ServiceStatus>> = _statuses.asStateFlow()
-
-    private val _presence = MutableStateFlow<Map<String, Set<String>>>(emptyMap())
-
-    /** Which connected services keep each saved item in step, by item key (removing asks which). */
-    val presence: StateFlow<Map<String, Set<String>>> = _presence.asStateFlow()
 
     private val _notCopied = MutableStateFlow<Map<String, Set<String>>>(emptyMap())
 
@@ -99,9 +92,6 @@ class ServiceManager(
         if (started) return
         started = true
         scope.launch {
-            // Raindrop.io is no longer a service (#179): what was synced with it, and its import, are forgotten.
-            lock.withLock { library.saveServiceState(RAINDROP_ID, library.serviceState(RAINDROP_ID), null) }
-            if (importOf(RAINDROP_ID) != null) recordImport(RAINDROP_ID, null)
             instapaper.state
                 .filter { it != InstapaperState.Loading }
                 .map { (it as? InstapaperState.SignedIn)?.session?.token }
@@ -143,24 +133,18 @@ class ServiceManager(
             if (service == null) recordImport(id, null)
         }
         _statuses.update { if (service == null) it - id else it + (id to ServiceStatus.Idle) }
-        lock.withLock { refreshPresence() }
+        lock.withLock { refreshNotCopied() }
     }
 
-    private suspend fun refreshPresence() {
-        val map = HashMap<String, MutableSet<String>>()
+    private suspend fun refreshNotCopied() {
         val notCopied = HashMap<String, MutableSet<String>>()
         for (id in services.keys) {
             val state = library.serviceState(id)
-            val rows = state.rows
-            for ((key, row) in rows) if (row.linked) map.getOrPut(key) { LinkedHashSet() } += id
-            if (copiesHighlights(id)) {
-                for ((key, links) in state.highlights) {
-                    val refused = HighlightCopy.notCopied(links)
-                    if (refused.isNotEmpty()) notCopied.getOrPut(key) { HashSet() } += refused
-                }
+            for ((key, links) in state.highlights) {
+                val refused = HighlightCopy.notCopied(links)
+                if (refused.isNotEmpty()) notCopied.getOrPut(key) { HashSet() } += refused
             }
         }
-        _presence.value = map
         _notCopied.value = notCopied
     }
 
@@ -169,35 +153,50 @@ class ServiceManager(
 
     /**
      * Syncs every connected service; [full] is false for the quick sync after a change. A service
-     * just connected first brings in everything it has, once: everything syncs, there is nothing to
-     * choose (Instapaper is the only service, and its folders became tags, #187).
+     * just connected waits until [chooseImport] says whether to bring in what it has.
      */
     suspend fun sync(full: Boolean = true) {
         for ((id, service) in services) {
             lock.withLock {
-                var state = library.serviceState(id)
-                _statuses.update { it + (id to ServiceStatus.Syncing) }
-                // Connected before #145: everything was already in step, so it needs no import.
+                val state = library.serviceState(id)
                 if (importOf(id) == null && state.rows.isEmpty()) {
-                    val imported = ServiceSync.import(service, state, ServiceImport(0, 0)) { change -> library.edit(change) }
-                    finish(id, state, imported)
-                    if (imported.problem != null) return@withLock
-                    recordImport(id, ServiceImport(clock(), imported.imported))
-                    state = library.serviceState(id)
+                    _statuses.update { it + (id to ServiceStatus.ImportChoice) }
+                    return@withLock
                 }
+                _statuses.update { it + (id to ServiceStatus.Syncing) }
                 val elsewhere = HashSet<String>()
                 for (other in services.keys) {
                     if (other != id) library.serviceState(other).rows.filterValues { it.linked }.keys.forEach { elsewhere += it }
                 }
                 var result =
-                    ServiceSync.run(service, state, scopeOf(id), full = full, editedAt = HashMap(editedAt), elsewhere = elsewhere, textOf = textOf, now = clock()) { change ->
+                    ServiceSync.run(service, state, full = full, editedAt = HashMap(editedAt), elsewhere = elsewhere, textOf = textOf, now = clock()) { change ->
                         library.edit(change)
                     }
-                if (result.problem == null && service is HighlightService && copiesHighlights(id)) result = copyHighlights(service, result)
+                if (result.problem == null && service is HighlightService) result = copyHighlights(service, result)
                 finish(id, state, result)
             }
         }
-        lock.withLock { refreshPresence() }
+        lock.withLock { refreshNotCopied() }
+    }
+
+    /**
+     * The answer to the question asked when [id] was connected (#251): bring in everything it has
+     * now ([everything]), or nothing. Either way, from then on everything in Saved syncs both ways.
+     */
+    suspend fun chooseImport(
+        id: String,
+        everything: Boolean,
+    ) {
+        val service = services[id] ?: return
+        lock.withLock {
+            val state = library.serviceState(id)
+            if (importOf(id) != null || state.rows.isNotEmpty()) return@withLock
+            _statuses.update { it + (id to ServiceStatus.Syncing) }
+            val imported = ServiceSync.import(service, state, everything) { change -> library.edit(change) }
+            finish(id, state, imported)
+            if (imported.problem == null) recordImport(id, ServiceImport(clock(), imported.imported, everything))
+        }
+        sync()
     }
 
     private suspend fun finish(
@@ -247,32 +246,10 @@ class ServiceManager(
      * ones made in the service's own apps come in, even when nothing here changed.
      */
     fun lookAtHighlights(key: String) {
-        if (services.keys.none(copiesHighlights)) return
+        if (services.isEmpty()) return
         lookAt += key
         scope.launch { sync(full = false) }
     }
-
-    /**
-     * Removes an item from one service only (an article two services keep); it stays in Saved and in
-     * the other, and leaves this one's step. False when that didn't work (offline, or it isn't there).
-     */
-    suspend fun removeFrom(
-        key: String,
-        id: String,
-    ): Boolean =
-        lock.withLock {
-            val service = services[id] ?: return@withLock false
-            val state = library.serviceState(id)
-            val row = state.rows[key] ?: return@withLock false
-            try {
-                service.remove(row.remoteId)
-            } catch (e: ServiceException) {
-                return@withLock false
-            }
-            library.saveServiceState(id, state, state.copy(rows = state.rows - key))
-            refreshPresence()
-            true
-        }
 
     private data class Core(
         val key: String,
@@ -295,8 +272,5 @@ class ServiceManager(
         const val CHANGE_DELAY_MS = 2_000L
 
         val ORDER = listOf(InstapaperReadingList.ID)
-
-        /** The id Raindrop.io had as a service, until #179 removed it. */
-        const val RAINDROP_ID = "raindrop"
     }
 }

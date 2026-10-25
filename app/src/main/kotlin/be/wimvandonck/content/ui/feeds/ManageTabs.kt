@@ -14,12 +14,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import be.wimvandonck.content.R
 
-/** Which part of Feeds and tags is shown (#222). */
-enum class ManageTab { Feeds, Tags }
+/** Which part of Manage feeds and Saved is shown (#222, #251). */
+enum class ManageTab { Feeds, Saved }
 
 /**
- * Feeds and tags is one screen (#222): one title, and tabs for the feeds with their folders and for
- * Saved's tags. ☰'s Manage feeds and Manage tags open it on their tab.
+ * Manage feeds and Saved is one screen (#222, #251): one title, and tabs for the feeds with their
+ * folders and OPML, and for Saved's folders and tags, Tag with the feed's folder and Instapaper.
+ * ☰'s Manage feeds and Saved opens it on Feeds.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,7 +42,7 @@ fun ManageTopBar(
         )
         PrimaryTabRow(selectedTabIndex = tab.ordinal) {
             Tab(selected = tab == ManageTab.Feeds, onClick = { onTab(ManageTab.Feeds) }, text = { Text(stringResource(R.string.feeds_title)) })
-            Tab(selected = tab == ManageTab.Tags, onClick = { onTab(ManageTab.Tags) }, text = { Text(stringResource(R.string.tags_title)) })
+            Tab(selected = tab == ManageTab.Saved, onClick = { onTab(ManageTab.Saved) }, text = { Text(stringResource(R.string.saved_title)) })
         }
     }
 }

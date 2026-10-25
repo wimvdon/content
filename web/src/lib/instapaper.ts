@@ -62,8 +62,6 @@ export interface Session {
   token: string;
   userId: number | null;
   username: string;
-  /** The key to the user's Reader account; null when the server has no accounts (sync is then off). */
-  accountKey: string | null;
 }
 
 /** Which list of bookmarks: Unread ("home"), the archive, the liked ones, one folder or one tag. */
@@ -132,14 +130,12 @@ export async function exchangeCode(code: string, doFetch: Fetch = browserFetch, 
   const body = (await response.json().catch(() => null)) as {
     access_token?: unknown;
     user?: { id?: unknown; username?: unknown };
-    account?: { key?: unknown } | null;
   } | null;
   if (!body || typeof body.access_token !== "string" || !body.access_token) throw new InstapaperError("server");
   return {
     token: body.access_token,
     userId: typeof body.user?.id === "number" ? body.user.id : null,
     username: typeof body.user?.username === "string" ? body.user.username : "",
-    accountKey: typeof body.account?.key === "string" && body.account.key ? body.account.key : null,
   };
 }
 

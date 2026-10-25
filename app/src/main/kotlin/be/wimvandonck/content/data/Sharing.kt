@@ -29,8 +29,6 @@ data class InboxMessage(
     val id: String,
     val from: SharedBy,
     val items: List<SharedArticle>,
-    /** The tag it was shared as, or null for single articles. */
-    val tag: String? = null,
 )
 
 /** What taking in the inbox brought: from whom, and how many articles. */
@@ -40,32 +38,18 @@ data class Received(
 )
 
 /**
- * Sharing with other Content users (#167). Sending picks what goes (one article, or a tag's
- * articles); receiving puts each shared article in the inbox, unread, marked with who shared it (and
- * the tag it was shared as), whether or not it is in Saved too. A one-time copy: later changes on
- * either side don't follow. Plain Kotlin, unit tested; the web app's `sharing.ts` does the same.
+ * Sharing with other Content users (#167): one article at a time. Receiving puts each shared article
+ * in the inbox, unread, marked with who shared it, whether or not it is in Saved too. A one-time
+ * copy: later changes on either side don't follow. Plain Kotlin, unit tested; the web app's
+ * `sharing.ts` does the same.
  */
 object Sharing {
-    /** The most articles one share may hold. */
-    const val MAX_ITEMS = 500
-
     fun article(item: Item) = SharedArticle(item.url, item.title, item.imageUrl, item.description)
 
-    /** A tag's saved articles, newest first, at most [MAX_ITEMS]. */
-    fun tagArticles(
-        library: Library,
-        tag: String,
-    ): List<SharedArticle> =
-        library.items
-            .filter { it.readingList != null && it.tags.any { t -> t.equals(tag, ignoreCase = true) } }
-            .sortedByDescending { it.readingList!!.addedAt }
-            .take(MAX_ITEMS)
-            .map(::article)
-
     /**
-     * The library with [messages] taken in: each article is in the inbox, unread, with who shared it
-     * and the tag it was shared as. One already in Saved stays there as well; one shared again comes
-     * back unread with its latest sender. Returns what arrived.
+     * The library with [messages] taken in: each article is in the inbox, unread, with who shared it.
+     * One already in Saved stays there as well; one shared again comes back unread with its latest
+     * sender. Returns what arrived.
      */
     fun takeIn(
         library: Library,
@@ -80,12 +64,7 @@ object Sharing {
                 val key = ItemKeys.of(shared.url) ?: continue
                 val existing = lib.item(key)
                 val base = existing ?: lib.newItem(shared.url, shared.title, now, shared.description, shared.imageUrl) ?: continue
-                val tags = message.tag?.takeIf { t -> base.tags.none { it.equals(t, ignoreCase = true) } }?.let { base.tags + it } ?: base.tags
-                val updated =
-                    base.copy(
-                        sharedBy = message.from.copy(at = now, inInbox = true, read = false),
-                        tags = cleanTags(tags),
-                    )
+                val updated = base.copy(sharedBy = message.from.copy(at = now, inInbox = true, read = false))
                 if (updated != existing) {
                     lib = lib.putItem(updated)
                     count++

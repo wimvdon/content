@@ -21,8 +21,8 @@ import okhttp3.OkHttpClient
 import java.io.IOException
 
 /**
- * The token and the account key are kept in their own file, which data_extraction_rules.xml keeps
- * out of backups and phone transfers. Each device signs in itself.
+ * The token is kept in its own file, which data_extraction_rules.xml keeps out of backups and phone
+ * transfers. Each device signs in itself.
  */
 private val Context.instapaperDataStore: DataStore<Preferences> by preferencesDataStore(name = "instapaper")
 
@@ -88,8 +88,6 @@ class InstapaperAccount(
                     prefs[TOKEN] = session.token
                     prefs[USERNAME] = session.username
                     if (session.userId != null) prefs[USER_ID] = session.userId else prefs.remove(USER_ID)
-                    // Instapaper is only a connected service (#215): the account it would open isn't kept.
-                    prefs.remove(ACCOUNT_KEY)
                 }
                 InstapaperNotice.SignedIn
             } catch (e: InstapaperException) {
@@ -100,26 +98,12 @@ class InstapaperAccount(
     /** The signed-in account once read from storage, or null. */
     suspend fun session(): InstapaperSession? = (state.first { it != InstapaperState.Loading } as? InstapaperState.SignedIn)?.session
 
-    /**
-     * The Content account key an Instapaper sign-in from before #166 opened, handed over once: the
-     * Content account keeps it from then on (sync/ContentAccount.kt). New sign-ins keep none (#215).
-     */
-    suspend fun takeAccountKey(): String? {
-        var key: String? = null
-        dataStore.edit { prefs ->
-            key = prefs[ACCOUNT_KEY]?.takeIf { it.isNotEmpty() }
-            prefs.remove(ACCOUNT_KEY)
-        }
-        return key
-    }
-
     /** Disconnects Instapaper on this device. The Content account stays signed in (#166). */
     suspend fun signOut() {
         dataStore.edit { prefs ->
             prefs.remove(TOKEN)
             prefs.remove(USER_ID)
             prefs.remove(USERNAME)
-            prefs.remove(ACCOUNT_KEY)
         }
     }
 
@@ -128,7 +112,7 @@ class InstapaperAccount(
         return if (token.isNullOrEmpty()) {
             InstapaperState.SignedOut
         } else {
-            InstapaperState.SignedIn(InstapaperSession(token, prefs[USER_ID], prefs[USERNAME].orEmpty(), prefs[ACCOUNT_KEY]))
+            InstapaperState.SignedIn(InstapaperSession(token, prefs[USER_ID], prefs[USERNAME].orEmpty()))
         }
     }
 
@@ -137,6 +121,5 @@ class InstapaperAccount(
         val USERNAME = stringPreferencesKey("username")
         val USER_ID = longPreferencesKey("user_id")
         val PENDING_STATE = stringPreferencesKey("pending_state")
-        val ACCOUNT_KEY = stringPreferencesKey("account_key")
     }
 }

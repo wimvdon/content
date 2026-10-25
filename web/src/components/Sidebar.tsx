@@ -6,43 +6,23 @@ import { choosesFolder, unreadByFeed } from "@/lib/library";
 import { likedToReadCount, toReadCount, toReadTagCounts } from "@/lib/saved";
 import { FeedIcon } from "./FeedIcon";
 import { FolderIcon } from "./FolderIcon";
-import { ManageFeedsIcon, ManageSavedIcon } from "./ManageIcons";
+import { ManageFeedsIcon } from "./ManageIcons";
 import { cn } from "./ui/cn";
 
 const FEEDS = "section-feeds";
 const SAVED = "section-saved";
-const COLLAPSED_KEY = "reader-sidebar-collapsed";
-
-function loadCollapsed(): Set<string> {
-  try {
-    const value: unknown = JSON.parse(localStorage.getItem(COLLAPSED_KEY) ?? "[]");
-    return new Set(Array.isArray(value) ? value.filter((x): x is string => typeof x === "string") : []);
-  } catch {
-    return new Set();
-  }
-}
-
-function saveCollapsed(keys: Set<string>) {
-  try {
-    localStorage.setItem(COLLAPSED_KEY, JSON.stringify([...keys]));
-  } catch {
-    // Storage blocked: it is forgotten on reload.
-  }
-}
 
 /**
- * The ☰ menu: Feeds and Saved as two collapsible sections, plus settings.
- * Each section collapses and expands automatically when you are in it.
+ * The ☰ menu: Feeds and Saved as two sections that stay as you fold them, then Manage feeds and
+ * Saved, and Settings, as on Android. A feed folder shows its feeds only while you are in it (#251).
  */
 export function Sidebar({
   onNavigate,
   onManage,
-  onManageSaved,
   onSettings,
 }: {
   onNavigate?: () => void;
   onManage: () => void;
-  onManageSaved: () => void;
   onSettings: () => void;
 }) {
   const { library, selection, savedFilter } = useApp();
@@ -50,26 +30,11 @@ export function Sidebar({
   const total = library.feeds.reduce((n, f) => n + (counts.get(f.url) ?? 0), 0);
   const inSaved = selection.kind === "saved";
 
-  // The section you're in is open, the other folded shut. Moving between them flips the open section.
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>({ [FEEDS]: !inSaved, [SAVED]: inSaved });
-  const [lastInSaved, setLastInSaved] = useState(inSaved);
-  if (lastInSaved !== inSaved) {
-    setLastInSaved(inSaved);
-    setOpenSections({ [FEEDS]: !inSaved, [SAVED]: inSaved });
-  }
-
-  const [collapsed, setCollapsed] = useState<Set<string>>(loadCollapsed);
+  // Both sections start open and stay as you fold them, wherever you go (#251).
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({ [FEEDS]: true, [SAVED]: true });
 
   const toggleSection = (id: string) => {
     setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
-
-  const toggleFolder = (id: string) => {
-    setCollapsed((c) => {
-      const next = c.has(id) ? new Set([...c].filter((x) => x !== id)) : new Set([...c, id]);
-      saveCollapsed(next);
-      return next;
-    });
   };
 
   const toRead = toReadCount(library);
@@ -86,7 +51,7 @@ export function Sidebar({
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-2">
-        {/* Feeds section: folders and feeds, and Manage feeds */}
+        {/* Feeds section: folders and feeds; a folder's feeds only while you are in it. */}
         <Section
           id={FEEDS}
           title={t("feeds")}
@@ -107,11 +72,10 @@ export function Sidebar({
           {library.folders.map((folder) => {
             const feeds = library.feeds.filter((f) => f.folderId === folder.id);
             const count = feeds.reduce((n, f) => n + (counts.get(f.url) ?? 0), 0);
-            const open = !collapsed.has(folder.id);
+            const open = !inSaved && (choosesFolder(selection, folder) || (selection.kind === "feed" && feeds.some((f) => f.url === selection.feedUrl)));
             return (
               <div key={folder.id} className="mt-1">
                 <div className="flex items-center">
-                  <Chevron open={open} onClick={() => toggleFolder(folder.id)} />
                   <Row
                     selected={!inSaved && choosesFolder(selection, folder)}
                     onClick={() => {
@@ -156,15 +120,9 @@ export function Sidebar({
               count={counts.get(feed.url) ?? 0}
             />
           ))}
-          <div className="mx-3 my-2 h-px bg-border" />
-          <Row
-            onClick={onManage}
-            icon={<ManageFeedsIcon />}
-            label={t("manageFeeds")}
-          />
         </Section>
 
-        {/* Saved section: All saved and the tags, as the chips (#205), and Manage tags. The state (To
+        {/* Saved section: All saved and the tags, as the chips (#205). The state (To
             read, Archive, All) is the chip's; picking here keeps it. Counts are what is still to read,
             as Feeds counts what is unread. */}
         <Section
@@ -214,16 +172,12 @@ export function Sidebar({
               );
             })}
           </div>
-          <div className="mx-3 my-2 h-px bg-border" />
-          <Row
-            onClick={onManageSaved}
-            icon={<ManageSavedIcon />}
-            label={t("manageTags")}
-          />
         </Section>
       </div>
 
+      {/* At the bottom: managing feeds and Saved (one dialog with a tab for each, #251), and Settings. */}
       <div className="border-t p-2">
+        <Row onClick={onManage} icon={<ManageFeedsIcon />} label={t("manage")} />
         <Row onClick={onSettings} icon={<SettingsIcon className="size-5" />} label={t("settings")} />
       </div>
     </nav>
@@ -263,19 +217,6 @@ function Section({
   );
 }
 
-function Chevron({ open, onClick }: { open: boolean; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      className="rounded-full p-1.5 text-muted-foreground hover:bg-muted"
-      aria-label={open ? t("collapse") : t("expand")}
-      aria-expanded={open}
-      onClick={onClick}
-    >
-      {open ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
-    </button>
-  );
-}
 
 function Row({
   selected,

@@ -1,19 +1,22 @@
 # Instapaper
 
-Reader can sign in to the user's own Instapaper account (Instapaper API v2, OAuth 2). Signing in
-also opens the user's Reader account, which syncs the library (`docs/account.md`), and connects the
-**reading list** to Instapaper (#107, #109).
+Content can connect to the user's own Instapaper account (Instapaper API v2, OAuth 2), in ☰ ›
+Manage feeds and Saved › Saved. That connects **Saved** to Instapaper (#107, #109); it is not a way
+to sign in to Content (#215: the Content account signs in with an email link, `docs/account.md`).
+There are no options (#251): everything in Saved syncs both ways, highlights included.
 
 ## The reading list and Instapaper (Android)
 
-The reading list is Reader's own (items of the library, `data/Items.kt`): it works without an
-account. Connecting first brings in everything Instapaper has, once, with nothing to choose (the
-first sync does it, `ServiceManager.sync`); each article arrives where it belongs, as it is. From then on
-`services/ServiceManager.kt` keeps Instapaper in step with everything in Saved (the choice of folders went with #187) in
-step both ways through `services/ServiceSync.kt` and `instapaper/InstapaperReadingList.kt`, while
-the app is on screen: when it comes on screen or signs in, two seconds after a change to the reading
-list, on pull-to-refresh and on Sync now. Never in the background. An article filed out of the
-scope is archived at Instapaper, never deleted.
+Saved is Content's own (items of the library, `data/Items.kt`): it works without an account.
+Connecting asks once, **Import from Instapaper?** (#251): **Import** brings in everything Instapaper
+has now, each article where it belongs, as it is; **Don't import** remembers it all as seen, so it
+stays there until it changes. The sync waits for the answer (`ServiceStatus.ImportChoice`,
+`ServiceManager.chooseImport`), which is kept as a synced record (`data/ServiceImport.kt`,
+`services.instapaper.imported`), so another device doesn't ask again. From then on
+`services/ServiceManager.kt` keeps Instapaper in step with everything in Saved, both ways, through
+`services/ServiceSync.kt` and `instapaper/InstapaperReadingList.kt`, while the app is on screen:
+when it comes on screen or connects, two seconds after a change to Saved, on pull-to-refresh and on
+Sync now. Never in the background.
 
 - **Reading changes:** `GET /api/2/bookmarks?since=<time>` (500 a page, with `deleted_ids`) returns
   everything changed since the last sync across the whole account; the first sync asks with
@@ -51,8 +54,6 @@ scope is archived at Instapaper, never deleted.
 - A link saved without a title (shared or added) takes Instapaper's title when Instapaper knows it.
 - **Signing out** forgets what was synced with Instapaper; the reading list stays.
 
-Before #107 the Android app showed Instapaper's lists directly and kept articles saved without an
-account apart (`LocalSaved`); those now live on the reading list, moved in once (#106).
 
 ## The web app
 
@@ -62,8 +63,8 @@ the screens): it is always the library's items, with the Android app's rules (`w
 filter, and notes and highlights on the cards of a folder. Signed in, `web/src/lib/serviceSync.ts` keeps
 it the same as Instapaper in the background, by the Android app's rules (`ServiceSync.kt`): what
 changed there since the last look comes in (`since`), what changed here goes there (title, link,
-tags, like, archive, folder, reading progress), within Instapaper's scope; the web app has the same
-import, done by its first sync (#145, `serviceSync.ts`), and Settings › Instapaper says how many came in.
+tags, like, archive, folder, reading progress); the web app asks the same import question
+(`app.chooseInstapaperImport`, #251), and Manage › Saved › Instapaper says how many came in.
 `web/src/lib/instapaperSync.ts` is Instapaper's side (`InstapaperReadingList.kt`'s twin), through the
 Worker. It runs after every sync with the Reader account (when the page opens, a moment after a
 change, and when it comes back into view). This browser's copy of what Instapaper had is kept in
@@ -132,9 +133,8 @@ intent filter in `AndroidManifest.xml`.
 
 ## Syncing highlights (#164)
 
-Opt-in: Settings › Connected services › Instapaper › **Sync highlights with Instapaper** (Android) or
-Settings › Instapaper (web). Off by default, because free Instapaper accounts can make five
-highlights a month. It is a setting of each device or browser, not synced.
+Always on while Instapaper is connected (#251: there is nothing to choose any more). Free Instapaper
+accounts can make five highlights a month; the rest stay in Content and are tried again a day later.
 
 Both ways, with the same rules and tests on Android (`services/HighlightCopy.kt`) and the web
 (`web/src/lib/highlightCopy.ts`):

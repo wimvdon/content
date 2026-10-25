@@ -1,11 +1,11 @@
 /**
- * Sharing with other Content users (#167). A signed-in device sends articles (one, or a tag's worth)
- * to someone by email address; they land in that person's inbox, and their devices take them into
+ * Sharing with other Content users (#167). A signed-in device sends an article to someone by email
+ * address; they land in that person's inbox, and their devices take them into
  * Saved. Nothing is shared unless the user shares it.
  *
  *  - POST /account/share/check {"email"}: {"exists": bool}, whether the address has a Content account,
  *                               so the app can say so before sending.
- *  - POST /account/share       {"to", "from": {"email", "name"}, "items": [{"url", "title", ...}], "tag"?, "message"?}:
+ *  - POST /account/share       {"to", "from": {"email", "name"}, "items": [{"url", "title", ...}], "message"?}:
  *                               204 once in their inbox; 404 when the address has no account; 403 when
  *                               "from" isn't an address of the sender's own account.
  *  - GET  /account/inbox       {"messages": [...]}: what was shared with this account, oldest first.
@@ -34,7 +34,7 @@ import { anyPushReady, poke, pushReady, pushTargetOf, type PushTarget } from "./
 type Fetcher = (input: string, init?: RequestInit) => Promise<Response>;
 
 const KEY_PATTERN = /^([0-9a-f]{32})\.([A-Za-z0-9_-]{43})$/;
-/** The most articles one share may hold (a tag's worth). */
+/** The most articles one share may hold. */
 export const MAX_SHARED_ITEMS = 500;
 const MAX_BODY = 512 * 1024;
 const MAX_TEXT = 2048;
@@ -119,7 +119,7 @@ export async function handleShare(request: Request, env: Env, url: URL, fetcher:
   const added = await inbox.fetch("https://account/inboxAdd", {
     method: "POST",
     headers: { "X-Account": to },
-    body: JSON.stringify({ id, at: Date.now(), from: message.from, items: message.items, tag: message.tag, message: message.message }),
+    body: JSON.stringify({ id, at: Date.now(), from: message.from, items: message.items, message: message.message }),
   });
   if (!added.ok) return plain(503, "Try again", cors);
   if (anyPushReady(env)) await notify(inbox, to, env, fetcher);
@@ -140,7 +140,7 @@ function routeOf(method: string, path: string): Route | null {
 }
 
 /** What a device may share, cleaned up, or null when it isn't one. */
-export function shareOf(body: Record<string, unknown>): { to: string; from: { email: string; name: string }; items: { url: string; title: string; imageUrl: string | null; description: string }[]; tag: string | null; message: string | null } | null {
+export function shareOf(body: Record<string, unknown>): { to: string; from: { email: string; name: string }; items: { url: string; title: string; imageUrl: string | null; description: string }[]; message: string | null } | null {
   const to = normalEmail(body.to);
   const fromBody = body.from as Record<string, unknown> | null;
   const fromEmail = normalEmail(fromBody?.email);
@@ -153,10 +153,9 @@ export function shareOf(body: Record<string, unknown>): { to: string; from: { em
     const imageUrl = typeof item?.imageUrl === "string" && item.imageUrl.startsWith("https://") && item.imageUrl.length <= MAX_TEXT ? item.imageUrl : null;
     items.push({ url, title: clip(item?.title) || url, imageUrl, description: clip(item?.description) });
   }
-  const tag = clip(body.tag).slice(0, 100) || null;
   // A short message for the receiver (#167), shown with what was shared.
   const message = clip(body.message).slice(0, MAX_MESSAGE) || null;
-  return { to, from: { email: fromEmail, name: clip(fromBody?.name).slice(0, 100) }, items, tag, message };
+  return { to, from: { email: fromEmail, name: clip(fromBody?.name).slice(0, 100) }, items, message };
 }
 
 /** Pokes every device of the receiver (#235); addresses that no longer work are forgotten. Never fails the share. */

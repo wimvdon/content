@@ -6,8 +6,6 @@ import be.wimvandonck.content.data.Library
 import be.wimvandonck.content.data.ReadingListEntry
 import be.wimvandonck.content.data.ReadingState
 import be.wimvandonck.content.data.Saved
-import be.wimvandonck.content.data.ServiceImport
-import be.wimvandonck.content.data.ServiceScope
 import be.wimvandonck.content.data.changeItem
 import be.wimvandonck.content.data.cleanTags
 import be.wimvandonck.content.data.item
@@ -39,13 +37,12 @@ data class ServiceSyncResult(
 )
 
 /**
- * Keeps Saved and a connected service in step within the service's scope (#109, #145). Reader is
+ * Keeps Saved and a connected service in step (#109, #145): everything in Saved, both ways. Reader is
  * the library; a service is somewhere it is also kept. Per field: what changed here is sent, what
  * changed there comes in, and when the same field changed on both sides between two rounds the later
  * change wins. A value is never sent just because the two sides differ, and never sent back right
- * after it came in, because each row is what was last seen or sent there. An article that leaves the
- * scope is archived there, never deleted; one removed from Reader is removed there. Connecting starts
- * with [import], once. A failed call keeps Reader's data as it is and is tried again on the next
+ * after it came in, because each row is what was last seen or sent there. One removed from Reader is
+ * removed there. Connecting starts with [import], once. A failed call keeps Reader's data as it is and is tried again on the next
  * sync. Plain Kotlin, tested with a fake service.
  */
 object ServiceSync {
@@ -57,7 +54,6 @@ object ServiceSync {
     suspend fun run(
         service: ReadingListService,
         state: ServiceState,
-        scope: ServiceScope = ServiceScope.Everything,
         /** False for the quick sync after a change here (see [ReadingListService.changes]). */
         full: Boolean = true,
         /** When each item last changed here, by key, for "the later change wins". */
@@ -85,7 +81,7 @@ object ServiceSync {
             // A first look without an import record here (another device imported): what isn't in
             // Reader yet stays there, as it would after that import.
             val adopt = cursor != null
-            update { library -> takeIn(library, rows, changes, progress, scope, adopt, editedAt, elsewhere) }
+            update { library -> takeIn(library, rows, changes, progress, adopt, editedAt, elsewhere) }
             cursor = changes.cursor
         } catch (e: ServiceException) {
             return result(e.problem)
@@ -95,13 +91,7 @@ object ServiceSync {
             for (item in library.items) {
                 if (item.readingList == null) continue
                 val have = rows[item.key]
-                val inScope = scope.covers(item)
                 when {
-                    have != null && have.linked && !inScope -> {
-                        // Left the scope: archived there, which is what filing it elsewhere meant here.
-                        rows[item.key] = (if (have.archived) have else service.update(have, have.copy(archived = true, folder = null))).copy(linked = false)
-                    }
-                    !inScope -> Unit
                     have == null -> {
                         val recent = now - item.readingList.addedAt <= CONTENT_DAYS * DAY_MS
                         val text = if (content && recent) runCatching { textOf(item) }.getOrNull() else null
@@ -144,16 +134,16 @@ object ServiceSync {
     }
 
     /**
-     * Brings in what the service has, once, when it is connected (#145): everything, or what
-     * [what] picks. Each article arrives where it belongs, as it is (archived in the Archive, a
-     * collection in its folder, liked, its tags and note); one Reader has already keeps its own
-     * values and gains the service's tags. What isn't imported is remembered as seen, so it stays
-     * there until it changes. Afterwards [run] keeps the scope in step.
+     * Brings in what the service has, once, when it is connected (#145): everything when [everything],
+     * else nothing. Each article arrives where it belongs, as it is (archived in the Archive, liked,
+     * its tags and note); one Reader has already keeps its own values and gains the service's tags.
+     * What isn't imported is remembered as seen, so it stays there until it changes. Afterwards
+     * [run] keeps everything in step.
      */
     suspend fun import(
         service: ReadingListService,
         state: ServiceState,
-        what: ServiceImport,
+        everything: Boolean,
         update: suspend ((Library) -> Library) -> Library,
     ): ServiceSyncResult {
         val rows = HashMap(state.rows)
@@ -167,7 +157,7 @@ object ServiceSync {
                 val loose = looseIndex(library, rows)
                 for (remote in changes.entries) {
                     val key = keyFor(result, rows, loose, remote.url) ?: continue
-                    if (!what.includes(remote.folder, remote.archived)) {
+                    if (!everything) {
                         if (rows[key]?.linked != true) rows[key] = remote.copy(linked = false)
                         continue
                     }
@@ -267,15 +257,14 @@ object ServiceSync {
 
     /**
      * The library after taking in what changed at the service; [rows] then holds the service's
-     * articles as seen now. Only what changed there comes in, and only within [scope]; a new
-     * article there is taken in when [adopt].
+     * articles as seen now. Only what changed there comes in; a new article there is taken in when
+     * [adopt].
      */
     fun takeIn(
         library: Library,
         rows: MutableMap<String, RemoteEntry>,
         changes: RemoteChanges,
         progress: Boolean,
-        scope: ServiceScope = ServiceScope.Everything,
         adopt: Boolean = true,
         editedAt: Map<String, Long> = emptyMap(),
         elsewhere: Set<String> = emptySet(),
@@ -293,7 +282,6 @@ object ServiceSync {
             val saved = item?.takeIf { it.readingList != null }
             val linked = base?.linked == true
             val changedThere = base == null || !sameCore(base, remote, progress)
-            val landsInScope = scope.coversPlace(remote.folder, remote.archived)
             var link = linked
             when {
                 // In step: per field, what changed there comes in.
@@ -302,26 +290,23 @@ object ServiceSync {
                     val remoteLater = remote.changedAt > 0 && remote.changedAt > (editedAt[key] ?: 0L)
                     result = put(result, key, saved, merge(base, local, remote, progress, remoteLater), remote)
                 }
-                // The same link in both, not in step yet: it joins when Reader's is in the scope.
+                // The same link in both, not in step yet: it joins.
                 saved != null -> {
-                    if (scope.covers(saved)) {
-                        result = put(result, key, saved, merge(null, entryOf(saved, remote.remoteId, remote.note != null), remote, progress), remote)
-                        link = true
-                    }
+                    result = put(result, key, saved, merge(null, entryOf(saved, remote.remoteId, remote.note != null), remote, progress), remote)
+                    link = true
                 }
                 // Taken out of Saved here and not sent yet: it stays out, unless it changed there since.
                 linked -> if (changedThere) result = put(result, key, item, remote, remote) else Unit
-                // Seen there before but not in step (not imported, or left the scope): only a change
-                // there that lands in the scope brings it in.
+                // Seen there before but not in step (not imported): only a change there brings it in.
                 base != null -> {
-                    if (changedThere && landsInScope) {
+                    if (changedThere) {
                         result = put(result, key, item, remote, remote)
                         link = true
                     }
                 }
                 // New there.
                 else -> {
-                    if (adopt && landsInScope) {
+                    if (adopt) {
                         result = put(result, key, item, remote, remote)
                         link = true
                     }
@@ -452,7 +437,6 @@ object ServiceRows {
             note = m["note"] as? String,
             extra = m["extra"] as? String,
             changedAt = (m["changedAt"] as? Number)?.toLong() ?: 0L,
-            // Rows from before #145 were all in step.
             linked = m["linked"] != false,
         )
     }

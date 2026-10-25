@@ -55,8 +55,9 @@ import be.wimvandonck.content.data.SavedFilter
 import be.wimvandonck.content.data.choosesFolder
 
 /**
- * The ☰ menu: Feeds and Saved as two collapsible sections, plus connected services and settings.
- * Each section collapses and expands automatically when you are in it.
+ * The ☰ menu: Feeds and Saved as two sections that stay as you fold them, then Manage feeds and
+ * Saved, and Settings. A feed folder shows its feeds only while you are in it (#251), so the list
+ * stays short.
  */
 @Composable
 fun FeedDrawer(
@@ -66,8 +67,7 @@ fun FeedDrawer(
     unreadCounts: Map<FeedSelection, Int>,
     onSelect: (FeedSelection) -> Unit,
     onOpenSettings: () -> Unit,
-    onOpenFeeds: () -> Unit,
-    onOpenTagsManage: () -> Unit = {},
+    onOpenManage: () -> Unit,
     saved: SavedHome? = null,
     inSaved: Boolean = false,
     toReadCount: Int = 0,
@@ -76,10 +76,9 @@ fun FeedDrawer(
     // While Saved is shown, no feed section is selected.
     @Suppress("NAME_SHADOWING")
     val selection: FeedSelection? = selection.takeIf { !inSaved }
-    // The section you're in is open, the other folded shut, so the drawer stays short. Folding by
-    // hand lasts until you go to the other section.
-    var feedsOpen by rememberSaveable(inSaved) { mutableStateOf(!inSaved) }
-    var savedOpen by rememberSaveable(inSaved) { mutableStateOf(inSaved) }
+    // Both sections start open and stay as you fold them, wherever you go (#251).
+    var feedsOpen by rememberSaveable { mutableStateOf(true) }
+    var savedOpen by rememberSaveable { mutableStateOf(true) }
 
     ModalDrawerSheet {
         Column(
@@ -111,7 +110,7 @@ fun FeedDrawer(
                 )
             }
 
-            // Feeds section: folders and feeds, followed by Manage feeds.
+            // Feeds section: folders and feeds; a folder's feeds only while you are in it.
             SectionHeader(
                 title = stringResource(R.string.feeds_title),
                 open = feedsOpen,
@@ -129,6 +128,8 @@ fun FeedDrawer(
                     )
                     for (folder in folders) {
                         val folderSelection = FeedSelection.InFolder(folder.id)
+                        val inFolder = feeds.filter { it.folderId == folder.id }
+                        val open = selection?.choosesFolder(folder) == true || inFolder.any { selection == FeedSelection.Single(it.url) }
                         NavigationDrawerItem(
                             label = { Text(folder.title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                             icon = { Icon(rememberFolderIconPainter(folder.icon), contentDescription = null) },
@@ -136,8 +137,12 @@ fun FeedDrawer(
                             selected = selection?.choosesFolder(folder) == true,
                             onClick = { onSelect(folderSelection) },
                         )
-                        for (feed in feeds.filter { it.folderId == folder.id }) {
-                            FeedItem(feed, selection, unreadCounts, onSelect, Modifier.padding(start = 24.dp))
+                        AnimatedVisibility(visible = open, enter = expandVertically(), exit = shrinkVertically()) {
+                            Column {
+                                for (feed in inFolder) {
+                                    FeedItem(feed, selection, unreadCounts, onSelect, Modifier.padding(start = 24.dp))
+                                }
+                            }
                         }
                     }
                     val loose = feeds.filter { feed -> feed.folderId == null || folders.none { it.id == feed.folderId } }
@@ -145,17 +150,10 @@ fun FeedDrawer(
                     for (feed in loose) {
                         FeedItem(feed, selection, unreadCounts, onSelect)
                     }
-                    HorizontalDivider(Modifier.padding(vertical = 8.dp, horizontal = 16.dp))
-                    NavigationDrawerItem(
-                        label = { Text(stringResource(R.string.menu_manage_feeds)) },
-                        icon = { Icon(painterResource(R.drawable.ic_manage_feeds), contentDescription = null) },
-                        selected = false,
-                        onClick = onOpenFeeds,
-                    )
                 }
             }
 
-            // Saved section: Saved (everything) and, under Tags, Liked and the tags, as the chips (#205), followed by Manage tags. The
+            // Saved section: Saved (everything) and, under Tags, Liked and the tags, as the chips (#205). The
             // state (To read, Archive, All) is the chip's; picking here keeps it. Counts are what is
             // still to read, as Feeds counts what is unread.
             if (saved != null) {
@@ -196,19 +194,18 @@ fun FeedDrawer(
                                 onClick = { onSavedFilter(saved.filter.copy(likedOnly = false, tags = setOf(tag))) },
                             )
                         }
-                        HorizontalDivider(Modifier.padding(vertical = 8.dp, horizontal = 16.dp))
-                        NavigationDrawerItem(
-                            label = { Text(stringResource(R.string.menu_manage_tags)) },
-                            icon = { Icon(painterResource(R.drawable.ic_tags), contentDescription = null) },
-                            selected = false,
-                            onClick = onOpenTagsManage,
-                        )
                     }
                 }
             }
 
-            // Settings lives at the bottom; Connected services and OPML are in it.
+            // At the bottom: managing feeds and Saved (one screen with a tab for each, #251), and Settings.
             HorizontalDivider(Modifier.padding(vertical = 12.dp, horizontal = 16.dp))
+            NavigationDrawerItem(
+                label = { Text(stringResource(R.string.menu_manage)) },
+                icon = { Icon(painterResource(R.drawable.ic_manage_feeds), contentDescription = null) },
+                selected = false,
+                onClick = onOpenManage,
+            )
             NavigationDrawerItem(
                 label = { Text(stringResource(R.string.menu_settings)) },
                 icon = { Icon(painterResource(R.drawable.ic_settings), contentDescription = null) },

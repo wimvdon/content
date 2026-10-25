@@ -39,11 +39,9 @@
     <string name="problem_not_a_feed">Op dit adres staat geen feed meer.</string>
     <string name="article_unread">Ongelezen</string>
     <string name="home_no_feeds_title">Nog geen feeds</string>
-    <string name="home_no_feeds_body">Voeg een website of feed toe die je leuk vindt, of importeer je feeds uit een andere lezer.</string>
+    <string name="home_no_feeds_body">Voeg een website of feed toe die je leuk vindt of importeer je feeds uit een andere lezer.</string>
     <string name="home_caught_up_title">Helemaal bij</string>
-    <string name="home_caught_up_body">Trek omlaag om naar nieuwe artikels te zoeken.</string>
     <string name="home_no_articles_title">Nog geen artikels</string>
-    <string name="home_no_articles_body">Trek omlaag om naar nieuwe artikels te zoeken.</string>
     <string name="home_show_all">Alles tonen</string>
     <string name="import_failed">Dit bestand kon niet gelezen worden.</string>
     <string name="import_nothing_new">Geen nieuwe feeds in dit bestand.</string>
@@ -67,30 +65,21 @@
     <string name="reader_preview">Goede typografie zie je niet: je merkt het verhaal op, niet de letters.</string>
     <string name="reader_read_on_website">Lezen op website</string>
     <string name="notify_shared_setting">Meld het als er iets met mij gedeeld wordt</string>
-    <string name="notify_shared_summary">Op deze telefoon, ook als Content niet open is.</string>
     <string name="notify_shared_denied">Meldingen staan uit voor Content. Sta ze toe in de Android-instellingen › Apps › Content.</string>
     <string name="notify_shared_channel">Met jou gedeeld</string>
     <string name="notify_shared_text">Er is iets met je gedeeld.</string>
-    <string name="share_user_menu">Versturen met Content</string>
     <string name="share_user_title">Versturen met Content</string>
-    <string name="share_user_article">Dit artikel komt in hun inbox.</string>
     <string name="share_send_with_content">Versturen met Content</string>
     <string name="inbox_title">Inbox</string>
     <string name="inbox_open_unread">Inbox, nieuwe artikels</string>
     <string name="inbox_empty_title">Nog niets met je gedeeld</string>
-    <string name="inbox_empty_body">Wat andere Content-gebruikers je sturen, komt hier.</string>
+    <string name="inbox_empty_body">Hier zie je wat andere Content-gebruikers je sturen.</string>
     <string name="inbox_remove">Uit inbox verwijderen</string>
     <string name="inbox_removed">Uit inbox verwijderd</string>
     <string name="share_user_send">Versturen</string>
     <string name="share_user_sent">Verstuurd naar %1$s</string>
     <string name="share_user_no_account">Er is geen Content-account voor dit adres.</string>
-    <string name="share_user_no_email">Voeg eerst een e-mailadres toe aan je account (Instellingen › Account), zodat ze zien van wie het komt.</string>
     <string name="share_user_signed_out">Meld je eerst aan bij je Content-account.</string>
-    <string name="share_user_from">Van %1$s</string>
-    <plurals name="share_user_tag">
-        <item quantity="one">Alles met de tag %1$s (%2$d artikel) komt in hun inbox, met die tag.</item>
-        <item quantity="other">Alles met de tag %1$s (%2$d artikels) komt in hun inbox, met die tag.</item>
-    </plurals>
     <plurals name="share_user_received">
         <item quantity="one">%1$s deelde %2$d artikel met jou</item>
         <item quantity="other">%1$s deelde %2$d artikels met jou</item>
@@ -111,7 +100,7 @@
     <string name="report_pictures">Afbeeldingen kloppen niet</string>
     <string name="report_other">Iets anders</string>
     <string name="report_comment">Opmerking (optioneel)</string>
-    <string name="report_hint">Versturen opent een ingevulde melding op GitHub in je browser, met de link van het artikel (niet de tekst). Verstuur ze daar.</string>
+    <string name="report_hint">Versturen opent een ingevulde melding op GitHub in je browser, met de link van het artikel en de tekst die Content toont. Verstuur ze daar.</string>
     <string name="report_send">Versturen</string>
     <string name="reader_article_gone">Dit artikel is niet meer beschikbaar.</string>
     <string name="reader_show_full">Volledig artikel tonen</string>
@@ -121,7 +110,7 @@
     <string name="reader_full_articles_title">Volledige artikels laden</string>
     <string name="reader_full_articles_summary">Als een feed alleen een samenvatting heeft, het hele artikel van de website halen</string>
     <string name="reader_show_images_title">Afbeeldingen tonen</string>
-    <string name="reader_show_images_summary">In artikels en de lijst; ze komen van de websites</string>
+    <string name="reader_show_images_summary">In artikels en de lijst</string>
     <string name="embed_youtube">Bekijken op YouTube</string>
     <string name="embed_vimeo">Bekijken op Vimeo</string>
     <string name="embed_video">Video afspelen</string>
@@ -134,7 +123,7 @@
     <string name="share_target_missing_short">%1$s is niet geïnstalleerd</string>
     <string name="action_save_to">Bewaren in %1$s</string>
     <string name="action_share_to">Delen met %1$s</string>
-    <string name="feeds_opml_hint">Verhuis je feeds van of naar een andere lezer, zoals Feedly.</string>
+    <string name="feeds_opml_hint">Verhuis je feeds van of naar een andere lezer zoals Feedly of Inoreader.</string>
     <string name="action_save">Opslaan</string>
     <string name="action_open">Openen</string>
     <string name="action_undo">Ongedaan maken</string>
@@ -148,7 +137,7 @@
     <string name="folder_icon_search">Iconen zoeken (in het Engels)</string>
     <string name="folder_icon_none_found">Geen icoon gevonden. Probeer een ander woord, zoals “news” of “car”.</string>
     <string name="folder_remove_title">Map verwijderen?</string>
-    <string name="folder_remove_body">%1$s wordt verwijderd. De feeds erin blijven, buiten een map.</string>
+    <string name="folder_remove_body">%1$s wordt verwijderd. De feeds erin blijven.</string>
     <string name="folder_none">Geen map</string>
     <string name="setting_mark_read_on_scroll_title">Als gelezen markeren bij scrollen</string>
     <string name="action_mark_read">Als gelezen markeren</string>
@@ -157,13 +146,13 @@
     <string name="list_view_small">Klein</string>
     <string name="list_view_medium">Middel</string>
     <string name="list_view_large">Groot</string>
-    <string name="manage_title">Feeds en tags</string>
+    <string name="manage_title">Feeds en Bewaard</string>
     <string name="feeds_opml_title">Van of naar een andere lezer</string>
     <string name="reader_auto_dark_title">Automatisch donker</string>
     <string name="reader_auto_dark_summary">Donkere pagina wanneer de app donker is</string>
     <string name="day_today">Vandaag</string>
     <string name="day_yesterday">Gisteren</string>
-    <string name="folder_none_empty">Elke feed zit in een map. Sleep een feed hierheen om hem uit zijn map te halen.</string>
+    <string name="folder_none_empty">Elke feed zit in een map.</string>
     <string name="feed_edit">Feed bewerken</string>
     <string name="feed_name">Naam</string>
     <string name="feed_name_hint">Laat leeg om de eigen naam van de feed te gebruiken</string>
@@ -188,10 +177,6 @@
         <item quantity="one">%d ongelezen</item>
         <item quantity="other">%d ongelezen</item>
     </plurals>
-    <plurals name="home_subtitle_all">
-        <item quantity="one">Alle artikels · %d ongelezen</item>
-        <item quantity="other">Alle artikels · %d ongelezen</item>
-    </plurals>
     <plurals name="marked_read">
         <item quantity="one">%d artikel als gelezen gemarkeerd</item>
         <item quantity="other">%d artikelen als gelezen gemarkeerd</item>
@@ -213,24 +198,20 @@
     <string name="instapaper_problem_not_approved">Instapaper heeft Content nog niet goedgekeurd voor jouw account.</string>
     <string name="instapaper_problem_rate_limited">Instapaper is druk bezig. Probeer het over een minuut opnieuw.</string>
     <string name="instapaper_problem_invalid">Instapaper kon dat niet uitvoeren.</string>
-    <string name="action_close">Sluiten</string>
-    <string name="action_done">Klaar</string>
     <string name="section_account">Account</string>
-    <string name="account_summary">Meld je aan met je e-mailadres om je feeds, gelezen artikels, Bewaard en instellingen op al je toestellen gelijk te houden.</string>
+    <string name="account_summary">Meld je aan met je e-mailadres om je feeds, gelezen en bewaarde artikels en instellingen op al je toestellen gelijk te houden.</string>
     <string name="sync_failed_signed_out">Dit apparaat is uitgelogd uit je account. Log opnieuw in.</string>
     <string name="account_delete_data">Account voor Content verwijderen</string>
     <string name="account_delete_confirm">Je feeds, gelezen artikelen en instellingen van de server van Content verwijderen? Ze blijven op dit apparaat, en je wordt overal uitgelogd.</string>
     <string name="account_deleted">Gesynchroniseerde gegevens verwijderd</string>
     <string name="action_delete">Verwijderen</string>
-    <string name="menu_manage_feeds">Feeds beheren</string>
-    <string name="menu_manage_tags">Tags beheren</string>
     <string name="action_collapse">Inklappen</string>
     <string name="action_expand">Uitklappen</string>
     <string name="action_search">Zoeken</string>
     <string name="search_hint">Artikels zoeken</string>
     <string name="action_clear">Wissen</string>
     <string name="search_start_title">Zoeken in je feeds</string>
-    <string name="search_start_body">Vindt woorden in de titels en de tekst van de artikels uit je feeds.</string>
+    <string name="search_start_body">Vind woorden in de titels en de tekst van de artikels uit je feeds.</string>
     <string name="search_none_title">Niets gevonden</string>
     <string name="search_none_body">Geen artikel bevat al deze woorden.</string>
     <string name="search_label_feed">Feed</string>
@@ -239,7 +220,6 @@
     <string name="search_any_tag">Elke tag</string>
     <string name="search_feed">Feed</string>
     <string name="search_tag">Tag</string>
-    <string name="search_section_none">Geen resultaten</string>
     <!-- A share from another app without a web link (#97). -->
     <string name="share_no_link">Geen link om te bewaren</string>
     <string name="share_target_saved">Bewaard, in deze app</string>
@@ -247,7 +227,6 @@
     <string name="saved_archived">Gearchiveerd</string>
     <string name="action_unarchive">Terug naar te lezen</string>
     <string name="action_like">Leuk</string>
-    <string name="action_unlike">Niet meer leuk</string>
     <string name="add_link_title">Link toevoegen</string>
     <string name="add_link_address">Webadres</string>
     <string name="add_link_invalid">Dat is geen webadres.</string>
@@ -261,21 +240,12 @@
     <string name="reading_list_empty_title">Niets te lezen</string>
     <string name="reading_list_archive_empty_title">Nog niets gearchiveerd</string>
     <string name="reading_list_none_title">Niets hier</string>
-    <string name="services_title">Gekoppelde diensten</string>
-    <string name="services_reader">Content</string>
-    <string name="services_feeds_body">Content bewaart je feeds. Met OPML zet je ze erin en eruit.</string>
     <string name="services_reading_body">Content bewaart je items zelf. Meld je aan met Instapaper om ze daar ook te bewaren.</string>
     <string name="services_problem_later">Instapaper vroeg even te wachten. De rest gaat later.</string>
     <string name="services_syncs_everything">Synchroniseert alles in Bewaard</string>
     <string name="service_import_title">Importeren</string>
-    <string name="saved_remove_both_body">Instapaper en Raindrop.io bewaren dit item allebei. Verwijder het uit beide, of uit één (dan blijft het in Bewaard, in de andere).</string>
-    <string name="saved_remove_only_from">Alleen uit %1$s</string>
-    <string name="saved_remove_from_both">Uit beide verwijderen</string>
-    <string name="saved_removed_from">Verwijderd uit %1$s</string>
-    <string name="saved_remove_from_failed">Verwijderen uit %1$s is niet gelukt. Probeer het later opnieuw.</string>
     <string name="tags_title">Tags</string>
     <string name="tags_add">Nieuwe tag</string>
-    <string name="tags_remove">Tag verwijderen</string>
     <string name="tags_rename">Tag hernoemen</string>
     <string name="tags_name">Naam van de tag</string>
     <string name="tags_remove_everywhere">Tag overal verwijderen</string>
@@ -292,11 +262,6 @@
         <item quantity="one">%d item</item>
         <item quantity="other">%d items</item>
     </plurals>
-    <plurals name="reading_list_to_read_count">
-        <item quantity="one">%d te lezen</item>
-        <item quantity="other">%d te lezen</item>
-    </plurals>
-    <string name="bookmarks_title">Bladwijzers</string>
     <string name="organise_title">Ordenen</string>
     <string name="highlights_title">Markeringen</string>
     <string name="highlight_action">Markeren</string>
@@ -305,8 +270,6 @@
     <string name="highlight_approximate">Bij benadering: deze tekst verschilt van die waarin hij gemaakt is.</string>
     <string name="highlight_not_found">Niet gevonden in deze tekst. Hij blijft bij het item.</string>
     <string name="highlight_not_in_instapaper">Nog niet in Instapaper. Morgen opnieuw geprobeerd.</string>
-    <string name="instapaper_copy_highlights">Markeringen synchroniseren met Instapaper</string>
-    <string name="instapaper_copy_highlights_summary">Markeringen gaan in beide richtingen: die van jou naar het artikel in Instapaper, en die in Instapaper gemaakt naar Content. Gratis accounts kunnen er vijf per maand maken; de rest blijft in Content en wordt een dag later opnieuw geprobeerd.</string>
     <string name="services_problem_limit">Instapaper staat deze maand geen markeringen meer toe.</string>
     <string name="highlights_none">Selecteer tekst en tik op Markeren.</string>
     <string name="setting_tag_with_folder_title">Taggen met de map van de feed</string>
@@ -314,7 +277,6 @@
     <string name="saved_title">Bewaard</string>
     <string name="saved_folders">Mappen</string>
     <string name="folder_field">Map</string>
-    <string name="saved_place">Waar</string>
     <string name="saved_to">Bewaard in %1$s</string>
     <string name="action_open_menu">Menu openen</string>
     <string name="saved_folder_rename">Map hernoemen</string>
@@ -343,4 +305,11 @@
     <string name="account_link_expired">Die link is al gebruikt of te oud. Vraag een nieuwe.</string>
     <string name="account_link_taken">Dat adres hoort al bij een ander Content-account.</string>
     <string name="account_link_failed">Aanmelden is niet gelukt. Probeer opnieuw.</string>
+    <string name="action_refresh">Vernieuwen</string>
+    <string name="menu_manage">Feeds en Bewaard beheren</string>
+    <string name="share_copy_link">Link kopiëren</string>
+    <string name="share_more">Meer</string>
+    <string name="instapaper_import_title">Importeren uit Instapaper?</string>
+    <string name="instapaper_import_body">Alles wat nu in je Instapaper staat eenmalig binnenhalen? Hoe dan ook blijven Bewaard en Instapaper vanaf nu gelijk.</string>
+    <string name="instapaper_import_skip">Niet importeren</string>
 </resources>

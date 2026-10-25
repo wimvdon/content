@@ -26,6 +26,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.text.contextmenu.builder.item
 import androidx.compose.foundation.text.contextmenu.modifier.appendTextContextMenuComponents
+import androidx.compose.foundation.text.contextmenu.modifier.filterTextContextMenuComponents
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalContext
+import android.content.ClipData
+import be.wimvandonck.content.ui.ExternalApps
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.text.selection.rememberSelectionState
 import androidx.compose.ui.text.SpanStyle
@@ -153,38 +161,81 @@ fun TextBlock(
         SelectionContainer { Text(text, style = style, modifier = modifier) }
         return
     }
-    // Highlight and Note join Copy and Share in the menu over selected text.
+    // Highlight and Note come first in the menu over selected text (#251). Compose always puts its own
+    // items first, so the whole menu is made here: Highlight, Note, Copy, Share, Select all, then the
+    // apps that act on selected text (Translate, …), as Android offers them.
     val selection = rememberSelectionState()
     val highlightLabel = stringResource(R.string.highlight_action)
     val noteLabel = stringResource(R.string.note_title)
+    val copyLabel = stringResource(android.R.string.copy)
+    val shareLabel = stringResource(R.string.action_share)
+    val selectAllLabel = stringResource(android.R.string.selectAll)
+    val context = LocalContext.current
+    val textApps = remember(context) { ExternalApps.processTextApps(context) }
+    val clipboard = LocalClipboard.current
+    val scope = rememberCoroutineScope()
     val create by rememberUpdatedState(paragraph.highlighting.onCreate)
     val index = paragraph.index
+    fun selected() = selection.selectedTexts.joinToString("") { it.text }
     SelectionContainer(
         selection,
-        Modifier.appendTextContextMenuComponents {
-            separator()
-            item(HighlightKey, highlightLabel, R.drawable.ic_highlight) {
-                val selected = selection.selectedTexts.joinToString("") { it.text }
-                close()
-                selection.clear()
-                create(index, selected, false)
-            }
-            item(NoteKey, noteLabel, R.drawable.ic_edit_note) {
-                val selected = selection.selectedTexts.joinToString("") { it.text }
-                close()
-                selection.clear()
-                create(index, selected, true)
-            }
-        },
+        Modifier
+            .filterTextContextMenuComponents { it.key is OwnMenuKey }
+            .appendTextContextMenuComponents {
+                item(HighlightKey, highlightLabel, R.drawable.ic_highlight) {
+                    val selected = selection.selectedTexts.joinToString("") { it.text }
+                    close()
+                    selection.clear()
+                    create(index, selected, false)
+                }
+                item(NoteKey, noteLabel, R.drawable.ic_edit_note) {
+                    val selected = selection.selectedTexts.joinToString("") { it.text }
+                    close()
+                    selection.clear()
+                    create(index, selected, true)
+                }
+                item(CopyKey, copyLabel) {
+                    val text = selected()
+                    close()
+                    selection.clear()
+                    scope.launch { clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(text, text))) }
+                }
+                item(ShareKey, shareLabel) {
+                    val text = selected()
+                    close()
+                    ExternalApps.shareText(context, text, shareLabel)
+                }
+                item(SelectAllKey, selectAllLabel) { selection.selectAll() }
+                for (app in textApps) {
+                    item(ProcessTextKey(app.component.flattenToString()), app.label) {
+                        val text = selected()
+                        close()
+                        ExternalApps.processText(context, app, text)
+                    }
+                }
+            },
     ) { Text(text, style = style, modifier = modifier) }
 }
 
 /** A highlight's colour: a marker yellow that reads on the light, sepia and dark pages. */
 private val HIGHLIGHT = Color(0xFFFFD54F).copy(alpha = 0.45f)
 
-private object HighlightKey
+/** The menu's own items: everything else Compose would add is left out (see [TextBlock]). */
+private interface OwnMenuKey
 
-private object NoteKey
+private object HighlightKey : OwnMenuKey
+
+private object NoteKey : OwnMenuKey
+
+private object CopyKey : OwnMenuKey
+
+private object ShareKey : OwnMenuKey
+
+private object SelectAllKey : OwnMenuKey
+
+private data class ProcessTextKey(
+    val component: String,
+) : OwnMenuKey
 
 /** A heading inside the article: bolder and, for h1 to h3, larger than the text. */
 @Composable

@@ -84,8 +84,10 @@ data class FeedsState(
 )
 
 class FeedsActions(
-    /** Switches to the Tags tab of Feeds and tags (#222). */
+    /** Switches to the Saved tab of Manage feeds and Saved (#222, #251). */
     val onTab: (ManageTab) -> Unit = {},
+    val onImportOpml: () -> Unit = {},
+    val onExportOpml: () -> Unit = {},
     val onBack: () -> Unit,
     val onAddFeed: () -> Unit,
     val onRemoveFeed: (Feed) -> Unit,
@@ -207,7 +209,7 @@ fun FeedsScreen(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         contentWindowInsets = ScaffoldDefaults.contentWindowInsets.union(WindowInsets.ime),
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        // One screen with Saved's tags (#222): its tabs switch between the two.
+        // One screen with Saved (#222, #251): its tabs switch between the two.
         topBar = { ManageTopBar(ManageTab.Feeds, actions.onTab, actions.onBack, scrollBehavior) },
     ) { innerPadding ->
         LazyColumn(
@@ -315,6 +317,17 @@ fun FeedsScreen(
                             }
                         }
                     }
+                }
+            }
+            // Moving to or from another reader (#251: here, not in Settings).
+            item(key = "opml") {
+                Column(Modifier.padding(top = 24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Heading(stringResource(R.string.feeds_opml_title))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(onClick = actions.onImportOpml, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.feeds_import)) }
+                        OutlinedButton(onClick = actions.onExportOpml, enabled = state.feeds.isNotEmpty(), modifier = Modifier.weight(1f)) { Text(stringResource(R.string.feeds_export)) }
+                    }
+                    Hint(stringResource(R.string.feeds_opml_hint))
                 }
             }
         }

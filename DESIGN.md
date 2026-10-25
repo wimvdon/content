@@ -234,14 +234,17 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   screen, top bar and system bar icons included, takes the page colour.
 - Article titles in the reader are the hero text (bold, in the reader's font). Unread rows in the
   list use SemiBold titles and a primary dot; read rows use `onSurfaceVariant`.
-- Manage feeds ("Feeds and folders") is its own page (☰): a large top app
+- Manage feeds and Saved (☰, #251) is one page with a Feeds and a Saved tab. Feeds: a large top app
   bar over folder cards (`surfaceContainerHigh`, folder icon on a `secondaryContainer` circle) with
   their feeds indented below (`surfaceContainer`), a pen button and a drag handle at the end of each row, an outlined note under
   "No folder" when it is empty, and the
   dragged row lifted with a shadow. Tapping a row opens its edit dialog; Remove sits in the
-  dialog, in the error colour. Tags ("Tags", ☰) is a page of its own too: every tag with its number of articles, tap to rename, a delete button to remove it everywhere. Settings sections: Account (Sign in with Instapaper; signed in, who, the
-  last sync or what went wrong, Sync now, Sign out and Delete synced data in the error colour, which
-  asks first), Article list, Reader, Save and share (integration), Appearance, footer.
+  dialog, in the error colour; Move to or from another reader (OPML) at the end. Saved: Tag with
+  the feed's folder, Instapaper (connect, how it is doing, Sync now, Sign out), then every tag with
+  its number of articles, tap to rename, a delete button to remove it everywhere. Settings sections:
+  Account (sign in with an emailed link; signed in, who, the last sync or what went wrong, Sync now,
+  Sign out and Delete synced data in the error colour, which asks first), Sites you're signed in to,
+  Article list, Reader, Save and share, Appearance, footer.
 - Folder icons come from the whole Material Symbols set (outlined, rounded), picked with a search
   field and a grid in the folder dialog. The app's other icons (the reading list's To read (an open
   book), Liked, Archive (a box) and tags included) use the same outlined, rounded style; only an icon that
@@ -286,14 +289,13 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   full article as an `IconToggleButton`, on while it shows, but not for a saved article, which
   always shows the whole article (#208), then Aa and ⋮); the bottom app bar is
   this article in your library, on the left, with **Share** at its right end: a tonal **Save** before
-  it is saved, then two text buttons with a drop-down arrow, side by side, grouped like the sheet (#156): its **place** (To read, the
-  folder or Archive, with its icon), a `DropdownMenu` of To read, Archive, the folders
-  and New folder; and its **tags** (the tags, else Liked; a filled heart when liked, else a label, tinted like the folder icon),
-  a menu of Like, the tags with a check when on, and New tag. New folder and New tag
-  open Organise. The label gives way (ellipsis) before the drop-down arrow, which keeps its 18dp. The text ends with Read on website and nothing else. ⋮
-  holds the rare ones: Open in browser, Mark as unread, Remove from Saved.
-- Highlights (#102): **Highlight** and **Note** join Copy and Share in the menu over selected text
-  (the web: a small bar above the selection). A highlight is a marker yellow (`#FFD54F` at 45 %)
+  it is saved, then one text button, its **folder** (To read or Archive, with its icon), which opens
+  Organise (#251: two buttons didn't fit on a phone). The label gives way (ellipsis). The text ends
+  with Read on website and nothing else. ⋮ holds the rare ones: Open in browser, Mark as unread,
+  Sign in to this site (only while not signed in to it), Report a problem, Remove from Saved.
+- Highlights (#102): **Highlight** and **Note** come first in the menu over selected text, then
+  Copy, Share, Select all and the apps that act on text (#251; the web: a small bar above the
+  selection). A highlight is a marker yellow (`#FFD54F` at 45 %)
   behind the text, lighter and underlined when only found roughly; tapping it opens a
   `ModalBottomSheet` with the quote (a `primary` bar at its left, italic), its status, the note
   field, Remove highlight, Cancel and Save. With highlights, the bottom bar has a quote mark and the
@@ -304,7 +306,7 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   app (where the snackbar is all of Reader that shows).
 - One save and Organise sheet (#143), wherever you meet an article: a `ModalBottomSheet` with, in
   this order, what is being saved (only before the save: the address field for Add link, or a shared
-  link's title and site), **Folder** as single-choice `FilterChip`s (To read and Archive with
+  link's title and site), **Folder** (#251: it said "Where") as single-choice `FilterChip`s (To read and Archive with
   their icons, each folder, then a New folder `AssistChip`, the only thing to
   type; #156), **Tags** in one row
   (Like, then every tag in use as a `FilterChip` without a check mark, in a steady order so nothing
@@ -313,11 +315,13 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   closing the sheet is Cancel, so only Save changes anything; the heading is "Save to Reader", "Saved to …" or "Organise".
   Right after a save ("Saved to …"), **Remove** (error colour, trash icon) takes the place of Cancel
   and takes the save back; closing keeps it. A folder or tag still being typed is taken by Save.
-- The ☰ drawer: two sections that collapse and expand automatically when you're in them: the Feeds section (Feed, the folders with their feeds, the other feeds, then Manage feeds),
-  the Saved section (Saved with its count, then under Tags Liked and the tags with their counts, then Manage tags), then
-  Settings. Connected services (Instapaper) and Import/Export OPML live in Settings, not in the
-  drawer. Manage feeds shows what it manages with a pen (the feed symbol with a pen); Tags has a
-  tag (Material Symbols' shapes).
+- The ☰ drawer: two sections that start open and stay as you fold them (#251): the Feeds section
+  (Feed, the folders, the other feeds; a folder shows its feeds only while you are in it), the
+  Saved section (Saved with its count, then under Tags Liked and the tags with their counts), then
+  **Manage feeds and Saved** (the feed symbol with a pen) and Settings at the bottom.
+- Content's share sheet (#251): a `ModalBottomSheet` with the article's title and site, **Send with
+  Content** (a row of the people shared with, avatar and name, and Email address), then the apps
+  as 48dp icons with their names, four to a row, Copy link and More last.
 - Site icons sit on a fixed light tile (`#F4F4F4`, rounded, 10% padding) in light and dark mode,
   so logos drawn for light browser tabs keep their contrast; the letter fallback uses
   `tertiaryContainer`.
@@ -337,8 +341,8 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   Yesterday, date) in `primary` Title Small; Mark all as read is an icon-only FAB. The drawer opens with the app's logo (the
   launcher icon: its feed symbol on white, in a circle with an `outlineVariant` edge) and name; the
   web app's sidebar and favicon use the same logo.
-- Settings starts with Account; managing feeds and tags, and the connected services, live in the
-  drawer, not in Settings.
+- Settings starts with Account; managing feeds and Saved (OPML, Tag with the feed's folder,
+  Instapaper) is one screen with a tab each, from the drawer, not in Settings (#251).
 
 ### Other platforms (planned)
 

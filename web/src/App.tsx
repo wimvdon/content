@@ -4,6 +4,7 @@ import { ArticleList } from "./components/ArticleList";
 import { ArticleView } from "./components/ArticleView";
 import { NavigationBar } from "./components/NavigationBar";
 import { AddFeedDialog, ManageDialog, SettingsDialog } from "./components/Dialogs";
+import { InstapaperImportDialog } from "./components/ServiceSettings";
 import { SaveSheet } from "./components/SaveSheet";
 import { SearchPanel } from "./components/SearchPanel";
 import { Sidebar } from "./components/Sidebar";
@@ -149,10 +150,6 @@ export default function App() {
         setDrawer(false);
         setDialog("manage");
       }}
-      onManageSaved={() => {
-        setDrawer(false);
-        setDialog("manageSaved");
-      }}
       onSettings={() => {
         setDrawer(false);
         setDialog("settings");
@@ -203,11 +200,13 @@ export default function App() {
       <ManageDialog
         open={dialog === "manage" || dialog === "manageSaved"}
         onOpenChange={(o) => setDialog(o ? "manage" : null)}
-        tab={dialog === "manageSaved" ? "tags" : "feeds"}
-        onTab={(tab) => setDialog(tab === "tags" ? "manageSaved" : "manage")}
+        tab={dialog === "manageSaved" ? "saved" : "feeds"}
+        onTab={(tab) => setDialog(tab === "saved" ? "manageSaved" : "manage")}
+        onImport={() => fileInput.current?.click()}
         onAddFeed={() => setDialog("add")}
       />
-      <SettingsDialog open={dialog === "settings"} onOpenChange={(o) => setDialog(o ? "settings" : null)} onImport={() => fileInput.current?.click()} />
+      <SettingsDialog open={dialog === "settings"} onOpenChange={(o) => setDialog(o ? "settings" : null)} />
+      <InstapaperImportDialog />
       <SaveSheet
         onMessage={(text, openKey) =>
           // Not in the article yet: Open goes there, in Saved (#142).

@@ -10,8 +10,13 @@ import android.graphics.Paint
 import androidx.core.app.Person
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
+import androidx.core.graphics.PathParser
 import androidx.core.graphics.createBitmap
+import androidx.core.graphics.scale
 import androidx.core.graphics.drawable.IconCompat
+import be.wimvandonck.content.data.Folder
+import be.wimvandonck.content.data.IconCatalog
+import be.wimvandonck.content.data.LauncherFolders
 import be.wimvandonck.content.data.ShareShortcuts
 import be.wimvandonck.content.sync.Gravatar
 import coil3.SingletonImageLoader
@@ -21,38 +26,30 @@ import coil3.request.SuccessResult
 import coil3.toBitmap
 
 /**
- * Direct share (#235, #246): Send with Content in Android's share menu (the SendActivity alias, only
- * while signed in), and the people shared with as sharing shortcuts at the top of it, in every app's
- * share menu and in Content's own. Picking one opens Send with Content with their address filled in.
- * Pictures come from Gravatar when Show images is on, else the first letter of the name.
+ * Direct share (#235, #246): Send with Content in other apps' share menus (the SendActivity alias,
+ * only while signed in), and the people shared with as sharing shortcuts at the top of them. Picking
+ * one opens Send with Content with their address filled in. Pictures come from Gravatar when Show
+ * images is on, else the first letter of the name. Content's own share sheet has both itself (#251).
+ *
+ * The same dynamic shortcuts hold the launcher's: long-pressing Content's icon offers the feed
+ * folders (#251); the people are kept out of the launcher there.
  */
 object DirectShare {
     /** The alias that takes links to send to a Content user (AndroidManifest.xml). */
     const val SEND_ACTIVITY = "be.wimvandonck.content.ui.SendActivity"
 
     /** A person offered in the share menu: their address, name (else address) and picture. */
-    class Recipient(
+    private class Recipient(
         val email: String,
         val label: String,
         val picture: Bitmap,
     )
-
-    /** Signed in, as last told to [showSendTarget]: Content's own share menu then offers Send with Content (#248). */
-    @Volatile
-    var signedIn: Boolean = false
-        private set
-
-    /** The people last published, most recent first, for the buttons in Content's own share menu (#248). */
-    @Volatile
-    var people: List<Recipient> = emptyList()
-        private set
 
     /** Shows Send with Content in the share menu while signed in, and hides it otherwise. */
     fun showSendTarget(
         context: Context,
         signedIn: Boolean,
     ) {
-        this.signedIn = signedIn
         val state = if (signedIn) PackageManager.COMPONENT_ENABLED_STATE_ENABLED else PackageManager.COMPONENT_ENABLED_STATE_DISABLED
         val component = ComponentName(context, SEND_ACTIVITY)
         if (context.packageManager.getComponentEnabledSetting(component) != state) {
@@ -60,19 +57,24 @@ object DirectShare {
         }
     }
 
+    /**
+     * Publishes the people (for the share menu, not the launcher) and the feed [folders] (for the
+     * launcher, #251) as the app's dynamic shortcuts, in place of the ones before.
+     */
     suspend fun publish(
         context: Context,
         recipients: List<String>,
         showImages: Boolean,
         nameOf: suspend (String) -> String?,
+        folders: List<Folder>,
+        iconOf: (String) -> IconCatalog.Icon?,
     ) {
         val picked =
             ShareShortcuts.pick(recipients).map { email ->
                 val label = nameOf(email)?.takeIf { it.isNotBlank() } ?: email
                 Recipient(email, label, picture(context, email, label, showImages))
             }
-        people = picked
-        val shortcuts =
+        val people =
             picked.mapIndexed { rank, person ->
                 val email = person.email
                 val label = person.label
@@ -86,10 +88,40 @@ object DirectShare {
                     .setPerson(Person.Builder().setName(label).setKey(email).build())
                     .setLongLived(true)
                     .setRank(rank)
+                    // Only in share menus: "Wim" in the launcher's menu was no use (#251).
+                    .setExcludedFromSurfaces(ShortcutInfoCompat.SURFACE_LAUNCHER)
                     .build()
             }
-        ShortcutManagerCompat.removeAllDynamicShortcuts(context)
-        if (shortcuts.isNotEmpty()) ShortcutManagerCompat.addDynamicShortcuts(context, shortcuts)
+        val launcher =
+            LauncherFolders.pick(folders).mapIndexed { rank, folder ->
+                ShortcutInfoCompat
+                    .Builder(context, LauncherFolders.idOf(folder.id))
+                    .setShortLabel(folder.title)
+                    .setIcon(IconCompat.createWithAdaptiveBitmap(folderPicture(iconOf(folder.icon))))
+                    .setIntent(
+                        Intent(context, MainActivity::class.java)
+                            .setAction(Intent.ACTION_VIEW)
+                            .putExtra(MainActivity.EXTRA_OPEN_ARTICLE, LauncherFolders.requestOf(folder.id)),
+                    ).setRank(rank)
+                    .build()
+            }
+        ShortcutManagerCompat.setDynamicShortcuts(context, people + launcher)
+    }
+
+    /** A folder's icon (Material Symbols, else the folder) on the letters' colours, as an adaptive icon. */
+    private fun folderPicture(icon: IconCatalog.Icon?): Bitmap {
+        val size = 216
+        val bitmap = createBitmap(size, size)
+        val canvas = Canvas(bitmap)
+        canvas.drawColor(LETTER_BACKGROUND)
+        val paths = icon?.paths ?: listOf(FOLDER_PATH)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = LETTER_COLOR }
+        // The 24-unit icon in the middle third, the part every launcher's mask shows.
+        val scale = size / 3f / 24f
+        canvas.translate(size / 3f, size / 3f)
+        canvas.scale(scale, scale)
+        for (data in paths) runCatching { PathParser.createPathFromPathData(data) }.getOrNull()?.let { canvas.drawPath(it, paint) }
+        return bitmap
     }
 
     /** Their Gravatar picture, else their first letter, as an adaptive icon (the middle two thirds show). */
@@ -117,7 +149,7 @@ object DirectShare {
         if (gravatar != null) {
             val inner = size * 2 / 3
             val left = (size - inner) / 2f
-            canvas.drawBitmap(Bitmap.createScaledBitmap(gravatar, inner, inner, true), left, left, null)
+            canvas.drawBitmap(gravatar.scale(inner, inner), left, left, null)
         } else {
             val paint =
                 Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -134,4 +166,7 @@ object DirectShare {
     // The light theme's primary container colours (ui/theme/Theme.kt), fixed: a shortcut icon has no theme.
     private const val LETTER_BACKGROUND = 0xFFD0E4FF.toInt()
     private const val LETTER_COLOR = 0xFF00497A.toInt()
+
+    /** Material Symbols folder (res/drawable/ic_folder.xml), for a folder without a known icon. */
+    private const val FOLDER_PATH = "M4 20q-.825 0-1.412-.587T2 18V6q0-.825.588-1.412T4 4h5.175q.4 0 .763.15t.637.425L12 6h8q.825 0 1.413.588T22 8v10q0 .825-.587 1.413T20 20zm0-2h16V8h-8.825l-2-2H4zm0 0V6z"
 }

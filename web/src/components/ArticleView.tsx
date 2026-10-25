@@ -2,7 +2,7 @@ import { ALargeSmall, ArrowLeft, Circle, CircleCheck, EllipsisVertical, External
 import { useEffect, useMemo, useState } from "react";
 import { app, useApp } from "@/lib/app";
 import { useShare } from "./useShare";
-import { MAX_REPORT_COMMENT, REPORT_PROBLEMS, reportUrl, type ReportProblem } from "@/lib/articleReport";
+import { MAX_REPORT_COMMENT, REPORT_PROBLEMS, report, textOf, type ReportProblem } from "@/lib/articleReport";
 import { extractArticle, needsFullText, wantsFullText } from "@/lib/fullArticle";
 import { cached, cachedNow, keep } from "@/lib/fullArticleStore";
 import { formatDateTime, t, type Key } from "@/lib/i18n";
@@ -272,7 +272,7 @@ export function ArticleView({
         />
       ) : null}
       {shareDialog}
-      {reportOpen && article.link ? <ReportDialog link={article.link} onClose={() => setReportOpen(false)} /> : null}
+      {reportOpen && article.link ? <ReportDialog link={article.link} html={fullHtml ?? feedHtml} onClose={() => setReportOpen(false)} /> : null}
       {saved ? <RemoveDialog item={saved} open={removeOpen} onClose={() => setRemoveOpen(false)} onRemoved={() => fromSaved && onBack()} /> : null}
     </article>
   );
@@ -304,9 +304,10 @@ const REPORT_LABELS: Record<ReportProblem, Key> = { textMissing: "reportTextMiss
 
 /**
  * Report a problem with this article (#181): what is wrong and an optional comment. Send opens a
- * pre-filled GitHub issue in a new tab, where the user submits it; the article's text isn't sent.
+ * pre-filled GitHub issue in a new tab, where the user submits it, with the text the reader shows
+ * (#251); a text too long for the address is cut short there and copied whole to paste.
  */
-function ReportDialog({ link, onClose }: { link: string; onClose: () => void }) {
+function ReportDialog({ link, html, onClose }: { link: string; html: string; onClose: () => void }) {
   const [problem, setProblem] = useState<ReportProblem>("textMissing");
   const [comment, setComment] = useState("");
   return (
@@ -322,7 +323,10 @@ function ReportDialog({ link, onClose }: { link: string; onClose: () => void }) 
           </Button>
           <Button
             onClick={() => {
-              window.open(reportUrl(link, problem, comment, "Web"), "_blank", "noopener,noreferrer");
+              const text = textOf(html);
+              const { url, cut } = report(link, problem, comment, "Web", "", text);
+              if (cut) void navigator.clipboard?.writeText(text).catch(() => undefined);
+              window.open(url, "_blank", "noopener,noreferrer");
               onClose();
             }}
           >

@@ -7,8 +7,6 @@
 
 import { articleKey, emptyLibrary, type Article, type Feed, type Folder, type Library } from "./library";
 import { itemsOf, sameItem, type Item } from "./items";
-import { localSavedOf } from "./localSaved";
-import { migrateSaved } from "./savedItems";
 import { ARTICLES, db, ITEMS, SYNC_ROWS } from "./storage";
 import type { ItemRow, ItemSyncState } from "./syncRows";
 
@@ -96,25 +94,19 @@ function done(tx: IDBTransaction): Promise<void> {
   });
 }
 
-/** The stored library; the first time, the older versions' library moved in. */
+/** The stored library. */
 export async function loadLibrary(): Promise<Library> {
   const d = await db();
   const tx = d.transaction([KV, ARTICLES, ITEMS], "readonly");
   const kv = tx.objectStore(KV);
-  const [legacy, saved, feeds, folders, articles, items, readElsewhere] = await Promise.all([
-    request(kv.get("library")),
-    request(kv.get("saved")),
+  const [feeds, folders, articles, items, readElsewhere] = await Promise.all([
     request(kv.get("feeds")),
     request(kv.get("folders")),
     request(tx.objectStore(ARTICLES).getAll()),
     request(tx.objectStore(ITEMS).getAll()),
     request(kv.get("readElsewhere")),
   ]);
-  if (legacy === undefined && saved === undefined) return libraryOf({ feeds, folders, articles, items, readElsewhere });
-  // Older versions: one "library" value, and the articles saved without an account in "saved".
-  const moved = migrateSaved(libraryOf(legacy as Partial<Library> | undefined), localSavedOf(saved));
-  await writeLibrary(allOf(moved), true);
-  return moved;
+  return libraryOf({ feeds, folders, articles, items, readElsewhere });
 }
 
 /** Writes what changed, all or nothing; [replace] first empties the stores and drops the old values. */

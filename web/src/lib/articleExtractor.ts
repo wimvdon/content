@@ -21,11 +21,11 @@ const KEPT_TAGS = new Set([
   "figure", "figcaption", "img", "iframe", "video",
 ]);
 
-/** Never part of what the reader shows, wherever Readability leaves them. */
-const DROPPED_TAGS = new Set([
-  "script", "style", "noscript", "template", "svg", "math", "textarea", "object", "select", "canvas",
-  "nav", "header", "footer", "aside", "form", "button", "input", "audio", "dialog", "menu",
-]);
+/**
+ * What the reader can't show (scripts, drawings, form fields, players without a link), wherever
+ * Readability leaves them. Everything else Readability keeps is shown (#251: no other choices).
+ */
+const DROPPED_TAGS = new Set(["script", "style", "noscript", "template", "svg", "math", "canvas", "textarea", "select", "input", "button", "object", "audio"]);
 
 /** Embedded players worth a card in the reader; other iframes are usually ads or widgets. */
 const KNOWN_EMBEDS =

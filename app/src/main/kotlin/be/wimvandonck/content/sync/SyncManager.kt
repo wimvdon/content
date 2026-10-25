@@ -299,12 +299,12 @@ class SyncManager(
     suspend fun share(
         to: String,
         items: List<SharedArticle>,
-        tag: String?,
     ): ShareResult {
         val session = account.session() ?: return ShareResult.SignedOut
-        val email = session.email ?: return ShareResult.NoEmail
+        // Every account signs in with an email link, so it has an address; one without can't say who shares.
+        val email = session.email ?: return ShareResult.SignedOut
         return try {
-            if (AccountClient(http, session.key).share(to, SharedBy(email), items, tag)) {
+            if (AccountClient(http, session.key).share(to, SharedBy(email), items)) {
                 // Offered first next time, on every device (#235).
                 settings.rememberRecipient(to)
                 ShareResult.Sent
@@ -341,4 +341,4 @@ private object TextSerializer : Serializer<String> {
 }
 
 /** How sharing with a Content user went (#167). */
-enum class ShareResult { Sent, NoAccount, NoEmail, SignedOut, Offline, Failed }
+enum class ShareResult { Sent, NoAccount, SignedOut, Offline, Failed }

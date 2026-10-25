@@ -53,7 +53,7 @@ describe("POST /instapaper/token", () => {
     );
     const response = await handle(tokenRequest({ code: "1a2b3c" }), env, fetcher);
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ access_token: "tok123", user: { id: 42, username: "me@example.com" }, account: null });
+    expect(await response.json()).toEqual({ access_token: "tok123", user: { id: 42, username: "me@example.com" } });
     expect(response.headers.get("Access-Control-Allow-Origin")).toBe(APP);
     expect(response.headers.get("Cache-Control")).toBe("no-store");
 

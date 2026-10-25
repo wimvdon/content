@@ -1,8 +1,8 @@
 package be.wimvandonck.content.ui.feeds
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -39,19 +39,20 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import be.wimvandonck.content.R
-import be.wimvandonck.content.sync.ShareResult
-import be.wimvandonck.content.ui.reader.ShareWithUserDialog
-import be.wimvandonck.content.ui.theme.EmptyState
+import be.wimvandonck.content.ui.settings.InstapaperSettings
+import be.wimvandonck.content.ui.settings.InstapaperSettingsState
+import be.wimvandonck.content.ui.theme.SwitchSetting
 import be.wimvandonck.content.ui.theme.readableWidth
 
 /**
- * Folders and tags (☰): every folder of Saved with how many articles it has, then every tag with
- * how many articles have it. Tap to rename (renaming to another one's name joins the two), or remove
- * it: a tag from every article, a folder from its articles (they go to the Archive).
+ * Manage › Saved (#222, #251): Tag with the feed's folder, Instapaper, then every folder of Saved
+ * with how many articles it has and every tag with how many articles have it. Tap to rename
+ * (renaming to another one's name joins the two), or remove it: a tag from every article, a folder
+ * from its articles (they go to the Archive).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TagsManageScreen(
+fun SavedManageScreen(
     tags: Map<String, Int>,
     snackbarHostState: SnackbarHostState,
     onBack: () -> Unit,
@@ -60,12 +61,16 @@ fun TagsManageScreen(
     folders: Map<String, Int> = emptyMap(),
     onRenameFolder: (String, String) -> Unit = { _, _ -> },
     onRemoveFolder: (String) -> Unit = {},
-    /** Switches to the Feeds tab of Feeds and tags (#222). */
+    /** Switches to the Feeds tab (#222). */
     onTab: (ManageTab) -> Unit = {},
-    /** Sends a tag's articles to a Content user (#167); null when signed out. */
-    onShareTag: ((tag: String, email: String, result: (ShareResult) -> Unit) -> Unit)? = null,
+    tagWithFolder: Boolean = true,
+    onTagWithFolderChange: (Boolean) -> Unit = {},
+    instapaper: InstapaperSettingsState? = null,
+    onInstapaperSignIn: () -> Unit = {},
+    onInstapaperSync: () -> Unit = {},
+    onInstapaperSignOut: () -> Unit = {},
+    onInstapaperImport: (everything: Boolean) -> Unit = {},
 ) {
-    var sharing by rememberSaveable { mutableStateOf<String?>(null) }
     // What is being renamed or removed: "t:<tag>" or "c:<folder>".
     var renaming by rememberSaveable { mutableStateOf<String?>(null) }
     var removing by rememberSaveable { mutableStateOf<String?>(null) }
@@ -74,17 +79,8 @@ fun TagsManageScreen(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         // One screen with the feeds (#222): its tabs switch between the two.
-        topBar = { ManageTopBar(ManageTab.Tags, onTab, onBack, scrollBehavior) },
+        topBar = { ManageTopBar(ManageTab.Saved, onTab, onBack, scrollBehavior) },
     ) { innerPadding ->
-        if (tags.isEmpty() && folders.isEmpty()) {
-            EmptyState(
-                painterResource(R.drawable.ic_tags),
-                stringResource(R.string.manage_folders_tags_empty_title),
-                body = stringResource(R.string.manage_folders_tags_empty_body),
-                modifier = Modifier.padding(innerPadding),
-            )
-            return@Scaffold
-        }
         LazyColumn(
             modifier =
                 Modifier
@@ -93,6 +89,35 @@ fun TagsManageScreen(
                     .readableWidth(),
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 32.dp),
         ) {
+            item(key = "tagWithFolder") {
+                SwitchSetting(
+                    title = stringResource(R.string.setting_tag_with_folder_title),
+                    summary = stringResource(R.string.setting_tag_with_folder_summary),
+                    checked = tagWithFolder,
+                    onCheckedChange = onTagWithFolderChange,
+                )
+            }
+            if (instapaper != null) {
+                item(key = "instapaper") {
+                    Column {
+                        Heading(stringResource(R.string.section_instapaper))
+                        InstapaperSettings(instapaper, onInstapaperSignIn, onInstapaperSync, onInstapaperSignOut, onInstapaperImport)
+                    }
+                }
+            }
+            if (tags.isEmpty() && folders.isEmpty()) {
+                item(key = "empty") {
+                    Column {
+                        Heading(stringResource(R.string.manage_folders_tags_empty_title))
+                        Text(
+                            stringResource(R.string.manage_folders_tags_empty_body),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                        )
+                    }
+                }
+            }
             if (folders.isNotEmpty()) {
                 item(key = "folders") { Heading(stringResource(R.string.saved_folders)) }
                 items(folders.entries.toList(), key = { "c:" + it.key }) { (folder, count) ->
@@ -111,22 +136,15 @@ fun TagsManageScreen(
                 }
             }
             if (tags.isNotEmpty()) {
-                if (folders.isNotEmpty()) item(key = "tags") { Heading(stringResource(R.string.tags_title)) }
+                item(key = "tags") { Heading(stringResource(R.string.tags_title)) }
                 items(tags.entries.toList(), key = { "t:" + it.key }) { (tag, count) ->
                     ListItem(
                         headlineContent = { Text(tag) },
                         supportingContent = { Text(pluralStringResource(R.plurals.articles_count, count, count)) },
                         leadingContent = { Icon(painterResource(R.drawable.ic_label), contentDescription = null) },
                         trailingContent = {
-                            Row {
-                                if (onShareTag != null) {
-                                    IconButton(onClick = { sharing = tag }) {
-                                        Icon(painterResource(R.drawable.ic_group), contentDescription = stringResource(R.string.share_user_menu))
-                                    }
-                                }
-                                IconButton(onClick = { removing = "t:$tag" }) {
-                                    Icon(painterResource(R.drawable.ic_delete), contentDescription = stringResource(R.string.tags_remove_everywhere))
-                                }
+                            IconButton(onClick = { removing = "t:$tag" }) {
+                                Icon(painterResource(R.drawable.ic_delete), contentDescription = stringResource(R.string.tags_remove_everywhere))
                             }
                         },
                         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
@@ -153,17 +171,6 @@ fun TagsManageScreen(
             },
             dismissButton = { TextButton(onClick = { renaming = null }) { Text(stringResource(R.string.action_cancel)) } },
         )
-    }
-    val share = onShareTag
-    sharing?.let { tag ->
-        if (share != null) {
-            ShareWithUserDialog(
-                what = pluralStringResource(R.plurals.share_user_tag, tags[tag] ?: 0, tag, tags[tag] ?: 0),
-                onSend = { email, result -> share(tag, email, result) },
-                onDone = { sharing = null },
-                onDismiss = { sharing = null },
-            )
-        }
     }
     removing?.let { target ->
         val folder = target.startsWith("c:")

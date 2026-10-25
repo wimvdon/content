@@ -105,13 +105,6 @@ class ContentAccount(
             }
     }
 
-    /**
-     * An account opened by signing in with Instapaper: kept when this device has none yet (signed
-     * in, Instapaper is just connected). Also how accounts from before #166 move here.
-     */
-    suspend fun adopt(key: String) {
-        dataStore.edit { if (it[KEY].isNullOrEmpty()) it[KEY] = key }
-    }
 
     /** Forgets this device's key here (SyncManager forgets what was synced). */
     suspend fun forget() {

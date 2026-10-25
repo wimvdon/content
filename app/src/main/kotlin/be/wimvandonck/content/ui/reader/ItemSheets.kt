@@ -52,7 +52,6 @@ import be.wimvandonck.content.data.Place
 import be.wimvandonck.content.data.SaveChoice
 import be.wimvandonck.content.data.SaveChoices
 import be.wimvandonck.content.feed.FeedDiscovery
-import be.wimvandonck.content.ui.settings.serviceName
 
 /**
  * An item's tags (#143): an optional [leading] chip (Like), then every tag in use as a chip to tap
@@ -219,7 +218,7 @@ fun SaveSheet(
                     }
                 }
             }
-            SheetSection(stringResource(R.string.saved_place))
+            SheetSection(stringResource(R.string.folder_field))
             FolderChips(choice.place, folders, onChange = { choice = choice.copy(place = it) }, name = folderName, onNameChange = { folderName = it })
             SheetSection(stringResource(R.string.tags_title))
             TagsEditor(
@@ -352,40 +351,21 @@ fun FolderChips(
     }
 }
 
-/**
- * Remove from Saved (the reader's ⋮): asks first, says what stays. An article both services keep
- * (#121) can also go from one of them only; it then stays in Saved, kept in the other.
- */
+/** Remove from Saved (the reader's ⋮): asks first, says what stays. */
 @Composable
 fun RemoveDialog(
-    item: Item,
     onRemove: () -> Unit,
     onDismiss: () -> Unit,
-    services: Set<String> = emptySet(),
-    onRemoveFrom: (String) -> Unit = {},
 ) {
-    val both = services.size > 1
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.saved_remove)) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(stringResource(if (both) R.string.saved_remove_both_body else R.string.saved_remove_body))
-                if (both) {
-                    for (id in services) {
-                        TextButton(onClick = {
-                            onDismiss()
-                            onRemoveFrom(id)
-                        }) { Text(stringResource(R.string.saved_remove_only_from, stringResource(serviceName(id)))) }
-                    }
-                }
-            }
-        },
+        text = { Text(stringResource(R.string.saved_remove_body)) },
         confirmButton = {
             TextButton(onClick = {
                 onDismiss()
                 onRemove()
-            }, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) { Text(stringResource(if (both) R.string.saved_remove_from_both else R.string.action_remove)) }
+            }, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) { Text(stringResource(R.string.action_remove)) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )

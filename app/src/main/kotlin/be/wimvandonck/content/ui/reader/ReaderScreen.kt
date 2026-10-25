@@ -122,31 +122,19 @@ class ReaderActions(
  */
 class ReaderItem(
     val item: Item,
-    /** The folders and tags in use, for the bar's menus (#156). */
-    val folders: List<String>,
-    val tags: List<String>,
-    /** Moves it: To read, a folder, or the Archive (done with it: back to the list, with Undo). */
-    val onPlace: (Place) -> Unit,
-    val onLike: () -> Unit,
-    /** A tag on or off. */
-    val onTag: (String) -> Unit,
     /** Opens Organise (#139, #143): the folder, tags with Like, and the note; New folder and Add a tag. */
     val onOrganise: () -> Unit,
     /** Out of Saved, with its note, tags and highlights. */
     val onRemove: () -> Unit,
     /** How far it was read, 0 to 1, as the reader scrolls. */
     val onProgress: (Float) -> Unit,
-    /** The services that keep it while both are connected (#121): with two, removing asks where. */
-    val services: Set<String> = emptySet(),
-    /** Removes it from one service only; it stays in Saved, kept in the other. */
-    val onRemoveFrom: (String) -> Unit = {},
 )
 
 /**
  * One article, in the reader's font, size, spacing and page colour (#139). The top bar is for this
- * reading (Back, Aa, Share, ⋮); the bar below is for this article in your library: one Save before
- * it is saved, then its folder (which opens Organise), Like and Archive. The text ends with Read on
- * website.
+ * reading (Back, Aa, ⋮); the bar below is for this article in your library: one Save before it is
+ * saved, then its folder (which opens Organise); its highlights and Share at the right end. The text
+ * ends with Read on website.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -338,20 +326,19 @@ fun ReaderScreen(
         }
     }
 
-    if (item != null) {
-        if (reportOpen) {
-            actions.onReport?.let { report ->
-                ReportDialog(
-                    onSend = { problem, comment ->
-                        reportOpen = false
-                        report(problem, comment)
-                    },
-                    onDismiss = { reportOpen = false },
-                )
-            }
+    // Any article can be reported, saved or not (it only showed for saved ones before #251).
+    if (reportOpen) {
+        actions.onReport?.let { report ->
+            ReportDialog(
+                onSend = { problem, comment ->
+                    reportOpen = false
+                    report(problem, comment)
+                },
+                onDismiss = { reportOpen = false },
+            )
         }
-        if (removeOpen) RemoveDialog(item.item, item.onRemove, onDismiss = { removeOpen = false }, services = item.services, onRemoveFrom = item.onRemoveFrom)
     }
+    if (item != null && removeOpen) RemoveDialog(item.onRemove, onDismiss = { removeOpen = false })
 
     if (showStyleSheet) {
         ModalBottomSheet(

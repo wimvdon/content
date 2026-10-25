@@ -67,15 +67,7 @@ class SettingsStore(
 
     suspend fun setTagWithFolder(enabled: Boolean) = edit { it[TAG_WITH_FOLDER] = enabled }
 
-    suspend fun setCopyHighlights(enabled: Boolean) = edit { it[COPY_HIGHLIGHTS] = enabled }
-
     suspend fun setNotifyShared(enabled: Boolean) = edit { it[NOTIFY_SHARED] = enabled }
-
-    /** What [service] syncs (#145). */
-    suspend fun setScope(
-        service: String,
-        scope: ServiceScope,
-    ) = edit { it[SCOPES] = ServiceSettings.writeScopes(ServiceSettings.readScopes(it[SCOPES]) + (service to scope)) }
 
     /** What was imported from [service], or null to forget it (disconnected). */
     suspend fun setImport(
@@ -85,6 +77,9 @@ class SettingsStore(
         val all = ServiceSettings.readImports(it[IMPORTS])
         it[IMPORTS] = ServiceSettings.writeImports(if (record == null) all - service else all + (service to record))
     }
+
+    /** Counts one more pick of a share app in Content's share sheet ([ShareApps.idOf]). */
+    suspend fun countShare(app: String) = edit { it[SHARE_COUNTS] = ShareApps.encode(ShareApps.count(ShareApps.decode(it[SHARE_COUNTS]), app)) }
 
     /** Remembers that [email] was just shared with (#235), first among the recipients. */
     suspend fun rememberRecipient(email: String) = edit { it[RECIPIENTS] = Recipients.encode(Recipients.remember(Recipients.decode(it[RECIPIENTS]).orEmpty(), email)) }
@@ -107,7 +102,6 @@ class SettingsStore(
                 prefs[SHOW_IMAGES] = s.showImages
                 prefs[MARK_READ_ON_SCROLL] = s.markReadOnScroll
                 prefs[LIST_VIEW] = s.listView.name
-                prefs[SCOPES] = ServiceSettings.writeScopes(s.scopes)
                 prefs[IMPORTS] = ServiceSettings.writeImports(s.imports)
                 prefs[RECIPIENTS] = Recipients.encode(s.recipients)
             }
@@ -145,10 +139,9 @@ class SettingsStore(
             markReadOnScroll = p[MARK_READ_ON_SCROLL] ?: defaults.markReadOnScroll,
             listView = enumOr(p[LIST_VIEW], defaults.listView),
             tagWithFolder = p[TAG_WITH_FOLDER] ?: defaults.tagWithFolder,
-            scopes = ServiceSettings.readScopes(p[SCOPES]),
             imports = ServiceSettings.readImports(p[IMPORTS]),
             recipients = Recipients.decode(p[RECIPIENTS]).orEmpty(),
-            copyHighlights = p[COPY_HIGHLIGHTS] ?: defaults.copyHighlights,
+            shareCounts = ShareApps.decode(p[SHARE_COUNTS]),
             notifyShared = p[NOTIFY_SHARED] ?: defaults.notifyShared,
             lastSyncedAt = p[LAST_SYNCED_AT],
         )
@@ -175,10 +168,9 @@ class SettingsStore(
         val MARK_READ_ON_SCROLL = booleanPreferencesKey("mark_read_on_scroll")
         val LIST_VIEW = stringPreferencesKey("list_view")
         val TAG_WITH_FOLDER = booleanPreferencesKey("tag_with_folder")
-        val SCOPES = stringPreferencesKey("service_scopes")
         val IMPORTS = stringPreferencesKey("service_imports")
         val RECIPIENTS = stringPreferencesKey("share_recipients")
-        val COPY_HIGHLIGHTS = booleanPreferencesKey("copy_highlights_instapaper")
+        val SHARE_COUNTS = stringPreferencesKey("share_counts")
         val NOTIFY_SHARED = booleanPreferencesKey("notify_shared")
         val LAST_SYNCED_AT = longPreferencesKey("last_synced_at")
     }

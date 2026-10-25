@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Account, type Storage } from "../src/account";
+import { Account, accountIdOf, addDeviceKey, type Storage } from "../src/account";
 import { emailContent, LINK_MS, makeToken, normalEmail, readToken } from "../src/email";
 import { handle, type Env } from "../src/index";
 
@@ -127,10 +127,9 @@ describe("signing in with an email link (#166)", () => {
     expect(second.key).not.toBe(first.key);
   });
 
-  it("adds an address to an Instapaper account, which it then opens", async () => {
-    const { env, post, lastToken, fetcher } = setup();
-    const signIn = await handle(new Request("https://worker.example/instapaper/token", { method: "POST", headers: { Origin: APP }, body: JSON.stringify({ code: "abc" }) }), env, fetcher);
-    const instapaperKey = ((await signIn.json()) as { account: { key: string } }).account.key;
+  it("adds an address to an account, which it then opens", async () => {
+    const { env, post, lastToken } = setup();
+    const instapaperKey = (await addDeviceKey(env, await accountIdOf(MASTER, "instapaper", 42)))!;
     expect((await post("/account/email/add", { email: "me@example.com" })).status).toBe(401);
     expect((await post("/account/email/add", { email: "me@example.com" }, instapaperKey)).status).toBe(204);
     const added = await post("/account/email/finish", { token: lastToken() });
@@ -142,11 +141,10 @@ describe("signing in with an email link (#166)", () => {
   });
 
   it("doesn't move an address that already opens another account", async () => {
-    const { env, post, lastToken, fetcher } = setup();
+    const { env, post, lastToken } = setup();
     await post("/account/email/start", { email: "me@example.com" });
     await post("/account/email/finish", { token: lastToken() });
-    const signIn = await handle(new Request("https://worker.example/instapaper/token", { method: "POST", headers: { Origin: APP }, body: JSON.stringify({ code: "abc" }) }), env, fetcher);
-    const instapaperKey = ((await signIn.json()) as { account: { key: string } }).account.key;
+    const instapaperKey = (await addDeviceKey(env, await accountIdOf(MASTER, "instapaper", 42)))!;
     await post("/account/email/add", { email: "me@example.com" }, instapaperKey);
     expect((await post("/account/email/finish", { token: lastToken() })).status).toBe(409);
   });

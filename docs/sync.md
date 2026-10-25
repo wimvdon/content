@@ -67,22 +67,19 @@ The account's document (it was `rss-reader-sync.json` in Google Drive before), U
   |---|---|---|
   | `fullArticles` | `true`, `false` | both |
   | `markReadOnScroll` | `true`, `false` | both |
-  | `services.instapaper.scope`, `services.raindrop.scope` | what the service syncs (#145): `*` for everything in Saved, else a JSON list of folder names, `""` for To read | both |
   | `sharing.recipients` | the people shared with (#235): a JSON list of email addresses in lower case, most recent first, at most 12 | both |
-  | `services.instapaper.imported`, `services.raindrop.imported` | what was imported when it was connected: `{"at": ms, "count": n, "folders": [...] or null, "archive": true}`; an app without one keeps the file's | both |
+  | `services.instapaper.imported` | the answer to the import question when Instapaper was connected (#251): `{"at": ms, "count": n, "everything": true}` (`false`: not imported); one without `everything` (from before #251) counts as everything; an app without one keeps the file's | both |
+
+  Names earlier versions wrote are dropped when a device saves the file: `services.<id>.scope`
+  (what each service synced, gone with #251: everything syncs) and `services.raindrop.*`.
 
   View settings stay on each device (#96), because people often want a different view on a
   phone, a tablet and a computer: the theme, dynamic colour, the reader's font, text size, spacing,
-  page colour and automatic dark page, Show images and the list view. Versions before #96 synced
-  them as `theme`, `dynamicColor`, `reader.font`, `reader.textSize`, `reader.spacing`,
-  `reader.background`, `reader.autoDark`, `showImages` and `listView`; those names are dropped from
-  the file and ignored when an older version still writes them.
+  page colour and automatic dark page, Show images and the list view.
 
-  Not synced either: the Save and Share targets (each phone has its own apps), the Instapaper
-  sign-in (each device signs in itself, and that sign-in is the account) and Unread | All (it is
-  where you are in the list, not a setting; each device remembers its own). Older versions synced
-  the sign-in as `instapaper.token`, `instapaper.username` and `instapaper.userId`, and the filter
-  as `unreadOnly`; those names are dropped.
+  Not synced either: the Save and Share targets (each phone has its own apps), Tag with the feed's
+  folder, the share sheet's counts (#251), the Instapaper sign-in (each device signs in itself) and
+  Unread | All (it is where you are in the list, not a setting; each device remembers its own).
 - A reader that finds a higher `version` leaves the file alone and asks to update the app.
 
 ## Per-item sync (#106)

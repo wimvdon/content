@@ -3,7 +3,7 @@ import { itemOf, type Item, type SharedBy } from "../src/lib/items";
 import { emptyLibrary } from "../src/lib/library";
 import { defaultSavedFilter, removeSaved, saveLink, savedItems } from "../src/lib/saved";
 import { inboxItems, inboxUnread, markInboxRead, removeFromInbox } from "../src/lib/inbox";
-import { inboxOf, sharedByLabel, tagArticles, takeInShared } from "../src/lib/sharing";
+import { inboxOf, sharedByLabel, takeInShared } from "../src/lib/sharing";
 import { itemData, itemOfRow, mergeItems } from "../src/lib/syncRows";
 
 const ann = { email: "ann@example.com", name: "Ann" };
@@ -13,15 +13,15 @@ function saved(key: string, at: number, tags: string[] = []): Item {
 }
 
 describe("sharing with other Content users (#167) and the inbox (#246)", () => {
-  const share = (id: string, from: SharedBy, url: string, tag?: string) => ({ id, from, items: [{ url, title: url }], tag });
+  const share = (id: string, from: SharedBy, url: string) => ({ id, from, items: [{ url, title: url }] });
 
-  it("puts shared articles in the inbox, unread, with who shared them and the tag", () => {
-    const { library, received } = takeInShared(emptyLibrary(), [{ id: "m1", from: ann, items: [{ url: "https://a.example/1", title: "One" }, { url: "https://a.example/2", title: "Two" }], tag: "Reading club" }], 100);
+  it("puts shared articles in the inbox, unread, with who shared them", () => {
+    const { library, received } = takeInShared(emptyLibrary(), [{ id: "m1", from: ann, items: [{ url: "https://a.example/1", title: "One" }, { url: "https://a.example/2", title: "Two" }] }], 100);
     expect(received).toEqual({ from: [ann], count: 2 });
     const one = itemOf(library, "a.example/1")!;
     expect(one.readingList).toBeNull();
     expect(one.sharedBy).toEqual({ ...ann, at: 100, waits: true, read: false });
-    expect(one.tags).toEqual(["Reading club"]);
+    expect(one.tags).toEqual([]);
     expect(inboxItems(library)).toHaveLength(2);
     expect(inboxUnread(library)).toBe(2);
     expect(inboxUnread(emptyLibrary())).toBe(0);
@@ -44,10 +44,10 @@ describe("sharing with other Content users (#167) and the inbox (#246)", () => {
 
   it("puts an article already saved in the inbox too, where it is in Saved", () => {
     const mine = { ...saved("a.example/1", 5, ["Mine"]), readingList: { state: "archived" as const, addedAt: 5 } };
-    const first = takeInShared({ ...emptyLibrary(), items: [mine] }, [share("m", ann, "https://a.example/1", "club")], 100);
+    const first = takeInShared({ ...emptyLibrary(), items: [mine] }, [share("m", ann, "https://a.example/1")], 100);
     const item = itemOf(first.library, "a.example/1")!;
     expect(item.readingList?.state).toBe("archived");
-    expect(item.tags).toEqual(["Mine", "club"]);
+    expect(item.tags).toEqual(["Mine"]);
     expect(first.received.count).toBe(1);
     expect(inboxUnread(first.library)).toBe(1);
   });
@@ -72,11 +72,6 @@ describe("sharing with other Content users (#167) and the inbox (#246)", () => {
     expect(markInboxRead(read, "nope.example/x")).toBe(read);
   });
 
-  it("sends a tag's saved articles, newest first", () => {
-    const lib = { ...emptyLibrary(), items: [saved("a.example/1", 1, ["club"]), saved("a.example/2", 3, ["Club"]), saved("a.example/3", 2, ["other"])] };
-    expect(tagArticles(lib, "CLUB").map((a) => a.url)).toEqual(["https://a.example/2", "https://a.example/1"]);
-  });
-
   it("syncs who shared it with the item, the same as the Android app", () => {
     const by = { ...ann, at: 7, waits: true, read: true };
     const item = { ...saved("a.example/1", 1), readingList: null, sharedBy: by };
@@ -93,7 +88,7 @@ describe("sharing with other Content users (#167) and the inbox (#246)", () => {
 
   it("reads the inbox and names who shared", () => {
     const messages = inboxOf({ messages: [{ id: "m1", from: ann, items: [{ url: "https://a.example/1", title: "One", imageUrl: "http://x" }], tag: null }, { id: "bad" }] });
-    expect(messages).toEqual([{ id: "m1", from: ann, items: [{ url: "https://a.example/1", title: "One", imageUrl: null, description: "" }], tag: null }]);
+    expect(messages).toEqual([{ id: "m1", from: ann, items: [{ url: "https://a.example/1", title: "One", imageUrl: null, description: "" }] }]);
     expect(inboxOf("nonsense")).toEqual([]);
     expect(sharedByLabel(ann)).toBe("Ann");
     expect(sharedByLabel({ email: "x@y.be", name: " " })).toBe("x@y.be");

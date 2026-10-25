@@ -6,7 +6,7 @@
  */
 
 import { escapeHtml, snippet } from "./html";
-import { addToReadingList, changeItem, cleanTags, feedArticleFor, inInbox, putItem, recentTags, setReadingState, type Item, type SharedBy } from "./items";
+import { addToReadingList, changeItem, cleanTags, feedArticleFor, inInbox, putItem, recentTags, setReadingState, type Item } from "./items";
 import { keyOf, type Article, type Feed, type Library } from "./library";
 
 export type SavedTab = { kind: "toread" } | { kind: "all" } | { kind: "folder"; name: string } | { kind: "archive" };
@@ -209,8 +209,6 @@ export interface NoteContent {
   liked: boolean;
   /** Your note, shown small under the text. */
   note: string;
-  /** Who shared it (#167). */
-  sharedBy?: SharedBy | null;
 }
 
 /** A saved item as a note card. */
@@ -223,7 +221,6 @@ export const noteOf = (i: Item): NoteContent => ({
   highlights: i.highlights.length,
   liked: i.liked,
   note: i.note.trim(),
-  sharedBy: i.sharedBy ?? null,
 });
 
 /** A feed article as a note card (Search's notes view): the start of its text under the title. */

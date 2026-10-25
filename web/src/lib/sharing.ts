@@ -1,11 +1,10 @@
 /**
- * Sharing with other Content users (#167), as the Android app's data/Sharing.kt does. Sending picks
- * what goes (one article, or a tag's articles); receiving puts each shared article in the inbox
- * (#246), unread, marked with who shared it and the tag it was shared as, whether or not it is in
- * Saved too. A one-time copy.
+ * Sharing with other Content users (#167), as the Android app's data/Sharing.kt does: one article at
+ * a time. Receiving puts each shared article in the inbox (#246), unread, marked with who shared it,
+ * whether or not it is in Saved too. A one-time copy.
  */
 
-import { cleanTags, itemOf, keyOfLink, newItem, putItem, type Item, type SharedBy } from "./items";
+import { itemOf, keyOfLink, newItem, putItem, type Item, type SharedBy } from "./items";
 import type { Library } from "./library";
 
 export interface SharedArticle {
@@ -20,7 +19,6 @@ export interface InboxMessage {
   id: string;
   from: SharedBy;
   items: SharedArticle[];
-  tag?: string | null;
 }
 
 /** What taking in the inbox brought: from whom, and how many articles. */
@@ -29,27 +27,14 @@ export interface Received {
   count: number;
 }
 
-/** The most articles one share may hold. */
-export const MAX_SHARED = 500;
-
 export const sharedArticle = (i: Item): SharedArticle => ({ url: i.url, title: i.title, imageUrl: i.imageUrl, description: i.description });
-
-/** A tag's saved articles, newest first. */
-export function tagArticles(lib: Library, tag: string): SharedArticle[] {
-  return lib.items
-    .filter((i) => i.readingList && i.tags.some((t) => t.toLowerCase() === tag.toLowerCase()))
-    .sort((a, b) => b.readingList!.addedAt - a.readingList!.addedAt)
-    .slice(0, MAX_SHARED)
-    .map(sharedArticle);
-}
 
 /** How the app names who shared it: the name, else the address. */
 export const sharedByLabel = (s: SharedBy) => s.name.trim() || s.email;
 
 /**
- * The library with messages taken in: each article is in the inbox, unread, with who shared it and
- * the tag it was shared as. One already in Saved stays there as well; one shared again comes back
- * unread with its latest sender.
+ * The library with messages taken in: each article is in the inbox, unread, with who shared it. One
+ * already in Saved stays there as well; one shared again comes back unread with its latest sender.
  */
 export function takeInShared(lib: Library, messages: InboxMessage[], now: number): { library: Library; received: Received } {
   let result = lib;
@@ -62,13 +47,7 @@ export function takeInShared(lib: Library, messages: InboxMessage[], now: number
       const existing = itemOf(result, key);
       const base = existing ?? newItem(result, shared.url, shared.title, now, shared.description ?? "", shared.imageUrl ?? null);
       if (!base) continue;
-      const tag = message.tag?.trim();
-      const tags = tag && !base.tags.some((t) => t.toLowerCase() === tag.toLowerCase()) ? [...base.tags, tag] : base.tags;
-      const updated: Item = {
-        ...base,
-        sharedBy: { ...message.from, at: now, waits: true, read: false },
-        tags: cleanTags(tags),
-      };
+      const updated: Item = { ...base, sharedBy: { ...message.from, at: now, waits: true, read: false } };
       if (JSON.stringify(updated) !== JSON.stringify(existing)) {
         result = putItem(result, updated);
         count++;
@@ -92,6 +71,6 @@ export function inboxOf(body: unknown): InboxMessage[] {
       if (!a || typeof a.url !== "string") return [];
       return [{ url: a.url, title: typeof a.title === "string" ? a.title : a.url, imageUrl: typeof a.imageUrl === "string" && a.imageUrl.startsWith("https://") ? a.imageUrl : null, description: typeof a.description === "string" ? a.description : "" }];
     });
-    return [{ id: m.id, from: { email: from.email, name: typeof from.name === "string" ? from.name : "" }, items, tag: typeof m.tag === "string" && m.tag.trim() ? m.tag : null }];
+    return [{ id: m.id, from: { email: from.email, name: typeof from.name === "string" ? from.name : "" }, items }];
   });
 }

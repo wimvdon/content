@@ -132,24 +132,30 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   isn't contacted at all. Firebase Analytics is not in the app.
 - **Reporting a badly cleaned-up article** (⋮ › Report a problem with this article, #181): Send
   opens a pre-filled "new issue" page on github.com in your browser, with the article's link, what
-  you picked, your comment, and the app's name and version; not the article's text. Nothing is sent
-  until you submit it there with your GitHub account, and the issue is then public, under GitHub's
-  privacy policy.
+  you picked, your comment, the app's name and version, and the article's text as Content shows it
+  (#251), so it can be compared with the website. A text too long for the page's address is cut
+  short there and put on your clipboard whole, for you to paste. Nothing is sent until you submit it
+  there with your GitHub account, and the issue is then public, under GitHub's privacy policy.
 - **Links you open** (Read on website, links in articles) open in your browser, under the
   website's own privacy policy.
 - **Links you add or share to Reader.** A link put on the reading list without a title (Add link,
   or shared from another app) is loaded once from its website to read the page's title, description
   and picture, like opening the article. The website sees the same as for an article page.
 - **Save and Share.** By default Save keeps the article's title and link on the app's own reading
-  list on your phone (synced as described above when you are signed in). When you set Save or Share to an app in Settings, or pick one in the
-  share menu, the title and link go to that app, under its privacy policy. Signed in to Instapaper
-  (see above), the reading list is also kept in your Instapaper account. Nothing is sent otherwise.
+  list on your phone (synced as described above when you are signed in). When you set Save or Share to an app in Settings, or pick one in
+  Content's share sheet or Android's share menu, the title and link go to that app, under its
+  privacy policy. Content's share sheet (#251) counts which apps you pick in it, on your phone only
+  (never synced or sent), to show those first. Signed in to Instapaper (see above), the reading list
+  is also kept in your Instapaper account. Nothing is sent otherwise.
+- **Selected text.** In the reader, the menu over selected text offers Copy, Share and the apps
+  that act on text (such as Translate), as Android's own menu does; the text goes to the app you
+  tap, under its privacy policy, and nowhere else.
 
 ## What the app stores on your device
 
 - Your feed list (with each feed's icon address) and folders, the downloaded articles and which ones you read.
 - If you are signed in: a copy of the synced document and records as last synced, to merge changes, and read marks of articles another device read that this one hasn't downloaded yet.
-- Your settings (theme, text settings, full articles, pictures, Save and Share targets, the Unread filter, mark as read on scroll).
+- Your settings (theme, text settings, full articles, pictures, Save and Share targets, the Unread filter, mark as read on scroll), and how often you picked each app in Content's share sheet.
 - Your reading list: each article's address, title, description, picture address, when you added
   it, whether you liked or archived it, its tags and how far you read it (in the app's database; on
   the web, the browser's storage). Without an account it is not sent anywhere; signed in, see above.
@@ -160,7 +166,11 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   name (`datastore/instapaper`). Android's backup and phone-to-phone transfer leave both out.
 
 Android's own backup (to your Google account, if you turned that on) and phone-to-phone transfer
-include the feed list, articles, read state, settings and the articles saved without an account, not the cache and not the Instapaper sign-in. Removing a feed deletes its articles; uninstalling the app deletes everything.
+include the feed list, articles, read state, settings and Saved, not the cache, the account key or the Instapaper sign-in. Removing a feed deletes its articles; uninstalling the app deletes everything.
+
+The long-press menu of Content's icon on the home screen offers your first four feed folders
+(#251), and other apps' share menus offer the people you shared with (#235). Android keeps these
+shortcuts on the phone; they go nowhere else.
 
 ## Background activity
 
@@ -171,9 +181,10 @@ None. The app only downloads feeds and articles, and syncs, while you use it.
 - **Internet:** to download feeds and articles, and to sync.
 
 The app also declares that it looks for apps that accept shared links, so Settings › Save and
-share can list them. This is not a permission and reveals nothing to those apps. Reader itself
-accepts links shared from other apps; it saves them to Saved exactly like its Save button, and
-only when you pick Reader in the share menu.
+share and Content's share sheet can list them, and for apps that act on selected text (#251), so
+the reader's selection menu can offer them. This is not a permission and reveals nothing to those
+apps. Content itself accepts links shared from other apps; it saves them to Saved exactly like its
+Save button, and only when you pick Content in the share menu.
 
 ## The web app
 
