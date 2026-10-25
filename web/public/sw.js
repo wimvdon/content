@@ -11,7 +11,7 @@ self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", (event) => event.waitUntil(self.clients.claim()));
 
 self.addEventListener("push", (event) => {
-  event.waitUntil(self.registration.showNotification(TITLE, { body: BODY, icon: "/icon.svg", tag: "shared-with-me" }));
+  event.waitUntil(self.registration.showNotification(TITLE, { body: BODY, icon: "/icon-192.png", tag: "shared-with-me" }));
 });
 
 self.addEventListener("notificationclick", (event) => {
