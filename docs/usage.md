@@ -356,8 +356,7 @@ between devices). There are no options (#251):
 
 - **Import, once, or not:** right after connecting, Content asks **Import from Instapaper?**
   **Import** brings in everything Instapaper has now, each article where it belongs: archived in
-  the Archive, liked, with its tags; the Instapaper section then says how many came in. **Don't
-  import** leaves what is there until it changes. Closed without an answer, the Instapaper section
+  the Archive, liked, with its tags. **Don't import** leaves what is there until it changes. Closed without an answer, the Instapaper section
   asks the same with two buttons.
 - **Everything syncs:** everything in Saved, highlights included. What you add, archive, like or
   tag there, and how far you read, goes both ways, while the app is open (when it opens, a moment
