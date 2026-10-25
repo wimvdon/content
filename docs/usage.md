@@ -308,6 +308,9 @@ folders, and the archive. It is Reader's own: it works without an account, is ke
 (and in its backup), and syncs between your devices through your Reader account. Signed in to
 Instapaper, it is also kept in your Instapaper account (see Instapaper account).
 
+- **Where you stopped reading:** a saved article opens where you left it, on the phone and in the
+  web app, and that place syncs between your devices and with Instapaper (both ways), so you can
+  start on one and go on on another. An article you barely began or finished opens at the top.
 - **Each article is in one place:** **To read** (where everything new arrives), **one folder**, or
   the **Archive**. Filing an article in a folder takes it out of To read; archiving it takes it out of
   its folder.

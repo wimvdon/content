@@ -2,6 +2,19 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-25: Reading progress in the web app too; the reader's bar on Android
+
+- Asked for by the owner: the place you stopped reading a saved article syncs, also with
+  Instapaper. Android kept it already (the item's `progress`, synced with the account and sent to
+  and read from Instapaper's own progress); the web app didn't. Now it does the same: a saved article
+  opens where it was left once its text is there (not when barely begun or finished, 2% and 98%),
+  and the place is stored when the article is left or the tab goes to the background, when it moved
+  at least a hundredth (`web/src/lib/readingProgress.ts`, tested). Rejected: storing on every scroll
+  (a sync and an Instapaper call for each).
+- The ☰ menu loses its Tags heading (Liked and the tags follow Saved). The reader's bar on Android:
+  an arrow down on the folder button, and Share always at the right edge (the folder button and the
+  room before Share each took half of the free space, so a short folder name left Share short of it).
+
 ## 2026-10-25: The extension: right-click, its own languages, icons without the white box (#257)
 
 - Asked for by the owner. **Right-click**: Save to Content on a page and Save link to Content on a
