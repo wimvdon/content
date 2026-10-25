@@ -2,6 +2,17 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-25: Read marks are kept for two years, not 120 days (#245)
+
+Articles read on one device stayed unread on the others for GORILLA VS. BEAR. Not because of the dot
+in its name: the feed posts rarely, so half of the 35 articles it lists are older than 120 days, and
+read marks of articles that old were never synced (and dropped on every device). Both apps now keep
+them for two years (`READ_MARKS_KEPT_MS` in `data/Library.kt` and `web/src/lib/library.ts`). A mark
+is a key and a date, so the account grows a little, well inside Cloudflare's free plan. Marks that
+were never sent are sent at the next sync. Rejected: keeping marks as long as the article is still on
+a device (devices would disagree and send the same mark back and forth), and storing when an
+article was read (a new field in both apps' storage for the same result).
+
 ## 2026-10-25: Review round: simpler Instapaper, one manage screen, Content's own share sheet (#251)
 
 All asked for by the owner in one review, released as a major version.

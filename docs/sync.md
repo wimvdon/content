@@ -102,8 +102,9 @@ and JSON data (`null` once deleted):
 - **No article text** is in a row: not the feed's text, not Reader's extraction, not the description.
   Every device downloads or extracts the text again. Tests check the payload (`ItemSyncTest`,
   `syncRows.test.ts`).
-- Read marks older than 120 days leave the account (the device that notices sends their removal);
-  that never marks an article unread. Marks of articles a device doesn't have yet are kept in
+- Read marks of articles older than two years leave the account (the device that notices sends their
+  removal); that never marks an article unread. Until #245 this was 120 days, too short for a feed
+  that posts rarely and still lists articles from months back. Marks of articles a device doesn't have yet are kept in
   `Library.readElsewhere`, so those articles arrive read.
 - Kinds of rows a version doesn't know are left alone.
 

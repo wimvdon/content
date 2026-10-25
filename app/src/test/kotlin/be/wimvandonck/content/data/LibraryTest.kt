@@ -276,8 +276,8 @@ class LibraryTest {
     @Test
     fun `read marks older than the sync keeps go on the next refresh`() {
         val day = 24L * 60 * 60 * 1000
-        val library = Library(readElsewhere = mapOf("x 1" to 10 * day, "x 2" to 200 * day)).addFeed(Feed(a, "A"))
-        assertEquals(mapOf("x 2" to 200 * day), library.merge(a, parsed(item("1", 1)), now = 200 * day).readElsewhere)
+        val library = Library(readElsewhere = mapOf("x 1" to 10 * day, "x 2" to 800 * day)).addFeed(Feed(a, "A"))
+        assertEquals(mapOf("x 2" to 800 * day), library.merge(a, parsed(item("1", 1)), now = 800 * day).readElsewhere)
     }
 
     @Test

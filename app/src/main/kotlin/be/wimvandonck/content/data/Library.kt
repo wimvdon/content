@@ -366,8 +366,11 @@ data class Library(
         /** Bounds storage: feeds rarely list more than 50 articles at a time. */
         const val MAX_ARTICLES_PER_FEED = 200
 
-        /** Read marks of articles older than this are dropped (feeds rarely go back further); sync uses the same. */
-        const val READ_MARKS_KEPT_MS = 120L * 24 * 60 * 60 * 1000
+        /**
+         * Read marks of articles older than this are dropped; sync uses the same. Two years, not 120
+         * days: a feed that posts rarely still lists articles from months back (#245).
+         */
+        const val READ_MARKS_KEPT_MS = 730L * 24 * 60 * 60 * 1000
 
         /** Bounds storage for feeds that put entire books in one article. */
         const val MAX_HTML_LENGTH = 200_000
