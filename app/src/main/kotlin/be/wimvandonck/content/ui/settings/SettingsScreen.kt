@@ -26,12 +26,10 @@ import androidx.compose.ui.unit.dp
 import be.wimvandonck.content.R
 import be.wimvandonck.content.data.ListView
 import be.wimvandonck.content.data.ReaderStyle
-import be.wimvandonck.content.data.ShareTarget
 import be.wimvandonck.content.data.Settings
 import be.wimvandonck.content.data.ThemeMode
 import be.wimvandonck.content.sync.AccountState
 import be.wimvandonck.content.sync.SyncStatus
-import be.wimvandonck.content.ui.ExternalApps
 import be.wimvandonck.content.ui.reader.ReaderStyleControls
 import be.wimvandonck.content.ui.reader.ReaderTheme
 import be.wimvandonck.content.ui.reader.labelRes
@@ -47,7 +45,6 @@ import be.wimvandonck.content.ui.theme.rememberAppVersion
 
 data class SettingsState(
     val settings: Settings,
-    val shareApps: List<ExternalApps.ShareApp>,
     val syncStatus: SyncStatus = SyncStatus.Idle,
     val account: AccountState = AccountState.Loading,
     /** The name on the account address's Gravatar profile (#234), or null while unknown or without one. */
@@ -65,8 +62,6 @@ class SettingsActions(
     val onShowImagesChange: (Boolean) -> Unit,
     val onMarkReadOnScrollChange: (Boolean) -> Unit,
     val onListViewChange: (ListView) -> Unit,
-    val onSaveTargetChange: (ShareTarget) -> Unit,
-    val onShareTargetChange: (ShareTarget) -> Unit,
     val onThemeModeChange: (ThemeMode) -> Unit,
     val onDynamicColorChange: (Boolean) -> Unit,
     val onSyncNow: () -> Unit,
@@ -127,15 +122,6 @@ fun SettingsScreen(
         }
         item(key = "list") { ListSection(state.settings, actions) }
         item(key = "reader") { ReaderSection(state.settings, actions) }
-        item(key = "save") {
-            ShareTargetsSection(
-                saveTarget = state.settings.saveTarget,
-                shareTarget = state.settings.shareTarget,
-                apps = state.shareApps,
-                onSaveTargetChange = actions.onSaveTargetChange,
-                onShareTargetChange = actions.onShareTargetChange,
-            )
-        }
         item(key = "appearance") { AppearanceSection(state.settings, actions) }
         item(key = "footer") {
             SettingsFooter("${stringResource(R.string.app_name)} ${rememberAppVersion()}")

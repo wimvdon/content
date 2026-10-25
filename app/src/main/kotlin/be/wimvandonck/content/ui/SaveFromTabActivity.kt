@@ -18,7 +18,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -38,15 +37,16 @@ import be.wimvandonck.content.data.Place
 import be.wimvandonck.content.data.SaveChoice
 import be.wimvandonck.content.data.SaveChoices
 import be.wimvandonck.content.data.ShareShortcuts
+import be.wimvandonck.content.data.SendTo
 import be.wimvandonck.content.data.SharedArticle
 import be.wimvandonck.content.data.itemTags
 import be.wimvandonck.content.data.tagWithFeedFolder
 import be.wimvandonck.content.instapaper.SharedLink
 import be.wimvandonck.content.rssReaderApp
-import be.wimvandonck.content.sync.ShareResult
+import be.wimvandonck.content.sync.AccountState
 import be.wimvandonck.content.ui.reader.SaveSheet
 import be.wimvandonck.content.ui.reader.ProvideShareRecipients
-import be.wimvandonck.content.ui.reader.ShareWithUserDialog
+import be.wimvandonck.content.ui.reader.messageRes
 import be.wimvandonck.content.ui.reader.SheetKind
 import be.wimvandonck.content.ui.theme.RssReaderAppTheme
 import kotlinx.coroutines.launch
@@ -55,9 +55,9 @@ import kotlinx.coroutines.launch
  * The save sheet on a see-through screen (#95, #103): over the custom tab for its Save button, and
  * over the other app for a link shared to Reader (through the ShareActivity alias in the manifest),
  * without opening the whole app. Saving shows a message with Open (#142), then goes back to where the
- * user was; closing the sheet goes back at once. A link shared to Send with Content (the SendActivity
- * alias, #246), or to a person shown with it in the share menu (#235), opens Send with Content
- * instead, with that person filled in.
+ * user was; closing the sheet goes back at once. It is the Save and share sheet (#256): a link shared
+ * to a person shown with Content in the share menu (#235) opens it on Don't save with that person
+ * picked, ready to send.
  */
 class SaveFromTabActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -71,7 +71,7 @@ class SaveFromTabActivity : ComponentActivity() {
         val shared = intent.action == Intent.ACTION_SEND
         // Other apps reach this screen only through the share alias, and only with a shared link.
         val alias = intent.component?.className
-        if (!shared && (alias?.endsWith(SHARE_ALIAS) == true || alias?.endsWith(SEND_ALIAS) == true)) {
+        if (!shared && alias?.endsWith(SHARE_ALIAS) == true) {
             finish()
             return
         }
@@ -93,15 +93,12 @@ class SaveFromTabActivity : ComponentActivity() {
             finish()
             return
         }
-        // Send with Content, or a person picked in the share menu (#235): send it instead of saving it.
+        // A person picked in the share menu (#235): ready to send to them, not to save.
         val person = if (shared) ShareShortcuts.emailOf(intent.getStringExtra(ShortcutManagerCompat.EXTRA_SHORTCUT_ID)) else null
-        val send = person != null || alias?.endsWith(SEND_ALIAS) == true
         setContent {
             RssReaderAppTheme {
                 // Send with Content offers the people shared with before here too (#249).
-                ProvideShareRecipients {
-                    if (send) SendToPerson(link, person.orEmpty(), onDone = ::finish) else SaveFromTab(link, onDone = ::finish)
-                }
+                ProvideShareRecipients { SaveFromTab(link, person, onDone = ::finish) }
             }
         }
     }
@@ -109,15 +106,14 @@ class SaveFromTabActivity : ComponentActivity() {
     private companion object {
         /** The exported alias other apps share links to (AndroidManifest.xml). */
         const val SHARE_ALIAS = ".ShareActivity"
-
-        /** The exported alias for Send with Content (#246). */
-        const val SEND_ALIAS = ".SendActivity"
     }
 }
 
 @Composable
 private fun SaveFromTab(
     link: SharedLink,
+    /** Picked in the share menu: the sheet starts on Don't save, sending to them. */
+    person: String?,
     onDone: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -125,6 +121,7 @@ private fun SaveFromTab(
     val app = context.rssReaderApp
     val library = app.library.library.collectAsStateWithLifecycle().value ?: return
     val tagWithFolder = app.settings.settings.collectAsStateWithLifecycle().value?.tagWithFolder ?: true
+    val signedIn = app.account.state.collectAsStateWithLifecycle().value is AccountState.SignedIn
 
     // After Save, the message with Open (#142): the only thing of Reader this screen shows besides
     // the sheet. It goes when it times out or is tapped, and so does the screen.
@@ -135,14 +132,31 @@ private fun SaveFromTab(
     if (sheetOpen) {
         SaveSheet(
             kind = SheetKind.New,
-            initial = SaveChoice(),
+            initial = if (person != null) SaveChoice(keep = false, sendTo = listOf(person)) else SaveChoice(),
             url = link.url,
             title = link.title,
             folders = Saved.folders(library),
             allTags = library.itemTags(),
+            signedIn = signedIn,
+            hasAccount = app.sync::hasAccount,
             onSave = { url, choice ->
                 val key = ItemKeys.of(url)
-                if (url != null && key != null) {
+                // Sent with Content (#256): a short message from Android says how it went, as this screen closes.
+                if (url != null && choice.sendTo.isNotEmpty()) {
+                    app.appScope.launch {
+                        val results = choice.sendTo.map { email -> email to app.sync.share(email, listOf(SharedArticle(url, link.title ?: url))) }
+                        val text =
+                            when (val outcome = SendTo.outcome(results)) {
+                                is SendTo.Outcome.Sent ->
+                                    outcome.to.singleOrNull()?.let { resources.getString(R.string.share_user_sent, it) }
+                                        ?: resources.getQuantityString(R.plurals.share_sent_people, outcome.to.size, outcome.to.size)
+                                is SendTo.Outcome.Failed -> resources.getString(outcome.result.messageRes())
+                                null -> null
+                            }
+                        if (text != null) Toast.makeText(app, text, Toast.LENGTH_SHORT).show()
+                    }
+                }
+                if (url != null && key != null && choice.keep) {
                     val place =
                         when (val p = choice.place) {
                             Place.ToRead -> resources.getString(R.string.reading_list_to_read)
@@ -183,31 +197,6 @@ private fun SaveFromTab(
             onDone()
         }
     }
-}
-
-/** Send with Content (#235, #246), from Android's share menu, with the person picked there (if any) filled in. */
-@Composable
-private fun SendToPerson(
-    link: SharedLink,
-    email: String,
-    onDone: () -> Unit,
-) {
-    val context = LocalContext.current
-    val resources = LocalResources.current
-    val app = context.rssReaderApp
-    val scope = rememberCoroutineScope()
-    ShareWithUserDialog(
-        initialEmail = email,
-        onSend = { to, result ->
-            scope.launch {
-                val r = app.sync.share(to, listOf(SharedArticle(link.url, link.title ?: link.url)))
-                result(r)
-                if (r == ShareResult.Sent) Toast.makeText(context, resources.getString(R.string.share_user_sent, to), Toast.LENGTH_SHORT).show()
-            }
-        },
-        onDone = onDone,
-        onDismiss = onDone,
-    )
 }
 
 /** What the message after saving says, and the article its Open goes to (its reader key). */

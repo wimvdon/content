@@ -10,7 +10,7 @@ import be.wimvandonck.content.instapaper.InstapaperReadingList
 import be.wimvandonck.content.services.ServiceStatus
 import be.wimvandonck.content.ui.feeds.SavedManageTab
 import be.wimvandonck.content.ui.reader.ShareSheet
-import be.wimvandonck.content.ui.reader.ShareWithUserDialog
+import be.wimvandonck.content.ui.reader.messageRes
 import be.wimvandonck.content.ui.settings.InstapaperImportDialog
 import be.wimvandonck.content.ui.settings.InstapaperSettingsState
 import be.wimvandonck.content.data.Inbox
@@ -60,6 +60,7 @@ import be.wimvandonck.content.data.ItemSearch
 import be.wimvandonck.content.data.Place
 import be.wimvandonck.content.data.SaveChoice
 import be.wimvandonck.content.data.SaveChoices
+import be.wimvandonck.content.data.SendTo
 import be.wimvandonck.content.data.Saved
 import be.wimvandonck.content.data.SharedText
 import be.wimvandonck.content.data.SavedFilter
@@ -102,7 +103,6 @@ import be.wimvandonck.content.ui.home.SearchState
 import be.wimvandonck.content.data.FeedSelection
 import be.wimvandonck.content.data.FullArticle
 import be.wimvandonck.content.data.Library
-import be.wimvandonck.content.data.ShareTarget
 import be.wimvandonck.content.data.Settings
 import be.wimvandonck.content.data.needsFullText
 import be.wimvandonck.content.data.wantsFullText
@@ -447,45 +447,13 @@ fun RssReaderNavigation(
     // Content's own share sheet (#251) while it is open: the article's title and link.
     var shareTitle by rememberSaveable { mutableStateOf<String?>(null) }
     var shareUrl by rememberSaveable { mutableStateOf<String?>(null) }
-    // Send with Content to an address typed in, from the share sheet.
-    var sendOther by rememberSaveable { mutableStateOf(false) }
-
-    /** Sends the article to the Save or Share button's app; Content's share sheet for the share menu or when that app is gone. */
-    fun send(
-        article: Article,
-        target: ShareTarget,
-    ) {
+    /** Opens Content's share sheet for the article (#251). */
+    fun share(article: Article) {
         val link = article.link ?: return
-        if (target is ShareTarget.App && ExternalApps.send(context, target, article.title, link, resources.getString(R.string.action_share))) return
-        if (target is ShareTarget.App) showMessage(resources.getString(R.string.share_target_missing_short, target.label))
         shareTitle = article.title
         shareUrl = link
     }
 
-    /** Send with Content (#167): the article to [email]'s inbox; the message says how it went. */
-    fun sendTo(
-        email: String,
-        title: String,
-        url: String,
-        result: (ShareResult) -> Unit = {},
-    ) {
-        uiScope.launch {
-            val r = app.sync.share(email, listOf(SharedArticle(url, title)))
-            result(r)
-            showMessage(
-                resources.getString(
-                    when (r) {
-                        ShareResult.Sent -> R.string.share_user_sent
-                        ShareResult.NoAccount -> R.string.share_user_no_account
-                        ShareResult.SignedOut -> R.string.share_user_signed_out
-                        ShareResult.Offline -> R.string.problem_offline
-                        ShareResult.Failed -> R.string.problem_server
-                    },
-                    email,
-                ),
-            )
-        }
-    }
 
     /**
      * Saves [link] to To read (#107), then opens the sheet to file, like, tag and note it (#143); when
@@ -524,6 +492,62 @@ fun RssReaderNavigation(
             is Place.Folder -> place.name
         }
 
+    /**
+     * Sends with Content to everyone picked in the Save and share sheet (#256), then one message says
+     * how it went, after [saved] (where it was saved, or null when only sent), with Open for [open]
+     * (the saved article, when not in it already).
+     */
+    fun sendAll(
+        to: List<String>,
+        title: String,
+        url: String,
+        saved: Place?,
+        open: Item? = null,
+    ) {
+        uiScope.launch {
+            val results = to.map { email -> email to app.sync.share(email, listOf(SharedArticle(url, title))) }
+            val sent =
+                when (val outcome = SendTo.outcome(results)) {
+                    is SendTo.Outcome.Sent ->
+                        outcome.to.singleOrNull()?.let { resources.getString(R.string.share_user_sent, it) }
+                            ?: resources.getQuantityString(R.plurals.share_sent_people, outcome.to.size, outcome.to.size)
+                    is SendTo.Outcome.Failed -> resources.getString(outcome.result.messageRes())
+                    null -> return@launch
+                }
+            val text = saved?.let { resources.getString(R.string.saved_and_sent, resources.getString(R.string.saved_to, placeName(it)), sent) } ?: sent
+            if (open != null) {
+                showMessage(text, resources.getString(R.string.action_open)) { push(Screen.Reader(ReadingLists.readerKey(open))) }
+            } else {
+                showMessage(text)
+            }
+        }
+    }
+
+    /** Send with Content (#167): the article to [email]'s inbox; the message says how it went. */
+    fun sendTo(
+        email: String,
+        title: String,
+        url: String,
+        result: (ShareResult) -> Unit = {},
+    ) {
+        uiScope.launch {
+            val r = app.sync.share(email, listOf(SharedArticle(url, title)))
+            result(r)
+            showMessage(
+                resources.getString(
+                    when (r) {
+                        ShareResult.Sent -> R.string.share_user_sent
+                        ShareResult.NoAccount -> R.string.share_user_no_account
+                        ShareResult.SignedOut -> R.string.share_user_signed_out
+                        ShareResult.Offline -> R.string.problem_offline
+                        ShareResult.Failed -> R.string.problem_server
+                    },
+                    email,
+                ),
+            )
+        }
+    }
+
     /** Saves a link from the save sheet (#143), says where it went, and fills in the page's title and picture. */
     fun save(
         url: String,
@@ -542,9 +566,14 @@ fun RssReaderNavigation(
                 showMessage(resources.getString(R.string.add_link_invalid))
                 return@launch
             }
-            // Not in the article yet: Open goes there (#142).
-            showMessage(resources.getString(R.string.saved_to, placeName(choice.place)), resources.getString(R.string.action_open)) {
-                push(Screen.Reader(ReadingLists.readerKey(item)))
+            if (choice.sendTo.isNotEmpty()) {
+                // Saved and sent (#256): one message for both.
+                sendAll(choice.sendTo, item.title, url, choice.place, item)
+            } else {
+                // Not in the article yet: Open goes there (#142).
+                showMessage(resources.getString(R.string.saved_to, placeName(choice.place)), resources.getString(R.string.action_open)) {
+                    push(Screen.Reader(ReadingLists.readerKey(item)))
+                }
             }
             repository.describe(item.key)
         }
@@ -659,14 +688,8 @@ fun RssReaderNavigation(
                                     if (!article.read) readThisVisit = readThisVisit + article.key
                                     app.appScope.launch { repository.setRead(article.key, !article.read) }
                                 },
-                                // Swipe left is Save, so it goes where the reader's Save button goes (Settings › Save button).
-                                onReadLater = { article ->
-                                    if (current.saveTarget == ShareTarget.Saved) {
-                                        article.link?.let { readLater(it, article.title, inReader = false) }
-                                    } else {
-                                        send(article, current.saveTarget)
-                                    }
-                                },
+                                // Swipe left is Save, like the reader's Save button.
+                                onReadLater = { article -> article.link?.let { readLater(it, article.title, inReader = false) } },
                                 onRefresh = ::refresh,
                                 onMarkAllRead = {
                                     // Done with the section: nothing read stays in the Unread list (#157).
@@ -705,9 +728,9 @@ fun RssReaderNavigation(
                                 onAddLink = { openSave(null, null) },
                                 onArchiveItem = ::archive,
                                 onFileItem = { fileKey = it.key },
-                                onShareArticle = { article -> send(article, current.shareTarget) },
+                                onShareArticle = ::share,
                                 onOpenInbox = { push(Screen.Inbox) },
-                                onShareItem = { item -> send(ReadingLists.article(item, library), current.shareTarget) },
+                                onShareItem = { item -> share(ReadingLists.article(item, library)) },
                                 onOpenSearch = { push(Screen.Search) },
                             ),
                     )
@@ -766,8 +789,6 @@ fun RssReaderNavigation(
                             feed = fromFeed?.let { library.feed(it.feedUrl) } ?: item?.let { ReadingLists.source(it, library) },
                             style = current.reader,
                             // The same with or without a service, which only syncs Saved.
-                            saveTarget = current.saveTarget,
-                            shareTarget = current.shareTarget,
                             fullText = fullText,
                             showImages = current.showImages,
                             snackbarHostState = snackbar,
@@ -786,13 +807,8 @@ fun RssReaderNavigation(
                                 ReaderActions(
                                     onBack = ::pop,
                                     onStyleChange = { style -> app.appScope.launch { app.settings.setReaderStyle(style) } },
-                                    onSave = {
-                                        article?.let {
-                                            val inApp = current.saveTarget == ShareTarget.Saved
-                                            if (inApp) it.link?.let { link -> readLater(link, it.title, inReader = true) } else send(it, current.saveTarget)
-                                        }
-                                    },
-                                    onShare = { article?.let { send(it, current.shareTarget) } },
+                                    onSave = { article?.let { it.link?.let { link -> readLater(link, it.title, inReader = true) } } },
+                                    onShare = { article?.let(::share) },
                                     onOpenInBrowser = { article?.let { a -> a.link?.let { ExternalApps.openInTab(context, it, a.title) } } },
                                     // Only while not signed in to the site yet (#251); Settings forgets a sign-in.
                                     onSignIn = article?.link?.takeIf { signedIn == null && SiteSignIns.siteOf(it) != null }?.let { link -> { push(Screen.SiteSignIn(link)) } },
@@ -844,7 +860,6 @@ fun RssReaderNavigation(
                         state =
                             SettingsState(
                                 settings = current,
-                                shareApps = shareApps,
                                 syncStatus = syncStatus,
                                 account = accountState,
                                 accountName = accountName,
@@ -860,8 +875,6 @@ fun RssReaderNavigation(
                                 onShowImagesChange = { enabled -> app.appScope.launch { app.settings.setShowImages(enabled) } },
                                 onMarkReadOnScrollChange = { enabled -> app.appScope.launch { app.settings.setMarkReadOnScroll(enabled) } },
                                 onListViewChange = { view -> app.appScope.launch { app.settings.setListView(view) } },
-                                onSaveTargetChange = { target -> app.appScope.launch { app.settings.setSaveTarget(target) } },
-                                onShareTargetChange = { target -> app.appScope.launch { app.settings.setShareTarget(target) } },
                                 onThemeModeChange = { mode -> app.appScope.launch { app.settings.setThemeMode(mode) } },
                                 onDynamicColorChange = { enabled -> app.appScope.launch { app.settings.setDynamicColor(enabled) } },
                                 onSyncNow = {
@@ -992,14 +1005,8 @@ fun RssReaderNavigation(
                             openItem(item)
                         },
                         onToggleRead = { item -> editLibrary { Inbox.markRead(it, item.key, read = item.sharedBy?.read != true) } },
-                        onSave = { item ->
-                            if (current.saveTarget == ShareTarget.Saved) {
-                                readLater(item.url, item.title, inReader = false)
-                            } else {
-                                send(ReadingLists.article(item, library), current.saveTarget)
-                            }
-                        },
-                        onShare = { item -> send(ReadingLists.article(item, library), current.shareTarget) },
+                        onSave = { item -> readLater(item.url, item.title, inReader = false) },
+                        onShare = { item -> share(ReadingLists.article(item, library)) },
                         onRemove = { item ->
                             editLibrary { Inbox.remove(it, item.key) }
                             showMessage(resources.getString(R.string.inbox_removed), resources.getString(R.string.action_undo)) {
@@ -1084,7 +1091,10 @@ fun RssReaderNavigation(
             allTags = library.itemTags(),
             onSave = { _, choice ->
                 editLibrary { SaveChoices.apply(it, sheetItem.key, choice) }
-                if (addedKey != null) confirmSaved(sheetItem, choice.place)
+                when {
+                    choice.sendTo.isNotEmpty() -> sendAll(choice.sendTo, sheetItem.title, sheetItem.url, choice.place.takeIf { addedKey != null }, sheetItem.takeIf { addedKey != null && !addedFromReader })
+                    addedKey != null -> confirmSaved(sheetItem, choice.place)
+                }
             },
             // Cancelled right after saving: it stays where it was saved (#156).
             onCancel = { if (addedKey != null) confirmSaved(sheetItem, SaveChoices.of(sheetItem).place) },
@@ -1099,6 +1109,8 @@ fun RssReaderNavigation(
                 fileKey = null
             },
             key = sheetItem.key,
+            signedIn = accountState is AccountState.SignedIn,
+            hasAccount = app.sync::hasAccount,
         )
     }
 
@@ -1117,8 +1129,16 @@ fun RssReaderNavigation(
             title = saveTitle,
             folders = Saved.folders(library),
             allTags = library.itemTags(),
-            onSave = { url, choice -> url?.let { save(it, saveTitle.takeIf { saveUrl.isNotEmpty() }, choice) } },
+            onSave = { url, choice ->
+                url?.let {
+                    val title = saveTitle.takeIf { saveUrl.isNotEmpty() }
+                    // Saving sends too; Don't save only sends.
+                    if (choice.keep) save(it, title, choice) else sendAll(choice.sendTo, title ?: it, it, saved = null)
+                }
+            },
             onDismiss = { saveOpen = false },
+            signedIn = accountState is AccountState.SignedIn,
+            hasAccount = app.sync::hasAccount,
         )
     }
 
@@ -1151,7 +1171,16 @@ fun RssReaderNavigation(
                 close()
                 sendTo(email, title, sharing)
             },
-            onSendOther = { sendOther = true },
+            onSendOther = { email ->
+                val result = app.sync.share(email, listOf(SharedArticle(sharing, title)))
+                if (result == ShareResult.Sent) {
+                    close()
+                    showMessage(resources.getString(R.string.share_user_sent, email))
+                    null
+                } else {
+                    result
+                }
+            },
             onApp = { picked ->
                 close()
                 app.appScope.launch { app.settings.countShare(picked.id) }
@@ -1169,16 +1198,6 @@ fun RssReaderNavigation(
             },
             onDismiss = close,
         )
-        if (sendOther) {
-            ShareWithUserDialog(
-                onSend = { email, result -> sendTo(email, title, sharing, result) },
-                onDone = {
-                    sendOther = false
-                    close()
-                },
-                onDismiss = { sendOther = false },
-            )
-        }
     }
 
     if (addDialogOpen) {

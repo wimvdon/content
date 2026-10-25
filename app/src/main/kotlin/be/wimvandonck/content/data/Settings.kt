@@ -69,8 +69,9 @@ data class ReaderStyle(
 }
 
 /**
- * Where the reader's Save or Share button sends an article: this app's own Saved list (Save only),
- * the share menu, or straight to one app.
+ * Where an article is shared to: the share menu, or straight to one app (Content's share sheet,
+ * #251). Save and Share went to one of these by a setting until Save and share (#256); stored
+ * values still read.
  */
 sealed interface ShareTarget {
     data object Sheet : ShareTarget
@@ -120,8 +121,6 @@ sealed interface ShareTarget {
 data class Settings(
     val appearance: Appearance = Appearance(),
     val reader: ReaderStyle = ReaderStyle(),
-    val saveTarget: ShareTarget = ShareTarget.Saved,
-    val shareTarget: ShareTarget = ShareTarget.Sheet,
     val unreadOnly: Boolean = true,
     /** Load the whole article from its web page when the feed only has a summary. */
     val fullArticles: Boolean = true,

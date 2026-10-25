@@ -244,9 +244,9 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   its number of articles, tap to rename, a delete button to remove it everywhere. Settings sections:
   Account (sign in with an emailed link; signed in, who, the last sync or what went wrong, Sync now,
   Sign out and Delete synced data in the error colour, which asks first), Sites you're signed in to,
-  Article list, Reader, Save and share, Appearance, footer.
+  Article list, Reader, Appearance, footer (no Save and Share button settings since #256).
 - Folder icons come from the whole Material Symbols set (outlined, rounded), picked with a search
-  field and a grid in the folder dialog. The app's other icons (the reading list's To read (an open
+  field and a grid in the folder sheet. The app's other icons (the reading list's To read (an open
   book), Liked, Archive (a box) and tags included) use the same outlined, rounded style; only an icon that
   shows something is on is filled (a selected destination, the Like heart once liked). Saved and
   the Save action use Material Symbols list (#142): Saved is more than a reading list, so the open
@@ -304,24 +304,35 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   "Read later" names nothing. After the sheet, a snackbar says "Saved to …", with **Open** (to the
   article in Saved) when you weren't in it already: after a swipe, Add link, or a share from another
   app (where the snackbar is all of Reader that shows).
-- One save and Organise sheet (#143), wherever you meet an article: a `ModalBottomSheet` with, in
-  this order, what is being saved (only before the save: the address field for Add link, or a shared
-  link's title and site), **Folder** (#251: it said "Where") as single-choice `FilterChip`s (To read and Archive with
-  their icons, each folder, then a New folder `AssistChip`, the only thing to
-  type; #156), **Tags** in one row
-  (Like, then every tag in use as a `FilterChip` without a check mark, in a steady order so nothing
-  moves when one is chosen, then a New tag `AssistChip` that opens a field to make a new one), and
-  **Note** last, with the room. Section titles in Title Small, `primary`. Then Cancel and Save:
-  closing the sheet is Cancel, so only Save changes anything; the heading is "Save to Reader", "Saved to …" or "Organise".
-  Right after a save ("Saved to …"), **Remove** (error colour, trash icon) takes the place of Cancel
-  and takes the save back; closing keeps it. A folder or tag still being typed is taken by Save.
+- One **Save and share** sheet (#143, #256), wherever you meet an article: a `ModalBottomSheet` with,
+  in this order, what is being saved (only before the save: the address field for Add link, or a
+  shared link's title and site), **Folder** (#251: it said "Where") as single-choice `FilterChip`s
+  (To read and Archive with their icons, each folder, then a New folder `AssistChip`, the only thing
+  to type; #156; before the save, signed in, also **Don't save**, to only send it), **Tags** in one
+  row (Like, then every tag in use as a `FilterChip` without a check mark, in a steady order so
+  nothing moves when one is chosen, then a New tag `AssistChip` that opens a field to make a new
+  one), **Note** with the room (both hidden for Don't save), then, signed in, **Send with Content**:
+  the people shared with as `FilterChip`s with their avatar, several at once, and an Add address
+  `AssistChip` that opens a field (checked for a Content account before the person joins the
+  chips). Section titles in Title Small, `primary`. Then Cancel and the button, which says **Save**,
+  **Save and send** or **Send**: closing the sheet is Cancel, so only the button changes or sends
+  anything; the heading is always "Save and share". Right after a save ("Saved to …"), **Remove**
+  (error colour, trash icon) takes the place of Cancel and takes the save back; closing keeps it. A
+  folder or tag still being typed is taken by the button. One snackbar says where it went and who
+  got it ("Saved to To read · Sent to …"). Sharing a link from another app opens the same sheet;
+  a person picked in Android's share menu opens it on Don't save with them picked.
+- Sheets and dialogs (#256): a bottom sheet for anything done with an article or that needs room
+  (Save and share, Content's share sheet, highlights, Aa, Report a problem, the folder sheet with
+  its icon search); a dialog only to confirm something or type one name (remove, rename, Add feed,
+  edit a feed). No dialog opens on top of a sheet.
 - The ☰ drawer: two sections that start open and stay as you fold them (#251): the Feeds section
   (Feed, the folders, the other feeds; a folder shows its feeds only while you are in it), the
   Saved section (Saved with its count, then under Tags Liked and the tags with their counts), then
   **Manage feeds and Saved** (the feed symbol with a pen) and Settings at the bottom.
 - Content's share sheet (#251): a `ModalBottomSheet` with the article's title and site, **Send with
-  Content** (a row of the people shared with, avatar and name, and Email address), then the apps
-  as 48dp icons with their names, four to a row, Copy link and More last.
+  Content** (a row of the people shared with, avatar and name, and Email address, which opens an
+  address field with Send in the sheet itself, #256), then the apps as 48dp icons with their names,
+  four to a row, Copy link and More last.
 - Site icons sit on a fixed light tile (`#F4F4F4`, rounded, 10% padding) in light and dark mode,
   so logos drawn for light browser tabs keep their contrast; the letter fallback uses
   `tertiaryContainer`.

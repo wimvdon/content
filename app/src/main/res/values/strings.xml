@@ -69,7 +69,6 @@
     <string name="notify_shared_denied">Notifications are off for Content. Allow them in Android’s settings › Apps › Content.</string>
     <string name="notify_shared_channel">Shared with you</string>
     <string name="notify_shared_text">Something was shared with you.</string>
-    <string name="share_user_title">Send with Content</string>
     <string name="share_send_with_content">Send with Content</string>
     <string name="inbox_title">Inbox</string>
     <string name="inbox_open_unread">Inbox, new articles</string>
@@ -79,6 +78,15 @@
     <string name="inbox_removed">Removed from inbox</string>
     <string name="share_user_send">Send</string>
     <string name="share_user_sent">Sent to %1$s</string>
+    <string name="save_share_title">Save and share</string>
+    <string name="action_save_and_send">Save and send</string>
+    <string name="place_dont_save">Don\'t save</string>
+    <string name="share_add_address">Add address</string>
+    <plurals name="share_sent_people">
+        <item quantity="one">Sent to %1$d person</item>
+        <item quantity="other">Sent to %1$d people</item>
+    </plurals>
+    <string name="saved_and_sent" translatable="false">%1$s · %2$s</string>
     <string name="share_user_no_account">There\'s no Content account for this address.</string>
     <string name="share_user_signed_out">Sign in to your Content account first.</string>
     <plurals name="share_user_received">
@@ -116,14 +124,7 @@
     <string name="embed_vimeo">Watch on Vimeo</string>
     <string name="embed_video">Play video</string>
     <string name="embed_other">Open embedded content</string>
-    <string name="section_save">Save and share</string>
-    <string name="setting_save_button">Save button</string>
-    <string name="setting_share_button">Share button</string>
-    <string name="share_target_sheet">Share menu</string>
-    <string name="share_target_missing">%1$s isn\'t installed. The share menu opens instead.</string>
     <string name="share_target_missing_short">%1$s isn\'t installed</string>
-    <string name="action_save_to">Save to %1$s</string>
-    <string name="action_share_to">Share to %1$s</string>
     <string name="feeds_opml_hint">Move your feeds from or to another reader, such as Feedly or Inoreader.</string>
     <string name="action_save">Save</string>
     <string name="action_open">Open</string>
@@ -223,7 +224,6 @@
     <string name="search_tag">Tag</string>
     <!-- A share from another app without a web link (#97). -->
     <string name="share_no_link">No link to save</string>
-    <string name="share_target_saved">Saved, in this app</string>
     <string name="action_archive">Archive</string>
     <string name="saved_archived">Archived</string>
     <string name="action_unarchive">Back to read</string>

@@ -51,6 +51,7 @@ import be.wimvandonck.content.data.ItemKeys
 import be.wimvandonck.content.data.Place
 import be.wimvandonck.content.data.SaveChoice
 import be.wimvandonck.content.data.SaveChoices
+import be.wimvandonck.content.data.SendTo
 import be.wimvandonck.content.feed.FeedDiscovery
 
 /**
@@ -136,12 +137,15 @@ enum class SheetKind {
 }
 
 /**
- * The one sheet for an article (#143): saving one, filing one later, or tagging one saved last week.
- * In order: what is being saved (only for [SheetKind.New]: the address field for Add link, or the
- * shared link's title and site), the folder as chips (To read and Archive, a divider, the folders and
- * New folder: #156), the tags with Like in front, then the note. Then Cancel and Save; closing the
- * sheet is Cancel, so only Save changes anything. Just saved, Remove takes the place of Cancel: it
- * takes the save back, where closing keeps it as it was saved.
+ * Save and share (#143, #256), the one sheet for an article: saving one, filing one later, tagging
+ * one saved last week, and sending it with Content on the way. In order: what is being saved (only
+ * for [SheetKind.New]: the address field for Add link, or the shared link's title and site), the
+ * folder as chips (To read and Archive, a divider, the folders and New folder: #156; before the save
+ * also Don't save, to only send it), the tags with Like in front, the note, then Send with Content
+ * when signed in (the people shared with as chips, several at once, and Add address). Then Cancel
+ * and the button, which says Save, Save and send or Send; closing the sheet is Cancel, so only the
+ * button changes or sends anything. Just saved, Remove takes the place of Cancel: it takes the save
+ * back, where closing keeps it as it was saved.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -162,6 +166,10 @@ fun SaveSheet(
     onCancel: () -> Unit = {},
     /** Remove, for [SheetKind.JustSaved]: takes the save back. */
     onRemove: () -> Unit = {},
+    /** Signed in to a Content account: Send with Content is offered (#256). */
+    signedIn: Boolean = false,
+    /** Whether an address added under Send with Content has a Content account; null when that couldn't be asked. */
+    hasAccount: suspend (String) -> Boolean? = { null },
 ) {
     var address by rememberSaveable(key) { mutableStateOf(url.orEmpty()) }
     // A typed address may leave out https://.
@@ -180,6 +188,8 @@ fun SaveSheet(
         }
         onDismiss()
     }
+    // Don't save only before the save, and only when it can be sent instead.
+    val offerDontSave = kind == SheetKind.New && signedIn
     // Cancel, or closing the sheet, changes nothing (#156); an article saved a moment ago stays where it went.
     val cancel = {
         onCancel()
@@ -192,12 +202,9 @@ fun SaveSheet(
                 .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            // Just "Save" (#229): the sheet itself picks To read or the Archive, so the title doesn't name one.
+            // The sheet itself picks To read or the Archive, so the title doesn't name one (#229).
             Text(
-                when (kind) {
-                    SheetKind.New, SheetKind.JustSaved -> stringResource(R.string.action_save)
-                    SheetKind.Organise -> stringResource(R.string.organise_title)
-                },
+                stringResource(R.string.save_share_title),
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.semantics { heading() },
             )
@@ -219,37 +226,21 @@ fun SaveSheet(
                 }
             }
             SheetSection(stringResource(R.string.folder_field))
-            FolderChips(choice.place, folders, onChange = { choice = choice.copy(place = it) }, name = folderName, onNameChange = { folderName = it })
-            SheetSection(stringResource(R.string.tags_title))
-            TagsEditor(
-                tags = choice.tags,
-                allTags = allTags,
-                onChange = { choice = choice.copy(tags = it) },
-                name = tagName,
-                onNameChange = { tagName = it },
-                leading = {
-                    FilterChip(
-                        selected = choice.liked,
-                        onClick = { choice = choice.copy(liked = !choice.liked) },
-                        label = { Text(stringResource(R.string.action_like)) },
-                        leadingIcon = {
-                            Icon(
-                                painterResource(if (choice.liked) R.drawable.ic_favorite_filled else R.drawable.ic_favorite),
-                                contentDescription = null,
-                                modifier = Modifier.size(FilterChipDefaults.IconSize),
-                            )
-                        },
-                    )
-                },
+            FolderChips(
+                choice.place,
+                folders,
+                onChange = { choice = choice.copy(place = it, keep = true) },
+                name = folderName,
+                onNameChange = { folderName = it },
+                keep = choice.keep.takeIf { offerDontSave },
+                onDontSave = { choice = choice.copy(keep = false) },
             )
-            SheetSection(stringResource(R.string.note_title))
-            OutlinedTextField(
-                value = choice.note,
-                onValueChange = { choice = choice.copy(note = it) },
-                placeholder = { Text(stringResource(R.string.note_title)) },
-                minLines = 3,
-                modifier = Modifier.fillMaxWidth(),
-            )
+            // Only sent: nothing of it is kept, so there is nothing to tag or note.
+            if (choice.keep) SavedParts(choice, allTags, tagName, onTagNameChange = { tagName = it }, onChange = { choice = it })
+            if (signedIn) {
+                SheetSection(stringResource(R.string.share_send_with_content))
+                SendToSection(choice.sendTo, onChange = { choice = choice.copy(sendTo = it) }, hasAccount = hasAccount)
+            }
             Row(Modifier.align(Alignment.End), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (kind == SheetKind.JustSaved) {
                     TextButton(
@@ -265,9 +256,62 @@ fun SaveSheet(
                 } else {
                     TextButton(onClick = cancel) { Text(stringResource(R.string.action_cancel)) }
                 }
-                Button(enabled = saved || link != null, onClick = save) { Text(stringResource(R.string.action_save)) }
+                Button(enabled = SendTo.canConfirm(choice, hasLink = saved || link != null), onClick = save) {
+                    Text(
+                        stringResource(
+                            when (SendTo.action(choice)) {
+                                SendTo.Action.Save -> R.string.action_save
+                                SendTo.Action.SaveAndSend -> R.string.action_save_and_send
+                                SendTo.Action.Send -> R.string.share_user_send
+                            },
+                        ),
+                    )
+                }
             }
         }
+    }
+}
+
+/** The parts of the sheet for what is kept: the tags with Like in front, then the note. */
+@Composable
+private fun SavedParts(
+    choice: SaveChoice,
+    allTags: List<String>,
+    tagName: String,
+    onTagNameChange: (String) -> Unit,
+    onChange: (SaveChoice) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        SheetSection(stringResource(R.string.tags_title))
+        TagsEditor(
+            tags = choice.tags,
+            allTags = allTags,
+            onChange = { onChange(choice.copy(tags = it)) },
+            name = tagName,
+            onNameChange = onTagNameChange,
+            leading = {
+                FilterChip(
+                    selected = choice.liked,
+                    onClick = { onChange(choice.copy(liked = !choice.liked)) },
+                    label = { Text(stringResource(R.string.action_like)) },
+                    leadingIcon = {
+                        Icon(
+                            painterResource(if (choice.liked) R.drawable.ic_favorite_filled else R.drawable.ic_favorite),
+                            contentDescription = null,
+                            modifier = Modifier.size(FilterChipDefaults.IconSize),
+                        )
+                    },
+                )
+            },
+        )
+        SheetSection(stringResource(R.string.note_title))
+        OutlinedTextField(
+            value = choice.note,
+            onValueChange = { onChange(choice.copy(note = it)) },
+            placeholder = { Text(stringResource(R.string.note_title)) },
+            minLines = 3,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 
@@ -290,6 +334,9 @@ fun FolderChips(
     /** The folder being typed, kept by the sheet so Save files it there too. */
     name: String,
     onNameChange: (String) -> Unit,
+    /** Whether it is kept, when Don't save is offered (#256); null when it isn't. */
+    keep: Boolean? = null,
+    onDontSave: () -> Unit = {},
 ) {
     var making by rememberSaveable { mutableStateOf(false) }
     val make = {
@@ -300,7 +347,7 @@ fun FolderChips(
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         FlowRow(Modifier.selectableGroup(), horizontalArrangement = Arrangement.spacedBy(8.dp), itemVerticalAlignment = Alignment.CenterVertically) {
             SaveChoices.places(folders, place).forEach { option ->
-                val selected = SaveChoices.same(option, place)
+                val selected = keep != false && SaveChoices.same(option, place)
                 FilterChip(
                     selected = selected,
                     onClick = { onChange(option) },
@@ -331,6 +378,21 @@ fun FolderChips(
                 )
             }
             // Saved has no folders any more (#186): To read or Archive, and tags below.
+            if (keep != null) {
+                FilterChip(
+                    selected = !keep,
+                    onClick = onDontSave,
+                    label = { Text(stringResource(R.string.place_dont_save)) },
+                    leadingIcon = {
+                        Icon(
+                            painterResource(if (!keep) R.drawable.ic_check else R.drawable.ic_share),
+                            contentDescription = null,
+                            modifier = Modifier.size(FilterChipDefaults.IconSize),
+                        )
+                    },
+                    modifier = Modifier.semantics { role = Role.RadioButton },
+                )
+            }
         }
         if (making) {
             OutlinedTextField(

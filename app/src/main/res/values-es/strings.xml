@@ -68,7 +68,6 @@
     <string name="notify_shared_denied">Las notificaciones de Content están desactivadas. Permítelas en Ajustes de Android › Aplicaciones › Content.</string>
     <string name="notify_shared_channel">Compartido contigo</string>
     <string name="notify_shared_text">Alguien ha compartido algo contigo.</string>
-    <string name="share_user_title">Enviar con Content</string>
     <string name="share_send_with_content">Enviar con Content</string>
     <string name="inbox_title">Bandeja de entrada</string>
     <string name="inbox_open_unread">Bandeja de entrada, artículos nuevos</string>
@@ -78,6 +77,15 @@
     <string name="inbox_removed">Quitado de la bandeja de entrada</string>
     <string name="share_user_send">Enviar</string>
     <string name="share_user_sent">Enviado a %1$s</string>
+    <string name="save_share_title">Guardar y compartir</string>
+    <string name="action_save_and_send">Guardar y enviar</string>
+    <string name="place_dont_save">No guardar</string>
+    <string name="share_add_address">Añadir dirección</string>
+    <plurals name="share_sent_people">
+        <item quantity="one">Enviado a %1$d persona</item>
+        <item quantity="many">Enviado a %1$d personas</item>
+        <item quantity="other">Enviado a %1$d personas</item>
+    </plurals>
     <string name="share_user_no_account">No hay ninguna cuenta de Content para esta dirección.</string>
     <string name="share_user_signed_out">Inicia sesión primero en tu cuenta de Content.</string>
     <plurals name="share_user_received">
@@ -115,14 +123,7 @@
     <string name="embed_vimeo">Ver en Vimeo</string>
     <string name="embed_video">Reproducir vídeo</string>
     <string name="embed_other">Abrir contenido insertado</string>
-    <string name="section_save">Guardar y compartir</string>
-    <string name="setting_save_button">Botón Guardar</string>
-    <string name="setting_share_button">Botón Compartir</string>
-    <string name="share_target_sheet">Menú de compartir</string>
-    <string name="share_target_missing">%1$s no está instalado. Se abre el menú de compartir en su lugar.</string>
     <string name="share_target_missing_short">%1$s no está instalado</string>
-    <string name="action_save_to">Guardar en %1$s</string>
-    <string name="action_share_to">Compartir con %1$s</string>
     <string name="feeds_opml_hint">Pasa tus feeds desde o hacia otro lector, como Feedly o Inoreader.</string>
     <string name="action_save">Guardar</string>
     <string name="action_open">Abrir</string>
@@ -227,7 +228,6 @@
     <string name="search_tag">Etiqueta</string>
     <!-- A share from another app without a web link (#97). -->
     <string name="share_no_link">No hay ningún enlace para guardar</string>
-    <string name="share_target_saved">Guardados, en esta app</string>
     <string name="action_archive">Archivar</string>
     <string name="saved_archived">Archivado</string>
     <string name="action_unarchive">Volver a por leer</string>

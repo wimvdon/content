@@ -604,6 +604,17 @@ class AppStore {
 
   private names = new Map<string, string>();
 
+  /** Whether the address has a Content account (#256: checked before it joins Save and share's people); null when that couldn't be asked. */
+  hasAccount = async (email: string): Promise<boolean | null> => {
+    const key = this.accountKey();
+    if (!key) return null;
+    try {
+      return await new AccountClient(key).hasAccount(email);
+    } catch {
+      return null;
+    }
+  };
+
   /** Sends an article to a Content user (#167). */
   shareWithUser = async (to: string, items: SharedArticle[]): Promise<"sent" | "noAccount" | "signedOut" | "offline" | "failed"> => {
     const account = this.state.account;

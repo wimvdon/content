@@ -11,14 +11,20 @@ import { archiveItem, fileItem, folderOf, removeSaved, saveLink } from "./saved"
 export type Place = { kind: "toread" } | { kind: "folder"; name: string } | { kind: "archive" };
 
 /** What the sheet says about an article: where it goes, whether it is liked, its tags and its note. */
+/**
+ * What the Save and share sheet says (#143, #256): where it goes, liked, tags and note, and who it is
+ * sent to with Content. `keep` is false for Don't save: only sent (offered before the save only).
+ */
 export interface SaveChoice {
   place: Place;
   liked: boolean;
   tags: string[];
   note: string;
+  keep: boolean;
+  sendTo: string[];
 }
 
-export const emptyChoice: SaveChoice = { place: { kind: "toread" }, liked: false, tags: [], note: "" };
+export const emptyChoice: SaveChoice = { place: { kind: "toread" }, liked: false, tags: [], note: "", keep: true, sendTo: [] };
 
 const same = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
 
@@ -28,7 +34,7 @@ export const samePlace = (a: Place, b: Place) => (a.kind === "folder" && b.kind 
 export function choiceOf(i: Item): SaveChoice {
   const folder = folderOf(i);
   const place: Place = i.readingList?.state === "archived" ? { kind: "archive" } : folder ? { kind: "folder", name: folder } : { kind: "toread" };
-  return { place, liked: i.liked, tags: i.tags, note: i.note };
+  return { place, liked: i.liked, tags: i.tags, note: i.note, keep: true, sendTo: [] };
 }
 
 /**

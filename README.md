@@ -21,8 +21,8 @@ A simple, private RSS and Atom feed reader for Android.
 
 - **What it does:** follows the websites you choose, lists their new articles, and shows them in a
   clean reader with your choice of font (sans or serif), text size, line spacing and background
-  (theme, sepia or dark). The Save button sends an article to Instapaper (or any app through the
-  share menu), and straight to your Instapaper account when you are signed in.
+  (theme, sepia or dark). Save and share keeps an article in Saved (and Instapaper, when
+  connected) and sends it to other Content users; Share sends it to any app.
 - **What problem it solves:** reading the sites you like without an account, ads, tracking or an
   algorithm. Your feed list and reading history stay on your phone.
 - **Real use case:** add `theverge.com`, pull down in the morning to get the new articles, read a

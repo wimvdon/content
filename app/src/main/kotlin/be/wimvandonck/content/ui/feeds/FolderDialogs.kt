@@ -21,6 +21,12 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.IconButtonDefaults
@@ -54,10 +60,12 @@ import be.wimvandonck.content.ui.home.FeedIconSize
 
 /**
  * New folder ([folder] null) or edit one: a title, and an icon from the whole Material Symbols
- * set, searchable by English name or topic.
+ * set, searchable by English name or topic. A bottom sheet (#256): the icon grid is too much for a
+ * dialog.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun FolderDialog(
+internal fun FolderSheet(
     folder: Folder?,
     onSave: (title: String, icon: String) -> Unit,
     onDismiss: () -> Unit,
@@ -69,79 +77,80 @@ internal fun FolderDialog(
     var icon by rememberSaveable { mutableStateOf(folder?.icon ?: IconCatalog.DEFAULT) }
     var query by rememberSaveable { mutableStateOf("") }
     val results = remember(query) { catalog.search(query) }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(if (folder == null) R.string.folder_new else R.string.folder_edit)) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    // The chosen icon, next to the title it goes with.
-                    Box(
-                        Modifier
-                            .size(48.dp)
-                            .background(MaterialTheme.colorScheme.secondaryContainer, CircleShape),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(rememberFolderIconPainter(icon), contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer)
-                    }
-                    OutlinedTextField(
-                        value = title,
-                        onValueChange = { title = it.take(MAX_TITLE_LENGTH) },
-                        label = { Text(stringResource(R.string.folder_title)) },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                        modifier = Modifier.weight(1f),
-                    )
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+        Column(Modifier.padding(start = 24.dp, end = 24.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(
+                stringResource(if (folder == null) R.string.folder_new else R.string.folder_edit),
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.semantics { heading() },
+            )
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                // The chosen icon, next to the title it goes with.
+                Box(
+                    Modifier
+                        .size(48.dp)
+                        .background(MaterialTheme.colorScheme.secondaryContainer, CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(rememberFolderIconPainter(icon), contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer)
                 }
                 OutlinedTextField(
-                    value = query,
-                    onValueChange = { query = it },
-                    label = { Text(stringResource(R.string.folder_icon_search)) },
-                    leadingIcon = { Icon(painterResource(R.drawable.ic_search), contentDescription = null) },
+                    value = title,
+                    onValueChange = { title = it.take(MAX_TITLE_LENGTH) },
+                    label = { Text(stringResource(R.string.folder_title)) },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                    modifier = Modifier.weight(1f),
                 )
-                if (results.isEmpty()) {
-                    Text(
-                        stringResource(R.string.folder_icon_none_found),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.height(ICON_GRID_HEIGHT),
-                    )
-                } else {
-                    LazyVerticalGrid(
-                        columns = GridCells.Adaptive(48.dp),
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .height(ICON_GRID_HEIGHT),
-                    ) {
-                        items(results, key = { it.name }) { option ->
-                            IconToggleButton(
-                                checked = option.name == icon,
-                                onCheckedChange = { icon = option.name },
-                                shape = CircleShape,
-                                colors =
-                                    IconButtonDefaults.iconToggleButtonColors(
-                                        checkedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                        checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                                    ),
-                                modifier = Modifier.size(48.dp),
-                            ) {
-                                Icon(rememberFolderIconPainter(option.name), contentDescription = option.label)
-                            }
+            }
+            OutlinedTextField(
+                value = query,
+                onValueChange = { query = it },
+                label = { Text(stringResource(R.string.folder_icon_search)) },
+                leadingIcon = { Icon(painterResource(R.drawable.ic_search), contentDescription = null) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            if (results.isEmpty()) {
+                Text(
+                    stringResource(R.string.folder_icon_none_found),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.height(ICON_GRID_HEIGHT),
+                )
+            } else {
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(48.dp),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .height(ICON_GRID_HEIGHT),
+                ) {
+                    items(results, key = { it.name }) { option ->
+                        IconToggleButton(
+                            checked = option.name == icon,
+                            onCheckedChange = { icon = option.name },
+                            shape = CircleShape,
+                            colors =
+                                IconButtonDefaults.iconToggleButtonColors(
+                                    checkedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                    checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                ),
+                            modifier = Modifier.size(48.dp),
+                        ) {
+                            Icon(rememberFolderIconPainter(option.name), contentDescription = option.label)
                         }
                     }
                 }
             }
-        },
-        confirmButton = {
-            TextButton(onClick = { onSave(title.trim(), icon) }, enabled = title.isNotBlank()) {
-                Text(stringResource(R.string.action_save))
+            Row(Modifier.align(Alignment.End), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                RemoveAndCancel(onRemove, onDismiss)
+                Button(onClick = { onSave(title.trim(), icon) }, enabled = title.isNotBlank()) {
+                    Text(stringResource(R.string.action_save))
+                }
             }
-        },
-        dismissButton = { RemoveAndCancel(onRemove, onDismiss) },
-    )
+        }
+    }
 }
 
 private val ICON_GRID_HEIGHT = 240.dp

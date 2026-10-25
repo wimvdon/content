@@ -68,7 +68,6 @@
     <string name="notify_shared_denied">Le notifiche di Content sono disattivate. Consentile in Impostazioni Android › App › Content.</string>
     <string name="notify_shared_channel">Condiviso con te</string>
     <string name="notify_shared_text">Qualcuno ha condiviso qualcosa con te.</string>
-    <string name="share_user_title">Invia con Content</string>
     <string name="share_send_with_content">Invia con Content</string>
     <string name="inbox_title">Posta in arrivo</string>
     <string name="inbox_open_unread">Posta in arrivo, nuovi articoli</string>
@@ -78,6 +77,15 @@
     <string name="inbox_removed">Rimosso dalla posta in arrivo</string>
     <string name="share_user_send">Invia</string>
     <string name="share_user_sent">Inviato a %1$s</string>
+    <string name="save_share_title">Salva e condividi</string>
+    <string name="action_save_and_send">Salva e invia</string>
+    <string name="place_dont_save">Non salvare</string>
+    <string name="share_add_address">Aggiungi indirizzo</string>
+    <plurals name="share_sent_people">
+        <item quantity="one">Inviato a %1$d persona</item>
+        <item quantity="many">Inviato a %1$d persone</item>
+        <item quantity="other">Inviato a %1$d persone</item>
+    </plurals>
     <string name="share_user_no_account">Non c’è un account Content per questo indirizzo.</string>
     <string name="share_user_signed_out">Accedi prima al tuo account Content.</string>
     <plurals name="share_user_received">
@@ -115,14 +123,7 @@
     <string name="embed_vimeo">Guarda su Vimeo</string>
     <string name="embed_video">Riproduci video</string>
     <string name="embed_other">Apri contenuto incorporato</string>
-    <string name="section_save">Salva e condividi</string>
-    <string name="setting_save_button">Pulsante Salva</string>
-    <string name="setting_share_button">Pulsante Condividi</string>
-    <string name="share_target_sheet">Menu di condivisione</string>
-    <string name="share_target_missing">%1$s non è installato. Si apre invece il menu di condivisione.</string>
     <string name="share_target_missing_short">%1$s non è installato</string>
-    <string name="action_save_to">Salva in %1$s</string>
-    <string name="action_share_to">Condividi con %1$s</string>
     <string name="feeds_opml_hint">Sposta i tuoi feed da o verso un altro lettore, come Feedly o Inoreader.</string>
     <string name="action_save">Salva</string>
     <string name="action_open">Apri</string>
@@ -227,7 +228,6 @@
     <string name="search_tag">Tag</string>
     <!-- A share from another app without a web link (#97). -->
     <string name="share_no_link">Nessun link da salvare</string>
-    <string name="share_target_saved">Salvati, in questa app</string>
     <string name="action_archive">Archivia</string>
     <string name="saved_archived">Archiviato</string>
     <string name="action_unarchive">Di nuovo da leggere</string>

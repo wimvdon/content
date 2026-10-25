@@ -68,7 +68,6 @@
     <string name="notify_shared_denied">Meldingen staan uit voor Content. Sta ze toe in de Android-instellingen › Apps › Content.</string>
     <string name="notify_shared_channel">Met jou gedeeld</string>
     <string name="notify_shared_text">Er is iets met je gedeeld.</string>
-    <string name="share_user_title">Versturen met Content</string>
     <string name="share_send_with_content">Versturen met Content</string>
     <string name="inbox_title">Inbox</string>
     <string name="inbox_open_unread">Inbox, nieuwe artikels</string>
@@ -78,6 +77,14 @@
     <string name="inbox_removed">Uit inbox verwijderd</string>
     <string name="share_user_send">Versturen</string>
     <string name="share_user_sent">Verstuurd naar %1$s</string>
+    <string name="save_share_title">Opslaan en delen</string>
+    <string name="action_save_and_send">Opslaan en versturen</string>
+    <string name="place_dont_save">Niet opslaan</string>
+    <string name="share_add_address">Adres toevoegen</string>
+    <plurals name="share_sent_people">
+        <item quantity="one">Verstuurd naar %1$d persoon</item>
+        <item quantity="other">Verstuurd naar %1$d personen</item>
+    </plurals>
     <string name="share_user_no_account">Er is geen Content-account voor dit adres.</string>
     <string name="share_user_signed_out">Meld je eerst aan bij je Content-account.</string>
     <plurals name="share_user_received">
@@ -115,14 +122,7 @@
     <string name="embed_vimeo">Bekijken op Vimeo</string>
     <string name="embed_video">Video afspelen</string>
     <string name="embed_other">Ingesloten inhoud openen</string>
-    <string name="section_save">Bewaren en delen</string>
-    <string name="setting_save_button">Knop Bewaren</string>
-    <string name="setting_share_button">Knop Delen</string>
-    <string name="share_target_sheet">Deelmenu</string>
-    <string name="share_target_missing">%1$s is niet geïnstalleerd. Het deelmenu opent in de plaats.</string>
     <string name="share_target_missing_short">%1$s is niet geïnstalleerd</string>
-    <string name="action_save_to">Bewaren in %1$s</string>
-    <string name="action_share_to">Delen met %1$s</string>
     <string name="feeds_opml_hint">Verhuis je feeds van of naar een andere lezer zoals Feedly of Inoreader.</string>
     <string name="action_save">Opslaan</string>
     <string name="action_open">Openen</string>
@@ -222,7 +222,6 @@
     <string name="search_tag">Tag</string>
     <!-- A share from another app without a web link (#97). -->
     <string name="share_no_link">Geen link om te bewaren</string>
-    <string name="share_target_saved">Bewaard, in deze app</string>
     <string name="action_archive">Archiveren</string>
     <string name="saved_archived">Gearchiveerd</string>
     <string name="action_unarchive">Terug naar te lezen</string>

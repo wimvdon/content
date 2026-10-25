@@ -36,7 +36,7 @@ describe("the save and Organise sheet (#143)", () => {
   it("lands a new save in To read, a folder or the Archive, with its like, tags and note", () => {
     const [, a] = saveNew(emptyLibrary(), "https://b.example/1", "B", 10, emptyChoice);
     expect(isIn(a!, { kind: "toread" })).toBe(true);
-    const [, b] = saveNew(emptyLibrary(), "https://b.example/1", null, 10, { place: { kind: "folder", name: "Work" }, liked: true, tags: ["x"], note: " A note " });
+    const [, b] = saveNew(emptyLibrary(), "https://b.example/1", null, 10, { ...emptyChoice, place: { kind: "folder", name: "Work" }, liked: true, tags: ["x"], note: " A note " });
     expect(b).toMatchObject({ folder: "Work", liked: true, tags: ["x"], note: "A note" });
     const [, c] = saveNew(emptyLibrary(), "https://b.example/1", null, 10, { ...emptyChoice, place: { kind: "archive" } });
     expect(c?.readingList?.state).toBe("archived");
@@ -46,7 +46,7 @@ describe("the save and Organise sheet (#143)", () => {
   it("organises a saved item, and changes nothing when nothing changed", () => {
     const lib = sample();
     expect(applyChoice(lib, "a.example/2", choiceOf(itemOf(lib, "a.example/2")!))).toBe(lib);
-    const moved = applyChoice(lib, "a.example/2", { place: { kind: "folder", name: "Later" }, liked: true, tags: ["a", "A", " b "], note: " Mine " });
+    const moved = applyChoice(lib, "a.example/2", { ...emptyChoice, place: { kind: "folder", name: "Later" }, liked: true, tags: ["a", "A", " b "], note: " Mine " });
     expect(itemOf(moved, "a.example/2")).toMatchObject({ folder: "Later", liked: true, tags: ["a", "b"], note: "Mine" });
     const back = applyChoice(lib, "a.example/3", emptyChoice);
     expect(isIn(itemOf(back, "a.example/3")!, { kind: "toread" })).toBe(true);

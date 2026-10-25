@@ -12,14 +12,17 @@ sealed interface Place {
 }
 
 /**
- * What the save and Organise sheet says about an article (#143): where it goes, whether it is liked,
- * its tags and its note.
+ * What the Save and share sheet says about an article (#143, #256): where it goes, whether it is
+ * liked, its tags and its note, and who it is sent to with Content. [keep] is false for Don't save:
+ * only sent, nothing lands in Saved (offered before the save only).
  */
 data class SaveChoice(
     val place: Place = Place.ToRead,
     val liked: Boolean = false,
     val tags: List<String> = emptyList(),
     val note: String = "",
+    val keep: Boolean = true,
+    val sendTo: List<String> = emptyList(),
 )
 
 /**

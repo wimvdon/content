@@ -81,7 +81,6 @@ import be.wimvandonck.content.data.Feed
 import be.wimvandonck.content.ui.home.FeedIcon
 import be.wimvandonck.content.ui.home.FeedIconSize
 import be.wimvandonck.content.data.ReaderStyle
-import be.wimvandonck.content.data.ShareTarget
 import be.wimvandonck.content.feed.ArticleBlock
 import be.wimvandonck.content.feed.ArticleBlocks
 
@@ -142,8 +141,6 @@ fun ReaderScreen(
     article: Article?,
     feed: Feed?,
     style: ReaderStyle,
-    saveTarget: ShareTarget,
-    shareTarget: ShareTarget,
     fullText: FullTextState,
     showImages: Boolean,
     snackbarHostState: SnackbarHostState,
@@ -265,9 +262,9 @@ fun ReaderScreen(
                         SavedBar(item)
                     } else {
                         FilledTonalButton(onClick = actions.onSave, modifier = Modifier.padding(start = 16.dp).weight(1f, fill = false)) {
-                            Icon(painterResource(if (saveTarget is ShareTarget.App) R.drawable.ic_bookmark_add else R.drawable.ic_list), contentDescription = null)
+                            Icon(painterResource(R.drawable.ic_list), contentDescription = null)
                             Text(
-                                (saveTarget as? ShareTarget.App)?.let { stringResource(R.string.action_save_to, it.label) } ?: stringResource(R.string.action_save),
+                                stringResource(R.string.action_save),
                                 modifier = Modifier.padding(start = 8.dp),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
@@ -286,12 +283,7 @@ fun ReaderScreen(
                     }
                     if (hasLink) {
                         IconButton(onClick = actions.onShare, modifier = Modifier.padding(end = 4.dp)) {
-                            Icon(
-                                painterResource(R.drawable.ic_share),
-                                contentDescription =
-                                    (shareTarget as? ShareTarget.App)?.let { stringResource(R.string.action_share_to, it.label) }
-                                        ?: stringResource(R.string.action_share),
-                            )
+                            Icon(painterResource(R.drawable.ic_share), contentDescription = stringResource(R.string.action_share))
                         }
                     }
                 }
@@ -329,7 +321,7 @@ fun ReaderScreen(
     // Any article can be reported, saved or not (it only showed for saved ones before #251).
     if (reportOpen) {
         actions.onReport?.let { report ->
-            ReportDialog(
+            ReportSheet(
                 onSend = { problem, comment ->
                     reportOpen = false
                     report(problem, comment)
