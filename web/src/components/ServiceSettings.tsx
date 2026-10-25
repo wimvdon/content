@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { app, useApp } from "@/lib/app";
-import { language, plural, t } from "@/lib/i18n";
-import { INSTAPAPER_ID } from "@/lib/instapaperSync";
+import { t } from "@/lib/i18n";
 import { Button } from "./ui/button";
 import { Dialog } from "./ui/dialog";
 
@@ -12,7 +11,7 @@ const NAME = "Instapaper";
  * doing. Everything in Saved syncs both ways, highlights included: there is nothing to choose.
  */
 export function InstapaperSettings() {
-  const { instapaper, instapaperBusy, instapaperImportChoice, settings } = useApp();
+  const { instapaper, instapaperBusy, instapaperImportChoice } = useApp();
   // Instapaper is a connected service, separate from the Content account (#166).
   if (!instapaper) {
     return (
@@ -25,7 +24,6 @@ export function InstapaperSettings() {
       </section>
     );
   }
-  const record = settings.imports[INSTAPAPER_ID];
   // Just connected, and the question closed without an answer (#251): answer it here.
   if (instapaperImportChoice) {
     return (
@@ -48,9 +46,6 @@ export function InstapaperSettings() {
     <section className="space-y-2">
       <h3 className="text-sm font-medium text-primary">{NAME}</h3>
       <p className="text-sm text-muted-foreground">{instapaperBusy ? t("syncing") : t("instapaperSyncsEverything")}</p>
-      {record?.everything ? (
-        <p className="text-sm text-muted-foreground">{plural("serviceImported", record.count).replace("{date}", new Date(record.at).toLocaleDateString(language, { dateStyle: "long" }))}</p>
-      ) : null}
       <Button variant="ghost" onClick={() => void app.disconnectInstapaper()}>
         {t("instapaperSignOut")}
       </Button>

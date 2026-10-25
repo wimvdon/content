@@ -296,11 +296,6 @@
     <string name="saved_empty_body">Balayez un article de flux vers la gauche, touchez Enregistrer dans un article, partagez un lien avec Content ou ajoutez-en un ici.</string>
     <string name="manage_folders_tags_empty_title">Pas encore de dossiers ni de tags</string>
     <string name="manage_folders_tags_empty_body">Les dossiers et tags de vos éléments enregistrés s’affichent ici, pour les renommer.</string>
-    <plurals name="service_imported">
-        <item quantity="one">%1$d élément importé, %2$s</item>
-        <item quantity="many">%1$d éléments importés, %2$s</item>
-        <item quantity="other">%1$d éléments importés, %2$s</item>
-    </plurals>
     <string name="account_title">Compte Content</string>
     <string name="account_email">Adresse e-mail</string>
     <string name="account_email_send">M’envoyer un lien de connexion</string>

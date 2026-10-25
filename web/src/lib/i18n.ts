@@ -253,7 +253,6 @@ const plurals_en = {
   markedRead: ["{n} article marked as read", "{n} articles marked as read"],
   savedCount: ["{n} item", "{n} items"],
   highlightsCount: ["{n} highlight", "{n} highlights"],
-  serviceImported: ["Imported {n} item, {date}", "Imported {n} items, {date}"],
 };
 
 type PluralKey = keyof typeof plurals_en;
@@ -437,7 +436,6 @@ const nl: Pack = {
     markedRead: ["{n} artikel als gelezen gemarkeerd", "{n} artikelen als gelezen gemarkeerd"],
     savedCount: ["{n} item", "{n} items"],
     highlightsCount: ["{n} markering", "{n} markeringen"],
-    serviceImported: ["{n} item geïmporteerd, {date}", "{n} items geïmporteerd, {date}"],
   },
 };
 
@@ -619,7 +617,6 @@ const fr: Pack = {
     markedRead: ["{n} article marqué comme lu", "{n} articles marqués comme lus"],
     savedCount: ["{n} élément", "{n} éléments"],
     highlightsCount: ["{n} surlignage", "{n} surlignages"],
-    serviceImported: ["{n} élément importé, {date}", "{n} éléments importés, {date}"],
   },
 };
 
@@ -801,7 +798,6 @@ const de: Pack = {
     markedRead: ["{n} Artikel als gelesen markiert", "{n} Artikel als gelesen markiert"],
     savedCount: ["{n} Element", "{n} Elemente"],
     highlightsCount: ["{n} Markierung", "{n} Markierungen"],
-    serviceImported: ["{n} Element importiert, {date}", "{n} Elemente importiert, {date}"],
   },
 };
 
@@ -983,7 +979,6 @@ const es: Pack = {
     markedRead: ["{n} artículo marcado como leído", "{n} artículos marcados como leídos"],
     savedCount: ["{n} elemento", "{n} elementos"],
     highlightsCount: ["{n} resaltado", "{n} resaltados"],
-    serviceImported: ["{n} elemento importado, {date}", "{n} elementos importados, {date}"],
   },
 };
 
@@ -1165,7 +1160,6 @@ const it: Pack = {
     markedRead: ["{n} articolo segnato come letto", "{n} articoli segnati come letti"],
     savedCount: ["{n} elemento", "{n} elementi"],
     highlightsCount: ["{n} evidenziazione", "{n} evidenziazioni"],
-    serviceImported: ["{n} elemento importato, {date}", "{n} elementi importati, {date}"],
   },
 };
 

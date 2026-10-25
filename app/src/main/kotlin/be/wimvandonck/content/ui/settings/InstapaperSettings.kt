@@ -16,24 +16,18 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import be.wimvandonck.content.R
-import be.wimvandonck.content.data.ServiceImport
 import be.wimvandonck.content.instapaper.InstapaperState
 import be.wimvandonck.content.services.ServiceProblem
 import be.wimvandonck.content.services.ServiceStatus
 import be.wimvandonck.content.ui.theme.SettingsBlock
-import java.text.DateFormat
-import java.util.Date
 
 /** What the Instapaper part of Manage › Saved shows (#109, #251). */
 data class InstapaperSettingsState(
     val instapaper: InstapaperState,
     val status: ServiceStatus,
-    /** What was brought in when it was connected, or null before that. */
-    val imported: ServiceImport? = null,
 )
 
 /**
@@ -60,16 +54,7 @@ fun InstapaperSettings(
                 status is ServiceStatus.ImportChoice -> Text(stringResource(R.string.instapaper_import_body))
                 status is ServiceStatus.Syncing -> Text(stringResource(R.string.sync_syncing))
                 status is ServiceStatus.Failed -> Text(stringResource(status.problem.messageRes()), color = MaterialTheme.colorScheme.error)
-                else -> {
-                    val record = state.imported
-                    val synced = stringResource(R.string.services_syncs_everything)
-                    if (record != null && record.everything) {
-                        val date = DateFormat.getDateInstance(DateFormat.LONG).format(Date(record.at))
-                        Text(synced + "\n" + pluralStringResource(R.plurals.service_imported, record.count, record.count, date))
-                    } else {
-                        Text(synced)
-                    }
-                }
+                else -> Text(stringResource(R.string.services_syncs_everything))
             }
         },
         leadingContent = { Icon(painterResource(R.drawable.ic_reading_list), contentDescription = null) },

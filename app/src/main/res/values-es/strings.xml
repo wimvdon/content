@@ -296,11 +296,6 @@
     <string name="saved_empty_body">Desliza un artículo de un feed a la izquierda, toca Guardar en un artículo, comparte un enlace con Content o añade uno aquí.</string>
     <string name="manage_folders_tags_empty_title">Aún no hay carpetas ni etiquetas</string>
     <string name="manage_folders_tags_empty_body">Las carpetas y etiquetas de tus elementos guardados aparecen aquí para que puedas renombrarlas.</string>
-    <plurals name="service_imported">
-        <item quantity="one">%1$d elemento importado, %2$s</item>
-        <item quantity="many">%1$d elementos importados, %2$s</item>
-        <item quantity="other">%1$d elementos importados, %2$s</item>
-    </plurals>
     <string name="account_title">Cuenta de Content</string>
     <string name="account_email">Correo electrónico</string>
     <string name="account_email_send">Enviarme un enlace de acceso</string>

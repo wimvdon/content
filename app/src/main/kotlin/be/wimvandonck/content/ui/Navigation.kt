@@ -1055,7 +1055,6 @@ fun RssReaderNavigation(
                             InstapaperSettingsState(
                                 instapaper = instapaperState,
                                 status = serviceStatuses[InstapaperReadingList.ID] ?: ServiceStatus.None,
-                                imported = current.imports[InstapaperReadingList.ID],
                             ),
                         onInstapaperSignIn = { uiScope.launch { ExternalApps.openLink(context, app.instapaper.begin()) } },
                         onInstapaperSync = { app.appScope.launch { app.services.sync() } },
