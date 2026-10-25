@@ -14,6 +14,7 @@ Newest first. Add an entry for every notable choice: what was decided, why, and 
   gets PNGs at 16, 32, 48 and 128 pixels drawn from the same shapes). The web app's sidebar puts it in
   its own white circle. Rejected: keeping the white box (it is what made the C small) and a dark
   outline for dark tabs (the sky-to-navy C reads on both).
+
 ## 2026-10-25: Save and share, one rule for sheets and dialogs (#256)
 
 Asked for by the owner after a review of every sheet and flow.
