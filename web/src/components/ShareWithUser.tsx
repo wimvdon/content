@@ -1,21 +1,15 @@
+import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { gravatarUrl } from "@/lib/account";
 import { app, useApp } from "@/lib/app";
-import { t, type Key } from "@/lib/i18n";
+import { t } from "@/lib/i18n";
+import { has, isEmail, people, problemKey, toggle } from "@/lib/sendTo";
 import type { SharedArticle } from "@/lib/sharing";
 import { Button } from "./ui/button";
 import { Dialog } from "./ui/dialog";
 import { Input, Label } from "./ui/input";
 import { cn } from "./ui/cn";
 
-const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-const PROBLEMS: Record<string, Key> = {
-  noAccount: "shareUserNoAccount",
-  signedOut: "shareUserSignedOut",
-  offline: "syncOffline",
-  failed: "syncServer",
-};
 
 /**
  * Send with Content (#167, #246): their email address, or one click on someone shared with before
@@ -37,7 +31,7 @@ export function ShareWithUserDialog({
   const [sending, setSending] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   const [sent, setSent] = useState<string | null>(null);
-  const valid = EMAIL.test(email.trim());
+  const valid = isEmail(email);
   const send = () => {
     if (!valid || sending) return;
     setSending(true);
@@ -122,7 +116,7 @@ export function ShareWithUserDialog({
           </div>
           {problem ? (
             <p role="alert" className="text-sm text-destructive">
-              {t(PROBLEMS[problem] ?? "syncServer")}
+              {t(problemKey(problem))}
             </p>
           ) : null}
         </form>
@@ -176,5 +170,74 @@ function RecipientChip({ email, images, selected, onPick }: { email: string; ima
       <Avatar email={email} label={label} images={images} />
       <span className="truncate">{label}</span>
     </button>
+  );
+}
+
+/**
+ * Send with Content in the Save and share sheet (#256), as on Android: the people shared with before as
+ * chips to pick, several at once, then Add address for someone new, who is checked for a Content account
+ * before they join the chips. Sending happens with the sheet's button.
+ */
+export function SendToSection({ picked, onChange }: { picked: string[]; onChange: (picked: string[]) => void }) {
+  const { settings } = useApp();
+  const [adding, setAdding] = useState(false);
+  const [email, setEmail] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
+  const add = () => {
+    const address = email.trim();
+    if (!isEmail(address) || busy) return;
+    setBusy(true);
+    void app.hasAccount(address).then((found) => {
+      setBusy(false);
+      if (found === true) {
+        onChange(has(picked, address) ? picked : [...picked, address]);
+        setEmail("");
+      } else setProblem(found === false ? "noAccount" : "offline");
+    });
+  };
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-2">
+        {people(settings.recipients, picked).map((address) => (
+          <RecipientChip key={address.toLowerCase()} email={address} images={settings.showImages} selected={has(picked, address)} onPick={() => onChange(toggle(picked, address))} />
+        ))}
+        {adding ? null : (
+          <button type="button" onClick={() => setAdding(true)} className="inline-flex h-8 cursor-pointer items-center gap-1 rounded-lg border px-3 text-sm hover:bg-muted">
+            <Plus className="size-4" aria-hidden="true" />
+            {t("shareAddAddress")}
+          </button>
+        )}
+      </div>
+      {adding ? (
+        <form
+          className="flex gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            add();
+          }}
+        >
+          <Input
+            type="email"
+            autoComplete="email"
+            aria-label={t("accountEmail")}
+            placeholder={t("accountEmail")}
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setProblem(null);
+            }}
+          />
+          <Button type="submit" variant="outline" disabled={!isEmail(email) || busy}>
+            {t("shareAddAddress")}
+          </Button>
+        </form>
+      ) : null}
+      {problem ? (
+        <p role="alert" className="text-sm text-destructive">
+          {t(problemKey(problem))}
+        </p>
+      ) : null}
+    </div>
   );
 }

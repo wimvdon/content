@@ -83,7 +83,7 @@ object ExternalApps {
         url: String,
         chooserTitle: String,
     ): Boolean {
-        val excluded = arrayOf(ComponentName(context, SHARE_ACTIVITY), ComponentName(context, DirectShare.SEND_ACTIVITY))
+        val excluded = arrayOf(ComponentName(context, SHARE_ACTIVITY))
         val chooser =
             Intent
                 .createChooser(shareIntent(title, url), chooserTitle)

@@ -26,7 +26,11 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,11 +47,12 @@ import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import be.wimvandonck.content.R
 import be.wimvandonck.content.data.ItemKeys
+import be.wimvandonck.content.sync.ShareResult
 import be.wimvandonck.content.ui.ExternalApps
 
 /**
  * Content's own share sheet (#251), in place of Android's: first Send with Content, to the people
- * shared with before (one tap sends) or to another address; then the apps used most from this sheet
+ * shared with before (one tap sends) or to another address, typed in the sheet itself (#256); then the apps used most from this sheet
  * (Android doesn't tell apps which ones you use elsewhere), Copy link, and More for Android's own
  * share sheet with every app.
  */
@@ -61,13 +66,16 @@ fun ShareSheet(
     /** The apps to show, in order (data/ShareApps.kt). */
     apps: List<ExternalApps.ShareApp>,
     onSendTo: (email: String) -> Unit,
-    onSendOther: () -> Unit,
+    /** Sends to an address typed in the sheet (#256): what went wrong, shown under it, or null when it was sent. */
+    onSendOther: suspend (email: String) -> ShareResult?,
     onApp: (ExternalApps.ShareApp) -> Unit,
     onCopyLink: () -> Unit,
     onMore: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     val recipients = LocalShareRecipients.current
+    // Email address opens a field in the sheet itself, not a dialog on top of it (#256).
+    var typing by rememberSaveable { mutableStateOf(false) }
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(
             Modifier
@@ -93,10 +101,18 @@ fun ShareSheet(
                         }
                     }
                     item(key = "other") {
-                        Tile(label = stringResource(R.string.account_email), onClick = onSendOther) {
+                        Tile(label = stringResource(R.string.account_email), onClick = { typing = true }) {
                             Circle { Icon(painterResource(R.drawable.ic_add), contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer) }
                         }
                     }
+                }
+                if (typing) {
+                    AddressField(
+                        actionLabel = stringResource(R.string.share_user_send),
+                        actionIcon = R.drawable.ic_share,
+                        onSubmit = onSendOther,
+                        modifier = Modifier.padding(horizontal = 24.dp),
+                    )
                 }
             }
             Heading(stringResource(R.string.action_share))

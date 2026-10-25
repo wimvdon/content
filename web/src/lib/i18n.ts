@@ -224,6 +224,10 @@ const en = {
   shareUserMenu: "Send with Content",
   shareUserSend: "Send",
   shareUserSent: "Sent to {email}",
+  saveShareTitle: "Save and share",
+  saveAndSend: "Save and send",
+  dontSave: "Don't save",
+  shareAddAddress: "Add address",
   shareUserNoAccount: "There's no Content account for this address.",
   shareUserSignedOut: "Sign in to your Content account first.",
   shareUserFrom: "From {name}",
@@ -253,6 +257,7 @@ const plurals_en = {
   markedRead: ["{n} article marked as read", "{n} articles marked as read"],
   savedCount: ["{n} item", "{n} items"],
   highlightsCount: ["{n} highlight", "{n} highlights"],
+  sentPeople: ["Sent to {n} person", "Sent to {n} people"],
 };
 
 type PluralKey = keyof typeof plurals_en;
@@ -410,6 +415,10 @@ const nl: Pack = {
     shareUserMenu: "Versturen met Content",
     shareUserSend: "Versturen",
     shareUserSent: "Verstuurd naar {email}",
+    saveShareTitle: "Bewaren en delen",
+    saveAndSend: "Bewaren en versturen",
+    dontSave: "Niet bewaren",
+    shareAddAddress: "Adres toevoegen",
     shareUserNoAccount: "Er is geen Content-account voor dit adres.",
     shareUserSignedOut: "Meld je eerst aan bij je Content-account.",
     shareUserFrom: "Van {name}",
@@ -436,6 +445,7 @@ const nl: Pack = {
     markedRead: ["{n} artikel als gelezen gemarkeerd", "{n} artikelen als gelezen gemarkeerd"],
     savedCount: ["{n} item", "{n} items"],
     highlightsCount: ["{n} markering", "{n} markeringen"],
+    sentPeople: ["Verstuurd naar {n} persoon", "Verstuurd naar {n} personen"],
   },
 };
 
@@ -591,6 +601,10 @@ const fr: Pack = {
     shareUserMenu: "Envoyer avec Content",
     shareUserSend: "Envoyer",
     shareUserSent: "Envoyé à {email}",
+    saveShareTitle: "Enregistrer et partager",
+    saveAndSend: "Enregistrer et envoyer",
+    dontSave: "Ne pas enregistrer",
+    shareAddAddress: "Ajouter une adresse",
     shareUserNoAccount: "Il n’y a pas de compte Content pour cette adresse.",
     shareUserSignedOut: "Connectez-vous d’abord à votre compte Content.",
     shareUserFrom: "De {name}",
@@ -617,6 +631,7 @@ const fr: Pack = {
     markedRead: ["{n} article marqué comme lu", "{n} articles marqués comme lus"],
     savedCount: ["{n} élément", "{n} éléments"],
     highlightsCount: ["{n} surlignage", "{n} surlignages"],
+    sentPeople: ["Envoyé à {n} personne", "Envoyé à {n} personnes"],
   },
 };
 
@@ -772,6 +787,10 @@ const de: Pack = {
     shareUserMenu: "Mit Content senden",
     shareUserSend: "Senden",
     shareUserSent: "An {email} gesendet",
+    saveShareTitle: "Speichern und teilen",
+    saveAndSend: "Speichern und senden",
+    dontSave: "Nicht speichern",
+    shareAddAddress: "Adresse hinzufügen",
     shareUserNoAccount: "Für diese Adresse gibt es kein Content-Konto.",
     shareUserSignedOut: "Melde dich zuerst bei deinem Content-Konto an.",
     shareUserFrom: "Von {name}",
@@ -798,6 +817,7 @@ const de: Pack = {
     markedRead: ["{n} Artikel als gelesen markiert", "{n} Artikel als gelesen markiert"],
     savedCount: ["{n} Element", "{n} Elemente"],
     highlightsCount: ["{n} Markierung", "{n} Markierungen"],
+    sentPeople: ["An {n} Person gesendet", "An {n} Personen gesendet"],
   },
 };
 
@@ -953,6 +973,10 @@ const es: Pack = {
     shareUserMenu: "Enviar con Content",
     shareUserSend: "Enviar",
     shareUserSent: "Enviado a {email}",
+    saveShareTitle: "Guardar y compartir",
+    saveAndSend: "Guardar y enviar",
+    dontSave: "No guardar",
+    shareAddAddress: "Añadir dirección",
     shareUserNoAccount: "No hay ninguna cuenta de Content para esta dirección.",
     shareUserSignedOut: "Inicia sesión primero en tu cuenta de Content.",
     shareUserFrom: "De {name}",
@@ -979,6 +1003,7 @@ const es: Pack = {
     markedRead: ["{n} artículo marcado como leído", "{n} artículos marcados como leídos"],
     savedCount: ["{n} elemento", "{n} elementos"],
     highlightsCount: ["{n} resaltado", "{n} resaltados"],
+    sentPeople: ["Enviado a {n} persona", "Enviado a {n} personas"],
   },
 };
 
@@ -1134,6 +1159,10 @@ const it: Pack = {
     shareUserMenu: "Invia con Content",
     shareUserSend: "Invia",
     shareUserSent: "Inviato a {email}",
+    saveShareTitle: "Salva e condividi",
+    saveAndSend: "Salva e invia",
+    dontSave: "Non salvare",
+    shareAddAddress: "Aggiungi indirizzo",
     shareUserNoAccount: "Non c’è un account Content per questo indirizzo.",
     shareUserSignedOut: "Accedi prima al tuo account Content.",
     shareUserFrom: "Da {name}",
@@ -1160,6 +1189,7 @@ const it: Pack = {
     markedRead: ["{n} articolo segnato come letto", "{n} articoli segnati come letti"],
     savedCount: ["{n} elemento", "{n} elementi"],
     highlightsCount: ["{n} evidenziazione", "{n} evidenziazioni"],
+    sentPeople: ["Inviato a {n} persona", "Inviato a {n} persone"],
   },
 };
 

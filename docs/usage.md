@@ -72,7 +72,7 @@ disconnecting it doesn't sign you in or out.
 
 Only Load full articles and Mark as read on scroll sync. How the app looks (theme, the reader's
 font, size, spacing and page colour, Show images and the list view) stays on each device, so a
-phone and a laptop can each have their own. The Save and Share apps stay per phone too.
+phone and a laptop can each have their own.
 
 The app syncs while it is on screen: when you open it, **at once when another device changes
 something** (an article read on the laptop turns read on the phone within a second or two), about a
@@ -186,13 +186,16 @@ come into Content (when the article opens, or at the next sync). Free Instapaper
 five new ones a month: the others stay in Content, say "Not in Instapaper yet" in the list of
 highlights, and are tried again the next day.
 
-After **Save**, the sheet that opens says where it was saved, then has the **Folder** (To read and
-**Archive** first, then your folders, or **New folder** to make one), the **Tags** with **Like** in
-front (every tag you use, tap to turn one on or off; **New tag** makes one that doesn't exist yet),
-and a **Note**: one step from a feed article to its folder. **Save** keeps what you chose,
-also a folder or tag you typed but didn't add yet. **Remove** takes the save back, as if you never
+After **Save**, **Save and share** opens (#256): the **Folder** (To read and **Archive** first, then
+your folders, or **New folder** to make one), the **Tags** with **Like** in front (every tag you use,
+tap to turn one on or off; **New tag** makes one that doesn't exist yet), a **Note**, and, signed
+in, **Send with Content**: the people you sent something to before, tap one or more, or **Add
+address** for someone new (Content checks they have an account). The button then says **Save**,
+**Save and send** or, for a link you add or share from another app with **Don't save** picked
+(nothing lands in Saved), **Send**. It keeps what you chose, also a folder or tag you typed but
+didn't add yet, and one message says where it went and who got it. **Remove** takes the save back, as if you never
 saved it ("Removed from Saved"); closing the sheet keeps it where it was just saved, unchanged.
-The same sheet, called **Organise**, opens when you press and hold a saved article's card in Saved
+The same sheet opens when you press and hold a saved article's card in Saved
 and pick **Organise** (web: right-click it); **Share** is in that menu too. Cards don't swipe. When it
 closes, a message says where the article went; after a swipe, **Add link** or a link shared from
 another app it also has **Open**, which goes to the article in Saved.
@@ -225,33 +228,25 @@ data); embed cards stay, without preview.
 
 ## Save and Share
 
-The reader has a **Save** button (bookmark) and a **Share** button. In **Settings › Save and
-share** you choose, for each, where it sends the article:
-
-- **Saved, in this app** (Save only, and its default): the article goes to **To read** in Saved,
-  and a sheet opens to like and tag it (see Saved).
-- **an app**, picked from the apps on your phone that accept shared links: the article goes
-  straight there, without the share menu.
-- **Share menu**: Content's share sheet opens, so you pick each time. This is Share's default.
-
-If the chosen app has been uninstalled, the button opens the share sheet instead and says so.
+The reader has a **Save** button and a **Share** button (#256: there are no settings for them any
+more). **Save** saves the article to **To read** and opens **Save and share**, where you can also
+send it to people with Content (see Saved). **Share** opens Content's share sheet.
 
 **Content's share sheet** (#251, on the phone). At the top, signed in, **Send with Content**: the
 people you sent something to before, with their Gravatar picture or first letter (one tap sends it
-to their inbox), and **Email address** to type another one. Below, the apps: the ones you pick most
+to their inbox), and **Email address**, which opens a field in the sheet to type another one and
+send it (#256; it says at once when there is no Content account for it). Below, the apps: the ones you pick most
 in this sheet first (Android doesn't tell apps which ones you use elsewhere, so Content counts the
 picks here, on this phone only; until then well-known messaging and mail apps come first), then
 **Copy link**, and **More** for Android's own share menu with every app.
 
-Connecting Instapaper changes nothing here: the buttons and their choices stay the
-same, and what is in Saved is also kept in the connected service.
+Connecting Instapaper changes nothing here: what is in Saved is also kept in the connected service.
 
-**Send with Content** (#235, #246). Signed in, other apps' share menus have **Send with Content**,
-and at the top the last few people you sent something to. Pick a person and Send with Content
-opens over the app you were in with their address filled in; tap **Send**. Pick Send with Content
-itself to type an address or tap one of the last twelve people you sent to. In the web app, signed
-in, **Share** opens Send with Content with the same people, and **Other apps** (or **Copy link**
-where the browser has no share menu) for everything else. One article at a time: sharing a whole
+**From other apps** (#235, #256). Sharing a link to **Content** opens **Save and share** over the app
+you were in. Signed in, the share menu also has the last few people you sent something to at the
+top: pick one and Save and share opens on **Don't save** with that person picked; tap **Send**. In
+the web app, signed in, **Share** opens Send with Content with the people you sent to before, and
+**Other apps** (or **Copy link** where the browser has no share menu) for everything else. One article at a time: sharing a whole
 tag is gone (#251). You can send to yourself too: it lands in your own inbox, with a notification
 on every device where they are on.
 
@@ -277,7 +272,6 @@ a web link says "No link to save".
   **Sign out**, **Delete synced data** and **Add an email address** (see Sync between devices).
 - **Article list:** View (Small, Medium, Large) and **Mark as read on scroll**.
 - **Reader:** **Load full articles**, **Show images**, and the same text settings as **Aa**, with a preview in the page colour you chose.
-- **Save and share:** see above.
 - **Appearance:** Theme (System, Light, Dark) and Dynamic color (wallpaper colours instead of
   the app's blue).
 

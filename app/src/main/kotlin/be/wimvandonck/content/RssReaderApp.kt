@@ -115,8 +115,8 @@ class RssReaderApp :
         appScope.launch {
             account.state.collect { state -> if (state is AccountState.SignedOut) push.signedOut() }
         }
-        // Direct share (#235, #246): Send with Content and the people shared with, in other apps' share
-        // menus, while signed in; the feed folders in the launcher's menu (#251).
+        // Direct share (#235, #256): the people shared with, in other apps' share menus, while signed in;
+        // the feed folders in the launcher's menu (#251).
         appScope.launch {
             val folders = library.library.filterNotNull().map { lib -> lib.folders.map { Triple(it.id, it.title, it.icon) } }.distinctUntilChanged()
             combine(settings.settings.filterNotNull(), account.state, folders) { s, state, f ->
@@ -125,7 +125,6 @@ class RssReaderApp :
                 val (signedIn, recipients, showImages) = shown
                 // A failure here must not end the collecting: the next change would never be published (#249).
                 runCatching {
-                    DirectShare.showSendTarget(this@RssReaderApp, signedIn)
                     val lib = library.library.value
                     DirectShare.publish(
                         this@RssReaderApp,

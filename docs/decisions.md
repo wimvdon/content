@@ -2,6 +2,31 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-25: Save and share, one rule for sheets and dialogs (#256)
+
+Asked for by the owner after a review of every sheet and flow.
+
+- **Save and share.** The one save sheet (#143) is now Save and share, everywhere: new, just saved
+  and organising a saved one. Under the note, signed in, **Send with Content**: the people shared
+  with as chips, several at once, and Add address (checked for a Content account before it joins
+  them). The button says Save, Save and send or Send, and one message says where it went and who
+  got it. Before the save there is also **Don't save**, to only send it; tags and note hide then.
+  The rules are plain Kotlin (`data/SendTo.kt`) and TypeScript (`web/src/lib/sendTo.ts`), tested
+  alike. No message to the receiver: the inbox doesn't show one since #246.
+- **Sharing from other apps** opens Save and share. The separate "Send with Content" target (the
+  `SendActivity` alias) and its dialog are gone. The people shared with stay in Android's share
+  menu (Direct share); they open Save and share on Don't save with that person picked.
+- **Share stays its own action**, Content's share sheet with the apps used most. Its Email address
+  is a field in the sheet now, not a dialog on top of it.
+- **Settings › Save button and Share button are gone**: Save is always Save and share, Share always
+  the share sheet, which already shows the apps you use most first. Their stored values are left
+  alone and no longer read.
+- **Sheets and dialogs:** a bottom sheet for anything done with an article or that needs room
+  (Report a problem and the folder sheet with its icon search are sheets now); a dialog only to
+  confirm or type one name. The web keeps its dialogs, which are the desktop's sheets.
+- Rejected: a separate Send sheet next to Save (two places to send from), and always saving what is
+  sent (a person picked in the share menu wants to send, not save).
+
 ## 2026-10-25: Links with tracking parameters are the same item, and duplicates join (#253)
 
 - The Archive held articles twice: once with Flipboard's `?utm_source=flipboard&…` and once

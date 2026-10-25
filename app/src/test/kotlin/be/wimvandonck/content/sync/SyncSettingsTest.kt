@@ -7,7 +7,6 @@ import be.wimvandonck.content.data.ReaderSpacing
 import be.wimvandonck.content.data.ReaderStyle
 import be.wimvandonck.content.data.ServiceImport
 import be.wimvandonck.content.data.Settings
-import be.wimvandonck.content.data.ShareTarget
 import be.wimvandonck.content.data.ThemeMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -18,7 +17,6 @@ class SyncSettingsTest {
         Settings(
             appearance = Settings().appearance.copy(themeMode = ThemeMode.Dark, dynamicColor = true),
             reader = ReaderStyle(ReaderFont.Sans, 22, ReaderSpacing.Relaxed, ReaderBackground.Sepia, autoDark = true),
-            saveTarget = ShareTarget.Sheet,
             unreadOnly = false,
             fullArticles = false,
             showImages = false,

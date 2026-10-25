@@ -1,9 +1,7 @@
 package be.wimvandonck.content.ui
 
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
@@ -26,36 +24,21 @@ import coil3.request.SuccessResult
 import coil3.toBitmap
 
 /**
- * Direct share (#235, #246): Send with Content in other apps' share menus (the SendActivity alias,
- * only while signed in), and the people shared with as sharing shortcuts at the top of them. Picking
- * one opens Send with Content with their address filled in. Pictures come from Gravatar when Show
- * images is on, else the first letter of the name. Content's own share sheet has both itself (#251).
+ * Direct share (#235, #256): the people shared with as sharing shortcuts at the top of other apps'
+ * share menus. Picking one opens Save and share on Don't save, with them picked to send to. Pictures
+ * come from Gravatar when Show images is on, else the first letter of the name. Content's own share
+ * sheet has them itself (#251).
  *
  * The same dynamic shortcuts hold the launcher's: long-pressing Content's icon offers the feed
  * folders (#251); the people are kept out of the launcher there.
  */
 object DirectShare {
-    /** The alias that takes links to send to a Content user (AndroidManifest.xml). */
-    const val SEND_ACTIVITY = "be.wimvandonck.content.ui.SendActivity"
-
     /** A person offered in the share menu: their address, name (else address) and picture. */
     private class Recipient(
         val email: String,
         val label: String,
         val picture: Bitmap,
     )
-
-    /** Shows Send with Content in the share menu while signed in, and hides it otherwise. */
-    fun showSendTarget(
-        context: Context,
-        signedIn: Boolean,
-    ) {
-        val state = if (signedIn) PackageManager.COMPONENT_ENABLED_STATE_ENABLED else PackageManager.COMPONENT_ENABLED_STATE_DISABLED
-        val component = ComponentName(context, SEND_ACTIVITY)
-        if (context.packageManager.getComponentEnabledSetting(component) != state) {
-            context.packageManager.setComponentEnabledSetting(component, state, PackageManager.DONT_KILL_APP)
-        }
-    }
 
     /**
      * Publishes the people (for the share menu, not the launcher) and the feed [folders] (for the

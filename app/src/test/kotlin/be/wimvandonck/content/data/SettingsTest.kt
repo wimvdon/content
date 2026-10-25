@@ -62,9 +62,6 @@ class SettingsTest {
     fun `defaults match the design`() {
         val settings = Settings()
         assertFalse(settings.appearance.dynamicColor)
-        // Save keeps the article in the app's own Saved list, also without an Instapaper account.
-        assertEquals(ShareTarget.Saved, settings.saveTarget)
-        assertEquals(ShareTarget.Sheet, settings.shareTarget)
         assertEquals(ReaderBackground.Default, settings.reader.background)
         assertFalse(settings.markReadOnScroll)
         assertEquals(ListView.Medium, settings.listView)

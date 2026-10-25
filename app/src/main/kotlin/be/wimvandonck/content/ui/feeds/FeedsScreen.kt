@@ -316,7 +316,7 @@ fun FeedsTab(
     editingFolder?.let { id ->
         val folder = state.folders.firstOrNull { it.id == id }
         if (id.isEmpty() || folder != null) {
-            FolderDialog(
+            FolderSheet(
                 folder = folder,
                 onSave = { title, icon ->
                     editingFolder = null
