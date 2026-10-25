@@ -11,8 +11,14 @@ Newest first. Add an entry for every notable choice: what was decided, why, and 
 - **Icons:** the favicon and the extension's icon drew the Android launcher icon whole, white box and
   adaptive-icon safe zone included, so the C filled less than half of a tab or toolbar icon. Now the
   C alone, cropped to 2 units of air (`web/public/icon.svg`'s viewBox `28 28 52 52`; the extension
-  gets PNGs at 16, 32, 48 and 128 pixels drawn from the same shapes). The web app's sidebar puts it in
-  its own white circle. Rejected: keeping the white box (it is what made the C small) and a dark
+  gets PNGs at 16, 32, 48 and 128 pixels drawn from the same shapes; the 128 one keeps the 16 pixels
+  of air Chrome asks for around 96). The web app's sidebar puts it in its own white circle.
+- **Where a box belongs:** a tab, toolbar or right-click icon is the C alone. An installed web app
+  is an app icon: `icon-192/512.png` ("any") are the C on a white rounded square that fills the
+  canvas, the C at about two thirds of it as the launcher icon shows it; `icon-maskable-192/512.png`
+  are white to the edges with the C inside the middle 80%, for Android to cut its own shape;
+  `apple-touch-icon.png` is the same for iPhone and iPad (no transparency, iOS rounds the corners).
+  Web notifications show the app icon. The Android launcher icon stays as it is. Rejected: keeping the white box (it is what made the C small) and a dark
   outline for dark tabs (the sky-to-navy C reads on both).
 - **The popup's button stayed grey in some browsers** (Arc, Vivaldi, Opera and the like open the
   popup as a window of its own, so "the active tab of the current window" was no page). It now asks
