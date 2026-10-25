@@ -175,8 +175,7 @@ fun FeedDrawer(
                             selected = inSaved && !saved.filter.likedOnly && saved.filter.tags.isEmpty(),
                             onClick = { onSavedFilter(saved.filter.copy(likedOnly = false, tags = emptySet())) },
                         )
-                        // Under Tags: Liked first, as on the chips, then the tags.
-                        SectionHeading(stringResource(R.string.tags_title))
+                        // Under Saved, without a heading (the owner's wish): Liked first, as on the chips, then the tags.
                         NavigationDrawerItem(
                             label = { Text(stringResource(R.string.reading_list_liked), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                             icon = { Icon(painterResource(R.drawable.ic_favorite), contentDescription = null) },
@@ -259,19 +258,6 @@ private fun SectionHeader(
             modifier = Modifier.rotate(turn),
         )
     }
-}
-
-@Composable
-private fun SectionHeading(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier =
-            Modifier
-                .padding(start = 16.dp, top = 16.dp, bottom = 8.dp)
-                .semantics { heading() },
-    )
 }
 
 @Composable

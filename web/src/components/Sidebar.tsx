@@ -142,9 +142,8 @@ export function Sidebar({
             label={t("saved")}
             count={toRead}
           />
-          {/* Under Tags: Liked first, as on the chips, then the tags. */}
+          {/* Under Saved, without a heading, as on Android: Liked first, as on the chips, then the tags. */}
           <div className="mt-2">
-            <span className="px-3 py-1 text-xs font-medium text-muted-foreground">{t("tags")}</span>
             <Row
               selected={inSaved && savedFilter.likedOnly}
               onClick={() => {

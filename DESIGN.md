@@ -271,7 +271,7 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   state), with Liked (heart) before the tags (#206). Group chips have no check mark and chosen
   ones keep their weight, so a chip never changes width and the row never moves (#208). An X at
   the end clears the group. The ☰ drawer lists the same groups (Feed and the
-  folders with their feeds; Saved, then under Tags Liked and the tags), never the states, with what is unread or still
+  folders with their feeds; Saved, then Liked and the tags), never the states, with what is unread or still
   to read as counts; picking there keeps the state. A folder picked in the drawer and its chip are
   one choice and light up together. The Mark all read FAB is on Feeds
   only and only marks the section shown; Saved's FAB is Add link.
@@ -327,7 +327,7 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   edit a feed). No dialog opens on top of a sheet.
 - The ☰ drawer: two sections that start open and stay as you fold them (#251): the Feeds section
   (Feed, the folders, the other feeds; a folder shows its feeds only while you are in it), the
-  Saved section (Saved with its count, then under Tags Liked and the tags with their counts), then
+  Saved section (Saved with its count, then Liked and the tags with their counts, without a Tags heading), then
   **Manage feeds and Saved** (the feed symbol with a pen) and Settings at the bottom.
 - Content's share sheet (#251): a `ModalBottomSheet` with the article's title and site, **Send with
   Content** (a row of the people shared with, avatar and name, and Email address, which opens an
