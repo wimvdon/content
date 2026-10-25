@@ -1,7 +1,8 @@
 package be.wimvandonck.content.ui.reader
 
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -21,19 +22,21 @@ import be.wimvandonck.content.data.SaveChoices
  * The reader's bar for a saved article (#139, #251): its folder on the left, which opens Organise
  * (the folder, Like, tags and the note in one sheet); the highlights and Share follow at the bar's
  * right end. One button leaves room on a phone, where the folder and the tags didn't fit side by side.
+ * An arrow down says it opens something; a long folder name gives way before the arrow does.
  */
 @Composable
-internal fun RowScope.SavedBar(item: ReaderItem) {
+internal fun SavedBar(item: ReaderItem) {
     val place = SaveChoices.of(item.item).place
     val name = placeName(place)
     // Read out as "Folder: To read", not as an action called "To read".
     val spoken = "${stringResource(R.string.folder_field)}: $name"
     TextButton(
         onClick = item.onOrganise,
-        modifier = Modifier.padding(start = 8.dp).weight(1f, fill = false).semantics(mergeDescendants = true) { contentDescription = spoken },
+        modifier = Modifier.padding(start = 8.dp).semantics(mergeDescendants = true) { contentDescription = spoken },
     ) {
         Icon(painterResource(placeIcon(place)), contentDescription = null)
-        Text(name, modifier = Modifier.padding(start = 8.dp), maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(name, modifier = Modifier.padding(start = 8.dp).weight(1f, fill = false), maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Icon(painterResource(R.drawable.ic_expand_more), contentDescription = null, modifier = Modifier.padding(start = 4.dp).size(ButtonDefaults.IconSize))
     }
 }
 

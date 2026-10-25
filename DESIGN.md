@@ -289,8 +289,9 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   full article as an `IconToggleButton`, on while it shows, but not for a saved article, which
   always shows the whole article (#208), then Aa and ⋮); the bottom app bar is
   this article in your library, on the left, with **Share** at its right end: a tonal **Save** before
-  it is saved, then one text button, its **folder** (To read or Archive, with its icon), which opens
-  Organise (#251: two buttons didn't fit on a phone). The label gives way (ellipsis). The text ends
+  it is saved, then one text button, its **folder** (To read or Archive, with its icon and an arrow down), which opens
+  Organise (#251: two buttons didn't fit on a phone). The label gives way (ellipsis); Share always sits
+  at the bar's right edge. The text ends
   with Read on website and nothing else. ⋮ holds the rare ones: Open in browser, Mark as unread,
   Sign in to this site (only while not signed in to it), Report a problem, Remove from Saved.
 - Highlights (#102): **Highlight** and **Note** come first in the menu over selected text, then
