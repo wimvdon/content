@@ -57,6 +57,60 @@ fun Library.putItem(item: Item): Library {
     }
 }
 
+/**
+ * Items whose links only differ in tracking parameters become one (#253): keys from before then,
+ * or synced in from an older app, become [ItemKeys.clean]. The item already under that key stays
+ * the main one; see [joinItems].
+ */
+fun Library.joinDuplicateItems(): Library {
+    if (items.all { ItemKeys.clean(it.key) == it.key }) return this
+    val joined = LinkedHashMap<String, Item>()
+    for (item in items) {
+        val key = ItemKeys.clean(item.key)
+        val moved = item.copy(key = key)
+        val there = joined[key]
+        joined[key] =
+            when {
+                there == null -> moved
+                item.key == key -> joinItems(moved, there)
+                else -> joinItems(there, moved)
+            }
+    }
+    return copy(items = joined.values.toList())
+}
+
+/**
+ * Two items of the same article as one: everything of the user's on either stays (tags, notes,
+ * highlights, liked, how far it was read); the reading list place is the latest one. [main] keeps
+ * its link and title.
+ */
+fun joinItems(
+    main: Item,
+    other: Item,
+): Item {
+    val reading = listOfNotNull(main.readingList, other.readingList).maxByOrNull { it.addedAt }
+    val from = if (reading === main.readingList) main else other
+    val article = if (main.feedUrl != null) main else other
+    return main.copy(
+        title = if (main.title == main.url && other.title != other.url) other.title else main.title,
+        description = main.description.ifBlank { other.description },
+        imageUrl = main.imageUrl ?: other.imageUrl,
+        feedUrl = article.feedUrl,
+        articleId = article.articleId,
+        createdAt = minOf(main.createdAt, other.createdAt),
+        readingList = reading,
+        folder = from.folder,
+        service = main.service ?: other.service,
+        bookmark = listOfNotNull(main.bookmark, other.bookmark).minByOrNull { it.addedAt },
+        liked = main.liked || other.liked,
+        tags = cleanTags(main.tags + other.tags),
+        note = listOf(main.note, other.note).filter { it.isNotBlank() }.distinct().joinToString("\n\n"),
+        highlights = (main.highlights + other.highlights).distinctBy { it.id }.sortedBy { it.createdAt },
+        progress = maxOf(main.progress, other.progress),
+        sharedBy = listOfNotNull(main.sharedBy, other.sharedBy).maxByOrNull { it.at },
+    )
+}
+
 /** Changes the item with [key], if there is one. */
 fun Library.changeItem(
     key: String,

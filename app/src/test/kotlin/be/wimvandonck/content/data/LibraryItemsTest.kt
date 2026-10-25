@@ -33,6 +33,58 @@ class LibraryItemsTest {
     ): Library = library.addToReadingList(url, null, now).first
 
     @Test
+    fun `a link with tracking parameters is the same item, other parameters still count (#253)`() {
+        val flipboard = "http://www.vulture.com/article/can-nirosta-steel-survive.html?utm_source=flipboard&utm_medium=s1&utm_campaign=nymag"
+        assertEquals("vulture.com/article/can-nirosta-steel-survive.html", ItemKeys.of(flipboard))
+        assertEquals(ItemKeys.of("https://vulture.com/article/can-nirosta-steel-survive.html"), ItemKeys.of(flipboard))
+        assertEquals("a.example/p?id=3&b=2", ItemKeys.of("https://a.example/p?id=3&utm_source=x&b=2"))
+        assertEquals("a.example/p", ItemKeys.of("https://a.example/p/?fbclid=1"))
+        assertTrue(ItemKeys.of("https://a.example/p?id=3") != ItemKeys.of("https://a.example/p?id=4"))
+        // Keys without tracking parameters stay exactly as before.
+        assertEquals("a.example/p?b=2&a=1", ItemKeys.of("https://a.example/p?b=2&a=1"))
+    }
+
+    @Test
+    fun `duplicates from before become one item with everything of both (#253)`() {
+        val old = "vulture.com/x.html?utm_source=flipboard"
+        val library =
+            Library(
+                items =
+                    listOf(
+                        Item(
+                            key = old, url = "http://www.vulture.com/x.html?utm_source=flipboard", title = "X", createdAt = 10,
+                            readingList = ReadingListEntry(ReadingState.Archived, 10), tags = listOf("tv"), note = "Mine",
+                            highlights = listOf(Highlight("h1", "quote", createdAt = 11)), progress = 0.5f,
+                        ),
+                        Item(
+                            key = "vulture.com/x.html", url = "https://www.vulture.com/x.html", title = "X", createdAt = 20,
+                            readingList = ReadingListEntry(ReadingState.Archived, 20), tags = listOf("TV", "recap"), liked = true,
+                        ),
+                        Item(key = "other.example/y", url = "https://other.example/y", title = "Y", createdAt = 5, liked = true),
+                    ),
+            )
+        val joined = library.joinDuplicateItems()
+        assertEquals(listOf("vulture.com/x.html", "other.example/y"), joined.items.map { it.key })
+        val item = joined.item("vulture.com/x.html")!!
+        assertEquals("https://www.vulture.com/x.html", item.url)
+        assertEquals(listOf("TV", "recap"), item.tags)
+        assertEquals("Mine", item.note)
+        assertEquals(listOf("h1"), item.highlights.map { it.id })
+        assertTrue(item.liked)
+        assertEquals(0.5f, item.progress)
+        assertEquals(10L, item.createdAt)
+        assertEquals(ReadingListEntry(ReadingState.Archived, 20), item.readingList)
+        // Nothing to join: the same library.
+        assertSame(joined, joined.joinDuplicateItems())
+    }
+
+    @Test
+    fun `an item synced in under a key from before moves to its new key`() {
+        val library = Library(items = listOf(Item(key = "a.example/1?utm_medium=feed", url = "https://a.example/1?utm_medium=feed", title = "One", createdAt = 1, liked = true)))
+        assertEquals(listOf("a.example/1"), library.joinDuplicateItems().items.map { it.key })
+    }
+
+    @Test
     fun `links written another way are one item`() {
         assertEquals(ItemKeys.of("https://www.Example.com/story/"), ItemKeys.of("http://example.com/story#part"))
         assertNull(ItemKeys.of(" "))

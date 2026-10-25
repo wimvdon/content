@@ -1,12 +1,15 @@
 package be.wimvandonck.content.services
 
+import be.wimvandonck.content.data.Item
 import be.wimvandonck.content.data.Library
+import be.wimvandonck.content.data.ReadingListEntry
 import be.wimvandonck.content.data.ReadingState
 import be.wimvandonck.content.data.Saved
 import be.wimvandonck.content.data.SavedTab
 import be.wimvandonck.content.data.addToReadingList
 import be.wimvandonck.content.data.changeItem
 import be.wimvandonck.content.data.item
+import be.wimvandonck.content.data.joinDuplicateItems
 import be.wimvandonck.content.data.setLiked
 import be.wimvandonck.content.data.setReadingState
 import be.wimvandonck.content.data.setTags
@@ -14,6 +17,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -501,7 +505,7 @@ class ServiceSyncTest {
         service.put(remote("9", "https://a.example/1?id=7"))
         assertNull(sync())
         assertEquals(1, library.items.count { it.readingList != null })
-        assertEquals("9", state.rows["a.example/1?utm_source=rss&id=7"]?.remoteId)
+        assertEquals("9", state.rows["a.example/1?id=7"]?.remoteId)
         assertEquals(1, service.entries.size)
     }
 
@@ -514,6 +518,41 @@ class ServiceSyncTest {
         assertEquals(1, library.items.count { it.readingList != null })
         assertTrue(state.rows.values.single { it.remoteId == "3" }.linked)
         assertEquals(1, service.entries.size)
+    }
+
+    @Test
+    fun `the same article twice there, with and without tracking parameters, becomes one here and there (#253)`() {
+        val old = "a.example/1?utm_source=flipboard"
+        library =
+            Library(
+                items =
+                    listOf(
+                        Item(key = old, url = "https://a.example/1?utm_source=flipboard", title = "Title 1", createdAt = 10, readingList = ReadingListEntry(ReadingState.Archived, 10), tags = listOf("tv")),
+                        Item(key = "a.example/1", url = "https://a.example/1", title = "Title 2", createdAt = 20, readingList = ReadingListEntry(ReadingState.Archived, 20)),
+                    ),
+            )
+        service.put(remote("1", "https://a.example/1?utm_source=flipboard", archived = true, tags = listOf("tv")))
+        service.put(remote("2", "https://a.example/1", archived = true))
+        state = ServiceState(service.clock.toString(), mapOf(old to service.entries.getValue("1").copy(linked = true), "a.example/1" to service.entries.getValue("2").copy(linked = true)))
+
+        // What the repository does when it reads the library and this state.
+        library = library.joinDuplicateItems()
+        state = ServiceSync.rekey(state)
+        assertNull(sync())
+
+        assertEquals(listOf("a.example/1"), library.items.map { it.key })
+        assertEquals(listOf("tv"), library.items.single().tags)
+        assertEquals(listOf("2"), service.entries.keys.toList())
+        assertEquals(listOf("tv"), service.entries.getValue("2").tags)
+        assertEquals(setOf("a.example/1"), state.rows.keys)
+    }
+
+    @Test
+    fun `a row from before under a key with tracking parameters moves to the item's new key`() {
+        val moved = ServiceSync.rekey(ServiceState("1", mapOf("a.example/1?utm_source=x" to remote("1", "https://a.example/1?utm_source=x"))))
+        assertEquals(setOf("a.example/1"), moved.rows.keys)
+        val clean = ServiceState("1", mapOf("a.example/1" to remote("1", "https://a.example/1")))
+        assertSame(clean, ServiceSync.rekey(clean))
     }
 
     @Test

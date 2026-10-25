@@ -7,6 +7,7 @@ import {
   itemOf,
   itemsOf,
   itemTags,
+  joinDuplicateItems,
   keepAsBookmark,
   keyOfLink,
   readingList,
@@ -32,6 +33,42 @@ const withArticle: Library = mergeFeed(
 );
 
 const saved = (lib = withArticle, url = "http://example.com/story#top", now = 1_000) => addToReadingList(lib, url, null, now)[0];
+
+describe("tracking parameters (#253)", () => {
+  it("a link with tracking parameters is the same item, other parameters still count", () => {
+    const flipboard = "http://www.vulture.com/article/can-nirosta-steel-survive.html?utm_source=flipboard&utm_medium=s1&utm_campaign=nymag";
+    expect(keyOfLink(flipboard)).toBe("vulture.com/article/can-nirosta-steel-survive.html");
+    expect(keyOfLink("https://a.example/p?id=3&utm_source=x&b=2")).toBe("a.example/p?id=3&b=2");
+    expect(keyOfLink("https://a.example/p/?fbclid=1")).toBe("a.example/p");
+    expect(keyOfLink("https://a.example/p?id=3")).not.toBe(keyOfLink("https://a.example/p?id=4"));
+    // Keys without tracking parameters stay exactly as before.
+    expect(keyOfLink("https://a.example/p?b=2&a=1")).toBe("a.example/p?b=2&a=1");
+  });
+  it("duplicates from before become one item with everything of both", () => {
+    const base = { title: "X", description: "", imageUrl: null, feedUrl: null, articleId: null, folder: null, service: null, bookmark: null, liked: false, note: "", highlights: [], progress: 0 };
+    const lib: Library = {
+      ...emptyLibrary(),
+      items: [
+        { ...base, key: "vulture.com/x.html?utm_source=flipboard", url: "http://www.vulture.com/x.html?utm_source=flipboard", createdAt: 10, readingList: { state: "archived", addedAt: 10 }, tags: ["tv"], note: "Mine", highlights: [{ id: "h1", quote: "quote", prefix: "", suffix: "", occurrence: 0, note: "", createdAt: 11 }], progress: 0.5 },
+        { ...base, key: "vulture.com/x.html", url: "https://www.vulture.com/x.html", createdAt: 20, readingList: { state: "archived", addedAt: 20 }, tags: ["TV", "recap"], liked: true },
+        { ...base, key: "other.example/y", url: "https://other.example/y", createdAt: 5, readingList: null, tags: [], liked: true },
+      ],
+    };
+    const joined = joinDuplicateItems(lib);
+    expect(joined.items.map((i) => i.key)).toEqual(["vulture.com/x.html", "other.example/y"]);
+    expect(itemOf(joined, "vulture.com/x.html")).toMatchObject({
+      url: "https://www.vulture.com/x.html",
+      tags: ["TV", "recap"],
+      note: "Mine",
+      liked: true,
+      progress: 0.5,
+      createdAt: 10,
+      readingList: { state: "archived", addedAt: 20 },
+    });
+    expect(itemOf(joined, "vulture.com/x.html")!.highlights.map((h) => h.id)).toEqual(["h1"]);
+    expect(joinDuplicateItems(joined)).toBe(joined);
+  });
+});
 
 describe("items: one per link (#106)", () => {
   it("treats links written another way as one", () => {

@@ -94,8 +94,12 @@ and JSON data (`null` once deleted):
 | `item:<item key>` | A saved item (`data/Items.kt`): `url`, `title`, `imageUrl`, `feedUrl`, `articleId`, `createdAt`, `readingList` (`{"state": "toread" \| "archived", "addedAt"}` or `null`), `folder` (its folder while to read, #119, or `null`), `bookmark` (`{"addedAt", "collection"}` or `null`; from before #119, moved into `folder` by the Android app), `service` (the service it is kept in, `"instapaper"` or `"raindrop"`, #121, or `null`), `liked`, `tags`, `note`, `highlights` (each `{"id", "quote", "prefix", "suffix", "occurrence", "note", "createdAt"}`), `progress` (thousandths, 0 to 1000) and `sharedBy` (who shared it with you, #167: `{"email", "name", "at", "waits", "read"}` or `null`; `waits` is true while it is in the inbox (#246), whether or not it also has `readingList`, and `read` once opened there; the latest share replaces the earlier one; a `message` from before #246 is ignored) |
 | `read:<feed url> <article id>` | A read feed article: `{"time": <the article's date in ms>}` |
 
-- The item key is the link without `http(s)://`, `www.`, a trailing slash and the `#part`, in lower
-  case (`ItemKeys`, web `keyOfLink`), so a saved feed article and its item share one key.
+- The item key is the link without `http(s)://`, `www.`, a trailing slash, the `#part` and tracking
+  parameters (`utm_…`, `fbclid` and the like; other parameters stay in their order), in lower case
+  (`ItemKeys`, web `keyOfLink`), so a saved feed article and its item share one key. Tracking
+  parameters count since #253; an item still under a key with them (from before, or from an older
+  app) moves to its new key and joins the item already there (`joinDuplicateItems`): the old row
+  is removed and the new one saved, once.
 - The article id is the item's `guid` (RSS) or `id` (Atom), else its link, else `hash:` + the hex of
   Java's `String.hashCode` of `title|date|first 500 characters of the text` (see
   `FeedParser.fallbackId`). The web app computes the same ids.
