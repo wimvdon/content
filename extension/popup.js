@@ -4,17 +4,37 @@
 
 const WEB_APP = "https://rss-reader-web.wim-d57.workers.dev";
 
-const dutch = navigator.language.toLowerCase().startsWith("nl");
-const text = dutch ? { save: "Bewaren in Content", none: "Deze pagina kan niet bewaard worden." } : { save: "Save to Content", none: "This page can't be saved." };
+// In the browser's language, from _locales (#257).
+const text = { save: chrome.i18n.getMessage("saveToContent"), none: chrome.i18n.getMessage("cannotSave") };
+document.documentElement.lang = chrome.i18n.getUILanguage();
+document.title = text.save;
 
 document.getElementById("title").textContent = text.save;
 const button = document.getElementById("save");
 button.textContent = text.save;
 
-chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+/**
+ * The page you're on. Some browsers (Arc, Vivaldi, Opera and others) open the popup as a window of
+ * its own, so "the current window" has no page and the button stayed grey: ask for the window used
+ * last first, then the current one, and take a page still loading by its pending address.
+ */
+async function pageTab() {
+  for (const query of [{ active: true, lastFocusedWindow: true }, { active: true, currentWindow: true }]) {
+    try {
+      const tabs = await chrome.tabs.query(query);
+      const tab = tabs.find((t) => /^https?:\/\//.test(t.url || t.pendingUrl || ""));
+      if (tab) return tab;
+    } catch {
+      // This browser doesn't know that question: try the next one.
+    }
+  }
+  return null;
+}
+
+pageTab().then((tab) => {
   const page = document.getElementById("page");
-  const url = tab?.url ?? "";
-  if (!/^https?:\/\//.test(url)) {
+  const url = tab ? tab.url || tab.pendingUrl : "";
+  if (!url) {
     page.textContent = text.none;
     return;
   }

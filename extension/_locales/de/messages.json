@@ -1,0 +1,20 @@
+{
+  "extName": {
+    "message": "Content"
+  },
+  "extDescription": {
+    "message": "Lädt Seiten für die Content-Web-App aus deinem eigenen Browser, mit deinen eigenen Anmeldungen, und speichert die Seite, auf der du bist, oder einen Link in Content."
+  },
+  "saveToContent": {
+    "message": "In Content speichern",
+    "description": "The toolbar button, its popup's title and button, and the right-click menu on a page"
+  },
+  "saveLinkToContent": {
+    "message": "Link in Content speichern",
+    "description": "The right-click menu on a link"
+  },
+  "cannotSave": {
+    "message": "Diese Seite kann nicht gespeichert werden.",
+    "description": "In the popup, on a page that isn't http(s)"
+  }
+}

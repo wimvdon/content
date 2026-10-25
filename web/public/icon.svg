@@ -1,5 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108">
-  <!-- The launcher icon of the Android app: a C built from the feed symbol's dot and arcs, sky → azure → navy, on white. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="28 28 52 52">
+  <!-- The C of the Android app's launcher icon: the feed symbol's dot and arcs, sky → azure → navy. No
+       white box and cropped to the C (the launcher's padding is its safe zone): a tab shows it whole. -->
   <defs>
     <linearGradient id="g" gradientUnits="userSpaceOnUse" x1="30" y1="30" x2="78" y2="78">
       <stop offset="0" stop-color="#4FC3F7"/>
@@ -7,6 +8,5 @@
       <stop offset="1" stop-color="#0D47A1"/>
     </linearGradient>
   </defs>
-  <rect width="108" height="108" rx="24" fill="#fff"/>
   <path fill="url(#g)" d="M70.97,70.97 A24.00,24.00 0 1,1 70.97,37.03 A3.35,3.35 0 0,1 66.24,41.76 A17.30,17.30 0 1,0 66.24,66.24 A3.35,3.35 0 0,1 70.97,70.97Z M64.06,64.06 A14.23,14.23 0 1,1 64.06,43.94 A3.35,3.35 0 0,1 59.33,48.67 A7.54,7.54 0 1,0 59.33,59.33 A3.35,3.35 0 0,1 64.06,64.06Z M49.54,54.00A4.46,4.46 0 1,0 58.46,54.00A4.46,4.46 0 1,0 49.54,54.00Z"/>
 </svg>

@@ -2,6 +2,22 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-25: The extension: right-click, its own languages, icons without the white box (#257)
+
+- Asked for by the owner. **Right-click**: Save to Content on a page and Save link to Content on a
+  link (the `contextMenus` permission, which reads nothing and adds no warning when installing).
+- **Languages:** the extension's name, description and texts in the app's six languages through
+  `_locales` (Chrome and Firefox both read it); the popup only knew Dutch and English.
+- **Icons:** the favicon and the extension's icon drew the Android launcher icon whole, white box and
+  adaptive-icon safe zone included, so the C filled less than half of a tab or toolbar icon. Now the
+  C alone, cropped to 2 units of air (`web/public/icon.svg`'s viewBox `28 28 52 52`; the extension
+  gets PNGs at 16, 32, 48 and 128 pixels drawn from the same shapes). The web app's sidebar puts it in
+  its own white circle. Rejected: keeping the white box (it is what made the C small) and a dark
+  outline for dark tabs (the sky-to-navy C reads on both).
+- **The popup's button stayed grey in some browsers** (Arc, Vivaldi, Opera and the like open the
+  popup as a window of its own, so "the active tab of the current window" was no page). It now asks
+  for the window used last first, then the current one.
+
 ## 2026-10-25: Save and share, one rule for sheets and dialogs (#256)
 
 Asked for by the owner after a review of every sheet and flow.

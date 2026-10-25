@@ -1,0 +1,20 @@
+{
+  "extName": {
+    "message": "Content"
+  },
+  "extDescription": {
+    "message": "Laadt pagina's voor de Content-webapp vanuit je eigen browser, met je eigen aanmeldingen, en bewaart de pagina waarop je bent, of een link, in Content."
+  },
+  "saveToContent": {
+    "message": "Bewaren in Content",
+    "description": "The toolbar button, its popup's title and button, and the right-click menu on a page"
+  },
+  "saveLinkToContent": {
+    "message": "Link bewaren in Content",
+    "description": "The right-click menu on a link"
+  },
+  "cannotSave": {
+    "message": "Deze pagina kan niet bewaard worden.",
+    "description": "In the popup, on a page that isn't http(s)"
+  }
+}

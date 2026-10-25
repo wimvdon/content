@@ -2,7 +2,7 @@
 // there and passes its fetch requests to background.js, which loads them with this browser's own
 // cookies. Messages carry {source: "content-web" | "content-extension"} so nothing else is answered.
 
-const VERSION = "1.0.0";
+const VERSION = "1.1.0";
 
 function hello() {
   window.postMessage({ source: "content-extension", type: "hello", version: VERSION }, window.location.origin);
