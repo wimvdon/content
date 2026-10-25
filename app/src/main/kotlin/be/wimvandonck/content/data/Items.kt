@@ -42,7 +42,7 @@ data class Highlight(
  * moves between sections.
  */
 data class Item(
-    /** [ItemKeys.of] the link: links that only differ in http(s), www., a trailing slash or #part are one item. */
+    /** [ItemKeys.of] the link: links that only differ in http(s), www., a trailing slash, #part or tracking parameters are one item. */
     val key: String,
     val url: String,
     val title: String,
@@ -97,30 +97,49 @@ data class Item(
 
 /** Item keys: one per link, whatever way the link is written. Plain Kotlin, the same as the web app's. */
 object ItemKeys {
-    /** An address without what doesn't change the page (http(s), www., a trailing slash, the #part), lower case. */
+    /**
+     * An address without what doesn't change the page (http(s), www., a trailing slash, the #part,
+     * tracking parameters such as utm_…), lower case. Tracking parameters count since #253: a link
+     * shared from Flipboard and the same article from its feed or Instapaper were two items.
+     */
     fun of(url: String?): String? {
         if (url.isNullOrBlank()) return null
-        return url
-            .trim()
-            .substringBefore('#')
-            .replaceFirst(Regex("^https?://", RegexOption.IGNORE_CASE), "")
-            .replaceFirst(Regex("^www\\.", RegexOption.IGNORE_CASE), "")
-            .trimEnd('/')
-            .lowercase()
-            .ifEmpty { null }
+        val key =
+            url
+                .trim()
+                .substringBefore('#')
+                .replaceFirst(Regex("^https?://", RegexOption.IGNORE_CASE), "")
+                .replaceFirst(Regex("^www\\.", RegexOption.IGNORE_CASE), "")
+                .trimEnd('/')
+                .lowercase()
+        return clean(key).ifEmpty { null }
     }
 
     /**
-     * [of] without tracking parameters (utm_… and the like), for recognising the same article
-     * when a service stores its link without them. Never used as an item's key: only to find
-     * one that already exists (ServiceSync.keyFor).
+     * A key without tracking parameters (the other parameters stay as they are), so keys made before
+     * #253 become what [of] makes now ([joinDuplicateItems]).
+     */
+    fun clean(key: String): String {
+        val q = key.indexOf('?')
+        if (q < 0) return key
+        val params = key.substring(q + 1).split('&')
+        val kept = params.filter { it.isNotEmpty() && !TRACKING.matches(it.substringBefore('=')) }
+        if (kept.size == params.size) return key
+        val base = key.substring(0, q)
+        return if (kept.isEmpty()) base.trimEnd('/') else base + "?" + kept.joinToString("&")
+    }
+
+    /**
+     * [of] with its parameters in order, for recognising the same article when a service stores its
+     * link another way. Never used as an item's key: only to find one that already exists
+     * (ServiceSync.keyFor).
      */
     fun loose(url: String?): String? {
         val key = of(url) ?: return null
         val q = key.indexOf('?')
         if (q < 0) return key
         val base = key.substring(0, q).trimEnd('/')
-        val kept = key.substring(q + 1).split('&').filter { it.isNotEmpty() && !TRACKING.matches(it.substringBefore('=')) }.sorted()
+        val kept = key.substring(q + 1).split('&').filter { it.isNotEmpty() }.sorted()
         return if (kept.isEmpty()) base else base + "?" + kept.joinToString("&")
     }
 

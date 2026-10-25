@@ -15,11 +15,11 @@ import {
 } from "./instapaper";
 import { applyHighlights, notCopied, syncHighlights, type HighlightLink } from "./highlightCopy";
 import { INSTAPAPER_ID, InstapaperSync } from "./instapaperSync";
-import { addHighlight, changeItem, itemOf, putItem, removeHighlight, renameTag, setHighlightNote, setLiked, type Highlight, type Item } from "./items";
+import { addHighlight, changeItem, itemOf, joinDuplicateItems, putItem, removeHighlight, renameTag, setHighlightNote, setLiked, type Highlight, type Item } from "./items";
 import { markInboxRead, removeFromInbox } from "./inbox";
 import { applyChoice, saveNew, undoSave, type SaveChoice } from "./saveChoice";
 import * as Saved from "./saved";
-import { emptyServiceSyncState, importService, syncService, type ServiceSyncState } from "./serviceSync";
+import { emptyServiceSyncState, importService, rekeyed, syncService, type ServiceSyncState } from "./serviceSync";
 import type { ServiceImport } from "./serviceImport";
 import { changesBetween, loadItemSyncState, loadLibrary, writeItemSyncState, writeLibrary } from "./libraryStore";
 import { emptyItemSyncState, syncItems } from "./syncRows";
@@ -260,8 +260,9 @@ class AppStore {
   // Library changes: stored at once, synced a few seconds later.
   private updateLibrary(change: (lib: L.Library) => L.Library, syncSoon = true) {
     const before = this.state.library;
-    // A folder (from an older app, another device or filed here) becomes a tag (#187).
-    const library = L.feedFoldersToTags(Saved.foldersToTags(change(before)));
+    // A folder (from an older app, another device or filed here) becomes a tag (#187); items of the
+    // same article become one (#253).
+    const library = joinDuplicateItems(L.feedFoldersToTags(Saved.foldersToTags(change(before))));
     if (library === before) return;
     // When each saved item last changed here, for "the later change wins" with a service (#145).
     if (before.items !== library.items) {
@@ -862,7 +863,7 @@ class AppStore {
    * does. Only articles with something to do cost a call; it stops at the first problem and goes on next time.
    */
   private async copyHighlights(service: InstapaperSync, state: ServiceSyncState): Promise<void> {
-    const stored = (await load<Record<string, Record<string, HighlightLink>>>(INSTAPAPER_HIGHLIGHTS_KEY).catch(() => undefined)) ?? {};
+    const stored = rekeyed((await load<Record<string, Record<string, HighlightLink>>>(INSTAPAPER_HIGHLIGHTS_KEY).catch(() => undefined)) ?? {});
     const links: Record<string, Record<string, HighlightLink>> = {};
     for (const [key, byId] of Object.entries(stored)) if (state.rows[key] && state.rows[key].linked !== false) links[key] = byId;
     const now = Date.now();
@@ -922,7 +923,8 @@ class AppStore {
 
   private async instapaperState(): Promise<ServiceSyncState> {
     const state = (await load<ServiceSyncState>(INSTAPAPER_SYNC_KEY).catch(() => undefined)) ?? emptyServiceSyncState;
-    return { cursor: state.cursor ?? null, rows: state.rows ?? {} };
+    // Keys from before #253 follow the items (joinDuplicateItems).
+    return { cursor: state.cursor ?? null, rows: rekeyed(state.rows ?? {}) };
   }
 
   // Sync with the Reader account, the same way as the Android app (docs/sync.md).

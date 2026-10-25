@@ -3,11 +3,13 @@ package be.wimvandonck.content.sync
 import be.wimvandonck.content.data.Article
 import be.wimvandonck.content.data.Feed
 import be.wimvandonck.content.data.Highlight
+import be.wimvandonck.content.data.Item
 import be.wimvandonck.content.data.Library
 import be.wimvandonck.content.data.ReadingState
 import be.wimvandonck.content.data.addToReadingList
 import be.wimvandonck.content.data.changeItem
 import be.wimvandonck.content.data.item
+import be.wimvandonck.content.data.joinDuplicateItems
 import be.wimvandonck.content.data.Saved
 import be.wimvandonck.content.data.setLiked
 import be.wimvandonck.content.data.setReadingState
@@ -15,6 +17,7 @@ import be.wimvandonck.content.data.setTags
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -262,6 +265,33 @@ class ItemSyncTest {
         phone.sync(account)
         laptop.sync(account)
         assertTrue(laptop.library.article("$feed 1")!!.read)
+    }
+
+    @Test
+    fun `an item from an older app under a key with tracking parameters moves once, everywhere (#253)`() {
+        val account = FakeItems()
+        val old = "a.example/1?utm_source=flipboard"
+        val item = Item(key = old, url = "https://a.example/1?utm_source=flipboard", title = "One", createdAt = 1, liked = true)
+        // A phone with the older app, which keeps the old key.
+        val phone = Device(Library(items = listOf(item)))
+        phone.sync(account)
+        // This version tidies every change as the repository does (joinDuplicateItems).
+        var laptop = Library()
+        var laptopState = ItemSyncState()
+        fun laptopSync() =
+            runBlocking { laptopState = ItemSync.run(account, laptopState, now) { change -> change(laptop).joinDuplicateItems().also { laptop = it } } }
+        laptopSync()
+        laptopSync()
+        assertEquals(listOf("a.example/1"), laptop.items.map { it.key })
+        assertNull(account.rows["item:$old"]?.data)
+        assertNotNull(account.rows["item:a.example/1"]?.data)
+        phone.sync(account)
+        assertEquals(listOf("a.example/1"), phone.library.items.map { it.key })
+        // Settled: syncing again sends nothing.
+        val sends = account.sent.size
+        laptopSync()
+        phone.sync(account)
+        assertEquals(sends, account.sent.size)
     }
 
     @Test

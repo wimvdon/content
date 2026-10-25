@@ -20,6 +20,7 @@ import be.wimvandonck.content.feed.SiteIcon
 import be.wimvandonck.content.services.ServiceRows
 import be.wimvandonck.content.services.HighlightCopy
 import be.wimvandonck.content.services.ServiceState
+import be.wimvandonck.content.services.ServiceSync
 import be.wimvandonck.content.sync.ItemRow
 import be.wimvandonck.content.sync.ItemSyncState
 import be.wimvandonck.content.sync.Json
@@ -90,8 +91,9 @@ class LibraryRepository(
 
     private suspend fun load(): Library {
         val read = LibraryRows.library(dao.read())
-        // A folder becomes a tag (#187), and a feed's tag follows its folder (#186).
-        val settled = Saved.foldersToTags(read).feedFoldersToTags()
+        // A folder becomes a tag (#187), a feed's tag follows its folder (#186), and items of the same
+        // article become one (#253).
+        val settled = Saved.foldersToTags(read).feedFoldersToTags().joinDuplicateItems()
         if (settled !== read) dao.write(LibraryChanges.between(read, settled))
         return settled
     }
@@ -117,8 +119,8 @@ class LibraryRepository(
         writeLock.withLock {
             val old = current()
             val (changed, value) = change(old)
-            // A folder (filed here or synced in) becomes a tag (#187).
-            val updated = Saved.foldersToTags(changed).feedFoldersToTags()
+            // A folder (filed here or synced in) becomes a tag (#187); items of the same article become one (#253).
+            val updated = Saved.foldersToTags(changed).feedFoldersToTags().joinDuplicateItems()
             if (updated !== old) {
                 val changes = LibraryChanges.between(old, updated)
                 if (!changes.isEmpty) dao.write(changes)
@@ -188,7 +190,11 @@ class LibraryRepository(
     /** What this device last saw of the reading list at [service] (services/ServiceSync.kt). */
     suspend fun serviceState(service: String): ServiceState {
         val rows = dao.serviceRows(service).mapNotNull { row -> ServiceRows.decode(row.data)?.let { row.itemKey to it } }.toMap()
-        return ServiceState(dao.meta("$service-cursor"), rows, ServiceRows.decodeOrigins(dao.meta("$service-origins")), HighlightCopy.decode(dao.meta("$service-highlights")))
+        val stored = ServiceState(dao.meta("$service-cursor"), rows, ServiceRows.decodeOrigins(dao.meta("$service-origins")), HighlightCopy.decode(dao.meta("$service-highlights")))
+        // Keys from before #253 follow the items (joinDuplicateItems), stored at once so they move only once.
+        val settled = ServiceSync.rekey(stored)
+        if (settled !== stored && stored.cursor != null) saveServiceState(service, stored, settled)
+        return settled
     }
 
     /** Stores [next] after a service sync that started from [previous]; null forgets the service (signed out). */

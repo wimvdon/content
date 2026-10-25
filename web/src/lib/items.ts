@@ -38,7 +38,7 @@ export interface Highlight {
  * copied. Memberships are independent: adding or removing one never changes the other.
  */
 export interface Item {
-  /** keyOfLink(url): links that only differ in http(s), www., a trailing slash or #part are one item. */
+  /** keyOfLink(url): links that only differ in http(s), www., a trailing slash, #part or tracking parameters are one item. */
   key: string;
   url: string;
   title: string;
@@ -91,15 +91,29 @@ export function keyOfLink(url: string | null | undefined): string | null {
     .replace(/^www\./i, "")
     .replace(/\/+$/, "")
     .toLowerCase();
-  return key || null;
+  return cleanKey(key) || null;
 }
 
 const TRACKING = /^(utm_.*|fbclid|gclid|dclid|msclkid|mc_cid|mc_eid|igshid|_hsenc|_hsmi|mkt_tok|ref_src|cmpid|ocid)$/;
 
 /**
- * keyOfLink without tracking parameters (utm_… and the like), for recognising the same article when
- * a service stores its link without them. Never an item's key: only to find one that exists
- * (serviceSync.ts keyFor), like the Android app's ItemKeys.loose.
+ * A key without tracking parameters (utm_… and the like; the other parameters stay as they are), so
+ * keys made before #253 become what keyOfLink makes now (joinDuplicateItems). Like ItemKeys.clean.
+ */
+export function cleanKey(key: string): string {
+  const q = key.indexOf("?");
+  if (q < 0) return key;
+  const params = key.slice(q + 1).split("&");
+  const kept = params.filter((p) => p !== "" && !TRACKING.test(p.split("=")[0]));
+  if (kept.length === params.length) return key;
+  const base = key.slice(0, q);
+  return kept.length === 0 ? base.replace(/\/+$/, "") : `${base}?${kept.join("&")}`;
+}
+
+/**
+ * keyOfLink with its parameters in order, for recognising the same article when a service stores its
+ * link another way. Never an item's key: only to find one that exists (serviceSync.ts keyFor), like
+ * the Android app's ItemKeys.loose.
  */
 export function looseKeyOfLink(url: string | null | undefined): string | null {
   const key = keyOfLink(url);
@@ -110,7 +124,7 @@ export function looseKeyOfLink(url: string | null | undefined): string | null {
   const kept = key
     .slice(q + 1)
     .split("&")
-    .filter((p) => p !== "" && !TRACKING.test(p.split("=")[0]))
+    .filter((p) => p !== "")
     .sort();
   return kept.length === 0 ? base : `${base}?${kept.join("&")}`;
 }
@@ -175,6 +189,57 @@ export function putItem(lib: Library, item: Item): Library {
   const items = [...lib.items];
   items[index] = item;
   return { ...lib, items };
+}
+
+/**
+ * Items whose links only differ in tracking parameters become one (#253): keys from before then, or
+ * synced in from an older app, become cleanKey. The item already under that key stays the main one.
+ * Like the Android app's joinDuplicateItems.
+ */
+export function joinDuplicateItems(lib: Library): Library {
+  if (lib.items.every((i) => cleanKey(i.key) === i.key)) return lib;
+  const joined = new Map<string, Item>();
+  for (const item of lib.items) {
+    const key = cleanKey(item.key);
+    const moved = { ...item, key };
+    const there = joined.get(key);
+    joined.set(key, !there ? moved : item.key === key ? joinItems(moved, there) : joinItems(there, moved));
+  }
+  return { ...lib, items: [...joined.values()] };
+}
+
+/**
+ * Two items of the same article as one: everything of the user's on either stays (tags, notes,
+ * highlights, liked, how far it was read); the reading list place is the latest one. `main` keeps its
+ * link and title. Like the Android app's joinItems.
+ */
+export function joinItems(main: Item, other: Item): Item {
+  const reading = [main.readingList, other.readingList].filter((r): r is ReadingListEntry => r !== null).sort((a, b) => b.addedAt - a.addedAt)[0] ?? null;
+  const from = reading === main.readingList ? main : other;
+  const article = main.feedUrl !== null ? main : other;
+  const bookmark = [main.bookmark, other.bookmark].filter((b): b is BookmarkEntry => b !== null).sort((a, b) => a.addedAt - b.addedAt)[0] ?? null;
+  const shares = [main.sharedBy, other.sharedBy].filter((x): x is SharedBy => !!x).sort((a, b) => (b.at ?? 0) - (a.at ?? 0));
+  const highlights = new Map<string, Highlight>();
+  for (const h of [...main.highlights, ...other.highlights]) if (!highlights.has(h.id)) highlights.set(h.id, h);
+  return {
+    ...main,
+    title: main.title === main.url && other.title !== other.url ? other.title : main.title,
+    description: main.description.trim() ? main.description : other.description,
+    imageUrl: main.imageUrl ?? other.imageUrl,
+    feedUrl: article.feedUrl,
+    articleId: article.articleId,
+    createdAt: Math.min(main.createdAt, other.createdAt),
+    readingList: reading,
+    folder: from.folder,
+    service: main.service ?? other.service,
+    bookmark,
+    liked: main.liked || other.liked,
+    tags: cleanTags([...main.tags, ...other.tags]),
+    note: [...new Set([main.note, other.note].filter((n) => n.trim() !== ""))].join("\n\n"),
+    highlights: [...highlights.values()].sort((a, b) => a.createdAt - b.createdAt),
+    progress: Math.max(main.progress, other.progress),
+    sharedBy: shares[0] ?? null,
+  };
 }
 
 export function changeItem(lib: Library, key: string, change: (i: Item) => Item): Library {

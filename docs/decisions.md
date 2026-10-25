@@ -2,6 +2,24 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-25: Links with tracking parameters are the same item, and duplicates join (#253)
+
+- The Archive held articles twice: once with Flipboard's `?utm_source=flipboard&…` and once
+  without (from the feed or Instapaper). The item key now leaves out tracking parameters
+  (`ItemKeys.of`, web `keyOfLink`), the same list `ItemKeys.loose` already ignored for Instapaper
+  since 2026-10-22. Other parameters stay as they were, so no other key changes.
+- Duplicates made before join once, on each device, when it reads the library and after every
+  change (`joinDuplicateItems`, in `LibraryRepository` and the web app's `updateLibrary`):
+  everything of the user's on either stays (tags, notes, highlights, liked, progress), the reading
+  list place is the latest one, and the item already under the clean key keeps its link and title.
+  Items synced in from an older app under an old key join the same way, so the account settles
+  after one round.
+- A service's rows move with their items (`ServiceSync.rekey`, web `rekeyed`). When the service
+  had the article twice, the second copy keeps its old key, which no item has any more, so the
+  next sync removes that copy there, as for any article taken out of Saved (with the same safety
+  net for large removals). Rejected: leaving the copy there (it would come back as a new article
+  once the main one is removed).
+
 ## 2026-10-25: Read marks are kept for two years, not 120 days (#245)
 
 Articles read on one device stayed unread on the others for GORILLA VS. BEAR. Not because of the dot

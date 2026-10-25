@@ -8,7 +8,7 @@
  * importService, once. A failed call keeps everything and is tried again.
  */
 
-import { cleanTags, itemOf, keyOfLink, looseKeyOfLink, newItem, putItem, type Item } from "./items";
+import { cleanKey, cleanTags, itemOf, keyOfLink, looseKeyOfLink, newItem, putItem, type Item } from "./items";
 import type { Library } from "./library";
 import { mergeTags } from "./syncRows";
 
@@ -67,6 +67,23 @@ export interface ServiceSyncState {
 }
 
 export const emptyServiceSyncState: ServiceSyncState = { cursor: null, rows: {} };
+
+/**
+ * A state's map with its keys as the items have them since #253 (cleanKey). An entry already under
+ * that key keeps it; a second one for the same article (the service has it twice) stays under its old
+ * key, which no item has any more, so the next sync removes that copy there like any article taken
+ * out of Saved. Like the Android app's ServiceSync.rekey.
+ */
+export function rekeyed<T>(map: Record<string, T>): Record<string, T> {
+  if (Object.keys(map).every((k) => cleanKey(k) === k)) return map;
+  const out: Record<string, T> = {};
+  for (const [k, v] of Object.entries(map)) if (cleanKey(k) === k) out[k] = v;
+  for (const [k, v] of Object.entries(map)) {
+    const clean = cleanKey(k);
+    if (clean !== k) out[clean in out ? k : clean] = v;
+  }
+  return out;
+}
 
 /** Why a sync stopped early: the problem's name, as the service gives it. */
 export class ServiceSyncError extends Error {

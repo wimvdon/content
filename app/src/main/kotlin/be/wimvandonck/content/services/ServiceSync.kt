@@ -175,6 +175,26 @@ object ServiceSync {
         }
     }
 
+    /**
+     * The state with its keys as the items have them since #253 ([ItemKeys.clean]). A row already
+     * under that key keeps it; a second row for the same article (the service has it twice) stays
+     * under its old key, which no item has any more, so the next [run] removes that copy there like
+     * any article taken out of Saved.
+     */
+    fun rekey(state: ServiceState): ServiceState {
+        if (state.rows.keys.all { ItemKeys.clean(it) == it } && state.highlights.keys.all { ItemKeys.clean(it) == it }) return state
+        fun <T> moved(map: Map<String, T>): Map<String, T> {
+            val out = LinkedHashMap<String, T>()
+            for ((key, value) in map) if (ItemKeys.clean(key) == key) out[key] = value
+            for ((key, value) in map) {
+                val clean = ItemKeys.clean(key)
+                if (clean != key) out[if (clean in out) key else clean] = value
+            }
+            return out
+        }
+        return state.copy(rows = moved(state.rows), highlights = moved(state.highlights))
+    }
+
     /** A saved item as a service entry (the core only; its note when the service keeps notes). */
     fun entryOf(
         item: Item,

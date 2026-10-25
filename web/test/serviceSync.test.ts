@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { InstapaperError, type Bookmark, type ChangesPage, type Folder, type Tag } from "../src/lib/instapaper";
 import { InstapaperSync } from "../src/lib/instapaperSync";
-import { addToReadingList, changeItem, itemOf, looseKeyOfLink, setLiked, setReadingState, setTags } from "../src/lib/items";
+import { addToReadingList, changeItem, itemOf, joinDuplicateItems, looseKeyOfLink, setLiked, setReadingState, setTags, type Item } from "../src/lib/items";
 import { emptyLibrary, type Library } from "../src/lib/library";
-import { emptyServiceSyncState, importService, ServiceSyncError, syncService, type RemoteChanges, type RemoteEntry, type SavedSyncService, type ServiceSyncState } from "../src/lib/serviceSync";
+import { emptyServiceSyncState, importService, rekeyed, ServiceSyncError, syncService, type RemoteChanges, type RemoteEntry, type SavedSyncService, type ServiceSyncState } from "../src/lib/serviceSync";
 
 /** A service in memory: what it has, a cursor per change, and calls that can fail. */
 class FakeService implements SavedSyncService {
@@ -358,7 +358,7 @@ describe("no duplicates from links kept without tracking parameters", () => {
     service.put(remote("9", "https://a.example/1?id=7"));
     expect(await sync()).toBeNull();
     expect(box.lib.items.filter((i) => i.readingList)).toHaveLength(1);
-    expect(box.state.rows["a.example/1?utm_source=rss&id=7"]?.remoteId).toBe("9");
+    expect(box.state.rows["a.example/1?id=7"]?.remoteId).toBe("9");
     expect(service.entries.size).toBe(1);
   });
   it("after connecting too, a new article there finds the saved one", async () => {
@@ -370,6 +370,34 @@ describe("no duplicates from links kept without tracking parameters", () => {
     expect(box.lib.items.filter((i) => i.readingList)).toHaveLength(1);
     expect(Object.values(box.state.rows).filter((r) => r.remoteId === "3")).toHaveLength(1);
     expect(service.entries.size).toBe(1);
+  });
+  it("the same article twice there, with and without tracking parameters, becomes one here and there (#253)", async () => {
+    const { box, service, sync } = setup();
+    const old = "a.example/1?utm_source=flipboard";
+    const item = (key: string, url: string, addedAt: number, tags: string[]): Item => ({
+      key, url, title: "One", description: "", imageUrl: null, feedUrl: null, articleId: null, createdAt: addedAt,
+      readingList: { state: "archived", addedAt }, folder: null, service: null, bookmark: null, liked: false, tags, note: "", highlights: [], progress: 0,
+    });
+    box.lib = { ...emptyLibrary(), items: [item(old, "https://a.example/1?utm_source=flipboard", 10, ["tv"]), item("a.example/1", "https://a.example/1", 20, [])] };
+    service.put(remote("1", "https://a.example/1?utm_source=flipboard", { archived: true, tags: ["tv"] }));
+    service.put(remote("2", "https://a.example/1", { archived: true }));
+    box.state = { cursor: String(service.clock), rows: { [old]: { ...service.entries.get("1")!, linked: true }, "a.example/1": { ...service.entries.get("2")!, linked: true } } };
+
+    // What the app does when it reads the library and this state.
+    box.lib = joinDuplicateItems(box.lib);
+    box.state = { ...box.state, rows: rekeyed(box.state.rows) };
+    expect(await sync()).toBeNull();
+
+    expect(box.lib.items.map((i) => i.key)).toEqual(["a.example/1"]);
+    expect(box.lib.items[0].tags).toEqual(["tv"]);
+    expect([...service.entries.keys()]).toEqual(["2"]);
+    expect(service.entries.get("2")!.tags).toEqual(["tv"]);
+    expect(Object.keys(box.state.rows)).toEqual(["a.example/1"]);
+  });
+  it("a row from before under a key with tracking parameters moves to the item's new key", () => {
+    expect(Object.keys(rekeyed({ "a.example/1?utm_source=x": remote("1", "https://a.example/1?utm_source=x") }))).toEqual(["a.example/1"]);
+    const clean = { "a.example/1": remote("1", "https://a.example/1") };
+    expect(rekeyed(clean)).toBe(clean);
   });
   it("tracking parameters don't make another article, other parameters do", () => {
     expect(looseKeyOfLink("http://www.a.example/x/?utm_source=rss&id=2&fbclid=z")).toBe(looseKeyOfLink("https://a.example/x?id=2"));
