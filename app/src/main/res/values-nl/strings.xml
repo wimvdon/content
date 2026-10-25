@@ -288,10 +288,6 @@
     <string name="saved_empty_body">Veeg een artikel uit een feed naar links, tik op Opslaan in een artikel, deel een link met Content of voeg er hier een toe.</string>
     <string name="manage_folders_tags_empty_title">Nog geen mappen of tags</string>
     <string name="manage_folders_tags_empty_body">Mappen en tags van je bewaarde items verschijnen hier, zodat je ze kunt hernoemen.</string>
-    <plurals name="service_imported">
-        <item quantity="one">%1$d item geïmporteerd, %2$s</item>
-        <item quantity="other">%1$d items geïmporteerd, %2$s</item>
-    </plurals>
     <string name="account_title">Content-account</string>
     <string name="account_email">E-mailadres</string>
     <string name="account_email_send">Mail me een aanmeldlink</string>

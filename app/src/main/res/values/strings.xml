@@ -289,10 +289,6 @@
     <string name="saved_empty_body">Swipe a feed article left, tap Save in an article, share a link to Content or add one here.</string>
     <string name="manage_folders_tags_empty_title">No folders or tags yet</string>
     <string name="manage_folders_tags_empty_body">Folders and tags of your saved items show here, so you can rename them.</string>
-    <plurals name="service_imported">
-        <item quantity="one">Imported %1$d item, %2$s</item>
-        <item quantity="other">Imported %1$d items, %2$s</item>
-    </plurals>
     <string name="account_title">Content account</string>
     <string name="account_email">Email address</string>
     <string name="account_email_send">Email me a sign-in link</string>

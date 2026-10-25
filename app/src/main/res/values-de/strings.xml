@@ -288,10 +288,6 @@
     <string name="saved_empty_body">Wische einen Feed-Artikel nach links, tippe in einem Artikel auf Speichern, teile einen Link mit Content oder füge hier einen hinzu.</string>
     <string name="manage_folders_tags_empty_title">Noch keine Ordner oder Tags</string>
     <string name="manage_folders_tags_empty_body">Ordner und Tags deiner gespeicherten Elemente erscheinen hier, damit du sie umbenennen kannst.</string>
-    <plurals name="service_imported">
-        <item quantity="one">%1$d Element importiert, %2$s</item>
-        <item quantity="other">%1$d Elemente importiert, %2$s</item>
-    </plurals>
     <string name="account_title">Content-Konto</string>
     <string name="account_email">E-Mail-Adresse</string>
     <string name="account_email_send">Anmeldelink per E-Mail senden</string>
