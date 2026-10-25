@@ -14,6 +14,9 @@ Newest first. Add an entry for every notable choice: what was decided, why, and 
   gets PNGs at 16, 32, 48 and 128 pixels drawn from the same shapes). The web app's sidebar puts it in
   its own white circle. Rejected: keeping the white box (it is what made the C small) and a dark
   outline for dark tabs (the sky-to-navy C reads on both).
+- **The popup's button stayed grey in some browsers** (Arc, Vivaldi, Opera and the like open the
+  popup as a window of its own, so "the active tab of the current window" was no page). It now asks
+  for the window used last first, then the current one.
 
 ## 2026-10-25: Save and share, one rule for sheets and dialogs (#256)
 

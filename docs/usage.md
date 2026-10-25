@@ -366,6 +366,19 @@ Until Instapaper has approved Reader, only the owner's own account works; other 
 "Instapaper hasn't approved Reader for your account yet." Setup and details: `instapaper.md`.
 
 
+## The browser extension (web app)
+
+The web app can't load other websites itself, so it uses Content's feed loader, which many news sites
+block. The **Content extension** (Chrome, Edge, Firefox and other Chromium browsers; see
+`extension/README.md` to install it) loads those pages from your own browser instead.
+
+- **Save to Content:** click the C in the toolbar, then the button: the web app opens and saves the
+  page you're on. Or right-click a page (**Save to Content**) or a link (**Save link to Content**).
+- **Sites you pay for** (#180): there is no separate sign-in in the web app. Sign in on the site
+  itself, in a normal tab of the same browser; with the extension installed, Content then loads its
+  articles in full with that sign-in. Open the article again (or reload the web app) after signing in.
+- In your browser's language (English, Dutch, French, German, Spanish or Italian).
+
 ## Common problems
 
 | Problem | What to do |
