@@ -1,5 +1,6 @@
 import { ALargeSmall, ArrowLeft, Circle, CircleCheck, EllipsisVertical, ExternalLink, FileText, Flag, Trash2 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { positionOf, scrollFor } from "@/lib/readingProgress";
 import { app, useApp } from "@/lib/app";
 import { useShare } from "./useShare";
 import { MAX_REPORT_COMMENT, REPORT_PROBLEMS, report, textOf, type ReportProblem } from "@/lib/articleReport";
@@ -115,6 +116,41 @@ export function ArticleView({
   const [listOpen, setListOpen] = useState(false);
   const opened = openHighlight ? highlights.find((h) => h.id === openHighlight) : undefined;
 
+  // Reading progress of a saved article, as on Android: back where it was left when it opens (once
+  // its text is there), and where it is now when it is left or the tab goes to the background.
+  const page = useRef<HTMLDivElement>(null);
+  const restored = useRef(false);
+  const position = useRef<number | null>(null);
+  const progressKey = saved?.key ?? null;
+  const startAt = saved?.progress ?? 0;
+  const textReady = !useFull || !!loaded;
+  useEffect(() => {
+    const el = page.current;
+    if (!progressKey || !el || restored.current || !textReady) return;
+    restored.current = true;
+    const top = scrollFor(startAt, el.scrollHeight, el.clientHeight);
+    if (top !== null) el.scrollTop = top;
+    position.current = positionOf(el.scrollTop, el.scrollHeight, el.clientHeight);
+  }, [progressKey, startAt, textReady, html]);
+  useEffect(() => {
+    const el = page.current;
+    if (!progressKey || !el) return;
+    const onScroll = () => {
+      if (restored.current) position.current = positionOf(el.scrollTop, el.scrollHeight, el.clientHeight);
+    };
+    const report = () => {
+      if (position.current !== null) app.setProgress(progressKey, position.current);
+    };
+    const onHidden = () => document.visibilityState === "hidden" && report();
+    el.addEventListener("scroll", onScroll, { passive: true });
+    document.addEventListener("visibilitychange", onHidden);
+    return () => {
+      el.removeEventListener("scroll", onScroll);
+      document.removeEventListener("visibilitychange", onHidden);
+      report();
+    };
+  }, [progressKey]);
+
   return (
     <article className="flex h-full min-w-0 flex-col" aria-label={article.title}>
       <div className="flex items-center gap-1 border-b px-2 py-2">
@@ -178,7 +214,7 @@ export function ArticleView({
       <Dialog open={textOpen} onOpenChange={setTextOpen} title={t("textSettings")} closeLabel={t("close")}>
         <ReaderStyleControls />
       </Dialog>
-      <div className={cn("min-h-0 flex-1 overflow-y-auto bg-background text-foreground", pageClass(style, appDark))}>
+      <div ref={page} className={cn("min-h-0 flex-1 overflow-y-auto bg-background text-foreground", pageClass(style, appDark))}>
         <div className="mx-auto max-w-2xl px-5 py-8">
           <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
             <FeedIcon feed={feed} className="size-5" />

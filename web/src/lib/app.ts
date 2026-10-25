@@ -15,6 +15,7 @@ import {
 } from "./instapaper";
 import { applyHighlights, notCopied, syncHighlights, type HighlightLink } from "./highlightCopy";
 import { INSTAPAPER_ID, InstapaperSync } from "./instapaperSync";
+import { progressChanged } from "./readingProgress";
 import { addHighlight, changeItem, itemOf, joinDuplicateItems, putItem, removeHighlight, renameTag, setHighlightNote, setLiked, type Highlight, type Item } from "./items";
 import { markInboxRead, removeFromInbox } from "./inbox";
 import { applyChoice, saveNew, undoSave, type SaveChoice } from "./saveChoice";
@@ -759,6 +760,10 @@ class AppStore {
 
   /** Writes what the sheet says about a saved item. */
   organise = (key: string, choice: SaveChoice) => this.updateLibrary((lib) => applyChoice(lib, key, choice));
+
+  /** How far a saved article has been read (0 to 1), as the reader reports it; it syncs, also to Instapaper. */
+  setProgress = (key: string, progress: number) =>
+    this.updateLibrary((lib) => changeItem(lib, key, (i) => (i.readingList && progressChanged(i.progress, progress) ? { ...i, progress } : i)));
 
   /** A highlight on the article of url (#102); a feed article not saved yet goes to To read with it. */
   addHighlight = (url: string, title: string, highlight: Highlight) => this.updateLibrary((lib) => addHighlight(lib, url, title, highlight, Date.now()));

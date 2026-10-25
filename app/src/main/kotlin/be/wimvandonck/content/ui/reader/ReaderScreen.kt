@@ -3,7 +3,7 @@ package be.wimvandonck.content.ui.reader
 import android.text.format.DateUtils
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.TextButton
@@ -258,20 +258,23 @@ fun ReaderScreen(
             // on the right Share.
             if (article != null && (hasLink || onList)) {
                 BottomAppBar(containerColor = MaterialTheme.colorScheme.surfaceContainer) {
-                    if (item != null && onList) {
-                        SavedBar(item)
-                    } else {
-                        FilledTonalButton(onClick = actions.onSave, modifier = Modifier.padding(start = 16.dp).weight(1f, fill = false)) {
-                            Icon(painterResource(R.drawable.ic_list), contentDescription = null)
-                            Text(
-                                stringResource(R.string.action_save),
-                                modifier = Modifier.padding(start = 8.dp),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
+                    // The left part takes all the room the right end leaves, so Share always sits at
+                    // the right edge however short the folder's name (two weights split it before).
+                    Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
+                        if (item != null && onList) {
+                            SavedBar(item)
+                        } else {
+                            FilledTonalButton(onClick = actions.onSave, modifier = Modifier.padding(start = 16.dp)) {
+                                Icon(painterResource(R.drawable.ic_list), contentDescription = null)
+                                Text(
+                                    stringResource(R.string.action_save),
+                                    modifier = Modifier.padding(start = 8.dp),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
                         }
                     }
-                    Spacer(Modifier.weight(1f))
                     // The article's highlights, with their count, next to Share.
                     val count = highlights?.highlights?.size ?: 0
                     if (count > 0) {

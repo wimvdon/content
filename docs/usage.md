@@ -96,7 +96,7 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
 - **☰** opens the drawer (on the web, a wide window shows it at the left all the time, without ☰).
   It has two sections with the same choices as the chips: **Feeds** (**Feed**, your folders, the
   other feeds, each with its unread count; a folder shows its feeds while you are in it) and
-  **Saved** (**Saved**, then under **Tags** first **Liked** and then your tags, each with how many
+  **Saved** (**Saved**, then **Liked** and then your tags, each with how many
   are still to read). Both start open; tap a section's name to fold it, and it stays that way (#251).
   At the bottom: **Manage feeds and Saved** and **Settings**.
 - **Search** (tap the search bar; on the web also the **/** key) searches everything: the articles of all your feeds that are on the device (titles,
@@ -308,6 +308,9 @@ folders, and the archive. It is Reader's own: it works without an account, is ke
 (and in its backup), and syncs between your devices through your Reader account. Signed in to
 Instapaper, it is also kept in your Instapaper account (see Instapaper account).
 
+- **Where you stopped reading:** a saved article opens where you left it, on the phone and in the
+  web app, and that place syncs between your devices and with Instapaper (both ways), so you can
+  start on one and go on on another. An article you barely began or finished opens at the top.
 - **Each article is in one place:** **To read** (where everything new arrives), **one folder**, or
   the **Archive**. Filing an article in a folder takes it out of To read; archiving it takes it out of
   its folder.
