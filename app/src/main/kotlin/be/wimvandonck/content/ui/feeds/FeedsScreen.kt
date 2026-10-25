@@ -9,13 +9,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -29,14 +26,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ScaffoldDefaults
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -48,7 +40,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -84,11 +75,8 @@ data class FeedsState(
 )
 
 class FeedsActions(
-    /** Switches to the Saved tab of Manage feeds and Saved (#222, #251). */
-    val onTab: (ManageTab) -> Unit = {},
     val onImportOpml: () -> Unit = {},
     val onExportOpml: () -> Unit = {},
-    val onBack: () -> Unit,
     val onAddFeed: () -> Unit,
     val onRemoveFeed: (Feed) -> Unit,
     val onEditFeed: (feed: Feed, title: String, folderId: String?) -> Unit,
@@ -99,16 +87,17 @@ class FeedsActions(
 )
 
 /**
- * Everything about what is followed, on one page: each folder with its feeds, the feeds outside
+ * The Feeds tab of Manage feeds and Saved (ManageScreen): everything about what is followed: each folder with its feeds, the feeds outside
  * folders, and OPML import and export. Drag the handle to reorder feeds and folders or to move a
  * feed into another folder; tap a row to rename or remove it.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FeedsScreen(
+fun FeedsTab(
     state: FeedsState,
-    snackbarHostState: SnackbarHostState,
     actions: FeedsActions,
+    /** The manage page's padding (ManageScreen), below its title bar and tabs. */
+    innerPadding: PaddingValues,
 ) {
     // "" while creating a folder, a folder's id while editing it, null when the dialog is closed.
     var editingFolder by rememberSaveable { mutableStateOf<String?>(null) }
@@ -204,131 +193,122 @@ fun FeedsScreen(
         return true
     }
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        contentWindowInsets = ScaffoldDefaults.contentWindowInsets.union(WindowInsets.ime),
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        // One screen with Saved (#222, #251): its tabs switch between the two.
-        topBar = { ManageTopBar(ManageTab.Feeds, actions.onTab, actions.onBack, scrollBehavior) },
-    ) { innerPadding ->
-        LazyColumn(
-            state = listState,
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .readableWidth(),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 32.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            item(key = "buttons") {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(bottom = 8.dp)) {
-                    FilledTonalButton(onClick = actions.onAddFeed, modifier = Modifier.weight(1f)) {
-                        Icon(painterResource(R.drawable.ic_add), contentDescription = null)
-                        Text(stringResource(R.string.feeds_add), modifier = Modifier.padding(start = 8.dp))
-                    }
-                    FilledTonalButton(onClick = { editingFolder = "" }, modifier = Modifier.weight(1f)) {
-                        Icon(painterResource(R.drawable.ic_folder), contentDescription = null)
-                        Text(stringResource(R.string.folder_new), modifier = Modifier.padding(start = 8.dp))
-                    }
+    LazyColumn(
+        state = listState,
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .readableWidth(),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        item(key = "buttons") {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(bottom = 8.dp)) {
+                FilledTonalButton(onClick = actions.onAddFeed, modifier = Modifier.weight(1f)) {
+                    Icon(painterResource(R.drawable.ic_add), contentDescription = null)
+                    Text(stringResource(R.string.feeds_add), modifier = Modifier.padding(start = 8.dp))
+                }
+                FilledTonalButton(onClick = { editingFolder = "" }, modifier = Modifier.weight(1f)) {
+                    Icon(painterResource(R.drawable.ic_folder), contentDescription = null)
+                    Text(stringResource(R.string.folder_new), modifier = Modifier.padding(start = 8.dp))
                 }
             }
-            item(key = "hint") {
-                Hint(
-                    stringResource(
-                        when {
-                            state.feeds.isEmpty() -> R.string.home_no_feeds_body
-                            state.folders.isEmpty() -> R.string.folders_explanation
-                            else -> R.string.feeds_drag_hint
+        }
+        item(key = "hint") {
+            Hint(
+                stringResource(
+                    when {
+                        state.feeds.isEmpty() -> R.string.home_no_feeds_body
+                        state.folders.isEmpty() -> R.string.folders_explanation
+                        else -> R.string.feeds_drag_hint
+                    },
+                ),
+            )
+        }
+        items(rows, key = { it.key }) { row ->
+            val dragging = row.key == draggedKey
+            val rowModifier =
+                Modifier
+                    .zIndex(if (dragging) 1f else 0f)
+                    .graphicsLayer { translationY = if (dragging) dragOffset else 0f }
+                    .then(if (dragging) Modifier else Modifier.animateItem())
+            val handle =
+                // Restarted when the stored arrangement changes, so a drag never starts from an old one.
+                Modifier.pointerInput(row.key, stored) {
+                    detectDragGestures(
+                        onDragStart = { startDrag(row) },
+                        onDrag = { change, amount ->
+                            change.consume()
+                            drag(amount.y)
                         },
-                    ),
-                )
-            }
-            items(rows, key = { it.key }) { row ->
-                val dragging = row.key == draggedKey
-                val rowModifier =
-                    Modifier
-                        .zIndex(if (dragging) 1f else 0f)
-                        .graphicsLayer { translationY = if (dragging) dragOffset else 0f }
-                        .then(if (dragging) Modifier else Modifier.animateItem())
-                val handle =
-                    // Restarted when the stored arrangement changes, so a drag never starts from an old one.
-                    Modifier.pointerInput(row.key, stored) {
-                        detectDragGestures(
-                            onDragStart = { startDrag(row) },
-                            onDrag = { change, amount ->
-                                change.consume()
-                                drag(amount.y)
-                            },
-                            onDragEnd = { endDrag() },
-                            onDragCancel = { endDrag() },
+                        onDragEnd = { endDrag() },
+                        onDragCancel = { endDrag() },
+                    )
+                }
+            val moveUp = stringResource(R.string.action_move_up)
+            val moveDown = stringResource(R.string.action_move_down)
+            val a11y =
+                Modifier.semantics {
+                    customActions =
+                        listOf(
+                            CustomAccessibilityAction(moveUp) { step(row, -1) },
+                            CustomAccessibilityAction(moveDown) { step(row, 1) },
                         )
-                    }
-                val moveUp = stringResource(R.string.action_move_up)
-                val moveDown = stringResource(R.string.action_move_down)
-                val a11y =
-                    Modifier.semantics {
-                        customActions =
-                            listOf(
-                                CustomAccessibilityAction(moveUp) { step(row, -1) },
-                                CustomAccessibilityAction(moveDown) { step(row, 1) },
+                }
+            when (row) {
+                is ArrangedRow.FolderHeader -> {
+                    FolderLine(
+                        folder = row.folder,
+                        feedCount = state.feeds.count { it.folderId == row.folder.id },
+                        lifted = dragging,
+                        handleModifier = handle,
+                        onClick = { editingFolder = row.folder.id },
+                        modifier = rowModifier.then(a11y),
+                    )
+                }
+
+                is ArrangedRow.FeedItem -> {
+                    FeedLine(
+                        feed = row.feed,
+                        problem = state.problems[row.feed.url],
+                        inFolder = row.key in indented,
+                        lifted = dragging,
+                        handleModifier = handle,
+                        onClick = { editingFeed = row.feed.url },
+                        modifier = rowModifier.then(a11y),
+                    )
+                }
+
+                ArrangedRow.Unfiled -> {
+                    Column(rowModifier.padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Heading(stringResource(R.string.folder_none))
+                        if (rows.last() is ArrangedRow.Unfiled && state.feeds.isNotEmpty()) {
+                            // Nothing outside folders: say so, and where to drop a feed to change that.
+                            Text(
+                                stringResource(R.string.folder_none_empty),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, AppShapes.Item)
+                                        .padding(16.dp),
                             )
-                    }
-                when (row) {
-                    is ArrangedRow.FolderHeader -> {
-                        FolderLine(
-                            folder = row.folder,
-                            feedCount = state.feeds.count { it.folderId == row.folder.id },
-                            lifted = dragging,
-                            handleModifier = handle,
-                            onClick = { editingFolder = row.folder.id },
-                            modifier = rowModifier.then(a11y),
-                        )
-                    }
-
-                    is ArrangedRow.FeedItem -> {
-                        FeedLine(
-                            feed = row.feed,
-                            problem = state.problems[row.feed.url],
-                            inFolder = row.key in indented,
-                            lifted = dragging,
-                            handleModifier = handle,
-                            onClick = { editingFeed = row.feed.url },
-                            modifier = rowModifier.then(a11y),
-                        )
-                    }
-
-                    ArrangedRow.Unfiled -> {
-                        Column(rowModifier.padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Heading(stringResource(R.string.folder_none))
-                            if (rows.last() is ArrangedRow.Unfiled && state.feeds.isNotEmpty()) {
-                                // Nothing outside folders: say so, and where to drop a feed to change that.
-                                Text(
-                                    stringResource(R.string.folder_none_empty),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier =
-                                        Modifier
-                                            .fillMaxWidth()
-                                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, AppShapes.Item)
-                                            .padding(16.dp),
-                                )
-                            }
                         }
                     }
                 }
             }
-            // Moving to or from another reader (#251: here, not in Settings).
-            item(key = "opml") {
-                Column(Modifier.padding(top = 24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Heading(stringResource(R.string.feeds_opml_title))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedButton(onClick = actions.onImportOpml, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.feeds_import)) }
-                        OutlinedButton(onClick = actions.onExportOpml, enabled = state.feeds.isNotEmpty(), modifier = Modifier.weight(1f)) { Text(stringResource(R.string.feeds_export)) }
-                    }
-                    Hint(stringResource(R.string.feeds_opml_hint))
+        }
+        // Moving to or from another reader (#251: here, not in Settings).
+        item(key = "opml") {
+            Column(Modifier.padding(top = 24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Heading(stringResource(R.string.feeds_opml_title))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(onClick = actions.onImportOpml, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.feeds_import)) }
+                    OutlinedButton(onClick = actions.onExportOpml, enabled = state.feeds.isNotEmpty(), modifier = Modifier.weight(1f)) { Text(stringResource(R.string.feeds_export)) }
                 }
+                Hint(stringResource(R.string.feeds_opml_hint))
             }
         }
     }

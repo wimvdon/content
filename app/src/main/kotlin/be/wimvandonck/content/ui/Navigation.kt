@@ -8,7 +8,7 @@ import be.wimvandonck.content.data.ShareApps
 import be.wimvandonck.content.data.SharedArticle
 import be.wimvandonck.content.instapaper.InstapaperReadingList
 import be.wimvandonck.content.services.ServiceStatus
-import be.wimvandonck.content.ui.feeds.SavedManageScreen
+import be.wimvandonck.content.ui.feeds.SavedManageTab
 import be.wimvandonck.content.ui.reader.ShareSheet
 import be.wimvandonck.content.ui.reader.ShareWithUserDialog
 import be.wimvandonck.content.ui.settings.InstapaperImportDialog
@@ -47,7 +47,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import be.wimvandonck.content.R
-import be.wimvandonck.content.ui.feeds.ManageTab
+import be.wimvandonck.content.ui.feeds.ManageScreen
 import be.wimvandonck.content.data.ArticleReport
 import be.wimvandonck.content.sync.AccountState
 import be.wimvandonck.content.sync.ShareResult
@@ -111,7 +111,7 @@ import be.wimvandonck.content.sync.AccountNotice
 import be.wimvandonck.content.instapaper.InstapaperState
 import be.wimvandonck.content.rssReaderApp
 import be.wimvandonck.content.ui.feeds.FeedsActions
-import be.wimvandonck.content.ui.feeds.FeedsScreen
+import be.wimvandonck.content.ui.feeds.FeedsTab
 import be.wimvandonck.content.ui.feeds.FeedsState
 import be.wimvandonck.content.ui.home.AddFeedDialog
 import be.wimvandonck.content.ui.home.HomeActions
@@ -141,11 +141,8 @@ sealed interface Screen {
 
     data object Settings : Screen
 
-    /** Manage feeds and Saved, its Feeds tab: feeds, folders and OPML. */
+    /** Manage feeds and Saved (#222, #251): one page, its tabs inside it (ManageScreen). */
     data object Feeds : Screen
-
-    /** Manage feeds and Saved, its Saved tab: Saved's folders and tags, Tag with the feed's folder, Instapaper (#251). */
-    data object ManageSaved : Screen
 
     /** Search through every feed's articles and Saved. */
     data object Search : Screen
@@ -162,7 +159,6 @@ sealed interface Screen {
                 Home -> "home"
                 Settings -> "settings"
                 Feeds -> "feeds"
-                ManageSaved -> "manage-saved"
                 Search -> "search"
                 Inbox -> "inbox"
                 is Reader -> "reader:" + screen.articleKey
@@ -173,7 +169,8 @@ sealed interface Screen {
             when {
                 text == "settings" -> Settings
                 text == "feeds" -> Feeds
-                text == "manage-saved" -> ManageSaved
+                // Its Saved tab was a screen of its own before.
+                text == "manage-saved" -> Feeds
                 text == "search" -> Search
                 text == "inbox" -> Inbox
                 text.startsWith("reader:") -> Reader(text.removePrefix("reader:"))
@@ -261,12 +258,6 @@ fun RssReaderNavigation(
 
     fun pop() {
         if (backStack.size > 1) screenStates.removeState(Screen.encode(backStack.removeAt(backStack.lastIndex)))
-    }
-
-    /** Manage feeds and Saved (#222, #251): a tab replaces the shown screen, so Back leaves at once. */
-    fun showManageTab(tab: ManageTab) {
-        val next = if (tab == ManageTab.Feeds) Screen.Feeds else Screen.ManageSaved
-        if (backStack.lastOrNull() != next) backStack[backStack.lastIndex] = next
     }
 
     fun showMessage(text: String) {
@@ -911,33 +902,60 @@ fun RssReaderNavigation(
 
                 Screen.Feeds -> {
                     SystemBarsFollowTheme(appDark)
-                    FeedsScreen(
-                        state =
-                            FeedsState(
-                                feeds = library.feeds,
-                                folders = library.folders,
-                                problems = problems,
-                            ),
+                    ManageScreen(
                         snackbarHostState = snackbar,
-                        actions =
-                            FeedsActions(
-                                onBack = ::pop,
-                                onAddFeed = { addDialogOpen = true },
-                                onRemoveFeed = { feed -> app.appScope.launch { repository.removeFeed(feed.url) } },
-                                onEditFeed = { feed, title, folderId ->
-                                    app.appScope.launch {
-                                        if (title.trim() != feed.title) repository.renameFeed(feed.url, title)
-                                        if (folderId != feed.folderId) repository.moveFeed(feed.url, folderId)
-                                    }
-                                },
-                                onArrange = { rows -> app.appScope.launch { repository.arrange(rows) } },
-                                onAddFolder = { title, icon -> app.appScope.launch { repository.addFolder(title, icon) } },
-                                onUpdateFolder = { folder -> app.appScope.launch { repository.updateFolder(folder.id, folder.title, folder.icon) } },
-                                onRemoveFolder = { folder -> app.appScope.launch { repository.removeFolder(folder.id) } },
-                                onTab = ::showManageTab,
-                                onImportOpml = importOpml,
-                                onExportOpml = exportOpml,
-                            ),
+                        onBack = ::pop,
+                        feeds = { padding ->
+                            FeedsTab(
+                                state =
+                                    FeedsState(
+                                        feeds = library.feeds,
+                                        folders = library.folders,
+                                        problems = problems,
+                                    ),
+                                actions =
+                                    FeedsActions(
+                                        onAddFeed = { addDialogOpen = true },
+                                        onRemoveFeed = { feed -> app.appScope.launch { repository.removeFeed(feed.url) } },
+                                        onEditFeed = { feed, title, folderId ->
+                                            app.appScope.launch {
+                                                if (title.trim() != feed.title) repository.renameFeed(feed.url, title)
+                                                if (folderId != feed.folderId) repository.moveFeed(feed.url, folderId)
+                                            }
+                                        },
+                                        onArrange = { rows -> app.appScope.launch { repository.arrange(rows) } },
+                                        onAddFolder = { title, icon -> app.appScope.launch { repository.addFolder(title, icon) } },
+                                        onUpdateFolder = { folder -> app.appScope.launch { repository.updateFolder(folder.id, folder.title, folder.icon) } },
+                                        onRemoveFolder = { folder -> app.appScope.launch { repository.removeFolder(folder.id) } },
+                                        onImportOpml = importOpml,
+                                        onExportOpml = exportOpml,
+                                    ),
+                                innerPadding = padding,
+                            )
+                        },
+                        saved = { padding ->
+                            SavedManageTab(
+                                tags = remember(library) { library.tagCounts() },
+                                folders = remember(library) { Saved.folderCounts(library) },
+                                innerPadding = padding,
+                                onRename = { from, to -> editLibrary { it.renameTag(from, to) } },
+                                onRemove = { tag -> editLibrary { it.removeTag(tag) } },
+                                onRenameFolder = { from, to -> editLibrary { Saved.renameFolder(it, from, to) } },
+                                onRemoveFolder = { name -> editLibrary { Saved.removeFolder(it, name) } },
+                                tagWithFolder = current.tagWithFolder,
+                                onTagWithFolderChange = { enabled -> app.appScope.launch { app.settings.setTagWithFolder(enabled) } },
+                                instapaper =
+                                    InstapaperSettingsState(
+                                        instapaper = instapaperState,
+                                        status = serviceStatuses[InstapaperReadingList.ID] ?: ServiceStatus.None,
+                                    ),
+                                onInstapaperSignIn = { uiScope.launch { ExternalApps.openLink(context, app.instapaper.begin()) } },
+                                onInstapaperSync = { app.appScope.launch { app.services.sync() } },
+                                // Disconnects Instapaper only; the Content account stays signed in (#166).
+                                onInstapaperSignOut = { app.appScope.launch { app.instapaper.signOut() } },
+                                onInstapaperImport = { everything -> app.appScope.launch { app.services.chooseImport(InstapaperReadingList.ID, everything) } },
+                            )
+                        },
                     )
                 }
 
@@ -1034,33 +1052,6 @@ fun RssReaderNavigation(
                                 },
                                 onBack = ::pop,
                             ),
-                    )
-                }
-
-                Screen.ManageSaved -> {
-                    SystemBarsFollowTheme(appDark)
-                    SavedManageScreen(
-                        tags = remember(library) { library.tagCounts() },
-                        folders = remember(library) { Saved.folderCounts(library) },
-                        snackbarHostState = snackbar,
-                        onBack = ::pop,
-                        onRename = { from, to -> editLibrary { it.renameTag(from, to) } },
-                        onRemove = { tag -> editLibrary { it.removeTag(tag) } },
-                        onRenameFolder = { from, to -> editLibrary { Saved.renameFolder(it, from, to) } },
-                        onRemoveFolder = { name -> editLibrary { Saved.removeFolder(it, name) } },
-                        onTab = ::showManageTab,
-                        tagWithFolder = current.tagWithFolder,
-                        onTagWithFolderChange = { enabled -> app.appScope.launch { app.settings.setTagWithFolder(enabled) } },
-                        instapaper =
-                            InstapaperSettingsState(
-                                instapaper = instapaperState,
-                                status = serviceStatuses[InstapaperReadingList.ID] ?: ServiceStatus.None,
-                            ),
-                        onInstapaperSignIn = { uiScope.launch { ExternalApps.openLink(context, app.instapaper.begin()) } },
-                        onInstapaperSync = { app.appScope.launch { app.services.sync() } },
-                        // Disconnects Instapaper only; the Content account stays signed in (#166).
-                        onInstapaperSignOut = { app.appScope.launch { app.instapaper.signOut() } },
-                        onInstapaperImport = { everything -> app.appScope.launch { app.services.chooseImport(InstapaperReadingList.ID, everything) } },
                     )
                 }
 
