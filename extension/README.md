@@ -45,7 +45,7 @@ After changing a file here, click the reload arrow on the extension's card.
 | `bridge.js` | On the web app's pages: says the extension is there and passes the page's requests on |
 | `popup.html`, `popup.js` | Save to Content |
 | `_locales/<language>/messages.json` | The extension's name, description and texts in each language |
-| `icon-16.png` … `icon-128.png` | The app's C without its white box, cropped tight (#257), drawn from `web/public/icon.svg`'s shapes |
+| `icon-16.png` … `icon-128.png` | The app's C without its white box (#257), drawn from `web/public/icon.svg`'s shapes: tight for the toolbar, with Chrome's 16 pixels of air around the 128 one |
 
 The web app's side is `web/src/lib/extension.ts` (tested in `web/test/extension.test.ts`), used by
 `web/src/lib/proxy.ts`.
