@@ -1,0 +1,20 @@
+{
+  "extName": {
+    "message": "Content"
+  },
+  "extDescription": {
+    "message": "Loads pages for the Content web app from your own browser, with your own sign-ins, and saves the page you're on, or a link, to Content."
+  },
+  "saveToContent": {
+    "message": "Save to Content",
+    "description": "The toolbar button, its popup's title and button, and the right-click menu on a page"
+  },
+  "saveLinkToContent": {
+    "message": "Save link to Content",
+    "description": "The right-click menu on a link"
+  },
+  "cannotSave": {
+    "message": "This page can't be saved.",
+    "description": "In the popup, on a page that isn't http(s)"
+  }
+}

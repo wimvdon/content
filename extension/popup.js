@@ -4,8 +4,10 @@
 
 const WEB_APP = "https://rss-reader-web.wim-d57.workers.dev";
 
-const dutch = navigator.language.toLowerCase().startsWith("nl");
-const text = dutch ? { save: "Bewaren in Content", none: "Deze pagina kan niet bewaard worden." } : { save: "Save to Content", none: "This page can't be saved." };
+// In the browser's language, from _locales (#257).
+const text = { save: chrome.i18n.getMessage("saveToContent"), none: chrome.i18n.getMessage("cannotSave") };
+document.documentElement.lang = chrome.i18n.getUILanguage();
+document.title = text.save;
 
 document.getElementById("title").textContent = text.save;
 const button = document.getElementById("save");

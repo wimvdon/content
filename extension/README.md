@@ -8,7 +8,11 @@ A small extension for Chrome, Edge and Firefox that helps the Content web app:
   connection, with your own sign-ins, so sites you pay for (#180) load in full too. Feeds still go
   through the feed loader, and through the extension only when the feed loader is refused.
 - **Saves the page you're on:** the toolbar button **Save to Content** opens the web app with the
-  page, which saves it to Saved (To read) and shows the save sheet to tag it.
+  page, which saves it to Saved (To read) and shows Save and share to tag or send it.
+- **Right-click** (#257): **Save to Content** on a page, **Save link to Content** on a link, the same
+  way.
+- **In your browser's language** (#257): English, Dutch, French, German, Spanish and Italian
+  (`_locales/`), as the app.
 
 It only answers the Content web app's own address (`bridge.js` runs nowhere else), fetches only
 what the web app asks for (https only, up to 10 MB), keeps nothing, and doesn't look at your
@@ -36,11 +40,12 @@ After changing a file here, click the reload arrow on the extension's card.
 
 | File | What it does |
 |---|---|
-| `manifest.json` | Manifest V3: the toolbar button, access to sites, and `bridge.js` on the web app's address only |
-| `background.js` | Fetches one https address with the browser's cookies when the web app asks, and sends the bytes back |
+| `manifest.json` | Manifest V3: the toolbar button, the right-click menu (`contextMenus`), access to sites, and `bridge.js` on the web app's address only |
+| `background.js` | Fetches one https address with the browser's cookies when the web app asks, and sends the bytes back; the right-click menu |
 | `bridge.js` | On the web app's pages: says the extension is there and passes the page's requests on |
 | `popup.html`, `popup.js` | Save to Content |
-| `icon.png` | The app's icon |
+| `_locales/<language>/messages.json` | The extension's name, description and texts in each language |
+| `icon-16.png` … `icon-128.png` | The app's C without its white box, cropped tight (#257), drawn from `web/public/icon.svg`'s shapes |
 
 The web app's side is `web/src/lib/extension.ts` (tested in `web/test/extension.test.ts`), used by
 `web/src/lib/proxy.ts`.

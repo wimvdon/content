@@ -1,0 +1,20 @@
+{
+  "extName": {
+    "message": "Content"
+  },
+  "extDescription": {
+    "message": "Charge les pages de l’app web Content depuis votre propre navigateur, avec vos propres connexions, et enregistre la page que vous consultez, ou un lien, dans Content."
+  },
+  "saveToContent": {
+    "message": "Enregistrer dans Content",
+    "description": "The toolbar button, its popup's title and button, and the right-click menu on a page"
+  },
+  "saveLinkToContent": {
+    "message": "Enregistrer le lien dans Content",
+    "description": "The right-click menu on a link"
+  },
+  "cannotSave": {
+    "message": "Impossible d’enregistrer cette page.",
+    "description": "In the popup, on a page that isn't http(s)"
+  }
+}

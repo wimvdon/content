@@ -230,6 +230,7 @@ The Content browser extension (`extension/`) only works with the Content web app
 app's own address and nowhere else. When the web app opens an article, it asks the extension to load
 that page from your browser, with your browser's cookies for that site (so sites you're signed in to
 load as you see them); that request goes from your computer straight to the site, not through the
-owner's feed loader. **Save to Content** opens the web app with the page's address and title. The
+owner's feed loader. **Save to Content** (the toolbar button, or right-click on a page or a link)
+opens the web app with that address and title; the right-click menu only appears, it reads nothing. The
 extension keeps nothing, sends nothing anywhere else, and doesn't look at the sites you visit. It
 asks for access to all sites only because articles can be on any site.

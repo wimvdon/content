@@ -2,7 +2,8 @@
 // (bridge.js runs on its address only) and only fetches what the web app asks for: one https page or
 // feed at a time, with this browser's own cookies, so sites that block the feed loader, and paywalls
 // you pay for, load as they do in your browser. It never fetches anything on its own, keeps nothing
-// and doesn't look at your browsing.
+// and doesn't look at your browsing. It also holds the right-click menu: Save to Content on a page or
+// a link (#257).
 
 const MAX_BYTES = 10 * 1024 * 1024;
 const TIMEOUT_MS = 30000;
@@ -42,4 +43,22 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
   if (!sender.tab || message?.type !== "fetch" || typeof message.url !== "string") return false;
   load(message.url).then(reply);
   return true;
+});
+
+// Right-click menu (#257): Save to Content on the page, Save link to Content on a link. Like the
+// toolbar button, it opens the web app with the address, which saves it and shows Save and share.
+const WEB_APP = "https://rss-reader-web.wim-d57.workers.dev";
+
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.contextMenus.removeAll(() => {
+    chrome.contextMenus.create({ id: "save-page", title: chrome.i18n.getMessage("saveToContent"), contexts: ["page"], documentUrlPatterns: ["https://*/*", "http://*/*"] });
+    chrome.contextMenus.create({ id: "save-link", title: chrome.i18n.getMessage("saveLinkToContent"), contexts: ["link"], targetUrlPatterns: ["https://*/*", "http://*/*"] });
+  });
+});
+
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+  // A link's text only in Firefox; without one the web app reads the page's own title.
+  const [url, title] = info.menuItemId === "save-link" ? [info.linkUrl, info.linkText ?? ""] : [info.pageUrl ?? tab?.url, tab?.title ?? ""];
+  if (!url || !/^https?:\/\//.test(url)) return;
+  chrome.tabs.create({ url: `${WEB_APP}/?save=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`, index: tab ? tab.index + 1 : undefined });
 });
