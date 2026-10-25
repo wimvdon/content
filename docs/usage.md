@@ -208,7 +208,8 @@ to save it (it stays in the inbox, as a feed article stays in its feed), or pres
 right-click) for **Mark as read/unread**, **Save**, **Share** and **Remove from inbox** (with
 **Undo**). Something already in Saved arrives in the inbox too, and stays where it is in Saved; the
 same article shared again comes back unread with its latest sender. Removing a saved article from
-Saved leaves it in the inbox. For a notification when something arrives, see Notifications below.
+Saved leaves it in the inbox. Opening the inbox checks for new shares first, so they show up right away.
+For a notification when something arrives, see Notifications below.
 
 **Full articles.** Many feeds contain only the start of an article, or a few paragraphs with a
 "Read full article" link. Then the reader fetches the

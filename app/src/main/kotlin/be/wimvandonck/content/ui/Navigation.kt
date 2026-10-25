@@ -993,6 +993,8 @@ fun RssReaderNavigation(
                 }
 
                 Screen.Inbox -> {
+                    // What others shared arrives with a sync (#167): take it in when the inbox opens, not only at the next one.
+                    LaunchedEffect(Unit) { app.appScope.launch { app.sync.syncIfDue() } }
                     InboxScreen(
                         items = remember(library) { Inbox.items(library) },
                         library = library,
