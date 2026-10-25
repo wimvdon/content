@@ -178,9 +178,8 @@ class HomeActions(
     val onAddFeed: () -> Unit,
     val onImportOpml: () -> Unit,
     val onOpenSettings: () -> Unit,
-    val onOpenFeeds: () -> Unit,
-    /** Folders and tags (renaming and removing them). */
-    val onOpenTagsManage: () -> Unit = {},
+    /** Manage feeds and Saved (#251): the feeds and folders, Saved's folders and tags, OPML and Instapaper. */
+    val onOpenManage: () -> Unit,
     /** The navigation bar's destinations. */
     val onShowFeeds: () -> Unit = {},
     val onShowSaved: () -> Unit = {},
@@ -239,13 +238,9 @@ fun HomeScreen(
                     scope.launch { drawerState.close() }
                     actions.onOpenSettings()
                 },
-                onOpenFeeds = {
+                onOpenManage = {
                     scope.launch { drawerState.close() }
-                    actions.onOpenFeeds()
-                },
-                onOpenTagsManage = {
-                    scope.launch { drawerState.close() }
-                    actions.onOpenTagsManage()
+                    actions.onOpenManage()
                 },
                 saved = state.saved,
                 inSaved = reading != null,
@@ -402,7 +397,7 @@ fun HomeScreen(
                         when (shown) {
                             HomeContent.NoFeeds -> NoFeeds(actions.onAddFeed, actions.onImportOpml)
                             HomeContent.Loading -> ArticleSkeletons()
-                            HomeContent.Empty -> AllCaughtUp(state.unreadOnly) { actions.onUnreadOnlyChange(false) }
+                            HomeContent.Empty -> AllCaughtUp(state.unreadOnly, state.refreshing, actions.onRefresh) { actions.onUnreadOnlyChange(false) }
                             HomeContent.Articles -> ArticleList(state, actions)
                         }
                     }
@@ -949,16 +944,19 @@ private fun NoFeeds(
     }
 }
 
+/** Nothing (unread) to show: Show all, and Refresh to look for new articles. */
 @Composable
 private fun AllCaughtUp(
     unreadOnly: Boolean,
+    refreshing: Boolean,
+    onRefresh: () -> Unit,
     onShowAll: () -> Unit,
 ) {
     EmptyState(
         painterResource(if (unreadOnly) R.drawable.ic_done_all else R.drawable.ic_article),
         stringResource(if (unreadOnly) R.string.home_caught_up_title else R.string.home_no_articles_title),
-        body = stringResource(if (unreadOnly) R.string.home_caught_up_body else R.string.home_no_articles_body),
     ) {
         if (unreadOnly) Button(onClick = onShowAll) { Text(stringResource(R.string.home_show_all)) }
+        OutlinedButton(onClick = onRefresh, enabled = !refreshing) { Text(stringResource(R.string.action_refresh)) }
     }
 }

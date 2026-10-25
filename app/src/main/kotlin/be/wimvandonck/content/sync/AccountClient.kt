@@ -132,14 +132,13 @@ class AccountClient(
     }
 
     /**
-     * Shares [items] with the Content user at [to] (#167), as [from] (an address of this account);
-     * [tag] when they are shared as a tag. False when the address has no account.
+     * Shares [items] with the Content user at [to] (#167), as [from] (an address of this account).
+     * False when the address has no account.
      */
     suspend fun share(
         to: String,
         from: SharedBy,
         items: List<SharedArticle>,
-        tag: String?,
     ): Boolean {
         val body =
             Json.write(
@@ -147,7 +146,6 @@ class AccountClient(
                     "to" to to.trim(),
                     "from" to linkedMapOf("email" to from.email, "name" to from.name),
                     "items" to items.map { linkedMapOf("url" to it.url, "title" to it.title, "imageUrl" to it.imageUrl, "description" to it.description) },
-                    "tag" to tag,
                 ),
             ).toRequestBody(JSON_TYPE)
         return call(request("/account/share").post(body).build(), alsoOk = 404) { code, _ -> code != 404 }
@@ -229,7 +227,7 @@ class AccountClient(
                         val url = a["url"] as? String ?: return@mapNotNull null
                         SharedArticle(url, a["title"] as? String ?: url, (a["imageUrl"] as? String)?.takeIf { it.startsWith("https://") }, a["description"] as? String ?: "")
                     }
-                InboxMessage(id, from, items, (m["tag"] as? String)?.takeIf { it.isNotBlank() })
+                InboxMessage(id, from, items)
             }
         }
 

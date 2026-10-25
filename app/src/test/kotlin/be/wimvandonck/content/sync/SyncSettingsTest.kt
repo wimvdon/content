@@ -6,7 +6,6 @@ import be.wimvandonck.content.data.ReaderFont
 import be.wimvandonck.content.data.ReaderSpacing
 import be.wimvandonck.content.data.ReaderStyle
 import be.wimvandonck.content.data.ServiceImport
-import be.wimvandonck.content.data.ServiceScope
 import be.wimvandonck.content.data.Settings
 import be.wimvandonck.content.data.ShareTarget
 import be.wimvandonck.content.data.ThemeMode
@@ -35,8 +34,6 @@ class SyncSettingsTest {
                 SyncSettings.FULL_ARTICLES to "false",
                 SyncSettings.MARK_READ_ON_SCROLL to "true",
                 SyncSettings.RECIPIENTS to "[]",
-                "services.instapaper.scope" to "*",
-                "services.raindrop.scope" to "*",
             ),
             values,
         )
@@ -48,8 +45,9 @@ class SyncSettingsTest {
     @Test
     fun `view settings stay on each device`() {
         val values = SyncSettings.of(custom)
-        assertFalse(values.keys.any { it in SyncSettings.DROPPED_VIEW })
-        // Another device, or an older version, still writing them changes nothing here.
+        val view = setOf("theme", "dynamicColor", "reader.font", "reader.textSize", "reader.spacing", "reader.background", "reader.autoDark", "showImages", "listView")
+        assertFalse(values.keys.any { it in view })
+        // Another device still writing them changes nothing here.
         val fromOlder =
             mapOf(
                 "theme" to "light", "dynamicColor" to "false", "reader.font" to "serif", "reader.textSize" to "16",
@@ -57,14 +55,6 @@ class SyncSettingsTest {
                 "showImages" to "true", "listView" to "small",
             )
         assertEquals(custom, SyncSettings.applyTo(custom, fromOlder))
-    }
-
-    @Test
-    fun `view settings that older versions synced are dropped from the file`() {
-        val base = mapOf("theme" to "light", "listView" to "small", "reader.font" to "serif", "web.only" to "x")
-        val values = SyncSettings.of(custom, base)
-        assertFalse(values.keys.any { it in SyncSettings.DROPPED_VIEW })
-        assertEquals("x", values["web.only"])
     }
 
     @Test
@@ -91,35 +81,21 @@ class SyncSettingsTest {
     }
 
     @Test
-    fun `the Instapaper sign-in that older versions synced is dropped`() {
-        val base = mapOf("instapaper.token" to "t", "instapaper.username" to "me", "web.only" to "x")
-        val values = SyncSettings.of(Settings(), base)
-        assertFalse(values.keys.any { it.startsWith("instapaper.") })
-        assertEquals("x", values["web.only"])
-    }
-
-    @Test
-    fun `Unread or All is not synced, and the name older versions synced is dropped`() {
-        val values = SyncSettings.of(custom, base = mapOf("unreadOnly" to "true"))
-        assertFalse("unreadOnly" in values)
+    fun `Unread or All is not synced`() {
+        assertFalse("unreadOnly" in SyncSettings.of(custom))
         assertEquals(true, SyncSettings.applyTo(Settings(unreadOnly = true), mapOf("unreadOnly" to "false")).unreadOnly)
     }
 
     @Test
-    fun `what each service syncs and what was imported travel with the account`() {
-        val record = ServiceImport(at = 5, count = 12, folders = setOf("Research", ServiceScope.TO_READ), archive = false)
-        val mine = Settings(scopes = mapOf("raindrop" to ServiceScope(setOf("Research"))), imports = mapOf("instapaper" to record))
-        val values = SyncSettings.of(mine)
-        assertEquals("[\"Research\"]", values["services.raindrop.scope"])
-        assertEquals("*", values["services.instapaper.scope"])
-        val applied = SyncSettings.applyTo(Settings(), values)
-        assertEquals(ServiceScope(setOf("Research")), applied.scopes["raindrop"])
-        assertEquals(record, applied.imports["instapaper"])
-        // An import this device doesn't know of stays as the file has it.
-        val fromFile = mapOf("services.raindrop.imported" to ServiceImport.encode(record))
-        assertEquals(fromFile["services.raindrop.imported"], SyncSettings.of(Settings(), fromFile)["services.raindrop.imported"])
+    fun `what was imported travels with the account, and scopes from before are dropped`() {
+        val record = ServiceImport(at = 5, count = 12, everything = false)
+        val values = SyncSettings.of(Settings(imports = mapOf("instapaper" to record)), base = mapOf("services.instapaper.scope" to "*", "services.raindrop.imported" to "x"))
+        assertEquals(setOf("services.instapaper.imported"), values.keys.filter { it.startsWith("services.") }.toSet())
+        assertEquals(record, SyncSettings.applyTo(Settings(), values).imports["instapaper"])
         // Unreadable values change nothing.
-        assertEquals(Settings(), SyncSettings.applyTo(Settings(), mapOf("services.raindrop.scope" to "{", "services.raindrop.imported" to "x")))
+        assertEquals(Settings(), SyncSettings.applyTo(Settings(), mapOf("services.instapaper.imported" to "x")))
+        // An import record from before #251 had no choice: everything was imported.
+        assertEquals(ServiceImport(5, 2), ServiceImport.decode("""{"at":5,"count":2,"folders":null,"archive":true}"""))
     }
 
     @Test

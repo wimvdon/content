@@ -80,8 +80,7 @@ object InstapaperAuth {
         val token = map["access_token"] as? String ?: return null
         if (token.isEmpty()) return null
         val user = map["user"] as? Map<*, *>
-        val accountKey = ((map["account"] as? Map<*, *>)?.get("key") as? String)?.takeIf { it.isNotEmpty() }
-        return InstapaperSession(token, (user?.get("id") as? Number)?.toLong(), (user?.get("username") as? String).orEmpty(), accountKey)
+        return InstapaperSession(token, (user?.get("id") as? Number)?.toLong(), (user?.get("username") as? String).orEmpty())
     }
 
     /** Swaps the one-time code for a session, through the Worker. */

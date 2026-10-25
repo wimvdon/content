@@ -1,9 +1,7 @@
-import { Folder as FolderGlyph, Tag as TagGlyph, Trash2, Users } from "lucide-react";
-import { tagArticles } from "@/lib/sharing";
-import { ShareWithUserDialog } from "./ShareWithUser";
+import { Folder as FolderGlyph, Tag as TagGlyph, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { app, useApp } from "@/lib/app";
-import { plural, t } from "@/lib/i18n";
+import { t } from "@/lib/i18n";
 import { itemTags } from "@/lib/items";
 import { folderCounts } from "@/lib/saved";
 import { ConfirmRemove } from "./ConfirmRemove";
@@ -17,12 +15,9 @@ import { Input } from "./ui/input";
  * are made by filing an article in one, tags by adding them to an article.
  */
 export function SavedManage() {
-  const { library, account } = useApp();
+  const { library } = useApp();
   const folders = [...folderCounts(library)];
   const tags = itemTags(library);
-  // The tag being sent to a Content user (#167).
-  const [sharing, setSharing] = useState<string | null>(null);
-  const shared = sharing ? tagArticles(library, sharing) : [];
   if (folders.length === 0 && tags.length === 0) {
     return (
       <div className="px-1 py-6 text-center">
@@ -54,14 +49,6 @@ export function SavedManage() {
           <p className="px-1 pt-1 text-xs text-muted-foreground">{t("folderRemoveNote")}</p>
         </div>
       ) : null}
-      {sharing ? (
-        <ShareWithUserDialog
-          what={t("shareUserTag").replace("{tag}", sharing).replace("{count}", plural("articleCount", shared.length))}
-          items={shared}
-          tag={sharing}
-          onClose={() => setSharing(null)}
-        />
-      ) : null}
       {tags.length > 0 ? (
         <div>
           <h3 className="px-1 pb-1 text-sm font-medium text-primary">{t("tags")}</h3>
@@ -76,7 +63,6 @@ export function SavedManage() {
                 onRename={(to) => app.renameSavedTag(tag, to)}
                 onRemove={() => app.removeSavedTag(tag)}
                 confirmBody={t("removeTagBody").replace("{name}", tag)}
-                onShare={account ? () => setSharing(tag) : undefined}
               />
             ))}
           </ul>
@@ -95,7 +81,6 @@ function NameRow({
   onRename,
   onRemove,
   confirmBody,
-  onShare,
 }: {
   name: string;
   count?: number;
@@ -106,8 +91,6 @@ function NameRow({
   onRemove: () => void;
   /** What removing it does, asked first. */
   confirmBody: string;
-  /** Sends it to a Content user (#167). */
-  onShare?: () => void;
 }) {
   const [value, setValue] = useState(name);
   const [confirming, setConfirming] = useState(false);
@@ -127,11 +110,6 @@ function NameRow({
         <Button type="submit" variant="tonal" size="sm" disabled={!changed}>
           {label}
         </Button>
-        {onShare ? (
-          <Button type="button" variant="ghost" size="iconSm" onClick={onShare} aria-label={`${t("shareUserMenu")}: ${name}`} title={t("shareUserMenu")}>
-            <Users />
-          </Button>
-        ) : null}
         <Button type="button" variant="ghost" size="iconSm" onClick={() => setConfirming(true)} aria-label={`${removeLabel}: ${name}`} title={removeLabel}>
           <Trash2 />
         </Button>

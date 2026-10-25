@@ -88,10 +88,18 @@ function exportOpml() {
 }
 
 /**
- * Feeds and tags is one dialog (#222), as on Android: tabs for the feeds with their folders, and for
- * Saved's folders and tags. ☰'s Manage feeds and Manage tags open it on their tab.
+ * Manage feeds and Saved is one dialog (#222, #251), as on Android: tabs for the feeds with their
+ * folders and OPML, and for Saved's folders and tags with Instapaper. ☰'s Manage feeds and Saved
+ * opens it on Feeds.
  */
-export function ManageDialog({ open, onOpenChange, onAddFeed, tab, onTab }: Props & { onAddFeed: () => void; tab: "feeds" | "tags"; onTab: (tab: "feeds" | "tags") => void }) {
+export function ManageDialog({
+  open,
+  onOpenChange,
+  onAddFeed,
+  tab,
+  onTab,
+  onImport,
+}: Props & { onAddFeed: () => void; tab: "feeds" | "saved"; onTab: (tab: "feeds" | "saved") => void; onImport: () => void }) {
   const { library } = useApp();
   const [editFeed, setEditFeed] = useState<Feed | null>(null);
   const [editFolder, setEditFolder] = useState<Folder | "new" | null>(null);
@@ -129,12 +137,17 @@ export function ManageDialog({ open, onOpenChange, onAddFeed, tab, onTab }: Prop
             label={t("manageTitle")}
             options={[
               { value: "feeds", label: t("feeds") },
-              { value: "tags", label: t("tags") },
+              { value: "saved", label: t("saved") },
             ]}
           />
         </div>
-        {tab === "tags" ? <SavedManage /> : null}
-        <div className={cn("space-y-4", tab === "tags" && "hidden")}>
+        {tab === "saved" ? (
+          <div className="space-y-6">
+            <InstapaperSettings />
+            <SavedManage />
+          </div>
+        ) : null}
+        <div className={cn("space-y-4", tab === "saved" && "hidden")}>
           {groups.map(([folder, feeds], gi) => (
             <section key={folder?.id ?? "none"} className="rounded-xl bg-muted/60 p-2">
               <div className="flex items-center gap-2 px-2 py-1">
@@ -181,6 +194,19 @@ export function ManageDialog({ open, onOpenChange, onAddFeed, tab, onTab }: Prop
               </ul>
             </section>
           ))}
+          {/* Moving to or from another reader (#251: here, not in Settings). */}
+          <section className="space-y-2 pt-2">
+            <h3 className="text-sm font-medium text-primary">{t("opmlTitle")}</h3>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" onClick={onImport}>
+                {t("importOpml")}
+              </Button>
+              <Button variant="outline" onClick={exportOpml} disabled={library.feeds.length === 0}>
+                {t("exportOpml")}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">{t("opmlHint")}</p>
+          </section>
         </div>
       </Dialog>
       <EditFeedDialog key={`feed:${editFeed?.url ?? ""}`} feed={editFeed} folders={library.folders} onClose={() => setEditFeed(null)} />
@@ -338,25 +364,12 @@ function FolderDialog({ folder, onClose }: { folder: Folder | "new" | null; onCl
 }
 
 /** Settings in the order DESIGN.md gives: the account first, then the app's own, then appearance. */
-export function SettingsDialog({ open, onOpenChange, onImport }: Props & { onImport: () => void }) {
-  const { settings, library } = useApp();
+export function SettingsDialog({ open, onOpenChange }: Props) {
+  const { settings } = useApp();
   return (
     <Dialog open={open} onOpenChange={onOpenChange} title={t("settings")} closeLabel={t("close")} wide>
       <div className="space-y-6">
         <AccountSection />
-        <InstapaperSettings />
-        <section className="space-y-2">
-          <h3 className="text-sm font-medium text-primary">{t("opmlTitle")}</h3>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={onImport}>
-              {t("importOpml")}
-            </Button>
-            <Button variant="outline" onClick={exportOpml} disabled={library.feeds.length === 0}>
-              {t("exportOpml")}
-            </Button>
-          </div>
-          <p className="text-xs text-muted-foreground">{t("opmlHint")}</p>
-        </section>
         <section className="space-y-2">
           <h3 className="text-sm font-medium text-primary">{t("articleList")}</h3>
           <div className="flex flex-wrap items-center justify-between gap-2 py-1">
@@ -396,8 +409,8 @@ export function SettingsDialog({ open, onOpenChange, onImport }: Props & { onImp
           />
         </section>
         <p className="text-xs text-muted-foreground">
-          Reader ·{" "}
-          <a className="underline" href="https://github.com/wimvdon/reader/blob/main/PRIVACY.md" target="_blank" rel="noopener noreferrer">
+          Content ·{" "}
+          <a className="underline" href="https://github.com/wimvdon/content/blob/main/PRIVACY.md" target="_blank" rel="noopener noreferrer">
             {t("privacy")}
           </a>
         </p>

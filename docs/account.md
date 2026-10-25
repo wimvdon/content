@@ -1,10 +1,10 @@
 # Reader account
 
-Signing in with an emailed link (#166) or with Instapaper (Settings › Account, web: Settings ›
-Account) signs in to the user's **Reader account**: the feed loader (`worker/`, on Cloudflare) keeps the user's feeds,
-folders, read articles and settings there, so every device and the web app show the same. There is
-no Reader password: Instapaper confirms who the user is, and other ways to sign in can be added
-later.
+Signing in with an emailed link (#166, Settings › Account) signs in to the user's **Content
+account**: the feed loader (`worker/`, on Cloudflare) keeps the user's feeds, folders, read articles,
+Saved and settings there, so every device and the web app show the same. There is no password: the
+emailed link confirms who the user is. Instapaper is only a connected service (#215, #251): it opens
+no account.
 
 ## Signing in with an email link (#166)
 
@@ -21,26 +21,23 @@ later.
 4. Which account an address opens lives in its own Durable Object, named after an HMAC of the address:
    the account id (set the first time) and the used link ids. The address itself is not stored.
    A new address gets a new account (its id derived from that HMAC).
-5. **Adding an address to an account opened with Instapaper:** Settings › Account › Add an email
-   address calls `POST /account/email/add` with the device key; the emailed link adds the address to
-   that account (`{"email"}`), so either way in opens the same library. An address that already
-   opens another account is refused (`409`).
+5. **Adding an address:** Settings › Account › Add an email address calls `POST
+   /account/email/add` with the device key; the emailed link adds the address to that account
+   (`{"email"}`), so either address opens the same library. An address that already opens another
+   account is refused (`409`).
 
 The account key lives in its own file (`sync/ContentAccount.kt`, DataStore `account`; web:
 IndexedDB `account`), apart from the Instapaper sign-in: disconnecting Instapaper doesn't sign out,
-and signing out keeps Instapaper connected. Devices signed in before #166 move their key there.
-The picture next to the address comes from Gravatar (`sync/Gravatar.kt`, `gravatarUrl` in
+and signing out keeps Instapaper connected. The picture next to the address comes from Gravatar (`sync/Gravatar.kt`, `gravatarUrl` in
 `web/src/lib/account.ts`).
 
-## How it works (Instapaper)
+## Device keys
 
-1. The app swaps Instapaper's one-time sign-in code at the feed loader (`POST /instapaper/token`,
-   `docs/instapaper.md`). Instapaper's answer names the Instapaper user.
-2. The feed loader finds that user's account (an id derived from the Instapaper user id and the
-   `ACCOUNT_KEY` secret, so it says nothing by itself) and gives this device a new **device key**
-   (`<account id>.<random secret>`). It keeps only a SHA-256 hash of the secret.
-3. The device keeps the key next to the Instapaper token (Android: the `instapaper` DataStore file,
-   left out of backups; web: IndexedDB) and sends it with every sync.
+Each sign-in gives the device a new **device key** (`<account id>.<random secret>`); the feed
+loader keeps only a SHA-256 hash of the secret. The device keeps the key in its own file (Android:
+the `account` DataStore file, left out of backups; web: IndexedDB) and sends it with every call.
+Accounts opened with Instapaper before #166 keep their id (derived from the Instapaper user id and
+the `ACCOUNT_KEY` secret); since #251 signing in with Instapaper no longer hands out keys.
 
 Each account is one Cloudflare Durable Object (`Account` in `worker/src/account.ts`) with its own
 small storage: the device keys, one sync document and the item rows (`docs/sync.md`).
@@ -55,7 +52,7 @@ small storage: the device keys, one sync document and the item rows (`docs/sync.
 | `POST /account/items` | `{"rows": [{"key", "baseVersion", "data"}]}` (at most 500): each row is saved when its stored version is still `baseVersion` (0 for new), all with one new items version; the others come back in `conflicts` with what is stored now: `{"version", "saved": [{"key", "version"}], "conflicts": [...]}` |
 | `GET /account/live?key=…` | A WebSocket that sends `{"version": n, "items": m}` whenever a device saves (and once right after connecting) |
 | `POST /account/share/check` | `{"email"}`: `{"exists"}`, whether that address has a Content account (#167) |
-| `POST /account/share` | `{"to", "from": {"email", "name"}, "items": [...], "tag"?, "message"?}`: into the other account's inbox (the apps no longer send `message` since #246, nor show one); `404` without an account there, `403` when `from` isn't this account's address |
+| `POST /account/share` | `{"to", "from": {"email", "name"}, "items": [...], "message"?}`: into that account's inbox (your own too: every device of it is notified); one article at a time since #251 (no more tags); the apps send no `message` since #246; `404` without an account there, `403` when `from` isn't this account's address |
 | `GET /account/inbox` | What others shared with this account: `{"messages": [...]}` |
 | `POST /account/inbox/done` | `{"ids"}`: taken in, so they leave the inbox |
 | `GET /account/push/key` | `{"publicKey"}`: the VAPID public key for Web Push (#235), or `404` when notifications aren't set up |

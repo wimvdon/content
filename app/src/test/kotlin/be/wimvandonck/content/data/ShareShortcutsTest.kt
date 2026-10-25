@@ -23,11 +23,13 @@ class ShareShortcutsTest {
     }
 
     @Test
-    fun `the share sheet has Send with Content and at most four people, the most recent first`() {
-        val people = (1..12).map { "p$it@example.com" }
-        assertEquals(people.take(4), ShareShortcuts.buttons(people))
-        assertEquals(ShareShortcuts.MAX_BUTTONS, ShareShortcuts.buttons(people).size + 1)
-        // Direct share never offers more people than there are buttons for.
-        assertEquals(ShareShortcuts.buttons(ShareShortcuts.pick(people)), ShareShortcuts.pick(people))
+    fun `the launcher offers the first folders, which open the app on them (#251)`() {
+        val folders = (1..6).map { Folder("f$it", "Folder $it") }
+        assertEquals(folders.take(LauncherFolders.MAX), LauncherFolders.pick(folders))
+        assertEquals("folder:f1", LauncherFolders.idOf("f1"))
+        assertEquals("f1", LauncherFolders.folderOf(LauncherFolders.requestOf("f1")))
+        assertNull(LauncherFolders.folderOf("folder:"))
+        assertNull(LauncherFolders.folderOf("shared-with-me"))
+        assertNull(LauncherFolders.folderOf(null))
     }
 }

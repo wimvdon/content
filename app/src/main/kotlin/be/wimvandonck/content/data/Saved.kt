@@ -49,8 +49,6 @@ data class NoteContent(
     val highlights: Int = 0,
     val liked: Boolean = false,
     val note: String = "",
-    /** Who shared it (#167), or null. */
-    val sharedBy: SharedBy? = null,
 )
 
 object Saved {
@@ -62,7 +60,7 @@ object Saved {
     fun showsNotes(tab: SavedTab): Boolean = true
 
     /** A saved item as a note card. */
-    fun note(item: Item): NoteContent = NoteContent(item.title, item.imageUrl, cardBody(item), item.host, item.tags, item.highlights.size, item.liked, item.note.trim(), item.sharedBy)
+    fun note(item: Item): NoteContent = NoteContent(item.title, item.imageUrl, cardBody(item), item.host, item.tags, item.highlights.size, item.liked, item.note.trim())
 
     /** A feed article as a note card (Search's notes view): the start of its text under the title. */
     fun note(article: Article): NoteContent =
@@ -231,28 +229,6 @@ object Saved {
                     if (it.folder.equals(name, ignoreCase = true)) it.copy(folder = null, readingList = it.readingList?.copy(state = ReadingState.Archived)) else it
                 },
         )
-
-    /**
-     * Moves bookmarks from before #119 into folders, once: a bookmark's collection becomes its
-     * folder ([defaultFolder] without one), and it is saved to read there. Nothing else changes.
-     */
-    fun settle(
-        library: Library,
-        defaultFolder: String,
-    ): Library {
-        if (library.items.none { it.bookmark != null }) return library
-        return library.copy(
-            items =
-                library.items.map { item ->
-                    val bookmark = item.bookmark ?: return@map item
-                    item.copy(
-                        bookmark = null,
-                        readingList = ReadingListEntry(ReadingState.ToRead, item.readingList?.addedAt ?: bookmark.addedAt),
-                        folder = bookmark.collection?.trim()?.ifEmpty { null } ?: defaultFolder,
-                    )
-                },
-        )
-    }
 
     /**
      * The text of an item's note card (#133): the first highlight (shown quoted, as the author's

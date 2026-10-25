@@ -12,15 +12,12 @@ import be.wimvandonck.content.data.FullArticles
 import be.wimvandonck.content.data.SharedText
 import be.wimvandonck.content.data.IconCatalog
 import be.wimvandonck.content.data.LibraryRepository
-import be.wimvandonck.content.data.ServiceScope
 import be.wimvandonck.content.data.SettingsStore
 import be.wimvandonck.content.feed.FeedFetcher
 import be.wimvandonck.content.instapaper.InstapaperAccount
 import be.wimvandonck.content.push.PushNotifications
 import be.wimvandonck.content.data.SiteSignInStore
 import be.wimvandonck.content.feed.SiteSignIns
-import be.wimvandonck.content.instapaper.InstapaperReadingList
-import be.wimvandonck.content.instapaper.InstapaperState
 import be.wimvandonck.content.sync.AccountState
 import be.wimvandonck.content.sync.ContentAccount
 import be.wimvandonck.content.ui.DirectShare
@@ -31,6 +28,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import be.wimvandonck.content.services.ServiceManager
 import be.wimvandonck.content.sync.SyncManager
@@ -81,11 +79,8 @@ class RssReaderApp :
             library,
             instapaper,
             http,
-            // Folders became tags (#187), so a scope of folders means nothing any more: everything in Saved syncs.
-            scopeOf = { ServiceScope.Everything },
             importOf = { id -> settings.settings.value?.imports?.get(id) },
             recordImport = { id, record -> settings.setImport(id, record) },
-            copiesHighlights = { id -> id == InstapaperReadingList.ID && settings.settings.value?.copyHighlights == true },
             // The one text every device shows for a saved article (data/SharedText.kt), so Instapaper shows it too (#247).
             textOf = { item ->
                 SharedText.resolve(
@@ -115,30 +110,32 @@ class RssReaderApp :
         super.onCreate()
         // Read the folder icons in the background now, so the first screen doesn't wait for them.
         appScope.launch { iconCatalog }
-        // Raindrop.io was removed (#179): its sign-in, kept only on this device, goes with it.
-        appScope.launch { File(filesDir, "datastore/raindrop.preferences_pb").delete() }
         // Notifications (#235): Firebase starts when the build has its settings; signing out turns them off.
         push.start()
         appScope.launch {
             account.state.collect { state -> if (state is AccountState.SignedOut) push.signedOut() }
         }
-        // Direct share (#235, #246): Send with Content and the people shared with, in Android's share
-        // menu, while signed in.
+        // Direct share (#235, #246): Send with Content and the people shared with, in other apps' share
+        // menus, while signed in; the feed folders in the launcher's menu (#251).
         appScope.launch {
-            combine(settings.settings.filterNotNull(), account.state) { s, state ->
-                Triple(state is AccountState.SignedIn, s.recipients, s.showImages)
-            }.distinctUntilChanged().collect { (signedIn, recipients, showImages) ->
+            val folders = library.library.filterNotNull().map { lib -> lib.folders.map { Triple(it.id, it.title, it.icon) } }.distinctUntilChanged()
+            combine(settings.settings.filterNotNull(), account.state, folders) { s, state, f ->
+                Triple(state is AccountState.SignedIn, s.recipients, s.showImages) to f
+            }.distinctUntilChanged().collect { (shown, _) ->
+                val (signedIn, recipients, showImages) = shown
                 // A failure here must not end the collecting: the next change would never be published (#249).
                 runCatching {
                     DirectShare.showSendTarget(this@RssReaderApp, signedIn)
-                    DirectShare.publish(this@RssReaderApp, if (signedIn) recipients else emptyList(), showImages, sync::profileName)
-                }.onFailure { Log.w("RssReader", "Direct share not published", it) }
-            }
-        }
-        // Signed in with Instapaper before #166: that account key moves to the Content account, once.
-        appScope.launch {
-            instapaper.state.collect { state ->
-                if ((state as? InstapaperState.SignedIn)?.session?.accountKey != null) instapaper.takeAccountKey()?.let { account.adopt(it) }
+                    val lib = library.library.value
+                    DirectShare.publish(
+                        this@RssReaderApp,
+                        if (signedIn) recipients else emptyList(),
+                        showImages,
+                        sync::profileName,
+                        lib?.folders.orEmpty(),
+                        iconCatalog::icon,
+                    )
+                }.onFailure { Log.w("RssReader", "Shortcuts not published", it) }
             }
         }
     }

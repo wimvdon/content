@@ -118,15 +118,6 @@ function routeOf(method: string, path: string): Route | null {
   return null;
 }
 
-/**
- * A new device key for the account that belongs to this sign-in, or null when accounts aren't set
- * up. Only call it after the provider confirmed who the user is (instapaper.ts, after the swap).
- */
-export async function newDeviceKey(env: Env, provider: "instapaper", userId: number): Promise<string | null> {
-  if (!env.ACCOUNTS || !env.ACCOUNT_KEY) return null;
-  return addDeviceKey(env, await accountIdOf(env.ACCOUNT_KEY, provider, userId));
-}
-
 /** A new device key for the account [accountId] (an email sign-in, email.ts), or null when that didn't work. */
 export async function addDeviceKey(env: Env, accountId: string): Promise<string | null> {
   if (!env.ACCOUNTS) return null;
@@ -168,13 +159,12 @@ interface Stored {
   data: Uint8Array;
 }
 
-/** Something another Content user shared (#167): who, the articles, and the tag they were shared as (if any). */
+/** Something a Content user shared (#167): who, and the articles. */
 export interface InboxMessage {
   id: string;
   at: number;
   from: { email: string; name: string };
   items: { url: string; title: string; imageUrl?: string | null; description?: string }[];
-  tag?: string | null;
   /** A short message from the sender. */
   message?: string | null;
 }

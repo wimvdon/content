@@ -44,7 +44,6 @@ rss-reader/
         │   │   │   ├── Library.kt             Feeds, articles, read state, merge (plain Kotlin)
         │   │   │   ├── Items.kt, LibraryItems.kt  One item per link: Saved's place, folder, tags (plain Kotlin)
         │   │   │   ├── Saved.kt              Saved's tabs, filters, folders, filing (plain Kotlin)
-        │   │   │   ├── LibraryCodec.kt        The text format before #106 (moved in once by LegacyLibrary.kt)
         │   │   │   ├── LibraryRows.kt         Library ⇄ database rows, what a change writes
         │   │   │   ├── db/                    Room: tables, queries, the database
         │   │   │   ├── LibraryRepository.kt   Room, refresh, add feed, OPML
@@ -75,11 +74,11 @@ rss-reader/
         │   │   └── ui/
         │   │       ├── MainActivity.kt, Navigation.kt   Entry, back stack, wiring
         │   │       ├── ExternalApps.kt        Browser, share, Instapaper, Play Store
-        │   │       ├── DirectShare.kt         Send with Content and the people shared with, in the share menu
+        │   │       ├── DirectShare.kt         Send with Content and the people in other apps' share menus; folders in the launcher
         │   │       ├── home/                  Article list, folder bar, feed drawer, Add feed dialog, messages, inbox
-        │   │       ├── reader/                Reader screen, text settings, reader colours
-        │   │       ├── feeds/                 Feeds and folders page, folder dialogs
-        │   │       ├── settings/              Settings screen, Save/Share targets
+        │   │       ├── reader/                Reader screen, text settings, reader colours, Content's share sheet
+        │   │       ├── feeds/                 Manage feeds and Saved (two tabs), folder dialogs
+        │   │       ├── settings/              Settings screen, Save/Share targets, Instapaper
         │   │       └── theme/                 Theme.kt (palette) + shared design kit (incl. EmptyState)
         │   ├── assets/                  material_symbols.txt (folder icons) and its licence
         │   └── res/
@@ -95,10 +94,9 @@ rss-reader/
 
 Saved and Instapaper (#107, #109, #119): `data/Saved.kt` (tabs, filters, folders),
 `data/ReadingLists.kt` (reading times, items as articles), `services/` (`ReadingListService`, `ServiceSync`, `ServiceManager`),
-`instapaper/` (client, sign-in, account, `InstapaperReadingList`, and the files of Saved before #106
-for the move-in), `ui/home/SavedContent.kt`, `ui/reader/ItemSheets.kt`, `ui/reader/SavedBar.kt` (the reader's place and tags menus, #156), `ui/reader/HighlightSheets.kt` (a highlight and the list, #102),
-`ui/feeds/TagsManage.kt`, `ui/settings/ServicesScreen.kt`. The web app: `web/src/lib/instapaper.ts`,
-`web/src/lib/saved.ts` (Saved: tabs, filters, folders, cards, like Android's `Saved.kt`), `web/src/lib/localSaved.ts` and `savedItems.ts` (Saved before #106, moved in once), `web/src/lib/serviceSync.ts` and `instapaperSync.ts` (Instapaper in the background), `web/src/lib/articleExtractor.ts` (reader view, the same steps as `ArticleExtractor.kt`; sample pages both test on in `testdata/articles/`),
+`instapaper/` (client, sign-in, account, `InstapaperReadingList`), `ui/home/SavedContent.kt`, `ui/reader/ItemSheets.kt`, `ui/reader/SavedBar.kt` (the reader's folder button, which opens Organise, #251), `ui/reader/HighlightSheets.kt` (a highlight and the list, #102),
+`ui/feeds/SavedManage.kt` (Manage › Saved), `ui/settings/InstapaperSettings.kt` (Instapaper there, and the import question), `data/ServiceImport.kt` (the answer to it). The web app: `web/src/lib/instapaper.ts`,
+`web/src/lib/saved.ts` (Saved: tabs, filters, folders, cards, like Android's `Saved.kt`), `web/src/lib/serviceSync.ts` and `instapaperSync.ts` (Instapaper in the background), `web/src/lib/articleExtractor.ts` (reader view, the same steps as `ArticleExtractor.kt`; sample pages both test on in `testdata/articles/`),
 `web/src/components/SavedActions.tsx` and `SavedManage.tsx`, `worker/src/instapaper.ts`
 (token swap and the web app's calls). See `docs/instapaper.md`.
 

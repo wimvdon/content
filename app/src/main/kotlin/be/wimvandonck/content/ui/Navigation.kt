@@ -1,5 +1,18 @@
 package be.wimvandonck.content.ui
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import androidx.core.content.pm.ShortcutManagerCompat
+import be.wimvandonck.content.data.LauncherFolders
+import be.wimvandonck.content.data.ShareApps
+import be.wimvandonck.content.data.SharedArticle
+import be.wimvandonck.content.instapaper.InstapaperReadingList
+import be.wimvandonck.content.services.ServiceStatus
+import be.wimvandonck.content.ui.feeds.SavedManageScreen
+import be.wimvandonck.content.ui.reader.ShareSheet
+import be.wimvandonck.content.ui.reader.ShareWithUserDialog
+import be.wimvandonck.content.ui.settings.InstapaperImportDialog
+import be.wimvandonck.content.ui.settings.InstapaperSettingsState
 import be.wimvandonck.content.data.Inbox
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -36,7 +49,6 @@ import androidx.lifecycle.repeatOnLifecycle
 import be.wimvandonck.content.R
 import be.wimvandonck.content.ui.feeds.ManageTab
 import be.wimvandonck.content.data.ArticleReport
-import be.wimvandonck.content.data.Sharing
 import be.wimvandonck.content.sync.AccountState
 import be.wimvandonck.content.sync.ShareResult
 import be.wimvandonck.content.feed.SiteSignIn
@@ -70,7 +82,6 @@ import be.wimvandonck.content.data.setLiked
 import be.wimvandonck.content.data.setReadingState
 import be.wimvandonck.content.data.tagCounts
 import be.wimvandonck.content.feed.FeedDiscovery
-import be.wimvandonck.content.ui.feeds.TagsManageScreen
 import be.wimvandonck.content.ui.home.HomeSection
 import be.wimvandonck.content.ui.home.SavedHome
 import be.wimvandonck.content.ui.reader.SaveSheet
@@ -78,11 +89,6 @@ import be.wimvandonck.content.ui.reader.ReaderHighlights
 import be.wimvandonck.content.ui.reader.SheetKind
 import be.wimvandonck.content.ui.reader.ReaderItem
 import be.wimvandonck.content.ui.reader.fontFamily
-import be.wimvandonck.content.ui.settings.ServiceScreen
-import be.wimvandonck.content.ui.settings.serviceName
-import be.wimvandonck.content.ui.settings.ServicesActions
-import be.wimvandonck.content.ui.settings.ServicesScreen
-import be.wimvandonck.content.ui.settings.ServicesState
 import be.wimvandonck.content.data.AddFeedResult
 import be.wimvandonck.content.data.Article
 import be.wimvandonck.content.data.ArticleSearch
@@ -135,17 +141,11 @@ sealed interface Screen {
 
     data object Settings : Screen
 
-    /** Manage feeds: feeds and folders. */
+    /** Manage feeds and Saved, its Feeds tab: feeds, folders and OPML. */
     data object Feeds : Screen
 
-    /** Folders and tags: rename and remove Saved's folders and tags. */
-    data object Tags : Screen
-
-    /** Connected services (#109). */
-    data object Services : Screen
-
-    /** One connected service: its account, import and what it syncs (#145). */
-    data class Service(val id: String) : Screen
+    /** Manage feeds and Saved, its Saved tab: Saved's folders and tags, Tag with the feed's folder, Instapaper (#251). */
+    data object ManageSaved : Screen
 
     /** Search through every feed's articles and Saved. */
     data object Search : Screen
@@ -162,9 +162,7 @@ sealed interface Screen {
                 Home -> "home"
                 Settings -> "settings"
                 Feeds -> "feeds"
-                Tags -> "tags"
-                Services -> "services"
-                is Service -> "service:" + screen.id
+                ManageSaved -> "manage-saved"
                 Search -> "search"
                 Inbox -> "inbox"
                 is Reader -> "reader:" + screen.articleKey
@@ -175,9 +173,7 @@ sealed interface Screen {
             when {
                 text == "settings" -> Settings
                 text == "feeds" -> Feeds
-                text == "tags" -> Tags
-                text == "services" -> Services
-                text.startsWith("service:") -> Service(text.removePrefix("service:"))
+                text == "manage-saved" -> ManageSaved
                 text == "search" -> Search
                 text == "inbox" -> Inbox
                 text.startsWith("reader:") -> Reader(text.removePrefix("reader:"))
@@ -212,8 +208,6 @@ fun RssReaderNavigation(
     val textWords by repository.textWords.collectAsStateWithLifecycle()
     val syncStatus by app.sync.status.collectAsStateWithLifecycle()
     val serviceStatuses by app.services.statuses.collectAsStateWithLifecycle()
-    // Which services keep each saved item in step: removing one both keep asks which (#145).
-    val servicePresence by app.services.presence.collectAsStateWithLifecycle()
     val notCopied by app.services.notCopied.collectAsStateWithLifecycle()
     val instapaperState by app.instapaper.state.collectAsStateWithLifecycle()
     val instapaperNotice by app.instapaper.notice.collectAsStateWithLifecycle()
@@ -269,14 +263,19 @@ fun RssReaderNavigation(
         if (backStack.size > 1) screenStates.removeState(Screen.encode(backStack.removeAt(backStack.lastIndex)))
     }
 
-    /** Feeds and tags (#222): a tab replaces the shown screen, so Back leaves at once. */
+    /** Manage feeds and Saved (#222, #251): a tab replaces the shown screen, so Back leaves at once. */
     fun showManageTab(tab: ManageTab) {
-        val next = if (tab == ManageTab.Feeds) Screen.Feeds else Screen.Tags
+        val next = if (tab == ManageTab.Feeds) Screen.Feeds else Screen.ManageSaved
         if (backStack.lastOrNull() != next) backStack[backStack.lastIndex] = next
     }
 
     fun showMessage(text: String) {
         uiScope.launch { snackbar.showSnackbar(text) }
+    }
+
+    /** Puts [text] on the clipboard; Android says so itself. */
+    fun copyToClipboard(text: String) {
+        context.getSystemService(ClipboardManager::class.java)?.setPrimaryClip(ClipData.newPlainText(resources.getString(R.string.app_name), text))
     }
 
     /** A message with one action (Undo, File), run when it is tapped. */
@@ -454,16 +453,46 @@ fun RssReaderNavigation(
         onPauseOrDispose { }
     }
 
-    /** Sends the article to the Save or Share button's app; the share menu when that app is gone. */
+    // Content's own share sheet (#251) while it is open: the article's title and link.
+    var shareTitle by rememberSaveable { mutableStateOf<String?>(null) }
+    var shareUrl by rememberSaveable { mutableStateOf<String?>(null) }
+    // Send with Content to an address typed in, from the share sheet.
+    var sendOther by rememberSaveable { mutableStateOf(false) }
+
+    /** Sends the article to the Save or Share button's app; Content's share sheet for the share menu or when that app is gone. */
     fun send(
         article: Article,
         target: ShareTarget,
     ) {
         val link = article.link ?: return
-        val chooser = resources.getString(R.string.action_share)
-        if (!ExternalApps.send(context, target, article.title, link, chooser)) {
-            if (target is ShareTarget.App) showMessage(resources.getString(R.string.share_target_missing_short, target.label))
-            ExternalApps.share(context, article.title, link, chooser)
+        if (target is ShareTarget.App && ExternalApps.send(context, target, article.title, link, resources.getString(R.string.action_share))) return
+        if (target is ShareTarget.App) showMessage(resources.getString(R.string.share_target_missing_short, target.label))
+        shareTitle = article.title
+        shareUrl = link
+    }
+
+    /** Send with Content (#167): the article to [email]'s inbox; the message says how it went. */
+    fun sendTo(
+        email: String,
+        title: String,
+        url: String,
+        result: (ShareResult) -> Unit = {},
+    ) {
+        uiScope.launch {
+            val r = app.sync.share(email, listOf(SharedArticle(url, title)))
+            result(r)
+            showMessage(
+                resources.getString(
+                    when (r) {
+                        ShareResult.Sent -> R.string.share_user_sent
+                        ShareResult.NoAccount -> R.string.share_user_no_account
+                        ShareResult.SignedOut -> R.string.share_user_signed_out
+                        ShareResult.Offline -> R.string.problem_offline
+                        ShareResult.Failed -> R.string.problem_server
+                    },
+                    email,
+                ),
+            )
         }
     }
 
@@ -534,10 +563,18 @@ fun RssReaderNavigation(
 
     LaunchedEffect(openRequest) {
         val key = openRequest ?: return@LaunchedEffect
+        val folder = LauncherFolders.folderOf(key)
         // The notification (#235): the inbox (#246), not an article.
         if (key == MainActivity.OPEN_SHARED) {
             while (backStack.size > 1) pop()
             push(Screen.Inbox)
+        } else if (folder != null) {
+            // A folder from the launcher's menu (#251): its articles, on Home.
+            ShortcutManagerCompat.reportShortcutUsed(context, LauncherFolders.idOf(folder))
+            while (backStack.size > 1) pop()
+            if (selection != FeedSelection.InFolder(folder)) readThisVisit = emptySet()
+            selection = FeedSelection.InFolder(folder)
+            section = HomeSection.Feeds
         } else {
             section = HomeSection.Saved
             push(Screen.Reader(key))
@@ -665,8 +702,7 @@ fun RssReaderNavigation(
                                 onAddFeed = { addDialogOpen = true },
                                 onImportOpml = importOpml,
                                 onOpenSettings = { push(Screen.Settings) },
-                                onOpenFeeds = { push(Screen.Feeds) },
-                                onOpenTagsManage = { push(Screen.Tags) },
+                                onOpenManage = { push(Screen.Feeds) },
                                 onShowFeeds = { section = HomeSection.Feeds },
                                 onShowSaved = { section = HomeSection.Saved },
                                 onSavedFilter = {
@@ -767,12 +803,17 @@ fun RssReaderNavigation(
                                     },
                                     onShare = { article?.let { send(it, current.shareTarget) } },
                                     onOpenInBrowser = { article?.let { a -> a.link?.let { ExternalApps.openInTab(context, it, a.title) } } },
-                                    onSignIn = article?.link?.takeIf { SiteSignIns.siteOf(it) != null }?.let { link -> { push(Screen.SiteSignIn(link)) } },
+                                    // Only while not signed in to the site yet (#251); Settings forgets a sign-in.
+                                    onSignIn = article?.link?.takeIf { signedIn == null && SiteSignIns.siteOf(it) != null }?.let { link -> { push(Screen.SiteSignIn(link)) } },
                                     onReport =
                                         article?.link?.let { link ->
                                             { problem, comment ->
                                                 val version = runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull().orEmpty()
-                                                ExternalApps.openLink(context, ArticleReport.url(link, problem, comment, "Android", version))
+                                                // The text the reader shows, so it can be compared with the page (#251).
+                                                val text = ArticleReport.textOf((fullText as? FullTextState.Shown)?.html ?: article.html)
+                                                val report = ArticleReport.report(link, problem, comment, "Android", version, text)
+                                                if (report.cut) copyToClipboard(text)
+                                                ExternalApps.openLink(context, report.url)
                                             }
                                         },
                                     onMarkUnread =
@@ -789,32 +830,11 @@ fun RssReaderNavigation(
                                 item?.let { i ->
                                     ReaderItem(
                                         item = i,
-                                        folders = Saved.folders(library),
-                                        tags = Saved.tags(library, SavedTab.All),
-                                        onPlace = { place ->
-                                            if (place == Place.Archive) {
-                                                // Done with it: archived, back to the list, with Undo.
-                                                archive(i)
-                                                pop()
-                                            } else {
-                                                editLibrary { SaveChoices.apply(it, i.key, SaveChoices.of(i).copy(place = place)) }
-                                            }
-                                        },
-                                        onLike = { editLibrary { it.setLiked(i.key, !i.liked) } },
-                                        onTag = { tag -> editLibrary { lib -> lib.item(i.key)?.let { now -> SaveChoices.apply(lib, i.key, SaveChoices.withTag(SaveChoices.of(now), tag)) } ?: lib } },
                                         onOrganise = { fileKey = i.key },
                                         onRemove = {
                                             editLibrary { Saved.remove(it, i.key) }
                                             pop()
                                             showMessage(resources.getString(R.string.saved_removed))
-                                        },
-                                        services = servicePresence[i.key].orEmpty(),
-                                        onRemoveFrom = { id ->
-                                            app.appScope.launch {
-                                                val removed = app.services.removeFrom(i.key, id)
-                                                val name = resources.getString(serviceName(id))
-                                                showMessage(resources.getString(if (removed) R.string.saved_removed_from else R.string.saved_remove_from_failed, name))
-                                            }
                                         },
                                         onProgress = { progress ->
                                             if (kotlin.math.abs(progress - i.progress) >= 0.01f) {
@@ -838,8 +858,6 @@ fun RssReaderNavigation(
                                 account = accountState,
                                 accountName = accountName,
                                 notifyShared = current.notifyShared.takeIf { app.push.available },
-                                instapaperConnected = instapaperState is InstapaperState.SignedIn,
-                                hasFeeds = library.feeds.isNotEmpty(),
                                 siteSignIns = siteSignIns.map { it.site },
                             ),
                         snackbarHostState = snackbar,
@@ -853,10 +871,8 @@ fun RssReaderNavigation(
                                 onListViewChange = { view -> app.appScope.launch { app.settings.setListView(view) } },
                                 onSaveTargetChange = { target -> app.appScope.launch { app.settings.setSaveTarget(target) } },
                                 onShareTargetChange = { target -> app.appScope.launch { app.settings.setShareTarget(target) } },
-                                onTagWithFolderChange = { enabled -> app.appScope.launch { app.settings.setTagWithFolder(enabled) } },
                                 onThemeModeChange = { mode -> app.appScope.launch { app.settings.setThemeMode(mode) } },
                                 onDynamicColorChange = { enabled -> app.appScope.launch { app.settings.setDynamicColor(enabled) } },
-                                onSignIn = { uiScope.launch { ExternalApps.openLink(context, app.instapaper.begin()) } },
                                 onSyncNow = {
                                     app.appScope.launch {
                                         app.sync.sync()
@@ -864,9 +880,6 @@ fun RssReaderNavigation(
                                     }
                                 },
                                 onSignOut = { app.appScope.launch { app.sync.signOut() } },
-                                onOpenServices = { push(Screen.Services) },
-                                onImportOpml = importOpml,
-                                onExportOpml = exportOpml,
                                 onRemoveSiteSignIn = { site ->
                                     siteSignIns.firstOrNull { it.site == site }?.let { forgetSiteCookies(it.site, it.cookie) }
                                     app.appScope.launch { app.siteSignIns.remove(site) }
@@ -922,6 +935,8 @@ fun RssReaderNavigation(
                                 onUpdateFolder = { folder -> app.appScope.launch { repository.updateFolder(folder.id, folder.title, folder.icon) } },
                                 onRemoveFolder = { folder -> app.appScope.launch { repository.removeFolder(folder.id) } },
                                 onTab = ::showManageTab,
+                                onImportOpml = importOpml,
+                                onExportOpml = exportOpml,
                             ),
                     )
                 }
@@ -1022,9 +1037,9 @@ fun RssReaderNavigation(
                     )
                 }
 
-                Screen.Tags -> {
+                Screen.ManageSaved -> {
                     SystemBarsFollowTheme(appDark)
-                    TagsManageScreen(
+                    SavedManageScreen(
                         tags = remember(library) { library.tagCounts() },
                         folders = remember(library) { Saved.folderCounts(library) },
                         snackbarHostState = snackbar,
@@ -1034,46 +1049,20 @@ fun RssReaderNavigation(
                         onRenameFolder = { from, to -> editLibrary { Saved.renameFolder(it, from, to) } },
                         onRemoveFolder = { name -> editLibrary { Saved.removeFolder(it, name) } },
                         onTab = ::showManageTab,
-                        onShareTag =
-                            if (accountState is AccountState.SignedIn) {
-                                { tag, email, result ->
-                                    uiScope.launch {
-                                        val r = app.sync.share(email, Sharing.tagArticles(library, tag), tag)
-                                        result(r)
-                                        if (r == ShareResult.Sent) showMessage(resources.getString(R.string.share_user_sent, email))
-                                    }
-                                }
-                            } else {
-                                null
-                            },
+                        tagWithFolder = current.tagWithFolder,
+                        onTagWithFolderChange = { enabled -> app.appScope.launch { app.settings.setTagWithFolder(enabled) } },
+                        instapaper =
+                            InstapaperSettingsState(
+                                instapaper = instapaperState,
+                                status = serviceStatuses[InstapaperReadingList.ID] ?: ServiceStatus.None,
+                                imported = current.imports[InstapaperReadingList.ID],
+                            ),
+                        onInstapaperSignIn = { uiScope.launch { ExternalApps.openLink(context, app.instapaper.begin()) } },
+                        onInstapaperSync = { app.appScope.launch { app.services.sync() } },
+                        // Disconnects Instapaper only; the Content account stays signed in (#166).
+                        onInstapaperSignOut = { app.appScope.launch { app.instapaper.signOut() } },
+                        onInstapaperImport = { everything -> app.appScope.launch { app.services.chooseImport(InstapaperReadingList.ID, everything) } },
                     )
-                }
-
-                Screen.Services, is Screen.Service -> {
-                    SystemBarsFollowTheme(appDark)
-                    val servicesState =
-                        ServicesState(
-                            instapaper = instapaperState,
-                            statuses = serviceStatuses,
-                            imports = current.imports,
-                            copyHighlights = current.copyHighlights,
-                        )
-                    val servicesActions =
-                        ServicesActions(
-                            onBack = ::pop,
-                            onSignIn = { uiScope.launch { ExternalApps.openLink(context, app.instapaper.begin()) } },
-                            // Disconnects Instapaper only; the Content account stays signed in (#166).
-                            onSignOut = { app.appScope.launch { app.instapaper.signOut() } },
-                            onSyncNow = { app.appScope.launch { app.services.sync() } },
-                            onOpenService = { id -> push(Screen.Service(id)) },
-                            onCopyHighlightsChange = { on ->
-                                app.appScope.launch {
-                                    app.settings.setCopyHighlights(on)
-                                    if (on) app.services.sync()
-                                }
-                            },
-                        )
-                    if (screen is Screen.Service) ServiceScreen(screen.id, servicesState, servicesActions) else ServicesScreen(servicesState, servicesActions)
                 }
 
             }
@@ -1141,6 +1130,65 @@ fun RssReaderNavigation(
             onSave = { url, choice -> url?.let { save(it, saveTitle.takeIf { saveUrl.isNotEmpty() }, choice) } },
             onDismiss = { saveOpen = false },
         )
+    }
+
+    // Just connected Instapaper (#251): import what it has, once, or not. Asked again next time if dismissed.
+    var importAsked by rememberSaveable { mutableStateOf(false) }
+    if (serviceStatuses[InstapaperReadingList.ID] == ServiceStatus.ImportChoice && !importAsked) {
+        InstapaperImportDialog(
+            onChoose = { everything ->
+                importAsked = true
+                app.appScope.launch { app.services.chooseImport(InstapaperReadingList.ID, everything) }
+            },
+            onDismiss = { importAsked = true },
+        )
+    }
+
+    // Content's own share sheet (#251).
+    val sharing = shareUrl
+    if (sharing != null) {
+        val title = shareTitle ?: sharing
+        val close = {
+            shareUrl = null
+            shareTitle = null
+        }
+        ShareSheet(
+            title = title,
+            url = sharing,
+            signedIn = accountState is AccountState.SignedIn,
+            apps = remember(shareApps, current.shareCounts) { ShareApps.rank(shareApps, current.shareCounts, { it.id }, { it.target.label }).take(ShareApps.SHOWN) },
+            onSendTo = { email ->
+                close()
+                sendTo(email, title, sharing)
+            },
+            onSendOther = { sendOther = true },
+            onApp = { picked ->
+                close()
+                app.appScope.launch { app.settings.countShare(picked.id) }
+                if (!ExternalApps.send(context, picked.target, title, sharing, resources.getString(R.string.action_share))) {
+                    showMessage(resources.getString(R.string.share_target_missing_short, picked.target.label))
+                }
+            },
+            onCopyLink = {
+                close()
+                copyToClipboard(sharing)
+            },
+            onMore = {
+                close()
+                ExternalApps.share(context, title, sharing, resources.getString(R.string.action_share))
+            },
+            onDismiss = close,
+        )
+        if (sendOther) {
+            ShareWithUserDialog(
+                onSend = { email, result -> sendTo(email, title, sharing, result) },
+                onDone = {
+                    sendOther = false
+                    close()
+                },
+                onDismiss = { sendOther = false },
+            )
+        }
     }
 
     if (addDialogOpen) {

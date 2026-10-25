@@ -5,16 +5,12 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -26,7 +22,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import be.wimvandonck.content.R
 import be.wimvandonck.content.data.ListView
@@ -59,10 +54,6 @@ data class SettingsState(
     val accountName: String? = null,
     /** Notifications when something is shared (#235): null when the build has none. */
     val notifyShared: Boolean? = null,
-    /** Instapaper is connected (Connected services says so). */
-    val instapaperConnected: Boolean = false,
-    /** There are feeds to export. */
-    val hasFeeds: Boolean = false,
     /** Sites signed in to (#180). */
     val siteSignIns: List<String> = emptyList(),
 )
@@ -76,10 +67,8 @@ class SettingsActions(
     val onListViewChange: (ListView) -> Unit,
     val onSaveTargetChange: (ShareTarget) -> Unit,
     val onShareTargetChange: (ShareTarget) -> Unit,
-    val onTagWithFolderChange: (Boolean) -> Unit = {},
     val onThemeModeChange: (ThemeMode) -> Unit,
     val onDynamicColorChange: (Boolean) -> Unit,
-    val onSignIn: () -> Unit,
     val onSyncNow: () -> Unit,
     val onSignOut: () -> Unit,
     val onDeleteAccountData: () -> Unit,
@@ -87,10 +76,6 @@ class SettingsActions(
     val onSendLink: (email: String, result: (Boolean) -> Unit) -> Unit = { _, _ -> },
     /** Turns notifications on or off (#235); the result says whether that worked. */
     val onNotifyShared: (Boolean, (Boolean) -> Unit) -> Unit = { _, _ -> },
-    /** Opens Connected services (Instapaper). */
-    val onOpenServices: () -> Unit = {},
-    val onImportOpml: () -> Unit = {},
-    val onExportOpml: () -> Unit = {},
     /** Forgets a site's sign-in (#180). */
     val onRemoveSiteSignIn: (String) -> Unit = {},
 )
@@ -123,16 +108,6 @@ fun SettingsScreen(
                 onDeleteData = actions.onDeleteAccountData,
             )
         }
-        item(key = "services") {
-            SettingsSection(title = stringResource(R.string.services_title)) {
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.section_instapaper)) },
-                    supportingContent = { Text(stringResource(if (state.instapaperConnected) R.string.services_syncs_everything else R.string.services_reading_body)) },
-                    leadingContent = { Icon(painterResource(R.drawable.ic_reading_list), contentDescription = null) },
-                    modifier = Modifier.clickable(role = Role.Button, onClick = actions.onOpenServices),
-                )
-            }
-        }
         item(key = "sites") {
             SettingsSection(title = stringResource(R.string.site_sign_ins_title)) {
                 for (site in state.siteSignIns) {
@@ -150,17 +125,6 @@ fun SettingsScreen(
                 }
             }
         }
-        item(key = "opml") {
-            SettingsSection(title = stringResource(R.string.feeds_opml_title)) {
-                SettingsBlock {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedButton(onClick = actions.onImportOpml, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.feeds_import)) }
-                        OutlinedButton(onClick = actions.onExportOpml, enabled = state.hasFeeds, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.feeds_export)) }
-                    }
-                    Text(stringResource(R.string.feeds_opml_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-        }
         item(key = "list") { ListSection(state.settings, actions) }
         item(key = "reader") { ReaderSection(state.settings, actions) }
         item(key = "save") {
@@ -170,8 +134,6 @@ fun SettingsScreen(
                 apps = state.shareApps,
                 onSaveTargetChange = actions.onSaveTargetChange,
                 onShareTargetChange = actions.onShareTargetChange,
-                tagWithFolder = state.settings.tagWithFolder,
-                onTagWithFolderChange = actions.onTagWithFolderChange,
             )
         }
         item(key = "appearance") { AppearanceSection(state.settings, actions) }

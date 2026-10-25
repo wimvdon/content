@@ -17,8 +17,6 @@ import {
 } from "../src/lib/items";
 import { addFeed, emptyLibrary, mergeFeed, newFeed, removeFeed, setRead, type Library } from "../src/lib/library";
 import { allOf, changesBetween, isEmpty, libraryOf } from "../src/lib/libraryStore";
-import type { LocalSavedData } from "../src/lib/localSaved";
-import { migrateSaved } from "../src/lib/savedItems";
 
 const FEED = "https://a.example.com/feed";
 
@@ -133,31 +131,5 @@ describe("the library in IndexedDB", () => {
   it("reads an older library without items", () => {
     expect(libraryOf({ feeds: [newFeed(FEED, "A")], folders: [], articles: [] }).items).toEqual([]);
     expect(libraryOf(undefined)).toEqual(emptyLibrary());
-  });
-});
-
-describe("Saved in this browser before #106 moves into the items", () => {
-  const article = withArticle.articles[0];
-
-  it("moves in a migrated sample with nothing lost", () => {
-    const legacy: Library = libraryOf({ ...withArticle, articles: [{ ...article, read: true }] } as Partial<Library>);
-    const data: LocalSavedData = {
-      articles: [
-        { id: 1, url: "https://www.example.com/story", title: "Saved title", time: 100, liked: true, archived: false, tagIds: [3] },
-        { id: 2, url: "https://elsewhere.example/a", title: "Elsewhere", time: 200, liked: false, archived: true, tagIds: [] },
-        { id: 4, url: "http://elsewhere.example/a#x", title: "Elsewhere again", time: 300, liked: false, archived: false, tagIds: [3] },
-        { id: 5, url: "about:blank", title: "No link", time: 50, liked: false, archived: false, tagIds: [] },
-      ],
-      tags: [{ id: 3, name: "work" }],
-      nextId: 6,
-    };
-    const moved = migrateSaved(legacy, data);
-    expect(moved.feeds).toEqual(legacy.feeds);
-    expect(moved.articles[0].read).toBe(true);
-    expect(moved.items).toHaveLength(2);
-    const story = itemOf(moved, "example.com/story")!;
-    expect(story).toMatchObject({ title: "Saved title", feedUrl: FEED, articleId: "1", liked: true, tags: ["work"], readingList: { state: "toread", addedAt: 100_000 } });
-    const elsewhere = itemOf(moved, "elsewhere.example/a")!;
-    expect(elsewhere).toMatchObject({ title: "Elsewhere again", tags: ["work"], readingList: { state: "toread", addedAt: 300_000 } });
   });
 });

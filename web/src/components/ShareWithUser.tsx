@@ -12,7 +12,6 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const PROBLEMS: Record<string, Key> = {
   noAccount: "shareUserNoAccount",
-  noEmail: "shareUserNoEmail",
   signedOut: "shareUserSignedOut",
   offline: "syncOffline",
   failed: "syncServer",
@@ -20,20 +19,16 @@ const PROBLEMS: Record<string, Key> = {
 
 /**
  * Send with Content (#167, #246): their email address, or one click on someone shared with before
- * (#235, with their Gravatar picture and name); Send says first when it has no Content account.
- * `what` says what goes (this article, or a tag's articles). With `onOtherApps` it is the article's
- * share sheet: Other apps (or Copy link) hands it to the browser's own share menu instead.
+ * (#235, with their Gravatar picture and name); Send says first when it has no Content account. The
+ * article goes to their inbox. With `onOtherApps` it is the article's share sheet: Other apps (or
+ * Copy link) hands it to the browser's own share menu instead.
  */
 export function ShareWithUserDialog({
-  what,
   items,
-  tag,
   onClose,
   onOtherApps,
 }: {
-  what: string;
   items: SharedArticle[];
-  tag: string | null;
   onClose: () => void;
   onOtherApps?: () => void;
 }) {
@@ -47,7 +42,7 @@ export function ShareWithUserDialog({
     if (!valid || sending) return;
     setSending(true);
     setProblem(null);
-    void app.shareWithUser(email.trim(), items, tag).then((result) => {
+    void app.shareWithUser(email.trim(), items).then((result) => {
       setSending(false);
       if (result === "sent") setSent(email.trim());
       else setProblem(result);
@@ -96,7 +91,6 @@ export function ShareWithUserDialog({
             send();
           }}
         >
-          <p className="text-sm">{what}</p>
           {settings.recipients.length > 0 ? (
             <div className="flex flex-wrap gap-2">
               {settings.recipients.map((address) => (

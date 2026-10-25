@@ -100,13 +100,12 @@ describe("sharing with other Content users (#167)", () => {
     const { call, signIn } = setup();
     const ann = await signIn("ann@example.com");
     const bob = await signIn("bob@example.com");
-    const sent = await call("POST", "/account/share", ann, { to: "bob@example.com", from: { email: "ann@example.com", name: "Ann" }, items: [article], tag: "Reading club", message: "  Read this one!  " });
+    const sent = await call("POST", "/account/share", ann, { to: "bob@example.com", from: { email: "ann@example.com", name: "Ann" }, items: [article], message: "  Read this one!  " });
     expect(sent.status).toBe(204);
-    const inbox = (await (await call("GET", "/account/inbox", bob)).json()) as { messages: { id: string; from: unknown; items: unknown[]; tag: string }[] };
+    const inbox = (await (await call("GET", "/account/inbox", bob)).json()) as { messages: { id: string; from: unknown; items: unknown[] }[] };
     expect(inbox.messages).toHaveLength(1);
     expect(inbox.messages[0].from).toEqual({ email: "ann@example.com", name: "Ann" });
     expect(inbox.messages[0].items).toEqual([{ url: "https://example.com/a", title: "An article", imageUrl: null, description: "" }]);
-    expect(inbox.messages[0].tag).toBe("Reading club");
     expect((inbox.messages[0] as unknown as { message: string }).message).toBe("Read this one!");
     // Ann's own inbox stays empty.
     expect(((await (await call("GET", "/account/inbox", ann)).json()) as { messages: unknown[] }).messages).toEqual([]);
@@ -174,6 +173,17 @@ describe("sharing with other Content users (#167)", () => {
     expect(poked).toEqual([]);
   });
 
+  it("sharing with yourself lands in your own inbox and pokes all your devices, the sending one too (#251)", async () => {
+    const { call, signIn, poked } = setup(await vapidKeys());
+    const phone = await signIn("ann@example.com");
+    const laptop = await signIn("ann@example.com");
+    expect((await call("PUT", "/account/push", phone, { kind: "web", endpoint: "https://push.example/ann-phone" })).status).toBe(204);
+    expect((await call("PUT", "/account/push", laptop, { kind: "web", endpoint: "https://push.example/ann-laptop" })).status).toBe(204);
+    expect((await call("POST", "/account/share", phone, { to: "ann@example.com", from: { email: "ann@example.com", name: "Ann" }, items: [article] })).status).toBe(204);
+    expect(poked.map((p) => p.url).sort()).toEqual(["https://push.example/ann-laptop", "https://push.example/ann-phone"]);
+    expect(((await (await call("GET", "/account/inbox", laptop)).json()) as { messages: unknown[] }).messages).toHaveLength(1);
+  });
+
   it("has no notifications without the VAPID keys", async () => {
     const { call, signIn, poked } = setup();
     const ann = await signIn("ann@example.com");
@@ -196,11 +206,10 @@ describe("sharing with other Content users (#167)", () => {
 
   it("cleans up what is shared", () => {
     expect(shareOf({ to: "b@x.be", from: { email: "a@x.be" }, items: [{ url: "javascript:alert(1)" }] })).toBeNull();
-    const ok = shareOf({ to: " B@X.be ", from: { email: "a@x.be", name: "  Ann " }, items: [{ url: "https://x.be/1", imageUrl: "http://x.be/p.jpg" }], tag: "  " })!;
+    const ok = shareOf({ to: " B@X.be ", from: { email: "a@x.be", name: "  Ann " }, items: [{ url: "https://x.be/1", imageUrl: "http://x.be/p.jpg" }] })!;
     expect(ok.to).toBe("b@x.be");
     expect(ok.from.name).toBe("Ann");
     expect(ok.items[0]).toEqual({ url: "https://x.be/1", title: "https://x.be/1", imageUrl: null, description: "" });
-    expect(ok.tag).toBeNull();
   });
 });
 

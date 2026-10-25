@@ -27,12 +27,12 @@ object ArticleExtractor {
             "figure", "figcaption", "img", "iframe", "video",
         )
 
-    /** Never part of what the reader shows, wherever Readability leaves them. */
+    /**
+     * What the reader can't show (scripts, drawings, form fields, players without a link), wherever
+     * Readability leaves them. Everything else Readability keeps is shown (#251: no other choices).
+     */
     private val droppedTags =
-        setOf(
-            "script", "style", "noscript", "template", "svg", "math", "textarea", "object", "select", "canvas",
-            "nav", "header", "footer", "aside", "form", "button", "input", "audio", "dialog", "menu",
-        )
+        setOf("script", "style", "noscript", "template", "svg", "math", "canvas", "textarea", "select", "input", "button", "object", "audio")
 
     /** Embedded players worth a card in the reader; other iframes are usually ads or widgets. */
     private val knownEmbeds =

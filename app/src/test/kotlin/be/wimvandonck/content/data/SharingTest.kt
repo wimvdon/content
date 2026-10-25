@@ -17,8 +17,8 @@ class SharingTest {
     ) = Item(key = key, url = "https://$key", title = key, createdAt = at, readingList = ReadingListEntry(ReadingState.ToRead, at), tags = tags.toList())
 
     @Test
-    fun `shared articles land in the inbox, unread, with who shared them and the tag`() {
-        val message = InboxMessage("m1", ann, listOf(SharedArticle("https://a.example/1", "One"), SharedArticle("https://a.example/2", "Two")), tag = "Reading club")
+    fun `shared articles land in the inbox, unread, with who shared them`() {
+        val message = InboxMessage("m1", ann, listOf(SharedArticle("https://a.example/1", "One"), SharedArticle("https://a.example/2", "Two")))
         val (lib, got) = Sharing.takeIn(Library(), listOf(message), 100)
         assertEquals(2, got.count)
         assertEquals(listOf(ann), got.from)
@@ -26,7 +26,7 @@ class SharingTest {
         assertNull(one.readingList)
         assertTrue(one.inInbox)
         assertEquals(ann.copy(at = 100, inInbox = true), one.sharedBy)
-        assertEquals(listOf("Reading club"), one.tags)
+        assertTrue(one.tags.isEmpty())
         assertEquals(setOf("a.example/1", "a.example/2"), Inbox.items(lib).map { it.key }.toSet())
         assertEquals(2, Inbox.unread(lib))
         // Not in Saved: the inbox is a place of its own.
@@ -51,10 +51,10 @@ class SharingTest {
     @Test
     fun `an article already saved arrives in the inbox too, and stays where it is in Saved`() {
         val mine = saved("a.example/1", 5, "Mine").copy(readingList = ReadingListEntry(ReadingState.Archived, 5))
-        val (lib, got) = Sharing.takeIn(Library(items = listOf(mine)), listOf(InboxMessage("m", ann, listOf(SharedArticle("https://a.example/1", "One")), "club")), 100)
+        val (lib, got) = Sharing.takeIn(Library(items = listOf(mine)), listOf(InboxMessage("m", ann, listOf(SharedArticle("https://a.example/1", "One")))), 100)
         val item = lib.item("a.example/1")!!
         assertEquals(ReadingState.Archived, item.readingList?.state)
-        assertEquals(listOf("Mine", "club"), item.tags)
+        assertEquals(listOf("Mine"), item.tags)
         assertEquals(1, got.count)
         assertEquals(listOf("a.example/1"), Inbox.items(lib).map { it.key })
         assertEquals(1, Inbox.unread(lib))
@@ -95,12 +95,6 @@ class SharingTest {
     }
 
     @Test
-    fun `a tag's saved articles are what a tag share sends, newest first`() {
-        val lib = Library(items = listOf(saved("a.example/1", 1, "club"), saved("a.example/2", 3, "Club"), saved("a.example/3", 2, "other")))
-        assertEquals(listOf("https://a.example/2", "https://a.example/1"), Sharing.tagArticles(lib, "CLUB").map { it.url })
-    }
-
-    @Test
     fun `who shared it syncs with the item and stays once known`() {
         val item = saved("a.example/1", 1).copy(sharedBy = ann.copy(at = 5, inInbox = true, read = true))
         val data = SyncRows.itemData(item)
@@ -114,7 +108,7 @@ class SharingTest {
     fun `reads the inbox the account sends`() {
         val text = """{"messages":[{"id":"m1","at":1,"from":{"email":"ann@example.com","name":"Ann"},"items":[{"url":"https://a.example/1","title":"One","imageUrl":"http://x"}],"tag":null,"message":"Hi"},{"id":"bad"}]}"""
         val messages = AccountClient.inboxFrom(text)
-        assertEquals(listOf(InboxMessage("m1", ann, listOf(SharedArticle("https://a.example/1", "One")), null)), messages)
+        assertEquals(listOf(InboxMessage("m1", ann, listOf(SharedArticle("https://a.example/1", "One")))), messages)
         assertTrue(AccountClient.inboxFrom("nonsense").isEmpty())
     }
 }

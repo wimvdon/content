@@ -1,4 +1,4 @@
-import { Archive, ArrowLeft, Bell, BookmarkPlus, BookOpen, CheckCheck, ChevronDown, Circle, CircleCheck, Folder as FolderGlyph, Heart, Highlighter, Link2, Menu, Newspaper, Quote, RefreshCw, Rss, Search, Share2, StickyNote, Tag as TagIcon, Trash2, Users, X, type LucideIcon } from "lucide-react";
+import { Archive, ArrowLeft, Bell, BookmarkPlus, BookOpen, CheckCheck, ChevronDown, Circle, CircleCheck, Folder as FolderGlyph, Heart, Highlighter, Link2, Menu, Newspaper, Quote, RefreshCw, Rss, Search, Share2, StickyNote, Tag as TagIcon, Trash2, X, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useEscape } from "./ui/useEscape";
 import { app, useApp } from "@/lib/app";
@@ -137,13 +137,16 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, on
           <Empty
             icon={settings.unreadOnly ? CheckCheck : Newspaper}
             title={settings.unreadOnly ? t("caughtUpTitle") : t("noArticlesTitle")}
-            text={settings.unreadOnly ? t("caughtUpText") : t("nothingHere")}
           >
             {settings.unreadOnly ? (
               <Button onClick={() => app.setUnreadOnly(false)}>
                 {t("showAll")}
               </Button>
             ) : null}
+            {/* Look for new articles (#251), as on Android. */}
+            <Button variant="outline" onClick={() => void app.refresh()} disabled={refreshing}>
+              {t("refresh")}
+            </Button>
           </Empty>
         ) : (
           days.map(([day, list]) => (
@@ -569,13 +572,6 @@ export function NoteCard({ note, feed, open, onOpen, label }: { note: NoteConten
                 {tag}
               </span>
             ))}
-          </div>
-        ) : null}
-        {/* Who shared it (#167). */}
-        {note.sharedBy ? (
-          <div className="flex items-center gap-1 text-xs font-medium text-primary">
-            <Users className="size-3.5 shrink-0" aria-hidden="true" />
-            <span className="truncate">{t("shareUserFrom").replace("{name}", sharedByLabel(note.sharedBy))}</span>
           </div>
         ) : null}
         <div className="flex items-center gap-1.5 text-xs">

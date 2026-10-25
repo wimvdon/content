@@ -121,26 +121,6 @@ class SavedTest {
     }
 
     @Test
-    fun `bookmarks from before move into folders once`() {
-        val old =
-            Library(
-                items =
-                    listOf(
-                        Item("c.example/1", "https://c.example/1", "C", createdAt = 0, bookmark = BookmarkEntry(7, "Research")),
-                        Item("c.example/2", "https://c.example/2", "D", createdAt = 0, bookmark = BookmarkEntry(8, null), readingList = ReadingListEntry(ReadingState.Archived, 3)),
-                        saved("a.example/1", 1),
-                    ),
-            )
-        val settled = Saved.settle(old, "Bookmarks")
-        assertEquals(ReadingListEntry(ReadingState.ToRead, 7), settled.item("c.example/1")!!.readingList)
-        assertEquals("Research", settled.item("c.example/1")!!.folder)
-        assertNull(settled.item("c.example/1")!!.bookmark)
-        assertEquals("Bookmarks", Saved.folderOf(settled.item("c.example/2")!!))
-        assertEquals(3L, settled.item("c.example/2")!!.readingList?.addedAt)
-        assertSame(settled, Saved.settle(settled, "Bookmarks"))
-    }
-
-    @Test
     fun `the folder syncs, and both sides changing it keeps this device's`() {
         val item = saved("a.example/2", 2, folder = "Work")
         val data = SyncRows.itemData(item)

@@ -122,19 +122,15 @@ describe("sync timing", () => {
 });
 
 describe("synced settings", () => {
-  it("carry what each service syncs and what was imported, in the Android app's text", () => {
-    const record = { at: 5, count: 12, folders: ["Research", ""], archive: false };
-    const mine = { ...settings, scopes: { raindrop: { folders: ["Research"] } }, imports: { instapaper: record } };
-    const values = SS.syncedSettings(mine);
-    expect(values["services.raindrop.scope"]).toBe('["Research"]');
-    expect(values["services.instapaper.scope"]).toBe("*");
-    expect(values["services.instapaper.imported"]).toBe('{"at":5,"count":12,"folders":["","Research"],"archive":false}');
-    const applied = SS.applySynced(defaultSettings, values);
-    expect(applied.scopes.raindrop).toEqual({ folders: ["Research"] });
-    expect(applied.imports.instapaper).toEqual({ ...record, folders: ["", "Research"] });
-    // An import this browser doesn't know of stays as the file has it.
-    expect(SS.syncedSettings(settings, { "services.raindrop.imported": values["services.instapaper.imported"] })["services.raindrop.imported"]).toBe(values["services.instapaper.imported"]);
-    expect(SS.applySynced(defaultSettings, { "services.raindrop.scope": "{", "services.raindrop.imported": "x" })).toEqual(defaultSettings);
+  it("carry what was imported, in the Android app's text, and drop the scopes from before", () => {
+    const record = { at: 5, count: 12, everything: false };
+    const values = SS.syncedSettings({ ...settings, imports: { instapaper: record } }, { "services.instapaper.scope": "*", "services.raindrop.imported": "x" });
+    expect(Object.keys(values).filter((k) => k.startsWith("services."))).toEqual(["services.instapaper.imported"]);
+    expect(values["services.instapaper.imported"]).toBe('{"at":5,"count":12,"everything":false}');
+    expect(SS.applySynced(defaultSettings, values).imports.instapaper).toEqual(record);
+    expect(SS.applySynced(defaultSettings, { "services.instapaper.imported": "x" })).toEqual(defaultSettings);
+    // A record from before #251 had no choice: everything was imported.
+    expect(SS.applySynced(defaultSettings, { "services.instapaper.imported": '{"at":5,"count":2,"folders":null,"archive":true}' }).imports.instapaper).toEqual({ at: 5, count: 2, everything: true });
   });
 
   const settings = {
@@ -157,18 +153,16 @@ describe("synced settings", () => {
 
   it("use the same names and values as the Android app and come back the same", () => {
     const values = SS.syncedSettings({ ...settings, markReadOnScroll: true });
-    expect(values).toEqual({ fullArticles: "false", markReadOnScroll: "true", "sharing.recipients": "[]", "services.instapaper.scope": "*", "services.raindrop.scope": "*" });
+    expect(values).toEqual({ fullArticles: "false", markReadOnScroll: "true", "sharing.recipients": "[]" });
     const applied = SS.applySynced(defaultSettings, values);
     expect(applied.fullArticles).toBe(false);
     expect(applied.markReadOnScroll).toBe(true);
   });
 
-  it("keep view settings in each browser, and drop the ones older versions synced", () => {
-    const values = SS.syncedSettings(settings, { theme: "light", listView: "small", "reader.font": "serif", "web.only": "x" });
-    expect(Object.keys(values).some((k) => SS.DROPPED_VIEW.has(k))).toBe(false);
-    expect(values["web.only"]).toBe("x");
+  it("keep view settings in each browser", () => {
     const fromOlder = { theme: "light", "reader.font": "serif", "reader.textSize": "16", "reader.background": "sepia", showImages: "true", listView: "small" };
     expect(SS.applySynced(settings, fromOlder)).toEqual(settings);
+    expect(Object.keys(SS.syncedSettings(settings))).not.toContain("theme");
   });
 
   it("keep names the web app doesn't know and ignore bad values", () => {
@@ -180,13 +174,8 @@ describe("synced settings", () => {
     expect(applied.markReadOnScroll).toBe(settings.markReadOnScroll);
   });
 
-  it("drop the Instapaper sign-in that older versions synced", () => {
-    const values = SS.syncedSettings(settings, { "instapaper.token": "t", "instapaper.username": "me" });
-    expect(Object.keys(values).some((k) => k.startsWith("instapaper."))).toBe(false);
-  });
-
-  it("leave out Unread or All, which is navigation, and drop it from older files", () => {
-    const values = SS.syncedSettings({ ...settings, unreadOnly: false }, { unreadOnly: "true" });
+  it("leave out Unread or All, which is navigation", () => {
+    const values = SS.syncedSettings({ ...settings, unreadOnly: false });
     expect("unreadOnly" in values).toBe(false);
     expect(SS.applySynced({ ...settings, unreadOnly: true }, { unreadOnly: "false" }).unreadOnly).toBe(true);
   });

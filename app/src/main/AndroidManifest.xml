@@ -7,11 +7,16 @@
          on in Settings › Account. See PRIVACY.md. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
-    <!-- Lets Settings › Save and share list the apps that accept shared links, so the Save and
-         Share buttons can send straight to one. Package visibility, not a permission. -->
+    <!-- Lets Settings › Save and share and Content's share sheet list the apps that accept shared
+         links, and the reader's selection menu the apps that act on selected text (Translate, …,
+         #251). Package visibility, not a permission. -->
     <queries>
         <intent>
             <action android:name="android.intent.action.SEND" />
+            <data android:mimeType="text/plain" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.PROCESS_TEXT" />
             <data android:mimeType="text/plain" />
         </intent>
     </queries>
@@ -76,8 +81,8 @@
             </intent-filter>
         </activity-alias>
         <!-- Send with Content (#246): a link shared to it, or to a person shown with it (Direct share,
-             res/xml/shortcuts.xml), opens Send with Content over the app that shared it, Content's
-             own share menu included. Off until signed in (DirectShare.showSendTarget). -->
+             res/xml/shortcuts.xml), opens Send with Content over the app that shared it. Content's
+             own share sheet has it built in (#251). Off until signed in (DirectShare.showSendTarget). -->
         <activity-alias
             android:name=".ui.SendActivity"
             android:targetActivity=".ui.SaveFromTabActivity"

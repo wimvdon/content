@@ -22,9 +22,7 @@ export function useShare(onMessage: (text: string) => void): [(title: string, ur
   const share = (title: string, url: string, item?: Item) => (account ? setSharing({ title, url, item }) : other(title, url));
   const dialog = sharing ? (
     <ShareWithUserDialog
-      what={t("shareUserArticle")}
       items={[sharing.item ? sharedArticle(sharing.item) : { url: sharing.url, title: sharing.title }]}
-      tag={null}
       onClose={() => setSharing(null)}
       onOtherApps={() => other(sharing.title, sharing.url)}
     />

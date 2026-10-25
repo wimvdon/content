@@ -104,8 +104,8 @@ export class AccountClient {
   }
 
   /** Shares articles with the Content user at `to` (#167), as `from`; false when the address has no account. */
-  async share(to: string, from: SharedBy, items: SharedArticle[], tag: string | null): Promise<boolean> {
-    const body = { to: to.trim(), from: { email: from.email, name: from.name }, items, tag };
+  async share(to: string, from: SharedBy, items: SharedArticle[]): Promise<boolean> {
+    const body = { to: to.trim(), from: { email: from.email, name: from.name }, items };
     const response = await this.call("/account/share", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }, [404]);
     return response.status !== 404;
   }

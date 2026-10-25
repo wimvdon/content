@@ -41,9 +41,7 @@
     <string name="home_no_feeds_title">Noch keine Feeds</string>
     <string name="home_no_feeds_body">Füge eine Website oder einen Feed hinzu, den du magst, oder importiere deine Feeds aus einem anderen Reader.</string>
     <string name="home_caught_up_title">Alles gelesen</string>
-    <string name="home_caught_up_body">Zieh nach unten, um nach neuen Artikeln zu suchen.</string>
     <string name="home_no_articles_title">Noch keine Artikel</string>
-    <string name="home_no_articles_body">Zieh nach unten, um nach neuen Artikeln zu suchen.</string>
     <string name="home_show_all">Alle anzeigen</string>
     <string name="import_failed">Diese Datei konnte nicht gelesen werden.</string>
     <string name="import_nothing_new">Keine neuen Feeds in dieser Datei.</string>
@@ -67,13 +65,10 @@
     <string name="reader_preview">Gute Typografie ist unsichtbar: Du bemerkst die Geschichte, nicht die Buchstaben.</string>
     <string name="reader_read_on_website">Auf der Website lesen</string>
     <string name="notify_shared_setting">Benachrichtigen, wenn etwas mit mir geteilt wird</string>
-    <string name="notify_shared_summary">Auf diesem Telefon, auch wenn Content nicht offen ist.</string>
     <string name="notify_shared_denied">Benachrichtigungen sind für Content aus. Erlaube sie in den Android-Einstellungen › Apps › Content.</string>
     <string name="notify_shared_channel">Mit dir geteilt</string>
     <string name="notify_shared_text">Es wurde etwas mit dir geteilt.</string>
-    <string name="share_user_menu">Mit Content senden</string>
     <string name="share_user_title">Mit Content senden</string>
-    <string name="share_user_article">Dieser Artikel landet in ihrem Posteingang.</string>
     <string name="share_send_with_content">Mit Content senden</string>
     <string name="inbox_title">Posteingang</string>
     <string name="inbox_open_unread">Posteingang, neue Artikel</string>
@@ -84,13 +79,7 @@
     <string name="share_user_send">Senden</string>
     <string name="share_user_sent">An %1$s gesendet</string>
     <string name="share_user_no_account">Für diese Adresse gibt es kein Content-Konto.</string>
-    <string name="share_user_no_email">Füge zuerst eine E-Mail-Adresse zu deinem Konto hinzu (Einstellungen › Konto), damit man sieht, von wem es ist.</string>
     <string name="share_user_signed_out">Melde dich zuerst bei deinem Content-Konto an.</string>
-    <string name="share_user_from">Von %1$s</string>
-    <plurals name="share_user_tag">
-        <item quantity="one">Alles mit dem Tag %1$s (%2$d Artikel) landet in ihrem Posteingang, mit diesem Tag.</item>
-        <item quantity="other">Alles mit dem Tag %1$s (%2$d Artikel) landet in ihrem Posteingang, mit diesem Tag.</item>
-    </plurals>
     <plurals name="share_user_received">
         <item quantity="one">%1$s hat %2$d Artikel mit dir geteilt</item>
         <item quantity="other">%1$s hat %2$d Artikel mit dir geteilt</item>
@@ -111,7 +100,7 @@
     <string name="report_pictures">Bilder stimmen nicht</string>
     <string name="report_other">Etwas anderes</string>
     <string name="report_comment">Kommentar (optional)</string>
-    <string name="report_hint">Senden öffnet eine vorausgefüllte Meldung auf GitHub in deinem Browser, mit dem Link des Artikels (nicht seinem Text). Schicke sie dort ab.</string>
+    <string name="report_hint">Senden öffnet eine vorausgefüllte Meldung auf GitHub in deinem Browser, mit dem Link des Artikels und dem Text, den Content zeigt. Schicke sie dort ab.</string>
     <string name="report_send">Senden</string>
     <string name="reader_article_gone">Dieser Artikel ist nicht mehr verfügbar.</string>
     <string name="reader_show_full">Ganzen Artikel anzeigen</string>
@@ -121,7 +110,7 @@
     <string name="reader_full_articles_title">Ganze Artikel laden</string>
     <string name="reader_full_articles_summary">Wenn ein Feed nur eine Zusammenfassung hat, den ganzen Artikel von der Website holen</string>
     <string name="reader_show_images_title">Bilder anzeigen</string>
-    <string name="reader_show_images_summary">In Artikeln und der Liste; sie werden von den Websites geladen</string>
+    <string name="reader_show_images_summary">In Artikeln und der Liste</string>
     <string name="embed_youtube">Auf YouTube ansehen</string>
     <string name="embed_vimeo">Auf Vimeo ansehen</string>
     <string name="embed_video">Video abspielen</string>
@@ -134,7 +123,7 @@
     <string name="share_target_missing_short">%1$s ist nicht installiert</string>
     <string name="action_save_to">In %1$s speichern</string>
     <string name="action_share_to">Mit %1$s teilen</string>
-    <string name="feeds_opml_hint">Zieh deine Feeds von oder zu einem anderen Reader um, etwa Feedly.</string>
+    <string name="feeds_opml_hint">Zieh deine Feeds von oder zu einem anderen Reader um, etwa Feedly oder Inoreader.</string>
     <string name="action_save">Speichern</string>
     <string name="action_open">Öffnen</string>
     <string name="action_undo">Rückgängig</string>
@@ -157,13 +146,13 @@
     <string name="list_view_small">Klein</string>
     <string name="list_view_medium">Mittel</string>
     <string name="list_view_large">Groß</string>
-    <string name="manage_title">Feeds und Tags</string>
+    <string name="manage_title">Feeds und Gespeichert</string>
     <string name="feeds_opml_title">Von oder zu einem anderen Reader</string>
     <string name="reader_auto_dark_title">Automatisch dunkel</string>
     <string name="reader_auto_dark_summary">Dunkle Seite, wenn die App dunkel ist</string>
     <string name="day_today">Heute</string>
     <string name="day_yesterday">Gestern</string>
-    <string name="folder_none_empty">Jeder Feed ist in einem Ordner. Ziehe einen Feed hierher, um ihn aus seinem Ordner zu nehmen.</string>
+    <string name="folder_none_empty">Jeder Feed ist in einem Ordner.</string>
     <string name="feed_edit">Feed bearbeiten</string>
     <string name="feed_name">Name</string>
     <string name="feed_name_hint">Leer lassen, um den Namen des Feeds zu verwenden</string>
@@ -188,10 +177,6 @@
         <item quantity="one">%d ungelesen</item>
         <item quantity="other">%d ungelesen</item>
     </plurals>
-    <plurals name="home_subtitle_all">
-        <item quantity="one">Alle Artikel · %d ungelesen</item>
-        <item quantity="other">Alle Artikel · %d ungelesen</item>
-    </plurals>
     <plurals name="marked_read">
         <item quantity="one">%d Artikel als gelesen markiert</item>
         <item quantity="other">%d Artikel als gelesen markiert</item>
@@ -213,17 +198,13 @@
     <string name="instapaper_problem_not_approved">Instapaper hat Content für dein Konto noch nicht freigegeben.</string>
     <string name="instapaper_problem_rate_limited">Instapaper ist ausgelastet. Versuche es in einer Minute erneut.</string>
     <string name="instapaper_problem_invalid">Instapaper konnte das nicht ausführen.</string>
-    <string name="action_close">Schließen</string>
-    <string name="action_done">Fertig</string>
     <string name="section_account">Konto</string>
-    <string name="account_summary">Melde dich mit deiner E-Mail-Adresse an, damit Feeds, gelesene Artikel, Gespeichert und Einstellungen auf allen Geräten gleich bleiben.</string>
+    <string name="account_summary">Melde dich mit deiner E-Mail-Adresse an, damit Feeds, gelesene und gespeicherte Artikel und Einstellungen auf allen Geräten gleich bleiben.</string>
     <string name="sync_failed_signed_out">Dieses Gerät wurde von deinem Konto abgemeldet. Melde dich erneut an.</string>
     <string name="account_delete_data">Synchronisierte Daten löschen</string>
     <string name="account_delete_confirm">Deine Feeds, gelesenen Artikel und Einstellungen vom Server von Content löschen? Sie bleiben auf diesem Gerät, und du wirst überall abgemeldet.</string>
     <string name="account_deleted">Synchronisierte Daten gelöscht</string>
     <string name="action_delete">Löschen</string>
-    <string name="menu_manage_feeds">Feeds verwalten</string>
-    <string name="menu_manage_tags">Tags verwalten</string>
     <string name="action_collapse">Einklappen</string>
     <string name="action_expand">Ausklappen</string>
     <string name="action_search">Suchen</string>
@@ -239,7 +220,6 @@
     <string name="search_any_tag">Alle Tags</string>
     <string name="search_feed">Feed</string>
     <string name="search_tag">Tag</string>
-    <string name="search_section_none">Keine Treffer</string>
     <!-- A share from another app without a web link (#97). -->
     <string name="share_no_link">Kein Link zum Speichern</string>
     <string name="share_target_saved">Gespeichert, in dieser App</string>
@@ -247,7 +227,6 @@
     <string name="saved_archived">Archiviert</string>
     <string name="action_unarchive">Wieder zu lesen</string>
     <string name="action_like">Gefällt mir</string>
-    <string name="action_unlike">Gefällt mir nicht mehr</string>
     <string name="add_link_title">Link hinzufügen</string>
     <string name="add_link_address">Webadresse</string>
     <string name="add_link_invalid">Das ist keine Webadresse.</string>
@@ -261,21 +240,12 @@
     <string name="reading_list_empty_title">Nichts zu lesen</string>
     <string name="reading_list_archive_empty_title">Noch nichts archiviert</string>
     <string name="reading_list_none_title">Hier ist nichts</string>
-    <string name="services_title">Verbundene Dienste</string>
-    <string name="services_reader">Content</string>
-    <string name="services_feeds_body">Content bewahrt deine Feeds. Mit OPML holst du sie herein und heraus.</string>
     <string name="services_reading_body">Content behält deine gespeicherten Elemente. Melde dich mit Instapaper an, um sie auch dort zu behalten.</string>
     <string name="services_problem_later">Instapaper bat, kurz zu warten. Der Rest folgt später.</string>
     <string name="services_syncs_everything">Synchronisiert alles in Gespeichert</string>
     <string name="service_import_title">Importieren</string>
-    <string name="saved_remove_both_body">Instapaper und Raindrop.io behalten beide dieses Element. Entferne es aus beiden oder nur aus einem (dann bleibt es in Gespeichert, im anderen).</string>
-    <string name="saved_remove_only_from">Nur aus %1$s</string>
-    <string name="saved_remove_from_both">Aus beiden entfernen</string>
-    <string name="saved_removed_from">Aus %1$s entfernt</string>
-    <string name="saved_remove_from_failed">Entfernen aus %1$s hat nicht geklappt. Versuche es später erneut.</string>
     <string name="tags_title">Tags</string>
     <string name="tags_add">Neuer Tag</string>
-    <string name="tags_remove">Tag entfernen</string>
     <string name="tags_rename">Tag umbenennen</string>
     <string name="tags_name">Tag-Name</string>
     <string name="tags_remove_everywhere">Tag überall entfernen</string>
@@ -292,11 +262,6 @@
         <item quantity="one">%d Element</item>
         <item quantity="other">%d Elemente</item>
     </plurals>
-    <plurals name="reading_list_to_read_count">
-        <item quantity="one">%d zu lesen</item>
-        <item quantity="other">%d zu lesen</item>
-    </plurals>
-    <string name="bookmarks_title">Lesezeichen</string>
     <string name="organise_title">Ordnen</string>
     <string name="highlights_title">Markierungen</string>
     <string name="highlight_action">Markieren</string>
@@ -305,8 +270,6 @@
     <string name="highlight_approximate">Ungefähr: Dieser Text weicht von dem ab, in dem sie gemacht wurde.</string>
     <string name="highlight_not_found">In diesem Text nicht gefunden. Sie bleibt beim Element.</string>
     <string name="highlight_not_in_instapaper">Noch nicht in Instapaper. Morgen neuer Versuch.</string>
-    <string name="instapaper_copy_highlights">Markierungen mit Instapaper synchronisieren</string>
-    <string name="instapaper_copy_highlights_summary">Markierungen gehen in beide Richtungen: deine zum Artikel in Instapaper, und in Instapaper gemachte zu Content. Kostenlose Konten erlauben fünf pro Monat; die übrigen bleiben in Content und werden einen Tag später erneut versucht.</string>
     <string name="services_problem_limit">Instapaper erlaubt diesen Monat keine weiteren Markierungen.</string>
     <string name="highlights_none">Wähle Text aus und tippe auf Markieren.</string>
     <string name="setting_tag_with_folder_title">Mit dem Ordner des Feeds taggen</string>
@@ -314,7 +277,6 @@
     <string name="saved_title">Gespeichert</string>
     <string name="saved_folders">Ordner</string>
     <string name="folder_field">Ordner</string>
-    <string name="saved_place">Wo</string>
     <string name="saved_to">In %1$s gespeichert</string>
     <string name="action_open_menu">Menü öffnen</string>
     <string name="saved_folder_rename">Ordner umbenennen</string>
@@ -343,4 +305,11 @@
     <string name="account_link_expired">Dieser Link wurde schon benutzt oder ist zu alt. Fordere einen neuen an.</string>
     <string name="account_link_taken">Diese Adresse gehört schon zu einem anderen Content-Konto.</string>
     <string name="account_link_failed">Die Anmeldung hat nicht geklappt. Versuche es noch einmal.</string>
+    <string name="action_refresh">Aktualisieren</string>
+    <string name="menu_manage">Feeds und Gespeichert verwalten</string>
+    <string name="share_copy_link">Link kopieren</string>
+    <string name="share_more">Mehr</string>
+    <string name="instapaper_import_title">Aus Instapaper importieren?</string>
+    <string name="instapaper_import_body">Alles, was jetzt in deinem Instapaper ist, einmalig übernehmen? So oder so bleiben Gespeichert und Instapaper ab jetzt gleich.</string>
+    <string name="instapaper_import_skip">Nicht importieren</string>
 </resources>

@@ -1,6 +1,5 @@
 package be.wimvandonck.content.data
 
-import be.wimvandonck.content.R
 import android.content.Context
 import be.wimvandonck.content.data.db.ItemTextRow
 import be.wimvandonck.content.data.db.LibraryDao
@@ -68,13 +67,8 @@ class LibraryRepository(
     private val scope: CoroutineScope,
     private val fetch: suspend (String) -> Fetched,
     private val clock: () -> Long = System::currentTimeMillis,
-    /** The library from before #106 (feeds and articles, and Saved without an account), moved in on first start. */
-    private val legacy: LegacyLibrary = LegacyLibrary(context),
 ) {
     private val database = LibraryDatabase.open(context)
-
-    /** Where bookmarks without a collection go when they move into Saved's folders (#119). */
-    private val bookmarksFolder = context.getString(R.string.bookmarks_title)
     private val dao = database.dao()
 
     private val state = MutableStateFlow<Library?>(null)
@@ -95,17 +89,9 @@ class LibraryRepository(
     }
 
     private suspend fun load(): Library {
-        if (dao.meta(MIGRATED) == null) {
-            val moved = legacy.read()
-            dao.replaceAll(LibraryChanges.all(moved), MIGRATED)
-            legacy.delete()
-            return moved
-        }
-        legacy.delete()
         val read = LibraryRows.library(dao.read())
-        // Bookmarks from before #119 move into folders once.
-        // Folders become tags (#187), also those of the bookmarks just moved in.
-        val settled = Saved.foldersToTags(Saved.settle(read, bookmarksFolder)).feedFoldersToTags()
+        // A folder becomes a tag (#187), and a feed's tag follows its folder (#186).
+        val settled = Saved.foldersToTags(read).feedFoldersToTags()
         if (settled !== read) dao.write(LibraryChanges.between(read, settled))
         return settled
     }
@@ -131,9 +117,8 @@ class LibraryRepository(
         writeLock.withLock {
             val old = current()
             val (changed, value) = change(old)
-            // A bookmark synced in from a device that hasn't moved to folders yet moves in too.
-            // And a folder (from an older app, or filed here) becomes a tag (#187).
-            val updated = Saved.foldersToTags(Saved.settle(changed, bookmarksFolder)).feedFoldersToTags()
+            // A folder (filed here or synced in) becomes a tag (#187).
+            val updated = Saved.foldersToTags(changed).feedFoldersToTags()
             if (updated !== old) {
                 val changes = LibraryChanges.between(old, updated)
                 if (!changes.isEmpty) dao.write(changes)
@@ -448,4 +433,3 @@ class LibraryRepository(
     }
 }
 
-private const val MIGRATED = "migrated-from-library-txt"

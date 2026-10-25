@@ -11,12 +11,6 @@ object ShareShortcuts {
     /** How many people the share menu gets; it shows only the first few of an app anyway. */
     const val MAX = 4
 
-    /** Android shows at most five buttons of an app in its share sheet (#248): Send with Content, then people. */
-    const val MAX_BUTTONS = 5
-
-    /** The people with a button of their own in Content's share sheet (#248), after Send with Content. */
-    fun <T> buttons(people: List<T>): List<T> = people.take(MAX_BUTTONS - 1)
-
     private const val PREFIX = "share:"
 
     fun idOf(email: String): String = PREFIX + email.trim().lowercase()
@@ -26,4 +20,26 @@ object ShareShortcuts {
 
     /** The people to offer: the most recent recipients first, at most [MAX]. */
     fun pick(recipients: List<String>): List<String> = recipients.take(MAX)
+}
+
+/**
+ * The launcher's shortcuts (#251): long-pressing Content's icon offers the first feed folders, which
+ * open the app on that folder. Unit tested.
+ */
+object LauncherFolders {
+    /** Launchers show four or five; the people share the app's shortcuts too. */
+    const val MAX = 4
+
+    private const val PREFIX = "folder:"
+
+    /** The folders offered: the first ones, in the order of the feed list. */
+    fun pick(folders: List<Folder>): List<Folder> = folders.take(MAX)
+
+    fun idOf(folderId: String): String = PREFIX + folderId
+
+    /** What the shortcut asks the app to open (MainActivity.EXTRA_OPEN_ARTICLE). */
+    fun requestOf(folderId: String): String = PREFIX + folderId
+
+    /** The folder an open request stands for, or null when it isn't one of these. */
+    fun folderOf(request: String?): String? = request?.takeIf { it.startsWith(PREFIX) }?.removePrefix(PREFIX)?.takeIf { it.isNotEmpty() }
 }

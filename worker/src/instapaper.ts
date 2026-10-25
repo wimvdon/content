@@ -6,11 +6,10 @@
  *  - /instapaper/api/...: forwards a few Instapaper calls for the web app, because Instapaper's
  *    API doesn't allow calls from a browser (no CORS). The Android app calls Instapaper directly.
  *
- * Nothing is stored or logged. The access token only passes through. A successful sign-in also
- * gives the device a key to the user's Reader account (account.ts), which keeps the synced library.
+ * Nothing is stored or logged. The access token only passes through. Instapaper is only a
+ * connected service (#215): signing in to it opens no Content account.
  */
 
-import { newDeviceKey } from "./account";
 import type { Env } from "./index";
 
 export const API_BASE = "https://www.instapaper.com/api/2";
@@ -110,13 +109,12 @@ async function exchangeCode(
   const token = typeof answer?.access_token === "string" ? answer.access_token : "";
   if (!token) return plain(502, "Instapaper sent no token", cors);
 
-  // Only what the apps need goes back: the token, who it belongs to, and the key to their account.
+  // Only what the apps need goes back: the token and who it belongs to.
   const user = {
     id: typeof answer?.user?.id === "number" ? answer.user.id : null,
     username: typeof answer?.user?.username === "string" ? answer.user.username : "",
   };
-  const accountKey = user.id === null ? null : await newDeviceKey(env, "instapaper", user.id).catch(() => null);
-  return json({ access_token: token, user, account: accountKey ? { key: accountKey } : null }, 200, cors);
+  return json({ access_token: token, user }, 200, cors);
 }
 
 async function forward(request: Request, fetcher: Fetcher, url: URL, cors: Record<string, string>): Promise<Response> {

@@ -18,8 +18,6 @@ data class Appearance(
 /** How big each article is in the list: title only, with a thumbnail, or a card with a large picture. */
 enum class ListView { Small, Medium, Large }
 
-/** How Bookmarks shows its cards (#108): two columns of cards, or one list. */
-
 enum class ReaderFont { Sans, Serif }
 
 /** Line height as a multiple of the text size. */
@@ -88,11 +86,6 @@ sealed interface ShareTarget {
     ) : ShareTarget
 
     companion object {
-        const val INSTAPAPER_PACKAGE = "com.instapaper.android"
-
-        /** The Instapaper app, Save's default before the Saved screen worked without an account. */
-        val Instapaper: ShareTarget = App(INSTAPAPER_PACKAGE, null, "Instapaper")
-
         private const val SEPARATOR = '\u001F'
 
         fun encode(target: ShareTarget): String =
@@ -102,16 +95,15 @@ sealed interface ShareTarget {
                 is App -> listOf("app", target.packageName, target.activityName.orEmpty(), target.label).joinToString(SEPARATOR.toString())
             }
 
-        /** Reads a stored value; also the values of the old Save setting ("Instapaper", "ShareMenu"). */
+        /** Reads a stored value. */
         fun decode(
             text: String?,
             default: ShareTarget,
         ): ShareTarget =
             when (text) {
                 null -> default
-                "sheet", "ShareMenu" -> Sheet
+                "sheet" -> Sheet
                 "saved" -> Saved
-                "Instapaper" -> Instapaper
                 else -> {
                     val parts = text.split(SEPARATOR)
                     if (parts.size == 4 && parts[0] == "app" && parts[1].isNotEmpty()) {
@@ -140,19 +132,14 @@ data class Settings(
     val listView: ListView = ListView.Medium,
     /** Tag an article saved from a feed with the feed's folder (#120). */
     val tagWithFolder: Boolean = true,
-    /** What each service syncs (#145), by service id; a service without one syncs everything in Saved. */
-    val scopes: Map<String, ServiceScope> = emptyMap(),
     /** What was imported from each service when it was connected (#145), by service id. */
     val imports: Map<String, ServiceImport> = emptyMap(),
-    /** Copy highlights to Instapaper (#164); on this device only, off by default (free accounts get five a month). */
-    val copyHighlights: Boolean = false,
     /** Notifications when something is shared (#235); on this phone only, off until turned on. */
     val notifyShared: Boolean = false,
     /** The people shared with (#235), most recent first; synced (see Recipients). */
     val recipients: List<String> = emptyList(),
+    /** How often each app was picked in Content's share sheet, by [ShareApps.idOf]; on this device only. */
+    val shareCounts: Map<String, Int> = emptyMap(),
     /** When the last sync succeeded, or null. */
     val lastSyncedAt: Long? = null,
 )
-
-/** What [service] syncs: its scope, everything in Saved until one is set (#145). */
-fun Settings.scopeOf(service: String): ServiceScope = scopes[service] ?: ServiceScope.Everything

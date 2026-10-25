@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Account, AccountData, MAX_DEVICES, MAX_ROWS, MAX_TEXT_BYTES, accountIdOf, documentText, itemChanges, knownVersionOf, sinceOf, type ItemsPage, type ItemsWritten, type Storage } from "../src/account";
+import { Account, AccountData, MAX_DEVICES, MAX_ROWS, MAX_TEXT_BYTES, accountIdOf, addDeviceKey, documentText, itemChanges, knownVersionOf, sinceOf, type ItemsPage, type ItemsWritten, type Storage } from "../src/account";
 import { handle, type Env } from "../src/index";
 import { TOKEN_URL } from "../src/instapaper";
 
@@ -54,15 +54,9 @@ function accounts() {
 
 const doc = (read: Record<string, number> = {}) => ({ format: "rss-reader-sync", version: 2, folders: [], feeds: [], read, settings: {} });
 
+/** A new device key for account `userId`, as a sign-in (email.ts) gives one. */
 async function signIn(env: Env, userId = 42): Promise<string> {
-  const fetcher = async () => new Response(JSON.stringify({ access_token: "tok", user: { id: userId, username: "me" } }));
-  const response = await handle(
-    new Request("https://worker.example/instapaper/token", { method: "POST", headers: { Origin: APP }, body: JSON.stringify({ code: "abc" }) }),
-    env,
-    fetcher,
-  );
-  const body = (await response.json()) as { account: { key: string } | null };
-  return body.account!.key;
+  return (await addDeviceKey(env, await accountIdOf(MASTER, "email", userId)))!;
 }
 
 function call(env: Env, method: string, path: string, key: string | null, body?: unknown, headers: Record<string, string> = {}) {
@@ -88,17 +82,17 @@ describe("signing in", () => {
     expect((await signIn(env, 43)).split(".")[0]).not.toBe(first.split(".")[0]);
   });
 
-  it("gives no key when accounts aren't set up", async () => {
+  it("signing in with Instapaper opens no Content account (#215)", async () => {
     const { env } = accounts();
     const response = await handle(
       new Request("https://worker.example/instapaper/token", { method: "POST", body: JSON.stringify({ code: "abc" }) }),
-      { ...env, ACCOUNT_KEY: undefined },
+      env,
       async (input) => {
         expect(input).toBe(TOKEN_URL);
         return new Response(JSON.stringify({ access_token: "tok", user: { id: 42 } }));
       },
     );
-    expect(((await response.json()) as { account: unknown }).account).toBeNull();
+    expect(await response.json()).toEqual({ access_token: "tok", user: { id: 42, username: "" } });
   });
 
   it("derives account ids that depend on the secret", async () => {

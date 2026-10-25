@@ -1,8 +1,6 @@
 package be.wimvandonck.content.services
 
 import be.wimvandonck.content.data.Library
-import be.wimvandonck.content.data.ServiceImport
-import be.wimvandonck.content.data.ServiceScope
 import be.wimvandonck.content.data.ReadingState
 import be.wimvandonck.content.data.Saved
 import be.wimvandonck.content.data.SavedTab
@@ -111,33 +109,31 @@ class ServiceSyncTest {
     private var state = ServiceState()
     private val service = FakeService()
 
-    /** Connecting imports everything once, as ServiceManager does; then each sync keeps the scope in step. */
+    /** Connecting imports everything once (the user's choice, #251); then each sync keeps everything in step. */
     private fun sync(
-        scope: ServiceScope = ServiceScope.Everything,
         editedAt: Map<String, Long> = emptyMap(),
     ): ServiceProblem? =
         runBlocking {
             if (state.cursor == null && state.rows.isEmpty()) {
-                val imported = ServiceSync.import(service, state, ServiceImport(0, 0)) { change -> change(library).also { library = it } }
+                val imported = ServiceSync.import(service, state, everything = true) { change -> change(library).also { library = it } }
                 state = imported.state
                 if (imported.problem != null) return@runBlocking imported.problem
             }
-            val result = ServiceSync.run(service, state, scope, editedAt = editedAt) { change -> change(library).also { library = it } }
+            val result = ServiceSync.run(service, state, editedAt = editedAt) { change -> change(library).also { library = it } }
             state = result.state
             result.problem
         }
 
-    /** Syncs another service with its own state and scope, as ServiceManager does for each connected one. */
+    /** Syncs another service with its own state, as ServiceManager would for each connected one. */
     private fun sync(
         other: FakeService,
         otherState: ServiceState,
-        scope: ServiceScope = ServiceScope.Everything,
         elsewhere: Set<String> = emptySet(),
     ): ServiceState =
         runBlocking {
             var start = otherState
-            if (start.cursor == null && start.rows.isEmpty()) start = ServiceSync.import(other, start, ServiceImport(0, 0)) { change -> change(library).also { library = it } }.state
-            ServiceSync.run(other, start, scope, elsewhere = elsewhere) { change -> change(library).also { library = it } }.state
+            if (start.cursor == null && start.rows.isEmpty()) start = ServiceSync.import(other, start, everything = true) { change -> change(library).also { library = it } }.state
+            ServiceSync.run(other, start, elsewhere = elsewhere) { change -> change(library).also { library = it } }.state
         }
 
     private fun remote(
@@ -197,7 +193,7 @@ class ServiceSyncTest {
         lib = lib.addToReadingList("https://b.example/old", "Old", now - 8 * day).first
         val asked = mutableListOf<String>()
         runBlocking {
-            ServiceSync.run(texts, ServiceState(), ServiceScope.Everything, textOf = { item -> asked += item.key; "<p>${item.title}</p>" }, now = now) { change -> change(lib).also { lib = it } }
+            ServiceSync.run(texts, ServiceState(), textOf = { item -> asked += item.key; "<p>${item.title}</p>" }, now = now) { change -> change(lib).also { lib = it } }
         }
         assertEquals("<p>New</p>", texts.contents["https://b.example/new"])
         // Saved more than a week ago (connecting brings the backlog): the service fetches the page itself.
@@ -206,7 +202,7 @@ class ServiceSyncTest {
         // A service without the feature never asks for the text.
         val plain = FakeService()
         runBlocking {
-            ServiceSync.run(plain, ServiceState(), ServiceScope.Everything, textOf = { error("not asked") }, now = now) { change -> change(lib).also { lib = it } }
+            ServiceSync.run(plain, ServiceState(), textOf = { error("not asked") }, now = now) { change -> change(lib).also { lib = it } }
         }
         assertNull(plain.contents["https://b.example/new"])
         assertTrue("https://b.example/new" in plain.contents)
@@ -216,7 +212,7 @@ class ServiceSyncTest {
     fun `no text (offline, or the page can't be read) still adds the article`() {
         val texts = FakeService(features = setOf(ServiceFeature.Content))
         var lib = Library().addToReadingList("https://b.example/x", "X", 10).first
-        val result = runBlocking { ServiceSync.run(texts, ServiceState(), ServiceScope.Everything, textOf = { error("offline") }, now = 20) { change -> change(lib).also { lib = it } } }
+        val result = runBlocking { ServiceSync.run(texts, ServiceState(), textOf = { error("offline") }, now = 20) { change -> change(lib).also { lib = it } } }
         assertNull(result.problem)
         assertTrue("https://b.example/x" in texts.contents)
         assertNull(texts.contents["https://b.example/x"])
@@ -415,85 +411,37 @@ class ServiceSyncTest {
     }
 
     @Test
-    fun `a save reaches every service whose scope covers its folder`() {
-        val raindrop = FakeService("raindrop", features = setOf(ServiceFeature.Notes))
-        val work = ServiceScope(setOf("Work"))
-        library = library.addToReadingList("https://b.example/1", "1", 10).first
-        sync()
-        var rs = sync(raindrop, ServiceState(), work)
-        // To read is only in the first one's scope.
-        assertEquals(1, service.entries.size)
-        assertTrue(raindrop.entries.isEmpty())
-        // Filed in Work: it reaches Raindrop too, and the two stay in step through Reader.
-        library = Saved.file(library, "b.example/1", "Work")
-        sync()
-        rs = sync(raindrop, rs, work)
-        assertEquals("Work", raindrop.entries.values.single().folder)
-        raindrop.put(raindrop.entries.values.single().copy(liked = true))
-        rs = sync(raindrop, rs, work)
-        sync()
-        assertTrue(library.item("b.example/1")!!.liked)
-        assertTrue(service.entries.values.single().liked)
-    }
-
-    @Test
-    fun `a scope losing a folder archives its articles there, and gaining it brings them back`() {
-        val work = ServiceScope(setOf(ServiceScope.TO_READ, "Work"))
-        library = Saved.file(library.addToReadingList("https://b.example/1", "1", 10).first, "b.example/1", "Work")
-        sync(work)
-        val id = state.rows["b.example/1"]!!.remoteId
-        assertEquals("Work", service.entries[id]!!.folder)
-        // Work leaves the scope: archived there, never deleted, and it stays in Reader as it is.
-        val toRead = work.with("Work", on = false)
-        assertNull(sync(toRead))
-        assertTrue(service.entries[id]!!.archived)
-        assertFalse(state.rows["b.example/1"]!!.linked)
-        assertEquals("Work", Saved.folderOf(library.item("b.example/1")!!))
-        // Out of step: changes here no longer go there.
-        library = library.setLiked("b.example/1", true)
-        service.calls.clear()
-        sync(toRead)
-        assertEquals(listOf("changes"), service.calls)
-        // Filing it out of a synced folder here does the same: To read is in scope, Later isn't.
-        library = Saved.file(library.addToReadingList("https://b.example/2", "2", 11).first, "b.example/2", null)
-        sync(toRead)
-        val two = state.rows["b.example/2"]!!.remoteId
-        library = Saved.file(library, "b.example/2", "Later")
-        sync(toRead)
-        assertTrue(service.entries[two]!!.archived)
-        assertTrue(service.entries.containsKey(two))
-        // Work back in the scope: in step again, out of the archive there.
-        assertNull(sync(work))
-        assertTrue(state.rows["b.example/1"]!!.linked)
-        assertFalse(service.entries[id]!!.archived)
-        assertTrue(service.entries[id]!!.liked)
-    }
-
-    @Test
-    fun `an import lands each article in its place, and leaves the rest there until it changes`() =
+    fun `an import lands each article in its place`() =
         runBlocking {
-            service.put(remote("1", "https://a.example/1"))
-            service.put(remote("2", "https://a.example/2", folder = "Research", liked = true, tags = listOf("x")))
+            service.put(remote("2", "https://a.example/2", liked = true, tags = listOf("x")))
             service.put(remote("3", "https://a.example/3", archived = true))
-            service.put(remote("4", "https://a.example/4", folder = "Brussels"))
-            val result = ServiceSync.import(service, ServiceState(), ServiceImport(0, 0, folders = setOf("Research"), archive = true)) { change -> change(library).also { library = it } }
-            state = result.state
+            val result = ServiceSync.import(service, ServiceState(), everything = true) { change -> change(library).also { library = it } }
             assertEquals(2, result.imported)
             val two = library.item("a.example/2")!!
-            assertEquals("Research", Saved.folderOf(two))
             assertTrue(two.liked)
             assertEquals(listOf("x"), two.tags)
             assertTrue(library.item("a.example/3")!!.archived)
+        }
+
+    @Test
+    fun `not importing leaves what the service has there until it changes, and Saved still goes there (#251)`() =
+        runBlocking {
+            service.put(remote("1", "https://a.example/1"))
+            service.put(remote("4", "https://a.example/4"))
+            library = library.addToReadingList("https://b.example/1", "Mine", 10).first
+            val result = ServiceSync.import(service, ServiceState(), everything = false) { change -> change(library).also { library = it } }
+            state = result.state
+            assertEquals(0, result.imported)
             assertNull(library.item("a.example/1"))
-            assertNull(library.item("a.example/4"))
-            // The next sync takes nothing else in, and removes nothing there.
+            // The next sync takes nothing in, removes nothing there, and sends what is in Saved.
             assertNull(sync())
             assertNull(library.item("a.example/1"))
-            assertEquals(4, service.entries.size)
+            assertEquals(3, service.entries.size)
+            assertTrue(service.entries.values.any { it.url == "https://b.example/1" })
             // Changed there since: now it comes in.
             service.put(service.entries["4"]!!.copy(liked = true))
             assertNull(sync())
-            assertEquals("Brussels", Saved.folderOf(library.item("a.example/4")!!))
+            assertTrue(library.item("a.example/4")!!.liked)
             // Something new there comes in too.
             service.put(remote("5", "https://a.example/5"))
             assertNull(sync())

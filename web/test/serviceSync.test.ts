@@ -3,7 +3,6 @@ import { InstapaperError, type Bookmark, type ChangesPage, type Folder, type Tag
 import { InstapaperSync } from "../src/lib/instapaperSync";
 import { addToReadingList, changeItem, itemOf, looseKeyOfLink, setLiked, setReadingState, setTags } from "../src/lib/items";
 import { emptyLibrary, type Library } from "../src/lib/library";
-import { covers, EVERYTHING, TO_READ, withFolder, type ServiceScope } from "../src/lib/serviceScope";
 import { emptyServiceSyncState, importService, ServiceSyncError, syncService, type RemoteChanges, type RemoteEntry, type SavedSyncService, type ServiceSyncState } from "../src/lib/serviceSync";
 
 /** A service in memory: what it has, a cursor per change, and calls that can fail. */
@@ -81,18 +80,18 @@ function remote(id: string, url: string, patch: Partial<RemoteEntry> = {}): Remo
   return { remoteId: id, url, title: `Title ${id}`, description: "Desc", imageUrl: null, addedAt: 1_000, archived: false, liked: false, tags: [], folder: null, progress: 0, ...patch };
 }
 
-/** Connecting imports everything once, as the app does; then each sync keeps the scope in step. */
+/** Connecting imports everything once (the user's choice, #251); then each sync keeps everything in step. */
 function setup() {
   const box = { lib: emptyLibrary() as Library, state: emptyServiceSyncState as ServiceSyncState };
   const service = new FakeService();
   const update = (change: (lib: Library) => Library) => (box.lib = change(box.lib));
-  const sync = async (scope: ServiceScope = EVERYTHING, editedAt: Record<string, number> = {}) => {
+  const sync = async (editedAt: Record<string, number> = {}) => {
     if (box.state.cursor === null && Object.keys(box.state.rows).length === 0) {
-      const imported = await importService(service, box.state, { folders: null, archive: true }, update, 5_000);
+      const imported = await importService(service, box.state, true, update, 5_000);
       box.state = imported.state;
       if (imported.problem) return imported.problem;
     }
-    const result = await syncService(service, box.state, update, 5_000, scope, editedAt);
+    const result = await syncService(service, box.state, update, 5_000, editedAt);
     box.state = result.state;
     return result.problem;
   };
@@ -136,7 +135,7 @@ describe("Saved and a service (serviceSync.ts)", () => {
       asked.push(item.key);
       return `<p>${item.title}</p>`;
     };
-    await syncService(service, emptyServiceSyncState, (change) => (lib = change(lib)), now, EVERYTHING, {}, new Set(), textOf);
+    await syncService(service, emptyServiceSyncState, (change) => (lib = change(lib)), now, {}, new Set(), textOf);
     expect(service.contents.get("https://b.example/new")).toBe("<p>New</p>");
     // Saved more than a week ago (connecting brings the backlog): the service fetches the page itself.
     expect(service.contents.get("https://b.example/old")).toBeNull();
@@ -144,10 +143,10 @@ describe("Saved and a service (serviceSync.ts)", () => {
     // No text to be had (offline): added all the same; a service without the feature isn't asked.
     const failing = new FakeService();
     failing.content = true;
-    expect((await syncService(failing, emptyServiceSyncState, (change) => (lib = change(lib)), now, EVERYTHING, {}, new Set(), () => Promise.reject(new Error("offline")))).problem).toBeNull();
+    expect((await syncService(failing, emptyServiceSyncState, (change) => (lib = change(lib)), now, {}, new Set(), () => Promise.reject(new Error("offline")))).problem).toBeNull();
     expect(failing.contents.get("https://b.example/new")).toBeNull();
     const plain = new FakeService();
-    await syncService(plain, emptyServiceSyncState, (change) => (lib = change(lib)), now, EVERYTHING, {}, new Set(), () => Promise.reject(new Error("not asked")));
+    await syncService(plain, emptyServiceSyncState, (change) => (lib = change(lib)), now, {}, new Set(), () => Promise.reject(new Error("not asked")));
     expect(plain.contents.has("https://b.example/new")).toBe(true);
   });
 
@@ -163,12 +162,12 @@ describe("Saved and a service (serviceSync.ts)", () => {
     // Both changed the title; without a time from the service, Reader's stays.
     box.lib = changeItem(box.lib, "a.example/1", (i) => ({ ...i, title: "Here" }));
     service.put({ ...service.entries.get("1")!, title: "Elsewhere" });
-    await sync(EVERYTHING, { "a.example/1": 100 });
+    await sync({ "a.example/1": 100 });
     expect(itemOf(box.lib, "a.example/1")?.title).toBe("Here");
     // Changed there later than here: the service's wins.
     box.lib = changeItem(box.lib, "a.example/1", (i) => ({ ...i, title: "Mine" }));
     service.put({ ...service.entries.get("1")!, title: "Theirs", changedAt: 300 });
-    await sync(EVERYTHING, { "a.example/1": 200 });
+    await sync({ "a.example/1": 200 });
     expect(itemOf(box.lib, "a.example/1")?.title).toBe("Theirs");
     expect(service.entries.get("1")?.title).toBe("Theirs");
   });
@@ -189,38 +188,14 @@ describe("Saved and a service (serviceSync.ts)", () => {
     expect([...service.entries.values()].some((e) => e.url === "https://a.example/2")).toBe(true);
   });
 
-  it("keeps the scope in step: a folder leaving it is archived there, never deleted", async () => {
-    const { box, service, sync } = setup();
-    const work: ServiceScope = { folders: [TO_READ, "Work"] };
-    box.lib = changeItem(addToReadingList(box.lib, "https://b.example/1", "1", 10)[0], "b.example/1", (i) => ({ ...i, folder: "Work" }));
-    box.lib = addToReadingList(box.lib, "https://b.example/2", "2", 11)[0];
-    await sync(work);
-    const id = box.state.rows["b.example/1"].remoteId;
-    expect(service.entries.get(id)?.folder).toBe("Work");
-    // Work unticked: archived there, still in Reader in its folder.
-    await sync(withFolder(work, "Work", false));
-    expect(service.entries.get(id)?.archived).toBe(true);
-    expect(box.state.rows["b.example/1"].linked).toBe(false);
-    expect(itemOf(box.lib, "b.example/1")?.folder).toBe("Work");
-    // A folder that isn't in the scope never goes there.
-    box.lib = changeItem(box.lib, "b.example/2", (i) => ({ ...i, folder: "Later" }));
-    await sync(withFolder(work, "Work", false));
-    expect(service.entries.get(box.state.rows["b.example/2"].remoteId)?.archived).toBe(true);
-    // Back in the scope: in step again, out of the archive there.
-    await sync(work);
-    expect(service.entries.get(id)?.archived).toBe(false);
-    expect(covers(work, itemOf(box.lib, "b.example/1")!)).toBe(true);
-  });
-
-  it("an import lands each article in its place and leaves the rest there until it changes", async () => {
+  it("not importing leaves what the service has there until it changes, and Saved still goes there (#251)", async () => {
     const { box, service, sync, update } = setup();
     service.put(remote("1", "https://a.example/1"));
-    service.put(remote("2", "https://a.example/2", { folder: "Research", liked: true }));
-    service.put(remote("3", "https://a.example/3", { archived: true }));
-    const result = await importService(service, box.state, { folders: ["Research"], archive: false }, update, 5_000);
+    service.put(remote("2", "https://a.example/2", { liked: true }));
+    box.lib = addToReadingList(box.lib, "https://b.example/1", "Mine", 10)[0];
+    const result = await importService(service, box.state, false, update, 5_000);
     box.state = result.state;
-    expect(result.imported).toBe(1);
-    expect(itemOf(box.lib, "a.example/2")).toMatchObject({ folder: "Research", liked: true });
+    expect(result.imported).toBe(0);
     expect(itemOf(box.lib, "a.example/1")).toBeUndefined();
     await sync();
     expect(itemOf(box.lib, "a.example/1")).toBeUndefined();

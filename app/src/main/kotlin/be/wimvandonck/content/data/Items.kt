@@ -64,7 +64,7 @@ data class Item(
      * service whose scope covers it. Kept so the sync file stays the same on both platforms.
      */
     val service: String? = null,
-    /** Bookmarks before #119; moved into folders when read (see [Saved.settle]). */
+    /** Bookmarks before #119 (none are made any more); kept so synced rows still read. */
     val bookmark: BookmarkEntry? = null,
     /** Liked is one flag on the item (#107), not a list. */
     val liked: Boolean = false,
