@@ -214,6 +214,16 @@ describe("per-item sync (#106)", () => {
     expect(arrived.readElsewhere).toEqual({});
   });
 
+  it("brings the read mark of a months-old article from a feed that posts rarely (#245)", async () => {
+    const account = new FakeItems();
+    const tenMonths = NOW - 300 * DAY;
+    const phone = new Device(libraryWith(article("1", true, tenMonths)));
+    const laptop = new Device(libraryWith(article("1", false, tenMonths)));
+    await phone.sync(account);
+    await laptop.sync(account);
+    expect(laptop.library.articles[0].read).toBe(true);
+  });
+
   it("drops old read marks from the account without making anything unread", async () => {
     const account = new FakeItems();
     const old = NOW - KEEP_READ_MS + DAY;

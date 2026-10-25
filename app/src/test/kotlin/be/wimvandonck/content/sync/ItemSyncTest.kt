@@ -254,6 +254,17 @@ class ItemSyncTest {
     }
 
     @Test
+    fun `the read mark of a months-old article from a feed that posts rarely arrives (#245)`() {
+        val account = FakeItems()
+        val tenMonths = now - 300 * day
+        val phone = Device(libraryWith(article("1", read = true, date = tenMonths)))
+        val laptop = Device(libraryWith(article("1", date = tenMonths)))
+        phone.sync(account)
+        laptop.sync(account)
+        assertTrue(laptop.library.article("$feed 1")!!.read)
+    }
+
+    @Test
     fun `old read marks leave the account without making anything unread`() {
         val account = FakeItems()
         val old = now - SyncRows.KEEP_READ_MS + day

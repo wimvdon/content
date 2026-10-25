@@ -59,8 +59,11 @@ export type Selection =
   | { kind: "saved" };
 
 export const MAX_ARTICLES_PER_FEED = 200;
-/** Read marks of articles older than this are dropped (feeds rarely go back further); sync uses the same. */
-export const READ_MARKS_KEPT_MS = 120 * 24 * 60 * 60 * 1000;
+/**
+ * Read marks of articles older than this are dropped; sync uses the same. Two years, not 120 days: a
+ * feed that posts rarely still lists articles from months back (#245).
+ */
+export const READ_MARKS_KEPT_MS = 730 * 24 * 60 * 60 * 1000;
 export const MAX_HTML_LENGTH = 200_000;
 export const DEFAULT_ICON = "folder";
 

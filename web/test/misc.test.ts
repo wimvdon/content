@@ -69,8 +69,8 @@ describe("read marks that leave this browser (#157)", () => {
   });
   it("drops marks older than the sync keeps", () => {
     const day = 24 * 60 * 60 * 1000;
-    const lib = addFeed({ ...emptyLibrary(), readElsewhere: { "x 1": 10 * day, "x 2": 200 * day } }, newFeed("a", "A"));
-    expect(mergeFeed(lib, "a", { title: "A", siteUrl: null, items: items(["1", 1]) }, 200 * day).readElsewhere).toEqual({ "x 2": 200 * day });
+    const lib = addFeed({ ...emptyLibrary(), readElsewhere: { "x 1": 10 * day, "x 2": 800 * day } }, newFeed("a", "A"));
+    expect(mergeFeed(lib, "a", { title: "A", siteUrl: null, items: items(["1", 1]) }, 800 * day).readElsewhere).toEqual({ "x 2": 800 * day });
   });
   it("keeps a removed feed's read marks, so adding it again brings them back read", () => {
     let lib = addFeed(emptyLibrary(), newFeed("a", "A"));
