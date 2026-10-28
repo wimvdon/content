@@ -58,6 +58,8 @@ object ArticleExtractor {
         val document = Jsoup.parse(html, pageUrl)
         document.outputSettings().prettyPrint(false)
         val titles = listOfNotNull(document.selectFirst("meta[property=og:title]")?.attr("content"), document.title())
+        // Before Readability, which changes the page as it reads it.
+        val summary = shownSummary(document)
         val article =
             try {
                 readability(pageUrl, document).parse()
@@ -71,7 +73,34 @@ object ArticleExtractor {
         val out = StringBuilder()
         serialize(content, out, pageUrl)
         val result = out.toString().replace(Regex("""(\s*<br>\s*){3,}"""), "<br><br>").trim()
-        return result.takeIf { Html.toPlainText(it).length >= MIN_TEXT_LENGTH }
+        if (Html.toPlainText(result).length < MIN_TEXT_LENGTH) return null
+        // The intro Readability left out (#266): the page's summary, shown on the page but not in the article.
+        return if (summary != null && !squash(Html.toPlainText(result)).contains(summary)) "<p>${Html.escape(summary)}</p>$result" else result
+    }
+
+    /** Shorter summaries are a label or a site name, not an intro. */
+    private const val MIN_SUMMARY_LENGTH = 40
+
+    /** Whitespace (also no-break spaces) collapsed, trimmed. */
+    private fun squash(text: String): String = text.replace(Regex("""[\s\u00a0]+"""), " ").trim()
+
+    /**
+     * The page's own summary (its description, as Readability's excerpt reads it) when the page also
+     * shows it as an element of its own, such as an intro above the article (#266); else null.
+     */
+    private fun shownSummary(document: Document): String? {
+        val description =
+            listOf("og:description", "twitter:description", "description").firstNotNullOfOrNull { name ->
+                document.selectFirst("meta[property=$name], meta[name=$name]")?.attr("content")?.takeIf { it.isNotBlank() }
+            } ?: return null
+        val summary = squash(description)
+        if (summary.length < MIN_SUMMARY_LENGTH) return null
+        val body = document.body() ?: return null
+        return summary.takeIf {
+            body.select("*").any { element ->
+                element.normalName() !in droppedTags && !hasBlockDescendant(element) && squash(element.wholeText()) == summary
+            }
+        }
     }
 
     /** Readability4JExtended with its own parts, but scoring as today's Readability does ([CurrentScoring]). */

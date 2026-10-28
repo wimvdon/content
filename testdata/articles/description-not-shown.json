@@ -1,0 +1,13 @@
+{
+  "about": "A description the page doesn't show stays out of the article (#266).",
+  "url": "https://example.com/story",
+  "html": "<!DOCTYPE html>\n<html><head><title>Story</title><meta property=\"og:description\" content=\"A description only for search engines and link previews, not shown anywhere on the page.\"></head>\n<body>\n<article>\n  <hgroup>\n    <h1>Story</h1>\n        <p class=\"byline\">By Someone</p>\n  </hgroup>\n  <div class=\"article-body\">\n    <p>First paragraph. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p>\n    <p>Second paragraph. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p>\n    <p>Third paragraph. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p>\n    <p>Fourth paragraph. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p>\n  </div>\n</article>\n<aside><h6>Most read</h6><p>Another story</p></aside>\n</body></html>\n",
+  "text": [
+    "First paragraph."
+  ],
+  "htmlContains": [],
+  "absent": [
+    "A description only for search engines and link previews, not shown anywhere on the page."
+  ],
+  "noArticle": false
+}

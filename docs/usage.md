@@ -222,7 +222,7 @@ automatic loading off. Full articles are kept for a while, so opening one again 
 **Read on website** at the end always opens the original page. 
 
 **Pictures and videos.** The list shows each article's picture as a thumbnail; a link you save or
-share from another app gets the picture (and description) the page itself names. In the reader the
+share from another app gets the picture (and description) the page itself names, and so does a saved article without a picture when you open it. In the reader the
 picture appears above the title, and the pictures inside the article appear between the
 paragraphs, with their captions. Embedded videos and posts (YouTube, Vimeo, X, Instagram,
 Spotify and others) show as a card with a preview; tap it to watch or open it in its app or the
