@@ -94,6 +94,8 @@ internal fun SavedContent(
     onFile: (Item) -> Unit = {},
     /** Long-press › Share (#221). */
     onShare: (Item) -> Unit = {},
+    /** Long-press › Remove from Saved (#263). */
+    onRemove: (Item) -> Unit = {},
     /** Clears Liked and the tags, for an empty list they filtered out. */
     onClearFilters: () -> Unit = {},
 ) {
@@ -122,12 +124,16 @@ internal fun SavedContent(
         }
         return
     }
-    if (Saved.showsNotes(home.filter.tab)) NotesGrid(home, showImages, onOpen, onFile, onShare) else ArticleList(home, showImages, onOpen, onArchive, onFile)
+    if (Saved.showsNotes(home.filter.tab)) {
+        NotesGrid(home, showImages, onOpen, onFile, onShare, onRemove)
+    } else {
+        ArticleList(home, showImages, onOpen, onArchive, onFile, onShare, onRemove)
+    }
 }
 
 /**
  * To read: the feed list's rows, newest saved first. Swipe left to archive, right to organise it
- * (#143).
+ * (#143); a long press organises, archives, shares or removes it (#263).
  */
 @Composable
 private fun ArticleList(
@@ -136,10 +142,14 @@ private fun ArticleList(
     onOpen: (Item) -> Unit,
     onArchive: (Item) -> Unit,
     onFile: (Item) -> Unit,
+    onShare: (Item) -> Unit,
+    onRemove: (Item) -> Unit,
 ) {
     val archiveLabel = stringResource(R.string.action_archive)
     val unarchiveLabel = stringResource(R.string.action_unarchive)
     val organiseLabel = stringResource(R.string.organise_title)
+    val shareLabel = stringResource(R.string.action_share)
+    val removeLabel = stringResource(R.string.saved_remove)
     // Another list starts at the top.
     val listState = rememberSaveable(home.filter, saver = LazyListState.Saver) { LazyListState() }
     LazyColumn(
@@ -152,14 +162,15 @@ private fun ArticleList(
         items(home.items, key = { it.key }) { item ->
             val article = remember(item, home.library) { ReadingLists.article(item, home.library) }
             val source = remember(item, home.library) { ReadingLists.source(item, home.library) }
+            val archive =
+                if (item.archived) {
+                    SwipeAction(R.drawable.ic_unarchive, unarchiveLabel) { onArchive(item) }
+                } else {
+                    SwipeAction(R.drawable.ic_inventory, archiveLabel) { onArchive(item) }
+                }
             SwipeRow(
                 right = SwipeAction(R.drawable.ic_folder, organiseLabel) { onFile(item) },
-                left =
-                    if (item.archived) {
-                        SwipeAction(R.drawable.ic_unarchive, unarchiveLabel) { onArchive(item) }
-                    } else {
-                        SwipeAction(R.drawable.ic_inventory, archiveLabel) { onArchive(item) }
-                    },
+                left = archive,
                 modifier = Modifier.animateItem(),
             ) {
                 ArticleRow(
@@ -169,6 +180,13 @@ private fun ArticleList(
                     showImage = showImages,
                     showReadState = false,
                     onClick = { onOpen(item) },
+                    menu =
+                        listOf(
+                            RowMenuAction(R.drawable.ic_label, organiseLabel) { onFile(item) },
+                            RowMenuAction(archive.icon, archive.label) { onArchive(item) },
+                            RowMenuAction(R.drawable.ic_share, shareLabel) { onShare(item) },
+                            RowMenuAction(R.drawable.ic_delete, removeLabel) { onRemove(item) },
+                        ),
                 )
             }
         }
@@ -200,9 +218,11 @@ private fun NotesGrid(
     onOpen: (Item) -> Unit,
     onFile: (Item) -> Unit,
     onShare: (Item) -> Unit,
+    onRemove: (Item) -> Unit,
 ) {
     val organiseLabel = stringResource(R.string.organise_title)
     val shareLabel = stringResource(R.string.action_share)
+    val removeLabel = stringResource(R.string.saved_remove)
     val gridState = rememberSaveable(home.filter, saver = LazyStaggeredGridState.Saver) { LazyStaggeredGridState() }
     LazyVerticalStaggeredGrid(
         state = gridState,
@@ -223,11 +243,12 @@ private fun NotesGrid(
                 showImages,
                 onClick = { onOpen(item) },
                 modifier = Modifier.animateItem(),
-                // Long-press (#221): Organise (tags, note) and Share. No swipes on cards.
+                // Long-press (#221, #263): Organise (tags, note), Share and Remove. No swipes on cards.
                 menu =
                     listOf(
                         RowMenuAction(R.drawable.ic_label, organiseLabel) { onFile(item) },
                         RowMenuAction(R.drawable.ic_share, shareLabel) { onShare(item) },
+                        RowMenuAction(R.drawable.ic_delete, removeLabel) { onRemove(item) },
                     ),
             )
         }

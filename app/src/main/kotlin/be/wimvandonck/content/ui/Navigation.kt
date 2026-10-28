@@ -728,6 +728,12 @@ fun RssReaderNavigation(
                                 onAddLink = { openSave(null, null) },
                                 onArchiveItem = ::archive,
                                 onFileItem = { fileKey = it.key },
+                                onRemoveItem = { item ->
+                                    editLibrary { Saved.remove(it, item.key) }
+                                    showMessage(resources.getString(R.string.saved_removed), resources.getString(R.string.action_undo)) {
+                                        editLibrary { it.putItem(item) }
+                                    }
+                                },
                                 onShareArticle = ::share,
                                 onOpenInbox = { push(Screen.Inbox) },
                                 onShareItem = { item -> share(ReadingLists.article(item, library)) },

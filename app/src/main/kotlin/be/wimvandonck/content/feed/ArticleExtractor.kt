@@ -1,7 +1,14 @@
 package be.wimvandonck.content.feed
 
 import net.dankito.readability4j.extended.Readability4JExtended
+import net.dankito.readability4j.extended.processor.ArticleGrabberExtended
+import net.dankito.readability4j.extended.processor.PostprocessorExtended
+import net.dankito.readability4j.extended.util.RegExUtilExtended
+import net.dankito.readability4j.model.ReadabilityOptions
+import net.dankito.readability4j.processor.MetadataParser
+import net.dankito.readability4j.processor.Preprocessor
 import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.TextNode
 import java.net.URI
@@ -53,7 +60,7 @@ object ArticleExtractor {
         val titles = listOfNotNull(document.selectFirst("meta[property=og:title]")?.attr("content"), document.title())
         val article =
             try {
-                Readability4JExtended(pageUrl, document).parse()
+                readability(pageUrl, document).parse()
             } catch (_: Exception) {
                 // A page Readability can't handle has no article for the reader.
                 null
@@ -66,6 +73,37 @@ object ArticleExtractor {
         val result = out.toString().replace(Regex("""(\s*<br>\s*){3,}"""), "<br><br>").trim()
         return result.takeIf { Html.toPlainText(it).length >= MIN_TEXT_LENGTH }
     }
+
+    /** Readability4JExtended with its own parts, but scoring as today's Readability does ([CurrentScoring]). */
+    private fun readability(
+        pageUrl: String,
+        document: Document,
+    ): Readability4JExtended {
+        val options = ReadabilityOptions()
+        val regEx = RegExUtilExtended()
+        return Readability4JExtended(pageUrl, document, options, regEx, Preprocessor(regEx), MetadataParser(regEx), CurrentScoring(options, regEx), PostprocessorExtended())
+    }
+
+    /**
+     * Readability4J ports an older Readability, which gives each paragraph's score to 3 levels of
+     * containers around it; today's Readability (Firefox, and the web app's Readability.js) gives it to
+     * 5, with the same weights. On pages that wrap each part of the article in a few containers of
+     * its own (Wired, #271), the older count left the other parts without a score, so only one part
+     * was kept. This is Readability's own current scoring, not a rule of ours (#236).
+     */
+    private class CurrentScoring(
+        options: ReadabilityOptions,
+        regEx: RegExUtilExtended,
+    ) : ArticleGrabberExtended(options, regEx) {
+        // Scoring is the one place that asks for 3 levels; the other callers ask for all (0).
+        override fun getNodeAncestors(
+            node: Element,
+            maxDepth: Int,
+        ): List<Element> = super.getNodeAncestors(node, if (maxDepth == OLD_SCORING_DEPTH) SCORING_DEPTH else maxDepth)
+    }
+
+    private const val OLD_SCORING_DEPTH = 3
+    private const val SCORING_DEPTH = 5
 
     /** Whether [heading] is the page's [title], which often ends in the site's name ("Title | Site"). */
     private fun isTitle(

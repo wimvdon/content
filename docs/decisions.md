@@ -2,6 +2,33 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-28: Open issues of 6.1.1 (#263, #267, #268, #269, #270, #271)
+
+- **Remove from Saved in the long-press menu** (#263), on rows and cards, in both apps, with Undo
+  instead of the reader's question (the menu is quick to reach, Undo is as quick to take back). On
+  Android, To read's rows get the menu too: Organise, Archive (or To read), Share, Remove.
+- **The page's own picture for every saved link** (#267, #268): a link shared from another app
+  brings its title, so the page was never read and the overview had no picture. Now the page is
+  read whenever the item lacks a title, description or picture, and only what is missing is filled
+  in (`Item.describedBy`). Same address as the article itself, so nothing new in PRIVACY.md.
+- **Reading progress on Android** (#270) waits for the text that stays: not while the full text
+  loads, and not until the page's height has been the same for 400 ms (pictures arrive later).
+  Before, it scrolled back on the short first page and leaving the article stored that much lower
+  place as the new progress (`data/ReadingPosition.kt`, tested, like the web's `readingProgress.ts`).
+- **The web app refreshes on every page load without waiting for Instapaper** (#269): the refresh
+  waits for the account's part of the sync (read marks and feeds), as on Android, while Instapaper
+  goes on beside it. With no feeds yet but an account, it refreshes too, for the feeds the sync brings.
+- **Android scores as today's Readability** (#271): Readability4J ports an older Readability that
+  gives a paragraph's score to 3 levels of containers; Readability.js (Firefox, the web app) gives it
+  to 5. On Wired, each part of the article sits in its own few containers, so Android kept only the
+  last part while the web app had all of it. `ArticleExtractor` now asks Readability4J for 5 levels
+  (one override, no rule of ours, so #236 holds). Cached full articles go to `v5-`; texts already
+  stored in the account stay as stored. Sample page: `testdata/articles/parts-in-wrappers.json`.
+- **Not reproduced:** the two standaard.be articles (#266, #272) answer this session's downloads
+  with a Cloudflare check, so their pages couldn't be looked at; they stay open.
+- **Not changed:** the inbox's long-press menu (#262) already has Save; it hides when the article
+  is in Saved already. Closed at the owner's request.
+
 ## 2026-10-25: Reading progress in the web app too; the reader's bar on Android
 
 - Asked for by the owner: the place you stopped reading a saved article syncs, also with

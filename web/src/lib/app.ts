@@ -211,8 +211,9 @@ class AppStore {
       this.saveArticle(toSave, title.trim() || toSave);
     }
     this.syncWhileVisible();
-    if (this.accountKey() || this.state.instapaper) await this.sync();
-    if (this.state.library.feeds.length > 0) await this.refresh(false);
+    // Fresh articles on every page load (#269), as Android does on start: the refresh syncs first.
+    if (this.state.library.feeds.length > 0 || this.accountKey()) await this.refresh(false);
+    else if (this.state.instapaper) await this.sync();
   }
 
   /**
@@ -339,8 +340,9 @@ class AppStore {
   async refresh(byYou = true) {
     if (this.state.refreshing) return;
     this.set(byYou ? { refreshing: true, readThisVisit: new Set() } : { refreshing: true });
-    // Read marks and feeds from other devices first, so they apply to the new articles.
-    await this.sync();
+    // Read marks and feeds from other devices first, so they apply to the new articles. Instapaper
+    // goes on meanwhile: the feeds don't wait for it (#269).
+    await this.syncAccount();
     const feeds = [...this.state.library.feeds];
     const results = new Map<string, ReturnType<typeof parseFeed>>();
     const problems = new Map<string, FetchError["kind"] | "notAFeed">();
@@ -785,6 +787,8 @@ class AppStore {
   /** Undo for removeFromInbox: back in the inbox as it was. */
   restoreInbox = (item: Item) => this.updateLibrary((lib) => putItem(lib, { ...(itemOf(lib, item.key) ?? item), sharedBy: item.sharedBy }));
   removeItem = (key: string) => this.updateLibrary((lib) => Saved.removeSaved(lib, key));
+  /** Undo of a removal from Saved (#263): the item as it was. */
+  restoreItem = (item: Item) => this.updateLibrary((lib) => putItem(lib, item));
 
   /** Folders and tags (Folders and tags). Renaming to another's name joins the two. */
   renameSavedFolder = (from: string, to: string) => {
@@ -951,15 +955,29 @@ class AppStore {
       this.syncAgain = true;
       return this.syncing;
     }
+    let accountDone!: () => void;
+    this.accountSynced = new Promise((resolve) => (accountDone = resolve));
     this.syncing = (async () => {
       do {
         this.syncAgain = false;
         await this.syncOnce();
+        accountDone();
         await this.syncInstapaper().catch(() => undefined);
       } while (this.syncAgain);
-    })().finally(() => (this.syncing = null));
+    })().finally(() => {
+      accountDone();
+      this.syncing = null;
+    });
     return this.syncing;
   }
+
+  /** The account's part of a sync (#269): starts one if none runs, and ends without waiting for Instapaper. */
+  private syncAccount(): Promise<void> {
+    void this.sync();
+    return this.accountSynced;
+  }
+
+  private accountSynced: Promise<void> = Promise.resolve();
 
   private async syncOnce() {
     const key = this.accountKey();

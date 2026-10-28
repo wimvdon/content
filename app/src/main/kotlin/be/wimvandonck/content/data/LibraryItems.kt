@@ -1,6 +1,7 @@
 package be.wimvandonck.content.data
 
 import be.wimvandonck.content.feed.Html
+import be.wimvandonck.content.feed.PageInfo
 
 // The reading list and Bookmarks inside the library (#106): one item per link, with memberships.
 // Every change returns a new Library, like the rest of it. Plain Kotlin, unit tested.
@@ -265,3 +266,18 @@ fun Library.removeHighlight(
     key: String,
     highlightId: String,
 ): Library = changeItem(key) { item -> item.copy(highlights = item.highlights.filterNot { it.id == highlightId }) }
+
+/** Whether [describedBy] could add something to this item: it has no title of its own, description or picture yet. */
+fun Item.needsDescription(): Boolean = title == url || description.isBlank() || imageUrl == null
+
+/**
+ * This item with what the page says about itself filled in where the item has nothing (#267, #268):
+ * a link shared from another app brings its title, but no picture for the overview. What the item
+ * already has stays.
+ */
+fun Item.describedBy(info: PageInfo): Item =
+    copy(
+        title = if (title == url) info.title ?: title else title,
+        description = description.ifBlank { info.description.orEmpty() },
+        imageUrl = imageUrl ?: info.imageUrl,
+    )

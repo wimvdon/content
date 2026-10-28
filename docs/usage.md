@@ -195,8 +195,9 @@ address** for someone new (Content checks they have an account). The button then
 (nothing lands in Saved), **Send**. It keeps what you chose, also a folder or tag you typed but
 didn't add yet, and one message says where it went and who got it. **Remove** takes the save back, as if you never
 saved it ("Removed from Saved"); closing the sheet keeps it where it was just saved, unchanged.
-The same sheet opens when you press and hold a saved article's card in Saved
-and pick **Organise** (web: right-click it); **Share** is in that menu too. Cards don't swipe. When it
+The same sheet opens when you press and hold a saved article in Saved, a row in To read or a card
+elsewhere, and pick **Organise** (web: right-click it); **Share** and **Remove from Saved** (with
+**Undo**) are in that menu too, and in To read also **Archive** (or **To read** in the Archive). Cards don't swipe. When it
 closes, a message says where the article went; after a swipe, **Add link** or a link shared from
 another app it also has **Open**, which goes to the article in Saved.
 
@@ -220,7 +221,8 @@ between the two for the open article; **Settings › Reader › Load full articl
 automatic loading off. Full articles are kept for a while, so opening one again is instant.
 **Read on website** at the end always opens the original page. 
 
-**Pictures and videos.** The list shows each article's picture as a thumbnail. In the reader the
+**Pictures and videos.** The list shows each article's picture as a thumbnail; a link you save or
+share from another app gets the picture (and description) the page itself names. In the reader the
 picture appears above the title, and the pictures inside the article appear between the
 paragraphs, with their captions. Embedded videos and posts (YouTube, Vimeo, X, Instagram,
 Spotify and others) show as a card with a preview; tap it to watch or open it in its app or the
