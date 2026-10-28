@@ -133,12 +133,12 @@ class LibraryRepository(
     suspend fun edit(change: (Library) -> Library): Library = update { library -> change(library).let { it to it } }
 
     /**
-     * Fills in a link saved without a title (an added or shared link): the page's title, description
-     * and picture, read from the page itself. Leaves the item alone when the page can't be read.
+     * Fills in what a saved link lacks (an added or shared link): the page's title, description and
+     * picture, read from the page itself. Leaves the item alone when the page can't be read.
      */
     suspend fun describe(itemKey: String) {
         val item = current().item(itemKey) ?: return
-        if (item.title != item.url) return
+        if (!item.needsDescription()) return
         val info =
             try {
                 val page = fetch(item.url)
@@ -146,19 +146,7 @@ class LibraryRepository(
             } catch (_: FetchException) {
                 return
             }
-        edit { library ->
-            library.changeItem(itemKey) { i ->
-                if (i.title != i.url) {
-                    i
-                } else {
-                    i.copy(
-                        title = info.title ?: i.title,
-                        description = i.description.ifBlank { info.description.orEmpty() },
-                        imageUrl = i.imageUrl ?: info.imageUrl,
-                    )
-                }
-            }
-        }
+        edit { library -> library.changeItem(itemKey) { it.describedBy(info) } }
     }
 
     /** About how many words the longest text kept for each item has, by item key, for reading times. */

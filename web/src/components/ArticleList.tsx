@@ -8,7 +8,7 @@ import { articleKey, articlesFor, chipTag, feedTags, sortTime, unreadKeys, type 
 import { itemArticle, noteOf, sameTab, savedItems, savedStates, showsNotes, sourceOf, tabTags, type NoteContent, type SavedFilter } from "@/lib/saved";
 import { sharedByLabel } from "@/lib/sharing";
 import { inboxItems, inboxUnread } from "@/lib/inbox";
-import type { SharedBy } from "@/lib/items";
+import type { Item, SharedBy } from "@/lib/items";
 import { NewDot } from "./NewDot";
 import { Avatar } from "./ShareWithUser";
 import { useShare } from "./useShare";
@@ -209,6 +209,19 @@ function SavedArticles({
 }) {
   const { library, savedFilter: filter, loaded } = useApp();
   const [share, shareDialog] = useShare((text) => onMessage(text));
+  // Right-click or press and hold on a saved item (#221, #263), cards and rows alike.
+  const menuOf = (item: Item) => [
+    { icon: <TagIcon />, label: t("organiseTitle"), onClick: () => app.openOrganise(item.key) },
+    { icon: <Share2 />, label: t("share"), onClick: () => share(item.title, item.url, item) },
+    {
+      icon: <Trash2 />,
+      label: t("savedRemove"),
+      onClick: () => {
+        app.removeItem(item.key);
+        onMessage(t("savedRemoved"), { label: t("undo"), run: () => app.restoreItem(item) });
+      },
+    },
+  ];
   const items = useMemo(() => savedItems(library, filter), [library, filter]);
   // Every tag in Saved, whichever state is shown: a tag stays chosen when the state changes.
   const tags = useMemo(() => tabTags(library, { kind: "all" }), [library]);
@@ -279,13 +292,8 @@ function SavedArticles({
                   const article = itemArticle(item, library);
                   return (
                     <li key={item.key} className="mb-2 break-inside-avoid">
-                      {/* Right-click or press and hold (#221): Organise and Share. */}
-                      <WithRowMenu
-                        items={[
-                          { icon: <TagIcon />, label: t("organiseTitle"), onClick: () => app.openOrganise(item.key) },
-                          { icon: <Share2 />, label: t("share"), onClick: () => share(item.title, item.url, item) },
-                        ]}
-                      >
+                      {/* Right-click or press and hold (#221, #263): Organise, Share and Remove. */}
+                      <WithRowMenu items={menuOf(item)}>
                         <NoteCard note={noteOf(item)} feed={sourceOf(item, library)} open={openKey === articleKey(article)} onOpen={() => onOpen(article)} />
                       </WithRowMenu>
                     </li>
@@ -298,7 +306,9 @@ function SavedArticles({
                   const article = itemArticle(item, library);
                   return (
                     <li key={item.key}>
-                      <Row article={article} feed={sourceOf(item, library)} open={openKey === articleKey(article)} onOpen={() => onOpen(article)} noReadState />
+                      <WithRowMenu items={menuOf(item)}>
+                        <Row article={article} feed={sourceOf(item, library)} open={openKey === articleKey(article)} onOpen={() => onOpen(article)} noReadState />
+                      </WithRowMenu>
                     </li>
                   );
                 })}

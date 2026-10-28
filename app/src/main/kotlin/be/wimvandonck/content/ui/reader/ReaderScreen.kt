@@ -83,6 +83,11 @@ import be.wimvandonck.content.ui.home.FeedIconSize
 import be.wimvandonck.content.data.ReaderStyle
 import be.wimvandonck.content.feed.ArticleBlock
 import be.wimvandonck.content.feed.ArticleBlocks
+import androidx.compose.runtime.snapshotFlow
+import be.wimvandonck.content.data.ReadingPosition
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.first
 
 /** Whether the reader shows the full article loaded from the website, and how far it got. */
 sealed interface FullTextState {
@@ -159,7 +164,8 @@ fun ReaderScreen(
     val hasLink = article?.link != null
     val onList = item?.item?.readingList != null
     val scrollState = rememberScrollState()
-    if (item != null && onList) ReadingProgress(scrollState, item.item.progress, item.onProgress)
+    // The position is worked out on the text that stays: not while the full text is still loading (#270).
+    if (item != null && onList) ReadingProgress(scrollState, item.item.progress, ready = fullText !is FullTextState.Loading, item.onProgress)
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -586,23 +592,27 @@ private fun HighlightDialogs(
 /**
  * Keeps an item's reading progress: scrolls back to where it was left when it opens, and reports
  * the position (0 to 1) when the article is left or the app goes to the background, so reading
- * doesn't send a change at every pause.
+ * doesn't send a change at every pause. Scrolling back waits until the text is [ready] and the
+ * page's height has settled (#270); until then nothing is reported, so the stored progress stays.
  */
+@OptIn(FlowPreview::class)
 @Composable
 private fun ReadingProgress(
     scrollState: ScrollState,
     start: Float,
+    ready: Boolean,
     onProgress: (Float) -> Unit,
 ) {
     val report by rememberUpdatedState(onProgress)
     var restored by rememberSaveable { mutableStateOf(false) }
-    LaunchedEffect(scrollState.maxValue > 0) {
-        if (!restored && scrollState.maxValue > 0) {
-            restored = true
-            if (start in 0.02f..0.98f) scrollState.scrollTo((scrollState.maxValue * start).toInt())
-        }
+    LaunchedEffect(ready) {
+        if (restored || !ready) return@LaunchedEffect
+        val max = snapshotFlow { scrollState.maxValue }.debounce(ReadingPosition.SETTLE_MS).first { it > 0 }
+        // Scrolled by hand meanwhile: that is where the reader is.
+        if (scrollState.value == 0) ReadingPosition.scrollFor(start, max)?.let { scrollState.scrollTo(it) }
+        restored = true
     }
-    fun position(): Float? = if (restored && scrollState.maxValue > 0) (scrollState.value.toFloat() / scrollState.maxValue).coerceIn(0f, 1f) else null
+    fun position(): Float? = if (restored) ReadingPosition.of(scrollState.value, scrollState.maxValue) else null
     LifecycleEventEffect(Lifecycle.Event.ON_STOP) { position()?.let(report) }
     DisposableEffect(Unit) { onDispose { position()?.let(report) } }
 }

@@ -1,5 +1,6 @@
 package be.wimvandonck.content.data
 
+import be.wimvandonck.content.feed.PageInfo
 import be.wimvandonck.content.feed.ParsedFeed
 import be.wimvandonck.content.feed.ParsedItem
 import org.junit.Assert.assertEquals
@@ -193,5 +194,24 @@ class LibraryItemsTest {
         val tagged = withArticle.copy(feeds = withArticle.feeds.map { it.copy(tags = listOf("News", "Brussels")) })
         val (library, item) = tagged.addToReadingList("https://example.com/story", null, 1)
         assertEquals(listOf("News", "Brussels"), library.tagWithFeedFolder(item!!.key).item(item.key)!!.tags)
+    }
+
+    @Test
+    fun `a shared link with a title still gets the page's picture and description (#267, #268)`() {
+        val info = PageInfo("Page title", "Page description", "https://example.com/og.jpg")
+        val shared = Item(key = "example.com/a", url = "https://example.com/a", title = "Title from the app", createdAt = 1)
+        assertTrue(shared.needsDescription())
+        val described = shared.describedBy(info)
+        assertEquals("Title from the app", described.title)
+        assertEquals("Page description", described.description)
+        assertEquals("https://example.com/og.jpg", described.imageUrl)
+        assertFalse(described.needsDescription())
+        // A link without a title takes the page's; what an item already has stays.
+        assertEquals("Page title", shared.copy(title = shared.url).describedBy(info).title)
+        val full = shared.copy(description = "Own", imageUrl = "https://example.com/own.jpg")
+        assertFalse(full.needsDescription())
+        assertEquals(full, full.describedBy(info))
+        // A page without a picture leaves none.
+        assertNull(shared.describedBy(PageInfo(null, null, null)).imageUrl)
     }
 }
