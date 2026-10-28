@@ -7,7 +7,7 @@ import { load, remove, save } from "./storage";
  * the keys lets a better extractor load articles again.
  */
 const INDEX = "fullArticles-v3";
-const PREFIX = "fullArticle-v3:";
+const PREFIX = "fullArticle-v4:";
 
 const memory = new Map<string, string>();
 let index: Promise<CacheIndex> | null = null;

@@ -75,6 +75,7 @@ import be.wimvandonck.content.data.changeItem
 import be.wimvandonck.content.data.putItem
 import be.wimvandonck.content.data.item
 import be.wimvandonck.content.data.itemFor
+import be.wimvandonck.content.data.needsDescription
 import be.wimvandonck.content.data.itemTags
 import be.wimvandonck.content.data.tagWithFeedFolder
 import be.wimvandonck.content.data.removeTag
@@ -788,6 +789,9 @@ fun RssReaderNavigation(
                     LaunchedEffect(screen.articleKey) { fromFeed?.let { a -> app.appScope.launch { repository.setRead(a.key, true) } } }
                     // A saved article's highlights made in Instapaper's own apps come in when it opens (#164).
                     LaunchedEffect(screen.articleKey) { item?.takeIf { it.readingList != null }?.let { app.services.lookAtHighlights(it.key) } }
+                    // One that came in without the page's picture (the inbox, Instapaper, or saved before #268)
+                    // gets it when it opens (#275).
+                    LaunchedEffect(screen.articleKey) { item?.takeIf { it.needsDescription() }?.let { app.appScope.launch { repository.describe(it.key) } } }
                     SystemBarsFollowTheme(current.reader.isDark(appDark))
                     ReaderTheme(style = current.reader, appearance = current.appearance, appDark = appDark) {
                         ReaderScreen(

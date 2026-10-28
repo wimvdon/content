@@ -2,6 +2,23 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-28: The page's intro, and pictures for older items (#266, #275)
+
+- **The intro a page shows above its article** (#266, De Standaard; also Wired's subtitle) is
+  outside the part Readability keeps. Both apps now put the page's own summary (its description,
+  as Readability's excerpt reads it) first, but only when the page shows that exact text as an
+  element of its own and the article doesn't contain it already. A description meant only for
+  search engines and link previews stays out. Readability itself is unchanged (#236). Sample
+  pages: `intro-outside-body.json`, `description-not-shown.json`. Full articles are cached anew
+  (Android `v6-`, web `fullArticle-v4:`).
+- **A saved article without a picture gets the page's when it opens** (#275): items from the inbox,
+  from Instapaper, or saved before #268 never had their page read. Opening one reads it once more
+  while it still lacks a picture or description.
+- **Not changed: standaard.be's IPO article** (#272, #274). Your browser's copy of the page comes out
+  right in both apps; the copy Content downloads holds no article text (only the picture, author,
+  date and the "Most read" column), which is what a site sends when you aren't signed in.
+  **Sign in to this site** in the reader's menu sends your standaard.be sign-in with the request.
+
 ## 2026-10-28: Open issues of 6.1.1 (#263, #267, #268, #269, #270, #271)
 
 - **Remove from Saved in the long-press menu** (#263), on rows and cards, in both apps, with Undo

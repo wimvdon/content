@@ -47,6 +47,8 @@ export function extractArticle(html: string, pageUrl: string): string | null {
   base.href = pageUrl;
   doc.head.prepend(base);
   const titles = [doc.querySelector('meta[property="og:title"]')?.getAttribute("content"), doc.title].filter((t): t is string => !!t);
+  // Before Readability, which changes the page as it reads it.
+  const summary = shownSummary(doc);
   let parsed: { title?: string | null; content?: string | null } | null;
   try {
     parsed = new Readability(doc).parse();
@@ -60,7 +62,33 @@ export function extractArticle(html: string, pageUrl: string): string | null {
   const allTitles = [...titles, ...(parsed.title ? [parsed.title] : [])];
   [...content.querySelectorAll("h1, h2")].find((h) => allTitles.some((t) => isTitle(text(h), t)))?.remove();
   const result = serialize(content, pageUrl).replace(/(\s*<br>\s*){3,}/g, "<br><br>").trim();
-  return toPlainText(result).length >= MIN_TEXT_LENGTH ? result : null;
+  if (toPlainText(result).length < MIN_TEXT_LENGTH) return null;
+  // The intro Readability left out (#266): the page's summary, shown on the page but not in the article.
+  return summary && !squash(toPlainText(result)).includes(summary) ? `<p>${escapeHtml(summary)}</p>${result}` : result;
+}
+
+/** Shorter summaries are a label or a site name, not an intro. */
+const MIN_SUMMARY_LENGTH = 40;
+
+/** Whitespace (also no-break spaces) collapsed, trimmed. */
+const squash = (s: string) => s.replace(/\s+/g, " ").trim();
+
+/**
+ * The page's own summary (its description, as Readability's excerpt reads it) when the page also
+ * shows it as an element of its own, such as an intro above the article (#266); else null.
+ */
+function shownSummary(doc: Document): string | null {
+  const description = ["og:description", "twitter:description", "description"]
+    .map((name) => doc.querySelector(`meta[property="${name}"], meta[name="${name}"]`)?.getAttribute("content"))
+    .find((c) => c && c.trim());
+  if (!description) return null;
+  const summary = squash(description);
+  if (summary.length < MIN_SUMMARY_LENGTH) return null;
+  for (const el of doc.body?.querySelectorAll("*") ?? []) {
+    if (DROPPED_TAGS.has(el.localName) || hasBlockDescendant(el)) continue;
+    if (squash(el.textContent ?? "") === summary) return summary;
+  }
+  return null;
 }
 
 /** An element's text as jsoup's text() gives it: whitespace collapsed, trimmed. */
