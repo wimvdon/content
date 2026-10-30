@@ -5,7 +5,7 @@
   "text": [],
   "htmlContains": [
     "<iframe src=\"https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0\"></iframe>",
-    "<video src=\"https://example.com/clip.mp4\" poster=\"https://example.com/poster.jpg\"></video>"
+    "<video src=\"https://example.com/clip.mp4\"></video>"
   ],
   "absent": [
     "ads.example.net"

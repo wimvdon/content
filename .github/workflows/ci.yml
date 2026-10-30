@@ -37,6 +37,13 @@ jobs:
           distribution: temurin
           java-version: "21"
 
+      - name: Set up Node.js (the article extractor is bundled from web/)
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
       - name: Set up Gradle (with caching)
         uses: gradle/actions/setup-gradle@v6
         with:

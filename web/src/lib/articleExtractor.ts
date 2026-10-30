@@ -1,14 +1,14 @@
 /**
  * Finds the article in a web page and returns it as simple HTML (paragraphs, headings, lists,
  * quotes, links, text styles, pictures and embedded videos), the way "reader view" in browsers
- * does. The same steps as the Android app's feed/ArticleExtractor.kt, so both apps show the same
- * article: Readability (Firefox Reader View's engine) as it is (#236: no changes to the page before
- * it or to what it finds), its result turned into the reader's simple HTML (only the tags below,
- * absolute links, known video players), without the title the reader shows above it.
- * The shared sample pages in /testdata/articles check that both give the same text.
+ * does. Finding the article is Defuddle (https://github.com/kepano/defuddle) as it is: no changes
+ * to the page before it or to what it finds. This only keeps what the reader can show (the tags
+ * below, absolute links, known video players). The Android app runs this same code (bundled from
+ * src/android/), so both apps show the same article. The sample pages in /testdata/articles are
+ * checked here.
  */
 
-import { Readability } from "@mozilla/readability";
+import Defuddle from "defuddle";
 import { escapeHtml, toPlainText } from "./html";
 
 /** Below this many characters of text the page is not treated as an article. */
@@ -23,7 +23,7 @@ const KEPT_TAGS = new Set([
 
 /**
  * What the reader can't show (scripts, drawings, form fields, players without a link), wherever
- * Readability leaves them. Everything else Readability keeps is shown (#251: no other choices).
+ * Defuddle leaves them. Everything else Defuddle keeps is shown (#251: no other choices).
  */
 const DROPPED_TAGS = new Set(["script", "style", "noscript", "template", "svg", "math", "canvas", "textarea", "select", "input", "button", "object", "audio"]);
 
@@ -31,79 +31,20 @@ const DROPPED_TAGS = new Set(["script", "style", "noscript", "template", "svg", 
 const KNOWN_EMBEDS =
   /youtube\.com|youtube-nocookie\.com|youtu\.be|vimeo\.com|twitter\.com|x\.com|instagram\.com|spotify\.com|soundcloud\.com|codepen\.io|dailymotion\.com|tiktok\.com|bsky\.app/i;
 
-const BLOCK_TAGS = new Set(["p", "h1", "h2", "h3", "h4", "h5", "h6", "ul", "ol", "li", "blockquote", "pre", "hr", "dl", "dt", "dd", "div", "section", "article", "main", "td", "tr", "table"]);
-
-/** Elements that make their own block in the result. */
-const BLOCK_LIKE = new Set([...BLOCK_TAGS, "figure", "figcaption"]);
-
-/** Shorter headings only count as the title when they match it exactly. */
-const MIN_TITLE_LENGTH = 10;
-
 /** The article of `html` (downloaded from `pageUrl`) as simple HTML, or null when none is found. */
 export function extractArticle(html: string, pageUrl: string): string | null {
   if (!html.trim()) return null;
-  const doc = new DOMParser().parseFromString(html, "text/html");
-  const base = doc.createElement("base");
-  base.href = pageUrl;
-  doc.head.prepend(base);
-  const titles = [doc.querySelector('meta[property="og:title"]')?.getAttribute("content"), doc.title].filter((t): t is string => !!t);
-  // Before Readability, which changes the page as it reads it.
-  const summary = shownSummary(doc);
-  let parsed: { title?: string | null; content?: string | null } | null;
+  let content: string | undefined;
   try {
-    parsed = new Readability(doc).parse();
+    // Only the page itself: no site-specific lookups on other servers.
+    content = new Defuddle(new DOMParser().parseFromString(html, "text/html"), { url: pageUrl, useAsync: false }).parse().content;
   } catch {
-    // A page Readability can't handle has no article for the reader.
-    parsed = null;
+    // A page Defuddle can't handle has no article for the reader.
+    return null;
   }
-  if (!parsed?.content) return null;
-  const content = new DOMParser().parseFromString(`<body>${parsed.content}</body>`, "text/html").body;
-  // The reader shows the title above the article already.
-  const allTitles = [...titles, ...(parsed.title ? [parsed.title] : [])];
-  [...content.querySelectorAll("h1, h2")].find((h) => allTitles.some((t) => isTitle(text(h), t)))?.remove();
-  const result = serialize(content, pageUrl).replace(/(\s*<br>\s*){3,}/g, "<br><br>").trim();
-  if (toPlainText(result).length < MIN_TEXT_LENGTH) return null;
-  // The intro Readability left out (#266): the page's summary, shown on the page but not in the article.
-  return summary && !squash(toPlainText(result)).includes(summary) ? `<p>${escapeHtml(summary)}</p>${result}` : result;
-}
-
-/** Shorter summaries are a label or a site name, not an intro. */
-const MIN_SUMMARY_LENGTH = 40;
-
-/** Whitespace (also no-break spaces) collapsed, trimmed. */
-const squash = (s: string) => s.replace(/\s+/g, " ").trim();
-
-/**
- * The page's own summary (its description, as Readability's excerpt reads it) when the page also
- * shows it as an element of its own, such as an intro above the article (#266); else null.
- */
-function shownSummary(doc: Document): string | null {
-  const description = ["og:description", "twitter:description", "description"]
-    .map((name) => doc.querySelector(`meta[property="${name}"], meta[name="${name}"]`)?.getAttribute("content"))
-    .find((c) => c && c.trim());
-  if (!description) return null;
-  const summary = squash(description);
-  if (summary.length < MIN_SUMMARY_LENGTH) return null;
-  for (const el of doc.body?.querySelectorAll("*") ?? []) {
-    if (DROPPED_TAGS.has(el.localName) || hasBlockDescendant(el)) continue;
-    if (squash(el.textContent ?? "") === summary) return summary;
-  }
-  return null;
-}
-
-/** An element's text as jsoup's text() gives it: whitespace collapsed, trimmed. */
-const text = (el: Element) => (el.textContent ?? "").replace(/\s+/g, " ").trim();
-
-/** Whether `heading` is the page's `title`, which often ends in the site's name ("Title | Site"). */
-function isTitle(heading: string, title: string): boolean {
-  const normalized = (s: string) =>
-    s
-      .toLowerCase()
-      .replace(/[^\p{L}\p{N}]+/gu, " ")
-      .trim();
-  const h = normalized(heading);
-  const t = normalized(title);
-  return h !== "" && (h === t || (h.length >= MIN_TITLE_LENGTH && t.startsWith(`${h} `)));
+  if (!content) return null;
+  const result = serialize(new DOMParser().parseFromString(`<body>${content}</body>`, "text/html").body, pageUrl).trim();
+  return toPlainText(result).length < MIN_TEXT_LENGTH ? null : result;
 }
 
 // ---- Writing the result -------------------------------------------------------------------
@@ -120,15 +61,7 @@ function serialize(el: Element, pageUrl: string): string {
 function serializeElement(el: Element, pageUrl: string): string {
   const tag = el.localName;
   if (DROPPED_TAGS.has(tag)) return "";
-  if (!KEPT_TAGS.has(tag)) {
-    // A container holding only text and inline elements is a paragraph (sites that use a <div>
-    // per paragraph); one holding blocks just passes them on.
-    if (BLOCK_TAGS.has(tag) && !hasBlockDescendant(el)) {
-      const inner = serialize(el, pageUrl);
-      return toPlainText(inner) ? `<p>${inner.trim()}</p>` : "";
-    }
-    return serialize(el, pageUrl);
-  }
+  if (!KEPT_TAGS.has(tag)) return serialize(el, pageUrl);
   if (tag === "br" || tag === "hr") return `<${tag}>`;
   if (tag === "img") {
     let out = "<img";
@@ -162,18 +95,12 @@ function serializeElement(el: Element, pageUrl: string): string {
   }
   if (tag === "a") {
     const raw = el.getAttribute("href");
-    // Readability makes "#top" absolute; an anchor in the page itself is no link for the reader.
+    // Defuddle makes "#top" absolute; an anchor in the page itself is no link for the reader.
     const href = raw !== null && !inPage(pageUrl, raw) ? absolute(pageUrl, raw) : null;
     const inner = serialize(el, pageUrl);
     return href ? `<a href="${escapeHtml(href)}">${inner}</a>` : inner;
   }
-  const inner = serialize(el, pageUrl);
-  if (BLOCK_TAGS.has(tag) && !inner.trim()) return "";
-  return `<${tag}>${inner}</${tag}>`;
-}
-
-function hasBlockDescendant(el: Element): boolean {
-  return [...el.children].some((child) => BLOCK_LIKE.has(child.localName) || hasBlockDescendant(child));
+  return `<${tag}>${serialize(el, pageUrl)}</${tag}>`;
 }
 
 const attr = (name: string, value: string) => ` ${name}="${escapeHtml(value)}"`;

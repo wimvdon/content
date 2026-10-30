@@ -11,7 +11,3 @@
 # Keep line numbers in stack traces, but hide the original source file names.
 -keepattributes SourceFile,LineNumberTable
 -renamesourcefileattribute SourceFile
-
-# Readability4J (reader view for full articles) logs through slf4j. The app ships no slf4j
-# backend on purpose, so slf4j logs nothing; its lookup of a backend class must not fail the build.
--dontwarn org.slf4j.impl.StaticLoggerBinder

@@ -68,7 +68,8 @@ rss-reader/
         │   │   │   ├── FeedDiscovery.kt       Address normalising, <link rel="alternate">
         │   │   │   ├── FeedDates.kt           RFC 822 and ISO 8601 dates
         │   │   │   ├── ArticleBlocks.kt       Article → text, picture and embed blocks
-│   │   │   ├── ArticleExtractor.kt    Reader view for full articles
+│   │   │   ├── ArticleExtractor.kt    Reader view for full articles (plain parts)
+│   │   │   ├── WebArticleExtractor.kt Runs the web app's extractor in a hidden WebView
 │   │   │   ├── Html.kt                Clean-up, plain text, snippets, entities
         │   │   │   └── Opml.kt                OPML import and export
         │   │   └── ui/
@@ -96,7 +97,7 @@ Saved and Instapaper (#107, #109, #119): `data/Saved.kt` (tabs, filters, folders
 `data/ReadingLists.kt` (reading times, items as articles), `services/` (`ReadingListService`, `ServiceSync`, `ServiceManager`),
 `instapaper/` (client, sign-in, account, `InstapaperReadingList`), `ui/home/SavedContent.kt`, `ui/reader/ItemSheets.kt`, `ui/reader/SavedBar.kt` (the reader's folder button, which opens Organise, #251), `ui/reader/HighlightSheets.kt` (a highlight and the list, #102),
 `ui/feeds/SavedManage.kt` (Manage › Saved), `ui/settings/InstapaperSettings.kt` (Instapaper there, and the import question), `data/ServiceImport.kt` (the answer to it). The web app: `web/src/lib/instapaper.ts`,
-`web/src/lib/saved.ts` (Saved: tabs, filters, folders, cards, like Android's `Saved.kt`), `web/src/lib/serviceSync.ts` and `instapaperSync.ts` (Instapaper in the background), `web/src/lib/articleExtractor.ts` (reader view, the same steps as `ArticleExtractor.kt`; sample pages both test on in `testdata/articles/`),
+`web/src/lib/saved.ts` (Saved: tabs, filters, folders, cards, like Android's `Saved.kt`), `web/src/lib/serviceSync.ts` and `instapaperSync.ts` (Instapaper in the background), `web/src/lib/articleExtractor.ts` (reader view with Defuddle, which the Android app runs too, bundled from `web/src/android/`; sample pages in `testdata/articles/`),
 `web/src/components/SavedActions.tsx` and `SavedManage.tsx`, `worker/src/instapaper.ts`
 (token swap and the web app's calls). See `docs/instapaper.md`.
 

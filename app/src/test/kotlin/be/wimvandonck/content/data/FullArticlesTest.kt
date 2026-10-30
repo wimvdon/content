@@ -23,10 +23,15 @@ class FullArticlesTest {
     private var downloads = 0
 
     private fun articles(dir: File) =
-        FullArticles(dir) { url ->
-            downloads++
-            if (url == link) Fetched(url, page.toByteArray()) else throw FetchException(FetchError.NotFound)
-        }
+        FullArticles(
+            dir,
+            fetch = { url ->
+                downloads++
+                if (url == link) Fetched(url, page.toByteArray()) else throw FetchException(FetchError.NotFound)
+            },
+            // The WebView's extractor, standing in: the article is what is inside <article>.
+            extract = { html, _ -> html.substringAfter("<article>", "").substringBefore("</article>").ifEmpty { null } },
+        )
 
     @Test
     fun `a loaded article is kept and not downloaded again`() {
@@ -49,6 +54,14 @@ class FullArticlesTest {
         assertTrue((result as FullArticle.Loaded).html.contains("A sentence of the article"))
         assertFalse(unversioned.exists())
         assertFalse(old.exists())
+    }
+
+    @Test
+    fun `a page without an article fails and is not kept`() {
+        val dir = folder.newFolder("articles")
+        val articles = FullArticles(dir, fetch = { url -> Fetched(url, "<p>Menu</p>".toByteArray()) }, extract = { _, _ -> null })
+        assertEquals(FullArticle.Failed, runBlocking { articles.load(link) })
+        assertTrue(dir.listFiles().isNullOrEmpty())
     }
 
     @Test
