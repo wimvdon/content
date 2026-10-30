@@ -268,8 +268,10 @@ tag is gone (#251). You can send to yourself too: it lands in your own inbox, wi
 on every device where they are on.
 
 **Notifications** (#235). Settings › Account › **Notify me when something is shared with me**, on the
-phone and in the web app. On the phone it asks Android's permission and then shows "Something was
-shared with you" even when Content is closed; tap it for the inbox. In the web app it
+phone and in the web app. On the phone it asks Android's permission and then, even when Content is
+closed, shows what was shared: the article's title, its intro and picture, who sent it and how many
+more there are. It arrives silently (Android's settings › Apps › Content › Notifications can make it
+louder); tap it for the inbox. In the web app it
 asks your browser's permission; from then on the browser shows "Something was shared with you", even
 with Content closed, and clicking it opens the inbox. Per browser; signing out turns it
 off.

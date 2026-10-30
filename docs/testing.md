@@ -253,6 +253,8 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
 - [ ] Send with Content: hold a person, each one shared with before gets an ×; tapping it removes
       them (also on the other device after a sync), Done ends it. Dragging a feed in Manage feeds
       and folders and dropping it: it glides into place, nothing jumps.
+- [ ] Notifications on (phone): something shared with you shows its title, intro, picture and
+      sender, makes no sound, and opens the inbox.
 - [ ] Web app: Escape closes a menu, then the article; shortcuts do nothing behind a dialog. On a
       phone, messages show above the bottom bar, and the round read button shows on every row.
       Moving a feed up or down in Manage feeds always moves it within its folder.

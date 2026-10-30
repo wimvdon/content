@@ -68,6 +68,11 @@
     <string name="notify_shared_denied">Meldingen staan uit voor Content. Sta ze toe in de Android-instellingen › Apps › Content.</string>
     <string name="notify_shared_channel">Met jou gedeeld</string>
     <string name="notify_shared_text">Er is iets met je gedeeld.</string>
+    <string name="notify_shared_by">Van %1$s</string>
+    <plurals name="notify_shared_more">
+        <item quantity="one">en nog %1$d artikel</item>
+        <item quantity="other">en nog %1$d artikels</item>
+    </plurals>
     <string name="share_send_with_content">Versturen met Content</string>
     <string name="inbox_title">Inbox</string>
     <string name="inbox_open_unread">Inbox, nieuwe artikels</string>

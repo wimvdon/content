@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { Account, type Storage } from "../src/account";
 import { handle, type Env } from "../src/index";
 import { fromBase64Url, toBase64Url, vapidJwt } from "../src/push";
-import { shareOf } from "../src/share";
+import { previewOf, shareOf } from "../src/share";
 
 const APP = "https://app.example";
 const MASTER = "a-test-master-key-of-at-least-32-characters";
@@ -210,6 +210,18 @@ describe("sharing with other Content users (#167)", () => {
     expect(ok.to).toBe("b@x.be");
     expect(ok.from.name).toBe("Ann");
     expect(ok.items[0]).toEqual({ url: "https://x.be/1", title: "https://x.be/1", imageUrl: null, description: "" });
+  });
+
+  it("previews the first article for a phone's notification", () => {
+    const share = shareOf({
+      to: "b@x.be",
+      from: { email: "a@x.be", name: "" },
+      items: [{ url: "https://x.be/1", title: "One", imageUrl: "https://x.be/p.jpg", description: "Its intro." }, { url: "https://x.be/2" }],
+      message: "Look",
+    })!;
+    expect(previewOf(share)).toEqual({ title: "One", intro: "Its intro.", imageUrl: "https://x.be/p.jpg", from: "a@x.be", count: 2 });
+    // Without an intro, the message stands in.
+    expect(previewOf({ ...share, items: [{ ...share.items[0], description: "" }] }).intro).toBe("Look");
   });
 });
 

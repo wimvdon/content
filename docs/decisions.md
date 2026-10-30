@@ -2,6 +2,20 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-30: Notifications show what was shared, silently
+
+- At the owner's request, a "shared with you" notification on Android shows the first article's
+  title and intro, its picture as the thumbnail, who shared it and how many more there are, and
+  arrives silently (a new, quiet channel; the old one, which made a sound, is deleted). Android's
+  settings can make it louder.
+- The owner chose to send the preview **inside the push**: the feed loader adds it to the Firebase
+  message (`previewData`, cut to fit Firebase's 4 KB), so Firebase sees the title, intro, picture
+  address and sender (not the link). The phone downloads the picture itself (Coil, 5 seconds at
+  most), the only download outside the app being used (`PRIVACY.md`). Browsers still get an empty
+  push. Android now sends the picture and intro it knows when sharing (`Sharing.articleFor`).
+- Rejected: the phone fetching the share from the account when poked (Google would see nothing, but
+  a background download from the account); no preview at all.
+
 ## 2026-10-30: Forgetting recipients, a steadier drop
 
 - **People shared with can be forgotten** (owner's request): hold one in Send with Content (or

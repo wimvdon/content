@@ -5,7 +5,7 @@ import android.content.ClipboardManager
 import androidx.core.content.pm.ShortcutManagerCompat
 import be.wimvandonck.content.data.LauncherFolders
 import be.wimvandonck.content.data.ShareApps
-import be.wimvandonck.content.data.SharedArticle
+import be.wimvandonck.content.data.Sharing
 import be.wimvandonck.content.instapaper.InstapaperReadingList
 import be.wimvandonck.content.services.ServiceStatus
 import be.wimvandonck.content.ui.feeds.SavedManageTab
@@ -520,7 +520,7 @@ fun RssReaderNavigation(
         open: Item? = null,
     ) {
         uiScope.launch {
-            val results = to.map { email -> email to app.sync.share(email, listOf(SharedArticle(url, title))) }
+            val results = to.map { email -> email to app.sync.share(email, listOf(Sharing.articleFor(library, url, title))) }
             val sent =
                 when (val outcome = SendTo.outcome(results)) {
                     is SendTo.Outcome.Sent ->
@@ -546,7 +546,7 @@ fun RssReaderNavigation(
         result: (ShareResult) -> Unit = {},
     ) {
         uiScope.launch {
-            val r = app.sync.share(email, listOf(SharedArticle(url, title)))
+            val r = app.sync.share(email, listOf(Sharing.articleFor(library, url, title)))
             result(r)
             showMessage(
                 resources.getString(
@@ -1206,7 +1206,7 @@ fun RssReaderNavigation(
                 close()
                 // One message for everyone picked, as the Save and share sheet says it.
                 uiScope.launch {
-                    val results = emails.map { email -> email to app.sync.share(email, listOf(SharedArticle(sharing, title))) }
+                    val results = emails.map { email -> email to app.sync.share(email, listOf(Sharing.articleFor(library, sharing, title))) }
                     when (val outcome = SendTo.outcome(results)) {
                         is SendTo.Outcome.Sent ->
                             showMessage(

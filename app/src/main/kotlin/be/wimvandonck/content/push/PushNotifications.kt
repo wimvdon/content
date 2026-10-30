@@ -5,6 +5,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import be.wimvandonck.content.BuildConfig
@@ -12,18 +13,27 @@ import be.wimvandonck.content.R
 import be.wimvandonck.content.data.SettingsStore
 import be.wimvandonck.content.sync.SyncManager
 import be.wimvandonck.content.ui.MainActivity
+import coil3.SingletonImageLoader
+import coil3.request.ImageRequest
+import coil3.request.SuccessResult
+import coil3.request.allowHardware
+import coil3.toBitmap
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import com.google.firebase.messaging.FirebaseMessaging
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.coroutines.resume
 
 /**
  * Notifications when something is shared with you (#235): Firebase Cloud Messaging. Off until the user
  * turns it on (Settings › Account); then this phone's Firebase token goes to the feed loader, which
- * pokes it when someone shares with the account (worker/src/push.ts). The poke says only that
- * something was shared; this shows "Something was shared with you", and tapping it opens Saved ›
- * Shared with me. Nothing is downloaded in the background. Without Firebase settings in the build
+ * pokes it when someone shares with the account (worker/src/push.ts). The poke carries a preview
+ * ([SharedPreview]: the first article's title, intro and picture address, and who shared it), which
+ * the notification shows with the picture as its thumbnail, downloaded from the article's site; an
+ * older feed loader sends none, and it says "Something was shared with you". Tapping it opens the
+ * inbox. It arrives silently (its channel is quiet; Android's settings can make it louder). Without Firebase settings in the build
  * (app/google-services.json) there are no notifications and the setting isn't shown.
  */
 class PushNotifications(
@@ -80,11 +90,17 @@ class PushNotifications(
         if (settings.settings.value?.notifyShared == true) sync.setPush(token)
     }
 
-    /** Shows "Something was shared with you"; tapping it opens Saved › Shared with me. */
-    fun showShared() {
+    /**
+     * Shows what was shared ([preview]: its title, intro, thumbnail and who shared it), or "Something
+     * was shared with you" without one; tapping it opens the inbox. Runs on Firebase's background
+     * thread, which may wait for the thumbnail a few seconds.
+     */
+    fun showShared(preview: SharedPreview?) {
         val manager = NotificationManagerCompat.from(context)
         if (!manager.areNotificationsEnabled()) return
-        manager.createNotificationChannel(NotificationChannel(CHANNEL, context.getString(R.string.notify_shared_channel), NotificationManager.IMPORTANCE_DEFAULT))
+        // Silent by default (a channel's sound can't change once made, so the old one goes).
+        manager.deleteNotificationChannel(OLD_CHANNEL)
+        manager.createNotificationChannel(NotificationChannel(CHANNEL, context.getString(R.string.notify_shared_channel), NotificationManager.IMPORTANCE_LOW))
         val open =
             PendingIntent.getActivity(
                 context,
@@ -94,21 +110,50 @@ class PushNotifications(
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP),
                 PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
             )
-        val notification =
+        val builder =
             NotificationCompat
                 .Builder(context, CHANNEL)
                 .setSmallIcon(R.drawable.ic_group)
-                .setContentTitle(context.getString(R.string.app_name))
-                .setContentText(context.getString(R.string.notify_shared_text))
                 .setContentIntent(open)
                 .setAutoCancel(true)
-                .build()
+        if (preview == null) {
+            builder.setContentTitle(context.getString(R.string.app_name)).setContentText(context.getString(R.string.notify_shared_text))
+        } else {
+            val more = preview.count - 1
+            val text =
+                listOfNotNull(
+                    preview.intro.takeIf { it.isNotEmpty() },
+                    if (more > 0) context.resources.getQuantityString(R.plurals.notify_shared_more, more, more) else null,
+                ).joinToString(" · ")
+            builder
+                .setContentTitle(preview.title)
+                .setContentText(text.ifEmpty { null })
+                .setStyle(NotificationCompat.BigTextStyle().bigText(text))
+            if (preview.from.isNotEmpty()) builder.setSubText(context.getString(R.string.notify_shared_by, preview.from))
+            preview.imageUrl?.let(::thumbnail)?.let(builder::setLargeIcon)
+        }
+        val notification = builder.build()
         try {
             manager.notify(NOTIFICATION_ID, notification)
         } catch (_: SecurityException) {
             // The permission was taken away in the meantime.
         }
     }
+
+    /** The article's picture, small, for the notification; null when it doesn't load in time. */
+    private fun thumbnail(url: String): Bitmap? =
+        runBlocking {
+            withTimeoutOrNull(THUMBNAIL_TIMEOUT_MS) {
+                val request =
+                    ImageRequest
+                        .Builder(context)
+                        .data(url)
+                        .size(THUMBNAIL_PX)
+                        .allowHardware(false)
+                        .build()
+                (SingletonImageLoader.get(context).execute(request) as? SuccessResult)?.image?.toBitmap()
+            }
+        }
 
     private suspend fun token(messaging: FirebaseMessaging): String? =
         suspendCancellableCoroutine { done ->
@@ -123,7 +168,12 @@ class PushNotifications(
     }
 
     private companion object {
-        const val CHANNEL = "shared"
+        const val CHANNEL = "shared_quiet"
+
+        /** The first channel, which made a sound. */
+        const val OLD_CHANNEL = "shared"
+        const val THUMBNAIL_PX = 256
+        const val THUMBNAIL_TIMEOUT_MS = 5_000L
         const val NOTIFICATION_ID = 235
     }
 }

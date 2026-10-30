@@ -1,6 +1,6 @@
 # Privacy policy
 
-_Last updated: 2026-10-23 (notifications)_
+_Last updated: 2026-10-30 (notification previews)_
 
 Reader has no analytics, advertising or crash reporting. It works without an account. If you sign
 in (with your email address, or with Instapaper), Reader keeps your feed list,
@@ -126,9 +126,12 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   Google's Firebase Cloud Messaging (firebase.google.com, under Google's privacy policy): the phone
   registers with Firebase, which gives it a token, and the token goes to the feed loader, kept like a
   browser's push address. When someone shares with you, the feed loader asks Firebase to deliver a
-  message to that token saying only that something was shared; the app then shows "Something was
-  shared with you". Google sees the token, your IP address and that a message came, not what was
-  shared or by whom. Turning it off or signing out deletes the token. Until you turn it on, Firebase
+  message to that token with a preview, so the notification can show it: the first shared article's
+  title, its intro (or the sender's message), the address of its picture, the sender's name (or
+  address) and how many articles were shared. **Google's Firebase sees that preview**, as well as
+  the token, your IP address and that a message came; it doesn't see the article's link. The phone
+  then downloads the picture from the article's site (as when you open the article) and shows the
+  notification silently. Turning it off or signing out deletes the token. Until you turn it on, Firebase
   isn't contacted at all. Firebase Analytics is not in the app.
 - **Reporting a badly cleaned-up article** (⋮ › Report a problem with this article, #181): Send
   opens a pre-filled "new issue" page on github.com in your browser, with the article's link, what
@@ -174,7 +177,9 @@ shortcuts on the phone; they go nowhere else.
 
 ## Background activity
 
-None. The app only downloads feeds and articles, and syncs, while you use it.
+The app only downloads feeds and articles, and syncs, while you use it. The one exception is a
+notification you turned on: when one arrives, the phone downloads the shared article's picture for
+its thumbnail.
 
 ## Permissions
 
