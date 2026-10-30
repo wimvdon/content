@@ -13,6 +13,12 @@ Newest first. Add an entry for every notable choice: what was decided, why, and 
   address and sender (not the link). The phone downloads the picture itself (Coil, 5 seconds at
   most), the only download outside the app being used (`PRIVACY.md`). Browsers still get an empty
   push. Android now sends the picture and intro it knows when sharing (`Sharing.articleFor`).
+- **Fix, the same day:** the preview named the sender `from`, a key Firebase keeps for itself, so
+  Firebase refused every message, and the feed loader took the refusal (`INVALID_ARGUMENT`) for a
+  gone phone and forgot its token: no notifications at all. The key is now `sender`; only a refusal
+  about the token itself (`UNREGISTERED`, "registration token") forgets a phone; and the app gives
+  its token to the feed loader again each time it starts while notifications are on, so phones that
+  were forgotten get them back.
 - Rejected: the phone fetching the share from the account when poked (Google would see nothing, but
   a background download from the account); no preview at all.
 

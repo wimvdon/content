@@ -29,6 +29,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import be.wimvandonck.content.services.ServiceManager
@@ -117,6 +118,12 @@ class RssReaderApp :
         push.start()
         appScope.launch {
             account.state.collect { state -> if (state is AccountState.SignedOut) push.signedOut() }
+        }
+        // Once signed in and the settings are read: this phone's token to the feed loader again.
+        appScope.launch {
+            account.state.first { it is AccountState.SignedIn }
+            settings.settings.filterNotNull().first()
+            push.refresh()
         }
         // Direct share (#235, #256): the people shared with, in other apps' share menus, while signed in;
         // the feed folders in the launcher's menu (#251).

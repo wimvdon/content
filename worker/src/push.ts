@@ -58,12 +58,15 @@ const PREVIEW_TITLE = 150;
 const PREVIEW_INTRO = 300;
 const PREVIEW_IMAGE = 1000;
 
-/** The preview as FCM data (strings only), cut to fit. */
+/**
+ * The preview as FCM data (strings only), cut to fit. Firebase refuses a message whose data uses one
+ * of its own keys ("from", "notification", "message_type", "google…", "gcm…"), so the sender is "sender".
+ */
 export function previewData(preview: SharePreview): Record<string, string> {
   const data: Record<string, string> = {
     title: preview.title.slice(0, PREVIEW_TITLE),
     intro: preview.intro.slice(0, PREVIEW_INTRO),
-    from: preview.from.slice(0, 100),
+    sender: preview.from.slice(0, 100),
     count: String(preview.count),
   };
   if (preview.imageUrl && preview.imageUrl.length <= PREVIEW_IMAGE) data.image = preview.imageUrl;
@@ -175,13 +178,19 @@ async function sendFcm(token: string, env: Env, fetcher: Fetcher, now: number, p
       headers: { Authorization: `Bearer ${bearer}`, "Content-Type": "application/json" },
       body: JSON.stringify({ message: { token, data: { kind: "shared", ...(preview ? previewData(preview) : {}) }, android: { priority: "high", ttl: "86400s" } } }),
     });
-    // An app that was uninstalled or a token that was replaced: forget it.
+    // An app that was uninstalled or a token that was replaced: forget it. Any other refusal (a message
+    // Firebase didn't accept, for one) is a failure, and the phone stays known.
     if (answer.status === 404) return "gone";
-    if (answer.status === 400 && /UNREGISTERED|INVALID_ARGUMENT/.test(await answer.text())) return "gone";
+    if (answer.status === 400 && isBadToken(await answer.text())) return "gone";
     return answer.ok ? "sent" : "failed";
   } catch {
     return "failed";
   }
+}
+
+/** Whether Firebase's 400 is about the token itself (unregistered or not a token), not about the message. */
+export function isBadToken(body: string): boolean {
+  return /UNREGISTERED/.test(body) || /registration token/i.test(body);
 }
 
 /** Forgets the cached access token (tests). */

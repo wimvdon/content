@@ -23,7 +23,8 @@ data class SharedPreview(
                 intro = data["intro"]?.trim().orEmpty(),
                 // Only a secure address, as for every picture the app loads.
                 imageUrl = data["image"]?.trim()?.takeIf { it.startsWith("https://") },
-                from = data["from"]?.trim().orEmpty(),
+                // "sender": Firebase keeps "from" for itself.
+                from = data["sender"]?.trim().orEmpty(),
                 count = data["count"]?.toIntOrNull()?.coerceAtLeast(1) ?: 1,
             )
         }

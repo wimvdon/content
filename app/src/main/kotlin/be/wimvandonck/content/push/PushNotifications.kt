@@ -85,6 +85,17 @@ class PushNotifications(
         forgetToken()
     }
 
+    /**
+     * While notifications are on, gives the feed loader this phone's token again (it keeps one per
+     * device, so this changes nothing when it has it). Run when the app starts: a phone the feed loader
+     * forgot (a refused message once counted as a gone phone) gets its notifications back.
+     */
+    suspend fun refresh() {
+        if (!available || settings.settings.value?.notifyShared != true) return
+        start()
+        token(FirebaseMessaging.getInstance())?.let { sync.setPush(it) }
+    }
+
     /** Firebase gave this phone a new token: the feed loader gets it while notifications are on. */
     suspend fun tokenChanged(token: String) {
         if (settings.settings.value?.notifyShared == true) sync.setPush(token)
