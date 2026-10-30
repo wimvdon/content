@@ -67,21 +67,46 @@
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode|density"
             android:theme="@style/Theme.RssReader.Translucent" />
 
-        <!-- Links shared from other apps (#97, #103): only the Save and share sheet (#256), over the
-             app that shared it, not the whole of Reader. The people shared with show at the top of
-             the share menu too (res/xml/shortcuts.xml). An alias, so the tab's own screen stays
-             unexported. -->
+        <!-- Links shared from other apps (#97, #103): only a sheet over the app that shared it, not
+             the whole of Content. Separate targets in the share menu (ShareTargets): Save and share
+             (the save sheet) and Send with Content (only sends). The people shared with show at the
+             top of the share menu too and open Send with Content (res/xml/shortcuts.xml). Aliases,
+             so the tab's own screen stays unexported. -->
         <activity-alias
             android:name=".ui.ShareActivity"
             android:targetActivity=".ui.SaveFromTabActivity"
             android:exported="true"
-            android:label="@string/app_name">
+            android:label="@string/save_share_title">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity-alias>
+        <activity-alias
+            android:name=".ui.SendActivity"
+            android:targetActivity=".ui.SaveFromTabActivity"
+            android:exported="true"
+            android:label="@string/share_send_with_content">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity-alias>
+        <!-- The share menu's Add feed: a shared website or feed, added over the app that shared it. -->
+        <activity
+            android:name=".ui.AddFeedFromShareActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:label="@string/feeds_add"
+            android:theme="@style/Theme.RssReader.Translucent">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
         <!-- Firebase's pokes when something is shared (#235, push/). Not exported: only Firebase,
              inside this app, starts it. -->
         <service

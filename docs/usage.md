@@ -191,8 +191,8 @@ your folders, or **New folder** to make one), the **Tags** with **Like** in fron
 tap to turn one on or off; **New tag** makes one that doesn't exist yet), a **Note**, and, signed
 in, **Send with Content**: the people you sent something to before, tap one or more, or **Add
 address** for someone new (Content checks they have an account). The button then says **Save**,
-**Save and send** or, for a link you add or share from another app with **Don't save** picked
-(nothing lands in Saved), **Send**. It keeps what you chose, also a folder or tag you typed but
+**Save and send** or, for a link you add with **Don't save** picked (nothing lands in Saved),
+**Send**. It keeps what you chose, also a folder or tag you typed but
 didn't add yet, and one message says where it went and who got it. **Remove** takes the save back, as if you never
 saved it ("Removed from Saved"); closing the sheet keeps it where it was just saved, unchanged.
 The same sheet opens when you press and hold a saved article in Saved, a row in To read or a card
@@ -245,9 +245,18 @@ picks here, on this phone only; until then well-known messaging and mail apps co
 
 Connecting Instapaper changes nothing here: what is in Saved is also kept in the connected service.
 
-**From other apps** (#235, #256). Sharing a link to **Content** opens **Save and share** over the app
-you were in. Signed in, the share menu also has the last few people you sent something to at the
-top: pick one and Save and share opens on **Don't save** with that person picked; tap **Send**. In
+**From other apps** (#235, #256). Content has three targets in other apps' share menus, each opening
+over the app you were in:
+
+- **Save and share**: the save sheet (place, tags, note and, signed in, Send with Content). It has
+  no Don't save: for that, pick the next one.
+- **Send with Content**: only the people to send it to; nothing lands in Saved. Signed out, it asks
+  you to sign in to your Content account first.
+- **Add feed**: Add feed with the shared link filled in; tap **Add**.
+
+Signed in, the share menu also has the last few people you sent something to at the top: pick one
+and Send with Content opens with that person picked; tap **Send**. After a save, the message with
+**Open** goes when you tap anywhere else, back to the app you were in. In
 the web app, signed in, **Share** opens Send with Content with the people you sent to before, and
 **Other apps** (or **Copy link** where the browser has no share menu) for everything else. One article at a time: sharing a whole
 tag is gone (#251). You can send to yourself too: it lands in your own inbox, with a notification

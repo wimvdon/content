@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawingPadding
@@ -37,6 +38,7 @@ import be.wimvandonck.content.data.Place
 import be.wimvandonck.content.data.SaveChoice
 import be.wimvandonck.content.data.SaveChoices
 import be.wimvandonck.content.data.ShareShortcuts
+import be.wimvandonck.content.data.ShareTargets
 import be.wimvandonck.content.data.SendTo
 import be.wimvandonck.content.data.SharedArticle
 import be.wimvandonck.content.data.itemTags
@@ -53,11 +55,12 @@ import kotlinx.coroutines.launch
 
 /**
  * The save sheet on a see-through screen (#95, #103): over the custom tab for its Save button, and
- * over the other app for a link shared to Reader (through the ShareActivity alias in the manifest),
- * without opening the whole app. Saving shows a message with Open (#142), then goes back to where the
- * user was; closing the sheet goes back at once. It is the Save and share sheet (#256): a link shared
- * to a person shown with Content in the share menu (#235) opens it on Don't save with that person
- * picked, ready to send.
+ * over the other app for a link shared to Content, without opening the whole app. Other apps' share
+ * menus show two targets ([ShareTargets], aliases in the manifest): Save and share, the sheet without
+ * Don't save, and Send with Content, which only sends. A person shown with Content in the share menu
+ * (#235) opens Send with Content with that person picked. Saving shows a message with Open (#142);
+ * it goes, and so does this screen, when it times out or the screen is tapped anywhere. Closing the
+ * sheet goes back at once.
  */
 class SaveFromTabActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,9 +72,10 @@ class SaveFromTabActivity : ComponentActivity() {
             return
         }
         val shared = intent.action == Intent.ACTION_SEND
-        // Other apps reach this screen only through the share alias, and only with a shared link.
-        val alias = intent.component?.className
-        if (!shared && alias?.endsWith(SHARE_ALIAS) == true) {
+        val shortcut = intent.getStringExtra(ShortcutManagerCompat.EXTRA_SHORTCUT_ID)
+        val target = ShareTargets.of(intent.component?.className, shortcut)
+        // Other apps reach this screen only through the share aliases, and only with a shared link.
+        if (shared != (target != null)) {
             finish()
             return
         }
@@ -93,27 +97,28 @@ class SaveFromTabActivity : ComponentActivity() {
             finish()
             return
         }
-        // A person picked in the share menu (#235): ready to send to them, not to save.
-        val person = if (shared) ShareShortcuts.emailOf(intent.getStringExtra(ShortcutManagerCompat.EXTRA_SHORTCUT_ID)) else null
+        // A person picked in the share menu (#235): ready to send to them.
+        val person = ShareShortcuts.emailOf(shortcut)
         setContent {
             RssReaderAppTheme {
                 // Send with Content offers the people shared with before here too (#249).
-                ProvideShareRecipients { SaveFromTab(link, person, onDone = ::finish) }
+                ProvideShareRecipients {
+                    SaveFromTab(link, person, sendOnly = target == ShareTargets.Target.Send, fromOtherApp = shared, onDone = ::finish)
+                }
             }
         }
-    }
-
-    private companion object {
-        /** The exported alias other apps share links to (AndroidManifest.xml). */
-        const val SHARE_ALIAS = ".ShareActivity"
     }
 }
 
 @Composable
 private fun SaveFromTab(
     link: SharedLink,
-    /** Picked in the share menu: the sheet starts on Don't save, sending to them. */
+    /** Picked in the share menu: the sheet starts sending to them. */
     person: String?,
+    /** The share menu's Send with Content: nothing is saved. */
+    sendOnly: Boolean,
+    /** Shared from another app, which has its own Send target, so no Don't save. */
+    fromOtherApp: Boolean,
     onDone: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -132,13 +137,15 @@ private fun SaveFromTab(
     if (sheetOpen) {
         SaveSheet(
             kind = SheetKind.New,
-            initial = if (person != null) SaveChoice(keep = false, sendTo = listOf(person)) else SaveChoice(),
+            initial = SaveChoice(sendTo = listOfNotNull(person)),
             url = link.url,
             title = link.title,
             folders = Saved.folders(library),
             allTags = library.itemTags(),
             signedIn = signedIn,
             hasAccount = app.sync::hasAccount,
+            dontSave = !fromOtherApp,
+            sendOnly = sendOnly,
             onSave = { url, choice ->
                 val key = ItemKeys.of(url)
                 // Sent with Content (#256): a short message from Android says how it went, as this screen closes.
@@ -184,7 +191,14 @@ private fun SaveFromTab(
     val shown = confirmation
     if (!sheetOpen && shown != null) {
         val snackbar = remember { SnackbarHostState() }
-        Box(Modifier.fillMaxSize().safeDrawingPadding(), contentAlignment = Alignment.BottomCenter) { SnackbarHost(snackbar) }
+        // A tap anywhere (but Open) goes back to the other app at once.
+        Box(
+            Modifier
+                .fillMaxSize()
+                .clickable(interactionSource = null, indication = null, onClickLabel = stringResource(R.string.action_back), onClick = onDone)
+                .safeDrawingPadding(),
+            contentAlignment = Alignment.BottomCenter,
+        ) { SnackbarHost(snackbar) }
         val open = stringResource(R.string.action_open)
         LaunchedEffect(shown) {
             if (snackbar.showSnackbar(shown.text, actionLabel = open, duration = SnackbarDuration.Short) == SnackbarResult.ActionPerformed) {

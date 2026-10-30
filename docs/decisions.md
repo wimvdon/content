@@ -2,6 +2,18 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-30: Three share targets from other apps
+
+- At the owner's request, a link shared from another app no longer offers **Don't save** in the save
+  sheet. Android's share menu shows separate targets instead: **Save and share** (the save sheet),
+  **Send with Content** (only sends; the people in the share menu open this one) and **Add feed**
+  (Add feed with the link filled in). Two aliases of `SaveFromTabActivity` and one small activity;
+  `ShareTargets` tells the aliases apart. Inside the app, Don't save stays in the sheet.
+- The message after saving from another app goes when the screen is tapped anywhere (but Open), so
+  you are back in the other app at once.
+- Rejected: hiding Send with Content while signed out (switching an alias on and off with the
+  account); signed out it says to sign in first, as Send with Content does elsewhere.
+
 ## 2026-10-30: Defuddle finds the article, in both apps
 
 - At the owner's request, **Defuddle** (https://github.com/kepano/defuddle, MIT, npm `defuddle`)

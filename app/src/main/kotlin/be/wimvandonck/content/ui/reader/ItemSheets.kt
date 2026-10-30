@@ -170,11 +170,15 @@ fun SaveSheet(
     signedIn: Boolean = false,
     /** Whether an address added under Send with Content has a Content account; null when that couldn't be asked. */
     hasAccount: suspend (String) -> Boolean? = { null },
+    /** Don't save is offered next to the places (in the app; other apps have a Send target instead). */
+    dontSave: Boolean = true,
+    /** Only Send with Content, nothing saved: the share menu's Send target. */
+    sendOnly: Boolean = false,
 ) {
     var address by rememberSaveable(key) { mutableStateOf(url.orEmpty()) }
     // A typed address may leave out https://.
     val link = remember(address) { url ?: FeedDiscovery.normalizeUrl(address)?.takeIf { ItemKeys.isWebLink(it) } }
-    var choice by remember(key) { mutableStateOf(initial) }
+    var choice by remember(key) { mutableStateOf(if (sendOnly) initial.copy(keep = false) else initial) }
     // A folder or tag typed but not added yet: Save takes it too, rather than dropping it.
     var folderName by rememberSaveable(key) { mutableStateOf("") }
     var tagName by rememberSaveable(key) { mutableStateOf("") }
@@ -189,7 +193,7 @@ fun SaveSheet(
         onDismiss()
     }
     // Don't save only before the save, and only when it can be sent instead.
-    val offerDontSave = kind == SheetKind.New && signedIn
+    val offerDontSave = kind == SheetKind.New && signedIn && dontSave && !sendOnly
     // Cancel, or closing the sheet, changes nothing (#156); an article saved a moment ago stays where it went.
     val cancel = {
         onCancel()
@@ -204,7 +208,7 @@ fun SaveSheet(
         ) {
             // The sheet itself picks To read or the Archive, so the title doesn't name one (#229).
             Text(
-                stringResource(R.string.save_share_title),
+                stringResource(if (sendOnly) R.string.share_send_with_content else R.string.save_share_title),
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.semantics { heading() },
             )
@@ -225,21 +229,26 @@ fun SaveSheet(
                     }
                 }
             }
-            SheetSection(stringResource(R.string.folder_field))
-            FolderChips(
-                choice.place,
-                folders,
-                onChange = { choice = choice.copy(place = it, keep = true) },
-                name = folderName,
-                onNameChange = { folderName = it },
-                keep = choice.keep.takeIf { offerDontSave },
-                onDontSave = { choice = choice.copy(keep = false) },
-            )
+            if (!sendOnly) {
+                SheetSection(stringResource(R.string.folder_field))
+                FolderChips(
+                    choice.place,
+                    folders,
+                    onChange = { choice = choice.copy(place = it, keep = true) },
+                    name = folderName,
+                    onNameChange = { folderName = it },
+                    keep = choice.keep.takeIf { offerDontSave },
+                    onDontSave = { choice = choice.copy(keep = false) },
+                )
+            }
             // Only sent: nothing of it is kept, so there is nothing to tag or note.
             if (choice.keep) SavedParts(choice, allTags, tagName, onTagNameChange = { tagName = it }, onChange = { choice = it })
             if (signedIn) {
-                SheetSection(stringResource(R.string.share_send_with_content))
+                // The sheet's title says it already when it only sends.
+                if (!sendOnly) SheetSection(stringResource(R.string.share_send_with_content))
                 SendToSection(choice.sendTo, onChange = { choice = choice.copy(sendTo = it) }, hasAccount = hasAccount)
+            } else if (sendOnly) {
+                Text(stringResource(R.string.share_user_signed_out), style = MaterialTheme.typography.bodyMedium)
             }
             Row(Modifier.align(Alignment.End), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (kind == SheetKind.JustSaved) {
