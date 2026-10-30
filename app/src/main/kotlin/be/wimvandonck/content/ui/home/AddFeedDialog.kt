@@ -39,8 +39,10 @@ fun AddFeedDialog(
     error: String?,
     onAdd: (String) -> Unit,
     onDismiss: () -> Unit,
+    /** An address to start with: the link shared to the share menu's Add feed. */
+    initialAddress: String = "",
 ) {
-    var address by rememberSaveable { mutableStateOf("") }
+    var address by rememberSaveable { mutableStateOf(initialAddress) }
     // The address last tried: its problem shows until the address is changed.
     var tried by rememberSaveable { mutableStateOf("") }
     val shownError = error?.takeIf { address == tried }

@@ -247,7 +247,9 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
       Remove from Saved says "Removed from Saved".
 - [ ] Save and share (#256): pick a person under Send with Content, the button says Save and send,
       and one message says "Saved to … · Sent to …". Share a link from another app to a person at the
-      top of the share menu: the sheet opens on Don't save with them picked, the button says Send.
+      top of the share menu: Send with Content opens with them picked, the button says Send. The
+      share menu's Save and share has no Don't save; its Send with Content only sends; its Add feed
+      opens Add feed with the link. After saving, a tap anywhere but Open goes back to the other app.
 - [ ] Web app: Escape closes a menu, then the article; shortcuts do nothing behind a dialog. On a
       phone, messages show above the bottom bar, and the round read button shows on every row.
       Moving a feed up or down in Manage feeds always moves it within its folder.

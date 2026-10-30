@@ -43,3 +43,35 @@ object LauncherFolders {
     /** The folder an open request stands for, or null when it isn't one of these. */
     fun folderOf(request: String?): String? = request?.takeIf { it.startsWith(PREFIX) }?.removePrefix(PREFIX)?.takeIf { it.isNotEmpty() }
 }
+
+/**
+ * What a link shared from another app is for: Content shows separate targets in Android's share
+ * menu (AndroidManifest.xml), each its own alias of the save screen. Unit tested.
+ */
+object ShareTargets {
+    enum class Target {
+        /** Save and share: the save sheet, which can also send it with Content. */
+        Save,
+
+        /** Send with Content only: nothing is saved. Also a person picked in the share menu (#235). */
+        Send,
+    }
+
+    /** The alias other apps share links to for saving. */
+    const val SAVE_ALIAS = "be.wimvandonck.content.ui.ShareActivity"
+
+    /** The alias other apps share links to for sending with Content. */
+    const val SEND_ALIAS = "be.wimvandonck.content.ui.SendActivity"
+
+    /** The target that [component] (the alias the share menu opened) and [shortcutId] (a person picked there) ask for, or null for neither. */
+    fun of(
+        component: String?,
+        shortcutId: String?,
+    ): Target? =
+        when {
+            ShareShortcuts.emailOf(shortcutId) != null -> Target.Send
+            component == SEND_ALIAS -> Target.Send
+            component == SAVE_ALIAS -> Target.Save
+            else -> null
+        }
+}

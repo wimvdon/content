@@ -53,7 +53,7 @@ RssReaderApp ── SettingsStore ── DataStore "settings" (Preferences)
 | `ui/ExternalApps.kt` | Browser, Android's share menu (More in Content's share sheet, without Content's own aliases), sending to one app, the apps that act on selected text (the reader's selection menu), Play Store intents. |
 | `ui/reader/ShareSheet.kt` | Content's own share sheet (#251): Send with Content to the people shared with or another address (typed in the sheet, #256: `SendToSection.kt`'s `AddressField`), the apps picked most in it (`data/ShareApps.kt` ranks them; the counts stay on the phone), Copy link and More. |
 | `ui/reader/ItemSheets.kt`, `SendToSection.kt` | Save and share (#143, #256): the one sheet for saving, filing and sending an article with Content (`data/SendTo.kt`: who it offers, the button, one message for how sending went; tested). Report a problem is a sheet too (`ReportSheet.kt`). |
-| `ui/DirectShare.kt` | The people shared with as sharing shortcuts in other apps' share menus (#235, #256: they open Save and share on Don't save, that person picked), kept out of the launcher; the launcher's menu offers the feed folders instead (`data/ShareShortcuts.kt`: `LauncherFolders`, #251). |
+| `ui/DirectShare.kt` | The people shared with as sharing shortcuts in other apps' share menus (#235, #256: they open Send with Content, that person picked), kept out of the launcher; the launcher's menu offers the feed folders instead (`data/ShareShortcuts.kt`: `LauncherFolders`, #251). |
 
 ## Data flow
 
@@ -71,11 +71,14 @@ RssReaderApp ── SettingsStore ── DataStore "settings" (Preferences)
    item as the feed article, and opens the sheet to like and tag it (`AddedSheet`); set to another
    app, it hands the link over with an `ACTION_SEND` intent instead. A link without a title gets
    the page's own (`LibraryRepository.describe`, `feed/PageInfo.kt`).
-6. Reader also takes shares (#97, #103): the exported `ui.ShareActivity` alias of
-   `SaveFromTabActivity` accepts `ACTION_SEND` with `text/plain`, reads the first web link and a
-   title (`instapaper/SharedLink.kt`) and shows only the save sheet (`SaveSheet`: folder, note,
-   tags) on a see-through screen over the app that shared it; the rest of Reader doesn't open.
-   Reader leaves the alias out of its own share menu (`EXTRA_EXCLUDE_COMPONENTS`).
+6. Reader also takes shares (#97, #103), as three targets in other apps' share menus, each
+   accepting `ACTION_SEND` with `text/plain` and reading the first web link and a title
+   (`instapaper/SharedLink.kt`) on a see-through screen over the app that shared it; the rest of
+   Reader doesn't open. Two exported aliases of `SaveFromTabActivity`, told apart by
+   `data/ShareShortcuts.kt` (`ShareTargets`): `ui.ShareActivity` (Save and share: the save sheet
+   without Don't save) and `ui.SendActivity` (Send with Content only, also for the people in the
+   share menu). `ui.AddFeedFromShareActivity` opens Add feed with the link filled in. Reader leaves
+   all three out of its own share menu (`EXTRA_EXCLUDE_COMPONENTS`).
 7. Web links open in a custom tab (#95, `ExternalApps.openInTab`, AndroidX Browser) with a Save
    action button. Its `PendingIntent` (mutable, so the browser can add the page shown as the data)
    opens `SaveFromTabActivity` with the link and title Reader opened; `SharedLink.fromTab` keeps

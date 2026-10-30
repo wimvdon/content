@@ -12,6 +12,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.net.toUri
 import be.wimvandonck.content.R
+import be.wimvandonck.content.data.ShareTargets
 import be.wimvandonck.content.data.ShareApps
 import be.wimvandonck.content.data.ShareTarget
 
@@ -32,11 +33,6 @@ object ExternalApps {
     const val EXTRA_OPENED_URL = "be.wimvandonck.content.extra.OPENED_URL"
     const val EXTRA_OPENED_TITLE = "be.wimvandonck.content.extra.OPENED_TITLE"
 
-    /**
-     * The alias other apps share links to for saving (AndroidManifest.xml, #103); left out of
-     * Content's own share menu, which has a Save button of its own. Send with Content stays (#246).
-     */
-    private const val SHARE_ACTIVITY = "be.wimvandonck.content.ui.ShareActivity"
 
     /**
      * Opens a web page in a custom tab (#95): the browser's page on top of Reader, with a Save
@@ -75,7 +71,7 @@ object ExternalApps {
 
     /**
      * Android's own share sheet with the article's link: More in Content's share sheet (#251). Without
-     * Content's save and Send with Content aliases: Content's sheet has both already.
+     * Content's own targets (Save and share, Send with Content, Add feed): Content's sheet has its own.
      */
     fun share(
         context: Context,
@@ -83,7 +79,12 @@ object ExternalApps {
         url: String,
         chooserTitle: String,
     ): Boolean {
-        val excluded = arrayOf(ComponentName(context, SHARE_ACTIVITY))
+        val excluded =
+            arrayOf(
+                ComponentName(context, ShareTargets.SAVE_ALIAS),
+                ComponentName(context, ShareTargets.SEND_ALIAS),
+                ComponentName(context, AddFeedFromShareActivity::class.java),
+            )
         val chooser =
             Intent
                 .createChooser(shareIntent(title, url), chooserTitle)

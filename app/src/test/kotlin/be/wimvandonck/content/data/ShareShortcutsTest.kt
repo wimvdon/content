@@ -32,4 +32,16 @@ class ShareShortcutsTest {
         assertNull(LauncherFolders.folderOf("shared-with-me"))
         assertNull(LauncherFolders.folderOf(null))
     }
+
+    @Test
+    fun `each share target in Android's menu says what the shared link is for`() {
+        assertEquals(ShareTargets.Target.Save, ShareTargets.of(ShareTargets.SAVE_ALIAS, null))
+        assertEquals(ShareTargets.Target.Send, ShareTargets.of(ShareTargets.SEND_ALIAS, null))
+        // A person picked in the share menu is sent to, whichever alias opened.
+        assertEquals(ShareTargets.Target.Send, ShareTargets.of(ShareTargets.SAVE_ALIAS, ShareShortcuts.idOf("jo@example.com")))
+        assertEquals(ShareTargets.Target.Save, ShareTargets.of(ShareTargets.SAVE_ALIAS, "folder:abc"))
+        // The custom tab's own screen is none of these.
+        assertNull(ShareTargets.of("be.wimvandonck.content.ui.SaveFromTabActivity", null))
+        assertNull(ShareTargets.of(null, null))
+    }
 }

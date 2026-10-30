@@ -320,8 +320,11 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   anything; the heading is always "Save and share". Right after a save ("Saved to …"), **Remove**
   (error colour, trash icon) takes the place of Cancel and takes the save back; closing keeps it. A
   folder or tag still being typed is taken by the button. One snackbar says where it went and who
-  got it ("Saved to To read · Sent to …"). Sharing a link from another app opens the same sheet;
-  a person picked in Android's share menu opens it on Don't save with them picked.
+  got it ("Saved to To read · Sent to …"). Other apps' share menus have three targets: Save and share
+  (the same sheet, without Don't save), Send with Content (the sheet with only Send with Content,
+  headed so) and Add feed (the Add feed dialog with the link). A person picked in Android's share
+  menu opens Send with Content with them picked. After a save there, a tap anywhere but Open closes
+  the message and goes back to the other app.
 - Sheets and dialogs (#256): a bottom sheet for anything done with an article or that needs room
   (Save and share, Content's share sheet, highlights, Aa, Report a problem, the folder sheet with
   its icon search); a dialog only to confirm something or type one name (remove, rename, Add feed,
