@@ -283,6 +283,7 @@
     <string name="saved_folder_remove">Map verwijderen</string>
     <string name="saved_folder_remove_body">De map %1$s verwijderen? De items gaan naar het Archief.</string>
     <string name="saved_remove">Verwijderen uit Bewaard</string>
+    <string name="saved_remove_body">Dit item verwijderen, met zijn notitie, tags en markeringen? Archiveren houdt het doorzoekbaar.</string>
     <string name="saved_removed">Verwijderd uit Bewaard</string>
     <string name="saved_empty_body">Veeg een artikel uit een feed naar links, tik op Opslaan in een artikel, deel een link met Content of voeg er hier een toe.</string>
     <string name="manage_folders_tags_empty_title">Nog geen mappen of tags</string>

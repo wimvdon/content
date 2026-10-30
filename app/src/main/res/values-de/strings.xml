@@ -283,6 +283,7 @@
     <string name="saved_folder_remove">Ordner entfernen</string>
     <string name="saved_folder_remove_body">Den Ordner %1$s entfernen? Seine Elemente kommen ins Archiv.</string>
     <string name="saved_remove">Aus Gespeichert entfernen</string>
+    <string name="saved_remove_body">Dieses Element mit Notiz, Tags und Markierungen entfernen? Archivieren hält es durchsuchbar.</string>
     <string name="saved_removed">Aus Gespeichert entfernt</string>
     <string name="saved_empty_body">Wische einen Feed-Artikel nach links, tippe in einem Artikel auf Speichern, teile einen Link mit Content oder füge hier einen hinzu.</string>
     <string name="manage_folders_tags_empty_title">Noch keine Ordner oder Tags</string>

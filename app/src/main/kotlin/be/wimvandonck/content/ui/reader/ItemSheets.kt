@@ -15,6 +15,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -164,7 +165,7 @@ fun SaveSheet(
     key: String? = url,
     /** Cancel, or the sheet closed without Save. */
     onCancel: () -> Unit = {},
-    /** Remove, at the bottom left of [SheetKind.Organise]: out of Saved. The caller offers Undo. */
+    /** Remove, at the bottom left of [SheetKind.Organise]: out of Saved. The caller asks first. */
     onRemove: () -> Unit = {},
     /** Signed in to a Content account: Send with Content is offered (#256). */
     signedIn: Boolean = false,
@@ -406,4 +407,24 @@ fun FolderChips(
             )
         }
     }
+}
+
+/** Remove from Saved, wherever it is offered (the reader's ⋮, Organise, a row's menu): asks first, says what goes. */
+@Composable
+fun RemoveDialog(
+    onRemove: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.saved_remove)) },
+        text = { Text(stringResource(R.string.saved_remove_body)) },
+        confirmButton = {
+            TextButton(onClick = {
+                onDismiss()
+                onRemove()
+            }, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) { Text(stringResource(R.string.action_remove)) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
+    )
 }

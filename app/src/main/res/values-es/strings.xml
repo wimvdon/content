@@ -292,6 +292,7 @@
     <string name="saved_folder_remove">Quitar carpeta</string>
     <string name="saved_folder_remove_body">¿Quitar la carpeta %1$s? Sus elementos van al Archivo.</string>
     <string name="saved_remove">Quitar de Guardados</string>
+    <string name="saved_remove_body">¿Quitar este elemento, con su nota, etiquetas y resaltados? Archivarlo lo mantiene buscable.</string>
     <string name="saved_removed">Quitado de Guardados</string>
     <string name="saved_empty_body">Desliza un artículo de un feed a la izquierda, toca Guardar en un artículo, comparte un enlace con Content o añade uno aquí.</string>
     <string name="manage_folders_tags_empty_title">Aún no hay carpetas ni etiquetas</string>

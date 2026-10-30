@@ -16,7 +16,7 @@ import { sanitizeArticle } from "@/lib/sanitize";
 import { FeedIcon } from "./FeedIcon";
 import { HighlightDialog, HighlightedText, HighlightsDialog } from "./Highlights";
 import { useAnchors } from "./useAnchors";
-import { LibraryBar } from "./SavedActions";
+import { LibraryBar, RemoveDialog } from "./SavedActions";
 import { pageClass, textStyle, useAppDark } from "./readerPage";
 import { ReaderStyleControls } from "./ReaderStyleControls";
 import { Button } from "./ui/button";
@@ -101,6 +101,7 @@ export function ArticleView({
   const saveArticle = () => article.link && app.saveArticle(article.link, article.title);
   const [menuOpen, setMenuOpen] = useState(false);
   useEscape(menuOpen, () => setMenuOpen(false));
+  const [removeOpen, setRemoveOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   // Highlights (#102): those of the article's item; one open, a new one waiting for its note, the list.
   const highlights = found?.highlights ?? NO_HIGHLIGHTS;
@@ -208,12 +209,8 @@ export function ArticleView({
                   <MenuItem
                     icon={<Trash2 />}
                     label={t("savedRemove")}
-                    onClick={() => {
-                      // Removed at once, with Undo in the message, as everywhere else.
-                      app.removeItem(saved.key);
-                      onMessage(t("savedRemoved"), { label: t("undo"), run: () => app.restoreItem(saved) });
-                      if (fromSaved) onBack();
-                    }}
+                    // Asks first, as everywhere.
+                    onClick={() => setRemoveOpen(true)}
                     close={() => setMenuOpen(false)}
                   />
                 ) : null}
@@ -319,6 +316,10 @@ export function ArticleView({
         />
       ) : null}
       {shareDialog}
+      {saved ? <RemoveDialog item={saved} open={removeOpen} onClose={() => setRemoveOpen(false)} onRemoved={() => {
+        onMessage(t("savedRemoved"));
+        if (fromSaved) onBack();
+      }} /> : null}
       {reportOpen && article.link ? <ReportDialog link={article.link} html={fullHtml ?? feedHtml} onClose={() => setReportOpen(false)} /> : null}
     </article>
   );

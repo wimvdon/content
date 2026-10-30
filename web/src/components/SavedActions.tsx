@@ -1,4 +1,4 @@
-import { Archive, BookOpen, Check, ChevronDown, Folder as FolderGlyph, Heart, ListPlus, Plus, Quote, Share2, Tag } from "lucide-react";
+import { Archive, BookOpen, Check, ChevronDown, Folder as FolderGlyph, Heart, ListPlus, Plus, Quote, Share2, Tag, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { app, useApp } from "@/lib/app";
 import { plural, t } from "@/lib/i18n";
@@ -8,6 +8,7 @@ import { savedFolders, tabTags } from "@/lib/saved";
 import { Button } from "./ui/button";
 import { useEscape } from "./ui/useEscape";
 import { cn } from "./ui/cn";
+import { Dialog } from "./ui/dialog";
 
 /**
  * The reader's library bar (#139, #156), under the text: one Save before the article is saved;
@@ -161,5 +162,37 @@ function MenuChoice({ icon, label, selected, onClick }: { icon: React.ReactNode;
       <span className="min-w-0 flex-1 truncate">{label}</span>
       {selected ? <Check /> : null}
     </button>
+  );
+}
+
+/** Remove from Saved, wherever it is offered (the reader's ⋮, Organise, a row's menu): asks first, and says what goes with it. */
+export function RemoveDialog({ item, open, onClose, onRemoved }: { item: Item; open: boolean; onClose: () => void; onRemoved: () => void }) {
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(o) => !o && onClose()}
+      title={t("savedRemove")}
+      closeLabel={t("close")}
+      footer={
+        <>
+          <Button variant="ghost" onClick={onClose}>
+            {t("cancel")}
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={() => {
+              onClose();
+              app.removeItem(item.key);
+              onRemoved();
+            }}
+          >
+            <Trash2 />
+            {t("savedRemove")}
+          </Button>
+        </>
+      }
+    >
+      <p className="text-sm">{t("savedRemoveBody")}</p>
+    </Dialog>
   );
 }

@@ -292,6 +292,7 @@
     <string name="saved_folder_remove">Rimuovi cartella</string>
     <string name="saved_folder_remove_body">Rimuovere la cartella %1$s? I suoi elementi vanno nell’Archivio.</string>
     <string name="saved_remove">Rimuovi da Salvati</string>
+    <string name="saved_remove_body">Rimuovere questo elemento, con nota, tag ed evidenziazioni? Archiviarlo lo mantiene ricercabile.</string>
     <string name="saved_removed">Rimosso da Salvati</string>
     <string name="saved_empty_body">Scorri a sinistra un articolo di un feed, tocca Salva in un articolo, condividi un link con Content o aggiungine uno qui.</string>
     <string name="manage_folders_tags_empty_title">Ancora nessuna cartella o tag</string>

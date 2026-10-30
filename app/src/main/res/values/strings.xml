@@ -285,6 +285,7 @@
     <string name="saved_folder_remove">Remove folder</string>
     <string name="saved_folder_remove_body">Remove the folder %1$s? Its items go to the Archive.</string>
     <string name="saved_remove">Remove from Saved</string>
+    <string name="saved_remove_body">Remove this item, with its note, tags and highlights? Archive keeps it searchable instead.</string>
     <string name="saved_removed">Removed from Saved</string>
     <string name="saved_empty_body">Swipe a feed article left, tap Save in an article, share a link to Content or add one here.</string>
     <string name="manage_folders_tags_empty_title">No folders or tags yet</string>

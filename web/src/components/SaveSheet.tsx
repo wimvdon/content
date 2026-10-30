@@ -8,6 +8,7 @@ import { choiceOf, emptyChoice, newFolder, places, samePlace, tagChoices, withTy
 import { savedFolders } from "@/lib/saved";
 import { actionOf, canConfirm, outcomeOf, problemKey, type ShareStatus } from "@/lib/sendTo";
 import { sharedArticle, type SharedArticle } from "@/lib/sharing";
+import { RemoveDialog } from "./SavedActions";
 import { SendToSection } from "./ShareWithUser";
 import { Button } from "./ui/button";
 import { cn } from "./ui/cn";
@@ -20,11 +21,11 @@ import { Input } from "./ui/input";
  * saved before (Organise). In order: the address (Add link only), the folder as chips, the tags with
  * Like in front, the note, then Send with Content when signed in (the people shared with, several at
  * once, and Add address; not in Organise, which has Share next to it). The button says Save or Save
- * and send. Organise has Remove at the bottom left, with Undo in its message. Cancel, or closing the
+ * and send. Organise has Remove at the bottom left, which asks first. Cancel, or closing the
  * sheet, saves and sends nothing: right after a save it takes the save back.
  */
-/** A message under the sheet: with Open for a new save (its key), or Undo (`undo`). */
-type Message = (text: string, openKey?: string, undo?: () => void) => void;
+/** A message under the sheet, with Open for a new save (its key). */
+type Message = (text: string, openKey?: string) => void;
 
 export function SaveSheet({ onMessage }: { onMessage: Message }) {
   const { sheet, library } = useApp();
@@ -54,6 +55,7 @@ function Sheet({
   const [tagName, setTagName] = useState("");
   const saved = kind !== "new";
   const savedItem = itemKey ? library.items.find((i) => i.key === itemKey) : undefined;
+  const [removing, setRemoving] = useState(false);
   const typed = normalizeUrl(address);
   const link = typed && isWebLink(typed) ? typed : null;
   const name = (place: Place) => (place.kind === "toread" ? t("toRead") : place.kind === "archive" ? t("archiveTab") : place.name);
@@ -100,17 +102,13 @@ function Sheet({
       closeLabel={t("close")}
       footer={
         <>
-          {/* Organising a saved article: Remove at the bottom left, away from Save, with Undo. Just saved,
-              Cancel already takes the save back. */}
+          {/* Organising a saved article: Remove at the bottom left, away from Save; it asks first. Just
+              saved, Cancel already takes the save back. */}
           {kind === "organise" && savedItem ? (
             <Button
               variant="destructive"
               className="mr-auto"
-              onClick={() => {
-                app.removeItem(savedItem.key);
-                onMessage(t("savedRemoved"), undefined, () => app.restoreItem(savedItem));
-                app.closeSheet();
-              }}
+              onClick={() => setRemoving(true)}
             >
               <Trash2 />
               {t("remove")}
@@ -125,6 +123,17 @@ function Sheet({
         </>
       }
     >
+      {removing && savedItem ? (
+        <RemoveDialog
+          item={savedItem}
+          open
+          onClose={() => setRemoving(false)}
+          onRemoved={() => {
+            onMessage(t("savedRemoved"));
+            app.closeSheet();
+          }}
+        />
+      ) : null}
       <div className="space-y-5">
         {kind === "new" ? (
           <Input autoFocus value={address} onChange={(e) => setAddress(e.target.value)} onKeyDown={(e) => e.key === "Enter" && link && save()} placeholder={t("webAddress")} aria-label={t("webAddress")} type="url" inputMode="url" />

@@ -198,8 +198,8 @@ never saved it.
 The same sheet opens when you press and hold a saved article in Saved, a row in To read or a card
 elsewhere, and pick **Organise** (web: right-click it), or tap Organise in a saved article's bottom
 bar. Organise has no Send with Content (Share is right next to it) and has **Remove** at the bottom
-left, which takes the article out of Saved (with **Undo**); **Share** and **Remove from Saved** (with
-**Undo**) are in that menu too, and in To read also **Archive** (or **To read** in the Archive). Cards don't swipe. When it
+left, which takes the article out of Saved after asking; **Share** and **Remove from Saved** (it
+asks too) are in that menu too, and in To read also **Archive** (or **To read** in the Archive). Cards don't swipe. When it
 closes, a message says where the article went; after a swipe, **Add link** or a link shared from
 another app it also has **Open**, which goes to the article in Saved.
 
@@ -347,8 +347,8 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   note in small letters, its tags as small chips, then the site, a marker icon with how many
   highlights it has, and a heart when liked.
 - In the reader, the bar at the bottom: **its folder** (To read or Archive), which opens Organise.
-  **Remove from Saved** is in ⋮ (and in Organise); it removes at once, with the note, tags and
-  highlights, and the message has **Undo** (Archive keeps it searchable instead).
+  **Remove from Saved** is in ⋮ (and in Organise); it asks first, as everywhere, and takes the note,
+  tags and highlights with it (Archive keeps it searchable instead).
 - **☰ › Manage feeds and Saved › Saved**: every tag, with how many articles have it; tap one to
   rename it (renaming it to another one's name joins the two), or remove it from every article.
 - **In the web app** Saved is the same: the same chips and cards, and **Add link**
