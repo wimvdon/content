@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import type { Env } from "../src/index";
-import { fromBase64Url, poke, pushTargetOf, resetFcmToken, serviceAccountOf } from "../src/push";
+import { fromBase64Url, poke, previewData, pushTargetOf, resetFcmToken, serviceAccountOf } from "../src/push";
 
 /** A Firebase service account like the JSON key file, with a fresh RSA key. */
 async function serviceAccount(): Promise<{ json: string; publicKey: CryptoKey }> {
@@ -54,6 +54,22 @@ describe("Android notifications through Firebase (#235)", () => {
     // The access token is used again; a token Firebase no longer knows is gone.
     expect(await poke({ kind: "fcm", token: "gone-token" + "b".repeat(20) }, env, fetcher, 1_000_000_001_000)).toBe("gone");
     expect(calls.filter((c) => c.url === "https://oauth2.googleapis.com/token")).toHaveLength(1);
+  });
+
+  it("gives a phone the share's preview, cut to fit", async () => {
+    const { json } = await serviceAccount();
+    const env = { ALLOWED_ORIGINS: "", FCM_SERVICE_ACCOUNT: json } as Env;
+    const bodies: string[] = [];
+    const fetcher = async (url: string, init?: RequestInit) => {
+      if (url === "https://oauth2.googleapis.com/token") return new Response(JSON.stringify({ access_token: "ya29.test", expires_in: 3600 }));
+      bodies.push(String(init?.body));
+      return new Response("{}");
+    };
+    const preview = { title: "T".repeat(400), intro: "An intro.", imageUrl: "https://example.com/pic.jpg", from: "Ann", count: 2 };
+    expect(await poke({ kind: "fcm", token: "p".repeat(40) }, env, fetcher, 1_000_000_000_000, preview)).toBe("sent");
+    expect(JSON.parse(bodies[0]).message.data).toEqual({ kind: "shared", title: "T".repeat(150), intro: "An intro.", from: "Ann", count: "2", image: "https://example.com/pic.jpg" });
+    // A picture address too long for a message is left out.
+    expect(previewData({ ...preview, imageUrl: "https://example.com/" + "x".repeat(2000) }).image).toBeUndefined();
   });
 
   it("sends nothing without the service account", async () => {

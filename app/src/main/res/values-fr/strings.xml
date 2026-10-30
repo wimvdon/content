@@ -68,6 +68,12 @@
     <string name="notify_shared_denied">Les notifications sont désactivées pour Content. Autorisez-les dans les paramètres Android › Applications › Content.</string>
     <string name="notify_shared_channel">Partagés avec vous</string>
     <string name="notify_shared_text">Quelque chose a été partagé avec vous.</string>
+    <string name="notify_shared_by">De la part de %1$s</string>
+    <plurals name="notify_shared_more">
+        <item quantity="one">et %1$d autre article</item>
+        <item quantity="many">et %1$d autres articles</item>
+        <item quantity="other">et %1$d autres articles</item>
+    </plurals>
     <string name="share_send_with_content">Envoyer avec Content</string>
     <string name="inbox_title">Boîte de réception</string>
     <string name="inbox_open_unread">Boîte de réception, nouveaux articles</string>

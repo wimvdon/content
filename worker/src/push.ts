@@ -7,9 +7,11 @@
  *    in wrangler.toml as VAPID_PUBLIC_KEY, the private half the secret VAPID_PRIVATE_KEY). The page's
  *    service worker shows "Shared with you" and opens Saved › Shared with me. Nothing about what was
  *    shared goes through the browser's push service.
- *  - an Android phone through Firebase Cloud Messaging, with a data-only message ({"kind": "shared"})
- *    sent with the service account in the secret FCM_SERVICE_ACCOUNT (its JSON key file). The app
- *    shows the notification in its own language.
+ *  - an Android phone through Firebase Cloud Messaging, with a data-only message ({"kind": "shared"}
+ *    and, so the notification can show it, a preview: the first article's title, intro and picture
+ *    address, who shared it and how many articles) sent with the service account in the secret
+ *    FCM_SERVICE_ACCOUNT (its JSON key file). Firebase sees that preview; the app shows the
+ *    notification in its own language and downloads the picture itself.
  *
  * Without the keys, nothing is sent and devices are told there are no notifications.
  */
@@ -42,9 +44,35 @@ export const fcmReady = (env: Env) => Boolean(env.FCM_SERVICE_ACCOUNT);
 /** Whether any notification can be sent. */
 export const anyPushReady = (env: Env) => pushReady(env) || fcmReady(env);
 
-/** Pokes one device: "sent", "gone" (the address no longer works: forget it) or "failed". */
-export async function poke(target: PushTarget, env: Env, fetcher: Fetcher, now = Date.now()): Promise<"sent" | "gone" | "failed"> {
-  if (target.kind === "fcm") return sendFcm(target.token, env, fetcher, now);
+/** What an Android notification shows of a share: the first article, who shared it, and how many. */
+export interface SharePreview {
+  title: string;
+  intro: string;
+  imageUrl: string | null;
+  from: string;
+  count: number;
+}
+
+/** Firebase allows 4 KB of data per message; these keep a preview well within it. */
+const PREVIEW_TITLE = 150;
+const PREVIEW_INTRO = 300;
+const PREVIEW_IMAGE = 1000;
+
+/** The preview as FCM data (strings only), cut to fit. */
+export function previewData(preview: SharePreview): Record<string, string> {
+  const data: Record<string, string> = {
+    title: preview.title.slice(0, PREVIEW_TITLE),
+    intro: preview.intro.slice(0, PREVIEW_INTRO),
+    from: preview.from.slice(0, 100),
+    count: String(preview.count),
+  };
+  if (preview.imageUrl && preview.imageUrl.length <= PREVIEW_IMAGE) data.image = preview.imageUrl;
+  return data;
+}
+
+/** Pokes one device: "sent", "gone" (the address no longer works: forget it) or "failed". Only a phone gets the preview. */
+export async function poke(target: PushTarget, env: Env, fetcher: Fetcher, now = Date.now(), preview?: SharePreview): Promise<"sent" | "gone" | "failed"> {
+  if (target.kind === "fcm") return sendFcm(target.token, env, fetcher, now, preview);
   if (!pushReady(env)) return "failed";
   try {
     const audience = new URL(target.endpoint).origin;
@@ -135,8 +163,8 @@ async function fcmAccessToken(account: ServiceAccount, fetcher: Fetcher, now: nu
   return body.access_token;
 }
 
-/** Sends the data-only "shared" message to one phone. */
-async function sendFcm(token: string, env: Env, fetcher: Fetcher, now: number): Promise<"sent" | "gone" | "failed"> {
+/** Sends the data-only "shared" message to one phone, with the preview when there is one. */
+async function sendFcm(token: string, env: Env, fetcher: Fetcher, now: number, preview?: SharePreview): Promise<"sent" | "gone" | "failed"> {
   const account = serviceAccountOf(env.FCM_SERVICE_ACCOUNT);
   if (!account) return "failed";
   try {
@@ -145,7 +173,7 @@ async function sendFcm(token: string, env: Env, fetcher: Fetcher, now: number): 
     const answer = await fetcher(`https://fcm.googleapis.com/v1/projects/${encodeURIComponent(account.project_id)}/messages:send`, {
       method: "POST",
       headers: { Authorization: `Bearer ${bearer}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ message: { token, data: { kind: "shared" }, android: { priority: "high", ttl: "86400s" } } }),
+      body: JSON.stringify({ message: { token, data: { kind: "shared", ...(preview ? previewData(preview) : {}) }, android: { priority: "high", ttl: "86400s" } } }),
     });
     // An app that was uninstalled or a token that was replaced: forget it.
     if (answer.status === 404) return "gone";

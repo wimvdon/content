@@ -1,5 +1,7 @@
 package be.wimvandonck.content.data
 
+import be.wimvandonck.content.feed.Html
+
 /**
  * Who shared an item with you (#167): their email address and name (the name may be empty), when,
  * whether it is in the inbox ([inInbox], until you remove it there; saving it doesn't) and whether
@@ -45,6 +47,24 @@ data class Received(
  */
 object Sharing {
     fun article(item: Item) = SharedArticle(item.url, item.title, item.imageUrl, item.description)
+
+    /**
+     * What is sent for [url]: with the picture and intro the library knows (a saved item, else a feed
+     * article with that link), so the receiver's notification can show them; else just the link and
+     * [title].
+     */
+    fun articleFor(
+        library: Library,
+        url: String,
+        title: String,
+    ): SharedArticle {
+        library.items.firstOrNull { it.url == url }?.let { return article(it).copy(title = title.ifBlank { it.title }) }
+        val feedArticle = library.articles.firstOrNull { it.link == url } ?: return SharedArticle(url, title)
+        return SharedArticle(url, title, feedArticle.imageUrl?.takeIf { it.startsWith("https://") }, Html.snippet(feedArticle.html, INTRO_LENGTH))
+    }
+
+    /** How much of a feed article's text goes along as its intro. */
+    private const val INTRO_LENGTH = 300
 
     /**
      * The library with [messages] taken in: each article is in the inbox, unread, with who shared it.

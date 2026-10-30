@@ -29,7 +29,7 @@
 import { allowedOrigins, corsHeaders, plain } from "./account";
 import { emailIdOf, normalEmail } from "./email";
 import type { Env } from "./index";
-import { anyPushReady, poke, pushReady, pushTargetOf, type PushTarget } from "./push";
+import { anyPushReady, poke, pushReady, pushTargetOf, type PushTarget, type SharePreview } from "./push";
 
 type Fetcher = (input: string, init?: RequestInit) => Promise<Response>;
 
@@ -122,7 +122,7 @@ export async function handleShare(request: Request, env: Env, url: URL, fetcher:
     body: JSON.stringify({ id, at: Date.now(), from: message.from, items: message.items, message: message.message }),
   });
   if (!added.ok) return plain(503, "Try again", cors);
-  if (anyPushReady(env)) await notify(inbox, to, env, fetcher);
+  if (anyPushReady(env)) await notify(inbox, to, env, fetcher, previewOf(message));
   return new Response(null, { status: 204, headers: cors });
 }
 
@@ -158,12 +158,18 @@ export function shareOf(body: Record<string, unknown>): { to: string; from: { em
   return { to, from: { email: fromEmail, name: clip(fromBody?.name).slice(0, 100) }, items, message };
 }
 
+/** What a phone's notification shows of a share: the first article, its intro (or the message), who shared it. */
+export function previewOf(message: NonNullable<ReturnType<typeof shareOf>>): SharePreview {
+  const first = message.items[0];
+  return { title: first.title, intro: first.description || message.message || "", imageUrl: first.imageUrl, from: message.from.name || message.from.email, count: message.items.length };
+}
+
 /** Pokes every device of the receiver (#235); addresses that no longer work are forgotten. Never fails the share. */
-async function notify(inbox: DurableObjectStub, account: string, env: Env, fetcher: Fetcher): Promise<void> {
+async function notify(inbox: DurableObjectStub, account: string, env: Env, fetcher: Fetcher, preview: SharePreview): Promise<void> {
   try {
     const answer = await inbox.fetch("https://account/pushTargets", { headers: { "X-Account": account } });
     const { targets } = (await answer.json()) as { targets: { device: string; target: PushTarget }[] };
-    const results = await Promise.all(targets.map(async (t) => ({ device: t.device, result: await poke(t.target, env, fetcher) })));
+    const results = await Promise.all(targets.map(async (t) => ({ device: t.device, result: await poke(t.target, env, fetcher, Date.now(), preview) })));
     const gone = results.filter((r) => r.result === "gone").map((r) => r.device);
     if (gone.length > 0) await inbox.fetch("https://account/pushDrop", { method: "POST", headers: { "X-Account": account }, body: JSON.stringify({ devices: gone }) });
   } catch {

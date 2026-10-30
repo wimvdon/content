@@ -69,6 +69,11 @@
     <string name="notify_shared_denied">Notifications are off for Content. Allow them in Android’s settings › Apps › Content.</string>
     <string name="notify_shared_channel">Shared with you</string>
     <string name="notify_shared_text">Something was shared with you.</string>
+    <string name="notify_shared_by">From %1$s</string>
+    <plurals name="notify_shared_more">
+        <item quantity="one">and %1$d more article</item>
+        <item quantity="other">and %1$d more articles</item>
+    </plurals>
     <string name="share_send_with_content">Send with Content</string>
     <string name="inbox_title">Inbox</string>
     <string name="inbox_open_unread">Inbox, new articles</string>

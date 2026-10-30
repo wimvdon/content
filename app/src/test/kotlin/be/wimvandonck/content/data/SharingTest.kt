@@ -111,4 +111,26 @@ class SharingTest {
         assertEquals(listOf(InboxMessage("m1", ann, listOf(SharedArticle("https://a.example/1", "One")))), messages)
         assertTrue(AccountClient.inboxFrom("nonsense").isEmpty())
     }
+
+    @Test
+    fun `what is sent carries the picture and intro the library knows`() {
+        val item = saved("a.example/saved", 1).copy(imageUrl = "https://a.example/pic.jpg", description = "The intro.")
+        val feedArticle =
+            Article(
+                feedUrl = "https://b.example/feed",
+                id = "1",
+                title = "Feed title",
+                link = "https://b.example/story",
+                author = null,
+                html = "<p>First words of the story.</p>",
+                publishedAt = null,
+                fetchedAt = 0,
+                imageUrl = "https://b.example/hero.jpg",
+            )
+        val library = Library(articles = listOf(feedArticle), items = listOf(item))
+        assertEquals(SharedArticle("https://a.example/saved", "Shown title", "https://a.example/pic.jpg", "The intro."), Sharing.articleFor(library, "https://a.example/saved", "Shown title"))
+        assertEquals(SharedArticle("https://b.example/story", "Feed title", "https://b.example/hero.jpg", "First words of the story."), Sharing.articleFor(library, "https://b.example/story", "Feed title"))
+        // Unknown: just the link and its title.
+        assertEquals(SharedArticle("https://c.example/", "C"), Sharing.articleFor(library, "https://c.example/", "C"))
+    }
 }

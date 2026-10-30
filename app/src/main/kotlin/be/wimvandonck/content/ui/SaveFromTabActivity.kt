@@ -29,7 +29,7 @@ import be.wimvandonck.content.data.SaveChoices
 import be.wimvandonck.content.data.ShareShortcuts
 import be.wimvandonck.content.data.ShareTargets
 import be.wimvandonck.content.data.SendTo
-import be.wimvandonck.content.data.SharedArticle
+import be.wimvandonck.content.data.Sharing
 import be.wimvandonck.content.data.itemTags
 import be.wimvandonck.content.data.tagWithFeedFolder
 import be.wimvandonck.content.instapaper.SharedLink
@@ -167,7 +167,7 @@ private fun SaveFromTab(
                 // In the app's scope, so sending finishes even if this screen goes first.
                 sending = true
                 app.appScope.launch(Dispatchers.Main) {
-                    val results = choice.sendTo.map { email -> email to app.sync.share(email, listOf(SharedArticle(url, link.title ?: url))) }
+                    val results = choice.sendTo.map { email -> email to app.sync.share(email, listOf(Sharing.articleFor(library, url, link.title ?: url))) }
                     val sent =
                         when (val outcome = SendTo.outcome(results)) {
                             is SendTo.Outcome.Sent ->
