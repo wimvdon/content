@@ -88,7 +88,8 @@ function Sheet({
     app.closeSheet();
   };
   // The sheet itself picks To read or the Archive, so the title doesn't name one (#229).
-  const title = t("saveShareTitle");
+  // Organise has nothing to share (Share is next to it), so it is named for what it does.
+  const title = kind === "organise" ? t("organiseTitle") : t("saveShareTitle");
   const action = actionOf(choice);
   return (
     <Dialog
@@ -98,6 +99,21 @@ function Sheet({
       closeLabel={t("close")}
       footer={
         <>
+          {/* Organising a saved article: Remove from Saved at the bottom left, away from Save. */}
+          {kind === "organise" && itemKey ? (
+            <Button
+              variant="destructive"
+              className="mr-auto"
+              onClick={() => {
+                app.removeItem(itemKey);
+                onMessage(t("savedRemoved"));
+                app.closeSheet();
+              }}
+            >
+              <Trash2 />
+              {t("remove")}
+            </Button>
+          ) : null}
           {/* Just saved, Remove takes the save back; closing keeps it as it was saved. */}
           {kind === "justSaved" && itemKey ? (
             <Button
@@ -163,7 +179,7 @@ function Sheet({
         </Section>
           </>
         ) : null}
-        {signedIn ? (
+        {signedIn && kind !== "organise" ? (
           <Section title={t("shareUserMenu")}>
             <SendToSection picked={choice.sendTo} onChange={(sendTo) => setChoice({ ...choice, sendTo })} />
           </Section>

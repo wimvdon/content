@@ -16,6 +16,12 @@ Newest first. Add an entry for every notable choice: what was decided, why, and 
   while sending or adding, which goes on in the app's scope even if it closes. The intent filters'
   priorities ask Android for the order Save and share, Send with Content, Add feed; its share menu
   may still rank the ones used most first.
+- **Send with Content looks the same everywhere** (owner's request): Content's share sheet (and the
+  web app's Share) use the Save and share sheet's chips, Add address with a filled + that adds the
+  person to the chips, and one Send for everyone picked, instead of one tap sending and a typed
+  address with a share icon.
+- **Organise no longer offers Send with Content** (Share is next to it in the bottom bar); it has
+  Remove at the bottom left instead, with Undo, and is headed Organise.
 - Rejected: hiding Send with Content while signed out (switching an alias on and off with the
   account); signed out it says to sign in first, as Send with Content does elsewhere.
 

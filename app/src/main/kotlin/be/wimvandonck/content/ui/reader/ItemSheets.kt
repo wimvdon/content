@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -164,7 +165,10 @@ fun SaveSheet(
     key: String? = url,
     /** Cancel, or the sheet closed without Save. */
     onCancel: () -> Unit = {},
-    /** Remove, for [SheetKind.JustSaved]: takes the save back. */
+    /**
+     * Remove: for [SheetKind.JustSaved] it takes the save back; for [SheetKind.Organise] it removes the
+     * article from Saved (the caller asks first).
+     */
     onRemove: () -> Unit = {},
     /** Signed in to a Content account: Send with Content is offered (#256). */
     signedIn: Boolean = false,
@@ -208,7 +212,14 @@ fun SaveSheet(
         ) {
             // The sheet itself picks To read or the Archive, so the title doesn't name one (#229).
             Text(
-                stringResource(if (sendOnly) R.string.share_send_with_content else R.string.save_share_title),
+                stringResource(
+                    when {
+                        sendOnly -> R.string.share_send_with_content
+                        // Nothing to share here (Share is next to Organise): it only organises.
+                        kind == SheetKind.Organise -> R.string.organise_title
+                        else -> R.string.save_share_title
+                    },
+                ),
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.semantics { heading() },
             )
@@ -243,14 +254,29 @@ fun SaveSheet(
             }
             // Only sent: nothing of it is kept, so there is nothing to tag or note.
             if (choice.keep) SavedParts(choice, allTags, tagName, onTagNameChange = { tagName = it }, onChange = { choice = it })
-            if (signedIn) {
+            // Organising a saved article doesn't send: Share is right next to Organise.
+            if (signedIn && kind != SheetKind.Organise) {
                 // The sheet's title says it already when it only sends.
                 if (!sendOnly) SheetSection(stringResource(R.string.share_send_with_content))
                 SendToSection(choice.sendTo, onChange = { choice = choice.copy(sendTo = it) }, hasAccount = hasAccount)
             } else if (sendOnly) {
                 Text(stringResource(R.string.share_user_signed_out), style = MaterialTheme.typography.bodyMedium)
             }
-            Row(Modifier.align(Alignment.End), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                // Organising a saved article: Remove from Saved at the bottom left, away from Save.
+                if (kind == SheetKind.Organise) {
+                    TextButton(
+                        onClick = {
+                            onDismiss()
+                            onRemove()
+                        },
+                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                    ) {
+                        Icon(painterResource(R.drawable.ic_delete), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                        Text(stringResource(R.string.action_remove), modifier = Modifier.padding(start = 8.dp))
+                    }
+                }
+                Spacer(Modifier.weight(1f))
                 if (kind == SheetKind.JustSaved) {
                     TextButton(
                         onClick = {

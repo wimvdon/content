@@ -196,7 +196,9 @@ address** for someone new (Content checks they have an account). The button then
 didn't add yet, and one message says where it went and who got it. **Remove** takes the save back, as if you never
 saved it ("Removed from Saved"); closing the sheet keeps it where it was just saved, unchanged.
 The same sheet opens when you press and hold a saved article in Saved, a row in To read or a card
-elsewhere, and pick **Organise** (web: right-click it); **Share** and **Remove from Saved** (with
+elsewhere, and pick **Organise** (web: right-click it), or tap Organise in a saved article's bottom
+bar. Organise has no Send with Content (Share is right next to it) and has **Remove** at the bottom
+left, which takes the article out of Saved (with **Undo**); **Share** and **Remove from Saved** (with
 **Undo**) are in that menu too, and in To read also **Archive** (or **To read** in the Archive). Cards don't swipe. When it
 closes, a message says where the article went; after a swipe, **Add link** or a link shared from
 another app it also has **Open**, which goes to the article in Saved.
@@ -235,10 +237,11 @@ The reader has a **Save** button and a **Share** button (#256: there are no sett
 more). **Save** saves the article to **To read** and opens **Save and share**, where you can also
 send it to people with Content (see Saved). **Share** opens Content's share sheet.
 
-**Content's share sheet** (#251, on the phone). At the top, signed in, **Send with Content**: the
-people you sent something to before, with their Gravatar picture or first letter (one tap sends it
-to their inbox), and **Email address**, which opens a field in the sheet to type another one and
-send it (#256; it says at once when there is no Content account for it). Below, the apps: the ones you pick most
+**Content's share sheet** (#251; the web app's Share too). At the top, signed in, **Send with
+Content**, the same as in Save and share: the people you sent something to before, with their
+Gravatar picture or first letter, as chips to pick (several at once), and **Add address**, a field
+with a **+** that adds someone new to the chips (it says at once when there is no Content account
+for them); then **Send** sends to everyone picked. Below, the apps: the ones you pick most
 in this sheet first (Android doesn't tell apps which ones you use elsewhere, so Content counts the
 picks here, on this phone only; until then well-known messaging and mail apps come first), then
 **Copy link**, and **More** for Android's own share menu with every app.

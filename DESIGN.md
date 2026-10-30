@@ -317,7 +317,8 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   `AssistChip` that opens a field (checked for a Content account before the person joins the
   chips). Section titles in Title Small, `primary`. Then Cancel and the button, which says **Save**,
   **Save and send** or **Send**: closing the sheet is Cancel, so only the button changes or sends
-  anything; the heading is always "Save and share". Right after a save ("Saved to …"), **Remove**
+  anything; the heading is "Save and share", or "Organise" for an article saved before: that one has no Send
+  with Content (Share is next to Organise) and a red Remove at the bottom left. Right after a save ("Saved to …"), **Remove**
   (error colour, trash icon) takes the place of Cancel and takes the save back; closing keeps it. A
   folder or tag still being typed is taken by the button. One snackbar says where it went and who
   got it ("Saved to To read · Sent to …"). Other apps' share menus have three targets: Save and share
@@ -334,8 +335,8 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   Saved section (Saved with its count, then Liked and the tags with their counts, without a Tags heading), then
   **Manage feeds and Saved** (the feed symbol with a pen) and Settings at the bottom.
 - Content's share sheet (#251): a `ModalBottomSheet` with the article's title and site, **Send with
-  Content** (a row of the people shared with, avatar and name, and Email address, which opens an
-  address field with Send in the sheet itself, #256), then the apps as 48dp icons with their names,
+  Content** the same as in the Save and share sheet (the people shared with as `FilterChip`s, Add
+  address with a filled + button that adds them to the chips, then a Send button), then the apps as 48dp icons with their names,
   four to a row, Copy link and More last.
 - Site icons sit on a fixed light tile (`#F4F4F4`, rounded, 10% padding) in light and dark mode,
   so logos drawn for light browser tabs keep their contrast; the letter fallback uses
