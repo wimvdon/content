@@ -2,20 +2,20 @@ import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { gravatarUrl } from "@/lib/account";
 import { app, useApp } from "@/lib/app";
-import { t } from "@/lib/i18n";
-import { has, isEmail, people, problemKey, toggle } from "@/lib/sendTo";
+import { plural, t } from "@/lib/i18n";
+import { has, isEmail, outcomeOf, people, problemKey, toggle, type ShareStatus } from "@/lib/sendTo";
 import type { SharedArticle } from "@/lib/sharing";
 import { Button } from "./ui/button";
 import { Dialog } from "./ui/dialog";
-import { Input, Label } from "./ui/input";
+import { Input } from "./ui/input";
 import { cn } from "./ui/cn";
 
 
 /**
- * Send with Content (#167, #246): their email address, or one click on someone shared with before
- * (#235, with their Gravatar picture and name); Send says first when it has no Content account. The
- * article goes to their inbox. With `onOtherApps` it is the article's share sheet: Other apps (or
- * Copy link) hands it to the browser's own share menu instead.
+ * Send with Content (#167, #246), the article's share sheet: the same Send with Content as in the Save
+ * and share sheet (#256, `SendToSection`): the people shared with before as chips to pick, several at
+ * once, Add address for someone new, then Send to everyone picked. The article goes to their inbox. With
+ * `onOtherApps`, Other apps (or Copy link) hands it to the browser's own share menu instead.
  */
 export function ShareWithUserDialog({
   items,
@@ -26,21 +26,21 @@ export function ShareWithUserDialog({
   onClose: () => void;
   onOtherApps?: () => void;
 }) {
-  const { settings } = useApp();
-  const [email, setEmail] = useState("");
+  const [picked, setPicked] = useState<string[]>([]);
   const [sending, setSending] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   const [sent, setSent] = useState<string | null>(null);
-  const valid = isEmail(email);
-  const send = () => {
-    if (!valid || sending) return;
+  const send = async () => {
+    if (picked.length === 0 || sending) return;
     setSending(true);
     setProblem(null);
-    void app.shareWithUser(email.trim(), items).then((result) => {
-      setSending(false);
-      if (result === "sent") setSent(email.trim());
-      else setProblem(result);
-    });
+    const results: [string, ShareStatus][] = [];
+    for (const email of picked) results.push([email, await app.shareWithUser(email, items)]);
+    setSending(false);
+    const outcome = outcomeOf(results);
+    if (!outcome) return;
+    if ("sent" in outcome) setSent(outcome.sent.length === 1 ? t("shareUserSent").replace("{email}", outcome.sent[0]) : plural("sentPeople", outcome.sent.length));
+    else setProblem(outcome.status);
   };
   return (
     <Dialog
@@ -68,7 +68,7 @@ export function ShareWithUserDialog({
             <Button variant="ghost" onClick={onClose}>
               {t("cancel")}
             </Button>
-            <Button onClick={send} disabled={!valid || sending}>
+            <Button onClick={() => void send()} disabled={picked.length === 0 || sending}>
               {t("shareUserSend")}
             </Button>
           </>
@@ -76,50 +76,22 @@ export function ShareWithUserDialog({
       }
     >
       {sent ? (
-        <p className="text-sm">{t("shareUserSent").replace("{email}", sent)}</p>
+        <p className="text-sm">{sent}</p>
       ) : (
-        <form
-          className="space-y-2"
-          onSubmit={(e) => {
-            e.preventDefault();
-            send();
-          }}
-        >
-          {settings.recipients.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {settings.recipients.map((address) => (
-                <RecipientChip
-                  key={address}
-                  email={address}
-                  images={settings.showImages}
-                  selected={email.trim().toLowerCase() === address}
-                  onPick={() => {
-                    setEmail(address);
-                    setProblem(null);
-                  }}
-                />
-              ))}
-            </div>
-          ) : null}
-          <div className="space-y-1">
-            <Label htmlFor="share-user-email">{t("accountEmail")}</Label>
-            <Input
-              id="share-user-email"
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                setProblem(null);
-              }}
-            />
-          </div>
+        <div className="space-y-2">
+          <SendToSection
+            picked={picked}
+            onChange={(next) => {
+              setPicked(next);
+              setProblem(null);
+            }}
+          />
           {problem ? (
             <p role="alert" className="text-sm text-destructive">
               {t(problemKey(problem))}
             </p>
           ) : null}
-        </form>
+        </div>
       )}
     </Dialog>
   );
@@ -229,6 +201,7 @@ export function SendToSection({ picked, onChange }: { picked: string[]; onChange
             }}
           />
           <Button type="submit" variant="outline" disabled={!isEmail(email) || busy}>
+            <Plus className="size-4" aria-hidden="true" />
             {t("shareAddAddress")}
           </Button>
         </form>

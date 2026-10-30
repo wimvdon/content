@@ -18,12 +18,13 @@ import be.wimvandonck.content.rssReaderApp
 import be.wimvandonck.content.ui.home.AddFeedDialog
 import be.wimvandonck.content.ui.home.errorRes
 import be.wimvandonck.content.ui.theme.RssReaderAppTheme
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 /**
  * The share menu's Add feed: a website or feed shared from another app opens Add feed over that app,
- * with the link filled in, without opening the whole of Content. Adding it shows a short message and
- * goes back; so does closing the dialog. The feed goes at the top level, as Add feed on Feeds does
+ * with the link filled in, without opening the whole of Content. Adding it shows "Added …" as the
+ * save screen does ([ShareConfirmation]) and goes back; closing the dialog goes back at once. The feed goes at the top level, as Add feed on Feeds does
  * outside a folder.
  */
 class AddFeedFromShareActivity : ComponentActivity() {
@@ -48,6 +49,11 @@ class AddFeedFromShareActivity : ComponentActivity() {
                 val resources = LocalResources.current
                 var busy by rememberSaveable { mutableStateOf(false) }
                 var error by rememberSaveable { mutableStateOf<String?>(null) }
+                var added by rememberSaveable { mutableStateOf<String?>(null) }
+                added?.let { text ->
+                    ShareConfirmation(text, onDone = ::finish)
+                    return@RssReaderAppTheme
+                }
                 AddFeedDialog(
                     busy = busy,
                     error = error,
@@ -55,13 +61,13 @@ class AddFeedFromShareActivity : ComponentActivity() {
                     onAdd = { address ->
                         busy = true
                         error = null
-                        app.appScope.launch {
+                        // In the app's scope, so the feed is added even if this screen goes first.
+                        app.appScope.launch(Dispatchers.Main) {
                             val result = app.library.addFeed(address, null)
                             busy = false
                             error = result.errorRes()?.let(resources::getString)
                             if (error == null && result is AddFeedResult.Added) {
-                                Toast.makeText(app, resources.getString(R.string.add_feed_added, result.feed.title), Toast.LENGTH_SHORT).show()
-                                finish()
+                                added = resources.getString(R.string.add_feed_added, result.feed.title)
                             }
                         }
                     },

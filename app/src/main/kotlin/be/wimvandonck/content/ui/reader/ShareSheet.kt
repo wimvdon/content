@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,11 +13,10 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -29,7 +27,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,12 +44,12 @@ import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import be.wimvandonck.content.R
 import be.wimvandonck.content.data.ItemKeys
-import be.wimvandonck.content.sync.ShareResult
 import be.wimvandonck.content.ui.ExternalApps
 
 /**
- * Content's own share sheet (#251), in place of Android's: first Send with Content, to the people
- * shared with before (one tap sends) or to another address, typed in the sheet itself (#256); then the apps used most from this sheet
+ * Content's own share sheet (#251), in place of Android's: first Send with Content, the same as in
+ * the Save and share sheet ([SendToSection], #256: the people shared with before as chips to pick,
+ * Add address for someone new, then Send to everyone picked); then the apps used most from this sheet
  * (Android doesn't tell apps which ones you use elsewhere), Copy link, and More for Android's own
  * share sheet with every app.
  */
@@ -65,17 +62,16 @@ fun ShareSheet(
     signedIn: Boolean,
     /** The apps to show, in order (data/ShareApps.kt). */
     apps: List<ExternalApps.ShareApp>,
-    onSendTo: (email: String) -> Unit,
-    /** Sends to an address typed in the sheet (#256): what went wrong, shown under it, or null when it was sent. */
-    onSendOther: suspend (email: String) -> ShareResult?,
+    /** Sends to everyone picked under Send with Content. */
+    onSend: (emails: List<String>) -> Unit,
+    /** Whether an address added under Send with Content has a Content account; null when that couldn't be asked. */
+    hasAccount: suspend (String) -> Boolean?,
     onApp: (ExternalApps.ShareApp) -> Unit,
     onCopyLink: () -> Unit,
     onMore: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val recipients = LocalShareRecipients.current
-    // Email address opens a field in the sheet itself, not a dialog on top of it (#256).
-    var typing by rememberSaveable { mutableStateOf(false) }
+    var picked by remember { mutableStateOf(listOf<String>()) }
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(
             Modifier
@@ -90,29 +86,11 @@ fun ShareSheet(
             }
             if (signedIn) {
                 Heading(stringResource(R.string.share_send_with_content))
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                ) {
-                    items(recipients.emails, key = { it }) { email ->
-                        val name = recipientName(recipients, email)
-                        Tile(label = name ?: email, onClick = { onSendTo(email) }) {
-                            RecipientAvatar(email, name, recipients.showImages, size = TILE_ICON)
-                        }
+                Column(Modifier.padding(horizontal = 24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    SendToSection(picked, onChange = { picked = it }, hasAccount = hasAccount)
+                    Button(onClick = { onSend(picked) }, enabled = picked.isNotEmpty(), modifier = Modifier.align(Alignment.End)) {
+                        Text(stringResource(R.string.share_user_send))
                     }
-                    item(key = "other") {
-                        Tile(label = stringResource(R.string.account_email), onClick = { typing = true }) {
-                            Circle { Icon(painterResource(R.drawable.ic_add), contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer) }
-                        }
-                    }
-                }
-                if (typing) {
-                    AddressField(
-                        actionLabel = stringResource(R.string.share_user_send),
-                        actionIcon = R.drawable.ic_share,
-                        onSubmit = onSendOther,
-                        modifier = Modifier.padding(horizontal = 24.dp),
-                    )
                 }
             }
             Heading(stringResource(R.string.action_share))

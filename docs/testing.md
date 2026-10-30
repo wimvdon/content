@@ -45,7 +45,7 @@ when the run fails.
 | Web `extension.test.ts` | The browser extension (#168): whether it is installed, asking it for a page and reading its bytes and final address, ignoring messages from other origins, and giving up when it says no or doesn't answer. The extension itself (`extension/`) has no build and is tried by hand (see `extension/README.md`) |
 
 | `ArticleReportTest` | Reporting a badly cleaned-up article (#181): the pre-filled GitHub issue has the `parser` label, a title with the problem and website, the link, problem and app in its body, no empty comment, a long comment cut, spaces kept, and the text Content shows (#251): one paragraph per block, whole when it fits, else cut at a word so the address stays short enough. The web app's `articleReport.test.ts` checks the same report |
-| `SendToTest` | Save and share (#256): what looks like an email address, the people offered (those shared with before, then added ones, each once), picking and unpicking (case ignored), the button (Save, Save and send, Send), Don't save needs someone to send to, one message for who it reached or the first one it didn't |
+| `SendToTest` | Save and share (#256): what looks like an email address, the people offered (those shared with before, then added ones, each once), picking and unpicking (case ignored), the button (Save, Save and send, Send for the share menu's Send with Content), sending only needs someone to send to, one message for who it reached or the first one it didn't |
 | `ShareAppsTest` | Content's share sheet (#251): apps picked most first, then well-known messaging and mail apps, then by name; an app's share targets counted apart; the counts stored and read back. `ShareShortcutsTest` also checks the launcher's folders (the first four, and the open request they make) |
 | `SiteSignInsTest` | Signing in to sites you pay for (#180): the site of an address (https only, without www.), a site's cookies only to that site and its subdomains (not to look-alike or http addresses), the closest site winning, cookie names, sign-ins stored and read back |
 | `SharingTest` | Sharing with other Content users (#167) and the inbox (#246): shared articles land in the inbox, unread, with who shared them, not in Saved; saving one keeps it in the inbox and removing it from Saved too; one already saved arrives in the inbox and keeps its place in Saved; one shared again comes back unread with its latest sender; the inbox newest first, read and unread; a tag's articles newest first; who shared it synced and merged with the item and stored in the database; the account's inbox read. The web app's `sharing.test.ts` runs the same cases, and the Worker's `share.test.ts` checks the account check, the inbox until taken in, and refusing a false sender or an address without an account |
@@ -151,7 +151,7 @@ and then (always before a release):
       shows; tap: the feed's text, tap again: the full article), Aa and ⋮, before and after saving;
       the bar below has Save on the left, or once saved the folder and the tags side by side (both
       icons in the same colour), and Share at the right end; the text ends with Read on website; ⋮
-      has Open in browser, Mark as unread and Remove from Saved (asks first), no Tags. Web app: the same.
+      has Open in browser, Mark as unread and Remove from Saved (at once, Undo in the message), no Tags. Web app: the same.
       Nothing says "Finished reading", in any language.
       Leave an article halfway and open it again: it opens where you were. ☰ › Folders and tags
       renames and removes folders (their articles go to the Archive, not back to To read) and tags. An app updated from a
@@ -248,7 +248,7 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
 - [ ] Save and share (#256): pick a person under Send with Content, the button says Save and send,
       and one message says "Saved to … · Sent to …". Share a link from another app to a person at the
       top of the share menu: Send with Content opens with them picked, the button says Send. The
-      share menu's Save and share has no Don't save; its Send with Content only sends; its Add feed
+      sheet has no Don't save anywhere; the share menu's Save and share saves; its Send with Content only sends; its Add feed
       opens Add feed with the link. After saving, a tap anywhere but Open goes back to the other app.
 - [ ] Web app: Escape closes a menu, then the article; shortcuts do nothing behind a dialog. On a
       phone, messages show above the bottom bar, and the round read button shows on every row.

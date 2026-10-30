@@ -79,7 +79,6 @@
     <string name="share_user_sent">An %1$s gesendet</string>
     <string name="save_share_title">Speichern und teilen</string>
     <string name="action_save_and_send">Speichern und senden</string>
-    <string name="place_dont_save">Nicht speichern</string>
     <string name="share_add_address">Adresse hinzufügen</string>
     <plurals name="share_sent_people">
         <item quantity="one">An %1$d Person gesendet</item>
@@ -283,7 +282,6 @@
     <string name="saved_folder_remove_body">Den Ordner %1$s entfernen? Seine Elemente kommen ins Archiv.</string>
     <string name="saved_remove">Aus Gespeichert entfernen</string>
     <string name="saved_removed">Aus Gespeichert entfernt</string>
-    <string name="saved_remove_body">Dieses Element mit Notiz, Tags und Markierungen entfernen? Archivieren hält es durchsuchbar.</string>
     <string name="saved_empty_body">Wische einen Feed-Artikel nach links, tippe in einem Artikel auf Speichern, teile einen Link mit Content oder füge hier einen hinzu.</string>
     <string name="manage_folders_tags_empty_title">Noch keine Ordner oder Tags</string>
     <string name="manage_folders_tags_empty_body">Ordner und Tags deiner gespeicherten Elemente erscheinen hier, damit du sie umbenennen kannst.</string>

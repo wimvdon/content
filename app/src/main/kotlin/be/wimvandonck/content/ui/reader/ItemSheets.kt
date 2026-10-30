@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -13,7 +14,6 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -164,14 +164,15 @@ fun SaveSheet(
     key: String? = url,
     /** Cancel, or the sheet closed without Save. */
     onCancel: () -> Unit = {},
-    /** Remove, for [SheetKind.JustSaved]: takes the save back. */
+    /**
+     * Remove, at the bottom left of a saved article's sheet: for [SheetKind.JustSaved] it takes the
+     * save back; for [SheetKind.Organise] it removes the article from Saved. The caller offers Undo.
+     */
     onRemove: () -> Unit = {},
     /** Signed in to a Content account: Send with Content is offered (#256). */
     signedIn: Boolean = false,
     /** Whether an address added under Send with Content has a Content account; null when that couldn't be asked. */
     hasAccount: suspend (String) -> Boolean? = { null },
-    /** Don't save is offered next to the places (in the app; other apps have a Send target instead). */
-    dontSave: Boolean = true,
     /** Only Send with Content, nothing saved: the share menu's Send target. */
     sendOnly: Boolean = false,
 ) {
@@ -192,8 +193,6 @@ fun SaveSheet(
         }
         onDismiss()
     }
-    // Don't save only before the save, and only when it can be sent instead.
-    val offerDontSave = kind == SheetKind.New && signedIn && dontSave && !sendOnly
     // Cancel, or closing the sheet, changes nothing (#156); an article saved a moment ago stays where it went.
     val cancel = {
         onCancel()
@@ -208,7 +207,14 @@ fun SaveSheet(
         ) {
             // The sheet itself picks To read or the Archive, so the title doesn't name one (#229).
             Text(
-                stringResource(if (sendOnly) R.string.share_send_with_content else R.string.save_share_title),
+                stringResource(
+                    when {
+                        sendOnly -> R.string.share_send_with_content
+                        // Nothing to share here (Share is next to Organise): it only organises.
+                        kind == SheetKind.Organise -> R.string.organise_title
+                        else -> R.string.save_share_title
+                    },
+                ),
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.semantics { heading() },
             )
@@ -234,37 +240,37 @@ fun SaveSheet(
                 FolderChips(
                     choice.place,
                     folders,
-                    onChange = { choice = choice.copy(place = it, keep = true) },
+                    onChange = { choice = choice.copy(place = it) },
                     name = folderName,
                     onNameChange = { folderName = it },
-                    keep = choice.keep.takeIf { offerDontSave },
-                    onDontSave = { choice = choice.copy(keep = false) },
                 )
             }
             // Only sent: nothing of it is kept, so there is nothing to tag or note.
             if (choice.keep) SavedParts(choice, allTags, tagName, onTagNameChange = { tagName = it }, onChange = { choice = it })
-            if (signedIn) {
+            // Organising a saved article doesn't send: Share is right next to Organise.
+            if (signedIn && kind != SheetKind.Organise) {
                 // The sheet's title says it already when it only sends.
                 if (!sendOnly) SheetSection(stringResource(R.string.share_send_with_content))
                 SendToSection(choice.sendTo, onChange = { choice = choice.copy(sendTo = it) }, hasAccount = hasAccount)
             } else if (sendOnly) {
                 Text(stringResource(R.string.share_user_signed_out), style = MaterialTheme.typography.bodyMedium)
             }
-            Row(Modifier.align(Alignment.End), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (kind == SheetKind.JustSaved) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                // A saved article (just saved, or organised later): Remove at the bottom left, away from Save.
+                if (saved) {
                     TextButton(
                         onClick = {
-                            onRemove()
                             onDismiss()
+                            onRemove()
                         },
                         colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
                     ) {
                         Icon(painterResource(R.drawable.ic_delete), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
                         Text(stringResource(R.string.action_remove), modifier = Modifier.padding(start = 8.dp))
                     }
-                } else {
-                    TextButton(onClick = cancel) { Text(stringResource(R.string.action_cancel)) }
                 }
+                Spacer(Modifier.weight(1f))
+                TextButton(onClick = cancel) { Text(stringResource(R.string.action_cancel)) }
                 Button(enabled = SendTo.canConfirm(choice, hasLink = saved || link != null), onClick = save) {
                     Text(
                         stringResource(
@@ -343,9 +349,6 @@ fun FolderChips(
     /** The folder being typed, kept by the sheet so Save files it there too. */
     name: String,
     onNameChange: (String) -> Unit,
-    /** Whether it is kept, when Don't save is offered (#256); null when it isn't. */
-    keep: Boolean? = null,
-    onDontSave: () -> Unit = {},
 ) {
     var making by rememberSaveable { mutableStateOf(false) }
     val make = {
@@ -356,7 +359,7 @@ fun FolderChips(
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         FlowRow(Modifier.selectableGroup(), horizontalArrangement = Arrangement.spacedBy(8.dp), itemVerticalAlignment = Alignment.CenterVertically) {
             SaveChoices.places(folders, place).forEach { option ->
-                val selected = keep != false && SaveChoices.same(option, place)
+                val selected = SaveChoices.same(option, place)
                 FilterChip(
                     selected = selected,
                     onClick = { onChange(option) },
@@ -386,22 +389,6 @@ fun FolderChips(
                     modifier = Modifier.semantics { role = Role.RadioButton },
                 )
             }
-            // Saved has no folders any more (#186): To read or Archive, and tags below.
-            if (keep != null) {
-                FilterChip(
-                    selected = !keep,
-                    onClick = onDontSave,
-                    label = { Text(stringResource(R.string.place_dont_save)) },
-                    leadingIcon = {
-                        Icon(
-                            painterResource(if (!keep) R.drawable.ic_check else R.drawable.ic_share),
-                            contentDescription = null,
-                            modifier = Modifier.size(FilterChipDefaults.IconSize),
-                        )
-                    },
-                    modifier = Modifier.semantics { role = Role.RadioButton },
-                )
-            }
         }
         if (making) {
             OutlinedTextField(
@@ -420,24 +407,4 @@ fun FolderChips(
             )
         }
     }
-}
-
-/** Remove from Saved (the reader's ⋮): asks first, says what stays. */
-@Composable
-fun RemoveDialog(
-    onRemove: () -> Unit,
-    onDismiss: () -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.saved_remove)) },
-        text = { Text(stringResource(R.string.saved_remove_body)) },
-        confirmButton = {
-            TextButton(onClick = {
-                onDismiss()
-                onRemove()
-            }, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) { Text(stringResource(R.string.action_remove)) }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
-    )
 }

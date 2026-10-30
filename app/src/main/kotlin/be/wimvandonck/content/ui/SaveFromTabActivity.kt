@@ -6,23 +6,12 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
@@ -51,6 +40,7 @@ import be.wimvandonck.content.ui.reader.ProvideShareRecipients
 import be.wimvandonck.content.ui.reader.messageRes
 import be.wimvandonck.content.ui.reader.SheetKind
 import be.wimvandonck.content.ui.theme.RssReaderAppTheme
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 /**
@@ -103,7 +93,7 @@ class SaveFromTabActivity : ComponentActivity() {
             RssReaderAppTheme {
                 // Send with Content offers the people shared with before here too (#249).
                 ProvideShareRecipients {
-                    SaveFromTab(link, person, sendOnly = target == ShareTargets.Target.Send, fromOtherApp = shared, onDone = ::finish)
+                    SaveFromTab(link, person, sendOnly = target == ShareTargets.Target.Send, onDone = ::finish)
                 }
             }
         }
@@ -117,8 +107,6 @@ private fun SaveFromTab(
     person: String?,
     /** The share menu's Send with Content: nothing is saved. */
     sendOnly: Boolean,
-    /** Shared from another app, which has its own Send target, so no Don't save. */
-    fromOtherApp: Boolean,
     onDone: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -128,10 +116,12 @@ private fun SaveFromTab(
     val tagWithFolder = app.settings.settings.collectAsStateWithLifecycle().value?.tagWithFolder ?: true
     val signedIn = app.account.state.collectAsStateWithLifecycle().value is AccountState.SignedIn
 
-    // After Save, the message with Open (#142): the only thing of Reader this screen shows besides
-    // the sheet. It goes when it times out or is tapped, and so does the screen.
+    // After Save or Send, the message (with Open for a save, #142): the only thing of Content this
+    // screen shows besides the sheet. It goes when it times out or is tapped, and so does the screen.
     var sheetOpen by rememberSaveable { mutableStateOf(true) }
     var confirmation by remember { mutableStateOf<Confirmation?>(null) }
+    // Sending is under way: the screen stays for its message.
+    var sending by remember { mutableStateOf(false) }
 
     // The one save sheet (#143), for a new save: the link, its folder (or Archive), Like, tags and a note.
     if (sheetOpen) {
@@ -144,77 +134,85 @@ private fun SaveFromTab(
             allTags = library.itemTags(),
             signedIn = signedIn,
             hasAccount = app.sync::hasAccount,
-            dontSave = !fromOtherApp,
             sendOnly = sendOnly,
             onSave = { url, choice ->
                 val key = ItemKeys.of(url)
-                // Sent with Content (#256): a short message from Android says how it went, as this screen closes.
-                if (url != null && choice.sendTo.isNotEmpty()) {
-                    app.appScope.launch {
-                        val results = choice.sendTo.map { email -> email to app.sync.share(email, listOf(SharedArticle(url, link.title ?: url))) }
-                        val text =
-                            when (val outcome = SendTo.outcome(results)) {
-                                is SendTo.Outcome.Sent ->
-                                    outcome.to.singleOrNull()?.let { resources.getString(R.string.share_user_sent, it) }
-                                        ?: resources.getQuantityString(R.plurals.share_sent_people, outcome.to.size, outcome.to.size)
-                                is SendTo.Outcome.Failed -> resources.getString(outcome.result.messageRes())
-                                null -> null
+                if (url == null) return@SaveSheet
+                val saved =
+                    if (key != null && choice.keep) {
+                        val place =
+                            when (val p = choice.place) {
+                                Place.ToRead -> resources.getString(R.string.reading_list_to_read)
+                                Place.Archive -> resources.getString(R.string.reading_list_archive)
+                                is Place.Folder -> p.name
                             }
-                        if (text != null) Toast.makeText(app, text, Toast.LENGTH_SHORT).show()
+                        app.appScope.launch {
+                            var item: Item? = null
+                            app.library.edit { lib ->
+                                val (updated, new) = SaveChoices.saveNew(lib, url, link.title, System.currentTimeMillis(), choice)
+                                item = new
+                                if (new != null && tagWithFolder) updated.tagWithFeedFolder(new.key) else updated
+                            }
+                            item?.let { app.library.describe(it.key) }
+                        }
+                        Confirmation(resources.getString(R.string.saved_to, place), Article.keyOf(ReadingLists.ITEM_FEED, key))
+                    } else {
+                        null
                     }
+                if (choice.sendTo.isEmpty()) {
+                    confirmation = saved
+                    return@SaveSheet
                 }
-                if (url != null && key != null && choice.keep) {
-                    val place =
-                        when (val p = choice.place) {
-                            Place.ToRead -> resources.getString(R.string.reading_list_to_read)
-                            Place.Archive -> resources.getString(R.string.reading_list_archive)
-                            is Place.Folder -> p.name
+                // Sent with Content (#256): one message says where it went and who got it, once sending is done.
+                // In the app's scope, so sending finishes even if this screen goes first.
+                sending = true
+                app.appScope.launch(Dispatchers.Main) {
+                    val results = choice.sendTo.map { email -> email to app.sync.share(email, listOf(SharedArticle(url, link.title ?: url))) }
+                    val sent =
+                        when (val outcome = SendTo.outcome(results)) {
+                            is SendTo.Outcome.Sent ->
+                                outcome.to.singleOrNull()?.let { resources.getString(R.string.share_user_sent, it) }
+                                    ?: resources.getQuantityString(R.plurals.share_sent_people, outcome.to.size, outcome.to.size)
+                            is SendTo.Outcome.Failed -> resources.getString(outcome.result.messageRes())
+                            null -> null
                         }
-                    confirmation = Confirmation(resources.getString(R.string.saved_to, place), Article.keyOf(ReadingLists.ITEM_FEED, key))
-                    app.appScope.launch {
-                        var saved: Item? = null
-                        app.library.edit { lib ->
-                            val (updated, item) = SaveChoices.saveNew(lib, url, link.title, System.currentTimeMillis(), choice)
-                            saved = item
-                            if (item != null && tagWithFolder) updated.tagWithFeedFolder(item.key) else updated
+                    sending = false
+                    confirmation =
+                        when {
+                            saved == null -> sent?.let { Confirmation(it, null) }
+                            sent == null -> saved
+                            else -> saved.copy(text = resources.getString(R.string.saved_and_sent, saved.text, sent))
                         }
-                        saved?.let { app.library.describe(it.key) }
-                    }
+                    if (confirmation == null && !sheetOpen) onDone()
                 }
             },
             onDismiss = {
                 sheetOpen = false
-                if (confirmation == null) onDone()
+                if (confirmation == null && !sending) onDone()
             },
         )
     }
     val shown = confirmation
     if (!sheetOpen && shown != null) {
-        val snackbar = remember { SnackbarHostState() }
-        // A tap anywhere (but Open) goes back to the other app at once.
-        Box(
-            Modifier
-                .fillMaxSize()
-                .clickable(interactionSource = null, indication = null, onClickLabel = stringResource(R.string.action_back), onClick = onDone)
-                .safeDrawingPadding(),
-            contentAlignment = Alignment.BottomCenter,
-        ) { SnackbarHost(snackbar) }
-        val open = stringResource(R.string.action_open)
-        LaunchedEffect(shown) {
-            if (snackbar.showSnackbar(shown.text, actionLabel = open, duration = SnackbarDuration.Short) == SnackbarResult.ActionPerformed) {
+        val readerKey = shown.readerKey
+        ShareConfirmation(
+            shown.text,
+            onDone = onDone,
+            // Open only for a save: it goes to the article in Saved.
+            actionLabel = readerKey?.let { stringResource(R.string.action_open) },
+            onAction = {
                 context.startActivity(
                     Intent(context, MainActivity::class.java)
-                        .putExtra(MainActivity.EXTRA_OPEN_ARTICLE, shown.readerKey)
+                        .putExtra(MainActivity.EXTRA_OPEN_ARTICLE, readerKey)
                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
                 )
-            }
-            onDone()
-        }
+            },
+        )
     }
 }
 
-/** What the message after saving says, and the article its Open goes to (its reader key). */
+/** What the message after saving or sending says, and the article its Open goes to (its reader key; null when only sent). */
 private data class Confirmation(
     val text: String,
-    val readerKey: String,
+    val readerKey: String?,
 )

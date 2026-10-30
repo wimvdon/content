@@ -190,13 +190,14 @@ After **Save**, **Save and share** opens (#256): the **Folder** (To read and **A
 your folders, or **New folder** to make one), the **Tags** with **Like** in front (every tag you use,
 tap to turn one on or off; **New tag** makes one that doesn't exist yet), a **Note**, and, signed
 in, **Send with Content**: the people you sent something to before, tap one or more, or **Add
-address** for someone new (Content checks they have an account). The button then says **Save**,
-**Save and send** or, for a link you add with **Don't save** picked (nothing lands in Saved),
-**Send**. It keeps what you chose, also a folder or tag you typed but
-didn't add yet, and one message says where it went and who got it. **Remove** takes the save back, as if you never
-saved it ("Removed from Saved"); closing the sheet keeps it where it was just saved, unchanged.
+address** for someone new (Content checks they have an account). The button then says **Save** or
+**Save and send** (to only send a link, use Share or the share menu's Send with Content). It keeps what you chose, also a folder or tag you typed but
+didn't add yet, and one message says where it went and who got it. **Remove**, at the bottom left, takes the save back, as if you never
+saved it ("Removed from Saved", with **Undo**); closing the sheet keeps it where it was just saved, unchanged.
 The same sheet opens when you press and hold a saved article in Saved, a row in To read or a card
-elsewhere, and pick **Organise** (web: right-click it); **Share** and **Remove from Saved** (with
+elsewhere, and pick **Organise** (web: right-click it), or tap Organise in a saved article's bottom
+bar. Organise has no Send with Content (Share is right next to it) and has **Remove** at the bottom
+left, which takes the article out of Saved (with **Undo**); **Share** and **Remove from Saved** (with
 **Undo**) are in that menu too, and in To read also **Archive** (or **To read** in the Archive). Cards don't swipe. When it
 closes, a message says where the article went; after a swipe, **Add link** or a link shared from
 another app it also has **Open**, which goes to the article in Saved.
@@ -235,10 +236,11 @@ The reader has a **Save** button and a **Share** button (#256: there are no sett
 more). **Save** saves the article to **To read** and opens **Save and share**, where you can also
 send it to people with Content (see Saved). **Share** opens Content's share sheet.
 
-**Content's share sheet** (#251, on the phone). At the top, signed in, **Send with Content**: the
-people you sent something to before, with their Gravatar picture or first letter (one tap sends it
-to their inbox), and **Email address**, which opens a field in the sheet to type another one and
-send it (#256; it says at once when there is no Content account for it). Below, the apps: the ones you pick most
+**Content's share sheet** (#251; the web app's Share too). At the top, signed in, **Send with
+Content**, the same as in Save and share: the people you sent something to before, with their
+Gravatar picture or first letter, as chips to pick (several at once), and **Add address**, a field
+with a **+** that adds someone new to the chips (it says at once when there is no Content account
+for them); then **Send** sends to everyone picked. Below, the apps: the ones you pick most
 in this sheet first (Android doesn't tell apps which ones you use elsewhere, so Content counts the
 picks here, on this phone only; until then well-known messaging and mail apps come first), then
 **Copy link**, and **More** for Android's own share menu with every app.
@@ -249,14 +251,15 @@ Connecting Instapaper changes nothing here: what is in Saved is also kept in the
 over the app you were in:
 
 - **Save and share**: the save sheet (place, tags, note and, signed in, Send with Content). It has
-  no Don't save: for that, pick the next one.
+  only saves (and sends, if you pick people); to only send, pick the next one.
 - **Send with Content**: only the people to send it to; nothing lands in Saved. Signed out, it asks
   you to sign in to your Content account first.
 - **Add feed**: Add feed with the shared link filled in; tap **Add**.
 
 Signed in, the share menu also has the last few people you sent something to at the top: pick one
-and Send with Content opens with that person picked; tap **Send**. After a save, the message with
-**Open** goes when you tap anywhere else, back to the app you were in. In
+and Send with Content opens with that person picked; tap **Send**. Each ends with a message over
+the app you were in ("Saved to …", with **Open**; "Sent to …"; "Added …"), which goes when you tap
+anywhere (but Open), back to that app. In
 the web app, signed in, **Share** opens Send with Content with the people you sent to before, and
 **Other apps** (or **Copy link** where the browser has no share menu) for everything else. One article at a time: sharing a whole
 tag is gone (#251). You can send to yourself too: it lands in your own inbox, with a notification
@@ -342,8 +345,8 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   note in small letters, its tags as small chips, then the site, a marker icon with how many
   highlights it has, and a heart when liked.
 - In the reader, the bar at the bottom: **its folder** (To read or Archive), which opens Organise.
-  **Remove from Saved** is in ⋮; removing asks first and takes the note, tags and highlights with it
-  (Archive keeps it searchable instead).
+  **Remove from Saved** is in ⋮ (and in Organise); it removes at once, with the note, tags and
+  highlights, and the message has **Undo** (Archive keeps it searchable instead).
 - **☰ › Manage feeds and Saved › Saved**: every tag, with how many articles have it; tap one to
   rename it (renaming it to another one's name joins the two), or remove it from every article.
 - **In the web app** Saved is the same: the same chips and cards, and **Add link**

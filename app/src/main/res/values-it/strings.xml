@@ -79,7 +79,6 @@
     <string name="share_user_sent">Inviato a %1$s</string>
     <string name="save_share_title">Salva e condividi</string>
     <string name="action_save_and_send">Salva e invia</string>
-    <string name="place_dont_save">Non salvare</string>
     <string name="share_add_address">Aggiungi indirizzo</string>
     <plurals name="share_sent_people">
         <item quantity="one">Inviato a %1$d persona</item>
@@ -292,7 +291,6 @@
     <string name="saved_folder_remove_body">Rimuovere la cartella %1$s? I suoi elementi vanno nell’Archivio.</string>
     <string name="saved_remove">Rimuovi da Salvati</string>
     <string name="saved_removed">Rimosso da Salvati</string>
-    <string name="saved_remove_body">Rimuovere questo elemento, con nota, tag ed evidenziazioni? Archiviarlo lo mantiene ricercabile.</string>
     <string name="saved_empty_body">Scorri a sinistra un articolo di un feed, tocca Salva in un articolo, condividi un link con Content o aggiungine uno qui.</string>
     <string name="manage_folders_tags_empty_title">Ancora nessuna cartella o tag</string>
     <string name="manage_folders_tags_empty_body">Cartelle e tag dei tuoi elementi salvati appaiono qui, così puoi rinominarli.</string>

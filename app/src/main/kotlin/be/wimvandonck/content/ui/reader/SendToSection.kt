@@ -11,7 +11,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -71,8 +71,6 @@ fun SendToSection(
         }
         if (adding) {
             AddressField(
-                actionLabel = stringResource(R.string.share_add_address),
-                actionIcon = R.drawable.ic_add,
                 onSubmit = { email ->
                     when (hasAccount(email)) {
                         true -> {
@@ -89,16 +87,12 @@ fun SendToSection(
 }
 
 /**
- * An email address typed in (#256), with one button at its end. [onSubmit] says what went wrong, shown
- * under the field, or null: then the field empties for the next one.
+ * An email address typed in (#256), with a filled + button at its end that adds the person to the
+ * chips. [onSubmit] says what went wrong, shown under the field, or null: then the field empties for
+ * the next one.
  */
 @Composable
-fun AddressField(
-    actionLabel: String,
-    actionIcon: Int,
-    onSubmit: suspend (email: String) -> ShareResult?,
-    modifier: Modifier = Modifier,
-) {
+private fun AddressField(onSubmit: suspend (email: String) -> ShareResult?) {
     var email by rememberSaveable { mutableStateOf("") }
     var busy by rememberSaveable { mutableStateOf(false) }
     var problem by rememberSaveable { mutableStateOf<ShareResult?>(null) }
@@ -115,7 +109,7 @@ fun AddressField(
             }
         }
     }
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         OutlinedTextField(
             value = email,
             onValueChange = {
@@ -128,8 +122,8 @@ fun AddressField(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(onDone = { submit() }),
             trailingIcon = {
-                IconButton(onClick = { submit() }, enabled = valid && !busy) {
-                    Icon(painterResource(actionIcon), contentDescription = actionLabel)
+                FilledTonalIconButton(onClick = { submit() }, enabled = valid && !busy) {
+                    Icon(painterResource(R.drawable.ic_add), contentDescription = stringResource(R.string.share_add_address))
                 }
             },
             modifier = Modifier.fillMaxWidth(),
