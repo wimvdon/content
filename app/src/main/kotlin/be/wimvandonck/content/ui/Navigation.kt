@@ -86,6 +86,7 @@ import be.wimvandonck.content.data.tagCounts
 import be.wimvandonck.content.feed.FeedDiscovery
 import be.wimvandonck.content.ui.home.HomeSection
 import be.wimvandonck.content.ui.home.SavedHome
+import be.wimvandonck.content.ui.reader.RemoveDialog
 import be.wimvandonck.content.ui.reader.SaveSheet
 import be.wimvandonck.content.ui.reader.ReaderHighlights
 import be.wimvandonck.content.ui.reader.SheetKind
@@ -290,6 +291,17 @@ fun RssReaderNavigation(
     var fileKey by rememberSaveable { mutableStateOf<String?>(null) }
     // Organise was opened from the reader: removing the article there closes it too.
     var fileFromReader by rememberSaveable { mutableStateOf(false) }
+    // Remove from Saved asks first, wherever it is tapped; from the reader, the reader closes after.
+    var removingKey by rememberSaveable { mutableStateOf<String?>(null) }
+    var removingFromReader by rememberSaveable { mutableStateOf(false) }
+
+    fun askRemove(
+        key: String,
+        fromReader: Boolean,
+    ) {
+        removingKey = key
+        removingFromReader = fromReader
+    }
 
     /** Archives a saved item, with Undo (back where it was, in its folder); an archived one goes back to read. */
     fun archive(item: Item) {
@@ -734,12 +746,7 @@ fun RssReaderNavigation(
                                     fileKey = it.key
                                     fileFromReader = false
                                 },
-                                onRemoveItem = { item ->
-                                    editLibrary { Saved.remove(it, item.key) }
-                                    showMessage(resources.getString(R.string.saved_removed), resources.getString(R.string.action_undo)) {
-                                        editLibrary { it.putItem(item) }
-                                    }
-                                },
+                                onRemoveItem = { item -> askRemove(item.key, fromReader = false) },
                                 onShareArticle = ::share,
                                 onOpenInbox = { push(Screen.Inbox) },
                                 onShareItem = { item -> share(ReadingLists.article(item, library)) },
@@ -856,13 +863,7 @@ fun RssReaderNavigation(
                                             fileKey = i.key
                                             fileFromReader = true
                                         },
-                                        onRemove = {
-                                            editLibrary { Saved.remove(it, i.key) }
-                                            pop()
-                                            showMessage(resources.getString(R.string.saved_removed), resources.getString(R.string.action_undo)) {
-                                                editLibrary { it.putItem(i) }
-                                            }
-                                        },
+                                        onRemove = { askRemove(i.key, fromReader = true) },
                                         onProgress = { progress ->
                                             if (kotlin.math.abs(progress - i.progress) >= 0.01f) {
                                                 editLibrary { lib -> lib.changeItem(i.key) { if (it.readingList == null) it else it.copy(progress = progress) } }
@@ -1118,25 +1119,15 @@ fun RssReaderNavigation(
                     addedKey != null -> confirmSaved(sheetItem, choice.place)
                 }
             },
-            // Cancelled right after saving: it stays where it was saved (#156).
-            onCancel = { if (addedKey != null) confirmSaved(sheetItem, SaveChoices.of(sheetItem).place) },
-            onRemove = {
+            // Cancelled right after saving: neither saved nor sent, as if Save was never tapped.
+            onCancel = {
                 if (addedKey != null) {
-                    // Remove right after saving takes the save back: as if it was never saved.
                     val before = addedBefore
                     editLibrary { SaveChoices.undoSave(it, sheetItem.key, before) }
-                    showMessage(resources.getString(R.string.saved_removed), resources.getString(R.string.action_undo)) {
-                        editLibrary { it.putItem(sheetItem) }
-                    }
-                } else {
-                    // Remove in Organise: out of Saved, with Undo as a swipe in Saved has; the reader closes.
-                    editLibrary { Saved.remove(it, sheetItem.key) }
-                    if (fileFromReader) pop()
-                    showMessage(resources.getString(R.string.saved_removed), resources.getString(R.string.action_undo)) {
-                        editLibrary { it.putItem(sheetItem) }
-                    }
                 }
             },
+            // Remove in Organise: asks first, as everywhere.
+            onRemove = { askRemove(sheetItem.key, fileFromReader) },
             onDismiss = {
                 addedKey = null
                 fileKey = null
@@ -1144,6 +1135,17 @@ fun RssReaderNavigation(
             key = sheetItem.key,
             signedIn = accountState is AccountState.SignedIn,
             hasAccount = app.sync::hasAccount,
+        )
+    }
+
+    removingKey?.let { key ->
+        RemoveDialog(
+            onRemove = {
+                editLibrary { Saved.remove(it, key) }
+                if (removingFromReader) pop()
+                showMessage(resources.getString(R.string.saved_removed))
+            },
+            onDismiss = { removingKey = null },
         )
     }
 

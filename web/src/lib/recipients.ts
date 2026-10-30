@@ -13,6 +13,12 @@ export function rememberRecipient(list: string[], email: string): string[] {
   return [clean, ...list.filter((e) => e !== clean)].slice(0, MAX_RECIPIENTS);
 }
 
+/** The list without email: forgotten, so it is no longer offered (hold a person, then ×). */
+export function forgetRecipient(list: string[], email: string): string[] {
+  const clean = email.trim().toLowerCase();
+  return list.filter((e) => e !== clean);
+}
+
 export const encodeRecipients = (list: string[]) => JSON.stringify(list);
 
 /** The list in text, or null when it isn't one. */

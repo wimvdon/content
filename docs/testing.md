@@ -151,7 +151,7 @@ and then (always before a release):
       shows; tap: the feed's text, tap again: the full article), Aa and ⋮, before and after saving;
       the bar below has Save on the left, or once saved the folder and the tags side by side (both
       icons in the same colour), and Share at the right end; the text ends with Read on website; ⋮
-      has Open in browser, Mark as unread and Remove from Saved (at once, Undo in the message), no Tags. Web app: the same.
+      has Open in browser, Mark as unread and Remove from Saved (asks first, everywhere), no Tags. Web app: the same.
       Nothing says "Finished reading", in any language.
       Leave an article halfway and open it again: it opens where you were. ☰ › Folders and tags
       renames and removes folders (their articles go to the Archive, not back to To read) and tags. An app updated from a
@@ -250,6 +250,9 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
       top of the share menu: Send with Content opens with them picked, the button says Send. The
       sheet has no Don't save anywhere; the share menu's Save and share saves; its Send with Content only sends; its Add feed
       opens Add feed with the link. After saving, a tap anywhere but Open goes back to the other app.
+- [ ] Send with Content: hold a person, each one shared with before gets an ×; tapping it removes
+      them (also on the other device after a sync), Done ends it. Dragging a feed in Manage feeds
+      and folders and dropping it: it glides into place, nothing jumps.
 - [ ] Web app: Escape closes a menu, then the article; shortcuts do nothing behind a dialog. On a
       phone, messages show above the bottom bar, and the round read button shows on every row.
       Moving a feed up or down in Manage feeds always moves it within its folder.

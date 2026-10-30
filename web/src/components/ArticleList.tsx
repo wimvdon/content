@@ -1,6 +1,7 @@
 import { Archive, ArrowLeft, Bell, BookmarkPlus, BookOpen, CheckCheck, ChevronDown, Circle, CircleCheck, Folder as FolderGlyph, Heart, Highlighter, Link2, Menu, Newspaper, Quote, RefreshCw, Rss, Search, Share2, StickyNote, Tag as TagIcon, Trash2, X, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useEscape } from "./ui/useEscape";
+import { RemoveDialog } from "./SavedActions";
 import { app, useApp } from "@/lib/app";
 import { snippet } from "@/lib/html";
 import { dayLabel, plural, t } from "@/lib/i18n";
@@ -209,6 +210,7 @@ function SavedArticles({
 }) {
   const { library, savedFilter: filter, loaded } = useApp();
   const [share, shareDialog] = useShare((text) => onMessage(text));
+  const [removing, setRemoving] = useState<Item | null>(null);
   // Right-click or press and hold on a saved item (#221, #263), cards and rows alike.
   const menuOf = (item: Item) => [
     { icon: <TagIcon />, label: t("organiseTitle"), onClick: () => app.openOrganise(item.key) },
@@ -216,10 +218,8 @@ function SavedArticles({
     {
       icon: <Trash2 />,
       label: t("savedRemove"),
-      onClick: () => {
-        app.removeItem(item.key);
-        onMessage(t("savedRemoved"), { label: t("undo"), run: () => app.restoreItem(item) });
-      },
+      // Asks first, as everywhere.
+      onClick: () => setRemoving(item),
     },
   ];
   const items = useMemo(() => savedItems(library, filter), [library, filter]);
@@ -318,6 +318,7 @@ function SavedArticles({
         )}
       </div>
       {shareDialog}
+      {removing ? <RemoveDialog item={removing} open onClose={() => setRemoving(null)} onRemoved={() => onMessage(t("savedRemoved"))} /> : null}
     </section>
   );
 }

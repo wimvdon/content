@@ -244,7 +244,7 @@ fun ReaderScreen(
                                 leadingIcon = { Icon(painterResource(R.drawable.ic_delete), contentDescription = null) },
                                 onClick = {
                                     menuOpen = false
-                                    // Removed at once, with Undo in the message, as everywhere else.
+                                    // Asks first (RemoveDialog), as everywhere.
                                     item.onRemove()
                                 },
                             )

@@ -80,6 +80,8 @@
     <string name="save_share_title">Opslaan en delen</string>
     <string name="action_save_and_send">Opslaan en versturen</string>
     <string name="share_add_address">Adres toevoegen</string>
+    <string name="share_recipients_done">Klaar</string>
+    <string name="share_recipient_forget">%1$s verwijderen</string>
     <plurals name="share_sent_people">
         <item quantity="one">Verstuurd naar %1$d persoon</item>
         <item quantity="other">Verstuurd naar %1$d personen</item>
@@ -281,6 +283,7 @@
     <string name="saved_folder_remove">Map verwijderen</string>
     <string name="saved_folder_remove_body">De map %1$s verwijderen? De items gaan naar het Archief.</string>
     <string name="saved_remove">Verwijderen uit Bewaard</string>
+    <string name="saved_remove_body">Dit item verwijderen, met zijn notitie, tags en markeringen? Archiveren houdt het doorzoekbaar.</string>
     <string name="saved_removed">Verwijderd uit Bewaard</string>
     <string name="saved_empty_body">Veeg een artikel uit een feed naar links, tik op Opslaan in een artikel, deel een link met Content of voeg er hier een toe.</string>
     <string name="manage_folders_tags_empty_title">Nog geen mappen of tags</string>

@@ -318,9 +318,10 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   chips). Section titles in Title Small, `primary`. Then Cancel and the button, which says **Save**,
   **Save and send** or **Send**: closing the sheet is Cancel, so only the button changes or sends
   anything; the heading is "Save and share", or "Organise" for an article saved before: that one has no Send
-  with Content (Share is next to Organise) and a red Remove at the bottom left. Right after a save ("Saved to …") Remove sits there
-  too and takes the save back; closing keeps it. Remove (error colour, trash icon) acts at once, with
-  Undo in its snackbar, wherever it is: these sheets, the reader's ⋮, a swipe in Saved. A
+  with Content (Share is next to Organise) and a red Remove at the bottom left. Right after a save there is no Remove:
+  Cancel (or closing the sheet) saves and sends nothing, so it takes the save back. Remove from Saved (error
+  colour, trash icon) asks first in a dialog, wherever it is: Organise, the reader's ⋮, a row's menu
+  in Saved; no Undo. A
   folder or tag still being typed is taken by the button. One snackbar says where it went and who
   got it ("Saved to To read · Sent to …"). Other apps' share menus have three targets: Save and share
   (the same sheet), Send with Content (the sheet with only Send with Content,
