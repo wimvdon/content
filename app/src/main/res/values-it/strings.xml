@@ -80,6 +80,8 @@
     <string name="save_share_title">Salva e condividi</string>
     <string name="action_save_and_send">Salva e invia</string>
     <string name="share_add_address">Aggiungi indirizzo</string>
+    <string name="share_recipients_done">Fatto</string>
+    <string name="share_recipient_forget">Rimuovi %1$s</string>
     <plurals name="share_sent_people">
         <item quantity="one">Inviato a %1$d persona</item>
         <item quantity="many">Inviato a %1$d persone</item>

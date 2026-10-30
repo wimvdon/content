@@ -250,6 +250,9 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
       top of the share menu: Send with Content opens with them picked, the button says Send. The
       sheet has no Don't save anywhere; the share menu's Save and share saves; its Send with Content only sends; its Add feed
       opens Add feed with the link. After saving, a tap anywhere but Open goes back to the other app.
+- [ ] Send with Content: hold a person, each one shared with before gets an ×; tapping it removes
+      them (also on the other device after a sync), Done ends it. Dragging a feed in Manage feeds
+      and folders and dropping it: it glides into place, nothing jumps.
 - [ ] Web app: Escape closes a menu, then the article; shortcuts do nothing behind a dialog. On a
       phone, messages show above the bottom bar, and the round read button shows on every row.
       Moving a feed up or down in Manage feeds always moves it within its folder.

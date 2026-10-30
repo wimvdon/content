@@ -1,6 +1,18 @@
 package be.wimvandonck.content.ui.reader
 
 import androidx.compose.foundation.layout.Arrangement
+import kotlinx.coroutines.withTimeoutOrNull
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.material3.InputChip
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -37,8 +49,9 @@ import kotlinx.coroutines.launch
 /**
  * Send with Content in the Save and share sheet (#256): the people shared with before (#235, with
  * their Gravatar picture and name) as chips to pick, several at once, then Add address for someone
- * new, who is checked for a Content account before they join the chips. Sending happens with the
- * sheet's button.
+ * new, who is checked for a Content account before they join the chips. Long-press a person to edit
+ * the list: each one shared with before gets an ×, which forgets them (on every device); Done ends
+ * it. Sending happens with the sheet's button.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -50,18 +63,61 @@ fun SendToSection(
 ) {
     val recipients = LocalShareRecipients.current
     var adding by rememberSaveable { mutableStateOf(false) }
+    var editing by rememberSaveable { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val haptics = LocalHapticFeedback.current
+    val forget = { email: String ->
+        onChange(picked.filterNot { it.equals(email, ignoreCase = true) })
+        scope.launch { recipients.forget(email) }
+        Unit
+    }
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), itemVerticalAlignment = Alignment.CenterVertically) {
             for (email in SendTo.people(recipients.emails, picked)) {
                 val name = recipientName(recipients, email)
-                FilterChip(
-                    selected = SendTo.has(picked, email),
-                    onClick = { onChange(SendTo.toggle(picked, email)) },
-                    label = { Text(name ?: email, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                    leadingIcon = { RecipientAvatar(email, name, recipients.showImages) },
-                )
+                val label = name ?: email
+                // Only people shared with before can be forgotten; one just added is only picked.
+                val saved = recipients.emails.any { it.equals(email, ignoreCase = true) }
+                val forgetLabel = stringResource(R.string.share_recipient_forget, label)
+                if (editing && saved) {
+                    InputChip(
+                        selected = false,
+                        onClick = { forget(email) },
+                        label = { Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        avatar = { RecipientAvatar(email, name, recipients.showImages) },
+                        trailingIcon = { Icon(painterResource(R.drawable.ic_close), contentDescription = forgetLabel, modifier = Modifier.size(18.dp)) },
+                    )
+                } else {
+                    FilterChip(
+                        selected = SendTo.has(picked, email),
+                        onClick = { onChange(SendTo.toggle(picked, email)) },
+                        label = { Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        leadingIcon = { RecipientAvatar(email, name, recipients.showImages) },
+                        modifier =
+                            if (saved) {
+                                Modifier
+                                    .onLongPress {
+                                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        editing = true
+                                    }
+                                    // Screen readers: Remove as an action of the chip, no long-press needed.
+                                    .semantics { customActions = listOf(CustomAccessibilityAction(forgetLabel) {
+                                        forget(email)
+                                        true
+                                    }) }
+                            } else {
+                                Modifier
+                            },
+                    )
+                }
             }
-            if (!adding) {
+            if (editing) {
+                AssistChip(
+                    onClick = { editing = false },
+                    label = { Text(stringResource(R.string.share_recipients_done)) },
+                    leadingIcon = { Icon(painterResource(R.drawable.ic_check), contentDescription = null, modifier = Modifier.size(18.dp)) },
+                )
+            } else if (!adding) {
                 AssistChip(
                     onClick = { adding = true },
                     label = { Text(stringResource(R.string.share_add_address)) },
@@ -131,6 +187,26 @@ private fun AddressField(onSubmit: suspend (email: String) -> ShareResult?) {
         problem?.let { Text(stringResource(it.messageRes()), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
     }
 }
+
+/**
+ * Calls [onLongPress] when the element is held, and then keeps the press from also being a tap (the
+ * chip's own click). Watches before the chip does, so the chip's click handling needs no change.
+ */
+private fun Modifier.onLongPress(onLongPress: () -> Unit): Modifier =
+    pointerInput(Unit) {
+        awaitEachGesture {
+            awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+            val released = withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) { waitForUpOrCancellation(PointerEventPass.Initial) }
+            if (released == null) {
+                onLongPress()
+                // The rest of this press belongs to the long-press.
+                do {
+                    val event = awaitPointerEvent(PointerEventPass.Initial)
+                    event.changes.forEach { it.consume() }
+                } while (event.changes.any { it.pressed })
+            }
+        }
+    }
 
 /** What a send that didn't get through says. */
 fun ShareResult.messageRes(): Int =

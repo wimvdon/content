@@ -28,4 +28,11 @@ class RecipientsTest {
         assertNull(Recipients.decode("nonsense"))
         assertNull(Recipients.decode(null))
     }
+
+    @Test
+    fun `a forgotten person is no longer offered, whatever the case`() {
+        val list = listOf("ann@example.com", "bob@example.com")
+        assertEquals(listOf("bob@example.com"), Recipients.forget(list, " Ann@Example.com"))
+        assertEquals(list, Recipients.forget(list, "carol@example.com"))
+    }
 }

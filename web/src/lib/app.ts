@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { rememberRecipient } from "./recipients";
+import { forgetRecipient, rememberRecipient } from "./recipients";
 import { notificationsOn, refreshServiceWorker, turnOff as turnOffNotifications, turnOn as turnOnNotifications, type TurnOnResult } from "./notifications";
 import { AccountClient, emailLinkToken, finishEmailLink, LiveUpdates, sendEmailLink, SIGNIN_PATH, SyncError, type AccountSession, type EmailLinkProblem, type SyncProblem } from "./account";
 import { findFeed } from "./discovery";
@@ -632,6 +632,9 @@ class AppStore {
       return e instanceof SyncError && e.problem === "offline" ? "offline" : "failed";
     }
   };
+
+  /** Forgets someone shared with before: no longer offered, on every device (synced). */
+  forgetRecipient = (email: string) => this.updateSettings({ recipients: forgetRecipient(this.state.settings.recipients, email) });
 
   clearAccountNotice() {
     this.set({ accountNotice: null });

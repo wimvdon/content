@@ -2,6 +2,17 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-30: Forgetting recipients, a steadier drop
+
+- **People shared with can be forgotten** (owner's request): hold one in Send with Content (or
+  right-click it on the web) and every person shared with before gets an ×; tapping it takes them
+  off the synced list (`sharing.recipients`), Done ends it. Screen readers get Remove as an action on
+  each person. Content's share sheet's Send is a full-width button under the people.
+- **Feeds no longer jump when dropped** in Manage feeds and folders: the list keeps the new order
+  until it is stored (it showed the old order for a moment), and the dropped row glides into its
+  place instead of snapping there. The shared `ReorderableColumn` in the design kit snaps the same
+  way; changing it belongs in the android-app template first.
+
 ## 2026-10-30: Three share targets from other apps
 
 - At the owner's request, a link shared from another app no longer offers **Don't save** in the save

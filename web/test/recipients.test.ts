@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { defaultSettings } from "../src/lib/app";
-import { decodeRecipients, encodeRecipients, MAX_RECIPIENTS, rememberRecipient } from "../src/lib/recipients";
+import { decodeRecipients, encodeRecipients, forgetRecipient, MAX_RECIPIENTS, rememberRecipient } from "../src/lib/recipients";
 import { applySynced, RECIPIENTS, syncedSettings } from "../src/lib/syncSettings";
 
 describe("the people shared with (#235)", () => {
@@ -25,6 +25,12 @@ describe("the people shared with (#235)", () => {
     expect(decodeRecipients('["Ann@Example.com", "ann@example.com", 3, "not an address"]')).toEqual(["ann@example.com"]);
     expect(decodeRecipients("nonsense")).toBeNull();
     expect(decodeRecipients(undefined)).toBeNull();
+  });
+
+  it("forgets a person, whatever the case", () => {
+    const list = ["ann@example.com", "bob@example.com"];
+    expect(forgetRecipient(list, " Ann@Example.com")).toEqual(["bob@example.com"]);
+    expect(forgetRecipient(list, "carol@example.com")).toEqual(list);
   });
 
   it("travel with the account", () => {

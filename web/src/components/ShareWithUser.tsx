@@ -1,5 +1,5 @@
-import { Plus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Check, Plus, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { gravatarUrl } from "@/lib/account";
 import { app, useApp } from "@/lib/app";
 import { plural, t } from "@/lib/i18n";
@@ -117,8 +117,31 @@ export function Avatar({ email, label, images, className = "size-6" }: { email: 
   );
 }
 
-/** Someone shared with before (#235): their Gravatar picture (else their first letter) and name (else address). */
-function RecipientChip({ email, images, selected, onPick }: { email: string; images: boolean; selected: boolean; onPick: () => void }) {
+/** How long a press lasts before it is a hold (as Android's long-press). */
+const HOLD_MS = 500;
+
+/**
+ * Someone shared with before (#235): their Gravatar picture (else their first letter) and name (else
+ * address). Holding it (or right-clicking) starts editing the list (`onHold`); while editing, a click
+ * forgets them (`onForget`), shown by an ×.
+ */
+function RecipientChip({
+  email,
+  images,
+  selected,
+  onPick,
+  editing = false,
+  onHold,
+  onForget,
+}: {
+  email: string;
+  images: boolean;
+  selected: boolean;
+  onPick: () => void;
+  editing?: boolean;
+  onHold?: () => void;
+  onForget?: () => void;
+}) {
   const [name, setName] = useState<string | null>(null);
   useEffect(() => {
     let current = true;
@@ -127,20 +150,51 @@ function RecipientChip({ email, images, selected, onPick }: { email: string; ima
       current = false;
     };
   }, [email]);
+  const hold = useRef<{ timer: number; held: boolean } | null>(null);
   const label = name ?? email;
+  const endHold = () => {
+    if (hold.current) window.clearTimeout(hold.current.timer);
+  };
   return (
     <button
       type="button"
-      aria-pressed={selected}
-      onClick={onPick}
+      aria-pressed={editing ? undefined : selected}
+      aria-label={editing ? t("recipientForget").replace("{name}", label) : undefined}
+      onClick={() => {
+        // The click that ends a hold only starts editing.
+        if (hold.current?.held) {
+          hold.current = null;
+          return;
+        }
+        if (editing) onForget?.();
+        else onPick();
+      }}
+      onPointerDown={() => {
+        if (!onHold || editing) return;
+        const state = { held: false, timer: 0 };
+        state.timer = window.setTimeout(() => {
+          state.held = true;
+          onHold();
+        }, HOLD_MS);
+        hold.current = state;
+      }}
+      onPointerUp={endHold}
+      onPointerLeave={endHold}
+      onContextMenu={(e) => {
+        if (!onHold) return;
+        e.preventDefault();
+        onHold();
+      }}
       title={email}
       className={cn(
-        "inline-flex h-8 max-w-full cursor-pointer items-center gap-1.5 rounded-lg border pr-3 pl-1 text-sm",
-        selected ? "border-transparent bg-accent text-accent-foreground" : "hover:bg-muted",
+        "inline-flex h-8 max-w-full cursor-pointer items-center gap-1.5 rounded-lg border pl-1 text-sm select-none",
+        editing ? "pr-2 hover:bg-muted" : "pr-3",
+        !editing && (selected ? "border-transparent bg-accent text-accent-foreground" : "hover:bg-muted"),
       )}
     >
       <Avatar email={email} label={label} images={images} />
       <span className="truncate">{label}</span>
+      {editing ? <X className="size-4 shrink-0" aria-hidden="true" /> : null}
     </button>
   );
 }
@@ -148,11 +202,13 @@ function RecipientChip({ email, images, selected, onPick }: { email: string; ima
 /**
  * Send with Content in the Save and share sheet (#256), as on Android: the people shared with before as
  * chips to pick, several at once, then Add address for someone new, who is checked for a Content account
- * before they join the chips. Sending happens with the sheet's button.
+ * before they join the chips. Hold a person (or right-click) to edit the list: each one shared with before
+ * gets an ×, which forgets them on every device; Done ends it. Sending happens with the sheet's button.
  */
 export function SendToSection({ picked, onChange }: { picked: string[]; onChange: (picked: string[]) => void }) {
   const { settings } = useApp();
   const [adding, setAdding] = useState(false);
+  const [editing, setEditing] = useState(false);
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
@@ -171,10 +227,31 @@ export function SendToSection({ picked, onChange }: { picked: string[]; onChange
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap gap-2">
-        {people(settings.recipients, picked).map((address) => (
-          <RecipientChip key={address.toLowerCase()} email={address} images={settings.showImages} selected={has(picked, address)} onPick={() => onChange(toggle(picked, address))} />
-        ))}
-        {adding ? null : (
+        {people(settings.recipients, picked).map((address) => {
+          // Only people shared with before can be forgotten; one just added is only picked.
+          const saved = has(settings.recipients, address);
+          return (
+            <RecipientChip
+              key={address.toLowerCase()}
+              email={address}
+              images={settings.showImages}
+              selected={has(picked, address)}
+              onPick={() => onChange(toggle(picked, address))}
+              editing={editing && saved}
+              onHold={saved ? () => setEditing(true) : undefined}
+              onForget={() => {
+                onChange(picked.filter((e) => e.toLowerCase() !== address.toLowerCase()));
+                app.forgetRecipient(address);
+              }}
+            />
+          );
+        })}
+        {editing ? (
+          <button type="button" onClick={() => setEditing(false)} className="inline-flex h-8 cursor-pointer items-center gap-1 rounded-lg border px-3 text-sm hover:bg-muted">
+            <Check className="size-4" aria-hidden="true" />
+            {t("recipientsDone")}
+          </button>
+        ) : adding ? null : (
           <button type="button" onClick={() => setAdding(true)} className="inline-flex h-8 cursor-pointer items-center gap-1 rounded-lg border px-3 text-sm hover:bg-muted">
             <Plus className="size-4" aria-hidden="true" />
             {t("shareAddAddress")}

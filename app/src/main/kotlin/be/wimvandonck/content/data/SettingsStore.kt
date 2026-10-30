@@ -80,6 +80,9 @@ class SettingsStore(
     /** Remembers that [email] was just shared with (#235), first among the recipients. */
     suspend fun rememberRecipient(email: String) = edit { it[RECIPIENTS] = Recipients.encode(Recipients.remember(Recipients.decode(it[RECIPIENTS]).orEmpty(), email)) }
 
+    /** Forgets [email] as a recipient: no longer offered, on every device (synced). */
+    suspend fun forgetRecipient(email: String) = edit { it[RECIPIENTS] = Recipients.encode(Recipients.forget(Recipients.decode(it[RECIPIENTS]).orEmpty(), email)) }
+
     /** Takes the synced settings from another device (see SyncSettings); the rest stays as it is. */
     suspend fun applySynced(values: Map<String, String>) =
         edit { prefs ->

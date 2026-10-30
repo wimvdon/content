@@ -1,5 +1,9 @@
 package be.wimvandonck.content.ui.feeds
 
+import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.Job
+import androidx.compose.animation.core.animate
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -111,7 +115,19 @@ fun FeedsTab(
     var dragRows by remember { mutableStateOf<List<ArrangedRow>?>(null) }
     var draggedKey by remember { mutableStateOf<String?>(null) }
     var dragOffset by remember { mutableFloatStateOf(0f) }
-    val rows = dragRows ?: stored
+    // Just dropped: the new arrangement, shown until it is stored, so the list doesn't flash back to
+    // the old order first (or after a second, if nothing changed).
+    var dropped by remember { mutableStateOf<List<ArrangedRow>?>(null) }
+    LaunchedEffect(stored) { dropped = null }
+    LaunchedEffect(dropped) {
+        if (dropped != null) {
+            delay(1000)
+            dropped = null
+        }
+    }
+    // The dropped row gliding from under the finger into its place.
+    var settling by remember { mutableStateOf<Job?>(null) }
+    val rows = dragRows ?: dropped ?: stored
     // Feeds below a folder header are indented; those under "No folder" are not.
     val indented =
         remember(rows) {
@@ -131,6 +147,7 @@ fun FeedsTab(
     val edge = with(LocalDensity.current) { 64.dp.toPx() }
 
     fun startDrag(row: ArrangedRow) {
+        settling?.cancel()
         // A folder moves on its own among the other folders; their feeds hide meanwhile.
         dragRows = if (row is ArrangedRow.FolderHeader) FeedArrangement.rows(library, foldersOnly = true) else stored
         draggedKey = row.key
@@ -174,10 +191,18 @@ fun FeedsTab(
 
     fun endDrag() {
         val final = dragRows
-        if (final != null && final != stored && final != FeedArrangement.rows(library, foldersOnly = true)) actions.onArrange(final)
+        if (final != null && final != stored && final != FeedArrangement.rows(library, foldersOnly = true)) {
+            dropped = final
+            actions.onArrange(final)
+        }
         dragRows = null
-        draggedKey = null
-        dragOffset = 0f
+        // The row glides into its place, still lifted, rather than jumping there.
+        val key = draggedKey
+        settling =
+            scope.launch {
+                animate(dragOffset, 0f) { value, _ -> dragOffset = value }
+                if (draggedKey == key) draggedKey = null
+            }
     }
 
     /** Moves a row one place up or down, for screen readers (they can't drag). */

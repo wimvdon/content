@@ -20,6 +20,15 @@ object Recipients {
         return (listOf(clean) + list.filter { it != clean }).take(MAX)
     }
 
+    /** [list] without [email]: forgotten, so it is no longer offered (long-press a person, then ×). */
+    fun forget(
+        list: List<String>,
+        email: String,
+    ): List<String> {
+        val clean = email.trim().lowercase()
+        return list.filter { it != clean }
+    }
+
     fun encode(list: List<String>): String = Json.write(list)
 
     /** The list in [text], or null when it isn't one. */

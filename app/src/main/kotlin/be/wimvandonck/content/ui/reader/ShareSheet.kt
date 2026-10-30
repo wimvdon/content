@@ -88,7 +88,8 @@ fun ShareSheet(
                 Heading(stringResource(R.string.share_send_with_content))
                 Column(Modifier.padding(horizontal = 24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     SendToSection(picked, onChange = { picked = it }, hasAccount = hasAccount)
-                    Button(onClick = { onSend(picked) }, enabled = picked.isNotEmpty(), modifier = Modifier.align(Alignment.End)) {
+                    // Full width under the people: plainly the button for this part, not for the apps below.
+                    Button(onClick = { onSend(picked) }, enabled = picked.isNotEmpty(), modifier = Modifier.fillMaxWidth()) {
                         Text(stringResource(R.string.share_user_send))
                     }
                 }

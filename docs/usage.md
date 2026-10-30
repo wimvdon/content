@@ -240,7 +240,8 @@ send it to people with Content (see Saved). **Share** opens Content's share shee
 Content**, the same as in Save and share: the people you sent something to before, with their
 Gravatar picture or first letter, as chips to pick (several at once), and **Add address**, a field
 with a **+** that adds someone new to the chips (it says at once when there is no Content account
-for them); then **Send** sends to everyone picked. Below, the apps: the ones you pick most
+for them); then **Send** sends to everyone picked. To tidy the list, press and hold a person: each
+one gets an **×**, which forgets them (on all your devices); **Done** ends it. Below, the apps: the ones you pick most
 in this sheet first (Android doesn't tell apps which ones you use elsewhere, so Content counts the
 picks here, on this phone only; until then well-known messaging and mail apps come first), then
 **Copy link**, and **More** for Android's own share menu with every app.
