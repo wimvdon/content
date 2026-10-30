@@ -255,8 +255,9 @@ over the app you were in:
 - **Add feed**: Add feed with the shared link filled in; tap **Add**.
 
 Signed in, the share menu also has the last few people you sent something to at the top: pick one
-and Send with Content opens with that person picked; tap **Send**. After a save, the message with
-**Open** goes when you tap anywhere else, back to the app you were in. In
+and Send with Content opens with that person picked; tap **Send**. Each ends with a message over
+the app you were in ("Saved to …", with **Open**; "Sent to …"; "Added …"), which goes when you tap
+anywhere (but Open), back to that app. In
 the web app, signed in, **Share** opens Send with Content with the people you sent to before, and
 **Other apps** (or **Copy link** where the browser has no share menu) for everything else. One article at a time: sharing a whole
 tag is gone (#251). You can send to yourself too: it lands in your own inbox, with a notification

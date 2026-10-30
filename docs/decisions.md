@@ -11,6 +11,11 @@ Newest first. Add an entry for every notable choice: what was decided, why, and 
   `ShareTargets` tells the aliases apart. Inside the app, Don't save stays in the sheet.
 - The message after saving from another app goes when the screen is tapped anywhere (but Open), so
   you are back in the other app at once.
+- **Every one ends with Content's own message** (a snackbar, as after saving), not a toast: "Sent
+  to …" and "Added …" waited for the screen to close and didn't always show. The screen stays
+  while sending or adding, which goes on in the app's scope even if it closes. The intent filters'
+  priorities ask Android for the order Save and share, Send with Content, Add feed; its share menu
+  may still rank the ones used most first.
 - Rejected: hiding Send with Content while signed out (switching an alias on and off with the
   account); signed out it says to sign in first, as Send with Content does elsewhere.
 

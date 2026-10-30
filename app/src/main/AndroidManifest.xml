@@ -71,13 +71,15 @@
              the whole of Content. Separate targets in the share menu (ShareTargets): Save and share
              (the save sheet) and Send with Content (only sends). The people shared with show at the
              top of the share menu too and open Send with Content (res/xml/shortcuts.xml). Aliases,
-             so the tab's own screen stays unexported. -->
+             so the tab's own screen stays unexported. The priorities ask for the order Save and
+             share, Send with Content, Add feed; Android's share menu may still put the ones used
+             most first. -->
         <activity-alias
             android:name=".ui.ShareActivity"
             android:targetActivity=".ui.SaveFromTabActivity"
             android:exported="true"
             android:label="@string/save_share_title">
-            <intent-filter>
+            <intent-filter android:priority="3">
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="text/plain" />
@@ -88,7 +90,7 @@
             android:targetActivity=".ui.SaveFromTabActivity"
             android:exported="true"
             android:label="@string/share_send_with_content">
-            <intent-filter>
+            <intent-filter android:priority="2">
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="text/plain" />
@@ -101,7 +103,7 @@
             android:excludeFromRecents="true"
             android:label="@string/feeds_add"
             android:theme="@style/Theme.RssReader.Translucent">
-            <intent-filter>
+            <intent-filter android:priority="1">
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="text/plain" />
