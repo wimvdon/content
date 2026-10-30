@@ -7,7 +7,7 @@ import org.junit.Test
 class SharedPreviewTest {
     @Test
     fun `reads the preview the feed loader sends`() {
-        val data = mapOf("kind" to "shared", "title" to " A story ", "intro" to "Its intro.", "image" to "https://x.be/p.jpg", "from" to "Ann", "count" to "3")
+        val data = mapOf("kind" to "shared", "title" to " A story ", "intro" to "Its intro.", "image" to "https://x.be/p.jpg", "sender" to "Ann", "count" to "3")
         assertEquals(SharedPreview("A story", "Its intro.", "https://x.be/p.jpg", "Ann", 3), SharedPreview.of(data))
     }
 

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import type { Env } from "../src/index";
-import { fromBase64Url, poke, previewData, pushTargetOf, resetFcmToken, serviceAccountOf } from "../src/push";
+import { fromBase64Url, isBadToken, poke, previewData, pushTargetOf, resetFcmToken, serviceAccountOf } from "../src/push";
 
 /** A Firebase service account like the JSON key file, with a fresh RSA key. */
 async function serviceAccount(): Promise<{ json: string; publicKey: CryptoKey }> {
@@ -67,9 +67,16 @@ describe("Android notifications through Firebase (#235)", () => {
     };
     const preview = { title: "T".repeat(400), intro: "An intro.", imageUrl: "https://example.com/pic.jpg", from: "Ann", count: 2 };
     expect(await poke({ kind: "fcm", token: "p".repeat(40) }, env, fetcher, 1_000_000_000_000, preview)).toBe("sent");
-    expect(JSON.parse(bodies[0]).message.data).toEqual({ kind: "shared", title: "T".repeat(150), intro: "An intro.", from: "Ann", count: "2", image: "https://example.com/pic.jpg" });
+    // Not "from": Firebase refuses a message that uses one of its own keys.
+    expect(JSON.parse(bodies[0]).message.data).toEqual({ kind: "shared", title: "T".repeat(150), intro: "An intro.", sender: "Ann", count: "2", image: "https://example.com/pic.jpg" });
     // A picture address too long for a message is left out.
     expect(previewData({ ...preview, imageUrl: "https://example.com/" + "x".repeat(2000) }).image).toBeUndefined();
+  });
+
+  it("forgets a phone only when Firebase says its token is bad, not when it refuses a message", () => {
+    expect(isBadToken('{"error":{"status":"INVALID_ARGUMENT","details":[{"errorCode":"UNREGISTERED"}]}}')).toBe(true);
+    expect(isBadToken('{"error":{"status":"INVALID_ARGUMENT","message":"The registration token is not a valid FCM registration token"}}')).toBe(true);
+    expect(isBadToken('{"error":{"status":"INVALID_ARGUMENT","message":"Invalid data payload key: from"}}')).toBe(false);
   });
 
   it("sends nothing without the service account", async () => {
