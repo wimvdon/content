@@ -20,8 +20,8 @@ import { Input } from "./ui/input";
  * saved before (Organise). In order: the address (Add link only), the folder as chips, the tags with
  * Like in front, the note, then Send with Content when signed in (the people shared with, several at
  * once, and Add address; not in Organise, which has Share next to it). The button says Save or Save
- * and send. A saved article's sheet has Remove at the bottom left, with Undo in its message. Closing
- * a sheet whose save already happened keeps what it says.
+ * and send. Organise has Remove at the bottom left, with Undo in its message. Cancel, or closing the
+ * sheet, saves and sends nothing: right after a save it takes the save back.
  */
 /** A message under the sheet: with Open for a new save (its key), or Undo (`undo`). */
 type Message = (text: string, openKey?: string, undo?: () => void) => void;
@@ -83,9 +83,9 @@ function Sheet({
     }
     app.closeSheet();
   };
-  // Cancel, or closing the sheet, changes nothing (#156); an article saved a moment ago stays where it went.
+  // Cancel, or closing the sheet, saves and sends nothing: just saved, the save is taken back.
   const cancel = () => {
-    if (kind === "justSaved") onMessage(t("savedTo").replace("{place}", name(initial.place)));
+    if (kind === "justSaved" && itemKey) app.undoSave(itemKey);
     app.closeSheet();
   };
   // The sheet itself picks To read or the Archive, so the title doesn't name one (#229).
@@ -100,15 +100,14 @@ function Sheet({
       closeLabel={t("close")}
       footer={
         <>
-          {/* A saved article (just saved, or organised later): Remove at the bottom left, away from Save. Just
-              saved, it takes the save back; organising, it takes the article out of Saved. Undo either way. */}
-          {saved && savedItem ? (
+          {/* Organising a saved article: Remove at the bottom left, away from Save, with Undo. Just saved,
+              Cancel already takes the save back. */}
+          {kind === "organise" && savedItem ? (
             <Button
               variant="destructive"
               className="mr-auto"
               onClick={() => {
-                if (kind === "justSaved") app.undoSave(savedItem.key);
-                else app.removeItem(savedItem.key);
+                app.removeItem(savedItem.key);
                 onMessage(t("savedRemoved"), undefined, () => app.restoreItem(savedItem));
                 app.closeSheet();
               }}

@@ -1118,23 +1118,19 @@ fun RssReaderNavigation(
                     addedKey != null -> confirmSaved(sheetItem, choice.place)
                 }
             },
-            // Cancelled right after saving: it stays where it was saved (#156).
-            onCancel = { if (addedKey != null) confirmSaved(sheetItem, SaveChoices.of(sheetItem).place) },
-            onRemove = {
+            // Cancelled right after saving: neither saved nor sent, as if Save was never tapped.
+            onCancel = {
                 if (addedKey != null) {
-                    // Remove right after saving takes the save back: as if it was never saved.
                     val before = addedBefore
                     editLibrary { SaveChoices.undoSave(it, sheetItem.key, before) }
-                    showMessage(resources.getString(R.string.saved_removed), resources.getString(R.string.action_undo)) {
-                        editLibrary { it.putItem(sheetItem) }
-                    }
-                } else {
-                    // Remove in Organise: out of Saved, with Undo as a swipe in Saved has; the reader closes.
-                    editLibrary { Saved.remove(it, sheetItem.key) }
-                    if (fileFromReader) pop()
-                    showMessage(resources.getString(R.string.saved_removed), resources.getString(R.string.action_undo)) {
-                        editLibrary { it.putItem(sheetItem) }
-                    }
+                }
+            },
+            // Remove in Organise: out of Saved, with Undo as a swipe in Saved has; the reader closes.
+            onRemove = {
+                editLibrary { Saved.remove(it, sheetItem.key) }
+                if (fileFromReader) pop()
+                showMessage(resources.getString(R.string.saved_removed), resources.getString(R.string.action_undo)) {
+                    editLibrary { it.putItem(sheetItem) }
                 }
             },
             onDismiss = {

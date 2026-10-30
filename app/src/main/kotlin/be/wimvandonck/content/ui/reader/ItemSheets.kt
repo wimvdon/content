@@ -164,10 +164,7 @@ fun SaveSheet(
     key: String? = url,
     /** Cancel, or the sheet closed without Save. */
     onCancel: () -> Unit = {},
-    /**
-     * Remove, at the bottom left of a saved article's sheet: for [SheetKind.JustSaved] it takes the
-     * save back; for [SheetKind.Organise] it removes the article from Saved. The caller offers Undo.
-     */
+    /** Remove, at the bottom left of [SheetKind.Organise]: out of Saved. The caller offers Undo. */
     onRemove: () -> Unit = {},
     /** Signed in to a Content account: Send with Content is offered (#256). */
     signedIn: Boolean = false,
@@ -193,7 +190,8 @@ fun SaveSheet(
         }
         onDismiss()
     }
-    // Cancel, or closing the sheet, changes nothing (#156); an article saved a moment ago stays where it went.
+    // Cancel, or closing the sheet, saves and sends nothing: before the save nothing happens, and an
+    // article saved a moment ago is taken back ([onCancel]). Organising, it changes nothing (#156).
     val cancel = {
         onCancel()
         onDismiss()
@@ -256,8 +254,9 @@ fun SaveSheet(
                 Text(stringResource(R.string.share_user_signed_out), style = MaterialTheme.typography.bodyMedium)
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                // A saved article (just saved, or organised later): Remove at the bottom left, away from Save.
-                if (saved) {
+                // Organising a saved article: Remove at the bottom left, away from Save. Just saved,
+                // Cancel already takes the save back, so there is nothing to remove.
+                if (kind == SheetKind.Organise) {
                     TextButton(
                         onClick = {
                             onDismiss()

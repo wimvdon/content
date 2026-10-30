@@ -192,8 +192,9 @@ tap to turn one on or off; **New tag** makes one that doesn't exist yet), a **No
 in, **Send with Content**: the people you sent something to before, tap one or more, or **Add
 address** for someone new (Content checks they have an account). The button then says **Save** or
 **Save and send** (to only send a link, use Share or the share menu's Send with Content). It keeps what you chose, also a folder or tag you typed but
-didn't add yet, and one message says where it went and who got it. **Remove**, at the bottom left, takes the save back, as if you never
-saved it ("Removed from Saved", with **Undo**); closing the sheet keeps it where it was just saved, unchanged.
+didn't add yet, and one message says where it went and who got it. **Cancel** (or closing the sheet)
+saves and sends nothing: right after Save in the reader or a swipe, it takes the save back, as if you
+never saved it.
 The same sheet opens when you press and hold a saved article in Saved, a row in To read or a card
 elsewhere, and pick **Organise** (web: right-click it), or tap Organise in a saved article's bottom
 bar. Organise has no Send with Content (Share is right next to it) and has **Remove** at the bottom
