@@ -1,5 +1,5 @@
 {
-  "about": "Text written as a div per paragraph comes through, links and all (#236: as Readability gives it, so the two apps may split it differently).",
+  "about": "Text written as a div per paragraph comes through, links and all (#236: as Defuddle gives it).",
   "url": "https://example.com/",
   "html": "<!DOCTYPE html>\n<html><head><title>Page</title><script>var x = \"<p>not text</p>\";</script><style>p { color: red }</style></head>\n<body>\n<div class=\"article-body\">\n  <div class=\"paragraph\">One. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</div>\n  <div class=\"paragraph\">Two, with <a href=\"/x\">a link</a>. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</div>\n  <div class=\"paragraph\"><span>Three.</span> This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.<br>Same paragraph.</div>\n</div></body></html>",
   "text": [

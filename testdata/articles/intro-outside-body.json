@@ -1,5 +1,5 @@
 {
-  "about": "An intro the page shows above the article, outside its body (De Standaard, #266): it comes first, as the page's own summary.",
+  "about": "An intro the page shows above the article, outside its body (De Standaard, #266): Defuddle keeps it.",
   "url": "https://example.com/story",
   "html": "<!DOCTYPE html>\n<html><head><title>Story</title><meta property=\"og:description\" content=\"A short intro above the article that says what it is about, in the page’s own words.\"></head>\n<body>\n<main>\n<article class=\"article\">\n  <hgroup class=\"story-header\">\n    <figure><img src=\"/hero.jpg\" alt=\"\"><figcaption>A picture. © Agency</figcaption></figure>\n    <div class=\"story-title\"><h1>Story</h1></div>\n    <h2 class=\"story-intro\">A short intro above the article that says what it is about, in the page’s own words.</h2>\n    <div class=\"hero-block\"><div class=\"authors\"><p>Someone</p></div><time>26 October 2026</time></div>\n  </hgroup>\n  <div class=\"article-body\">\n      <section class=\"story-section\">\n        <p>First paragraph. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p>\n        <p>Second paragraph. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p>\n        <p>Third paragraph. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p>\n        <p>Fourth paragraph. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p>\n        <p>Fifth paragraph. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text. This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.</p>\n      </section>\n  </div>\n</article>\n<aside><h6>Most read</h6><p><a href=\"/a\">Another story</a></p></aside>\n</main>\n</body></html>\n",
   "text": [
@@ -8,7 +8,7 @@
     "Fourth paragraph."
   ],
   "htmlContains": [
-    "<p>A short intro above the article that says what it is about, in the page’s own words.</p>"
+    "<h2>A short intro above the article that says what it is about, in the page’s own words.</h2>"
   ],
   "absent": [
     "Most read"

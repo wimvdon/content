@@ -1,4 +1,5 @@
 import java.util.Properties
+import javax.inject.Inject
 
 plugins {
     alias(libs.plugins.android.application)
@@ -186,8 +187,7 @@ dependencies {
     // Notifications when something is shared (#235, docs/decisions.md): Firebase Cloud Messaging only.
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)
-    // Reader view for full articles: Firefox Reader View's algorithm, on a current jsoup (see docs/decisions.md).
-    implementation(libs.readability4j)
+    // Reading the details of a web page (PageInfo); the article itself comes from bundleArticleExtractor below.
     implementation(libs.jsoup)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
@@ -197,6 +197,58 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
 
     testImplementation(libs.junit)
+}
+
+// Reader view for full articles: the web app's article extractor with Defuddle (web/src/android/),
+// bundled from web/ into the app's assets at build time, so both apps use the Defuddle version in
+// web/package-lock.json and get its updates together (see docs/decisions.md). Needs Node.js (npm).
+abstract class BundleArticleExtractor : DefaultTask() {
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val sources: ConfigurableFileCollection
+
+    @get:Internal
+    abstract val webDir: DirectoryProperty
+
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
+
+    @get:Inject
+    abstract val exec: ExecOperations
+
+    @TaskAction
+    fun bundle() {
+        val npm = if (System.getProperty("os.name").startsWith("Windows")) "npm.cmd" else "npm"
+        val web = webDir.get().asFile
+        exec.exec {
+            workingDir = web
+            commandLine(npm, "ci", "--no-audit", "--no-fund")
+        }
+        exec.exec {
+            workingDir = web
+            environment("ANDROID_ASSETS", outputDir.get().asFile.absolutePath)
+            commandLine(npm, "run", "build:android")
+        }
+    }
+}
+
+val bundleArticleExtractor = tasks.register<BundleArticleExtractor>("bundleArticleExtractor") {
+    val web = rootProject.layout.projectDirectory.dir("web")
+    webDir.set(web)
+    sources.from(
+        web.file("package.json"),
+        web.file("package-lock.json"),
+        web.file("vite.android.config.ts"),
+        web.dir("src/android"),
+        web.file("src/lib/articleExtractor.ts"),
+        web.file("src/lib/html.ts"),
+    )
+}
+
+androidComponents {
+    onVariants { variant ->
+        variant.sources.assets?.addGeneratedSourceDirectory(bundleArticleExtractor, BundleArticleExtractor::outputDir)
+    }
 }
 
 // Used by the workflows to name the APK <app>-<version>.apk: ./gradlew -q :app:printApkBaseName

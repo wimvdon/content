@@ -9,8 +9,8 @@ in the browser and keeps its data there (IndexedDB).
   (`DESIGN.md`, "Other platforms"). Three panes on wide screens; one at a time on phones.
 - Feeds and article pages load through the feed loader in `../worker/` (browsers block most
   feeds otherwise). Pictures load directly.
-- Full articles for feeds that send a summary or a teaser use Mozilla's Readability (Firefox
-  Reader View); the reader switches between the feed's text and the full article, and keeps the
+- Full articles for feeds that send a summary or a teaser use Defuddle
+  (https://github.com/kepano/defuddle), the same code the Android app runs; the reader switches between the feed's text and the full article, and keeps the
   last 100 full articles in the browser.
 - Text settings (Aa, also in Settings): font, size, spacing, background (theme, sepia, dark) and
   Auto dark, as in the Android app. Settings › Article list › Mark as read on scroll.

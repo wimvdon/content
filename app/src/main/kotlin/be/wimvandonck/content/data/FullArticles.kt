@@ -61,13 +61,15 @@ const val FULL_TEXT_THRESHOLD = 1500
 
 /**
  * Loads the complete text of articles whose feed only has a summary: downloads the article's
- * web page and keeps only the article (see [ArticleExtractor]). Results are kept in the app's
- * cache folder, which Android may clear and which is not backed up; they are downloaded again
- * when needed.
+ * web page and keeps only the article ([extract], see [ArticleExtractor]). Results are kept in the
+ * app's cache folder, which Android may clear and which is not backed up; they are downloaded
+ * again when needed.
  */
 class FullArticles(
     private val cacheDir: File,
     private val fetch: suspend (String) -> Fetched,
+    /** The article of a page's HTML (downloaded from the given address), or null when there is none. */
+    private val extract: suspend (html: String, pageUrl: String) -> String?,
 ) {
     suspend fun load(link: String): FullArticle {
         val file = File(cacheDir, name(link))
@@ -75,7 +77,7 @@ class FullArticles(
         val html =
             try {
                 val page = fetch(link)
-                withContext(Dispatchers.Default) { ArticleExtractor.extract(ArticleExtractor.decode(page.bytes), page.url) }
+                extract(withContext(Dispatchers.Default) { ArticleExtractor.decode(page.bytes) }, page.url)
             } catch (_: FetchException) {
                 null
             } ?: return FullArticle.Failed
@@ -126,6 +128,6 @@ class FullArticles(
          * Starts the names of cached articles. Raise the number when [ArticleExtractor] finds
          * articles differently, so articles kept from before are extracted again.
          */
-        const val PREFIX = "v6-"
+        const val PREFIX = "v7-"
     }
 }

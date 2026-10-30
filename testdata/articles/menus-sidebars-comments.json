@@ -5,15 +5,13 @@
   "text": [
     "This is a sentence of the real article, with enough words, commas and length to count as a paragraph of text.",
     "Second: a relative link, and emphasis.",
-    "One point",
-    "Another point",
     "Caption"
   ],
   "htmlContains": [
     "<a href=\"https://example.com/more\">a <b>relative</b> link</a>",
     "<em>emphasis</em>",
-    "<li>One point</li><li>Another point</li>",
-    "<figure><img src=\"https://example.com/posts/x.jpg\"><figcaption>Caption</figcaption></figure>"
+    "<figure><img src=\"https://example.com/posts/x.jpg\">",
+    "<figcaption>Caption</figcaption></figure>"
   ],
   "absent": [
     "Home",

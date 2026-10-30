@@ -12,7 +12,6 @@ datastore = "1.2.1"
 coil = "3.6.3"
 okhttp = "5.5.0"
 junit = "4.13.2"
-readability4j = "1.0.8"
 jsoup = "1.23.2"
 browser = "1.10.0"
 room = "2.8.5"
@@ -35,7 +34,6 @@ coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref 
 coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
-readability4j = { group = "net.dankito.readability4j", name = "readability4j", version.ref = "readability4j" }
 jsoup = { group = "org.jsoup", name = "jsoup", version.ref = "jsoup" }
 # Notifications when something is shared (#235): Firebase Cloud Messaging only, no Analytics.
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }

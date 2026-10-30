@@ -11,6 +11,7 @@ app, download the APK from [Releases](https://github.com/wimvdon/rss-reader/rele
 | Android SDK | Platform 37 | `compileSdk` and `targetSdk` are 37. |
 | Device or emulator | Android 12+ (API 31) | Per-app language setting needs Android 13+. |
 | Git | any | Debug builds are versioned with `git describe`. |
+| Node.js | 22 (with npm) | The build bundles the article extractor from `web/` (`npm ci`, then `npm run build:android`). |
 
 Gradle is downloaded by the wrapper. There is no server, account or API key to set up.
 

@@ -18,6 +18,7 @@ import be.wimvandonck.content.instapaper.InstapaperAccount
 import be.wimvandonck.content.push.PushNotifications
 import be.wimvandonck.content.data.SiteSignInStore
 import be.wimvandonck.content.feed.SiteSignIns
+import be.wimvandonck.content.feed.WebArticleExtractor
 import be.wimvandonck.content.sync.AccountState
 import be.wimvandonck.content.sync.ContentAccount
 import be.wimvandonck.content.ui.DirectShare
@@ -99,7 +100,9 @@ class RssReaderApp :
     /** Sites signed in to (#180): their cookies go with requests to them. On this device only. */
     val siteSignIns: SiteSignInStore by lazy { SiteSignInStore(this, appScope) }
 
-    val fullArticles: FullArticles by lazy { FullArticles(File(cacheDir, "articles"), fetch = fetcher::fetch) }
+    val fullArticles: FullArticles by lazy {
+        FullArticles(File(cacheDir, "articles"), fetch = fetcher::fetch, extract = WebArticleExtractor(this)::extract)
+    }
 
     /** Folder icons (Material Symbols), read from the assets the first time they are needed. */
     val iconCatalog: IconCatalog by lazy {

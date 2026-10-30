@@ -27,3 +27,4 @@ dist-ssr
 public/material_symbols.txt
 public/material_symbols_LICENSE.txt
 .wrangler/
+dist-android

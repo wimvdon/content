@@ -2,6 +2,37 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-30: Defuddle finds the article, in both apps
+
+- At the owner's request, **Defuddle** (https://github.com/kepano/defuddle, MIT, npm `defuddle`)
+  replaces Mozilla's Readability in the web app and Readability4J in the Android app. It is used as
+  it is, starting from scratch: none of the adjustments made around Readability remain (the 5-level
+  scoring for Readability4J, #271; the page's intro put first, #266; our own removal of the repeated
+  title, a `<p>` for a div per paragraph, merging line breaks). Only what the reader needs stays:
+  the tags it can show, absolute links, known video players, and a minimum length.
+- **One extractor for both apps, kept up to date as a dependency**: `web/src/lib/articleExtractor.ts`.
+  The Android build bundles it from `web/` (`bundleArticleExtractor` in `app/build.gradle.kts`, which
+  runs `npm ci` and `npm run build:android`) into the app's assets, and `WebArticleExtractor` runs
+  it in a hidden WebView (Android's own, no new library). So both apps use the Defuddle version in
+  `web/package-lock.json`, and Dependabot's weekly npm update brings a new Defuddle to both, checked
+  by CI. Building the Android app now needs Node.js (CI and the release workflow set it up).
+- The WebView is offline (`blockNetworkLoads`, no file or content access) and gets the downloaded
+  page as a string; Defuddle reads it as an inert document, so the page's scripts don't run and its
+  pictures don't load. Defuddle's site-specific lookups on other servers are off (`useAsync: false`).
+  No new network destinations (`PRIVACY.md` unchanged). The view is let go after a minute unused.
+- Readability4J (and its slf4j rule in `proguard-rules.pro`) and `@mozilla/readability` are gone.
+  jsoup stays for reading page details (`PageInfo`).
+- Tests: the sample pages in `testdata/articles/` are now checked once, in the web app's tests
+  (they cover both apps' extractor); `SharedArticlesTest` is gone with the Kotlin extractor.
+  Where Defuddle differs from Readability the samples follow Defuddle: it keeps the intro above
+  the article as a heading, leaves out a link back to the top, a video's poster, a list of two
+  short words and a paragraph marked `md:hidden`. jsdom (the tests' browser) refuses Defuddle's
+  long selectors; `web/test/longSelectors.ts` asks them in parts, as a browser would answer.
+- Full articles are cached anew (Android `v7-`, web `fullArticle-v5:`).
+- Rejected: porting Defuddle to Kotlin (about 20,000 lines to keep in step by hand; the apps would
+  drift apart again); committing the bundled file (a Defuddle update would then need a second,
+  manual step); androidx.javascriptengine (a new library, and it has no DOM).
+
 ## 2026-10-28: The page's intro, and pictures for older items (#266, #275)
 
 - **The intro a page shows above its article** (#266, De Standaard; also Wired's subtitle) is
