@@ -93,7 +93,7 @@ class SaveFromTabActivity : ComponentActivity() {
             RssReaderAppTheme {
                 // Send with Content offers the people shared with before here too (#249).
                 ProvideShareRecipients {
-                    SaveFromTab(link, person, sendOnly = target == ShareTargets.Target.Send, fromOtherApp = shared, onDone = ::finish)
+                    SaveFromTab(link, person, sendOnly = target == ShareTargets.Target.Send, onDone = ::finish)
                 }
             }
         }
@@ -107,8 +107,6 @@ private fun SaveFromTab(
     person: String?,
     /** The share menu's Send with Content: nothing is saved. */
     sendOnly: Boolean,
-    /** Shared from another app, which has its own Send target, so no Don't save. */
-    fromOtherApp: Boolean,
     onDone: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -136,7 +134,6 @@ private fun SaveFromTab(
             allTags = library.itemTags(),
             signedIn = signedIn,
             hasAccount = app.sync::hasAccount,
-            dontSave = !fromOtherApp,
             sendOnly = sendOnly,
             onSave = { url, choice ->
                 val key = ItemKeys.of(url)

@@ -80,7 +80,6 @@
     <string name="share_user_sent">Sent to %1$s</string>
     <string name="save_share_title">Save and share</string>
     <string name="action_save_and_send">Save and send</string>
-    <string name="place_dont_save">Don\'t save</string>
     <string name="share_add_address">Add address</string>
     <plurals name="share_sent_people">
         <item quantity="one">Sent to %1$d person</item>
@@ -285,7 +284,6 @@
     <string name="saved_folder_remove_body">Remove the folder %1$s? Its items go to the Archive.</string>
     <string name="saved_remove">Remove from Saved</string>
     <string name="saved_removed">Removed from Saved</string>
-    <string name="saved_remove_body">Remove this item, with its note, tags and highlights? Archive keeps it searchable instead.</string>
     <string name="saved_empty_body">Swipe a feed article left, tap Save in an article, share a link to Content or add one here.</string>
     <string name="manage_folders_tags_empty_title">No folders or tags yet</string>
     <string name="manage_folders_tags_empty_body">Folders and tags of your saved items show here, so you can rename them.</string>

@@ -22,6 +22,11 @@ Newest first. Add an entry for every notable choice: what was decided, why, and 
   address with a share icon.
 - **Organise no longer offers Send with Content** (Share is next to it in the bottom bar); it has
   Remove at the bottom left instead, with Undo, and is headed Organise.
+- **The sheets line up** (owner's request after a review of all of them): Remove sits at the bottom
+  left of every saved article's sheet (just saved, or Organise), with Cancel and Save at the right;
+  Remove acts at once with Undo everywhere (the reader's ⋮ asked first; the web's Organise had no
+  Undo); and **Don't save** is gone from the app too: to only send, there is Share and the share
+  menu's Send with Content.
 - Rejected: hiding Send with Content while signed out (switching an alias on and off with the
   account); signed out it says to sign in first, as Send with Content does elsewhere.
 

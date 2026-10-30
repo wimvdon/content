@@ -75,8 +75,7 @@ RssReaderApp ── SettingsStore ── DataStore "settings" (Preferences)
    accepting `ACTION_SEND` with `text/plain` and reading the first web link and a title
    (`instapaper/SharedLink.kt`) on a see-through screen over the app that shared it; the rest of
    Reader doesn't open. Two exported aliases of `SaveFromTabActivity`, told apart by
-   `data/ShareShortcuts.kt` (`ShareTargets`): `ui.ShareActivity` (Save and share: the save sheet
-   without Don't save) and `ui.SendActivity` (Send with Content only, also for the people in the
+   `data/ShareShortcuts.kt` (`ShareTargets`): `ui.ShareActivity` (Save and share: the save sheet) and `ui.SendActivity` (Send with Content only, also for the people in the
    share menu). `ui.AddFeedFromShareActivity` opens Add feed with the link filled in. Reader leaves
    all three out of its own share menu (`EXTRA_EXCLUDE_COMPONENTS`).
 7. Web links open in a custom tab (#95, `ExternalApps.openInTab`, AndroidX Browser) with a Save

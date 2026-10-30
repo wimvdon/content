@@ -859,7 +859,9 @@ fun RssReaderNavigation(
                                         onRemove = {
                                             editLibrary { Saved.remove(it, i.key) }
                                             pop()
-                                            showMessage(resources.getString(R.string.saved_removed))
+                                            showMessage(resources.getString(R.string.saved_removed), resources.getString(R.string.action_undo)) {
+                                                editLibrary { it.putItem(i) }
+                                            }
                                         },
                                         onProgress = { progress ->
                                             if (kotlin.math.abs(progress - i.progress) >= 0.01f) {
@@ -1123,7 +1125,9 @@ fun RssReaderNavigation(
                     // Remove right after saving takes the save back: as if it was never saved.
                     val before = addedBefore
                     editLibrary { SaveChoices.undoSave(it, sheetItem.key, before) }
-                    showMessage(resources.getString(R.string.saved_removed))
+                    showMessage(resources.getString(R.string.saved_removed), resources.getString(R.string.action_undo)) {
+                        editLibrary { it.putItem(sheetItem) }
+                    }
                 } else {
                     // Remove in Organise: out of Saved, with Undo as a swipe in Saved has; the reader closes.
                     editLibrary { Saved.remove(it, sheetItem.key) }

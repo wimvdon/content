@@ -79,7 +79,6 @@
     <string name="share_user_sent">Envoyé à %1$s</string>
     <string name="save_share_title">Enregistrer et partager</string>
     <string name="action_save_and_send">Enregistrer et envoyer</string>
-    <string name="place_dont_save">Ne pas enregistrer</string>
     <string name="share_add_address">Ajouter une adresse</string>
     <plurals name="share_sent_people">
         <item quantity="one">Envoyé à %1$d personne</item>
@@ -292,7 +291,6 @@
     <string name="saved_folder_remove_body">Supprimer le dossier %1$s ? Ses éléments vont dans les Archives.</string>
     <string name="saved_remove">Retirer des enregistrés</string>
     <string name="saved_removed">Retiré des enregistrés</string>
-    <string name="saved_remove_body">Retirer cet élément, avec sa note, ses tags et ses surlignages ? L’archiver le garde consultable.</string>
     <string name="saved_empty_body">Balayez un article de flux vers la gauche, touchez Enregistrer dans un article, partagez un lien avec Content ou ajoutez-en un ici.</string>
     <string name="manage_folders_tags_empty_title">Pas encore de dossiers ni de tags</string>
     <string name="manage_folders_tags_empty_body">Les dossiers et tags de vos éléments enregistrés s’affichent ici, pour les renommer.</string>

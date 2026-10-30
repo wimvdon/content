@@ -1,4 +1,4 @@
-import { Archive, BookOpen, Check, Folder as FolderGlyph, Heart, Plus, Send, Trash2 } from "lucide-react";
+import { Archive, BookOpen, Check, Folder as FolderGlyph, Heart, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { app, useApp } from "@/lib/app";
 import { normalizeUrl } from "@/lib/discovery";
@@ -17,12 +17,16 @@ import { Input } from "./ui/input";
 /**
  * Save and share (#143, #256), the one sheet for an article, as on Android: Add link (nothing is
  * saved until Save, and Cancel saves nothing), just saved from the reader ("Saved to …"), or one
- * saved before. In order: the address (Add link only), the folder as chips (before the save also
- * Don't save, to only send it), the tags with Like in front, the note, then Send with Content when
- * signed in (the people shared with, several at once, and Add address). The button says Save, Save
- * and send or Send. Closing a sheet whose save already happened keeps what it says.
+ * saved before (Organise). In order: the address (Add link only), the folder as chips, the tags with
+ * Like in front, the note, then Send with Content when signed in (the people shared with, several at
+ * once, and Add address; not in Organise, which has Share next to it). The button says Save or Save
+ * and send. A saved article's sheet has Remove at the bottom left, with Undo in its message. Closing
+ * a sheet whose save already happened keeps what it says.
  */
-export function SaveSheet({ onMessage }: { onMessage: (text: string, openKey?: string) => void }) {
+/** A message under the sheet: with Open for a new save (its key), or Undo (`undo`). */
+type Message = (text: string, openKey?: string, undo?: () => void) => void;
+
+export function SaveSheet({ onMessage }: { onMessage: Message }) {
   const { sheet, library } = useApp();
   const item = sheet && sheet.kind !== "new" ? library.items.find((i) => i.key === sheet.key) : undefined;
   if (!sheet || (sheet.kind !== "new" && !item)) return null;
@@ -39,7 +43,7 @@ function Sheet({
   kind: "new" | "justSaved" | "organise";
   initial: SaveChoice;
   itemKey: string | null;
-  onMessage: (text: string, openKey?: string) => void;
+  onMessage: Message;
 }) {
   const { library, account } = useApp();
   const [choice, setChoice] = useState(initial);
@@ -49,6 +53,7 @@ function Sheet({
   const [folderName, setFolderName] = useState("");
   const [tagName, setTagName] = useState("");
   const saved = kind !== "new";
+  const savedItem = itemKey ? library.items.find((i) => i.key === itemKey) : undefined;
   const typed = normalizeUrl(address);
   const link = typed && isWebLink(typed) ? typed : null;
   const name = (place: Place) => (place.kind === "toread" ? t("toRead") : place.kind === "archive" ? t("archiveTab") : place.name);
@@ -71,14 +76,10 @@ function Sheet({
       if (chosen.sendTo.length > 0 && item) void send(chosen.sendTo, sharedArticle(item), kind === "justSaved" ? savedTo : null);
       else if (kind === "justSaved") onMessage(savedTo);
     } else if (link) {
-      if (!chosen.keep) {
-        void send(chosen.sendTo, { url: link, title: link }, null);
-      } else {
-        const key = app.saveNew(link, chosen);
-        if (!key) onMessage(t("addLinkInvalid"));
-        else if (chosen.sendTo.length > 0) void send(chosen.sendTo, { url: link, title: link }, savedTo, key);
-        else onMessage(savedTo, key);
-      }
+      const key = app.saveNew(link, chosen);
+      if (!key) onMessage(t("addLinkInvalid"));
+      else if (chosen.sendTo.length > 0) void send(chosen.sendTo, { url: link, title: link }, savedTo, key);
+      else onMessage(savedTo, key);
     }
     app.closeSheet();
   };
@@ -99,14 +100,16 @@ function Sheet({
       closeLabel={t("close")}
       footer={
         <>
-          {/* Organising a saved article: Remove from Saved at the bottom left, away from Save. */}
-          {kind === "organise" && itemKey ? (
+          {/* A saved article (just saved, or organised later): Remove at the bottom left, away from Save. Just
+              saved, it takes the save back; organising, it takes the article out of Saved. Undo either way. */}
+          {saved && savedItem ? (
             <Button
               variant="destructive"
               className="mr-auto"
               onClick={() => {
-                app.removeItem(itemKey);
-                onMessage(t("savedRemoved"));
+                if (kind === "justSaved") app.undoSave(savedItem.key);
+                else app.removeItem(savedItem.key);
+                onMessage(t("savedRemoved"), undefined, () => app.restoreItem(savedItem));
                 app.closeSheet();
               }}
             >
@@ -114,24 +117,9 @@ function Sheet({
               {t("remove")}
             </Button>
           ) : null}
-          {/* Just saved, Remove takes the save back; closing keeps it as it was saved. */}
-          {kind === "justSaved" && itemKey ? (
-            <Button
-              variant="destructive"
-              onClick={() => {
-                app.undoSave(itemKey);
-                onMessage(t("savedRemoved"));
-                app.closeSheet();
-              }}
-            >
-              <Trash2 />
-              {t("remove")}
-            </Button>
-          ) : (
-            <Button variant="ghost" onClick={cancel}>
-              {t("cancel")}
-            </Button>
-          )}
+          <Button variant="ghost" onClick={cancel}>
+            {t("cancel")}
+          </Button>
           <Button onClick={save} disabled={!canConfirm(choice, saved || link !== null)}>
             {action === "save" ? t("saveArticle") : action === "saveAndSend" ? t("saveAndSend") : t("shareUserSend")}
           </Button>
@@ -146,11 +134,9 @@ function Sheet({
           <FolderChips
             place={choice.place}
             folders={savedFolders(library)}
-            onChange={(place) => setChoice({ ...choice, place, keep: true })}
+            onChange={(place) => setChoice({ ...choice, place })}
             name={folderName}
             setName={setFolderName}
-            keep={kind === "new" && signedIn ? choice.keep : null}
-            onDontSave={() => setChoice({ ...choice, keep: false })}
           />
         </Section>
         {/* Only sent: nothing of it is kept, so there is nothing to tag or note. */}
@@ -208,24 +194,19 @@ function FolderChips({
   onChange,
   name,
   setName,
-  keep = null,
-  onDontSave = () => undefined,
 }: {
   place: Place;
   folders: string[];
   onChange: (p: Place) => void;
   name: string;
   setName: (name: string) => void;
-  /** Whether it is kept, when Don't save is offered (#256); null when it isn't. */
-  keep?: boolean | null;
-  onDontSave?: () => void;
 }) {
   const [making, setMaking] = useState(false);
   return (
     <div className="space-y-2">
       <div role="radiogroup" aria-label={t("savedPlace")} className="flex flex-wrap items-center gap-1.5">
         {places(folders, place).map((option) => {
-          const selected = keep !== false && samePlace(option, place);
+          const selected = samePlace(option, place);
           const Icon = selected ? Check : option.kind === "toread" ? BookOpen : option.kind === "archive" ? Archive : FolderGlyph;
           return (
             <button key={option.kind === "folder" ? `f:${option.name}` : option.kind} type="button" role="radio" aria-checked={selected} onClick={() => onChange(option)} className={cn(chip, selected ? on : "hover:bg-muted")}>
@@ -234,13 +215,6 @@ function FolderChips({
             </button>
           );
         })}
-        {/* Saved has no folders any more (#186): To read or Archive, and tags below. */}
-        {keep !== null ? (
-          <button type="button" role="radio" aria-checked={!keep} onClick={onDontSave} className={cn(chip, !keep ? on : "hover:bg-muted")}>
-            {keep ? <Send className="size-4" aria-hidden="true" /> : <Check className="size-4" aria-hidden="true" />}
-            {t("dontSave")}
-          </button>
-        ) : null}
       </div>
       {making ? (
         <form

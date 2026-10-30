@@ -309,20 +309,21 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   in this order, what is being saved (only before the save: the address field for Add link, or a
   shared link's title and site), **Folder** (#251: it said "Where") as single-choice `FilterChip`s
   (To read and Archive with their icons, each folder, then a New folder `AssistChip`, the only thing
-  to type; #156; before the save, signed in, also **Don't save**, to only send it), **Tags** in one
+  to type; #156), **Tags** in one
   row (Like, then every tag in use as a `FilterChip` without a check mark, in a steady order so
   nothing moves when one is chosen, then a New tag `AssistChip` that opens a field to make a new
-  one), **Note** with the room (both hidden for Don't save), then, signed in, **Send with Content**:
+  one), **Note** with the room, then, signed in, **Send with Content**:
   the people shared with as `FilterChip`s with their avatar, several at once, and an Add address
   `AssistChip` that opens a field (checked for a Content account before the person joins the
   chips). Section titles in Title Small, `primary`. Then Cancel and the button, which says **Save**,
   **Save and send** or **Send**: closing the sheet is Cancel, so only the button changes or sends
   anything; the heading is "Save and share", or "Organise" for an article saved before: that one has no Send
-  with Content (Share is next to Organise) and a red Remove at the bottom left. Right after a save ("Saved to …"), **Remove**
-  (error colour, trash icon) takes the place of Cancel and takes the save back; closing keeps it. A
+  with Content (Share is next to Organise) and a red Remove at the bottom left. Right after a save ("Saved to …") Remove sits there
+  too and takes the save back; closing keeps it. Remove (error colour, trash icon) acts at once, with
+  Undo in its snackbar, wherever it is: these sheets, the reader's ⋮, a swipe in Saved. A
   folder or tag still being typed is taken by the button. One snackbar says where it went and who
   got it ("Saved to To read · Sent to …"). Other apps' share menus have three targets: Save and share
-  (the same sheet, without Don't save), Send with Content (the sheet with only Send with Content,
+  (the same sheet), Send with Content (the sheet with only Send with Content,
   headed so) and Add feed (the Add feed dialog with the link). A person picked in Android's share
   menu opens Send with Content with them picked. After a save there, a tap anywhere but Open closes
   the message and goes back to the other app.

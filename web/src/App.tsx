@@ -208,9 +208,9 @@ export default function App() {
       <SettingsDialog open={dialog === "settings"} onOpenChange={(o) => setDialog(o ? "settings" : null)} />
       <InstapaperImportDialog />
       <SaveSheet
-        onMessage={(text, openKey) =>
-          // Not in the article yet: Open goes there, in Saved (#142).
-          setMessage({ text, action: openKey ? { label: t("open"), run: () => openSaved(openKey) } : undefined })
+        onMessage={(text, openKey, undo) =>
+          // Not in the article yet: Open goes there, in Saved (#142). Removed: Undo puts it back.
+          setMessage({ text, action: openKey ? { label: t("open"), run: () => openSaved(openKey) } : undo ? { label: t("undo"), run: undo } : undefined })
         }
       />
       <input

@@ -79,7 +79,6 @@
     <string name="share_user_sent">Enviado a %1$s</string>
     <string name="save_share_title">Guardar y compartir</string>
     <string name="action_save_and_send">Guardar y enviar</string>
-    <string name="place_dont_save">No guardar</string>
     <string name="share_add_address">Añadir dirección</string>
     <plurals name="share_sent_people">
         <item quantity="one">Enviado a %1$d persona</item>
@@ -292,7 +291,6 @@
     <string name="saved_folder_remove_body">¿Quitar la carpeta %1$s? Sus elementos van al Archivo.</string>
     <string name="saved_remove">Quitar de Guardados</string>
     <string name="saved_removed">Quitado de Guardados</string>
-    <string name="saved_remove_body">¿Quitar este elemento, con su nota, etiquetas y resaltados? Archivarlo lo mantiene buscable.</string>
     <string name="saved_empty_body">Desliza un artículo de un feed a la izquierda, toca Guardar en un artículo, comparte un enlace con Content o añade uno aquí.</string>
     <string name="manage_folders_tags_empty_title">Aún no hay carpetas ni etiquetas</string>
     <string name="manage_folders_tags_empty_body">Las carpetas y etiquetas de tus elementos guardados aparecen aquí para que puedas renombrarlas.</string>

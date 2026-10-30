@@ -157,7 +157,6 @@ fun ReaderScreen(
 ) {
     var highlightsOpen by rememberSaveable { mutableStateOf(false) }
     var showStyleSheet by rememberSaveable { mutableStateOf(false) }
-    var removeOpen by rememberSaveable { mutableStateOf(false) }
     var reportOpen by rememberSaveable { mutableStateOf(false) }
     var menuOpen by remember { mutableStateOf(false) }
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
@@ -245,7 +244,8 @@ fun ReaderScreen(
                                 leadingIcon = { Icon(painterResource(R.drawable.ic_delete), contentDescription = null) },
                                 onClick = {
                                     menuOpen = false
-                                    removeOpen = true
+                                    // Removed at once, with Undo in the message, as everywhere else.
+                                    item.onRemove()
                                 },
                             )
                         }
@@ -339,7 +339,6 @@ fun ReaderScreen(
             )
         }
     }
-    if (item != null && removeOpen) RemoveDialog(item.onRemove, onDismiss = { removeOpen = false })
 
     if (showStyleSheet) {
         ModalBottomSheet(
