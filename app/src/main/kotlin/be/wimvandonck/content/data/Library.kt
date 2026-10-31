@@ -88,6 +88,22 @@ fun FeedSelection.choosesFolder(folder: Folder): Boolean =
     }
 
 /**
+ * The feeds' tags in the order of the folders they mirror, as Manage and ☰ list them; a tag without
+ * a folder (from an older app) comes after them, alphabetically. Case is ignored.
+ */
+fun feedTagsInOrder(
+    feeds: List<Feed>,
+    folders: List<Folder>,
+): List<String> {
+    val position = HashMap<String, Int>()
+    folders.forEachIndexed { i, f -> position.putIfAbsent(f.title.trim().lowercase(), i) }
+    return feeds
+        .flatMap { it.tags }
+        .distinctBy { it.lowercase() }
+        .sortedWith(compareBy<String> { position[it.lowercase()] ?: Int.MAX_VALUE }.thenBy { it.lowercase() })
+}
+
+/**
  * Everything the app knows about the user's reading: the subscriptions and their articles, with
  * read state, and the [items] on the reading list or in Bookmarks (LibraryItems.kt). Immutable;
  * every change returns a new value.
@@ -340,8 +356,8 @@ data class Library(
             is FeedSelection.Tagged -> if (feedTags().any { it.equals(selection.tag, ignoreCase = true) }) selection else FeedSelection.All
         }
 
-    /** Every feed tag (#187), sorted (case ignored): the Feed tab's chips. */
-    fun feedTags(): List<String> = feeds.flatMap { it.tags }.distinctBy { it.lowercase() }.sortedBy { it.lowercase() }
+    /** Every feed tag (#187), in the folders' order: the Feed tab's chips. See [feedTagsInOrder]. */
+    fun feedTags(): List<String> = feedTagsInOrder(feeds, folders)
 
     /** Unread counts for All, every folder and every feed, for the drawer. */
     fun unreadCounts(): Map<FeedSelection, Int> =
