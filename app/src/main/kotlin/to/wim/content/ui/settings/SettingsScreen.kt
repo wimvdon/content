@@ -53,11 +53,17 @@ data class SettingsState(
     val notifyShared: Boolean? = null,
     /** Sites signed in to (#180). */
     val siteSignIns: List<String> = emptyList(),
+    /** Instapaper (#215): a connected service, next to the Content account. Null while unknown. */
+    val instapaper: InstapaperSettingsState? = null,
 )
 
 class SettingsActions(
     val onBack: () -> Unit,
     val onReaderStyleChange: (ReaderStyle) -> Unit,
+    val onInstapaperSignIn: () -> Unit = {},
+    val onInstapaperSync: () -> Unit = {},
+    val onInstapaperSignOut: () -> Unit = {},
+    val onInstapaperImport: (everything: Boolean) -> Unit = {},
     val onFullArticlesChange: (Boolean) -> Unit,
     val onAlwaysOpenWebsiteChange: (Boolean) -> Unit,
     val onShowImagesChange: (Boolean) -> Unit,
@@ -104,28 +110,44 @@ fun SettingsScreen(
                 onDeleteData = actions.onDeleteAccountData,
             )
         }
-        item(key = "sites") {
-            SettingsSection(title = stringResource(R.string.site_sign_ins_title)) {
-                for (site in state.siteSignIns) {
-                    ListItem(
-                        headlineContent = { Text(site) },
-                        trailingContent = { TextButton(onClick = { actions.onRemoveSiteSignIn(site) }) { Text(stringResource(R.string.site_sign_in_remove)) } },
-                    )
-                }
-                SettingsBlock {
-                    Text(
-                        stringResource(if (state.siteSignIns.isEmpty()) R.string.site_sign_ins_none else R.string.site_sign_ins_hint),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+        // Connection first (DESIGN.md): the Content account, then the service Saved is also kept in.
+        state.instapaper?.let { instapaper ->
+            item(key = "instapaper") {
+                SettingsSection(title = stringResource(R.string.section_instapaper)) {
+                    InstapaperSettings(instapaper, actions.onInstapaperSignIn, actions.onInstapaperSync, actions.onInstapaperSignOut, actions.onInstapaperImport)
                 }
             }
         }
         item(key = "list") { ListSection(state.settings, actions) }
         item(key = "reader") { ReaderSection(state.settings, actions) }
+        // Sites you pay for belong to reading: they decide which articles load in full (#180).
+        item(key = "sites") { SiteSignInsSection(state.siteSignIns, actions) }
         item(key = "appearance") { AppearanceSection(state.settings, actions) }
         item(key = "footer") {
             SettingsFooter("${stringResource(R.string.app_name)} ${rememberAppVersion()}")
+        }
+    }
+}
+
+/** The sites signed in to (#180), each with Remove. */
+@Composable
+private fun SiteSignInsSection(
+    sites: List<String>,
+    actions: SettingsActions,
+) {
+    SettingsSection(title = stringResource(R.string.site_sign_ins_title)) {
+        for (site in sites) {
+            ListItem(
+                headlineContent = { Text(site) },
+                trailingContent = { TextButton(onClick = { actions.onRemoveSiteSignIn(site) }) { Text(stringResource(R.string.site_sign_in_remove)) } },
+            )
+        }
+        SettingsBlock {
+            Text(
+                stringResource(if (sites.isEmpty()) R.string.site_sign_ins_none else R.string.site_sign_ins_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

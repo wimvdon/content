@@ -131,8 +131,6 @@ data class Settings(
     /** Open feed articles on their website instead of in the reader; on this phone only, off by default. */
     val alwaysOpenWebsite: Boolean = false,
     val listView: ListView = ListView.Medium,
-    /** Tag an article saved from a feed with the feed's folder (#120). */
-    val tagWithFolder: Boolean = true,
     /** What was imported from each service when it was connected (#145), by service id. */
     val imports: Map<String, ServiceImport> = emptyMap(),
     /** Notifications when something is shared (#235); on this phone only, off until turned on. */

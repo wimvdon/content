@@ -7,7 +7,7 @@ from another reader.
 
 ## Adding feeds
 
-Tap **Add feed** (on the empty screen or on ☰ › **Manage feeds and Saved** › Feeds) and type an
+Tap **Add feed** (on the empty screen or on ☰ › **Feeds and topics**) and type an
 address. Any of these work:
 
 - a feed address (`https://example.com/feed.xml`);
@@ -26,10 +26,10 @@ sit on a light tile, so dark logos stay visible in dark mode.
 ## Moving from another reader
 
 Export your feeds as an **OPML** file in your old reader, then tap **Import OPML** (on
-the empty start screen or in ☰ › Manage feeds and Saved › Feeds, under Move to or from another
+the empty start screen or in ☰ › Feeds and topics, under Move to or from another
 reader) and pick the file. All feeds are added (feeds
-you already follow are skipped), in the same folders as in your old reader, and the app downloads
-their articles. **Export OPML** does the reverse, folders included. Read and starred states don't
+you already follow are skipped), each folder of your old reader as a topic, and the app downloads
+their articles. **Export OPML** does the reverse, with your topics as its folders. Read and starred states don't
 come along.
 
 Under Import OPML, **From Feedly**, **From Inoreader** and **From Substack** open numbered steps
@@ -43,33 +43,46 @@ Under Import OPML, **From Feedly**, **From Inoreader** and **From Substack** ope
   Substack link (`substack.com/@name/…`, `open.substack.com/pub/name/…`, `name.substack.com/p/…`)
   for its publication, `name.substack.com`.
 
-## Folders
+## Topics
 
-Open **☰ › Manage feeds and Saved** (the Feeds tab). This page lists each folder with its feeds
-under it, then the feeds outside folders ("No folder"; when every feed is in a folder, a note
-there says so), and at the end Import OPML and Export OPML.
+A **topic** groups what belongs together, such as *News*, *Tech* or *Recipes*: your feeds and what
+you save, at once. A feed is in one topic (or none); a saved article can have several. Every topic
+has a name and an icon, and its place in your order. The same topics are on your phone and in the
+web app.
 
-- **New folder:** give it a title and pick an icon: the whole Material Symbols set (over 4 000
-  icons) is there. Type in the search field to find one (icon names are in English, such as
-  *news*, *car*, *soccer* or *food*); with nothing typed, popular topics come first.
-- **Drag** the grip (⋮⋮) at the right of a row to reorder. Drop a feed under another folder to
-  move it there, or under "No folder" to take it out. Dragging a folder moves it with its feeds;
-  while you drag it, the feeds are hidden. The order is the one the ☰ menu and the bottom bar
-  use. (With a screen reader, use the row's Move up / Move down actions.)
-- **Tap a feed** (or its pen) to rename it, choose its folder or remove it. A name you give stays when the
-  feed updates; clear the name to use the feed's own again.
-- **Tap a folder** (or its pen) to change its title or icon, or remove it (its feeds stay, under "No folder").
+**One place to manage them: ☰ › Feeds and topics.** This page lists each topic with its icon, how
+many feeds and saved articles it has ("3 feeds · 12 saved"), and its feeds under it; then the feeds
+without a topic ("No topic"; when every feed has one, a note there says so); and at the end Import
+OPML and Export OPML.
 
-Once there is a folder, tabs appear under the title: **All** (every feed) and then each folder
-with its icon and name; swipe the tabs sideways when they don't fit. Tap one to see only its
-articles. The ☰ drawer lists the folders too, and the feeds outside folders after them; a folder
-shows its feeds while you are in it (the folder or one of its feeds), so the list stays short. A
-feed added while a folder is open goes into that folder. Long-pressing Content's icon on the home
-screen offers your first four folders: tap one to open the app on it (#251).
+- **New topic:** give it a name and pick an icon: the whole Material Symbols set (over 4 000 icons)
+  is there. Type in the search field to find one (icon names are in English, such as *news*, *car*,
+  *soccer* or *food*); with nothing typed, popular ones come first.
+- **Drag** the grip (⋮⋮) at the right of a row to reorder. Drop a feed under another topic to move
+  it there, or under "No topic" to take it out. Dragging a topic moves it with its feeds; while you
+  drag it, the feeds are hidden. This order is the one everything uses: the chips, the ☰ menu, the
+  save sheet. (With a screen reader, use the row's Move up / Move down actions.)
+- **Tap a feed** (or its pen) to rename it, choose its topic or remove it. A name you give stays
+  when the feed updates; clear the name to use the feed's own again.
+- **Tap a topic** (or its pen) to change its name or icon, or remove it. Renaming it renames it on
+  its saved articles too; renaming it to the name of another topic joins the two. Removing it keeps
+  its feeds (under "No topic") and its saved articles (without this topic).
+
+**Feeds:** the chips under the search bar list the topics that have feeds, in your order; the ☰
+menu lists them too, with the feeds without a topic after them. A topic shows its feeds in ☰ while
+you are in it (the topic or one of its feeds), so the list stays short. A feed added while a topic
+is open goes into that topic. Long-pressing Content's icon on the home screen offers your first four
+topics: tap one to open the app on it (#251).
+
+**Saved:** an article you save from a feed gets the feed's topic by itself (Save, the swipe, the
+save sheet). In the save and Organise sheets you turn topics on or off, every topic in your order,
+and **New topic** makes one. Saved's chips and ☰ show the topics your saved articles have, with
+their icons. A topic that comes in from Instapaper (where it is a tag) or another device is added
+at the end of your topics.
 
 ## Sync between devices
 
-Sign in on every phone and in the web app, and your feeds, folders, read articles and settings stay the same on all
+Sign in on every phone and in the web app, and your feeds, topics, read articles and settings stay the same on all
 of them. Reader keeps them in your Reader account on its own server, encrypted. A phone signing in
 for the first time combines its feeds with the account's and takes the settings you already have.
 
@@ -77,7 +90,7 @@ for the first time combines its feeds with the account's and takes the settings 
 Open the link in that email on the same phone (it opens Content) or in the same browser. A link
 works once, for 30 minutes. No password. Your Gravatar picture shows next to your address, and your Gravatar name above it (#234; also the name people see on what you share with them), if you
 have one. **Add an email address** adds a second address to the same library. Instapaper is only a
-connected service (#215), not a way to sign in (☰ › Manage feeds and Saved › Saved): connecting or
+connected service (#215), not a way to sign in (Settings › Instapaper): connecting or
 disconnecting it doesn't sign you in or out.
 
 Only Load full articles and Mark as read on scroll sync. How the app looks (theme, the reader's
@@ -101,36 +114,36 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   sits at the left side; on the web, a wide window has no bar: the menu at the left does it).
 - Under the search bar, one row of chips. The first chip says **what you see**: in Feeds **Unread**
   or **All**, in Saved **To read**, **Archive** or **All**; tap it to pick another. After it come
-  your **folders** (Feeds) or **Liked** and your **tags** (Saved): tap one to show only that, tap it again or the
-  **X** to show everything again. Changing the first chip keeps the folder or tag you picked.
+  your **topics** (Feeds), or **Liked** and your **topics** (Saved), in your order: tap one to show only that, tap it again or the
+  **X** to show everything again. Changing the first chip keeps the topic you picked.
 - **☰** opens the drawer (on the web, a wide window shows it at the left all the time, without ☰).
-  It has two sections with the same choices as the chips: **Feeds** (**Feed**, your folders, the
-  other feeds, each with its unread count; a folder shows its feeds while you are in it) and
-  **Saved** (**Saved**, then **Liked** and then your tags, each with how many
+  It has two sections with the same choices as the chips: **Feeds** (**Feed**, your topics, the
+  other feeds, each with its unread count; a topic shows its feeds while you are in it) and
+  **Saved** (**Saved**, then **Liked** and then your topics with their icons, each with how many
   are still to read). Both start open; tap a section's name to fold it, and it stays that way (#251).
-  At the bottom: **Manage feeds and Saved** and **Settings**.
+  At the bottom: **Feeds and topics** and **Settings**.
 - **Search** (tap the search bar; on the web also the **/** key) searches everything: the articles of all your feeds that are on the device (titles,
   text, feed names and authors) and Saved, archived articles too (titles, websites, descriptions,
-  folders, tags, notes and highlights). Every word you type must appear; capitals and accents
+  topics, notes and highlights). Every word you type must appear; capitals and accents
   don't matter ("cafe" finds "Café"). The results are one list, best match first: the whole search
   in the title, then more of its words in the title, then the newest. Each result says **Feed** or
   **Saved** when both kinds are shown. Chips above the results show **All**, only **Feeds** or only
-  **Saved**. With **Feeds** chosen, two more chips narrow it to a **Folder** or one **Feed**; with
-  **Saved**, to a **Folder** and a **Tag**. With nothing typed,
+  **Saved**. With **Feeds** chosen, two more chips narrow it to a **Topic** or one **Feed**; with
+  **Saved**, to a **Topic**. With nothing typed,
   Search lists everything those chips let through, newest first: with no filter that is all your
   feed articles and all of Saved (archive included), which is where Saved's former **All** tab went.
-  **All** and **Saved** show their results as notes, like a folder; **Feeds** shows rows, like your feeds.
+  **All** and **Saved** show their results as notes, like the Archive; **Feeds** shows rows, like your feeds.
 - Articles are grouped under **Today**, **Yesterday** and then the date; the date stays at the
   top while you scroll through that day.
 - Under the title you see how many articles are unread. Two chips just above the list
-  (under the folder tabs), **Unread** and **All**, choose between only unread articles and all
+  (under the topic chips), **Unread** and **All**, choose between only unread articles and all
   articles; the chosen one is filled, with a check mark. The web app has the same two chips.
 - **What stays in the Unread list.** An article you read (opened, also from Search, swiped,
   marked with its button or scrolled past) stays in the list, dimmed, so nothing disappears under
-  your finger. The list starts afresh only when you pick another feed or folder, switch between
+  your finger. The list starts afresh only when you pick another feed or topic, switch between
   Unread and All, or refresh yourself. Going to Saved and back, or tapping the
   same feed again, keeps it as it was; a refresh the app does by itself does too.
-- Scrolling down slides the title, the folder tabs and the **Unread** and **All** chips out of the way, so you see
+- Scrolling down slides the title, the topic chips and the **Unread** and **All** chips out of the way, so you see
   more articles; scroll up a little and they come straight back.
 - **Swipe** a feed article either way past about a third of its width (you feel a short tick) to
   save it (#221). **Press and hold** it for a menu: **Mark as read** (or unread), **Save** and
@@ -143,9 +156,9 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
 - **Pull down** to download new articles; with nothing (unread) to show, the **Refresh** button
   does the same (#251). The app also does this once every time it starts. All feeds are downloaded
   first and then added at once, each article in its place by date.
-- **Back** inside a folder or feed returns to All; back on All closes the app.
+- **Back** inside a topic or feed returns to All; back on All closes the app.
 - The round **✓✓** (Mark all as read) button at the bottom right marks everything in the section you are in as
-  read: all feeds on All, the folder's feeds in a folder, or the one feed you opened, also the
+  read: all feeds on All, the topic's feeds in a topic, or the one feed you opened, also the
   ones you haven't scrolled to. You're done with it, so the Unread list empties (All caught up).
   A message says how many; **Undo** brings them back.
 - **Settings › Article list › View** chooses how big articles are in the list: **Small** (title
@@ -155,7 +168,7 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   marked as read once you scroll them off the top of the list, only ones that were on screen: new
   articles arriving above are never marked unseen. They stay in the unread list (see above), so
   you can scroll back to them.
-- If some feeds can't be downloaded, a message says how many; **Manage feeds and Saved** shows why
+- If some feeds can't be downloaded, a message says how many; **Feeds and topics** shows why
   for each one.
 
 ## The reader
@@ -174,9 +187,9 @@ website (in the web app, in a new tab) (the same as **Read on website** at the e
 The bar at the bottom is the article in your library, with **Share** at its right end (Content's
 share sheet, or straight to the app you chose). Before it is saved it has **Save** on the left: it
 saves the article to **To read** (by default), or sends it to the app you chose (see below). Once
-saved, Save makes way for **its folder** (To read or Archive): tap it for **Organise**, the sheet
-with the folder, Like, the tags and the note (#251: on a phone there was no room for the folder and
-the tags side by side). Next to Share, a quote mark with a count opens the article's highlights and
+saved, Save makes way for **its list** (To read or Archive): tap it for **Organise**, the sheet
+with the list, Like, the topics and the note (#251: on a phone there was no room for the list and
+the topics side by side). Next to Share, a quote mark with a count opens the article's highlights and
 notes. The text ends with **Read on website**. Reader remembers how far you read and opens the
 article there again.
 
@@ -198,14 +211,13 @@ come into Content (when the article opens, or at the next sync). Free Instapaper
 five new ones a month: the others stay in Content, say "Not in Instapaper yet" in the list of
 highlights, and are tried again the next day.
 
-After **Save**, **Save and share** opens (#256): the **Folder** (To read and **Archive** first, then
-your folders, or **New folder** to make one), the **Tags** with **Like** in front (every tag you use,
-tap to turn one on or off; **New tag** makes one that doesn't exist yet), a **Note**, and, signed
+After **Save**, **Save and share** opens (#256): the **List** (To read or **Archive**), the **Topics** with **Like** in front (every topic, in your
+order, tap to turn one on or off; **New topic** makes one that doesn't exist yet), a **Note**, and, signed
 in, **Send with Content**, laid out like an email's **To** field: the people you pick sit in it as
 chips (**×** takes one out); type a name or address after them, and below are suggestions, the
 people you sent something to before (tap to add). A whole new address gives **Add …** (Content
 checks they have an account). The button then says **Save** or
-**Save and send** (to only send a link, use Share or the share menu's Send with Content). It keeps what you chose, also a folder or tag you typed but
+**Save and send** (to only send a link, use Share or the share menu's Send with Content). It keeps what you chose, also a topic you typed but
 didn't add yet, and one message says where it went and who got it. **Cancel** (or closing the sheet)
 saves and sends nothing: right after Save in the reader or a swipe, it takes the save back, as if you
 never saved it.
@@ -271,7 +283,7 @@ Connecting Instapaper changes nothing here: what is in Saved is also kept in the
 **From other apps** (#235, #256). Content has three targets in other apps' share menus, each opening
 over the app you were in:
 
-- **Save and share**: the save sheet (place, tags, note and, signed in, Send with Content). It has
+- **Save and share**: the save sheet (list, topics, note and, signed in, Send with Content). It has
   only saves (and sends, if you pick people); to only send, pick the next one.
 - **Send with Content**: only the people to send it to; nothing lands in Saved. Signed out, it asks
   you to sign in to your Content account first.
@@ -297,8 +309,8 @@ off.
 
 **Saving from other apps.** In Chrome or any app that shares links, tap Share and pick
 **Reader**. Only the **Save to Reader** sheet opens, over the app you were in (the rest of Reader
-stays closed): the site, then the **Folder** (To read, **Archive** for a link you keep
-for reference, your folders, or **New folder**), the **Tags** with **Like** in front, and a **Note**. **Save** saves
+stays closed): the site, then the **List** (To read, or **Archive** for a link you keep
+for reference), the **Topics** with **Like** in front, and a **Note**. **Save** saves
 it and says where it went, and you are back in that app; **Cancel** saves nothing. **Add link** in
 Saved opens the same sheet with a field for the address. A
 link shared without a title gets the page's own title, description and picture. Shared text without
@@ -308,23 +320,19 @@ a web link says "No link to save".
 
 - **Account:** sign in with an emailed link to sync; signed in, your address, **Sync now**,
   **Sign out**, **Delete synced data** and **Add an email address** (see Sync between devices).
+- **Instapaper:** the service Saved is also kept in (see Instapaper account). It sits right under
+  your Content account: both are connections.
 - **Article list:** View (Small, Medium, Large) and **Mark as read on scroll**.
 - **Reader:** **Always open the website** (Android only, off by default: tapping a feed article opens its website in the browser tab over Content, with its Save button, and marks it read; saved articles still open in the reader, which keeps your place, highlights and notes), **Load full articles**, **Show images**, and the same text settings as **Aa**, with a preview in the page colour you chose.
+- **Sites you're signed in to:** the sites you pay for and signed in to from an article (see The
+  reader), each with **Remove**.
 - **Appearance:** Theme (System, Light, Dark) and Dynamic color (wallpaper colours instead of
   the app's blue).
 
-Your feeds and Saved are managed on one page, **Feeds and Saved** (#222, #251): ☰ › **Manage feeds
-and Saved**, next to Settings, with a tab for each.
-
-- **Feeds:** every feed with its address (or why its last download failed), grouped by folder. Add,
-  rename, reorder (drag) or remove feeds (a removed feed's articles go too), create, edit, reorder
-  and remove folders, and put feeds in folders. At the end, **Import OPML** / **Export OPML**, to
-  move your feeds between readers.
-- **Saved:** **Tag with the feed's folder** (on by default, on the phone): an article you save from
-  a feed (Save, the swipe, the save sheet) gets its folder's name as a tag, spelled like a tag you
-  already use. It still goes to To read. Renaming or removing the folder later doesn't change tags
-  already given. Each device keeps its own choice. Then **Instapaper** (see Instapaper account) and
-  Saved's tags, to rename or remove.
+Your feeds and topics are managed on one page, ☰ › **Feeds and topics**, next to Settings (see
+Topics): every feed with its address (or why its last download failed), grouped by topic; add,
+rename, reorder (drag) or remove feeds (a removed feed's articles go too) and topics; at the end,
+**Import OPML** / **Export OPML**, to move your feeds between readers.
 
 ## Backup and moving to a new phone
 
@@ -341,60 +349,59 @@ The app follows the phone's language. To choose another one for this app only: A
 
 ## Saved
 
-**Saved** (#119) holds everything you save, in one place: articles to read, the ones you file in
-folders, and the archive. It is Reader's own: it works without an account, is kept on the device
+**Saved** (#119) holds everything you save, in one place: articles to read and the archive, each
+with its topics. It is Reader's own: it works without an account, is kept on the device
 (and in its backup), and syncs between your devices through your Reader account. Signed in to
 Instapaper, it is also kept in your Instapaper account (see Instapaper account).
 
 - **Where you stopped reading:** a saved article opens where you left it, on the phone and in the
   web app, and that place syncs between your devices and with Instapaper (both ways), so you can
   start on one and go on on another. An article you barely began or finished opens at the top.
-- **Each article is in one place:** **To read** (where everything new arrives), **one folder**, or
-  the **Archive**. Filing an article in a folder takes it out of To read; archiving it takes it out of
-  its folder.
+- **Each article is on one list:** **To read** (where everything new arrives) or the **Archive**,
+  with any number of topics.
 - **Getting articles in:** **Save** in an article; **swipe a feed article** either way in the list,
   or press and hold it › **Save** (the save sheet opens, then the message offers **Open**); **Add link** (the button at the bottom right of
-  Saved); and sharing a link to Reader from another app. These go to To read unless you pick a
-  folder in the save sheet. A feed article you save stays the same article: its feed, text and
+  Saved); and sharing a link to Reader from another app. These go to To read unless you pick
+  the Archive in the save sheet. A feed article you save stays the same article: its feed, text and
   picture come along, and it isn't copied.
 - **Swipe in To read and Archive:** left archives (with **Undo**; in Archive, back to read),
-  right opens **File in a folder**.
+  right opens **Organise**.
 - **The chips** under the search bar: first **To read**, **Archive** or **All** (tap it to pick),
-  then **Liked** (set apart by its heart) and your tags, most used first, one at a time.
+  then **Liked** (set apart by its heart) and your topics, in your order, one at a time.
 - **To read looks like your feeds**: the same rows, in the view you chose for the
   feed list (Small, Medium, Large), with how many articles and about how long they take at the top.
-  **A folder and the Archive look like a page of notes**: cards in two columns, each with its picture, the title,
+  **The Archive looks like a page of notes**: cards in two columns, each with its picture, the title,
   a few lines of your first highlight (quoted) or else the article's description, a glimpse of your
-  note in small letters, its tags as small chips, then the site, a marker icon with how many
+  note in small letters, its topics as small chips, then the site, a marker icon with how many
   highlights it has, and a heart when liked.
-- In the reader, the bar at the bottom: **its folder** (To read or Archive), which opens Organise.
+- In the reader, the bar at the bottom: **its list** (To read or Archive), which opens Organise.
   **Remove from Saved** is in ⋮ (and in Organise); it asks first, as everywhere, and takes the note,
-  tags and highlights with it (Archive keeps it searchable instead).
-- **☰ › Manage feeds and Saved › Saved**: every tag, with how many articles have it; tap one to
-  rename it (renaming it to another one's name joins the two), or remove it from every article.
+  topics and highlights with it (Archive keeps it searchable instead).
+- **☰ › Feeds and topics**: every topic, with how many saved articles have it; tap one to
+  rename it (renaming it to another one's name joins the two), or remove it.
 - **In the web app** Saved is the same: the same chips and cards, and **Add link**
   (the link button in the search bar). In an article the top bar is the reading (the full
   article, Aa, ⋮) and the bar under it the library, with Share at its right end: **Save** before it is saved (it opens the same sheet), then
-  the same two menus as on the phone: **where it is** (To read and Archive, your folders) and **its
-  tags** (Like, your tags). Archiving goes back to the list with **Undo**. Keys: **j**/**k** next
+  the same two menus as on the phone: **its list** (To read or Archive) and **its
+  topics** (Like, your topics). Archiving goes back to the list with **Undo**. Keys: **j**/**k** next
   and previous, **m** read or unread, **o** open on the website, **r** refresh, **/** search, and
   **Esc** closes a menu, then the article.
-- **☰ › Manage feeds and Saved › Saved › Instapaper**: the service Saved is also kept in. Everything
-  in Saved syncs. Feeds are Content's own.
+- **Settings › Instapaper**: the service Saved is also kept in. Everything in Saved syncs. Feeds are
+  Content's own.
 
 ## Instapaper account
 
-☰ › **Manage feeds and Saved** › Saved › **Sign in with Instapaper** opens Instapaper's own page in
+Settings › Instapaper › **Sign in with Instapaper** opens Instapaper's own page in
 your browser. Approve it there and you come back connected; the app never sees your Instapaper
 password. Instapaper only keeps Saved in step: it is not how you sign in to Content (#215, see Sync
 between devices). There are no options (#251):
 
 - **Import, once, or not:** right after connecting, Content asks **Import from Instapaper?**
   **Import** brings in everything Instapaper has now, each article where it belongs: archived in
-  the Archive, liked, with its tags. **Don't import** leaves what is there until it changes. Closed without an answer, the Instapaper section
+  the Archive, liked, with its tags as topics. **Don't import** leaves what is there until it changes. Closed without an answer, the Instapaper section
   asks the same with two buttons.
 - **Everything syncs:** everything in Saved, highlights included. What you add, archive, like or
-  tag there, and how far you read, goes both ways, while the app is open (when it opens, a moment
+  tag there (a tag is a topic), and how far you read, goes both ways, while the app is open (when it opens, a moment
   after a change, and when you pull down on Saved). Articles in Instapaper's folders arrive in To read.
 - Instapaper's home list is **To read** and its archive is the **Archive**.
 - The reader always shows Reader's own full article, for every account: an article that came in

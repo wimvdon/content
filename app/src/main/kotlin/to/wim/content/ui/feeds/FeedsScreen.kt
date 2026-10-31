@@ -76,6 +76,8 @@ data class FeedsState(
     val feeds: List<Feed>,
     val folders: List<Folder>,
     val problems: Map<String, FeedProblem>,
+    /** How many saved articles each topic has, by its id. */
+    val savedCounts: Map<String, Int> = emptyMap(),
 )
 
 class FeedsActions(
@@ -91,9 +93,10 @@ class FeedsActions(
 )
 
 /**
- * The Feeds tab of Manage feeds and Saved (ManageScreen): everything about what is followed: each folder with its feeds, the feeds outside
- * folders, and OPML import and export. Drag the handle to reorder feeds and folders or to move a
- * feed into another folder; tap a row to rename or remove it.
+ * Feeds and topics (ManageScreen): the one place to manage both. Each topic with its icon, how many
+ * feeds and saved articles it has, and its feeds under it; then the feeds without a topic, and OPML
+ * import and export. Drag the handle to reorder feeds and topics or to move a feed into another
+ * topic; tap a row to rename it, change its icon or remove it.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -286,6 +289,7 @@ fun FeedsTab(
                     FolderLine(
                         folder = row.folder,
                         feedCount = state.feeds.count { it.folderId == row.folder.id },
+                        savedCount = state.savedCounts[row.folder.id] ?: 0,
                         lifted = dragging,
                         handleModifier = handle,
                         onClick = { editingFolder = row.folder.id },
@@ -404,6 +408,7 @@ fun FeedsTab(
 private fun FolderLine(
     folder: Folder,
     feedCount: Int,
+    savedCount: Int,
     lifted: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -431,8 +436,10 @@ private fun FolderLine(
             }
             Column(Modifier.weight(1f)) {
                 Text(folder.title, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                val feedsText = pluralStringResource(R.plurals.feeds_count, feedCount, feedCount)
+                val savedText = pluralStringResource(R.plurals.topic_saved_count, savedCount, savedCount)
                 Text(
-                    pluralStringResource(R.plurals.feeds_count, feedCount, feedCount),
+                    stringResource(R.string.topic_counts, feedsText, savedText),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

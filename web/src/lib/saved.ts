@@ -8,6 +8,7 @@
 import { escapeHtml, snippet } from "./html";
 import { addToReadingList, changeItem, cleanTags, feedArticleFor, inInbox, putItem, recentTags, setReadingState, type Item } from "./items";
 import { keyOf, type Article, type Feed, type Library } from "./library";
+import { inTopicOrder } from "./topics";
 
 export type SavedTab = { kind: "toread" } | { kind: "all" } | { kind: "folder"; name: string } | { kind: "archive" };
 
@@ -93,9 +94,9 @@ export function folderCounts(lib: Library): Map<string, number> {
 /** How many items are in To read (outside folders). */
 export const toReadCount = (lib: Library) => lib.items.filter((i) => isIn(i, { kind: "toread" })).length;
 
-/** The tags in a tab, most recently used first (#220), for its chips. */
+/** The topics (tags) in a tab, in the topics' order (as Manage and the menu list them), for its chips. */
 export function tabTags(lib: Library, tab: SavedTab): string[] {
-  return recentTags(lib.items.filter((i) => isIn(i, tab)));
+  return inTopicOrder(lib, recentTags(lib.items.filter((i) => isIn(i, tab))));
 }
 
 /**

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useApp } from "@/lib/app";
 import { t } from "@/lib/i18n";
 import { articleKey, type Article } from "@/lib/library";
-import { articleNote, itemArticle, noteOf, savedFolders, sourceOf, tabTags } from "@/lib/saved";
+import { articleNote, itemArticle, noteOf, sourceOf, tabTags } from "@/lib/saved";
 import { indexArticles, narrowed, noFilters, searchResults, showsNotes, type SearchFilter, type SearchFilters } from "@/lib/search";
 import { Empty, NoteCard, Row } from "./ArticleList";
 import { Button } from "./ui/button";
@@ -137,7 +137,6 @@ export function SearchPanel({ openKey, onOpen, onClose }: { openKey: string | nu
 /** The chosen kind's filters, as chips that open a menu; a chosen one shows its value. */
 function Narrow({ filters, onChange }: { filters: SearchFilters; onChange: (f: SearchFilters) => void }) {
   const { library } = useApp();
-  const savedFolderNames = useMemo(() => savedFolders(library), [library]);
   const tags = useMemo(() => tabTags(library, { kind: "all" }), [library]);
   if (filters.scope === "all") return null;
   const chips =
@@ -164,21 +163,12 @@ function Narrow({ filters, onChange }: { filters: SearchFilters; onChange: (f: S
           />,
         ]
       : [
-          savedFolderNames.length > 0 ? (
-            <MenuChip
-              key="folder"
-              label={t("folder")}
-              value={filters.savedFolder}
-              options={[[null, t("searchAnyFolder")], ...savedFolderNames.map((f): [string, string] => [f, f])]}
-              onPick={(savedFolder) => onChange({ ...filters, savedFolder })}
-            />
-          ) : null,
           tags.length > 0 ? (
             <MenuChip
               key="tag"
-              label={t("searchTag")}
+              label={t("folder")}
               value={filters.tag}
-              options={[[null, t("searchAnyTag")], ...tags.map((x): [string, string] => [x, x])]}
+              options={[[null, t("searchAnyFolder")], ...tags.map((x): [string, string] => [x, x])]}
               onPick={(tag) => onChange({ ...filters, tag })}
             />
           ) : null,

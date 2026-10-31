@@ -123,12 +123,12 @@ object Saved {
     /** How many items each folder has. */
     fun folderCounts(library: Library): Map<String, Int> = folders(library).associateWith { f -> library.items.count { folderOf(it).equals(f, ignoreCase = true) } }
 
-    /** The tags in a tab, most used first, for its chips. */
+    /** The topics (tags) in a tab, in the topics' order (as Manage and ☰ list them), for its chips. */
     fun tags(
         library: Library,
         tab: SavedTab,
     ): List<String> =
-        library.items.filter { isIn(it, tab) }.recentTags()
+        library.inTopicOrder(library.items.filter { isIn(it, tab) }.recentTags())
 
     /**
      * The states Saved's state chip offers (#205): To read, Archive or everything. A tag stays

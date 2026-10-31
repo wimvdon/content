@@ -63,8 +63,6 @@ class SettingsStore(
 
     suspend fun setListView(view: ListView) = edit { it[LIST_VIEW] = view.name }
 
-    suspend fun setTagWithFolder(enabled: Boolean) = edit { it[TAG_WITH_FOLDER] = enabled }
-
     suspend fun setNotifyShared(enabled: Boolean) = edit { it[NOTIFY_SHARED] = enabled }
 
     /** What was imported from [service], or null to forget it (disconnected). */
@@ -138,7 +136,6 @@ class SettingsStore(
             markReadOnScroll = p[MARK_READ_ON_SCROLL] ?: defaults.markReadOnScroll,
             alwaysOpenWebsite = p[ALWAYS_OPEN_WEBSITE] ?: defaults.alwaysOpenWebsite,
             listView = enumOr(p[LIST_VIEW], defaults.listView),
-            tagWithFolder = p[TAG_WITH_FOLDER] ?: defaults.tagWithFolder,
             imports = ServiceSettings.readImports(p[IMPORTS]),
             recipients = Recipients.decode(p[RECIPIENTS]).orEmpty(),
             shareCounts = ShareApps.decode(p[SHARE_COUNTS]),
@@ -166,7 +163,6 @@ class SettingsStore(
         val MARK_READ_ON_SCROLL = booleanPreferencesKey("mark_read_on_scroll")
         val ALWAYS_OPEN_WEBSITE = booleanPreferencesKey("always_open_website")
         val LIST_VIEW = stringPreferencesKey("list_view")
-        val TAG_WITH_FOLDER = booleanPreferencesKey("tag_with_folder")
         val IMPORTS = stringPreferencesKey("service_imports")
         val RECIPIENTS = stringPreferencesKey("share_recipients")
         val SHARE_COUNTS = stringPreferencesKey("share_counts")

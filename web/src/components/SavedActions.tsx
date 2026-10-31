@@ -4,7 +4,8 @@ import { app, useApp } from "@/lib/app";
 import { plural, t } from "@/lib/i18n";
 import type { Item } from "@/lib/items";
 import { choiceOf, places, samePlace, tagsLabel, withTag, type Place } from "@/lib/saveChoice";
-import { savedFolders, tabTags } from "@/lib/saved";
+import { savedFolders } from "@/lib/saved";
+import { topicNames } from "@/lib/topics";
 import { Button } from "./ui/button";
 import { useEscape } from "./ui/useEscape";
 import { cn } from "./ui/cn";
@@ -66,7 +67,7 @@ export function LibraryBar({
     );
   }
   const choice = choiceOf(item);
-  const tags = tabTags(library, { kind: "all" });
+  const tags = topicNames(library);
   const close = () => setOpen(null);
   const organise = () => {
     close();

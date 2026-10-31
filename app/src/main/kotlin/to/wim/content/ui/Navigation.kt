@@ -8,7 +8,6 @@ import to.wim.content.data.ShareApps
 import to.wim.content.data.Sharing
 import to.wim.content.instapaper.InstapaperReadingList
 import to.wim.content.services.ServiceStatus
-import to.wim.content.ui.feeds.SavedManageTab
 import to.wim.content.ui.reader.ShareSheet
 import to.wim.content.ui.reader.messageRes
 import to.wim.content.ui.settings.InstapaperImportDialog
@@ -76,7 +75,8 @@ import to.wim.content.data.putItem
 import to.wim.content.data.item
 import to.wim.content.data.itemFor
 import to.wim.content.data.needsDescription
-import to.wim.content.data.itemTags
+import to.wim.content.data.topicNames
+import to.wim.content.data.topicCounts
 import to.wim.content.data.tagWithFeedFolder
 import to.wim.content.data.removeTag
 import to.wim.content.data.renameTag
@@ -487,7 +487,7 @@ fun RssReaderNavigation(
                 val (updated, item) = library.addToReadingList(link, title, System.currentTimeMillis())
                 added = item
                 addedBefore = item?.let { library.item(it.key) }
-                if (item != null && current.tagWithFolder) updated.tagWithFeedFolder(item.key) else updated
+                if (item != null) updated.tagWithFeedFolder(item.key) else updated
             }
             val item = added
             if (item == null) {
@@ -575,7 +575,7 @@ fun RssReaderNavigation(
             repository.edit { library ->
                 val (updated, item) = SaveChoices.saveNew(library, url, title, System.currentTimeMillis(), choice)
                 saved = item
-                if (item != null && current.tagWithFolder) updated.tagWithFeedFolder(item.key) else updated
+                if (item != null) updated.tagWithFeedFolder(item.key) else updated
             }
             val item = saved
             if (item == null) {
@@ -897,12 +897,22 @@ fun RssReaderNavigation(
                                 accountName = accountName,
                                 notifyShared = current.notifyShared.takeIf { app.push.available },
                                 siteSignIns = siteSignIns.map { it.site },
+                                instapaper =
+                                    InstapaperSettingsState(
+                                        instapaper = instapaperState,
+                                        status = serviceStatuses[InstapaperReadingList.ID] ?: ServiceStatus.None,
+                                    ),
                             ),
                         snackbarHostState = snackbar,
                         actions =
                             SettingsActions(
                                 onBack = ::pop,
                                 onReaderStyleChange = { style -> app.appScope.launch { app.settings.setReaderStyle(style) } },
+                                onInstapaperSignIn = { uiScope.launch { ExternalApps.openLink(context, app.instapaper.begin()) } },
+                                onInstapaperSync = { app.appScope.launch { app.services.sync() } },
+                                // Disconnects Instapaper only; the Content account stays signed in (#166).
+                                onInstapaperSignOut = { app.appScope.launch { app.instapaper.signOut() } },
+                                onInstapaperImport = { everything -> app.appScope.launch { app.services.chooseImport(InstapaperReadingList.ID, everything) } },
                                 onFullArticlesChange = { enabled -> app.appScope.launch { app.settings.setFullArticles(enabled) } },
                                 onAlwaysOpenWebsiteChange = { enabled -> app.appScope.launch { app.settings.setAlwaysOpenWebsite(enabled) } },
                                 onShowImagesChange = { enabled -> app.appScope.launch { app.settings.setShowImages(enabled) } },
@@ -958,6 +968,7 @@ fun RssReaderNavigation(
                                         feeds = library.feeds,
                                         folders = library.folders,
                                         problems = problems,
+                                        savedCounts = remember(library) { library.topicCounts().mapValues { it.value.saved } },
                                     ),
                                 actions =
                                     FeedsActions(
@@ -977,29 +988,6 @@ fun RssReaderNavigation(
                                         onExportOpml = exportOpml,
                                     ),
                                 innerPadding = padding,
-                            )
-                        },
-                        saved = { padding ->
-                            SavedManageTab(
-                                tags = remember(library) { library.tagCounts() },
-                                folders = remember(library) { Saved.folderCounts(library) },
-                                innerPadding = padding,
-                                onRename = { from, to -> editLibrary { it.renameTag(from, to) } },
-                                onRemove = { tag -> editLibrary { it.removeTag(tag) } },
-                                onRenameFolder = { from, to -> editLibrary { Saved.renameFolder(it, from, to) } },
-                                onRemoveFolder = { name -> editLibrary { Saved.removeFolder(it, name) } },
-                                tagWithFolder = current.tagWithFolder,
-                                onTagWithFolderChange = { enabled -> app.appScope.launch { app.settings.setTagWithFolder(enabled) } },
-                                instapaper =
-                                    InstapaperSettingsState(
-                                        instapaper = instapaperState,
-                                        status = serviceStatuses[InstapaperReadingList.ID] ?: ServiceStatus.None,
-                                    ),
-                                onInstapaperSignIn = { uiScope.launch { ExternalApps.openLink(context, app.instapaper.begin()) } },
-                                onInstapaperSync = { app.appScope.launch { app.services.sync() } },
-                                // Disconnects Instapaper only; the Content account stays signed in (#166).
-                                onInstapaperSignOut = { app.appScope.launch { app.instapaper.signOut() } },
-                                onInstapaperImport = { everything -> app.appScope.launch { app.services.chooseImport(InstapaperReadingList.ID, everything) } },
                             )
                         },
                     )
@@ -1074,7 +1062,6 @@ fun RssReaderNavigation(
                                 filters = searchFilters,
                                 library = library,
                                 feedFolders = library.folders,
-                                savedFolders = remember(library) { Saved.folders(library) },
                                 savedTags = remember(library) { Saved.tags(library, SavedTab.All) },
                                 titleFont = current.reader.font.fontFamily(),
                             ),
@@ -1123,7 +1110,7 @@ fun RssReaderNavigation(
             kind = if (addedKey != null) SheetKind.JustSaved else SheetKind.Organise,
             initial = SaveChoices.of(sheetItem),
             folders = Saved.folders(library),
-            allTags = library.itemTags(),
+            allTags = library.topicNames(),
             onSave = { _, choice ->
                 editLibrary { SaveChoices.apply(it, sheetItem.key, choice) }
                 when {
@@ -1175,7 +1162,7 @@ fun RssReaderNavigation(
             url = saveUrl.ifEmpty { null },
             title = saveTitle,
             folders = Saved.folders(library),
-            allTags = library.itemTags(),
+            allTags = library.topicNames(),
             onSave = { url, choice ->
                 url?.let {
                     val title = saveTitle.takeIf { saveUrl.isNotEmpty() }

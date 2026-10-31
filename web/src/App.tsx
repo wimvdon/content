@@ -30,7 +30,7 @@ export default function App() {
   const [drawer, setDrawer] = useState(false);
   // Search takes the list's place until it is closed; the article opened from it stays open.
   const [searching, setSearching] = useState(false);
-  const [dialog, setDialog] = useState<"add" | "manage" | "manageSaved" | "settings" | null>(null);
+  const [dialog, setDialog] = useState<"add" | "manage" | "settings" | null>(null);
   const [message, setMessage] = useState<Message | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -198,10 +198,8 @@ export default function App() {
 
       <AddFeedDialog key={dialog === "add" ? "open" : "closed"} open={dialog === "add"} onOpenChange={(o) => setDialog(o ? "add" : null)} folderId={selection.kind === "folder" ? selection.folderId : null} />
       <ManageDialog
-        open={dialog === "manage" || dialog === "manageSaved"}
+        open={dialog === "manage"}
         onOpenChange={(o) => setDialog(o ? "manage" : null)}
-        tab={dialog === "manageSaved" ? "saved" : "feeds"}
-        onTab={(tab) => setDialog(tab === "saved" ? "manageSaved" : "manage")}
         onImport={() => fileInput.current?.click()}
         onAddFeed={() => setDialog("add")}
       />

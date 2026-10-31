@@ -50,6 +50,7 @@ import to.wim.content.data.Feed
 import to.wim.content.data.FeedSelection
 import to.wim.content.data.Folder
 import to.wim.content.data.Saved
+import to.wim.content.data.topicIcons
 import to.wim.content.data.SavedFilter
 import to.wim.content.data.choosesFolder
 
@@ -150,12 +151,13 @@ fun FeedDrawer(
                 }
             }
 
-            // Saved section: Saved (everything) and, under Tags, Liked and the tags, as the chips (#205). The
+            // Saved section: Saved (everything), Liked and the topics, as the chips (#205), each topic with its icon. The
             // state (To read, Archive, All) is the chip's; picking here keeps it. Counts are what is
             // still to read, as Feeds counts what is unread.
             if (saved != null) {
                 val tagCounts = remember(saved.library) { Saved.toReadTagCounts(saved.library) }
                 val likedToRead = remember(saved.library) { Saved.likedToReadCount(saved.library) }
+                val topicIcons = remember(saved.library) { saved.library.topicIcons() }
                 SectionHeader(
                     title = stringResource(R.string.saved_title),
                     open = savedOpen,
@@ -172,7 +174,7 @@ fun FeedDrawer(
                             selected = inSaved && !saved.filter.likedOnly && saved.filter.tags.isEmpty(),
                             onClick = { onSavedFilter(saved.filter.copy(likedOnly = false, tags = emptySet())) },
                         )
-                        // Under Saved, without a heading (the owner's wish): Liked first, as on the chips, then the tags.
+                        // Under Saved, without a heading (the owner's wish): Liked first, as on the chips, then the topics.
                         NavigationDrawerItem(
                             label = { Text(stringResource(R.string.reading_list_liked), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                             icon = { Icon(painterResource(R.drawable.ic_favorite), contentDescription = null) },
@@ -184,7 +186,10 @@ fun FeedDrawer(
                             val tagSelected = inSaved && saved.filter.tags.any { it.equals(tag, ignoreCase = true) }
                             NavigationDrawerItem(
                                 label = { Text(tag, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                                icon = { Icon(painterResource(R.drawable.ic_label), contentDescription = null) },
+                                icon = {
+                                    val icon = topicIcons[tag.trim().lowercase()]
+                                    Icon(if (icon != null) rememberFolderIconPainter(icon) else painterResource(R.drawable.ic_label), contentDescription = null)
+                                },
                                 badge = { UnreadBadge(count) },
                                 selected = tagSelected,
                                 onClick = { onSavedFilter(saved.filter.copy(likedOnly = false, tags = setOf(tag))) },
@@ -194,7 +199,7 @@ fun FeedDrawer(
                 }
             }
 
-            // At the bottom: managing feeds and Saved (one screen with a tab for each, #251), and Settings.
+            // At the bottom: Feeds and topics (managing both on one page), and Settings.
             HorizontalDivider(Modifier.padding(vertical = 12.dp, horizontal = 16.dp))
             NavigationDrawerItem(
                 label = { Text(stringResource(R.string.menu_manage)) },
