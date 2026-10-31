@@ -20,7 +20,6 @@ export interface ExtensionAnswer {
   contentType?: string;
   /** The page's bytes, base64. */
   body?: string;
-  status?: number;
   problem?: string;
 }
 

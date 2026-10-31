@@ -45,7 +45,7 @@ import to.wim.content.data.feedTopics
 import to.wim.content.data.choosesFolder
 
 /**
- * The ☰ menu: Feeds and Saved as two sections, always open; the Inbox while signed in; then Manage
+ * The ☰ menu: Feeds and Saved as two sections, always open; the Inbox section while signed in; then Manage
  * and Settings. A feed folder shows its feeds only while you are in it (#251), so the list stays
  * short.
  */
@@ -155,11 +155,12 @@ fun FeedDrawer(
                 )
             }
 
-            // The Inbox (#246): what other Content users shared with you, with what is still unread.
+            // Inbox section (#246), under its own header: what other Content users shared with you,
+            // with what is still unread.
             if (showsInbox) {
-                Spacer(Modifier.height(8.dp))
+                SectionHeader(stringResource(R.string.inbox_title), Modifier.padding(top = 8.dp))
                 NavigationDrawerItem(
-                    label = { Text(stringResource(R.string.inbox_title)) },
+                    label = { Text(stringResource(R.string.inbox_drawer_item), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                     icon = { Icon(painterResource(R.drawable.ic_notifications), contentDescription = null) },
                     badge = { UnreadBadge(inboxUnread) },
                     selected = inInbox,

@@ -281,17 +281,25 @@ fun TopicScreen(
         topBar = {
             LargeTopAppBar(
                 title = {
+                    // The pen sits right after the icon and title, the two things it edits.
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         if (topic != null) Icon(rememberFolderIconPainter(topic.icon), contentDescription = null)
-                        Text(topic?.title ?: stringResource(R.string.folder_none), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(
+                            topic?.title ?: stringResource(R.string.folder_none),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f, fill = false),
+                        )
+                        if (topic != null) {
+                            IconButton(onClick = { editing = true }) {
+                                Icon(painterResource(R.drawable.ic_edit), contentDescription = stringResource(R.string.folder_edit))
+                            }
+                        }
                     }
                 },
                 navigationIcon = { BackButton(actions.onBack) },
                 actions = {
                     if (topic != null) {
-                        IconButton(onClick = { editing = true }) {
-                            Icon(painterResource(R.drawable.ic_edit), contentDescription = stringResource(R.string.folder_edit))
-                        }
                         Box {
                             IconButton(onClick = { menuOpen = true }) {
                                 Icon(painterResource(R.drawable.ic_more_vert), contentDescription = stringResource(R.string.action_more))

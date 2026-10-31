@@ -64,7 +64,7 @@ and Saved):
 - **Feeds:** its feeds, with why one fails; drag to reorder; tap one to rename it, give it another
   topic or remove it. **Add a feed to Tech** adds one straight into this topic.
 - **Saved:** how many saved articles have the topic, and how many are still to read.
-- The pen changes its name and icon. ⋮ has **Merge with…** (pick the topic that stays: it keeps its
+- The pen next to the topic's icon and name, at the top, changes them. ⋮ has **Merge with…** (pick the topic that stays: it keeps its
   name and icon and gets this one's feeds and saved articles) and **Remove topic** (its feeds and
   saved articles stay, without it). Both say so first.
 
@@ -123,9 +123,9 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   It is the map of every **place**: **Feeds** (**Feed**, your topics with feeds, each with its unread
   count, a topic with its feeds under it while you are in it, then the feeds without a topic: the
   only place a single feed is listed) and **Saved** (**To read**, with how many are still to read,
-  and **Archive**), then, signed in, the **Inbox** with how many are unread. Filters (Unread, Liked,
+  and **Archive**), then, signed in, the **Inbox** section (**Shared with you**, with how many are unread). Filters (Unread, Liked,
   Saved's topics) are the chips, not here. Picking a topic lights its chip; picking To read or
-  Archive sets Saved's first chip. Both sections are always open. At the bottom: **Manage topics**
+  Archive sets Saved's first chip. The sections are always open. At the bottom: **Manage topics**
   and **Settings**.
 - **Search** (tap the search bar; on the web also the **/** key) searches everything: the articles of all your feeds that are on the device (titles,
   text, feed names and authors) and Saved, archived articles too (titles, websites, descriptions,

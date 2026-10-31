@@ -75,6 +75,7 @@
     </plurals>
     <string name="share_send_with_content">Versturen met Content</string>
     <string name="inbox_title">Inbox</string>
+    <string name="inbox_drawer_item">Gedeeld met jou</string>
     <string name="inbox_open_unread">Inbox, nieuwe artikels</string>
     <string name="inbox_empty_title">Nog niets met je gedeeld</string>
     <string name="inbox_empty_body">Hier zie je wat andere Content-gebruikers je sturen.</string>

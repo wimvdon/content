@@ -242,7 +242,7 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   colour), a drag handle at the end, No topic last, and two extended FABs: Add feed (the FAB) and
   above it New topic (`secondaryContainer`, lowered elevation; Material's FAB menu isn't in the
   stable library yet). A topic's page is for managing only, no ways into reading: a large top app
-  bar with its icon and name, the pen and ⋮ (Merge with…, Remove topic in the error colour); its
+  bar with its icon and name and, right after them, the pen that edits them; ⋮ at the end (Merge with…, Remove topic in the error colour); its
   feeds as `ListItem`s with a drag handle, then Add a feed to it; how many saved articles it has, as
   text. Settings sections:
   Account (sign in with an emailed link; signed in, who, the last sync or what went wrong, Sync now,
@@ -264,7 +264,8 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   (Feed or Saved). It is not a navigation bar item: it acts on the content of both
   destinations rather than being a place of its own. The ☰ drawer holds every place, the same
   wherever the app is: Feeds and Saved are sections in it, each under a header (Title Small in
-  `primary`) and always open; the Inbox follows as one row. The web's sidebar is always on screen,
+  `primary`) and always open; signed in, the Inbox is a third section under its own header (one row,
+  Shared with you). The web's sidebar is always on screen,
   so there both stay open until you fold one, and stay as you left them. Back from Saved, the Inbox
   or a feed section goes to All articles.
 - Three levels, the same in Feeds and Saved (#205): the navigation bar says where (Feeds or Saved);
@@ -276,7 +277,7 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   ones keep their weight, so a chip never changes width and the row never moves (#208). An X at
   the end clears the group. The ☰ drawer is the map of every place: Feeds (Feed,
   the topics with feeds and, under the one you are in, its feeds, then the feeds without a topic)
-  and Saved (To read, Archive), then the Inbox, with what is unread or still to read as counts; filters (Liked,
+  and Saved (To read, Archive), then the Inbox section (Shared with you), with what is unread or still to read as counts; filters (Liked,
   Saved's topics) are only chips. A topic picked in the drawer and its chip are
   one choice and light up together. The Mark all read FAB is on Feeds
   only and only marks the section shown; Saved's FAB is Add link.
@@ -343,8 +344,8 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   edit a feed). No dialog opens on top of a sheet.
 - The ☰ drawer: two sections, always open (folding them was dropped: it hid places for little
   gain): the Feeds section (Feed, the folders, the other feeds; a folder shows its feeds only while
-  you are in it), the Saved section (To read with its count, Archive), the Inbox while signed in
-  (with its unread count), then **Manage topics** (the feed symbol with a pen) and Settings at the bottom.
+  you are in it), the Saved section (To read with its count, Archive), the Inbox section while signed in
+  (its own header, one row Shared with you with its unread count), then **Manage topics** (the feed symbol with a pen) and Settings at the bottom.
 - Content's share sheet (#251): a `ModalBottomSheet` with the article's title and site, **Send with
   Content** the same To field as in the Save and share sheet, then a full-width Send button, then the apps as 48dp icons with their names,
   four to a row, Copy link and More last.

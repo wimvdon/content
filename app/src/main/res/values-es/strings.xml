@@ -76,6 +76,7 @@
     </plurals>
     <string name="share_send_with_content">Enviar con Content</string>
     <string name="inbox_title">Bandeja de entrada</string>
+    <string name="inbox_drawer_item">Compartido contigo</string>
     <string name="inbox_open_unread">Bandeja de entrada, artículos nuevos</string>
     <string name="inbox_empty_title">Aún no han compartido nada contigo</string>
     <string name="inbox_empty_body">Lo que otros usuarios de Content te envíen aparece aquí.</string>
