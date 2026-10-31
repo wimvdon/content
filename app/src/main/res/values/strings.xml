@@ -76,6 +76,7 @@
     </plurals>
     <string name="share_send_with_content">Send with Content</string>
     <string name="inbox_title">Inbox</string>
+    <string name="inbox_drawer_item">Shared with you</string>
     <string name="inbox_open_unread">Inbox, new articles</string>
     <string name="inbox_empty_title">Nothing shared with you yet</string>
     <string name="inbox_empty_body">What other Content users send you shows up here.</string>

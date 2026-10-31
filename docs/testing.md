@@ -143,7 +143,8 @@ and then (always before a release):
       dot while something in it is unread (a rail at the left in landscape on a tablet). The Mark all
       read and Add link buttons and messages sit above the bar. Signed out, there is no Inbox.
 - [ ] **Navigation:** the ☰ drawer has the Feeds section (Feed, topics, feeds) and the Saved section
-      (To read, Archive), always open, then the Inbox (signed in, with its unread count), Manage
+      (To read, Archive), always open, then the Inbox section under its own header (signed in: Shared
+      with you, with its unread count), Manage
       topics and Settings. In a topic, a feed, Saved or the Inbox, Back goes up a level; on All, Back
       closes the app.
 - [ ] **Archive from the reader:** a saved article in To read has an Archive button next to its

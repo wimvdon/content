@@ -2,7 +2,8 @@
 // there and passes its fetch requests to background.js, which loads them with this browser's own
 // cookies. Messages carry {source: "content-web" | "content-extension"} so nothing else is answered.
 
-const VERSION = "1.1.0";
+// The version in manifest.json, so it is written in one place only.
+const VERSION = chrome.runtime.getManifest().version;
 
 function hello() {
   window.postMessage({ source: "content-extension", type: "hello", version: VERSION }, window.location.origin);

@@ -23,7 +23,7 @@ async function load(url) {
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
     const response = await fetch(url, { credentials: "include", redirect: "follow", signal: controller.signal });
-    if (!response.ok) return { ok: false, status: response.status, problem: response.status === 404 || response.status === 410 ? "notFound" : "server" };
+    if (!response.ok) return { ok: false, problem: response.status === 404 || response.status === 410 ? "notFound" : "server" };
     const buffer = await response.arrayBuffer();
     if (buffer.byteLength > MAX_BYTES) return { ok: false, problem: "tooLarge" };
     // Bytes as base64, so the web app decodes the text with the page's own charset.
