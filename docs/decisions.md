@@ -2,6 +2,17 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-31: Any Substack link adds its publication; shorter import steps
+
+- At the owner's request, Add feed takes any Substack link for its publication
+  (`FeedDiscovery.substackPublication`, web `substackPublication`): a note or profile on
+  `substack.com/@name`, an `open.substack.com/pub/name/…` link or a post on `name.substack.com`
+  becomes `https://name.substack.com/`, whose page announces the feed. Only Add feed does this, not
+  links saved to Saved. A Substack writer's handle is usually their publication's name; when it
+  isn't, Add feed says it found no feed.
+- The import steps no longer say to use a computer or to move the file to the phone: the web
+  (also on a phone) does it, and people know how to open a downloaded file.
+
 ## 2026-10-31: Import guides for Feedly, Inoreader and Substack
 
 - At the owner's request, Manage feeds and Saved › Feeds has numbered steps under Import OPML for

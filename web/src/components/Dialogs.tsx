@@ -207,8 +207,8 @@ export function ManageDialog({
             </div>
             <p className="text-xs text-muted-foreground">{t("opmlHint")}</p>
             {/* How to get the file out of the readers people come from, and Substack, which has no file. */}
-            <ImportGuide title={t("importFeedlyTitle")} steps={[t("importFeedlyStep1"), t("importFeedlyStep2"), t("importWebStep")]} note={t("importFeedlyNote")} />
-            <ImportGuide title={t("importInoreaderTitle")} steps={[t("importInoreaderStep1"), t("importInoreaderStep2"), t("importInoreaderStep3"), t("importWebStep")]} />
+            <ImportGuide title={t("importFeedlyTitle")} steps={[t("importFeedlyStep1"), t("importWebStep")]} note={t("importFeedlyNote")} />
+            <ImportGuide title={t("importInoreaderTitle")} steps={[t("importInoreaderStep1"), t("importInoreaderStep2"), t("importWebStep")]} />
             <ImportGuide title={t("importSubstackTitle")} steps={[t("substackWebStep1"), t("substackWebStep2")]} />
           </section>
         </div>

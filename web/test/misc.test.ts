@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { feedLinks, findFeed, normalizeUrl } from "../src/lib/discovery";
+import { feedLinks, findFeed, normalizeUrl, substackPublication } from "../src/lib/discovery";
 import { searchIcons, parseIcons } from "../src/lib/icons";
 import { emptyLibrary, articlesFor, setRead, removeFolder, addFolder, addFeed, newFeed, moveFeed, renameFeed, mergeFeed, reorder, unreadKeys, removeFeed, sameSelection, MAX_ARTICLES_PER_FEED, moveWithinFolder, chipTag, choosesFolder } from "../src/lib/library";
 import { importOpml, parseOpml, writeOpml } from "../src/lib/opml";
@@ -13,6 +13,18 @@ import { scrolledPast } from "../src/lib/scrollRead";
 import { pageClass } from "../src/components/readerPage";
 
 describe("discovery", () => {
+  it("takes any Substack link for its publication", () => {
+    const burkeman = "https://oliverburkeman.substack.com/";
+    expect(substackPublication("https://substack.com/@oliverburkeman/note/c-372342871?r=56ok7v")).toBe(burkeman);
+    expect(substackPublication("https://substack.com/@OliverBurkeman")).toBe(burkeman);
+    expect(substackPublication("https://open.substack.com/pub/oliverburkeman/p/some-post?r=1")).toBe(burkeman);
+    expect(substackPublication("https://oliverburkeman.substack.com/p/some-post?utm_source=share")).toBe(burkeman);
+    expect(substackPublication("https://substack.com/home/post/p-123")).toBeNull();
+    expect(substackPublication("https://substack.com/")).toBeNull();
+    expect(substackPublication("https://example.com/@someone")).toBeNull();
+    expect(substackPublication("https://notsubstack.com/@someone")).toBeNull();
+  });
+
   it("normalizes addresses", () => {
     expect(normalizeUrl("example.com")).toBe("https://example.com/");
     expect(normalizeUrl("http://example.com/feed")).toBe("https://example.com/feed");
