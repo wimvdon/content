@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.ui.Modifier
@@ -178,39 +179,49 @@ private fun EmailLinkForm(
     @StringRes button: Int,
     onSendLink: (email: String, result: (Boolean) -> Unit) -> Unit,
 ) {
+    SettingsBlock { EmailLinkFields(button, onSendLink) }
+}
+
+/**
+ * The address field, the button that emails a sign-in link, and what happened (sent to …, or
+ * couldn't be sent). Settings › Account and the welcome screen use it (#166).
+ */
+@Composable
+fun EmailLinkFields(
+    @StringRes button: Int,
+    onSendLink: (email: String, result: (Boolean) -> Unit) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     var email by rememberSaveable { mutableStateOf("") }
     var sending by rememberSaveable { mutableStateOf(false) }
     var sentTo by rememberSaveable { mutableStateOf<String?>(null) }
     var failed by rememberSaveable { mutableStateOf(false) }
     val valid = EMAIL.matches(email.trim())
-    SettingsBlock {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedTextField(
-                value = email,
-                onValueChange = {
-                    email = it
-                    failed = false
-                },
-                label = { Text(stringResource(R.string.account_email)) },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Send),
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Button(
-                enabled = valid && !sending,
-                onClick = {
-                    sending = true
-                    failed = false
-                    val to = email.trim()
-                    onSendLink(to) { ok ->
-                        sending = false
-                        if (ok) sentTo = to else failed = true
-                    }
-                },
-            ) { Text(stringResource(button)) }
-            sentTo?.let { Text(stringResource(R.string.account_email_sent, it), style = MaterialTheme.typography.bodyMedium) }
-            if (failed) Text(stringResource(R.string.account_email_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
+    val send = {
+        sending = true
+        failed = false
+        val to = email.trim()
+        onSendLink(to) { ok ->
+            sending = false
+            if (ok) sentTo = to else failed = true
         }
+    }
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        OutlinedTextField(
+            value = email,
+            onValueChange = {
+                email = it
+                failed = false
+            },
+            label = { Text(stringResource(R.string.account_email)) },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Send),
+            keyboardActions = KeyboardActions(onSend = { if (valid && !sending) send() }),
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Button(enabled = valid && !sending, onClick = send) { Text(stringResource(button)) }
+        sentTo?.let { Text(stringResource(R.string.account_email_sent, it), style = MaterialTheme.typography.bodyMedium) }
+        if (failed) Text(stringResource(R.string.account_email_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
     }
 }
 

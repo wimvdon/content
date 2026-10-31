@@ -80,7 +80,7 @@ rss-reader/
         │   │       ├── DirectShare.kt         The people in other apps' share menus; folders in the launcher
         │   │       ├── home/                  Article list, folder bar, feed drawer, Add feed dialog, messages, inbox
         │   │       ├── reader/                Reader screen, text settings, reader colours, Save and share, Content's share sheet
-        │   │       ├── feeds/                 Feeds and topics (one page), topic and feed dialogs
+        │   │       ├── feeds/                 Manage topics: topic list, topic page, topic and feed dialogs
         │   │       ├── settings/              Settings screen, Save/Share targets, Instapaper
         │   │       └── theme/                 Theme.kt (palette) + shared design kit (incl. EmptyState)
         │   ├── assets/                  material_symbols.txt (folder icons) and its licence

@@ -46,7 +46,11 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import to.wim.content.R
-import to.wim.content.ui.feeds.ManageScreen
+import to.wim.content.ui.feeds.TopicPage
+import to.wim.content.ui.feeds.TopicPageActions
+import to.wim.content.ui.feeds.TopicRow
+import to.wim.content.ui.feeds.TopicScreen
+import to.wim.content.ui.feeds.TopicsScreen
 import to.wim.content.data.ArticleReport
 import to.wim.content.sync.AccountState
 import to.wim.content.sync.ShareResult
@@ -77,6 +81,8 @@ import to.wim.content.data.itemFor
 import to.wim.content.data.needsDescription
 import to.wim.content.data.topicNames
 import to.wim.content.data.topicCounts
+import to.wim.content.data.up
+import to.wim.content.data.topicBeingViewed
 import to.wim.content.data.tagWithFeedFolder
 import to.wim.content.data.removeTag
 import to.wim.content.data.renameTag
@@ -113,9 +119,6 @@ import to.wim.content.instapaper.InstapaperNotice
 import to.wim.content.sync.AccountNotice
 import to.wim.content.instapaper.InstapaperState
 import to.wim.content.rssReaderApp
-import to.wim.content.ui.feeds.FeedsActions
-import to.wim.content.ui.feeds.FeedsTab
-import to.wim.content.ui.feeds.FeedsState
 import to.wim.content.ui.home.AddFeedDialog
 import to.wim.content.ui.home.HomeActions
 import to.wim.content.ui.home.HomeScreen
@@ -144,8 +147,11 @@ sealed interface Screen {
 
     data object Settings : Screen
 
-    /** Manage feeds and Saved (#222, #251): one page, its tabs inside it (ManageScreen). */
+    /** Manage topics: every topic with what it holds (TopicsScreen). */
     data object Feeds : Screen
+
+    /** One topic's page (TopicScreen); a null id is No topic, the feeds without one. */
+    data class Topic(val id: String?) : Screen
 
     /** Search through every feed's articles and Saved. */
     data object Search : Screen
@@ -166,6 +172,7 @@ sealed interface Screen {
                 Inbox -> "inbox"
                 is Reader -> "reader:" + screen.articleKey
                 is SiteSignIn -> "signin:" + screen.url
+                is Topic -> "topic:" + screen.id.orEmpty()
             }
 
         fun decode(text: String): Screen =
@@ -178,6 +185,7 @@ sealed interface Screen {
                 text == "inbox" -> Inbox
                 text.startsWith("reader:") -> Reader(text.removePrefix("reader:"))
                 text.startsWith("signin:") -> SiteSignIn(text.removePrefix("signin:"))
+                text.startsWith("topic:") -> Topic(text.removePrefix("topic:").ifEmpty { null })
                 else -> Home
             }
     }
@@ -355,6 +363,8 @@ fun RssReaderNavigation(
 
     // Add feed dialog, shared by the list, the drawer and Settings.
     var addDialogOpen by rememberSaveable { mutableStateOf(false) }
+    // Add feed from a topic page: the topic to add into ("" for No topic), and stay on that page.
+    var addIntoTopic by rememberSaveable { mutableStateOf<String?>(null) }
     var addBusy by remember { mutableStateOf(false) }
     var addError by remember { mutableStateOf<String?>(null) }
 
@@ -645,12 +655,16 @@ fun RssReaderNavigation(
                     // A removed feed or folder can't stay selected.
                     val shownSelection = library.shown(selection)
                     val shownFilter = remember(library, savedFilter) { Saved.shown(library, savedFilter) }
-                    // Back from a folder, a feed or Saved goes to Home first; back on Home leaves the app.
+                    // Back goes up a level: from Saved to Feeds, from a feed to its topic, from a topic to
+                    // All; back on All leaves the app.
                     BackHandler(enabled = backStack.size == 1 && (shownSelection != FeedSelection.All || section != HomeSection.Feeds)) {
-                        // Back from Saved keeps what Feeds showed; only another selection starts afresh (#157).
-                        if (selection != FeedSelection.All) readThisVisit = emptySet()
-                        selection = FeedSelection.All
-                        section = HomeSection.Feeds
+                        if (section != HomeSection.Feeds) {
+                            // Back from Saved keeps what Feeds showed (#157).
+                            section = HomeSection.Feeds
+                        } else {
+                            readThisVisit = emptySet()
+                            selection = shownSelection.up(library.feeds) ?: FeedSelection.All
+                        }
                     }
                     val articles =
                         remember(library, shownSelection, current.unreadOnly, readThisVisit) {
@@ -691,10 +705,15 @@ fun RssReaderNavigation(
                                 toReadCount = remember(library) { library.items.count { Saved.isIn(it, SavedTab.ToRead) } },
                                 signedIn = accountState is AccountState.SignedIn,
                                 inboxUnread = remember(library) { Inbox.unread(library) },
+                                topicId = library.topicBeingViewed(shownSelection, shownFilter.tags.firstOrNull(), section == HomeSection.Saved)?.id,
                             ),
                         snackbarHostState = snackbar,
                         actions =
                             HomeActions(
+                                onSendLink = { email, result ->
+                                    uiScope.launch { result(runCatching { app.account.sendLink(email) }.isSuccess) }
+                                },
+                                onEditTopic = { id -> push(Screen.Topic(id)) },
                                 onSelect = {
                                     // The same feed or folder again keeps the articles read this visit (#157).
                                     if (it != selection) readThisVisit = emptySet()
@@ -897,6 +916,7 @@ fun RssReaderNavigation(
                                 accountName = accountName,
                                 notifyShared = current.notifyShared.takeIf { app.push.available },
                                 siteSignIns = siteSignIns.map { it.site },
+                                hasFeeds = library.feeds.isNotEmpty(),
                                 instapaper =
                                     InstapaperSettingsState(
                                         instapaper = instapaperState,
@@ -913,6 +933,8 @@ fun RssReaderNavigation(
                                 // Disconnects Instapaper only; the Content account stays signed in (#166).
                                 onInstapaperSignOut = { app.appScope.launch { app.instapaper.signOut() } },
                                 onInstapaperImport = { everything -> app.appScope.launch { app.services.chooseImport(InstapaperReadingList.ID, everything) } },
+                                onImportOpml = importOpml,
+                                onExportOpml = exportOpml,
                                 onFullArticlesChange = { enabled -> app.appScope.launch { app.settings.setFullArticles(enabled) } },
                                 onAlwaysOpenWebsiteChange = { enabled -> app.appScope.launch { app.settings.setAlwaysOpenWebsite(enabled) } },
                                 onShowImagesChange = { enabled -> app.appScope.launch { app.settings.setShowImages(enabled) } },
@@ -958,39 +980,100 @@ fun RssReaderNavigation(
 
                 Screen.Feeds -> {
                     SystemBarsFollowTheme(appDark)
-                    ManageScreen(
+                    val counts = remember(library) { library.topicCounts() }
+                    TopicsScreen(
+                        topics =
+                            library.folders.map { topic ->
+                                val count = counts[topic.id]
+                                TopicRow(
+                                    topic = topic,
+                                    feeds = count?.feeds ?: 0,
+                                    saved = count?.saved ?: 0,
+                                    failing = library.feeds.count { it.folderId == topic.id && problems.containsKey(it.url) },
+                                )
+                            },
+                        looseFeeds = library.feeds.count { feed -> feed.folderId == null || library.folders.none { it.id == feed.folderId } },
                         snackbarHostState = snackbar,
                         onBack = ::pop,
-                        feeds = { padding ->
-                            FeedsTab(
-                                state =
-                                    FeedsState(
-                                        feeds = library.feeds,
-                                        folders = library.folders,
-                                        problems = problems,
-                                        savedCounts = remember(library) { library.topicCounts().mapValues { it.value.saved } },
-                                    ),
-                                actions =
-                                    FeedsActions(
-                                        onAddFeed = { addDialogOpen = true },
-                                        onRemoveFeed = { feed -> app.appScope.launch { repository.removeFeed(feed.url) } },
-                                        onEditFeed = { feed, title, folderId ->
-                                            app.appScope.launch {
-                                                if (title.trim() != feed.title) repository.renameFeed(feed.url, title)
-                                                if (folderId != feed.folderId) repository.moveFeed(feed.url, folderId)
-                                            }
-                                        },
-                                        onArrange = { rows -> app.appScope.launch { repository.arrange(rows) } },
-                                        onAddFolder = { title, icon -> app.appScope.launch { repository.addFolder(title, icon) } },
-                                        onUpdateFolder = { folder -> app.appScope.launch { repository.updateFolder(folder.id, folder.title, folder.icon) } },
-                                        onRemoveFolder = { folder -> app.appScope.launch { repository.removeFolder(folder.id) } },
-                                        onImportOpml = importOpml,
-                                        onExportOpml = exportOpml,
-                                    ),
-                                innerPadding = padding,
-                            )
+                        onOpen = { push(Screen.Topic(it)) },
+                        onReorder = { ids -> app.appScope.launch { repository.reorderTopics(ids) } },
+                        onNewTopic = { title, icon ->
+                            app.appScope.launch {
+                                val id = repository.addFolder(title, icon)
+                                uiScope.launch { push(Screen.Topic(id)) }
+                            }
                         },
                     )
+                }
+
+                is Screen.Topic -> {
+                    SystemBarsFollowTheme(appDark)
+                    val topic = screen.id?.let { library.folder(it) }
+                    // A removed or merged topic: back to the list.
+                    if (screen.id != null && topic == null) {
+                        LaunchedEffect(Unit) { pop() }
+                    } else {
+                        val count = topic?.let { remember(library) { library.topicCounts()[it.id] } }
+                        val topicFeeds = library.feeds.filter { feed -> if (topic != null) feed.folderId == topic.id else feed.folderId == null || library.folders.none { it.id == feed.folderId } }
+                        TopicScreen(
+                            page =
+                                TopicPage(
+                                    topic = topic,
+                                    feeds = topicFeeds,
+                                    unread = topic?.let { library.unreadCount(FeedSelection.InFolder(it.id)) } ?: 0,
+                                    saved = count?.saved ?: 0,
+                                    toRead = count?.toRead ?: 0,
+                                ),
+                            topics = library.folders,
+                            problems = problems,
+                            snackbarHostState = snackbar,
+                            actions =
+                                TopicPageActions(
+                                    onBack = ::pop,
+                                    onShowFeeds = {
+                                        if (topic != null) {
+                                            readThisVisit = emptySet()
+                                            selection = FeedSelection.InFolder(topic.id)
+                                            section = HomeSection.Feeds
+                                            while (backStack.size > 1) pop()
+                                        }
+                                    },
+                                    onShowSaved = {
+                                        if (topic != null) {
+                                            savedFilter = savedFilter.copy(likedOnly = false, tags = setOf(topic.title))
+                                            section = HomeSection.Saved
+                                            while (backStack.size > 1) pop()
+                                        }
+                                    },
+                                    onAddFeed = {
+                                        addIntoTopic = screen.id ?: ""
+                                        addDialogOpen = true
+                                    },
+                                    onEditFeed = { feed, title, topicId ->
+                                        app.appScope.launch {
+                                            if (title.trim() != feed.title) repository.renameFeed(feed.url, title)
+                                            if (topicId != feed.folderId) repository.moveFeed(feed.url, topicId)
+                                        }
+                                    },
+                                    onRemoveFeed = { feed -> app.appScope.launch { repository.removeFeed(feed.url) } },
+                                    onReorderFeeds = { urls -> app.appScope.launch { repository.reorderFeedsIn(screen.id, urls) } },
+                                    onEdit = { title, icon -> topic?.let { t -> app.appScope.launch { repository.updateFolder(t.id, title, icon) } } },
+                                    onMerge = { intoId ->
+                                        topic?.let { t ->
+                                            app.appScope.launch { repository.mergeTopic(t.id, intoId) }
+                                            pop()
+                                            push(Screen.Topic(intoId))
+                                        }
+                                    },
+                                    onRemove = {
+                                        topic?.let { t ->
+                                            app.appScope.launch { repository.removeFolder(t.id) }
+                                            pop()
+                                        }
+                                    },
+                                ),
+                        )
+                    }
                 }
 
                 is Screen.SiteSignIn -> {
@@ -1245,8 +1328,9 @@ fun RssReaderNavigation(
                 addBusy = true
                 addError = null
                 app.appScope.launch {
-                    // Added to the folder being viewed, if any.
-                    val folderId = (library.shown(selection) as? FeedSelection.InFolder)?.folderId
+                    // Added to the topic whose page it came from, else to the topic being viewed, if any.
+                    val fromTopicPage = addIntoTopic
+                    val folderId = if (fromTopicPage != null) fromTopicPage.ifEmpty { null } else (library.shown(selection) as? FeedSelection.InFolder)?.folderId
                     val result = repository.addFeed(address, folderId)
                     addBusy = false
                     val error = result.errorRes()
@@ -1254,8 +1338,11 @@ fun RssReaderNavigation(
                         addError = resources.getString(error)
                     } else if (result is AddFeedResult.Added) {
                         addDialogOpen = false
-                        selection = FeedSelection.Single(result.feed.url)
-                        section = HomeSection.Feeds
+                        addIntoTopic = null
+                        if (fromTopicPage == null) {
+                            selection = FeedSelection.Single(result.feed.url)
+                            section = HomeSection.Feeds
+                        }
                         showMessage(resources.getString(R.string.add_feed_added, result.feed.title))
                     }
                 }
@@ -1263,6 +1350,7 @@ fun RssReaderNavigation(
             onDismiss = {
                 if (!addBusy) {
                     addDialogOpen = false
+                    addIntoTopic = null
                     addError = null
                 }
             },

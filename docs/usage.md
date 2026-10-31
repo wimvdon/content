@@ -2,12 +2,16 @@
 
 ## First launch
 
-The app starts with **No feeds yet**. Tap **Add feed**, or **Import OPML** to bring your feeds
-from another reader.
+The app starts with **Welcome to Content**: sign in with your email address first (type it and tap
+**Email me a sign-in link**). The same link makes your account when you are new, and from then on
+your feeds and Saved are the same on every device and in the web app (see Sync between devices).
+Under it, **Or start on this device only**: **Add feed**, or **Import from another reader** (OPML).
+Signed in without feeds yet, the screen says **No feeds yet**, with Add feed and Import.
 
 ## Adding feeds
 
-Tap **Add feed** (on the empty screen or on ☰ › **Feeds and topics**) and type an
+Tap **Add feed** (on the empty screen, or on a topic's page in ☰ › **Manage topics**, which adds it
+to that topic) and type an
 address. Any of these work:
 
 - a feed address (`https://example.com/feed.xml`);
@@ -26,8 +30,7 @@ sit on a light tile, so dark logos stay visible in dark mode.
 ## Moving from another reader
 
 Export your feeds as an **OPML** file in your old reader, then tap **Import OPML** (on
-the empty start screen or in ☰ › Feeds and topics, under Move to or from another
-reader) and pick the file. All feeds are added (feeds
+the empty start screen or in Settings › Move to or from another reader) and pick the file. All feeds are added (feeds
 you already follow are skipped), each folder of your old reader as a topic, and the app downloads
 their articles. **Export OPML** does the reverse, with your topics as its folders. Read and starred states don't
 come along.
@@ -50,23 +53,24 @@ you save, at once. A feed is in one topic (or none); a saved article can have se
 has a name and an icon, and its place in your order. The same topics are on your phone and in the
 web app.
 
-**One place to manage them: ☰ › Feeds and topics.** This page lists each topic with its icon, how
-many feeds and saved articles it has ("3 feeds · 12 saved"), and its feeds under it; then the feeds
-without a topic ("No topic"; when every feed has one, a note there says so); and at the end Import
-OPML and Export OPML.
+**One place to manage them: ☰ › Manage topics.** It lists every topic with its icon and what it
+holds: "4 feeds · 12 saved", and "1 feed fails" in red when one can't be downloaded. Drag the grip
+(⋮⋮) to reorder: this order is the one everything uses (the chips, the ☰ menu, the save sheet).
+**New topic** (the button at the bottom) makes one: a name and an icon from the whole Material
+Symbols set (type in English, such as *news*, *car* or *food*). At the end, **No topic** holds the
+feeds without one. Tap a topic for **its page**:
 
-- **New topic:** give it a name and pick an icon: the whole Material Symbols set (over 4 000 icons)
-  is there. Type in the search field to find one (icon names are in English, such as *news*, *car*,
-  *soccer* or *food*); with nothing typed, popular ones come first.
-- **Drag** the grip (⋮⋮) at the right of a row to reorder. Drop a feed under another topic to move
-  it there, or under "No topic" to take it out. Dragging a topic moves it with its feeds; while you
-  drag it, the feeds are hidden. This order is the one everything uses: the chips, the ☰ menu, the
-  save sheet. (With a screen reader, use the row's Move up / Move down actions.)
-- **Tap a feed** (or its pen) to rename it, choose its topic or remove it. A name you give stays
-  when the feed updates; clear the name to use the feed's own again.
-- **Tap a topic** (or its pen) to change its name or icon, or remove it. Renaming it renames it on
-  its saved articles too; renaming it to the name of another topic joins the two. Removing it keeps
-  its feeds (under "No topic") and its saved articles (without this topic).
+- At the top, the two ways into reading: **Feeds · 23 unread** (its articles in Feeds) and
+  **Saved · 5 to read** (its saved articles in Saved).
+- **Feeds:** its feeds, with why one fails; drag to reorder; tap one to rename it, give it another
+  topic or remove it. **Add a feed to Tech** adds one straight into this topic.
+- **Saved:** how many saved articles have the topic, and how many are still to read; tap for them
+  in Saved.
+- The pen changes its name and icon. ⋮ has **Merge with…** (pick the topic that stays: it keeps its
+  name and icon and gets this one's feeds and saved articles) and **Remove topic** (its feeds and
+  saved articles stay, without it). Both say so first.
+- Reading a topic (its chip, or picked in ☰), the search bar shows a pen: **Edit topic** opens its
+  page.
 
 **Feeds:** the chips under the search bar list the topics that have feeds, in your order; the ☰
 menu lists them too, with the feeds without a topic after them. A topic shows its feeds in ☰ while
@@ -117,11 +121,13 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   your **topics** (Feeds), or **Liked** and your **topics** (Saved), in your order: tap one to show only that, tap it again or the
   **X** to show everything again. Changing the first chip keeps the topic you picked.
 - **☰** opens the drawer (on the web, a wide window shows it at the left all the time, without ☰).
-  It has two sections with the same choices as the chips: **Feeds** (**Feed**, your topics, the
-  other feeds, each with its unread count; a topic shows its feeds while you are in it) and
-  **Saved** (**Saved**, then **Liked** and then your topics with their icons, each with how many
-  are still to read). Both start open; tap a section's name to fold it, and it stays that way (#251).
-  At the bottom: **Feeds and topics** and **Settings**.
+  It is the map of every **place**: **Feeds** (**Feed**, your topics with feeds, each with its unread
+  count, a topic with its feeds under it while you are in it, then the feeds without a topic: the
+  only place a single feed is listed) and **Saved** (**To read**, with how many are still to read,
+  and **Archive**). Filters (Unread, Liked, Saved's topics) are the chips, not here. Picking a topic
+  lights its chip; picking To read or Archive sets Saved's first chip. Both sections start open; tap
+  a section's name to fold it, and it stays that way (#251). At the bottom: **Manage topics** and
+  **Settings**.
 - **Search** (tap the search bar; on the web also the **/** key) searches everything: the articles of all your feeds that are on the device (titles,
   text, feed names and authors) and Saved, archived articles too (titles, websites, descriptions,
   topics, notes and highlights). Every word you type must appear; capitals and accents
@@ -156,7 +162,8 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
 - **Pull down** to download new articles; with nothing (unread) to show, the **Refresh** button
   does the same (#251). The app also does this once every time it starts. All feeds are downloaded
   first and then added at once, each article in its place by date.
-- **Back** inside a topic or feed returns to All; back on All closes the app.
+- **Back** goes up a level: from one feed to its topic, from a topic to All, from Saved to Feeds;
+  back on All closes the app.
 - The round **✓✓** (Mark all as read) button at the bottom right marks everything in the section you are in as
   read: all feeds on All, the topic's feeds in a topic, or the one feed you opened, also the
   ones you haven't scrolled to. You're done with it, so the Unread list empties (All caught up).
@@ -168,7 +175,7 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   marked as read once you scroll them off the top of the list, only ones that were on screen: new
   articles arriving above are never marked unseen. They stay in the unread list (see above), so
   you can scroll back to them.
-- If some feeds can't be downloaded, a message says how many; **Feeds and topics** shows why
+- If some feeds can't be downloaded, a message says how many; **Manage topics** shows which ones and why
   for each one.
 
 ## The reader
@@ -326,13 +333,12 @@ a web link says "No link to save".
 - **Reader:** **Always open the website** (Android only, off by default: tapping a feed article opens its website in the browser tab over Content, with its Save button, and marks it read; saved articles still open in the reader, which keeps your place, highlights and notes), **Load full articles**, **Show images**, and the same text settings as **Aa**, with a preview in the page colour you chose.
 - **Sites you're signed in to:** the sites you pay for and signed in to from an article (see The
   reader), each with **Remove**.
+- **Move to or from another reader:** **Import OPML** / **Export OPML**, with the steps for Feedly,
+  Inoreader and Substack (see Moving from another reader).
 - **Appearance:** Theme (System, Light, Dark) and Dynamic color (wallpaper colours instead of
   the app's blue).
 
-Your feeds and topics are managed on one page, ☰ › **Feeds and topics**, next to Settings (see
-Topics): every feed with its address (or why its last download failed), grouped by topic; add,
-rename, reorder (drag) or remove feeds (a removed feed's articles go too) and topics; at the end,
-**Import OPML** / **Export OPML**, to move your feeds between readers.
+Your topics and their feeds are managed in ☰ › **Manage topics**, next to Settings (see Topics).
 
 ## Backup and moving to a new phone
 
@@ -377,8 +383,8 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
 - In the reader, the bar at the bottom: **its list** (To read or Archive), which opens Organise.
   **Remove from Saved** is in ⋮ (and in Organise); it asks first, as everywhere, and takes the note,
   topics and highlights with it (Archive keeps it searchable instead).
-- **☰ › Feeds and topics**: every topic, with how many saved articles have it; tap one to
-  rename it (renaming it to another one's name joins the two), or remove it.
+- **☰ › Manage topics**: every topic, with how many saved articles have it; tap one for its page
+  (rename, icon, merge, remove).
 - **In the web app** Saved is the same: the same chips and cards, and **Add link**
   (the link button in the search bar). In an article the top bar is the reading (the full
   article, Aa, ⋮) and the bar under it the library, with Share at its right end: **Save** before it is saved (it opens the same sheet), then

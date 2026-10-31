@@ -1,4 +1,4 @@
-import { Archive, ArrowLeft, Bell, BookmarkPlus, BookOpen, CheckCheck, ChevronDown, Circle, CircleCheck, ExternalLink, Folder as FolderGlyph, Heart, Highlighter, Link2, Menu, Newspaper, Quote, RefreshCw, Rss, Search, Share2, StickyNote, Tag as TagIcon, Trash2, X, type LucideIcon } from "lucide-react";
+import { Archive, ArrowLeft, Bell, BookmarkPlus, BookOpen, CheckCheck, ChevronDown, Circle, CircleCheck, ExternalLink, Folder as FolderGlyph, Pencil, Heart, Highlighter, Link2, Menu, Newspaper, Quote, RefreshCw, Rss, Search, Share2, StickyNote, Tag as TagIcon, Trash2, X, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useEscape } from "./ui/useEscape";
 import { RemoveDialog } from "./SavedActions";
@@ -15,6 +15,8 @@ import { Avatar } from "./ShareWithUser";
 import { useShare } from "./useShare";
 import { scrolledPast } from "@/lib/scrollRead";
 import { FeedIcon } from "./FeedIcon";
+import { EmailLinkForm } from "./Dialogs";
+import { topicBeingViewed } from "@/lib/topics";
 import { Button } from "./ui/button";
 import { cn } from "./ui/cn";
 import { WithRowMenu } from "./RowMenu";
@@ -31,6 +33,8 @@ type ListProps = {
   onSearch: () => void;
   /** A message at the bottom, with at most one action (Undo). */
   onMessage: (text: string, action?: { label: string; run: () => void }) => void;
+  /** Edit topic in the search bar: the topic's page in Manage topics. */
+  onEditTopic?: (topicId: string) => void;
 };
 
 /** The articles of the chosen feed, folder or All articles, Saved, or the inbox (#246). */
@@ -39,14 +43,15 @@ export function ArticleList(props: ListProps) {
   return inboxOpen ? (
     <InboxArticles openKey={props.openKey} onOpen={props.onOpen} onMessage={props.onMessage} />
   ) : selection.kind === "saved" ? (
-    <SavedArticles openKey={props.openKey} onOpen={props.onOpen} onMenu={props.onMenu} onSearch={props.onSearch} onMessage={props.onMessage} />
+    <SavedArticles openKey={props.openKey} onOpen={props.onOpen} onMenu={props.onMenu} onSearch={props.onSearch} onMessage={props.onMessage} onEditTopic={props.onEditTopic} />
   ) : (
     <FeedArticles {...props} />
   );
 }
 
-function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, onSearch, onMessage }: ListProps) {
-  const { library, selection, settings, readThisVisit, refreshing, loaded, problems } = useApp();
+function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, onSearch, onMessage, onEditTopic }: ListProps) {
+  const { library, selection, settings, readThisVisit, refreshing, loaded, problems, account } = useApp();
+  const viewedTopic = topicBeingViewed(library, selection, undefined);
   const [share, shareDialog] = useShare((text) => onMessage(text));
   const articles = useMemo(
     () => articlesFor(library, selection, settings.unreadOnly, readThisVisit),
@@ -97,6 +102,12 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, on
   return (
     <section className="flex h-full min-w-0 flex-col" aria-label={title}>
       <SearchBar onMenu={onMenu} onSearch={onSearch}>
+        {viewedTopic && onEditTopic ? (
+          // With a topic open, its page is one click away (Manage topics).
+          <Button variant="ghost" size="icon" onClick={() => onEditTopic(viewedTopic.id)} aria-label={t("editFolder")} title={t("editFolder")}>
+            <Pencil />
+          </Button>
+        ) : null}
         {library.feeds.length > 0 ? (
           <>
             <Button variant="ghost" size="icon" onClick={() => void app.refresh()} disabled={refreshing} aria-label={t("refresh")} title={t("refresh") + " (r)"}>
@@ -127,6 +138,20 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, on
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-6" role="feed" aria-busy={refreshing} onScroll={onScroll} ref={listRef}>
         {!loaded || (refreshing && library.articles.length === 0) ? (
           <Skeletons />
+        ) : library.feeds.length === 0 && !account ? (
+          // The first screen, signed out: the Content account first, starting here only second.
+          <Empty icon={Rss} title={t("welcomeTitle")} text={t("welcomeBody")}>
+            <div className="w-full max-w-sm text-left">
+              <EmailLinkForm id="welcome-email" />
+            </div>
+            <p className="pt-4 text-sm text-muted-foreground">{t("welcomeWithoutAccount")}</p>
+            <Button variant="outline" onClick={onAddFeed}>
+              {t("addFeed")}
+            </Button>
+            <Button variant="ghost" onClick={onImport}>
+              {t("welcomeImport")}
+            </Button>
+          </Empty>
         ) : library.feeds.length === 0 ? (
           <Empty icon={Rss} title={t("noFeedsTitle")} text={t("noFeedsText")}>
             <Button onClick={onAddFeed}>{t("addFeed")}</Button>
@@ -201,14 +226,17 @@ function SavedArticles({
   onMenu,
   onSearch,
   onMessage,
+  onEditTopic,
 }: {
   openKey: string | null;
   onOpen: (a: Article) => void;
   onMenu: () => void;
   onSearch: () => void;
   onMessage: ListProps["onMessage"];
+  onEditTopic?: (topicId: string) => void;
 }) {
   const { library, savedFilter: filter, loaded } = useApp();
+  const viewedTopic = topicBeingViewed(library, { kind: "saved" }, filter.tags[0]);
   const [share, shareDialog] = useShare((text) => onMessage(text));
   const [removing, setRemoving] = useState<Item | null>(null);
   // Right-click or press and hold on a saved item (#221, #263), cards and rows alike.
@@ -230,6 +258,12 @@ function SavedArticles({
   return (
     <section className="flex h-full min-w-0 flex-col" aria-label={t("saved")}>
       <SearchBar onMenu={onMenu} onSearch={onSearch}>
+        {viewedTopic && onEditTopic ? (
+          // With a topic open, its page is one click away (Manage topics).
+          <Button variant="ghost" size="icon" onClick={() => onEditTopic(viewedTopic.id)} aria-label={t("editFolder")} title={t("editFolder")}>
+            <Pencil />
+          </Button>
+        ) : null}
         <Button variant="ghost" size="icon" onClick={app.addLink} aria-label={t("addLink")} title={t("addLink")}>
           <Link2 />
         </Button>

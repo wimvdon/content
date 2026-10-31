@@ -2,6 +2,30 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-31: Places in ☰, a page per topic, the account first, players loaded directly
+
+- **☰ is the map of every place** (the owner's rule): Feeds (Feed, the topics with feeds and their
+  feeds, the feeds without a topic) and Saved (To read, Archive). Filters (Unread, Liked, Saved's
+  topics) are only chips: Liked and Saved's topics left ☰. Back goes up a level (feed → topic → All,
+  Saved → Feeds).
+- **The chip row stays as it was**, the state chip, a divider, the groups, the same in both
+  destinations. Rejected after drawing it out: topics as tabs in Feeds and To read | Archive as tabs
+  in Saved (right by Material's book, but the two screens would work the other way round, which the
+  owner had avoided on purpose).
+- **Topics have pages** (the owner found the manage page a layer on top of feed management): Manage
+  topics lists them with what they hold; a topic's page has the two ways into reading, its feeds,
+  its saved articles, Edit, Merge with… (an action now, no longer a rename to another topic's name)
+  and Remove. A pen in the search bar opens the page of the topic being read.
+- **OPML moved to Settings** › Move to or from another reader, before Appearance (the owner agreed
+  to undo #251's "here, not in Settings": it is a one-off move of data, not organising). No extra
+  Add feed button in Feeds (the owner's choice): Add feed is on a topic's page and the first screen.
+- **First launch puts the account first**: a welcome with the emailed sign-in link, Add feed and
+  Import below it. Signed in without feeds, it is the old No feeds yet.
+- **Embedded players on Android load the player itself**, with Content's web app as referrer,
+  instead of an iframe in a page of our own: without a page address YouTube refuses (error 153, a
+  black box), and other players (Bandcamp, …) didn't show either. Third-party cookies are allowed
+  in that view only, and the view isn't clipped.
+
 ## 2026-10-31: Topics: one way to group feeds and saved articles
 
 - The owner's idea: feed folders and Saved's tags become **topics**, managed in one place. A topic

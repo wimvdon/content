@@ -59,6 +59,7 @@ export function addTopic(lib: Library, id: string, title: string, icon: string =
   return { ...lib, folders: [...lib.folders, { id, title: title.trim(), icon }] };
 }
 
+
 /**
  * Renames a topic and sets its icon, on its feeds and on every saved article that has it. Renaming
  * it to another topic's name joins the two: the other one stays (with its icon) and gets this one's
@@ -91,13 +92,14 @@ export function removeTopic(lib: Library, id: string): Library {
 }
 
 /** How many feeds and how many saved articles (To read and Archive) each topic has, by id. */
-export function topicCounts(lib: Library): Map<string, { feeds: number; saved: number }> {
+export function topicCounts(lib: Library): Map<string, { feeds: number; saved: number; toRead: number }> {
   return new Map(
     lib.folders.map((t) => [
       t.id,
       {
         feeds: lib.feeds.filter((f) => f.folderId === t.id).length,
         saved: lib.items.filter((i) => i.readingList !== null && i.tags.some((x) => key(x) === key(t.title))).length,
+        toRead: lib.items.filter((i) => i.readingList?.state === "toread" && i.tags.some((x) => key(x) === key(t.title))).length,
       },
     ]),
   );
@@ -130,4 +132,26 @@ export function tagWithFeedTopic(lib: Library, itemKey: string): Library {
   const topic = feed?.folderId ? lib.folders.find((f) => f.id === feed.folderId) : undefined;
   if (!item || !topic?.title.trim() || item.tags.some((t) => key(t) === key(topic.title))) return lib;
   return changeItem(lib, itemKey, (i) => ({ ...i, tags: cleanTags([...i.tags, topic.title.trim()]) }));
+}
+
+/** Merges topic `fromId` into `intoId`: the other one stays, with its name and icon, and gets this one's feeds and saved articles. */
+export function mergeTopic(lib: Library, fromId: string, intoId: string): Library {
+  const into = lib.folders.find((f) => f.id === intoId);
+  if (!into || fromId === intoId || !lib.folders.some((f) => f.id === fromId)) return lib;
+  return renameTopic(lib, fromId, into.title, into.icon);
+}
+
+/**
+ * The topic being viewed, for Edit topic: in Feeds a topic or the topic of the one feed open; in
+ * Saved the topic chosen in the chips. Undefined otherwise. Like Android's topicBeingViewed.
+ */
+export function topicBeingViewed(lib: Library, selection: { kind: string; folderId?: string; feedUrl?: string; tag?: string }, savedTopic: string | undefined): Folder | undefined {
+  if (selection.kind === "saved") return savedTopic ? topicNamed(lib, savedTopic) : undefined;
+  if (selection.kind === "folder") return lib.folders.find((f) => f.id === selection.folderId);
+  if (selection.kind === "tag" && selection.tag) return topicNamed(lib, selection.tag);
+  if (selection.kind === "feed") {
+    const id = lib.feeds.find((f) => f.url === selection.feedUrl)?.folderId;
+    return id ? lib.folders.find((f) => f.id === id) : undefined;
+  }
+  return undefined;
 }

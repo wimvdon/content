@@ -85,10 +85,11 @@ fun Library.removeTopic(id: String): Library {
     return removeFolder(id).removeTag(topic.title).feedFoldersToTags()
 }
 
-/** How many feeds and how many saved articles (To read and Archive) each topic has, by id. */
+/** How many feeds and saved articles (To read and Archive) a topic has, and how many of those are still to read. */
 data class TopicCount(
     val feeds: Int,
     val saved: Int,
+    val toRead: Int = 0,
 )
 
 fun Library.topicCounts(): Map<String, TopicCount> =
@@ -97,6 +98,7 @@ fun Library.topicCounts(): Map<String, TopicCount> =
             TopicCount(
                 feeds = feeds.count { it.folderId == topic.id },
                 saved = items.count { item -> item.readingList != null && item.tags.any { it.trim().equals(topic.title.trim(), ignoreCase = true) } },
+                toRead = items.count { item -> item.readingList?.state == ReadingState.ToRead && item.tags.any { it.trim().equals(topic.title.trim(), ignoreCase = true) } },
             )
     }
 
@@ -115,3 +117,79 @@ fun Library.topicIcons(): Map<String, String> = folders.associate { it.title.tri
 
 /** Every topic's name, in the user's order: what the save and Organise sheets offer. */
 fun Library.topicNames(): List<String> = folders.map { it.title }
+
+/** The topics that have feeds, in the user's order: Feeds' places in ☰ and its chips. */
+fun feedTopics(
+    feeds: List<Feed>,
+    topics: List<Folder>,
+): List<Folder> = topics.filter { t -> feeds.any { it.folderId == t.id } }
+
+/**
+ * Where Back goes from a selection in Feeds: from one feed to its topic (or All without one), from
+ * a topic to All; null on All (Back leaves the app).
+ */
+fun FeedSelection.up(feeds: List<Feed>): FeedSelection? =
+    when (this) {
+        FeedSelection.All -> null
+        is FeedSelection.Single -> feeds.firstOrNull { it.url == feedUrl }?.folderId?.let { FeedSelection.InFolder(it) } ?: FeedSelection.All
+        else -> FeedSelection.All
+    }
+
+/** The topics in a new order, by id (Manage topics' drag); topics not named keep their place at the end. */
+fun Library.reorderTopics(ids: List<String>): Library {
+    val byId = folders.associateBy { it.id }
+    val ordered = ids.mapNotNull(byId::get).distinctBy { it.id }
+    val rest = folders.filter { t -> ordered.none { it.id == t.id } }
+    val result = ordered + rest
+    return if (result == folders) this else copy(folders = result)
+}
+
+/**
+ * The feeds of one topic (null: those without one) in a new order, by address (a topic page's
+ * drag). The other feeds keep their places: this topic's feeds take the same slots in the list.
+ */
+fun Library.reorderFeedsIn(
+    topicId: String?,
+    urls: List<String>,
+): Library {
+    val slots = feeds.indices.filter { feeds[it].folderId == topicId }
+    val inTopic = slots.map { feeds[it] }
+    val ordered = (urls.mapNotNull { u -> inTopic.firstOrNull { it.url == u } } + inTopic).distinctBy { it.url }
+    if (ordered == inTopic) return this
+    val result = feeds.toMutableList()
+    slots.forEachIndexed { i, slot -> result[slot] = ordered[i] }
+    return copy(feeds = result)
+}
+
+/**
+ * Merges topic [fromId] into [intoId]: the other one stays, with its name and icon, and gets this
+ * one's feeds and saved articles (a topic page's Merge with…).
+ */
+fun Library.mergeTopic(
+    fromId: String,
+    intoId: String,
+): Library {
+    val into = folder(intoId) ?: return this
+    if (fromId == intoId || folder(fromId) == null) return this
+    return renameTopic(fromId, into.title, into.icon)
+}
+
+/**
+ * The topic being viewed, for Edit topic in the search bar: in Feeds a topic (from ☰ or its chip)
+ * or the topic of the one feed open; in Saved the topic chosen in the chips. Null otherwise.
+ */
+fun Library.topicBeingViewed(
+    selection: FeedSelection,
+    savedTopic: String?,
+    inSaved: Boolean,
+): Folder? =
+    if (inSaved) {
+        savedTopic?.let(::topicNamed)
+    } else {
+        when (selection) {
+            FeedSelection.All -> null
+            is FeedSelection.InFolder -> folder(selection.folderId)
+            is FeedSelection.Single -> feed(selection.feedUrl)?.folderId?.let(::folder)
+            is FeedSelection.Tagged -> topicNamed(selection.tag)
+        }
+    }

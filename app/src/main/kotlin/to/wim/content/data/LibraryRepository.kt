@@ -381,6 +381,27 @@ class LibraryRepository(
         edit { it.removeTopic(id) }
     }
 
+    /** Topics in a new order (Manage topics). */
+    suspend fun reorderTopics(ids: List<String>) {
+        edit { it.reorderTopics(ids) }
+    }
+
+    /** One topic's feeds in a new order (a topic page); null for the feeds without a topic. */
+    suspend fun reorderFeedsIn(
+        topicId: String?,
+        urls: List<String>,
+    ) {
+        edit { it.reorderFeedsIn(topicId, urls) }
+    }
+
+    /** Merges one topic into another: its feeds and saved articles go to [intoId]. */
+    suspend fun mergeTopic(
+        fromId: String,
+        intoId: String,
+    ) {
+        edit { it.mergeTopic(fromId, intoId) }
+    }
+
     suspend fun moveFeed(
         url: String,
         folderId: String?,

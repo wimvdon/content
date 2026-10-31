@@ -1,12 +1,11 @@
-import { Bookmark, ChevronDown, ChevronRight, Heart, Rss, Settings as SettingsIcon, Tag as TagGlyph } from "lucide-react";
+import { Archive, BookOpen, ChevronDown, ChevronRight, Rss, Settings as SettingsIcon } from "lucide-react";
 import { useState } from "react";
 import { app, useApp } from "@/lib/app";
 import { t } from "@/lib/i18n";
 import { choosesFolder, unreadByFeed } from "@/lib/library";
-import { likedToReadCount, toReadCount, toReadTagCounts } from "@/lib/saved";
+import { toReadCount } from "@/lib/saved";
 import { FeedIcon } from "./FeedIcon";
 import { FolderIcon } from "./FolderIcon";
-import { topicIcons } from "@/lib/topics";
 import { ManageFeedsIcon } from "./ManageIcons";
 import { cn } from "./ui/cn";
 
@@ -39,10 +38,6 @@ export function Sidebar({
   };
 
   const toRead = toReadCount(library);
-  const tagCounts = toReadTagCounts(library);
-  // Saved's topics with their topic's icon, as feeds show it.
-  const icons = topicIcons(library);
-  const likedToRead = likedToReadCount(library);
   const loose = library.feeds.filter((f) => !f.folderId);
 
   return (
@@ -54,7 +49,8 @@ export function Sidebar({
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-2">
-        {/* Feeds section: folders and feeds; a folder's feeds only while you are in it. */}
+        {/* Feeds section: its places (All and the topics with feeds, as the chips); a topic's feeds
+            only while you are in it; then the feeds without a topic. */}
         <Section
           id={FEEDS}
           title={t("feeds")}
@@ -72,7 +68,7 @@ export function Sidebar({
             label={t("feedTab")}
             count={total}
           />
-          {library.folders.map((folder) => {
+          {library.folders.filter((f) => library.feeds.some((x) => x.folderId === f.id)).map((folder) => {
             const feeds = library.feeds.filter((f) => f.folderId === folder.id);
             const count = feeds.reduce((n, f) => n + (counts.get(f.url) ?? 0), 0);
             const open = !inSaved && (choosesFolder(selection, folder) || (selection.kind === "feed" && feeds.some((f) => f.url === selection.feedUrl)));
@@ -125,9 +121,8 @@ export function Sidebar({
           ))}
         </Section>
 
-        {/* Saved section: All saved and the tags, as the chips (#205). The state (To
-            read, Archive, All) is the chip's; picking here keeps it. Counts are what is still to read,
-            as Feeds counts what is unread. */}
+        {/* Saved section: its places, as on the state chip: To read (with what is still to read) and
+            the Archive (no count: it is not a to-do). Liked and the topics are filters: chips only. */}
         <Section
           id={SAVED}
           title={t("saved")}
@@ -136,48 +131,28 @@ export function Sidebar({
           onToggle={toggleSection}
         >
           <Row
-            selected={inSaved && !savedFilter.likedOnly && savedFilter.tags.length === 0}
+            selected={inSaved && savedFilter.tab.kind === "toread"}
             onClick={() => {
-              app.showSaved({ ...savedFilter, likedOnly: false, tags: [] });
+              app.showSaved({ ...savedFilter, tab: { kind: "toread" } });
               onNavigate?.();
             }}
-            icon={<Bookmark className="size-5" />}
-            label={t("saved")}
+            icon={<BookOpen className="size-5" />}
+            label={t("toRead")}
             count={toRead}
           />
-          {/* Under Saved, without a heading, as on Android: Liked first, as on the chips, then the tags. */}
-          <div className="mt-2">
-            <Row
-              selected={inSaved && savedFilter.likedOnly}
-              onClick={() => {
-                app.showSaved({ ...savedFilter, likedOnly: true, tags: [] });
-                onNavigate?.();
-              }}
-              icon={<Heart className="size-5" />}
-              label={t("liked")}
-              count={likedToRead}
-            />
-            {[...tagCounts].map(([tag, tagCount]) => {
-              const isSelected = inSaved && savedFilter.tags.some((t) => t.toLowerCase() === tag.toLowerCase());
-              return (
-                <Row
-                  key={`tag:${tag}`}
-                  selected={isSelected}
-                  onClick={() => {
-                    app.showSaved({ ...savedFilter, likedOnly: false, tags: [tag] });
-                    onNavigate?.();
-                  }}
-                  icon={icons.has(tag.trim().toLowerCase()) ? <FolderIcon name={icons.get(tag.trim().toLowerCase())!} /> : <TagGlyph className="size-5" />}
-                  label={tag}
-                  count={tagCount}
-                />
-              );
-            })}
-          </div>
+          <Row
+            selected={inSaved && savedFilter.tab.kind === "archive"}
+            onClick={() => {
+              app.showSaved({ ...savedFilter, tab: { kind: "archive" } });
+              onNavigate?.();
+            }}
+            icon={<Archive className="size-5" />}
+            label={t("archive")}
+          />
         </Section>
       </div>
 
-      {/* At the bottom: managing feeds and Saved (one dialog with a tab for each, #251), and Settings. */}
+      {/* At the bottom: Manage topics (topics with their feeds), and Settings. */}
       <div className="border-t p-2">
         <Row onClick={onManage} icon={<ManageFeedsIcon />} label={t("manage")} />
         <Row onClick={onSettings} icon={<SettingsIcon className="size-5" />} label={t("settings")} />

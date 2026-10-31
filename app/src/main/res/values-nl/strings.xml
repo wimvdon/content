@@ -168,7 +168,7 @@
     <string name="list_view_small">Klein</string>
     <string name="list_view_medium">Middel</string>
     <string name="list_view_large">Groot</string>
-    <string name="manage_title">Feeds en onderwerpen</string>
+    <string name="manage_title">Onderwerpen beheren</string>
     <string name="feeds_opml_title">Van of naar een andere lezer</string>
     <string name="reader_auto_dark_title">Automatisch donker</string>
     <string name="reader_auto_dark_summary">Donkere pagina wanneer de app donker is</string>
@@ -310,7 +310,7 @@
     <string name="account_link_taken">Dat adres hoort al bij een ander Content-account.</string>
     <string name="account_link_failed">Aanmelden is niet gelukt. Probeer opnieuw.</string>
     <string name="action_refresh">Vernieuwen</string>
-    <string name="menu_manage">Feeds en onderwerpen</string>
+    <string name="menu_manage">Onderwerpen beheren</string>
     <string name="share_copy_link">Link kopiëren</string>
     <string name="share_more">Meer</string>
     <string name="instapaper_import_title">Importeren uit Instapaper?</string>
@@ -319,5 +319,25 @@
     <plurals name="topic_saved_count">
         <item quantity="one">%d bewaard</item>
         <item quantity="other">%d bewaard</item>
+    </plurals>
+    <string name="welcome_title">Welkom bij Content</string>
+    <string name="welcome_body">Log in met je e-mailadres, dan blijven je feeds en bewaarde artikels dezelfde op al je toestellen en in de webapp. Nieuw? Dezelfde link maakt je account. Geen wachtwoord.</string>
+    <string name="welcome_without_account">Of begin enkel op dit toestel:</string>
+    <string name="welcome_import">Importeren uit een andere lezer</string>
+    <string name="topic_in_feeds">Feeds · %1$s</string>
+    <string name="topic_in_saved">Bewaard · %1$s</string>
+    <string name="topic_merge">Samenvoegen met…</string>
+    <string name="topic_merge_title">%1$s samenvoegen met…</string>
+    <string name="topic_merge_body">Het onderwerp dat je kiest blijft, met zijn naam en icoon. Het krijgt de feeds en bewaarde artikels van dit onderwerp.</string>
+    <string name="topic_merge_action">Samenvoegen</string>
+    <string name="topic_remove">Onderwerp verwijderen</string>
+    <string name="topic_add_feed">Feed toevoegen aan %1$s</string>
+    <plurals name="topic_failing_count">
+        <item quantity="one">%d feed lukt niet</item>
+        <item quantity="other">%d feeds lukken niet</item>
+    </plurals>
+    <plurals name="topic_to_read_count">
+        <item quantity="one">%d te lezen</item>
+        <item quantity="other">%d te lezen</item>
     </plurals>
 </resources>

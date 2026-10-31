@@ -91,7 +91,7 @@ class TopicsTest {
     fun `counts feeds and saved articles per topic, and orders names like the topics`() {
         val settled = library.topicsForTags()
         assertEquals(
-            mapOf("f1" to TopicCount(1, 1), "f2" to TopicCount(1, 1), "topic:recipes" to TopicCount(0, 2)),
+            mapOf("f1" to TopicCount(1, 1, 1), "f2" to TopicCount(1, 1, 1), "topic:recipes" to TopicCount(0, 2, 2)),
             settled.topicCounts(),
         )
         assertEquals(listOf("tech", "News", "recipes", "Zoo"), settled.inTopicOrder(listOf("Zoo", "recipes", "News", "tech")))
@@ -107,5 +107,50 @@ class TopicsTest {
         val tagged = saved.tagWithFeedFolder(item!!.key)
         // In the topic's spelling of a tag already in use ("tech" on another article).
         assertEquals(listOf("tech"), tagged.item(item.key)!!.tags)
+    }
+
+    @Test
+    fun `Feeds' places are the topics with feeds, and Back goes up a level`() {
+        val settled = library.topicsForTags()
+        assertEquals(listOf("f1", "f2"), feedTopics(settled.feeds, settled.folders).map { it.id })
+        // From a feed to its topic, from a topic to All, from All nowhere (the app closes).
+        assertEquals(FeedSelection.InFolder("f1"), FeedSelection.Single("https://a/feed").up(settled.feeds))
+        assertEquals(FeedSelection.All, FeedSelection.Single("https://c/feed").up(settled.feeds))
+        assertEquals(FeedSelection.All, FeedSelection.InFolder("f1").up(settled.feeds))
+        assertNull(FeedSelection.All.up(settled.feeds))
+    }
+
+    @Test
+    fun `reorders topics, and one topic's feeds without moving the others`() {
+        val settled = library.topicsForTags()
+        assertEquals(listOf("topic:recipes", "f1", "f2"), settled.reorderTopics(listOf("topic:recipes", "f1")).folders.map { it.id })
+        assertSame(settled, settled.reorderTopics(listOf("f1", "f2", "topic:recipes")))
+        val more = settled.copy(feeds = settled.feeds + Feed("https://d/feed", "D", folderId = "f1"))
+        // a(f1), b(f2), c(none), d(f1): f1's feeds swap places, b and c stay where they are.
+        val swapped = more.reorderFeedsIn("f1", listOf("https://d/feed", "https://a/feed"))
+        assertEquals(listOf("https://d/feed", "https://b/feed", "https://c/feed", "https://a/feed"), swapped.feeds.map { it.url })
+        assertSame(more, more.reorderFeedsIn("f1", listOf("https://a/feed", "https://d/feed")))
+    }
+
+    @Test
+    fun `merging keeps the topic picked, with the other's feeds and saved articles`() {
+        val merged = library.topicsForTags().mergeTopic("f1", "f2")
+        assertEquals(listOf("f2", "topic:recipes"), merged.folders.map { it.id })
+        assertEquals("f2", merged.feed("https://a/feed")!!.folderId)
+        assertEquals(listOf("News", "Recipes"), merged.item("x.example/1")!!.tags)
+        val settled = library.topicsForTags()
+        assertSame(settled, settled.mergeTopic("f1", "f1"))
+        assertSame(settled, settled.mergeTopic("gone", "f1"))
+    }
+
+    @Test
+    fun `the topic being viewed, for Edit topic`() {
+        val settled = library.topicsForTags()
+        assertEquals("f1", settled.topicBeingViewed(FeedSelection.InFolder("f1"), null, inSaved = false)?.id)
+        assertEquals("f1", settled.topicBeingViewed(FeedSelection.Single("https://a/feed"), null, inSaved = false)?.id)
+        assertEquals("f2", settled.topicBeingViewed(FeedSelection.Tagged("news"), null, inSaved = false)?.id)
+        assertNull(settled.topicBeingViewed(FeedSelection.All, "Tech", inSaved = false))
+        assertEquals("topic:recipes", settled.topicBeingViewed(FeedSelection.InFolder("f1"), "recipes", inSaved = true)?.id)
+        assertNull(settled.topicBeingViewed(FeedSelection.InFolder("f1"), null, inSaved = true))
     }
 }

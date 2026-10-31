@@ -170,7 +170,7 @@
     <string name="list_view_small">Pequeña</string>
     <string name="list_view_medium">Mediana</string>
     <string name="list_view_large">Grande</string>
-    <string name="manage_title">Feeds y temas</string>
+    <string name="manage_title">Gestionar temas</string>
     <string name="feeds_opml_title">Desde o hacia otro lector</string>
     <string name="reader_auto_dark_title">Oscuro automático</string>
     <string name="reader_auto_dark_summary">Página oscura cuando la app está oscura</string>
@@ -320,7 +320,7 @@
     <string name="account_link_taken">Esa dirección ya pertenece a otra cuenta de Content.</string>
     <string name="account_link_failed">No se pudo iniciar sesión. Inténtalo de nuevo.</string>
     <string name="action_refresh">Actualizar</string>
-    <string name="menu_manage">Feeds y temas</string>
+    <string name="menu_manage">Gestionar temas</string>
     <string name="share_copy_link">Copiar enlace</string>
     <string name="share_more">Más</string>
     <string name="instapaper_import_title">¿Importar desde Instapaper?</string>
@@ -329,5 +329,25 @@
     <plurals name="topic_saved_count">
         <item quantity="one">%d guardado</item>
         <item quantity="other">%d guardados</item>
+    </plurals>
+    <string name="welcome_title">Te damos la bienvenida a Content</string>
+    <string name="welcome_body">Inicia sesión con tu correo para tener los mismos feeds y artículos guardados en todos tus dispositivos y en la app web. ¿Eres nuevo? El mismo enlace crea tu cuenta. Sin contraseña.</string>
+    <string name="welcome_without_account">O empieza solo en este dispositivo:</string>
+    <string name="welcome_import">Importar desde otro lector</string>
+    <string name="topic_in_feeds">Feeds · %1$s</string>
+    <string name="topic_in_saved">Guardados · %1$s</string>
+    <string name="topic_merge">Combinar con…</string>
+    <string name="topic_merge_title">Combinar %1$s con…</string>
+    <string name="topic_merge_body">El tema que elijas se queda, con su nombre e icono. Recibe los feeds y artículos guardados de este tema.</string>
+    <string name="topic_merge_action">Combinar</string>
+    <string name="topic_remove">Quitar tema</string>
+    <string name="topic_add_feed">Añadir un feed a %1$s</string>
+    <plurals name="topic_failing_count">
+        <item quantity="one">%d feed falla</item>
+        <item quantity="other">%d feeds fallan</item>
+    </plurals>
+    <plurals name="topic_to_read_count">
+        <item quantity="one">%d por leer</item>
+        <item quantity="other">%d por leer</item>
     </plurals>
 </resources>

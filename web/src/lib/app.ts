@@ -16,7 +16,7 @@ import {
 import { applyHighlights, notCopied, syncHighlights, type HighlightLink } from "./highlightCopy";
 import { INSTAPAPER_ID, InstapaperSync } from "./instapaperSync";
 import { progressChanged } from "./readingProgress";
-import { addTopic, removeTopic, renameTopic, tagWithFeedTopic, topicNamed, topicsForTags } from "./topics";
+import { addTopic, mergeTopic, removeTopic, renameTopic, tagWithFeedTopic, topicNamed, topicsForTags } from "./topics";
 import { addHighlight, changeItem, itemOf, joinDuplicateItems, putItem, removeHighlight, renameTag, setHighlightNote, setLiked, type Highlight, type Item } from "./items";
 import { markInboxRead, removeFromInbox } from "./inbox";
 import { applyChoice, saveNew, undoSave, type SaveChoice } from "./saveChoice";
@@ -420,6 +420,8 @@ class AppStore {
   updateFolder = (id: string, title: string, icon: string) => this.updateLibrary((lib) => renameTopic(lib, id, title, icon));
   /** Its feeds and saved articles stay, without the topic. */
   removeFolder = (id: string) => this.updateLibrary((lib) => removeTopic(lib, id));
+  /** Merges one topic into another: its feeds and saved articles go to `intoId`. */
+  mergeTopic = (fromId: string, intoId: string) => this.updateLibrary((lib) => mergeTopic(lib, fromId, intoId));
   /** Up or down within its folder, as Manage feeds lists it. */
   moveFeedBy = (url: string, delta: number) => this.updateLibrary((lib) => L.moveWithinFolder(lib, url, delta));
   moveFolderBy = (id: string, delta: number) =>
