@@ -189,8 +189,10 @@ highlights, and are tried again the next day.
 After **Save**, **Save and share** opens (#256): the **Folder** (To read and **Archive** first, then
 your folders, or **New folder** to make one), the **Tags** with **Like** in front (every tag you use,
 tap to turn one on or off; **New tag** makes one that doesn't exist yet), a **Note**, and, signed
-in, **Send with Content**: the people you sent something to before, tap one or more, or **Add
-address** for someone new (Content checks they have an account). The button then says **Save** or
+in, **Send with Content**, laid out like an email's **To** field: the people you pick sit in it as
+chips (**×** takes one out); type a name or address after them, and below are suggestions, the
+people you sent something to before (tap to add). A whole new address gives **Add …** (Content
+checks they have an account). The button then says **Save** or
 **Save and send** (to only send a link, use Share or the share menu's Send with Content). It keeps what you chose, also a folder or tag you typed but
 didn't add yet, and one message says where it went and who got it. **Cancel** (or closing the sheet)
 saves and sends nothing: right after Save in the reader or a swipe, it takes the save back, as if you
@@ -238,11 +240,11 @@ more). **Save** saves the article to **To read** and opens **Save and share**, w
 send it to people with Content (see Saved). **Share** opens Content's share sheet.
 
 **Content's share sheet** (#251; the web app's Share too). At the top, signed in, **Send with
-Content**, the same as in Save and share: the people you sent something to before, with their
-Gravatar picture or first letter, as chips to pick (several at once), and **Add address**, a field
-with a **+** that adds someone new to the chips (it says at once when there is no Content account
-for them); then **Send** sends to everyone picked. To tidy the list, press and hold a person: each
-one gets an **×**, which forgets them (on all your devices); **Done** ends it. Below, the apps: the ones you pick most
+Content**, the same **To** field as in Save and share: the people you pick as chips, a field for a
+name or address, suggestions below (the people you sent something to before; tap to add) and **Add
+…** for a whole new address; then **Send** sends to everyone picked. To tidy the suggestions,
+press and hold one (web: right-click): each gets a trash button, which forgets them on all your
+devices; **Done** ends it. Below, the apps: the ones you pick most
 in this sheet first (Android doesn't tell apps which ones you use elsewhere, so Content counts the
 picks here, on this phone only; until then well-known messaging and mail apps come first), then
 **Copy link**, and **More** for Android's own share menu with every app.

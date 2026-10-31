@@ -36,6 +36,27 @@ export function people(recent: string[], picked: string[]): string[] {
 
 export const has = (picked: string[], email: string) => picked.some((e) => same(e, email));
 
+/** How many people the To field suggests at a time. */
+export const SUGGESTIONS = 5;
+
+/**
+ * The suggestions under the To field (#284), as on Android: people shared with before who aren't picked
+ * yet, most recent first, whose address or name contains the query; at most SUGGESTIONS.
+ */
+export function suggestions(recent: string[], picked: string[], query: string, nameOf: (email: string) => string | null | undefined = () => null): string[] {
+  const q = query.trim().toLowerCase();
+  return recent
+    .filter((e) => !has(picked, e))
+    .filter((e) => !q || e.toLowerCase().includes(q) || (nameOf(e) ?? "").toLowerCase().includes(q))
+    .slice(0, SUGGESTIONS);
+}
+
+/** The address typed in the To field to offer as someone new: a whole address not picked or shared with before; else null. */
+export function newAddress(recent: string[], picked: string[], query: string): string | null {
+  const address = query.trim();
+  return isEmail(address) && !has(picked, address) && !has(recent, address) ? address : null;
+}
+
 /** Picks someone, or unpicks them. */
 export const toggle = (picked: string[], email: string) => (has(picked, email) ? picked.filter((e) => !same(e, email)) : [...picked, email.trim()]);
 

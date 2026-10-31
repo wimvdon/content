@@ -85,9 +85,12 @@
     <string name="share_user_sent">Envoyé à %1$s</string>
     <string name="save_share_title">Enregistrer et partager</string>
     <string name="action_save_and_send">Enregistrer et envoyer</string>
-    <string name="share_add_address">Ajouter une adresse</string>
     <string name="share_recipients_done">OK</string>
-    <string name="share_recipient_forget">Retirer %1$s</string>
+    <string name="share_to">À</string>
+    <string name="share_to_hint">Nom ou adresse e-mail</string>
+    <string name="share_add_person">Ajouter %1$s</string>
+    <string name="share_recipient_remove">Ne pas envoyer à %1$s</string>
+    <string name="share_recipient_forget">Retirer %1$s des suggestions</string>
     <plurals name="share_sent_people">
         <item quantity="one">Envoyé à %1$d personne</item>
         <item quantity="many">Envoyé à %1$d personnes</item>

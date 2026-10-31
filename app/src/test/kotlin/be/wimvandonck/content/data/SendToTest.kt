@@ -60,4 +60,23 @@ class SendToTest {
             SendTo.outcome(listOf("an@example.com" to ShareResult.Sent, "bart@example.com" to ShareResult.NoAccount, "cas@example.com" to ShareResult.Offline)),
         )
     }
+
+    @Test
+    fun `the To field suggests people not picked yet, by address or name`() {
+        val recent = listOf("ann@example.com", "bob@example.com", "carol@work.be")
+        val names = mapOf("bob@example.com" to "Robert Smith")
+        assertEquals(listOf("bob@example.com", "carol@work.be"), SendTo.suggestions(recent, listOf("Ann@Example.com"), ""))
+        assertEquals(listOf("carol@work.be"), SendTo.suggestions(recent, emptyList(), "WORK"))
+        assertEquals(listOf("bob@example.com"), SendTo.suggestions(recent, emptyList(), "smith", names::get))
+        assertEquals(SendTo.SUGGESTIONS, SendTo.suggestions((1..9).map { "p$it@x.be" }, emptyList(), "").size)
+    }
+
+    @Test
+    fun `a whole new address typed in the To field is offered to add`() {
+        val recent = listOf("ann@example.com")
+        assertEquals("new@example.com", SendTo.newAddress(recent, emptyList(), " new@example.com "))
+        assertEquals(null, SendTo.newAddress(recent, emptyList(), "new@exa"))
+        assertEquals(null, SendTo.newAddress(recent, emptyList(), "ANN@example.com"))
+        assertEquals(null, SendTo.newAddress(recent, listOf("new@example.com"), "new@example.com"))
+    }
 }

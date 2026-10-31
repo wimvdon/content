@@ -30,6 +30,33 @@ object SendTo {
         email: String,
     ): List<String> = if (has(picked, email)) picked.filterNot { it.equals(email.trim(), ignoreCase = true) } else picked + email.trim()
 
+    /** How many people the To field suggests at a time. */
+    const val SUGGESTIONS = 5
+
+    /**
+     * The suggestions under the To field (#284): people shared with before who aren't picked yet,
+     * most recent first, whose address or name ([nameOf]) contains [query]; at most [SUGGESTIONS].
+     */
+    fun suggestions(
+        recent: List<String>,
+        picked: List<String>,
+        query: String,
+        nameOf: (String) -> String? = { null },
+    ): List<String> {
+        val q = query.trim().lowercase()
+        return recent
+            .filterNot { has(picked, it) }
+            .filter { q.isEmpty() || it.lowercase().contains(q) || nameOf(it)?.lowercase()?.contains(q) == true }
+            .take(SUGGESTIONS)
+    }
+
+    /** The address typed in the To field to offer as someone new: a whole address not picked or shared with before; else null. */
+    fun newAddress(
+        recent: List<String>,
+        picked: List<String>,
+        query: String,
+    ): String? = query.trim().takeIf { isEmail(it) && !has(picked, it) && !has(recent, it) }
+
     /** What the sheet's button does, and says. */
     enum class Action { Save, SaveAndSend, Send }
 

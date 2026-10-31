@@ -84,9 +84,12 @@
     <string name="share_user_sent">Verstuurd naar %1$s</string>
     <string name="save_share_title">Opslaan en delen</string>
     <string name="action_save_and_send">Opslaan en versturen</string>
-    <string name="share_add_address">Adres toevoegen</string>
     <string name="share_recipients_done">Klaar</string>
-    <string name="share_recipient_forget">%1$s verwijderen</string>
+    <string name="share_to">Aan</string>
+    <string name="share_to_hint">Naam of e-mailadres</string>
+    <string name="share_add_person">%1$s toevoegen</string>
+    <string name="share_recipient_remove">Niet naar %1$s sturen</string>
+    <string name="share_recipient_forget">%1$s uit de suggesties verwijderen</string>
     <plurals name="share_sent_people">
         <item quantity="one">Verstuurd naar %1$d persoon</item>
         <item quantity="other">Verstuurd naar %1$d personen</item>
