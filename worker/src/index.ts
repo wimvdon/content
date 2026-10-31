@@ -17,7 +17,7 @@ import { handleInstapaper } from "./instapaper";
 export { Account } from "./account";
 
 export interface Env {
-  /** Comma-separated web app origins, e.g. "https://rss-reader.pages.dev,http://localhost:5173". */
+  /** Comma-separated web app origins, e.g. "https://content.wim.to,http://localhost:5173". */
   ALLOWED_ORIGINS: string;
   /** The Instapaper application's client ID (public) and the callback address it is registered with. */
   INSTAPAPER_CLIENT_ID?: string;

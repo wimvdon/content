@@ -192,6 +192,6 @@ class ArticleBlocksTest {
         val video = Embeds.playerLoad(Embeds.video("https://example.com/v.mp4", null))
         assertTrue(video is PlayerLoad.Page && video.html.contains("<video src=\"https://example.com/v.mp4\""))
         assertNull(Embeds.playerLoad(ArticleBlock.Embed(EmbedKind.X, "https://x.com/i/status/1", null)))
-        assertEquals("https://rss-reader-web.wim-d57.workers.dev/", Embeds.PLAYER_ORIGIN)
+        assertEquals("https://content.wim.to/", Embeds.PLAYER_ORIGIN)
     }
 }

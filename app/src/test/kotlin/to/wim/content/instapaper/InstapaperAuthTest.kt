@@ -18,7 +18,7 @@ class InstapaperAuthTest {
         assertEquals(InstapaperAuth.CLIENT_ID, query["client_id"])
         assertEquals("code", query["response_type"])
         assertEquals("abc123", query["state"])
-        assertEquals("https%3A%2F%2Frss-reader-web.wim-d57.workers.dev%2Finstapaper%2Fcallback", query["redirect_uri"])
+        assertEquals("https%3A%2F%2Fcontent.wim.to%2Finstapaper%2Fcallback", query["redirect_uri"])
     }
 
     @Test
@@ -35,7 +35,7 @@ class InstapaperAuthTest {
         assertTrue(InstapaperAuth.isCallback("$back#top"))
         assertFalse(InstapaperAuth.isCallback("https://evil.example/instapaper/callback?code=1&state=2"))
         assertFalse(InstapaperAuth.isCallback("$back/extra?code=1"))
-        assertFalse(InstapaperAuth.isCallback("https://rss-reader-web.wim-d57.workers.dev/"))
+        assertFalse(InstapaperAuth.isCallback("https://content.wim.to/"))
     }
 
     @Test

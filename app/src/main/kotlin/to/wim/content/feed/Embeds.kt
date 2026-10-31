@@ -160,7 +160,7 @@ object Embeds {
     }
 
     /** The address player pages are loaded under, and the referrer players see: Content's web app. */
-    const val PLAYER_ORIGIN = "https://rss-reader-web.wim-d57.workers.dev/"
+    const val PLAYER_ORIGIN = "https://content.wim.to/"
 
     /** One query parameter of [url], decoded, or null. */
     private fun query(

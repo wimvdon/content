@@ -57,7 +57,7 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   on screen (when it opens, a second after a change, on refresh, on Sync now, and at once when
   another of your devices changed something; never in the background) it reads and saves your data
   in your account on the owner's feed loader (a Cloudflare Worker, built from `worker/`, at
-  rss-reader-worker.wim-d57.workers.dev): one document with your feed list (addresses, names,
+  content-worker.wim-d57.workers.dev): one document with your feed list (addresses, names,
   folders, website and icon addresses), your folders and two settings (Load full articles and Mark
   as read on scroll; not the view settings such as theme, text settings, pictures and list view, the
   Unread filter, or the Save and Share targets, which stay on each device); and one record per item:
@@ -201,7 +201,7 @@ Save button, and only when you pick Content in the share menu.
 ## The web app
 
 The web version (built from `web/`, published by the owner on Cloudflare at
-`https://rss-reader-web.wim-d57.workers.dev`) runs in your browser and keeps your feed list, articles, read state and settings in the
+`https://content.wim.to`) runs in your browser and keeps your feed list, articles, read state and settings in the
 browser's storage on that device (IndexedDB). There are no analytics; the only account is the
 Reader account that signing in with Instapaper opens.
 

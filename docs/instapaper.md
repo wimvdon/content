@@ -84,7 +84,7 @@ IndexedDB (`instapaperSync`) and forgotten on sign-out; Saved stays.
    kept next to the token. Instapaper refusing the token (401) signs the user out of both.
 
 One callback address serves both apps:
-`https://rss-reader-web.wim-d57.workers.dev/instapaper/callback`.
+`https://content.wim.to/instapaper/callback`.
 
 - **Web:** the page itself handles it (`AppStore.finishInstapaperSignIn`, `web/src/lib/app.ts`).
 - **Android:** it is an Android App Link, so the phone opens the app instead of the browser
@@ -110,7 +110,7 @@ delete, reorder) and tags (list, create, rename). The Android app calls Instapap
 
 1. **Register the application** at <https://www.instapaper.com/developers/applications> (title
    Reader; application URL the GitHub repository). Callback URIs, one per line:
-   `https://rss-reader-web.wim-d57.workers.dev/instapaper/callback`. The client ID goes into
+   `https://content.wim.to/instapaper/callback`. The client ID goes into
    `worker/wrangler.toml` (`INSTAPAPER_CLIENT_ID`), `web/src/lib/config.ts` and `InstapaperAuth.kt`; it
    is public.
 2. **Put the client secret in the Worker**, never in the repository: Cloudflare dashboard › Workers
@@ -120,7 +120,7 @@ delete, reorder) and tags (list, create, rename). The Android app calls Instapap
 3. **App Links** need `assetlinks.json` on the callback's website, with the package name
    `to.wim.content` (and, until everyone has moved over, the old `be.wimvandonck.content` and `be.wimvandonck.reader`) and the SHA-256 fingerprint of the release signing key. If the signing key
    ever changes, update the fingerprint here. Check it after each deployment:
-   `https://rss-reader-web.wim-d57.workers.dev/.well-known/assetlinks.json` must show that file, not
+   `https://content.wim.to/.well-known/assetlinks.json` must show that file, not
    the web app's page.
 4. **Review.** A new Instapaper application is *Owner Only*: it works only for the account that
    registered it. Submit it for review in Instapaper's developer pages before other people use it;

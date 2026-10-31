@@ -2,7 +2,7 @@
 // (To read) and shows the save sheet to tag it. The web app then loads the page through this
 // extension, so its text is the one you see, sign-ins included.
 
-const WEB_APP = "https://rss-reader-web.wim-d57.workers.dev";
+const WEB_APP = "https://content.wim.to";
 
 // In the browser's language, from _locales (#257).
 const text = { save: chrome.i18n.getMessage("saveToContent"), none: chrome.i18n.getMessage("cannotSave") };

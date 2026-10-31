@@ -47,7 +47,7 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
 
 // Right-click menu (#257): Save to Content on the page, Save link to Content on a link. Like the
 // toolbar button, it opens the web app with the address, which saves it and shows Save and share.
-const WEB_APP = "https://rss-reader-web.wim-d57.workers.dev";
+const WEB_APP = "https://content.wim.to";
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.removeAll(() => {
