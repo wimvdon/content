@@ -255,31 +255,32 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   the Save action use Material Symbols list (#142): Saved is more than a reading list, so the open
   book stays on To read only (its tab and drawer row).
 - Navigation (#113): a navigation bar at the bottom (a navigation rail on windows 600dp and wider)
-  switches between the destinations, Feeds (feed symbol) and Saved (a list). Search is
+  switches between the destinations, Feeds (feed symbol), Saved (a list) and, signed in, the Inbox
+  (a bell, with Material's small badge while something in it is unread; it was a bell in the search
+  bar before). Search is
   an action in the top bar of both destinations (a magnifier) that opens one search page for
   everything: the field in its top bar, a row of filter chips (All, Feeds, Saved) above the
   results, and the results as one list of article rows ranked by relevance, each with a small label
   (Feed or Saved). It is not a navigation bar item: it acts on the content of both
   destinations rather than being a place of its own. The ☰ drawer holds every place, the same
-  wherever the app is: Feeds and Saved are sections in it; each header (Title Small in
-  `primary`, a fold arrow, the count while folded) folds its section open and shut. The section
-  being shown is open and the other folded shut whenever you move between them, so the drawer stays
-  short. The web's sidebar is always on screen, so there both stay open until you fold one, and stay
-  as you left them. Back from Saved or a feed section goes to All articles.
+  wherever the app is: Feeds and Saved are sections in it, each under a header (Title Small in
+  `primary`) and always open; the Inbox follows as one row. The web's sidebar is always on screen,
+  so there both stay open until you fold one, and stay as you left them. Back from Saved, the Inbox
+  or a feed section goes to All articles.
 - Three levels, the same in Feeds and Saved (#205): the navigation bar says where (Feeds or Saved);
   one row of chips under the search bar says which group and which state. The row starts with the
   **state chip**, a filter chip with a drop-down arrow and a menu of radio items (Feeds: Unread or
-  All; Saved: To read, Archive or All), lit while it leaves things out. A divider, then the groups,
+  All; Saved: To read or Archive), lit while it leaves things out. A divider, then the groups,
   one at a time: the topics in Feeds, the topics in Saved, in the topics' order, each only when it
   has something in the state shown (the chosen one stays), with Liked (heart) before them (#206). Group chips have no check mark and chosen
   ones keep their weight, so a chip never changes width and the row never moves (#208). An X at
   the end clears the group. The ☰ drawer is the map of every place: Feeds (Feed,
   the topics with feeds and, under the one you are in, its feeds, then the feeds without a topic)
-  and Saved (To read, Archive), with what is unread or still to read as counts; filters (Liked,
+  and Saved (To read, Archive), then the Inbox, with what is unread or still to read as counts; filters (Liked,
   Saved's topics) are only chips. A topic picked in the drawer and its chip are
   one choice and light up together. The Mark all read FAB is on Feeds
   only and only marks the section shown; Saved's FAB is Add link.
-- Saved's lists look like what they are for: To read, All and Archive are read through, so they use
+- Saved's lists look like what they are for: To read and Archive are read through, so they use
   the feed list's rows and its view setting (Small, Medium, Large), under a line with how many and
   about how long; a folder is a collection to browse, so its items are notes in Noter's style:
   `OutlinedCard`s on `surface` in a staggered grid (cells at least 160dp: two columns on a phone),
@@ -294,7 +295,9 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   always shows the whole article (#208), then Aa and ⋮); the bottom app bar is
   this article in your library, on the left, with **Share** at its right end: a tonal **Save** before
   it is saved, then one text button, its **folder** (To read or Archive, with its icon and an arrow down), which opens
-  Organise (#251: two buttons didn't fit on a phone). The label gives way (ellipsis); Share always sits
+  Organise (#251: two buttons didn't fit on a phone), and until it is archived an **Archive** icon button (the
+  Archive's box) right after it: one tap archives it, closes the reader and shows Archived with Undo, so
+  finishing an article isn't Organise › Archive › Save. The label gives way (ellipsis); Share always sits
   at the bar's right edge. The text ends
   with Read on website and nothing else. ⋮ holds the rare ones: Open in browser, Mark as unread,
   Sign in to this site (only while not signed in to it), Report a problem, Remove from Saved.
@@ -338,10 +341,10 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   (Save and share, Content's share sheet, highlights, Aa, Report a problem, the folder sheet with
   its icon search); a dialog only to confirm something or type one name (remove, rename, Add feed,
   edit a feed). No dialog opens on top of a sheet.
-- The ☰ drawer: two sections that start open and stay as you fold them (#251): the Feeds section
-  (Feed, the folders, the other feeds; a folder shows its feeds only while you are in it), the
-  Saved section (Saved with its count, then Liked and the tags with their counts, without a Tags heading), then
-  **Manage feeds and Saved** (the feed symbol with a pen) and Settings at the bottom.
+- The ☰ drawer: two sections, always open (folding them was dropped: it hid places for little
+  gain): the Feeds section (Feed, the folders, the other feeds; a folder shows its feeds only while
+  you are in it), the Saved section (To read with its count, Archive), the Inbox while signed in
+  (with its unread count), then **Manage topics** (the feed symbol with a pen) and Settings at the bottom.
 - Content's share sheet (#251): a `ModalBottomSheet` with the article's title and site, **Send with
   Content** the same To field as in the Save and share sheet, then a full-width Send button, then the apps as 48dp icons with their names,
   four to a row, Copy link and More last.

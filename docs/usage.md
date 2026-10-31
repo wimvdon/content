@@ -110,10 +110,11 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
 
 ## Reading the list
 
-- The **bar at the bottom** switches between **Feeds** and **Saved** (on a tablet or in landscape it
-  sits at the left side; on the web, a wide window has no bar: the menu at the left does it).
+- The **bar at the bottom** switches between **Feeds**, **Saved** and, signed in, the **Inbox** (with
+  a dot while something shared with you is unread). On a tablet or in landscape it sits at the left
+  side; on the web, a wide window has no bar: the menu at the left does it.
 - Under the search bar, one row of chips. The first chip says **what you see**: in Feeds **Unread**
-  or **All**, in Saved **To read**, **Archive** or **All**; tap it to pick another. After it come
+  or **All**, in Saved **To read** or **Archive**; tap it to pick another. After it come
   your **topics** (Feeds), or **Liked** and your **topics** (Saved), in your order: tap one to show only that, tap it again or the
   **X** to show everything again. Changing the first chip keeps the topic you picked. A topic (or
   Liked) with nothing in the state shown has no chip: with Unread, only topics with unread articles;
@@ -122,10 +123,10 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   It is the map of every **place**: **Feeds** (**Feed**, your topics with feeds, each with its unread
   count, a topic with its feeds under it while you are in it, then the feeds without a topic: the
   only place a single feed is listed) and **Saved** (**To read**, with how many are still to read,
-  and **Archive**). Filters (Unread, Liked, Saved's topics) are the chips, not here. Picking a topic
-  lights its chip; picking To read or Archive sets Saved's first chip. Both sections start open; tap
-  a section's name to fold it, and it stays that way (#251). At the bottom: **Manage topics** and
-  **Settings**.
+  and **Archive**), then, signed in, the **Inbox** with how many are unread. Filters (Unread, Liked,
+  Saved's topics) are the chips, not here. Picking a topic lights its chip; picking To read or
+  Archive sets Saved's first chip. Both sections are always open. At the bottom: **Manage topics**
+  and **Settings**.
 - **Search** (tap the search bar; on the web also the **/** key) searches everything: the articles of all your feeds that are on the device (titles,
   text, feed names and authors) and Saved, archived articles too (titles, websites, descriptions,
   topics, notes and highlights). Every word you type must appear; capitals and accents
@@ -160,7 +161,7 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
 - **Pull down** to download new articles; with nothing (unread) to show, the **Refresh** button
   does the same (#251). The app also does this once every time it starts. All feeds are downloaded
   first and then added at once, each article in its place by date.
-- **Back** goes up a level: from one feed to its topic, from a topic to All, from Saved to Feeds;
+- **Back** goes up a level: from one feed to its topic, from a topic to All, from Saved or the Inbox to Feeds;
   back on All closes the app.
 - The round **✓✓** (Mark all as read) button at the bottom right marks everything in the section you are in as
   read: all feeds on All, the topic's feeds in a topic, or the one feed you opened, also the
@@ -194,7 +195,8 @@ share sheet, or straight to the app you chose). Before it is saved it has **Save
 saves the article to **To read** (by default), or sends it to the app you chose (see below). Once
 saved, Save makes way for **its list** (To read or Archive): tap it for **Organise**, the sheet
 with the list, Like, the topics and the note (#251: on a phone there was no room for the list and
-the topics side by side). Next to Share, a quote mark with a count opens the article's highlights and
+the topics side by side). Until it is archived, an **Archive** button (a box) sits next to its list:
+one tap archives it, closes the article and says **Archived** with **Undo**. Next to Share, a quote mark with a count opens the article's highlights and
 notes. The text ends with **Read on website**. Reader remembers how far you read and opens the
 article there again.
 
@@ -234,10 +236,10 @@ asks too) are in that menu too, and in To read also **Archive** (or **To read** 
 closes, a message says where the article went; after a swipe, **Add link** or a link shared from
 another app it also has **Open**, which goes to the article in Saved.
 
-**Inbox** (#167, #246). Signed in, a bell sits in the search bar at the top. What other Content
-users send you lands in the inbox behind it, not in Saved: a list like a feed's, newest first, with
+**Inbox** (#167, #246). Signed in, the **Inbox** is the third place in the bar at the bottom (and in
+☰). What other Content users send you lands there, not in Saved: a list like a feed's, newest first, with
 who sent it (their Gravatar picture and name) where the feed's name would be. Unread ones are bold
-with a dot, and a dot on the bell says something unread waits; opening one marks it read. Swipe one
+with a dot, and a dot on the Inbox's icon says something unread waits; opening one marks it read. Swipe one
 to save it (it stays in the inbox, as a feed article stays in its feed), or press and hold (web:
 right-click) for **Mark as read/unread**, **Save**, **Share** and **Remove from inbox** (with
 **Undo**). Something already in Saved arrives in the inbox too, and stays where it is in Saved; the
@@ -370,7 +372,7 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   picture come along, and it isn't copied.
 - **Swipe in To read and Archive:** left archives (with **Undo**; in Archive, back to read),
   right opens **Organise**.
-- **The chips** under the search bar: first **To read**, **Archive** or **All** (tap it to pick),
+- **The chips** under the search bar: first **To read** or **Archive** (tap it to pick),
   then **Liked** (set apart by its heart) and your topics, in your order, one at a time.
 - **To read looks like your feeds**: the same rows, in the view you chose for the
   feed list (Small, Medium, Large), with how many articles and about how long they take at the top.
@@ -378,7 +380,8 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   a few lines of your first highlight (quoted) or else the article's description, a glimpse of your
   note in small letters, its topics as small chips, then the site, a marker icon with how many
   highlights it has, and a heart when liked.
-- In the reader, the bar at the bottom: **its list** (To read or Archive), which opens Organise.
+- In the reader, the bar at the bottom: **its list** (To read or Archive), which opens Organise,
+  and until it is archived **Archive**, which archives it in one tap and closes it (with **Undo**).
   **Remove from Saved** is in ⋮ (and in Organise); it asks first, as everywhere, and takes the note,
   topics and highlights with it (Archive keeps it searchable instead).
 - **☰ › Manage topics**: every topic, with how many saved articles have it; tap one for its page

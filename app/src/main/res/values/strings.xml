@@ -229,8 +229,6 @@
     <string name="account_delete_confirm">Delete your feeds, read articles and settings from Content’s server? They stay on this device, and you are signed out everywhere.</string>
     <string name="account_deleted">Synced data deleted</string>
     <string name="action_delete">Delete</string>
-    <string name="action_collapse">Collapse</string>
-    <string name="action_expand">Expand</string>
     <string name="action_search">Search</string>
     <string name="search_hint">Search articles</string>
     <string name="action_clear">Clear</string>

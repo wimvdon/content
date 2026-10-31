@@ -234,8 +234,6 @@
     <string name="account_delete_confirm">Eliminare feed, articoli letti e impostazioni dal server di Content? Restano su questo dispositivo e verrai disconnesso ovunque.</string>
     <string name="account_deleted">Dati sincronizzati eliminati</string>
     <string name="action_delete">Elimina</string>
-    <string name="action_collapse">Comprimi</string>
-    <string name="action_expand">Espandi</string>
     <string name="action_search">Cerca</string>
     <string name="search_hint">Cerca articoli</string>
     <string name="action_clear">Cancella</string>

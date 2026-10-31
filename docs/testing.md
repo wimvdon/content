@@ -139,11 +139,16 @@ and then (always before a release):
       tag or note finds it (labelled Reading list, archived ones too), and tapping it opens it with ♥,
       Keep and Archive. A bookmark's collection finds it too (labelled Bookmark; it opens its page);
       the Bookmarks chip shows only bookmarks.
-- [ ] **Navigation bar:** a bar at the bottom has Feeds and Saved (a rail at the left in
-      landscape on a tablet). The Mark all read and Add link buttons and messages sit above the bar.
-- [ ] **Navigation:** the ☰ drawer has two sections on Feeds and on Saved: Feeds (folders, feeds, Manage feeds) and Saved (To read, All, Tags, Manage tags); the section you're
-      in is open and the other folded shut automatically. Tapping a section's name folds it shut and open (folded,
-      it shows its count). In a folder, a feed or Saved, Back goes to All; on All, Back closes the app.
+- [ ] **Navigation bar:** a bar at the bottom has Feeds and Saved, and signed in the Inbox with a
+      dot while something in it is unread (a rail at the left in landscape on a tablet). The Mark all
+      read and Add link buttons and messages sit above the bar. Signed out, there is no Inbox.
+- [ ] **Navigation:** the ☰ drawer has the Feeds section (Feed, topics, feeds) and the Saved section
+      (To read, Archive), always open, then the Inbox (signed in, with its unread count), Manage
+      topics and Settings. In a topic, a feed, Saved or the Inbox, Back goes up a level; on All, Back
+      closes the app.
+- [ ] **Archive from the reader:** a saved article in To read has an Archive button next to its
+      list at the bottom; tapping it closes the article, shows Archived with Undo, and Undo puts it
+      back. An archived article has no Archive button.
 - [ ] **Saved:** tabs To read, All, each folder and Archive; the Liked chip and tag chips (several
       at once) filter it. To read,
       All and Archive look like the feed list (Settings › View applies); a folder shows notes in two

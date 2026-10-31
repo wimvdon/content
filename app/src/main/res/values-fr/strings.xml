@@ -234,8 +234,6 @@
     <string name="account_delete_confirm">Supprimer vos flux, articles lus et paramètres du serveur de Content ? Ils restent sur cet appareil, et vous êtes déconnecté partout.</string>
     <string name="account_deleted">Données synchronisées supprimées</string>
     <string name="action_delete">Supprimer</string>
-    <string name="action_collapse">Réduire</string>
-    <string name="action_expand">Développer</string>
     <string name="action_search">Rechercher</string>
     <string name="search_hint">Rechercher des articles</string>
     <string name="action_clear">Effacer</string>

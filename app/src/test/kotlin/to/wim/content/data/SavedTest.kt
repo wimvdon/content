@@ -73,7 +73,9 @@ class SavedTest {
         assertEquals(listOf("Work"), Saved.folders(library))
         assertEquals(mapOf("Work" to 2), Saved.folderCounts(library))
         assertEquals(SavedFilter(SavedTab.ToRead), Saved.shown(library, SavedFilter(SavedTab.Folder("Gone"))))
-        assertEquals(SavedFilter(SavedTab.All, tags = setOf("ai")), Saved.shown(library, SavedFilter(SavedTab.All, tags = setOf("ai", "nope"))))
+        assertEquals(SavedFilter(SavedTab.Archive, tags = setOf("ai")), Saved.shown(library, SavedFilter(SavedTab.Archive, tags = setOf("ai", "nope"))))
+        // All isn't offered any more: one kept from before shows To read, with its tags.
+        assertEquals(SavedFilter(SavedTab.ToRead, likedOnly = true, tags = setOf("ai")), Saved.shown(library, SavedFilter(SavedTab.All, likedOnly = true, tags = setOf("ai"))))
         val same = SavedFilter(SavedTab.Folder("work"))
         assertSame(same, Saved.shown(library, same))
     }
@@ -85,7 +87,7 @@ class SavedTest {
         assertSame(toReadOld, Saved.shown(library, toReadOld))
         assertEquals(emptyList<String>(), keys(toReadOld))
         assertEquals(listOf("a.example/4"), keys(toReadOld.copy(tab = SavedTab.Archive)))
-        assertEquals(listOf(SavedTab.ToRead, SavedTab.Archive, SavedTab.All), Saved.states)
+        assertEquals(listOf(SavedTab.ToRead, SavedTab.Archive), Saved.states)
         // Items in an old folder aren't in To read; the archived one isn't either.
         val toRead = library.copy(items = library.items + saved("c.example/6", 6, tags = listOf("AI")))
         assertEquals(mapOf("ai" to 1, "news" to 0, "old" to 0), Saved.toReadTagCounts(toRead))

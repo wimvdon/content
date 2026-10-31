@@ -2,6 +2,21 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-31: The Inbox in the navigation bar, ☰ without folding, Saved without All, Archive in one tap
+
+- At the owner's request (Android): **the Inbox is a destination**, third in the navigation bar
+  (signed in only, with a badge while something is unread) and a row in ☰, instead of a bell in the
+  search bar that opened a screen of its own. Notifications and "Open" after a share go there.
+- **☰'s sections no longer fold**: they are plain headers, always open.
+- **Saved's state chip is To read or Archive**: All mixed the two; Search with nothing typed still
+  lists everything. A kept All filter shows To read.
+- **Archive in the reader**: an icon button next to the article's list, until it is archived. One
+  tap archives it, closes the article and shows Archived with Undo (it was Organise › Archive ›
+  Save). Rejected: a matching "To read" button on archived articles (the owner: not needed; Organise
+  does it), archiving automatically at the end of an article (surprising), and Archive as a quick
+  option in Organise (still two taps).
+- The web app is unchanged for now.
+
 ## 2026-10-31: Topic pages only manage; chips only for what has something
 
 - At the owner's request: a topic's page no longer leads into reading (its Feeds and Saved buttons

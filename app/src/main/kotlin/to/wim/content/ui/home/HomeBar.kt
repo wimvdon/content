@@ -15,9 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -46,13 +43,12 @@ import to.wim.content.R
 
 /**
  * The title bar as a large search bar (#189): ☰ at its start, then "Search articles", which opens
- * Search, and [trailing] buttons at its end.
+ * Search.
  */
 @Composable
 fun HomeSearchBar(
     onMenu: () -> Unit,
     onSearch: () -> Unit,
-    trailing: @Composable () -> Unit = {},
 ) {
     Surface(
         shape = CircleShape,
@@ -77,7 +73,6 @@ fun HomeSearchBar(
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f).padding(horizontal = 4.dp),
             )
-            trailing()
             Icon(
                 painterResource(R.drawable.ic_search),
                 contentDescription = null,
@@ -163,24 +158,6 @@ fun TagChips(
             IconButton(onClick = onClear) {
                 Icon(painterResource(R.drawable.ic_close), contentDescription = stringResource(R.string.action_clear))
             }
-        }
-    }
-}
-
-/**
- * The inbox's bell in the search bar (#246), with Material's small badge while something shared with
- * you is unread.
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun InboxButton(
-    unread: Int,
-    onClick: () -> Unit,
-) {
-    val label = if (unread > 0) stringResource(R.string.inbox_open_unread) else stringResource(R.string.inbox_title)
-    IconButton(onClick = onClick) {
-        BadgedBox(badge = { if (unread > 0) Badge() }) {
-            Icon(painterResource(R.drawable.ic_notifications), contentDescription = label)
         }
     }
 }
