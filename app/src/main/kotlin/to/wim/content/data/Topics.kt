@@ -174,22 +174,17 @@ fun Library.mergeTopic(
     return renameTopic(fromId, into.title, into.icon)
 }
 
+
 /**
- * The topic being viewed, for Edit topic in the search bar: in Feeds a topic (from ☰ or its chip)
- * or the topic of the one feed open; in Saved the topic chosen in the chips. Null otherwise.
+ * Feeds' topic chips: the topics with articles in the state shown (unread ones with Unread), in the
+ * user's order; a topic with nothing to show is left out, except the one chosen ([chosen]), so a
+ * chip never disappears under your finger.
  */
-fun Library.topicBeingViewed(
-    selection: FeedSelection,
-    savedTopic: String?,
-    inSaved: Boolean,
-): Folder? =
-    if (inSaved) {
-        savedTopic?.let(::topicNamed)
-    } else {
-        when (selection) {
-            FeedSelection.All -> null
-            is FeedSelection.InFolder -> folder(selection.folderId)
-            is FeedSelection.Single -> feed(selection.feedUrl)?.folderId?.let(::folder)
-            is FeedSelection.Tagged -> topicNamed(selection.tag)
-        }
+fun Library.feedChips(
+    unreadOnly: Boolean,
+    chosen: String?,
+): List<String> =
+    feedTags().filter { tag ->
+        tag.equals(chosen, ignoreCase = true) ||
+            articles.any { a -> (!unreadOnly || !a.read) && feed(a.feedUrl)?.tags.orEmpty().any { it.equals(tag, ignoreCase = true) } }
     }

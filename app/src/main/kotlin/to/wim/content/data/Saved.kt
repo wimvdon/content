@@ -131,6 +131,25 @@ object Saved {
         library.inTopicOrder(library.items.filter { isIn(it, tab) }.recentTags())
 
     /**
+     * Saved's topic chips: the topics with articles in the state shown (To read, Archive or All), in
+     * the topics' order; one with nothing there is left out, except the one chosen.
+     */
+    fun chipTags(
+        library: Library,
+        filter: SavedFilter,
+    ): List<String> {
+        val inTab = tags(library, filter.tab)
+        val chosen = filter.tags.filter { t -> inTab.none { it.equals(t, ignoreCase = true) } }
+        return library.inTopicOrder(inTab + chosen)
+    }
+
+    /** Whether Saved shows the Liked chip: something liked in the state shown, or Liked chosen. */
+    fun showsLiked(
+        library: Library,
+        filter: SavedFilter,
+    ): Boolean = filter.likedOnly || library.items.any { it.liked && isIn(it, filter.tab) }
+
+    /**
      * The states Saved's state chip offers (#205): To read, Archive or everything. A tag stays
      * chosen when the state changes, as a folder does with Unread and All in Feeds.
      */

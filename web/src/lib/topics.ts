@@ -5,7 +5,7 @@
  * sync file keeps folders and tags as they were; these rules keep the two in step.
  */
 import { changeItem, cleanTags, feedArticleFor, renameTag, type Item } from "./items";
-import { feedFoldersToTags, removeFolder, type Folder, type Library } from "./library";
+import { feedFoldersToTags, feedTags, removeFolder, type Folder, type Library } from "./library";
 
 const key = (name: string) => name.trim().toLowerCase();
 
@@ -141,17 +141,16 @@ export function mergeTopic(lib: Library, fromId: string, intoId: string): Librar
   return renameTopic(lib, fromId, into.title, into.icon);
 }
 
+
 /**
- * The topic being viewed, for Edit topic: in Feeds a topic or the topic of the one feed open; in
- * Saved the topic chosen in the chips. Undefined otherwise. Like Android's topicBeingViewed.
+ * Feeds' topic chips: the topics with articles in the state shown (unread ones with Unread), in the
+ * user's order; one with nothing to show is left out, except the one chosen. Like Android's feedChips.
  */
-export function topicBeingViewed(lib: Library, selection: { kind: string; folderId?: string; feedUrl?: string; tag?: string }, savedTopic: string | undefined): Folder | undefined {
-  if (selection.kind === "saved") return savedTopic ? topicNamed(lib, savedTopic) : undefined;
-  if (selection.kind === "folder") return lib.folders.find((f) => f.id === selection.folderId);
-  if (selection.kind === "tag" && selection.tag) return topicNamed(lib, selection.tag);
-  if (selection.kind === "feed") {
-    const id = lib.feeds.find((f) => f.url === selection.feedUrl)?.folderId;
-    return id ? lib.folders.find((f) => f.id === id) : undefined;
-  }
-  return undefined;
+export function feedChips(lib: Library, unreadOnly: boolean, chosen: string | null): string[] {
+  const byUrl = new Map(lib.feeds.map((f) => [f.url, f]));
+  return feedTags(lib).filter(
+    (tag) =>
+      (chosen !== null && key(tag) === key(chosen)) ||
+      lib.articles.some((a) => (!unreadOnly || !a.read) && (byUrl.get(a.feedUrl)?.tags ?? []).some((t) => key(t) === key(tag))),
+  );
 }

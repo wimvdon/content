@@ -82,7 +82,8 @@ import to.wim.content.data.needsDescription
 import to.wim.content.data.topicNames
 import to.wim.content.data.topicCounts
 import to.wim.content.data.up
-import to.wim.content.data.topicBeingViewed
+import to.wim.content.data.chipTag
+import to.wim.content.data.feedChips
 import to.wim.content.data.tagWithFeedFolder
 import to.wim.content.data.removeTag
 import to.wim.content.data.renameTag
@@ -696,7 +697,8 @@ fun RssReaderNavigation(
                                         filter = shownFilter,
                                         items = savedItems,
                                         folders = remember(library) { Saved.folders(library) },
-                                        tags = remember(library) { Saved.tags(library, SavedTab.All) },
+                                        tags = remember(library, shownFilter) { Saved.chipTags(library, shownFilter) },
+                                        showsLiked = remember(library, shownFilter) { Saved.showsLiked(library, shownFilter) },
                                         minutes = minutes,
                                         library = library,
                                         titleFont = current.reader.font.fontFamily(),
@@ -705,7 +707,7 @@ fun RssReaderNavigation(
                                 toReadCount = remember(library) { library.items.count { Saved.isIn(it, SavedTab.ToRead) } },
                                 signedIn = accountState is AccountState.SignedIn,
                                 inboxUnread = remember(library) { Inbox.unread(library) },
-                                topicId = library.topicBeingViewed(shownSelection, shownFilter.tags.firstOrNull(), section == HomeSection.Saved)?.id,
+                                topicChips = remember(library, current.unreadOnly, shownSelection) { library.feedChips(current.unreadOnly, shownSelection.chipTag(library.folders)) },
                             ),
                         snackbarHostState = snackbar,
                         actions =
@@ -713,7 +715,6 @@ fun RssReaderNavigation(
                                 onSendLink = { email, result ->
                                     uiScope.launch { result(runCatching { app.account.sendLink(email) }.isSuccess) }
                                 },
-                                onEditTopic = { id -> push(Screen.Topic(id)) },
                                 onSelect = {
                                     // The same feed or folder again keeps the articles read this visit (#157).
                                     if (it != selection) readThisVisit = emptySet()
@@ -997,6 +998,11 @@ fun RssReaderNavigation(
                         onBack = ::pop,
                         onOpen = { push(Screen.Topic(it)) },
                         onReorder = { ids -> app.appScope.launch { repository.reorderTopics(ids) } },
+                        onAddFeed = {
+                            // Under No topic, and stay on this page.
+                            addIntoTopic = ""
+                            addDialogOpen = true
+                        },
                         onNewTopic = { title, icon ->
                             app.appScope.launch {
                                 val id = repository.addFolder(title, icon)
@@ -1020,7 +1026,6 @@ fun RssReaderNavigation(
                                 TopicPage(
                                     topic = topic,
                                     feeds = topicFeeds,
-                                    unread = topic?.let { library.unreadCount(FeedSelection.InFolder(it.id)) } ?: 0,
                                     saved = count?.saved ?: 0,
                                     toRead = count?.toRead ?: 0,
                                 ),
@@ -1030,21 +1035,6 @@ fun RssReaderNavigation(
                             actions =
                                 TopicPageActions(
                                     onBack = ::pop,
-                                    onShowFeeds = {
-                                        if (topic != null) {
-                                            readThisVisit = emptySet()
-                                            selection = FeedSelection.InFolder(topic.id)
-                                            section = HomeSection.Feeds
-                                            while (backStack.size > 1) pop()
-                                        }
-                                    },
-                                    onShowSaved = {
-                                        if (topic != null) {
-                                            savedFilter = savedFilter.copy(likedOnly = false, tags = setOf(topic.title))
-                                            section = HomeSection.Saved
-                                            while (backStack.size > 1) pop()
-                                        }
-                                    },
                                     onAddFeed = {
                                         addIntoTopic = screen.id ?: ""
                                         addDialogOpen = true

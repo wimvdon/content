@@ -294,3 +294,13 @@ export function hostOf(url: string | null | undefined): string {
 
 /** A website shown where a feed's name goes (with its first letter as icon). */
 export const siteOf = (host: string): Feed => ({ url: host, title: host, siteUrl: null, folderId: null, iconUrl: null, renamed: false });
+
+/** Saved's topic chips: the topics with articles in the state shown, in the topics' order; one with nothing there is left out, except the chosen ones. */
+export function chipTags(lib: Library, filter: SavedFilter): string[] {
+  const inTab = tabTags(lib, filter.tab);
+  const chosen = filter.tags.filter((t) => !inTab.some((x) => same(x, t)));
+  return inTopicOrder(lib, [...inTab, ...chosen]);
+}
+
+/** Whether Saved shows the Liked chip: something liked in the state shown, or Liked chosen. */
+export const showsLiked = (lib: Library, filter: SavedFilter) => filter.likedOnly || lib.items.some((i) => i.liked && isIn(i, filter.tab));

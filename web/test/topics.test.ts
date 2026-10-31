@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { Item } from "../src/lib/items";
+import { chipTags, showsLiked } from "../src/lib/saved";
 import { emptyLibrary, feedFoldersToTags, newFeed, type Library } from "../src/lib/library";
-import { addTopic, inTopicOrder, mergeTopic, topicBeingViewed, removeTopic, renameTopic, tagWithFeedTopic, topicCounts, topicIdFor, topicNamed, topicNames, topicsForTags } from "../src/lib/topics";
+import { addTopic, feedChips, inTopicOrder, mergeTopic, removeTopic, renameTopic, tagWithFeedTopic, topicCounts, topicIdFor, topicNamed, topicNames, topicsForTags } from "../src/lib/topics";
 
 const saved = (key: string, ...tags: string[]): Item => ({
   key,
@@ -119,13 +120,23 @@ describe("topics", () => {
     expect(mergeTopic(settled, "f1", "f1")).toBe(settled);
   });
 
-  it("knows the topic being viewed, for Edit topic", () => {
-    const settled = topicsForTags(library);
-    expect(topicBeingViewed(settled, { kind: "folder", folderId: "f1" }, undefined)?.id).toBe("f1");
-    expect(topicBeingViewed(settled, { kind: "feed", feedUrl: "https://a/feed" }, undefined)?.id).toBe("f1");
-    expect(topicBeingViewed(settled, { kind: "tag", tag: "news" }, undefined)?.id).toBe("f2");
-    expect(topicBeingViewed(settled, { kind: "all" }, undefined)).toBeUndefined();
-    expect(topicBeingViewed(settled, { kind: "saved" }, "recipes")?.id).toBe("topic:recipes");
-    expect(topicBeingViewed(settled, { kind: "saved" }, undefined)).toBeUndefined();
+
+  it("leaves out Feeds' topic chips with nothing in the state shown, except the one chosen", () => {
+    const article = (feedUrl: string, id: string, read: boolean) => ({ feedUrl, id, title: id, link: null, author: null, html: "", publishedAt: null, fetchedAt: 0, read, imageUrl: null });
+    const lib = { ...topicsForTags(library), articles: [article("https://a/feed", "1", false), article("https://b/feed", "2", true)] };
+    expect(feedChips(lib, true, null)).toEqual(["Tech"]);
+    expect(feedChips(lib, false, null)).toEqual(["Tech", "News"]);
+    expect(feedChips(lib, true, "news")).toEqual(["Tech", "News"]);
+  });
+
+  it("leaves out Saved's topic chips and Liked with nothing in the state shown, except the chosen ones", () => {
+    const archived = { ...saved("x.example/9", "Old"), readingList: { state: "archived" as const, addedAt: 1 }, liked: true };
+    const lib = topicsForTags({ ...library, items: [...library.items, archived] });
+    expect(chipTags(lib, { tab: { kind: "toread" }, likedOnly: false, tags: [] })).toEqual(["tech", "News", "Recipes"]);
+    expect(chipTags(lib, { tab: { kind: "archive" }, likedOnly: false, tags: [] })).toEqual(["Old"]);
+    expect(chipTags(lib, { tab: { kind: "archive" }, likedOnly: false, tags: ["tech"] })).toEqual(["tech", "Old"]);
+    expect(showsLiked(lib, { tab: { kind: "toread" }, likedOnly: false, tags: [] })).toBe(false);
+    expect(showsLiked(lib, { tab: { kind: "archive" }, likedOnly: false, tags: [] })).toBe(true);
+    expect(showsLiked(lib, { tab: { kind: "toread" }, likedOnly: true, tags: [] })).toBe(true);
   });
 });

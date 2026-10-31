@@ -1,6 +1,8 @@
 package to.wim.content.data
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Test
@@ -143,14 +145,27 @@ class TopicsTest {
         assertSame(settled, settled.mergeTopic("gone", "f1"))
     }
 
+
     @Test
-    fun `the topic being viewed, for Edit topic`() {
-        val settled = library.topicsForTags()
-        assertEquals("f1", settled.topicBeingViewed(FeedSelection.InFolder("f1"), null, inSaved = false)?.id)
-        assertEquals("f1", settled.topicBeingViewed(FeedSelection.Single("https://a/feed"), null, inSaved = false)?.id)
-        assertEquals("f2", settled.topicBeingViewed(FeedSelection.Tagged("news"), null, inSaved = false)?.id)
-        assertNull(settled.topicBeingViewed(FeedSelection.All, "Tech", inSaved = false))
-        assertEquals("topic:recipes", settled.topicBeingViewed(FeedSelection.InFolder("f1"), "recipes", inSaved = true)?.id)
-        assertNull(settled.topicBeingViewed(FeedSelection.InFolder("f1"), null, inSaved = true))
+    fun `Feeds' chips leave out topics with nothing in the state shown, except the one chosen`() {
+        val article = { feed: String, id: String, read: Boolean -> Article(feed, id, id, null, null, "", null, 0L, read = read) }
+        val withArticles = library.topicsForTags().copy(articles = listOf(article("https://a/feed", "1", false), article("https://b/feed", "2", true)))
+        // Tech has an unread article; News only a read one.
+        assertEquals(listOf("Tech"), withArticles.feedChips(unreadOnly = true, chosen = null))
+        assertEquals(listOf("Tech", "News"), withArticles.feedChips(unreadOnly = false, chosen = null))
+        // The chosen one stays, so it doesn't disappear under your finger.
+        assertEquals(listOf("Tech", "News"), withArticles.feedChips(unreadOnly = true, chosen = "news"))
+    }
+
+    @Test
+    fun `Saved's chips leave out topics and Liked with nothing in the state shown, except the chosen ones`() {
+        val archived = saved("x.example/9", "Old").copy(readingList = ReadingListEntry(ReadingState.Archived, 1L), liked = true)
+        val lib = library.copy(items = library.items + archived).topicsForTags()
+        assertEquals(listOf("tech", "News", "Recipes"), Saved.chipTags(lib, SavedFilter(SavedTab.ToRead)))
+        assertEquals(listOf("Old"), Saved.chipTags(lib, SavedFilter(SavedTab.Archive)))
+        assertEquals(listOf("tech", "Old"), Saved.chipTags(lib, SavedFilter(SavedTab.Archive, tags = setOf("tech"))))
+        assertFalse(Saved.showsLiked(lib, SavedFilter(SavedTab.ToRead)))
+        assertTrue(Saved.showsLiked(lib, SavedFilter(SavedTab.Archive)))
+        assertTrue(Saved.showsLiked(lib, SavedFilter(SavedTab.ToRead, likedOnly = true)))
     }
 }

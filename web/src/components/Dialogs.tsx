@@ -5,7 +5,7 @@ import { gravatarUrl } from "@/lib/account";
 import { app, useApp, type ListView, type Theme } from "@/lib/app";
 import { formatRelative, plural, t, type Key } from "@/lib/i18n";
 import { searchIcons } from "@/lib/icons";
-import { unreadByFeed, type Feed, type Folder } from "@/lib/library";
+import type { Feed, Folder } from "@/lib/library";
 import { FeedIcon } from "./FeedIcon";
 import { FolderIcon, SymbolSvg } from "./FolderIcon";
 import { useIcons } from "./useIcons";
@@ -89,9 +89,9 @@ function exportOpml() {
 
 /**
  * Manage topics, as on Android: the topics with what they hold (feeds and saved articles, and a
- * feed that fails), in the user's order; then No topic. Clicking one opens its page in the same
- * dialog: the two ways into reading (Feeds, Saved), its feeds (reorder, edit, add one to it), its
- * saved articles, and Edit, Merge with… and Remove.
+ * feed that fails), in the user's order; then No topic; Add feed and New topic. Clicking one opens
+ * its page in the same dialog, for managing it (reading is in Feeds and Saved): its feeds
+ * (reorder, edit, add one to it), how many saved articles have it, and Edit, Merge with… and Remove.
  */
 export function ManageDialog({
   open,
@@ -101,7 +101,6 @@ export function ManageDialog({
 }: Props & { onAddFeed: (topicId: string | null) => void; topic?: string | null }) {
   const { library, problems } = useApp();
   const counts = useMemo(() => topicCounts(library), [library]);
-  const unread = useMemo(() => unreadByFeed(library), [library]);
   // undefined: the list; null: No topic; an id: that topic's page.
   const [shown, setShown] = useState<string | null | undefined>(initialTopic);
   const [editFeed, setEditFeed] = useState<Feed | null>(null);
@@ -115,9 +114,7 @@ export function ManageDialog({
   const failing = (list: Feed[]) => list.filter((f) => problems.has(f.url)).length;
   const detail = (feedsIn: number, saved: number, fails: number) =>
     [plural("feedsCount", feedsIn), plural("topicSavedCount", saved), ...(fails > 0 ? [plural("topicFailingCount", fails)] : [])].join(" · ");
-  const close = () => onOpenChange(false);
   const count = topic ? counts.get(topic.id) : undefined;
-  const topicUnread = feeds.reduce((n, f) => n + (unread.get(f.url) ?? 0), 0);
   return (
     <>
       <Dialog
@@ -141,10 +138,17 @@ export function ManageDialog({
               </>
             ) : undefined
           ) : (
-            <Button onClick={() => setEditFolder("new")}>
-              <Plus />
-              {t("newFolder")}
-            </Button>
+            // Two actions: Add feed (the more frequent) filled, New topic quieter.
+            <>
+              <Button variant="tonal" onClick={() => setEditFolder("new")}>
+                <Plus />
+                {t("newFolder")}
+              </Button>
+              <Button onClick={() => onAddFeed(null)}>
+                <Plus />
+                {t("addFeed")}
+              </Button>
+            </>
           )
         }
       >
@@ -154,31 +158,6 @@ export function ManageDialog({
               <ArrowLeft />
               {t("manageTitle")}
             </Button>
-            {topic ? (
-              // The two ways into reading: one topic covers both.
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  variant="tonal"
-                  disabled={feeds.length === 0}
-                  onClick={() => {
-                    app.select({ kind: "folder", folderId: topic.id });
-                    close();
-                  }}
-                >
-                  {t("topicInFeeds").replace("{count}", plural("unreadCount", topicUnread))}
-                </Button>
-                <Button
-                  variant="tonal"
-                  disabled={(count?.saved ?? 0) === 0}
-                  onClick={() => {
-                    app.showSaved({ tab: { kind: "toread" }, likedOnly: false, tags: [topic.title] });
-                    close();
-                  }}
-                >
-                  {t("topicInSaved").replace("{count}", plural("topicToReadCount", count?.toRead ?? 0))}
-                </Button>
-              </div>
-            ) : null}
             <section className="space-y-1">
               <h3 className="text-sm font-medium text-primary">{t("feeds")}</h3>
               <ul>

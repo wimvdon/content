@@ -67,8 +67,10 @@ data class SavedHome(
     val items: List<Item>,
     /** Every folder, for the tabs. */
     val folders: List<String>,
-    /** Every tag in Saved, most used first, for the chips (whichever state is shown). */
+    /** The topics with articles in the state shown (and the one chosen), for the chips. */
     val tags: List<String>,
+    /** Whether the Liked chip shows: something liked in the state shown, or Liked chosen. */
+    val showsLiked: Boolean = true,
     /** About how many minutes each item takes to read, by item key, when its text is known. */
     val minutes: Map<String, Int>,
     /** So items show where they came from, like feed articles. */

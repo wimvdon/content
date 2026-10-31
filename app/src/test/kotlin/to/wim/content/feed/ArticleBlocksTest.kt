@@ -73,7 +73,8 @@ class ArticleBlocksTest {
         assertEquals(EmbedKind.Spotify, track.kind)
         assertEquals("https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC", track.url)
         assertEquals("https://open.spotify.com/embed/track/4uLU6hMCjMI75M1A2tKUQC", track.player)
-        assertEquals(EmbedSize.fixed(152), track.size)
+        // Always the full player: the compact one is cramped.
+        assertEquals(EmbedSize.fixed(352), track.size)
         assertEquals(EmbedSize.fixed(352), embed("https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM5M").size)
         assertEquals("https://open.spotify.com/episode/abc", embed("https://open.spotify.com/embed-podcast/episode/abc").url)
 
