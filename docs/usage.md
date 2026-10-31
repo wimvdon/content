@@ -136,7 +136,9 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   save it (#221). **Press and hold** it for a menu: **Mark as read** (or unread), **Save** and
   **Share**. In the web app, right-click it (or press and hold on a touch screen) for the same
   menu; the round button that appears on an article when you point at it marks it read or unread,
-  and so does **m** for the open article. The ☰ menu opens with the ☰ button only, so
+  and so does **m** for the open article. Next to it, **Open in a new tab** (an arrow out of a box)
+  opens the article's website in a new browser tab without opening it in Content; Saved's cards and
+  Search's results have it too. The ☰ menu opens with the ☰ button only, so
   swiping never opens it by accident.
 - **Pull down** to download new articles; with nothing (unread) to show, the **Refresh** button
   does the same (#251). The app also does this once every time it starts. All feeds are downloaded
@@ -160,8 +162,8 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
 
 Tap an article to read it. It is marked as read. Saved articles have no read state of their
 own (archiving is what puts them away), but opening one marks the feed article it came from as
-read, in both apps. Tap the article's **title** to open it on its
-website (the same as **Read on website** at the end). In the top bar:
+read, in both apps. Tap (or click) the article's **title** to open it on its
+website (in the web app, in a new tab) (the same as **Read on website** at the end). In the top bar:
 
 | Button | What it does |
 |---|---|
