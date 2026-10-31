@@ -38,7 +38,7 @@ rss-reader/
         ├── debug/res/values/strings.xml   "Content Dev" name for debug builds
         ├── main/
         │   ├── AndroidManifest.xml   Internet permission, Instapaper package visibility, activity
-        │   ├── kotlin/be/wimvandonck/content/
+        │   ├── kotlin/to/wim/content/
         │   │   ├── RssReaderApp.kt            Application: stores, background scope
         │   │   ├── data/
         │   │   │   ├── Library.kt             Feeds, articles, read state, merge (plain Kotlin)
@@ -88,7 +88,7 @@ rss-reader/
         │       ├── values/ values-night/      Strings (English), colours, window theme
         │       ├── values-nl|de|fr|es|it/     Translations
         │       └── xml/                       Backup rules
-        └── test/kotlin/be/wimvandonck/content/
+        └── test/kotlin/to/wim/content/
             ├── data/                          Library, codec and settings tests
             └── feed/                          Parser, dates, HTML, discovery, finder, OPML tests
 ```
@@ -102,7 +102,7 @@ Saved and Instapaper (#107, #109, #119): `data/Saved.kt` (tabs, filters, folders
 (token swap and the web app's calls). See `docs/instapaper.md`.
 
 Reader account (sync): `worker/src/account.ts` (accounts, encrypted document, live connection),
-`app/src/main/kotlin/be/wimvandonck/content/sync/`, `web/src/lib/account.ts` and
+`app/src/main/kotlin/to/wim/content/sync/`, `web/src/lib/account.ts` and
 `web/src/lib/sync.ts`. See `docs/account.md` and `docs/sync.md`.
 
 ## `extension/`

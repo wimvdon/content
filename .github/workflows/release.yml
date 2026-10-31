@@ -282,7 +282,7 @@ jobs:
   #   permissions:
   #     contents: read
   #   env:
-  #     PACKAGE_NAME: be.wimvandonck.content
+  #     PACKAGE_NAME: to.wim.content
   #   steps:
   #     - uses: actions/checkout@v7
   #       with:

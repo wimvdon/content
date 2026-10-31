@@ -4,8 +4,8 @@
      with them picked to send to. They are kept out of the launcher's menu, which offers the feed
      folders instead (#251). -->
 <shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
-    <share-target android:targetClass="be.wimvandonck.content.ui.SendActivity">
+    <share-target android:targetClass="to.wim.content.ui.SendActivity">
         <data android:mimeType="text/plain" />
-        <category android:name="be.wimvandonck.content.category.SHARE_TO_USER" />
+        <category android:name="to.wim.content.category.SHARE_TO_USER" />
     </share-target>
 </shortcuts>

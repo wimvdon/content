@@ -2,6 +2,23 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-31: The app ID is to.wim.content
+
+- At the owner's request (the owner's domain is wim.to; the web app may move to content.wim.to
+  later), the application id and the code's package changed from `be.wimvandonck.content` to
+  `to.wim.content` (debug builds: `to.wim.content.debug`), in one step this time.
+- As with the previous change, Android treats it as a new app next to the old one, which gets no
+  more updates. Signing in with your email brings back the library; Instapaper, sites signed in to
+  and per-device settings are set up again, and the old app is uninstalled by hand.
+- `assetlinks.json` lists all three packages, so sign-in links and the Instapaper callback open the
+  new app, and the old ones keep working until they are removed. Same signing key.
+- Push notifications need the new package in Firebase (two Android apps, `to.wim.content` and
+  `to.wim.content.debug`) and a new `GOOGLE_SERVICES_JSON` secret. Until then the notifications
+  switch is hidden, as the build reads Firebase's settings by package name.
+- Room's exported schemas moved with the database class; the database itself is new with the app.
+- Not changed: the web app's and feed loader's addresses (for when content.wim.to is set up), the
+  sign-in email's sender (resend.wimvandonck.be) and the browser extension's id.
+
 ## 2026-10-31: The drawer's logo without its circle
 
 - At the owner's request, the logo at the top of the drawer (and the web app's sidebar) is the C on

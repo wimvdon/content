@@ -1,6 +1,6 @@
 # Content
 
-Feeds and saved articles in one app, on Android and the web. Formerly called Reader. Its app ID changed from `be.wimvandonck.reader` to `be.wimvandonck.content` (2026-10-23): the new app installs next to the old one, which you then uninstall.
+Feeds and saved articles in one app, on Android and the web. Formerly called Reader. Its app ID changed from `be.wimvandonck.reader` to `be.wimvandonck.content` (2026-10-23) and then to `to.wim.content` (2026-10-31): each time the new app installs next to the old one, which you then uninstall.
 
 ## 📚 Documentation
 | | |
@@ -79,7 +79,7 @@ rss-reader/
 ├── CLAUDE.md           Rules for Claude Code sessions
 ├── DESIGN.md           Design language shared with the sibling apps
 ├── scripts/            Release helpers (versioning, keystore secret) with tests
-├── app/src/main/kotlin/be/wimvandonck/content/
+├── app/src/main/kotlin/to/wim/content/
 │   ├── RssReaderApp.kt Application: settings, library, background scope
 │   ├── data/           Library (feeds, articles, read state), settings, storage
 │   ├── feed/           Download, RSS/Atom parsing, dates, HTML, feed discovery, OPML

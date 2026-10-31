@@ -100,8 +100,8 @@ and then (always before a release):
 - [ ] Open an article from a summary-only feed (e.g. `theverge.com`): the full article loads.
       ⋮ › Show feed text / Show full article switches; Settings › Reader › Load full articles off
       stops it.
-- [ ] **Backup:** with a cable and `adb`, `adb shell bmgr backupnow be.wimvandonck.content`,
-      uninstall, reinstall, `adb shell bmgr restore be.wimvandonck.content` (or set up a
+- [ ] **Backup:** with a cable and `adb`, `adb shell bmgr backupnow to.wim.content`,
+      uninstall, reinstall, `adb shell bmgr restore to.wim.content` (or set up a
       new phone from backup): feeds and settings come back.
 - [ ] **Pictures:** list rows show thumbnails; the reader shows the picture above the title and
       pictures between paragraphs; a YouTube embed shows a card with a preview that opens YouTube.

@@ -39,7 +39,7 @@ Without Android Studio, point Gradle at the SDK with `sdk.dir=/path/to/sdk` in `
 
 Open the pull request › **Checks** › **CI** › **Artifacts** and install
 `content-<version>-debug.apk`. Debug builds have the application ID
-`be.wimvandonck.content.debug` and the name **Content Dev**, so they install next to the
+`to.wim.content.debug` and the name **Content Dev**, so they install next to the
 released app with their own feeds and settings. Uninstall it when you're done testing.
 
 ## Signing key
@@ -128,7 +128,7 @@ must stay below 100). All other builds are named after `git describe`, e.g. `1.2
 2. In Google Cloud, create a service account, create a JSON key for it, and in the Play Console
    (**Users and permissions**) invite its e-mail with the "Release to testing tracks" permission.
 3. Add the JSON as the repository secret `PLAY_SERVICE_ACCOUNT_JSON`.
-4. Uncomment the job (`PACKAGE_NAME` is already set to `be.wimvandonck.content`). It runs after every published release.
+4. Uncomment the job (`PACKAGE_NAME` is already set to `to.wim.content`). It runs after every published release.
 
 ## Notifications (Firebase)
 
@@ -136,7 +136,7 @@ Android notifications when something is shared (#235) use Firebase Cloud Messagi
 neither in the repository:
 
 1. **The app's Firebase settings**, `google-services.json` from the Firebase console (Project
-   settings › General, with Android apps `be.wimvandonck.content` and `be.wimvandonck.content.debug`),
+   settings › General, with Android apps `to.wim.content` and `to.wim.content.debug`),
    as the repository secret `GOOGLE_SERVICES_JSON` (Settings › Secrets and variables › Actions). CI
    and the release workflow write it to `app/google-services.json` before building; locally, put the
    file there yourself (it is in `.gitignore`). Without it the app builds and works, without
