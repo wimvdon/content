@@ -5,9 +5,8 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
@@ -36,7 +36,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -92,17 +91,15 @@ fun FeedDrawer(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                // The app's logo: the launcher icon's foreground on its white background.
-                Image(
-                    painterResource(R.drawable.ic_launcher_foreground),
-                    contentDescription = null,
-                    modifier =
-                        Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(colorResource(R.color.ic_launcher_background))
-                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape),
-                )
+                // The app's logo on its own, no circle: the launcher icon's foreground, drawn larger than
+                // its box so the C (48 of its 108 units; the rest is the launcher's safe zone) fills it.
+                Box(Modifier.size(LOGO_SIZE), contentAlignment = Alignment.Center) {
+                    Image(
+                        painterResource(R.drawable.ic_launcher_foreground),
+                        contentDescription = null,
+                        modifier = Modifier.requiredSize(LOGO_SIZE * 108f / 48f),
+                    )
+                }
                 Text(
                     text = stringResource(R.string.app_name),
                     style = MaterialTheme.typography.titleLarge,
@@ -287,3 +284,6 @@ private fun UnreadBadge(count: Int) {
         Text(count.toString(), style = MaterialTheme.typography.labelLarge, modifier = Modifier.semantics { contentDescription = spoken })
     }
 }
+
+/** How large the drawer's logo is. */
+private val LOGO_SIZE = 32.dp

@@ -2,6 +2,11 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-31: The drawer's logo without its circle
+
+- At the owner's request, the logo at the top of the drawer (and the web app's sidebar) is the C on
+  its own, 32dp, no longer on a white circle with an edge.
+
 ## 2026-10-31: Any Substack link adds its publication; shorter import steps
 
 - At the owner's request, Add feed takes any Substack link for its publication

@@ -46,7 +46,7 @@ export function Sidebar({
     <nav className="flex h-full flex-col" aria-label={t("navigation")}>
       <div className="flex items-center gap-3 px-4 py-4">
         {/* The app's logo, the same as the Android launcher icon and the favicon. */}
-        <img src="/icon.svg" alt="" className="size-9 rounded-full border bg-white p-1.5" />
+        <img src="/icon.svg" alt="" className="size-8" />
         <span className="text-lg font-semibold">Content</span>
       </div>
 

@@ -358,7 +358,7 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   staying on `surface` while articles pass under it (no grey band behind the tabs and chips, owner's
   choice); articles sit under sticky day headers (Today,
   Yesterday, date) in `primary` Title Small; Mark all as read is an icon-only FAB. The drawer opens with the app's logo (the
-  launcher icon: its feed symbol on white, in a circle with an `outlineVariant` edge) and name; the
+  launcher icon's C, 32dp, on its own: no circle or white tile) and name; the
   web app's sidebar and favicon use the same logo.
 - Settings starts with Account; managing feeds and Saved (OPML, Tag with the feed's folder,
   Instapaper) is one screen with a tab each, from the drawer, not in Settings (#251).
