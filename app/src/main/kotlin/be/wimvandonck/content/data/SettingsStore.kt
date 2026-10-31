@@ -59,6 +59,8 @@ class SettingsStore(
 
     suspend fun setMarkReadOnScroll(enabled: Boolean) = edit { it[MARK_READ_ON_SCROLL] = enabled }
 
+    suspend fun setAlwaysOpenWebsite(enabled: Boolean) = edit { it[ALWAYS_OPEN_WEBSITE] = enabled }
+
     suspend fun setListView(view: ListView) = edit { it[LIST_VIEW] = view.name }
 
     suspend fun setTagWithFolder(enabled: Boolean) = edit { it[TAG_WITH_FOLDER] = enabled }
@@ -134,6 +136,7 @@ class SettingsStore(
             fullArticles = p[FULL_ARTICLES] ?: defaults.fullArticles,
             showImages = p[SHOW_IMAGES] ?: defaults.showImages,
             markReadOnScroll = p[MARK_READ_ON_SCROLL] ?: defaults.markReadOnScroll,
+            alwaysOpenWebsite = p[ALWAYS_OPEN_WEBSITE] ?: defaults.alwaysOpenWebsite,
             listView = enumOr(p[LIST_VIEW], defaults.listView),
             tagWithFolder = p[TAG_WITH_FOLDER] ?: defaults.tagWithFolder,
             imports = ServiceSettings.readImports(p[IMPORTS]),
@@ -161,6 +164,7 @@ class SettingsStore(
         val FULL_ARTICLES = booleanPreferencesKey("full_articles")
         val SHOW_IMAGES = booleanPreferencesKey("show_images")
         val MARK_READ_ON_SCROLL = booleanPreferencesKey("mark_read_on_scroll")
+        val ALWAYS_OPEN_WEBSITE = booleanPreferencesKey("always_open_website")
         val LIST_VIEW = stringPreferencesKey("list_view")
         val TAG_WITH_FOLDER = booleanPreferencesKey("tag_with_folder")
         val IMPORTS = stringPreferencesKey("service_imports")
