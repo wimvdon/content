@@ -329,7 +329,7 @@
         <item quantity="other">%d salvati</item>
     </plurals>
     <string name="welcome_title">Benvenuto in Content</string>
-    <string name="welcome_body">Accedi con la tua email per avere gli stessi feed e articoli salvati su tutti i dispositivi e nell’app web. Sei nuovo? Lo stesso link crea il tuo account. Senza password.</string>
+    <string name="welcome_body">Crea un account o accedi.</string>
     <string name="welcome_without_account">Oppure inizia solo su questo dispositivo:</string>
     <string name="welcome_import">Importa da un altro lettore</string>
     <string name="topic_in_feeds">Feed · %1$s</string>

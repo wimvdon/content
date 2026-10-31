@@ -329,7 +329,7 @@
         <item quantity="other">%d enregistrés</item>
     </plurals>
     <string name="welcome_title">Bienvenue dans Content</string>
-    <string name="welcome_body">Connectez-vous avec votre adresse e-mail pour garder les mêmes flux et articles enregistrés sur tous vos appareils et dans l’application web. Nouveau ? Le même lien crée votre compte. Sans mot de passe.</string>
+    <string name="welcome_body">Créez un compte ou connectez-vous.</string>
     <string name="welcome_without_account">Ou commencez sur cet appareil seulement :</string>
     <string name="welcome_import">Importer depuis un autre lecteur</string>
     <string name="topic_in_feeds">Flux · %1$s</string>

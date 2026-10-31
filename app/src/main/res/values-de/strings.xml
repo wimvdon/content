@@ -319,7 +319,7 @@
         <item quantity="other">%d gespeichert</item>
     </plurals>
     <string name="welcome_title">Willkommen bei Content</string>
-    <string name="welcome_body">Melde dich mit deiner E-Mail-Adresse an, damit deine Feeds und gespeicherten Artikel auf allen Geräten und in der Web-App gleich bleiben. Neu hier? Derselbe Link erstellt dein Konto. Ohne Passwort.</string>
+    <string name="welcome_body">Erstelle ein Konto oder melde dich an.</string>
     <string name="welcome_without_account">Oder fang nur auf diesem Gerät an:</string>
     <string name="welcome_import">Aus einem anderen Reader importieren</string>
     <string name="topic_in_feeds">Feeds · %1$s</string>

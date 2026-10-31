@@ -319,7 +319,7 @@
         <item quantity="other">%d bewaard</item>
     </plurals>
     <string name="welcome_title">Welkom bij Content</string>
-    <string name="welcome_body">Log in met je e-mailadres, dan blijven je feeds en bewaarde artikels dezelfde op al je toestellen en in de webapp. Nieuw? Dezelfde link maakt je account. Geen wachtwoord.</string>
+    <string name="welcome_body">Maak een account aan of meld je aan.</string>
     <string name="welcome_without_account">Of begin enkel op dit toestel:</string>
     <string name="welcome_import">Importeren uit een andere lezer</string>
     <string name="topic_in_feeds">Feeds · %1$s</string>
