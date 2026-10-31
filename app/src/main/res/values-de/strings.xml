@@ -168,7 +168,7 @@
     <string name="list_view_small">Klein</string>
     <string name="list_view_medium">Mittel</string>
     <string name="list_view_large">Groß</string>
-    <string name="manage_title">Feeds und Themen</string>
+    <string name="manage_title">Themen verwalten</string>
     <string name="feeds_opml_title">Von oder zu einem anderen Reader</string>
     <string name="reader_auto_dark_title">Automatisch dunkel</string>
     <string name="reader_auto_dark_summary">Dunkle Seite, wenn die App dunkel ist</string>
@@ -310,7 +310,7 @@
     <string name="account_link_taken">Diese Adresse gehört schon zu einem anderen Content-Konto.</string>
     <string name="account_link_failed">Die Anmeldung hat nicht geklappt. Versuche es noch einmal.</string>
     <string name="action_refresh">Aktualisieren</string>
-    <string name="menu_manage">Feeds und Themen</string>
+    <string name="menu_manage">Themen verwalten</string>
     <string name="share_copy_link">Link kopieren</string>
     <string name="share_more">Mehr</string>
     <string name="instapaper_import_title">Aus Instapaper importieren?</string>
@@ -319,5 +319,25 @@
     <plurals name="topic_saved_count">
         <item quantity="one">%d gespeichert</item>
         <item quantity="other">%d gespeichert</item>
+    </plurals>
+    <string name="welcome_title">Willkommen bei Content</string>
+    <string name="welcome_body">Melde dich mit deiner E-Mail-Adresse an, damit deine Feeds und gespeicherten Artikel auf allen Geräten und in der Web-App gleich bleiben. Neu hier? Derselbe Link erstellt dein Konto. Ohne Passwort.</string>
+    <string name="welcome_without_account">Oder fang nur auf diesem Gerät an:</string>
+    <string name="welcome_import">Aus einem anderen Reader importieren</string>
+    <string name="topic_in_feeds">Feeds · %1$s</string>
+    <string name="topic_in_saved">Gespeichert · %1$s</string>
+    <string name="topic_merge">Zusammenführen mit…</string>
+    <string name="topic_merge_title">%1$s zusammenführen mit…</string>
+    <string name="topic_merge_body">Das gewählte Thema bleibt, mit Namen und Symbol. Es bekommt die Feeds und gespeicherten Artikel dieses Themas.</string>
+    <string name="topic_merge_action">Zusammenführen</string>
+    <string name="topic_remove">Thema entfernen</string>
+    <string name="topic_add_feed">Feed zu %1$s hinzufügen</string>
+    <plurals name="topic_failing_count">
+        <item quantity="one">%d Feed klappt nicht</item>
+        <item quantity="other">%d Feeds klappen nicht</item>
+    </plurals>
+    <plurals name="topic_to_read_count">
+        <item quantity="one">%d zu lesen</item>
+        <item quantity="other">%d zu lesen</item>
     </plurals>
 </resources>

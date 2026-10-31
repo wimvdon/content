@@ -1,11 +1,11 @@
-import { ArrowDown, ArrowUp, ChevronDown, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowUp, ChevronDown, Pencil, Plus, Trash2 } from "lucide-react";
 import { ConfirmRemove } from "./ConfirmRemove";
 import { useEffect, useMemo, useState } from "react";
 import { gravatarUrl } from "@/lib/account";
 import { app, useApp, type ListView, type Theme } from "@/lib/app";
 import { formatRelative, plural, t, type Key } from "@/lib/i18n";
 import { searchIcons } from "@/lib/icons";
-import type { Feed, Folder } from "@/lib/library";
+import { unreadByFeed, type Feed, type Folder } from "@/lib/library";
 import { FeedIcon } from "./FeedIcon";
 import { FolderIcon, SymbolSvg } from "./FolderIcon";
 import { useIcons } from "./useIcons";
@@ -88,120 +88,232 @@ function exportOpml() {
 }
 
 /**
- * Feeds and topics, as on Android: the one place to manage both. Each topic with its icon, how many
- * feeds and saved articles it has, and its feeds; then the feeds without a topic, and OPML. A topic
- * is a feed's group and a saved article's tag at once; Instapaper is in Settings, with the account.
+ * Manage topics, as on Android: the topics with what they hold (feeds and saved articles, and a
+ * feed that fails), in the user's order; then No topic. Clicking one opens its page in the same
+ * dialog: the two ways into reading (Feeds, Saved), its feeds (reorder, edit, add one to it), its
+ * saved articles, and Edit, Merge with… and Remove.
  */
 export function ManageDialog({
   open,
   onOpenChange,
   onAddFeed,
-  onImport,
-}: Props & { onAddFeed: () => void; onImport: () => void }) {
-  const { library } = useApp();
+  topic: initialTopic,
+}: Props & { onAddFeed: (topicId: string | null) => void; topic?: string | null }) {
+  const { library, problems } = useApp();
   const counts = useMemo(() => topicCounts(library), [library]);
+  const unread = useMemo(() => unreadByFeed(library), [library]);
+  // undefined: the list; null: No topic; an id: that topic's page.
+  const [shown, setShown] = useState<string | null | undefined>(initialTopic);
   const [editFeed, setEditFeed] = useState<Feed | null>(null);
   const [editFolder, setEditFolder] = useState<Folder | "new" | null>(null);
-  const groups: [Folder | null, Feed[]][] = [
-    ...library.folders.map((f) => [f, library.feeds.filter((x) => x.folderId === f.id)] as [Folder, Feed[]]),
-    [null, library.feeds.filter((x) => !x.folderId)],
-  ];
+  const [merging, setMerging] = useState<string>("");
+  const [confirmRemove, setConfirmRemove] = useState(false);
+  const loose = library.feeds.filter((f) => !f.folderId || !library.folders.some((x) => x.id === f.folderId));
+  const topic = shown ? library.folders.find((f) => f.id === shown) : undefined;
+  const onPage = shown !== undefined && (shown === null || topic !== undefined);
+  const feeds = onPage ? (topic ? library.feeds.filter((f) => f.folderId === topic.id) : loose) : [];
+  const failing = (list: Feed[]) => list.filter((f) => problems.has(f.url)).length;
+  const detail = (feedsIn: number, saved: number, fails: number) =>
+    [plural("feedsCount", feedsIn), plural("topicSavedCount", saved), ...(fails > 0 ? [plural("topicFailingCount", fails)] : [])].join(" · ");
+  const close = () => onOpenChange(false);
+  const count = topic ? counts.get(topic.id) : undefined;
+  const topicUnread = feeds.reduce((n, f) => n + (unread.get(f.url) ?? 0), 0);
   return (
     <>
       <Dialog
         open={open}
         onOpenChange={onOpenChange}
-        title={t("manageTitle")}
+        title={onPage ? (topic?.title ?? t("noFolder")) : t("manageTitle")}
         closeLabel={t("close")}
         wide
         footer={
-          <>
-            <Button variant="tonal" onClick={() => setEditFolder("new")}>
+          onPage ? (
+            topic ? (
+              <>
+                <Button variant="destructive" className="mr-auto" onClick={() => setConfirmRemove(true)}>
+                  <Trash2 />
+                  {t("topicRemove")}
+                </Button>
+                <Button variant="outline" onClick={() => setEditFolder(topic)}>
+                  <Pencil />
+                  {t("editFolder")}
+                </Button>
+              </>
+            ) : undefined
+          ) : (
+            <Button onClick={() => setEditFolder("new")}>
               <Plus />
               {t("newFolder")}
             </Button>
-            <Button onClick={onAddFeed}>
-              <Plus />
-              {t("addFeed")}
-            </Button>
-          </>
+          )
         }
       >
-        <div className="space-y-4">
-          {groups.map(([folder, feeds], gi) => (
-            <section key={folder?.id ?? "none"} className="rounded-xl bg-muted/60 p-2">
-              <div className="flex items-center gap-2 px-2 py-1">
-                <span className="inline-flex size-8 items-center justify-center rounded-full bg-accent text-accent-foreground">
-                  {folder ? <FolderIcon name={folder.icon} className="size-4" /> : <FolderIcon name="folder-off" className="size-4" />}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <h3 className="truncate font-medium">{folder?.title ?? t("noFolder")}</h3>
-                  {folder ? (
-                    <span className="block truncate text-xs text-muted-foreground">
-                      {plural("feedsCount", counts.get(folder.id)?.feeds ?? 0)} · {plural("topicSavedCount", counts.get(folder.id)?.saved ?? 0)}
+        {onPage ? (
+          <div className="space-y-5">
+            <Button variant="ghost" size="sm" onClick={() => setShown(undefined)}>
+              <ArrowLeft />
+              {t("manageTitle")}
+            </Button>
+            {topic ? (
+              // The two ways into reading: one topic covers both.
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  variant="tonal"
+                  disabled={feeds.length === 0}
+                  onClick={() => {
+                    app.select({ kind: "folder", folderId: topic.id });
+                    close();
+                  }}
+                >
+                  {t("topicInFeeds").replace("{count}", plural("unreadCount", topicUnread))}
+                </Button>
+                <Button
+                  variant="tonal"
+                  disabled={(count?.saved ?? 0) === 0}
+                  onClick={() => {
+                    app.showSaved({ tab: { kind: "toread" }, likedOnly: false, tags: [topic.title] });
+                    close();
+                  }}
+                >
+                  {t("topicInSaved").replace("{count}", plural("topicToReadCount", count?.toRead ?? 0))}
+                </Button>
+              </div>
+            ) : null}
+            <section className="space-y-1">
+              <h3 className="text-sm font-medium text-primary">{t("feeds")}</h3>
+              <ul>
+                {feeds.map((feed, index) => (
+                  <li key={feed.url} className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-muted">
+                    <FeedIcon feed={feed} />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm">{feed.title}</span>
+                      <span className={cn("block truncate text-xs", problems.has(feed.url) ? "text-destructive" : "text-muted-foreground")}>
+                        {problems.has(feed.url) ? t("feedFailing") : feed.url}
+                      </span>
                     </span>
-                  ) : null}
-                </span>
-                {folder ? (
-                  <>
-                    <Button variant="ghost" size="iconSm" disabled={gi === 0} onClick={() => app.moveFolderBy(folder.id, -1)} aria-label={t("moveUp")}>
+                    <Button variant="ghost" size="iconSm" disabled={index === 0} onClick={() => app.moveFeedBy(feed.url, -1)} aria-label={t("moveUp")}>
                       <ArrowUp />
                     </Button>
-                    <Button variant="ghost" size="iconSm" disabled={gi >= library.folders.length - 1} onClick={() => app.moveFolderBy(folder.id, 1)} aria-label={t("moveDown")}>
+                    <Button variant="ghost" size="iconSm" disabled={index === feeds.length - 1} onClick={() => app.moveFeedBy(feed.url, 1)} aria-label={t("moveDown")}>
                       <ArrowDown />
                     </Button>
-                    <Button variant="ghost" size="iconSm" onClick={() => setEditFolder(folder)} aria-label={t("edit")}>
+                    <Button variant="ghost" size="iconSm" onClick={() => setEditFeed(feed)} aria-label={t("edit")}>
                       <Pencil />
                     </Button>
-                  </>
-                ) : null}
-              </div>
-              {feeds.length === 0 ? <p className="px-3 py-2 text-sm text-muted-foreground">{folder ? t("folderEmpty") : t("noFolderEmpty")}</p> : null}
-              <ul>
-                {feeds.map((feed, index) => {
-                  return (
-                    <li key={feed.url} className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-card">
-                      <FeedIcon feed={feed} />
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm">{feed.title}</span>
-                        <span className="block truncate text-xs text-muted-foreground">{feed.url}</span>
-                      </span>
-                      <Button variant="ghost" size="iconSm" disabled={index === 0} onClick={() => app.moveFeedBy(feed.url, -1)} aria-label={t("moveUp")}>
-                        <ArrowUp />
-                      </Button>
-                      <Button variant="ghost" size="iconSm" disabled={index === feeds.length - 1} onClick={() => app.moveFeedBy(feed.url, 1)} aria-label={t("moveDown")}>
-                        <ArrowDown />
-                      </Button>
-                      <Button variant="ghost" size="iconSm" onClick={() => setEditFeed(feed)} aria-label={t("edit")}>
-                        <Pencil />
-                      </Button>
-                    </li>
-                  );
-                })}
+                  </li>
+                ))}
               </ul>
+              <Button variant="ghost" onClick={() => onAddFeed(topic?.id ?? null)}>
+                <Plus />
+                {topic ? t("topicAddFeed").replace("{name}", topic.title) : t("addFeed")}
+              </Button>
             </section>
-          ))}
-          {/* Moving to or from another reader (#251: here, not in Settings). */}
-          <section className="space-y-2 pt-2">
-            <h3 className="text-sm font-medium text-primary">{t("opmlTitle")}</h3>
-            <div className="flex flex-wrap gap-2">
-              <Button variant="outline" onClick={onImport}>
-                {t("importOpml")}
-              </Button>
-              <Button variant="outline" onClick={exportOpml} disabled={library.feeds.length === 0}>
-                {t("exportOpml")}
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground">{t("opmlHint")}</p>
-            {/* How to get the file out of the readers people come from, and Substack, which has no file. */}
-            <ImportGuide title={t("importFeedlyTitle")} steps={[t("importFeedlyStep1"), t("importWebStep")]} note={t("importFeedlyNote")} />
-            <ImportGuide title={t("importInoreaderTitle")} steps={[t("importInoreaderStep1"), t("importInoreaderStep2"), t("importWebStep")]} />
-            <ImportGuide title={t("importSubstackTitle")} steps={[t("substackWebStep1"), t("substackWebStep2")]} />
-          </section>
-        </div>
+            {topic ? (
+              <>
+                <section className="space-y-1">
+                  <h3 className="text-sm font-medium text-primary">{t("saved")}</h3>
+                  <p className="text-sm">
+                    {plural("topicSavedCount", count?.saved ?? 0)} · {plural("topicToReadCount", count?.toRead ?? 0)}
+                  </p>
+                </section>
+                {library.folders.length > 1 ? (
+                  <section className="space-y-2">
+                    <h3 className="text-sm font-medium text-primary">{t("topicMerge")}</h3>
+                    <p className="text-xs text-muted-foreground">{t("topicMergeBody")}</p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Select aria-label={t("topicMerge")} value={merging} onChange={(e) => setMerging(e.currentTarget.value)} className="max-w-xs">
+                        <option value="">…</option>
+                        {library.folders
+                          .filter((f) => f.id !== topic.id)
+                          .map((f) => (
+                            <option key={f.id} value={f.id}>
+                              {f.title}
+                            </option>
+                          ))}
+                      </Select>
+                      <Button
+                        variant="outline"
+                        disabled={!merging}
+                        onClick={() => {
+                          app.mergeTopic(topic.id, merging);
+                          setShown(merging);
+                          setMerging("");
+                        }}
+                      >
+                        {t("topicMergeAction")}
+                      </Button>
+                    </div>
+                  </section>
+                ) : null}
+              </>
+            ) : null}
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {library.folders.length === 0 ? <p className="text-sm text-muted-foreground">{t("foldersExplanation")}</p> : null}
+            <ul className="space-y-1">
+              {library.folders.map((f, i) => {
+                const inTopic = library.feeds.filter((x) => x.folderId === f.id);
+                const fails = failing(inTopic);
+                return (
+                  <li key={f.id} className="flex items-center gap-2 rounded-xl bg-muted/60 p-2">
+                    <button type="button" onClick={() => setShown(f.id)} className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-left">
+                      <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground">
+                        <FolderIcon name={f.icon} className="size-4" />
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block truncate font-medium">{f.title}</span>
+                        <span className={cn("block truncate text-xs", fails > 0 ? "text-destructive" : "text-muted-foreground")}>
+                          {detail(inTopic.length, counts.get(f.id)?.saved ?? 0, fails)}
+                        </span>
+                      </span>
+                    </button>
+                    <Button variant="ghost" size="iconSm" disabled={i === 0} onClick={() => app.moveFolderBy(f.id, -1)} aria-label={t("moveUp")}>
+                      <ArrowUp />
+                    </Button>
+                    <Button variant="ghost" size="iconSm" disabled={i === library.folders.length - 1} onClick={() => app.moveFolderBy(f.id, 1)} aria-label={t("moveDown")}>
+                      <ArrowDown />
+                    </Button>
+                  </li>
+                );
+              })}
+              {loose.length > 0 ? (
+                <li className="flex items-center gap-2 rounded-xl bg-muted/60 p-2">
+                  <button type="button" onClick={() => setShown(null)} className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-left">
+                    <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground">
+                      <FolderIcon name="folder-off" className="size-4" />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate font-medium">{t("noFolder")}</span>
+                      <span className="block truncate text-xs text-muted-foreground">{plural("feedsCount", loose.length)}</span>
+                    </span>
+                  </button>
+                </li>
+              ) : null}
+            </ul>
+          </div>
+        )}
       </Dialog>
       <EditFeedDialog key={`feed:${editFeed?.url ?? ""}`} feed={editFeed} folders={library.folders} onClose={() => setEditFeed(null)} />
-      <FolderDialog key={`folder:${editFolder === "new" ? "new" : (editFolder?.id ?? "")}`} folder={editFolder} onClose={() => setEditFolder(null)} />
+      <FolderDialog
+        key={`folder:${editFolder === "new" ? "new" : (editFolder?.id ?? "")}`}
+        folder={editFolder}
+        onClose={() => setEditFolder(null)}
+        onCreated={(id) => setShown(id)}
+      />
+      {topic ? (
+        <ConfirmRemove
+          open={confirmRemove}
+          title={t("removeFolderTitle")}
+          body={t("removeFolderBody").replace("{name}", topic.title)}
+          onConfirm={() => {
+            app.removeFolder(topic.id);
+            setConfirmRemove(false);
+            setShown(undefined);
+          }}
+          onClose={() => setConfirmRemove(false)}
+        />
+      ) : null}
     </>
   );
 }
@@ -272,7 +384,7 @@ function EditFeedDialog({ feed, folders, onClose }: { feed: Feed | null; folders
   );
 }
 
-function FolderDialog({ folder, onClose }: { folder: Folder | "new" | null; onClose: () => void }) {
+function FolderDialog({ folder, onClose, onCreated }: { folder: Folder | "new" | null; onClose: () => void; onCreated?: (id: string) => void }) {
   const icons = useIcons();
   const [title, setTitle] = useState(folder && folder !== "new" ? folder.title : "");
   const [icon, setIcon] = useState(folder && folder !== "new" ? folder.icon : "folder");
@@ -280,7 +392,7 @@ function FolderDialog({ folder, onClose }: { folder: Folder | "new" | null; onCl
   const [confirming, setConfirming] = useState(false);
   if (!folder) return null;
   const save = () => {
-    if (folder === "new") app.addFolder(title, icon);
+    if (folder === "new") onCreated?.(app.addFolder(title, icon));
     else app.updateFolder(folder.id, title, icon);
     onClose();
   };
@@ -355,8 +467,8 @@ function FolderDialog({ folder, onClose }: { folder: Folder | "new" | null; onCl
 }
 
 /** Settings in the order DESIGN.md gives: the account first, then the app's own, then appearance. */
-export function SettingsDialog({ open, onOpenChange }: Props) {
-  const { settings } = useApp();
+export function SettingsDialog({ open, onOpenChange, onImport }: Props & { onImport: () => void }) {
+  const { settings, library } = useApp();
   return (
     <Dialog open={open} onOpenChange={onOpenChange} title={t("settings")} closeLabel={t("close")} wide>
       <div className="space-y-6">
@@ -387,6 +499,23 @@ export function SettingsDialog({ open, onOpenChange }: Props) {
           <div className="pt-2">
             <ReaderStyleControls preview />
           </div>
+        </section>
+        {/* Moving to or from another reader: data in and out, before Appearance (DESIGN.md's order). */}
+        <section className="space-y-2 pt-2">
+          <h3 className="text-sm font-medium text-primary">{t("opmlTitle")}</h3>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={onImport}>
+              {t("importOpml")}
+            </Button>
+            <Button variant="outline" onClick={exportOpml} disabled={library.feeds.length === 0}>
+              {t("exportOpml")}
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">{t("opmlHint")}</p>
+          {/* How to get the file out of the readers people come from, and Substack, which has no file. */}
+          <ImportGuide title={t("importFeedlyTitle")} steps={[t("importFeedlyStep1"), t("importWebStep")]} note={t("importFeedlyNote")} />
+          <ImportGuide title={t("importInoreaderTitle")} steps={[t("importInoreaderStep1"), t("importInoreaderStep2"), t("importWebStep")]} />
+          <ImportGuide title={t("importSubstackTitle")} steps={[t("substackWebStep1"), t("substackWebStep2")]} />
         </section>
         <section className="space-y-2">
           <h3 className="text-sm font-medium text-primary">{t("appearance")}</h3>
@@ -526,7 +655,7 @@ const syncProblems: Record<string, Key> = {
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /** An email address and a button that emails a link to it; then says to open the email. */
-function EmailLinkForm() {
+export function EmailLinkForm({ id = "account-email" }: { id?: string } = {}) {
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
   const [sentTo, setSentTo] = useState<string | null>(null);
@@ -552,9 +681,9 @@ function EmailLinkForm() {
       }}
     >
       <div className="space-y-1">
-        <Label htmlFor="account-email">{t("accountEmail")}</Label>
+        <Label htmlFor={id}>{t("accountEmail")}</Label>
         <Input
-          id="account-email"
+          id={id}
           type="email"
           autoComplete="email"
           value={email}

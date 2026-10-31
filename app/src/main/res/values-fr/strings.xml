@@ -170,7 +170,7 @@
     <string name="list_view_small">Petit</string>
     <string name="list_view_medium">Moyen</string>
     <string name="list_view_large">Grand</string>
-    <string name="manage_title">Flux et sujets</string>
+    <string name="manage_title">Gérer les sujets</string>
     <string name="feeds_opml_title">Depuis ou vers un autre lecteur</string>
     <string name="reader_auto_dark_title">Sombre automatique</string>
     <string name="reader_auto_dark_summary">Page sombre quand l’app est sombre</string>
@@ -320,7 +320,7 @@
     <string name="account_link_taken">Cette adresse appartient déjà à un autre compte Content.</string>
     <string name="account_link_failed">La connexion n’a pas fonctionné. Réessayez.</string>
     <string name="action_refresh">Actualiser</string>
-    <string name="menu_manage">Flux et sujets</string>
+    <string name="menu_manage">Gérer les sujets</string>
     <string name="share_copy_link">Copier le lien</string>
     <string name="share_more">Plus</string>
     <string name="instapaper_import_title">Importer depuis Instapaper ?</string>
@@ -329,5 +329,25 @@
     <plurals name="topic_saved_count">
         <item quantity="one">%d enregistré</item>
         <item quantity="other">%d enregistrés</item>
+    </plurals>
+    <string name="welcome_title">Bienvenue dans Content</string>
+    <string name="welcome_body">Connectez-vous avec votre adresse e-mail pour garder les mêmes flux et articles enregistrés sur tous vos appareils et dans l’application web. Nouveau ? Le même lien crée votre compte. Sans mot de passe.</string>
+    <string name="welcome_without_account">Ou commencez sur cet appareil seulement :</string>
+    <string name="welcome_import">Importer depuis un autre lecteur</string>
+    <string name="topic_in_feeds">Flux · %1$s</string>
+    <string name="topic_in_saved">Enregistrés · %1$s</string>
+    <string name="topic_merge">Fusionner avec…</string>
+    <string name="topic_merge_title">Fusionner %1$s avec…</string>
+    <string name="topic_merge_body">Le sujet choisi reste, avec son nom et son icône. Il reçoit les flux et articles enregistrés de ce sujet.</string>
+    <string name="topic_merge_action">Fusionner</string>
+    <string name="topic_remove">Supprimer le sujet</string>
+    <string name="topic_add_feed">Ajouter un flux à %1$s</string>
+    <plurals name="topic_failing_count">
+        <item quantity="one">%d flux en échec</item>
+        <item quantity="other">%d flux en échec</item>
+    </plurals>
+    <plurals name="topic_to_read_count">
+        <item quantity="one">%d à lire</item>
+        <item quantity="other">%d à lire</item>
     </plurals>
 </resources>

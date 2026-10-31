@@ -106,6 +106,10 @@ import androidx.compose.ui.unit.dp
 import to.wim.content.R
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.CircularProgressIndicator
+import to.wim.content.ui.settings.EmailLinkFields
+import androidx.compose.material3.TextButton
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material3.IconButton
 import to.wim.content.data.Article
 import to.wim.content.data.Feed
 import to.wim.content.data.Folder
@@ -151,6 +155,8 @@ data class HomeState(
     val toReadCount: Int = 0,
     /** Signed in to a Content account: the inbox's bell shows (#246). */
     val signedIn: Boolean = false,
+    /** The topic being viewed, if any: the search bar then offers Edit topic. */
+    val topicId: String? = null,
     /** How many articles shared with you are unread, for the bell's badge. */
     val inboxUnread: Int = 0,
 )
@@ -178,6 +184,10 @@ class HomeActions(
     val onScrolledPast: (Set<String>) -> Unit,
     val onAddFeed: () -> Unit,
     val onImportOpml: () -> Unit,
+    /** Edit topic in the search bar: the topic's page. */
+    val onEditTopic: (String) -> Unit = {},
+    /** Emails a sign-in link from the welcome screen; gives back whether it was sent (#166). */
+    val onSendLink: (email: String, result: (Boolean) -> Unit) -> Unit = { _, result -> result(false) },
     val onOpenSettings: () -> Unit,
     /** Manage feeds and Saved (#251): the feeds and folders, Saved's folders and tags, OPML and Instapaper. */
     val onOpenManage: () -> Unit,
@@ -271,7 +281,15 @@ fun HomeScreen(
                         HomeSearchBar(
                             onMenu = { scope.launch { drawerState.open() } },
                             onSearch = actions.onOpenSearch,
-                            trailing = { if (state.signedIn) InboxButton(state.inboxUnread, actions.onOpenInbox) },
+                            trailing = {
+                                // With a topic open, its page is one tap away (Manage topics).
+                                state.topicId?.let { id ->
+                                    IconButton(onClick = { actions.onEditTopic(id) }) {
+                                        Icon(painterResource(R.drawable.ic_edit), contentDescription = stringResource(R.string.folder_edit))
+                                    }
+                                }
+                                if (state.signedIn) InboxButton(state.inboxUnread, actions.onOpenInbox)
+                            },
                         )
                         if (reading != null) {
                             val stateLabels =
@@ -399,7 +417,12 @@ fun HomeScreen(
                         label = "home",
                     ) { shown ->
                         when (shown) {
-                            HomeContent.NoFeeds -> NoFeeds(actions.onAddFeed, actions.onImportOpml)
+                            HomeContent.NoFeeds ->
+                                if (state.signedIn) {
+                                    NoFeeds(actions.onAddFeed, actions.onImportOpml)
+                                } else {
+                                    Welcome(actions.onSendLink, actions.onAddFeed, actions.onImportOpml)
+                                }
                             HomeContent.Loading -> ArticleSkeletons()
                             HomeContent.Empty -> AllCaughtUp(state.unreadOnly, state.refreshing, actions.onRefresh) { actions.onUnreadOnlyChange(false) }
                             HomeContent.Articles -> ArticleList(state, actions)
@@ -945,6 +968,37 @@ private fun NoFeeds(
             Text(stringResource(R.string.feeds_add), modifier = Modifier.padding(start = 8.dp))
         }
         OutlinedButton(onClick = onImportOpml) { Text(stringResource(R.string.feeds_import)) }
+    }
+}
+
+/**
+ * The first screen, signed out and without feeds: the Content account first (an emailed link
+ * signs in, or makes the account), as it keeps feeds and Saved on every device and in the web
+ * app; starting on this phone only (Add feed, or importing from another reader) comes second.
+ */
+@Composable
+private fun Welcome(
+    onSendLink: (email: String, result: (Boolean) -> Unit) -> Unit,
+    onAddFeed: () -> Unit,
+    onImportOpml: () -> Unit,
+) {
+    EmptyState(
+        painterResource(R.drawable.ic_rss_feed),
+        stringResource(R.string.welcome_title),
+        body = stringResource(R.string.welcome_body),
+    ) {
+        EmailLinkFields(R.string.account_email_send, onSendLink, Modifier.widthIn(max = 400.dp))
+        Text(
+            stringResource(R.string.welcome_without_account),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 16.dp),
+        )
+        OutlinedButton(onClick = onAddFeed) {
+            Icon(painterResource(R.drawable.ic_add), contentDescription = null)
+            Text(stringResource(R.string.feeds_add), modifier = Modifier.padding(start = 8.dp))
+        }
+        TextButton(onClick = onImportOpml) { Text(stringResource(R.string.welcome_import)) }
     }
 }
 

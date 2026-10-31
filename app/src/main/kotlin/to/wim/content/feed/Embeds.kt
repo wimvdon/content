@@ -148,7 +148,18 @@ object Embeds {
             "</head><body>$content</body></html>"
     }
 
-    /** The address player pages are loaded under: Content's web app. */
+    /**
+     * How a player is loaded (Android): a service's player as the page itself, with Content's web
+     * app as its referrer ([PlayerLoad.Url]); a site's video file in a small page of the reader's own
+     * ([PlayerLoad.Page], from [playerPage]). Null without a player.
+     */
+    fun playerLoad(embed: ArticleBlock.Embed): PlayerLoad? {
+        val player = embed.player ?: return null
+        if (embed.kind != EmbedKind.Video) return PlayerLoad.Url(player)
+        return playerPage(embed)?.let(PlayerLoad::Page)
+    }
+
+    /** The address player pages are loaded under, and the referrer players see: Content's web app. */
     const val PLAYER_ORIGIN = "https://rss-reader-web.wim-d57.workers.dev/"
 
     /** One query parameter of [url], decoded, or null. */
@@ -162,4 +173,15 @@ object Embeds {
             .firstOrNull { it.substringBefore('=') == name }
             ?.substringAfter('=', "")
             ?.let { runCatching { URLDecoder.decode(it, "UTF-8") }.getOrNull() }
+}
+
+/** See [Embeds.playerLoad]. */
+sealed interface PlayerLoad {
+    data class Url(
+        val url: String,
+    ) : PlayerLoad
+
+    data class Page(
+        val html: String,
+    ) : PlayerLoad
 }

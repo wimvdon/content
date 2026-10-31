@@ -50,8 +50,9 @@ import to.wim.content.data.Feed
 import to.wim.content.data.FeedSelection
 import to.wim.content.data.Folder
 import to.wim.content.data.Saved
-import to.wim.content.data.topicIcons
 import to.wim.content.data.SavedFilter
+import to.wim.content.data.SavedTab
+import to.wim.content.data.feedTopics
 import to.wim.content.data.choosesFolder
 
 /**
@@ -108,7 +109,8 @@ fun FeedDrawer(
                 )
             }
 
-            // Feeds section: folders and feeds; a folder's feeds only while you are in it.
+            // Feeds section: its places (All and the topics with feeds, as the chips), and below a topic
+            // its feeds, only while you are in it; then the feeds without a topic.
             SectionHeader(
                 title = stringResource(R.string.feeds_title),
                 open = feedsOpen,
@@ -124,7 +126,7 @@ fun FeedDrawer(
                         selected = selection == FeedSelection.All,
                         onClick = { onSelect(FeedSelection.All) },
                     )
-                    for (folder in folders) {
+                    for (folder in feedTopics(feeds, folders)) {
                         val folderSelection = FeedSelection.InFolder(folder.id)
                         val inFolder = feeds.filter { it.folderId == folder.id }
                         val open = selection?.choosesFolder(folder) == true || inFolder.any { selection == FeedSelection.Single(it.url) }
@@ -151,13 +153,10 @@ fun FeedDrawer(
                 }
             }
 
-            // Saved section: Saved (everything), Liked and the topics, as the chips (#205), each topic with its icon. The
-            // state (To read, Archive, All) is the chip's; picking here keeps it. Counts are what is
-            // still to read, as Feeds counts what is unread.
+            // Saved section: its places, as on the state chip: To read (with what is still to read)
+            // and the Archive (no count: it is not a to-do). Liked and the topics are filters: chips only.
             if (saved != null) {
-                val tagCounts = remember(saved.library) { Saved.toReadTagCounts(saved.library) }
-                val likedToRead = remember(saved.library) { Saved.likedToReadCount(saved.library) }
-                val topicIcons = remember(saved.library) { saved.library.topicIcons() }
+                val shownTab = saved.filter.tab
                 SectionHeader(
                     title = stringResource(R.string.saved_title),
                     open = savedOpen,
@@ -168,38 +167,23 @@ fun FeedDrawer(
                 AnimatedVisibility(visible = savedOpen, enter = expandVertically(), exit = shrinkVertically()) {
                     Column {
                         NavigationDrawerItem(
-                            label = { Text(stringResource(R.string.saved_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                            icon = { Icon(painterResource(R.drawable.ic_bookmarks_outline), contentDescription = null) },
+                            label = { Text(stringResource(R.string.reading_list_to_read), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                            icon = { Icon(painterResource(R.drawable.ic_reading_list), contentDescription = null) },
                             badge = { UnreadBadge(toReadCount) },
-                            selected = inSaved && !saved.filter.likedOnly && saved.filter.tags.isEmpty(),
-                            onClick = { onSavedFilter(saved.filter.copy(likedOnly = false, tags = emptySet())) },
+                            selected = inSaved && shownTab == SavedTab.ToRead,
+                            onClick = { onSavedFilter(saved.filter.copy(tab = SavedTab.ToRead)) },
                         )
-                        // Under Saved, without a heading (the owner's wish): Liked first, as on the chips, then the topics.
                         NavigationDrawerItem(
-                            label = { Text(stringResource(R.string.reading_list_liked), maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                            icon = { Icon(painterResource(R.drawable.ic_favorite), contentDescription = null) },
-                            badge = { UnreadBadge(likedToRead) },
-                            selected = inSaved && saved.filter.likedOnly,
-                            onClick = { onSavedFilter(saved.filter.copy(likedOnly = true, tags = emptySet())) },
+                            label = { Text(stringResource(R.string.reading_list_archive), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                            icon = { Icon(painterResource(R.drawable.ic_inventory), contentDescription = null) },
+                            selected = inSaved && shownTab == SavedTab.Archive,
+                            onClick = { onSavedFilter(saved.filter.copy(tab = SavedTab.Archive)) },
                         )
-                        for ((tag, count) in tagCounts) {
-                            val tagSelected = inSaved && saved.filter.tags.any { it.equals(tag, ignoreCase = true) }
-                            NavigationDrawerItem(
-                                label = { Text(tag, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                                icon = {
-                                    val icon = topicIcons[tag.trim().lowercase()]
-                                    Icon(if (icon != null) rememberFolderIconPainter(icon) else painterResource(R.drawable.ic_label), contentDescription = null)
-                                },
-                                badge = { UnreadBadge(count) },
-                                selected = tagSelected,
-                                onClick = { onSavedFilter(saved.filter.copy(likedOnly = false, tags = setOf(tag))) },
-                            )
-                        }
                     }
                 }
             }
 
-            // At the bottom: Feeds and topics (managing both on one page), and Settings.
+            // At the bottom: Manage topics (topics with their feeds), and Settings.
             HorizontalDivider(Modifier.padding(vertical = 12.dp, horizontal = 16.dp))
             NavigationDrawerItem(
                 label = { Text(stringResource(R.string.menu_manage)) },

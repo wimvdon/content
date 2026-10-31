@@ -31,6 +31,9 @@ export default function App() {
   // Search takes the list's place until it is closed; the article opened from it stays open.
   const [searching, setSearching] = useState(false);
   const [dialog, setDialog] = useState<"add" | "manage" | "settings" | null>(null);
+  // Manage topics opened on a topic's page (Edit topic), and Add feed from a topic's page: into it.
+  const [manageTopic, setManageTopic] = useState<string | null | undefined>(undefined);
+  const [addInto, setAddInto] = useState<string | null | undefined>(undefined);
   const [message, setMessage] = useState<Message | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -182,6 +185,10 @@ export default function App() {
               onImport={() => fileInput.current?.click()}
               onUndo={undoMarkAll}
               onSearch={() => setSearching(true)}
+              onEditTopic={(id) => {
+                setManageTopic(id);
+                setDialog("manage");
+              }}
               onMessage={(text, action) => setMessage({ text, action })}
             />
           )}
@@ -196,14 +203,31 @@ export default function App() {
         )}
       </div>
 
-      <AddFeedDialog key={dialog === "add" ? "open" : "closed"} open={dialog === "add"} onOpenChange={(o) => setDialog(o ? "add" : null)} folderId={selection.kind === "folder" ? selection.folderId : null} />
-      <ManageDialog
-        open={dialog === "manage"}
-        onOpenChange={(o) => setDialog(o ? "manage" : null)}
-        onImport={() => fileInput.current?.click()}
-        onAddFeed={() => setDialog("add")}
+      <AddFeedDialog
+        key={dialog === "add" ? "open" : "closed"}
+        open={dialog === "add"}
+        onOpenChange={(o) => {
+          setDialog(o ? "add" : addInto !== undefined ? "manage" : null);
+          if (!o) setAddInto(undefined);
+        }}
+        folderId={addInto !== undefined ? addInto : selection.kind === "folder" ? selection.folderId : null}
       />
-      <SettingsDialog open={dialog === "settings"} onOpenChange={(o) => setDialog(o ? "settings" : null)} />
+      <ManageDialog
+        // Opened afresh each time, on the topic asked for (or the list).
+        key={dialog === "manage" ? `open:${String(manageTopic)}` : "closed"}
+        open={dialog === "manage"}
+        topic={manageTopic}
+        onOpenChange={(o) => {
+          setDialog(o ? "manage" : null);
+          if (!o) setManageTopic(undefined);
+        }}
+        onAddFeed={(topicId) => {
+          setAddInto(topicId);
+          setManageTopic(topicId);
+          setDialog("add");
+        }}
+      />
+      <SettingsDialog open={dialog === "settings"} onOpenChange={(o) => setDialog(o ? "settings" : null)} onImport={() => fileInput.current?.click()} />
       <InstapaperImportDialog />
       <SaveSheet
         onMessage={(text, openKey) =>

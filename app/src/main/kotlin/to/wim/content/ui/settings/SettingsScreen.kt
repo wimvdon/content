@@ -24,6 +24,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import to.wim.content.R
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.OutlinedButton
+import to.wim.content.ui.feeds.ImportGuides
 import to.wim.content.data.ListView
 import to.wim.content.data.ReaderStyle
 import to.wim.content.data.Settings
@@ -53,6 +58,8 @@ data class SettingsState(
     val notifyShared: Boolean? = null,
     /** Sites signed in to (#180). */
     val siteSignIns: List<String> = emptyList(),
+    /** Whether there are feeds to export. */
+    val hasFeeds: Boolean = false,
     /** Instapaper (#215): a connected service, next to the Content account. Null while unknown. */
     val instapaper: InstapaperSettingsState? = null,
 )
@@ -64,6 +71,8 @@ class SettingsActions(
     val onInstapaperSync: () -> Unit = {},
     val onInstapaperSignOut: () -> Unit = {},
     val onInstapaperImport: (everything: Boolean) -> Unit = {},
+    val onImportOpml: () -> Unit = {},
+    val onExportOpml: () -> Unit = {},
     val onFullArticlesChange: (Boolean) -> Unit,
     val onAlwaysOpenWebsiteChange: (Boolean) -> Unit,
     val onShowImagesChange: (Boolean) -> Unit,
@@ -122,6 +131,21 @@ fun SettingsScreen(
         item(key = "reader") { ReaderSection(state.settings, actions) }
         // Sites you pay for belong to reading: they decide which articles load in full (#180).
         item(key = "sites") { SiteSignInsSection(state.siteSignIns, actions) }
+        // Moving to or from another reader: data in and out, before Appearance (DESIGN.md's order).
+        item(key = "opml") {
+            SettingsSection(title = stringResource(R.string.feeds_opml_title)) {
+                SettingsBlock {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedButton(onClick = actions.onImportOpml, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.feeds_import)) }
+                            OutlinedButton(onClick = actions.onExportOpml, enabled = state.hasFeeds, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.feeds_export)) }
+                        }
+                        Text(stringResource(R.string.feeds_opml_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        ImportGuides()
+                    }
+                }
+            }
+        }
         item(key = "appearance") { AppearanceSection(state.settings, actions) }
         item(key = "footer") {
             SettingsFooter("${stringResource(R.string.app_name)} ${rememberAppVersion()}")

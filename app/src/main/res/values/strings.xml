@@ -170,7 +170,7 @@
     <string name="list_view_small">Small</string>
     <string name="list_view_medium">Medium</string>
     <string name="list_view_large">Large</string>
-    <string name="manage_title">Feeds and topics</string>
+    <string name="manage_title">Manage topics</string>
     <string name="feeds_opml_title">Move to or from another reader</string>
     <string name="reader_auto_dark_title">Auto dark</string>
     <string name="reader_auto_dark_summary">Dark page when the app is dark</string>
@@ -312,7 +312,7 @@
     <string name="account_link_taken">That address already belongs to another Content account.</string>
     <string name="account_link_failed">Signing in didn\'t work. Try again.</string>
     <string name="action_refresh">Refresh</string>
-    <string name="menu_manage">Feeds and topics</string>
+    <string name="menu_manage">Manage topics</string>
     <string name="share_copy_link">Copy link</string>
     <string name="share_more">More</string>
     <string name="instapaper_import_title">Import from Instapaper?</string>
@@ -322,5 +322,25 @@
     <plurals name="topic_saved_count">
         <item quantity="one">%d saved</item>
         <item quantity="other">%d saved</item>
+    </plurals>
+    <string name="welcome_title">Welcome to Content</string>
+    <string name="welcome_body">Sign in with your email to keep your feeds and saved articles the same on every device and in the web app. New here? The same link makes your account. No password.</string>
+    <string name="welcome_without_account">Or start on this device only:</string>
+    <string name="welcome_import">Import from another reader</string>
+    <string name="topic_in_feeds">Feeds · %1$s</string>
+    <string name="topic_in_saved">Saved · %1$s</string>
+    <string name="topic_merge">Merge with…</string>
+    <string name="topic_merge_title">Merge %1$s with…</string>
+    <string name="topic_merge_body">The topic you pick stays, with its name and icon. It gets this topic’s feeds and saved articles.</string>
+    <string name="topic_merge_action">Merge</string>
+    <string name="topic_remove">Remove topic</string>
+    <string name="topic_add_feed">Add a feed to %1$s</string>
+    <plurals name="topic_failing_count">
+        <item quantity="one">%d feed fails</item>
+        <item quantity="other">%d feeds fail</item>
+    </plurals>
+    <plurals name="topic_to_read_count">
+        <item quantity="one">%d to read</item>
+        <item quantity="other">%d to read</item>
     </plurals>
 </resources>

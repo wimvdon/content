@@ -170,7 +170,7 @@
     <string name="list_view_small">Piccola</string>
     <string name="list_view_medium">Media</string>
     <string name="list_view_large">Grande</string>
-    <string name="manage_title">Feed e argomenti</string>
+    <string name="manage_title">Gestisci argomenti</string>
     <string name="feeds_opml_title">Da o verso un altro lettore</string>
     <string name="reader_auto_dark_title">Scuro automatico</string>
     <string name="reader_auto_dark_summary">Pagina scura quando l’app è scura</string>
@@ -320,7 +320,7 @@
     <string name="account_link_taken">Quell’indirizzo appartiene già a un altro account Content.</string>
     <string name="account_link_failed">L’accesso non è riuscito. Riprova.</string>
     <string name="action_refresh">Aggiorna</string>
-    <string name="menu_manage">Feed e argomenti</string>
+    <string name="menu_manage">Gestisci argomenti</string>
     <string name="share_copy_link">Copia link</string>
     <string name="share_more">Altro</string>
     <string name="instapaper_import_title">Importare da Instapaper?</string>
@@ -329,5 +329,25 @@
     <plurals name="topic_saved_count">
         <item quantity="one">%d salvato</item>
         <item quantity="other">%d salvati</item>
+    </plurals>
+    <string name="welcome_title">Benvenuto in Content</string>
+    <string name="welcome_body">Accedi con la tua email per avere gli stessi feed e articoli salvati su tutti i dispositivi e nell’app web. Sei nuovo? Lo stesso link crea il tuo account. Senza password.</string>
+    <string name="welcome_without_account">Oppure inizia solo su questo dispositivo:</string>
+    <string name="welcome_import">Importa da un altro lettore</string>
+    <string name="topic_in_feeds">Feed · %1$s</string>
+    <string name="topic_in_saved">Salvati · %1$s</string>
+    <string name="topic_merge">Unisci con…</string>
+    <string name="topic_merge_title">Unisci %1$s con…</string>
+    <string name="topic_merge_body">L’argomento scelto resta, con nome e icona. Riceve i feed e gli articoli salvati di questo argomento.</string>
+    <string name="topic_merge_action">Unisci</string>
+    <string name="topic_remove">Rimuovi argomento</string>
+    <string name="topic_add_feed">Aggiungi un feed a %1$s</string>
+    <plurals name="topic_failing_count">
+        <item quantity="one">%d feed non funziona</item>
+        <item quantity="other">%d feed non funzionano</item>
+    </plurals>
+    <plurals name="topic_to_read_count">
+        <item quantity="one">%d da leggere</item>
+        <item quantity="other">%d da leggere</item>
     </plurals>
 </resources>

@@ -182,4 +182,15 @@ class ArticleBlocksTest {
         val blocks = ArticleBlocks.split("<p>One</p><img src=\"https://x.com/1x1.gif\" width=\"1\"><p>Two and <img src=\"https://x.com/p.gif\" height=\"1\">three</p><p>   </p>", base)
         assertEquals(listOf(ArticleBlock.Text("One"), ArticleBlock.Text("Two and three")), blocks)
     }
+
+    @Test
+    fun `a service's player loads as the page itself, a site's video in a page of its own`() {
+        // YouTube refuses a player inside a page without an address (error 153): it loads directly.
+        val youTube = ArticleBlocks.embedFor("https://www.youtube.com/embed/abc123XYZ_-", base)!!
+        assertEquals(PlayerLoad.Url("https://www.youtube-nocookie.com/embed/abc123XYZ_-?autoplay=1&rel=0&playsinline=1"), Embeds.playerLoad(youTube))
+        val video = Embeds.playerLoad(Embeds.video("https://example.com/v.mp4", null))
+        assertTrue(video is PlayerLoad.Page && video.html.contains("<video src=\"https://example.com/v.mp4\""))
+        assertNull(Embeds.playerLoad(ArticleBlock.Embed(EmbedKind.X, "https://x.com/i/status/1", null)))
+        assertEquals("https://rss-reader-web.wim-d57.workers.dev/", Embeds.PLAYER_ORIGIN)
+    }
 }

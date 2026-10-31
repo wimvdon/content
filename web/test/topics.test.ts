@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Item } from "../src/lib/items";
 import { emptyLibrary, feedFoldersToTags, newFeed, type Library } from "../src/lib/library";
-import { addTopic, inTopicOrder, removeTopic, renameTopic, tagWithFeedTopic, topicCounts, topicIdFor, topicNamed, topicNames, topicsForTags } from "../src/lib/topics";
+import { addTopic, inTopicOrder, mergeTopic, topicBeingViewed, removeTopic, renameTopic, tagWithFeedTopic, topicCounts, topicIdFor, topicNamed, topicNames, topicsForTags } from "../src/lib/topics";
 
 const saved = (key: string, ...tags: string[]): Item => ({
   key,
@@ -94,9 +94,9 @@ describe("topics", () => {
   it("counts feeds and saved articles per topic, and orders names like the topics", () => {
     const settled = topicsForTags(library);
     expect([...topicCounts(settled)]).toEqual([
-      ["f1", { feeds: 1, saved: 1 }],
-      ["f2", { feeds: 1, saved: 1 }],
-      ["topic:recipes", { feeds: 0, saved: 2 }],
+      ["f1", { feeds: 1, saved: 1, toRead: 1 }],
+      ["f2", { feeds: 1, saved: 1, toRead: 1 }],
+      ["topic:recipes", { feeds: 0, saved: 2, toRead: 2 }],
     ]);
     expect(inTopicOrder(settled, ["Zoo", "recipes", "News", "tech"])).toEqual(["tech", "News", "recipes", "Zoo"]);
     expect(topicNames(settled)).toEqual(["Tech", "News", "Recipes"]);
@@ -108,5 +108,24 @@ describe("topics", () => {
     expect(item(tagWithFeedTopic(lib, "a.example/post"), "a.example/post").tags).toEqual(["Tech"]);
     // A link that isn't a feed article gets nothing.
     expect(tagWithFeedTopic(lib, "x.example/2")).toBe(lib);
+  });
+
+  it("merges a topic into the one picked, which keeps its name and icon", () => {
+    const merged = mergeTopic(topicsForTags(library), "f1", "f2");
+    expect(merged.folders.map((f) => f.id)).toEqual(["f2", "topic:recipes"]);
+    expect(feed(merged, "https://a/feed").folderId).toBe("f2");
+    expect(item(merged, "x.example/1").tags).toEqual(["News", "Recipes"]);
+    const settled = topicsForTags(library);
+    expect(mergeTopic(settled, "f1", "f1")).toBe(settled);
+  });
+
+  it("knows the topic being viewed, for Edit topic", () => {
+    const settled = topicsForTags(library);
+    expect(topicBeingViewed(settled, { kind: "folder", folderId: "f1" }, undefined)?.id).toBe("f1");
+    expect(topicBeingViewed(settled, { kind: "feed", feedUrl: "https://a/feed" }, undefined)?.id).toBe("f1");
+    expect(topicBeingViewed(settled, { kind: "tag", tag: "news" }, undefined)?.id).toBe("f2");
+    expect(topicBeingViewed(settled, { kind: "all" }, undefined)).toBeUndefined();
+    expect(topicBeingViewed(settled, { kind: "saved" }, "recipes")?.id).toBe("topic:recipes");
+    expect(topicBeingViewed(settled, { kind: "saved" }, undefined)).toBeUndefined();
   });
 });
