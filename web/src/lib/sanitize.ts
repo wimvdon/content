@@ -1,10 +1,11 @@
 import DOMPurify from "dompurify";
-import { embedFor, videoEmbed, type Embed, type EmbedKind } from "./embeds";
+import { EMBED_SERVICES, embedFor, videoEmbed, type Embed } from "./embeds";
 import { t, type Key } from "./i18n";
 
 /**
  * Article HTML made safe to show: no scripts, styles, forms or frames; video players and other
- * embeds become a card that opens them in a new tab (nothing plays inside the page); links open
+ * embeds become a card (clicking one with a player loads it in its place, see `playEmbed`; the
+ * others open in a new tab); links open
  * in a new tab without telling the site where they came from; pictures load lazily and only over
  * https. With `showImages` off (Settings), pictures and embed previews are left out.
  */
@@ -120,9 +121,10 @@ function separateParagraphs(root: DocumentFragment) {
   }
 }
 
-const LABELS: Record<EmbedKind, Key> = { youtube: "embedYoutube", vimeo: "embedVimeo", video: "embedVideo", other: "embedOther" };
-
-/** Puts an embed card (preview picture and label) where the player was, or removes it. */
+/**
+ * Puts an embed card (preview picture and label) where the player was, or removes it. A card with
+ * a player carries it in `data-player` (with its size and service), for `playEmbed`.
+ */
 function replaceWithCard(element: Element, embed: Embed | null) {
   if (!embed) {
     element.remove();
@@ -132,6 +134,15 @@ function replaceWithCard(element: Element, embed: Embed | null) {
   const card = doc.createElement("a");
   card.className = "embed";
   card.setAttribute("href", embed.url);
+  const service = EMBED_SERVICES[embed.kind];
+  if (embed.player) {
+    card.setAttribute("data-player", embed.player);
+    card.setAttribute("data-kind", embed.kind);
+    if (service) card.setAttribute("data-service", service);
+    const size = embed.size;
+    if (size?.height) card.setAttribute("data-height", String(size.height));
+    else if (size) card.setAttribute("data-aspect", String(size.aspect));
+  }
   if (embed.thumbnailUrl) {
     const img = doc.createElement("img");
     img.setAttribute("src", embed.thumbnailUrl);
@@ -139,8 +150,15 @@ function replaceWithCard(element: Element, embed: Embed | null) {
     card.appendChild(img);
   }
   const label = doc.createElement("span");
-  label.className = embed.kind === "other" ? "embed-label" : "embed-label embed-play";
-  label.textContent = t(LABELS[embed.kind]);
+  label.className = embed.player ? "embed-label embed-play" : "embed-label";
+  const key: Key = embed.kind === "video" ? "embedVideo" : "embedOther";
+  label.textContent = service ?? t(key);
+  if (embed.player) {
+    const hint = doc.createElement("span");
+    hint.className = "embed-hint";
+    hint.textContent = t("embedClickToPlay");
+    label.appendChild(hint);
+  }
   card.appendChild(label);
   element.replaceWith(card);
 }

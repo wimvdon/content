@@ -129,8 +129,8 @@
     <string name="reader_full_articles_summary">Quand un flux ne contient qu\'un résumé, récupérer l\'article entier sur le site</string>
     <string name="reader_show_images_title">Afficher les images</string>
     <string name="reader_show_images_summary">Dans les articles et la liste</string>
-    <string name="embed_youtube">Regarder sur YouTube</string>
-    <string name="embed_vimeo">Regarder sur Vimeo</string>
+    <string name="embed_tap_to_play">Touchez pour lire</string>
+    <string name="embed_open_in">Ouvrir dans %1$s</string>
     <string name="embed_video">Lire la vidéo</string>
     <string name="embed_other">Ouvrir le contenu intégré</string>
     <string name="share_target_missing_short">%1$s n\'est pas installé</string>

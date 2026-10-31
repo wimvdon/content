@@ -129,8 +129,8 @@
     <string name="reader_full_articles_summary">When a feed only has a summary, get the whole article from the website</string>
     <string name="reader_show_images_title">Show images</string>
     <string name="reader_show_images_summary">In articles and the list</string>
-    <string name="embed_youtube">Watch on YouTube</string>
-    <string name="embed_vimeo">Watch on Vimeo</string>
+    <string name="embed_tap_to_play">Tap to play</string>
+    <string name="embed_open_in">Open in %1$s</string>
     <string name="embed_video">Play video</string>
     <string name="embed_other">Open embedded content</string>
     <string name="share_target_missing_short">%1$s isn\'t installed</string>
