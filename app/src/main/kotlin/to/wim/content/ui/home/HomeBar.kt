@@ -106,7 +106,7 @@ fun HomeSearchBar(
 
 /**
  * The state chip at the start of the chip row (#205): what of the place is shown, Unread or All in
- * Feeds, To read, Archive or All in Saved. A menu picks another; it is lit while it leaves things out.
+ * Feeds, To read or Archive in Saved. A menu picks another; it is lit while it leaves things out.
  */
 @Composable
 fun StateChip(

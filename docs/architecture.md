@@ -111,7 +111,7 @@ that must all match, the type read from the link), folders and their counts, chi
 save sheet, filing, removing, renaming and removing folders, and `foldersToTags` (#187: a folder
 becomes a tag when the library is read or a row syncs in). `data/ReadingLists.kt` gives
 reading times and an item as a list/reader `Article` (with the feed article's text when the library
-still has it). `ui/home/SavedContent.kt` shows it: To read, All and Archive with the feed list's
+still has it). `ui/home/SavedContent.kt` shows it: To read and Archive with the feed list's
 `ArticleRow`, a folder as notes (`NoteCard`, after Noter) in a staggered grid; `ui/home/FolderTabs.kt`
 (`SavedTabRow`) its old tabs, `HomeBar.kt` the chip row; `ui/reader/ItemSheets.kt`
 Save and share (#256), and `ReaderScreen` its bar (`SavedBar.kt`: the folder, which opens Save and

@@ -152,7 +152,6 @@
     <string name="action_open">Abrir</string>
     <string name="action_undo">Deshacer</string>
     <string name="folders_explanation">Agrupa los feeds por temas para leerlos juntos. Lo que guardas también lleva temas.</string>
-    <string name="folder_all">Todos</string>
     <string name="filter_unread">Sin leer</string>
     <string name="filter_all">Todos</string>
     <string name="folder_new">Nuevo tema</string>

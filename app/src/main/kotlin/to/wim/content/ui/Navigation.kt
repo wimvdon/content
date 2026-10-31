@@ -1403,7 +1403,7 @@ private val SavedFilterSaver =
             SavedFilter(
                 tab =
                     when {
-                        tab == "all" -> SavedTab.All
+                        // All was dropped from Saved (#298): a state kept from before opens To read.
                         tab == "archive" -> SavedTab.Archive
                         tab.startsWith("folder:") -> SavedTab.Folder(tab.removePrefix("folder:"))
                         else -> SavedTab.ToRead

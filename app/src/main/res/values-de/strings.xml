@@ -150,7 +150,6 @@
     <string name="action_open">Öffnen</string>
     <string name="action_undo">Rückgängig</string>
     <string name="folders_explanation">Ordne Feeds Themen zu, um sie zusammen zu lesen. Was du speicherst, bekommt auch Themen.</string>
-    <string name="folder_all">Alle</string>
     <string name="filter_unread">Ungelesen</string>
     <string name="filter_all">Alle</string>
     <string name="folder_new">Neues Thema</string>

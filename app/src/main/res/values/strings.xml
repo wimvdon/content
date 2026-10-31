@@ -152,7 +152,6 @@
     <string name="action_open">Open</string>
     <string name="action_undo">Undo</string>
     <string name="folders_explanation">Put feeds in topics to read them together. What you save gets topics too.</string>
-    <string name="folder_all">All</string>
     <string name="filter_unread">Unread</string>
     <string name="filter_all">All</string>
     <string name="folder_new">New topic</string>

@@ -112,7 +112,6 @@ import to.wim.content.data.Folder
 import to.wim.content.data.Item
 import to.wim.content.data.Saved
 import to.wim.content.data.SavedFilter
-import to.wim.content.data.SavedTab
 import to.wim.content.data.FeedChips
 import to.wim.content.data.FeedSelection
 import to.wim.content.data.ScrollRead
@@ -266,7 +265,6 @@ fun HomeScreen(
                                 listOf(
                                     stringResource(R.string.reading_list_to_read),
                                     stringResource(R.string.reading_list_archive),
-                                    stringResource(R.string.filter_all),
                                 )
                             TagChips(
                                 tags = reading.tags,
@@ -278,8 +276,9 @@ fun HomeScreen(
                                     StateChip(
                                         options = stateLabels,
                                         selected = Saved.states.indexOf(reading.filter.tab).coerceAtLeast(0),
-                                        onSelect = { i -> actions.onSavedFilter(reading.filter.copy(tab = Saved.states[i])) },
-                                        filtering = reading.filter.tab != SavedTab.All,
+                                        // Saved's two states, as in its chip (All was dropped, #298).
+                                        onSelect = { i -> Saved.states.getOrNull(i)?.let { actions.onSavedFilter(reading.filter.copy(tab = it)) } },
+                                        filtering = true,
                                     )
                                 },
                                 // Liked is a group like a tag (#206): one at a time, before the tags; only when

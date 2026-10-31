@@ -152,7 +152,6 @@
     <string name="action_open">Ouvrir</string>
     <string name="action_undo">Annuler</string>
     <string name="folders_explanation">Classez vos flux par sujet pour les lire ensemble. Ce que vous enregistrez reçoit aussi des sujets.</string>
-    <string name="folder_all">Tous</string>
     <string name="filter_unread">Non lus</string>
     <string name="filter_all">Tous</string>
     <string name="folder_new">Nouveau sujet</string>

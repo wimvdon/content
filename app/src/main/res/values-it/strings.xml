@@ -152,7 +152,6 @@
     <string name="action_open">Apri</string>
     <string name="action_undo">Annulla</string>
     <string name="folders_explanation">Raggruppa i feed per argomento per leggerli insieme. Anche ciò che salvi ha argomenti.</string>
-    <string name="folder_all">Tutti</string>
     <string name="filter_unread">Non letti</string>
     <string name="filter_all">Tutti</string>
     <string name="folder_new">Nuovo argomento</string>
