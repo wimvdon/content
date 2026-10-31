@@ -125,6 +125,8 @@
     <string name="reader_show_feed_text">Afficher le texte du flux</string>
     <string name="reader_loading_full">Chargement de l\'article complet…</string>
     <string name="reader_full_failed">Impossible de charger l\'article complet. Le texte du flux est affiché.</string>
+    <string name="reader_always_website_title">Toujours ouvrir le site</string>
+    <string name="reader_always_website_summary">Les articles des flux s\'ouvrent sur leur site plutôt que dans le lecteur. Les articles enregistrés s\'ouvrent toujours dans le lecteur.</string>
     <string name="reader_full_articles_title">Charger les articles complets</string>
     <string name="reader_full_articles_summary">Quand un flux ne contient qu\'un résumé, récupérer l\'article entier sur le site</string>
     <string name="reader_show_images_title">Afficher les images</string>

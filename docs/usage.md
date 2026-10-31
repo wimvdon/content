@@ -304,7 +304,7 @@ a web link says "No link to save".
 - **Account:** sign in with an emailed link to sync; signed in, your address, **Sync now**,
   **Sign out**, **Delete synced data** and **Add an email address** (see Sync between devices).
 - **Article list:** View (Small, Medium, Large) and **Mark as read on scroll**.
-- **Reader:** **Load full articles**, **Show images**, and the same text settings as **Aa**, with a preview in the page colour you chose.
+- **Reader:** **Always open the website** (Android only, off by default: tapping a feed article opens its website in the browser tab over Content, with its Save button, and marks it read; saved articles still open in the reader, which keeps your place, highlights and notes), **Load full articles**, **Show images**, and the same text settings as **Aa**, with a preview in the page colour you chose.
 - **Appearance:** Theme (System, Light, Dark) and Dynamic color (wallpaper colours instead of
   the app's blue).
 

@@ -125,6 +125,8 @@
     <string name="reader_show_feed_text">Mostrar el texto del feed</string>
     <string name="reader_loading_full">Cargando el artículo completo…</string>
     <string name="reader_full_failed">No se pudo cargar el artículo completo. Se muestra el texto del feed.</string>
+    <string name="reader_always_website_title">Abrir siempre el sitio web</string>
+    <string name="reader_always_website_summary">Los artículos de los feeds se abren en su sitio web en lugar de en el lector. Los guardados siguen abriéndose en el lector.</string>
     <string name="reader_full_articles_title">Cargar artículos completos</string>
     <string name="reader_full_articles_summary">Si un feed solo tiene un resumen, traer el artículo entero del sitio web</string>
     <string name="reader_show_images_title">Mostrar imágenes</string>

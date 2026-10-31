@@ -125,6 +125,8 @@
     <string name="reader_show_feed_text">Show feed text</string>
     <string name="reader_loading_full">Loading the full article…</string>
     <string name="reader_full_failed">Couldn’t load the full article. Showing the feed’s text.</string>
+    <string name="reader_always_website_title">Always open the website</string>
+    <string name="reader_always_website_summary">Feed articles open on their website instead of in the reader. Saved articles still open in the reader.</string>
     <string name="reader_full_articles_title">Load full articles</string>
     <string name="reader_full_articles_summary">When a feed only has a summary, get the whole article from the website</string>
     <string name="reader_show_images_title">Show images</string>

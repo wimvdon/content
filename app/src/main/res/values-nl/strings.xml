@@ -123,6 +123,8 @@
     <string name="reader_show_feed_text">Tekst uit feed tonen</string>
     <string name="reader_loading_full">Volledig artikel laden…</string>
     <string name="reader_full_failed">Het volledige artikel kon niet geladen worden. Je ziet de tekst uit de feed.</string>
+    <string name="reader_always_website_title">Altijd de website openen</string>
+    <string name="reader_always_website_summary">Artikels uit je feeds openen op hun website in plaats van in de lezer. Bewaarde artikels openen nog in de lezer.</string>
     <string name="reader_full_articles_title">Volledige artikels laden</string>
     <string name="reader_full_articles_summary">Als een feed alleen een samenvatting heeft, het hele artikel van de website halen</string>
     <string name="reader_show_images_title">Afbeeldingen tonen</string>
