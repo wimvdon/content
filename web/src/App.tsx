@@ -185,10 +185,6 @@ export default function App() {
               onImport={() => fileInput.current?.click()}
               onUndo={undoMarkAll}
               onSearch={() => setSearching(true)}
-              onEditTopic={(id) => {
-                setManageTopic(id);
-                setDialog("manage");
-              }}
               onMessage={(text, action) => setMessage({ text, action })}
             />
           )}

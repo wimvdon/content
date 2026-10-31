@@ -64,6 +64,8 @@ fun EmbedPlayer(
                     settings.javaScriptEnabled = true
                     settings.domStorageEnabled = true
                     settings.mediaPlaybackRequiresUserGesture = false
+                    // The player's own text size: the phone's larger font size would cram its fixed height.
+                    settings.textZoom = 100
                     setBackgroundColor(android.graphics.Color.BLACK)
                     // Spotify and others keep their session in a cookie of their own.
                     CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)

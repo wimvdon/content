@@ -2,6 +2,21 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-31: Topic pages only manage; chips only for what has something
+
+- At the owner's request: a topic's page no longer leads into reading (its Feeds and Saved buttons
+  and the link to its saved articles are gone): Back from there goes to Manage topics, not to where
+  you read, so it read as navigation that wasn't. It shows what the topic holds, as text.
+- The pen in the search bar (Edit topic) is gone: Manage topics is in ☰.
+- A topic chip, and Saved's Liked chip, show only when they have something in the state shown
+  (with Unread, topics with unread articles; in the Archive, topics with archived ones). The chosen
+  one stays, so a chip never disappears under your finger. ☰ still lists every topic with feeds: it
+  is the map of places, not a filter.
+- Manage topics has two buttons: Add feed (the FAB) and New topic above it, quieter. Material 3's
+  FAB menu would be the component, but it isn't in the stable library the app uses (1.4.0).
+- Spotify always gets its full player (352 high, with the cover); the compact one (152) was cramped
+  on a phone, the more so with a large font size, which the player view no longer applies.
+
 ## 2026-10-31: Places in ☰, a page per topic, the account first, players loaded directly
 
 - **☰ is the map of every place** (the owner's rule): Feeds (Feed, the topics with feeds and their

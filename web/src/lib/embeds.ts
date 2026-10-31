@@ -91,8 +91,8 @@ export function embedOf(url: string): Embed {
   m = SPOTIFY.exec(url);
   if (m) {
     const [, type, id] = m;
-    const short = type === "track" || type === "episode";
-    return { kind: "spotify", url: `https://open.spotify.com/${type}/${id}`, thumbnailUrl: null, player: `https://open.spotify.com/embed/${type}/${id}`, size: fixed(short ? 152 : 352) };
+    // Always Spotify's full player, with its cover: the compact one (152 high) is cramped.
+    return { kind: "spotify", url: `https://open.spotify.com/${type}/${id}`, thumbnailUrl: null, player: `https://open.spotify.com/embed/${type}/${id}`, size: fixed(352) };
   }
   if (url.startsWith("https://w.soundcloud.com/player/")) {
     const track = query(url, "url");

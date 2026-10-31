@@ -200,7 +200,7 @@ describe("sanitize", () => {
     const frame = document.querySelector<HTMLIFrameElement>(".embed-player iframe")!;
     expect(frame.getAttribute("src")).toBe("https://open.spotify.com/embed/track/abc");
     expect(frame.getAttribute("sandbox")).not.toContain("allow-top-navigation");
-    expect(frame.style.height).toBe("152px");
+    expect(frame.style.height).toBe("352px");
     const open = document.querySelector<HTMLAnchorElement>(".embed-open")!;
     expect(open.getAttribute("href")).toBe("https://open.spotify.com/track/abc");
     expect(open.textContent).toBe("Open in Spotify");
@@ -288,7 +288,7 @@ describe("embeds", () => {
   it("knows the major players, as on Android", () => {
     const base = "https://a.example/";
     const track = embedFor("//open.spotify.com/embed/track/4uLU6hMCjMI75M1A2tKUQC?utm_source=generator", base)!;
-    expect([track.kind, track.url, track.player, track.size]).toEqual(["spotify", "https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC", "https://open.spotify.com/embed/track/4uLU6hMCjMI75M1A2tKUQC", { aspect: 16 / 9, height: 152 }]);
+    expect([track.kind, track.url, track.player, track.size]).toEqual(["spotify", "https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC", "https://open.spotify.com/embed/track/4uLU6hMCjMI75M1A2tKUQC", { aspect: 16 / 9, height: 352 }]);
     expect(embedFor("https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM5M", base)?.size?.height).toBe(352);
     expect(embedFor("https://open.spotify.com/embed-podcast/episode/abc", base)?.url).toBe("https://open.spotify.com/episode/abc");
     const cloud = embedFor("https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/artist/song&color=%23ff5500", base)!;

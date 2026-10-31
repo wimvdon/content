@@ -239,10 +239,12 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   drawer and the sheets follow. Manage topics (☰) is a list and a page per
   topic. The list: a large top app bar over topic rows (`surfaceContainerHigh`, the topic's icon on
   a `secondaryContainer` circle, "4 feeds · 12 saved" under the name, "1 feed fails" in the error
-  colour), a drag handle at the end, No topic last, and an extended FAB, New topic. A topic's page:
-  a large top app bar with its icon and name, the pen and ⋮ (Merge with…, Remove topic in the error
-  colour); two tonal buttons into reading (Feeds · 23 unread, Saved · 5 to read); its feeds as
-  `ListItem`s with a drag handle, then Add a feed to it; its saved articles as one row. Settings sections:
+  colour), a drag handle at the end, No topic last, and two extended FABs: Add feed (the FAB) and
+  above it New topic (`secondaryContainer`, lowered elevation; Material's FAB menu isn't in the
+  stable library yet). A topic's page is for managing only, no ways into reading: a large top app
+  bar with its icon and name, the pen and ⋮ (Merge with…, Remove topic in the error colour); its
+  feeds as `ListItem`s with a drag handle, then Add a feed to it; how many saved articles it has, as
+  text. Settings sections:
   Account (sign in with an emailed link; signed in, who, the last sync or what went wrong, Sync now,
   Sign out and Delete synced data in the error colour, which asks first), Sites you're signed in to,
   Article list, Reader, Appearance, footer (no Save and Share button settings since #256).
@@ -268,8 +270,8 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   one row of chips under the search bar says which group and which state. The row starts with the
   **state chip**, a filter chip with a drop-down arrow and a menu of radio items (Feeds: Unread or
   All; Saved: To read, Archive or All), lit while it leaves things out. A divider, then the groups,
-  one at a time: the topics in Feeds, the topics in Saved (every one in use, in the topics' order,
-  whichever state), with Liked (heart) before them (#206). Group chips have no check mark and chosen
+  one at a time: the topics in Feeds, the topics in Saved, in the topics' order, each only when it
+  has something in the state shown (the chosen one stays), with Liked (heart) before them (#206). Group chips have no check mark and chosen
   ones keep their weight, so a chip never changes width and the row never moves (#208). An X at
   the end clears the group. The ☰ drawer is the map of every place: Feeds (Feed,
   the topics with feeds and, under the one you are in, its feeds, then the feeds without a topic)

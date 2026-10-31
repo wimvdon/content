@@ -56,21 +56,17 @@ web app.
 **One place to manage them: ☰ › Manage topics.** It lists every topic with its icon and what it
 holds: "4 feeds · 12 saved", and "1 feed fails" in red when one can't be downloaded. Drag the grip
 (⋮⋮) to reorder: this order is the one everything uses (the chips, the ☰ menu, the save sheet).
-**New topic** (the button at the bottom) makes one: a name and an icon from the whole Material
+Two buttons at the bottom: **Add feed** (it lands under No topic) and, above it, **New topic**, which makes one: a name and an icon from the whole Material
 Symbols set (type in English, such as *news*, *car* or *food*). At the end, **No topic** holds the
-feeds without one. Tap a topic for **its page**:
+feeds without one. Tap a topic for **its page**, which is for managing it (reading is in Feeds
+and Saved):
 
-- At the top, the two ways into reading: **Feeds · 23 unread** (its articles in Feeds) and
-  **Saved · 5 to read** (its saved articles in Saved).
 - **Feeds:** its feeds, with why one fails; drag to reorder; tap one to rename it, give it another
   topic or remove it. **Add a feed to Tech** adds one straight into this topic.
-- **Saved:** how many saved articles have the topic, and how many are still to read; tap for them
-  in Saved.
+- **Saved:** how many saved articles have the topic, and how many are still to read.
 - The pen changes its name and icon. ⋮ has **Merge with…** (pick the topic that stays: it keeps its
   name and icon and gets this one's feeds and saved articles) and **Remove topic** (its feeds and
   saved articles stay, without it). Both say so first.
-- Reading a topic (its chip, or picked in ☰), the search bar shows a pen: **Edit topic** opens its
-  page.
 
 **Feeds:** the chips under the search bar list the topics that have feeds, in your order; the ☰
 menu lists them too, with the feeds without a topic after them. A topic shows its feeds in ☰ while
@@ -119,7 +115,9 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
 - Under the search bar, one row of chips. The first chip says **what you see**: in Feeds **Unread**
   or **All**, in Saved **To read**, **Archive** or **All**; tap it to pick another. After it come
   your **topics** (Feeds), or **Liked** and your **topics** (Saved), in your order: tap one to show only that, tap it again or the
-  **X** to show everything again. Changing the first chip keeps the topic you picked.
+  **X** to show everything again. Changing the first chip keeps the topic you picked. A topic (or
+  Liked) with nothing in the state shown has no chip: with Unread, only topics with unread articles;
+  in the Archive, only topics with archived articles. The one you picked stays.
 - **☰** opens the drawer (on the web, a wide window shows it at the left all the time, without ☰).
   It is the map of every **place**: **Feeds** (**Feed**, your topics with feeds, each with its unread
   count, a topic with its feeds under it while you are in it, then the feeds without a topic: the

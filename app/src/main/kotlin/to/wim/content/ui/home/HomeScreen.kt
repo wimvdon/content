@@ -109,7 +109,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import to.wim.content.ui.settings.EmailLinkFields
 import androidx.compose.material3.TextButton
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material3.IconButton
 import to.wim.content.data.Article
 import to.wim.content.data.Feed
 import to.wim.content.data.Folder
@@ -155,8 +154,8 @@ data class HomeState(
     val toReadCount: Int = 0,
     /** Signed in to a Content account: the inbox's bell shows (#246). */
     val signedIn: Boolean = false,
-    /** The topic being viewed, if any: the search bar then offers Edit topic. */
-    val topicId: String? = null,
+    /** Feeds' topic chips: the topics with articles in the state shown, and the one chosen (feedChips). */
+    val topicChips: List<String>? = null,
     /** How many articles shared with you are unread, for the bell's badge. */
     val inboxUnread: Int = 0,
 )
@@ -184,8 +183,6 @@ class HomeActions(
     val onScrolledPast: (Set<String>) -> Unit,
     val onAddFeed: () -> Unit,
     val onImportOpml: () -> Unit,
-    /** Edit topic in the search bar: the topic's page. */
-    val onEditTopic: (String) -> Unit = {},
     /** Emails a sign-in link from the welcome screen; gives back whether it was sent (#166). */
     val onSendLink: (email: String, result: (Boolean) -> Unit) -> Unit = { _, result -> result(false) },
     val onOpenSettings: () -> Unit,
@@ -221,7 +218,7 @@ fun HomeScreen(
     val reading = state.saved?.takeIf { state.section == HomeSection.Saved }
     val inFeeds = reading == null
     val unreadHere = state.unreadCounts[state.selection] ?: 0
-    val feedTags = remember(state.feeds, state.folders) { feedTagsInOrder(state.feeds, state.folders) }
+    val feedTags = state.topicChips ?: remember(state.feeds, state.folders) { feedTagsInOrder(state.feeds, state.folders) }
     val wide = isWideWindow()
     // Feed and Saved in the navigation bar (#189); Search opens from the search bar.
     val tab = if (state.section == HomeSection.Saved) MainTab.Saved else MainTab.Feeds
@@ -281,15 +278,7 @@ fun HomeScreen(
                         HomeSearchBar(
                             onMenu = { scope.launch { drawerState.open() } },
                             onSearch = actions.onOpenSearch,
-                            trailing = {
-                                // With a topic open, its page is one tap away (Manage topics).
-                                state.topicId?.let { id ->
-                                    IconButton(onClick = { actions.onEditTopic(id) }) {
-                                        Icon(painterResource(R.drawable.ic_edit), contentDescription = stringResource(R.string.folder_edit))
-                                    }
-                                }
-                                if (state.signedIn) InboxButton(state.inboxUnread, actions.onOpenInbox)
-                            },
+                            trailing = { if (state.signedIn) InboxButton(state.inboxUnread, actions.onOpenInbox) },
                         )
                         if (reading != null) {
                             val stateLabels =
@@ -312,22 +301,28 @@ fun HomeScreen(
                                         filtering = reading.filter.tab != SavedTab.All,
                                     )
                                 },
-                                // Liked is a group like a tag (#206): one at a time, before the tags.
-                                liked = {
-                                    val on = reading.filter.likedOnly
-                                    FilterChip(
-                                        selected = on,
-                                        onClick = { actions.onSavedFilter(reading.filter.copy(likedOnly = !on, tags = emptySet())) },
-                                        label = { Text(stringResource(R.string.reading_list_liked)) },
-                                        leadingIcon = {
-                                            Icon(
-                                                painterResource(if (on) R.drawable.ic_favorite_filled else R.drawable.ic_favorite),
-                                                contentDescription = null,
-                                                modifier = Modifier.size(FilterChipDefaults.IconSize),
+                                // Liked is a group like a tag (#206): one at a time, before the tags; only when
+                                // something liked is in the state shown (or Liked is chosen).
+                                liked =
+                                    if (!reading.showsLiked) {
+                                        null
+                                    } else {
+                                        {
+                                            val on = reading.filter.likedOnly
+                                            FilterChip(
+                                                selected = on,
+                                                onClick = { actions.onSavedFilter(reading.filter.copy(likedOnly = !on, tags = emptySet())) },
+                                                label = { Text(stringResource(R.string.reading_list_liked)) },
+                                                leadingIcon = {
+                                                    Icon(
+                                                        painterResource(if (on) R.drawable.ic_favorite_filled else R.drawable.ic_favorite),
+                                                        contentDescription = null,
+                                                        modifier = Modifier.size(FilterChipDefaults.IconSize),
+                                                    )
+                                                },
                                             )
-                                        },
-                                    )
-                                },
+                                        }
+                                    },
                             )
                         } else if (state.feeds.isNotEmpty()) {
                             val stateLabels = listOf(stringResource(R.string.filter_unread), stringResource(R.string.filter_all))

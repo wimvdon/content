@@ -18,6 +18,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -72,7 +73,7 @@ data class TopicRow(
 /**
  * Manage topics: every topic with its icon and what it holds (its feeds and saved articles, and a
  * feed that fails to download), in the user's order, which drag changes; then No topic, the feeds
- * without one. Tap a topic for its page. New topic is the page's main action.
+ * without one. Tap a topic for its page. Add feed and New topic are the two buttons.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,6 +85,8 @@ fun TopicsScreen(
     onOpen: (topicId: String?) -> Unit,
     onReorder: (ids: List<String>) -> Unit,
     onNewTopic: (title: String, icon: String) -> Unit,
+    /** Add feed, from the list: it lands under No topic, and you stay here. */
+    onAddFeed: () -> Unit,
 ) {
     var creating by rememberSaveable { mutableStateOf(false) }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -98,11 +101,23 @@ fun TopicsScreen(
             )
         },
         floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = { creating = true },
-                icon = { Icon(painterResource(R.drawable.ic_add), contentDescription = null) },
-                text = { Text(stringResource(R.string.folder_new)) },
-            )
+            // Two actions, one dominant: Add feed (the more frequent) as the FAB, New topic smaller
+            // and quieter above it. Material's FAB menu isn't in the stable library yet.
+            Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                ExtendedFloatingActionButton(
+                    onClick = { creating = true },
+                    icon = { Icon(painterResource(R.drawable.ic_folder), contentDescription = null) },
+                    text = { Text(stringResource(R.string.folder_new)) },
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    elevation = FloatingActionButtonDefaults.loweredElevation(),
+                )
+                ExtendedFloatingActionButton(
+                    onClick = onAddFeed,
+                    icon = { Icon(painterResource(R.drawable.ic_add), contentDescription = null) },
+                    text = { Text(stringResource(R.string.feeds_add)) },
+                )
+            }
         },
     ) { padding ->
         LazyColumn(
@@ -111,8 +126,8 @@ fun TopicsScreen(
                     .fillMaxSize()
                     .padding(padding)
                     .readableWidth(),
-            // Room under the last row for the button.
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
+            // Room under the last row for the two buttons.
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 160.dp),
         ) {
             if (topics.isEmpty()) {
                 item(key = "hint") { Hint(stringResource(R.string.folders_explanation)) }
@@ -222,7 +237,6 @@ private fun TopicLine(
 data class TopicPage(
     val topic: Folder?,
     val feeds: List<Feed>,
-    val unread: Int,
     val saved: Int,
     val toRead: Int,
 )
@@ -230,10 +244,6 @@ data class TopicPage(
 /** What a topic page can do. */
 class TopicPageActions(
     val onBack: () -> Unit,
-    /** Tech in Feeds: its articles. */
-    val onShowFeeds: () -> Unit,
-    /** Tech in Saved: the saved articles with the topic. */
-    val onShowSaved: () -> Unit,
     val onAddFeed: () -> Unit,
     val onEditFeed: (feed: Feed, title: String, topicId: String?) -> Unit,
     val onRemoveFeed: (Feed) -> Unit,
@@ -244,10 +254,9 @@ class TopicPageActions(
 )
 
 /**
- * One topic's page: everything that belongs to it. At the top the two ways into reading (its
- * articles in Feeds, its saved articles in Saved), then its feeds (drag to reorder, tap to rename,
- * move or remove; Add a feed to it), then its saved articles. The pen changes its name and icon;
- * ⋮ has Merge with… and Remove topic, which say what they do before doing it.
+ * One topic's page, for managing it (reading is in Feeds and Saved): its feeds (drag to reorder,
+ * tap to rename, move or remove; Add a feed to it), then how many saved articles have it. The pen
+ * changes its name and icon; ⋮ has Merge with… and Remove topic, which say what they do first.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -321,19 +330,6 @@ fun TopicScreen(
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            if (topic != null) {
-                // The two ways into reading: one topic covers both.
-                item(key = "read") {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                        FilledTonalButton(onClick = actions.onShowFeeds, enabled = page.feeds.isNotEmpty(), modifier = Modifier.weight(1f)) {
-                            Text(stringResource(R.string.topic_in_feeds, pluralStringResource(R.plurals.home_subtitle_unread, page.unread, page.unread)), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        }
-                        FilledTonalButton(onClick = actions.onShowSaved, enabled = page.saved > 0, modifier = Modifier.weight(1f)) {
-                            Text(stringResource(R.string.topic_in_saved, pluralStringResource(R.plurals.topic_to_read_count, page.toRead, page.toRead)), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        }
-                    }
-                }
-            }
             item(key = "feedsHeading") { SectionHeading(stringResource(R.string.feeds_title)) }
             item(key = "feeds") {
                 ReorderableColumn(
@@ -376,6 +372,7 @@ fun TopicScreen(
             if (topic != null) {
                 item(key = "savedHeading") { SectionHeading(stringResource(R.string.saved_title)) }
                 item(key = "saved") {
+                    // Only what it holds: this page manages the topic, Saved is where its articles are read.
                     ListItem(
                         headlineContent = {
                             Text(
@@ -386,8 +383,6 @@ fun TopicScreen(
                                 ),
                             )
                         },
-                        trailingContent = { Icon(painterResource(R.drawable.ic_chevron_right), contentDescription = null) },
-                        modifier = Modifier.clickable(role = Role.Button, enabled = page.saved > 0, onClick = actions.onShowSaved),
                     )
                 }
             }

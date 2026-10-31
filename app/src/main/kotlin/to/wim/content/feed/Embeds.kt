@@ -76,13 +76,13 @@ object Embeds {
         }
         spotify.find(url)?.let {
             val (type, id) = it.destructured
-            val short = type == "track" || type == "episode"
+            // Always Spotify's full player, with its cover: the compact one (152 high) is cramped on a phone.
             return ArticleBlock.Embed(
                 EmbedKind.Spotify,
                 "https://open.spotify.com/$type/$id",
                 null,
                 player = "https://open.spotify.com/embed/$type/$id",
-                size = EmbedSize.fixed(if (short) 152 else 352),
+                size = EmbedSize.fixed(352),
             )
         }
         if (url.startsWith("https://w.soundcloud.com/player/")) {
