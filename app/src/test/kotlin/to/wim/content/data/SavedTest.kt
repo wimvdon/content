@@ -61,9 +61,11 @@ class SavedTest {
         assertEquals(listOf("a.example/3"), keys(SavedFilter(SavedTab.All, likedOnly = true)))
         assertEquals(listOf("a.example/3", "a.example/2"), keys(SavedFilter(SavedTab.All, tags = setOf("AI"))))
         assertEquals(listOf("a.example/2"), keys(SavedFilter(SavedTab.All, tags = setOf("ai", "news"))))
-        // Chips: the tab's tags, most recently used first (#220): "old" is on the article saved last.
+        // Chips: the tab's topics in the topics' order (as Manage and ☰ list them); without topics, alphabetically.
         assertEquals(listOf("ai", "news"), Saved.tags(library, SavedTab.Folder("Work")))
-        assertEquals(listOf("old", "ai", "news"), Saved.tags(library, SavedTab.All))
+        assertEquals(listOf("ai", "news", "old"), Saved.tags(library, SavedTab.All))
+        val ordered = library.copy(folders = listOf(Folder("1", "Old"), Folder("2", "News"), Folder("3", "AI")))
+        assertEquals(listOf("old", "news", "ai"), Saved.tags(ordered, SavedTab.All))
     }
 
     @Test

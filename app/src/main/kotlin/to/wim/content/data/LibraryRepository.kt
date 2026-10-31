@@ -91,9 +91,9 @@ class LibraryRepository(
 
     private suspend fun load(): Library {
         val read = LibraryRows.library(dao.read())
-        // A folder becomes a tag (#187), a feed's tag follows its folder (#186), and items of the same
-        // article become one (#253).
-        val settled = Saved.foldersToTags(read).feedFoldersToTags().joinDuplicateItems()
+        // A folder becomes a tag (#187), items of the same article become one (#253), every tag has
+        // its topic, and a feed's tag follows its topic (#186).
+        val settled = Saved.foldersToTags(read).joinDuplicateItems().topicsForTags().feedFoldersToTags()
         if (settled !== read) dao.write(LibraryChanges.between(read, settled))
         return settled
     }
@@ -119,8 +119,9 @@ class LibraryRepository(
         writeLock.withLock {
             val old = current()
             val (changed, value) = change(old)
-            // A folder (filed here or synced in) becomes a tag (#187); items of the same article become one (#253).
-            val updated = Saved.foldersToTags(changed).feedFoldersToTags().joinDuplicateItems()
+            // A folder (filed here or synced in) becomes a tag (#187); items of the same article become
+            // one (#253); every tag has its topic, and a feed's tag follows its topic.
+            val updated = Saved.foldersToTags(changed).joinDuplicateItems().topicsForTags().feedFoldersToTags()
             if (updated !== old) {
                 val changes = LibraryChanges.between(old, updated)
                 if (!changes.isEmpty) dao.write(changes)
@@ -356,9 +357,14 @@ class LibraryRepository(
         title: String,
         icon: String,
     ): String {
+        // A topic's name is never there twice: a taken name gives the topic that has it.
         val id = newFolderId()
-        edit { it.addFolder(Folder(id, title, icon)) }
-        return id
+        var result = id
+        edit { library ->
+            library.topicNamed(title)?.let { result = it.id }
+            library.addTopic(id, title, icon)
+        }
+        return result
     }
 
     suspend fun updateFolder(
@@ -366,11 +372,13 @@ class LibraryRepository(
         title: String,
         icon: String,
     ) {
-        edit { it.updateFolder(id, title, icon) }
+        // Its saved articles follow; renaming it to another topic's name joins the two.
+        edit { it.renameTopic(id, title, icon) }
     }
 
     suspend fun removeFolder(id: String) {
-        edit { it.removeFolder(id) }
+        // Its feeds and saved articles stay, without the topic.
+        edit { it.removeTopic(id) }
     }
 
     suspend fun moveFeed(

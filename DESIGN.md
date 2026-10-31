@@ -234,14 +234,14 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   screen, top bar and system bar icons included, takes the page colour.
 - Article titles in the reader are the hero text (bold, in the reader's font). Unread rows in the
   list use SemiBold titles and a primary dot; read rows use `onSurfaceVariant`.
-- Manage feeds and Saved (☰, #251) is one page with a Feeds and a Saved tab. Feeds: a large top app
-  bar over folder cards (`surfaceContainerHigh`, folder icon on a `secondaryContainer` circle) with
-  their feeds indented below (`surfaceContainer`), a pen button and a drag handle at the end of each row, an outlined note under
-  "No folder" when it is empty, and the
+- Topics: one way to group feeds and saved articles (a feed in one topic, a saved article in any
+  number), each with a name, an icon and its place in the user's order, which every chip row, the
+  drawer and the sheets follow. Feeds and topics (☰) is one page without tabs: a large top app
+  bar over topic cards (`surfaceContainerHigh`, the topic's icon on a `secondaryContainer` circle,
+  "3 feeds · 12 saved" under the name) with their feeds indented below (`surfaceContainer`), a pen button and a drag handle at the end of each row, an outlined note under
+  "No topic" when it is empty, and the
   dragged row lifted with a shadow. Tapping a row opens its edit dialog; Remove sits in the
-  dialog, in the error colour; Move to or from another reader (OPML) at the end. Saved: Tag with
-  the feed's folder, Instapaper (connect, how it is doing, Sync now, Sign out), then every tag with
-  its number of articles, tap to rename, a delete button to remove it everywhere. Settings sections:
+  dialog, in the error colour; Move to or from another reader (OPML) at the end. Settings sections:
   Account (sign in with an emailed link; signed in, who, the last sync or what went wrong, Sync now,
   Sign out and Delete synced data in the error colour, which asks first), Sites you're signed in to,
   Article list, Reader, Appearance, footer (no Save and Share button settings since #256).
@@ -267,12 +267,12 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   one row of chips under the search bar says which group and which state. The row starts with the
   **state chip**, a filter chip with a drop-down arrow and a menu of radio items (Feeds: Unread or
   All; Saved: To read, Archive or All), lit while it leaves things out. A divider, then the groups,
-  one at a time: the folders in Feeds, the tags in Saved (every tag, most used first, whichever
-  state), with Liked (heart) before the tags (#206). Group chips have no check mark and chosen
+  one at a time: the topics in Feeds, the topics in Saved (every one in use, in the topics' order,
+  whichever state), with Liked (heart) before them (#206). Group chips have no check mark and chosen
   ones keep their weight, so a chip never changes width and the row never moves (#208). An X at
   the end clears the group. The ☰ drawer lists the same groups (Feed and the
-  folders with their feeds; Saved, then Liked and the tags), never the states, with what is unread or still
-  to read as counts; picking there keeps the state. A folder picked in the drawer and its chip are
+  topics with their feeds; Saved, then Liked and the topics with their icons), never the states, with what is unread or still
+  to read as counts; picking there keeps the state. A topic picked in the drawer and its chip are
   one choice and light up together. The Mark all read FAB is on Feeds
   only and only marks the section shown; Saved's FAB is Add link.
 - Saved's lists look like what they are for: To read, All and Archive are read through, so they use
@@ -360,8 +360,9 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   Yesterday, date) in `primary` Title Small; Mark all as read is an icon-only FAB. The drawer opens with the app's logo (the
   launcher icon's C, 32dp, on its own: no circle or white tile) and name; the
   web app's sidebar and favicon use the same logo.
-- Settings starts with Account; managing feeds and Saved (OPML, Tag with the feed's folder,
-  Instapaper) is one screen with a tab each, from the drawer, not in Settings (#251).
+- Settings starts with the connections: Account, then Instapaper. Managing feeds and topics (and
+  OPML) is one page from the drawer, not in Settings. See docs/architecture.md, "Navigation and
+  settings: where everything lives".
 
 ### Other platforms (planned)
 

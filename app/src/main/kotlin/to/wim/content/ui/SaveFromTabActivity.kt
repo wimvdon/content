@@ -30,7 +30,7 @@ import to.wim.content.data.ShareShortcuts
 import to.wim.content.data.ShareTargets
 import to.wim.content.data.SendTo
 import to.wim.content.data.Sharing
-import to.wim.content.data.itemTags
+import to.wim.content.data.topicNames
 import to.wim.content.data.tagWithFeedFolder
 import to.wim.content.instapaper.SharedLink
 import to.wim.content.rssReaderApp
@@ -113,7 +113,6 @@ private fun SaveFromTab(
     val resources = LocalResources.current
     val app = context.rssReaderApp
     val library = app.library.library.collectAsStateWithLifecycle().value ?: return
-    val tagWithFolder = app.settings.settings.collectAsStateWithLifecycle().value?.tagWithFolder ?: true
     val signedIn = app.account.state.collectAsStateWithLifecycle().value is AccountState.SignedIn
 
     // After Save or Send, the message (with Open for a save, #142): the only thing of Content this
@@ -131,7 +130,7 @@ private fun SaveFromTab(
             url = link.url,
             title = link.title,
             folders = Saved.folders(library),
-            allTags = library.itemTags(),
+            allTags = library.topicNames(),
             signedIn = signedIn,
             hasAccount = app.sync::hasAccount,
             sendOnly = sendOnly,
@@ -151,7 +150,7 @@ private fun SaveFromTab(
                             app.library.edit { lib ->
                                 val (updated, new) = SaveChoices.saveNew(lib, url, link.title, System.currentTimeMillis(), choice)
                                 item = new
-                                if (new != null && tagWithFolder) updated.tagWithFeedFolder(new.key) else updated
+                                if (new != null) updated.tagWithFeedFolder(new.key) else updated
                             }
                             item?.let { app.library.describe(it.key) }
                         }

@@ -2,6 +2,31 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-31: Topics: one way to group feeds and saved articles
+
+- The owner's idea: feed folders and Saved's tags become **topics**, managed in one place. A topic
+  is a feed's folder and a saved article's tag at once: a feed is in one topic at most (the owner
+  agreed), a saved article has any number. Saved's own folders had already become tags (#187).
+- No change to the sync file or Instapaper: a topic is stored as a folder (`folders`), and a saved
+  article's topics as its tags, by name. `topicsForTags` (Android and web) keeps them in step on
+  every change: a tag without a topic gets one (id `topic:<name>`, so two devices make the same
+  one), and topics with the same name are joined. Instapaper's tags are topics.
+- Renaming a topic renames it on its saved articles; renaming it to another one's name joins them;
+  removing it keeps its feeds and articles without it. A topic stays until it is removed, also when
+  nothing uses it any more (it is a group you made, not a leftover).
+- One order everywhere: the topics' order from Feeds and topics, for Feeds' and Saved's chips, the
+  drawer and the sheets (Saved's chips were most used first, #220).
+- A saved feed article always gets its feed's topic, now also in the web app; the phone-only
+  switch Tag with the feed's folder is gone.
+- Navigation and settings were reviewed at the same time (docs/architecture.md, "Navigation and
+  settings: where everything lives"): ☰'s Manage feeds and Saved becomes **Feeds and topics**, one
+  page without tabs; Instapaper moves to Settings, under the Content account (DESIGN.md puts
+  connections first); Sites you're signed in to moves next to Reader; Search's Saved folder filter
+  (always empty since #187) is gone. The save sheet's To read/Archive choice is called **List**.
+- Rejected: a separate Topics page next to Feeds (a topic's feeds are what you manage most, so they
+  belong together), and one topic choice shared by Feeds and Saved (they are different places, and
+  a topic often has only feeds or only saved articles).
+
 ## 2026-10-31: The app ID is to.wim.content
 
 - At the owner's request (the owner's domain is wim.to; the web app may move to content.wim.to

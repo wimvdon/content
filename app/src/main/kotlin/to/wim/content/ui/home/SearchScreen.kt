@@ -82,8 +82,7 @@ data class SearchState(
     val library: Library? = null,
     /** The feeds' folders, for the Folder filter. */
     val feedFolders: List<Folder> = emptyList(),
-    /** Saved's folders and tags (most used first), for its filters. */
-    val savedFolders: List<String> = emptyList(),
+    /** Saved's topics (tags), in the topics' order, for its Topic filter. */
     val savedTags: List<String> = emptyList(),
     /** Titles of note cards in the reader's font, as in Saved's folders. */
     val titleFont: FontFamily = FontFamily.Default,
@@ -312,7 +311,6 @@ private fun NarrowRow(
     val f = state.filters
     val anyFolder = stringResource(R.string.search_any_folder)
     val anyFeed = stringResource(R.string.search_any_feed)
-    val anyTag = stringResource(R.string.search_any_tag)
     val chips: List<@Composable () -> Unit> =
         when (f.scope) {
             SearchFilter.All -> emptyList()
@@ -324,7 +322,7 @@ private fun NarrowRow(
                     } else {
                         {
                             MenuChip(
-                                label = stringResource(R.string.folder_field),
+                                label = stringResource(R.string.topic_field),
                                 chosen = state.feedFolders.firstOrNull { it.id == f.feedFolderId }?.title,
                                 options = listOf<Pair<String?, String>>(null to anyFolder) + state.feedFolders.map { it.id to it.title },
                                 onPick = { onChange(f.copy(feedFolderId = it, feedUrl = null)) },
@@ -343,26 +341,14 @@ private fun NarrowRow(
             }
             SearchFilter.Saved ->
                 listOfNotNull(
-                    if (state.savedFolders.isEmpty()) {
-                        null
-                    } else {
-                        {
-                            MenuChip(
-                                label = stringResource(R.string.folder_field),
-                                chosen = f.savedFolder,
-                                options = listOf<Pair<String?, String>>(null to anyFolder) + state.savedFolders.map { it to it },
-                                onPick = { onChange(f.copy(savedFolder = it)) },
-                            )
-                        }
-                    },
                     if (state.savedTags.isEmpty()) {
                         null
                     } else {
                         {
                             MenuChip(
-                                label = stringResource(R.string.search_tag),
+                                label = stringResource(R.string.topic_field),
                                 chosen = f.tag,
-                                options = listOf<Pair<String?, String>>(null to anyTag) + state.savedTags.map { it to it },
+                                options = listOf<Pair<String?, String>>(null to anyFolder) + state.savedTags.map { it to it },
                                 onPick = { onChange(f.copy(tag = it)) },
                             )
                         }

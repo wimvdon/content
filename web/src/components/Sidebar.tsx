@@ -6,6 +6,7 @@ import { choosesFolder, unreadByFeed } from "@/lib/library";
 import { likedToReadCount, toReadCount, toReadTagCounts } from "@/lib/saved";
 import { FeedIcon } from "./FeedIcon";
 import { FolderIcon } from "./FolderIcon";
+import { topicIcons } from "@/lib/topics";
 import { ManageFeedsIcon } from "./ManageIcons";
 import { cn } from "./ui/cn";
 
@@ -39,6 +40,8 @@ export function Sidebar({
 
   const toRead = toReadCount(library);
   const tagCounts = toReadTagCounts(library);
+  // Saved's topics with their topic's icon, as feeds show it.
+  const icons = topicIcons(library);
   const likedToRead = likedToReadCount(library);
   const loose = library.feeds.filter((f) => !f.folderId);
 
@@ -164,7 +167,7 @@ export function Sidebar({
                     app.showSaved({ ...savedFilter, likedOnly: false, tags: [tag] });
                     onNavigate?.();
                   }}
-                  icon={<TagGlyph className="size-5" />}
+                  icon={icons.has(tag.trim().toLowerCase()) ? <FolderIcon name={icons.get(tag.trim().toLowerCase())!} /> : <TagGlyph className="size-5" />}
                   label={tag}
                   count={tagCount}
                 />

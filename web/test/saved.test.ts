@@ -82,12 +82,14 @@ describe("Saved (#119, #147)", () => {
     expect(keys(savedItems(lib, filter({ tab: all, tags: ["ai", "news"] })))).toEqual(["a.example/1"]);
   });
 
-  it("lists folders in use and the tab's tags, most recently used first (#220)", () => {
+  it("lists folders in use and the tab's topics in the topics' order (alphabetical without topics)", () => {
     const lib = sample();
     expect(savedFolders(lib)).toEqual(["Work"]);
     expect([...folderCounts(lib)]).toEqual([["Work", 2]]);
     // "old" is on the article saved last, then "ai" (saved second), then "news".
-    expect(tabTags(lib, { kind: "all" })).toEqual(["old", "ai", "news"]);
+    expect(tabTags(lib, { kind: "all" })).toEqual(["ai", "news", "old"]);
+    const ordered = { ...lib, folders: [{ id: "1", title: "Old", icon: "folder" }, { id: "2", title: "News", icon: "folder" }, { id: "3", title: "AI", icon: "folder" }] };
+    expect(tabTags(ordered, { kind: "all" })).toEqual(["old", "news", "ai"]);
     expect(tabTags(lib, { kind: "toread" })).toEqual(["ai", "news"]);
   });
 
@@ -109,7 +111,7 @@ describe("Saved (#119, #147)", () => {
     expect(shownFilter(lib, filter({ tab: { kind: "archive" } })).tab).toEqual({ kind: "archive" });
     expect(savedStates.map((s) => s.kind)).toEqual(["toread", "archive", "all"]);
     // The one in Work isn't in To read; the archived one isn't either.
-    expect([...toReadTagCounts(lib)]).toEqual([["old", 0], ["ai", 1], ["news", 1]]);
+    expect([...toReadTagCounts(lib)]).toEqual([["ai", 1], ["news", 1], ["old", 0]]);
     // The liked video is in To read (#206).
     expect(likedToReadCount(lib)).toBe(1);
     expect(likedToReadCount(setLiked(lib, "youtu.be/x", false))).toBe(0);
@@ -148,7 +150,7 @@ describe("Saved (#119, #147)", () => {
     expect(isIn(itemOf(lib, "a.example/2")!, { kind: "archive" })).toBe(true);
     expect(isIn(itemOf(lib, "a.example/3")!, { kind: "archive" })).toBe(true);
     lib = removeTag(lib, "AI");
-    expect(tabTags(lib, { kind: "all" })).toEqual(["old", "news"]);
+    expect(tabTags(lib, { kind: "all" })).toEqual(["news", "old"]);
   });
 
   it("keeps a note, trimmed", () => {

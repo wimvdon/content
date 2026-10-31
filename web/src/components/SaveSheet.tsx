@@ -3,7 +3,8 @@ import { useState } from "react";
 import { app, useApp } from "@/lib/app";
 import { normalizeUrl } from "@/lib/discovery";
 import { plural, t } from "@/lib/i18n";
-import { isWebLink, itemTags } from "@/lib/items";
+import { isWebLink } from "@/lib/items";
+import { topicNames } from "@/lib/topics";
 import { choiceOf, emptyChoice, newFolder, places, samePlace, tagChoices, withTyped, type Place, type SaveChoice } from "@/lib/saveChoice";
 import { savedFolders } from "@/lib/saved";
 import { actionOf, canConfirm, outcomeOf, problemKey, type ShareStatus } from "@/lib/sendTo";
@@ -153,7 +154,7 @@ function Sheet({
         <Section title={t("tags")}>
           <TagsRow
             tags={choice.tags}
-            allTags={itemTags(library)}
+            allTags={topicNames(library)}
             onChange={(tags) => setChoice({ ...choice, tags })}
             liked={choice.liked}
             onLike={() => setChoice({ ...choice, liked: !choice.liked })}

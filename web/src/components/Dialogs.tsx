@@ -1,9 +1,9 @@
 import { ArrowDown, ArrowUp, ChevronDown, Pencil, Plus, Trash2 } from "lucide-react";
 import { ConfirmRemove } from "./ConfirmRemove";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { gravatarUrl } from "@/lib/account";
 import { app, useApp, type ListView, type Theme } from "@/lib/app";
-import { formatRelative, t, type Key } from "@/lib/i18n";
+import { formatRelative, plural, t, type Key } from "@/lib/i18n";
 import { searchIcons } from "@/lib/icons";
 import type { Feed, Folder } from "@/lib/library";
 import { FeedIcon } from "./FeedIcon";
@@ -16,7 +16,7 @@ import { Input, Label, Select } from "./ui/input";
 import { Segmented } from "./ui/segmented";
 import { ReaderStyleControls } from "./ReaderStyleControls";
 import { InstapaperSettings } from "./ServiceSettings";
-import { SavedManage } from "./SavedManage";
+import { topicCounts } from "@/lib/topics";
 import { SwitchRow } from "./ui/switch";
 import { pushSupported } from "@/lib/notifications";
 
@@ -88,19 +88,18 @@ function exportOpml() {
 }
 
 /**
- * Manage feeds and Saved is one dialog (#222, #251), as on Android: tabs for the feeds with their
- * folders and OPML, and for Saved's folders and tags with Instapaper. ☰'s Manage feeds and Saved
- * opens it on Feeds.
+ * Feeds and topics, as on Android: the one place to manage both. Each topic with its icon, how many
+ * feeds and saved articles it has, and its feeds; then the feeds without a topic, and OPML. A topic
+ * is a feed's group and a saved article's tag at once; Instapaper is in Settings, with the account.
  */
 export function ManageDialog({
   open,
   onOpenChange,
   onAddFeed,
-  tab,
-  onTab,
   onImport,
-}: Props & { onAddFeed: () => void; tab: "feeds" | "saved"; onTab: (tab: "feeds" | "saved") => void; onImport: () => void }) {
+}: Props & { onAddFeed: () => void; onImport: () => void }) {
   const { library } = useApp();
+  const counts = useMemo(() => topicCounts(library), [library]);
   const [editFeed, setEditFeed] = useState<Feed | null>(null);
   const [editFolder, setEditFolder] = useState<Folder | "new" | null>(null);
   const groups: [Folder | null, Feed[]][] = [
@@ -116,45 +115,33 @@ export function ManageDialog({
         closeLabel={t("close")}
         wide
         footer={
-          tab === "feeds" ? (
-            <>
-              <Button variant="tonal" onClick={() => setEditFolder("new")}>
-                <Plus />
-                {t("newFolder")}
-              </Button>
-              <Button onClick={onAddFeed}>
-                <Plus />
-                {t("addFeed")}
-              </Button>
-            </>
-          ) : undefined
+          <>
+            <Button variant="tonal" onClick={() => setEditFolder("new")}>
+              <Plus />
+              {t("newFolder")}
+            </Button>
+            <Button onClick={onAddFeed}>
+              <Plus />
+              {t("addFeed")}
+            </Button>
+          </>
         }
       >
-        <div className="mb-4">
-          <Segmented
-            value={tab}
-            onChange={onTab}
-            label={t("manageTitle")}
-            options={[
-              { value: "feeds", label: t("feeds") },
-              { value: "saved", label: t("saved") },
-            ]}
-          />
-        </div>
-        {tab === "saved" ? (
-          <div className="space-y-6">
-            <InstapaperSettings />
-            <SavedManage />
-          </div>
-        ) : null}
-        <div className={cn("space-y-4", tab === "saved" && "hidden")}>
+        <div className="space-y-4">
           {groups.map(([folder, feeds], gi) => (
             <section key={folder?.id ?? "none"} className="rounded-xl bg-muted/60 p-2">
               <div className="flex items-center gap-2 px-2 py-1">
                 <span className="inline-flex size-8 items-center justify-center rounded-full bg-accent text-accent-foreground">
                   {folder ? <FolderIcon name={folder.icon} className="size-4" /> : <FolderIcon name="folder-off" className="size-4" />}
                 </span>
-                <h3 className="flex-1 truncate font-medium">{folder?.title ?? t("noFolder")}</h3>
+                <span className="min-w-0 flex-1">
+                  <h3 className="truncate font-medium">{folder?.title ?? t("noFolder")}</h3>
+                  {folder ? (
+                    <span className="block truncate text-xs text-muted-foreground">
+                      {plural("feedsCount", counts.get(folder.id)?.feeds ?? 0)} · {plural("topicSavedCount", counts.get(folder.id)?.saved ?? 0)}
+                    </span>
+                  ) : null}
+                </span>
                 {folder ? (
                   <>
                     <Button variant="ghost" size="iconSm" disabled={gi === 0} onClick={() => app.moveFolderBy(folder.id, -1)} aria-label={t("moveUp")}>
@@ -374,6 +361,8 @@ export function SettingsDialog({ open, onOpenChange }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange} title={t("settings")} closeLabel={t("close")} wide>
       <div className="space-y-6">
         <AccountSection />
+        {/* Connection first: the account, then the service Saved is also kept in. */}
+        <InstapaperSettings />
         <section className="space-y-2">
           <h3 className="text-sm font-medium text-primary">{t("articleList")}</h3>
           <div className="flex flex-wrap items-center justify-between gap-2 py-1">

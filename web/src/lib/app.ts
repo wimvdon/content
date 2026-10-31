@@ -16,6 +16,7 @@ import {
 import { applyHighlights, notCopied, syncHighlights, type HighlightLink } from "./highlightCopy";
 import { INSTAPAPER_ID, InstapaperSync } from "./instapaperSync";
 import { progressChanged } from "./readingProgress";
+import { addTopic, removeTopic, renameTopic, tagWithFeedTopic, topicNamed, topicsForTags } from "./topics";
 import { addHighlight, changeItem, itemOf, joinDuplicateItems, putItem, removeHighlight, renameTag, setHighlightNote, setLiked, type Highlight, type Item } from "./items";
 import { markInboxRead, removeFromInbox } from "./inbox";
 import { applyChoice, saveNew, undoSave, type SaveChoice } from "./saveChoice";
@@ -263,8 +264,8 @@ class AppStore {
   private updateLibrary(change: (lib: L.Library) => L.Library, syncSoon = true) {
     const before = this.state.library;
     // A folder (from an older app, another device or filed here) becomes a tag (#187); items of the
-    // same article become one (#253).
-    const library = joinDuplicateItems(L.feedFoldersToTags(Saved.foldersToTags(change(before))));
+    // same article become one (#253); every tag has its topic, and a feed's tag follows its topic.
+    const library = L.feedFoldersToTags(topicsForTags(joinDuplicateItems(Saved.foldersToTags(change(before)))));
     if (library === before) return;
     // When each saved item last changed here, for "the later change wins" with a service (#145).
     if (before.items !== library.items) {
@@ -409,13 +410,16 @@ class AppStore {
   removeFeed = (url: string) => this.updateLibrary((lib) => L.removeFeed(lib, url));
   renameFeed = (url: string, title: string) => this.updateLibrary((lib) => L.renameFeed(lib, url, title));
   moveFeed = (url: string, folderId: string | null) => this.updateLibrary((lib) => L.moveFeed(lib, url, folderId));
+  /** A new topic, or the one that already has this name (a name is never there twice). */
   addFolder = (title: string, icon: string) => {
-    const id = crypto.randomUUID();
-    this.updateLibrary((lib) => L.addFolder(lib, { id, title, icon }));
+    const id = topicNamed(this.state.library, title)?.id ?? crypto.randomUUID();
+    this.updateLibrary((lib) => addTopic(lib, id, title, icon));
     return id;
   };
-  updateFolder = (id: string, title: string, icon: string) => this.updateLibrary((lib) => L.updateFolder(lib, id, title, icon));
-  removeFolder = (id: string) => this.updateLibrary((lib) => L.removeFolder(lib, id));
+  /** Renames a topic on its feeds and saved articles; another topic's name joins the two. */
+  updateFolder = (id: string, title: string, icon: string) => this.updateLibrary((lib) => renameTopic(lib, id, title, icon));
+  /** Its feeds and saved articles stay, without the topic. */
+  removeFolder = (id: string) => this.updateLibrary((lib) => removeTopic(lib, id));
   /** Up or down within its folder, as Manage feeds lists it. */
   moveFeedBy = (url: string, delta: number) => this.updateLibrary((lib) => L.moveWithinFolder(lib, url, delta));
   moveFolderBy = (id: string, delta: number) =>
@@ -733,7 +737,8 @@ class AppStore {
       const [out, item] = Saved.saveLink(lib, url, title, Date.now());
       key = item?.key ?? null;
       this.savedBefore = (item && lib.items.find((i) => i.key === item.key)) ?? null;
-      return out;
+      // A feed article gets its feed's topic, as on Android.
+      return item ? tagWithFeedTopic(out, item.key) : out;
     });
     this.set({ sheet: key ? { kind: "justSaved", key } : null });
   };
@@ -758,7 +763,7 @@ class AppStore {
     this.updateLibrary((lib) => {
       const [out, item] = saveNew(lib, url, null, Date.now(), choice);
       key = item?.key ?? null;
-      return out;
+      return item ? tagWithFeedTopic(out, item.key) : out;
     });
     return key;
   };

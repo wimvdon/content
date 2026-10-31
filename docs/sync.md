@@ -50,6 +50,10 @@ The account's document (it was `rss-reader-sync.json` in Google Drive before), U
 ```
 
 - `folders` and `feeds` are in the user's order.
+- `folders` are the **topics** (2026-10-31): a feed's `folderId` is its topic, and a saved item's
+  `tags` are its topics by name (case ignored). Each app gives every tag a topic (id `topic:<name>`,
+  the same on every device) and joins topics with the same name after every change
+  (`data/Topics.kt`, `web/src/lib/topics.ts`). The format itself is unchanged.
 - `icon` is a Material Symbols name from the app's icon catalog.
 - A feed's `tags` (#187) are left out when it has none, so the file reads the same for older
   apps, which ignore the field. An older app that writes the file back drops them; a feed in a
