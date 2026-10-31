@@ -152,16 +152,18 @@ data class HomeState(
     val saved: SavedHome? = null,
     /** How many articles are still to read, for the drawer and the navigation. */
     val toReadCount: Int = 0,
-    /** Signed in to a Content account: the inbox's bell shows (#246). */
+    /** Signed in to a Content account: the Inbox shows in the navigation bar and ☰ (#246). */
     val signedIn: Boolean = false,
     /** Feeds' topic chips: the topics with articles in the state shown, and the one chosen (feedChips). */
     val topicChips: List<String>? = null,
-    /** How many articles shared with you are unread, for the bell's badge. */
+    /** How many articles shared with you are unread, for the Inbox's badge. */
     val inboxUnread: Int = 0,
+    /** The Inbox, for its destination; null while signed out. */
+    val inbox: InboxHome? = null,
 )
 
-/** The app's top-level destinations (#119): Feeds and Saved. */
-enum class HomeSection { Feeds, Saved }
+/** The app's top-level destinations (#119, #246): Feeds, Saved and the Inbox. */
+enum class HomeSection { Feeds, Saved, Inbox }
 
 class HomeActions(
     val onSelect: (FeedSelection) -> Unit,
@@ -175,8 +177,8 @@ class HomeActions(
     val onShareArticle: (Article) -> Unit = {},
     val onShareItem: (Item) -> Unit = {},
     /** Puts an item shared with you in To read or the Archive (#167). */
-    /** Opens the inbox (#246): what other Content users shared with you. */
-    val onOpenInbox: () -> Unit = {},
+    /** Shows the Inbox (#246): what other Content users shared with you. */
+    val onShowInbox: () -> Unit = {},
     val onRefresh: () -> Unit,
     val onMarkAllRead: () -> Unit,
     /** Articles that scrolled off the top, with Mark as read on scroll on. */
@@ -216,16 +218,23 @@ fun HomeScreen(
     val scope = rememberCoroutineScope()
     // Saved replaces the feed sections: its own title, tabs and chips, no Mark all read.
     val reading = state.saved?.takeIf { state.section == HomeSection.Saved }
-    val inFeeds = reading == null
+    val inbox = state.inbox?.takeIf { state.section == HomeSection.Inbox }
+    val inFeeds = reading == null && inbox == null
     val unreadHere = state.unreadCounts[state.selection] ?: 0
     val feedTags = state.topicChips ?: remember(state.feeds, state.folders) { feedTagsInOrder(state.feeds, state.folders) }
     val wide = isWideWindow()
-    // Feed and Saved in the navigation bar (#189); Search opens from the search bar.
-    val tab = if (state.section == HomeSection.Saved) MainTab.Saved else MainTab.Feeds
+    // Feed, Saved and the Inbox in the navigation bar (#189, #246); Search opens from the search bar.
+    val tab =
+        when {
+            reading != null -> MainTab.Saved
+            inbox != null -> MainTab.Inbox
+            else -> MainTab.Feeds
+        }
     val onTab: (MainTab) -> Unit = { t ->
         when (t) {
             MainTab.Feeds -> actions.onShowFeeds()
             MainTab.Saved -> actions.onShowSaved()
+            MainTab.Inbox -> actions.onShowInbox()
             MainTab.Search -> actions.onOpenSearch()
         }
     }
@@ -259,17 +268,29 @@ fun HomeScreen(
                     actions.onSavedFilter(it)
                     scope.launch { drawerState.close() }
                 },
+                showsInbox = state.inbox != null,
+                inInbox = inbox != null,
+                inboxUnread = state.inboxUnread,
+                onOpenInbox = {
+                    actions.onShowInbox()
+                    scope.launch { drawerState.close() }
+                },
             )
         },
     ) {
-        val hasArticles = reading?.items?.isNotEmpty() ?: state.articles.isNotEmpty()
+        val hasArticles =
+            when {
+                reading != null -> reading.items.isNotEmpty()
+                inbox != null -> inbox.items.isNotEmpty()
+                else -> state.articles.isNotEmpty()
+            }
         // The whole header slides away while scrolling down and returns when scrolling up.
         val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(canScroll = { hasArticles })
         // Another section, or a list with nothing left to scroll, shows the header again.
         LaunchedEffect(state.selection, state.section, reading?.filter, hasArticles) { scrollBehavior.state.heightOffset = 0f }
         // On wide windows Feed and Saved move to a navigation rail at the side.
         Row(Modifier.fillMaxSize()) {
-            if (wide) MainNavigationRail(tab, onTab)
+            if (wide) MainNavigationRail(tab, onTab, state.inbox != null, state.inboxUnread)
             Scaffold(
                 modifier = Modifier.weight(1f).nestedScroll(scrollBehavior.nestedScrollConnection),
                 snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -278,7 +299,6 @@ fun HomeScreen(
                         HomeSearchBar(
                             onMenu = { scope.launch { drawerState.open() } },
                             onSearch = actions.onOpenSearch,
-                            trailing = { if (state.signedIn) InboxButton(state.inboxUnread, actions.onOpenInbox) },
                         )
                         if (reading != null) {
                             val stateLabels =
@@ -324,7 +344,7 @@ fun HomeScreen(
                                         }
                                     },
                             )
-                        } else if (state.feeds.isNotEmpty()) {
+                        } else if (inFeeds && state.feeds.isNotEmpty()) {
                             val stateLabels = listOf(stringResource(R.string.filter_unread), stringResource(R.string.filter_all))
                             // One feed chosen by its name (#185): its chip comes first, chosen.
                             val oneFeed = (state.selection as? FeedSelection.Single)?.let { s -> state.feeds.firstOrNull { it.url == s.feedUrl }?.title }
@@ -355,7 +375,7 @@ fun HomeScreen(
                         }
                     }
                 },
-                bottomBar = { if (!wide) MainNavigationBar(tab, onTab) },
+                bottomBar = { if (!wide) MainNavigationBar(tab, onTab, state.inbox != null, state.inboxUnread) },
                 floatingActionButton = {
                     // Marks everything in the section being viewed as read: All, a folder or a feed.
                     if (state.feeds.isNotEmpty() && unreadHere > 0 && inFeeds) {
@@ -375,7 +395,15 @@ fun HomeScreen(
                         .fillMaxSize()
                         .padding(innerPadding),
                 ) {
-                if (reading != null) {
+                if (inbox != null) {
+                    PullToRefreshBox(
+                        isRefreshing = state.refreshing,
+                        onRefresh = actions.onRefresh,
+                        modifier = Modifier.fillMaxSize(),
+                    ) {
+                        InboxContent(inbox, state.listView, state.showImages)
+                    }
+                } else if (reading != null) {
                     PullToRefreshBox(
                         isRefreshing = state.refreshing,
                         onRefresh = actions.onRefresh,

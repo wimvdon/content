@@ -128,6 +128,8 @@ class ReaderItem(
     val item: Item,
     /** Opens Organise (#139, #143): the folder, tags with Like, and the note; New folder and Add a tag. */
     val onOrganise: () -> Unit,
+    /** Archives it in one tap: the reader closes, and the list says so with Undo. */
+    val onArchive: () -> Unit = {},
     /** Out of Saved, with its note, tags and highlights. */
     val onRemove: () -> Unit,
     /** How far it was read, 0 to 1, as the reader scrolls. */

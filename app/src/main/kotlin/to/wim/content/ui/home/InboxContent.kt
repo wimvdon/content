@@ -1,0 +1,108 @@
+package to.wim.content.ui.home
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import to.wim.content.R
+import to.wim.content.data.Item
+import to.wim.content.data.Library
+import to.wim.content.data.ListView
+import to.wim.content.data.ReadingLists
+import to.wim.content.data.SharedBy
+import to.wim.content.ui.reader.RecipientAvatar
+import to.wim.content.ui.theme.EmptyState
+import to.wim.content.ui.theme.readableWidth
+
+/** The Inbox, for its place in the navigation bar: what is in it, and what its rows do. */
+class InboxHome(
+    val items: List<Item>,
+    val library: Library,
+    val onOpen: (Item) -> Unit,
+    val onToggleRead: (Item) -> Unit,
+    val onSave: (Item) -> Unit,
+    val onShare: (Item) -> Unit,
+    val onRemove: (Item) -> Unit,
+)
+
+/**
+ * The Inbox (#246), a place in the navigation bar like Feed and Saved: what other Content users
+ * shared with you, newest first, like a feed's articles with who sent it in place of the feed.
+ * Unread ones are bold with a dot; opening one reads it. A swipe saves it; a long press marks it read
+ * or unread, saves, shares or removes it from the inbox.
+ */
+@Composable
+fun InboxContent(
+    inbox: InboxHome,
+    listView: ListView,
+    showImages: Boolean,
+) {
+    if (inbox.items.isEmpty()) {
+        EmptyState(
+            painterResource(R.drawable.ic_notifications),
+            stringResource(R.string.inbox_empty_title),
+            body = stringResource(R.string.inbox_empty_body),
+        )
+        return
+    }
+    val saveLabel = stringResource(R.string.action_save)
+    val shareLabel = stringResource(R.string.action_share)
+    val removeLabel = stringResource(R.string.inbox_remove)
+    val readLabel = stringResource(R.string.action_mark_read)
+    val unreadLabel = stringResource(R.string.action_mark_unread)
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().readableWidth(),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        items(inbox.items, key = { it.key }) { item ->
+            val by = item.sharedBy ?: return@items
+            val article = remember(item, inbox.library) { ReadingLists.article(item, inbox.library).copy(read = by.read, publishedAt = by.at, fetchedAt = by.at) }
+            // Already in Saved: nothing to save, so no swipe and no Save in the menu.
+            val save = if (item.onReadingList) null else SwipeAction(R.drawable.ic_list, saveLabel) { inbox.onSave(item) }
+            SwipeRow(right = save, left = save, modifier = Modifier.animateItem()) {
+                ArticleRow(
+                    article = article,
+                    feed = null,
+                    view = listView,
+                    showImage = showImages,
+                    onClick = { inbox.onOpen(item) },
+                    menu =
+                        listOfNotNull(
+                            RowMenuAction(if (by.read) R.drawable.ic_mark_unread else R.drawable.ic_mark_read, if (by.read) unreadLabel else readLabel) { inbox.onToggleRead(item) },
+                            save?.let { RowMenuAction(R.drawable.ic_list, saveLabel) { inbox.onSave(item) } },
+                            RowMenuAction(R.drawable.ic_share, shareLabel) { inbox.onShare(item) },
+                            RowMenuAction(R.drawable.ic_delete, removeLabel) { inbox.onRemove(item) },
+                        ),
+                    source = { Sender(by, showImages) },
+                )
+            }
+        }
+    }
+}
+
+/** Who shared it: their Gravatar picture (else their first letter) and name (else their address). */
+@Composable
+private fun Sender(
+    by: SharedBy,
+    showImages: Boolean,
+) {
+    RecipientAvatar(by.email, by.name.ifBlank { null }, showImages, size = 18.dp)
+    Text(
+        text = by.label,
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.primary,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+    )
+}

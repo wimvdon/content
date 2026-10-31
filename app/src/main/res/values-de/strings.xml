@@ -227,8 +227,6 @@
     <string name="account_delete_confirm">Deine Feeds, gelesenen Artikel und Einstellungen vom Server von Content löschen? Sie bleiben auf diesem Gerät, und du wirst überall abgemeldet.</string>
     <string name="account_deleted">Synchronisierte Daten gelöscht</string>
     <string name="action_delete">Löschen</string>
-    <string name="action_collapse">Einklappen</string>
-    <string name="action_expand">Ausklappen</string>
     <string name="action_search">Suchen</string>
     <string name="search_hint">Artikel suchen</string>
     <string name="action_clear">Löschen</string>

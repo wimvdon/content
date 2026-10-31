@@ -124,7 +124,7 @@ import to.wim.content.ui.home.AddFeedDialog
 import to.wim.content.ui.home.HomeActions
 import to.wim.content.ui.home.HomeScreen
 import to.wim.content.ui.home.HomeState
-import to.wim.content.ui.home.InboxScreen
+import to.wim.content.ui.home.InboxHome
 import to.wim.content.ui.home.errorRes
 import to.wim.content.ui.reader.FullTextState
 import to.wim.content.ui.reader.ReaderActions
@@ -157,8 +157,6 @@ sealed interface Screen {
     /** Search through every feed's articles and Saved. */
     data object Search : Screen
 
-    /** What other Content users shared with you (#246). */
-    data object Inbox : Screen
 
     /** Signing in to a site (#180), at this address. */
     data class SiteSignIn(val url: String) : Screen
@@ -170,7 +168,6 @@ sealed interface Screen {
                 Settings -> "settings"
                 Feeds -> "feeds"
                 Search -> "search"
-                Inbox -> "inbox"
                 is Reader -> "reader:" + screen.articleKey
                 is SiteSignIn -> "signin:" + screen.url
                 is Topic -> "topic:" + screen.id.orEmpty()
@@ -183,7 +180,6 @@ sealed interface Screen {
                 // Its Saved tab was a screen of its own before.
                 text == "manage-saved" -> Feeds
                 text == "search" -> Search
-                text == "inbox" -> Inbox
                 text.startsWith("reader:") -> Reader(text.removePrefix("reader:"))
                 text.startsWith("signin:") -> SiteSignIn(text.removePrefix("signin:"))
                 text.startsWith("topic:") -> Topic(text.removePrefix("topic:").ifEmpty { null })
@@ -195,7 +191,8 @@ sealed interface Screen {
 private val BackStackSaver =
     listSaver<SnapshotStateList<Screen>, String>(
         save = { stack -> stack.map(Screen::encode) },
-        restore = { saved -> saved.map(Screen::decode).toMutableStateList() },
+        // The Inbox was a screen of its own before it got its place in the navigation bar (#246): left out.
+        restore = { saved -> saved.filter { it != "inbox" }.map(Screen::decode).toMutableStateList() },
     )
 
 private const val OPML_FILE_NAME = "rss-reader-feeds.opml"
@@ -429,7 +426,8 @@ fun RssReaderNavigation(
             val names = got.from.joinToString(", ") { it.label }
             // Open goes to the inbox (#246).
             showMessage(resources.getQuantityString(R.plurals.share_user_received, got.count, names, got.count), resources.getString(R.string.action_open)) {
-                push(Screen.Inbox)
+                while (backStack.size > 1) pop()
+                section = HomeSection.Inbox
             }
         }
     }
@@ -624,7 +622,7 @@ fun RssReaderNavigation(
         // The notification (#235): the inbox (#246), not an article.
         if (key == MainActivity.OPEN_SHARED) {
             while (backStack.size > 1) pop()
-            push(Screen.Inbox)
+            section = HomeSection.Inbox
         } else if (folder != null) {
             // A folder from the launcher's menu (#251): its articles, on Home.
             ShortcutManagerCompat.reportShortcutUsed(context, LauncherFolders.idOf(folder))
@@ -673,6 +671,8 @@ fun RssReaderNavigation(
                         }
                     val unreadCounts = remember(library) { library.unreadCounts() }
                     val savedItems = remember(library, shownFilter) { Saved.items(library, shownFilter) }
+                    // What others shared arrives with a sync (#167): take it in when the Inbox shows, not only at the next one.
+                    LaunchedEffect(section) { if (section == HomeSection.Inbox) app.appScope.launch { app.sync.syncIfDue() } }
                     val minutes by produceState(emptyMap<String, Int>(), library.items, library.articles, textWords) {
                         value = withContext(Dispatchers.Default) { readingMinutes(library, textWords) }
                     }
@@ -707,6 +707,28 @@ fun RssReaderNavigation(
                                 toReadCount = remember(library) { library.items.count { Saved.isIn(it, SavedTab.ToRead) } },
                                 signedIn = accountState is AccountState.SignedIn,
                                 inboxUnread = remember(library) { Inbox.unread(library) },
+                                inbox =
+                                    if (accountState !is AccountState.SignedIn) {
+                                        null
+                                    } else {
+                                        InboxHome(
+                                            items = remember(library) { Inbox.items(library) },
+                                            library = library,
+                                            onOpen = { item ->
+                                                editLibrary { Inbox.markRead(it, item.key) }
+                                                openItem(item)
+                                            },
+                                            onToggleRead = { item -> editLibrary { Inbox.markRead(it, item.key, read = item.sharedBy?.read != true) } },
+                                            onSave = { item -> readLater(item.url, item.title, inReader = false) },
+                                            onShare = { item -> share(ReadingLists.article(item, library)) },
+                                            onRemove = { item ->
+                                                editLibrary { Inbox.remove(it, item.key) }
+                                                showMessage(resources.getString(R.string.inbox_removed), resources.getString(R.string.action_undo)) {
+                                                    editLibrary { lib -> lib.item(item.key)?.let { lib.putItem(it.copy(sharedBy = item.sharedBy)) } ?: lib.putItem(item) }
+                                                }
+                                            },
+                                        )
+                                    },
                                 topicChips = remember(library, current.unreadOnly, shownSelection) { library.feedChips(current.unreadOnly, shownSelection.chipTag(library.folders)) },
                             ),
                         snackbarHostState = snackbar,
@@ -765,6 +787,7 @@ fun RssReaderNavigation(
                                 onOpenManage = { push(Screen.Feeds) },
                                 onShowFeeds = { section = HomeSection.Feeds },
                                 onShowSaved = { section = HomeSection.Saved },
+                                onShowInbox = { section = HomeSection.Inbox },
                                 onSavedFilter = {
                                     savedFilter = it
                                     section = HomeSection.Saved
@@ -779,7 +802,6 @@ fun RssReaderNavigation(
                                 },
                                 onRemoveItem = { item -> askRemove(item.key, fromReader = false) },
                                 onShareArticle = ::share,
-                                onOpenInbox = { push(Screen.Inbox) },
                                 onShareItem = { item -> share(ReadingLists.article(item, library)) },
                                 onOpenSearch = { push(Screen.Search) },
                             ),
@@ -893,6 +915,10 @@ fun RssReaderNavigation(
                                         onOrganise = {
                                             fileKey = i.key
                                             fileFromReader = true
+                                        },
+                                        onArchive = {
+                                            archive(i)
+                                            pop()
                                         },
                                         onRemove = { askRemove(i.key, fromReader = true) },
                                         onProgress = { progress ->
@@ -1086,32 +1112,6 @@ fun RssReaderNavigation(
                     )
                 }
 
-                Screen.Inbox -> {
-                    // What others shared arrives with a sync (#167): take it in when the inbox opens, not only at the next one.
-                    LaunchedEffect(Unit) { app.appScope.launch { app.sync.syncIfDue() } }
-                    InboxScreen(
-                        items = remember(library) { Inbox.items(library) },
-                        library = library,
-                        listView = current.listView,
-                        showImages = current.showImages,
-                        snackbarHostState = snackbar,
-                        onBack = ::pop,
-                        onOpen = { item ->
-                            editLibrary { Inbox.markRead(it, item.key) }
-                            openItem(item)
-                        },
-                        onToggleRead = { item -> editLibrary { Inbox.markRead(it, item.key, read = item.sharedBy?.read != true) } },
-                        onSave = { item -> readLater(item.url, item.title, inReader = false) },
-                        onShare = { item -> share(ReadingLists.article(item, library)) },
-                        onRemove = { item ->
-                            editLibrary { Inbox.remove(it, item.key) }
-                            showMessage(resources.getString(R.string.inbox_removed), resources.getString(R.string.action_undo)) {
-                                editLibrary { lib -> lib.item(item.key)?.let { lib.putItem(it.copy(sharedBy = item.sharedBy)) } ?: lib.putItem(item) }
-                            }
-                        },
-                    )
-                }
-
                 Screen.Search -> {
                     SystemBarsFollowTheme(appDark)
                     // Preparing every article's text takes a moment with many feeds: off the main thread.
@@ -1150,7 +1150,12 @@ fun RssReaderNavigation(
                                 onOpenItem = ::openItem,
                                 onTab = { tab ->
                                     pop()
-                                    section = if (tab == MainTab.Saved) HomeSection.Saved else HomeSection.Feeds
+                                    section =
+                                        when (tab) {
+                                            MainTab.Saved -> HomeSection.Saved
+                                            MainTab.Inbox -> HomeSection.Inbox
+                                            else -> HomeSection.Feeds
+                                        }
                                 },
                                 onBack = ::pop,
                             ),

@@ -227,8 +227,6 @@
     <string name="account_delete_confirm">Je feeds, gelezen artikelen en instellingen van de server van Content verwijderen? Ze blijven op dit apparaat, en je wordt overal uitgelogd.</string>
     <string name="account_deleted">Gesynchroniseerde gegevens verwijderd</string>
     <string name="action_delete">Verwijderen</string>
-    <string name="action_collapse">Inklappen</string>
-    <string name="action_expand">Uitklappen</string>
     <string name="action_search">Zoeken</string>
     <string name="search_hint">Artikels zoeken</string>
     <string name="action_clear">Wissen</string>

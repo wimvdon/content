@@ -1,7 +1,6 @@
 package to.wim.content.ui.home
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
@@ -17,8 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -27,19 +24,11 @@ import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -56,9 +45,9 @@ import to.wim.content.data.feedTopics
 import to.wim.content.data.choosesFolder
 
 /**
- * The ☰ menu: Feeds and Saved as two sections that stay as you fold them, then Manage feeds and
- * Saved, and Settings. A feed folder shows its feeds only while you are in it (#251), so the list
- * stays short.
+ * The ☰ menu: Feeds and Saved as two sections, always open; the Inbox while signed in; then Manage
+ * and Settings. A feed folder shows its feeds only while you are in it (#251), so the list stays
+ * short.
  */
 @Composable
 fun FeedDrawer(
@@ -73,13 +62,15 @@ fun FeedDrawer(
     inSaved: Boolean = false,
     toReadCount: Int = 0,
     onSavedFilter: (SavedFilter) -> Unit = {},
+    /** Signed in: the Inbox shows, with what in it is unread. */
+    showsInbox: Boolean = false,
+    inInbox: Boolean = false,
+    inboxUnread: Int = 0,
+    onOpenInbox: () -> Unit = {},
 ) {
-    // While Saved is shown, no feed section is selected.
+    // While Saved or the Inbox is shown, no feed section is selected.
     @Suppress("NAME_SHADOWING")
-    val selection: FeedSelection? = selection.takeIf { !inSaved }
-    // Both sections start open and stay as you fold them, wherever you go (#251).
-    var feedsOpen by rememberSaveable { mutableStateOf(true) }
-    var savedOpen by rememberSaveable { mutableStateOf(true) }
+    val selection: FeedSelection? = selection.takeIf { !inSaved && !inInbox }
 
     ModalDrawerSheet {
         Column(
@@ -111,76 +102,69 @@ fun FeedDrawer(
 
             // Feeds section: its places (All and the topics with feeds, as the chips), and below a topic
             // its feeds, only while you are in it; then the feeds without a topic.
-            SectionHeader(
-                title = stringResource(R.string.feeds_title),
-                open = feedsOpen,
-                count = if (feedsOpen) 0 else unreadCounts[FeedSelection.All] ?: 0,
-                onToggle = { feedsOpen = !feedsOpen },
+            SectionHeader(stringResource(R.string.feeds_title))
+            NavigationDrawerItem(
+                label = { Text(stringResource(R.string.home_tab_feed)) },
+                icon = { Icon(painterResource(R.drawable.ic_rss_feed), contentDescription = null) },
+                badge = { UnreadBadge(unreadCounts[FeedSelection.All] ?: 0) },
+                selected = selection == FeedSelection.All,
+                onClick = { onSelect(FeedSelection.All) },
             )
-            AnimatedVisibility(visible = feedsOpen, enter = expandVertically(), exit = shrinkVertically()) {
-                Column {
-                    NavigationDrawerItem(
-                        label = { Text(stringResource(R.string.home_tab_feed)) },
-                        icon = { Icon(painterResource(R.drawable.ic_rss_feed), contentDescription = null) },
-                        badge = { UnreadBadge(unreadCounts[FeedSelection.All] ?: 0) },
-                        selected = selection == FeedSelection.All,
-                        onClick = { onSelect(FeedSelection.All) },
-                    )
-                    for (folder in feedTopics(feeds, folders)) {
-                        val folderSelection = FeedSelection.InFolder(folder.id)
-                        val inFolder = feeds.filter { it.folderId == folder.id }
-                        val open = selection?.choosesFolder(folder) == true || inFolder.any { selection == FeedSelection.Single(it.url) }
-                        NavigationDrawerItem(
-                            label = { Text(folder.title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                            icon = { Icon(rememberFolderIconPainter(folder.icon), contentDescription = null) },
-                            badge = { UnreadBadge(unreadCounts[folderSelection] ?: 0) },
-                            selected = selection?.choosesFolder(folder) == true,
-                            onClick = { onSelect(folderSelection) },
-                        )
-                        AnimatedVisibility(visible = open, enter = expandVertically(), exit = shrinkVertically()) {
-                            Column {
-                                for (feed in inFolder) {
-                                    FeedItem(feed, selection, unreadCounts, onSelect, Modifier.padding(start = 24.dp))
-                                }
-                            }
+            for (folder in feedTopics(feeds, folders)) {
+                val folderSelection = FeedSelection.InFolder(folder.id)
+                val inFolder = feeds.filter { it.folderId == folder.id }
+                val open = selection?.choosesFolder(folder) == true || inFolder.any { selection == FeedSelection.Single(it.url) }
+                NavigationDrawerItem(
+                    label = { Text(folder.title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                    icon = { Icon(rememberFolderIconPainter(folder.icon), contentDescription = null) },
+                    badge = { UnreadBadge(unreadCounts[folderSelection] ?: 0) },
+                    selected = selection?.choosesFolder(folder) == true,
+                    onClick = { onSelect(folderSelection) },
+                )
+                AnimatedVisibility(visible = open, enter = expandVertically(), exit = shrinkVertically()) {
+                    Column {
+                        for (feed in inFolder) {
+                            FeedItem(feed, selection, unreadCounts, onSelect, Modifier.padding(start = 24.dp))
                         }
                     }
-                    val loose = feeds.filter { feed -> feed.folderId == null || folders.none { it.id == feed.folderId } }
-                    if (loose.isNotEmpty() && folders.isNotEmpty()) HorizontalDivider(Modifier.padding(vertical = 8.dp, horizontal = 16.dp))
-                    for (feed in loose) {
-                        FeedItem(feed, selection, unreadCounts, onSelect)
-                    }
                 }
+            }
+            val loose = feeds.filter { feed -> feed.folderId == null || folders.none { it.id == feed.folderId } }
+            if (loose.isNotEmpty() && folders.isNotEmpty()) HorizontalDivider(Modifier.padding(vertical = 8.dp, horizontal = 16.dp))
+            for (feed in loose) {
+                FeedItem(feed, selection, unreadCounts, onSelect)
             }
 
             // Saved section: its places, as on the state chip: To read (with what is still to read)
             // and the Archive (no count: it is not a to-do). Liked and the topics are filters: chips only.
             if (saved != null) {
                 val shownTab = saved.filter.tab
-                SectionHeader(
-                    title = stringResource(R.string.saved_title),
-                    open = savedOpen,
-                    count = if (savedOpen) 0 else toReadCount,
-                    onToggle = { savedOpen = !savedOpen },
-                    modifier = Modifier.padding(top = 8.dp),
+                SectionHeader(stringResource(R.string.saved_title), Modifier.padding(top = 8.dp))
+                NavigationDrawerItem(
+                    label = { Text(stringResource(R.string.reading_list_to_read), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                    icon = { Icon(painterResource(R.drawable.ic_reading_list), contentDescription = null) },
+                    badge = { UnreadBadge(toReadCount) },
+                    selected = inSaved && shownTab == SavedTab.ToRead,
+                    onClick = { onSavedFilter(saved.filter.copy(tab = SavedTab.ToRead)) },
                 )
-                AnimatedVisibility(visible = savedOpen, enter = expandVertically(), exit = shrinkVertically()) {
-                    Column {
-                        NavigationDrawerItem(
-                            label = { Text(stringResource(R.string.reading_list_to_read), maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                            icon = { Icon(painterResource(R.drawable.ic_reading_list), contentDescription = null) },
-                            badge = { UnreadBadge(toReadCount) },
-                            selected = inSaved && shownTab == SavedTab.ToRead,
-                            onClick = { onSavedFilter(saved.filter.copy(tab = SavedTab.ToRead)) },
-                        )
-                        NavigationDrawerItem(
-                            label = { Text(stringResource(R.string.reading_list_archive), maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                            icon = { Icon(painterResource(R.drawable.ic_inventory), contentDescription = null) },
-                            selected = inSaved && shownTab == SavedTab.Archive,
-                            onClick = { onSavedFilter(saved.filter.copy(tab = SavedTab.Archive)) },
-                        )
-                    }
-                }
+                NavigationDrawerItem(
+                    label = { Text(stringResource(R.string.reading_list_archive), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                    icon = { Icon(painterResource(R.drawable.ic_inventory), contentDescription = null) },
+                    selected = inSaved && shownTab == SavedTab.Archive,
+                    onClick = { onSavedFilter(saved.filter.copy(tab = SavedTab.Archive)) },
+                )
+            }
+
+            // The Inbox (#246): what other Content users shared with you, with what is still unread.
+            if (showsInbox) {
+                Spacer(Modifier.height(8.dp))
+                NavigationDrawerItem(
+                    label = { Text(stringResource(R.string.inbox_title)) },
+                    icon = { Icon(painterResource(R.drawable.ic_notifications), contentDescription = null) },
+                    badge = { UnreadBadge(inboxUnread) },
+                    selected = inInbox,
+                    onClick = onOpenInbox,
+                )
             }
 
             // At the bottom: Manage topics (topics with their feeds), and Settings.
@@ -202,23 +186,17 @@ fun FeedDrawer(
     }
 }
 
-/** A section's header: its name in the primary colour, a fold arrow, and a count while folded shut. */
+/** A section's header: its name in the primary colour. */
 @Composable
 private fun SectionHeader(
     title: String,
-    open: Boolean,
-    count: Int,
-    onToggle: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val turn by animateFloatAsState(if (open) 0f else -90f, label = "fold")
     Row(
         modifier =
             modifier
                 .fillMaxWidth()
                 .heightIn(min = 48.dp)
-                .clip(CircleShape)
-                .toggleable(value = open, role = Role.Button, onValueChange = { onToggle() })
                 .padding(start = 16.dp, end = 16.dp)
                 .semantics { heading() },
         verticalAlignment = Alignment.CenterVertically,
@@ -227,21 +205,6 @@ private fun SectionHeader(
             text = title,
             style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.weight(1f),
-        )
-        if (count > 0) {
-            Text(
-                count.toString(),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(end = 8.dp),
-            )
-        }
-        Icon(
-            painterResource(R.drawable.ic_expand_more),
-            contentDescription = stringResource(if (open) R.string.action_collapse else R.string.action_expand),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.rotate(turn),
         )
     }
 }

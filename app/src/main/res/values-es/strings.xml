@@ -234,8 +234,6 @@
     <string name="account_delete_confirm">¿Eliminar tus feeds, artículos leídos y ajustes del servidor de Content? Se quedan en este dispositivo y se cierra tu sesión en todas partes.</string>
     <string name="account_deleted">Datos sincronizados eliminados</string>
     <string name="action_delete">Eliminar</string>
-    <string name="action_collapse">Contraer</string>
-    <string name="action_expand">Expandir</string>
     <string name="action_search">Buscar</string>
     <string name="search_hint">Buscar artículos</string>
     <string name="action_clear">Borrar</string>
