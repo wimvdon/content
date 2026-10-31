@@ -240,10 +240,15 @@ automatic loading off. Full articles are kept for a while, so opening one again 
 **Pictures and videos.** The list shows each article's picture as a thumbnail; a link you save or
 share from another app gets the picture (and description) the page itself names, and so does a saved article without a picture when you open it. In the reader the
 picture appears above the title, and the pictures inside the article appear between the
-paragraphs, with their captions. Embedded videos and posts (YouTube, Vimeo, X, Instagram,
-Spotify and others) show as a card with a preview; tap it to watch or open it in its app or the
-browser. **Settings › Reader › Show images** turns pictures and previews off (for example to save
-data); embed cards stay, without preview.
+paragraphs, with their captions. Embedded videos and audio show as a card with the service's name
+(and, for YouTube and Dailymotion, a preview): **YouTube, Vimeo, Spotify, SoundCloud, Dailymotion,
+Apple Music, Apple Podcasts, Bandcamp and TikTok** say "Tap to play" ("Click to play" in the web
+app): tapping loads the service's own player right there, in the article, and **Open in …** under
+it opens the same thing in the service's app or site. Full screen works from the player's own
+button. A video the website hosts itself plays the same way. Nothing loads from those services
+before you tap (see PRIVACY.md). X and Instagram posts, and embeds of other kinds, are cards that
+open in their app or the browser. **Settings › Reader › Show images** turns pictures and previews
+off (for example to save data); embed cards stay, without preview.
 
 ## Save and Share
 

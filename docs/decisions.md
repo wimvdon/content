@@ -2,6 +2,22 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-31: Embedded players play inside the article, on tap
+
+- The owner asked for YouTube, Spotify and the other major players in the reader, replacing the
+  2026-10-15 choice of cards that only open the app or browser. A card still comes first, so
+  nothing loads from a service until it is tapped; then the service's own player takes its place
+  (Android: a small WebView showing only that player, loaded under the web app's address because
+  YouTube refuses players without a page address; web: a sandboxed iframe). Links the player opens
+  go to the browser or the service's app.
+- Known players, the same list on both (`feed/Embeds.kt`, `web/src/lib/embeds.ts`): YouTube (from
+  youtube-nocookie.com), Vimeo, Spotify, SoundCloud, Dailymotion, Apple Music, Apple Podcasts,
+  Bandcamp, TikTok, each with the size it asks for (fixed heights for the audio players). A site's
+  own video file plays in a plain video player. X and Instagram posts need their sites' scripts in
+  the page, so they stay cards that open the post; unknown iframes stay cards too (they could be
+  anything, such as ads or forms).
+- PRIVACY.md now names the players. No new library: WebView is part of Android.
+
 ## 2026-10-31: The drawer's logo without its circle
 
 - At the owner's request, the logo at the top of the drawer (and the web app's sidebar) is the C on

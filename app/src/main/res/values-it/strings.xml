@@ -131,8 +131,8 @@
     <string name="reader_full_articles_summary">Se un feed ha solo un riassunto, scarica l\'articolo intero dal sito</string>
     <string name="reader_show_images_title">Mostra immagini</string>
     <string name="reader_show_images_summary">Negli articoli e nell’elenco</string>
-    <string name="embed_youtube">Guarda su YouTube</string>
-    <string name="embed_vimeo">Guarda su Vimeo</string>
+    <string name="embed_tap_to_play">Tocca per riprodurre</string>
+    <string name="embed_open_in">Apri in %1$s</string>
     <string name="embed_video">Riproduci video</string>
     <string name="embed_other">Apri contenuto incorporato</string>
     <string name="share_target_missing_short">%1$s non è installato</string>

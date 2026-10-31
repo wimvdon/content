@@ -129,8 +129,8 @@
     <string name="reader_full_articles_summary">Als een feed alleen een samenvatting heeft, het hele artikel van de website halen</string>
     <string name="reader_show_images_title">Afbeeldingen tonen</string>
     <string name="reader_show_images_summary">In artikels en de lijst</string>
-    <string name="embed_youtube">Bekijken op YouTube</string>
-    <string name="embed_vimeo">Bekijken op Vimeo</string>
+    <string name="embed_tap_to_play">Tik om af te spelen</string>
+    <string name="embed_open_in">Openen in %1$s</string>
     <string name="embed_video">Video afspelen</string>
     <string name="embed_other">Ingesloten inhoud openen</string>
     <string name="share_target_missing_short">%1$s is niet geïnstalleerd</string>
