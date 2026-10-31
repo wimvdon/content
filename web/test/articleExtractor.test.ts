@@ -79,6 +79,13 @@ describe("extractArticle", () => {
     expect(article).toContain('<a href="https://example.com/up">up</a>');
     expect(article).toContain('src="https://example.com/a/pic.jpg"');
     expect(article).toContain('srcset="https://example.com/a/pic-2x.jpg 2x"');
+    // Commas inside an address (Substack's image server) are no separators.
+    const substack = "https://substackcdn.com/image/fetch/w_1456,c_limit,f_auto/https%3A%2F%2Fs3.example%2Fpic.png";
+    const withCommas = extractArticle(
+      page(`<article><p>${paragraph}</p><p>${paragraph}</p><img src="${substack}" srcset="${substack} 1456w, ${substack.replace("1456", "424")} 424w"><p>${paragraph}</p></article>`),
+      "https://example.com/a/b",
+    );
+    expect(withCommas).toContain(`srcset="${substack} 1456w, ${substack.replace("1456", "424")} 424w"`);
     for (const word of ["span", "style", "onclick", "onerror", "class"]) expect(article).not.toContain(word);
   });
 });

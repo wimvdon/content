@@ -1,6 +1,7 @@
 import DOMPurify from "dompurify";
 import { EMBED_SERVICES, embedFor, videoEmbed, type Embed } from "./embeds";
 import { t, type Key } from "./i18n";
+import { candidateSize, parseSrcset, type SrcsetCandidate } from "./srcset";
 
 /**
  * Article HTML made safe to show: no scripts, styles, forms or frames; video players and other
@@ -90,13 +91,8 @@ function pixels(value: string | null): number | null {
 
 /** The address of the widest picture in a srcset ("a.jpg 400w, b.jpg 800w"), or null. */
 function largestFromSrcset(srcset: string | null): string | null {
-  let best: { url: string; size: number } | null = null;
-  for (const part of srcset?.split(",") ?? []) {
-    const [url, descriptor] = part.trim().split(/\s+/);
-    if (!url) continue;
-    const size = Number.parseFloat(descriptor ?? "1") || 1;
-    if (!best || size > best.size) best = { url, size };
-  }
+  let best: SrcsetCandidate | null = null;
+  for (const c of parseSrcset(srcset)) if (!best || candidateSize(c) > candidateSize(best)) best = c;
   return best?.url ?? null;
 }
 
