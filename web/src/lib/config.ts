@@ -4,7 +4,7 @@
  */
 
 /** The owner's feed loader, the Cloudflare Worker in worker/. It also keeps the Reader accounts. */
-export const PROXY_URL = "https://content-worker.wim-d57.workers.dev";
+export const PROXY_URL = "https://content-worker.wim.to";
 
 /** The Instapaper application (API v2): its client ID is public. The client secret lives only in the Worker. */
 export const INSTAPAPER_CLIENT_ID = "94f820c94dc04d0386c71d7b0c26bd80";

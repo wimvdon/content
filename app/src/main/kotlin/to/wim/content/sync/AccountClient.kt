@@ -203,7 +203,7 @@ class AccountClient(
 
     companion object {
         /** The owner's feed loader, which also keeps the accounts. */
-        const val BASE_URL = "https://content-worker.wim-d57.workers.dev"
+        const val BASE_URL = "https://content-worker.wim.to"
 
         private val JSON_TYPE = "application/json; charset=utf-8".toMediaType()
 

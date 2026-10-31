@@ -57,7 +57,7 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   on screen (when it opens, a second after a change, on refresh, on Sync now, and at once when
   another of your devices changed something; never in the background) it reads and saves your data
   in your account on the owner's feed loader (a Cloudflare Worker, built from `worker/`, at
-  content-worker.wim-d57.workers.dev): one document with your feed list (addresses, names,
+  content-worker.wim.to): one document with your feed list (addresses, names,
   folders, website and icon addresses), your folders and two settings (Load full articles and Mark
   as read on scroll; not the view settings such as theme, text settings, pictures and list view, the
   Unread filter, or the Save and Share targets, which stay on each device); and one record per item:

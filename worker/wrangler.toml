@@ -14,7 +14,7 @@ enabled = false
 
 [vars]
 # The web app's address(es): only pages there may use this Worker. Local development too.
-ALLOWED_ORIGINS = "https://content.wim.to,https://content-web.wim-d57.workers.dev,https://content-worker.wim-d57.workers.dev,http://localhost:5173"
+ALLOWED_ORIGINS = "https://content.wim.to,https://content-web.wim-d57.workers.dev,https://content-worker.wim.to,http://localhost:5173"
 
 # Instapaper sign-in (docs/instapaper.md). The client ID is public. The client secret is NOT here:
 # set it as a Worker secret named INSTAPAPER_CLIENT_SECRET.
