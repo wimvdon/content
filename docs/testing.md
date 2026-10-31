@@ -67,6 +67,7 @@ when the run fails.
 | `MixedSearchTest` | Search's ranking: the whole query in a title above single words above text-only matches, feed and reading list results in one list (then newest), the All/Feeds/Reading list chips; `SearchResultsTest`: the Search tab without words (everything, newest first) and its filters (feed folder, feed, Saved folder, tag, type); `ItemSearchTest`: the reading list searched by title, website, description, tags, note and highlights, title matches first; the web app's `test/search.test.ts` checks the ranking too |
 | `SavedTest` | Saved (#119): each item in one place (To read, a folder, Archive) and All with them all, newest first; Liked and tags (all of them); chips in the topics' order (alphabetical without topics); folders and counts, a filter without a folder or tags that are gone; filing and archiving (out of the folder); renaming (joining) and removing folders; the folder through sync and its merge |
 | `TopicsTest` | Topics: every tag gets its topic once (the same id on every device), topics with one name joined with their feeds, no second topic with a taken name, renaming on feeds and saved articles (to another one's name joins the two), removing keeps feeds and articles, counts and the topics' order, a saved feed article gets its feed's topic; Feeds' places and Back going up a level; reordering topics and one topic's feeds; merging; the topic being viewed (Edit topic). The web app's `test/topics.test.ts` checks the same library the same way. |
+| `FeedChipsTest` | Feeds' chip rows without ☰: the topics then the feeds without a topic, a chosen topic's feeds in a second row, a feed keeping its topic lit (or lit itself in the first row when it has none), the chosen topic staying a chip, a tagged feed counting as in its topic |
 | `ReadingListsTest` | Reading times and minutes left, an item shown like its feed article (or with its description), its source (feed or website with favicon) |
 | `ServiceSyncTest` | An article the service has twice, with and without tracking parameters, becomes one here and there, rows from before move to the new key (#253); Saved and a fake service (#145): connecting imports the whole account, or nothing when the user says so (#251: what is there stays until it changes, Saved still goes there), folders in and out (filing, archiving leaves the folder), adding, archiving, liking and tagging sent once, what came in not sent back, removing sent (a bookmark stays), changes on both sides to other fields both kept, the same field: the later change wins (Reader's without a time from the service), deleted at the service leaves Saved unless changed here or another service keeps it in step, removed here but changed there stays, a link the service has joins it, a failure keeps everything and the rest goes next time, progress, notes; a save reaches every service whose scope covers its folder, a scope losing a folder archives its articles there (never deletes) and gaining it brings them back, an import lands each article in its place and leaves the rest there until it changes, another device's import, folder origins kept, entries stored and read back (rows from before #145 in step), a new article sent with Content's text to a service that takes it only when saved in the last week, and added without it when there is none (#247); the web app's `test/serviceSync.test.ts` covers the same rules |
 | `InstapaperReadingListTest` | Instapaper as the reading list's service, with recorded answers: `since` page by page with deletions and folders, filing into a folder made there when missing, the first sync asks for everything, adding with tags and archive, adding with Content's text and with the link alone when Instapaper refuses the text (#247), only changes sent (taking the folder's tag off moves it home), problems mapped |
@@ -118,16 +119,16 @@ and then (always before a release):
       to the share menu. Settings › Save and share looks the same signed in to Instapaper or not.
 - [ ] **List:** at app start the list shows loading placeholders, never "No feeds yet" first.
       Swipe an article right past a third: a tick, it becomes read, then unread; swipe one left (Save, a list
-      icon): the save sheet opens, then "Saved to To read" with **Open**, which opens the article; a short swipe does nothing; swiping never opens the ☰ menu. The Unread chip in its own row under the folder tabs (not in the top bar) switches unread only (filled, check) / all.
+      icon): the save sheet opens, then "Saved to To read" with **Open**, which opens the article; a short swipe does nothing; The Unread chip in its own row under the folder tabs (not in the top bar) switches unread only (filled, check) / all.
       Scroll down: the title, the folder tabs and the Unread chip slide away together; scroll up a
       little: they come back; pulling down at the very top refreshes, and the spinner stays in place
       until the refresh is done (no jump back up and down again), also on the reading list. Settings › Article list › View: Small,
       Medium and Large each look right, with and without pictures.
-- [ ] **Website icons:** after a refresh, feeds show their site's icon in the list, ☰ menu,
+- [ ] **Website icons:** after a refresh, feeds show their site's icon in the list, their chips,
       manage page and reader, on a light tile; in dark mode dark logos are still visible; a feed
       without one shows its first letter.
 - [ ] **Manage feeds and folders:** drag a feed into another folder and above another feed; drag
-      a folder above another; the drawer and folder tabs follow the new order. Tap a feed, rename
+      a folder above another; the chips follow the new order. Tap a feed, rename
       it, refresh: the name stays; clear it: the feed's own name comes back after a refresh.
 - [ ] **Search tab (#171):** the bottom bar has Feeds, Saved and Search; Search shows everything
       (feeds and Saved, newest first) before you type. Feeds › Folder and Feed narrow it to a folder
@@ -143,11 +144,11 @@ and then (always before a release):
 - [ ] **Navigation bar:** a bar at the bottom has Feeds and Saved, and signed in the Inbox with a
       dot while something in it is unread (a rail at the left in landscape on a tablet). The Mark all
       read and Add link buttons and messages sit above the bar. Signed out, there is no Inbox.
-- [ ] **Navigation:** the ☰ drawer has the Feeds section (Feed, topics, feeds) and the Saved section
-      (To read, Archive), always open, then the Inbox section under its own header (signed in: Shared
-      with you, with its unread count), Manage
-      topics and Settings. In a topic, a feed, Saved or the Inbox, Back goes up a level; on All, Back
-      closes the app.
+- [ ] **Navigation:** there is no ☰. The search bar ends with Settings (your picture signed in,
+      else a cogwheel). In Feeds the chips are Unread/All, the topics, then the feeds without a
+      topic, then the Manage topics icon; picking a topic shows a second row with its feeds, and
+      tapping one shows that feed alone. Settings › Feeds › Manage topics opens the same page. In a
+      topic, a feed, Saved or the Inbox, Back goes up a level; on All, Back closes the app.
 - [ ] **Archive from the reader:** a saved article in To read has an Archive button next to its
       list at the bottom; tapping it closes the article, shows Archived with Undo, and Undo puts it
       back. An archived article has no Archive button.
@@ -161,7 +162,7 @@ and then (always before a release):
       icons in the same colour), and Share at the right end; the text ends with Read on website; ⋮
       has Open in browser, Mark as unread and Remove from Saved (asks first, everywhere), no Tags. Web app: the same.
       Nothing says "Finished reading", in any language.
-      Leave an article halfway and open it again: it opens where you were. ☰ › Folders and tags
+      Leave an article halfway and open it again: it opens where you were. Manage topics
       renames and removes folders (their articles go to the Archive, not back to To read) and tags. An app updated from a
       version with Bookmarks shows them in folders (their collection, or "Bookmarks").
       The Undo message after Mark all as read shows above the folder bar.
@@ -180,7 +181,7 @@ and then (always before a release):
 - [ ] Two devices: let a read article drop out of a busy feed (or remove the feed) on one; on the
       other it stays read. Add the feed again: its read articles come back read.
 - [ ] Import and export OPML (for example an Inoreader export); folders come along both ways.
-- [ ] **Manage feeds** (☰): create a folder, search an icon (e.g. *soccer*) and pick it, move feeds into it (they show under it); the bottom bar appears, its
+- [ ] **Manage feeds** (the icon at the end of the chips): create a folder, search an icon (e.g. *soccer*) and pick it, move feeds into it (they show under it); the bottom bar appears, its
       tabs show only that folder's articles; Mark all read (round button) only marks that
       section and Undo restores it; removing the folder keeps its feeds and hides the bar.
 - [ ] **Dark mode** and **Settings › Appearance**: switch Theme and Dynamic color. Text stays
@@ -189,7 +190,7 @@ and then (always before a release):
 - [ ] **Language**: Settings › System › Languages › App languages › Reader › each language.
       All text is translated.
 - [ ] **Large text**: Settings › Display › Font size at maximum. Nothing is cut off.
-- [ ] **Back** gesture/button behaves as expected (also with the drawer and Text sheet open).
+- [ ] **Back** gesture/button behaves as expected (also with the Text sheet open).
 - [ ] **No connection**: pull to refresh shows how many feeds failed; stored articles still open.
 - [ ] After a release: install the release APK over the previous release. It updates without
       losing feeds.

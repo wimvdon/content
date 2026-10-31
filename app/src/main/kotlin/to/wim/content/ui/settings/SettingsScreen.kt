@@ -43,6 +43,7 @@ import to.wim.content.ui.theme.AppShapes
 import to.wim.content.ui.theme.AppearanceSettings
 import to.wim.content.ui.theme.SettingsBlock
 import to.wim.content.ui.theme.SettingsSection
+import to.wim.content.ui.theme.SettingItem
 import to.wim.content.ui.theme.SettingsFooter
 import to.wim.content.ui.theme.SettingsScaffold
 import to.wim.content.ui.theme.SwitchSetting
@@ -89,6 +90,8 @@ class SettingsActions(
     val onNotifyShared: (Boolean, (Boolean) -> Unit) -> Unit = { _, _ -> },
     /** Forgets a site's sign-in (#180). */
     val onRemoveSiteSignIn: (String) -> Unit = {},
+    /** Manage topics (also at the end of the chip rows): the topics and their feeds. */
+    val onOpenManage: () -> Unit = {},
 )
 
 /** Everything that can be set, as one list of sections in the order DESIGN.md gives. */
@@ -125,6 +128,18 @@ fun SettingsScreen(
                 SettingsSection(title = stringResource(R.string.section_instapaper)) {
                     InstapaperSettings(instapaper, actions.onInstapaperSignIn, actions.onInstapaperSync, actions.onInstapaperSignOut, actions.onInstapaperImport)
                 }
+            }
+        }
+        // Topics and feeds, which the chip rows open too; here since there is no ☰ menu.
+        item(key = "topics") {
+            SettingsSection(title = stringResource(R.string.feeds_title)) {
+                SettingItem(
+                    title = stringResource(R.string.menu_manage),
+                    summary = null,
+                    onClick = actions.onOpenManage,
+                    icon = painterResource(R.drawable.ic_manage_feeds),
+                    trailing = { Icon(painterResource(R.drawable.ic_chevron_right), contentDescription = null) },
+                )
             }
         }
         item(key = "list") { ListSection(state.settings, actions) }

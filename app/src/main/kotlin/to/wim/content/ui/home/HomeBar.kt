@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.FilterChip
@@ -39,16 +40,23 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import coil3.compose.SubcomposeAsyncImage
 import to.wim.content.R
+import to.wim.content.data.Feed
+import to.wim.content.sync.Gravatar
 
 /**
- * The title bar as a large search bar (#189): ☰ at its start, then "Search articles", which opens
- * Search.
+ * The title bar as a large search bar (#189): the magnifier, "Search articles" (which opens Search),
+ * and at the end Settings: the account's picture when it has one (Gravatar, with Show images on),
+ * else a cogwheel. There is no ☰ menu: every place is a chip or in the navigation bar.
  */
 @Composable
 fun HomeSearchBar(
-    onMenu: () -> Unit,
     onSearch: () -> Unit,
+    onSettings: () -> Unit,
+    /** The Content account's address, for its picture; null when signed out. */
+    accountEmail: String? = null,
+    showImages: Boolean = true,
 ) {
     Surface(
         shape = CircleShape,
@@ -62,9 +70,12 @@ fun HomeSearchBar(
                 .clickable(role = Role.Button, onClick = onSearch),
     ) {
         Row(Modifier.padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onMenu) {
-                Icon(painterResource(R.drawable.ic_menu), contentDescription = stringResource(R.string.action_open_menu))
-            }
+            Icon(
+                painterResource(R.drawable.ic_search),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 12.dp),
+            )
             Text(
                 stringResource(R.string.search_hint),
                 style = MaterialTheme.typography.bodyLarge,
@@ -73,19 +84,29 @@ fun HomeSearchBar(
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f).padding(horizontal = 4.dp),
             )
-            Icon(
-                painterResource(R.drawable.ic_search),
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 12.dp),
-            )
+            IconButton(onClick = onSettings) {
+                val cog: @Composable () -> Unit = {
+                    Icon(painterResource(R.drawable.ic_settings), contentDescription = stringResource(R.string.menu_settings))
+                }
+                if (accountEmail != null && showImages) {
+                    SubcomposeAsyncImage(
+                        model = Gravatar.url(accountEmail, 96),
+                        contentDescription = stringResource(R.string.menu_settings),
+                        loading = { cog() },
+                        error = { cog() },
+                        modifier = Modifier.size(32.dp).clip(CircleShape),
+                    )
+                } else {
+                    cog()
+                }
+            }
         }
     }
 }
 
 /**
  * The state chip at the start of the chip row (#205): what of the place is shown, Unread or All in
- * Feeds, To read, Archive or All in Saved. A menu picks another; it is lit while it leaves things out.
+ * Feeds, To read or Archive in Saved. A menu picks another; it is lit while it leaves things out.
  */
 @Composable
 fun StateChip(
@@ -133,6 +154,10 @@ fun TagChips(
     state: @Composable () -> Unit,
     /** Saved's Liked chip (#206), the first group. */
     liked: (@Composable () -> Unit)? = null,
+    /** Feeds' feeds without a topic (FeedChips), after the topics and a divider. */
+    loose: (@Composable () -> Unit)? = null,
+    /** Manage topics, as the row's last button. */
+    onManage: (() -> Unit)? = null,
 ) {
     Row(
         Modifier
@@ -154,10 +179,56 @@ fun TagChips(
                 label = { Text(tag) },
             )
         }
+        if (loose != null) {
+            if (tags.isNotEmpty() || liked != null) VerticalDivider(Modifier.height(24.dp))
+            loose()
+        }
         if (filtered) {
             IconButton(onClick = onClear) {
                 Icon(painterResource(R.drawable.ic_close), contentDescription = stringResource(R.string.action_clear))
             }
+        }
+        if (onManage != null) {
+            IconButton(onClick = onManage) {
+                Icon(painterResource(R.drawable.ic_manage_feeds), contentDescription = stringResource(R.string.menu_manage))
+            }
+        }
+    }
+}
+
+/** A feed as a chip, with its icon: in the first row (no topic) or the second (a topic's feeds). */
+@Composable
+fun FeedChip(
+    feed: Feed,
+    chosen: Boolean,
+    onClick: () -> Unit,
+) {
+    FilterChip(
+        selected = chosen,
+        onClick = onClick,
+        label = { Text(feed.title, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = 200.dp)) },
+        leadingIcon = { FeedIcon(feed, FeedIconSize.Small) },
+    )
+}
+
+/** The second chip row, while a topic is chosen (FeedChips): its feeds; one tapped shows it alone, again the topic. */
+@Composable
+fun TopicFeedChips(
+    feeds: List<Feed>,
+    chosenFeed: String?,
+    onSelect: (feedUrl: String?) -> Unit,
+) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        feeds.forEach { feed ->
+            val on = feed.url == chosenFeed
+            FeedChip(feed, on) { onSelect(if (on) null else feed.url) }
         }
     }
 }
