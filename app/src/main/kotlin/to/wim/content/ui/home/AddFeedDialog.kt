@@ -1,0 +1,93 @@
+package to.wim.content.ui.home
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import to.wim.content.R
+
+/**
+ * Asks for a website or feed address. [busy] shows a spinner in the Add button while the app
+ * looks for the feed; [error] explains why the last attempt failed.
+ */
+@Composable
+fun AddFeedDialog(
+    busy: Boolean,
+    error: String?,
+    onAdd: (String) -> Unit,
+    onDismiss: () -> Unit,
+    /** An address to start with: the link shared to the share menu's Add feed. */
+    initialAddress: String = "",
+) {
+    var address by rememberSaveable { mutableStateOf(initialAddress) }
+    // The address last tried: its problem shows until the address is changed.
+    var tried by rememberSaveable { mutableStateOf("") }
+    val shownError = error?.takeIf { address == tried }
+    val add = {
+        tried = address
+        onAdd(address)
+    }
+    val focus = remember { FocusRequester() }
+    LaunchedEffect(Unit) { focus.requestFocus() }
+    val canAdd = address.isNotBlank() && !busy
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.feeds_add)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = address,
+                    onValueChange = { address = it },
+                    label = { Text(stringResource(R.string.add_feed_label)) },
+                    singleLine = true,
+                    enabled = !busy,
+                    isError = shownError != null,
+                    supportingText =
+                        shownError?.let {
+                            { Text(it, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }) }
+                        },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = { if (canAdd) add() }),
+                    modifier = Modifier.focusRequester(focus),
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = add, enabled = canAdd) {
+                if (busy) {
+                    CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.size(18.dp))
+                } else {
+                    Text(stringResource(R.string.action_add))
+                }
+            }
+        },
+        dismissButton = {
+            // While it looks for the feed, Cancel can't stop it: shown as off rather than doing nothing.
+            TextButton(onClick = onDismiss, enabled = !busy) { Text(stringResource(R.string.action_cancel)) }
+        },
+    )
+}

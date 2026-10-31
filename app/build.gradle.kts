@@ -10,10 +10,10 @@ plugins {
 // ---------------------------------------------------------------------------
 // App identity: the ONE place to change the package / application ID. Once the app is
 // released it must never change again (phones would treat it as a different app). It changed
-// once, from be.wimvandonck.reader to be.wimvandonck.content, at the owner's request (see
-// docs/decisions.md): that made Content a new app next to the old one.
+// twice at the owner's request, from be.wimvandonck.reader to be.wimvandonck.content and then to
+// to.wim.content (see docs/decisions.md): each time Content became a new app next to the old one.
 // ---------------------------------------------------------------------------
-val appId = "be.wimvandonck.content"
+val appId = "to.wim.content"
 
 // ---------------------------------------------------------------------------
 // Versioning
