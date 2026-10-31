@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { emptyChoice } from "../src/lib/saveChoice";
-import { actionOf, canConfirm, isEmail, outcomeOf, people, toggle } from "../src/lib/sendTo";
+import { actionOf, canConfirm, isEmail, newAddress, outcomeOf, people, suggestions, SUGGESTIONS, toggle } from "../src/lib/sendTo";
 
 describe("Save and share: sending with Content (#256), as on Android", () => {
   it("knows what looks like an email address", () => {
@@ -49,5 +49,20 @@ describe("Save and share: sending with Content (#256), as on Android", () => {
         ["cas@example.com", "offline"],
       ]),
     ).toEqual({ failed: "bart@example.com", status: "noAccount" });
+  });
+
+  it("suggests people not picked yet in the To field, by address or name", () => {
+    const recent = ["ann@example.com", "bob@example.com", "carol@work.be"];
+    expect(suggestions(recent, ["Ann@Example.com"], "")).toEqual(["bob@example.com", "carol@work.be"]);
+    expect(suggestions(recent, [], "WORK")).toEqual(["carol@work.be"]);
+    expect(suggestions(recent, [], "smith", (e) => (e === "bob@example.com" ? "Robert Smith" : null))).toEqual(["bob@example.com"]);
+    expect(suggestions([1, 2, 3, 4, 5, 6, 7].map((i) => `p${i}@x.be`), [], "")).toHaveLength(SUGGESTIONS);
+  });
+
+  it("offers a whole new address typed in the To field", () => {
+    expect(newAddress(["ann@example.com"], [], " new@example.com ")).toBe("new@example.com");
+    expect(newAddress(["ann@example.com"], [], "new@exa")).toBeNull();
+    expect(newAddress(["ann@example.com"], [], "ANN@example.com")).toBeNull();
+    expect(newAddress([], ["new@example.com"], "new@example.com")).toBeNull();
   });
 });

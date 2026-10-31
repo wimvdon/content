@@ -313,9 +313,11 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   row (Like, then every tag in use as a `FilterChip` without a check mark, in a steady order so
   nothing moves when one is chosen, then a New tag `AssistChip` that opens a field to make a new
   one), **Note** with the room, then, signed in, **Send with Content**:
-  the people shared with as `FilterChip`s with their avatar, several at once, and an Add address
-  `AssistChip` that opens a field (checked for a Content account before the person joins the
-  chips). Section titles in Title Small, `primary`. Then Cancel and the button, which says **Save**,
+  an email-style To field (#284): an outlined box with "To", the people picked as `InputChip`s
+  (avatar, name, × to take them out) and a borderless field for a name or address; under it, up to
+  five suggestions as `ListItem`s (avatar, name, address; tap adds), filtered by what is typed, and
+  "Add …" for a whole new address (checked for a Content account first). Long-press a suggestion
+  for trash buttons that forget people; Done ends it. Section titles in Title Small, `primary`. Then Cancel and the button, which says **Save**,
   **Save and send** or **Send**: closing the sheet is Cancel, so only the button changes or sends
   anything; the heading is "Save and share", or "Organise" for an article saved before: that one has no Send
   with Content (Share is next to Organise) and a red Remove at the bottom left. Right after a save there is no Remove:
@@ -337,8 +339,7 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   Saved section (Saved with its count, then Liked and the tags with their counts, without a Tags heading), then
   **Manage feeds and Saved** (the feed symbol with a pen) and Settings at the bottom.
 - Content's share sheet (#251): a `ModalBottomSheet` with the article's title and site, **Send with
-  Content** the same as in the Save and share sheet (the people shared with as `FilterChip`s, Add
-  address with a filled + button that adds them to the chips, then a Send button), then the apps as 48dp icons with their names,
+  Content** the same To field as in the Save and share sheet, then a full-width Send button, then the apps as 48dp icons with their names,
   four to a row, Copy link and More last.
 - Site icons sit on a fixed light tile (`#F4F4F4`, rounded, 10% padding) in light and dark mode,
   so logos drawn for light browser tabs keep their contrast; the letter fallback uses

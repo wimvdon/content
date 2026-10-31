@@ -2,6 +2,18 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-31: Send with Content as an email's To field (#284)
+
+- The owner found picking people unclear: which chip was picked, which could be, and what Add
+  address did. Send with Content now looks like the To field people know from Gmail: the people
+  picked are chips inside a To box with an ×, a field after them takes a name or address, and the
+  people shared with before are suggestions below it (up to five, filtered as you type; `SendTo.
+  suggestions`), with "Add …" for a whole new address (`SendTo.newAddress`). Picked and not picked
+  are now two different places instead of one chip's state. Forgetting someone moved to the
+  suggestions (long-press, then trash). Same on the web.
+- Rejected: keeping the chips and only renaming Add address (the picked/not picked state stayed hard
+  to read); a separate people picker screen (more taps for the common case).
+
 ## 2026-10-30: Notifications show what was shared, silently
 
 - At the owner's request, a "shared with you" notification on Android shows the first article's

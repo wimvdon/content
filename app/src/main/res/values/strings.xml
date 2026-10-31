@@ -85,9 +85,12 @@
     <string name="share_user_sent">Sent to %1$s</string>
     <string name="save_share_title">Save and share</string>
     <string name="action_save_and_send">Save and send</string>
-    <string name="share_add_address">Add address</string>
     <string name="share_recipients_done">Done</string>
-    <string name="share_recipient_forget">Remove %1$s</string>
+    <string name="share_to">To</string>
+    <string name="share_to_hint">Name or email address</string>
+    <string name="share_add_person">Add %1$s</string>
+    <string name="share_recipient_remove">Don\'t send to %1$s</string>
+    <string name="share_recipient_forget">Remove %1$s from suggestions</string>
     <plurals name="share_sent_people">
         <item quantity="one">Sent to %1$d person</item>
         <item quantity="other">Sent to %1$d people</item>
