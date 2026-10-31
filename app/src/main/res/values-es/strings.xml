@@ -329,7 +329,7 @@
         <item quantity="other">%d guardados</item>
     </plurals>
     <string name="welcome_title">Te damos la bienvenida a Content</string>
-    <string name="welcome_body">Inicia sesión con tu correo para tener los mismos feeds y artículos guardados en todos tus dispositivos y en la app web. ¿Eres nuevo? El mismo enlace crea tu cuenta. Sin contraseña.</string>
+    <string name="welcome_body">Crea una cuenta o inicia sesión.</string>
     <string name="welcome_without_account">O empieza solo en este dispositivo:</string>
     <string name="welcome_import">Importar desde otro lector</string>
     <string name="topic_in_feeds">Feeds · %1$s</string>

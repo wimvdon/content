@@ -322,7 +322,7 @@
         <item quantity="other">%d saved</item>
     </plurals>
     <string name="welcome_title">Welcome to Content</string>
-    <string name="welcome_body">Sign in with your email to keep your feeds and saved articles the same on every device and in the web app. New here? The same link makes your account. No password.</string>
+    <string name="welcome_body">Create an account or sign in.</string>
     <string name="welcome_without_account">Or start on this device only:</string>
     <string name="welcome_import">Import from another reader</string>
     <string name="topic_in_feeds">Feeds · %1$s</string>

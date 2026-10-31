@@ -133,7 +133,7 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, on
         ) : library.feeds.length === 0 && !account ? (
           // The first screen, signed out: the Content account first, starting here only second.
           <Empty icon={Rss} title={t("welcomeTitle")} text={t("welcomeBody")}>
-            <div className="w-full max-w-sm text-left">
+            <div className="w-full max-w-sm text-center">
               <EmailLinkForm id="welcome-email" />
             </div>
             <p className="pt-4 text-sm text-muted-foreground">{t("welcomeWithoutAccount")}</p>
