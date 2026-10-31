@@ -35,11 +35,13 @@ come along.
 Under Import OPML, **From Feedly**, **From Inoreader** and **From Substack** open numbered steps
 (both apps):
 
-- **Feedly**: on a computer, sign in on feedly.com and go to feedly.com/i/opml (the app can't
-  export); boards and Read Later stay in Feedly.
-- **Inoreader**: on a computer, Preferences (the gear) › Import/Export › Export to OPML file.
-- **Substack** has no file: open a publication's home page (not a post or a note), Share ›
-  Content › **Add feed**, then **Add**; on the web, paste its address in Add feed.
+- **Feedly**: sign in on feedly.com and go to feedly.com/i/opml; boards and Read Later stay in
+  Feedly.
+- **Inoreader**: Preferences (the gear) › Import/Export › Export to OPML file.
+- **Substack** has no file: open the publication, one of its posts or a note, Share › Content ›
+  **Add feed**, then **Add**; on the web, paste the link in Add feed. **Add feed** takes any
+  Substack link (`substack.com/@name/…`, `open.substack.com/pub/name/…`, `name.substack.com/p/…`)
+  for its publication, `name.substack.com`.
 
 ## Folders
 

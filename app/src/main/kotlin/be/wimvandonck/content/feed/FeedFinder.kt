@@ -36,7 +36,9 @@ class FeedFinder(
     private val fetch: suspend (String) -> Fetched,
 ) {
     suspend fun find(input: String): FindResult {
-        val url = FeedDiscovery.normalizeUrl(input) ?: return FindResult.InvalidAddress
+        val typed = FeedDiscovery.normalizeUrl(input) ?: return FindResult.InvalidAddress
+        // Any Substack link (a note, post or profile) stands for its publication, which has the feed.
+        val url = FeedDiscovery.substackPublication(typed) ?: typed
         val page =
             try {
                 fetch(url)

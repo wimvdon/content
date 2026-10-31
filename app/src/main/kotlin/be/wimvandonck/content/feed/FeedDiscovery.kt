@@ -30,6 +30,28 @@ object FeedDiscovery {
         return uri.toString()
     }
 
+    private val SUBSTACK_NAME = Regex("^[a-z0-9-]+$")
+
+    /**
+     * The publication behind any Substack link, where its feed is found: a note, post or profile on
+     * substack.com (`substack.com/@name/...`), an `open.substack.com/pub/name/...` link, or a post on
+     * `name.substack.com` all give `https://name.substack.com/`. Null for any other address (a
+     * publication on its own domain is found as it is).
+     */
+    fun substackPublication(url: String): String? {
+        val uri = runCatching { URI(url) }.getOrNull() ?: return null
+        val host = uri.host?.lowercase() ?: return null
+        val segments = uri.path.orEmpty().split('/').filter { it.isNotEmpty() }
+        val name =
+            when {
+                host == "substack.com" || host == "www.substack.com" -> segments.firstOrNull()?.takeIf { it.startsWith("@") }?.drop(1)
+                host == "open.substack.com" -> segments.takeIf { it.firstOrNull() == "pub" }?.getOrNull(1)
+                host.endsWith(".substack.com") -> host.removeSuffix(".substack.com").takeIf { !it.contains('.') }
+                else -> null
+            }?.lowercase()
+        return name?.takeIf { SUBSTACK_NAME.matches(it) }?.let { "https://$it.substack.com/" }
+    }
+
     private fun withScheme(text: String): String =
         when {
             text.startsWith("https://", ignoreCase = true) -> "https://" + text.substring(8)

@@ -29,8 +29,6 @@ fun ImportGuides() {
             NumberedSteps(
                 listOf(
                     stringResource(R.string.import_feedly_step1),
-                    stringResource(R.string.import_feedly_step2),
-                    stringResource(R.string.import_step_to_device),
                     stringResource(R.string.import_step_import),
                 ),
             )
@@ -41,8 +39,6 @@ fun ImportGuides() {
                 listOf(
                     stringResource(R.string.import_inoreader_step1),
                     stringResource(R.string.import_inoreader_step2),
-                    stringResource(R.string.import_inoreader_step3),
-                    stringResource(R.string.import_step_to_device),
                     stringResource(R.string.import_step_import),
                 ),
             )

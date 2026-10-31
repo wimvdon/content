@@ -45,4 +45,18 @@ class FeedDiscoveryTest {
     fun `common feed paths are on the site root`() {
         assertEquals("https://example.com/feed", FeedDiscovery.commonFeedUrls("https://example.com/blog/post?x=1").first())
     }
+
+    @Test
+    fun `any Substack link stands for its publication`() {
+        val burkeman = "https://oliverburkeman.substack.com/"
+        assertEquals(burkeman, FeedDiscovery.substackPublication("https://substack.com/@oliverburkeman/note/c-372342871?r=56ok7v"))
+        assertEquals(burkeman, FeedDiscovery.substackPublication("https://substack.com/@OliverBurkeman"))
+        assertEquals(burkeman, FeedDiscovery.substackPublication("https://open.substack.com/pub/oliverburkeman/p/some-post?r=1"))
+        assertEquals(burkeman, FeedDiscovery.substackPublication("https://oliverburkeman.substack.com/p/some-post?utm_source=share"))
+        // Not a publication: Substack's own pages, and other sites (a publication on its own domain is found as it is).
+        assertNull(FeedDiscovery.substackPublication("https://substack.com/home/post/p-123"))
+        assertNull(FeedDiscovery.substackPublication("https://substack.com/"))
+        assertNull(FeedDiscovery.substackPublication("https://example.com/@someone"))
+        assertNull(FeedDiscovery.substackPublication("https://notsubstack.com/@someone"))
+    }
 }
