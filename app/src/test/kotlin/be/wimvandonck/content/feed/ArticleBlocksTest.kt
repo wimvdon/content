@@ -76,6 +76,22 @@ class ArticleBlocksTest {
     }
 
     @Test
+    fun `Substack's pictures keep the commas in their addresses`() {
+        // Substack (and other image servers) put commas in the address: they are no separators.
+        val srcset = "https://substackcdn.com/image/fetch/\$s_!aB1c!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fpic.png 424w, https://substackcdn.com/image/fetch/\$s_!aB1c!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fpic.png 1456w,https://substackcdn.com/image/fetch/\$s_!aB1c!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fpic.png 848w"
+        assertEquals(
+            listOf("https://substackcdn.com/image/fetch/\$s_!aB1c!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fpic.png" to "424w", "https://substackcdn.com/image/fetch/\$s_!aB1c!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fpic.png" to "1456w", "https://substackcdn.com/image/fetch/\$s_!aB1c!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fpic.png" to "848w"),
+            ArticleBlocks.srcsetCandidates(srcset),
+        )
+        val html = """<figure><a href="https://substackcdn.com/image/fetch/${'$'}s_!aB1c!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fpic.png"><picture><source type="image/webp" srcset="$srcset"><img src="https://substackcdn.com/image/fetch/${'$'}s_!aB1c!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fpic.png" srcset="$srcset" width="1456"></picture></a><figcaption>A chart</figcaption></figure>"""
+        assertEquals(listOf(ArticleBlock.Image("https://substackcdn.com/image/fetch/\$s_!aB1c!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fpic.png", "A chart")), ArticleBlocks.split(html, base))
+        // A comma right after an address ends it; a candidate without descriptor counts as 1x.
+        assertEquals(listOf("a.jpg" to "", "b.jpg" to "2x"), ArticleBlocks.srcsetCandidates("a.jpg, b.jpg 2x"))
+        assertEquals(listOf("a,b.jpg" to ""), ArticleBlocks.srcsetCandidates(" a,b.jpg,, "))
+        assertEquals(emptyList<Pair<String, String>>(), ArticleBlocks.srcsetCandidates(null))
+    }
+
+    @Test
     fun `picture addresses become absolute https`() {
         assertEquals("https://cdn.example.com/a.jpg", ArticleBlocks.imageUrl("http://cdn.example.com/a.jpg", base))
         assertEquals("https://cdn.example.com/a.jpg", ArticleBlocks.imageUrl("//cdn.example.com/a.jpg", base))

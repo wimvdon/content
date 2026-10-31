@@ -8,6 +8,7 @@
  * checked here.
  */
 
+import { parseSrcset } from "./srcset";
 import Defuddle from "defuddle";
 import { escapeHtml, toPlainText } from "./html";
 
@@ -106,13 +107,11 @@ function serializeElement(el: Element, pageUrl: string): string {
 const attr = (name: string, value: string) => ` ${name}="${escapeHtml(value)}"`;
 
 function resolveSrcset(base: string, srcset: string): string {
-  return srcset
-    .split(",")
-    .flatMap((part) => {
-      const [first, rest] = part.trim().split(/\s+(.*)/s);
-      const url = first ? absolute(base, first) : null;
+  return parseSrcset(srcset)
+    .flatMap(({ url: raw, descriptor }) => {
+      const url = absolute(base, raw);
       if (!url) return [];
-      return [rest ? `${url} ${rest}` : url];
+      return [descriptor ? `${url} ${descriptor}` : url];
     })
     .join(", ");
 }

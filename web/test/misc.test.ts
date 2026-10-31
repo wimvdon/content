@@ -5,6 +5,7 @@ import { emptyLibrary, articlesFor, setRead, removeFolder, addFolder, addFeed, n
 import { importOpml, parseOpml, writeOpml } from "../src/lib/opml";
 import { FetchError } from "../src/lib/proxy";
 import { sanitizeArticle } from "../src/lib/sanitize";
+import { parseSrcset } from "../src/lib/srcset";
 import { embedFor, videoEmbed } from "../src/lib/embeds";
 import { needsFullText, touch, wantsFullText } from "../src/lib/fullArticle";
 import { articleKey, type Article } from "../src/lib/library";
@@ -212,6 +213,20 @@ describe("full articles from the web", () => {
     const doc = new DOMParser().parseFromString(html, "text/html");
     expect(Array.from(doc.querySelectorAll("img")).map((img) => img.getAttribute("src"))).toEqual(["https://a.example/lazy.jpg", "https://a.example/l.jpg"]);
     expect(html).not.toContain("srcset");
+  });
+
+  it("keeps the commas in Substack's picture addresses", () => {
+    const srcset = "https://substackcdn.com/image/fetch/$s_!aB1c!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fpic.png 424w, https://substackcdn.com/image/fetch/$s_!aB1c!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fpic.png 1456w,https://substackcdn.com/image/fetch/$s_!aB1c!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fpic.png 848w";
+    expect(parseSrcset(srcset)).toEqual([
+      { url: "https://substackcdn.com/image/fetch/$s_!aB1c!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fpic.png", descriptor: "424w" },
+      { url: "https://substackcdn.com/image/fetch/$s_!aB1c!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fpic.png", descriptor: "1456w" },
+      { url: "https://substackcdn.com/image/fetch/$s_!aB1c!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fpic.png", descriptor: "848w" },
+    ]);
+    expect(parseSrcset("a.jpg, b.jpg 2x")).toEqual([{ url: "a.jpg", descriptor: "" }, { url: "b.jpg", descriptor: "2x" }]);
+    expect(parseSrcset(" a,b.jpg,, ")).toEqual([{ url: "a,b.jpg", descriptor: "" }]);
+    const html = sanitizeArticle(`<figure><picture><source srcset="${srcset}"><img src="https://substackcdn.com/image/fetch/$s_!aB1c!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fpic.png" srcset="${srcset}" width="1456"></picture></figure>`, "https://x.substack.com/p/post");
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    expect(doc.querySelector("img")?.getAttribute("src")).toBe("https://substackcdn.com/image/fetch/$s_!aB1c!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fpic.png");
   });
 
   it("turns two line breaks into a paragraph gap, and keeps a single one", () => {

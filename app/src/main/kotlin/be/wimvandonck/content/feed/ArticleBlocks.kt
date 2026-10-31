@@ -202,15 +202,45 @@ object ArticleBlocks {
     }
 
     private fun largestFromSrcset(srcset: String?): String? =
-        srcset
-            ?.split(',')
-            ?.mapNotNull { part ->
-                val pieces = part.trim().split(Regex("""\s+"""))
-                val url = pieces.firstOrNull()?.takeIf { it.isNotEmpty() } ?: return@mapNotNull null
-                val size = pieces.getOrNull(1)?.dropLast(1)?.toFloatOrNull() ?: 1f
-                url to size
-            }?.maxByOrNull { it.second }
+        srcsetCandidates(srcset)
+            .maxByOrNull { (_, descriptor) -> descriptor.dropLast(1).toFloatOrNull() ?: 1f }
             ?.first
+
+    /**
+     * A srcset's candidates (address, descriptor such as "800w", "2x" or ""), read the way browsers
+     * do: an address runs until a space, so the commas inside it stay (Substack's image addresses
+     * hold them, as in `…/w_424,c_limit,f_auto/…`); a comma after an address or its descriptor ends
+     * the candidate. The same as the web app's `parseSrcset`.
+     */
+    fun srcsetCandidates(srcset: String?): List<Pair<String, String>> {
+        if (srcset.isNullOrEmpty()) return emptyList()
+        val out = ArrayList<Pair<String, String>>()
+        var i = 0
+        val n = srcset.length
+        while (i < n) {
+            while (i < n && (srcset[i].isWhitespace() || srcset[i] == ',')) i++
+            if (i >= n) break
+            var end = i
+            while (end < n && !srcset[end].isWhitespace()) end++
+            var url = srcset.substring(i, end)
+            i = end
+            var descriptor = ""
+            if (url.endsWith(',')) {
+                url = url.trimEnd(',')
+            } else {
+                // The descriptors, up to the comma that ends the candidate (none inside parentheses).
+                var depth = 0
+                val start = i
+                while (i < n && (srcset[i] != ',' || depth > 0)) {
+                    if (srcset[i] == '(') depth++ else if (srcset[i] == ')') depth = maxOf(0, depth - 1)
+                    i++
+                }
+                descriptor = srcset.substring(start, i).trim()
+            }
+            if (url.isNotEmpty()) out += url to descriptor
+        }
+        return out
+    }
 
     private fun attributes(tag: String): Map<String, String> {
         val start = tag.substringBefore('>')
