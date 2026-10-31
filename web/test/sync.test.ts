@@ -151,27 +151,59 @@ describe("synced settings", () => {
     expect(S.decode('{"format":"rss-reader-sync","version":2,"settings":{"theme":"light","bad":5}}')!.settings).toEqual({ theme: "light" });
   });
 
-  it("use the same names and values as the Android app and come back the same", () => {
-    const values = SS.syncedSettings({ ...settings, markReadOnScroll: true });
-    expect(values).toEqual({ fullArticles: "false", markReadOnScroll: "true", "sharing.recipients": "[]" });
-    const applied = SS.applySynced(defaultSettings, values);
-    expect(applied.fullArticles).toBe(false);
-    expect(applied.markReadOnScroll).toBe(true);
+  it("go under web., the same in every browser, and come back the same", () => {
+    const mine = { ...settings, markReadOnScroll: true, readerStyle: { ...settings.readerStyle, spacing: "relaxed" as const, background: "sepia" as const, autoDark: true } };
+    const values = SS.syncedSettings(mine);
+    expect(values).toEqual({
+      "web.theme": "dark",
+      "web.reader.font": "sans",
+      "web.reader.textSize": "22",
+      "web.reader.spacing": "relaxed",
+      "web.reader.background": "sepia",
+      "web.reader.autoDark": "true",
+      "web.fullArticles": "false",
+      "web.showImages": "false",
+      "web.markReadOnScroll": "true",
+      "web.listView": "large",
+      "sharing.recipients": "[]",
+    });
+    expect(SS.applySynced(defaultSettings, values)).toEqual(mine);
   });
 
-  it("keep view settings in each browser", () => {
-    const fromOlder = { theme: "light", "reader.font": "serif", "reader.textSize": "16", "reader.background": "sepia", showImages: "true", listView: "small" };
-    expect(SS.applySynced(settings, fromOlder)).toEqual(settings);
-    expect(Object.keys(SS.syncedSettings(settings))).not.toContain("theme");
+  it("leave the Android app's settings, and names older versions wrote, alone", () => {
+    const fromElsewhere = {
+      "android.theme": "Light", "android.fullArticles": "true", "android.listView": "Small",
+      theme: "light", "reader.font": "serif", "reader.textSize": "16", "reader.background": "sepia", showImages: "true", listView: "small",
+    };
+    expect(SS.applySynced(settings, fromElsewhere)).toEqual(settings);
+    // They stay in the file for the Android app.
+    expect(SS.syncedSettings(settings, fromElsewhere)["android.theme"]).toBe("Light");
+  });
+
+  it("read Load full articles and Mark as read on scroll shared before once, then drop them", () => {
+    const before = { [SS.LEGACY_FULL_ARTICLES]: "false", [SS.LEGACY_MARK_READ_ON_SCROLL]: "true" };
+    const applied = SS.applySynced(defaultSettings, before);
+    expect(applied.fullArticles).toBe(false);
+    expect(applied.markReadOnScroll).toBe(true);
+    expect(SS.applySynced(defaultSettings, { ...before, [SS.FULL_ARTICLES]: "true" }).fullArticles).toBe(true);
+    const saved = SS.syncedSettings(defaultSettings, before);
+    expect(SS.LEGACY_FULL_ARTICLES in saved).toBe(false);
+    expect(SS.LEGACY_MARK_READ_ON_SCROLL in saved).toBe(false);
   });
 
   it("keep names the web app doesn't know and ignore bad values", () => {
-    const values = SS.syncedSettings(settings, { "android.only": "true", fullArticles: "true" });
+    const values = SS.syncedSettings(settings, { "android.only": "true", [SS.FULL_ARTICLES]: "true" });
     expect(values["android.only"]).toBe("true");
-    expect(values.fullArticles).toBe("false");
-    const applied = SS.applySynced(settings, { fullArticles: "yes", markReadOnScroll: "1" });
-    expect(applied.fullArticles).toBe(false);
-    expect(applied.markReadOnScroll).toBe(settings.markReadOnScroll);
+    expect(values[SS.FULL_ARTICLES]).toBe("false");
+    const bad = { [SS.FULL_ARTICLES]: "yes", [SS.MARK_READ_ON_SCROLL]: "1", [SS.THEME]: "purple", [SS.READER_TEXT_SIZE]: "99", [SS.LIST_VIEW]: "Large" };
+    expect(SS.applySynced(settings, bad)).toEqual(settings);
+  });
+
+  it("carry the Instapaper sign-in only when given, else the file's stays", () => {
+    expect(SS.INSTAPAPER_TOKEN in SS.syncedSettings(settings)).toBe(false);
+    expect(SS.syncedSettings(settings, {}, "t")[SS.INSTAPAPER_TOKEN]).toBe("t");
+    expect(SS.syncedSettings(settings, { [SS.INSTAPAPER_TOKEN]: "t" })[SS.INSTAPAPER_TOKEN]).toBe("t");
+    expect(SS.syncedSettings(settings, { [SS.INSTAPAPER_TOKEN]: "t" }, "")[SS.INSTAPAPER_TOKEN]).toBe("");
   });
 
   it("leave out Unread or All, which is navigation", () => {

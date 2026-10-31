@@ -239,7 +239,8 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   drawer and the sheets follow. Manage topics (☰) is a list and a page per
   topic. The list: a large top app bar over topic rows (`surfaceContainerHigh`, the topic's icon on
   a `secondaryContainer` circle, "4 feeds · 12 saved" under the name, "1 feed fails" in the error
-  colour), a drag handle at the end, No topic last, and two extended FABs: Add feed (the FAB) and
+  colour), a drag handle at the end, then the feeds without a topic as feed rows (no "No topic"
+  row or page), and two extended FABs: Add feed (the FAB) and
   above it New topic (`secondaryContainer`, lowered elevation; Material's FAB menu isn't in the
   stable library yet). A topic's page is for managing only, no ways into reading: a large top app
   bar with its icon and name and, right after them, the pen that edits them; ⋮ at the end (Merge with…, Remove topic in the error colour); its

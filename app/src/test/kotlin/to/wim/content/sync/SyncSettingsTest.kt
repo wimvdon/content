@@ -10,6 +10,7 @@ import to.wim.content.data.Settings
 import to.wim.content.data.ThemeMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Test
 
 class SyncSettingsTest {
@@ -21,44 +22,66 @@ class SyncSettingsTest {
             fullArticles = false,
             showImages = false,
             markReadOnScroll = true,
+            alwaysOpenWebsite = true,
             listView = ListView.Large,
         )
 
     @Test
-    fun `settings go to shared names and come back the same`() {
+    fun `the Android app's settings go under android and come back the same`() {
         val values = SyncSettings.of(custom)
         assertEquals(
             mapOf(
-                SyncSettings.FULL_ARTICLES to "false",
-                SyncSettings.MARK_READ_ON_SCROLL to "true",
+                "android.theme" to "Dark",
+                "android.dynamicColor" to "true",
+                "android.reader.font" to "Sans",
+                "android.reader.textSize" to "22",
+                "android.reader.spacing" to "Relaxed",
+                "android.reader.background" to "Sepia",
+                "android.reader.autoDark" to "true",
+                "android.fullArticles" to "false",
+                "android.showImages" to "false",
+                "android.markReadOnScroll" to "true",
+                "android.alwaysOpenWebsite" to "true",
+                "android.listView" to "Large",
                 SyncSettings.RECIPIENTS to "[]",
             ),
             values,
         )
-        val applied = SyncSettings.applyTo(Settings(), values)
-        assertEquals(false, applied.fullArticles)
-        assertEquals(true, applied.markReadOnScroll)
+        // Another Android device gets all of it; Unread | All is where that device is, not a setting.
+        assertEquals(custom.copy(unreadOnly = true), SyncSettings.applyTo(Settings(), values))
     }
 
     @Test
-    fun `view settings stay on each device`() {
-        val values = SyncSettings.of(custom)
-        val view = setOf("theme", "dynamicColor", "reader.font", "reader.textSize", "reader.spacing", "reader.background", "reader.autoDark", "showImages", "listView")
-        assertFalse(values.keys.any { it in view })
-        // Another device still writing them changes nothing here.
-        val fromOlder =
+    fun `the web app's settings, and the names older versions wrote, change nothing here`() {
+        val fromElsewhere =
             mapOf(
+                "web.theme" to "light", "web.fullArticles" to "true", "web.listView" to "small",
                 "theme" to "light", "dynamicColor" to "false", "reader.font" to "serif", "reader.textSize" to "16",
                 "reader.spacing" to "compact", "reader.background" to "default", "reader.autoDark" to "false",
                 "showImages" to "true", "listView" to "small",
             )
-        assertEquals(custom, SyncSettings.applyTo(custom, fromOlder))
+        assertEquals(custom, SyncSettings.applyTo(custom, fromElsewhere))
+        // And they stay in the file for the web app.
+        assertEquals("light", SyncSettings.of(custom, fromElsewhere)["web.theme"])
+    }
+
+    @Test
+    fun `Load full articles and Mark as read on scroll shared before are read once, then dropped`() {
+        val before = mapOf(SyncSettings.LEGACY_FULL_ARTICLES to "false", SyncSettings.LEGACY_MARK_READ_ON_SCROLL to "true")
+        val applied = SyncSettings.applyTo(Settings(), before)
+        assertEquals(false, applied.fullArticles)
+        assertEquals(true, applied.markReadOnScroll)
+        // The Android names win once they are there.
+        assertEquals(true, SyncSettings.applyTo(Settings(), before + (SyncSettings.FULL_ARTICLES to "true")).fullArticles)
+        val saved = SyncSettings.of(Settings(), before)
+        assertFalse(SyncSettings.LEGACY_FULL_ARTICLES in saved)
+        assertFalse(SyncSettings.LEGACY_MARK_READ_ON_SCROLL in saved)
     }
 
     @Test
     fun `save and share targets and the sync choice are not synced`() {
         val values = SyncSettings.of(custom)
-        assertFalse(values.keys.any { "save" in it.lowercase() || "share" in it.lowercase() || "sync" in it.lowercase() })
+        assertFalse(values.keys.any { "save" in it.lowercase() || "share" in it.lowercase() || "sync" in it.lowercase() || "notify" in it.lowercase() })
     }
 
     @Test
@@ -71,11 +94,22 @@ class SyncSettingsTest {
 
     @Test
     fun `bad or missing values change nothing`() {
-        val values = mapOf(SyncSettings.FULL_ARTICLES to "yes", SyncSettings.MARK_READ_ON_SCROLL to "1")
-        val applied = SyncSettings.applyTo(custom, values)
-        assertEquals(false, applied.fullArticles)
-        assertEquals(true, applied.markReadOnScroll)
+        val values =
+            mapOf(
+                SyncSettings.FULL_ARTICLES to "yes", SyncSettings.MARK_READ_ON_SCROLL to "1", SyncSettings.THEME to "Purple",
+                SyncSettings.READER_TEXT_SIZE to "99", SyncSettings.LIST_VIEW to "large",
+            )
+        assertEquals(custom, SyncSettings.applyTo(custom, values))
         assertEquals(custom, SyncSettings.applyTo(custom, emptyMap()))
+    }
+
+    @Test
+    fun `the Instapaper sign-in goes in the file only when given, else the file's stays`() {
+        assertNull(SyncSettings.of(custom)[SyncSettings.INSTAPAPER_TOKEN])
+        assertEquals("t", SyncSettings.of(custom, instapaperToken = "t")[SyncSettings.INSTAPAPER_TOKEN])
+        assertEquals("", SyncSettings.of(custom, mapOf(SyncSettings.INSTAPAPER_TOKEN to "t"), instapaperToken = "")[SyncSettings.INSTAPAPER_TOKEN])
+        assertEquals("t", SyncSettings.of(custom, mapOf(SyncSettings.INSTAPAPER_TOKEN to "t"))[SyncSettings.INSTAPAPER_TOKEN])
+        assertEquals("t", SyncSettings.instapaperToken(mapOf(SyncSettings.INSTAPAPER_TOKEN to "t")))
     }
 
     @Test

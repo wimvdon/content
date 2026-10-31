@@ -56,17 +56,20 @@ web app.
 **One place to manage them: ☰ › Manage topics.** It lists every topic with its icon and what it
 holds: "4 feeds · 12 saved", and "1 feed fails" in red when one can't be downloaded. Drag the grip
 (⋮⋮) to reorder: this order is the one everything uses (the chips, the ☰ menu, the save sheet).
-Two buttons at the bottom: **Add feed** (it lands under No topic) and, above it, **New topic**, which makes one: a name and an icon from the whole Material
-Symbols set (type in English, such as *news*, *car* or *food*). At the end, **No topic** holds the
-feeds without one. Tap a topic for **its page**, which is for managing it (reading is in Feeds
-and Saved):
+Two buttons at the bottom: **Add feed** (it lands without a topic, and you stay on the list) and, above it, **New topic**, which makes one: a name and an icon from the whole Material
+Symbols set (type in English, such as *news*, *car* or *food*). Under the topics, the **feeds
+without a topic** are listed loose, as on a topic's page: tap one (on the web its pen) to rename
+it, give it a topic or remove it. Tap a topic for **its page**, which is for managing it (reading
+is in Feeds and Saved):
 
 - **Feeds:** its feeds, with why one fails; drag to reorder; tap one to rename it, give it another
   topic or remove it. **Add a feed to Tech** adds one straight into this topic.
 - **Saved:** how many saved articles have the topic, and how many are still to read.
-- The pen next to the topic's icon and name, at the top, changes them. ⋮ has **Merge with…** (pick the topic that stays: it keeps its
+- The pen next to the topic's icon and name, at the top, changes them (on the web, **Edit topic**
+  at the bottom). ⋮ (on the web, at the bottom left) has **Merge with…** (pick the topic that stays: it keeps its
   name and icon and gets this one's feeds and saved articles) and **Remove topic** (its feeds and
   saved articles stay, without it). Both say so first.
+- Back from **Add feed**, you are where you started: the list, or the topic's page.
 
 **Feeds:** the chips under the search bar list the topics that have feeds, in your order; the ☰
 menu lists them too, with the feeds without a topic after them. A topic shows its feeds in ☰ while

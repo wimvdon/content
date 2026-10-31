@@ -22,7 +22,8 @@ import java.io.IOException
 
 /**
  * The token is kept in its own file, which data_extraction_rules.xml keeps out of backups and phone
- * transfers. Each device signs in itself.
+ * transfers. Signed in to a Content account, it is also kept in the account's synced settings, so
+ * every device of the account is connected at once (sync/SharedInstapaper.kt).
  */
 private val Context.instapaperDataStore: DataStore<Preferences> by preferencesDataStore(name = "instapaper")
 
@@ -83,22 +84,26 @@ class InstapaperAccount(
         }
         noticeFlow.value =
             try {
-                val session = InstapaperAuth.exchange(http, answer.code)
-                dataStore.edit { prefs ->
-                    prefs[TOKEN] = session.token
-                    prefs[USERNAME] = session.username
-                    if (session.userId != null) prefs[USER_ID] = session.userId else prefs.remove(USER_ID)
-                }
+                adopt(InstapaperAuth.exchange(http, answer.code))
                 InstapaperNotice.SignedIn
             } catch (e: InstapaperException) {
                 InstapaperNotice.Failed
             }
     }
 
+    /** Keeps [session] as this device's sign-in: from Instapaper's sign-in page, or from another device through the Content account. */
+    suspend fun adopt(session: InstapaperSession) {
+        dataStore.edit { prefs ->
+            prefs[TOKEN] = session.token
+            prefs[USERNAME] = session.username
+            if (session.userId != null) prefs[USER_ID] = session.userId else prefs.remove(USER_ID)
+        }
+    }
+
     /** The signed-in account once read from storage, or null. */
     suspend fun session(): InstapaperSession? = (state.first { it != InstapaperState.Loading } as? InstapaperState.SignedIn)?.session
 
-    /** Disconnects Instapaper on this device. The Content account stays signed in (#166). */
+    /** Disconnects Instapaper on this device, and through the next sync on the account's others. The Content account stays signed in (#166). */
     suspend fun signOut() {
         dataStore.edit { prefs ->
             prefs.remove(TOKEN)

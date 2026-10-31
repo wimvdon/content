@@ -7,6 +7,8 @@ import androidx.datastore.core.Serializer
 import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.dataStoreFile
 import to.wim.content.data.Item
+import to.wim.content.instapaper.InstapaperAccount
+import to.wim.content.instapaper.InstapaperState
 import to.wim.content.data.LibraryRepository
 import to.wim.content.data.Received
 import to.wim.content.data.SharedArticle
@@ -67,6 +69,8 @@ class SyncManager(
     private val library: LibraryRepository,
     private val settings: SettingsStore,
     private val account: ContentAccount,
+    /** The Instapaper sign-in, shared by the account's devices (SharedInstapaper). */
+    private val instapaper: InstapaperAccount,
     private val http: OkHttpClient,
     private val clock: () -> Long = System::currentTimeMillis,
 ) {
@@ -120,11 +124,15 @@ class SyncManager(
                 }
         }
         scope.launch {
-            // A change to the library (feeds, folders, items, read marks) or a synced setting.
+            // A change to the library (feeds, folders, items, read marks), a synced setting or the Instapaper sign-in.
             combine(
                 library.library.filterNotNull().map { SyncedState(SyncDocument.of(it), it.items, it.articles.filter { a -> a.read }.mapTo(HashSet()) { a -> a.key }) },
                 settings.settings.filterNotNull(),
-            ) { state, s -> state.copy(document = state.document.copy(settings = SyncSettings.of(s))) }
+                instapaper.state.filter { it != InstapaperState.Loading },
+            ) { state, s, i ->
+                val token = (i as? InstapaperState.SignedIn)?.session?.let(SharedInstapaper::encode).orEmpty()
+                state.copy(document = state.document.copy(settings = SyncSettings.of(s, instapaperToken = token)))
+            }
                 .distinctUntilChanged()
                 .drop(1)
                 .debounce(SyncTiming.CHANGE_DELAY_MS)
@@ -239,7 +247,13 @@ class SyncManager(
         var newFeeds = false
         val next =
             SyncRound.run(target, base()) { base, remote ->
-                val localSettings = SyncSettings.of(settings.settings.filterNotNull().first(), base?.settings.orEmpty())
+                val session = instapaper.session()
+                val localSettings =
+                    SyncSettings.of(
+                        settings.settings.filterNotNull().first(),
+                        base?.settings.orEmpty(),
+                        SharedInstapaper.local(session, base?.settings?.get(SyncSettings.INSTAPAPER_TOKEN)),
+                    )
                 // Merged with the library as it is right now, so changes made while the document loaded count.
                 val merged =
                     library.update { current ->
@@ -249,6 +263,12 @@ class SyncManager(
                         SyncMerge.apply(current, merged) to merged
                     }
                 settings.applySynced(merged.settings)
+                // Connected or disconnected on another device: the same here (docs/instapaper.md).
+                when (val action = SharedInstapaper.action(session, SyncSettings.instapaperToken(merged.settings))) {
+                    SharedInstapaper.Action.None -> Unit
+                    SharedInstapaper.Action.SignOut -> instapaper.signOut()
+                    is SharedInstapaper.Action.SignIn -> instapaper.adopt(action.session)
+                }
                 merged
             }
         baseStore.updateData { baseText(next) }

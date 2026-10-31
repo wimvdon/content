@@ -32,7 +32,7 @@ export default function App() {
   const [searching, setSearching] = useState(false);
   const [dialog, setDialog] = useState<"add" | "manage" | "settings" | null>(null);
   // Manage topics opened on a topic's page (Edit topic), and Add feed from a topic's page: into it.
-  const [manageTopic, setManageTopic] = useState<string | null | undefined>(undefined);
+  const [manageTopic, setManageTopic] = useState<string | undefined>(undefined);
   const [addInto, setAddInto] = useState<string | null | undefined>(undefined);
   const [message, setMessage] = useState<Message | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -219,7 +219,8 @@ export default function App() {
         }}
         onAddFeed={(topicId) => {
           setAddInto(topicId);
-          setManageTopic(topicId);
+          // Back from Add feed: the topic's page it came from, or the list.
+          setManageTopic(topicId ?? undefined);
           setDialog("add");
         }}
       />
