@@ -518,7 +518,7 @@ private fun ArticleBody(
                     is ArticleBlock.Code -> CodeBlock(block, bodyStyle)
                     is ArticleBlock.ListBlock -> ListBlockView(block, bodyStyle, links, paragraph(block.items.size)) { openLink(it) }
                     is ArticleBlock.Image -> InlineImage(block.url, block.caption)
-                    is ArticleBlock.Embed -> EmbedCard(block, showThumbnail = showImages, onOpen = { openLink(block.url) })
+                    is ArticleBlock.Embed -> EmbedBlock(block, showThumbnail = showImages, onOpen = openLink)
                 }
             }
             if (article.link != null) {

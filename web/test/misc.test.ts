@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { feedLinks, findFeed, normalizeUrl, substackPublication } from "../src/lib/discovery";
 import { searchIcons, parseIcons } from "../src/lib/icons";
-import { emptyLibrary, articlesFor, setRead, removeFolder, addFolder, addFeed, newFeed, moveFeed, renameFeed, mergeFeed, reorder, unreadKeys, removeFeed, sameSelection, MAX_ARTICLES_PER_FEED, moveWithinFolder, chipTag, choosesFolder } from "../src/lib/library";
+import { emptyLibrary, articlesFor, setRead, removeFolder, addFolder, addFeed, newFeed, moveFeed, renameFeed, mergeFeed, reorder, unreadKeys, removeFeed, sameSelection, MAX_ARTICLES_PER_FEED, moveWithinFolder, chipTag, choosesFolder, feedTags } from "../src/lib/library";
 import { importOpml, parseOpml, writeOpml } from "../src/lib/opml";
 import { FetchError } from "../src/lib/proxy";
 import { sanitizeArticle } from "../src/lib/sanitize";
 import { parseSrcset } from "../src/lib/srcset";
-import { embedFor, videoEmbed } from "../src/lib/embeds";
+import { embedFor, videoEmbed, VERTICAL_SIZE, VIDEO_SIZE } from "../src/lib/embeds";
+import { playEmbed } from "../src/lib/embedPlayer";
 import { needsFullText, touch, wantsFullText } from "../src/lib/fullArticle";
 import { articleKey, type Article } from "../src/lib/library";
 import { defaultReaderStyle, MAX_TEXT_SIZE, MIN_TEXT_SIZE, pageBackground, readerStyleOf, withTextSize } from "../src/lib/readerStyle";
@@ -109,6 +110,15 @@ describe("read marks that leave this browser (#157)", () => {
     expect(choosesFolder({ kind: "tag", tag: "Tech" }, lib.folders[1])).toBe(false);
     expect(choosesFolder({ kind: "feed", feedUrl: "a" }, lib.folders[0])).toBe(false);
   });
+  it("lists the feed chips in the folders' order, not alphabetically", () => {
+    const feed = (url: string, tags: string[]) => ({ ...newFeed(url, url), tags });
+    const lib = {
+      ...emptyLibrary(),
+      folders: [{ id: "f1", title: "Tech", icon: "folder" }, { id: "f2", title: "News", icon: "folder" }, { id: "f3", title: "Art", icon: "folder" }],
+      feeds: [feed("a", ["news"]), feed("b", ["Tech"]), feed("c", ["Zoo"]), feed("d", ["Old"]), feed("e", ["Art"])],
+    };
+    expect(feedTags(lib)).toEqual(["Tech", "news", "Art", "Old", "Zoo"]);
+  });
 });
 
 describe("moving feeds in Manage feeds", () => {
@@ -155,7 +165,7 @@ describe("sanitize", () => {
     expect(html).not.toContain("data:");
   });
 
-  it("shows players and embeds as cards that open in a new tab, never inside the page", () => {
+  it("shows players and embeds as cards, nothing loading from the service until one is clicked", () => {
     const html = sanitizeArticle(
       '<iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ"><p>fallback</p></iframe><iframe src="//player.vimeo.com/video/123"></iframe>' +
         '<iframe src="https://posts.example/embed/9"></iframe><iframe src="javascript:alert(1)"></iframe><video poster="/p.jpg"><source src="/v.mp4"></video>',
@@ -172,6 +182,29 @@ describe("sanitize", () => {
       ["https://a.example/v.mp4", "https://a.example/p.jpg", "_blank"],
     ]);
     expect(doc.querySelector("a.embed img")?.getAttribute("referrerpolicy")).toBe("no-referrer");
+    // The players to load on a click; the unknown embed has none and only opens.
+    expect(Array.from(doc.querySelectorAll("a.embed")).map((a) => a.getAttribute("data-player"))).toEqual([
+      "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?autoplay=1&rel=0&playsinline=1",
+      "https://player.vimeo.com/video/123?autoplay=1",
+      null,
+      "https://a.example/v.mp4",
+    ]);
+  });
+
+  it("puts the player in a clicked card's place, sandboxed, with Open in … under it", () => {
+    document.body.innerHTML = sanitizeArticle('<p>a</p><iframe src="https://open.spotify.com/embed/track/abc"></iframe><iframe src="https://posts.example/1"></iframe>', "https://a.example/post");
+    const [spotify, other] = Array.from(document.querySelectorAll<HTMLAnchorElement>("a.embed"));
+    expect(spotify.textContent).toContain("Spotify");
+    expect(playEmbed(other)).toBe(false);
+    expect(playEmbed(spotify)).toBe(true);
+    const frame = document.querySelector<HTMLIFrameElement>(".embed-player iframe")!;
+    expect(frame.getAttribute("src")).toBe("https://open.spotify.com/embed/track/abc");
+    expect(frame.getAttribute("sandbox")).not.toContain("allow-top-navigation");
+    expect(frame.style.height).toBe("152px");
+    const open = document.querySelector<HTMLAnchorElement>(".embed-open")!;
+    expect(open.getAttribute("href")).toBe("https://open.spotify.com/track/abc");
+    expect(open.textContent).toBe("Open in Spotify");
+    expect(document.querySelectorAll("a.embed")).toHaveLength(1);
   });
 
   it("leaves out pictures and embed previews when Show images is off, but keeps the cards", () => {
@@ -246,10 +279,34 @@ describe("embeds", () => {
   it("finds YouTube and Vimeo videos in their player addresses", () => {
     expect(embedFor("https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?rel=0", "https://a.example/")?.url).toBe("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
     expect(embedFor("https://youtu.be/dQw4w9WgXcQ", "https://a.example/")?.kind).toBe("youtube");
-    expect(embedFor("https://vimeo.com/video/42", "https://a.example/")).toEqual({ kind: "vimeo", url: "https://vimeo.com/42", thumbnailUrl: null });
+    expect(embedFor("https://vimeo.com/video/42", "https://a.example/")).toEqual({ kind: "vimeo", url: "https://vimeo.com/42", thumbnailUrl: null, player: "https://player.vimeo.com/video/42?autoplay=1", size: VIDEO_SIZE });
     expect(embedFor("http://posts.example/1", "https://a.example/")).toEqual({ kind: "other", url: "https://posts.example/1", thumbnailUrl: null });
     expect(embedFor("", "https://a.example/")).toBeNull();
     expect(videoEmbed(null, "/p.jpg", "https://a.example/")).toBeNull();
+  });
+
+  it("knows the major players, as on Android", () => {
+    const base = "https://a.example/";
+    const track = embedFor("//open.spotify.com/embed/track/4uLU6hMCjMI75M1A2tKUQC?utm_source=generator", base)!;
+    expect([track.kind, track.url, track.player, track.size]).toEqual(["spotify", "https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC", "https://open.spotify.com/embed/track/4uLU6hMCjMI75M1A2tKUQC", { aspect: 16 / 9, height: 152 }]);
+    expect(embedFor("https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM5M", base)?.size?.height).toBe(352);
+    expect(embedFor("https://open.spotify.com/embed-podcast/episode/abc", base)?.url).toBe("https://open.spotify.com/episode/abc");
+    const cloud = embedFor("https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/artist/song&color=%23ff5500", base)!;
+    expect([cloud.kind, cloud.url, cloud.size?.height]).toEqual(["soundcloud", "https://soundcloud.com/artist/song", 166]);
+    const daily = embedFor("https://www.dailymotion.com/embed/video/x8abc12", base)!;
+    expect([daily.kind, daily.url, daily.player]).toEqual(["dailymotion", "https://www.dailymotion.com/video/x8abc12", "https://www.dailymotion.com/embed/video/x8abc12?autoplay=1"]);
+    expect(embedFor("https://geo.dailymotion.com/player.html?video=x8abc12", base)?.url).toBe("https://www.dailymotion.com/video/x8abc12");
+    const song = embedFor("https://embed.music.apple.com/be/album/name/123?i=456", base)!;
+    expect([song.kind, song.url, song.size?.height]).toEqual(["appleMusic", "https://music.apple.com/be/album/name/123?i=456", 175]);
+    expect(embedFor("https://embed.music.apple.com/be/album/name/123", base)?.size?.height).toBe(450);
+    expect(embedFor("https://embed.podcasts.apple.com/us/podcast/show/id1", base)?.kind).toBe("applePodcasts");
+    expect(embedFor("https://bandcamp.com/EmbeddedPlayer/album=1/size=large/", base)?.kind).toBe("bandcamp");
+    const tikTok = embedFor("https://www.tiktok.com/embed/v2/7212345678901234567", base)!;
+    expect([tikTok.player, tikTok.size]).toEqual(["https://www.tiktok.com/player/v1/7212345678901234567", VERTICAL_SIZE]);
+    expect(embedFor("https://www.youtube.com/live/abcdefgh123", base)?.kind).toBe("youtube");
+    // Posts need their sites' scripts: a card that opens the post, no player.
+    expect(embedFor("https://platform.twitter.com/embed/Tweet.html?dnt=true&id=1234567890", base)).toEqual({ kind: "x", url: "https://x.com/i/status/1234567890", thumbnailUrl: null });
+    expect(embedFor("https://www.instagram.com/p/Cabc_12/embed/captioned", base)).toEqual({ kind: "instagram", url: "https://www.instagram.com/p/Cabc_12/", thumbnailUrl: null });
   });
 });
 

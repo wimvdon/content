@@ -1,6 +1,6 @@
 # Privacy policy
 
-_Last updated: 2026-10-30 (notification previews)_
+_Last updated: 2026-10-31 (embedded players)_
 
 Reader has no analytics, advertising or crash reporting. It works without an account. If you sign
 in (with your email address, or with Instapaper), Reader keeps your feed list,
@@ -20,9 +20,16 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   scripts, images and trackers are not loaded. The website sees the same as for its feed.
 - **Pictures.** Article pictures, list thumbnails and video previews are downloaded from where
   the feed or article says they are: usually the website itself or its image server (CDN), and
-  for YouTube videos i.ytimg.com. Those servers see your IP address, like any visit. Turn this off
-  in Settings › Reader › Show images. Embedded videos and posts are not played inside the app;
-  tapping one opens it in its app or your browser.
+  for YouTube videos i.ytimg.com and for Dailymotion videos dailymotion.com. Those servers see your
+  IP address, like any visit. Turn this off in Settings › Reader › Show images.
+- **Embedded players, only when you tap one.** An article's embedded video or audio (YouTube,
+  Vimeo, Spotify, SoundCloud, Dailymotion, Apple Music, Apple Podcasts, Bandcamp, TikTok) shows as
+  a card; nothing is loaded from the service until you tap (or click) it. Then the service's own
+  player loads in the card's place, from that service (YouTube's from youtube-nocookie.com), with
+  its own scripts, and may set its own cookies, under that service's privacy policy; it sees your
+  IP address and that Content's web app is the page showing it. A video the article's own site
+  hosts plays in the app's own player, from that site. X and Instagram posts don't play inside:
+  tapping one opens it in its app or your browser, as do embeds of other kinds.
 - **Website icons.** Once per feed, the app loads the home page of the feed's website to find
   the site's small icon (favicon), and then downloads that icon (from the site, or wherever the
   site says it is, often its image server). If the site names none, its `/favicon.ico` is tried.

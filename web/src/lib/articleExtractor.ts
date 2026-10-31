@@ -30,7 +30,7 @@ const DROPPED_TAGS = new Set(["script", "style", "noscript", "template", "svg", 
 
 /** Embedded players worth a card in the reader; other iframes are usually ads or widgets. */
 const KNOWN_EMBEDS =
-  /youtube\.com|youtube-nocookie\.com|youtu\.be|vimeo\.com|twitter\.com|x\.com|instagram\.com|spotify\.com|soundcloud\.com|codepen\.io|dailymotion\.com|tiktok\.com|bsky\.app/i;
+  /youtube\.com|youtube-nocookie\.com|youtu\.be|vimeo\.com|twitter\.com|x\.com|instagram\.com|spotify\.com|soundcloud\.com|codepen\.io|dailymotion\.com|dai\.ly|tiktok\.com|bsky\.app|embed\.music\.apple\.com|embed\.podcasts\.apple\.com|bandcamp\.com/i;
 
 /** The article of `html` (downloaded from `pageUrl`) as simple HTML, or null when none is found. */
 export function extractArticle(html: string, pageUrl: string): string | null {

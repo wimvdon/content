@@ -147,7 +147,7 @@ body {
   border-radius: 0;
   vertical-align: -0.25em;
 }
-/* Embedded videos and posts: a card that opens them in a new tab (lib/embeds.ts). */
+/* Embedded videos and posts: a card; clicked, its player takes its place (lib/embeds.ts, lib/embedPlayer.ts). */
 .article a.embed {
   display: block;
   overflow: hidden;
@@ -179,6 +179,31 @@ body {
 .article .embed-play::before {
   content: "\25B6\FE0E";
   color: var(--primary);
+}
+.article .embed-hint {
+  margin-left: auto;
+  font-weight: 400;
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+}
+.article .embed-player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.article .embed-player :where(iframe, video) {
+  display: block;
+  width: 100%;
+  border: 0;
+  border-radius: 0.75rem;
+  background: #000;
+  aspect-ratio: 16 / 9;
+}
+.article .embed-open {
+  align-self: flex-end;
+  margin-top: 0.4em;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
 }
 .article figcaption {
   font-family: var(--font-sans);

@@ -1,6 +1,7 @@
 import { Highlighter, NotebookPen, Trash2 } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createHighlight, resolve, type Anchor } from "@/lib/anchors";
+import { playEmbed } from "@/lib/embedPlayer";
 import { mark, offsetOf, pageText } from "@/lib/highlightDom";
 import { t } from "@/lib/i18n";
 import type { Highlight } from "@/lib/items";
@@ -80,6 +81,12 @@ export function HighlightedText({
         className={className}
         style={style}
         onClick={(e) => {
+          // An embed's card plays its player in its place; a card without one opens as a link.
+          const card = (e.target as HTMLElement).closest<HTMLAnchorElement>("a.embed[data-player]");
+          if (card && playEmbed(card)) {
+            e.preventDefault();
+            return;
+          }
           const id = (e.target as HTMLElement).closest<HTMLElement>("mark[data-highlight]")?.dataset.highlight;
           if (id && document.getSelection()?.isCollapsed !== false) onOpen(id);
         }}

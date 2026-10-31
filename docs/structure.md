@@ -68,6 +68,7 @@ rss-reader/
         │   │   │   ├── FeedDiscovery.kt       Address normalising, <link rel="alternate">
         │   │   │   ├── FeedDates.kt           RFC 822 and ISO 8601 dates
         │   │   │   ├── ArticleBlocks.kt       Article → text, picture and embed blocks
+        │   │   │   ├── Embeds.kt              Known players (YouTube, Spotify, …): the card, the player and its page
 │   │   │   ├── ArticleExtractor.kt    Reader view for full articles (plain parts)
 │   │   │   ├── WebArticleExtractor.kt Runs the web app's extractor in a hidden WebView
 │   │   │   ├── Html.kt                Clean-up, plain text, snippets, entities

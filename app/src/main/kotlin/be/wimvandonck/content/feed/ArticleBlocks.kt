@@ -34,15 +34,18 @@ sealed interface ArticleBlock {
         val caption: String?,
     ) : ArticleBlock
 
-    /** Embedded content (a video player, a post) shown as a card that opens [url]. */
+    /**
+     * Embedded content (a video player, a post) shown as a card. Tapping it loads [player] in its
+     * place, at [size], when there is one ([Embeds]); else it opens [url], the page on the service.
+     */
     data class Embed(
         val kind: EmbedKind,
         val url: String,
         val thumbnailUrl: String?,
+        val player: String? = null,
+        val size: EmbedSize = EmbedSize.VIDEO,
     ) : ArticleBlock
 }
-
-enum class EmbedKind { YouTube, Vimeo, Video, Other }
 
 /**
  * Splits article HTML into text, images and embeds, and finds article pictures. Plain Kotlin,
@@ -57,8 +60,6 @@ object ArticleBlocks {
     private val figcaption = Regex("""<figcaption\b[^>]*>(.*?)</figcaption\s*>""", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
     private val special = Regex("""${figure.pattern}|${iframe.pattern}|${video.pattern}|${img.pattern}""", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
     private val attribute = Regex("""([a-zA-Z_:][-a-zA-Z0-9_:.]*)\s*=\s*("([^"]*)"|'([^']*)'|([^\s"'>]+))""")
-    private val youTubeId = Regex("""(?:youtube(?:-nocookie)?\.com/(?:embed/|watch\?v=|v/|shorts/)|youtu\.be/)([A-Za-z0-9_-]{6,20})""")
-    private val vimeoId = Regex("""vimeo\.com/(?:video/)?(\d+)""")
 
     /** The reader's blocks for [html] downloaded from [baseUrl], in order. */
     fun split(
@@ -164,7 +165,7 @@ object ArticleBlocks {
         val attrs = attributes(videoHtml)
         val src = attrs["src"] ?: source.findAll(videoHtml).firstNotNullOfOrNull { attributes(it.value)["src"] }
         val url = src?.let { resolve(baseUrl, it) } ?: return null
-        return ArticleBlock.Embed(EmbedKind.Video, url, attrs["poster"]?.let { imageUrl(it, baseUrl) })
+        return Embeds.video(url, attrs["poster"]?.let { imageUrl(it, baseUrl) })
     }
 
     /** The embed card for an iframe or video address, or null when there's nothing to open. */
@@ -173,12 +174,8 @@ object ArticleBlocks {
         baseUrl: String,
     ): ArticleBlock.Embed? {
         val url = src?.let { resolve(baseUrl, it) } ?: return null
-        youTubeId.find(url)?.let {
-            val id = it.groupValues[1]
-            return ArticleBlock.Embed(EmbedKind.YouTube, "https://www.youtube.com/watch?v=$id", "https://i.ytimg.com/vi/$id/hqdefault.jpg")
-        }
-        vimeoId.find(url)?.let { return ArticleBlock.Embed(EmbedKind.Vimeo, "https://vimeo.com/${it.groupValues[1]}", null) }
-        return ArticleBlock.Embed(EmbedKind.Other, url, null)
+        // Players only load over https; an http address is upgraded, like pictures.
+        return Embeds.of(if (url.startsWith("http://", ignoreCase = true)) "https://" + url.substring(7) else url)
     }
 
     /** The address of an <img> tag, or null for tracking pixels and unusable sources. */
