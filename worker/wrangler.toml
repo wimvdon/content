@@ -1,6 +1,6 @@
 # Cloudflare Worker that loads feeds and article pages for the web app (see README.md).
 # Must match the Worker's name in Cloudflare (Workers Builds refuses a different one).
-name = "rss-reader-worker"
+name = "content-worker"
 main = "src/index.ts"
 compatibility_date = "2026-10-01"
 workers_dev = true
@@ -14,17 +14,17 @@ enabled = false
 
 [vars]
 # The web app's address(es): only pages there may use this Worker. Local development too.
-ALLOWED_ORIGINS = "https://rss-reader-web.wim-d57.workers.dev,https://rss-reader-worker.wim-d57.workers.dev,http://localhost:5173"
+ALLOWED_ORIGINS = "https://content.wim.to,https://content-web.wim-d57.workers.dev,https://content-worker.wim.to,http://localhost:5173"
 
 # Instapaper sign-in (docs/instapaper.md). The client ID is public. The client secret is NOT here:
 # set it as a Worker secret named INSTAPAPER_CLIENT_SECRET.
 INSTAPAPER_CLIENT_ID = "94f820c94dc04d0386c71d7b0c26bd80"
 # Must equal a callback URI registered with the Instapaper application, character for character.
-INSTAPAPER_REDIRECT_URI = "https://rss-reader-web.wim-d57.workers.dev/instapaper/callback"
+INSTAPAPER_REDIRECT_URI = "https://content.wim.to/instapaper/callback"
 # Sign-in links (#166): sent from this address through Resend (RESEND_API_KEY is a secret), and
 # opening the web app (the Android app opens the same address as an App Link).
 EMAIL_FROM = "Content <signin@resend.wimvandonck.be>"
-WEB_APP_ORIGIN = "https://rss-reader-web.wim-d57.workers.dev"
+WEB_APP_ORIGIN = "https://content.wim.to"
 # Notifications when something is shared with you (#235, src/push.ts): the public half of the VAPID
 # key pair. The private half is NOT here: set it as a Worker secret named VAPID_PRIVATE_KEY.
 VAPID_PUBLIC_KEY = "BNxDkb73QhMVGb40MyiJtum9jpTaOHqeEmpxRWuVRvHiF-0dKAJarvVQxJoM6AUVeopOE4rOKo859OK-wcTK8Sk"

@@ -35,7 +35,7 @@
   "content_scripts": [
     {
       "matches": [
-        "https://rss-reader-web.wim-d57.workers.dev/*",
+        "https://content.wim.to/*",
         "http://localhost:5173/*"
       ],
       "js": [

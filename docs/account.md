@@ -10,7 +10,7 @@ no account.
 
 1. Settings › Account: type the address, tap **Email me a sign-in link**. The app calls
    `POST /account/email/start` (`worker/src/email.ts`), which emails a link through Resend:
-   `https://rss-reader-web.wim-d57.workers.dev/signin#token=…`. Always `204`, whether or not the
+   `https://content.wim.to/signin#token=…`. Always `204`, whether or not the
    address has an account.
 2. The token is signed with a key derived from `ACCOUNT_KEY` and holds the address, when it ends (30
    minutes) and a random id. Nothing is stored until it is used.

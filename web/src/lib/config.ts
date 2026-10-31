@@ -4,7 +4,7 @@
  */
 
 /** The owner's feed loader, the Cloudflare Worker in worker/. It also keeps the Reader accounts. */
-export const PROXY_URL = "https://rss-reader-worker.wim-d57.workers.dev";
+export const PROXY_URL = "https://content-worker.wim.to";
 
 /** The Instapaper application (API v2): its client ID is public. The client secret lives only in the Worker. */
 export const INSTAPAPER_CLIENT_ID = "94f820c94dc04d0386c71d7b0c26bd80";
@@ -14,4 +14,4 @@ export const INSTAPAPER_CLIENT_ID = "94f820c94dc04d0386c71d7b0c26bd80";
  * application and match INSTAPAPER_REDIRECT_URI in worker/wrangler.toml exactly. The Android app
  * receives the same address as an Android App Link.
  */
-export const INSTAPAPER_REDIRECT_URI = "https://rss-reader-web.wim-d57.workers.dev/instapaper/callback";
+export const INSTAPAPER_REDIRECT_URI = "https://content.wim.to/instapaper/callback";

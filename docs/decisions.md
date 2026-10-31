@@ -2,6 +2,17 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-31: The web app at content.wim.to, the Workers renamed to content-
+
+- The owner moved the web app to **https://content.wim.to** and the feed loader to
+  **https://content-worker.wim.to**, and renamed the Cloudflare Workers from `rss-reader-web` and
+  `rss-reader-worker` to `content-web` and `content-worker`; the old addresses answer "not found",
+  so the released app could no longer sync or sign in.
+- Everything that named the old addresses follows: the feed loader's address in the app, the web app
+  and the extension; sign-in links and the App Link the phone verifies; the Instapaper callback
+  (also changed in Instapaper's application settings); the player pages' origin; the Workers' names
+  in `wrangler.toml` and `wrangler.jsonc` (Workers Builds refuses a name that differs).
+- The feed loader still lets `content-web.wim-d57.workers.dev` in, next to content.wim.to.
 ## 2026-10-31: The Inbox in the navigation bar, ☰ without folding, Saved without All, Archive in one tap
 
 - At the owner's request (Android): **the Inbox is a destination**, third in the navigation bar

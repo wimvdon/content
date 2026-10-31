@@ -33,10 +33,10 @@ Both are public (every visitor's browser sees them), so they are built in, in
 
 It is published as a Worker with static assets (`wrangler.jsonc`), next to the feed loader:
 
-1. Workers & Pages › Create › Import a repository › this repository, name `rss-reader-web`.
+1. Workers & Pages › Create › Import a repository › this repository, name `content-web`.
 2. Root directory `web`, build command `npm run build`, deploy command `npx wrangler deploy`.
 3. The feed loader's address is in `src/lib/config.ts`.
-4. The site's address (`https://rss-reader-web.<account>.workers.dev`) must be in
+4. The site's address (`https://content.wim.to`, and `https://content-web.<account>.workers.dev`) must be in
    `ALLOWED_ORIGINS` in `../worker/wrangler.toml`.
 
 Every push to `main` then publishes the new version; pull requests get a preview build. Any

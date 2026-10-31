@@ -20,8 +20,8 @@ What it does, and doesn't:
 Once, in the Cloudflare dashboard (free plan):
 
 1. Workers & Pages › Create › Import a repository › this repository.
-2. Name `rss-reader-worker` (it must match `name` in `wrangler.toml`). Root directory: `worker`. Build command: none. Deploy command: `npx wrangler deploy`.
-3. After the first deploy, note its address (`https://rss-reader-worker.<you>.workers.dev`) and
+2. Name `content-worker` (it must match `name` in `wrangler.toml`). Root directory: `worker`. Build command: none. Deploy command: `npx wrangler deploy`.
+3. After the first deploy, note its address (`https://content-worker.<you>.workers.dev`) and
    put it in the web app's settings (see `web/README.md`).
 4. Put the web app's address in
    `ALLOWED_ORIGINS` in `wrangler.toml` (or under the Worker's Settings › Variables).

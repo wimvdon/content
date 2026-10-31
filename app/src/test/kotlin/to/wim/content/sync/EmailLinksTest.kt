@@ -7,11 +7,11 @@ import org.junit.Test
 class EmailLinksTest {
     @Test
     fun `reads the token of an emailed link`() {
-        assertEquals("abc.def", EmailLinks.tokenOf("https://rss-reader-web.wim-d57.workers.dev/signin#token=abc.def"))
-        assertEquals("abc", EmailLinks.tokenOf("https://rss-reader-web.wim-d57.workers.dev/signin#x=1&token=abc"))
-        assertNull(EmailLinks.tokenOf("https://rss-reader-web.wim-d57.workers.dev/signin"))
+        assertEquals("abc.def", EmailLinks.tokenOf("https://content.wim.to/signin#token=abc.def"))
+        assertEquals("abc", EmailLinks.tokenOf("https://content.wim.to/signin#x=1&token=abc"))
+        assertNull(EmailLinks.tokenOf("https://content.wim.to/signin"))
         assertNull(EmailLinks.tokenOf("https://evil.example/signin#token=abc"))
-        assertNull(EmailLinks.tokenOf("https://rss-reader-web.wim-d57.workers.dev/instapaper/callback?code=1"))
+        assertNull(EmailLinks.tokenOf("https://content.wim.to/instapaper/callback?code=1"))
     }
 
     @Test

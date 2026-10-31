@@ -24,9 +24,9 @@ object InstapaperAuth {
     const val CLIENT_ID = "94f820c94dc04d0386c71d7b0c26bd80"
 
     /** Must be registered with the Instapaper application and equal INSTAPAPER_REDIRECT_URI in worker/wrangler.toml. */
-    const val REDIRECT_URI = "https://rss-reader-web.wim-d57.workers.dev/instapaper/callback"
+    const val REDIRECT_URI = "https://content.wim.to/instapaper/callback"
     const val AUTHORIZE_URL = "https://www.instapaper.com/oauth2/authorize"
-    const val TOKEN_URL = "https://rss-reader-worker.wim-d57.workers.dev/instapaper/token"
+    const val TOKEN_URL = "https://content-worker.wim.to/instapaper/token"
 
     private val JSON_TYPE = "application/json; charset=utf-8".toMediaType()
 

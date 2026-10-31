@@ -203,7 +203,7 @@ class AccountClient(
 
     companion object {
         /** The owner's feed loader, which also keeps the accounts. */
-        const val BASE_URL = "https://rss-reader-worker.wim-d57.workers.dev"
+        const val BASE_URL = "https://content-worker.wim.to"
 
         private val JSON_TYPE = "application/json; charset=utf-8".toMediaType()
 
@@ -349,7 +349,7 @@ class EmailLinks(
 
     companion object {
         /** Where an emailed link opens: the web app's address, which this app opens as an App Link. */
-        const val LINK_PREFIX = "https://rss-reader-web.wim-d57.workers.dev/signin"
+        const val LINK_PREFIX = "https://content.wim.to/signin"
 
         private val JSON_TYPE = "application/json; charset=utf-8".toMediaType()
 
