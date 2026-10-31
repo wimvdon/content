@@ -68,8 +68,11 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   For each article you saved it also keeps one copy of its text as the reader shows it (the
   article cleaned up from its web page, with picture addresses but not the pictures), stored by
   the first of your devices that opens it, so every device shows the same text and your
-  highlights line up. It doesn't hold the text of articles you only read in a feed, your
-  Instapaper token or your Instapaper password. While the app
+  highlights line up. If you connected Instapaper, it also holds your Instapaper access token and
+  user name (with your settings), so your other devices are connected too without signing in to
+  Instapaper again; disconnecting on any device removes it. It never holds the text of articles you
+  only read in a feed or your Instapaper password. Your settings are kept per app: the web app's
+  and the Android app's, each the same on every device of that kind. While the app
   is on screen it also keeps a connection open to the feed loader that only says when the document
   changed. The document and each record are stored encrypted (AES-256-GCM, with a key for your
   account derived from a secret that only the feed loader has) in Cloudflare's storage (Durable
@@ -100,8 +103,9 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   **Sync highlights with Instapaper** (off unless you turn it on, per device): the passage you
   highlighted and its note go to that article in Instapaper, and the app reads the article's
   highlights there (when you open it, and before sending), so ones made in Instapaper come into
-  Content and none is made twice. Signing out deletes the token and the account key from
-  your device; the token stays valid at Instapaper until you revoke it there.
+  Content and none is made twice. Signing out of Instapaper deletes the token from your device
+  and, signed in to a Content account, from the account and so from your other devices; the token
+  stays valid at Instapaper until you revoke it there.
 - **Raindrop.io is no longer supported** (#179). The app no longer talks to raindrop.io. Updating
   the app deletes a Raindrop sign-in it still kept; revoke the app in Raindrop's settings to end
   it there too.

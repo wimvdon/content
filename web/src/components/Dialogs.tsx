@@ -1,4 +1,5 @@
-import { ArrowDown, ArrowLeft, ArrowUp, ChevronDown, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowUp, ChevronDown, EllipsisVertical, Merge, Pencil, Plus, Trash2 } from "lucide-react";
+import { useEscape } from "./ui/useEscape";
 import { ConfirmRemove } from "./ConfirmRemove";
 import { useEffect, useMemo, useState } from "react";
 import { gravatarUrl } from "@/lib/account";
@@ -89,28 +90,30 @@ function exportOpml() {
 
 /**
  * Manage topics, as on Android: the topics with what they hold (feeds and saved articles, and a
- * feed that fails), in the user's order; then No topic; Add feed and New topic. Clicking one opens
- * its page in the same dialog, for managing it (reading is in Feeds and Saved): its feeds
- * (reorder, edit, add one to it), how many saved articles have it, and Edit, Merge with… and Remove.
+ * feed that fails), in the user's order; then the feeds without a topic, loose; Add feed and New
+ * topic. Clicking a topic opens its page in the same dialog, for managing it (reading is in Feeds
+ * and Saved): its feeds (reorder, edit, add one to it), how many saved articles have it, Edit, and
+ * Merge with… and Remove in the ⋮ menu (rarely needed, so they stay out of the way).
  */
 export function ManageDialog({
   open,
   onOpenChange,
   onAddFeed,
   topic: initialTopic,
-}: Props & { onAddFeed: (topicId: string | null) => void; topic?: string | null }) {
+}: Props & { onAddFeed: (topicId: string | null) => void; topic?: string }) {
   const { library, problems } = useApp();
   const counts = useMemo(() => topicCounts(library), [library]);
-  // undefined: the list; null: No topic; an id: that topic's page.
-  const [shown, setShown] = useState<string | null | undefined>(initialTopic);
+  // undefined: the list; an id: that topic's page.
+  const [shown, setShown] = useState<string | undefined>(initialTopic);
   const [editFeed, setEditFeed] = useState<Feed | null>(null);
   const [editFolder, setEditFolder] = useState<Folder | "new" | null>(null);
-  const [merging, setMerging] = useState<string>("");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [merging, setMerging] = useState(false);
   const [confirmRemove, setConfirmRemove] = useState(false);
+  useEscape(menuOpen, () => setMenuOpen(false));
   const loose = library.feeds.filter((f) => !f.folderId || !library.folders.some((x) => x.id === f.folderId));
   const topic = shown ? library.folders.find((f) => f.id === shown) : undefined;
-  const onPage = shown !== undefined && (shown === null || topic !== undefined);
-  const feeds = onPage ? (topic ? library.feeds.filter((f) => f.folderId === topic.id) : loose) : [];
+  const feeds = topic ? library.feeds.filter((f) => f.folderId === topic.id) : [];
   const failing = (list: Feed[]) => list.filter((f) => problems.has(f.url)).length;
   const detail = (feedsIn: number, saved: number, fails: number) =>
     [plural("feedsCount", feedsIn), plural("topicSavedCount", saved), ...(fails > 0 ? [plural("topicFailingCount", fails)] : [])].join(" · ");
@@ -120,23 +123,48 @@ export function ManageDialog({
       <Dialog
         open={open}
         onOpenChange={onOpenChange}
-        title={onPage ? (topic?.title ?? t("noFolder")) : t("manageTitle")}
+        title={topic ? topic.title : t("manageTitle")}
         closeLabel={t("close")}
         wide
         footer={
-          onPage ? (
-            topic ? (
-              <>
-                <Button variant="destructive" className="mr-auto" onClick={() => setConfirmRemove(true)}>
-                  <Trash2 />
-                  {t("topicRemove")}
+          topic ? (
+            <>
+              <div className="relative mr-auto">
+                <Button variant="ghost" size="icon" onClick={() => setMenuOpen(!menuOpen)} aria-expanded={menuOpen} aria-label={t("moreOptions")} title={t("moreOptions")}>
+                  <EllipsisVertical />
                 </Button>
-                <Button variant="outline" onClick={() => setEditFolder(topic)}>
-                  <Pencil />
-                  {t("editFolder")}
-                </Button>
-              </>
-            ) : undefined
+                {menuOpen ? (
+                  <>
+                    <div className="fixed inset-0 z-20" onClick={() => setMenuOpen(false)} aria-hidden="true" />
+                    <div role="menu" className="absolute bottom-full left-0 z-30 mb-1 w-56 rounded-xl border bg-card py-1 shadow-lg">
+                      {library.folders.length > 1 ? (
+                        <MenuButton
+                          icon={<Merge />}
+                          label={t("topicMerge")}
+                          onClick={() => {
+                            setMenuOpen(false);
+                            setMerging(true);
+                          }}
+                        />
+                      ) : null}
+                      <MenuButton
+                        icon={<Trash2 />}
+                        label={t("topicRemove")}
+                        destructive
+                        onClick={() => {
+                          setMenuOpen(false);
+                          setConfirmRemove(true);
+                        }}
+                      />
+                    </div>
+                  </>
+                ) : null}
+              </div>
+              <Button variant="outline" onClick={() => setEditFolder(topic)}>
+                <Pencil />
+                {t("editFolder")}
+              </Button>
+            </>
           ) : (
             // Two actions: Add feed (the more frequent) filled, New topic quieter.
             <>
@@ -152,7 +180,7 @@ export function ManageDialog({
           )
         }
       >
-        {onPage ? (
+        {topic ? (
           <div className="space-y-5">
             <Button variant="ghost" size="sm" onClick={() => setShown(undefined)}>
               <ArrowLeft />
@@ -160,75 +188,21 @@ export function ManageDialog({
             </Button>
             <section className="space-y-1">
               <h3 className="text-sm font-medium text-primary">{t("feeds")}</h3>
-              <ul>
-                {feeds.map((feed, index) => (
-                  <li key={feed.url} className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-muted">
-                    <FeedIcon feed={feed} />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm">{feed.title}</span>
-                      <span className={cn("block truncate text-xs", problems.has(feed.url) ? "text-destructive" : "text-muted-foreground")}>
-                        {problems.has(feed.url) ? t("feedFailing") : feed.url}
-                      </span>
-                    </span>
-                    <Button variant="ghost" size="iconSm" disabled={index === 0} onClick={() => app.moveFeedBy(feed.url, -1)} aria-label={t("moveUp")}>
-                      <ArrowUp />
-                    </Button>
-                    <Button variant="ghost" size="iconSm" disabled={index === feeds.length - 1} onClick={() => app.moveFeedBy(feed.url, 1)} aria-label={t("moveDown")}>
-                      <ArrowDown />
-                    </Button>
-                    <Button variant="ghost" size="iconSm" onClick={() => setEditFeed(feed)} aria-label={t("edit")}>
-                      <Pencil />
-                    </Button>
-                  </li>
-                ))}
-              </ul>
-              <Button variant="ghost" onClick={() => onAddFeed(topic?.id ?? null)}>
+              <FeedRows feeds={feeds} onEdit={setEditFeed} />
+              <Button variant="ghost" onClick={() => onAddFeed(topic.id)}>
                 <Plus />
-                {topic ? t("topicAddFeed").replace("{name}", topic.title) : t("addFeed")}
+                {t("topicAddFeed").replace("{name}", topic.title)}
               </Button>
             </section>
-            {topic ? (
-              <>
-                <section className="space-y-1">
-                  <h3 className="text-sm font-medium text-primary">{t("saved")}</h3>
-                  <p className="text-sm">
-                    {plural("topicSavedCount", count?.saved ?? 0)} · {plural("topicToReadCount", count?.toRead ?? 0)}
-                  </p>
-                </section>
-                {library.folders.length > 1 ? (
-                  <section className="space-y-2">
-                    <h3 className="text-sm font-medium text-primary">{t("topicMerge")}</h3>
-                    <p className="text-xs text-muted-foreground">{t("topicMergeBody")}</p>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Select aria-label={t("topicMerge")} value={merging} onChange={(e) => setMerging(e.currentTarget.value)} className="max-w-xs">
-                        <option value="">…</option>
-                        {library.folders
-                          .filter((f) => f.id !== topic.id)
-                          .map((f) => (
-                            <option key={f.id} value={f.id}>
-                              {f.title}
-                            </option>
-                          ))}
-                      </Select>
-                      <Button
-                        variant="outline"
-                        disabled={!merging}
-                        onClick={() => {
-                          app.mergeTopic(topic.id, merging);
-                          setShown(merging);
-                          setMerging("");
-                        }}
-                      >
-                        {t("topicMergeAction")}
-                      </Button>
-                    </div>
-                  </section>
-                ) : null}
-              </>
-            ) : null}
+            <section className="space-y-1">
+              <h3 className="text-sm font-medium text-primary">{t("saved")}</h3>
+              <p className="text-sm">
+                {plural("topicSavedCount", count?.saved ?? 0)} · {plural("topicToReadCount", count?.toRead ?? 0)}
+              </p>
+            </section>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-4">
             {library.folders.length === 0 ? <p className="text-sm text-muted-foreground">{t("foldersExplanation")}</p> : null}
             <ul className="space-y-1">
               {library.folders.map((f, i) => {
@@ -256,20 +230,9 @@ export function ManageDialog({
                   </li>
                 );
               })}
-              {loose.length > 0 ? (
-                <li className="flex items-center gap-2 rounded-xl bg-muted/60 p-2">
-                  <button type="button" onClick={() => setShown(null)} className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-left">
-                    <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground">
-                      <FolderIcon name="folder-off" className="size-4" />
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block truncate font-medium">{t("noFolder")}</span>
-                      <span className="block truncate text-xs text-muted-foreground">{plural("feedsCount", loose.length)}</span>
-                    </span>
-                  </button>
-                </li>
-              ) : null}
             </ul>
+            {/* The feeds without a topic, loose under the topics (there is no "No topic" page). */}
+            {loose.length > 0 ? <FeedRows feeds={loose} onEdit={setEditFeed} /> : null}
           </div>
         )}
       </Dialog>
@@ -281,19 +244,112 @@ export function ManageDialog({
         onCreated={(id) => setShown(id)}
       />
       {topic ? (
-        <ConfirmRemove
-          open={confirmRemove}
-          title={t("removeFolderTitle")}
-          body={t("removeFolderBody").replace("{name}", topic.title)}
-          onConfirm={() => {
-            app.removeFolder(topic.id);
-            setConfirmRemove(false);
-            setShown(undefined);
-          }}
-          onClose={() => setConfirmRemove(false)}
-        />
+        <>
+          <MergeDialog
+            key={`merge:${topic.id}:${String(merging)}`}
+            open={merging}
+            topic={topic}
+            others={library.folders.filter((f) => f.id !== topic.id)}
+            onMerge={(into) => {
+              app.mergeTopic(topic.id, into);
+              setMerging(false);
+              setShown(into);
+            }}
+            onClose={() => setMerging(false)}
+          />
+          <ConfirmRemove
+            open={confirmRemove}
+            title={t("removeFolderTitle")}
+            body={t("removeFolderBody").replace("{name}", topic.title)}
+            onConfirm={() => {
+              app.removeFolder(topic.id);
+              setConfirmRemove(false);
+              setShown(undefined);
+            }}
+            onClose={() => setConfirmRemove(false)}
+          />
+        </>
       ) : null}
     </>
+  );
+}
+
+/** Feeds as rows, on a topic's page and (those without a topic) in Manage topics: reorder and edit. */
+function FeedRows({ feeds, onEdit }: { feeds: Feed[]; onEdit: (feed: Feed) => void }) {
+  const { problems } = useApp();
+  return (
+    <ul>
+      {feeds.map((feed, index) => (
+        <li key={feed.url} className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-muted">
+          <FeedIcon feed={feed} />
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-sm">{feed.title}</span>
+            <span className={cn("block truncate text-xs", problems.has(feed.url) ? "text-destructive" : "text-muted-foreground")}>
+              {problems.has(feed.url) ? t("feedFailing") : feed.url}
+            </span>
+          </span>
+          <Button variant="ghost" size="iconSm" disabled={index === 0} onClick={() => app.moveFeedBy(feed.url, -1)} aria-label={t("moveUp")}>
+            <ArrowUp />
+          </Button>
+          <Button variant="ghost" size="iconSm" disabled={index === feeds.length - 1} onClick={() => app.moveFeedBy(feed.url, 1)} aria-label={t("moveDown")}>
+            <ArrowDown />
+          </Button>
+          <Button variant="ghost" size="iconSm" onClick={() => onEdit(feed)} aria-label={t("edit")}>
+            <Pencil />
+          </Button>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function MenuButton({ icon, label, onClick, destructive }: { icon: React.ReactNode; label: string; onClick: () => void; destructive?: boolean }) {
+  return (
+    <button
+      type="button"
+      role="menuitem"
+      onClick={onClick}
+      className={cn(
+        "flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left text-sm hover:bg-muted [&_svg]:size-4",
+        destructive ? "text-destructive [&_svg]:text-destructive" : "[&_svg]:text-muted-foreground",
+      )}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+}
+
+/** Merge with…: pick the topic that stays; it gets this one's feeds and saved articles. */
+function MergeDialog({ open, topic, others, onMerge, onClose }: { open: boolean; topic: Folder; others: Folder[]; onMerge: (into: string) => void; onClose: () => void }) {
+  const [into, setInto] = useState("");
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(o) => !o && onClose()}
+      title={`${topic.title}: ${t("topicMerge")}`}
+      description={t("topicMergeBody")}
+      closeLabel={t("close")}
+      footer={
+        <>
+          <Button variant="ghost" onClick={onClose}>
+            {t("cancel")}
+          </Button>
+          <Button disabled={!into} onClick={() => onMerge(into)}>
+            {t("topicMergeAction")}
+          </Button>
+        </>
+      }
+    >
+      <Select aria-label={t("topicMerge")} value={into} onChange={(e) => setInto(e.currentTarget.value)} className="w-full">
+        <option value="">…</option>
+        {others.map((f) => (
+          <option key={f.id} value={f.id}>
+            {f.title}
+          </option>
+        ))}
+      </Select>
+    </Dialog>
   );
 }
 

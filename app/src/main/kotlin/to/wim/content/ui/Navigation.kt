@@ -12,6 +12,7 @@ import to.wim.content.ui.reader.ShareSheet
 import to.wim.content.ui.reader.messageRes
 import to.wim.content.ui.settings.InstapaperImportDialog
 import to.wim.content.ui.settings.InstapaperSettingsState
+import to.wim.content.data.Feed
 import to.wim.content.data.Inbox
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -46,6 +47,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import to.wim.content.R
+import to.wim.content.ui.feeds.LooseFeedActions
 import to.wim.content.ui.feeds.TopicPage
 import to.wim.content.ui.feeds.TopicPageActions
 import to.wim.content.ui.feeds.TopicRow
@@ -151,8 +153,8 @@ sealed interface Screen {
     /** Manage topics: every topic with what it holds (TopicsScreen). */
     data object Feeds : Screen
 
-    /** One topic's page (TopicScreen); a null id is No topic, the feeds without one. */
-    data class Topic(val id: String?) : Screen
+    /** One topic's page (TopicScreen). The feeds without a topic are listed in Manage topics itself. */
+    data class Topic(val id: String) : Screen
 
     /** Search through every feed's articles and Saved. */
     data object Search : Screen
@@ -170,7 +172,7 @@ sealed interface Screen {
                 Search -> "search"
                 is Reader -> "reader:" + screen.articleKey
                 is SiteSignIn -> "signin:" + screen.url
-                is Topic -> "topic:" + screen.id.orEmpty()
+                is Topic -> "topic:" + screen.id
             }
 
         fun decode(text: String): Screen =
@@ -182,7 +184,8 @@ sealed interface Screen {
                 text == "search" -> Search
                 text.startsWith("reader:") -> Reader(text.removePrefix("reader:"))
                 text.startsWith("signin:") -> SiteSignIn(text.removePrefix("signin:"))
-                text.startsWith("topic:") -> Topic(text.removePrefix("topic:").ifEmpty { null })
+                // An empty id was the No topic page, gone: its feeds are in Manage topics now.
+                text.startsWith("topic:") -> text.removePrefix("topic:").ifEmpty { null }?.let(::Topic) ?: Feeds
                 else -> Home
             }
     }
@@ -271,6 +274,18 @@ fun RssReaderNavigation(
 
     fun showMessage(text: String) {
         uiScope.launch { snackbar.showSnackbar(text) }
+    }
+
+    /** A feed's new name and topic, from its dialog in Manage topics or on a topic's page. */
+    fun editFeed(
+        feed: Feed,
+        title: String,
+        topicId: String?,
+    ) {
+        app.appScope.launch {
+            if (title.trim() != feed.title) repository.renameFeed(feed.url, title)
+            if (topicId != feed.folderId) repository.moveFeed(feed.url, topicId)
+        }
     }
 
     /** Puts [text] on the clipboard; Android says so itself. */
@@ -1019,13 +1034,21 @@ fun RssReaderNavigation(
                                     failing = library.feeds.count { it.folderId == topic.id && problems.containsKey(it.url) },
                                 )
                             },
-                        looseFeeds = library.feeds.count { feed -> feed.folderId == null || library.folders.none { it.id == feed.folderId } },
+                        looseFeeds = library.feeds.filter { feed -> feed.folderId == null || library.folders.none { it.id == feed.folderId } },
+                        allTopics = library.folders,
+                        problems = problems,
+                        looseActions =
+                            LooseFeedActions(
+                                onEditFeed = { feed, title, topicId -> editFeed(feed, title, topicId) },
+                                onRemoveFeed = { feed -> app.appScope.launch { repository.removeFeed(feed.url) } },
+                                onReorderFeeds = { urls -> app.appScope.launch { repository.reorderFeedsIn(null, urls) } },
+                            ),
                         snackbarHostState = snackbar,
                         onBack = ::pop,
                         onOpen = { push(Screen.Topic(it)) },
                         onReorder = { ids -> app.appScope.launch { repository.reorderTopics(ids) } },
                         onAddFeed = {
-                            // Under No topic, and stay on this page.
+                            // Without a topic, listed on this page, and stay here.
                             addIntoTopic = ""
                             addDialogOpen = true
                         },
@@ -1040,13 +1063,13 @@ fun RssReaderNavigation(
 
                 is Screen.Topic -> {
                     SystemBarsFollowTheme(appDark)
-                    val topic = screen.id?.let { library.folder(it) }
+                    val topic = library.folder(screen.id)
                     // A removed or merged topic: back to the list.
-                    if (screen.id != null && topic == null) {
+                    if (topic == null) {
                         LaunchedEffect(Unit) { pop() }
                     } else {
-                        val count = topic?.let { remember(library) { library.topicCounts()[it.id] } }
-                        val topicFeeds = library.feeds.filter { feed -> if (topic != null) feed.folderId == topic.id else feed.folderId == null || library.folders.none { it.id == feed.folderId } }
+                        val count = remember(library) { library.topicCounts()[topic.id] }
+                        val topicFeeds = library.feeds.filter { it.folderId == topic.id }
                         TopicScreen(
                             page =
                                 TopicPage(
@@ -1062,30 +1085,21 @@ fun RssReaderNavigation(
                                 TopicPageActions(
                                     onBack = ::pop,
                                     onAddFeed = {
-                                        addIntoTopic = screen.id ?: ""
+                                        addIntoTopic = screen.id
                                         addDialogOpen = true
                                     },
-                                    onEditFeed = { feed, title, topicId ->
-                                        app.appScope.launch {
-                                            if (title.trim() != feed.title) repository.renameFeed(feed.url, title)
-                                            if (topicId != feed.folderId) repository.moveFeed(feed.url, topicId)
-                                        }
-                                    },
+                                    onEditFeed = { feed, title, topicId -> editFeed(feed, title, topicId) },
                                     onRemoveFeed = { feed -> app.appScope.launch { repository.removeFeed(feed.url) } },
                                     onReorderFeeds = { urls -> app.appScope.launch { repository.reorderFeedsIn(screen.id, urls) } },
-                                    onEdit = { title, icon -> topic?.let { t -> app.appScope.launch { repository.updateFolder(t.id, title, icon) } } },
+                                    onEdit = { title, icon -> app.appScope.launch { repository.updateFolder(topic.id, title, icon) } },
                                     onMerge = { intoId ->
-                                        topic?.let { t ->
-                                            app.appScope.launch { repository.mergeTopic(t.id, intoId) }
-                                            pop()
-                                            push(Screen.Topic(intoId))
-                                        }
+                                        app.appScope.launch { repository.mergeTopic(topic.id, intoId) }
+                                        pop()
+                                        push(Screen.Topic(intoId))
                                     },
                                     onRemove = {
-                                        topic?.let { t ->
-                                            app.appScope.launch { repository.removeFolder(t.id) }
-                                            pop()
-                                        }
+                                        app.appScope.launch { repository.removeFolder(topic.id) }
+                                        pop()
                                     },
                                 ),
                         )

@@ -72,7 +72,7 @@ class RssReaderApp :
     val account: ContentAccount by lazy { ContentAccount(this, appScope, http) }
 
     /** Sync with the user's Content account. See sync/ and docs/account.md. */
-    val sync: SyncManager by lazy { SyncManager(this, appScope, library, settings, account, http) }
+    val sync: SyncManager by lazy { SyncManager(this, appScope, library, settings, account, instapaper, http) }
 
     /** Saved's connected service (Instapaper). See services/. */
     val services: ServiceManager by lazy {

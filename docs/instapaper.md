@@ -79,9 +79,25 @@ IndexedDB (`instapaperSync`) and forgotten on sign-out; Saved stays.
 3. The app checks `state`, then asks the feed loader (`POST /instapaper/token`) to swap the code for
    an access token. That swap needs the **client secret**, which can't live in an app or in the web
    bundle, so only the Worker has it.
-4. The token never expires. It is kept on the device only; each device signs in itself. The
-   Worker's answer also holds this device's key to the user's Reader account (`docs/account.md`),
-   kept next to the token. Instapaper refusing the token (401) signs the user out of both.
+4. The token never expires. It is kept on the device and, signed in to a Content account, in the
+   account's synced settings (`services.instapaper.token`, `docs/sync.md`), so **Instapaper is
+   connected once for every device of the account**, the web app's and the Android app's alike.
+
+## One sign-in for every device
+
+`sync/SharedInstapaper.kt` and `web/src/lib/sharedInstapaper.ts` (the same rules, both tested):
+
+- **Connecting** on one device puts its token (with the Instapaper user's id and name) in the
+  file; another device takes it at its next sync and is connected, without the import question
+  (its answer is synced too, `services.instapaper.imported`).
+- **Disconnecting** on any device, or Instapaper refusing the token (401), writes `""`: every
+  device disconnects at its next sync.
+- A device that has **never** been connected sends nothing, so it doesn't disconnect the others; a
+  device that was connected at its last sync and isn't now sends `""`.
+- A new token for the **same Instapaper user** (same user id; two devices that each signed in
+  before this) keeps what was synced with Instapaper; another user starts afresh, as signing in
+  again always did. Settings follow the sync file's merge (a change on one side wins; both changed,
+  this device wins), so after updating, the devices settle on one token.
 
 One callback address serves both apps:
 `https://content.wim.to/instapaper/callback`.

@@ -64,25 +64,34 @@ The account's document (it was `rss-reader-sync.json` in Google Drive before), U
 - Articles themselves are not synced: every device downloads them from the feeds.
 - `settings` (added in version 2) maps shared names to text values (`SyncSettings` on Android,
   `web/src/lib/syncSettings.ts`). Each app reads the names it knows and keeps the others, so a
-  setting only one app has survives a sync by the other. Only settings about what the app does
-  are synced:
+  setting only one app has survives a sync by the other. **Each app's own settings sync under its
+  own prefix** (the owner's choice): `android.` settings are the same on every Android device,
+  `web.` settings in every browser, and the two never mix, since a phone and a computer often want
+  something different:
 
   | Name | Values | Apps |
   |---|---|---|
-  | `fullArticles` | `true`, `false` | both |
-  | `markReadOnScroll` | `true`, `false` | both |
+  | `android.theme` | `System`, `Light`, `Dark` | Android |
+  | `android.dynamicColor` | `true`, `false` | Android |
+  | `android.reader.font`, `.textSize`, `.spacing`, `.background`, `.autoDark` | `Sans`/`Serif`; 14 to 28 (sp); `Compact`/`Normal`/`Relaxed`; `Default`/`Sepia`/`Dark`; `true`/`false` | Android |
+  | `android.fullArticles`, `android.showImages`, `android.markReadOnScroll`, `android.alwaysOpenWebsite` | `true`, `false` | Android |
+  | `android.listView` | `Small`, `Medium`, `Large` | Android |
+  | `web.theme` | `system`, `light`, `dark` | web |
+  | `web.reader.font`, `.textSize`, `.spacing`, `.background`, `.autoDark` | `sans`/`serif`; 14 to 28 (px); `compact`/`normal`/`relaxed`; `default`/`sepia`/`dark`; `true`/`false` | web |
+  | `web.fullArticles`, `web.showImages`, `web.markReadOnScroll` | `true`, `false` | web |
+  | `web.listView` | `small`, `medium`, `large` | web |
+  | `services.instapaper.token` | the Instapaper sign-in, shared by every device of the account (`SharedInstapaper.kt`, `web/src/lib/sharedInstapaper.ts`, see `instapaper.md`): `{"token", "username", "userId"}`; `""` once disconnected | both |
   | `sharing.recipients` | the people shared with (#235): a JSON list of email addresses in lower case, most recent first, at most 12 | both |
   | `services.instapaper.imported` | the answer to the import question when Instapaper was connected (#251): `{"at": ms, "count": n, "everything": true}` (`false`: not imported); one without `everything` (from before #251) counts as everything; an app without one keeps the file's | both |
 
   Names earlier versions wrote are dropped when a device saves the file: `services.<id>.scope`
-  (what each service synced, gone with #251: everything syncs) and `services.raindrop.*`.
+  (what each service synced, gone with #251: everything syncs), `services.raindrop.*`, and
+  `fullArticles` and `markReadOnScroll`, which both apps shared before; a device that finds them
+  and not its own prefixed names takes their value once. Older versions' unprefixed view names
+  (`theme`, `reader.font`, …) are ignored.
 
-  View settings stay on each device (#96), because people often want a different view on a
-  phone, a tablet and a computer: the theme, dynamic colour, the reader's font, text size, spacing,
-  page colour and automatic dark page, Show images and the list view.
-
-  Not synced either: the Save and Share targets (each phone has its own apps), Tag with the feed's
-  folder, the share sheet's counts (#251), the Instapaper sign-in (each device signs in itself) and
+  Not synced: the Save and Share targets (each phone has its own apps), Tag with the feed's
+  folder, the share sheet's counts (#251), notifications (each phone registers itself) and
   Unread | All (it is where you are in the list, not a setting; each device remembers its own).
 - A reader that finds a higher `version` leaves the file alone and asks to update the app.
 

@@ -100,6 +100,7 @@ class SettingsStore(
                 prefs[FULL_ARTICLES] = s.fullArticles
                 prefs[SHOW_IMAGES] = s.showImages
                 prefs[MARK_READ_ON_SCROLL] = s.markReadOnScroll
+                prefs[ALWAYS_OPEN_WEBSITE] = s.alwaysOpenWebsite
                 prefs[LIST_VIEW] = s.listView.name
                 prefs[IMPORTS] = ServiceSettings.writeImports(s.imports)
                 prefs[RECIPIENTS] = Recipients.encode(s.recipients)

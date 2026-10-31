@@ -8,7 +8,9 @@ import to.wim.content.data.item
 import to.wim.content.instapaper.InstapaperAccount
 import to.wim.content.instapaper.InstapaperClient
 import to.wim.content.instapaper.InstapaperReadingList
+import to.wim.content.instapaper.InstapaperSession
 import to.wim.content.instapaper.InstapaperState
+import to.wim.content.sync.SharedInstapaper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -92,12 +94,21 @@ class ServiceManager(
         if (started) return
         started = true
         scope.launch {
+            var last: InstapaperSession? = null
             instapaper.state
                 .filter { it != InstapaperState.Loading }
-                .map { (it as? InstapaperState.SignedIn)?.session?.token }
-                .distinctUntilChanged()
-                .collect { token ->
-                    connect(InstapaperReadingList.ID, token?.let { InstapaperReadingList(InstapaperClient(http, it)) })
+                .map { (it as? InstapaperState.SignedIn)?.session }
+                .distinctUntilChanged { a, b -> a?.token == b?.token }
+                .collect { session ->
+                    val service = session?.let { InstapaperReadingList(InstapaperClient(http, it.token)) }
+                    if (service != null && SharedInstapaper.sameUser(last, session)) {
+                        // Another token for the same Instapaper user (from another device, through the
+                        // Content account): what was synced still holds.
+                        services = services + (InstapaperReadingList.ID to service)
+                    } else {
+                        connect(InstapaperReadingList.ID, service)
+                    }
+                    last = session
                     if (services.isNotEmpty()) sync()
                 }
         }

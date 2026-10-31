@@ -70,22 +70,33 @@ data class TopicRow(
     val failing: Int,
 )
 
+/** What Manage topics can do with the feeds without a topic, listed under the topics. */
+class LooseFeedActions(
+    val onEditFeed: (feed: Feed, title: String, topicId: String?) -> Unit,
+    val onRemoveFeed: (Feed) -> Unit,
+    val onReorderFeeds: (urls: List<String>) -> Unit,
+)
+
 /**
  * Manage topics: every topic with its icon and what it holds (its feeds and saved articles, and a
- * feed that fails to download), in the user's order, which drag changes; then No topic, the feeds
- * without one. Tap a topic for its page. Add feed and New topic are the two buttons.
+ * feed that fails to download), in the user's order, which drag changes; then the feeds without a
+ * topic, loose, as on a topic's page (tap one to rename it, give it a topic or remove it). Tap a
+ * topic for its page. Add feed and New topic are the two buttons.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopicsScreen(
     topics: List<TopicRow>,
-    looseFeeds: Int,
+    looseFeeds: List<Feed>,
+    allTopics: List<Folder>,
+    problems: Map<String, FeedProblem>,
+    looseActions: LooseFeedActions,
     snackbarHostState: SnackbarHostState,
     onBack: () -> Unit,
-    onOpen: (topicId: String?) -> Unit,
+    onOpen: (topicId: String) -> Unit,
     onReorder: (ids: List<String>) -> Unit,
     onNewTopic: (title: String, icon: String) -> Unit,
-    /** Add feed, from the list: it lands under No topic, and you stay here. */
+    /** Add feed, from the list: it lands without a topic, and you stay here. */
     onAddFeed: () -> Unit,
 ) {
     var creating by rememberSaveable { mutableStateOf(false) }
@@ -154,16 +165,16 @@ fun TopicsScreen(
                     )
                 }
             }
-            if (looseFeeds > 0) {
-                item(key = "none") {
-                    TopicLine(
-                        icon = { Icon(painterResource(R.drawable.ic_folder_off), contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer) },
-                        title = stringResource(R.string.folder_none),
-                        detail = pluralStringResource(R.plurals.feeds_count, looseFeeds, looseFeeds),
-                        failing = false,
-                        lifted = false,
-                        onClick = { onOpen(null) },
-                        trailing = { Icon(painterResource(R.drawable.ic_chevron_right), contentDescription = null, modifier = Modifier.padding(12.dp)) },
+            if (looseFeeds.isNotEmpty()) {
+                item(key = "loose") {
+                    FeedRows(
+                        feeds = looseFeeds,
+                        topics = allTopics,
+                        problems = problems,
+                        onEditFeed = looseActions.onEditFeed,
+                        onRemoveFeed = looseActions.onRemoveFeed,
+                        onReorderFeeds = looseActions.onReorderFeeds,
+                        modifier = Modifier.padding(top = 16.dp),
                     )
                 }
             }
@@ -233,9 +244,9 @@ private fun TopicLine(
     }
 }
 
-/** What a topic page shows: the topic (null: the feeds without one), its feeds and its counts. */
+/** What a topic page shows: the topic, its feeds and its counts. */
 data class TopicPage(
-    val topic: Folder?,
+    val topic: Folder,
     val feeds: List<Feed>,
     val saved: Int,
     val toRead: Int,
@@ -272,8 +283,6 @@ fun TopicScreen(
     var menuOpen by rememberSaveable { mutableStateOf(false) }
     var merging by rememberSaveable { mutableStateOf(false) }
     var removing by rememberSaveable { mutableStateOf(false) }
-    var editingFeed by rememberSaveable { mutableStateOf<String?>(null) }
-    var removingFeed by rememberSaveable { mutableStateOf<String?>(null) }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -283,45 +292,36 @@ fun TopicScreen(
                 title = {
                     // The pen sits right after the icon and title, the two things it edits.
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        if (topic != null) Icon(rememberFolderIconPainter(topic.icon), contentDescription = null)
-                        Text(
-                            topic?.title ?: stringResource(R.string.folder_none),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f, fill = false),
-                        )
-                        if (topic != null) {
-                            IconButton(onClick = { editing = true }) {
-                                Icon(painterResource(R.drawable.ic_edit), contentDescription = stringResource(R.string.folder_edit))
-                            }
+                        Icon(rememberFolderIconPainter(topic.icon), contentDescription = null)
+                        Text(topic.title, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                        IconButton(onClick = { editing = true }) {
+                            Icon(painterResource(R.drawable.ic_edit), contentDescription = stringResource(R.string.folder_edit))
                         }
                     }
                 },
                 navigationIcon = { BackButton(actions.onBack) },
                 actions = {
-                    if (topic != null) {
-                        Box {
-                            IconButton(onClick = { menuOpen = true }) {
-                                Icon(painterResource(R.drawable.ic_more_vert), contentDescription = stringResource(R.string.action_more))
-                            }
-                            DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
-                                if (topics.size > 1) {
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.topic_merge)) },
-                                        onClick = {
-                                            menuOpen = false
-                                            merging = true
-                                        },
-                                    )
-                                }
+                    Box {
+                        IconButton(onClick = { menuOpen = true }) {
+                            Icon(painterResource(R.drawable.ic_more_vert), contentDescription = stringResource(R.string.action_more))
+                        }
+                        DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                            if (topics.size > 1) {
                                 DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.topic_remove), color = MaterialTheme.colorScheme.error) },
+                                    text = { Text(stringResource(R.string.topic_merge)) },
                                     onClick = {
                                         menuOpen = false
-                                        removing = true
+                                        merging = true
                                     },
                                 )
                             }
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.topic_remove), color = MaterialTheme.colorScheme.error) },
+                                onClick = {
+                                    menuOpen = false
+                                    removing = true
+                                },
+                            )
                         }
                     }
                 },
@@ -340,64 +340,40 @@ fun TopicScreen(
         ) {
             item(key = "feedsHeading") { SectionHeading(stringResource(R.string.feeds_title)) }
             item(key = "feeds") {
-                ReorderableColumn(
-                    items = page.feeds,
-                    key = { it.url },
-                    onMove = { from, to ->
-                        val urls = page.feeds.map { it.url }.toMutableList()
-                        urls.add(to, urls.removeAt(from))
-                        actions.onReorderFeeds(urls)
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                ) { feed ->
-                    val problem = problems[feed.url]?.let { problemText(it) }
-                    ListItem(
-                        headlineContent = { Text(feed.title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                        supportingContent = {
-                            Text(
-                                problem ?: feed.url.substringAfter("://"),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                color = if (problem != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        },
-                        leadingContent = { FeedIcon(feed, FeedIconSize.Medium) },
-                        trailingContent = { DragHandle(handleModifier) },
-                        tonalElevation = if (isDragging) 8.dp else 0.dp,
-                        modifier = Modifier.clickable(role = Role.Button, onClickLabel = stringResource(R.string.feed_edit)) { editingFeed = feed.url },
-                    )
-                }
+                FeedRows(
+                    feeds = page.feeds,
+                    topics = topics,
+                    problems = problems,
+                    onEditFeed = actions.onEditFeed,
+                    onRemoveFeed = actions.onRemoveFeed,
+                    onReorderFeeds = actions.onReorderFeeds,
+                )
             }
             item(key = "addFeed") {
                 TextButton(onClick = actions.onAddFeed) {
                     Icon(painterResource(R.drawable.ic_add), contentDescription = null)
-                    Text(
-                        if (topic != null) stringResource(R.string.topic_add_feed, topic.title) else stringResource(R.string.feeds_add),
-                        modifier = Modifier.padding(start = 8.dp),
-                    )
+                    Text(stringResource(R.string.topic_add_feed, topic.title), modifier = Modifier.padding(start = 8.dp))
                 }
             }
-            if (topic != null) {
-                item(key = "savedHeading") { SectionHeading(stringResource(R.string.saved_title)) }
-                item(key = "saved") {
-                    // Only what it holds: this page manages the topic, Saved is where its articles are read.
-                    ListItem(
-                        headlineContent = {
-                            Text(
-                                stringResource(
-                                    R.string.topic_counts,
-                                    pluralStringResource(R.plurals.topic_saved_count, page.saved, page.saved),
-                                    pluralStringResource(R.plurals.topic_to_read_count, page.toRead, page.toRead),
-                                ),
-                            )
-                        },
-                    )
-                }
+            item(key = "savedHeading") { SectionHeading(stringResource(R.string.saved_title)) }
+            item(key = "saved") {
+                // Only what it holds: this page manages the topic, Saved is where its articles are read.
+                ListItem(
+                    headlineContent = {
+                        Text(
+                            stringResource(
+                                R.string.topic_counts,
+                                pluralStringResource(R.plurals.topic_saved_count, page.saved, page.saved),
+                                pluralStringResource(R.plurals.topic_to_read_count, page.toRead, page.toRead),
+                            ),
+                        )
+                    },
+                )
             }
         }
     }
 
-    if (editing && topic != null) {
+    if (editing) {
         FolderSheet(
             folder = topic,
             onSave = { title, icon ->
@@ -407,7 +383,7 @@ fun TopicScreen(
             onDismiss = { editing = false },
         )
     }
-    if (merging && topic != null) {
+    if (merging) {
         MergeDialog(
             topic = topic,
             others = topics.filter { it.id != topic.id },
@@ -418,7 +394,7 @@ fun TopicScreen(
             onDismiss = { merging = false },
         )
     }
-    if (removing && topic != null) {
+    if (removing) {
         AlertDialog(
             onDismissRequest = { removing = false },
             title = { Text(stringResource(R.string.folder_remove_title)) },
@@ -432,14 +408,59 @@ fun TopicScreen(
             dismissButton = { TextButton(onClick = { removing = false }) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
-    page.feeds.firstOrNull { it.url == editingFeed }?.let { feed ->
+}
+
+/**
+ * Feeds as rows, on a topic's page and (those without a topic) in Manage topics: drag to reorder,
+ * tap one to rename it, give it a topic or remove it (which asks first).
+ */
+@Composable
+private fun FeedRows(
+    feeds: List<Feed>,
+    topics: List<Folder>,
+    problems: Map<String, FeedProblem>,
+    onEditFeed: (feed: Feed, title: String, topicId: String?) -> Unit,
+    onRemoveFeed: (Feed) -> Unit,
+    onReorderFeeds: (urls: List<String>) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var editingFeed by rememberSaveable { mutableStateOf<String?>(null) }
+    var removingFeed by rememberSaveable { mutableStateOf<String?>(null) }
+    ReorderableColumn(
+        items = feeds,
+        key = { it.url },
+        onMove = { from, to ->
+            val urls = feeds.map { it.url }.toMutableList()
+            urls.add(to, urls.removeAt(from))
+            onReorderFeeds(urls)
+        },
+        modifier = modifier.fillMaxWidth(),
+    ) { feed ->
+        val problem = problems[feed.url]?.let { problemText(it) }
+        ListItem(
+            headlineContent = { Text(feed.title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+            supportingContent = {
+                Text(
+                    problem ?: feed.url.substringAfter("://"),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    color = if (problem != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            },
+            leadingContent = { FeedIcon(feed, FeedIconSize.Medium) },
+            trailingContent = { DragHandle(handleModifier) },
+            tonalElevation = if (isDragging) 8.dp else 0.dp,
+            modifier = Modifier.clickable(role = Role.Button, onClickLabel = stringResource(R.string.feed_edit)) { editingFeed = feed.url },
+        )
+    }
+    feeds.firstOrNull { it.url == editingFeed }?.let { feed ->
         FeedDialog(
             feed = feed,
             folders = topics,
             problem = problems[feed.url]?.let { problemText(it) },
             onSave = { title, topicId ->
                 editingFeed = null
-                actions.onEditFeed(feed, title, topicId)
+                onEditFeed(feed, title, topicId)
             },
             onRemove = {
                 editingFeed = null
@@ -448,7 +469,7 @@ fun TopicScreen(
             onDismiss = { editingFeed = null },
         )
     }
-    page.feeds.firstOrNull { it.url == removingFeed }?.let { feed ->
+    feeds.firstOrNull { it.url == removingFeed }?.let { feed ->
         AlertDialog(
             onDismissRequest = { removingFeed = null },
             title = { Text(stringResource(R.string.feeds_remove_title)) },
@@ -456,7 +477,7 @@ fun TopicScreen(
             confirmButton = {
                 TextButton(onClick = {
                     removingFeed = null
-                    actions.onRemoveFeed(feed)
+                    onRemoveFeed(feed)
                 }) { Text(stringResource(R.string.action_remove), color = MaterialTheme.colorScheme.error) }
             },
             dismissButton = { TextButton(onClick = { removingFeed = null }) { Text(stringResource(R.string.action_cancel)) } },

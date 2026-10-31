@@ -15,6 +15,7 @@ import {
 } from "./instapaper";
 import { applyHighlights, notCopied, syncHighlights, type HighlightLink } from "./highlightCopy";
 import { INSTAPAPER_ID, InstapaperSync } from "./instapaperSync";
+import { localShared, sameUser, sharedAction, type SharedAction } from "./sharedInstapaper";
 import { progressChanged } from "./readingProgress";
 import { addTopic, mergeTopic, removeTopic, renameTopic, tagWithFeedTopic, topicNamed, topicsForTags } from "./topics";
 import { addHighlight, changeItem, itemOf, joinDuplicateItems, putItem, removeHighlight, renameTag, setHighlightNote, setLiked, type Highlight, type Item } from "./items";
@@ -72,7 +73,7 @@ export interface State {
   refreshing: boolean;
   problems: Map<string, FetchError["kind"] | "notAFeed">;
   syncStatus: SyncStatus;
-  /** The Instapaper sign-in, which is also the Reader account (sync). Kept in this browser only. */
+  /** The Instapaper sign-in: in this browser, and in the Content account for its other devices (sharedInstapaper.ts). */
   instapaper: InstapaperSession | null;
   /** The result of coming back from Instapaper's sign-in page, shown once. */
   instapaperNotice: "signedIn" | "failed" | null;
@@ -680,9 +681,25 @@ class AppStore {
     return account ? new AccountClient(account).storeText(key, html) : null;
   };
 
-  /** Disconnects Instapaper in this browser; the Content account stays signed in (#166). */
+  /** Disconnects Instapaper in this browser, and through the account on its other devices; the Content account stays signed in (#166). */
   async disconnectInstapaper() {
     await this.forgetInstapaper();
+    this.syncSoon();
+  }
+
+  /** Takes in the Instapaper sign-in another device connected or disconnected (sharedInstapaper.ts). */
+  private async followSharedInstapaper(action: SharedAction) {
+    if (action.kind === "signOut") {
+      await this.forgetInstapaper();
+    } else if (action.kind === "signIn") {
+      // Another Instapaper user: what this browser synced belongs to the old one. The same user's new token keeps it.
+      if (!sameUser(this.state.instapaper, action.session)) {
+        await remove(INSTAPAPER_SYNC_KEY).catch(() => undefined);
+        await remove(INSTAPAPER_HIGHLIGHTS_KEY).catch(() => undefined);
+        this.set({ instapaperNotCopied: {} });
+      }
+      await this.setInstapaper(action.session);
+    }
   }
 
   /**
@@ -996,17 +1013,23 @@ class AppStore {
     try {
       const saved = await load<S.SyncBase>("syncBase").catch(() => undefined);
       let newFeeds = false;
+      let instapaper: SharedAction = { kind: "none" };
       const next = await S.syncRound(new AccountClient(key), typeof saved?.text === "string" ? saved : null, (base, remote) => {
         // Merged with the library as it is right now, so changes made while the document loaded count.
         const current = this.state.library;
-        const local = { ...S.localDocument(current), settings: SS.syncedSettings(this.state.settings, base?.settings) };
+        const session = this.state.instapaper;
+        const token = localShared(session, base?.settings?.[SS.INSTAPAPER_TOKEN]);
+        const local = { ...S.localDocument(current), settings: SS.syncedSettings(this.state.settings, base?.settings, token) };
         const merged = remote ? S.merge(base, local, remote) : local;
         newFeeds ||= S.hasNewFeeds(current, merged);
         this.updateLibrary(() => S.apply(this.state.library, merged), false);
         this.updateSettings(SS.applySynced(this.state.settings, merged.settings), false);
+        instapaper = sharedAction(session, merged.settings[SS.INSTAPAPER_TOKEN]);
         return merged;
       });
       if (this.accountKey() !== key) return;
+      // Connected or disconnected on another device: the same here (docs/instapaper.md).
+      await this.followSharedInstapaper(instapaper);
       await save("syncBase", next);
       this.syncedVersion = next.version;
       // Then the reading list, Bookmarks and read marks, one row per item (#106).

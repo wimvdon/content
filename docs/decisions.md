@@ -2,6 +2,27 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-31: One Instapaper sign-in per account, settings per app, no No topic page
+
+- **Instapaper is connected once for the whole account** (at the owner's request): the token goes
+  into the account's synced settings (`services.instapaper.token`, encrypted like the rest of the
+  account), and every device takes it in; disconnecting anywhere, or Instapaper refusing the token,
+  disconnects every device. A device that never connected sends nothing, so it doesn't disconnect
+  the others. The same user's new token keeps what was synced. Rejected: keeping it per device
+  (signing in on every device was the complaint); the account remembering it on the server outside
+  the sync file (a second place to keep in step).
+- **Settings sync per app** (at the owner's request): all of the web app's settings under `web.`,
+  all of the Android app's under `android.`, so every browser looks and works the same and every
+  phone does, but the web and Android never change each other. This replaces #96 (view settings on
+  each device) and the shared `fullArticles` and `markReadOnScroll`, which are read once and then
+  dropped. Still per device: notifications, the Save and Share targets, the share sheet's counts,
+  Unread | All.
+- **The feeds without a topic are listed loose under the topics** in Manage topics, on both apps;
+  the No topic page is gone (backing out of Add feed opened it on the web). Back from Add feed goes
+  to where you were.
+- **Web: Merge with… and Remove topic are in a ⋮ menu** on a topic's page, Merge with… in a small
+  dialog of its own, as on Android; the merge picker no longer sits on the page.
+
 ## 2026-10-31: The web app at content.wim.to, the Workers renamed to content-
 
 - The owner moved the web app to **https://content.wim.to** and the feed loader to
