@@ -95,6 +95,7 @@ export function SearchPanel({ openKey, onOpen, onClose }: { openKey: string | nu
                     feed={hit.kind === "feed" ? feeds.get(hit.article.feedUrl) : sourceOf(hit.item, library)}
                     open={openKey === articleKey(article)}
                     onOpen={() => onOpen(article)}
+                    link={article.link}
                     label={all ? (hit.kind === "feed" ? t("searchLabelFeed") : t("saved")) : undefined}
                   />
                 </li>
