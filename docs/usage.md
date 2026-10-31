@@ -25,13 +25,21 @@ sit on a light tile, so dark logos stay visible in dark mode.
 
 ## Moving from another reader
 
-Export your feeds as an **OPML** file in your old reader (in Inoreader: Preferences ›
-Import/Export; Feedly, NetNewsWire and most others have the same), then tap **Import OPML** (on
+Export your feeds as an **OPML** file in your old reader, then tap **Import OPML** (on
 the empty start screen or in ☰ › Manage feeds and Saved › Feeds, under Move to or from another
 reader) and pick the file. All feeds are added (feeds
 you already follow are skipped), in the same folders as in your old reader, and the app downloads
 their articles. **Export OPML** does the reverse, folders included. Read and starred states don't
 come along.
+
+Under Import OPML, **From Feedly**, **From Inoreader** and **From Substack** open numbered steps
+(both apps):
+
+- **Feedly**: on a computer, sign in on feedly.com and go to feedly.com/i/opml (the app can't
+  export); boards and Read Later stay in Feedly.
+- **Inoreader**: on a computer, Preferences (the gear) › Import/Export › Export to OPML file.
+- **Substack** has no file: open a publication's home page (not a post or a note), Share ›
+  Content › **Add feed**, then **Add**; on the web, paste its address in Add feed.
 
 ## Folders
 

@@ -334,6 +334,8 @@ fun FeedsTab(
                     OutlinedButton(onClick = actions.onExportOpml, enabled = state.feeds.isNotEmpty(), modifier = Modifier.weight(1f)) { Text(stringResource(R.string.feeds_export)) }
                 }
                 Hint(stringResource(R.string.feeds_opml_hint))
+                // How to get the file out of the readers people come from, and Substack, which has no file.
+                ImportGuides()
             }
         }
     }
