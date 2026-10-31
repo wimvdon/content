@@ -319,4 +319,22 @@ class LibraryTest {
         assertFalse(FeedSelection.Tagged("Tech").choosesFolder(folders[1]))
         assertFalse(FeedSelection.Single("https://a/feed").choosesFolder(folders[0]))
     }
+
+    @Test
+    fun `the feed chips follow the folders' order, not the alphabet`() {
+        val library =
+            Library(
+                feeds =
+                    listOf(
+                        Feed("https://a/feed", "A", tags = listOf("news")),
+                        Feed("https://b/feed", "B", tags = listOf("Tech")),
+                        Feed("https://c/feed", "C", tags = listOf("Zoo")),
+                        Feed("https://d/feed", "D", tags = listOf("Old")),
+                        Feed("https://e/feed", "E", tags = listOf("Art")),
+                    ),
+                folders = listOf(Folder("f1", "Tech"), Folder("f2", "News"), Folder("f3", "Art")),
+            )
+        // Folders first, as Manage and ☰ order them; tags without a folder after them, alphabetically.
+        assertEquals(listOf("Tech", "news", "Art", "Old", "Zoo"), library.feedTags())
+    }
 }

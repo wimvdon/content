@@ -128,6 +128,8 @@ data class Settings(
     val showImages: Boolean = true,
     /** Mark articles as read once they scroll off the top of the list. */
     val markReadOnScroll: Boolean = false,
+    /** Open feed articles on their website instead of in the reader; on this phone only, off by default. */
+    val alwaysOpenWebsite: Boolean = false,
     val listView: ListView = ListView.Medium,
     /** Tag an article saved from a feed with the feed's folder (#120). */
     val tagWithFolder: Boolean = true,
@@ -142,3 +144,15 @@ data class Settings(
     /** When the last sync succeeded, or null. */
     val lastSyncedAt: Long? = null,
 )
+
+/**
+ * Where a feed article opens: on its website with [Settings.alwaysOpenWebsite], else in the reader.
+ * Saved articles always open in the reader, which keeps their place, highlights and notes.
+ */
+object ArticleOpening {
+    /** The address to open instead of the reader, or null for the reader (setting off, or no web link). */
+    fun websiteFor(
+        alwaysOpenWebsite: Boolean,
+        article: Article,
+    ): String? = article.link?.trim()?.takeIf { alwaysOpenWebsite && ItemKeys.isWebLink(it) }
+}

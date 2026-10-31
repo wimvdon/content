@@ -59,6 +59,7 @@ class SettingsActions(
     val onBack: () -> Unit,
     val onReaderStyleChange: (ReaderStyle) -> Unit,
     val onFullArticlesChange: (Boolean) -> Unit,
+    val onAlwaysOpenWebsiteChange: (Boolean) -> Unit,
     val onShowImagesChange: (Boolean) -> Unit,
     val onMarkReadOnScrollChange: (Boolean) -> Unit,
     val onListViewChange: (ListView) -> Unit,
@@ -181,6 +182,12 @@ private fun ReaderSection(
 ) {
     val style = settings.reader
     SettingsSection(title = stringResource(R.string.section_reader)) {
+        SwitchSetting(
+            title = stringResource(R.string.reader_always_website_title),
+            summary = stringResource(R.string.reader_always_website_summary),
+            checked = settings.alwaysOpenWebsite,
+            onCheckedChange = actions.onAlwaysOpenWebsiteChange,
+        )
         SwitchSetting(
             title = stringResource(R.string.reader_full_articles_title),
             summary = stringResource(R.string.reader_full_articles_summary),

@@ -2,6 +2,7 @@ package to.wim.content.data
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -66,5 +67,17 @@ class SettingsTest {
         assertFalse(settings.markReadOnScroll)
         assertEquals(ListView.Medium, settings.listView)
         assertFalse(settings.reader.autoDark)
+    }
+
+    @Test
+    fun `always open the website opens a feed article's web link, else the reader`() {
+        val article = Article("https://a/feed", "1", "Title", " https://example.com/post ", null, "", null, 0L)
+        // Off by default: the reader.
+        assertEquals(false, Settings().alwaysOpenWebsite)
+        assertNull(ArticleOpening.websiteFor(false, article))
+        assertEquals("https://example.com/post", ArticleOpening.websiteFor(true, article))
+        // No link, or not a web link: the reader all the same.
+        assertNull(ArticleOpening.websiteFor(true, article.copy(link = null)))
+        assertNull(ArticleOpening.websiteFor(true, article.copy(link = "javascript:alert(1)")))
     }
 }

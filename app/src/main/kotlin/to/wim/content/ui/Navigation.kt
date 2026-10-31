@@ -94,6 +94,7 @@ import to.wim.content.ui.reader.ReaderItem
 import to.wim.content.ui.reader.fontFamily
 import to.wim.content.data.AddFeedResult
 import to.wim.content.data.Article
+import to.wim.content.data.ArticleOpening
 import to.wim.content.data.ArticleSearch
 import to.wim.content.data.SearchFilters
 import to.wim.content.data.SearchResults
@@ -596,6 +597,16 @@ fun RssReaderNavigation(
 
     fun openItem(item: Item) = push(Screen.Reader(ReadingLists.readerKey(item)))
 
+    /** A feed article: in the reader, or on its website with Always open the website (marked read then too). */
+    fun openArticle(article: Article) {
+        val website = ArticleOpening.websiteFor(current.alwaysOpenWebsite, article)
+        if (website != null && ExternalApps.openInTab(context, website, article.title)) {
+            if (!article.read) app.appScope.launch { repository.setRead(article.key, true) }
+        } else {
+            push(Screen.Reader(article.key))
+        }
+    }
+
     LaunchedEffect(openRequest) {
         val key = openRequest ?: return@LaunchedEffect
         val folder = LauncherFolders.folderOf(key)
@@ -696,7 +707,7 @@ fun RssReaderNavigation(
                                 },
                                 onOpenArticle = { article ->
                                     readThisVisit = readThisVisit + article.key
-                                    push(Screen.Reader(article.key))
+                                    openArticle(article)
                                 },
                                 onToggleRead = { article ->
                                     // Stays in the Unread list until it changes, like opened articles.
@@ -893,6 +904,7 @@ fun RssReaderNavigation(
                                 onBack = ::pop,
                                 onReaderStyleChange = { style -> app.appScope.launch { app.settings.setReaderStyle(style) } },
                                 onFullArticlesChange = { enabled -> app.appScope.launch { app.settings.setFullArticles(enabled) } },
+                                onAlwaysOpenWebsiteChange = { enabled -> app.appScope.launch { app.settings.setAlwaysOpenWebsite(enabled) } },
                                 onShowImagesChange = { enabled -> app.appScope.launch { app.settings.setShowImages(enabled) } },
                                 onMarkReadOnScrollChange = { enabled -> app.appScope.launch { app.settings.setMarkReadOnScroll(enabled) } },
                                 onListViewChange = { view -> app.appScope.launch { app.settings.setListView(view) } },
@@ -1073,7 +1085,7 @@ fun RssReaderNavigation(
                                 onOpenArticle = { article ->
                                     // Like from the list: it stays in the Unread list when you go back (#157).
                                     readThisVisit = readThisVisit + article.key
-                                    push(Screen.Reader(article.key))
+                                    openArticle(article)
                                 },
                                 onOpenItem = ::openItem,
                                 onTab = { tab ->

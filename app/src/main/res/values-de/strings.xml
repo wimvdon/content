@@ -123,12 +123,14 @@
     <string name="reader_show_feed_text">Text aus dem Feed anzeigen</string>
     <string name="reader_loading_full">Ganzer Artikel wird geladen…</string>
     <string name="reader_full_failed">Der ganze Artikel konnte nicht geladen werden. Du siehst den Text aus dem Feed.</string>
+    <string name="reader_always_website_title">Immer die Website öffnen</string>
+    <string name="reader_always_website_summary">Artikel aus deinen Feeds öffnen sich auf ihrer Website statt im Reader. Gespeicherte Artikel öffnen sich weiter im Reader.</string>
     <string name="reader_full_articles_title">Ganze Artikel laden</string>
     <string name="reader_full_articles_summary">Wenn ein Feed nur eine Zusammenfassung hat, den ganzen Artikel von der Website holen</string>
     <string name="reader_show_images_title">Bilder anzeigen</string>
     <string name="reader_show_images_summary">In Artikeln und der Liste</string>
-    <string name="embed_youtube">Auf YouTube ansehen</string>
-    <string name="embed_vimeo">Auf Vimeo ansehen</string>
+    <string name="embed_tap_to_play">Zum Abspielen tippen</string>
+    <string name="embed_open_in">In %1$s öffnen</string>
     <string name="embed_video">Video abspielen</string>
     <string name="embed_other">Eingebetteten Inhalt öffnen</string>
     <string name="share_target_missing_short">%1$s ist nicht installiert</string>

@@ -116,6 +116,7 @@ import to.wim.content.data.SavedTab
 import to.wim.content.data.FeedSelection
 import to.wim.content.data.ScrollRead
 import to.wim.content.data.chipTag
+import to.wim.content.data.feedTagsInOrder
 import kotlinx.coroutines.flow.distinctUntilChanged
 import to.wim.content.feed.Html
 import to.wim.content.ui.theme.AppShapes
@@ -210,7 +211,7 @@ fun HomeScreen(
     val reading = state.saved?.takeIf { state.section == HomeSection.Saved }
     val inFeeds = reading == null
     val unreadHere = state.unreadCounts[state.selection] ?: 0
-    val feedTags = remember(state.feeds) { state.feeds.flatMap { it.tags }.distinctBy { it.lowercase() }.sortedBy { it.lowercase() } }
+    val feedTags = remember(state.feeds, state.folders) { feedTagsInOrder(state.feeds, state.folders) }
     val wide = isWideWindow()
     // Feed and Saved in the navigation bar (#189); Search opens from the search bar.
     val tab = if (state.section == HomeSection.Saved) MainTab.Saved else MainTab.Feeds

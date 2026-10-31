@@ -1,4 +1,4 @@
-import { Archive, ArrowLeft, Bell, BookmarkPlus, BookOpen, CheckCheck, ChevronDown, Circle, CircleCheck, Folder as FolderGlyph, Heart, Highlighter, Link2, Menu, Newspaper, Quote, RefreshCw, Rss, Search, Share2, StickyNote, Tag as TagIcon, Trash2, X, type LucideIcon } from "lucide-react";
+import { Archive, ArrowLeft, Bell, BookmarkPlus, BookOpen, CheckCheck, ChevronDown, Circle, CircleCheck, ExternalLink, Folder as FolderGlyph, Heart, Highlighter, Link2, Menu, Newspaper, Quote, RefreshCw, Rss, Search, Share2, StickyNote, Tag as TagIcon, Trash2, X, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useEscape } from "./ui/useEscape";
 import { RemoveDialog } from "./SavedActions";
@@ -294,7 +294,7 @@ function SavedArticles({
                     <li key={item.key} className="mb-2 break-inside-avoid">
                       {/* Right-click or press and hold (#221, #263): Organise, Share and Remove. */}
                       <WithRowMenu items={menuOf(item)}>
-                        <NoteCard note={noteOf(item)} feed={sourceOf(item, library)} open={openKey === articleKey(article)} onOpen={() => onOpen(article)} />
+                        <NoteCard note={noteOf(item)} feed={sourceOf(item, library)} open={openKey === articleKey(article)} onOpen={() => onOpen(article)} link={item.url} />
                       </WithRowMenu>
                     </li>
                   );
@@ -543,7 +543,28 @@ function TagChips({
  * first highlight, quoted, else the description), for a feed article the start of its text, then
  * the site, tags, highlights and a heart when liked. `label` says what kind it is in Search.
  */
-export function NoteCard({ note, feed, open, onOpen, label }: { note: NoteContent; feed: Feed | undefined; open: boolean; onOpen: () => void; label?: string }) {
+/** A card, with a button on hover that opens `link` in a new tab. */
+export function NoteCard(props: { note: NoteContent; feed: Feed | undefined; open: boolean; onOpen: () => void; label?: string; link?: string | null }) {
+  const card = <NoteCardButton {...props} />;
+  if (!props.link) return card;
+  return (
+    <div className="group relative">
+      {card}
+      <a
+        href={props.link}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={t("openInNewTab")}
+        title={t("openInNewTab")}
+        className="absolute top-1.5 right-1.5 flex size-8 cursor-pointer items-center justify-center rounded-full bg-card text-muted-foreground opacity-0 shadow-sm transition-opacity group-hover:opacity-100 hover:text-foreground focus-visible:opacity-100 [@media(hover:none)]:opacity-100 [&_svg]:size-4"
+      >
+        <ExternalLink />
+      </a>
+    </div>
+  );
+}
+
+function NoteCardButton({ note, feed, open, onOpen, label }: { note: NoteContent; feed: Feed | undefined; open: boolean; onOpen: () => void; label?: string }) {
   const { settings } = useApp();
   const body = note.body;
   const image = settings.showImages ? note.imageUrl : null;
@@ -633,20 +654,26 @@ export function Row({
   source?: React.ReactNode;
 }) {
   const row = <RowButton article={article} feed={feed} open={open} onOpen={onOpen} noReadState={noReadState} label={label} onFeedClick={onFeedClick} source={source} />;
-  if (!onToggleRead) return row;
+  if (!onToggleRead && !article.link) return row;
   const toggle = article.read ? t("markUnread") : t("markRead");
+  const hoverButton =
+    "flex size-8 cursor-pointer items-center justify-center rounded-full bg-card text-muted-foreground opacity-0 shadow-sm transition-opacity group-hover:opacity-100 hover:text-foreground focus-visible:opacity-100 [@media(hover:none)]:opacity-100 [&_svg]:size-4";
   return (
     <div className="group relative">
       {row}
-      <button
-        type="button"
-        onClick={onToggleRead}
-        aria-label={toggle}
-        title={toggle + " (m)"}
-        className="absolute top-1.5 right-1.5 flex size-8 cursor-pointer items-center justify-center rounded-full bg-card text-muted-foreground opacity-0 shadow-sm transition-opacity group-hover:opacity-100 hover:text-foreground focus-visible:opacity-100 [@media(hover:none)]:opacity-100 [&_svg]:size-4"
-      >
-        {article.read ? <Circle /> : <CircleCheck />}
-      </button>
+      <div className="absolute top-1.5 right-1.5 flex gap-1">
+        {article.link ? (
+          // The article's own page in a new tab, without opening it in the reader.
+          <a href={article.link} target="_blank" rel="noopener noreferrer" aria-label={t("openInNewTab")} title={t("openInNewTab")} className={hoverButton}>
+            <ExternalLink />
+          </a>
+        ) : null}
+        {onToggleRead ? (
+          <button type="button" onClick={onToggleRead} aria-label={toggle} title={toggle + " (m)"} className={hoverButton}>
+            {article.read ? <Circle /> : <CircleCheck />}
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 }

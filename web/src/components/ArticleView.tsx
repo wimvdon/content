@@ -230,7 +230,16 @@ export function ArticleView({
             <span aria-hidden="true">·</span>
             <time dateTime={new Date(sortTime(article)).toISOString()}>{formatDateTime(sortTime(article))}</time>
           </div>
-          <h1 className={cn("text-3xl leading-tight font-bold", style.font === "serif" ? "font-serif" : "font-sans")}>{article.title}</h1>
+          <h1 className={cn("text-3xl leading-tight font-bold", style.font === "serif" ? "font-serif" : "font-sans")}>
+            {/* The title opens the article on its website, as on Android. */}
+            {article.link ? (
+              <a href={article.link} target="_blank" rel="noopener noreferrer" title={t("readOnWebsite")} className="hover:underline">
+                {article.title}
+              </a>
+            ) : (
+              article.title
+            )}
+          </h1>
           {article.author ? <p className="mt-2 text-sm text-muted-foreground">{article.author}</p> : null}
           {saved && saved.tags.length > 0 ? (
             <ul className="mt-3 flex flex-wrap gap-1.5" aria-label={t("tags")}>

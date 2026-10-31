@@ -43,6 +43,7 @@ import to.wim.content.data.Mark
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -366,25 +367,48 @@ fun InlineImage(
 }
 
 /**
- * Embedded content (a video, a post) as a card: a preview picture with a play button when there
- * is one, and what tapping it opens. The player itself opens in its app or the browser.
+ * Embedded content (a video, a post): a card, and once a card with a player is tapped, the player
+ * in its place ([EmbedPlayer]) with a link to the service under it. A card without a player
+ * opens [ArticleBlock.Embed.url] in its app or the browser.
  */
 @Composable
-fun EmbedCard(
+fun EmbedBlock(
+    embed: ArticleBlock.Embed,
+    showThumbnail: Boolean,
+    onOpen: (String) -> Unit,
+) {
+    var playing by remember(embed) { mutableStateOf(false) }
+    if (!playing || embed.player == null) {
+        EmbedCard(embed, showThumbnail, onOpen = { if (embed.player != null) playing = true else onOpen(embed.url) })
+        return
+    }
+    Column(Modifier.fillMaxWidth()) {
+        EmbedPlayer(embed, onOpenLink = onOpen)
+        val service = embed.kind.label
+        if (service != null) {
+            TextButton(onClick = { onOpen(embed.url) }, modifier = Modifier.align(Alignment.End)) {
+                Icon(painterResource(R.drawable.ic_open_in_new), contentDescription = null, modifier = Modifier.size(18.dp))
+                Text(stringResource(R.string.embed_open_in, service), modifier = Modifier.padding(start = 8.dp))
+            }
+        }
+    }
+}
+
+/**
+ * The card of an embed: a preview picture with a play button when there is one, the service's
+ * name, and what tapping does (play here, or the site it opens).
+ */
+@Composable
+private fun EmbedCard(
     embed: ArticleBlock.Embed,
     showThumbnail: Boolean,
     onOpen: () -> Unit,
 ) {
+    val playable = embed.player != null
     val label =
-        stringResource(
-            when (embed.kind) {
-                EmbedKind.YouTube -> R.string.embed_youtube
-                EmbedKind.Vimeo -> R.string.embed_vimeo
-                EmbedKind.Video -> R.string.embed_video
-                EmbedKind.Other -> R.string.embed_other
-            },
-        )
-    val playable = embed.kind != EmbedKind.Other
+        embed.kind.label
+            ?: stringResource(if (embed.kind == EmbedKind.Video) R.string.embed_video else R.string.embed_other)
+    val detail = if (playable) stringResource(R.string.embed_tap_to_play) else embed.url.substringAfter("://").substringBefore('/')
     Surface(
         onClick = onOpen,
         shape = MaterialTheme.shapes.medium,
@@ -429,7 +453,7 @@ fun EmbedCard(
                 Column(Modifier.weight(1f)) {
                     Text(label, style = MaterialTheme.typography.titleSmall)
                     Text(
-                        embed.url.substringAfter("://").substringBefore('/'),
+                        detail,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,

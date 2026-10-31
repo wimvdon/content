@@ -136,7 +136,9 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   save it (#221). **Press and hold** it for a menu: **Mark as read** (or unread), **Save** and
   **Share**. In the web app, right-click it (or press and hold on a touch screen) for the same
   menu; the round button that appears on an article when you point at it marks it read or unread,
-  and so does **m** for the open article. The ☰ menu opens with the ☰ button only, so
+  and so does **m** for the open article. Next to it, **Open in a new tab** (an arrow out of a box)
+  opens the article's website in a new browser tab without opening it in Content; Saved's cards and
+  Search's results have it too. The ☰ menu opens with the ☰ button only, so
   swiping never opens it by accident.
 - **Pull down** to download new articles; with nothing (unread) to show, the **Refresh** button
   does the same (#251). The app also does this once every time it starts. All feeds are downloaded
@@ -160,8 +162,8 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
 
 Tap an article to read it. It is marked as read. Saved articles have no read state of their
 own (archiving is what puts them away), but opening one marks the feed article it came from as
-read, in both apps. Tap the article's **title** to open it on its
-website (the same as **Read on website** at the end). In the top bar:
+read, in both apps. Tap (or click) the article's **title** to open it on its
+website (in the web app, in a new tab) (the same as **Read on website** at the end). In the top bar:
 
 | Button | What it does |
 |---|---|
@@ -238,10 +240,15 @@ automatic loading off. Full articles are kept for a while, so opening one again 
 **Pictures and videos.** The list shows each article's picture as a thumbnail; a link you save or
 share from another app gets the picture (and description) the page itself names, and so does a saved article without a picture when you open it. In the reader the
 picture appears above the title, and the pictures inside the article appear between the
-paragraphs, with their captions. Embedded videos and posts (YouTube, Vimeo, X, Instagram,
-Spotify and others) show as a card with a preview; tap it to watch or open it in its app or the
-browser. **Settings › Reader › Show images** turns pictures and previews off (for example to save
-data); embed cards stay, without preview.
+paragraphs, with their captions. Embedded videos and audio show as a card with the service's name
+(and, for YouTube and Dailymotion, a preview): **YouTube, Vimeo, Spotify, SoundCloud, Dailymotion,
+Apple Music, Apple Podcasts, Bandcamp and TikTok** say "Tap to play" ("Click to play" in the web
+app): tapping loads the service's own player right there, in the article, and **Open in …** under
+it opens the same thing in the service's app or site. Full screen works from the player's own
+button. A video the website hosts itself plays the same way. Nothing loads from those services
+before you tap (see PRIVACY.md). X and Instagram posts, and embeds of other kinds, are cards that
+open in their app or the browser. **Settings › Reader › Show images** turns pictures and previews
+off (for example to save data); embed cards stay, without preview.
 
 ## Save and Share
 
@@ -302,7 +309,7 @@ a web link says "No link to save".
 - **Account:** sign in with an emailed link to sync; signed in, your address, **Sync now**,
   **Sign out**, **Delete synced data** and **Add an email address** (see Sync between devices).
 - **Article list:** View (Small, Medium, Large) and **Mark as read on scroll**.
-- **Reader:** **Load full articles**, **Show images**, and the same text settings as **Aa**, with a preview in the page colour you chose.
+- **Reader:** **Always open the website** (Android only, off by default: tapping a feed article opens its website in the browser tab over Content, with its Save button, and marks it read; saved articles still open in the reader, which keeps your place, highlights and notes), **Load full articles**, **Show images**, and the same text settings as **Aa**, with a preview in the page colour you chose.
 - **Appearance:** Theme (System, Light, Dark) and Dynamic color (wallpaper colours instead of
   the app's blue).
 
