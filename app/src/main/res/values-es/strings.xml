@@ -76,7 +76,6 @@
     </plurals>
     <string name="share_send_with_content">Enviar con Content</string>
     <string name="inbox_title">Bandeja de entrada</string>
-    <string name="inbox_drawer_item">Compartido contigo</string>
     <string name="inbox_open_unread">Bandeja de entrada, artículos nuevos</string>
     <string name="inbox_empty_title">Aún no han compartido nada contigo</string>
     <string name="inbox_empty_body">Lo que otros usuarios de Content te envíen aparece aquí.</string>
@@ -300,7 +299,6 @@
     <string name="folder_field">Lista</string>
     <string name="topic_field">Tema</string>
     <string name="saved_to">Guardado en %1$s</string>
-    <string name="action_open_menu">Abrir menú</string>
     <string name="saved_remove">Quitar de Guardados</string>
     <string name="saved_remove_body">¿Quitar este elemento, con su nota, temas y destacados? Archivarlo lo mantiene en las búsquedas.</string>
     <string name="saved_removed">Quitado de Guardados</string>

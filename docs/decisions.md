@@ -2,6 +2,22 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-31: No ☰ on Android: every place is a chip
+
+- At the owner's request the Android app has no navigation drawer. It listed Feeds' places (the
+  topics and each feed) but not Saved's, which were already chips, so it mostly repeated them.
+- Feeds' chip row now holds the topics and, after a divider, the feeds without a topic; while a
+  topic (or one of its feeds) is chosen a second row shows its feeds (`data/FeedChips.kt`, tested).
+  Tapping a feed there shows it alone, with its topic still lit; tapping it again goes back to the
+  topic.
+- Settings is the search bar's last button: the account's Gravatar picture while signed in (with
+  Show images on), else a cogwheel, as Material's search bar puts an avatar there.
+- Manage topics is both the icon at the end of the chip rows (Feeds and Saved) and a row in
+  Settings (owner's choice).
+- The web app keeps its sidebar: on a computer there is room for it, and it was not asked to change.
+- Rejected: keeping ☰ for Manage topics and Settings only (two entries do not need a drawer); a
+  bottom sheet of feeds (one more tap than a chip row).
+
 ## 2026-10-31: One Instapaper sign-in per account, settings per app, no No topic page
 
 - **Instapaper is connected once for the whole account** (at the owner's request): the token goes

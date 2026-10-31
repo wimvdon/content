@@ -54,14 +54,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.semantics.Role
 import androidx.compose.material3.Button
-import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationRail
@@ -77,7 +75,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -116,9 +113,9 @@ import to.wim.content.data.Item
 import to.wim.content.data.Saved
 import to.wim.content.data.SavedFilter
 import to.wim.content.data.SavedTab
+import to.wim.content.data.FeedChips
 import to.wim.content.data.FeedSelection
 import to.wim.content.data.ScrollRead
-import to.wim.content.data.chipTag
 import to.wim.content.data.feedTagsInOrder
 import kotlinx.coroutines.flow.distinctUntilChanged
 import to.wim.content.feed.Html
@@ -152,8 +149,10 @@ data class HomeState(
     val saved: SavedHome? = null,
     /** How many articles are still to read, for the drawer and the navigation. */
     val toReadCount: Int = 0,
-    /** Signed in to a Content account: the Inbox shows in the navigation bar and ☰ (#246). */
+    /** Signed in to a Content account: the Inbox shows in the navigation bar (#246). */
     val signedIn: Boolean = false,
+    /** The Content account's address, for its picture on Settings in the search bar; null when signed out. */
+    val accountEmail: String? = null,
     /** Feeds' topic chips: the topics with articles in the state shown, and the one chosen (feedChips). */
     val topicChips: List<String>? = null,
     /** How many articles shared with you are unread, for the Inbox's badge. */
@@ -206,7 +205,7 @@ class HomeActions(
     val onOpenSearch: () -> Unit = {},
 )
 
-/** The article list, with the feeds in a navigation drawer. */
+/** The article list: Feeds, Saved or the Inbox, with their chips; no ☰ menu (every place is a chip). */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
@@ -214,8 +213,6 @@ fun HomeScreen(
     snackbarHostState: SnackbarHostState,
     actions: HomeActions,
 ) {
-    val drawerState = rememberDrawerState(DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
     // Saved replaces the feed sections: its own title, tabs and chips, no Mark all read.
     val reading = state.saved?.takeIf { state.section == HomeSection.Saved }
     val inbox = state.inbox?.takeIf { state.section == HomeSection.Inbox }
@@ -239,45 +236,7 @@ fun HomeScreen(
         }
     }
 
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        // Opened with the ☰ button only: an edge swipe would fight with swiping articles.
-        gesturesEnabled = drawerState.isOpen,
-        drawerContent = {
-            FeedDrawer(
-                feeds = state.feeds,
-                folders = state.folders,
-                selection = state.selection,
-                unreadCounts = state.unreadCounts,
-                onSelect = {
-                    actions.onSelect(it)
-                    scope.launch { drawerState.close() }
-                },
-                onOpenSettings = {
-                    scope.launch { drawerState.close() }
-                    actions.onOpenSettings()
-                },
-                onOpenManage = {
-                    scope.launch { drawerState.close() }
-                    actions.onOpenManage()
-                },
-                saved = state.saved,
-                inSaved = reading != null,
-                toReadCount = state.toReadCount,
-                onSavedFilter = {
-                    actions.onSavedFilter(it)
-                    scope.launch { drawerState.close() }
-                },
-                showsInbox = state.inbox != null,
-                inInbox = inbox != null,
-                inboxUnread = state.inboxUnread,
-                onOpenInbox = {
-                    actions.onShowInbox()
-                    scope.launch { drawerState.close() }
-                },
-            )
-        },
-    ) {
+    run {
         val hasArticles =
             when {
                 reading != null -> reading.items.isNotEmpty()
@@ -297,8 +256,10 @@ fun HomeScreen(
                 topBar = {
                     CollapsingHeader(scrollBehavior) {
                         HomeSearchBar(
-                            onMenu = { scope.launch { drawerState.open() } },
                             onSearch = actions.onOpenSearch,
+                            onSettings = actions.onOpenSettings,
+                            accountEmail = state.accountEmail,
+                            showImages = state.showImages,
                         )
                         if (reading != null) {
                             val stateLabels =
@@ -343,24 +304,16 @@ fun HomeScreen(
                                             )
                                         }
                                     },
+                                onManage = actions.onOpenManage,
                             )
                         } else if (inFeeds && state.feeds.isNotEmpty()) {
                             val stateLabels = listOf(stringResource(R.string.filter_unread), stringResource(R.string.filter_all))
-                            // One feed chosen by its name (#185): its chip comes first, chosen.
-                            val oneFeed = (state.selection as? FeedSelection.Single)?.let { s -> state.feeds.firstOrNull { it.url == s.feedUrl }?.title }
+                            val chips = remember(state.feeds, state.folders, feedTags, state.selection) { FeedChips.of(state.feeds, state.folders, feedTags, state.selection) }
                             TagChips(
-                                tags = listOfNotNull(oneFeed) + feedTags,
-                                // A folder picked in ☰ lights up its chip: the folder's name is its feeds' tag.
-                                selected = oneFeed ?: state.selection.chipTag(state.folders),
-                                onSelect = { t ->
-                                    actions.onSelect(
-                                        when {
-                                            t == null || (oneFeed != null && t == oneFeed) -> FeedSelection.All
-                                            else -> FeedSelection.Tagged(t)
-                                        },
-                                    )
-                                },
-                                // A feed or folder chosen elsewhere is a filter too: the X goes back to every feed.
+                                tags = chips.topics,
+                                selected = chips.chosenTopic,
+                                // A topic, or nothing: tapping the chosen topic (or its feed's) again lets go.
+                                onSelect = { t -> actions.onSelect(if (t == null) FeedSelection.All else FeedSelection.Tagged(t)) },
                                 filtered = state.selection != FeedSelection.All,
                                 onClear = { actions.onSelect(FeedSelection.All) },
                                 state = {
@@ -371,7 +324,27 @@ fun HomeScreen(
                                         filtering = state.unreadOnly,
                                     )
                                 },
+                                // The feeds without a topic, at the end of the row (#251 had them in ☰).
+                                loose =
+                                    if (chips.loose.isEmpty()) {
+                                        null
+                                    } else {
+                                        {
+                                            chips.loose.forEach { feed ->
+                                                val on = feed.url == chips.chosenFeed
+                                                FeedChip(feed, on) { actions.onSelect(if (on) FeedSelection.All else FeedSelection.Single(feed.url)) }
+                                            }
+                                        }
+                                    },
+                                onManage = actions.onOpenManage,
                             )
+                            // A topic chosen: its feeds, a second row.
+                            val topic = chips.chosenTopic
+                            if (topic != null && chips.topicFeeds.isNotEmpty()) {
+                                TopicFeedChips(chips.topicFeeds, chips.chosenFeed) { url ->
+                                    actions.onSelect(if (url == null) FeedSelection.Tagged(topic) else FeedSelection.Single(url))
+                                }
+                            }
                         }
                     }
                 },

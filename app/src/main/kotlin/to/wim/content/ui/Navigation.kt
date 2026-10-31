@@ -745,6 +745,7 @@ fun RssReaderNavigation(
                                         )
                                     },
                                 topicChips = remember(library, current.unreadOnly, shownSelection) { library.feedChips(current.unreadOnly, shownSelection.chipTag(library.folders)) },
+                                accountEmail = accountEmail,
                             ),
                         snackbarHostState = snackbar,
                         actions =
@@ -969,6 +970,7 @@ fun RssReaderNavigation(
                         actions =
                             SettingsActions(
                                 onBack = ::pop,
+                                onOpenManage = { push(Screen.Feeds) },
                                 onReaderStyleChange = { style -> app.appScope.launch { app.settings.setReaderStyle(style) } },
                                 onInstapaperSignIn = { uiScope.launch { ExternalApps.openLink(context, app.instapaper.begin()) } },
                                 onInstapaperSync = { app.appScope.launch { app.services.sync() } },

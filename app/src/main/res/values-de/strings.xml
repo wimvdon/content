@@ -75,7 +75,6 @@
     </plurals>
     <string name="share_send_with_content">Mit Content senden</string>
     <string name="inbox_title">Posteingang</string>
-    <string name="inbox_drawer_item">Mit dir geteilt</string>
     <string name="inbox_open_unread">Posteingang, neue Artikel</string>
     <string name="inbox_empty_title">Noch nichts mit dir geteilt</string>
     <string name="inbox_empty_body">Was andere Content-Nutzer dir senden, erscheint hier.</string>
@@ -290,7 +289,6 @@
     <string name="folder_field">Liste</string>
     <string name="topic_field">Thema</string>
     <string name="saved_to">In %1$s gespeichert</string>
-    <string name="action_open_menu">Menü öffnen</string>
     <string name="saved_remove">Aus Gespeichert entfernen</string>
     <string name="saved_remove_body">Diesen Eintrag mit Notiz, Themen und Markierungen entfernen? Archivieren hält ihn durchsuchbar.</string>
     <string name="saved_removed">Aus Gespeichert entfernt</string>

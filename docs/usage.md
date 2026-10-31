@@ -10,7 +10,7 @@ Signed in without feeds yet, the screen says **No feeds yet**, with Add feed and
 
 ## Adding feeds
 
-Tap **Add feed** (on the empty screen, or on a topic's page in ☰ › **Manage topics**, which adds it
+Tap **Add feed** (on the empty screen, or on a topic's page in **Manage topics**, which adds it
 to that topic) and type an
 address. Any of these work:
 
@@ -23,7 +23,7 @@ Addresses are always opened over HTTPS. A site that only works over plain `http:
 added (Android blocks unencrypted connections).
 
 After adding, the list switches to the new feed. The app also looks up the website's small icon
-(favicon) and shows it next to the feed's name in the list, the ☰ menu, Settings and the reader.
+(favicon) and shows it next to the feed's name in the list, its chip, Settings and the reader.
 Until it is found, or when a site has none, the first letter of the feed's name is shown. Icons
 sit on a light tile, so dark logos stay visible in dark mode.
 
@@ -53,9 +53,9 @@ you save, at once. A feed is in one topic (or none); a saved article can have se
 has a name and an icon, and its place in your order. The same topics are on your phone and in the
 web app.
 
-**One place to manage them: ☰ › Manage topics.** It lists every topic with its icon and what it
+**One place to manage them: Manage topics** (the icon at the end of the chips under the search bar, or Settings › Feeds › Manage topics). It lists every topic with its icon and what it
 holds: "4 feeds · 12 saved", and "1 feed fails" in red when one can't be downloaded. Drag the grip
-(⋮⋮) to reorder: this order is the one everything uses (the chips, the ☰ menu, the save sheet).
+(⋮⋮) to reorder: this order is the one everything uses (the chips and the save sheet).
 Two buttons at the bottom: **Add feed** (it lands without a topic, and you stay on the list) and, above it, **New topic**, which makes one: a name and an icon from the whole Material
 Symbols set (type in English, such as *news*, *car* or *food*). Under the topics, the **feeds
 without a topic** are listed loose, as on a topic's page: tap one (on the web its pen) to rename
@@ -71,15 +71,16 @@ is in Feeds and Saved):
   saved articles stay, without it). Both say so first.
 - Back from **Add feed**, you are where you started: the list, or the topic's page.
 
-**Feeds:** the chips under the search bar list the topics that have feeds, in your order; the ☰
-menu lists them too, with the feeds without a topic after them. A topic shows its feeds in ☰ while
-you are in it (the topic or one of its feeds), so the list stays short. A feed added while a topic
+**Feeds:** the chips under the search bar list the topics that have feeds, in your order, then
+the feeds without a topic, each as a chip with its site icon. Pick a topic and a second row of
+chips shows its feeds: tap one to read only that feed, tap it again for the whole topic (on the
+web, the sidebar lists them). A feed added while a topic
 is open goes into that topic. Long-pressing Content's icon on the home screen offers your first four
 topics: tap one to open the app on it (#251).
 
 **Saved:** an article you save from a feed gets the feed's topic by itself (Save, the swipe, the
 save sheet). In the save and Organise sheets you turn topics on or off, every topic in your order,
-and **New topic** makes one. Saved's chips and ☰ show the topics your saved articles have, with
+and **New topic** makes one. Saved's chips show the topics your saved articles have, with
 their icons. A topic that comes in from Instapaper (where it is a tag) or another device is added
 at the end of your topics.
 
@@ -122,14 +123,11 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   **X** to show everything again. Changing the first chip keeps the topic you picked. A topic (or
   Liked) with nothing in the state shown has no chip: with Unread, only topics with unread articles;
   in the Archive, only topics with archived articles. The one you picked stays.
-- **☰** opens the drawer (on the web, a wide window shows it at the left all the time, without ☰).
-  It is the map of every **place**: **Feeds** (**Feed**, your topics with feeds, each with its unread
-  count, a topic with its feeds under it while you are in it, then the feeds without a topic: the
-  only place a single feed is listed) and **Saved** (**To read**, with how many are still to read,
-  and **Archive**), then, signed in, the **Inbox** section (**Shared with you**, with how many are unread). Filters (Unread, Liked,
-  Saved's topics) are the chips, not here. Picking a topic lights its chip; picking To read or
-  Archive sets Saved's first chip. The sections are always open. At the bottom: **Manage topics**
-  and **Settings**.
+- **There is no ☰ menu in the Android app.** Feeds, Saved and the Inbox are the bar at the
+  bottom; everything inside them is a chip (the topics, the feeds, To read or Archive, Liked). The
+  icon at the end of the chips opens **Manage topics**. **Settings** is the button at the end of the
+  search bar: your Gravatar picture while signed in, else a cogwheel. On the web, a wide window
+  shows the sidebar at the left all the time (☰ in a narrow one), with the same places.
 - **Search** (tap the search bar; on the web also the **/** key) searches everything: the articles of all your feeds that are on the device (titles,
   text, feed names and authors) and Saved, archived articles too (titles, websites, descriptions,
   topics, notes and highlights). Every word you type must appear; capitals and accents
@@ -159,8 +157,7 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   menu; the round button that appears on an article when you point at it marks it read or unread,
   and so does **m** for the open article. Next to it, **Open in a new tab** (an arrow out of a box)
   opens the article's website in a new browser tab without opening it in Content; Saved's cards and
-  Search's results have it too. The ☰ menu opens with the ☰ button only, so
-  swiping never opens it by accident.
+  Search's results have it too.
 - **Pull down** to download new articles; with nothing (unread) to show, the **Refresh** button
   does the same (#251). The app also does this once every time it starts. All feeds are downloaded
   first and then added at once, each article in its place by date.
@@ -239,8 +236,8 @@ asks too) are in that menu too, and in To read also **Archive** (or **To read** 
 closes, a message says where the article went; after a swipe, **Add link** or a link shared from
 another app it also has **Open**, which goes to the article in Saved.
 
-**Inbox** (#167, #246). Signed in, the **Inbox** is the third place in the bar at the bottom (and in
-☰). What other Content users send you lands there, not in Saved: a list like a feed's, newest first, with
+**Inbox** (#167, #246). Signed in, the **Inbox** is the third place in the bar at the bottom (on the web,
+also in the sidebar). What other Content users send you lands there, not in Saved: a list like a feed's, newest first, with
 who sent it (their Gravatar picture and name) where the feed's name would be. Unread ones are bold
 with a dot, and a dot on the Inbox's icon says something unread waits; opening one marks it read. Swipe one
 to save it (it stays in the inbox, as a feed article stays in its feed), or press and hold (web:
@@ -341,7 +338,7 @@ a web link says "No link to save".
 - **Appearance:** Theme (System, Light, Dark) and Dynamic color (wallpaper colours instead of
   the app's blue).
 
-Your topics and their feeds are managed in ☰ › **Manage topics**, next to Settings (see Topics).
+Your topics and their feeds are managed in **Manage topics**, at the end of the chips or in Settings (see Topics).
 
 ## Backup and moving to a new phone
 
@@ -387,7 +384,7 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   and until it is archived **Archive**, which archives it in one tap and closes it (with **Undo**).
   **Remove from Saved** is in ⋮ (and in Organise); it asks first, as everywhere, and takes the note,
   topics and highlights with it (Archive keeps it searchable instead).
-- **☰ › Manage topics**: every topic, with how many saved articles have it; tap one for its page
+- **Manage topics**: every topic, with how many saved articles have it; tap one for its page
   (rename, icon, merge, remove).
 - **In the web app** Saved is the same: the same chips and cards, and **Add link**
   (the link button in the search bar). In an article the top bar is the reading (the full

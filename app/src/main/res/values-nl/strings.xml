@@ -75,7 +75,6 @@
     </plurals>
     <string name="share_send_with_content">Versturen met Content</string>
     <string name="inbox_title">Inbox</string>
-    <string name="inbox_drawer_item">Gedeeld met jou</string>
     <string name="inbox_open_unread">Inbox, nieuwe artikels</string>
     <string name="inbox_empty_title">Nog niets met je gedeeld</string>
     <string name="inbox_empty_body">Hier zie je wat andere Content-gebruikers je sturen.</string>
@@ -290,7 +289,6 @@
     <string name="folder_field">Lijst</string>
     <string name="topic_field">Onderwerp</string>
     <string name="saved_to">Bewaard in %1$s</string>
-    <string name="action_open_menu">Menu openen</string>
     <string name="saved_remove">Verwijderen uit Bewaard</string>
     <string name="saved_remove_body">Dit item verwijderen, met de notitie, onderwerpen en markeringen? Archiveren houdt het doorzoekbaar.</string>
     <string name="saved_removed">Verwijderd uit Bewaard</string>

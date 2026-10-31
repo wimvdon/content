@@ -235,9 +235,9 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
 - Article titles in the reader are the hero text (bold, in the reader's font). Unread rows in the
   list use SemiBold titles and a primary dot; read rows use `onSurfaceVariant`.
 - Topics: one way to group feeds and saved articles (a feed in one topic, a saved article in any
-  number), each with a name, an icon and its place in the user's order, which every chip row, the
-  drawer and the sheets follow. Manage topics (☰) is a list and a page per
-  topic. The list: a large top app bar over topic rows (`surfaceContainerHigh`, the topic's icon on
+  number), each with a name, an icon and its place in the user's order, which every chip row and
+  the sheets follow. Manage topics (the manage icon at the end of the chip row, or Settings) is a
+  list and a page per topic. The list: a large top app bar over topic rows (`surfaceContainerHigh`, the topic's icon on
   a `secondaryContainer` circle, "4 feeds · 12 saved" under the name, "1 feed fails" in the error
   colour), a drag handle at the end, then the feeds without a topic as feed rows (no "No topic"
   row or page), and two extended FABs: Add feed (the FAB) and
@@ -254,7 +254,7 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   book), Liked, Archive (a box) and tags included) use the same outlined, rounded style; only an icon that
   shows something is on is filled (a selected destination, the Like heart once liked). Saved and
   the Save action use Material Symbols list (#142): Saved is more than a reading list, so the open
-  book stays on To read only (its tab and drawer row).
+  book stays on To read only.
 - Navigation (#113): a navigation bar at the bottom (a navigation rail on windows 600dp and wider)
   switches between the destinations, Feeds (feed symbol), Saved (a list) and, signed in, the Inbox
   (a bell, with Material's small badge while something in it is unread; it was a bell in the search
@@ -263,12 +263,12 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   everything: the field in its top bar, a row of filter chips (All, Feeds, Saved) above the
   results, and the results as one list of article rows ranked by relevance, each with a small label
   (Feed or Saved). It is not a navigation bar item: it acts on the content of both
-  destinations rather than being a place of its own. The ☰ drawer holds every place, the same
-  wherever the app is: Feeds and Saved are sections in it, each under a header (Title Small in
-  `primary`) and always open; signed in, the Inbox is a third section under its own header (one row,
-  Shared with you). The web's sidebar is always on screen,
-  so there both stay open until you fold one, and stay as you left them. Back from Saved, the Inbox
-  or a feed section goes to All articles.
+  destinations rather than being a place of its own. **Android has no ☰ drawer** (the owner's
+  choice): Feeds, Saved and the Inbox are the navigation bar, and every place inside them is a chip.
+  The search bar starts with the magnifier and ends with Settings: the account's picture
+  (Gravatar, 32dp circle) while signed in with Show images on, else a cogwheel. The web's sidebar is
+  always on screen, so there both sections stay open until you fold one, and stay as you left them.
+  Back from Saved, the Inbox or a feed section goes to All articles.
 - Three levels, the same in Feeds and Saved (#205): the navigation bar says where (Feeds or Saved);
   one row of chips under the search bar says which group and which state. The row starts with the
   **state chip**, a filter chip with a drop-down arrow and a menu of radio items (Feeds: Unread or
@@ -276,11 +276,12 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   one at a time: the topics in Feeds, the topics in Saved, in the topics' order, each only when it
   has something in the state shown (the chosen one stays), with Liked (heart) before them (#206). Group chips have no check mark and chosen
   ones keep their weight, so a chip never changes width and the row never moves (#208). An X at
-  the end clears the group. The ☰ drawer is the map of every place: Feeds (Feed,
-  the topics with feeds and, under the one you are in, its feeds, then the feeds without a topic)
-  and Saved (To read, Archive), then the Inbox section (Shared with you), with what is unread or still to read as counts; filters (Liked,
-  Saved's topics) are only chips. A topic picked in the drawer and its chip are
-  one choice and light up together. The Mark all read FAB is on Feeds
+  the end clears the group, and the manage icon (the feed symbol with a pen) after it opens Manage
+  topics. In Feeds the feeds without a topic follow the topics in the same row, after a second
+  divider, as filter chips with their site icon (16dp). While a topic (or one of its feeds) is
+  chosen, a **second row** under the first shows that topic's feeds the same way: tap one to show it
+  alone (its topic stays lit), tap it again for the whole topic. So every place is one or two taps
+  from the list. The Mark all read FAB is on Feeds
   only and only marks the section shown; Saved's FAB is Add link.
 - Saved's lists look like what they are for: To read and Archive are read through, so they use
   the feed list's rows and its view setting (Small, Medium, Large), under a line with how many and
@@ -343,10 +344,6 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   (Save and share, Content's share sheet, highlights, Aa, Report a problem, the folder sheet with
   its icon search); a dialog only to confirm something or type one name (remove, rename, Add feed,
   edit a feed). No dialog opens on top of a sheet.
-- The ☰ drawer: two sections, always open (folding them was dropped: it hid places for little
-  gain): the Feeds section (Feed, the folders, the other feeds; a folder shows its feeds only while
-  you are in it), the Saved section (To read with its count, Archive), the Inbox section while signed in
-  (its own header, one row Shared with you with its unread count), then **Manage topics** (the feed symbol with a pen) and Settings at the bottom.
 - Content's share sheet (#251): a `ModalBottomSheet` with the article's title and site, **Send with
   Content** the same To field as in the Save and share sheet, then a full-width Send button, then the apps as 48dp icons with their names,
   four to a row, Copy link and More last.
@@ -356,21 +353,21 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
 - Article list: three views (Small, Medium, Large card with a 16:9 picture). Unread rows sit on
   `surfaceContainer`, read rows on `surfaceContainerLow`; the feed name is in `primary`. Swiping
   right past 30% of the width toggles read, swiping left saves the article ("Save", a list) and
-  opens the save sheet (haptic tick at the threshold, row springs back); the drawer opens from the ☰ button only. The top bar shows the section and its unread count, with no ⋮ menu (refresh is pull-down; adding
+  opens the save sheet (haptic tick at the threshold, row springs back). The top bar shows the section and its unread count, with no ⋮ menu (refresh is pull-down; adding
   feeds lives on Manage feeds). Unread or All is the state chip at the start of the chip row
   (16dp sides, 8dp above and below, like the chips in Search), lit while it shows Unread only.
   The web app has the same chip. The top bar holds only icon buttons, as Material 3's top app bar does.
   In a narrow window the web app has the same Feeds | Saved navigation bar at the bottom.
-  Settings lives in the drawer only.
+  Settings is the last button of the search bar (the account's picture or a cogwheel).
   The header (a small `TopAppBar`, the folder tabs attached to it, then the chip row) is one block that slides away
   while scrolling down and comes back as soon as you scroll up (Material's "enter always"),
   staying on `surface` while articles pass under it (no grey band behind the tabs and chips, owner's
   choice); articles sit under sticky day headers (Today,
-  Yesterday, date) in `primary` Title Small; Mark all as read is an icon-only FAB. The drawer opens with the app's logo (the
-  launcher icon's C, 32dp, on its own: no circle or white tile) and name; the
-  web app's sidebar and favicon use the same logo.
+  Yesterday, date) in `primary` Title Small; Mark all as read is an icon-only FAB. The web
+  app's sidebar and favicon use the app's logo (the launcher icon's C on its own: no circle or
+  white tile).
 - Settings starts with the connections: Account, then Instapaper; Move to or from another reader
-  (OPML) sits before Appearance. Managing topics is in the drawer, not in Settings. The first screen,
+  (OPML) sits before Appearance. Managing topics is at the end of the chip rows and, as its own section after the connections, in Settings. The first screen,
   signed out, is a welcome with the email sign-in first. See docs/architecture.md, "Navigation and
   settings: where everything lives".
 

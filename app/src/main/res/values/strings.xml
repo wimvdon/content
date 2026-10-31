@@ -76,7 +76,6 @@
     </plurals>
     <string name="share_send_with_content">Send with Content</string>
     <string name="inbox_title">Inbox</string>
-    <string name="inbox_drawer_item">Shared with you</string>
     <string name="inbox_open_unread">Inbox, new articles</string>
     <string name="inbox_empty_title">Nothing shared with you yet</string>
     <string name="inbox_empty_body">What other Content users send you shows up here.</string>
@@ -292,7 +291,6 @@
     <string name="folder_field">List</string>
     <string name="topic_field">Topic</string>
     <string name="saved_to">Saved to %1$s</string>
-    <string name="action_open_menu">Open menu</string>
     <string name="saved_remove">Remove from Saved</string>
     <string name="saved_remove_body">Remove this item, with its note, topics and highlights? Archive keeps it searchable instead.</string>
     <string name="saved_removed">Removed from Saved</string>
