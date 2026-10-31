@@ -2,6 +2,14 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-10-31: Import guides for Feedly, Inoreader and Substack
+
+- At the owner's request, Manage feeds and Saved › Feeds has numbered steps under Import OPML for
+  Feedly, Inoreader and Substack, each in an `ExpandableSetting` with numbered steps styled like
+  Snoozer's `NumberedSteps` (a filled circle with the number), as in the owner's other apps. The web
+  app shows the same steps in `<details>`. Substack has no export: each publication is added through
+  the share menu's Add feed, from its home page (a post or a note isn't the publication).
+
 ## 2026-10-31: Send with Content as an email's To field (#284)
 
 - The owner found picking people unclear: which chip was picked, which could be, and what Add

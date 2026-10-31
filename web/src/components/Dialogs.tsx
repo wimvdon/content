@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronDown, Pencil, Plus, Trash2 } from "lucide-react";
 import { ConfirmRemove } from "./ConfirmRemove";
 import { useEffect, useState } from "react";
 import { gravatarUrl } from "@/lib/account";
@@ -206,6 +206,10 @@ export function ManageDialog({
               </Button>
             </div>
             <p className="text-xs text-muted-foreground">{t("opmlHint")}</p>
+            {/* How to get the file out of the readers people come from, and Substack, which has no file. */}
+            <ImportGuide title={t("importFeedlyTitle")} steps={[t("importFeedlyStep1"), t("importFeedlyStep2"), t("importWebStep")]} note={t("importFeedlyNote")} />
+            <ImportGuide title={t("importInoreaderTitle")} steps={[t("importInoreaderStep1"), t("importInoreaderStep2"), t("importInoreaderStep3"), t("importWebStep")]} />
+            <ImportGuide title={t("importSubstackTitle")} steps={[t("substackWebStep1"), t("substackWebStep2")]} />
           </section>
         </div>
       </Dialog>
@@ -637,5 +641,30 @@ function NotificationsSwitch() {
         </p>
       ) : null}
     </div>
+  );
+}
+
+/** One reader's way over (Feedly, Inoreader, Substack): a row that opens its numbered steps, as on Android. */
+function ImportGuide({ title, steps, note }: { title: string; steps: string[]; note?: string }) {
+  return (
+    <details className="group rounded-md border">
+      <summary className="flex cursor-pointer list-none items-center justify-between px-3 py-2 text-sm font-medium">
+        {title}
+        <ChevronDown className="size-4 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden="true" />
+      </summary>
+      <div className="space-y-3 px-3 pb-3">
+        <ol className="space-y-3">
+          {steps.map((step, i) => (
+            <li key={i} className="flex items-center gap-3 text-sm">
+              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground" aria-hidden="true">
+                {i + 1}
+              </span>
+              <span>{step}</span>
+            </li>
+          ))}
+        </ol>
+        {note ? <p className="text-xs text-muted-foreground">{note}</p> : null}
+      </div>
+    </details>
   );
 }
