@@ -19,6 +19,16 @@ Newest first. Add an entry for every notable choice: what was decided, why, and 
 - Not changed: the web app's and feed loader's addresses (for when content.wim.to is set up), the
   sign-in email's sender (resend.wimvandonck.be) and the browser extension's id.
 
+## 2026-10-31: Picture sizes are read the way browsers read them (Substack)
+
+- Some inline pictures of Substack posts didn't load. Substack's image server puts commas in its
+  addresses (`…/w_1456,c_limit,f_auto,…/picture.png`), and the reader split a picture's list of
+  sizes (`srcset`) at every comma, so it picked a torn-off piece as the address. Now both apps read
+  `srcset` as browsers do (an address runs until a space; `ArticleBlocks.srcsetCandidates`, web
+  `parseSrcset`), in the reader and in the full-article extractor.
+- Fixed here rather than reported upstream: Defuddle, which finds the article, already reads
+  `srcset` correctly; the bug was only in Content's own code.
+
 ## 2026-10-31: Embedded players play inside the article, on tap
 
 - The owner asked for YouTube, Spotify and the other major players in the reader, replacing the
