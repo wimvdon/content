@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { feedLinks, findFeed, normalizeUrl, substackPublication } from "../src/lib/discovery";
 import { searchIcons, parseIcons } from "../src/lib/icons";
-import { emptyLibrary, articlesFor, setRead, removeFolder, addFolder, addFeed, newFeed, moveFeed, renameFeed, mergeFeed, reorder, unreadKeys, removeFeed, sameSelection, MAX_ARTICLES_PER_FEED, moveWithinFolder, chipTag, choosesFolder } from "../src/lib/library";
+import { emptyLibrary, articlesFor, setRead, removeFolder, addFolder, addFeed, newFeed, moveFeed, renameFeed, mergeFeed, reorder, unreadKeys, removeFeed, sameSelection, MAX_ARTICLES_PER_FEED, moveWithinFolder, chipTag, choosesFolder, feedTags } from "../src/lib/library";
 import { importOpml, parseOpml, writeOpml } from "../src/lib/opml";
 import { FetchError } from "../src/lib/proxy";
 import { sanitizeArticle } from "../src/lib/sanitize";
@@ -107,6 +107,15 @@ describe("read marks that leave this browser (#157)", () => {
     expect(choosesFolder({ kind: "tag", tag: "TECH" }, lib.folders[0])).toBe(true);
     expect(choosesFolder({ kind: "tag", tag: "Tech" }, lib.folders[1])).toBe(false);
     expect(choosesFolder({ kind: "feed", feedUrl: "a" }, lib.folders[0])).toBe(false);
+  });
+  it("lists the feed chips in the folders' order, not alphabetically", () => {
+    const feed = (url: string, tags: string[]) => ({ ...newFeed(url, url), tags });
+    const lib = {
+      ...emptyLibrary(),
+      folders: [{ id: "f1", title: "Tech", icon: "folder" }, { id: "f2", title: "News", icon: "folder" }, { id: "f3", title: "Art", icon: "folder" }],
+      feeds: [feed("a", ["news"]), feed("b", ["Tech"]), feed("c", ["Zoo"]), feed("d", ["Old"]), feed("e", ["Art"])],
+    };
+    expect(feedTags(lib)).toEqual(["Tech", "news", "Art", "Old", "Zoo"]);
   });
 });
 

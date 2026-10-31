@@ -316,8 +316,18 @@ export function choosesFolder(selection: Selection, folder: Folder): boolean {
   return selection.kind === "tag" && selection.tag.toLowerCase() === folder.title.toLowerCase();
 }
 
+/**
+ * The feeds' tags in the order of the folders they mirror, as Manage and the menu list them; a tag
+ * without a folder (from an older app) comes after them, alphabetically. Case is ignored.
+ */
 export function feedTags(lib: Library): string[] {
   const seen = new Map<string, string>();
   for (const f of lib.feeds) for (const t of f.tags ?? []) if (!seen.has(t.toLowerCase())) seen.set(t.toLowerCase(), t);
-  return [...seen.values()].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+  const position = new Map<string, number>();
+  lib.folders.forEach((f, i) => {
+    const k = f.title.trim().toLowerCase();
+    if (!position.has(k)) position.set(k, i);
+  });
+  const rank = (t: string) => position.get(t.toLowerCase()) ?? Number.MAX_SAFE_INTEGER;
+  return [...seen.values()].sort((a, b) => rank(a) - rank(b) || a.toLowerCase().localeCompare(b.toLowerCase()));
 }
