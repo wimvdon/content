@@ -12,6 +12,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Button
+import to.wim.content.ui.reader.LocalInSheetPage
+import to.wim.content.ui.reader.SheetActions
 import to.wim.content.ui.reader.SheetHeader
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilterChip
@@ -171,7 +174,7 @@ fun TopicChipRow(
  * Manage topics as a sheet: from Settings, and from Edit topics in the Add feed, Edit feed and
  * Save/Organise sheets, as a page of that sheet (with a back arrow instead of Done). The topics as editing chips (drag to reorder, tap to rename,
  * change the icon or remove; a name already taken joins the two), then New topic. Every change is
- * stored at once, so the sheet has **Done** at the top right instead of Cancel.
+ * stored at once, so the sheet has **Done** at the bottom right instead of Cancel.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -187,9 +190,15 @@ fun ManageTopicsSheet(
                 .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            SheetHeader(stringResource(R.string.manage_title), onCancel = onDismiss, closeLabel = stringResource(R.string.action_done))
+            SheetHeader(stringResource(R.string.manage_title), onCancel = onDismiss)
             Text(stringResource(R.string.manage_topics_hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             TopicChipRow(topics = topics, selected = { false }, onToggle = {}, actions = actions, onCreated = {}, alwaysEditing = true)
+            // Every change is stored at once: Done at the bottom right (on a page, the back arrow).
+            if (!LocalInSheetPage.current) {
+                SheetActions(onCancel = onDismiss, cancel = false) {
+                    Button(onClick = onDismiss) { Text(stringResource(R.string.action_done)) }
+                }
+            }
         }
     }
 }

@@ -81,19 +81,21 @@ fun HighlightSheet(
                 minLines = 2,
                 modifier = Modifier.fillMaxWidth(),
             )
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                if (onRemove != null) {
-                    TextButton(onClick = {
-                        onRemove()
-                        onDismiss()
-                    }) { Text(stringResource(R.string.highlight_remove)) }
-                }
-                Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
-                    Button(onClick = {
-                        onSave(note)
-                        onDismiss()
-                    }) { Text(stringResource(R.string.action_save)) }
-                }
+            SheetActions(
+                onCancel = onDismiss,
+                leading = {
+                    if (onRemove != null) {
+                        TextButton(onClick = {
+                            onRemove()
+                            onDismiss()
+                        }) { Text(stringResource(R.string.highlight_remove), color = MaterialTheme.colorScheme.error) }
+                    }
+                },
+            ) {
+                Button(onClick = {
+                    onSave(note)
+                    onDismiss()
+                }) { Text(stringResource(R.string.action_save)) }
             }
         }
     }

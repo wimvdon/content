@@ -23,14 +23,18 @@ import to.wim.content.R
  */
 @Composable
 internal fun SavedBar(item: ReaderItem) {
+    // Archive is the quick action while it is to read; archived, there is only Organise (its To read
+    // / Archive choice puts it back).
     val archived = item.item.archived
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        BarButton(
-            icon = if (archived) R.drawable.ic_unarchive else R.drawable.ic_inventory,
-            label = stringResource(if (archived) R.string.action_unarchive else R.string.action_archive),
-            onClick = item.onArchive,
-            modifier = Modifier.padding(start = 8.dp).weight(1f, fill = false),
-        )
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 8.dp)) {
+        if (!archived) {
+            BarButton(
+                icon = R.drawable.ic_inventory,
+                label = stringResource(R.string.action_archive),
+                onClick = item.onArchive,
+                modifier = Modifier.weight(1f, fill = false),
+            )
+        }
         BarButton(
             icon = R.drawable.ic_label,
             label = stringResource(R.string.organise_title),

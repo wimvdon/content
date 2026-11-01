@@ -1,4 +1,4 @@
-import { ALargeSmall, ArrowLeft, Circle, CircleCheck, EllipsisVertical, ExternalLink, FileText, Flag, Trash2 } from "lucide-react";
+import { ALargeSmall, ArrowLeft, Circle, CircleCheck, EllipsisVertical, ExternalLink, FileText, Flag } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { positionOf, scrollFor } from "@/lib/readingProgress";
 import { app, useApp } from "@/lib/app";
@@ -16,7 +16,7 @@ import { sanitizeArticle } from "@/lib/sanitize";
 import { FeedIcon } from "./FeedIcon";
 import { HighlightDialog, HighlightedText, HighlightsDialog } from "./Highlights";
 import { useAnchors } from "./useAnchors";
-import { LibraryBar, RemoveDialog } from "./SavedActions";
+import { LibraryBar } from "./SavedActions";
 import { pageClass, textStyle, useAppDark } from "./readerPage";
 import { ReaderStyleControls } from "./ReaderStyleControls";
 import { Button } from "./ui/button";
@@ -96,7 +96,6 @@ export function ArticleView({
   const saveArticle = () => article.link && app.saveArticle(article.link, article.title);
   const [menuOpen, setMenuOpen] = useState(false);
   useEscape(menuOpen, () => setMenuOpen(false));
-  const [removeOpen, setRemoveOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   // Highlights (#102): those of the article's item; one open, a new one waiting for its note, the list.
   const highlights = found?.highlights ?? NO_HIGHLIGHTS;
@@ -153,20 +152,7 @@ export function ArticleView({
           <ArrowLeft />
         </Button>
         <div className="flex-1" />
-        {/* This reading (#139): the full article, Aa and ⋮; the article in your library, and Share, are in the bar below. */}
-        {/* Not for a saved article: it always shows the whole article (#208). */}
-        {canLoad && !saved ? (
-          <Button
-            variant={useFull ? "tonal" : "ghost"}
-            size="icon"
-            onClick={() => setUseFull(!useFull)}
-            aria-pressed={useFull}
-            aria-label={useFull ? t("showFeedText") : t("showFull")}
-            title={useFull ? t("showFeedText") : t("showFull")}
-          >
-            <FileText />
-          </Button>
-        ) : null}
+        {/* This reading (#139): Aa and ⋮; the article in your library, and Share, are in the bar below. */}
         <Button variant="ghost" size="icon" onClick={() => setTextOpen(true)} aria-label={t("textSettings")} title={t("textSettings")}>
           <ALargeSmall />
         </Button>
@@ -178,6 +164,20 @@ export function ArticleView({
             <>
               <div className="fixed inset-0 z-20" onClick={() => setMenuOpen(false)} aria-hidden="true" />
               <div role="menu" className="absolute right-0 z-30 mt-1 w-60 rounded-xl border bg-card py-1 shadow-lg">
+                {/* As on Android: Mark as read or unread, the feed's text or the full article (not for a
+                    saved article: it always shows the whole article, #208), Open website, Report a
+                    problem. Remove from Saved is in Organise. */}
+                {!fromSaved ? (
+                  <MenuItem
+                    icon={current.read ? <Circle /> : <CircleCheck />}
+                    label={current.read ? t("markUnread") : t("markRead")}
+                    onClick={() => app.toggleRead(current)}
+                    close={() => setMenuOpen(false)}
+                  />
+                ) : null}
+                {canLoad && !saved ? (
+                  <MenuItem icon={<FileText />} label={useFull ? t("showFeedText") : t("showFull")} onClick={() => setUseFull(!useFull)} close={() => setMenuOpen(false)} />
+                ) : null}
                 {article.link ? (
                   <a
                     role="menuitem"
@@ -191,24 +191,7 @@ export function ArticleView({
                     {t("openWebsite")}
                   </a>
                 ) : null}
-                {!fromSaved ? (
-                  <MenuItem
-                    icon={current.read ? <Circle /> : <CircleCheck />}
-                    label={current.read ? t("markUnread") : t("markRead")}
-                    onClick={() => app.toggleRead(current)}
-                    close={() => setMenuOpen(false)}
-                  />
-                ) : null}
                 {article.link ? <MenuItem icon={<Flag />} label={t("reportMenu")} onClick={() => setReportOpen(true)} close={() => setMenuOpen(false)} /> : null}
-                {saved ? (
-                  <MenuItem
-                    icon={<Trash2 />}
-                    label={t("savedRemove")}
-                    // Asks first, as everywhere.
-                    onClick={() => setRemoveOpen(true)}
-                    close={() => setMenuOpen(false)}
-                  />
-                ) : null}
               </div>
             </>
           ) : null}
@@ -289,8 +272,7 @@ export function ArticleView({
         highlightCount={highlights.length}
         onHighlights={() => setListOpen(true)}
         onArchived={(undo) => {
-          // Done with it, as on Android: back to the list, with Undo.
-          onBack();
+          // As on Android: the article stays open; a message says so, with Undo.
           onMessage(t("archived"), { label: t("undo"), run: undo });
         }}
       />
@@ -320,10 +302,6 @@ export function ArticleView({
         />
       ) : null}
       {shareDialog}
-      {saved ? <RemoveDialog item={saved} open={removeOpen} onClose={() => setRemoveOpen(false)} onRemoved={() => {
-        onMessage(t("savedRemoved"));
-        if (fromSaved) onBack();
-      }} /> : null}
       {reportOpen && article.link ? <ReportDialog link={article.link} html={fullHtml ?? feedHtml} onClose={() => setReportOpen(false)} /> : null}
     </article>
   );

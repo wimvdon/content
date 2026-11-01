@@ -2,6 +2,21 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-01: To read or Archive in the save sheet, Cancel at the bottom left
+
+The owner kept struggling with the saved article's buttons:
+- **The Save and Organise sheets choose To read or Archive** again (a segmented choice above the
+  topics, To read to start with when saving), and **Save** shows its icon. Replaces #305's Save and
+  archive button, which hid that Organise couldn't move an article.
+- **Cancel at the bottom left of every sheet** (`SheetActions`), Remove next to it, the main button
+  at the bottom right; Done at the bottom right in Manage feeds and Manage topics. Reverses #305's
+  Cancel at the top right: the owner expects it where dialogs have it.
+- **A saved article's Archive stays a quick action, but the article stays open** (a message with
+  Undo). Archived, there is no Back to read: only Organise.
+- **The reader's ⋮ has Show full article / Show feed text** (no page icon in the top bar), in the
+  order Mark as unread, that, Open in browser, Sign in, Report a problem. **Remove from Saved left
+  ⋮**: it is in Organise.
+
 ## 2026-11-01: Feeds' tabs are Unread and All
 
 The owner's choice: Feeds' second tab is **All** (every article, read ones too) instead of **Read**,

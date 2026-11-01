@@ -26,7 +26,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -128,10 +127,8 @@ class ReaderItem(
     val item: Item,
     /** Opens Organise (#139, #143, #305): the topics with Like, and the note. */
     val onOrganise: () -> Unit,
-    /** Archives it in one tap (the reader closes, and the list says so with Undo), or puts an archived one back to read. */
+    /** Archives it in one tap; the reader stays open and a message says so, with Undo. */
     val onArchive: () -> Unit = {},
-    /** Out of Saved, with its note, tags and highlights. */
-    val onRemove: () -> Unit,
     /** How far it was read, 0 to 1, as the reader scrolls. */
     val onProgress: (Float) -> Unit,
 )
@@ -139,7 +136,7 @@ class ReaderItem(
 /**
  * One article, in the reader's font, size, spacing and page colour (#139). The top bar is for this
  * reading (Back, Aa, ⋮); the bar below is for this article in your library: one Save before it is
- * saved, then Archive (or Back to read) and Organise (#305); its highlights and Share at the right end. The text
+ * saved, then Archive (while to read) and Organise (#305); its highlights and Share at the right end. The text
  * ends with Read on website.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -180,34 +177,16 @@ fun ReaderScreen(
                     }
                 },
                 actions = {
-                    // The full article or the feed's text, one tap away: on while the full article shows.
-                    // Not for a saved article: it always shows the whole article (#208).
-                    if (hasLink && !onList) {
-                        val showingFull = fullText is FullTextState.Shown || fullText is FullTextState.Loading
-                        IconToggleButton(checked = showingFull, onCheckedChange = { actions.onToggleFullText() }) {
-                            Icon(
-                                painterResource(R.drawable.ic_article),
-                                contentDescription = stringResource(if (showingFull) R.string.reader_show_feed_text else R.string.reader_show_full),
-                            )
-                        }
-                    }
                     IconButton(onClick = { showStyleSheet = true }) {
                         Icon(painterResource(R.drawable.ic_text_format), contentDescription = stringResource(R.string.reader_text_settings))
                     }
                     IconButton(onClick = { menuOpen = true }) {
                         Icon(painterResource(R.drawable.ic_more_vert), contentDescription = stringResource(R.string.action_more))
                     }
+                    // In this order: Mark as unread, the feed's text or the full article (a feed article;
+                    // a saved one always shows the whole article, #208), Open in browser, Sign in to
+                    // website, Report a problem. Remove from Saved is in Organise.
                     DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
-                        if (hasLink) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.action_open_in_browser)) },
-                                leadingIcon = { Icon(painterResource(R.drawable.ic_open_in_new), contentDescription = null) },
-                                onClick = {
-                                    menuOpen = false
-                                    actions.onOpenInBrowser()
-                                },
-                            )
-                        }
                         val markUnread = actions.onMarkUnread
                         if (markUnread != null) {
                             DropdownMenuItem(
@@ -216,6 +195,27 @@ fun ReaderScreen(
                                 onClick = {
                                     menuOpen = false
                                     markUnread()
+                                },
+                            )
+                        }
+                        if (hasLink && !onList) {
+                            val showingFull = fullText is FullTextState.Shown || fullText is FullTextState.Loading
+                            DropdownMenuItem(
+                                text = { Text(stringResource(if (showingFull) R.string.reader_show_feed_text else R.string.reader_show_full)) },
+                                leadingIcon = { Icon(painterResource(R.drawable.ic_article), contentDescription = null) },
+                                onClick = {
+                                    menuOpen = false
+                                    actions.onToggleFullText()
+                                },
+                            )
+                        }
+                        if (hasLink) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.action_open_in_browser)) },
+                                leadingIcon = { Icon(painterResource(R.drawable.ic_open_in_new), contentDescription = null) },
+                                onClick = {
+                                    menuOpen = false
+                                    actions.onOpenInBrowser()
                                 },
                             )
                         }
@@ -237,17 +237,6 @@ fun ReaderScreen(
                                 onClick = {
                                     menuOpen = false
                                     reportOpen = true
-                                },
-                            )
-                        }
-                        if (item != null && onList) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.saved_remove)) },
-                                leadingIcon = { Icon(painterResource(R.drawable.ic_delete), contentDescription = null) },
-                                onClick = {
-                                    menuOpen = false
-                                    // Asks first (RemoveDialog), as everywhere.
-                                    item.onRemove()
                                 },
                             )
                         }

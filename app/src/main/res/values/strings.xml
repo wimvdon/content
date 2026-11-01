@@ -149,7 +149,6 @@
     <string name="action_save">Save</string>
     <string name="action_edit">Edit</string>
     <string name="action_done">Done</string>
-    <string name="action_save_and_archive">Save and archive</string>
     <string name="action_open">Open</string>
     <string name="action_undo">Undo</string>
     <string name="filter_unread">Unread</string>

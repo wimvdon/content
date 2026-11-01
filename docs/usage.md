@@ -81,7 +81,7 @@ is open goes into that topic. Long-pressing Content's icon on the home screen of
 topics: tap one to open the app on it (#251).
 
 **Sheets:** every sheet (Add, save, Organise, Add feed, Edit feed, a topic, a highlight, Report a
-problem) has **Cancel** at the top right and its main button at the bottom right. The save sheet is called
+problem) has **Cancel** at the bottom left and its main button at the bottom right (Manage feeds and Manage topics: **Done** at the bottom right). The save sheet is called
 **Save** while saving and **Organise** for an article saved before. On the web, **+** in the
 search bar asks the same as on the phone, and Settings has the same two buttons and pages. A tall sheet stops
 just below the status bar. With the keyboard open, Back, a swipe down or a tap beside the sheet
@@ -213,9 +213,8 @@ website (in the web app, in a new tab) (the same as **Read on website** at the e
 
 | Button | What it does |
 |---|---|
-| Full article (page icon) | **Show full article** / **Show feed text**: the whole article from the website, or the feed's own text. It is lit while the full article shows. Not in a saved article: that always shows the whole article. |
 | **Aa** | Text settings: font (Sans or Serif), text size, spacing (Compact, Normal, Relaxed), background (Theme, Sepia or Dark) and **Auto dark** (the dark page whenever the app is dark, e.g. Sepia by day and dark at night). Changes apply right away and are remembered for every article. |
-| ⋮ | **Open in browser**, **Mark as unread** (back to the list, where it waits unread; the web app keeps the article open and offers **Mark as read** too), **Sign in to this site** (#180: for a site you pay for, such as standaard.be; sign in on its page and tap **Done**, and from then on its articles load in full; only while you aren't signed in to that site yet; Settings › Article view › Sites you're signed in to lists them, with **Remove**), **Report a problem with this article** (#181: pick what is wrong, add a comment if you like, and **Send** opens a pre-filled report on GitHub in your browser, with the article's link and the text Content shows, #251, so it can be compared with the website; a text too long for the address is cut short there and put whole on the clipboard to paste; submit it there), and for a saved article **Remove from Saved**. Open in browser, and links in an article, open in a tab of your browser on top of Reader, with a **Save** button in its toolbar: it opens the save sheet over the page (see Saving from other apps); save or close it to keep reading. |
+| ⋮ | In this order: **Mark as unread** (back to the list, where it waits unread; the web app keeps the article open and offers **Mark as read** too), **Show full article** / **Show feed text** (a feed article: the whole article from the website, or the feed's own text; a saved article always shows the whole article), **Open in browser**, **Sign in to this site** (#180: for a site you pay for, such as standaard.be; sign in on its page and tap **Done**, and from then on its articles load in full; only while you aren't signed in to that site yet; Settings › Article view › Sites you're signed in to lists them, with **Remove**), **Report a problem with this article** (#181: pick what is wrong, add a comment if you like, and **Send** opens a pre-filled report on GitHub in your browser, with the article's link and the text Content shows, #251, so it can be compared with the website; a text too long for the address is cut short there and put whole on the clipboard to paste; submit it there). **Remove from Saved** is in Organise. Open in browser, and links in an article, open in a tab of your browser on top of Reader, with a **Save** button in its toolbar: it opens the save sheet over the page (see Saving from other apps); save or close it to keep reading. |
 
 The bar at the bottom is the article in your library, with **Share** at its right end (Content's
 share sheet, or straight to the app you chose). Before it is saved it has **Save** on the left: it
@@ -248,17 +247,17 @@ highlights, and are tried again the next day.
 After **Save**, **Organise** opens (#304; it was "Save and share", #256): the **Topics** with **Like** in front (every topic, in your
 order, tap to turn one on or off; **Edit topics** opens Manage topics over the sheet) and a **Note**. It
 doesn't send: to send an article to people with Content, use **Share** (or the share menu's **Send
-with Content**). The Archive isn't a list you pick (#305): the buttons at the bottom say where the
-article goes. **Save** puts it in To read, **Save and archive** straight in the Archive (for something
-you've read already and only want to keep). Either keeps what you chose, also a topic you typed but
-didn't add yet, and a message says where it went ("Saved to Archive"), with **Undo** when you saved
-from the article. **Cancel** (at the top right, or closing the sheet) saves nothing: right after Save
+with Content**). Above the topics, **To read** or **Archive** says where the article goes (To read
+to start with when saving; Archive for something you've read already and only want to keep); the
+**Save** button shows the same icon. Save keeps what you chose, also a topic you typed but didn't
+add yet, and a message says where it went ("Saved to Archive"), with **Undo** when you saved from
+the article. **Cancel** (at the bottom left, or closing the sheet) saves nothing: right after Save
 in the reader, it takes the save back, as if you never saved it.
 The same sheet opens when you press and hold a saved article in Saved, a row in To read or a card
 elsewhere, and pick **Organise** (web: right-click it), or tap Organise in a saved article's bottom
 bar. For an article saved before, it has **Remove** at the bottom
-left, which takes the article out of Saved after asking, and only **Save** (it doesn't move the
-article). That menu starts with **Archive** (or **Back to read** in the Archive), then Organise,
+left, next to Cancel, which takes the article out of Saved after asking; To read or Archive there
+moves it. That menu starts with **Archive** (or **Back to read** in the Archive), then Organise,
 **Share** and **Remove from Saved** (it asks too). When it
 closes, a message says where the article went; after a long press, **Add link** or a link shared from
 another app it also has **Open**, which goes to the article in Saved.
@@ -392,11 +391,12 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   with any number of topics.
 - **Getting articles in:** **Save** in an article; press and hold a feed article › **Save** (the save sheet opens, then the message offers **Open**); **+** in the search bar ›
   **Save article** (the save sheet, which asks for the address); and sharing a link to Reader from another app. These go to To read unless you tap
-  **Save and archive** in the save sheet. A feed article you save stays the same article: its feed, text and
+  **Archive** in the save sheet. A feed article you save stays the same article: its feed, text and
   picture come along, and it isn't copied.
-- **Archive when you're done:** **Archive** in a saved article's bottom bar (it closes, with
-  **Undo**), or press and hold its card › **Archive**. For an archived article the same button and
-  menu say **Back to read**. Next to Archive, **Organise** opens the topics, Like and the note.
+- **Archive when you're done:** **Archive** in a saved article's bottom bar (the article stays
+  open; a message says so, with **Undo**), or press and hold its card › **Archive**. An archived
+  article has no Archive button, only **Organise**, where **To read** puts it back. **Organise**
+  opens To read / Archive, the topics, Like and the note.
 - **The tabs** under the search bar: **To read**, and **All** (everything saved, archived articles
   too; it replaced the Archive tab). Under them **the chips**: **Liked** (set apart by its heart)
   and your topics, in your order, one at a time.
@@ -407,8 +407,8 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   note in small letters, its topics as small chips, then the site, a marker icon with how many
   highlights it has, and a heart when liked.
 - In the reader, the bar at the bottom: **its list** (To read or Archive), which opens Organise,
-  and until it is archived **Archive**, which archives it in one tap and closes it (with **Undo**).
-  **Remove from Saved** is in ⋮ (and in Organise); it asks first, as everywhere, and takes the note,
+  and until it is archived **Archive**, which archives it in one tap; the article stays open and a
+  message says so (with **Undo**). **Remove from Saved** is in Organise; it asks first, as everywhere, and takes the note,
   topics and highlights with it (Archive keeps it searchable instead).
 - **Manage topics** (Settings, or Edit topics in a sheet): your topics as chips: drag to reorder,
   tap to rename, change the icon or remove one (a name already taken merges the two).

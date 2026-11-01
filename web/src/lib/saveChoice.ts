@@ -66,15 +66,17 @@ export function withTyped(choice: SaveChoice, folder: string, tag: string, folde
   return samePlace(place, choice.place) && tags === choice.tags ? choice : { ...choice, place, tags };
 }
 
-/**
- * Whether the sheet offers Save to Archive next to Save (#305): only while saving (Add link, or one
- * saved a moment ago), not organising one saved before, and not when nothing is kept. As
- * SaveChoices.offersArchive on Android.
- */
-export const offersArchive = (organising: boolean, choice: SaveChoice): boolean => !organising && choice.keep;
+/** The Save and Organise sheets' To read / Archive choice: whether it goes into the Archive (SaveChoices.archived). */
+export const isArchived = (choice: SaveChoice): boolean => choice.place.kind === "archive";
 
-/** Save to Archive (#305): the same choice, but into the Archive. */
-export const toArchive = (choice: SaveChoice): SaveChoice => ({ ...choice, place: { kind: "archive" } });
+/**
+ * To read or Archive picked in the sheet: into the Archive, or out of it into To read. An article
+ * in an old folder that isn't archived stays in it when To read is picked. As SaveChoices.withArchived.
+ */
+export function withArchived(choice: SaveChoice, archived: boolean): SaveChoice {
+  if (archived) return isArchived(choice) ? choice : { ...choice, place: { kind: "archive" } };
+  return isArchived(choice) ? { ...choice, place: { kind: "toread" } } : choice;
+}
 
 /**
  * A topic renamed while the sheet is open (#314): the sheet's choice follows, so Save doesn't bring

@@ -149,7 +149,6 @@
     <string name="action_save">Enregistrer</string>
     <string name="action_edit">Modifier</string>
     <string name="action_done">Terminé</string>
-    <string name="action_save_and_archive">Enregistrer et archiver</string>
     <string name="action_open">Ouvrir</string>
     <string name="action_undo">Annuler</string>
     <string name="filter_unread">Non lus</string>

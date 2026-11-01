@@ -97,18 +97,22 @@ object SaveChoices {
         return if (place == choice.place && tags == choice.tags) choice else choice.copy(place = place, tags = tags)
     }
 
-    /**
-     * Whether the sheet offers Save to Archive next to Save (#305): only while saving (a new link, or
-     * one saved a moment ago), not organising one saved before (its place changes in the reader or a
-     * card's menu), and not when nothing is kept (only sent).
-     */
-    fun offersArchive(
-        organising: Boolean,
-        choice: SaveChoice,
-    ): Boolean = !organising && choice.keep
+    /** The Save and Organise sheets' To read / Archive choice: whether it goes into the Archive. */
+    fun archived(choice: SaveChoice): Boolean = choice.place == Place.Archive
 
-    /** Save to Archive (#305): the same choice, but into the Archive. */
-    fun toArchive(choice: SaveChoice): SaveChoice = choice.copy(place = Place.Archive)
+    /**
+     * To read or Archive picked in the sheet: into the Archive, or out of it into To read. An
+     * article in an old folder that isn't archived stays in it when To read is picked.
+     */
+    fun withArchived(
+        choice: SaveChoice,
+        archived: Boolean,
+    ): SaveChoice =
+        when {
+            archived -> if (choice.place == Place.Archive) choice else choice.copy(place = Place.Archive)
+            choice.place == Place.Archive -> choice.copy(place = Place.ToRead)
+            else -> choice
+        }
 
     /** The tag on or off (case ignored), as the reader's Tags menu does it (#156). */
     fun withTag(

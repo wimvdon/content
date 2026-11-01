@@ -238,7 +238,7 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   number), each with a name, an icon and its place in the user's order, which every chip row and
   the sheets follow. **Manage topics** (a sheet, from Settings' large button and from **Edit
   topics** in the Add feed, Edit feed and Save/Organise sheets, over them) shows them as chips in
-  edit mode (grip, icon, name, pen; **New topic** after them), with **Done** at the top right as its
+  edit mode (grip, icon, name, pen; **New topic** after them), with **Done** at the bottom right as its
   changes are kept at once. **Manage feeds** (a sheet from Settings' other large button) shows the
   feeds the same way, grouped by topic under a Label Large heading with the topic's icon (a failing
   feed's name in the error colour), then Add feed; tapping a feed opens the Edit feed sheet (name,
@@ -336,10 +336,11 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   five suggestions as `ListItem`s (avatar, name, address; tap adds), filtered by what is typed, and
   "Add …" for a whole new address (checked for a Content account first). Long-press a suggestion
   for trash buttons that forget people; Done ends it. Section titles in Title Small, `primary`.
-  **Cancel** sits at the top right, next to the heading (#305), in this sheet and every other one
-  (Add feed, the topic sheet, a highlight, Report a problem; `SheetHeader`; the web: Cancel in words
-  instead of ×). At the bottom, saving: **Save and archive** (outlined, the Archive's box) and
-  **Save** (filled, To read's open book), which says **Save and send** or **Send** when
+  **Cancel** sits at the bottom left (`SheetActions`), in this sheet and every other one (Add feed,
+  the topic sheet, a highlight, Report a problem; Remove, in the error colour, next to it), and the
+  main button at the bottom right; the heading is only the title (`SheetHeader`). Above the topics a
+  segmented **To read** / **Archive** choice (To read to start with when saving); **Save** (filled)
+  shows the same icon (To read's open book or the Archive's box), and says **Save and send** or **Send** when
   sending: closing the sheet is Cancel, so only the button changes or sends
   anything; the heading is **Save** while saving, or "Organise" for an article saved before: that one has no Send
   with Content (Share is next to Organise) and a red Remove at the bottom left. Right after a save there is no Remove:

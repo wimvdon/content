@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { itemOf } from "../src/lib/items";
 import { emptyLibrary, type Library } from "../src/lib/library";
-import { applyChoice, choiceOf, emptyChoice, newFolder, offersArchive, places, saveNew, tagChoices, tagsLabel, toArchive, undoSave, withoutTopic, withTag, withTopicRenamed, withTyped } from "../src/lib/saveChoice";
+import { applyChoice, choiceOf, emptyChoice, newFolder, isArchived, places, saveNew, tagChoices, tagsLabel, undoSave, withArchived, withoutTopic, withTag, withTopicRenamed, withTyped } from "../src/lib/saveChoice";
 import { archiveItem, folderOf, isIn, saveLink } from "../src/lib/saved";
 
 function sample(): Library {
@@ -56,21 +56,23 @@ describe("the save and Organise sheet (#143)", () => {
   });
 });
 
-describe("Save to Archive (#305)", () => {
-  it("is offered while saving, not organising or only sending", () => {
-    expect(offersArchive(false, emptyChoice)).toBe(true);
-    expect(offersArchive(true, emptyChoice)).toBe(false);
-    expect(offersArchive(false, { ...emptyChoice, keep: false })).toBe(false);
+describe("To read or Archive in the sheet", () => {
+  it("moves it in or out of the Archive, and an old folder stays", () => {
+    expect(isArchived(emptyChoice)).toBe(false);
+    expect(isArchived(withArchived(emptyChoice, true))).toBe(true);
+    expect(withArchived({ ...emptyChoice, place: { kind: "archive" } }, false).place).toEqual({ kind: "toread" });
+    const inFolder = { ...emptyChoice, place: { kind: "folder" as const, name: "Research" } };
+    expect(withArchived(inFolder, false)).toBe(inFolder);
   });
 
   it("keeps the like, topics and note and saves into the Archive", () => {
     const choice = { ...emptyChoice, liked: true, tags: ["ai"], note: "Mine" };
-    expect(toArchive(choice)).toEqual({ ...choice, place: { kind: "archive" } });
-    const [lib, item] = saveNew(emptyLibrary(), "https://b.example/1", null, 10, toArchive(choice));
+    expect(withArchived(choice, true)).toEqual({ ...choice, place: { kind: "archive" } });
+    const [lib, item] = saveNew(emptyLibrary(), "https://b.example/1", null, 10, withArchived(choice, true));
     expect(item?.readingList?.state).toBe("archived");
     expect(itemOf(lib, "b.example/1")?.tags).toEqual(["ai"]);
     // Just saved from the reader, then Save to Archive: the article moves to the Archive.
-    const moved = applyChoice(sample(), "a.example/1", toArchive(choiceOf(itemOf(sample(), "a.example/1")!)));
+    const moved = applyChoice(sample(), "a.example/1", withArchived(choiceOf(itemOf(sample(), "a.example/1")!), true));
     expect(itemOf(moved, "a.example/1")?.readingList?.state).toBe("archived");
   });
 });

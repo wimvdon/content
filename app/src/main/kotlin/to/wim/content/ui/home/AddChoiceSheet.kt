@@ -25,6 +25,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import to.wim.content.R
 import to.wim.content.ui.reader.ContentSheet
+import to.wim.content.ui.reader.SheetActions
 import to.wim.content.ui.reader.SheetHeader
 import to.wim.content.ui.theme.AppShapes
 
@@ -57,6 +58,7 @@ fun AddChoiceSheet(
                 body = stringResource(R.string.add_choice_article_body),
                 onClick = onSaveArticle,
             )
+            SheetActions(onCancel = onDismiss)
         }
     }
 }

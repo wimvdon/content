@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
@@ -38,6 +39,7 @@ import to.wim.content.ui.home.FeedIcon
 import to.wim.content.ui.home.FeedIconSize
 import to.wim.content.ui.home.problemText
 import to.wim.content.ui.home.rememberFolderIconPainter
+import to.wim.content.ui.reader.SheetActions
 import to.wim.content.ui.reader.SheetHeader
 
 /** What the Manage feeds sheet can do with the feeds; each change is stored at once. */
@@ -57,7 +59,7 @@ class ManageFeedsActions(
  * Every topic shows, an empty one too. Drag a chip by its handle to reorder it within its topic or
  * to move it into another topic (or No topic); tap it for the Edit feed sheet (name,
  * topic, Remove) as a page of this sheet, with a back arrow. A feed that fails to download has its name in the error colour. Add feed at the
- * end. Changes are stored at once: **Done** at the top right.
+ * bottom left. Changes are stored at once: **Done** at the bottom right.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -86,7 +88,7 @@ fun ManageFeedsSheet(
                 .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            SheetHeader(stringResource(R.string.settings_feeds_title), onCancel = onDismiss, closeLabel = stringResource(R.string.action_done))
+            SheetHeader(stringResource(R.string.settings_feeds_title), onCancel = onDismiss)
             Text(
                 stringResource(if (feeds.isEmpty()) R.string.manage_feeds_none else R.string.manage_feeds_hint),
                 style = MaterialTheme.typography.bodyMedium,
@@ -118,9 +120,18 @@ fun ManageFeedsSheet(
                 editLabel = stringResource(R.string.feed_edit),
                 isError = { problems.containsKey(it.url) },
             )
-            FilledTonalButton(onClick = actions.onAddFeed, contentPadding = ButtonDefaults.ButtonWithIconContentPadding) {
-                Icon(painterResource(R.drawable.ic_add), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
-                Text(stringResource(R.string.feeds_add), modifier = Modifier.padding(start = 8.dp))
+            // Changes are stored at once: Done at the bottom right, Add feed at the left.
+            SheetActions(
+                onCancel = onDismiss,
+                cancel = false,
+                leading = {
+                    FilledTonalButton(onClick = actions.onAddFeed, contentPadding = ButtonDefaults.ButtonWithIconContentPadding) {
+                        Icon(painterResource(R.drawable.ic_add), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                        Text(stringResource(R.string.feeds_add), modifier = Modifier.padding(start = 8.dp))
+                    }
+                },
+            ) {
+                Button(onClick = onDismiss) { Text(stringResource(R.string.action_done)) }
             }
         }
         addFeed()

@@ -44,22 +44,27 @@ class SaveChoicesTest {
     }
 
     @Test
-    fun `Save to Archive is offered while saving, not organising or only sending`() {
-        assertTrue(SaveChoices.offersArchive(organising = false, SaveChoice()))
-        assertEquals(false, SaveChoices.offersArchive(organising = true, SaveChoice()))
-        assertEquals(false, SaveChoices.offersArchive(organising = false, SaveChoice(keep = false)))
+    fun `To read or Archive in the sheet moves it in or out of the Archive`() {
+        assertEquals(false, SaveChoices.archived(SaveChoice()))
+        assertTrue(SaveChoices.archived(SaveChoices.withArchived(SaveChoice(), archived = true)))
+        assertEquals(Place.ToRead, SaveChoices.withArchived(SaveChoice(Place.Archive), archived = false).place)
+        // An old folder stays when To read is picked again.
+        val inFolder = SaveChoice(Place.Folder("Research"))
+        assertSame(inFolder, SaveChoices.withArchived(inFolder, archived = false))
+        val archivedChoice = SaveChoice(Place.Archive)
+        assertSame(archivedChoice, SaveChoices.withArchived(archivedChoice, archived = true))
     }
 
     @Test
-    fun `Save to Archive keeps the like, topics and note and saves into the Archive`() {
+    fun `Archive in the sheet keeps the like, topics and note and saves into the Archive`() {
         val choice = SaveChoice(Place.ToRead, liked = true, tags = listOf("ai"), note = "Mine")
-        val archived = SaveChoices.toArchive(choice)
+        val archived = SaveChoices.withArchived(choice, archived = true)
         assertEquals(choice.copy(place = Place.Archive), archived)
         val (_, item) = SaveChoices.saveNew(Library(), "https://b.example/1", "B", 10, archived)
         assertTrue(item!!.archived)
         assertEquals(listOf("ai"), item.tags)
         // Just saved from the reader, then Save to Archive: the saved article moves to the Archive.
-        val moved = SaveChoices.apply(library, "a.example/1", SaveChoices.toArchive(SaveChoices.of(library.item("a.example/1")!!)))
+        val moved = SaveChoices.apply(library, "a.example/1", SaveChoices.withArchived(SaveChoices.of(library.item("a.example/1")!!), archived = true))
         assertTrue(moved.item("a.example/1")!!.archived)
     }
 
