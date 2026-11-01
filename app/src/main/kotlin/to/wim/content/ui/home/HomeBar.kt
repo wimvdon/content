@@ -47,13 +47,17 @@ import to.wim.content.sync.Gravatar
 
 /**
  * The title bar as a large search bar (#189): the magnifier, "Search articles" (which opens Search),
- * and at the end Settings: the account's picture when it has one (Gravatar, with Show images on),
- * else a cogwheel. There is no ☰ menu: every place is a chip or in the navigation bar.
+ * then + (#307: Add feed in Feeds, the Save sheet in Saved), and at the end Settings: the account's
+ * picture when it has one (Gravatar, with Show images on), else a cogwheel. There is no ☰ menu:
+ * every place is a chip or in the navigation bar.
  */
 @Composable
 fun HomeSearchBar(
     onSearch: () -> Unit,
     onSettings: () -> Unit,
+    /** The + and what it says to a screen reader; null where there is nothing to add (the Inbox). */
+    onAdd: (() -> Unit)? = null,
+    addLabel: String = "",
     /** The Content account's address, for its picture; null when signed out. */
     accountEmail: String? = null,
     showImages: Boolean = true,
@@ -84,6 +88,11 @@ fun HomeSearchBar(
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f).padding(horizontal = 4.dp),
             )
+            if (onAdd != null) {
+                IconButton(onClick = onAdd) {
+                    Icon(painterResource(R.drawable.ic_add), contentDescription = addLabel)
+                }
+            }
             IconButton(onClick = onSettings) {
                 val cog: @Composable () -> Unit = {
                     Icon(painterResource(R.drawable.ic_settings), contentDescription = stringResource(R.string.menu_settings))
@@ -141,23 +150,20 @@ fun StateChip(
 
 /**
  * The chip row under the search bar: the [state] chip, then the groups as chips, one at a time
- * (folders in Feeds, tags in Saved): tapping the chosen one again lets go. While a group or another
- * filter is on, an X at the end clears it.
+ * (topics in Feeds, Liked and topics in Saved): tapping the chosen one again lets go, so there is
+ * no X to clear it (#307), and no Manage topics icon (it is the pen in the Add feed and Save sheets,
+ * and in Settings).
  */
 @Composable
 fun TagChips(
     tags: List<String>,
     selected: String?,
     onSelect: (String?) -> Unit,
-    filtered: Boolean,
-    onClear: () -> Unit,
     state: @Composable () -> Unit,
     /** Saved's Liked chip (#206), the first group. */
     liked: (@Composable () -> Unit)? = null,
     /** Feeds' feeds without a topic (FeedChips), after the topics and a divider. */
     loose: (@Composable () -> Unit)? = null,
-    /** Manage topics, as the row's last button. */
-    onManage: (() -> Unit)? = null,
 ) {
     Row(
         Modifier
@@ -182,16 +188,6 @@ fun TagChips(
         if (loose != null) {
             if (tags.isNotEmpty() || liked != null) VerticalDivider(Modifier.height(24.dp))
             loose()
-        }
-        if (filtered) {
-            IconButton(onClick = onClear) {
-                Icon(painterResource(R.drawable.ic_close), contentDescription = stringResource(R.string.action_clear))
-            }
-        }
-        if (onManage != null) {
-            IconButton(onClick = onManage) {
-                Icon(painterResource(R.drawable.ic_manage_feeds), contentDescription = stringResource(R.string.menu_manage))
-            }
         }
     }
 }

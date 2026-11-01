@@ -79,7 +79,7 @@ rss-reader/
         │   │       ├── MainActivity.kt, Navigation.kt   Entry, back stack, wiring
         │   │       ├── ExternalApps.kt        Browser, share, Instapaper, Play Store
         │   │       ├── DirectShare.kt         The people in other apps' share menus; folders in the launcher
-        │   │       ├── home/                  Article list, search bar, chip rows, Add feed dialog, messages, inbox
+        │   │       ├── home/                  Article list, search bar, chip rows, Add feed sheet, messages, inbox
         │   │       ├── reader/                Reader screen, text settings, reader colours, Organise sheet, Content's share sheet
         │   │       ├── feeds/                 Manage topics: topic list, topic page, topic and feed dialogs
         │   │       ├── settings/              Settings screen, Save/Share targets, Instapaper

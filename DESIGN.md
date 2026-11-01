@@ -236,8 +236,11 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   list use SemiBold titles and a primary dot; read rows use `onSurfaceVariant`.
 - Topics: one way to group feeds and saved articles (a feed in one topic, a saved article in any
   number), each with a name, an icon and its place in the user's order, which every chip row and
-  the sheets follow. Manage topics (the manage icon at the end of the chip row, or Settings) is a
-  list and a page per topic. The list: a large top app bar over topic rows (`surfaceContainerHigh`, the topic's icon on
+  the sheets follow. Manage topics (in Settings) is a
+  list and a page per topic. The Add feed and Save sheets have a pen right after their topics'
+  heading (#307) that turns the sheet into a lighter Manage topics: a back arrow and the title,
+  the topic rows (no counts) with a pen and the drag handle, New topic as a text button; Remove
+  topic asks on that page, not in a dialog over the sheet. The list: a large top app bar over topic rows (`surfaceContainerHigh`, the topic's icon on
   a `secondaryContainer` circle, "4 feeds · 12 saved" under the name, "1 feed fails" in the error
   colour), a drag handle at the end, then the feeds without a topic as feed rows (no "No topic"
   row or page), and two extended FABs: Add feed (the FAB) and
@@ -275,14 +278,14 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   All; Saved: To read or Archive), lit while it leaves things out. A divider, then the groups,
   one at a time: the topics in Feeds, the topics in Saved, in the topics' order, each only when it
   has something in the state shown (the chosen one stays), with Liked (heart) before them (#206). Group chips have no check mark and chosen
-  ones keep their weight, so a chip never changes width and the row never moves (#208). An X at
-  the end clears the group, and the manage icon (the feed symbol with a pen) after it opens Manage
-  topics. In Feeds the feeds without a topic follow the topics in the same row, after a second
+  ones keep their weight, so a chip never changes width and the row never moves (#208). There is no
+  X (one group at a time: tapping the chosen one again lets go) and no manage icon at the end (#307). In Feeds the feeds without a topic follow the topics in the same row, after a second
   divider, as filter chips with their site icon (16dp). While a topic (or one of its feeds) is
   chosen, a **second row** under the first shows that topic's feeds the same way: tap one to show it
   alone (its topic stays lit), tap it again for the whole topic. So every place is one or two taps
   from the list. The Mark all read FAB is on Feeds
-  only and only marks the section shown; Saved's FAB is Add link.
+  only and only marks the section shown; Saved has no FAB: **+** in the search bar (between the
+  search text and Settings) adds, Add feed in Feeds, the Save sheet in Saved (#307).
 - Saved's lists look like what they are for: To read and Archive are read through, so they use
   the feed list's rows and its view setting (Small, Medium, Large), under a line with how many and
   about how long; a folder is a collection to browse, so its items are notes in Noter's style:
@@ -341,9 +344,9 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   menu opens Send with Content with them picked. After a save there, a tap anywhere but Open closes
   the message and goes back to the other app.
 - Sheets and dialogs (#256): a bottom sheet for anything done with an article or that needs room
-  (Save and share, Content's share sheet, highlights, Aa, Report a problem, the folder sheet with
-  its icon search); a dialog only to confirm something or type one name (remove, rename, Add feed,
-  edit a feed). No dialog opens on top of a sheet.
+  (Save and share, Add feed with its topic chips (#307), Content's share sheet, highlights, Aa,
+  Report a problem, the folder sheet with its icon search); a dialog only to confirm something or
+  type one name (remove, rename, edit a feed, Add feed from the share menu). No dialog opens on top of a sheet.
 - Content's share sheet (#251): a `ModalBottomSheet` with the article's title and site, **Send with
   Content** the same To field as in the Save and share sheet, then a full-width Send button, then the apps as 48dp icons with their names,
   four to a row, Copy link and More last.
@@ -367,7 +370,7 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   app's sidebar and favicon use the app's logo (the launcher icon's C on its own: no circle or
   white tile).
 - Settings starts with the connections: Account, then Instapaper; Move to or from another reader
-  (OPML) sits before Appearance. Managing topics is at the end of the chip rows and, as its own section after the connections, in Settings. The first screen,
+  (OPML) sits before Appearance. Managing topics is its own section after the connections in Settings, and the pen in the Add feed and Save sheets. The first screen,
   signed out, is a welcome with the email sign-in first. See docs/architecture.md, "Navigation and
   settings: where everything lives".
 

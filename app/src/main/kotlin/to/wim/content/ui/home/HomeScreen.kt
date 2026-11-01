@@ -186,13 +186,12 @@ class HomeActions(
     /** Emails a sign-in link from the welcome screen; gives back whether it was sent (#166). */
     val onSendLink: (email: String, result: (Boolean) -> Unit) -> Unit = { _, result -> result(false) },
     val onOpenSettings: () -> Unit,
-    /** Manage feeds and Saved (#251): the feeds and folders, Saved's folders and tags, OPML and Instapaper. */
-    val onOpenManage: () -> Unit,
     /** The navigation bar's destinations. */
     val onShowFeeds: () -> Unit = {},
     val onShowSaved: () -> Unit = {},
     val onSavedFilter: (SavedFilter) -> Unit = {},
     val onOpenItem: (Item) -> Unit = {},
+    /** The search bar's + in Saved (#307): the Save sheet, which asks for the address. */
     val onAddLink: () -> Unit = {},
     /** Archives a saved item, or puts an archived one back to read (a swipe in Saved). */
     val onArchiveItem: (Item) -> Unit = {},
@@ -257,6 +256,14 @@ fun HomeScreen(
                         HomeSearchBar(
                             onSearch = actions.onOpenSearch,
                             onSettings = actions.onOpenSettings,
+                            // + (#307): Add feed in Feeds, the Save sheet in Saved (Saved's FAB is gone).
+                            onAdd =
+                                when {
+                                    reading != null -> actions.onAddLink
+                                    inFeeds -> actions.onAddFeed
+                                    else -> null
+                                },
+                            addLabel = stringResource(if (reading != null) R.string.add_link_title else R.string.feeds_add),
                             accountEmail = state.accountEmail,
                             showImages = state.showImages,
                         )
@@ -270,8 +277,6 @@ fun HomeScreen(
                                 tags = reading.tags,
                                 selected = reading.filter.tags.firstOrNull(),
                                 onSelect = { t -> actions.onSavedFilter(reading.filter.copy(likedOnly = false, tags = setOfNotNull(t))) },
-                                filtered = reading.filter.likedOnly || reading.filter.tags.isNotEmpty(),
-                                onClear = { actions.onSavedFilter(reading.filter.copy(likedOnly = false, tags = emptySet())) },
                                 state = {
                                     StateChip(
                                         options = stateLabels,
@@ -303,7 +308,6 @@ fun HomeScreen(
                                             )
                                         }
                                     },
-                                onManage = actions.onOpenManage,
                             )
                         } else if (inFeeds && state.feeds.isNotEmpty()) {
                             val stateLabels = listOf(stringResource(R.string.filter_unread), stringResource(R.string.filter_all))
@@ -313,8 +317,6 @@ fun HomeScreen(
                                 selected = chips.chosenTopic,
                                 // A topic, or nothing: tapping the chosen topic (or its feed's) again lets go.
                                 onSelect = { t -> actions.onSelect(if (t == null) FeedSelection.All else FeedSelection.Tagged(t)) },
-                                filtered = state.selection != FeedSelection.All,
-                                onClear = { actions.onSelect(FeedSelection.All) },
                                 state = {
                                     StateChip(
                                         options = stateLabels,
@@ -335,7 +337,6 @@ fun HomeScreen(
                                             }
                                         }
                                     },
-                                onManage = actions.onOpenManage,
                             )
                             // A topic chosen: its feeds, a second row.
                             val topic = chips.chosenTopic
@@ -353,11 +354,6 @@ fun HomeScreen(
                     if (state.feeds.isNotEmpty() && unreadHere > 0 && inFeeds) {
                         FloatingActionButton(onClick = actions.onMarkAllRead) {
                             Icon(painterResource(R.drawable.ic_done_all), contentDescription = stringResource(R.string.action_mark_all_read))
-                        }
-                    }
-                    if (reading != null) {
-                        FloatingActionButton(onClick = actions.onAddLink) {
-                            Icon(painterResource(R.drawable.ic_add_link), contentDescription = stringResource(R.string.add_link_title))
                         }
                     }
                 },

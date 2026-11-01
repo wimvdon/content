@@ -1,5 +1,6 @@
 package to.wim.content.ui.reader
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -25,6 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -47,6 +49,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import to.wim.content.R
+import to.wim.content.data.Folder
 import to.wim.content.data.Item
 import to.wim.content.data.ItemKeys
 import to.wim.content.data.Place
@@ -54,6 +57,8 @@ import to.wim.content.data.SaveChoice
 import to.wim.content.data.SaveChoices
 import to.wim.content.data.SendTo
 import to.wim.content.feed.FeedDiscovery
+import to.wim.content.ui.feeds.TopicEditActions
+import to.wim.content.ui.feeds.TopicsEditor
 
 /**
  * An item's tags (#143): an optional [leading] chip (Like), then every tag in use as a chip to tap
@@ -145,7 +150,8 @@ enum class SheetKind {
  * Archive, then any folder left: #156), the topics with Like in front, the note. Then Cancel and
  * Save; closing the sheet is Cancel, so only Save changes anything. Organising a saved article,
  * Remove sits at the bottom left. [sendOnly] makes it the share menu's Send with Content instead:
- * only the people to send to (#256).
+ * only the people to send to (#256). The pen next to Topics (#307) turns the sheet into Manage
+ * topics, with Back to the sheet: a topic renamed or removed there changes the sheet's choice too.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -172,6 +178,10 @@ fun SaveSheet(
     hasAccount: suspend (String) -> Boolean? = { null },
     /** Only Send with Content, nothing saved: the share menu's Send target. */
     sendOnly: Boolean = false,
+    /** Every topic, for the sheet's Manage topics page. */
+    topics: List<Folder> = emptyList(),
+    /** Manage topics in the sheet (#307); null: no pen next to Topics. */
+    topicActions: TopicEditActions? = null,
 ) {
     var address by rememberSaveable(key) { mutableStateOf(url.orEmpty()) }
     // A typed address may leave out https://.
@@ -180,6 +190,8 @@ fun SaveSheet(
     // A folder or tag typed but not added yet: Save takes it too, rather than dropping it.
     var folderName by rememberSaveable(key) { mutableStateOf("") }
     var tagName by rememberSaveable(key) { mutableStateOf("") }
+    // The sheet's second page, Manage topics (#307).
+    var managing by rememberSaveable(key) { mutableStateOf(false) }
     val saved = kind != SheetKind.New
     val save = {
         val chosen = SaveChoices.withTyped(choice, folderName, tagName, folders)
@@ -196,89 +208,130 @@ fun SaveSheet(
         onCancel()
         onDismiss()
     }
-    ModalBottomSheet(onDismissRequest = cancel, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
-        Column(
-            Modifier
-                .verticalScroll(rememberScrollState())
-                .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            // The sheet itself picks To read or the Archive, so the title doesn't name one (#229).
-            Text(
-                stringResource(
-                    when {
-                        sendOnly -> R.string.share_send_with_content
-                        // Saving and organising are the same sheet (#304): sending is Share's.
-                        else -> R.string.organise_title
-                    },
-                ),
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.semantics { heading() },
-            )
-            if (kind == SheetKind.New) {
-                if (url == null) {
-                    OutlinedTextField(
-                        value = address,
-                        onValueChange = { address = it },
-                        label = { Text(stringResource(R.string.add_link_address)) },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Next),
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                } else {
-                    Column {
-                        if (!title.isNullOrBlank()) Text(title, style = MaterialTheme.typography.titleSmall, maxLines = 2)
-                        Text(ItemKeys.hostOf(url).ifEmpty { url }, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
-                    }
-                }
-            }
-            if (!sendOnly) {
-                SheetSection(stringResource(R.string.folder_field))
-                FolderChips(
-                    choice.place,
-                    folders,
-                    onChange = { choice = choice.copy(place = it) },
-                    name = folderName,
-                    onNameChange = { folderName = it },
+    ModalBottomSheet(
+        onDismissRequest = cancel,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        // On Manage topics, Back goes back to the sheet rather than cancelling it.
+        properties = ModalBottomSheetProperties(shouldDismissOnBackPress = !managing),
+    ) {
+        BackHandler(enabled = managing) { managing = false }
+        if (managing && topicActions != null) {
+            Column(
+                Modifier
+                    .verticalScroll(rememberScrollState())
+                    .padding(start = 12.dp, end = 24.dp, bottom = 24.dp),
+            ) {
+                TopicsEditor(
+                    topics = topics,
+                    actions =
+                        TopicEditActions(
+                            onNew = topicActions.onNew,
+                            onEdit = { topic, name, icon ->
+                                choice = SaveChoices.withTopicRenamed(choice, topic.title, name)
+                                topicActions.onEdit(topic, name, icon)
+                            },
+                            onRemove = { topic ->
+                                choice = SaveChoices.withoutTopic(choice, topic.title)
+                                topicActions.onRemove(topic)
+                            },
+                            onReorder = topicActions.onReorder,
+                        ),
+                    onBack = { managing = false },
                 )
             }
-            // Only sent: nothing of it is kept, so there is nothing to tag or note.
-            if (choice.keep) SavedParts(choice, allTags, tagName, onTagNameChange = { tagName = it }, onChange = { choice = it })
-            // Only the share menu's Send with Content sends (#304): saving and organising don't.
-            if (sendOnly) {
-                if (signedIn) {
-                    SendToSection(choice.sendTo, onChange = { choice = choice.copy(sendTo = it) }, hasAccount = hasAccount)
-                } else {
-                    Text(stringResource(R.string.share_user_signed_out), style = MaterialTheme.typography.bodyMedium)
-                }
-            }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                // Organising a saved article: Remove at the bottom left, away from Save. Just saved,
-                // Cancel already takes the save back, so there is nothing to remove.
-                if (kind == SheetKind.Organise) {
-                    TextButton(
-                        onClick = {
-                            onDismiss()
-                            onRemove()
+        } else {
+            Column(
+                Modifier
+                    .verticalScroll(rememberScrollState())
+                    .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                // The sheet itself picks To read or the Archive, so the title doesn't name one (#229).
+                Text(
+                    stringResource(
+                        when {
+                            sendOnly -> R.string.share_send_with_content
+                            // Saving and organising are the same sheet (#304): sending is Share's.
+                            else -> R.string.organise_title
                         },
-                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                    ) {
-                        Icon(painterResource(R.drawable.ic_delete), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
-                        Text(stringResource(R.string.action_remove), modifier = Modifier.padding(start = 8.dp))
+                    ),
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.semantics { heading() },
+                )
+                if (kind == SheetKind.New) {
+                    if (url == null) {
+                        OutlinedTextField(
+                            value = address,
+                            onValueChange = { address = it },
+                            label = { Text(stringResource(R.string.add_link_address)) },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Next),
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    } else {
+                        Column {
+                            if (!title.isNullOrBlank()) Text(title, style = MaterialTheme.typography.titleSmall, maxLines = 2)
+                            Text(ItemKeys.hostOf(url).ifEmpty { url }, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                        }
                     }
                 }
-                Spacer(Modifier.weight(1f))
-                TextButton(onClick = cancel) { Text(stringResource(R.string.action_cancel)) }
-                Button(enabled = SendTo.canConfirm(choice, hasLink = saved || link != null), onClick = save) {
-                    Text(
-                        stringResource(
-                            when (SendTo.action(choice)) {
-                                SendTo.Action.Save -> R.string.action_save
-                                SendTo.Action.SaveAndSend -> R.string.action_save_and_send
-                                SendTo.Action.Send -> R.string.share_user_send
-                            },
-                        ),
+                if (!sendOnly) {
+                    SheetSection(stringResource(R.string.folder_field))
+                    FolderChips(
+                        choice.place,
+                        folders,
+                        onChange = { choice = choice.copy(place = it) },
+                        name = folderName,
+                        onNameChange = { folderName = it },
                     )
+                }
+                // Only sent: nothing of it is kept, so there is nothing to tag or note.
+                if (choice.keep) {
+                SavedParts(
+                    choice,
+                    allTags,
+                    tagName,
+                    onTagNameChange = { tagName = it },
+                    onChange = { choice = it },
+                    onManageTopics = topicActions?.let { { managing = true } },
+                )
+            }
+                // Only the share menu's Send with Content sends (#304): saving and organising don't.
+                if (sendOnly) {
+                    if (signedIn) {
+                        SendToSection(choice.sendTo, onChange = { choice = choice.copy(sendTo = it) }, hasAccount = hasAccount)
+                    } else {
+                        Text(stringResource(R.string.share_user_signed_out), style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    // Organising a saved article: Remove at the bottom left, away from Save. Just saved,
+                    // Cancel already takes the save back, so there is nothing to remove.
+                    if (kind == SheetKind.Organise) {
+                        TextButton(
+                            onClick = {
+                                onDismiss()
+                                onRemove()
+                            },
+                            colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                        ) {
+                            Icon(painterResource(R.drawable.ic_delete), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                            Text(stringResource(R.string.action_remove), modifier = Modifier.padding(start = 8.dp))
+                        }
+                    }
+                    Spacer(Modifier.weight(1f))
+                    TextButton(onClick = cancel) { Text(stringResource(R.string.action_cancel)) }
+                    Button(enabled = SendTo.canConfirm(choice, hasLink = saved || link != null), onClick = save) {
+                        Text(
+                            stringResource(
+                                when (SendTo.action(choice)) {
+                                    SendTo.Action.Save -> R.string.action_save
+                                    SendTo.Action.SaveAndSend -> R.string.action_save_and_send
+                                    SendTo.Action.Send -> R.string.share_user_send
+                                },
+                            ),
+                        )
+                    }
                 }
             }
         }
@@ -293,9 +346,10 @@ private fun SavedParts(
     tagName: String,
     onTagNameChange: (String) -> Unit,
     onChange: (SaveChoice) -> Unit,
+    onManageTopics: (() -> Unit)?,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        SheetSection(stringResource(R.string.tags_title))
+        TopicsHeading(stringResource(R.string.tags_title), onManageTopics)
         TagsEditor(
             tags = choice.tags,
             allTags = allTags,
@@ -332,6 +386,27 @@ private fun SavedParts(
 @Composable
 private fun SheetSection(title: String) {
     Text(title, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(top = 4.dp).semantics { heading() })
+}
+
+/**
+ * The topics' heading in the Organise and Add feed sheets, with the pen right after it (#307) that
+ * opens Manage topics in the sheet; without [onManage], only the heading.
+ */
+@Composable
+internal fun TopicsHeading(
+    title: String,
+    onManage: (() -> Unit)?,
+) {
+    if (onManage == null) {
+        SheetSection(title)
+        return
+    }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        SheetSection(title)
+        IconButton(onClick = onManage) {
+            Icon(painterResource(R.drawable.ic_edit), contentDescription = stringResource(R.string.menu_manage), modifier = Modifier.size(20.dp))
+        }
+    }
 }
 
 /**

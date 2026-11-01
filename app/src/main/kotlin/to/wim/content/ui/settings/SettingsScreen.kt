@@ -100,7 +100,7 @@ class SettingsActions(
     val onNotifyShared: (Boolean, (Boolean) -> Unit) -> Unit = { _, _ -> },
     /** Forgets a site's sign-in (#180). */
     val onRemoveSiteSignIn: (String) -> Unit = {},
-    /** Manage topics (also at the end of the chip rows): the topics and their feeds. */
+    /** Manage topics: the topics and their feeds (the Add feed and Save sheets manage the topics too, #307). */
     val onOpenManage: () -> Unit = {},
 )
 
@@ -140,7 +140,7 @@ fun SettingsScreen(
                 }
             }
         }
-        // Topics and feeds, which the chip rows open too; here since there is no ☰ menu.
+        // Topics and feeds: the one way into Manage topics, since there is no ☰ menu (#307 took it off the chip rows).
         item(key = "topics") {
             SettingsSection(title = stringResource(R.string.feeds_title)) {
                 SettingItem(

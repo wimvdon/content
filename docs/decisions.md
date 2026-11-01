@@ -2,6 +2,23 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-01: Adding from the search bar, topics managed in the sheets (#307)
+
+- At the owner's request (Android): the Manage topics icon and the X are gone from the chip rows.
+  The X isn't needed since one chip is picked at a time and tapping it again lets go; Manage
+  topics stays in Settings.
+- **+ in the search bar** adds what the place holds: in Feeds a feed, in Saved a link. Saved's FAB
+  (Add link) is gone, so the two places add the same way.
+- **Add feed is a sheet**, like the Organise (save) sheet, with the topic as chips (it was a dialog that took
+  the topic shown, without a way to pick one). The share menu's Add feed keeps its dialog.
+- **A pen next to the topics** in the Add feed and Organise sheets turns the sheet into Manage topics
+  (reorder, rename, icon, remove, New topic) with Back to the sheet, rather than leaving for a
+  screen and losing what was typed. Topic renames and removals made there update the sheet's own
+  choice (`SaveChoices.withTopicRenamed`, `withoutTopic`, tested) so Save doesn't bring an old
+  name back. Remove asks on that page: no dialog opens on top of a sheet.
+- Not done: the owner's aside that Send with Content's recipients could follow the same pattern;
+  left for its own issue.
+
 ## 2026-11-01: The save sheet is Organise, without sending (#304)
 
 - At the owner's request ("Remove share from Save and share, make it = Organise"), saving and

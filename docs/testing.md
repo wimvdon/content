@@ -144,10 +144,11 @@ and then (always before a release):
       the Bookmarks chip shows only bookmarks.
 - [ ] **Navigation bar:** a bar at the bottom has Feeds and Saved, and signed in the Inbox with a
       dot while something in it is unread (a rail at the left in landscape on a tablet). The Mark all
-      read and Add link buttons and messages sit above the bar. Signed out, there is no Inbox.
+      read button and messages sit above the bar. Signed out, there is no Inbox.
 - [ ] **Navigation:** there is no ☰. The search bar ends with Settings (your picture signed in,
       else a cogwheel). In Feeds the chips are Unread/All, the topics, then the feeds without a
-      topic, then the Manage topics icon; picking a topic shows a second row with its feeds, and
+      topic, with no X and no Manage topics icon at the end (tap a chosen chip again for
+      everything); picking a topic shows a second row with its feeds, and
       tapping one shows that feed alone. Settings › Feeds › Manage topics opens the same page. In a
       topic, a feed, Saved or the Inbox, Back goes up a level; on All, Back closes the app.
 - [ ] **Archive from the reader:** a saved article in To read has an Archive button next to its
@@ -182,7 +183,13 @@ and then (always before a release):
 - [ ] Two devices: let a read article drop out of a busy feed (or remove the feed) on one; on the
       other it stays read. Add the feed again: its read articles come back read.
 - [ ] Import and export OPML (for example an Inoreader export); folders come along both ways.
-- [ ] **Manage feeds** (the icon at the end of the chips): create a folder, search an icon (e.g. *soccer*) and pick it, move feeds into it (they show under it); the bottom bar appears, its
+- [ ] **+ in the search bar (#307):** in Feeds it opens the Add feed sheet (address, Topic chips
+      starting on the topic shown, Cancel and Add); in Saved the save sheet asking for an address;
+      not in the Inbox. Saved has no round button any more. The pen next to Topic (Add feed) or
+      Topics (save and Organise sheets) shows Manage topics in the sheet: drag to reorder, tap to
+      rename or change the icon, Remove asks on the page, New topic; the back arrow returns to the
+      sheet with what was typed, and a topic renamed or removed there is so in the sheet too.
+- [ ] **Manage feeds** (Settings › Feeds › Manage topics): create a folder, search an icon (e.g. *soccer*) and pick it, move feeds into it (they show under it); the bottom bar appears, its
       tabs show only that folder's articles; Mark all read (round button) only marks that
       section and Undo restores it; removing the folder keeps its feeds and hides the bar.
 - [ ] **Dark mode** and **Settings › Appearance**: switch Theme and Dynamic color. Text stays
