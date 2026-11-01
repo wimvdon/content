@@ -10,6 +10,9 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -40,7 +43,9 @@ internal val ReaderToolbarMargin = 16.dp
 /**
  * The reader's actions as a floating toolbar (Material 3 Expressive): a pill above the article, at
  * the bottom in the middle, that slides away while reading down. Built from a `Surface` and a `Row`
- * (Material 3 1.4 has no public FloatingToolbar).
+ * (Material 3 1.4 has no public FloatingToolbar). Its buttons are all in one neutral colour
+ * (`onSurfaceVariant`, as Material 3's toolbars have it): Share, the highlights' count, Archive and
+ * Organise look alike; only the tonal Save stands out, as the one thing to do first.
  */
 @Composable
 internal fun ReaderToolbar(
@@ -57,6 +62,7 @@ internal fun ReaderToolbar(
         Surface(
             shape = CircleShape,
             color = MaterialTheme.colorScheme.surfaceContainer,
+            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
             tonalElevation = 3.dp,
             shadowElevation = 3.dp,
         ) {
@@ -68,3 +74,7 @@ internal fun ReaderToolbar(
         }
     }
 }
+
+/** A text button in the toolbar takes the toolbar's neutral colour, like its icon buttons. */
+@Composable
+internal fun toolbarTextButtonColors(): ButtonColors = ButtonDefaults.textButtonColors(contentColor = LocalContentColor.current)
