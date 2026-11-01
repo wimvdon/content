@@ -13,9 +13,9 @@ Signed in without feeds yet, the screen says **No feeds yet**, with Add feed and
 Tap the round **+** button at the bottom right (in Feeds, Saved or the Inbox: it is the same everywhere; on the web, **+** at the top of the list) and pick
 **Subscribe to feed**. (Also: **Add feed** on the empty screen, or in **Manage feeds** in Settings.)
 The other choice, **Save article**, saves one article by its address (see Saved). The **Add feed**
-sheet opens: type an address, pick its **Topic** (**No topic**, or one of yours; it starts on the
-topic you are looking at), and tap **Add**. **Edit topics** after the topic chips shows Manage topics
-in the same sheet; its back arrow (or Back) brings you back to Add feed as you left it (see Topics). As the address, any of these work:
+sheet opens: type an address, pick its **Tag** (**No tag**, or one of yours; it starts on the
+tag you are looking at), and tap **Add**. **Edit tags** after the tag chips shows Manage tags
+in the same sheet; its back arrow (or Back) brings you back to Add feed as you left it (see Tags). As the address, any of these work:
 
 - a feed address (`https://example.com/feed.xml`);
 - a website (`example.com`): the app looks for the feed the site announces, then tries common
@@ -34,8 +34,8 @@ sit on a light tile, so dark logos stay visible in dark mode.
 
 Export your feeds as an **OPML** file in your old reader, then tap **Import OPML** (on
 the empty start screen or in Settings › Integrations › Move to or from another reader) and pick the file. All feeds are added (feeds
-you already follow are skipped), each folder of your old reader as a topic, and the app downloads
-their articles. **Export OPML** does the reverse, with your topics as its folders. Read and starred states don't
+you already follow are skipped), each folder of your old reader as a tag, and the app downloads
+their articles. **Export OPML** does the reverse, with your tags as its folders. Read and starred states don't
 come along.
 
 Under Import OPML, **From Feedly**, **From Inoreader** and **From Substack** open numbered steps
@@ -49,60 +49,60 @@ Under Import OPML, **From Feedly**, **From Inoreader** and **From Substack** ope
   Substack link (`substack.com/@name/…`, `open.substack.com/pub/name/…`, `name.substack.com/p/…`)
   for its publication, `name.substack.com`.
 
-## Topics
+## Tags
 
-A **topic** groups what belongs together, such as *News*, *Tech* or *Recipes*: your feeds and what
-you save, at once. A feed is in one topic (or none); a saved article can have several. Every topic
-has a name and an icon, and its place in your order. The same topics are on your phone and in the
+A **tag** groups what belongs together, such as *News*, *Tech* or *Recipes*: your feeds and what
+you save, at once. A feed is in one tag (or none); a saved article can have several. Every tag
+has a name and an icon, and its place in your order. The same tags are on your phone and in the
 web app.
 
-**Managing them: Manage topics** (the large button at the top of Settings, or **Edit topics** in a
-sheet; on the web the same). A sheet with your topics as a list, in your order, each with its icon
+**Managing them: Manage tags** (the large button at the top of Settings, or **Edit tags** in a
+sheet; on the web the same). A sheet with your tags as a list, in your order, each with its icon
 and a grip (⋮⋮) at the end. Drag a row by its grip to reorder: this order is the one everything uses
 (the chips and the sheets). Tap a row to rename it, change its icon or remove it (its feeds and
-saved articles stay, without it); giving it another topic's name merges the two. **New topic**
+saved articles stay, without it); giving it another tag's name merges the two. **New tag**
 makes one: a name and an icon from the whole Material Symbols set (type in English, such as
 *news*, *car* or *food*). Changes are kept at once: **Done** closes it.
 
 **Managing feeds: Manage feeds** (the other large button at the top of Settings). A sheet with your feeds as a list, each with its site icon
-and a grip (⋮⋮) at the end, under a heading per topic (in your order, then **No topic**; every
-topic, an empty one too, with "Drag a feed here"); a feed that can't be downloaded has its name in
-red. Drag a row by its grip up or down to reorder the feeds of a topic, or past another topic's
+and a grip (⋮⋮) at the end, under a heading per tag (in your order, then **No tag**; every
+tag, an empty one too, with "Drag a feed here"); a feed that can't be downloaded has its name in
+red. Drag a row by its grip up or down to reorder the feeds of a tag, or past another tag's
 heading to move it there. Tap one for the **Edit feed** sheet: its
-name (empty brings back the feed's own), its address, why it fails if it does, its topic as chips,
+name (empty brings back the feed's own), its address, why it fails if it does, its tag as chips,
 **Remove** (it asks first, in the sheet) and **Save**. **Add feed** at the end adds one without a
-topic, in the same sheet; afterwards you are back in Manage feeds. A sheet opened from within a sheet
+tag, in the same sheet; afterwards you are back in Manage feeds. A sheet opened from within a sheet
 always opens in it like this, with a back arrow at the top left, never as a second sheet on top. OPML import and export are in Settings › **Integrations**.
 
-**Feeds:** the chips under the search bar list the topics that have feeds, in your order, then
-the feeds without a topic, each as a chip with its site icon. Pick a topic and the row shows only
-that topic, followed by its feeds: tap one to read only that feed, tap it again for the whole topic,
-and tap the topic to see all your topics again. With only one chip to show (say, all your unread
-articles are in one feed), there is no chip row: it would show the same list. A single topic whose
+**Feeds:** the chips under the search bar list the tags that have feeds, in your order, then
+the feeds without a tag, each as a chip with its site icon. Pick a tag and the row shows only
+that tag, followed by its feeds: tap one to read only that feed, tap it again for the whole tag,
+and tap the tag to see all your tags again. With only one chip to show (say, all your unread
+articles are in one feed), there is no chip row: it would show the same list. A single tag whose
 unread articles are in two or more feeds keeps its chip, so you can still get to one of those feeds. The web app does the same (with a wide window, the
-sidebar lists them). A feed added while a topic
-is open goes into that topic. Long-pressing Content's icon on the home screen offers your first four
-topics: tap one to open the app on it (#251).
+sidebar lists them). A feed added while a tag
+is open goes into that tag. Long-pressing Content's icon on the home screen offers your first four
+tags: tap one to open the app on it (#251).
 
-**Sheets:** every sheet (Add, save, Organise, Add feed, Edit feed, a topic, a highlight, Report a
-problem) has **Cancel** at the bottom left and its main button at the bottom right (Manage feeds and Manage topics: **Done** at the bottom right). The save sheet is called
+**Sheets:** every sheet (Add, save, Organise, Add feed, Edit feed, a tag, a highlight, Report a
+problem) has **Cancel** at the bottom left and its main button at the bottom right (Manage feeds and Manage tags: **Done** at the bottom right). The save sheet is called
 **Save** while saving and **Organise** for an article saved before. On the web, **+** in the
 search bar asks the same as on the phone, and Settings has the same two buttons and pages. A tall sheet stops
 just below the status bar. With the keyboard open, Back, a swipe down or a tap beside the sheet
 closes the keyboard first; the sheet stays until you do it again.
 
-**Saved:** an article you save from a feed gets the feed's topic by itself (Save, the long press, the
-save sheet). In the save and Organise sheets you turn topics on or off, every topic in your order,
-and **Edit topics** shows Manage topics in the same sheet, with a back arrow. **Editing topics:** in Manage topics (phone and web) every topic has a grip and a pen
-on every topic: drag a chip to reorder your topics (on the web also ← → on a focused chip), tap one
-to rename it, change its icon or remove it (the sheet asks first); renaming it to another topic's
-name joins the two. **Done** ends it. A topic you renamed or removed is renamed or removed in the
-sheet too. Every chip row shows the topics with their icons, in Feeds and Saved alike. A topic that comes in from Instapaper (where it is a tag) or another device is added
-at the end of your topics.
+**Saved:** an article you save from a feed gets the feed's tag by itself (Save, the long press, the
+save sheet). In the save and Organise sheets you turn tags on or off, every tag in your order,
+and **Edit tags** shows Manage tags in the same sheet, with a back arrow. **Editing tags:** in Manage tags every tag is a row with a grip at the end (on the web a chip
+with a grip and a pen): drag it to reorder your tags (on the web also ← → on a focused chip), tap one
+to rename it, change its icon or remove it (the sheet asks first); renaming it to another tag's
+name joins the two. **Done** ends it. A tag you renamed or removed is renamed or removed in the
+sheet too. Every chip row shows the tags with their icons, in Feeds and Saved alike. A tag that comes in from Instapaper (where it is a tag) or another device is added
+at the end of your tags.
 
 ## Sync between devices
 
-Sign in on every phone and in the web app, and your feeds, topics, read articles and settings stay the same on all
+Sign in on every phone and in the web app, and your feeds, tags, read articles and settings stay the same on all
 of them. Reader keeps them in your Reader account on its own server, encrypted. A phone signing in
 for the first time combines its feeds with the account's and takes the settings you already have.
 
@@ -140,8 +140,8 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   top of the **sidebar** in a wide one.
 - **On the web, in a wide window**, the sidebar has the same levels as the phone, laid out for a
   large screen: at the top the places (Feeds, Saved, Inbox, with their counts), under them the
-  switch **Unread / All** (Feeds) or **To read / All** (Saved), then what the phone's chips do for the place shown (Feeds: All feeds, the topics, a topic's feeds under it while
-  you're in it, the feeds without a topic; Saved: everything, Liked and the topics), and Settings at
+  switch **Unread / All** (Feeds) or **To read / All** (Saved), then what the phone's chips do for the place shown (Feeds: All feeds, the tags, a tag's feeds under it while
+  you're in it, the feeds without a tag; Saved: everything, Liked and the tags), and Settings at
   the bottom. The chip row is left out there. A phone-sized window has the bar at the bottom and the
   switch and the chips above the list (the chips scroll sideways with a finger, a mouse wheel, or by
   dragging them with the mouse), and Settings in the search bar.
@@ -150,12 +150,12 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
 - Under the search bar, **a switch** says **what you see**: in Feeds **Unread** or **All** (every
   article, read ones too), in Saved **To read** or **All** (everything saved, archived articles
   too). It looks like To read / Archive in the save sheet; tap the other half to change. Under the
-  switch, one row of chips: your **topics** and then the feeds without a topic
-  (Feeds), or **Liked** and your **topics** (Saved), in your order: tap one to show only that, tap
-  it again to show everything again (only one is picked at a time, so there is no X). With a topic
-  picked in Feeds, the same row shows that topic and its feeds instead (the web too). Switching keeps the topic you picked. A
-  topic (or Liked) with nothing in the view shown has no chip: in Unread, only topics with unread
-  articles; in All, every topic with articles. Feeds' feed chips do the same: a feed with nothing
+  switch, one row of chips: your **tags** and then the feeds without a tag
+  (Feeds), or **Liked** and your **tags** (Saved), in your order: tap one to show only that, tap
+  it again to show everything again (only one is picked at a time, so there is no X). With a tag
+  picked in Feeds, the same row shows that tag and its feeds instead (the web too). Switching keeps the tag you picked. A
+  tag (or Liked) with nothing in the view shown has no chip: in Unread, only tags with unread
+  articles; in All, every tag with articles. Feeds' feed chips do the same: a feed with nothing
   unread has no chip in Unread. The one you picked stays.
 - **There is no ☰ menu in the Android app.** Feeds, Saved and the Inbox are the bar at the
   bottom; everything inside them is the switch or a chip. The round **+** button at the bottom right adds, the same in
@@ -165,13 +165,13 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   shows the sidebar at the left all the time (☰ in a narrow one), with the same places.
 - **Search** (tap the search bar; on the web also the **/** key) searches everything: the articles of all your feeds that are on the device (titles,
   text, feed names and authors) and Saved, archived articles too (titles, websites, descriptions,
-  topics, notes and highlights). Every word you type must appear; capitals and accents
+  tags, notes and highlights). Every word you type must appear; capitals and accents
   don't matter ("cafe" finds "Café"). The results are one list, best match first: the whole search
   in the title, then more of its words in the title, then the newest. Each result says **Feed** or
   **Saved** when both kinds are shown. One row of chips above the results: **Feeds**, **Saved**, then
-  your **topics**. **Feeds** opens a menu: **All feeds**, or tick one or more feeds (with a topic
-  picked, only that topic's feeds are listed), and **Clear** to show both kinds again. **Saved**
-  shows only Saved; tap it again for both. A **topic** narrows both kinds: feeds with that topic and
+  your **tags**. **Feeds** opens a menu: **All feeds**, or tick one or more feeds (with a tag
+  picked, only that tag's feeds are listed), and **Clear** to show both kinds again. **Saved**
+  shows only Saved; tap it again for both. A **tag** narrows both kinds: feeds with that tag and
   saved articles with it. With nothing typed,
   Search lists everything those chips let through, newest first: with no filter that is all your
   feed articles and all of Saved (archive included).
@@ -183,7 +183,7 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
 - **What stays in the Unread list.** An article you read (opened, also from Search,
   marked with its button or scrolled past) stays in the list, dimmed, so nothing disappears under
   your finger. The list starts afresh only when
-  you pick another feed or topic, switch between Unread and All, or refresh yourself. Going to Saved and back, or tapping the
+  you pick another feed or tag, switch between Unread and All, or refresh yourself. Going to Saved and back, or tapping the
   same feed again, keeps it as it was; a refresh the app does by itself does too.
 - Scrolling down slides the search bar, the switch and the chips out of the way, so you see
   more articles; scroll up a little and they come straight back.
@@ -196,10 +196,10 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
 - **Pull down** to download new articles; with nothing (unread) to show, the **Refresh** button
   does the same (#251). The app also does this once every time it starts. All feeds are downloaded
   first and then added at once, each article in its place by date.
-- **Back** goes up a level: from one feed to its topic, from a topic to All, from Saved or the Inbox to Feeds;
+- **Back** goes up a level: from one feed to its tag, from a tag to All, from Saved or the Inbox to Feeds;
   back on All closes the app.
 - The **✓✓ Mark all as read** button under the last article marks everything in the section you are in as
-  read: all feeds on All, the topic's feeds in a topic, or the one feed you opened, also the
+  read: all feeds on All, the tag's feeds in a tag, or the one feed you opened, also the
   ones you haven't scrolled to. You're done with it, so the Unread list empties (All caught up).
   A message says how many; **Undo** brings them back.
 - **Settings › Article list › View** chooses how big articles are in the list: **Small** (title
@@ -211,7 +211,7 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   you can scroll back to them.
 - **Hide articles with words** (in **Settings › Article list**, Android only): type words or
   phrases, separated by commas or new lines. Feed articles with one of them in their title are left
-  out of the article lists, the unread counts and the topic chips. A word counts only as a whole
+  out of the article lists, the unread counts and the tag chips. A word counts only as a whole
   word, and capitals don't matter: "AI" hides "New AI rules", not "He said so". Only the title is
   checked, and search still finds hidden articles. Empty the field to show everything again. The
   words are the same on your other Android devices (synced as `android.hiddenWords`).
@@ -236,8 +236,8 @@ chose). It slides out of the way while you read down, and comes back when you sc
 at the top and at the end of the article. Before it is saved it has **Save** on the left: it
 saves the article to **To read** (by default), or sends it to the app you chose (see below). Once
 saved, Save makes way for **its list** (To read or Archive): tap it for **Organise**, the sheet
-with the list, Like, the topics and the note (#251: on a phone there was no room for the list and
-the topics side by side). Until it is archived, an **Archive** button (a box) sits next to its list:
+with the list, Like, the tags and the note (#251: on a phone there was no room for the list and
+the tags side by side). Until it is archived, an **Archive** button (a box) sits next to its list:
 one tap archives it; the article stays open and says **Archived** with **Undo**. Next to Share, a quote mark with a count opens the article's highlights and
 notes. The text ends with **Read on website**. Reader remembers how far you read and opens the
 article there again.
@@ -260,18 +260,18 @@ come into Content (when the article opens, or at the next sync). Free Instapaper
 five new ones a month: the others stay in Content, say "Not in Instapaper yet" in the list of
 highlights, and are tried again the next day.
 
-After **Save**, **Organise** opens (#304; it was "Save and share", #256): the **Topics** with **Like** in front (every topic, in your
-order, tap to turn one on or off; **Edit topics** opens Manage topics over the sheet) and a **Note**. It
+After **Save**, **Organise** opens (#304; it was "Save and share", #256): the **Tags** with **Like** in front (every tag, in your
+order, tap to turn one on or off; **Edit tags** opens Manage tags over the sheet) and a **Note**. It
 doesn't send: to send an article to people with Content, use **Share** (or the share menu's **Send
-with Content**). Above the topics, **To read** or **Archive** says where the article goes (To read
+with Content**). Above the tags, **To read** or **Archive** says where the article goes (To read
 to start with when saving; Archive for something you've read already and only want to keep); the
-**Save** button shows the same icon. Save keeps what you chose, also a topic you typed but didn't
+**Save** button shows the same icon. Save keeps what you chose, also a tag you typed but didn't
 add yet, and a message says where it went ("Saved to Archive"), with **Undo** when you saved from
 the article. **Cancel** (at the bottom left, or closing the sheet) saves nothing: right after Save
 in the reader, it takes the save back, as if you never saved it.
 For an article saved before there is no big sheet: its toolbar in the reader has each action as a
 button (see Saved), and pressing and holding it in Saved (web: right-click) offers **Archive** (or
-**Back to read** in the Archive), **Topics** (the topic chips only) and **Share**. **Remove from
+**Back to read** in the Archive), **Tags** (the tag chips only) and **Share**. **Remove from
 Saved** is in the reader's **⋮**; it asks first, in a popup. When it
 closes, a message says where the article went; after a long press, **Add link** or a link shared from
 another app it also has **Open**, which goes to the article in Saved.
@@ -329,7 +329,7 @@ Connecting Instapaper changes nothing here: what is in Saved is also kept in the
 **From other apps** (#235, #256). Content has three targets in other apps' share menus, each opening
 over the app you were in:
 
-- **Save**: the Organise sheet (list, topics, note). It only saves; to send, pick the next one.
+- **Save**: the Organise sheet (list, tags, note). It only saves; to send, pick the next one.
 - **Send with Content**: only the people to send it to; nothing lands in Saved. Signed out, it asks
   you to sign in to your Content account first.
 - **Add feed**: Add feed with the shared link filled in; tap **Add**.
@@ -355,7 +355,7 @@ off.
 **Saving from other apps.** In Chrome or any app that shares links, tap Share and pick
 **Reader**. Only the **Save to Reader** sheet opens, over the app you were in (the rest of Reader
 stays closed): the site, then the **List** (To read, or **Archive** for a link you keep
-for reference), the **Topics** with **Like** in front, and a **Note**. **Save** saves
+for reference), the **Tags** with **Like** in front, and a **Note**. **Save** saves
 it and says where it went, and you are back in that app; **Cancel** saves nothing. **Add link** in
 Saved opens the same sheet with a field for the address. A
 link shared without a title gets the page's own title, description and picture. Shared text without
@@ -363,8 +363,8 @@ a web link says "No link to save".
 
 ## Settings
 
-At the top of Settings, two large buttons: **Manage feeds** and **Manage topics** (see Topics); they
-open as sheets, so the sheets that edit topics can open Manage topics too. Under them a short list
+At the top of Settings, two large buttons: **Manage feeds** and **Manage tags** (see Tags); they
+open as sheets, so the sheets that edit tags can open Manage tags too. Under them a short list
 of pages, each with its icon and what it holds; tap one to open it, and the back arrow returns to
 the list. The app's version is at the bottom. The web app's Settings is the same, in one dialog.
 
@@ -394,7 +394,7 @@ The app follows the phone's language. To choose another one for this app only: A
 ## Saved
 
 **Saved** (#119) holds everything you save, in one place: articles to read and the archive, each
-with its topics. It is Reader's own: it works without an account, is kept on the device
+with its tags. It is Reader's own: it works without an account, is kept on the device
 (and in its backup), and syncs between your devices through your Reader account. Signed in to
 Instapaper, it is also kept in your Instapaper account (see Instapaper account).
 
@@ -402,7 +402,7 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   web app, and that place syncs between your devices and with Instapaper (both ways), so you can
   start on one and go on on another. An article you barely began or finished opens at the top.
 - **Each article is on one list:** **To read** (where everything new arrives) or the **Archive**,
-  with any number of topics.
+  with any number of tags.
 - **Getting articles in:** **Save** in an article; press and hold a feed article › **Save** (the save sheet opens, then the message offers **Open**); the round **+** button ›
   **Save article** (the save sheet, which asks for the address); and sharing a link to Reader from another app. These go to To read unless you tap
   **Archive** in the save sheet. A feed article you save stays the same article: its feed, text and
@@ -413,26 +413,26 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   back.
 - **The switch** under the search bar (in the web app's sidebar on a wide window): **To read** or
   **All** (everything saved, archived articles too; it replaced the Archive). Under it **the chips**: **Liked** (set apart by its heart)
-  and your topics, in your order, one at a time.
+  and your tags, in your order, one at a time.
 - **To read looks like your feeds**: the same rows, in the view you chose for the
   feed list (Small, Medium, Large), with how many articles and about how long they take at the top.
   **The Archive looks like a page of notes**: cards in two columns, each with its picture, the title,
   a few lines of your first highlight (quoted) or else the article's description, a glimpse of your
-  note in small letters, its topics as small chips, then the site, a marker icon with how many
+  note in small letters, its tags as small chips, then the site, a marker icon with how many
   highlights it has, and a heart when liked.
 - In the reader, the floating toolbar at the bottom has a button for each thing you can do with a
-  saved article (press and hold one to see its name): **Archive** (or **To read** once archived), **Topics**
-  (the topic chips), **Note** (your note; the icon gets a pen once you've written one) and **Like**
+  saved article (press and hold one to see its name): **Archive** (or **To read** once archived), **Tags**
+  (the tag chips), **Note** (your note; the icon gets a pen once you've written one) and **Like**
   (the heart), then the highlights; **Share** is the round button next to it. **Remove from Saved**
-  is in **⋮**; it asks first and takes the note, topics and highlights with it (Archive keeps it
+  is in **⋮**; it asks first and takes the note, tags and highlights with it (Archive keeps it
   searchable instead).
-- **Manage topics** (Settings, or Edit topics in a sheet): your topics as a list: drag by the grip to reorder,
+- **Manage tags** (Settings, or Edit tags in a sheet): your tags as a list: drag by the grip to reorder,
   tap to rename, change the icon or remove one (a name already taken merges the two).
 - **In the web app** Saved is the same: the same tabs, chips and cards, and **+** › **Save article**
   in the search bar. In an article the top bar is the reading (the full
   article, Aa, ⋮) and the bar under it the library, with Share at its right end: **Save** before it is saved (it opens the same sheet), then
   the same two menus as on the phone: **its list** (To read or Archive) and **its
-  topics** (Like, your topics). Archiving goes back to the list with **Undo**. Keys: **j**/**k** next
+  tags** (Like, your tags). Archiving goes back to the list with **Undo**. Keys: **j**/**k** next
   and previous, **m** read or unread, **o** open on the website, **r** refresh, **/** search, and
   **Esc** closes a menu, then the article.
 - **Settings › Integrations › Instapaper**: the service Saved is also kept in. Everything in Saved syncs. Feeds are
@@ -447,10 +447,10 @@ between devices). There are no options (#251):
 
 - **Import, once, or not:** right after connecting, Content asks **Import from Instapaper?**
   **Import** brings in everything Instapaper has now, each article where it belongs: archived in
-  the Archive, liked, with its tags as topics. **Don't import** leaves what is there until it changes. Closed without an answer, the Instapaper section
+  the Archive, liked, with its tags. **Don't import** leaves what is there until it changes. Closed without an answer, the Instapaper section
   asks the same with two buttons.
 - **Everything syncs:** everything in Saved, highlights included. What you add, archive, like or
-  tag there (a tag is a topic), and how far you read, goes both ways, while the app is open (when it opens, a moment
+  tag there, and how far you read, goes both ways, while the app is open (when it opens, a moment
   after a change, and when you pull down on Saved). Articles in Instapaper's folders arrive in To read.
 - Instapaper's home list is **To read** and its archive is the **Archive**.
 - **Forwarded emails** (and PDFs you uploaded to Instapaper) come into Saved too, titled by their

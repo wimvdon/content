@@ -2,6 +2,15 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-01: Topics are called tags everywhere
+
+What the app called topics (groups for feeds, and labels on saved articles) is now called **tags**
+in every text, on the phone and the web, in all six languages (Dutch, French, German and Italian
+"tag", Spanish "etiqueta"), and in the docs. Owner's choice: "tag" is the word
+people know for a label, and it is what Instapaper calls them. Only the wording changes: the code
+keeps its names (`Folder`, `Topics.kt`, `topicNames`) and the sync file is untouched. Earlier entries
+in this log keep the word they used at the time.
+
 ## 2026-11-01: Manage feeds and Manage topics are reorderable lists, not chips
 
 Dragging feeds as chips worked badly: the chips wrap over lines, so every move reflows the others

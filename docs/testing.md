@@ -64,10 +64,10 @@ when the run fails.
 | `SiteIconTest` | Choosing a site's icon: largest size, apple-touch-icon, relative and http addresses, skipping SVG and inline icons, home page and favicon.ico fallback |
 | `IconCatalogTest` | Reading the icon file, search order (name, words, categories, related words), suggestions, old icon names, and that the bundled file has every suggested and migrated icon |
 | `ArticleDaysTest` | Grouping the list by local day, time zones |
-| `MixedSearchTest` | Search's ranking: the whole query in a title above single words above text-only matches, feed and reading list results in one list (then newest), the All/Feeds/Reading list chips; `SearchResultsTest`: the Search tab without words (everything, newest first) and its one chip row (the Feeds menu with several feeds, Saved, a topic for both kinds, the topic chips and the menu's feeds for a topic); `ItemSearchTest`: the reading list searched by title, website, description, tags, note and highlights, title matches first; the web app's `test/search.test.ts` checks the ranking too |
-| `SavedTest` | Saved (#119): each item in one place (To read, a folder, Archive) and All with them all, newest first; Liked and tags (all of them); chips in the topics' order (alphabetical without topics); folders and counts, a filter without a folder or tags that are gone; filing and archiving (out of the folder); renaming (joining) and removing folders; the folder through sync and its merge |
-| `TopicsTest` | Topics: every tag gets its topic once (the same id on every device), topics with one name joined with their feeds, no second topic with a taken name, renaming on feeds and saved articles (to another one's name joins the two), removing keeps feeds and articles, counts and the topics' order, a saved feed article gets its feed's topic; Feeds' places and Back going up a level; reordering topics and one topic's feeds; merging; the topic being viewed (Edit topic). The web app's `test/topics.test.ts` checks the same library the same way. |
-| `FeedChipsTest` | Feeds' chip rows without ☰: the topics then the feeds without a topic, a chosen topic's feeds, one row (only the chosen topic, then its feeds, no loose ones), no row with a single chip unless something is chosen or it is a topic with two or more feeds, a feed keeping its topic lit (or lit itself in the first row when it has none), the chosen topic staying a chip, a tagged feed counting as in its topic |
+| `MixedSearchTest` | Search's ranking: the whole query in a title above single words above text-only matches, feed and reading list results in one list (then newest), the All/Feeds/Reading list chips; `SearchResultsTest`: the Search tab without words (everything, newest first) and its one chip row (the Feeds menu with several feeds, Saved, a tag for both kinds, the tag chips and the menu's feeds for a tag); `ItemSearchTest`: the reading list searched by title, website, description, tags, note and highlights, title matches first; the web app's `test/search.test.ts` checks the ranking too |
+| `SavedTest` | Saved (#119): each item in one place (To read, a folder, Archive) and All with them all, newest first; Liked and tags (all of them); chips in the tags' order (alphabetical without tags); folders and counts, a filter without a folder or tags that are gone; filing and archiving (out of the folder); renaming (joining) and removing folders; the folder through sync and its merge |
+| `TopicsTest` | Tags: every tag gets its tag once (the same id on every device), tags with one name joined with their feeds, no second tag with a taken name, renaming on feeds and saved articles (to another one's name joins the two), removing keeps feeds and articles, counts and the tags' order, a saved feed article gets its feed's tag; Feeds' places and Back going up a level; reordering tags and one tag's feeds; merging; the tag being viewed (Edit tag). The web app's `test/topics.test.ts` checks the same library the same way. |
+| `FeedChipsTest` | Feeds' chip rows without ☰: the tags then the feeds without a tag, a chosen tag's feeds, one row (only the chosen tag, then its feeds, no loose ones), no row with a single chip unless something is chosen or it is a tag with two or more feeds, a feed keeping its tag lit (or lit itself in the first row when it has none), the chosen tag staying a chip, a tagged feed counting as in its tag |
 | `ReadingListsTest` | Reading times and minutes left, an item shown like its feed article (or with its description), its source (feed or website with favicon) |
 | `ServiceSyncTest` | An article the service has twice, with and without tracking parameters, becomes one here and there, rows from before move to the new key (#253); Saved and a fake service (#145): connecting imports the whole account, or nothing when the user says so (#251: what is there stays until it changes, Saved still goes there), folders in and out (filing, archiving leaves the folder), adding, archiving, liking and tagging sent once, what came in not sent back, removing sent (a bookmark stays), changes on both sides to other fields both kept, the same field: the later change wins (Reader's without a time from the service), deleted at the service leaves Saved unless changed here or another service keeps it in step, removed here but changed there stays, a link the service has joins it, a failure keeps everything and the rest goes next time, progress, notes; a save reaches every service whose scope covers its folder, a scope losing a folder archives its articles there (never deletes) and gaining it brings them back, an import lands each article in its place and leaves the rest there until it changes, another device's import, folder origins kept, entries stored and read back (rows from before #145 in step), a new article sent with Content's text to a service that takes it only when saved in the last week, and added without it when there is none (#247); the web app's `test/serviceSync.test.ts` covers the same rules |
 | `InstapaperReadingListTest` | Instapaper as the reading list's service, with recorded answers: `since` page by page with deletions and folders, filing into a folder made there when missing, the first sync asks for everything, adding with tags and archive, adding with Content's text and with the link alone when Instapaper refuses the text (#247), only changes sent (taking the folder's tag off moves it home), problems mapped; a forwarded email (no address) comes in with Instapaper's page as its address, a cursor from before reads everything once, odd addresses stay out. `InstapaperLinksTest` (and the web's `instapaperLinks.test.ts`): that address and back; `InstapaperTextTest`: an email's text through the feed loader, none when credits are used up; `ServiceSyncTest`: such an email is never saved to Instapaper as a link. The Worker's `instapaper.test.ts` checks `/instapaper/text` (the key and token sent, Android without `Origin`, limits passed on) |
@@ -75,7 +75,7 @@ when the run fails.
 | `ArticleFilterTest` | Hide articles with words (#277): words split on commas, semicolons and new lines, whole words and phrases only, case ignored, accented letters as letters, hidden articles out of the list and the unread counts |
 | `ArticleSearchTest` | Search: every word, case and accents ignored, title, text, feed name and author, title matches first, removed feeds left out |
 | `FeedArrangementTest` | Manage page order: rows per folder, dragging feeds between folders and out of them, forbidden moves, reordering folders |
-| `SectionOrderTest` | Manage feeds' list in sections: headings and rows flattened, a row passing headings, nothing above the first heading, a drop moving a feed into another topic (or reordering its own) |
+| `SectionOrderTest` | Manage feeds' list in sections: headings and rows flattened, a row passing headings, nothing above the first heading, a drop moving a feed into another tag (or reordering its own) |
 | `SettingsTest` | Text size limits, reader and theme darkness (and Auto dark), Save/Share targets (storage and the old Save setting), defaults |
 | `ListEndTest` | Mark all as read under the last article: only in Unread, only while something in it is unread |
 
@@ -152,20 +152,20 @@ and then (always before a release):
       read button and messages sit above the bar. Signed out, there is no Inbox.
 - [ ] **Navigation:** there is no ☰. The search bar ends with Settings (your picture signed in,
       else a cogwheel). Feeds has the tabs Unread and Read (Read: only articles already read; no
-      Mark all read button there), Saved To read and All. Under them the chips: in Feeds the topics,
-      then the feeds without a topic, with no X (tap a chosen chip again for everything); picking a
-      topic leaves only that topic in the row, followed by its feeds (one row, never two); tapping one
-      shows that feed alone, tapping the topic brings every topic back. With unread articles in only one
+      Mark all read button there), Saved To read and All. Under them the chips: in Feeds the tags,
+      then the feeds without a tag, with no X (tap a chosen chip again for everything); picking a
+      tag leaves only that tag in the row, followed by its feeds (one row, never two); tapping one
+      shows that feed alone, tapping the tag brings every tag back. With unread articles in only one
       feed, Unread shows no chip row at all; pick All and it comes back. With unread articles in one
-      topic but two of its feeds, that topic's chip shows, and tapping it shows the two feeds.
+      tag but two of its feeds, that tag's chip shows, and tapping it shows the two feeds.
       Web app (narrow window): the same. The round **+**
       button at the bottom right (Feeds, Saved and the Inbox alike; no + in the search bar) opens Add: Subscribe to feed opens Add feed, Save
       article the save sheet asking for the address. In a
-      topic, a feed, Saved or the Inbox, Back goes up a level; on All, Back closes the app.
+      tag, a feed, Saved or the Inbox, Back goes up a level; on All, Back closes the app.
 - [ ] **Archive from the reader:** a saved article in To read has an Archive button next to its
       list at the bottom; tapping it closes the article, shows Archived with Undo, and Undo puts it
       back. An archived article has no Archive button.
-- [ ] **Saved:** tabs To read and All (archived articles too); the Liked chip and topic chips
+- [ ] **Saved:** tabs To read and All (archived articles too); the Liked chip and tag chips
       filter it. To read and All look like the feed list (Settings › View applies); a folder shows notes in two
       columns (picture, title, note or description, site, tags). Add link asks for an address and a
       folder. In the reader (#139): the top bar has the full-article button (lit while the full article
@@ -174,7 +174,7 @@ and then (always before a release):
       icons in the same colour), and Share at the right end; the text ends with Read on website; ⋮
       has Open in browser, Mark as unread and Remove from Saved (asks first, everywhere), no Tags. Web app: the same.
       Nothing says "Finished reading", in any language.
-      Leave an article halfway and open it again: it opens where you were. Manage topics
+      Leave an article halfway and open it again: it opens where you were. Manage tags
       renames and removes folders (their articles go to the Archive, not back to To read) and tags. An app updated from a
       version with Bookmarks shows them in folders (their collection, or "Bookmarks").
       The Undo message after Mark all as read shows above the folder bar.
@@ -194,43 +194,43 @@ and then (always before a release):
 - [ ] Two devices: let a read article drop out of a busy feed (or remove the feed) on one; on the
       other it stays read. Add the feed again: its read articles come back read.
 - [ ] Import and export OPML (for example an Inoreader export); folders come along both ways.
-- [ ] **+ in the search bar (#307):** in Feeds it opens the Add feed sheet (address, Topic chips
-      starting on the topic shown, Cancel and Add); in Saved the save sheet asking for an address;
+- [ ] **+ in the search bar (#307):** in Feeds it opens the Add feed sheet (address, Tag chips
+      starting on the tag shown, Cancel and Add); in Saved the save sheet asking for an address;
       not in the Inbox. Saved has no round button any more.
 - [ ] **Sheets alike:** Save on a feed article: the sheet is headed **Save**, **To read** / **Archive**
-      above the topics (To read picked), Cancel at the bottom left and **Save** at the bottom right
+      above the tags (To read picked), Cancel at the bottom left and **Save** at the bottom right
       with the icon of the choice. Organise on a saved article: headed **Organise**, the same choice
-      showing where it is. Add feed, New topic, a highlight and Report a problem: Cancel at the
-      bottom left. Manage feeds and Manage topics: Done at the bottom right. Edit topics is a text
+      showing where it is. Add feed, New tag, a highlight and Report a problem: Cancel at the
+      bottom left. Manage feeds and Manage tags: Done at the bottom right. Edit tags is a text
       button, not a chip. Web: the same.
-- [ ] **Topic chips (#314):** Feeds' and Saved's chip rows show each topic's icon. In the Add feed
-      and Organise sheets the topics have their icons too, then **Edit topics**. New
-      topic: name and icon, Save: the new topic is chosen. Edit: each chip gets a grip and a pen and
+- [ ] **Tag chips (#314):** Feeds' and Saved's chip rows show each tag's icon. In the Add feed
+      and Organise sheets the tags have their icons too, then **Edit tags**. New
+      tag: name and icon, Save: the new tag is chosen. Edit: each chip gets a grip and a pen and
       Edit says **Done**; drag a chip by its grip onto another place: the order changes there and in
-      the chip rows. Tap a chip: rename it (to another topic's name: they join), change its icon, or
+      the chip rows. Tap a chip: rename it (to another tag's name: they join), change its icon, or
       Remove (the trash can at the top right; it asks in a popup). Web app: the same, dragging with the mouse or ← → on a chip.
-- [ ] **Settings** starts with two large buttons, Manage feeds and Manage topics (how many under
+- [ ] **Settings** starts with two large buttons, Manage feeds and Manage tags (how many under
       each), then Account, Integrations, Theme, Article list and Article view; each page opens and back
-      returns to the list. **Manage feeds** (a sheet): the feeds as rows under a heading per topic (a
+      returns to the list. **Manage feeds** (a sheet): the feeds as rows under a heading per tag (a
       failing one in red), each with a grip at the end; drag one by its grip up or down within its
-      topic, and past another heading into that topic (or No topic, or an empty topic, "Drag a feed
+      tag, and past another heading into that tag (or No tag, or an empty tag, "Drag a feed
       here"): the rows move smoothly one place at a time, the dragged one lifted with a shadow; it
-      stays there after closing and reopening the sheet, and the sheet doesn't scroll while dragging; tap one: the Edit feed sheet (rename, another topic,
-      the trash can at the top right asks Remove feed? in a popup), shown in the same sheet with a back arrow; Add feed the same. **Manage topics** (a sheet): the topics as
-      rows with a grip at the end; drag to reorder, tap to rename, change the icon or remove; New topic.
+      stays there after closing and reopening the sheet, and the sheet doesn't scroll while dragging; tap one: the Edit feed sheet (rename, another tag,
+      the trash can at the top right asks Remove feed? in a popup), shown in the same sheet with a back arrow; Add feed the same. **Manage tags** (a sheet): the tags as
+      rows with a grip at the end; drag to reorder, tap to rename, change the icon or remove; New tag.
       **Integrations**: OPML import and export, then Instapaper. Web: the same in the Settings dialog.
-- [ ] **Edit topics:** in Add feed, Edit feed and Save/Organise, Edit topics after the chips opens
-      Manage topics in the same sheet, with a back arrow; rename a topic there, tap the arrow (or
+- [ ] **Edit tags:** in Add feed, Edit feed and Save/Organise, Edit tags after the chips opens
+      Manage tags in the same sheet, with a back arrow; rename a tag there, tap the arrow (or
       Back): back in the sheet, with what you typed, and the chip renamed. Never two sheets on top
       of each other. Web: the same in one dialog (Escape goes back a page); Settings › Manage feeds
-      and Manage topics are pages of the Settings dialog.
+      and Manage tags are pages of the Settings dialog.
 - [ ] **Header:** the tabs are secondary tabs (a thin line under the chosen one). Scroll the list
       down: the search bar, tabs and chips slide away; scroll up a little: they come back. Web: the
       same.
 - [ ] **Swipe between tabs:** swipe the Feeds list left: Read; right: Unread. The same in Saved (To
       read, All). Web on a phone: the same with a touch swipe.
 - [ ] **Search:** one chip row: Feeds (menu: All feeds, tick several feeds, Clear), Saved, then
-      the topics; a topic narrows feeds and Saved; with a topic picked the Feeds menu lists only its
+      the tags; a tag narrows feeds and Saved; with a tag picked the Feeds menu lists only its
       feeds.
 - [ ] **Dark mode** and **Settings › Theme**: switch Theme and Dynamic color. Text stays
       readable, status bar icons stay visible (also on sepia and dark reader pages).
@@ -257,7 +257,7 @@ Or ask Claude Code to do it: give it the stack trace and the version.
 Sign-in needs the real Instapaper, the Worker's secret and a verified App Link, so it can't be tested
 in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
 
-- [ ] Settings › Manage topics › Instapaper › **Sign in with Instapaper** opens Instapaper; approving returns to the app
+- [ ] Settings › Manage tags › Instapaper › **Sign in with Instapaper** opens Instapaper; approving returns to the app
       with "Signed in to Instapaper", and Settings shows your user name.
 - [ ] Right after signing in, everything in the Instapaper account appears in Saved (archived ones
       under Archive, Instapaper's folders as folders), and what was in Saved appears in Instapaper.
@@ -324,16 +324,16 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
       Web app: select text with the mouse, pick Highlight or Note in the bar above it; click a
       marker to edit; a highlight made on the phone shows on the web after sync, and the other way.
 - [ ] In a saved article the floating toolbar has a tonal **Archive** (box and word), then icons
-      **Topics** (a tag), **Note** and **Like** (a heart), with **Share** as a round button next to it;
+      **Tags** (a tag), **Note** and **Like** (a heart), with **Share** as a round button next to it;
       press and hold an icon: its name shows. Tap **Archive**: the article stays open, "Archived" shows
       with **Undo**, and the button becomes a plain **To read** (open book). Tap it: back to To read,
-      and the tonal Archive returns. **Topics**: a sheet with only the topic chips; Save keeps
+      and the tonal Archive returns. **Tags**: a sheet with only the tag chips; Save keeps
       them. **Note**: a sheet with only the note, the keyboard open; once written the icon has a pen.
       **Like**: the heart fills, and the article is under Liked in Saved. Web app: the same.
 - [ ] **Add link** and a link shared from another app: the sheet asks for the address (or shows the
       link), **To read** / **Archive** (To read picked), **Cancel** at the bottom left saves nothing,
       and **Save** at the right. With Archive picked: "Saved to Archive"; else "Saved to To read".
-- [ ] Long press a card in Saved › **Topics**: the topic chips only; **Cancel** changes nothing.
+- [ ] Long press a card in Saved › **Tags**: the tag chips only; **Cancel** changes nothing.
 - [ ] **The reader's ⋮:** a feed article: Mark as unread, Show full article (or Show feed text),
       Open in browser, Sign in to this site, Report a problem, in that order; no page icon in the top
       bar. A saved article: these, then **Remove from Saved** (asks in a popup; once removed, the
@@ -345,7 +345,7 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
       **Open**, which lands on that article. Web app: the same icons, and Open after Add link.
 - [ ] Web app: **Save** on a feed article opens the save sheet; **Add link** in Saved too, with Cancel.
 - [ ] Nothing swipes (#305): not feed rows, the Inbox or Saved. Long press a card in Saved › To
-      read: **Archive** first (archived, with Undo), then Topics and Share. In Archive the first
+      read: **Archive** first (archived, with Undo), then Tags and Share. In Archive the first
       entry is **Back to read**. Web app: the same with right-click.
 
 ## Web app: Saved like Android's (#147)
