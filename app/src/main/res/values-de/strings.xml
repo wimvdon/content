@@ -146,6 +146,7 @@
     <string name="import_substack_step2">Tippe auf Teilen und wähle Content › Feed hinzufügen.</string>
     <string name="import_substack_step3">Tippe auf Hinzufügen. Mach dasselbe für jede Publikation.</string>
     <string name="action_save">Speichern</string>
+    <string name="action_save_to_archive">Im Archiv speichern</string>
     <string name="action_open">Öffnen</string>
     <string name="action_undo">Rückgängig</string>
     <string name="folders_explanation">Ordne Feeds Themen zu, um sie zusammen zu lesen. Was du speicherst, bekommt auch Themen.</string>
@@ -288,7 +289,6 @@
     <string name="services_problem_limit">Instapaper erlaubt diesen Monat keine weiteren Markierungen.</string>
     <string name="highlights_none">Wähle Text aus und tippe auf Markieren.</string>
     <string name="saved_title">Gespeichert</string>
-    <string name="folder_field">Liste</string>
     <string name="topic_field">Thema</string>
     <string name="saved_to">In %1$s gespeichert</string>
     <string name="saved_remove">Aus Gespeichert entfernen</string>

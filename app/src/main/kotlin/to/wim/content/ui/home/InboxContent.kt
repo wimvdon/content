@@ -1,6 +1,7 @@
 package to.wim.content.ui.home
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -38,8 +39,8 @@ class InboxHome(
 /**
  * The Inbox (#246), a place in the navigation bar like Feed and Saved: what other Content users
  * shared with you, newest first, like a feed's articles with who sent it in place of the feed.
- * Unread ones are bold with a dot; opening one reads it. A swipe saves it; a long press marks it read
- * or unread, saves, shares or removes it from the inbox.
+ * Unread ones are bold with a dot; opening one reads it. A long press marks it read or unread, saves,
+ * shares or removes it from the inbox (no swipes: #305).
  */
 @Composable
 fun InboxContent(
@@ -68,9 +69,9 @@ fun InboxContent(
         items(inbox.items, key = { it.key }) { item ->
             val by = item.sharedBy ?: return@items
             val article = remember(item, inbox.library) { ReadingLists.article(item, inbox.library).copy(read = by.read, publishedAt = by.at, fetchedAt = by.at) }
-            // Already in Saved: nothing to save, so no swipe and no Save in the menu.
-            val save = if (item.onReadingList) null else SwipeAction(R.drawable.ic_list, saveLabel) { inbox.onSave(item) }
-            SwipeRow(right = save, left = save, modifier = Modifier.animateItem()) {
+            // Already in Saved: nothing to save, so no Save in the menu.
+            val save = !item.onReadingList
+            Box(Modifier.animateItem()) {
                 ArticleRow(
                     article = article,
                     feed = null,
@@ -80,7 +81,7 @@ fun InboxContent(
                     menu =
                         listOfNotNull(
                             RowMenuAction(if (by.read) R.drawable.ic_mark_unread else R.drawable.ic_mark_read, if (by.read) unreadLabel else readLabel) { inbox.onToggleRead(item) },
-                            save?.let { RowMenuAction(R.drawable.ic_list, saveLabel) { inbox.onSave(item) } },
+                            RowMenuAction(R.drawable.ic_list, saveLabel) { inbox.onSave(item) }.takeIf { save },
                             RowMenuAction(R.drawable.ic_share, shareLabel) { inbox.onShare(item) },
                             RowMenuAction(R.drawable.ic_delete, removeLabel) { inbox.onRemove(item) },
                         ),

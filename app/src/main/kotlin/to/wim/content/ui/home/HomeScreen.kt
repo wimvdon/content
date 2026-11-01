@@ -6,21 +6,8 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.ExperimentalFoundationApi
 import android.text.format.DateUtils
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animate
-import androidx.compose.animation.core.spring
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.draggable
-import androidx.compose.foundation.gestures.rememberDraggableState
-import androidx.compose.foundation.layout.offset
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.unit.IntOffset
-import kotlin.math.abs
-import kotlin.math.roundToInt
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.customActions
@@ -83,7 +70,6 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -122,7 +108,6 @@ import to.wim.content.ui.theme.AppShapes
 import to.wim.content.ui.theme.EmptyState
 import to.wim.content.ui.theme.Motion
 import to.wim.content.ui.theme.SkeletonLine
-import kotlinx.coroutines.launch
 import to.wim.content.ui.theme.readableWidth
 
 /** What the article list shows. */
@@ -169,7 +154,7 @@ class HomeActions(
     val onOpenArticle: (Article) -> Unit,
     /** Long-press › Mark as read or unread (#221). */
     val onToggleRead: (Article) -> Unit,
-    /** Swiped either way, or long-press › Save: saved, to read later (#107, #221). */
+    /** Long-press › Save: saved, to read later (#107, #221). */
     val onReadLater: (Article) -> Unit = {},
     /** Long-press › Share (#221): a feed article, or a saved item. */
     val onShareArticle: (Article) -> Unit = {},
@@ -193,9 +178,9 @@ class HomeActions(
     val onOpenItem: (Item) -> Unit = {},
     /** The search bar's + in Saved (#307): the Save sheet, which asks for the address. */
     val onAddLink: () -> Unit = {},
-    /** Archives a saved item, or puts an archived one back to read (a swipe in Saved). */
+    /** Archives a saved item, or puts an archived one back to read (a card's menu in Saved). */
     val onArchiveItem: (Item) -> Unit = {},
-    /** Opens the sheet to file a saved item in a folder (a swipe in Saved). */
+    /** Opens Organise for a saved item (a card's menu in Saved). */
     val onFileItem: (Item) -> Unit = {},
     /** Long-press › Remove from Saved (#263), with Undo. */
     val onRemoveItem: (Item) -> Unit = {},
@@ -478,7 +463,8 @@ private fun ArticleList(
         days.forEach { (day, articles) ->
             stickyHeader(key = "day:$day") { DayHeader(day) }
             items(articles, key = { it.key }) { article ->
-                SwipeToSave(article, onSave = { actions.onReadLater(article) }, modifier = Modifier.animateItem()) {
+                // No swipes (#305): the long press holds every action.
+                Box(Modifier.animateItem()) {
                     ArticleRow(
                         article = article,
                         feed = if (showFeedName) feedsByUrl[article.feedUrl] else null,
@@ -531,22 +517,6 @@ private fun DayHeader(day: LocalDate) {
                 .padding(start = 4.dp, top = 12.dp, bottom = 4.dp)
                 .semantics { heading() },
     )
-}
-
-/**
- * Swiping a row right past [SWIPE_THRESHOLD] of its width marks it read, or unread when it was
- * read; swiping left puts it on the reading list, to read later (#107).
- */
-@Composable
-private fun SwipeToSave(
-    article: Article,
-    onSave: () -> Unit,
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit,
-) {
-    // Both ways save (#221); read or unread is in the long-press menu. Only a link can be saved.
-    val save = if (article.link != null) SwipeAction(R.drawable.ic_list, stringResource(R.string.action_save), onSave) else null
-    SwipeRow(right = save, left = save, modifier = modifier, content = content)
 }
 
 /** One entry of a row's long-press menu (#221). */
@@ -613,94 +583,6 @@ internal fun RowMenu(
         }
     }
 }
-
-/** What a swipe does: its icon and label behind the row, and the action. */
-internal class SwipeAction(
-    val icon: Int,
-    val label: String,
-    val onAction: () -> Unit,
-)
-
-/**
- * A row that acts when swiped past [SWIPE_THRESHOLD] of its width: [right] when swiped to the right,
- * [left] to the left (#107, #119). The row always springs back. A short vibration says when letting
- * go will act; both actions are also offered to screen readers.
- */
-@Composable
-internal fun SwipeRow(
-    right: SwipeAction?,
-    left: SwipeAction?,
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit,
-) {
-    var offset by remember { mutableFloatStateOf(0f) }
-    var width by remember { mutableIntStateOf(0) }
-    val scope = rememberCoroutineScope()
-    val haptics = LocalHapticFeedback.current
-    val onRight by rememberUpdatedState(right?.onAction)
-    val onLeft by rememberUpdatedState(left?.onAction)
-    val threshold = width * SWIPE_THRESHOLD
-    val dragState =
-        rememberDraggableState { delta ->
-            val before = abs(offset) >= threshold
-            val min = if (left != null) -width.toFloat() else 0f
-            val max = if (right != null) width.toFloat() else 0f
-            offset = (offset + delta).coerceIn(min, max)
-            if (abs(offset) >= threshold != before) haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
-        }
-    Box(
-        modifier
-            .onSizeChanged { width = it.width }
-            .semantics {
-                customActions =
-                    listOfNotNull(right, left).map { action ->
-                        CustomAccessibilityAction(action.label) {
-                            action.onAction()
-                            true
-                        }
-                    }
-            },
-    ) {
-        val shown = if (offset < 0) left else right
-        if (offset != 0f && shown != null) {
-            val armed = abs(offset) >= threshold
-            Row(
-                Modifier
-                    .matchParentSize()
-                    .clip(AppShapes.Item)
-                    .background(if (armed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primaryContainer)
-                    .padding(horizontal = 24.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = if (offset < 0) Arrangement.End else Arrangement.Start,
-            ) {
-                val tint = if (armed) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onPrimaryContainer
-                Icon(painterResource(shown.icon), contentDescription = null, tint = tint)
-                Text(shown.label, style = MaterialTheme.typography.labelLarge, color = tint, modifier = Modifier.padding(horizontal = 12.dp))
-            }
-        }
-        Box(
-            Modifier
-                .offset { IntOffset(offset.roundToInt(), 0) }
-                .draggable(
-                    state = dragState,
-                    orientation = Orientation.Horizontal,
-                    onDragStopped = {
-                        if (offset >= threshold) onRight?.invoke() else if (-offset >= threshold) onLeft?.invoke()
-                        scope.launch {
-                            animate(offset, 0f, animationSpec = spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMediumLow)) { value, _ ->
-                                offset = value
-                            }
-                        }
-                    },
-                ),
-        ) {
-            content()
-        }
-    }
-}
-
-/** How far (as part of the row's width) a swipe must go to act. */
-private const val SWIPE_THRESHOLD = 0.3f
 
 @Composable
 internal fun ArticleRow(

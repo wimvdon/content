@@ -148,6 +148,7 @@
     <string name="import_substack_step2">Touchez Partager et choisissez Content › Ajouter un flux.</string>
     <string name="import_substack_step3">Touchez Ajouter. Faites de même pour chaque publication.</string>
     <string name="action_save">Enregistrer</string>
+    <string name="action_save_to_archive">Enregistrer dans Archives</string>
     <string name="action_open">Ouvrir</string>
     <string name="action_undo">Annuler</string>
     <string name="folders_explanation">Classez vos flux par sujet pour les lire ensemble. Ce que vous enregistrez reçoit aussi des sujets.</string>
@@ -298,7 +299,6 @@
     <string name="services_problem_limit">Instapaper n’autorise plus de surlignages ce mois-ci.</string>
     <string name="highlights_none">Sélectionnez du texte et touchez Surligner.</string>
     <string name="saved_title">Enregistrés</string>
-    <string name="folder_field">Liste</string>
     <string name="topic_field">Sujet</string>
     <string name="saved_to">Enregistré dans %1$s</string>
     <string name="saved_remove">Retirer des enregistrés</string>

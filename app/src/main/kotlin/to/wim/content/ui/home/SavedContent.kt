@@ -12,8 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
@@ -58,7 +56,6 @@ import to.wim.content.data.Saved
 import to.wim.content.data.SavedFilter
 import to.wim.content.data.SavedTab
 import to.wim.content.ui.theme.EmptyState
-import to.wim.content.ui.theme.readableWidth
 import coil3.compose.AsyncImage
 
 /** Saved as the home screen shows it (#107, #119). */
@@ -126,73 +123,7 @@ internal fun SavedContent(
         }
         return
     }
-    if (Saved.showsNotes(home.filter.tab)) {
-        NotesGrid(home, showImages, onOpen, onFile, onShare, onRemove)
-    } else {
-        ArticleList(home, showImages, onOpen, onArchive, onFile, onShare, onRemove)
-    }
-}
-
-/**
- * To read: the feed list's rows, newest saved first. Swipe left to archive, right to organise it
- * (#143); a long press organises, archives, shares or removes it (#263).
- */
-@Composable
-private fun ArticleList(
-    home: SavedHome,
-    showImages: Boolean,
-    onOpen: (Item) -> Unit,
-    onArchive: (Item) -> Unit,
-    onFile: (Item) -> Unit,
-    onShare: (Item) -> Unit,
-    onRemove: (Item) -> Unit,
-) {
-    val archiveLabel = stringResource(R.string.action_archive)
-    val unarchiveLabel = stringResource(R.string.action_unarchive)
-    val organiseLabel = stringResource(R.string.organise_title)
-    val shareLabel = stringResource(R.string.action_share)
-    val removeLabel = stringResource(R.string.saved_remove)
-    // Another list starts at the top.
-    val listState = rememberSaveable(home.filter, saver = LazyListState.Saver) { LazyListState() }
-    LazyColumn(
-        state = listState,
-        modifier = Modifier.fillMaxSize().readableWidth(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 88.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        item(key = "summary") { Summary(home, Modifier.padding(start = 4.dp, top = 4.dp, bottom = 4.dp)) }
-        items(home.items, key = { it.key }) { item ->
-            val article = remember(item, home.library) { ReadingLists.article(item, home.library) }
-            val source = remember(item, home.library) { ReadingLists.source(item, home.library) }
-            val archive =
-                if (item.archived) {
-                    SwipeAction(R.drawable.ic_unarchive, unarchiveLabel) { onArchive(item) }
-                } else {
-                    SwipeAction(R.drawable.ic_inventory, archiveLabel) { onArchive(item) }
-                }
-            SwipeRow(
-                right = SwipeAction(R.drawable.ic_folder, organiseLabel) { onFile(item) },
-                left = archive,
-                modifier = Modifier.animateItem(),
-            ) {
-                ArticleRow(
-                    article = article,
-                    feed = source,
-                    view = home.listView,
-                    showImage = showImages,
-                    showReadState = false,
-                    onClick = { onOpen(item) },
-                    menu =
-                        listOf(
-                            RowMenuAction(R.drawable.ic_label, organiseLabel) { onFile(item) },
-                            RowMenuAction(archive.icon, archive.label) { onArchive(item) },
-                            RowMenuAction(R.drawable.ic_share, shareLabel) { onShare(item) },
-                            RowMenuAction(R.drawable.ic_delete, removeLabel) { onRemove(item) },
-                        ),
-                )
-            }
-        }
-    }
+    NotesGrid(home, showImages, onOpen, onArchive, onFile, onShare, onRemove)
 }
 
 /** How many articles, and about how long they take. */
@@ -218,10 +149,13 @@ private fun NotesGrid(
     home: SavedHome,
     showImages: Boolean,
     onOpen: (Item) -> Unit,
+    onArchive: (Item) -> Unit,
     onFile: (Item) -> Unit,
     onShare: (Item) -> Unit,
     onRemove: (Item) -> Unit,
 ) {
+    val archiveLabel = stringResource(R.string.action_archive)
+    val unarchiveLabel = stringResource(R.string.action_unarchive)
     val organiseLabel = stringResource(R.string.organise_title)
     val shareLabel = stringResource(R.string.action_share)
     val removeLabel = stringResource(R.string.saved_remove)
@@ -245,9 +179,15 @@ private fun NotesGrid(
                 showImages,
                 onClick = { onOpen(item) },
                 modifier = Modifier.animateItem(),
-                // Long-press (#221, #263): Organise (tags, note), Share and Remove. No swipes on cards.
+                // Long-press (#221, #263, #305): Archive (or Back to read), Organise (topics, note),
+                // Share and Remove. No swipes anywhere: the long press holds every action.
                 menu =
                     listOf(
+                        if (item.archived) {
+                            RowMenuAction(R.drawable.ic_unarchive, unarchiveLabel) { onArchive(item) }
+                        } else {
+                            RowMenuAction(R.drawable.ic_inventory, archiveLabel) { onArchive(item) }
+                        },
                         RowMenuAction(R.drawable.ic_label, organiseLabel) { onFile(item) },
                         RowMenuAction(R.drawable.ic_share, shareLabel) { onShare(item) },
                         RowMenuAction(R.drawable.ic_delete, removeLabel) { onRemove(item) },

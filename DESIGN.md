@@ -300,11 +300,10 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   full article as an `IconToggleButton`, on while it shows, but not for a saved article, which
   always shows the whole article (#208), then Aa and ⋮); the bottom app bar is
   this article in your library, on the left, with **Share** at its right end: a tonal **Save** before
-  it is saved, then one text button, its **folder** (To read or Archive, with its icon and an arrow down), which opens
-  Organise (#251: two buttons didn't fit on a phone), and until it is archived an **Archive** icon button (the
-  Archive's box) right after it: one tap archives it, closes the reader and shows Archived with Undo, so
-  finishing an article isn't Organise › Archive › Save. The label gives way (ellipsis); Share always sits
-  at the bar's right edge. The text ends
+  it is saved, then two text buttons with an icon and a word each (#305): **Archive** (the Archive's box;
+  one tap archives it, closes the reader and shows Archived with Undo), which turns into **Back to read**
+  once archived, as Mark as read turns into Mark as unread, and **Organise** (a tag), which opens the
+  sheet. The labels give way (ellipsis); Share always sits at the bar's right edge. The text ends
   with Read on website and nothing else. ⋮ holds the rare ones: Open in browser, Mark as unread,
   Sign in to this site (only while not signed in to it), Report a problem, Remove from Saved.
 - Highlights (#102): **Highlight** and **Note** come first in the menu over selected text, then
@@ -314,15 +313,14 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   `ModalBottomSheet` with the quote (a `primary` bar at its left, italic), its status, the note
   field, Remove highlight, Cancel and Save. With highlights, the bottom bar has a quote mark and the
   count before Share, which opens the list.
-- Save is the action's one name (#142), in the reader's bottom bar, the swipe and the sheet's button;
+- Save is the action's one name (#142), in the reader's bottom bar, the long-press menus and the sheet's button;
   "Read later" names nothing. After the sheet, a snackbar says "Saved to …", with **Open** (to the
-  article in Saved) when you weren't in it already: after a swipe, Add link, or a share from another
+  article in Saved) when you weren't in it already: after a long press, Add link, or a share from another
   app (where the snackbar is all of Reader that shows).
 - One **Save and share** sheet (#143, #256), wherever you meet an article: a `ModalBottomSheet` with,
   in this order, what is being saved (only before the save: the address field for Add link, or a
-  shared link's title and site), **Folder** (#251: it said "Where") as single-choice `FilterChip`s
-  (To read and Archive with their icons, each folder, then a New folder `AssistChip`, the only thing
-  to type; #156), **Tags** in one
+  shared link's title and site; no list to pick since #305: the Archive is a state, chosen by the
+  buttons), **Tags** in one
   row (Like, then every tag in use as a `FilterChip` without a check mark, in a steady order so
   nothing moves when one is chosen, then a New tag `AssistChip` that opens a field to make a new
   one), **Note** with the room, then, signed in, **Send with Content**:
@@ -330,8 +328,10 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   (avatar, name, × to take them out) and a borderless field for a name or address; under it, up to
   five suggestions as `ListItem`s (avatar, name, address; tap adds), filtered by what is typed, and
   "Add …" for a whole new address (checked for a Content account first). Long-press a suggestion
-  for trash buttons that forget people; Done ends it. Section titles in Title Small, `primary`. Then Cancel and the button, which says **Save**,
-  **Save and send** or **Send**: closing the sheet is Cancel, so only the button changes or sends
+  for trash buttons that forget people; Done ends it. Section titles in Title Small, `primary`.
+  **Cancel** sits at the top right, next to the heading (#305). At the bottom, saving: **Save to
+  Archive** (outlined) and **Save** (filled, To read), which says **Save and send** or **Send** when
+  sending: closing the sheet is Cancel, so only the button changes or sends
   anything; the heading is "Save and share", or "Organise" for an article saved before: that one has no Send
   with Content (Share is next to Organise) and a red Remove at the bottom left. Right after a save there is no Remove:
   Cancel (or closing the sheet) saves and sends nothing, so it takes the save back. Remove from Saved (error
@@ -354,9 +354,9 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   so logos drawn for light browser tabs keep their contrast; the letter fallback uses
   `tertiaryContainer`.
 - Article list: three views (Small, Medium, Large card with a 16:9 picture). Unread rows sit on
-  `surfaceContainer`, read rows on `surfaceContainerLow`; the feed name is in `primary`. Swiping
-  right past 30% of the width toggles read, swiping left saves the article ("Save", a list) and
-  opens the save sheet (haptic tick at the threshold, row springs back). The top bar shows the section and its unread count, with no ⋮ menu (refresh is pull-down; adding
+  `surfaceContainer`, read rows on `surfaceContainerLow`; the feed name is in `primary`. Rows and
+  cards don't swipe (#305): a long press holds their actions (Mark as read, Save, Share; in Saved
+  Archive or Back to read first). The top bar shows the section and its unread count, with no ⋮ menu (refresh is pull-down; adding
   feeds lives on Manage feeds). Unread or All is the state chip at the start of the chip row
   (16dp sides, 8dp above and below, like the chips in Search), lit while it shows Unread only.
   The web app has the same chip. The top bar holds only icon buttons, as Material 3's top app bar does.

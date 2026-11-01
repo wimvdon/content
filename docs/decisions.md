@@ -2,6 +2,25 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-01: The Archive is a state, not a list; no more swipes (#305)
+
+- At the owner's request (option B in the issue): the Archive behaves like read and unread in
+  Feeds, a state you put an article in when you're done with it, not a list you pick next to topics.
+- **The save sheet** no longer has the *To read / Archive* chips (the List row). Its buttons say where
+  the article goes: **Save to Archive** (outlined) and **Save** (filled, To read). **Cancel** moved to
+  the top right, next to the heading (the web's sheet already had × there). The message says where it
+  went ("Saved to Archive"); saved from the reader, it now has **Undo**.
+- **Organise** (an article saved before) only has the topics with Like, the note, Remove and Save:
+  it doesn't move the article.
+- **The reader's bar**: "To read ▾" and the unlabelled box icon became two labelled buttons,
+  **Archive** (turns into **Back to read** once archived, like Mark as read / unread) and
+  **Organise** (a tag icon). On the web the place and Tags menus became the same two buttons.
+- **No swipes anywhere** (Feeds, Inbox, Saved): Saved already used cards without swipes, so the
+  owner chose the long press everywhere instead. A Saved card's long press now starts with
+  **Archive** (or **Back to read**); feeds and the Inbox already had Save in theirs. `SwipeRow` is gone.
+- Rejected: option C (keep the chips, style them as a toggle), which kept two controls for one thing.
+  "Save to Archive" over "Save and archive": it names where the article goes, not two steps.
+
 ## 2026-11-01: Adding from the search bar, topics managed in the sheets (#307)
 
 - At the owner's request (Android): the Manage topics icon and the X are gone from the chip rows.
@@ -22,7 +41,7 @@ Newest first. Add an entry for every notable choice: what was decided, why, and 
 ## 2026-11-01: The save sheet is Organise, without sending (#304)
 
 - At the owner's request ("Remove share from Save and share, make it = Organise"), saving and
-  organising are the same sheet, headed **Organise** every way in (the reader's Save, a swipe, Add
+  organising are the same sheet, headed **Organise** every way in (the reader's Save, a swipe (gone since #305), Add
   link, the share menu, the custom tab's Save): the list, topics with Like, the note, Cancel and
   Save. **Send with Content is gone from it**; sending is Share's (Content's share sheet, the web's
   Share) and the share menu's Send with Content. Both apps alike.

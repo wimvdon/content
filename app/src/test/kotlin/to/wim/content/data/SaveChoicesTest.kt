@@ -44,6 +44,26 @@ class SaveChoicesTest {
     }
 
     @Test
+    fun `Save to Archive is offered while saving, not organising or only sending`() {
+        assertTrue(SaveChoices.offersArchive(organising = false, SaveChoice()))
+        assertEquals(false, SaveChoices.offersArchive(organising = true, SaveChoice()))
+        assertEquals(false, SaveChoices.offersArchive(organising = false, SaveChoice(keep = false)))
+    }
+
+    @Test
+    fun `Save to Archive keeps the like, topics and note and saves into the Archive`() {
+        val choice = SaveChoice(Place.ToRead, liked = true, tags = listOf("ai"), note = "Mine")
+        val archived = SaveChoices.toArchive(choice)
+        assertEquals(choice.copy(place = Place.Archive), archived)
+        val (_, item) = SaveChoices.saveNew(Library(), "https://b.example/1", "B", 10, archived)
+        assertTrue(item!!.archived)
+        assertEquals(listOf("ai"), item.tags)
+        // Just saved from the reader, then Save to Archive: the saved article moves to the Archive.
+        val moved = SaveChoices.apply(library, "a.example/1", SaveChoices.toArchive(SaveChoices.of(library.item("a.example/1")!!)))
+        assertTrue(moved.item("a.example/1")!!.archived)
+    }
+
+    @Test
     fun `a new save lands in To read, a folder or the Archive, with its like, tags and note`() {
         val (toRead, a) = SaveChoices.saveNew(Library(), "https://b.example/1", "B", 10, SaveChoice())
         assertTrue(Saved.isIn(a!!, SavedTab.ToRead))
