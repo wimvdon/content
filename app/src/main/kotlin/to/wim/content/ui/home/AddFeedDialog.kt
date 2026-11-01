@@ -123,7 +123,7 @@ fun AddFeedDialog(
 }
 
 /**
- * Add feed as a sheet (#307), like the Save sheet: the website or feed address, then its topic as
+ * Add feed as a sheet (#307), like the Organise sheet: the website or feed address, then its topic as
  * chips (No topic, then every topic in your order), with the pen next to it that turns the sheet
  * into Manage topics (Back returns here), and Cancel and Add. [busy] shows a spinner in Add while
  * the app looks for the feed; [error] explains why the last attempt failed.

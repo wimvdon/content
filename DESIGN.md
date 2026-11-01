@@ -237,7 +237,7 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
 - Topics: one way to group feeds and saved articles (a feed in one topic, a saved article in any
   number), each with a name, an icon and its place in the user's order, which every chip row and
   the sheets follow. Manage topics (in Settings) is a
-  list and a page per topic. The Add feed and Save sheets have a pen right after their topics'
+  list and a page per topic. The Add feed and Organise sheets have a pen right after their topics'
   heading (#307) that turns the sheet into a lighter Manage topics: a back arrow and the title,
   the topic rows (no counts) with a pen and the drag handle, New topic as a text button; Remove
   topic asks on that page, not in a dialog over the sheet. The list: a large top app bar over topic rows (`surfaceContainerHigh`, the topic's icon on
@@ -285,7 +285,7 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   alone (its topic stays lit), tap it again for the whole topic. So every place is one or two taps
   from the list. The Mark all read FAB is on Feeds
   only and only marks the section shown; Saved has no FAB: **+** in the search bar (between the
-  search text and Settings) adds, Add feed in Feeds, the Save sheet in Saved (#307).
+  search text and Settings) adds, Add feed in Feeds, the Organise sheet (asking for the address) in Saved (#307).
 - Saved's lists look like what they are for: To read and Archive are read through, so they use
   the feed list's rows and its view setting (Small, Medium, Large), under a line with how many and
   about how long; a folder is a collection to browse, so its items are notes in Noter's style:
@@ -370,7 +370,7 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   app's sidebar and favicon use the app's logo (the launcher icon's C on its own: no circle or
   white tile).
 - Settings starts with the connections: Account, then Instapaper; Move to or from another reader
-  (OPML) sits before Appearance. Managing topics is its own section after the connections in Settings, and the pen in the Add feed and Save sheets. The first screen,
+  (OPML) sits before Appearance. Managing topics is its own section after the connections in Settings, and the pen in the Add feed and Organise sheets. The first screen,
   signed out, is a welcome with the email sign-in first. See docs/architecture.md, "Navigation and
   settings: where everything lives".
 

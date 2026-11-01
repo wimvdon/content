@@ -100,7 +100,7 @@ class SettingsActions(
     val onNotifyShared: (Boolean, (Boolean) -> Unit) -> Unit = { _, _ -> },
     /** Forgets a site's sign-in (#180). */
     val onRemoveSiteSignIn: (String) -> Unit = {},
-    /** Manage topics: the topics and their feeds (the Add feed and Save sheets manage the topics too, #307). */
+    /** Manage topics: the topics and their feeds (the Add feed and Organise sheets manage the topics too, #307). */
     val onOpenManage: () -> Unit = {},
 )
 
