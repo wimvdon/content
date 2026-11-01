@@ -33,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import to.wim.content.R
 import androidx.compose.foundation.layout.Arrangement
@@ -178,7 +179,8 @@ fun SettingsPage.titleRes(): Int =
 
 /**
  * One of the two large buttons at the top of Settings: its icon on a circle, its name and how many
- * it holds, on `surfaceContainerHigh`, like the Add sheet's choices.
+ * it holds, on `surfaceContainerHigh`, like the Add sheet's choices. The title always takes two
+ * lines' room, so the two buttons have the same height.
  */
 @Composable
 private fun ManageButton(
@@ -194,7 +196,9 @@ private fun ManageButton(
                 Icon(rememberFolderIconPainter(icon), contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer)
             }
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(stringResource(title), style = MaterialTheme.typography.titleMedium)
+                // Room for two lines of title in both, so the two buttons are always the same height,
+                // whatever the language.
+                Text(stringResource(title), style = MaterialTheme.typography.titleMedium, minLines = 2, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Text(detail, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
