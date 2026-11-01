@@ -41,15 +41,15 @@ class InstapaperReadingList(
             val asked = now() / 1000 - CURSOR_MARGIN_S
             folders = client.folders().associate { it.id to it.title }
             tagIds = client.tags().associate { it.name.lowercase() to it.id }
-            // A cursor from before private content came in (no prefix) reads everything once, so the
-            // emails skipped then come in now.
+            // A cursor from before private content came in (another prefix or none) reads everything
+            // once, so the emails skipped then come in now.
             val since = cursor?.takeIf { it.startsWith(CURSOR_PREFIX) }?.removePrefix(CURSOR_PREFIX)?.toLongOrNull() ?: 1L
             val entries = ArrayList<RemoteEntry>()
             val deleted = ArrayList<String>()
             var offset = 0
             while (true) {
                 val page = client.changesSince(since, offset, PAGE)
-                page.bookmarks.mapNotNullTo(entries, ::entryOf)
+                page.bookmarks.mapTo(entries, ::entryOf)
                 page.deletedIds.mapTo(deleted) { it.toString() }
                 offset += page.count
                 if (page.count < PAGE) break
@@ -58,12 +58,13 @@ class InstapaperReadingList(
         }
 
     /**
-     * A bookmark as an entry. One without an address (a forwarded email, a PDF: Instapaper's private
-     * content) gets Instapaper's own page as its address ([InstapaperLinks]); one with an address
-     * that isn't a web address is left out.
+     * A bookmark as an entry. Private content (a forwarded email, an uploaded file: marked as private,
+     * or without a web address, such as none or an `instapaper-private://` one) gets Instapaper's own
+     * page as its address ([InstapaperLinks]), so it comes in like any article and nothing that
+     * isn't a web address is kept.
      */
-    fun entryOf(b: InstapaperBookmark): RemoteEntry? {
-        val url = b.link ?: if (b.url.isNullOrBlank()) InstapaperLinks.readLink(b.id) else return null
+    fun entryOf(b: InstapaperBookmark): RemoteEntry {
+        val url = b.link?.takeIf { b.privateSource == null } ?: InstapaperLinks.readLink(b.id)
         val tags = b.tags.map { it.name }
         return RemoteEntry(
             remoteId = b.id.toString(),
@@ -109,7 +110,7 @@ class InstapaperReadingList(
                 client.move(saved.id, "archive")
                 saved = saved.copy(archived = true, folderId = null)
             }
-            entryOf(saved) ?: throw ServiceException(ServiceProblem.Refused)
+            entryOf(saved)
         }
 
 
@@ -210,8 +211,12 @@ class InstapaperReadingList(
         /** How much earlier than the request the next `since` starts, for clocks that differ. */
         const val CURSOR_MARGIN_S = 300L
 
-        /** Marks a cursor made since private content (emails) comes in; one without it reads everything once. */
-        const val CURSOR_PREFIX = "p:"
+        /**
+         * Marks a cursor made since private content (emails) comes in as it does now; one without it
+         * (from before, "p:" included: 6.8.2 still left out emails with an `instapaper-private://`
+         * address) reads everything once.
+         */
+        const val CURSOR_PREFIX = "p2:"
 
         fun problemOf(problem: InstapaperProblem): ServiceProblem =
             when (problem) {

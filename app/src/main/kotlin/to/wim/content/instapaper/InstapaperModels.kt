@@ -40,6 +40,8 @@ data class InstapaperBookmark(
     val progress: Float = 0f,
     /** When the progress last changed, in seconds since 1970 (0 when never): Instapaper's only change time. */
     val progressAt: Long = 0,
+    /** Set for private content (a forwarded email, an uploaded file): where it came from. */
+    val privateSource: String? = null,
 ) {
     /** The address to open, only when it is a web address (so a saved item can't carry a script). */
     val link: String? get() = url?.takeIf { it.startsWith("https://") || it.startsWith("http://") }
