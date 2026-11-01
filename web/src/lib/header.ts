@@ -10,3 +10,13 @@ export function headerHidden(hidden: boolean, top: number, by: number, atEnd: bo
   if (by < -4 && !atEnd) return false;
   return hidden;
 }
+
+/**
+ * Whether the reader's floating toolbar is hidden after a scroll, as on Android (ReaderToolbar): it
+ * steps aside while reading down and comes back when scrolling up, near the top, and at the end of
+ * the article (where Archive is what you want next).
+ */
+export function toolbarHidden(hidden: boolean, top: number, by: number, atEnd: boolean): boolean {
+  if (atEnd) return false;
+  return headerHidden(hidden, top, by, false);
+}

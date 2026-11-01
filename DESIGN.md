@@ -305,12 +305,14 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   marker icon with the highlight count and a heart when liked (#208).
   The reader's actions follow one rule (#139): the top bar is this reading (Back, the
   full article as an `IconToggleButton`, on while it shows, but not for a saved article, which
-  always shows the whole article (#208), then Aa and ⋮); the bottom app bar is
-  this article in your library, on the left, with **Share** at its right end: a tonal **Save** before
-  it is saved, then two text buttons with an icon and a word each (#305): **Archive** (the Archive's box;
-  one tap archives it, closes the reader and shows Archived with Undo), which turns into **Back to read**
-  once archived, as Mark as read turns into Mark as unread, and **Organise** (a tag), which opens the
-  sheet. The labels give way (ellipsis); Share always sits at the bar's right edge. The text ends
+  always shows the whole article (#208), then Aa and ⋮); a **floating toolbar** (Material 3's
+  floating toolbar, built from a `Surface` and a `Row` as Material 3 1.4 has none: a pill on
+  `surfaceContainer`, 64dp high, 16dp above the bottom, in the middle) is this article in your
+  library, with **Share** at its end: a tonal **Save** before it is saved, then two text buttons with
+  an icon and a word each (#305): **Archive** (the Archive's box; one tap archives it, the article
+  stays open and shows Archived with Undo, #331), only while it is to read, and **Organise** (a tag),
+  which opens the sheet. It slides away while reading down and comes back scrolling up, at the top and
+  at the end of the article; the text keeps room under its end, and messages show above it. The text ends
   with Read on website and nothing else. ⋮ holds the rare ones: Open in browser, Mark as unread,
   Sign in to this site (only while not signed in to it), Report a problem, Remove from Saved.
 - Highlights (#102): **Highlight** and **Note** come first in the menu over selected text, then
@@ -318,9 +320,9 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   selection). A highlight is a marker yellow (`#FFD54F` at 45 %)
   behind the text, lighter and underlined when only found roughly; tapping it opens a
   `ModalBottomSheet` with the quote (a `primary` bar at its left, italic), its status, the note
-  field, Remove highlight, Cancel and Save. With highlights, the bottom bar has a quote mark and the
+  field, Remove highlight, Cancel and Save. With highlights, the floating toolbar has a quote mark and the
   count before Share, which opens the list.
-- Save is the action's one name (#142), in the reader's bottom bar, the long-press menus and the sheet's button;
+- Save is the action's one name (#142), in the reader's floating toolbar, the long-press menus and the sheet's button;
   "Read later" names nothing. After the sheet, a snackbar says "Saved to …", with **Open** (to the
   article in Saved) when you weren't in it already: after a long press, Add link, or a share from another
   app (where the snackbar is all of Reader that shows).

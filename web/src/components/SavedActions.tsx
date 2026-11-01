@@ -3,13 +3,15 @@ import { app } from "@/lib/app";
 import { plural, t } from "@/lib/i18n";
 import type { Item } from "@/lib/items";
 import { Button } from "./ui/button";
+import { cn } from "./ui/cn";
 import { Dialog } from "./ui/dialog";
 
 /**
- * The reader's library bar (#139, #156, #305), under the text: one Save before the article is
- * saved; after, as on Android, **Archive** (only while it is to read: it archives it in one tap and
- * the article stays open, with a message and Undo) and **Organise** (To read or Archive, the
- * topics, Like and the note; archived, the only one). The highlights and Share sit at the right end.
+ * The reader's library actions (#139, #156, #305) as a floating toolbar, as on Android: a pill at
+ * the bottom in the middle, over the text, that steps aside while reading down ([hidden]). One Save
+ * before the article is saved; after, **Archive** (only while it is to read: it archives it in one
+ * tap and the article stays open, with a message and Undo) and **Organise** (To read or Archive,
+ * the topics, Like and the note; archived, the only one). Then the highlights and Share.
  */
 export function LibraryBar({
   item,
@@ -18,6 +20,7 @@ export function LibraryBar({
   onArchived,
   highlightCount,
   onHighlights,
+  hidden,
 }: {
   item: Item | null;
   onSave: (() => void) | null;
@@ -26,10 +29,12 @@ export function LibraryBar({
   /** How many highlights it has; with any, a quote mark and the count open their list, next to Share. */
   highlightCount: number;
   onHighlights: () => void;
+  /** Stepped aside while reading down. */
+  hidden: boolean;
 }) {
-  // At the right end, after Save or Archive and Organise: the highlights, then Share.
+  // After Save or Archive and Organise: the highlights, then Share.
   const share = (
-    <div className="ml-auto flex shrink-0 items-center">
+    <div className="flex shrink-0 items-center">
       {highlightCount > 0 ? (
         <Button variant="ghost" onClick={onHighlights} aria-label={plural("highlightsCount", highlightCount)} title={t("highlightsTitle")}>
           <Quote />
@@ -46,20 +51,20 @@ export function LibraryBar({
   if (!item) {
     if (!onSave && !onShare && highlightCount === 0) return null;
     return (
-      <div className="flex items-center gap-1 border-t bg-muted/40 px-2 py-2">
+      <Floating hidden={hidden}>
         {onSave ? (
-          <Button variant="tonal" onClick={onSave} className="ml-2">
+          <Button variant="tonal" onClick={onSave}>
             <ListPlus />
             {t("saveArticle")}
           </Button>
         ) : null}
         {share}
-      </div>
+      </Floating>
     );
   }
   const archived = item.readingList?.state === "archived";
   return (
-    <div className="flex items-center gap-1 border-t bg-muted/40 px-2 py-2">
+    <Floating hidden={hidden}>
       {!archived ? (
         <Button
           variant="ghost"
@@ -78,6 +83,23 @@ export function LibraryBar({
         <span className="truncate">{t("organiseTitle")}</span>
       </Button>
       {share}
+    </Floating>
+  );
+}
+
+/** The pill itself: at the bottom in the middle of the reader, sliding down out of sight when [hidden]. */
+function Floating({ hidden, children }: { hidden: boolean; children: React.ReactNode }) {
+  return (
+    <div className="pointer-events-none absolute inset-x-0 bottom-4 z-10 flex justify-center px-4">
+      <div
+        inert={hidden}
+        className={cn(
+          "pointer-events-auto flex min-w-0 items-center gap-1 rounded-full border bg-card p-2 shadow-lg transition duration-200 ease-out motion-reduce:transition-none",
+          hidden && "translate-y-[calc(100%+1rem)] opacity-0",
+        )}
+      >
+        {children}
+      </div>
     </div>
   );
 }

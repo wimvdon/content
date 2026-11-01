@@ -1,5 +1,6 @@
 import { ALargeSmall, ArrowLeft, Circle, CircleCheck, EllipsisVertical, ExternalLink, FileText, Flag } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { toolbarHidden } from "@/lib/header";
 import { positionOf, scrollFor } from "@/lib/readingProgress";
 import { app, useApp } from "@/lib/app";
 import { useShare } from "./useShare";
@@ -145,8 +146,19 @@ export function ArticleView({
     };
   }, [progressKey]);
 
+  // The floating toolbar steps aside while reading down, as on Android.
+  const [toolbarIsHidden, setToolbarHidden] = useState(false);
+  const lastTop = useRef(0);
+  const onToolbarScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    const top = el.scrollTop;
+    const by = top - lastTop.current;
+    lastTop.current = top;
+    setToolbarHidden((hidden) => toolbarHidden(hidden, top, by, top + el.clientHeight >= el.scrollHeight - 2));
+  };
+
   return (
-    <article className="flex h-full min-w-0 flex-col" aria-label={article.title}>
+    <article className="relative flex h-full min-w-0 flex-col" aria-label={article.title}>
       <div className="flex items-center gap-1 border-b px-2 py-2">
         <Button variant="ghost" size="icon" onClick={onBack} aria-label={t("back")} className="lg:hidden">
           <ArrowLeft />
@@ -200,8 +212,9 @@ export function ArticleView({
       <Dialog open={textOpen} onOpenChange={setTextOpen} title={t("textSettings")} closeLabel={t("close")}>
         <ReaderStyleControls />
       </Dialog>
-      <div ref={page} className={cn("min-h-0 flex-1 overflow-y-auto bg-background text-foreground", pageClass(style, appDark))}>
-        <div className="mx-auto max-w-2xl px-5 py-8">
+      <div ref={page} onScroll={onToolbarScroll} className={cn("min-h-0 flex-1 overflow-y-auto bg-background text-foreground", pageClass(style, appDark))}>
+        {/* Room at the end, so the last lines scroll clear of the floating toolbar. */}
+        <div className="mx-auto max-w-2xl px-5 pt-8 pb-28">
           <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
             <FeedIcon feed={feed} className="size-5" />
             <span className="truncate font-medium text-primary">{feed?.title}</span>
@@ -266,6 +279,7 @@ export function ArticleView({
         </div>
       </div>
       <LibraryBar
+        hidden={toolbarIsHidden}
         item={saved}
         onSave={article.link && !fromSaved ? saveArticle : null}
         onShare={article.link ? () => share(article.title, article.link!, found) : null}

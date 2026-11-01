@@ -226,13 +226,15 @@ website (in the web app, in a new tab) (the same as **Read on website** at the e
 | **Aa** | Text settings: font (Sans or Serif), text size, spacing (Compact, Normal, Relaxed), background (Theme, Sepia or Dark) and **Auto dark** (the dark page whenever the app is dark, e.g. Sepia by day and dark at night). Changes apply right away and are remembered for every article. |
 | ⋮ | In this order: **Mark as unread** (back to the list, where it waits unread; the web app keeps the article open and offers **Mark as read** too), **Show full article** / **Show feed text** (a feed article: the whole article from the website, or the feed's own text; a saved article always shows the whole article), **Open in browser**, **Sign in to this site** (#180: for a site you pay for, such as standaard.be; sign in on its page and tap **Done**, and from then on its articles load in full; only while you aren't signed in to that site yet; Settings › Article view › Sites you're signed in to lists them, with **Remove**), **Report a problem with this article** (#181: pick what is wrong, add a comment if you like, and **Send** opens a pre-filled report on GitHub in your browser, with the article's link and the text Content shows, #251, so it can be compared with the website; a text too long for the address is cut short there and put whole on the clipboard to paste; submit it there). **Remove from Saved** is in Organise. Open in browser, and links in an article, open in a tab of your browser on top of Reader, with a **Save** button in its toolbar: it opens the save sheet over the page (see Saving from other apps); save or close it to keep reading. |
 
-The bar at the bottom is the article in your library, with **Share** at its right end (Content's
-share sheet, or straight to the app you chose). Before it is saved it has **Save** on the left: it
+The **floating toolbar** (a rounded bar at the bottom in the middle, over the text) is the article
+in your library, with **Share** at its end (Content's share sheet, or straight to the app you
+chose). It slides out of the way while you read down, and comes back when you scroll up a little,
+at the top and at the end of the article. Before it is saved it has **Save** on the left: it
 saves the article to **To read** (by default), or sends it to the app you chose (see below). Once
 saved, Save makes way for **its list** (To read or Archive): tap it for **Organise**, the sheet
 with the list, Like, the topics and the note (#251: on a phone there was no room for the list and
 the topics side by side). Until it is archived, an **Archive** button (a box) sits next to its list:
-one tap archives it, closes the article and says **Archived** with **Undo**. Next to Share, a quote mark with a count opens the article's highlights and
+one tap archives it; the article stays open and says **Archived** with **Undo**. Next to Share, a quote mark with a count opens the article's highlights and
 notes. The text ends with **Read on website**. Reader remembers how far you read and opens the
 article there again.
 
@@ -241,7 +243,7 @@ article there again.
 first, then Copy, Share, Select all and the apps that act on text, such as Translate (#251). In
 the web app, select text with the mouse and pick **Highlight** or **Note** in the small bar above it.
 The passage gets a yellow marker; tap or click it to change its note or remove it. A quote mark
-with the count in the bottom bar lists every highlight of the article. Highlighting a feed article
+with the count in the floating toolbar lists every highlight of the article. Highlighting a feed article
 saves it to **To read**, so the highlight is kept. A highlight is kept as its passage and a few
 words around it, not a position, so it is found again in the feed's text, the full article or a
 newer version; when the text changed it is lighter and underlined ("approximate"), and when it
@@ -403,7 +405,7 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   **Save article** (the save sheet, which asks for the address); and sharing a link to Reader from another app. These go to To read unless you tap
   **Archive** in the save sheet. A feed article you save stays the same article: its feed, text and
   picture come along, and it isn't copied.
-- **Archive when you're done:** **Archive** in a saved article's bottom bar (the article stays
+- **Archive when you're done:** **Archive** in a saved article's floating toolbar (the article stays
   open; a message says so, with **Undo**), or press and hold its card › **Archive**. An archived
   article has no Archive button, only **Organise**, where **To read** puts it back. **Organise**
   opens To read / Archive, the topics, Like and the note.
@@ -416,7 +418,7 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   a few lines of your first highlight (quoted) or else the article's description, a glimpse of your
   note in small letters, its topics as small chips, then the site, a marker icon with how many
   highlights it has, and a heart when liked.
-- In the reader, the bar at the bottom: **its list** (To read or Archive), which opens Organise,
+- In the reader, the floating toolbar at the bottom: **its list** (To read or Archive), which opens Organise,
   and until it is archived **Archive**, which archives it in one tap; the article stays open and a
   message says so (with **Undo**). **Remove from Saved** is in Organise; it asks first, as everywhere, and takes the note,
   topics and highlights with it (Archive keeps it searchable instead).
