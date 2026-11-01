@@ -23,6 +23,8 @@ data class FeedChips(
     val topicFeeds: List<Feed>,
     val loose: List<Feed>,
     val chosenFeed: String?,
+    /** With a single topic chip and nothing chosen: how many of its feeds have something in the tab shown. */
+    val soleTopicFeeds: Int = 0,
 ) {
     /** The topic chips the row shows: all [topics], or only the chosen one (in its own spelling). */
     val rowTopics: List<String>
@@ -34,11 +36,12 @@ data class FeedChips(
 
     /**
      * Whether the row shows at all: only with more than one chip, as a single one would show what the
-     * list already shows (every article is in a topic or a loose feed, each a chip). Something chosen
-     * always keeps it, so it can be let go.
+     * list already shows (every article is in a topic or a loose feed, each a chip). A single topic
+     * with two or more feeds stays, though: tapping it shows the list unchanged, but its feeds as
+     * chips, the only way to one of them. Something chosen always keeps it, so it can be let go.
      */
     val rowShown: Boolean
-        get() = chosenTopic != null || chosenFeed != null || rowTopics.size + rowLoose.size > 1
+        get() = chosenTopic != null || chosenFeed != null || rowTopics.size + rowLoose.size > 1 || soleTopicFeeds > 1
 
     companion object {
         fun of(
@@ -63,7 +66,13 @@ data class FeedChips(
             val loose = feeds.filter { feed -> (isLoose(feed, folders) && visible(feed)) || (feed == single && chosenTopic == null) }
             // The chosen topic stays a chip even if it has nothing in the state shown.
             val shownTopics = if (chosenTopic != null && topics.none { it.equals(chosenTopic, ignoreCase = true) }) topics + chosenTopic else topics
-            return FeedChips(shownTopics, chosenTopic, topicFeeds, loose, chosenFeed)
+            val soleTopicFeeds =
+                if (chosenTopic == null && shownTopics.size == 1 && loose.isEmpty()) {
+                    feeds.count { feed -> feed.tags.any { it.equals(shownTopics[0], ignoreCase = true) } && visible(feed) }
+                } else {
+                    0
+                }
+            return FeedChips(shownTopics, chosenTopic, topicFeeds, loose, chosenFeed, soleTopicFeeds)
         }
 
         /** A feed without a topic: none set, or one that no longer exists. */

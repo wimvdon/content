@@ -194,8 +194,8 @@ export interface FeedChipRow {
   chosenFeed: string | null;
   /**
    * Whether the row shows: only with more than one chip (a single one would show what the list already
-   * shows: every article is in a topic or a loose feed, each a chip), as on Android; always with
-   * something chosen, so it can be let go.
+   * shows: every article is in a topic or a loose feed, each a chip), as on Android; a single topic
+   * with two or more feeds stays, as it leads to them; always with something chosen, so it can be let go.
    */
   shown: boolean;
 }
@@ -217,7 +217,10 @@ export function feedChipRow(lib: Library, tab: FeedTab, selection: Selection): F
   if (chosen === null) {
     const topics = feedChips(lib, tab, null);
     const loose = lib.feeds.filter((f) => (f.tags ?? []).length === 0 && (f.url === chosenFeed || lib.articles.some((a) => a.feedUrl === f.url && inFeedTab(a, tab))));
-    const shown = chosenFeed !== null || topics.length + loose.length > 1;
+    const hasSome = (f: Feed) => lib.articles.some((a) => a.feedUrl === f.url && inFeedTab(a, tab));
+    const soleTopicFeeds =
+      topics.length === 1 && loose.length === 0 ? lib.feeds.filter((f) => (f.tags ?? []).some((t) => key(t) === key(topics[0])) && hasSome(f)).length : 0;
+    const shown = chosenFeed !== null || topics.length + loose.length > 1 || soleTopicFeeds > 1;
     return { topics, chosenTopic: null, feeds: [], loose, chosenFeed, shown };
   }
   // The topic's own spelling, as its chip has it elsewhere.

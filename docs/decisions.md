@@ -17,7 +17,9 @@ the chosen topic, then its feeds; tapping the topic brings every topic back (`Fe
 and `rowLoose`; the web's `feedChipRow`, which gains the topic's feeds and the feeds without a topic
 as chips, so the row behaves the same on both). The chips also sit
 right under the switch: their 48dp touch area is the gap. Owner's choice. The row is also left out
-when it would hold a single chip (it would filter nothing), unless something is chosen, on the phone and the web alike.
+when it would hold a single chip (it would filter nothing), unless something is chosen, on the phone and the web alike. A single topic with two or more feeds in
+the view keeps its chip (the owner found the gap): tapping it doesn't narrow the list, but it is the
+only way to one of those feeds.
 - Rejected: Unread / All as a chip in the row (saves another row, but a view would look like one
   more filter).
 
