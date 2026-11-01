@@ -234,25 +234,25 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   screen, top bar and system bar icons included, takes the page colour.
 - Article titles in the reader are the hero text (bold, in the reader's font). Unread rows in the
   list use SemiBold titles and a primary dot; read rows use `onSurfaceVariant`.
-- Topics: one way to group feeds and saved articles (a feed in one topic, a saved article in any
+- Tags: one way to group feeds and saved articles (a feed in one tag, a saved article in any
   number), each with a name, an icon and its place in the user's order, which every chip row and
-  the sheets follow. **Manage topics** (a sheet, from Settings' large button and from **Edit
-  topics** in the Add feed, Edit feed and Save/Organise sheets, over them) shows them as a
+  the sheets follow. **Manage tags** (a sheet, from Settings' large button and from **Edit
+  tags** in the Add feed, Edit feed and Save/Organise sheets, over them) shows them as a
   reorderable list (2026-11-01, instead of chips: rows don't reflow under the finger): each row the
-  topic's icon, its name and the grip at the end (`ReorderableColumn`); **New topic** after them, with **Done** at the bottom right as its
+  tag's icon, its name and the grip at the end (`ReorderableColumn`); **New tag** after them, with **Done** at the bottom right as its
   changes are kept at once. **Manage feeds** (a sheet from Settings' other large button) shows the
-  feeds the same way: rows (site icon, name, grip at the end) under a heading per topic (Title Small,
-  `primary`, with the topic's icon; then No topic; an empty topic says "Drag a feed here"); a row
-  dragged under another heading moves into that topic (`ReorderableSections`, `SectionOrder`); a failing
+  feeds the same way: rows (site icon, name, grip at the end) under a heading per tag (Title Small,
+  `primary`, with the tag's icon; then No tag; an empty tag says "Drag a feed here"); a row
+  dragged under another heading moves into that tag (`ReorderableSections`, `SectionOrder`); a failing
   feed's name in the error colour; then Add feed; tapping a feed opens the Edit feed sheet (name,
-  address, topic chips, Save; Remove is a trash can at the top right and asks in a dialog). Topic chips look the same everywhere (#314): a `FilterChip` with the
-  topic's icon and name, no check mark, in Feeds' and Saved's chip rows and in the sheets. After the
-  chips in a sheet, **Edit topics** is a text button with a pen (an action, so it doesn't look like a
-  topic chip). In Manage topics drag a row by its grip to reorder; tap it for the topic sheet
-  (name, icon, a trash can at the top right; a name already taken joins the two). Remove topic asks
+  address, tag chips, Save; Remove is a trash can at the top right and asks in a dialog). Tag chips look the same everywhere (#314): a `FilterChip` with the
+  tag's icon and name, no check mark, in Feeds' and Saved's chip rows and in the sheets. After the
+  chips in a sheet, **Edit tags** is a text button with a pen (an action, so it doesn't look like a
+  tag chip). In Manage tags drag a row by its grip to reorder; tap it for the tag sheet
+  (name, icon, a trash can at the top right; a name already taken joins the two). Remove tag asks
   in a dialog over the sheet. The web: still chips with a grip (← → on a focused chip) in dialogs, for now.
 - Settings (the owner's choice, 2026-11-01, instead of the shared "one scrolling list"): two large
-  buttons at the top, **Manage feeds** and **Manage topics** (side by side on `surfaceContainerHigh`,
+  buttons at the top, **Manage feeds** and **Manage tags** (side by side on `surfaceContainerHigh`,
   the icon on a `secondaryContainer` circle, the name and how many), then a list of pages, each a
   `SettingItem` with a Material Symbol, its title, what it holds and a chevron: Account (sign in with
   an emailed link; signed in, who, the last sync or what went wrong, Sync now, Sign out and Delete
@@ -272,7 +272,7 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   bar before). Search is
   an action in the top bar of both destinations (a magnifier) that opens one search page for
   everything: the field in its top bar, one row of filter chips above the results (**Feeds**, a
-  menu chip with All feeds and a check box per feed; **Saved**; a divider; the topic chips), and the results as one list of article rows ranked by relevance, each with a small label
+  menu chip with All feeds and a check box per feed; **Saved**; a divider; the tag chips), and the results as one list of article rows ranked by relevance, each with a small label
   (Feed or Saved). It is not a navigation bar item: it acts on the content of both
   destinations rather than being a place of its own. **Android has no ☰ drawer** (the owner's
   choice): Feeds, Saved and the Inbox are the navigation bar, and every place inside them is a chip.
@@ -283,18 +283,18 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
 - Three levels, the same in Feeds and Saved: the navigation bar says where (Feeds or Saved); a
   **segmented switch** under the search bar (the same as To read / Archive in the save sheet, full
   width with 16dp sides; on the web's wide window in the sidebar) says which view (Feeds: **Unread**
-  and **All**; Saved: **To read** and **All**); one row of chips under it says which group: the topics in Feeds, Liked (heart) and
-  the topics in Saved, in the topics' order, each only when it has something in the tab shown (the
+  and **All**; Saved: **To read** and **All**); one row of chips under it says which group: the tags in Feeds, Liked (heart) and
+  the tags in Saved, in the tags' order, each only when it has something in the tab shown (the
   chosen one stays). Group chips have no check mark and chosen ones keep their weight, so a chip
   never changes width and the row never moves (#208). There is no X (Material 3's filter chips: an X is an input chip's "remove"; the web dropped
   its X too, 2026-11-01; one group at a time: tapping
   the chosen one again lets go) and no manage icon at the end (#307). In Feeds the feeds without a
-  topic follow the topics in the same row, after a divider, as filter chips with their site icon
-  (16dp). While a topic (or one of its feeds) is chosen, the **same row** shows only that topic (lit),
+  tag follow the tags in the same row, after a divider, as filter chips with their site icon
+  (16dp). While a tag (or one of its feeds) is chosen, the **same row** shows only that tag (lit),
   then after the divider its feeds the same way (#338, owner's choice: one chip row, never two): tap
-  one to show it alone (its topic stays lit), tap it again for the whole topic; tap the topic to let
-  go, and every topic comes back. The web does the same (its row has the feeds without a topic too). Feeds' row only shows when a chip would narrow the list: not with a single
-  chip (it would show what the list already shows), unless something is chosen or that chip is a topic
+  one to show it alone (its tag stays lit), tap it again for the whole tag; tap the tag to let
+  go, and every tag comes back. The web does the same (its row has the feeds without a tag too). Feeds' row only shows when a chip would narrow the list: not with a single
+  chip (it would show what the list already shows), unless something is chosen or that chip is a tag
   with two or more feeds in the view (it leads to them). The chips sit right under the switch (their
   touch area is the gap). So every place is one or two taps from the list. **+** is the FAB, the screen's main action, the
   same in Feeds, Saved and the Inbox (it was in the search bar before, owner's choice): the Add sheet, two
@@ -322,8 +322,8 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   instead of Archive and Organise) first what moves it, in words: a tonal **Archive** (the Archive's
   box, styled like Save: the next step; one tap archives it, the article stays open and shows
   Archived with Undo, #331) while it is to read, or a plain **To read** (the open book: puts it back)
-  once archived; then icon buttons, their names on a long press as a tooltip: **Topics** (a tag:
-  the Topics sheet, topic chips only), **Note** (the Note sheet; a note with a pen once written) and
+  once archived; then icon buttons, their names on a long press as a tooltip: **Tags** (a tag:
+  the Tags sheet, tag chips only), **Note** (the Note sheet; a note with a pen once written) and
   **Like** (a heart, filled while liked), then the highlights' count. There is no Organise sheet any
   more; **Remove from Saved** is in ⋮. All its buttons are in one neutral colour (`onSurfaceVariant`, as Material 3's
   toolbars have it; the text buttons were `primary` before, so Share looked different), only the tonal
@@ -355,18 +355,18 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   "Add …" for a whole new address (checked for a Content account first). Long-press a suggestion
   for trash buttons that forget people; Done ends it. Section titles in Title Small, `primary`.
   **Cancel** sits at the bottom left (`SheetActions`), in this sheet and every other one (Add feed,
-  the topic sheet, a highlight, Report a problem; Remove, in the error colour, next to it), and the
-  main button at the bottom right; the heading is only the title (`SheetHeader`). Above the topics a
+  the tag sheet, a highlight, Report a problem; Remove, in the error colour, next to it), and the
+  main button at the bottom right; the heading is only the title (`SheetHeader`). Above the tags a
   segmented **To read** / **Archive** choice (To read to start with when saving); **Save** (filled)
   shows the same icon (To read's open book or the Archive's box), and says **Save and send** or **Send** when
   sending: closing the sheet is Cancel, so only the button changes or sends
   anything; the heading is **Save** while saving. For an article saved before the same sheet opens
-  as **Topics** (only the topic chips: the reader's Topics button, a row's long press) or **Note**
+  as **Tags** (only the tag chips: the reader's Tags button, a row's long press) or **Note**
   (only the note); To read / Archive and Like are the reader's toggles. Right after a save
   Cancel (or closing the sheet) saves and sends nothing, so it takes the save back. Remove from Saved
   asks first in a dialog, and is only in the reader's ⋮: not in its toolbar nor in a row's long press
-  (Archive, Topics, Share), so it stays rare and deliberate (2026-11-01); no Undo. Edit feed and the
-  topic sheet have Remove as a trash can at the right end of the title row, asking first in a dialog. A
+  (Archive, Tags, Share), so it stays rare and deliberate (2026-11-01); no Undo. Edit feed and the
+  tag sheet have Remove as a trash can at the right end of the title row, asking first in a dialog. A
   folder or tag still being typed is taken by the button. One snackbar says where it went and who
   got it ("Saved to To read · Sent to …"). Other apps' share menus have three targets: Save and share
   (the same sheet), Send with Content (the sheet with only Send with Content,
@@ -374,15 +374,15 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   menu opens Send with Content with them picked. After a save there, a tap anywhere but Open closes
   the message and goes back to the other app.
 - Sheets and dialogs (#256): a bottom sheet for anything done with an article or that needs room
-  (Save and share, Add feed with its topic chips (#307), Content's share sheet, highlights, Aa,
+  (Save and share, Add feed with its tag chips (#307), Content's share sheet, highlights, Aa,
   Report a problem, the folder sheet with its icon search); a dialog only to confirm something or
   type one name (remove, rename, Add feed from the share menu); editing a feed is a sheet, like Add feed. No dialog opens on top of a sheet,
-  except to confirm a removal (Remove feed?, Remove topic?, Remove from Saved?: the owner's choice,
-  2026-11-01, a question pops up instead of sitting in the sheet's text), and no sheet on top of another (#323): a sheet opened from within one (Edit topics in Add feed, a
-  feed or Add feed in Manage feeds, New topic in Manage topics) becomes a **page of the same sheet**,
+  except to confirm a removal (Remove feed?, Remove tag?, Remove from Saved?: the owner's choice,
+  2026-11-01, a question pops up instead of sitting in the sheet's text), and no sheet on top of another (#323): a sheet opened from within one (Edit tags in Add feed, a
+  feed or Add feed in Manage feeds, New tag in Manage tags) becomes a **page of the same sheet**,
   its header a back arrow and the title (`ContentSheet`, `SheetHeader`); the arrow or Back shows the
   sheet under it as it was. The web: the same in one dialog (Escape is Back there), and Manage feeds
-  and Manage topics open as pages of the Settings dialog.
+  and Manage tags open as pages of the Settings dialog.
 - Content's share sheet (#251): a `ModalBottomSheet` with the article's title and site, **Send with
   Content** the same To field as in the Save and share sheet, then a full-width Send button, then the apps as 48dp icons with their names,
   four to a row, Copy link and More last.
@@ -405,7 +405,7 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   Yesterday, date) in `primary` Title Small; Mark all as read is a button at the end of the list. The web
   app's sidebar and favicon use the app's logo (the launcher icon's C on its own: no circle or
   white tile).
-- Settings starts with Manage feeds and Manage topics, then the Account page; Integrations holds OPML and Instapaper. The first screen,
+- Settings starts with Manage feeds and Manage tags, then the Account page; Integrations holds OPML and Instapaper. The first screen,
   signed out, is a welcome with the email sign-in first. See docs/architecture.md, "Navigation and
   settings: where everything lives".
 
