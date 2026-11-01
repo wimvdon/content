@@ -132,14 +132,14 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
 - The **bar at the bottom** switches between **Feeds**, **Saved** and, signed in, the **Inbox** (with
   a dot while something shared with you is unread). On a tablet or in landscape it sits at the left
   side; on the web, a wide window has no bar: the menu at the left does it.
-- Under the search bar, **two tabs** say **what you see**: in Feeds **Unread** and **Read** (the
-  articles you have read), in Saved **To read** and **All** (everything saved, archived articles
+- Under the search bar, **two tabs** say **what you see**: in Feeds **Unread** and **All** (every
+  article, read ones too), in Saved **To read** and **All** (everything saved, archived articles
   too). Under the tabs, one row of chips: your **topics** and then the feeds without a topic
   (Feeds), or **Liked** and your **topics** (Saved), in your order: tap one to show only that, tap
   it again to show everything again (only one is picked at a time, so there is no X). With a topic
   picked in Feeds, a second row shows its feeds (on the web, the sidebar lists the feeds). Changing the tab keeps the topic you picked. A
   topic (or Liked) with nothing in the tab shown has no chip: in Unread, only topics with unread
-  articles; in Read, only topics with read ones. Feeds' feed chips do the same: a feed with nothing
+  articles; in All, every topic with articles. Feeds' feed chips do the same: a feed with nothing
   unread has no chip in Unread. The one you picked stays.
 - **There is no ☰ menu in the Android app.** Feeds, Saved and the Inbox are the bar at the
   bottom; everything inside them is a tab or a chip. In the search bar, **+** adds, the same in
@@ -166,8 +166,8 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
 - The **Mark all as read** button (bottom right) is only in the Unread tab, and marks what it shows.
 - **What stays in the Unread list.** An article you read (opened, also from Search,
   marked with its button or scrolled past) stays in the list, dimmed, so nothing disappears under
-  your finger (the same in Read: one you mark unread stays there). The list starts afresh only when
-  you pick another feed or topic, switch between Unread and Read, or refresh yourself. Going to Saved and back, or tapping the
+  your finger. The list starts afresh only when
+  you pick another feed or topic, switch between Unread and All, or refresh yourself. Going to Saved and back, or tapping the
   same feed again, keeps it as it was; a refresh the app does by itself does too.
 - Scrolling down slides the search bar, the tabs and the chips out of the way, so you see
   more articles; scroll up a little and they come straight back.

@@ -1,4 +1,4 @@
-import { Archive, BookOpen, ChevronDown, ChevronRight, Rss, Settings as SettingsIcon } from "lucide-react";
+import { BookOpen, ChevronDown, ChevronRight, Library, Rss, Settings as SettingsIcon } from "lucide-react";
 import { useState } from "react";
 import { app, useApp } from "@/lib/app";
 import { t } from "@/lib/i18n";
@@ -118,8 +118,8 @@ export function Sidebar({
           ))}
         </Section>
 
-        {/* Saved section: its places, as on the state chip: To read (with what is still to read) and
-            the Archive (no count: it is not a to-do). Liked and the topics are filters: chips only. */}
+        {/* Saved section: its two tabs, as on Android: To read (with what is still to read) and All
+            (no count: it is not a to-do). Liked and the topics are filters: chips only. */}
         <Section
           id={SAVED}
           title={t("saved")}
@@ -138,13 +138,13 @@ export function Sidebar({
             count={toRead}
           />
           <Row
-            selected={inSaved && savedFilter.tab.kind === "archive"}
+            selected={inSaved && (savedFilter.tab.kind === "all" || savedFilter.tab.kind === "archive")}
             onClick={() => {
-              app.showSaved({ ...savedFilter, tab: { kind: "archive" } });
+              app.showSaved({ ...savedFilter, tab: { kind: "all" } });
               onNavigate?.();
             }}
-            icon={<Archive className="size-5" />}
-            label={t("archive")}
+            icon={<Library className="size-5" />}
+            label={t("all")}
           />
         </Section>
       </div>

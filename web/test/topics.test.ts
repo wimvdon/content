@@ -125,7 +125,7 @@ describe("topics", () => {
     const article = (feedUrl: string, id: string, read: boolean) => ({ feedUrl, id, title: id, link: null, author: null, html: "", publishedAt: null, fetchedAt: 0, read, imageUrl: null });
     const lib = { ...topicsForTags(library), articles: [article("https://a/feed", "1", false), article("https://b/feed", "2", true)] };
     expect(feedChips(lib, "unread", null)).toEqual(["Tech"]);
-    expect(feedChips(lib, "read", null)).toEqual(["News"]);
+    expect([...feedChips(lib, "all", null)].sort()).toEqual(["News", "Tech"]);
     expect(feedChips(lib, "unread", "news")).toEqual(["Tech", "News"]);
   });
 

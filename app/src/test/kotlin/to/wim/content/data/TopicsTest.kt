@@ -152,7 +152,7 @@ class TopicsTest {
         val withArticles = library.topicsForTags().copy(articles = listOf(article("https://a/feed", "1", false), article("https://b/feed", "2", true)))
         // Tech has an unread article; News only a read one.
         assertEquals(listOf("Tech"), withArticles.feedChips(FeedTab.Unread, chosen = null))
-        assertEquals(listOf("News"), withArticles.feedChips(FeedTab.Read, chosen = null))
+        assertEquals(listOf("News", "Tech"), withArticles.feedChips(FeedTab.All, chosen = null).sorted())
         // The chosen one stays, so it doesn't disappear under your finger.
         assertEquals(listOf("Tech", "News"), withArticles.feedChips(FeedTab.Unread, chosen = "news"))
     }
@@ -162,7 +162,7 @@ class TopicsTest {
         val article = { feed: String, id: String, read: Boolean -> Article(feed, id, id, null, null, "", null, 0L, read = read) }
         val lib = library.copy(articles = listOf(article("https://a/feed", "1", false), article("https://b/feed", "2", true)))
         assertEquals(setOf("https://a/feed"), lib.feedsWithArticles(FeedTab.Unread))
-        assertEquals(setOf("https://b/feed"), lib.feedsWithArticles(FeedTab.Read))
+        assertEquals(setOf("https://a/feed", "https://b/feed"), lib.feedsWithArticles(FeedTab.All))
     }
 
     @Test

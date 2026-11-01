@@ -290,14 +290,14 @@ export function unreadKeys(lib: Library, selection: Selection): Set<string> {
   return new Set(lib.articles.filter((a) => !a.read && includes(lib, selection, a)).map(articleKey));
 }
 
-/** Feeds' two tabs, as on Android: the articles still unread, and those already read. */
-export type FeedTab = "unread" | "read";
+/** Feeds' two tabs, as on Android: the articles still unread, and all of them. */
+export type FeedTab = "unread" | "all";
 
 /** The tab stored as `settings.unreadOnly` (true: Unread). */
-export const feedTabOf = (unreadOnly: boolean): FeedTab => (unreadOnly ? "unread" : "read");
+export const feedTabOf = (unreadOnly: boolean): FeedTab => (unreadOnly ? "unread" : "all");
 
 /** Whether an article belongs in a tab. */
-export const inFeedTab = (a: Article, tab: FeedTab) => a.read === (tab === "read");
+export const inFeedTab = (a: Article, tab: FeedTab) => tab === "all" || !a.read;
 
 /**
  * The articles of one of Feeds' tabs, newest first. Articles in `keep` (read or marked unread

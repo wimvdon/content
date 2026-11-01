@@ -114,7 +114,7 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onAdd, onImport, onU
             <Button variant="ghost" size="icon" onClick={() => void app.refresh()} disabled={refreshing} aria-label={t("refresh")} title={t("refresh") + " (r)"}>
               <RefreshCw className={cn(refreshing && "animate-spin")} />
             </Button>
-            <Button variant="ghost" size="icon" disabled={unread === 0 || tab === "read"} onClick={() => onUndo(app.markAllRead())} aria-label={t("markAllRead")} title={t("markAllRead")}>
+            <Button variant="ghost" size="icon" disabled={unread === 0 || tab === "all"} onClick={() => onUndo(app.markAllRead())} aria-label={t("markAllRead")} title={t("markAllRead")}>
               <CheckCheck />
             </Button>
           </>
@@ -122,7 +122,7 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onAdd, onImport, onU
       </SearchBar>
       {library.feeds.length > 0 ? (
         <>
-          <Tabs labels={[t("unread"), t("readTab")]} selected={tab === "unread" ? 0 : 1} onSelect={(i) => app.setUnreadOnly(i === 0)} />
+          <Tabs labels={[t("unread"), t("all")]} selected={tab === "unread" ? 0 : 1} onSelect={(i) => app.setUnreadOnly(i === 0)} />
           <TagChips
             icons={topicIcons(library)}
             // One feed chosen by its name (#185): its chip comes first, chosen.
@@ -174,8 +174,8 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onAdd, onImport, onU
           </Empty>
         ) : articles.length === 0 ? (
           <Empty
-            icon={library.articles.length === 0 || tab === "read" ? Newspaper : CheckCheck}
-            title={library.articles.length === 0 ? t("noArticlesTitle") : tab === "unread" ? t("caughtUpTitle") : t("noReadTitle")}
+            icon={library.articles.length === 0 || tab === "all" ? Newspaper : CheckCheck}
+            title={library.articles.length === 0 || tab === "all" ? t("noArticlesTitle") : t("caughtUpTitle")}
           >
             {/* Look for new articles (#251), as on Android; not in Read: new ones arrive unread. */}
             {tab === "unread" || library.articles.length === 0 ? (

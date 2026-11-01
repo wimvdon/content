@@ -63,9 +63,9 @@ describe("library", () => {
     lib = setRead(lib, new Set(["a 1"]), true);
     expect(articlesFor(lib, { kind: "all" }, true)).toEqual([]);
     expect(articlesFor(lib, { kind: "all" }, true, new Set(["a 1"])).length).toBe(1);
-    // Feeds' tabs (as on Android): Unread and Read, and kept articles stay put.
+    // Feeds' tabs (as on Android): Unread and All, and kept articles stay put.
     expect(articlesInTab(lib, { kind: "all" }, "unread")).toEqual([]);
-    expect(articlesInTab(lib, { kind: "all" }, "read").length).toBe(1);
+    expect(articlesInTab(lib, { kind: "all" }, "all").length).toBe(1);
     expect(articlesInTab(lib, { kind: "all" }, "unread", new Set(["a 1"])).length).toBe(1);
     expect(feedTabOf(true)).toBe("unread");
     // Manage feeds' drag: one folder's feeds in a new order, the others keeping their places.

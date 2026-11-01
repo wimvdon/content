@@ -315,8 +315,6 @@
     <string name="welcome_import">Importeren uit een andere lezer</string>
     <string name="topic_in_feeds">Feeds · %1$s</string>
     <string name="topic_in_saved">Bewaard · %1$s</string>
-    <string name="filter_read">Gelezen</string>
-    <string name="home_no_read_title">Nog niets gelezen</string>
     <string name="search_all_feeds">Alle feeds</string>
     <string name="add_title">Toevoegen</string>
     <string name="add_choice_feed">Abonneren op feed</string>

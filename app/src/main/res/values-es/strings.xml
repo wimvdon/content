@@ -325,8 +325,6 @@
     <string name="welcome_import">Importar desde otro lector</string>
     <string name="topic_in_feeds">Feeds · %1$s</string>
     <string name="topic_in_saved">Guardados · %1$s</string>
-    <string name="filter_read">Leídos</string>
-    <string name="home_no_read_title">Aún no has leído nada</string>
     <string name="search_all_feeds">Todos los feeds</string>
     <string name="add_title">Añadir</string>
     <string name="add_choice_feed">Suscribirse a un feed</string>
