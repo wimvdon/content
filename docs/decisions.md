@@ -25,6 +25,22 @@ web's sidebar has **All** under Saved instead of the Archive. The stored setting
 stays the same, so nothing needs migrating. Rejected: keeping Read (a list of what you've finished
 is rarely what you look for; All also finds an article read a moment ago).
 
+## 2026-11-01: The web's layout: Android's levels, laid out for a large screen
+
+The owner found the web behind and stuck: the Inbox was a bell in the search bar, Mark all as read
+and Refresh were icons in the search bar, and the chip row couldn't be scrolled with a mouse. The
+rule: **the same hierarchy as Android, not the same widgets**.
+- **Places** (Android's navigation bar): Feeds, Saved and the Inbox, at the top of the sidebar on a
+  wide window and in the bar at the bottom on a phone-sized one. The ☰ drawer is gone: a narrow
+  window has the bar, the chips, and Settings in the search bar, as on Android.
+- **Views** (Android's tabs) stay tabs above the list, with **Refresh** at their end (in Saved too;
+  the Inbox has it next to its title). Rejected: Refresh in the sidebar (far from what it refreshes)
+  and only the r key (not discoverable).
+- **Filters** (Android's chips): on a wide window a list under the places in the sidebar, for the
+  place shown; the chip row only on narrow windows, where a mouse wheel now scrolls it sideways.
+- **Mark all as read** is a floating button at the bottom right of the list, as Android's round
+  button, only in Unread.
+
 ## 2026-11-01: Forwarded emails from Instapaper, with Instapaper's text through an Instaparser key
 
 A user's forwarded emails never reached Saved: Instapaper gives them no address (`url` null,
