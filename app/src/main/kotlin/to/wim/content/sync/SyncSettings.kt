@@ -19,7 +19,8 @@ import to.wim.content.data.ThemeMode
  * same on every Android device and the web app's are the same in every browser, but the two never
  * mix (the owner's choice): a phone and a computer often want something different. That is how it
  * looks (theme, dynamic colour, the reader's font, size, spacing and page colour, Show images, the
- * list view) and what it does (Load full articles, Mark as read on scroll, Always open the website).
+ * list view) and what it does (Load full articles, Mark as read on scroll, Always open the website,
+ * Hide articles with these words).
  *
  * Shared by both apps: what was imported from each connected service (#145:
  * "services.<id>.imported"), the people shared with (#235: [RECIPIENTS]) and the Instapaper
@@ -45,6 +46,7 @@ object SyncSettings {
     const val MARK_READ_ON_SCROLL = PREFIX + "markReadOnScroll"
     const val ALWAYS_OPEN_WEBSITE = PREFIX + "alwaysOpenWebsite"
     const val LIST_VIEW = PREFIX + "listView"
+    const val HIDDEN_WORDS = PREFIX + "hiddenWords"
 
     /** Load full articles and Mark as read on scroll were shared by both apps before; read once, never written. */
     const val LEGACY_FULL_ARTICLES = "fullArticles"
@@ -64,7 +66,7 @@ object SyncSettings {
     private val known =
         setOf(
             THEME, DYNAMIC_COLOR, READER_FONT, READER_TEXT_SIZE, READER_SPACING, READER_BACKGROUND, READER_AUTO_DARK,
-            FULL_ARTICLES, SHOW_IMAGES, MARK_READ_ON_SCROLL, ALWAYS_OPEN_WEBSITE, LIST_VIEW, RECIPIENTS,
+            FULL_ARTICLES, SHOW_IMAGES, MARK_READ_ON_SCROLL, ALWAYS_OPEN_WEBSITE, LIST_VIEW, HIDDEN_WORDS, RECIPIENTS,
         )
 
     /** Names earlier versions wrote; dropped from the file when this device saves it. */
@@ -95,6 +97,7 @@ object SyncSettings {
                 MARK_READ_ON_SCROLL to settings.markReadOnScroll.toString(),
                 ALWAYS_OPEN_WEBSITE to settings.alwaysOpenWebsite.toString(),
                 LIST_VIEW to settings.listView.name,
+                HIDDEN_WORDS to settings.hiddenWords,
                 RECIPIENTS to Recipients.encode(settings.recipients),
             ) +
                 // An import this device doesn't know of stays as the file has it.
@@ -140,6 +143,7 @@ object SyncSettings {
             markReadOnScroll = bool(MARK_READ_ON_SCROLL, bool(LEGACY_MARK_READ_ON_SCROLL, settings.markReadOnScroll)),
             alwaysOpenWebsite = bool(ALWAYS_OPEN_WEBSITE, settings.alwaysOpenWebsite),
             listView = enum(LIST_VIEW, ListView.entries, settings.listView),
+            hiddenWords = values[HIDDEN_WORDS] ?: settings.hiddenWords,
             imports = settings.imports + imports,
             recipients = Recipients.decode(values[RECIPIENTS]) ?: settings.recipients,
         )

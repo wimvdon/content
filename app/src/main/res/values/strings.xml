@@ -163,6 +163,10 @@
     <string name="folder_remove_body">%1$s will be removed. Its feeds and saved articles stay, without this topic.</string>
     <string name="folder_none">No topic</string>
     <string name="setting_mark_read_on_scroll_title">Mark as read on scroll</string>
+    <string name="setting_hidden_words_title">Hide articles with words</string>
+    <string name="setting_hidden_words_none">None</string>
+    <string name="setting_hidden_words_label">Words</string>
+    <string name="setting_hidden_words_hint">Separate words with commas or new lines. Feed articles with one of them as a whole word in their title are hidden; case doesn\'t matter.</string>
     <string name="action_mark_read">Mark as read</string>
     <string name="section_list">Article list</string>
     <string name="setting_list_view">View</string>

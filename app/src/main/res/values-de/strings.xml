@@ -161,6 +161,10 @@
     <string name="folder_remove_body">%1$s wird entfernt. Die Feeds und gespeicherten Artikel bleiben, ohne dieses Thema.</string>
     <string name="folder_none">Ohne Thema</string>
     <string name="setting_mark_read_on_scroll_title">Beim Scrollen als gelesen markieren</string>
+    <string name="setting_hidden_words_title">Artikel mit Wörtern ausblenden</string>
+    <string name="setting_hidden_words_none">Keine</string>
+    <string name="setting_hidden_words_label">Wörter</string>
+    <string name="setting_hidden_words_hint">Trenne Wörter mit Kommas oder Zeilenumbrüchen. Feed-Artikel, deren Titel eines davon als ganzes Wort enthält, werden ausgeblendet; Groß- und Kleinschreibung zählt nicht.</string>
     <string name="action_mark_read">Als gelesen markieren</string>
     <string name="section_list">Artikelliste</string>
     <string name="setting_list_view">Ansicht</string>

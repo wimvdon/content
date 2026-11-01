@@ -72,7 +72,8 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   user name (with your settings), so your other devices are connected too without signing in to
   Instapaper again; disconnecting on any device removes it. It never holds the text of articles you
   only read in a feed or your Instapaper password. Your settings are kept per app: the web app's
-  and the Android app's, each the same on every device of that kind. While the app
+  and the Android app's, each the same on every device of that kind; the Android app's include the
+  words you hide feed articles with (Settings › Article list), if you typed any. While the app
   is on screen it also keeps a connection open to the feed loader that only says when the document
   changed. The document and each record are stored encrypted (AES-256-GCM, with a key for your
   account derived from a secret that only the feed loader has) in Cloudflare's storage (Durable

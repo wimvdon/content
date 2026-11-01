@@ -18,7 +18,14 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -29,6 +36,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.OutlinedButton
 import to.wim.content.ui.feeds.ImportGuides
+import to.wim.content.data.ArticleFilter
 import to.wim.content.data.ListView
 import to.wim.content.data.ReaderStyle
 import to.wim.content.data.Settings
@@ -78,6 +86,8 @@ class SettingsActions(
     val onAlwaysOpenWebsiteChange: (Boolean) -> Unit,
     val onShowImagesChange: (Boolean) -> Unit,
     val onMarkReadOnScrollChange: (Boolean) -> Unit,
+    /** Hide articles with words (#277): the words as typed. */
+    val onHiddenWordsChange: (String) -> Unit = {},
     val onListViewChange: (ListView) -> Unit,
     val onThemeModeChange: (ThemeMode) -> Unit,
     val onDynamicColorChange: (Boolean) -> Unit,
@@ -216,6 +226,53 @@ private fun ListSection(
             summary = null,
             checked = settings.markReadOnScroll,
             onCheckedChange = actions.onMarkReadOnScrollChange,
+        )
+        HiddenWordsSetting(settings.hiddenWords, actions.onHiddenWordsChange)
+    }
+}
+
+/** Hide articles with words (#277): the words in the summary; a dialog to change them. */
+@Composable
+private fun HiddenWordsSetting(
+    text: String,
+    onChange: (String) -> Unit,
+) {
+    var editing by rememberSaveable { mutableStateOf(false) }
+    val words = remember(text) { ArticleFilter.words(text) }
+    SettingItem(
+        title = stringResource(R.string.setting_hidden_words_title),
+        summary = if (words.isEmpty()) stringResource(R.string.setting_hidden_words_none) else words.joinToString(", "),
+        onClick = { editing = true },
+    )
+    if (editing) {
+        var draft by rememberSaveable { mutableStateOf(text) }
+        AlertDialog(
+            onDismissRequest = { editing = false },
+            title = { Text(stringResource(R.string.setting_hidden_words_title)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = draft,
+                        onValueChange = { draft = it },
+                        label = { Text(stringResource(R.string.setting_hidden_words_label)) },
+                        minLines = 3,
+                        maxLines = 8,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Text(
+                        stringResource(R.string.setting_hidden_words_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    onChange(draft.trim())
+                    editing = false
+                }) { Text(stringResource(R.string.action_save)) }
+            },
+            dismissButton = { TextButton(onClick = { editing = false }) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 }
