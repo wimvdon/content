@@ -12,6 +12,7 @@ export function Dialog({
   footer,
   closeLabel,
   wide,
+  cancel,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -21,6 +22,8 @@ export function Dialog({
   footer?: ReactNode;
   closeLabel: string;
   wide?: boolean;
+  /** A sheet (#305): Cancel in words at the top right instead of ×, the same as on Android. */
+  cancel?: string;
 }) {
   return (
     <D.Root open={open} onOpenChange={onOpenChange}>
@@ -38,9 +41,13 @@ export function Dialog({
               <D.Title className="text-lg font-semibold">{title}</D.Title>
               {description ? <D.Description className="mt-1 text-sm text-muted-foreground">{description}</D.Description> : <D.Description className="sr-only">{title}</D.Description>}
             </div>
-            <D.Close className="-mr-2 rounded-full p-2 hover:bg-muted" aria-label={closeLabel}>
-              <X className="size-4" />
-            </D.Close>
+            {cancel ? (
+              <D.Close className="-mr-2 h-9 shrink-0 cursor-pointer rounded-lg px-3 text-sm font-medium text-primary hover:bg-muted">{cancel}</D.Close>
+            ) : (
+              <D.Close className="-mr-2 rounded-full p-2 hover:bg-muted" aria-label={closeLabel}>
+                <X className="size-4" />
+              </D.Close>
+            )}
           </div>
           {/* pt-1: the first field's focus ring isn't cut off by the scrolling body. */}
           <div className="min-h-0 flex-1 overflow-y-auto px-6 pt-1 pb-4">{children}</div>

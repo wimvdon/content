@@ -149,6 +149,7 @@ export function HighlightDialog({
       onOpenChange={(o) => !o && onClose()}
       title={t("highlightTitle")}
       closeLabel={t("close")}
+      cancel={t("cancel")}
       footer={
         <>
           {onRemove ? (
@@ -164,9 +165,6 @@ export function HighlightDialog({
               {t("highlightRemove")}
             </Button>
           ) : null}
-          <Button variant="ghost" onClick={onClose}>
-            {t("cancel")}
-          </Button>
           <Button
             onClick={() => {
               onSave(note);

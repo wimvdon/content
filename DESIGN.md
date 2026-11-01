@@ -239,8 +239,8 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   the sheets follow. Manage topics (in Settings) is a
   list and a page per topic. Topic chips look the same everywhere (#314): a `FilterChip` with the
   topic's icon and name, no check mark, in Feeds' and Saved's chip rows and in the sheets. The Add
-  feed and Organise sheets edit topics right in their chips: after them a **New topic** and an
-  **Edit** `AssistChip`; Edit gives every topic chip a drag handle (left) and a pen (right) and
+  feed and Organise sheets edit topics right in their chips: after them **New topic** and **Edit**
+  as text buttons with an icon (actions, so they don't look like topic chips); Edit gives every topic chip a drag handle (left) and a pen (right) and
   becomes **Done**. Drag a chip among the others to reorder; tap it for the topic sheet (name, icon,
   Remove; a name already taken joins the two). Remove topic asks under the chips, not in a dialog
   over the sheet. The web: the same chips, with the grip, ← → on a focused chip, and the topic dialog. The list: a large top app bar over topic rows (`surfaceContainerHigh`, the topic's icon on
@@ -332,10 +332,12 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   five suggestions as `ListItem`s (avatar, name, address; tap adds), filtered by what is typed, and
   "Add …" for a whole new address (checked for a Content account first). Long-press a suggestion
   for trash buttons that forget people; Done ends it. Section titles in Title Small, `primary`.
-  **Cancel** sits at the top right, next to the heading (#305). At the bottom, saving: **Save to
-  Archive** (outlined) and **Save** (filled, To read), which says **Save and send** or **Send** when
+  **Cancel** sits at the top right, next to the heading (#305), in this sheet and every other one
+  (Add feed, the topic sheet, a highlight, Report a problem; `SheetHeader`; the web: Cancel in words
+  instead of ×). At the bottom, saving: **Save and archive** (outlined, the Archive's box) and
+  **Save** (filled, To read's open book), which says **Save and send** or **Send** when
   sending: closing the sheet is Cancel, so only the button changes or sends
-  anything; the heading is "Save and share", or "Organise" for an article saved before: that one has no Send
+  anything; the heading is **Save** while saving, or "Organise" for an article saved before: that one has no Send
   with Content (Share is next to Organise) and a red Remove at the bottom left. Right after a save there is no Remove:
   Cancel (or closing the sheet) saves and sends nothing, so it takes the save back. Remove from Saved (error
   colour, trash icon) asks first in a dialog, wherever it is: Organise, the reader's ⋮, a row's menu

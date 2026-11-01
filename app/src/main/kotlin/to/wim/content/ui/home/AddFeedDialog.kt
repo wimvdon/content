@@ -57,6 +57,7 @@ import to.wim.content.data.Folder
 import to.wim.content.data.chosenTopic
 import to.wim.content.ui.feeds.TopicEditActions
 import to.wim.content.ui.feeds.TopicChipRow
+import to.wim.content.ui.reader.SheetHeader
 import to.wim.content.ui.reader.SheetSection
 
 /**
@@ -125,7 +126,7 @@ fun AddFeedDialog(
 /**
  * Add feed as a sheet (#307), like the Organise sheet: the website or feed address, then its topic as
  * chips (No topic, then every topic in your order, with its icon), New topic and Edit at the end of
- * them to make, rename, reorder or remove topics right there (#314), and Cancel and Add. [busy] shows a spinner in Add while
+ * them to make, rename, reorder or remove topics right there (#314), Cancel at the top right and Add at the bottom. [busy] shows a spinner in Add while
  * the app looks for the feed; [error] explains why the last attempt failed.
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -180,11 +181,9 @@ fun AddFeedSheet(
                 .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(
-                stringResource(R.string.feeds_add),
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.semantics { heading() },
-            )
+            // Cancel at the top right, as in every sheet; while it looks for the feed, Cancel can't
+            // stop it, so it shows as off rather than doing nothing.
+            SheetHeader(stringResource(R.string.feeds_add), onCancel = onDismiss, enabled = !busy)
             OutlinedTextField(
                 value = address,
                 onValueChange = { address = it },
@@ -213,8 +212,6 @@ fun AddFeedSheet(
             )
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Spacer(Modifier.weight(1f))
-                // While it looks for the feed, Cancel can't stop it: shown as off rather than doing nothing.
-                TextButton(onClick = onDismiss, enabled = !busy) { Text(stringResource(R.string.action_cancel)) }
                 Button(onClick = add, enabled = canAdd) {
                     if (busy) {
                         CircularProgressIndicator(strokeWidth = 2.dp, color = LocalContentColor.current, modifier = Modifier.size(18.dp))

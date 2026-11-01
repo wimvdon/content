@@ -70,12 +70,12 @@ enum class SheetKind {
 }
 
 /**
- * Organise (#143, #304, #305), the one sheet for an article: saving one, tagging one saved last week.
- * Headed Organise every way in, with Cancel at the top right; it doesn't send (#304; Share and the
+ * The one sheet for an article (#143, #304, #305): saving one, tagging one saved last week. Headed
+ * Save while saving and Organise for one saved before, with Cancel at the top right; it doesn't send (#304; Share and the
  * share menu's Send with Content do that). In order: what is being saved (only for [SheetKind.New]:
  * the address field for Add link, or the shared link's title and site), the topics with Like in
  * front, the note. The Archive is a state, not a list to pick (#305): saving, the buttons say where
- * it goes, **Save to Archive** or **Save** (To read). Organising one saved before, Remove sits at the
+ * it goes, **Save and archive** or **Save** (To read). Organising one saved before, Remove sits at the
  * bottom left and Save at the right; it doesn't move the article (the reader's Archive button and a
  * card's menu do). Closing the sheet is Cancel, so only the buttons change anything. [sendOnly]
  * makes it the share menu's Send with Content instead: only the people to send to (#256). Topics
@@ -159,21 +159,18 @@ fun SaveSheet(
                 .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            // The heading, with Cancel at the top right (#305), away from the buttons that save.
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    stringResource(
-                        when {
-                            sendOnly -> R.string.share_send_with_content
-                            // Saving and organising are the same sheet (#304): sending is Share's.
-                            else -> R.string.organise_title
-                        },
-                    ),
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.weight(1f).semantics { heading() },
-                )
-                TextButton(onClick = cancel) { Text(stringResource(R.string.action_cancel)) }
-            }
+            // One sheet, headed for what it does: Save before the save (and right after it), Organise for
+            // one saved before, Send with Content for the share menu's Send.
+            SheetHeader(
+                stringResource(
+                    when {
+                        sendOnly -> R.string.share_send_with_content
+                        kind == SheetKind.Organise -> R.string.organise_title
+                        else -> R.string.action_save
+                    },
+                ),
+                onCancel = cancel,
+            )
             if (kind == SheetKind.New) {
                 if (url == null) {
                     OutlinedTextField(
@@ -231,14 +228,21 @@ fun SaveSheet(
                 }
                 if (kind == SheetKind.Organise) Spacer(Modifier.weight(1f))
                 // Archive is a state, not a list to pick (#305): saving, the button says where it
-                // goes. Save to Archive keeps something you have read already; Save puts it in To read.
+                // goes. Save and archive keeps something you have read already; Save puts it in To read.
                 val canSave = SendTo.canConfirm(choice, hasLink = saved || link != null)
-                if (SaveChoices.offersArchive(kind == SheetKind.Organise, choice)) {
+                val saving = SaveChoices.offersArchive(kind == SheetKind.Organise, choice)
+                if (saving) {
                     OutlinedButton(enabled = canSave, onClick = { save(SaveChoices.toArchive(choice)) }) {
-                        Text(stringResource(R.string.action_save_to_archive))
+                        Icon(painterResource(R.drawable.ic_inventory), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                        Text(stringResource(R.string.action_save_and_archive), modifier = Modifier.padding(start = 8.dp))
                     }
                 }
                 Button(enabled = canSave, onClick = { save(choice) }) {
+                    // Saving, the icons say where it goes: To read's open book, the Archive's box.
+                    if (saving) {
+                        Icon(painterResource(R.drawable.ic_reading_list), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                        Spacer(Modifier.size(8.dp))
+                    }
                     Text(
                         stringResource(
                             when (SendTo.action(choice)) {
@@ -303,6 +307,22 @@ private fun SavedParts(
             minLines = 3,
             modifier = Modifier.fillMaxWidth(),
         )
+    }
+}
+
+/**
+ * A sheet's heading with **Cancel** at its top right (#305), the same in every sheet: away from the
+ * button that saves at the bottom. [enabled] false shows Cancel as off (while busy).
+ */
+@Composable
+internal fun SheetHeader(
+    title: String,
+    onCancel: () -> Unit,
+    enabled: Boolean = true,
+) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f).semantics { heading() })
+        TextButton(onClick = onCancel, enabled = enabled) { Text(stringResource(R.string.action_cancel)) }
     }
 }
 

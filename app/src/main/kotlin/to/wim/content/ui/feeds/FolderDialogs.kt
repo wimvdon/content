@@ -35,6 +35,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.foundation.layout.Spacer
+import to.wim.content.ui.reader.SheetHeader
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -79,11 +81,7 @@ internal fun FolderSheet(
     val results = remember(query) { catalog.search(query) }
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(Modifier.padding(start = 24.dp, end = 24.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(
-                stringResource(if (folder == null) R.string.folder_new else R.string.folder_edit),
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.semantics { heading() },
-            )
+            SheetHeader(stringResource(if (folder == null) R.string.folder_new else R.string.folder_edit), onCancel = onDismiss)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 // The chosen icon, next to the title it goes with.
                 Box(
@@ -143,8 +141,14 @@ internal fun FolderSheet(
                     }
                 }
             }
-            Row(Modifier.align(Alignment.End), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                RemoveAndCancel(onRemove, onDismiss)
+            // Cancel is at the top right; Remove at the bottom left, away from Save.
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                if (onRemove != null) {
+                    TextButton(onClick = onRemove) {
+                        Text(stringResource(R.string.action_remove), color = MaterialTheme.colorScheme.error)
+                    }
+                }
+                Spacer(Modifier.weight(1f))
                 Button(onClick = { onSave(title.trim(), icon) }, enabled = title.isNotBlank()) {
                     Text(stringResource(R.string.action_save))
                 }

@@ -10,6 +10,8 @@ import { cn } from "./ui/cn";
 
 export const chip = "inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border px-3 text-sm disabled:cursor-default disabled:opacity-50";
 export const chipOn = "border-transparent bg-accent text-accent-foreground";
+/** New topic and Edit are actions, not topics (#314): text buttons, so they don't look like chips. */
+const action = "inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-lg px-2 text-sm font-medium text-primary hover:bg-muted disabled:cursor-default disabled:opacity-50";
 
 /**
  * The topics as chips in the Add feed and Organise sheets (#314), as on Android: each with its
@@ -113,13 +115,13 @@ export function TopicChips({
           ))
         : null}
       {!editing ? (
-        <button type="button" disabled={disabled} onClick={() => setDialog("new")} className={cn(chip, "hover:bg-muted")}>
+        <button type="button" disabled={disabled} onClick={() => setDialog("new")} className={action}>
           <Plus className="size-4" aria-hidden="true" />
           {t("newFolder")}
         </button>
       ) : null}
       {topics.length > 0 || editing ? (
-        <button type="button" disabled={disabled} aria-pressed={editing} onClick={() => setEditing(!editing)} className={cn(chip, "hover:bg-muted")}>
+        <button type="button" disabled={disabled} aria-pressed={editing} onClick={() => setEditing(!editing)} className={action}>
           {editing ? <Check className="size-4" aria-hidden="true" /> : <Pencil className="size-4" aria-hidden="true" />}
           {editing ? t("done") : t("edit")}
         </button>

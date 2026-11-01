@@ -150,7 +150,7 @@
     <string name="action_save">Guardar</string>
     <string name="action_edit">Editar</string>
     <string name="action_done">Listo</string>
-    <string name="action_save_to_archive">Guardar en Archivo</string>
+    <string name="action_save_and_archive">Guardar y archivar</string>
     <string name="action_open">Abrir</string>
     <string name="action_undo">Deshacer</string>
     <string name="folders_explanation">Agrupa los feeds por temas para leerlos juntos. Lo que guardas también lleva temas.</string>

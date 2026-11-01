@@ -149,10 +149,6 @@ export default function App() {
   const sidebar = (
     <Sidebar
       onNavigate={() => setDrawer(false)}
-      onManage={() => {
-        setDrawer(false);
-        setDialog("manage");
-      }}
       onSettings={() => {
         setDrawer(false);
         setDialog("settings");
@@ -224,7 +220,7 @@ export default function App() {
           setDialog("add");
         }}
       />
-      <SettingsDialog open={dialog === "settings"} onOpenChange={(o) => setDialog(o ? "settings" : null)} onImport={() => fileInput.current?.click()} />
+      <SettingsDialog open={dialog === "settings"} onOpenChange={(o) => setDialog(o ? "settings" : null)} onImport={() => fileInput.current?.click()} onManage={() => setDialog("manage")} />
       <InstapaperImportDialog />
       <SaveSheet
         onMessage={(text, openKey) =>

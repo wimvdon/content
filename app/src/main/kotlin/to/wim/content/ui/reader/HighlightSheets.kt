@@ -71,7 +71,7 @@ fun HighlightSheet(
                 .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(stringResource(R.string.highlight_title), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
+            SheetHeader(stringResource(R.string.highlight_title), onCancel = onDismiss)
             Quote(highlight.quote, maxLines = 8)
             Status(anchor)
             OutlinedTextField(
@@ -89,7 +89,6 @@ fun HighlightSheet(
                     }) { Text(stringResource(R.string.highlight_remove)) }
                 }
                 Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
-                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
                     Button(onClick = {
                         onSave(note)
                         onDismiss()

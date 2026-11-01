@@ -1,4 +1,4 @@
-import { Heart, Trash2 } from "lucide-react";
+import { Archive, BookOpen, Heart, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { app, useApp } from "@/lib/app";
 import { normalizeUrl } from "@/lib/discovery";
@@ -16,14 +16,14 @@ import { TopicChips, chip, chipOn } from "./TopicChips";
 import { Input } from "./ui/input";
 
 /**
- * Organise (#143, #304, #305), the one sheet for an article, as on Android: Add link (nothing is
- * saved until Save, and Cancel saves nothing), just saved from the reader ("Saved to …"), or one
- * saved before. Headed Organise every way in: it doesn't send (#304; Share does). In order: the
- * address (Add link only), the topics with Like in front, the note. The Archive is a state, not a
- * list to pick (#305): saving, the buttons say where it goes, Save to Archive or Save (To read).
- * An article saved before has Remove at the bottom left, which asks first, and doesn't move (the
- * reader's Archive button and a card's menu do). Closing the sheet (× at the top right) is Cancel:
- * it saves nothing, and right after a save it takes the save back.
+ * The one sheet for an article (#143, #304, #305), as on Android: Add link (nothing is saved until
+ * Save, and Cancel saves nothing), just saved from the reader ("Saved to …"), or one saved before.
+ * Headed Save while saving and Organise for one saved before; it doesn't send (#304; Share does).
+ * In order: the address (Add link only), the topics with Like in front, the note. The Archive is a
+ * state, not a list to pick (#305): saving, the buttons say where it goes, Save and archive or Save
+ * (To read), each with its icon. An article saved before has Remove at the bottom left, which asks
+ * first, and doesn't move (the reader's Archive button and a card's menu do). Cancel at the top
+ * right, or closing the sheet, saves nothing; right after a save it takes the save back.
  */
 /** A message under the sheet, with Open for a new save (its key). */
 type Message = (text: string, openKey?: string) => void;
@@ -76,15 +76,16 @@ function Sheet({
     if (kind === "justSaved" && itemKey) app.undoSave(itemKey);
     app.closeSheet();
   };
-  // The sheet itself picks To read or the Archive, so the title doesn't name one (#229). Saving and
-  // organising are one sheet, headed Organise (#304): sending is Share's.
-  const title = t("organiseTitle");
+  // One sheet, headed for what it does: Save while saving, Organise for one saved before.
+  const saving = offersArchive(kind === "organise", choice);
+  const title = kind === "organise" ? t("organiseTitle") : t("saveArticle");
   return (
     <Dialog
       open
       onOpenChange={(o) => !o && cancel()}
       title={title}
       closeLabel={t("close")}
+      cancel={t("cancel")}
       footer={
         <>
           {/* Organising a saved article: Remove at the bottom left, away from Save; it asks first. Just
@@ -99,13 +100,15 @@ function Sheet({
               {t("remove")}
             </Button>
           ) : null}
-          {/* Saving, the buttons say where it goes (#305); Cancel is the × at the top right. */}
-          {offersArchive(kind === "organise", choice) ? (
+          {/* Saving, the buttons and their icons say where it goes (#305); Cancel is at the top right. */}
+          {saving ? (
             <Button variant="outline" onClick={() => save(toArchive(choice))} disabled={!canConfirm(choice, saved || link !== null)}>
-              {t("saveToArchive")}
+              <Archive />
+              {t("saveAndArchive")}
             </Button>
           ) : null}
           <Button onClick={() => save(choice)} disabled={!canConfirm(choice, saved || link !== null)}>
+            {saving ? <BookOpen /> : null}
             {t("saveArticle")}
           </Button>
         </>

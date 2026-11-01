@@ -1,4 +1,4 @@
-import { Archive, ArchiveRestore, ArrowLeft, Bell, BookmarkPlus, BookOpen, CheckCheck, ChevronDown, Circle, CircleCheck, ExternalLink, Folder as FolderGlyph, Heart, Highlighter, Link2, Menu, Newspaper, Quote, RefreshCw, Rss, Search, Share2, StickyNote, Tag as TagIcon, Trash2, X, type LucideIcon } from "lucide-react";
+import { Plus, Archive, ArchiveRestore, ArrowLeft, Bell, BookmarkPlus, BookOpen, CheckCheck, ChevronDown, Circle, CircleCheck, ExternalLink, Folder as FolderGlyph, Heart, Highlighter, Link2, Menu, Newspaper, Quote, RefreshCw, Rss, Search, Share2, StickyNote, Tag as TagIcon, Trash2, X, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useEscape } from "./ui/useEscape";
 import { RemoveDialog } from "./SavedActions";
@@ -101,6 +101,10 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, on
   return (
     <section className="flex h-full min-w-0 flex-col" aria-label={title}>
       <SearchBar onMenu={onMenu} onSearch={onSearch}>
+        {/* + adds what the place holds, as on Android (#307): here a feed. */}
+        <Button variant="ghost" size="icon" onClick={onAddFeed} aria-label={t("addFeed")} title={t("addFeed")}>
+          <Plus />
+        </Button>
         {library.feeds.length > 0 ? (
           <>
             <Button variant="ghost" size="icon" onClick={() => void app.refresh()} disabled={refreshing} aria-label={t("refresh")} title={t("refresh") + " (r)"}>
@@ -260,8 +264,9 @@ function SavedArticles({
   return (
     <section className="flex h-full min-w-0 flex-col" aria-label={t("saved")}>
       <SearchBar onMenu={onMenu} onSearch={onSearch}>
+        {/* + adds what the place holds, as on Android (#307): here a link. */}
         <Button variant="ghost" size="icon" onClick={app.addLink} aria-label={t("addLink")} title={t("addLink")}>
-          <Link2 />
+          <Plus />
         </Button>
       </SearchBar>
       <TagChips

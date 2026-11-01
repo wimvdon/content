@@ -186,6 +186,11 @@ and then (always before a release):
 - [ ] **+ in the search bar (#307):** in Feeds it opens the Add feed sheet (address, Topic chips
       starting on the topic shown, Cancel and Add); in Saved the save sheet asking for an address;
       not in the Inbox. Saved has no round button any more.
+- [ ] **Sheets alike:** Save on a feed article: the sheet is headed **Save**, Cancel at the top right,
+      **Save and archive** (box icon) and **Save** (open book) at the bottom. Organise on a saved
+      article: headed **Organise**. Add feed, New topic, a highlight and Report a problem: Cancel at
+      the top right, no Cancel at the bottom. New topic and Edit are text buttons, not chips. Web:
+      the same, Cancel in words at the top right, + in the search bar, Manage topics in Settings.
 - [ ] **Topic chips (#314):** Feeds' and Saved's chip rows show each topic's icon. In the Add feed
       and Organise sheets the topics have their icons too, then **New topic** and **Edit**. New
       topic: name and icon, Save: the new topic is chosen. Edit: each chip gets a grip and a pen and
@@ -292,9 +297,9 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
       stays open, now in To read. **Organise** opens the sheet. Web app: the same two buttons.
 - [ ] **Add link** and a link shared from another app: the sheet asks for the address (or shows the
       link), has no To read / Archive chips, **Cancel** at the top right saves nothing, and at the
-      bottom **Save to Archive** and **Save**. Save to Archive: "Saved to Archive"; Save: "Saved to To read".
+      bottom **Save and archive** and **Save**. Save and archive: "Saved to Archive"; Save: "Saved to To read".
 - [ ] **Organise** a saved article (long press a card in Saved): topics, Like, the note, Remove and
-      Save; no Save to Archive. **Cancel** changes nothing.
+      Save; no Save and archive. **Cancel** changes nothing.
 - [ ] Nothing in a sheet asks which service, and no sheet explains an empty field.
 - [ ] **Save, the list icon and Open (#142):** nothing says "Read later", in any language; the
       navigation bar's Saved is a list icon, To read keeps the open book. After saving from the
