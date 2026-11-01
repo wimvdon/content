@@ -7,8 +7,8 @@
 
 import { toPlainText } from "./html";
 import type { Item } from "./items";
-import { sortTime, type Article, type Library } from "./library";
-import { folderOf, hostOf } from "./saved";
+import { sortTime, type Article, type Feed, type Library } from "./library";
+import { hostOf } from "./saved";
 
 export const MAX_RESULTS = 200;
 
@@ -97,30 +97,74 @@ export function mix(query: string, feeds: Article[], saved: Item[], filter: Sear
   return [...fromFeeds, ...fromSaved].sort((a, b) => b.relevance - a.relevance || b.time - a.time).slice(0, limit);
 }
 
-/** Search's kind and that kind's filters (#171): feeds by folder or one feed; Saved by folder, tag and type. */
+/**
+ * Search's filters, as on Android: one row of chips. **Feeds** (a menu: all feeds, or some of them
+ * ticked) and **Saved** pick the kind; neither shows both. Then a **topic**, one at a time, which
+ * narrows both kinds. Picking feeds means only feeds; Saved lets go of them. A topic keeps only the
+ * picked feeds that have it.
+ */
 export interface SearchFilters {
   scope: SearchFilter;
-  /** A folder of feeds (its id). */
-  feedFolderId: string | null;
-  /** One feed (its address). */
-  feedUrl: string | null;
-  /** A folder of Saved (its name, case ignored). */
-  savedFolder: string | null;
-  tag: string | null;
+  /** Some feeds (their addresses), with scope "feeds"; empty: every feed. */
+  feedUrls: string[];
+  /** A topic's name (case ignored). */
+  topic: string | null;
 }
 
-export const noFilters: SearchFilters = { scope: "all", feedFolderId: null, feedUrl: null, savedFolder: null, tag: null };
+export const noFilters: SearchFilters = { scope: "all", feedUrls: [], topic: null };
 
-/** Whether any filter beyond the kind is chosen. */
-export const narrowed = (f: SearchFilters) => f.feedFolderId !== null || f.feedUrl !== null || f.savedFolder !== null || f.tag !== null;
+/** Whether anything beyond the kind is chosen. */
+export const narrowed = (f: SearchFilters) => f.feedUrls.length > 0 || f.topic !== null;
+
+/** The kind `scope`; the picked feeds go, the topic stays (it is about both kinds). */
+export const withScope = (f: SearchFilters, scope: SearchFilter): SearchFilters => ({ ...f, scope, feedUrls: [] });
+
+/** The Feeds menu's check box for one feed: picks it (only feeds then) or lets go of it. */
+export function toggleFeed(f: SearchFilters, url: string): SearchFilters {
+  const feedUrls = f.feedUrls.includes(url) ? f.feedUrls.filter((u) => u !== url) : [...f.feedUrls, url];
+  return { ...f, scope: "feeds", feedUrls };
+}
+
+/** Whether a feed has `topic`: as one of its tags, or as its folder. */
+export function hasTopic(feed: Feed, topic: string, library: Library): boolean {
+  const same = (x: string) => x.trim().toLowerCase() === topic.trim().toLowerCase();
+  return (feed.tags ?? []).some(same) || library.folders.some((f) => f.id === feed.folderId && same(f.title));
+}
+
+/** A topic chip: picks it, or with null lets go; picked feeds without it are let go too. */
+export function withTopic(f: SearchFilters, topic: string | null, library: Library): SearchFilters {
+  if (topic === null) return { ...f, topic: null };
+  const feedUrls = f.feedUrls.filter((url) => {
+    const feed = library.feeds.find((x) => x.url === url);
+    return feed !== undefined && hasTopic(feed, topic, library);
+  });
+  return { ...f, topic, feedUrls };
+}
+
+/**
+ * The topic chips for a kind: the topics that some feed (unless only Saved is searched) or some saved
+ * article (unless only feeds) has, in the user's order; the chosen one always stays.
+ */
+export function searchTopics(library: Library, scope: SearchFilter, chosen: string | null): string[] {
+  const same = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
+  return library.folders
+    .map((f) => f.title)
+    .filter(
+      (topic) =>
+        (chosen !== null && same(topic, chosen)) ||
+        (scope !== "saved" && library.feeds.some((feed) => hasTopic(feed, topic, library))) ||
+        (scope !== "feeds" && library.items.some((i) => i.readingList !== null && i.tags.some((x) => same(x, topic)))),
+    );
+}
+
+/** The feeds the Feeds menu offers: those with the chosen topic, else all of them. */
+export const menuFeeds = (library: Library, topic: string | null): Feed[] => (topic === null ? library.feeds : library.feeds.filter((f) => hasTopic(f, topic, library)));
 
 /** Whether Search shows its results as notes (cards), like Saved's folders: Feeds is rows, All and Saved are notes. */
 export const showsNotes = (scope: SearchFilter) => scope !== "feeds";
 
 /** How many articles the list shows without words typed. */
 export const MAX_BROWSED = 500;
-
-const sameName = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
 
 /**
  * What the Search tab lists (#171), like the Android app's SearchResults. With words typed, the
@@ -131,24 +175,18 @@ export function searchResults(query: string, library: Library, index: ArticleInd
   const browsing = words(query).length === 0;
   const articles = browsing ? library.articles : searchArticles(index, query);
   const items = browsing ? library.items.filter((i) => i.readingList !== null) : searchItems(library.items, query);
-  const folderOfFeed = new Map(library.feeds.map((f) => [f.url, f.folderId]));
+  const byUrl = new Map(library.feeds.map((f) => [f.url, f]));
+  const topic = filters.topic;
   const feeds =
     filters.scope === "saved"
       ? []
-      : articles.filter(
-          (a) => (filters.feedUrl === null || a.feedUrl === filters.feedUrl) && (filters.feedFolderId === null || folderOfFeed.get(a.feedUrl) === filters.feedFolderId),
-        );
+      : articles.filter((a) => {
+          const feed = byUrl.get(a.feedUrl);
+          return (filters.feedUrls.length === 0 || filters.feedUrls.includes(a.feedUrl)) && (topic === null || (feed !== undefined && hasTopic(feed, topic, library)));
+        });
   const saved =
     filters.scope === "feeds"
       ? []
-      : items.filter((i) => {
-          const folder = folderOf(i);
-          return (
-            (filters.savedFolder === null || (folder !== null && sameName(folder, filters.savedFolder))) &&
-            (filters.tag === null || i.tags.some((x) => sameName(x, filters.tag!)))
-          );
-        });
-  // Feed filters are about feeds: with one chosen under All, Saved's matches stay out too.
-  const onlyFeeds = filters.scope === "all" && (filters.feedUrl !== null || filters.feedFolderId !== null);
-  return mix(browsing ? "" : query, feeds, onlyFeeds ? [] : saved, filters.scope, browsing ? MAX_BROWSED : MAX_RESULTS);
+      : items.filter((i) => i.readingList !== null && (topic === null || i.tags.some((x) => x.trim().toLowerCase() === topic.trim().toLowerCase())));
+  return mix(browsing ? "" : query, feeds, saved, filters.scope, browsing ? MAX_BROWSED : MAX_RESULTS);
 }

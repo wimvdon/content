@@ -83,7 +83,7 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   your IP address, under Cloudflare's privacy policy. **Sign out** (Settings › Account) forgets this
   device's key; **Delete synced data** deletes the document, the records, the stored article texts and every device's key from the server
   at once (your devices keep their own copy of the library).
-- **Instapaper (off unless you sign in).** Settings › Manage topics › Instapaper › Sign in opens Instapaper's own
+- **Instapaper (off unless you sign in).** Settings › Integrations › Instapaper › Sign in opens Instapaper's own
   page in your browser, where you approve Reader; Reader never sees your Instapaper password.
   Instapaper then sends back a one-time code, which the app gives to the owner's feed loader (a
   Cloudflare Worker, built from `worker/`). The loader adds Reader's client secret, swaps the code
@@ -116,7 +116,7 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   this phone only, in a file of their own that Android's backup and phone transfer leave out; they
   are never synced and never sent to the owner's feed loader. From then on the app sends them only
   to that site (and its subdomains), over https, when it loads that site's feeds and articles, so
-  articles you pay for load in full. Settings › Sites you're signed in to › Remove forgets them.
+  articles you pay for load in full. Settings › Article view › Sites you're signed in to › Remove forgets them.
 - **Sharing with another Content user (#167).** Only when you send something: Share › Send
   with Content or a person shown with it (one article, #246) or Manage tags › the people icon (a
   tag's articles). The app first asks

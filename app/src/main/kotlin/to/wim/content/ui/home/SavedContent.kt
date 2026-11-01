@@ -76,6 +76,8 @@ data class SavedHome(
     val titleFont: FontFamily,
     /** The feed list's view (Small, Medium, Large), which To read shares. */
     val listView: ListView = ListView.Medium,
+    /** Each tab's items (To read, All; Saved.states), for swiping between them. */
+    val pages: List<List<Item>> = emptyList(),
 )
 
 /**

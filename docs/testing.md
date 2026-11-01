@@ -190,20 +190,26 @@ and then (always before a release):
 - [ ] **Sheets alike:** Save on a feed article: the sheet is headed **Save**, Cancel at the top right,
       **Save and archive** (box icon) and **Save** (open book) at the bottom. Organise on a saved
       article: headed **Organise**. Add feed, New topic, a highlight and Report a problem: Cancel at
-      the top right, no Cancel at the bottom. New topic and Edit are text buttons, not chips. Web:
+      the top right, no Cancel at the bottom. Edit topics is a text button, not a chip. Web:
       the same, Cancel in words at the top right, + in the search bar, Manage topics in Settings.
 - [ ] **Topic chips (#314):** Feeds' and Saved's chip rows show each topic's icon. In the Add feed
-      and Organise sheets the topics have their icons too, then **New topic** and **Edit**. New
+      and Organise sheets the topics have their icons too, then **Edit topics**. New
       topic: name and icon, Save: the new topic is chosen. Edit: each chip gets a grip and a pen and
       Edit says **Done**; drag a chip by its grip onto another place: the order changes there and in
       the chip rows. Tap a chip: rename it (to another topic's name: they join), change its icon, or
       Remove (asks under the chips). Web app: the same, dragging with the mouse or ← → on a chip.
-- [ ] **Settings** lists Account, Manage feeds, Manage topics, Theme, Article list and Article view;
-      each opens its page and back returns to the list. **Manage feeds**: the feeds as chips by topic
-      (a failing one in red); drag one by its grip within its topic; tap one: the Edit feed sheet
-      (rename, another topic, Remove asks in the sheet); Add feed stays on the page; OPML import and
-      export below. **Manage topics**: the topics as chips with grip and pen; drag to reorder, tap to
-      rename, change the icon or remove; New topic; Instapaper below.
+- [ ] **Settings** starts with two large buttons, Manage feeds and Manage topics (how many under
+      each), then Account, Integrations, Theme, Article list and Article view; each page opens and back
+      returns to the list. **Manage feeds** (a sheet): the feeds as chips by topic (a failing one in
+      red); drag one by its grip within its topic; tap one: the Edit feed sheet (rename, another topic,
+      Remove asks in the sheet); Add feed opens over it. **Manage topics** (a sheet): the topics as
+      chips with grip and pen; drag to reorder, tap to rename, change the icon or remove; New topic.
+      **Integrations**: OPML import and export, then Instapaper. Web: the same in the Settings dialog.
+- [ ] **Edit topics:** in Add feed, Edit feed and Save/Organise, Edit topics after the chips opens
+      Manage topics over the sheet; rename a topic there, tap Done: back in the sheet, with what you
+      typed, and the chip renamed. Web: the same.
+- [ ] **Swipe between tabs:** swipe the Feeds list left: Read; right: Unread. The same in Saved (To
+      read, All). Web on a phone: the same with a touch swipe.
 - [ ] **Search:** one chip row: Feeds (menu: All feeds, tick several feeds, Clear), Saved, then
       the topics; a topic narrows feeds and Saved; with a topic picked the Feeds menu lists only its
       feeds.

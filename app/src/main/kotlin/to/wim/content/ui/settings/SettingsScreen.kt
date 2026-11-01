@@ -8,6 +8,10 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Surface
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
@@ -36,24 +40,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.OutlinedButton
 import to.wim.content.ui.feeds.ImportGuides
-import to.wim.content.ui.feeds.FeedSheet
-import to.wim.content.ui.feeds.ReorderableChips
-import to.wim.content.ui.feeds.TopicChipRow
-import to.wim.content.ui.feeds.TopicEditActions
-import to.wim.content.ui.home.FeedIcon
-import to.wim.content.ui.home.FeedIconSize
-import to.wim.content.ui.home.problemText
 import to.wim.content.ui.home.rememberFolderIconPainter
 import to.wim.content.data.Feed
-import to.wim.content.data.FeedProblem
 import to.wim.content.data.Folder
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
 import to.wim.content.data.ArticleFilter
 import to.wim.content.data.ListView
 import to.wim.content.data.ReaderStyle
@@ -89,14 +80,13 @@ data class SettingsState(
     val hasFeeds: Boolean = false,
     /** Instapaper (#215): a connected service, next to the Content account. Null while unknown. */
     val instapaper: InstapaperSettingsState? = null,
-    /** Manage feeds: every feed, the topics (also for Manage topics) and the feeds that fail to download. */
+    /** The feeds and topics, for how many the Manage feeds and Manage topics buttons say. */
     val feeds: List<Feed> = emptyList(),
     val topics: List<Folder> = emptyList(),
-    val problems: Map<String, FeedProblem> = emptyMap(),
 )
 
 /** Settings' pages: the main page lists them, each opens its own (Settings › Account and so on). */
-enum class SettingsPage { Account, Feeds, Topics, Theme, List, Reader }
+enum class SettingsPage { Account, Integrations, Theme, List, Reader }
 
 class SettingsActions(
     val onBack: () -> Unit,
@@ -127,19 +117,16 @@ class SettingsActions(
     val onRemoveSiteSignIn: (String) -> Unit = {},
     /** Opens one of Settings' pages. */
     val onOpenPage: (SettingsPage) -> Unit = {},
-    /** Manage feeds: Add feed (it lands without a topic, and you stay there), edit, remove and reorder a feed. */
-    val onAddFeed: () -> Unit = {},
-    val onEditFeed: (feed: Feed, title: String, topicId: String?) -> Unit = { _, _, _ -> },
-    val onRemoveFeed: (Feed) -> Unit = {},
-    val onReorderFeeds: (topicId: String?, urls: List<String>) -> Unit = { _, _ -> },
-    /** Manage topics, and the topic chips in the feed sheet: new, edit, remove, reorder. */
-    val topicActions: TopicEditActions? = null,
+    /** The two buttons at the top: the Manage feeds and Manage topics sheets. */
+    val onManageFeeds: () -> Unit = {},
+    val onManageTopics: () -> Unit = {},
 )
 
 /**
- * Settings: one row per page, each with its icon, what it holds and a chevron (Account, Manage feeds,
- * Manage topics, Theme, Article list, Article view), then the app's version. Every page is a
- * [SettingsPageScreen] with the same large top app bar.
+ * Settings: two large buttons at the top for what is managed most, Manage feeds and Manage topics
+ * (sheets, so they open from other places too), then one row per page, each with its icon, what it
+ * holds and a chevron (Account, Integrations, Theme, Article list, Article view), then the app's
+ * version. Every page is a [SettingsPageScreen] with the same large top app bar.
  */
 @Composable
 fun SettingsScreen(
@@ -153,15 +140,23 @@ fun SettingsScreen(
         onBack = actions.onBack,
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) {
+        item(key = "manage") {
+            Row(
+                Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                ManageButton(R.string.settings_feeds_title, pluralStringResource(R.plurals.feeds_count, state.feeds.size, state.feeds.size), "rss-feed", actions.onManageFeeds, Modifier.weight(1f))
+                ManageButton(R.string.manage_title, pluralStringResource(R.plurals.topics_count, state.topics.size, state.topics.size), "label", actions.onManageTopics, Modifier.weight(1f))
+            }
+        }
         item(key = "pages") {
             Column {
                 val email = (state.account as? AccountState.SignedIn)?.session?.email
-                PageRow(SettingsPage.Account, R.string.section_account, email ?: stringResource(R.string.settings_account_signed_out), "account-circle", actions)
-                PageRow(SettingsPage.Feeds, R.string.settings_feeds_title, stringResource(R.string.settings_feeds_summary), "rss-feed", actions)
-                PageRow(SettingsPage.Topics, R.string.manage_title, stringResource(R.string.settings_topics_summary), "label", actions)
-                PageRow(SettingsPage.Theme, R.string.setting_theme_title, stringResource(state.settings.appearance.themeMode.labelRes()), "palette", actions)
-                PageRow(SettingsPage.List, R.string.section_list, stringResource(R.string.settings_list_summary), "view-agenda", actions)
-                PageRow(SettingsPage.Reader, R.string.section_article_view, stringResource(R.string.settings_article_view_summary), "chrome-reader-mode", actions)
+                PageRow(SettingsPage.Account, email ?: stringResource(R.string.settings_account_signed_out), "account-circle", actions)
+                PageRow(SettingsPage.Integrations, stringResource(R.string.settings_integrations_summary), "extension", actions)
+                PageRow(SettingsPage.Theme, stringResource(state.settings.appearance.themeMode.labelRes()), "palette", actions)
+                PageRow(SettingsPage.List, stringResource(R.string.settings_list_summary), "view-agenda", actions)
+                PageRow(SettingsPage.Reader, stringResource(R.string.settings_article_view_summary), "chrome-reader-mode", actions)
             }
         }
         item(key = "footer") {
@@ -175,24 +170,47 @@ fun SettingsScreen(
 fun SettingsPage.titleRes(): Int =
     when (this) {
         SettingsPage.Account -> R.string.section_account
-        SettingsPage.Feeds -> R.string.settings_feeds_title
-        SettingsPage.Topics -> R.string.manage_title
+        SettingsPage.Integrations -> R.string.section_integrations
         SettingsPage.Theme -> R.string.setting_theme_title
         SettingsPage.List -> R.string.section_list
         SettingsPage.Reader -> R.string.section_article_view
     }
 
+/**
+ * One of the two large buttons at the top of Settings: its icon on a circle, its name and how many
+ * it holds, on `surfaceContainerHigh`, like the Add sheet's choices.
+ */
+@Composable
+private fun ManageButton(
+    @StringRes title: Int,
+    detail: String,
+    icon: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(onClick = onClick, shape = AppShapes.Item, color = MaterialTheme.colorScheme.surfaceContainerHigh, modifier = modifier) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Box(Modifier.size(40.dp).background(MaterialTheme.colorScheme.secondaryContainer, CircleShape), contentAlignment = Alignment.Center) {
+                Icon(rememberFolderIconPainter(icon), contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer)
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(stringResource(title), style = MaterialTheme.typography.titleMedium)
+                Text(detail, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
+
 /** One row of the main page: the page's icon (a Material Symbol), title, what it holds, and a chevron. */
 @Composable
 private fun PageRow(
     page: SettingsPage,
-    @StringRes title: Int,
     summary: String,
     icon: String,
     actions: SettingsActions,
 ) {
     SettingItem(
-        title = stringResource(title),
+        title = stringResource(page.titleRes()),
         summary = summary,
         onClick = { actions.onOpenPage(page) },
         icon = rememberFolderIconPainter(icon),
@@ -231,8 +249,7 @@ fun SettingsPageScreen(
                         onDeleteData = actions.onDeleteAccountData,
                     )
                 }
-            SettingsPage.Feeds -> {
-                item(key = "feeds") { ManageFeeds(state, actions) }
+            SettingsPage.Integrations -> {
                 // Moving to or from another reader: the feeds in and out.
                 item(key = "opml") {
                     SettingsSection(title = stringResource(R.string.feeds_opml_title)) {
@@ -245,23 +262,6 @@ fun SettingsPageScreen(
                                 Text(stringResource(R.string.feeds_opml_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 ImportGuides()
                             }
-                        }
-                    }
-                }
-            }
-            SettingsPage.Topics -> {
-                item(key = "topics") {
-                    SettingsSection(title = stringResource(R.string.topics_title)) {
-                        SettingsBlock {
-                            Hint(stringResource(R.string.manage_topics_hint))
-                            TopicChipRow(
-                                topics = state.topics,
-                                selected = { false },
-                                onToggle = {},
-                                actions = actions.topicActions,
-                                onCreated = {},
-                                alwaysEditing = true,
-                            )
                         }
                     }
                 }
@@ -283,83 +283,6 @@ fun SettingsPageScreen(
             }
         }
     }
-}
-
-/**
- * Manage feeds: the feeds as chips, grouped by topic (in the topics' order, then No topic), like the
- * chips in Feeds and the sheets. Drag a chip by its handle to reorder it within its topic; tap it for
- * the feed sheet (name, topic, Remove). A feed that fails to download has its name in the error
- * colour. Add feed at the end.
- */
-@Composable
-private fun ManageFeeds(
-    state: SettingsState,
-    actions: SettingsActions,
-) {
-    var editing by rememberSaveable { mutableStateOf<String?>(null) }
-    val groups =
-        remember(state.feeds, state.topics) {
-            val inTopics = state.topics.map { topic -> topic to state.feeds.filter { it.folderId == topic.id } }
-            val loose = state.feeds.filter { feed -> feed.folderId == null || state.topics.none { it.id == feed.folderId } }
-            (inTopics + (null to loose)).filter { it.second.isNotEmpty() }
-        }
-    SettingsSection(title = stringResource(R.string.feeds_title)) {
-        SettingsBlock {
-            Hint(stringResource(if (state.feeds.isEmpty()) R.string.manage_feeds_none else R.string.manage_feeds_hint))
-            groups.forEach { (topic, feeds) ->
-                key(topic?.id) {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            if (topic != null) Icon(rememberFolderIconPainter(topic.icon), contentDescription = null, modifier = Modifier.size(18.dp))
-                            Text(
-                                topic?.title ?: stringResource(R.string.folder_none),
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.semantics { heading() },
-                            )
-                        }
-                        ReorderableChips(
-                            items = feeds,
-                            key = { it.url },
-                            label = { it.title },
-                            icon = { FeedIcon(it, FeedIconSize.Small) },
-                            onReorder = { urls -> actions.onReorderFeeds(topic?.id, urls) },
-                            onEdit = { editing = it.url },
-                            editLabel = stringResource(R.string.feed_edit),
-                            isError = { state.problems.containsKey(it.url) },
-                        )
-                    }
-                }
-            }
-            FilledTonalButton(onClick = actions.onAddFeed, contentPadding = ButtonDefaults.ButtonWithIconContentPadding) {
-                Icon(painterResource(R.drawable.ic_add), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
-                Text(stringResource(R.string.feeds_add), modifier = Modifier.padding(start = 8.dp))
-            }
-        }
-    }
-    state.feeds.firstOrNull { it.url == editing }?.let { feed ->
-        FeedSheet(
-            feed = feed,
-            topics = state.topics,
-            problem = state.problems[feed.url]?.let { problemText(it) },
-            onSave = { title, topicId ->
-                editing = null
-                actions.onEditFeed(feed, title, topicId)
-            },
-            onRemove = {
-                editing = null
-                actions.onRemoveFeed(feed)
-            },
-            onDismiss = { editing = null },
-            topicActions = actions.topicActions,
-        )
-    }
-}
-
-/** An explanation above a page's chips. */
-@Composable
-private fun Hint(text: String) {
-    Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
 /** The sites signed in to (#180), each with Remove. */

@@ -3,7 +3,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArticleList } from "./components/ArticleList";
 import { ArticleView } from "./components/ArticleView";
 import { NavigationBar } from "./components/NavigationBar";
-import { AddFeedDialog, ManageDialog, SettingsDialog } from "./components/Dialogs";
+import { AddChoiceDialog, AddFeedDialog, ManageFeedsDialog, SettingsDialog } from "./components/Dialogs";
+import { ManageTopicsDialog } from "./components/TopicChips";
 import { InstapaperImportDialog } from "./components/ServiceSettings";
 import { SaveSheet } from "./components/SaveSheet";
 import { SearchPanel } from "./components/SearchPanel";
@@ -30,9 +31,11 @@ export default function App() {
   const [drawer, setDrawer] = useState(false);
   // Search takes the list's place until it is closed; the article opened from it stays open.
   const [searching, setSearching] = useState(false);
-  const [dialog, setDialog] = useState<"add" | "manage" | "settings" | null>(null);
-  // Manage topics opened on a topic's page (Edit topic), and Add feed from a topic's page: into it.
-  const [manageTopic, setManageTopic] = useState<string | undefined>(undefined);
+  const [dialog, setDialog] = useState<"add" | "addChoice" | "settings" | null>(null);
+  // Manage feeds and Manage topics, Settings' two buttons: open on their own, so Add feed can open over Manage feeds.
+  const [manageFeeds, setManageFeeds] = useState(false);
+  const [manageTopics, setManageTopics] = useState(false);
+  // Add feed from Manage feeds: without a topic (null); otherwise the topic being viewed.
   const [addInto, setAddInto] = useState<string | null | undefined>(undefined);
   const [message, setMessage] = useState<Message | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -108,7 +111,7 @@ export default function App() {
   // Keyboard: j/k next and previous, m read/unread, o open on the website, r refresh.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (dialog || state.sheet || e.metaKey || e.ctrlKey || e.altKey || (e.target as HTMLElement).closest("input, textarea, select")) return;
+      if (dialog || manageFeeds || manageTopics || state.sheet || e.metaKey || e.ctrlKey || e.altKey || (e.target as HTMLElement).closest("input, textarea, select")) return;
       // Nothing behind an open dialog or menu (the drawer, Aa, Remove, a feed's or folder's dialog).
       if (document.querySelector('[role="dialog"], [role="menu"]')) return;
       const index = openArticle ? visible.findIndex((a) => articleKey(a) === articleKey(openArticle)) : -1;
@@ -134,7 +137,7 @@ export default function App() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [dialog, state.sheet, openArticle, visible, library.articles, open, setOpenArticle]);
+  }, [dialog, manageFeeds, manageTopics, state.sheet, openArticle, visible, library.articles, open, setOpenArticle]);
 
   const importFile = async (file: File) => {
     const added = app.importOpml(await file.text());
@@ -178,6 +181,7 @@ export default function App() {
               onOpen={open}
               onMenu={() => setDrawer(true)}
               onAddFeed={() => setDialog("add")}
+              onAdd={() => setDialog("addChoice")}
               onImport={() => fileInput.current?.click()}
               onUndo={undoMarkAll}
               onSearch={() => setSearching(true)}
@@ -195,32 +199,42 @@ export default function App() {
         )}
       </div>
 
+      <AddChoiceDialog
+        open={dialog === "addChoice"}
+        onOpenChange={(o) => setDialog(o ? "addChoice" : null)}
+        onFeed={() => setDialog("add")}
+        onArticle={() => {
+          setDialog(null);
+          app.addLink();
+        }}
+      />
       <AddFeedDialog
         key={dialog === "add" ? "open" : "closed"}
         open={dialog === "add"}
         onOpenChange={(o) => {
-          setDialog(o ? "add" : addInto !== undefined ? "manage" : null);
+          setDialog(o ? "add" : null);
           if (!o) setAddInto(undefined);
         }}
         folderId={addInto !== undefined ? addInto : selection.kind === "folder" ? selection.folderId : null}
       />
-      <ManageDialog
-        // Opened afresh each time, on the topic asked for (or the list).
-        key={dialog === "manage" ? `open:${String(manageTopic)}` : "closed"}
-        open={dialog === "manage"}
-        topic={manageTopic}
-        onOpenChange={(o) => {
-          setDialog(o ? "manage" : null);
-          if (!o) setManageTopic(undefined);
-        }}
-        onAddFeed={(topicId) => {
-          setAddInto(topicId);
-          // Back from Add feed: the topic's page it came from, or the list.
-          setManageTopic(topicId ?? undefined);
+      <ManageFeedsDialog
+        open={manageFeeds}
+        onOpenChange={setManageFeeds}
+        onAddFeed={() => {
+          // Without a topic; Manage feeds stays open under Add feed.
+          setAddInto(null);
           setDialog("add");
         }}
       />
-      <SettingsDialog open={dialog === "settings"} onOpenChange={(o) => setDialog(o ? "settings" : null)} onImport={() => fileInput.current?.click()} onManage={() => setDialog("manage")} />
+      <ManageTopicsDialog open={manageTopics} onOpenChange={setManageTopics} />
+      <SettingsDialog
+        key={dialog === "settings" ? "settings" : "closed"}
+        open={dialog === "settings"}
+        onOpenChange={(o) => setDialog(o ? "settings" : null)}
+        onImport={() => fileInput.current?.click()}
+        onManageFeeds={() => setManageFeeds(true)}
+        onManageTopics={() => setManageTopics(true)}
+      />
       <InstapaperImportDialog />
       <SaveSheet
         onMessage={(text, openKey) =>

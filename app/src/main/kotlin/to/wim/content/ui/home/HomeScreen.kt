@@ -100,6 +100,7 @@ import to.wim.content.data.Saved
 import to.wim.content.data.SavedFilter
 import to.wim.content.data.FeedChips
 import to.wim.content.data.FeedSelection
+import to.wim.content.data.FeedTab
 import to.wim.content.data.ScrollRead
 import to.wim.content.data.feedTagsInOrder
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -143,6 +144,8 @@ data class HomeState(
     val inboxUnread: Int = 0,
     /** The Inbox, for its destination; null while signed out. */
     val inbox: InboxHome? = null,
+    /** Each of Feeds' tabs' articles (Unread, Read), so a swipe shows the next tab's list as it comes in. */
+    val feedPages: List<List<Article>> = emptyList(),
 )
 
 /** The app's top-level destinations (#119, #246): Feeds, Saved and the Inbox. */
@@ -347,8 +350,14 @@ fun HomeScreen(
                         onRefresh = actions.onRefresh,
                         modifier = Modifier.fillMaxSize(),
                     ) {
+                        // Swipe between To read and All, as between the tabs.
+                        TabPager(
+                            count = Saved.states.size,
+                            selected = Saved.states.indexOf(reading.filter.tab).coerceAtLeast(0),
+                            onSelect = { i -> actions.onSavedFilter(reading.filter.copy(tab = Saved.states[i])) },
+                        ) { page ->
                         SavedContent(
-                            reading,
+                            reading.copy(filter = reading.filter.copy(tab = Saved.states[page]), items = reading.pages.getOrNull(page) ?: reading.items),
                             state.showImages,
                             actions.onOpenItem,
                             onArchive = actions.onArchiveItem,
@@ -357,6 +366,7 @@ fun HomeScreen(
                             onRemove = actions.onRemoveItem,
                             onClearFilters = { actions.onSavedFilter(reading.filter.copy(likedOnly = false, tags = emptySet())) },
                         )
+                        }
                     }
                 } else {
                 PullToRefreshBox(
@@ -364,13 +374,21 @@ fun HomeScreen(
                     onRefresh = actions.onRefresh,
                     modifier = Modifier.fillMaxSize(),
                 ) {
+                    // Swipe between Unread and Read, as between the tabs: each page is its tab's list.
+                    TabPager(
+                        count = FeedTab.entries.size,
+                        selected = if (state.unreadOnly) 0 else 1,
+                        onSelect = { i -> actions.onUnreadOnlyChange(i == 0) },
+                        enabled = state.feeds.isNotEmpty(),
+                    ) { page ->
+                    val pageState = state.copy(articles = state.feedPages.getOrNull(page) ?: state.articles, unreadOnly = page == 0)
                     val content =
                         when {
                             !state.loaded -> HomeContent.Loading
                             state.feeds.isEmpty() -> HomeContent.NoFeeds
                             !state.hasAnyArticles && state.refreshing -> HomeContent.Loading
                             !state.hasAnyArticles -> HomeContent.NoArticles
-                            state.articles.isEmpty() -> HomeContent.Empty
+                            pageState.articles.isEmpty() -> HomeContent.Empty
                             else -> HomeContent.Articles
                         }
                     AnimatedContent(
@@ -387,9 +405,10 @@ fun HomeScreen(
                                 }
                             HomeContent.Loading -> ArticleSkeletons()
                             HomeContent.NoArticles -> NothingToShow(unread = null, state.refreshing, actions.onRefresh)
-                            HomeContent.Empty -> NothingToShow(unread = state.unreadOnly, state.refreshing, actions.onRefresh)
-                            HomeContent.Articles -> ArticleList(state, actions)
+                            HomeContent.Empty -> NothingToShow(unread = pageState.unreadOnly, state.refreshing, actions.onRefresh)
+                            HomeContent.Articles -> ArticleList(pageState, actions)
                         }
+                    }
                     }
                 }
                 }

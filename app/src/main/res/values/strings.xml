@@ -327,13 +327,17 @@
     <string name="add_choice_article_body">Save and organise an article by entering its URL</string>
     <string name="settings_account_signed_out">Not signed in</string>
     <string name="settings_feeds_title">Manage feeds</string>
-    <string name="settings_feeds_summary">Your feeds and their topics, OPML import and export</string>
-    <string name="settings_topics_summary">Topics and Instapaper</string>
     <string name="settings_list_summary">View, mark as read on scroll, hidden words</string>
     <string name="section_article_view">Article view</string>
     <string name="settings_article_view_summary">Text, full articles, sites you pay for</string>
     <string name="manage_feeds_hint">Tap a feed to rename it, change its topic or remove it. Drag one by its handle to reorder it.</string>
     <string name="manage_feeds_none">No feeds yet.</string>
-    <string name="topics_title">Topics</string>
     <string name="manage_topics_hint">Topics group your feeds and saved articles. Tap a topic to rename it, change its icon or remove it; drag one by its handle to reorder it. Giving it another topic’s name merges the two.</string>
+    <string name="topics_edit">Edit topics</string>
+    <string name="section_integrations">Integrations</string>
+    <string name="settings_integrations_summary">Instapaper, OPML import and export</string>
+    <plurals name="topics_count">
+        <item quantity="one">%d topic</item>
+        <item quantity="other">%d topics</item>
+    </plurals>
 </resources>

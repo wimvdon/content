@@ -169,7 +169,7 @@ private val ICON_GRID_HEIGHT = 240.dp
 /**
  * Edit a feed, as a sheet like Add feed: its name (blank brings back the feed's own title), its
  * address, why its last download failed (if it did), its topic as chips (No topic, then every
- * topic, with New topic and Edit as in Add feed), Remove at the bottom left (asking first, in the
+ * topic, with Edit topics as in Add feed), Remove at the bottom left (asking first, in the
  * sheet) and Save at the right. Cancel at the top right, as in every sheet.
  */
 @OptIn(ExperimentalMaterial3Api::class)

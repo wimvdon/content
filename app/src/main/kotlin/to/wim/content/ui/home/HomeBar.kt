@@ -21,6 +21,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -127,6 +134,37 @@ fun HomeTabs(
             )
         }
     }
+}
+
+/**
+ * The pages under [HomeTabs]: swiping sideways goes to the next or previous tab, and choosing a
+ * tab slides to its page. [content] draws one page (its tab's list).
+ */
+@Composable
+fun TabPager(
+    count: Int,
+    selected: Int,
+    onSelect: (Int) -> Unit,
+    enabled: Boolean = true,
+    content: @Composable (page: Int) -> Unit,
+) {
+    val pager = rememberPagerState(initialPage = selected) { count }
+    val currentSelected by rememberUpdatedState(selected)
+    val currentOnSelect by rememberUpdatedState(onSelect)
+    // A tab tapped: slide to its page.
+    LaunchedEffect(selected) { if (pager.currentPage != selected) pager.animateScrollToPage(selected) }
+    // A page swiped to: choose its tab.
+    LaunchedEffect(pager) {
+        snapshotFlow { pager.settledPage }.collect { page -> if (page != currentSelected) currentOnSelect(page) }
+    }
+    HorizontalPager(
+        state = pager,
+        userScrollEnabled = enabled,
+        // The neighbouring page is drawn only while it is being swiped in.
+        beyondViewportPageCount = 0,
+        modifier = Modifier.fillMaxSize(),
+        verticalAlignment = Alignment.Top,
+    ) { page -> content(page) }
 }
 
 /**

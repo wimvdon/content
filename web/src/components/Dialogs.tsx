@@ -1,8 +1,6 @@
-import { ArrowDown, ArrowLeft, ArrowUp, ChevronDown, EllipsisVertical, Merge, Pencil, Plus, Trash2 } from "lucide-react";
-import { useEscape } from "./ui/useEscape";
+import { ArrowLeft, BookmarkPlus, BookOpenText, ChevronDown, ChevronRight, LayoutList, Palette, Plus, Puzzle, Rss, Tag as TagIcon, Trash2, UserRound } from "lucide-react";
 import { ConfirmRemove } from "./ConfirmRemove";
-import { ManageFeedsIcon } from "./ManageIcons";
-import { TopicChips, chip, chipOn } from "./TopicChips";
+import { EditChips, TopicChips, chip, chipOn } from "./TopicChips";
 import { useEffect, useMemo, useState } from "react";
 import { gravatarUrl } from "@/lib/account";
 import { app, useApp, type ListView, type Theme } from "@/lib/app";
@@ -15,11 +13,10 @@ import { useIcons } from "./useIcons";
 import { Button } from "./ui/button";
 import { cn } from "./ui/cn";
 import { Dialog } from "./ui/dialog";
-import { Input, Label, Select } from "./ui/input";
+import { Input, Label } from "./ui/input";
 import { Segmented } from "./ui/segmented";
 import { ReaderStyleControls } from "./ReaderStyleControls";
 import { InstapaperSettings } from "./ServiceSettings";
-import { topicCounts } from "@/lib/topics";
 import { SwitchRow } from "./ui/switch";
 import { pushSupported } from "@/lib/notifications";
 
@@ -27,8 +24,8 @@ type Props = { open: boolean; onOpenChange: (open: boolean) => void };
 
 /**
  * Add feed, opened with a new key each time (App), so the address starts empty. Then its topic as
- * chips (No topic, then every topic with its icon), with New topic and Edit at the end to make,
- * rename, reorder or remove topics right there (#314), as on Android.
+ * chips (No topic, then every topic with its icon), with Edit topics at the end (Manage topics over
+ * this dialog), as on Android.
  */
 export function AddFeedDialog({ open, onOpenChange, folderId }: Props & { folderId: string | null }) {
   const { library } = useApp();
@@ -112,278 +109,66 @@ function exportOpml() {
 }
 
 /**
- * Manage topics, as on Android: the topics with what they hold (feeds and saved articles, and a
- * feed that fails), in the user's order; then the feeds without a topic, loose; Add feed and New
- * topic. Clicking a topic opens its page in the same dialog, for managing it (reading is in Feeds
- * and Saved): its feeds (reorder, edit, add one to it), how many saved articles have it, Edit, and
- * Merge with… and Remove in the ⋮ menu (rarely needed, so they stay out of the way).
+ * Manage feeds, as on Android's sheet: the feeds as chips, grouped by topic (in the topics' order,
+ * then No topic). Drag a chip (or focus it and press ← →) to reorder it within its topic; click it
+ * to edit it (name, topic, Remove). A feed that fails to download has its name in red. Add feed at
+ * the end (over this dialog). Every change is stored at once, so it has **Done**.
  */
-export function ManageDialog({
-  open,
-  onOpenChange,
-  onAddFeed,
-  topic: initialTopic,
-}: Props & { onAddFeed: (topicId: string | null) => void; topic?: string }) {
+export function ManageFeedsDialog({ open, onOpenChange, onAddFeed }: Props & { onAddFeed: () => void }) {
   const { library, problems } = useApp();
-  const counts = useMemo(() => topicCounts(library), [library]);
-  // undefined: the list; an id: that topic's page.
-  const [shown, setShown] = useState<string | undefined>(initialTopic);
-  const [editFeed, setEditFeed] = useState<Feed | null>(null);
-  const [editFolder, setEditFolder] = useState<Folder | "new" | null>(null);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [merging, setMerging] = useState(false);
-  const [confirmRemove, setConfirmRemove] = useState(false);
-  useEscape(menuOpen, () => setMenuOpen(false));
-  const loose = library.feeds.filter((f) => !f.folderId || !library.folders.some((x) => x.id === f.folderId));
-  const topic = shown ? library.folders.find((f) => f.id === shown) : undefined;
-  const feeds = topic ? library.feeds.filter((f) => f.folderId === topic.id) : [];
-  const failing = (list: Feed[]) => list.filter((f) => problems.has(f.url)).length;
-  const detail = (feedsIn: number, saved: number, fails: number) =>
-    [plural("feedsCount", feedsIn), plural("topicSavedCount", saved), ...(fails > 0 ? [plural("topicFailingCount", fails)] : [])].join(" · ");
-  const count = topic ? counts.get(topic.id) : undefined;
+  const [editing, setEditing] = useState<Feed | null>(null);
+  const groups = useMemo(() => {
+    const inTopics = library.folders.map((topic) => [topic, library.feeds.filter((f) => f.folderId === topic.id)] as const);
+    const loose = library.feeds.filter((f) => f.folderId === null || !library.folders.some((x) => x.id === f.folderId));
+    return [...inTopics, [null, loose] as const].filter(([, feeds]) => feeds.length > 0);
+  }, [library]);
   return (
-    <>
-      <Dialog
-        open={open}
-        onOpenChange={onOpenChange}
-        title={topic ? topic.title : t("manageTitle")}
-        closeLabel={t("close")}
-        wide
-        footer={
-          topic ? (
-            <>
-              <div className="relative mr-auto">
-                <Button variant="ghost" size="icon" onClick={() => setMenuOpen(!menuOpen)} aria-expanded={menuOpen} aria-label={t("moreOptions")} title={t("moreOptions")}>
-                  <EllipsisVertical />
-                </Button>
-                {menuOpen ? (
-                  <>
-                    <div className="fixed inset-0 z-20" onClick={() => setMenuOpen(false)} aria-hidden="true" />
-                    <div role="menu" className="absolute bottom-full left-0 z-30 mb-1 w-56 rounded-xl border bg-card py-1 shadow-lg">
-                      {library.folders.length > 1 ? (
-                        <MenuButton
-                          icon={<Merge />}
-                          label={t("topicMerge")}
-                          onClick={() => {
-                            setMenuOpen(false);
-                            setMerging(true);
-                          }}
-                        />
-                      ) : null}
-                      <MenuButton
-                        icon={<Trash2 />}
-                        label={t("topicRemove")}
-                        destructive
-                        onClick={() => {
-                          setMenuOpen(false);
-                          setConfirmRemove(true);
-                        }}
-                      />
-                    </div>
-                  </>
-                ) : null}
-              </div>
-              <Button variant="outline" onClick={() => setEditFolder(topic)}>
-                <Pencil />
-                {t("editFolder")}
-              </Button>
-            </>
-          ) : (
-            // Two actions: Add feed (the more frequent) filled, New topic quieter.
-            <>
-              <Button variant="tonal" onClick={() => setEditFolder("new")}>
-                <Plus />
-                {t("newFolder")}
-              </Button>
-              <Button onClick={() => onAddFeed(null)}>
-                <Plus />
-                {t("addFeed")}
-              </Button>
-            </>
-          )
-        }
-      >
-        {topic ? (
-          <div className="space-y-5">
-            <Button variant="ghost" size="sm" onClick={() => setShown(undefined)}>
-              <ArrowLeft />
-              {t("manageTitle")}
-            </Button>
-            <section className="space-y-1">
-              <h3 className="text-sm font-medium text-primary">{t("feeds")}</h3>
-              <FeedRows feeds={feeds} onEdit={setEditFeed} />
-              <Button variant="ghost" onClick={() => onAddFeed(topic.id)}>
-                <Plus />
-                {t("topicAddFeed").replace("{name}", topic.title)}
-              </Button>
-            </section>
-            <section className="space-y-1">
-              <h3 className="text-sm font-medium text-primary">{t("saved")}</h3>
-              <p className="text-sm">
-                {plural("topicSavedCount", count?.saved ?? 0)} · {plural("topicToReadCount", count?.toRead ?? 0)}
-              </p>
-            </section>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {library.folders.length === 0 ? <p className="text-sm text-muted-foreground">{t("foldersExplanation")}</p> : null}
-            <ul className="space-y-1">
-              {library.folders.map((f, i) => {
-                const inTopic = library.feeds.filter((x) => x.folderId === f.id);
-                const fails = failing(inTopic);
-                return (
-                  <li key={f.id} className="flex items-center gap-2 rounded-xl bg-muted/60 p-2">
-                    <button type="button" onClick={() => setShown(f.id)} className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-left">
-                      <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground">
-                        <FolderIcon name={f.icon} className="size-4" />
-                      </span>
-                      <span className="min-w-0">
-                        <span className="block truncate font-medium">{f.title}</span>
-                        <span className={cn("block truncate text-xs", fails > 0 ? "text-destructive" : "text-muted-foreground")}>
-                          {detail(inTopic.length, counts.get(f.id)?.saved ?? 0, fails)}
-                        </span>
-                      </span>
-                    </button>
-                    <Button variant="ghost" size="iconSm" disabled={i === 0} onClick={() => app.moveFolderBy(f.id, -1)} aria-label={t("moveUp")}>
-                      <ArrowUp />
-                    </Button>
-                    <Button variant="ghost" size="iconSm" disabled={i === library.folders.length - 1} onClick={() => app.moveFolderBy(f.id, 1)} aria-label={t("moveDown")}>
-                      <ArrowDown />
-                    </Button>
-                  </li>
-                );
-              })}
-            </ul>
-            {/* The feeds without a topic, loose under the topics (there is no "No topic" page). */}
-            {loose.length > 0 ? <FeedRows feeds={loose} onEdit={setEditFeed} /> : null}
-          </div>
-        )}
-      </Dialog>
-      <EditFeedDialog key={`feed:${editFeed?.url ?? ""}`} feed={editFeed} folders={library.folders} onClose={() => setEditFeed(null)} />
-      <FolderDialog
-        key={`folder:${editFolder === "new" ? "new" : (editFolder?.id ?? "")}`}
-        folder={editFolder}
-        onClose={() => setEditFolder(null)}
-        onCreated={(id) => setShown(id)}
-      />
-      {topic ? (
-        <>
-          <MergeDialog
-            key={`merge:${topic.id}:${String(merging)}`}
-            open={merging}
-            topic={topic}
-            others={library.folders.filter((f) => f.id !== topic.id)}
-            onMerge={(into) => {
-              app.mergeTopic(topic.id, into);
-              setMerging(false);
-              setShown(into);
-            }}
-            onClose={() => setMerging(false)}
-          />
-          <ConfirmRemove
-            open={confirmRemove}
-            title={t("removeFolderTitle")}
-            body={t("removeFolderBody").replace("{name}", topic.title)}
-            onConfirm={() => {
-              app.removeFolder(topic.id);
-              setConfirmRemove(false);
-              setShown(undefined);
-            }}
-            onClose={() => setConfirmRemove(false)}
-          />
-        </>
-      ) : null}
-    </>
-  );
-}
-
-/** Feeds as rows, on a topic's page and (those without a topic) in Manage topics: reorder and edit. */
-function FeedRows({ feeds, onEdit }: { feeds: Feed[]; onEdit: (feed: Feed) => void }) {
-  const { problems } = useApp();
-  return (
-    <ul>
-      {feeds.map((feed, index) => (
-        <li key={feed.url} className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-muted">
-          <FeedIcon feed={feed} />
-          <span className="min-w-0 flex-1">
-            <span className="block truncate text-sm">{feed.title}</span>
-            <span className={cn("block truncate text-xs", problems.has(feed.url) ? "text-destructive" : "text-muted-foreground")}>
-              {problems.has(feed.url) ? t("feedFailing") : feed.url}
-            </span>
-          </span>
-          <Button variant="ghost" size="iconSm" disabled={index === 0} onClick={() => app.moveFeedBy(feed.url, -1)} aria-label={t("moveUp")}>
-            <ArrowUp />
-          </Button>
-          <Button variant="ghost" size="iconSm" disabled={index === feeds.length - 1} onClick={() => app.moveFeedBy(feed.url, 1)} aria-label={t("moveDown")}>
-            <ArrowDown />
-          </Button>
-          <Button variant="ghost" size="iconSm" onClick={() => onEdit(feed)} aria-label={t("edit")}>
-            <Pencil />
-          </Button>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-function MenuButton({ icon, label, onClick, destructive }: { icon: React.ReactNode; label: string; onClick: () => void; destructive?: boolean }) {
-  return (
-    <button
-      type="button"
-      role="menuitem"
-      onClick={onClick}
-      className={cn(
-        "flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left text-sm hover:bg-muted [&_svg]:size-4",
-        destructive ? "text-destructive [&_svg]:text-destructive" : "[&_svg]:text-muted-foreground",
-      )}
-    >
-      {icon}
-      {label}
-    </button>
-  );
-}
-
-/** Merge with…: pick the topic that stays; it gets this one's feeds and saved articles. */
-function MergeDialog({ open, topic, others, onMerge, onClose }: { open: boolean; topic: Folder; others: Folder[]; onMerge: (into: string) => void; onClose: () => void }) {
-  const [into, setInto] = useState("");
-  return (
-    <Dialog
-      open={open}
-      onOpenChange={(o) => !o && onClose()}
-      title={`${topic.title}: ${t("topicMerge")}`}
-      description={t("topicMergeBody")}
-      closeLabel={t("close")}
-      footer={
-        <>
-          <Button variant="ghost" onClick={onClose}>
-            {t("cancel")}
-          </Button>
-          <Button disabled={!into} onClick={() => onMerge(into)}>
-            {t("topicMergeAction")}
-          </Button>
-        </>
-      }
-    >
-      <Select aria-label={t("topicMerge")} value={into} onChange={(e) => setInto(e.currentTarget.value)} className="w-full">
-        <option value="">…</option>
-        {others.map((f) => (
-          <option key={f.id} value={f.id}>
-            {f.title}
-          </option>
+    <Dialog open={open} onOpenChange={onOpenChange} title={t("manageFeedsTitle")} closeLabel={t("close")} cancel={t("done")}>
+      <p className="pb-3 text-sm text-muted-foreground">{t(library.feeds.length === 0 ? "manageFeedsNone" : "manageFeedsHint")}</p>
+      <div className="space-y-4">
+        {groups.map(([topic, feeds]) => (
+          <section key={topic?.id ?? ""} className="space-y-2">
+            <h3 className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
+              {topic ? <FolderIcon name={topic.icon} className="size-4" /> : null}
+              {topic?.title ?? t("noFolder")}
+            </h3>
+            <div className="flex flex-wrap items-center gap-1.5">
+              <EditChips
+                items={feeds as Feed[]}
+                id={(f) => f.url}
+                label={(f) => f.title}
+                icon={(f) => <FeedIcon feed={f} className="size-4" />}
+                onReorder={(urls) => app.reorderFeedsIn(topic?.id ?? null, urls)}
+                onEdit={setEditing}
+                editLabel={t("editFeed")}
+                error={(f) => problems.has(f.url)}
+              />
+            </div>
+          </section>
         ))}
-      </Select>
+        <Button variant="tonal" onClick={onAddFeed}>
+          <Plus />
+          {t("addFeed")}
+        </Button>
+      </div>
+      {editing ? <EditFeedDialog key={editing.url} feed={editing} onClose={() => setEditing(null)} /> : null}
     </Dialog>
   );
 }
 
-function EditFeedDialog({ feed, folders, onClose }: { feed: Feed | null; folders: Folder[]; onClose: () => void }) {
-  const [title, setTitle] = useState(feed?.title ?? "");
-  const [folderId, setFolderId] = useState(feed?.folderId ?? "");
+/**
+ * Edit a feed, as on Android's sheet: its name (empty brings back the feed's own), why it fails if
+ * it does, its topic as chips (No topic, then every topic, Edit topics), Remove (asks first) and Save.
+ */
+function EditFeedDialog({ feed, onClose }: { feed: Feed; onClose: () => void }) {
+  const { library, problems } = useApp();
+  const [title, setTitle] = useState(feed.title);
+  const [topicId, setTopicId] = useState<string | null>(feed.folderId);
+  const chosen = topicId && library.folders.some((f) => f.id === topicId) ? topicId : null;
   const [confirming, setConfirming] = useState(false);
-  if (!feed) return null;
   const save = () => {
     if (title.trim() !== feed.title) app.renameFeed(feed.url, title);
-    if ((folderId || null) !== feed.folderId) app.moveFeed(feed.url, folderId || null);
+    if (chosen !== feed.folderId) app.moveFeed(feed.url, chosen);
     onClose();
   };
   return (
@@ -393,18 +178,12 @@ function EditFeedDialog({ feed, folders, onClose }: { feed: Feed | null; folders
       title={t("editFeed")}
       description={feed.url}
       closeLabel={t("close")}
+      cancel={t("cancel")}
       footer={
         <>
-          <Button
-            variant="destructive"
-            className="mr-auto"
-            onClick={() => setConfirming(true)}
-          >
+          <Button variant="destructive" className="mr-auto" onClick={() => setConfirming(true)}>
             <Trash2 />
             {t("remove")}
-          </Button>
-          <Button variant="ghost" onClick={onClose}>
-            {t("cancel")}
           </Button>
           <Button onClick={save}>{t("save")}</Button>
         </>
@@ -416,17 +195,21 @@ function EditFeedDialog({ feed, folders, onClose }: { feed: Feed | null; folders
           <Input id="feed-title" value={title} onChange={(e) => setTitle(e.target.value)} onKeyDown={(e) => e.key === "Enter" && save()} />
           <p className="text-xs text-muted-foreground">{t("nameHint")}</p>
         </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="feed-folder">{t("folder")}</Label>
-          <Select id="feed-folder" value={folderId} onChange={(e) => setFolderId(e.currentTarget.value)}>
-            <option value="">{t("noFolder")}</option>
-            {folders.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.title}
-              </option>
-            ))}
-          </Select>
-        </div>
+        {problems.has(feed.url) ? <p className="text-sm text-destructive">{t("feedFailing")}</p> : null}
+        <section className="space-y-2">
+          <h3 className="text-sm font-medium text-primary">{t("topic")}</h3>
+          <TopicChips
+            topics={library.folders}
+            selected={(topic) => chosen === topic.id}
+            // One topic: clicking the chosen one again is No topic.
+            onToggle={(topic) => setTopicId(chosen === topic.id ? null : topic.id)}
+            leading={
+              <button type="button" aria-pressed={chosen === null} onClick={() => setTopicId(null)} className={cn(chip, chosen === null ? chipOn : "hover:bg-muted")}>
+                {t("noFolder")}
+              </button>
+            }
+          />
+        </section>
       </div>
       <ConfirmRemove
         open={confirming}
@@ -438,6 +221,32 @@ function EditFeedDialog({ feed, folders, onClose }: { feed: Feed | null; folders
         }}
         onClose={() => setConfirming(false)}
       />
+    </Dialog>
+  );
+}
+
+/**
+ * The search bar's +, the same in Feeds, Saved and the Inbox, as on Android: first what to add.
+ * Subscribe to feed opens Add feed, Save article the save sheet; both then ask for the address.
+ */
+export function AddChoiceDialog({ open, onOpenChange, onFeed, onArticle }: Props & { onFeed: () => void; onArticle: () => void }) {
+  const choice = (Icon: typeof Rss, title: string, body: string, onClick: () => void) => (
+    <button type="button" onClick={onClick} className="flex w-full cursor-pointer items-center gap-4 rounded-xl bg-muted p-4 text-left hover:bg-accent/60">
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground">
+        <Icon className="size-5" aria-hidden="true" />
+      </span>
+      <span className="min-w-0">
+        <span className="block font-medium">{title}</span>
+        <span className="block text-sm text-muted-foreground">{body}</span>
+      </span>
+    </button>
+  );
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange} title={t("addTitle")} closeLabel={t("close")} cancel={t("cancel")}>
+      <div className="space-y-3">
+        {choice(Rss, t("addChoiceFeed"), t("addChoiceFeedBody"), onFeed)}
+        {choice(BookmarkPlus, t("addChoiceArticle"), t("addChoiceArticleBody"), onArticle)}
+      </div>
     </Dialog>
   );
 }
@@ -539,86 +348,149 @@ export function FolderDialog({
   );
 }
 
-/** Settings in the order DESIGN.md gives: the account first, then the app's own, then appearance. */
-export function SettingsDialog({ open, onOpenChange, onImport, onManage }: Props & { onImport: () => void; onManage: () => void }) {
-  const { settings, library } = useApp();
+type SettingsPage = "account" | "integrations" | "theme" | "list" | "reader";
+
+/**
+ * Settings, as on Android: two large buttons at the top for Manage feeds and Manage topics (dialogs
+ * of their own, so they open from other places too), then one row per page (Account, Integrations,
+ * Theme, Article list, Article view), each with its icon, what it holds and a chevron. A page opens
+ * in the same dialog, with ← Settings to go back.
+ */
+export function SettingsDialog({
+  open,
+  onOpenChange,
+  onImport,
+  onManageFeeds,
+  onManageTopics,
+}: Props & { onImport: () => void; onManageFeeds: () => void; onManageTopics: () => void }) {
+  const { settings, library, account } = useApp();
+  // App opens it with a new key each time, so it starts on the main page.
+  const [page, setPage] = useState<SettingsPage | null>(null);
+  const titles: Record<SettingsPage, string> = {
+    account: t("account"),
+    integrations: t("integrations"),
+    theme: t("theme"),
+    list: t("articleList"),
+    reader: t("articleView"),
+  };
+  const themeNames: Record<Theme, string> = { system: t("themeSystem"), light: t("themeLight"), dark: t("themeDark") };
+  const big = (Icon: typeof Rss, title: string, detail: string, onClick: () => void) => (
+    <button type="button" onClick={onClick} className="flex cursor-pointer flex-col items-start gap-3 rounded-xl bg-muted p-4 text-left hover:bg-accent/60">
+      <span className="flex size-10 items-center justify-center rounded-full bg-accent text-accent-foreground">
+        <Icon className="size-5" aria-hidden="true" />
+      </span>
+      <span>
+        <span className="block font-medium">{title}</span>
+        <span className="block text-sm text-muted-foreground">{detail}</span>
+      </span>
+    </button>
+  );
+  const row = (to: SettingsPage, Icon: typeof Rss, summary: string) => (
+    <button type="button" onClick={() => setPage(to)} className="flex w-full cursor-pointer items-center gap-4 rounded-lg px-2 py-3 text-left hover:bg-muted">
+      <Icon className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm font-medium">{titles[to]}</span>
+        <span className="block truncate text-sm text-muted-foreground">{summary}</span>
+      </span>
+      <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+    </button>
+  );
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} title={t("settings")} closeLabel={t("close")} wide>
-      <div className="space-y-6">
-        <AccountSection />
-        {/* Connection first: the account, then the service Saved is also kept in. */}
-        <InstapaperSettings />
-        {/* Managing topics is its own section after the connections, as on Android (#314): the
-            sheets edit topics in their chips, and the menu no longer has it. */}
-        <section className="space-y-2">
-          <h3 className="text-sm font-medium text-primary">{t("manageTitle")}</h3>
-          <Button variant="outline" onClick={onManage}>
-            <ManageFeedsIcon className="size-4" />
-            {t("manage")}
+    <Dialog open={open} onOpenChange={onOpenChange} title={page ? titles[page] : t("settings")} closeLabel={t("close")} wide>
+      {page === null ? (
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            {big(Rss, t("manageFeedsTitle"), plural("feedsCount", library.feeds.length), onManageFeeds)}
+            {big(TagIcon, t("manageTitle"), plural("topicsCount", library.folders.length), onManageTopics)}
+          </div>
+          <nav aria-label={t("settings")}>
+            {row("account", UserRound, account?.email ?? t("accountSignedOut"))}
+            {row("integrations", Puzzle, t("integrationsSummary"))}
+            {row("theme", Palette, themeNames[settings.theme])}
+            {row("list", LayoutList, t("listSummary"))}
+            {row("reader", BookOpenText, t("articleViewSummary"))}
+          </nav>
+          <p className="text-xs text-muted-foreground">
+            Content ·{" "}
+            <a className="underline" href="https://github.com/wimvdon/content/blob/main/PRIVACY.md" target="_blank" rel="noopener noreferrer">
+              {t("privacy")}
+            </a>
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          <Button variant="ghost" size="sm" className="-ml-3" onClick={() => setPage(null)}>
+            <ArrowLeft />
+            {t("settings")}
           </Button>
-        </section>
-        <section className="space-y-2">
-          <h3 className="text-sm font-medium text-primary">{t("articleList")}</h3>
-          <div className="flex flex-wrap items-center justify-between gap-2 py-1">
-            <span className="text-sm">{t("listView")}</span>
-            <Segmented<ListView>
-              label={t("listView")}
-              value={settings.listView}
-              onChange={(listView) => app.updateSettings({ listView })}
+          {page === "account" ? <AccountSection /> : null}
+          {page === "integrations" ? (
+            <>
+              {/* Moving to or from another reader: the feeds in and out. */}
+              <section className="space-y-2">
+                <h3 className="text-sm font-medium text-primary">{t("opmlTitle")}</h3>
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="outline" onClick={onImport}>
+                    {t("importOpml")}
+                  </Button>
+                  <Button variant="outline" onClick={exportOpml} disabled={library.feeds.length === 0}>
+                    {t("exportOpml")}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">{t("opmlHint")}</p>
+                {/* How to get the file out of the readers people come from, and Substack, which has no file. */}
+                <ImportGuide title={t("importFeedlyTitle")} steps={[t("importFeedlyStep1"), t("importWebStep")]} note={t("importFeedlyNote")} />
+                <ImportGuide title={t("importInoreaderTitle")} steps={[t("importInoreaderStep1"), t("importInoreaderStep2"), t("importWebStep")]} />
+                <ImportGuide title={t("importSubstackTitle")} steps={[t("substackWebStep1"), t("substackWebStep2")]} />
+              </section>
+              {/* The service Saved is also kept in. */}
+              <InstapaperSettings />
+            </>
+          ) : null}
+          {page === "theme" ? (
+            <Segmented<Theme>
+              label={t("theme")}
+              value={settings.theme}
+              onChange={(theme) => app.updateSettings({ theme })}
               options={[
-                { value: "small", label: t("listSmall") },
-                { value: "medium", label: t("listMedium") },
-                { value: "large", label: t("listLarge") },
+                { value: "system", label: t("themeSystem") },
+                { value: "light", label: t("themeLight") },
+                { value: "dark", label: t("themeDark") },
               ]}
             />
-          </div>
-          <SwitchRow title={t("markReadOnScroll")} checked={settings.markReadOnScroll} onChange={(v) => app.updateSettings({ markReadOnScroll: v })} />
-        </section>
-        <section className="space-y-2">
-          <h3 className="text-sm font-medium text-primary">{t("reader")}</h3>
-          <SwitchRow title={t("fullArticles")} summary={t("fullArticlesSummary")} checked={settings.fullArticles} onChange={(v) => app.updateSettings({ fullArticles: v })} />
-          <SwitchRow title={t("showImages")} summary={t("showImagesSummary")} checked={settings.showImages} onChange={(v) => app.updateSettings({ showImages: v })} />
-          <div className="pt-2">
-            <ReaderStyleControls preview />
-          </div>
-        </section>
-        {/* Moving to or from another reader: data in and out, before Appearance (DESIGN.md's order). */}
-        <section className="space-y-2 pt-2">
-          <h3 className="text-sm font-medium text-primary">{t("opmlTitle")}</h3>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={onImport}>
-              {t("importOpml")}
-            </Button>
-            <Button variant="outline" onClick={exportOpml} disabled={library.feeds.length === 0}>
-              {t("exportOpml")}
-            </Button>
-          </div>
-          <p className="text-xs text-muted-foreground">{t("opmlHint")}</p>
-          {/* How to get the file out of the readers people come from, and Substack, which has no file. */}
-          <ImportGuide title={t("importFeedlyTitle")} steps={[t("importFeedlyStep1"), t("importWebStep")]} note={t("importFeedlyNote")} />
-          <ImportGuide title={t("importInoreaderTitle")} steps={[t("importInoreaderStep1"), t("importInoreaderStep2"), t("importWebStep")]} />
-          <ImportGuide title={t("importSubstackTitle")} steps={[t("substackWebStep1"), t("substackWebStep2")]} />
-        </section>
-        <section className="space-y-2">
-          <h3 className="text-sm font-medium text-primary">{t("appearance")}</h3>
-          <Segmented<Theme>
-            label={t("theme")}
-            value={settings.theme}
-            onChange={(theme) => app.updateSettings({ theme })}
-            options={[
-              { value: "system", label: t("themeSystem") },
-              { value: "light", label: t("themeLight") },
-              { value: "dark", label: t("themeDark") },
-            ]}
-          />
-        </section>
-        <p className="text-xs text-muted-foreground">
-          Content ·{" "}
-          <a className="underline" href="https://github.com/wimvdon/content/blob/main/PRIVACY.md" target="_blank" rel="noopener noreferrer">
-            {t("privacy")}
-          </a>
-        </p>
-      </div>
+          ) : null}
+          {page === "list" ? (
+            <section className="space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-2 py-1">
+                <span className="text-sm">{t("listView")}</span>
+                <Segmented<ListView>
+                  label={t("listView")}
+                  value={settings.listView}
+                  onChange={(listView) => app.updateSettings({ listView })}
+                  options={[
+                    { value: "small", label: t("listSmall") },
+                    { value: "medium", label: t("listMedium") },
+                    { value: "large", label: t("listLarge") },
+                  ]}
+                />
+              </div>
+              <SwitchRow title={t("markReadOnScroll")} checked={settings.markReadOnScroll} onChange={(v) => app.updateSettings({ markReadOnScroll: v })} />
+            </section>
+          ) : null}
+          {page === "reader" ? (
+            <>
+              <section className="space-y-2">
+                <SwitchRow title={t("fullArticles")} summary={t("fullArticlesSummary")} checked={settings.fullArticles} onChange={(v) => app.updateSettings({ fullArticles: v })} />
+                <SwitchRow title={t("showImages")} summary={t("showImagesSummary")} checked={settings.showImages} onChange={(v) => app.updateSettings({ showImages: v })} />
+              </section>
+              <section className="space-y-2">
+                <h3 className="text-sm font-medium text-primary">{t("textSettings")}</h3>
+                <ReaderStyleControls preview />
+              </section>
+            </>
+          ) : null}
+        </div>
+      )}
     </Dialog>
   );
 }
@@ -655,7 +527,7 @@ function AccountSection() {
   const failed = syncStatus.kind === "failed";
   return (
     <section className="space-y-2">
-      <h3 className="text-sm font-medium text-primary">{t("account")}</h3>
+      <h3 className="text-sm font-medium text-primary">{t("accountTitle")}</h3>
       {account ? (
         <>
           <div className="flex items-center gap-3">

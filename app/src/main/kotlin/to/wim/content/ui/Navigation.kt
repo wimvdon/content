@@ -121,6 +121,9 @@ import to.wim.content.instapaper.InstapaperState
 import to.wim.content.rssReaderApp
 import to.wim.content.ui.home.AddFeedSheet
 import to.wim.content.ui.home.AddChoiceSheet
+import to.wim.content.ui.feeds.ManageFeedsActions
+import to.wim.content.ui.feeds.ManageFeedsSheet
+import to.wim.content.ui.feeds.ManageTopicsSheet
 import to.wim.content.ui.home.HomeActions
 import to.wim.content.ui.home.HomeScreen
 import to.wim.content.ui.home.HomeState
@@ -149,7 +152,7 @@ sealed interface Screen {
 
     data object Settings : Screen
 
-    /** One of Settings' pages: Account, Manage feeds, Manage topics, Theme, Article list, Article view. */
+    /** One of Settings' pages: Account, Integrations, Theme, Article list, Article view. */
     data class SettingsPage(val page: to.wim.content.ui.settings.SettingsPage) : Screen
 
     /** Search through every feed's articles and Saved. */
@@ -177,8 +180,8 @@ sealed interface Screen {
                     to.wim.content.ui.settings.SettingsPage.entries
                         .firstOrNull { it.name == text.removePrefix("settings:") }
                         ?.let(::SettingsPage) ?: Settings
-                // Manage topics and a topic's page were screens of their own before Settings' pages.
-                text == "feeds" || text == "manage-saved" || text.startsWith("topic:") -> SettingsPage(to.wim.content.ui.settings.SettingsPage.Topics)
+                // Manage topics and a topic's page were screens of their own before: now sheets from Settings.
+                text == "feeds" || text == "manage-saved" || text.startsWith("topic:") -> Settings
                 text == "search" -> Search
                 text.startsWith("reader:") -> Reader(text.removePrefix("reader:"))
                 text.startsWith("signin:") -> SiteSignIn(text.removePrefix("signin:"))
@@ -383,6 +386,9 @@ fun RssReaderNavigation(
     var addDialogOpen by rememberSaveable { mutableStateOf(false) }
     // The search bar's +: Subscribe to feed or Save article, asked first.
     var addChoiceOpen by rememberSaveable { mutableStateOf(false) }
+    // The Manage feeds and Manage topics sheets (Settings' two buttons).
+    var manageFeedsOpen by rememberSaveable { mutableStateOf(false) }
+    var manageTopicsOpen by rememberSaveable { mutableStateOf(false) }
     // Add feed from a topic page: the topic to add into ("" for No topic), and stay on that page.
     var addIntoTopic by rememberSaveable { mutableStateOf<String?>(null) }
     var addBusy by remember { mutableStateOf(false) }
@@ -673,7 +679,6 @@ fun RssReaderNavigation(
             hasFeeds = library.feeds.isNotEmpty(),
             feeds = library.feeds,
             topics = library.folders,
-            problems = problems,
             instapaper =
                 InstapaperSettingsState(
                     instapaper = instapaperState,
@@ -684,15 +689,8 @@ fun RssReaderNavigation(
         SettingsActions(
             onBack = ::pop,
             onOpenPage = { push(Screen.SettingsPage(it)) },
-            onAddFeed = {
-                // Without a topic, on Manage feeds, and stay there.
-                addIntoTopic = ""
-                addDialogOpen = true
-            },
-            onEditFeed = { feed, title, topicId -> editFeed(feed, title, topicId) },
-            onRemoveFeed = { feed -> app.appScope.launch { repository.removeFeed(feed.url) } },
-            onReorderFeeds = { topicId, urls -> app.appScope.launch { repository.reorderFeedsIn(topicId, urls) } },
-            topicActions = topicActions,
+            onManageFeeds = { manageFeedsOpen = true },
+            onManageTopics = { manageTopicsOpen = true },
             onReaderStyleChange = { style -> app.appScope.launch { app.settings.setReaderStyle(style) } },
             onInstapaperSignIn = { uiScope.launch { ExternalApps.openLink(context, app.instapaper.begin()) } },
             onInstapaperSync = { app.appScope.launch { app.services.sync() } },
@@ -771,12 +769,15 @@ fun RssReaderNavigation(
                     }
                     // Without the articles hidden by their words (#277): the lists, counts and chips.
                     val listed = remember(library, current.hiddenWords) { library.withoutHidden(ArticleFilter.parse(current.hiddenWords)) }
-                    val articles =
-                        remember(listed, shownSelection, current.unreadOnly, readThisVisit) {
-                            listed.articlesFor(shownSelection, FeedTab.of(current.unreadOnly), keep = readThisVisit)
+                    // Both tabs' lists, so swiping shows the other one as it slides in.
+                    val feedPages =
+                        remember(listed, shownSelection, readThisVisit) {
+                            FeedTab.entries.map { tab -> listed.articlesFor(shownSelection, tab, keep = readThisVisit) }
                         }
+                    val articles = feedPages[FeedTab.of(current.unreadOnly).ordinal]
                     val unreadCounts = remember(listed) { listed.unreadCounts() }
                     val savedItems = remember(library, shownFilter) { Saved.items(library, shownFilter) }
+                    val savedPages = remember(library, shownFilter) { Saved.states.map { Saved.items(library, shownFilter.copy(tab = it)) } }
                     // What others shared arrives with a sync (#167): take it in when the Inbox shows, not only at the next one.
                     LaunchedEffect(section) { if (section == HomeSection.Inbox) app.appScope.launch { app.sync.syncIfDue() } }
                     val minutes by produceState(emptyMap<String, Int>(), library.items, library.articles, textWords) {
@@ -809,7 +810,9 @@ fun RssReaderNavigation(
                                         library = library,
                                         titleFont = current.reader.font.fontFamily(),
                                         listView = current.listView,
+                                        pages = savedPages,
                                     ),
+                                feedPages = feedPages,
                                 toReadCount = remember(library) { library.items.count { Saved.isIn(it, SavedTab.ToRead) } },
                                 signedIn = accountState is AccountState.SignedIn,
                                 inboxUnread = remember(library) { Inbox.unread(library) },
@@ -1275,6 +1278,30 @@ fun RssReaderNavigation(
         )
     }
 
+    if (manageFeedsOpen) {
+        ManageFeedsSheet(
+            feeds = library.feeds,
+            topics = library.folders,
+            problems = problems,
+            actions =
+                ManageFeedsActions(
+                    onAddFeed = {
+                        // Without a topic; Manage feeds stays open under Add feed.
+                        addIntoTopic = ""
+                        addDialogOpen = true
+                    },
+                    onEditFeed = { feed, title, topicId -> editFeed(feed, title, topicId) },
+                    onRemoveFeed = { feed -> app.appScope.launch { repository.removeFeed(feed.url) } },
+                    onReorderFeeds = { topicId, urls -> app.appScope.launch { repository.reorderFeedsIn(topicId, urls) } },
+                ),
+            topicActions = topicActions,
+            onDismiss = { manageFeedsOpen = false },
+        )
+    }
+    if (manageTopicsOpen) {
+        ManageTopicsSheet(topics = library.folders, actions = topicActions, onDismiss = { manageTopicsOpen = false })
+    }
+
     if (addChoiceOpen) {
         AddChoiceSheet(
             onSubscribe = {
@@ -1291,7 +1318,7 @@ fun RssReaderNavigation(
     }
 
     if (addDialogOpen) {
-        // "" from Manage feeds: no topic, and you stay there; else the topic being viewed, if any.
+        // "" from the Manage feeds sheet: no topic, and it stays open; else the topic being viewed, if any.
         val fromTopicPage = addIntoTopic
         AddFeedSheet(
             busy = addBusy,

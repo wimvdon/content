@@ -335,13 +335,18 @@
     <string name="add_choice_article_body">Salva e organizza un articolo inserendo il suo indirizzo</string>
     <string name="settings_account_signed_out">Accesso non effettuato</string>
     <string name="settings_feeds_title">Gestisci feed</string>
-    <string name="settings_feeds_summary">I tuoi feed e i loro argomenti, importazione ed esportazione OPML</string>
-    <string name="settings_topics_summary">Argomenti e Instapaper</string>
     <string name="settings_list_summary">Vista, segna come letto scorrendo, parole nascoste</string>
     <string name="section_article_view">Vista articolo</string>
     <string name="settings_article_view_summary">Testo, articoli completi, siti a pagamento</string>
     <string name="manage_feeds_hint">Tocca un feed per rinominarlo, cambiarne l’argomento o rimuoverlo. Trascinane uno dalla maniglia per cambiare l’ordine.</string>
     <string name="manage_feeds_none">Ancora nessun feed.</string>
-    <string name="topics_title">Argomenti</string>
     <string name="manage_topics_hint">Gli argomenti raggruppano i tuoi feed e gli articoli salvati. Tocca un argomento per rinominarlo, cambiarne l’icona o rimuoverlo; trascinane uno dalla maniglia per cambiare l’ordine. Se gli dai il nome di un altro argomento, i due vengono uniti.</string>
+    <string name="topics_edit">Modifica argomenti</string>
+    <string name="section_integrations">Integrazioni</string>
+    <string name="settings_integrations_summary">Instapaper, importazione ed esportazione OPML</string>
+    <plurals name="topics_count">
+        <item quantity="one">%d argomento</item>
+        <item quantity="many">%d argomenti</item>
+        <item quantity="other">%d argomenti</item>
+    </plurals>
 </resources>

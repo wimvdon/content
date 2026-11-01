@@ -12,6 +12,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
+import to.wim.content.ui.reader.SheetHeader
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilterChip
@@ -54,13 +60,15 @@ import to.wim.content.data.Folder
 import to.wim.content.ui.home.rememberFolderIconPainter
 
 /**
- * The topics as chips in the Add feed and Organise sheets (#314), each with its icon, the same in
- * both. [leading] comes first (No topic, or Like); [extra] are names the article has that aren't
- * topics (yet), shown plainly. At the end, with [actions], two text buttons (not chips, #314): **New topic** (the topic sheet: a name
- * and an icon; the new topic is chosen at once through [onCreated]) and **Edit**. Edit puts a drag
- * handle and a pen on every topic chip, and turns into **Done**: drag a chip to reorder the topics,
- * tap it (or the pen) to rename it, change its icon or remove it; renaming it to another topic's
- * name joins the two. Removing asks first, under the chips: no dialog opens over the sheet.
+ * The topics as chips, the same in the Add feed, Edit feed and Save/Organise sheets: [leading] comes
+ * first (No topic, or Like); [extra] are names the article has that aren't topics (yet), shown
+ * plainly. With [actions], an **Edit topics** text button at the end opens the Manage topics sheet
+ * over the sheet ([ManageTopicsSheet]); Done or Back comes back to the sheet as it was.
+ *
+ * With [alwaysEditing] (the Manage topics sheet itself) every chip has a drag handle and a pen: drag
+ * a chip to reorder the topics, tap it (or the pen) to rename it, change its icon or remove it;
+ * renaming it to another topic's name joins the two. Removing asks first, under the chips. **New
+ * topic** (the topic sheet: a name and an icon) comes after them.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -75,14 +83,14 @@ fun TopicChipRow(
     extra: List<String> = emptyList(),
     isExtraSelected: (String) -> Boolean = { true },
     onToggleExtra: (String) -> Unit = {},
-    /** Settings › Manage topics: always the editing chips, with New topic, and no Edit or Done. */
+    /** The Manage topics sheet: always the editing chips, with New topic, and no Edit topics. */
     alwaysEditing: Boolean = false,
 ) {
-    var editMode by rememberSaveable { mutableStateOf(alwaysEditing) }
+    var managing by rememberSaveable { mutableStateOf(false) }
     var creating by rememberSaveable { mutableStateOf(false) }
     var editing by rememberSaveable { mutableStateOf<String?>(null) }
     var removing by rememberSaveable { mutableStateOf<String?>(null) }
-    val editable = actions != null && editMode
+    val editable = actions != null && alwaysEditing
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (editable) {
             ReorderableChips(
@@ -115,29 +123,17 @@ fun TopicChipRow(
                     FilterChip(selected = isExtraSelected(name), onClick = { onToggleExtra(name) }, enabled = enabled, label = { Text(name) })
                 }
             }
-            // New topic and Edit are actions, not topics: text buttons, so they don't look like chips.
+            // New topic and Edit topics are actions, not topics: text buttons, so they don't look like chips.
             if (actions != null) {
-                if (!editable || alwaysEditing) {
+                if (editable) {
                     TextButton(onClick = { creating = true }, enabled = enabled, contentPadding = ButtonDefaults.TextButtonWithIconContentPadding) {
                         Icon(painterResource(R.drawable.ic_add), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
                         Text(stringResource(R.string.folder_new), modifier = Modifier.padding(start = 8.dp))
                     }
-                }
-                if (!alwaysEditing && (topics.isNotEmpty() || editable)) {
-                    TextButton(
-                        onClick = {
-                            editMode = !editMode
-                            removing = null
-                        },
-                        enabled = enabled,
-                        contentPadding = ButtonDefaults.TextButtonWithIconContentPadding,
-                    ) {
-                        Icon(
-                            painterResource(if (editable) R.drawable.ic_check else R.drawable.ic_edit),
-                            contentDescription = null,
-                            modifier = Modifier.size(ButtonDefaults.IconSize),
-                        )
-                        Text(stringResource(if (editable) R.string.action_done else R.string.action_edit), modifier = Modifier.padding(start = 8.dp))
+                } else {
+                    TextButton(onClick = { managing = true }, enabled = enabled, contentPadding = ButtonDefaults.TextButtonWithIconContentPadding) {
+                        Icon(painterResource(R.drawable.ic_edit), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                        Text(stringResource(R.string.topics_edit), modifier = Modifier.padding(start = 8.dp))
                     }
                 }
             }
@@ -163,6 +159,9 @@ fun TopicChipRow(
         }
     }
 
+    if (managing && actions != null) {
+        ManageTopicsSheet(topics = topics, actions = actions, onDismiss = { managing = false })
+    }
     if (creating && actions != null) {
         FolderSheet(
             folder = null,
@@ -188,6 +187,33 @@ fun TopicChipRow(
                 removing = edited.id
             },
         )
+    }
+}
+
+/**
+ * Manage topics as a sheet: from Settings, and from Edit topics in the Add feed, Edit feed and
+ * Save/Organise sheets, over them. The topics as editing chips (drag to reorder, tap to rename,
+ * change the icon or remove; a name already taken joins the two), then New topic. Every change is
+ * stored at once, so the sheet has **Done** at the top right instead of Cancel.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ManageTopicsSheet(
+    topics: List<Folder>,
+    actions: TopicEditActions,
+    onDismiss: () -> Unit,
+) {
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+        Column(
+            Modifier
+                .verticalScroll(rememberScrollState())
+                .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            SheetHeader(stringResource(R.string.manage_title), onCancel = onDismiss, closeLabel = stringResource(R.string.action_done))
+            Text(stringResource(R.string.manage_topics_hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            TopicChipRow(topics = topics, selected = { false }, onToggle = {}, actions = actions, onCreated = {}, alwaysEditing = true)
+        }
     }
 }
 

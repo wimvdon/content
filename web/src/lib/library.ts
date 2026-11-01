@@ -157,6 +157,22 @@ export function moveWithinFolder(lib: Library, url: string, delta: number): Libr
   return { ...lib, feeds };
 }
 
+/**
+ * The feeds of one folder (null: those outside folders) in a new order, by address (a drag in
+ * Manage feeds), like Android's reorderFeedsIn. The other feeds keep their places: this folder's
+ * feeds take the same slots in the list.
+ */
+export function reorderFeedsIn(lib: Library, folderId: string | null, urls: string[]): Library {
+  const slots = lib.feeds.flatMap((f, i) => ((f.folderId ?? null) === folderId ? [i] : []));
+  const inFolder = slots.map((i) => lib.feeds[i]);
+  const picked = urls.flatMap((u) => inFolder.filter((f) => f.url === u));
+  const ordered = [...picked, ...inFolder.filter((f) => !picked.includes(f))];
+  if (ordered.every((f, i) => f === inFolder[i])) return lib;
+  const feeds = [...lib.feeds];
+  slots.forEach((slot, i) => (feeds[slot] = ordered[i]));
+  return { ...lib, feeds };
+}
+
 export function setFeedIcon(lib: Library, url: string, iconUrl: string): Library {
   return { ...lib, feeds: lib.feeds.map((f) => (f.url === url ? { ...f, iconUrl } : f)) };
 }
@@ -272,6 +288,23 @@ export function includes(lib: Library, selection: Selection, a: Article): boolea
 
 export function unreadKeys(lib: Library, selection: Selection): Set<string> {
   return new Set(lib.articles.filter((a) => !a.read && includes(lib, selection, a)).map(articleKey));
+}
+
+/** Feeds' two tabs, as on Android: the articles still unread, and those already read. */
+export type FeedTab = "unread" | "read";
+
+/** The tab stored as `settings.unreadOnly` (true: Unread). */
+export const feedTabOf = (unreadOnly: boolean): FeedTab => (unreadOnly ? "unread" : "read");
+
+/** Whether an article belongs in a tab. */
+export const inFeedTab = (a: Article, tab: FeedTab) => a.read === (tab === "read");
+
+/**
+ * The articles of one of Feeds' tabs, newest first. Articles in `keep` (read or marked unread
+ * during this visit) stay where they were, so rows don't jump away under your finger.
+ */
+export function articlesInTab(lib: Library, selection: Selection, tab: FeedTab, keep: Set<string> = new Set()): Article[] {
+  return lib.articles.filter((a) => includes(lib, selection, a) && (inFeedTab(a, tab) || keep.has(articleKey(a)))).sort((a, b) => sortTime(b) - sortTime(a));
 }
 
 export function articlesFor(lib: Library, selection: Selection, unreadOnly: boolean, keep: Set<string> = new Set()): Article[] {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Item } from "../src/lib/items";
 import { emptyLibrary, type Article, type Library } from "../src/lib/library";
-import { indexArticles, mix, narrowed, noFilters, normalize, relevance, searchArticles, searchItems, searchResults, showsNotes, type SearchHit } from "../src/lib/search";
+import { indexArticles, menuFeeds, mix, narrowed, noFilters, normalize, relevance, searchArticles, searchItems, searchResults, searchTopics, showsNotes, toggleFeed, withScope, withTopic, type SearchHit } from "../src/lib/search";
 
 const article = (id: string, title: string, time: number, html = ""): Article => ({
   feedUrl: "https://feed.example/rss",
@@ -113,20 +113,33 @@ describe("search tab (#171)", () => {
     expect(all("", { ...noFilters, scope: "saved" })).toEqual(["saved:3", "saved:2", "saved:1"]);
   });
 
-  it("filters feeds by folder and by feed", () => {
-    expect(all("", { ...noFilters, scope: "feeds", feedFolderId: "f1" })).toEqual(["feed:a"]);
-    expect(all("tea", { ...noFilters, scope: "feeds", feedUrl: "https://other.example/rss" })).toEqual(["feed:b"]);
+  it("Feeds: every feed, or the ones ticked in its menu", () => {
+    const other = "https://other.example/rss";
+    expect(all("tea", toggleFeed(noFilters, other))).toEqual(["feed:b"]);
+    expect(all("", toggleFeed(toggleFeed(noFilters, other), "https://feed.example/rss"))).toEqual(["feed:b", "feed:a"]);
+    // Ticking a feed means only feeds; unticking the last one leaves every feed.
+    expect(toggleFeed(noFilters, other).scope).toBe("feeds");
+    expect(toggleFeed(toggleFeed(noFilters, other), other)).toEqual({ ...noFilters, scope: "feeds" });
   });
 
-  it("filters Saved by folder and tag", () => {
-    expect(all("", { ...noFilters, scope: "saved", savedFolder: "recipes" })).toEqual(["saved:1"]);
-    expect(all("tea", { ...noFilters, scope: "saved", tag: "TEA" })).toEqual(["saved:1"]);
+  it("a topic narrows feeds and Saved (case ignored)", () => {
+    const topical = { ...lib, folders: [{ id: "f1", title: "Tea" }] as Library["folders"] };
+    const browse = (filters: typeof noFilters) => names(searchResults("", topical, indexArticles(topical), filters));
+    // The Food Blog is in the Tea folder; one saved article has the tag.
+    expect(browse({ ...noFilters, topic: "tea" })).toEqual(["saved:1", "feed:a"]);
+    expect(browse({ ...noFilters, scope: "feeds", topic: "TEA" })).toEqual(["feed:a"]);
+    expect(searchTopics(topical, "all", null)).toEqual(["Tea"]);
+    expect(menuFeeds(topical, "tea").map((f) => f.title)).toEqual(["Food Blog"]);
+    // A topic keeps only the ticked feeds that have it; another kind lets go of them, not the topic.
+    const both = toggleFeed(toggleFeed(noFilters, "https://other.example/rss"), "https://feed.example/rss");
+    expect(withTopic(both, "Tea", topical).feedUrls).toEqual(["https://feed.example/rss"]);
+    expect(withScope({ ...both, topic: "Tea" }, "saved")).toEqual({ scope: "saved", feedUrls: [], topic: "Tea" });
   });
 
   it("knows when filters beyond the kind are chosen", () => {
     expect(narrowed(noFilters)).toBe(false);
     expect(narrowed({ ...noFilters, scope: "saved" })).toBe(false);
-    expect(narrowed({ ...noFilters, tag: "x" })).toBe(true);
+    expect(narrowed({ ...noFilters, topic: "x" })).toBe(true);
   });
 });
 
