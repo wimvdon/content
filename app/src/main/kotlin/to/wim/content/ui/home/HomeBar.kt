@@ -20,15 +20,10 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SecondaryTabRow
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.snapshotFlow
-import androidx.compose.material3.Tab
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
@@ -117,57 +112,30 @@ fun HomeSearchBar(
 }
 
 /**
- * The tabs under the search bar: the views of the place shown, Unread and Read in Feeds, To read and
- * All in Saved. Material's secondary tabs (lighter than primary ones: a thin line under the chosen
- * one), as they switch between views within one place; the chips below them narrow the view to a
- * topic or feed. The whole header slides away while scrolling down (CollapsingHeader).
+ * Which view of the place: Unread / All in Feeds, To read / All in Saved. A segmented switch, like
+ * To read / Archive in the save sheet: the same articles narrowed, not separate pages, so no tabs and
+ * no swiping sideways between them.
  */
 @Composable
-fun HomeTabs(
+fun ViewSwitch(
     labels: List<String>,
     selected: Int,
     onSelect: (Int) -> Unit,
 ) {
-    SecondaryTabRow(selectedTabIndex = selected, containerColor = MaterialTheme.colorScheme.surface) {
+    SingleChoiceSegmentedButtonRow(
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .padding(top = 4.dp, bottom = 8.dp),
+    ) {
         labels.forEachIndexed { index, label ->
-            Tab(
+            SegmentedButton(
                 selected = index == selected,
                 onClick = { if (index != selected) onSelect(index) },
-                text = { Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-            )
+                shape = SegmentedButtonDefaults.itemShape(index = index, count = labels.size),
+            ) { Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis) }
         }
     }
-}
-
-/**
- * The pages under [HomeTabs]: swiping sideways goes to the next or previous tab, and choosing a
- * tab slides to its page. [content] draws one page (its tab's list).
- */
-@Composable
-fun TabPager(
-    count: Int,
-    selected: Int,
-    onSelect: (Int) -> Unit,
-    enabled: Boolean = true,
-    content: @Composable (page: Int) -> Unit,
-) {
-    val pager = rememberPagerState(initialPage = selected) { count }
-    val currentSelected by rememberUpdatedState(selected)
-    val currentOnSelect by rememberUpdatedState(onSelect)
-    // A tab tapped: slide to its page.
-    LaunchedEffect(selected) { if (pager.currentPage != selected) pager.animateScrollToPage(selected) }
-    // A page swiped to: choose its tab.
-    LaunchedEffect(pager) {
-        snapshotFlow { pager.settledPage }.collect { page -> if (page != currentSelected) currentOnSelect(page) }
-    }
-    HorizontalPager(
-        state = pager,
-        userScrollEnabled = enabled,
-        // The neighbouring page is drawn only while it is being swiped in.
-        beyondViewportPageCount = 0,
-        modifier = Modifier.fillMaxSize(),
-        verticalAlignment = Alignment.Top,
-    ) { page -> content(page) }
 }
 
 /**

@@ -2,6 +2,23 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-01: A switch instead of tabs for Unread / All and To read / All
+
+The owner liked the To read / Archive switch in the save sheet and felt the tabs weren't right:
+Unread and All (To read and All) are the same articles narrowed, not separate pages.
+- **A segmented switch** (`ViewSwitch`, Material 3's `SingleChoiceSegmentedButtonRow`) replaces the
+  tabs on the phone and the web. Material 3 keeps tabs for peer pages and segmented buttons for a
+  small single choice that changes a view; chips stay for the groups (topics, Liked).
+- **No swiping sideways** between the two any more: with a switch there is nothing to swipe to.
+  Only the view shown is computed (the pager needed both lists).
+- **The web: the switch sits in the sidebar** on a wide window, between the places and the filters
+  (where, which view, which group), and above the list on a phone-sized one. Refresh moved into the
+  search bar, in every place, as the tabs no longer hold it.
+- **The web's chip row drags with the mouse** (or a pen), as a finger scrolls it; a short move stays
+  a click, and a drag doesn't choose the chip it started on.
+- Rejected: chips for the view (they read as filters, reflow the row, and an "All" chip that is
+  never visibly chosen was #205's problem); a floating toolbar (that is for actions, not views).
+
 ## 2026-11-01: To read or Archive in the save sheet, Cancel at the bottom left
 
 The owner kept struggling with the saved article's buttons:

@@ -135,25 +135,26 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   side. On the web the same three places are the bar at the bottom of a phone-sized window, and the
   top of the **sidebar** in a wide one.
 - **On the web, in a wide window**, the sidebar has the same levels as the phone, laid out for a
-  large screen: at the top the places (Feeds, Saved, Inbox, with their counts), under them what the
-  phone's chips do for the place shown (Feeds: All feeds, the topics, a topic's feeds under it while
+  large screen: at the top the places (Feeds, Saved, Inbox, with their counts), under them the
+  switch **Unread / All** (Feeds) or **To read / All** (Saved), then what the phone's chips do for the place shown (Feeds: All feeds, the topics, a topic's feeds under it while
   you're in it, the feeds without a topic; Saved: everything, Liked and the topics), and Settings at
   the bottom. The chip row is left out there. A phone-sized window has the bar at the bottom and the
-  chips (they scroll sideways with a swipe or a mouse wheel), and Settings in the search bar.
-- **Refresh** (web) sits at the end of the tabs in Feeds and Saved, and next to the Inbox's title
-  (or press **r**). **Mark all as read** is a button at the bottom right of the list, only in Unread,
+  switch and the chips above the list (the chips scroll sideways with a finger, a mouse wheel, or by
+  dragging them with the mouse), and Settings in the search bar.
+- **Refresh** (web) is the round arrow in the search bar, in every place (or press **r**). **Mark all as read** is a button at the bottom right of the list, only in Unread,
   as on the phone.
-- Under the search bar, **two tabs** say **what you see**: in Feeds **Unread** and **All** (every
-  article, read ones too), in Saved **To read** and **All** (everything saved, archived articles
-  too). Under the tabs, one row of chips: your **topics** and then the feeds without a topic
+- Under the search bar, **a switch** says **what you see**: in Feeds **Unread** or **All** (every
+  article, read ones too), in Saved **To read** or **All** (everything saved, archived articles
+  too). It looks like To read / Archive in the save sheet; tap the other half to change. Under the
+  switch, one row of chips: your **topics** and then the feeds without a topic
   (Feeds), or **Liked** and your **topics** (Saved), in your order: tap one to show only that, tap
   it again to show everything again (only one is picked at a time, so there is no X). With a topic
-  picked in Feeds, a second row shows its feeds (on the web, the sidebar lists the feeds). Changing the tab keeps the topic you picked. A
-  topic (or Liked) with nothing in the tab shown has no chip: in Unread, only topics with unread
+  picked in Feeds, a second row shows its feeds (on the web, the sidebar lists the feeds). Switching keeps the topic you picked. A
+  topic (or Liked) with nothing in the view shown has no chip: in Unread, only topics with unread
   articles; in All, every topic with articles. Feeds' feed chips do the same: a feed with nothing
   unread has no chip in Unread. The one you picked stays.
 - **There is no ☰ menu in the Android app.** Feeds, Saved and the Inbox are the bar at the
-  bottom; everything inside them is a tab or a chip. In the search bar, **+** adds, the same in
+  bottom; everything inside them is the switch or a chip. In the search bar, **+** adds, the same in
   every place: it asks **Subscribe to feed** (the Add feed sheet) or **Save article** (the save
   sheet, which asks for the address).
   **Settings** is the button at the end of the search bar: your Gravatar picture while signed in, else a cogwheel. On the web, a wide window
@@ -174,16 +175,15 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   The web app has the same row.
 - Articles are grouped under **Today**, **Yesterday** and then the date; the date stays at the
   top while you scroll through that day.
-- The **Mark all as read** button (bottom right) is only in the Unread tab, and marks what it shows.
+- The **Mark all as read** button (bottom right) is only in Unread, and marks what it shows.
 - **What stays in the Unread list.** An article you read (opened, also from Search,
   marked with its button or scrolled past) stays in the list, dimmed, so nothing disappears under
   your finger. The list starts afresh only when
   you pick another feed or topic, switch between Unread and All, or refresh yourself. Going to Saved and back, or tapping the
   same feed again, keeps it as it was; a refresh the app does by itself does too.
-- Scrolling down slides the search bar, the tabs and the chips out of the way, so you see
+- Scrolling down slides the search bar, the switch and the chips out of the way, so you see
   more articles; scroll up a little and they come straight back.
-- **Swipe sideways** on the list to go to the other tab (Unread and Read, To read and All), on the
-  phone and on a touch screen in the web app. Articles themselves don't swipe (#305). **Press and hold** a feed article for a menu: **Mark as read** (or unread), **Save** and
+- The list doesn't swipe sideways (use the switch), and articles themselves don't swipe (#305). **Press and hold** a feed article for a menu: **Mark as read** (or unread), **Save** and
   **Share**. In the web app, right-click it (or press and hold on a touch screen) for the same
   menu; the round button that appears on an article when you point at it marks it read or unread,
   and so does **m** for the open article. Next to it, **Open in a new tab** (an arrow out of a box)
@@ -407,8 +407,8 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   open; a message says so, with **Undo**), or press and hold its card › **Archive**. An archived
   article has no Archive button, only **Organise**, where **To read** puts it back. **Organise**
   opens To read / Archive, the topics, Like and the note.
-- **The tabs** under the search bar: **To read**, and **All** (everything saved, archived articles
-  too; it replaced the Archive tab). Under them **the chips**: **Liked** (set apart by its heart)
+- **The switch** under the search bar (in the web app's sidebar on a wide window): **To read** or
+  **All** (everything saved, archived articles too; it replaced the Archive). Under it **the chips**: **Liked** (set apart by its heart)
   and your topics, in your order, one at a time.
 - **To read looks like your feeds**: the same rows, in the view you chose for the
   feed list (Small, Medium, Large), with how many articles and about how long they take at the top.
