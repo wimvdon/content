@@ -5,7 +5,7 @@ Newest first. Add an entry for every notable choice: what was decided, why, and 
 ## 2026-11-01: No Organise sheet: a saved article's actions are the reader's toolbar buttons
 
 A saved article's toolbar had Archive and Organise (a sheet with To read / Archive, the topics with
-Like, the note and Remove). Now each is a button: **Archive** (a toggle, lit while archived),
+Like, the note and Remove). Now each is a button: **Archive** (tonal, like Save) while to read, or **To read** (plain) once archived,
 **Topics** (a small sheet with only the topic chips), **Note** (a small sheet with only the note) and
 **Like** (a heart), then the highlights; **Share** is its own round button beside the pill (Material
 3's floating toolbar with a FAB). Remove from Saved moved to the reader's ⋮; a row's long press is

@@ -2,9 +2,12 @@ package to.wim.content.ui.reader
 
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.TextButton
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.material3.IconToggleButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipAnchorPosition
@@ -19,23 +22,23 @@ import to.wim.content.R
 
 /**
  * The reader's toolbar buttons for a saved article (2026-11-01, instead of Archive and Organise):
- * every action one tap away, as icons. **Archive** is a toggle, lit while the article is archived
- * (tap again: back to To read); **Topics** opens the topic chips; **Note** the note; **Like** is a
+ * every action one tap away. First what moves it, in words: **Archive** while it is to read, a tonal
+ * button like Save on a feed article (the next step), or **To read** once archived, a plain one (it
+ * puts it back). Then icons: **Topics** opens the topic chips, **Note** the note, **Like** is a
  * toggle (a filled heart while liked). The highlights' count and Share (its own round button) follow
  * ([ReaderToolbar]); Remove is in the reader's ⋮, kept rare. Long-pressing an icon shows its name.
  */
 @Composable
 internal fun SavedBar(item: ReaderItem) {
-    val archived = item.item.archived
-    val toggleColors =
-        IconButtonDefaults.iconToggleButtonColors(
-            checkedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-            checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-        )
-    val archiveLabel = stringResource(if (archived) R.string.action_unarchive else R.string.action_archive)
-    Tipped(archiveLabel) {
-        IconToggleButton(checked = archived, onCheckedChange = { item.onArchive() }, colors = toggleColors) {
-            Icon(painterResource(R.drawable.ic_inventory), contentDescription = archiveLabel)
+    if (item.item.archived) {
+        TextButton(onClick = item.onArchive, colors = toolbarTextButtonColors()) {
+            Icon(painterResource(R.drawable.ic_reading_list), contentDescription = null)
+            Text(stringResource(R.string.reading_list_to_read), modifier = Modifier.padding(start = 8.dp), maxLines = 1)
+        }
+    } else {
+        FilledTonalButton(onClick = item.onArchive) {
+            Icon(painterResource(R.drawable.ic_inventory), contentDescription = null)
+            Text(stringResource(R.string.action_archive), modifier = Modifier.padding(start = 8.dp), maxLines = 1)
         }
     }
     val topicsLabel = stringResource(R.string.tags_title)

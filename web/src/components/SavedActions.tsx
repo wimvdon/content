@@ -1,4 +1,4 @@
-import { Archive, Heart, ListPlus, NotebookPen, Quote, Share2, StickyNote, Tag, Trash2 } from "lucide-react";
+import { Archive, BookOpen, Heart, ListPlus, NotebookPen, Quote, Share2, StickyNote, Tag, Trash2 } from "lucide-react";
 import { app } from "@/lib/app";
 import { plural, t } from "@/lib/i18n";
 import type { Item } from "@/lib/items";
@@ -10,8 +10,8 @@ import { Dialog } from "./ui/dialog";
  * The reader's library actions as a floating toolbar, as on Android: a pill at the bottom in the
  * middle, over the text, that steps aside while reading down ([hidden]). One Save before the article
  * is saved; after, every action one click away, as icons (2026-11-01, instead of Archive and
- * Organise): **Archive** (lit while archived; again: back to To read), **Topics**, **Note** and
- * **Like** (a filled heart while liked). Then the highlights, and Share as its own round button next
+ * Organise): first **Archive** (tonal, like Save) while it is to read, or **To read** (plain) once
+ * archived, in words; then icons: **Topics**, **Note** and **Like** (a filled heart while liked). Then the highlights, and Share as its own round button next
  * to the pill. Remove from Saved is in the reader's ⋮.
  */
 export function LibraryBar({
@@ -66,26 +66,28 @@ export function LibraryBar({
     );
   }
   const archived = item.readingList?.state === "archived";
-  const archiveLabel = archived ? t("backToRead") : t("archive");
   return (
     <Floating hidden={hidden} fab={share}>
-      <Button
-        variant="ghost"
-        size="icon"
-        aria-pressed={archived}
-        aria-label={archiveLabel}
-        title={archiveLabel}
-        className={cn(archived && "bg-accent text-accent-foreground hover:bg-accent/80")}
-        onClick={() => {
-          if (archived) app.archiveItem(item.key, false);
-          else {
+      {/* What moves it, in words: Archive (tonal, like Save: the next step) while to read, To read
+          (plain: it puts it back) once archived. */}
+      {archived ? (
+        <Button variant="ghost" className="min-w-0" onClick={() => app.archiveItem(item.key, false)}>
+          <BookOpen />
+          <span className="truncate">{t("toRead")}</span>
+        </Button>
+      ) : (
+        <Button
+          variant="tonal"
+          className="min-w-0"
+          onClick={() => {
             app.archiveItem(item.key, true);
             onArchived(() => app.archiveItem(item.key, false));
-          }
-        }}
-      >
-        <Archive />
-      </Button>
+          }}
+        >
+          <Archive />
+          <span className="truncate">{t("archive")}</span>
+        </Button>
+      )}
       <Button variant="ghost" size="icon" aria-label={t("tags")} title={t("tags")} onClick={() => app.openTopics(item.key)}>
         <Tag />
       </Button>

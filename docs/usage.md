@@ -406,9 +406,10 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   **Save article** (the save sheet, which asks for the address); and sharing a link to Reader from another app. These go to To read unless you tap
   **Archive** in the save sheet. A feed article you save stays the same article: its feed, text and
   picture come along, and it isn't copied.
-- **Archive when you're done:** **Archive** (the box) in a saved article's floating toolbar (the
-  article stays open; a message says so, with **Undo**), or press and hold its card › **Archive**.
-  In an archived article the box is lit: tap it again to put the article back in To read.
+- **Archive when you're done:** **Archive** (the coloured button with the box) in a saved article's
+  floating toolbar (the article stays open; a message says so, with **Undo**), or press and hold its
+  card › **Archive**. In an archived article that button says **To read**: tap it to put the article
+  back.
 - **The switch** under the search bar (in the web app's sidebar on a wide window): **To read** or
   **All** (everything saved, archived articles too; it replaced the Archive). Under it **the chips**: **Liked** (set apart by its heart)
   and your topics, in your order, one at a time.
@@ -419,7 +420,7 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   note in small letters, its topics as small chips, then the site, a marker icon with how many
   highlights it has, and a heart when liked.
 - In the reader, the floating toolbar at the bottom has a button for each thing you can do with a
-  saved article (press and hold one to see its name): **Archive** (lit while archived), **Topics**
+  saved article (press and hold one to see its name): **Archive** (or **To read** once archived), **Topics**
   (the topic chips), **Note** (your note; the icon gets a pen once you've written one) and **Like**
   (the heart), then the highlights; **Share** is the round button next to it. **Remove from Saved**
   is in **⋮**; it asks first and takes the note, topics and highlights with it (Archive keeps it

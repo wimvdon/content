@@ -320,10 +320,11 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
       to the feed's text with the page button: the highlights are still there (or say approximate).
       Web app: select text with the mouse, pick Highlight or Note in the bar above it; click a
       marker to edit; a highlight made on the phone shows on the web after sync, and the other way.
-- [ ] In a saved article the floating toolbar has icon buttons: **Archive** (a box), **Topics** (a tag),
-      **Note** and **Like** (a heart), with **Share** as a round button next to it; press and hold one:
-      its name shows. Tap **Archive**: the box lights up, the article stays open, "Archived" shows with
-      **Undo**. Tap it again: back to To read. **Topics**: a sheet with only the topic chips; Save keeps
+- [ ] In a saved article the floating toolbar has a tonal **Archive** (box and word), then icons
+      **Topics** (a tag), **Note** and **Like** (a heart), with **Share** as a round button next to it;
+      press and hold an icon: its name shows. Tap **Archive**: the article stays open, "Archived" shows
+      with **Undo**, and the button becomes a plain **To read** (open book). Tap it: back to To read,
+      and the tonal Archive returns. **Topics**: a sheet with only the topic chips; Save keeps
       them. **Note**: a sheet with only the note, the keyboard open; once written the icon has a pen.
       **Like**: the heart fills, and the article is under Liked in Saved. Web app: the same.
 - [ ] **Add link** and a link shared from another app: the sheet asks for the address (or shows the

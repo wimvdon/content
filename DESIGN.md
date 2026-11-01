@@ -315,10 +315,11 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   floating toolbar, built from a `Surface` and a `Row` as Material 3 1.4 has none: a pill on
   `surfaceContainer`, 64dp high, 16dp above the bottom, in the middle) is this article in your
   library, with **Share** beside it as its own round button (`secondaryContainer`, 64dp: Material 3's
-  floating toolbar with a FAB): a tonal **Save** before it is saved, then icon buttons (2026-11-01,
-  owner's choice, instead of Archive and Organise with words; their names show on a long press, as a
-  tooltip): **Archive** (the Archive's box, a toggle lit while archived: one tap archives it, the
-  article stays open and shows Archived with Undo, #331; again, back to To read), **Topics** (a tag:
+  floating toolbar with a FAB): a tonal **Save** before it is saved, then (2026-11-01, owner's choice,
+  instead of Archive and Organise) first what moves it, in words: a tonal **Archive** (the Archive's
+  box, styled like Save: the next step; one tap archives it, the article stays open and shows
+  Archived with Undo, #331) while it is to read, or a plain **To read** (the open book: puts it back)
+  once archived; then icon buttons, their names on a long press as a tooltip: **Topics** (a tag:
   the Topics sheet, topic chips only), **Note** (the Note sheet; a note with a pen once written) and
   **Like** (a heart, filled while liked), then the highlights' count. There is no Organise sheet any
   more; **Remove from Saved** is in ⋮. All its buttons are in one neutral colour (`onSurfaceVariant`, as Material 3's
