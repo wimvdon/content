@@ -131,7 +131,7 @@ object Saved {
         library.inTopicOrder(library.items.filter { isIn(it, tab) }.recentTags())
 
     /**
-     * Saved's topic chips: the topics with articles in the state shown (To read or the Archive), in
+     * Saved's topic chips: the topics with articles in the tab shown (To read or All), in
      * the topics' order; one with nothing there is left out, except the one chosen.
      */
     fun chipTags(
@@ -150,11 +150,10 @@ object Saved {
     ): Boolean = filter.likedOnly || library.items.any { it.liked && isIn(it, filter.tab) }
 
     /**
-     * The states Saved's state chip offers (#205): To read or the Archive (everything at once is
-     * gone: it mixed the two). A tag stays chosen when the state changes, as a folder does with
-     * Unread and All in Feeds.
+     * Saved's tabs: To read, and All (everything saved, archived articles too; it replaced the
+     * Archive). A tag stays chosen when the tab changes, as a topic does with Unread and Read in Feeds.
      */
-    val states: List<SavedTab> = listOf(SavedTab.ToRead, SavedTab.Archive)
+    val states: List<SavedTab> = listOf(SavedTab.ToRead, SavedTab.All)
 
     /** How many liked items are still to read, for ☰'s Liked row (#206). */
     fun likedToReadCount(library: Library): Int = library.items.count { it.liked && isIn(it, SavedTab.ToRead) }
@@ -164,16 +163,21 @@ object Saved {
         tags(library, SavedTab.All).associateWith { tag -> library.items.count { item -> isIn(item, SavedTab.ToRead) && item.tags.any { it.equals(tag, ignoreCase = true) } } }
 
     /**
-     * The filter without a folder or tags that are gone (from all of Saved, not just the state shown).
-     * All, no longer offered, shows To read.
+     * The filter without a folder or tags that are gone (from all of Saved, not just the tab shown).
+     * The Archive, no longer a tab of its own, shows All.
      */
     fun shown(
         library: Library,
         filter: SavedFilter,
     ): SavedFilter {
         val tab = filter.tab
-        val gone = tab == SavedTab.All || (tab is SavedTab.Folder && folders(library).none { it.equals(tab.name, ignoreCase = true) })
-        val withTab = if (gone) filter.copy(tab = SavedTab.ToRead) else filter
+        val gone = tab is SavedTab.Folder && folders(library).none { it.equals(tab.name, ignoreCase = true) }
+        val withTab =
+            when {
+                gone -> filter.copy(tab = SavedTab.ToRead)
+                tab == SavedTab.Archive -> filter.copy(tab = SavedTab.All)
+                else -> filter
+            }
         val tags = tags(library, SavedTab.All)
         val kept = withTab.tags.filterTo(LinkedHashSet()) { t -> tags.any { it.equals(t, ignoreCase = true) } }
         return if (kept.size == withTab.tags.size) withTab else withTab.copy(tags = kept)

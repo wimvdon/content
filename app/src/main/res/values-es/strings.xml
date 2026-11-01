@@ -47,7 +47,6 @@
     <string name="import_nothing_new">No hay feeds nuevos en este archivo.</string>
     <string name="export_done">Feeds exportados</string>
     <string name="export_failed">No se pudo guardar el archivo.</string>
-    <string name="section_reader">Lector</string>
     <string name="reader_text_settings">Texto</string>
     <string name="reader_font">Fuente</string>
     <string name="reader_font_sans">Sans</string>
@@ -153,7 +152,6 @@
     <string name="action_save_and_archive">Guardar y archivar</string>
     <string name="action_open">Abrir</string>
     <string name="action_undo">Deshacer</string>
-    <string name="folders_explanation">Agrupa los feeds por temas para leerlos juntos. Lo que guardas también lleva temas.</string>
     <string name="filter_unread">Sin leer</string>
     <string name="filter_all">Todos</string>
     <string name="folder_new">Nuevo tema</string>
@@ -247,16 +245,12 @@
     <string name="search_none_title">Sin resultados</string>
     <string name="search_none_body">Ningún artículo contiene todas estas palabras.</string>
     <string name="search_label_feed">Feed</string>
-    <string name="search_any_folder">Cualquier tema</string>
-    <string name="search_any_feed">Todos los feeds</string>
-    <string name="search_feed">Feed</string>
     <!-- A share from another app without a web link (#97). -->
     <string name="share_no_link">No hay ningún enlace para guardar</string>
     <string name="action_archive">Archivar</string>
     <string name="saved_archived">Archivado</string>
     <string name="action_unarchive">Volver a por leer</string>
     <string name="action_like">Me gusta</string>
-    <string name="add_link_title">Añadir enlace</string>
     <string name="add_link_address">Dirección web</string>
     <string name="add_link_invalid">No es una dirección web.</string>
     <string name="note_title">Nota</string>
@@ -301,7 +295,6 @@
     <string name="services_problem_limit">Instapaper no permite más resaltados este mes.</string>
     <string name="highlights_none">Selecciona texto y toca Resaltar.</string>
     <string name="saved_title">Guardados</string>
-    <string name="topic_field">Tema</string>
     <string name="saved_to">Guardado en %1$s</string>
     <string name="saved_remove">Quitar de Guardados</string>
     <string name="saved_remove_body">¿Quitar este elemento, con su nota, temas y destacados? Archivarlo lo mantiene en las búsquedas.</string>
@@ -321,34 +314,34 @@
     <string name="account_link_taken">Esa dirección ya pertenece a otra cuenta de Content.</string>
     <string name="account_link_failed">No se pudo iniciar sesión. Inténtalo de nuevo.</string>
     <string name="action_refresh">Actualizar</string>
-    <string name="menu_manage">Gestionar temas</string>
     <string name="share_copy_link">Copiar enlace</string>
     <string name="share_more">Más</string>
     <string name="instapaper_import_title">¿Importar desde Instapaper?</string>
     <string name="instapaper_import_body">¿Traer una vez todo lo que hay ahora en tu Instapaper? En cualquier caso, a partir de ahora Guardados e Instapaper se mantienen iguales.</string>
     <string name="instapaper_import_skip">No importar</string>
-    <plurals name="topic_saved_count">
-        <item quantity="one">%d guardado</item>
-        <item quantity="other">%d guardados</item>
-    </plurals>
     <string name="welcome_title">Te damos la bienvenida a Content</string>
     <string name="welcome_body">Crea una cuenta o inicia sesión.</string>
     <string name="welcome_without_account">O empieza solo en este dispositivo:</string>
     <string name="welcome_import">Importar desde otro lector</string>
     <string name="topic_in_feeds">Feeds · %1$s</string>
     <string name="topic_in_saved">Guardados · %1$s</string>
-    <string name="topic_merge">Combinar con…</string>
-    <string name="topic_merge_title">Combinar %1$s con…</string>
-    <string name="topic_merge_body">El tema que elijas se queda, con su nombre e icono. Recibe los feeds y artículos guardados de este tema.</string>
-    <string name="topic_merge_action">Combinar</string>
-    <string name="topic_remove">Quitar tema</string>
-    <string name="topic_add_feed">Añadir un feed a %1$s</string>
-    <plurals name="topic_failing_count">
-        <item quantity="one">%d feed falla</item>
-        <item quantity="other">%d feeds fallan</item>
-    </plurals>
-    <plurals name="topic_to_read_count">
-        <item quantity="one">%d por leer</item>
-        <item quantity="other">%d por leer</item>
-    </plurals>
+    <string name="filter_read">Leídos</string>
+    <string name="home_no_read_title">Aún no has leído nada</string>
+    <string name="search_all_feeds">Todos los feeds</string>
+    <string name="add_title">Añadir</string>
+    <string name="add_choice_feed">Suscribirse a un feed</string>
+    <string name="add_choice_feed_body">Suscríbete a un feed RSS escribiendo la dirección de la publicación</string>
+    <string name="add_choice_article">Guardar artículo</string>
+    <string name="add_choice_article_body">Guarda y organiza un artículo escribiendo su dirección</string>
+    <string name="settings_account_signed_out">Sin iniciar sesión</string>
+    <string name="settings_feeds_title">Gestionar feeds</string>
+    <string name="settings_feeds_summary">Tus feeds y sus temas, importar y exportar OPML</string>
+    <string name="settings_topics_summary">Temas e Instapaper</string>
+    <string name="settings_list_summary">Vista, marcar como leído al desplazarse, palabras ocultas</string>
+    <string name="section_article_view">Vista de artículo</string>
+    <string name="settings_article_view_summary">Texto, artículos completos, sitios de pago</string>
+    <string name="manage_feeds_hint">Toca un feed para cambiarle el nombre, cambiar su tema o quitarlo. Arrastra uno por su asa para cambiar el orden.</string>
+    <string name="manage_feeds_none">Aún no hay feeds.</string>
+    <string name="topics_title">Temas</string>
+    <string name="manage_topics_hint">Los temas agrupan tus feeds y artículos guardados. Toca un tema para cambiarle el nombre o el icono, o quitarlo; arrastra uno por su asa para cambiar el orden. Si le das el nombre de otro tema, se unen los dos.</string>
 </resources>

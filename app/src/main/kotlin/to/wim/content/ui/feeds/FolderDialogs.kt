@@ -37,6 +37,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.foundation.layout.Spacer
 import to.wim.content.ui.reader.SheetHeader
+import to.wim.content.ui.reader.SheetSection
+import to.wim.content.ui.home.TopicChip
+import to.wim.content.data.chosenTopic
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -160,26 +167,45 @@ internal fun FolderSheet(
 private val ICON_GRID_HEIGHT = 240.dp
 
 /**
- * Edit a feed: its name (blank brings back the feed's own title), its folder, or remove it.
- * Shows why its last download failed, if it did.
+ * Edit a feed, as a sheet like Add feed: its name (blank brings back the feed's own title), its
+ * address, why its last download failed (if it did), its topic as chips (No topic, then every
+ * topic, with New topic and Edit as in Add feed), Remove at the bottom left (asking first, in the
+ * sheet) and Save at the right. Cancel at the top right, as in every sheet.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun FeedDialog(
+internal fun FeedSheet(
     feed: Feed,
-    folders: List<Folder>,
+    topics: List<Folder>,
     problem: String?,
-    onSave: (title: String, folderId: String?) -> Unit,
+    onSave: (title: String, topicId: String?) -> Unit,
     onRemove: () -> Unit,
     onDismiss: () -> Unit,
+    topicActions: TopicEditActions? = null,
 ) {
     var title by rememberSaveable { mutableStateOf(feed.title) }
-    var folderId by rememberSaveable { mutableStateOf(feed.folderId?.takeIf { id -> folders.any { it.id == id } }) }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        icon = { FeedIcon(feed, FeedIconSize.Large) },
-        title = { Text(stringResource(R.string.feed_edit)) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    var topicId by rememberSaveable { mutableStateOf(feed.folderId?.takeIf { id -> topics.any { it.id == id } }) }
+    var removing by rememberSaveable { mutableStateOf(false) }
+    // A topic made in the sheet: chosen once it exists.
+    var made by rememberSaveable { mutableStateOf<String?>(null) }
+    LaunchedEffect(topics, made) {
+        val name = made ?: return@LaunchedEffect
+        topics.firstOrNull { it.title.equals(name, ignoreCase = true) }?.let {
+            topicId = it.id
+            made = null
+        }
+    }
+    val chosen = chosenTopic(topicId, topics)
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+        Column(
+            Modifier
+                .verticalScroll(rememberScrollState())
+                .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            SheetHeader(stringResource(R.string.feed_edit), onCancel = onDismiss)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                FeedIcon(feed, FeedIconSize.Large)
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it.take(MAX_FEED_TITLE_LENGTH) },
@@ -187,73 +213,53 @@ internal fun FeedDialog(
                     supportingText = { Text(stringResource(R.string.feed_name_hint)) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.weight(1f),
                 )
-                Text(
-                    feed.url,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                if (problem != null) {
-                    Text(problem, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
-                }
-                if (folders.isNotEmpty()) {
-                    Text(stringResource(R.string.feed_folder), style = MaterialTheme.typography.titleSmall)
-                    LazyColumn(Modifier.heightIn(max = 240.dp).selectableGroup()) {
-                        item(key = "none") {
-                            FolderChoice(stringResource(R.string.folder_none), null, selected = folderId == null) { folderId = null }
-                        }
-                        items(folders, key = { it.id }) { folder ->
-                            FolderChoice(folder.title, folder.icon, selected = folderId == folder.id) { folderId = folder.id }
+            }
+            Text(
+                feed.url,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+            if (problem != null) {
+                Text(problem, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+            }
+            SheetSection(stringResource(R.string.feed_folder))
+            TopicChipRow(
+                topics = topics,
+                selected = { chosen == it.id },
+                // One topic: tapping the chosen one again is No topic.
+                onToggle = { topicId = if (chosen == it.id) null else it.id },
+                actions = topicActions,
+                onCreated = { made = it },
+                leading = { TopicChip(stringResource(R.string.folder_none), icon = null, selected = chosen == null, enabled = true) { topicId = null } },
+            )
+            if (removing) {
+                // Remove feed? asks here, in the sheet, instead of a dialog over it.
+                Column(Modifier.padding(top = 4.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(stringResource(R.string.feeds_remove_title), style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.feeds_remove_body, feed.title), style = MaterialTheme.typography.bodyMedium)
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Spacer(Modifier.weight(1f))
+                        TextButton(onClick = { removing = false }) { Text(stringResource(R.string.action_cancel)) }
+                        TextButton(onClick = onRemove, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) {
+                            Text(stringResource(R.string.action_remove))
                         }
                     }
                 }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = { onSave(title, folderId) }) { Text(stringResource(R.string.action_save)) }
-        },
-        dismissButton = { RemoveAndCancel(onRemove, onDismiss) },
-    )
-}
-
-/** Remove (in the error colour, when there is something to remove) and Cancel. */
-@Composable
-private fun RemoveAndCancel(
-    onRemove: (() -> Unit)?,
-    onDismiss: () -> Unit,
-) {
-    Row {
-        if (onRemove != null) {
-            TextButton(onClick = onRemove) {
-                Text(stringResource(R.string.action_remove), color = MaterialTheme.colorScheme.error)
+            } else {
+                // Remove at the bottom left, away from Save.
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    TextButton(onClick = { removing = true }) {
+                        Text(stringResource(R.string.action_remove), color = MaterialTheme.colorScheme.error)
+                    }
+                    Spacer(Modifier.weight(1f))
+                    Button(onClick = { onSave(title, chosen) }) { Text(stringResource(R.string.action_save)) }
+                }
             }
         }
-        TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
-    }
-}
-
-@Composable
-private fun FolderChoice(
-    label: String,
-    icon: String?,
-    selected: Boolean,
-    onClick: () -> Unit,
-) {
-    Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
-                .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        RadioButton(selected = selected, onClick = null)
-        if (icon != null) Icon(rememberFolderIconPainter(icon), contentDescription = null)
-        Text(label, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 

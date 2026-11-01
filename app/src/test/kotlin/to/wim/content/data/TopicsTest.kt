@@ -147,14 +147,14 @@ class TopicsTest {
 
 
     @Test
-    fun `Feeds' chips leave out topics with nothing in the state shown, except the one chosen`() {
+    fun `Feeds' chips leave out topics with nothing in the tab shown, except the one chosen`() {
         val article = { feed: String, id: String, read: Boolean -> Article(feed, id, id, null, null, "", null, 0L, read = read) }
         val withArticles = library.topicsForTags().copy(articles = listOf(article("https://a/feed", "1", false), article("https://b/feed", "2", true)))
         // Tech has an unread article; News only a read one.
-        assertEquals(listOf("Tech"), withArticles.feedChips(unreadOnly = true, chosen = null))
-        assertEquals(listOf("Tech", "News"), withArticles.feedChips(unreadOnly = false, chosen = null))
+        assertEquals(listOf("Tech"), withArticles.feedChips(FeedTab.Unread, chosen = null))
+        assertEquals(listOf("News"), withArticles.feedChips(FeedTab.Read, chosen = null))
         // The chosen one stays, so it doesn't disappear under your finger.
-        assertEquals(listOf("Tech", "News"), withArticles.feedChips(unreadOnly = true, chosen = "news"))
+        assertEquals(listOf("Tech", "News"), withArticles.feedChips(FeedTab.Unread, chosen = "news"))
     }
 
     @Test

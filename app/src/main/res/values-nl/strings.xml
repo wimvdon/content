@@ -47,7 +47,6 @@
     <string name="import_nothing_new">Geen nieuwe feeds in dit bestand.</string>
     <string name="export_done">Feeds geëxporteerd</string>
     <string name="export_failed">Het bestand kon niet bewaard worden.</string>
-    <string name="section_reader">Lezen</string>
     <string name="reader_text_settings">Tekst</string>
     <string name="reader_font">Lettertype</string>
     <string name="reader_font_sans">Schreefloos</string>
@@ -151,7 +150,6 @@
     <string name="action_save_and_archive">Opslaan en archiveren</string>
     <string name="action_open">Openen</string>
     <string name="action_undo">Ongedaan maken</string>
-    <string name="folders_explanation">Zet feeds in onderwerpen om ze samen te lezen. Wat je bewaart, krijgt ook onderwerpen.</string>
     <string name="filter_unread">Ongelezen</string>
     <string name="filter_all">Alle</string>
     <string name="folder_new">Nieuw onderwerp</string>
@@ -240,16 +238,12 @@
     <string name="search_none_title">Niets gevonden</string>
     <string name="search_none_body">Geen artikel bevat al deze woorden.</string>
     <string name="search_label_feed">Feed</string>
-    <string name="search_any_folder">Elk onderwerp</string>
-    <string name="search_any_feed">Elke feed</string>
-    <string name="search_feed">Feed</string>
     <!-- A share from another app without a web link (#97). -->
     <string name="share_no_link">Geen link om te bewaren</string>
     <string name="action_archive">Archiveren</string>
     <string name="saved_archived">Gearchiveerd</string>
     <string name="action_unarchive">Terug naar te lezen</string>
     <string name="action_like">Leuk</string>
-    <string name="add_link_title">Link toevoegen</string>
     <string name="add_link_address">Webadres</string>
     <string name="add_link_invalid">Dat is geen webadres.</string>
     <string name="note_title">Notitie</string>
@@ -291,7 +285,6 @@
     <string name="services_problem_limit">Instapaper staat deze maand geen markeringen meer toe.</string>
     <string name="highlights_none">Selecteer tekst en tik op Markeren.</string>
     <string name="saved_title">Bewaard</string>
-    <string name="topic_field">Onderwerp</string>
     <string name="saved_to">Bewaard in %1$s</string>
     <string name="saved_remove">Verwijderen uit Bewaard</string>
     <string name="saved_remove_body">Dit item verwijderen, met de notitie, onderwerpen en markeringen? Archiveren houdt het doorzoekbaar.</string>
@@ -311,34 +304,34 @@
     <string name="account_link_taken">Dat adres hoort al bij een ander Content-account.</string>
     <string name="account_link_failed">Aanmelden is niet gelukt. Probeer opnieuw.</string>
     <string name="action_refresh">Vernieuwen</string>
-    <string name="menu_manage">Onderwerpen beheren</string>
     <string name="share_copy_link">Link kopiëren</string>
     <string name="share_more">Meer</string>
     <string name="instapaper_import_title">Importeren uit Instapaper?</string>
     <string name="instapaper_import_body">Alles wat nu in je Instapaper staat eenmalig binnenhalen? Hoe dan ook blijven Bewaard en Instapaper vanaf nu gelijk.</string>
     <string name="instapaper_import_skip">Niet importeren</string>
-    <plurals name="topic_saved_count">
-        <item quantity="one">%d bewaard</item>
-        <item quantity="other">%d bewaard</item>
-    </plurals>
     <string name="welcome_title">Welkom bij Content</string>
     <string name="welcome_body">Maak een account aan of meld je aan.</string>
     <string name="welcome_without_account">Of begin enkel op dit toestel:</string>
     <string name="welcome_import">Importeren uit een andere lezer</string>
     <string name="topic_in_feeds">Feeds · %1$s</string>
     <string name="topic_in_saved">Bewaard · %1$s</string>
-    <string name="topic_merge">Samenvoegen met…</string>
-    <string name="topic_merge_title">%1$s samenvoegen met…</string>
-    <string name="topic_merge_body">Het onderwerp dat je kiest blijft, met zijn naam en icoon. Het krijgt de feeds en bewaarde artikels van dit onderwerp.</string>
-    <string name="topic_merge_action">Samenvoegen</string>
-    <string name="topic_remove">Onderwerp verwijderen</string>
-    <string name="topic_add_feed">Feed toevoegen aan %1$s</string>
-    <plurals name="topic_failing_count">
-        <item quantity="one">%d feed lukt niet</item>
-        <item quantity="other">%d feeds lukken niet</item>
-    </plurals>
-    <plurals name="topic_to_read_count">
-        <item quantity="one">%d te lezen</item>
-        <item quantity="other">%d te lezen</item>
-    </plurals>
+    <string name="filter_read">Gelezen</string>
+    <string name="home_no_read_title">Nog niets gelezen</string>
+    <string name="search_all_feeds">Alle feeds</string>
+    <string name="add_title">Toevoegen</string>
+    <string name="add_choice_feed">Abonneren op feed</string>
+    <string name="add_choice_feed_body">Abonneer je op een RSS-feed door het adres van de publicatie in te vullen</string>
+    <string name="add_choice_article">Artikel bewaren</string>
+    <string name="add_choice_article_body">Bewaar en orden een artikel door zijn adres in te vullen</string>
+    <string name="settings_account_signed_out">Niet aangemeld</string>
+    <string name="settings_feeds_title">Feeds beheren</string>
+    <string name="settings_feeds_summary">Je feeds en hun onderwerpen, OPML importeren en exporteren</string>
+    <string name="settings_topics_summary">Onderwerpen en Instapaper</string>
+    <string name="settings_list_summary">Weergave, gelezen bij scrollen, verborgen woorden</string>
+    <string name="section_article_view">Artikelweergave</string>
+    <string name="settings_article_view_summary">Tekst, volledige artikels, sites waarvoor je betaalt</string>
+    <string name="manage_feeds_hint">Tik op een feed om hem te hernoemen, een ander onderwerp te geven of te verwijderen. Sleep er een aan zijn greep om de volgorde te wijzigen.</string>
+    <string name="manage_feeds_none">Nog geen feeds.</string>
+    <string name="topics_title">Onderwerpen</string>
+    <string name="manage_topics_hint">Onderwerpen groeperen je feeds en bewaarde artikels. Tik op een onderwerp om het te hernoemen, een ander icoon te geven of te verwijderen; sleep er een aan zijn greep om de volgorde te wijzigen. Geef je het de naam van een ander onderwerp, dan worden ze samengevoegd.</string>
 </resources>

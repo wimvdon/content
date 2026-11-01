@@ -79,10 +79,10 @@ rss-reader/
         │   │       ├── MainActivity.kt, Navigation.kt   Entry, back stack, wiring
         │   │       ├── ExternalApps.kt        Browser, share, Instapaper, Play Store
         │   │       ├── DirectShare.kt         The people in other apps' share menus; folders in the launcher
-        │   │       ├── home/                  Article list, search bar, chip rows, Add feed sheet, messages, inbox
+        │   │       ├── home/                  Article list, search bar, tabs, chip rows, Add and Add feed sheets, messages, inbox
         │   │       ├── reader/                Reader screen, text settings, reader colours, Organise sheet, Content's share sheet
-        │   │       ├── feeds/                 Manage topics: topic list, topic page, topic and feed dialogs
-        │   │       ├── settings/              Settings screen, Save/Share targets, Instapaper
+        │   │       ├── feeds/                 Topic chips (editing, reordering), the topic and Edit feed sheets
+        │   │       ├── settings/              Settings and its pages (Account, Manage feeds and topics, Theme, …), Instapaper
         │   │       └── theme/                 Theme.kt (palette) + shared design kit (incl. EmptyState)
         │   ├── assets/                  material_symbols.txt (folder icons) and its licence
         │   └── res/

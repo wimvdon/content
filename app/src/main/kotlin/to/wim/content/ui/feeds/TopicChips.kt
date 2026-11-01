@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -73,15 +75,24 @@ fun TopicChipRow(
     extra: List<String> = emptyList(),
     isExtraSelected: (String) -> Boolean = { true },
     onToggleExtra: (String) -> Unit = {},
+    /** Settings › Manage topics: always the editing chips, with New topic, and no Edit or Done. */
+    alwaysEditing: Boolean = false,
 ) {
-    var editMode by rememberSaveable { mutableStateOf(false) }
+    var editMode by rememberSaveable { mutableStateOf(alwaysEditing) }
     var creating by rememberSaveable { mutableStateOf(false) }
     var editing by rememberSaveable { mutableStateOf<String?>(null) }
     var removing by rememberSaveable { mutableStateOf<String?>(null) }
     val editable = actions != null && editMode
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (editable) {
-            ReorderableTopicChips(topics, onReorder = { actions!!.onReorder(it) }, onEdit = { editing = it.id })
+            ReorderableChips(
+                items = topics,
+                key = { it.id },
+                label = { it.title },
+                icon = { Icon(rememberFolderIconPainter(it.icon), contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) },
+                onReorder = { actions!!.onReorder(it) },
+                onEdit = { editing = it.id },
+            )
         }
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -106,13 +117,13 @@ fun TopicChipRow(
             }
             // New topic and Edit are actions, not topics: text buttons, so they don't look like chips.
             if (actions != null) {
-                if (!editable) {
+                if (!editable || alwaysEditing) {
                     TextButton(onClick = { creating = true }, enabled = enabled, contentPadding = ButtonDefaults.TextButtonWithIconContentPadding) {
                         Icon(painterResource(R.drawable.ic_add), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
                         Text(stringResource(R.string.folder_new), modifier = Modifier.padding(start = 8.dp))
                     }
                 }
-                if (topics.isNotEmpty() || editable) {
+                if (!alwaysEditing && (topics.isNotEmpty() || editable)) {
                     TextButton(
                         onClick = {
                             editMode = !editMode
@@ -181,25 +192,33 @@ fun TopicChipRow(
 }
 
 /**
- * The topics' chips while editing (#314): a drag handle, the icon, the name and a pen. Dragging a
- * chip moves it among the others at once (they wrap over lines, `ChipOrder`); the new order is
- * stored when it is dropped. Tapping a chip edits it. Screen readers get Move up and Move down.
+ * Chips to reorder and edit (#314): topics while editing, and feeds in Settings › Manage feeds. Each
+ * has a drag handle, its icon, its name and a pen. Dragging a chip moves it among the others at once
+ * (they wrap over lines, `ChipOrder`); the new order is stored when it is dropped. Tapping a chip
+ * edits it. Screen readers get Move up and Move down. [isError] draws a chip's name in the error
+ * colour (a feed that fails to download).
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun ReorderableTopicChips(
-    topics: List<Folder>,
-    onReorder: (ids: List<String>) -> Unit,
-    onEdit: (Folder) -> Unit,
+internal fun <T> ReorderableChips(
+    items: List<T>,
+    key: (T) -> String,
+    label: (T) -> String,
+    icon: @Composable (T) -> Unit,
+    onReorder: (keys: List<String>) -> Unit,
+    onEdit: (T) -> Unit,
+    editLabel: String = stringResource(R.string.folder_edit),
+    isError: (T) -> Boolean = { false },
 ) {
+    val topics = items
     // A working copy, so a dragged chip moves before the new order is stored.
-    val order = remember { mutableStateListOf<Folder>() }
+    val order = remember { mutableStateListOf<T>() }
     var dragged by remember { mutableStateOf<String?>(null) }
     // Where the finger is, within the row, and where it touched the dragged chip.
     var pointer by remember { mutableStateOf(Offset.Zero) }
     var grip by remember { mutableStateOf(Offset.Zero) }
     val boxes = remember { mutableStateMapOf<String, ChipOrder.Box>() }
-    if (dragged == null && order.map { it.id to it.title to it.icon } != topics.map { it.id to it.title to it.icon }) {
+    if (dragged == null && order.toList() != topics) {
         order.clear()
         order.addAll(topics)
     }
@@ -209,14 +228,13 @@ private fun ReorderableTopicChips(
     val reorder = stringResource(R.string.action_reorder)
     val moveUp = stringResource(R.string.action_move_up)
     val moveDown = stringResource(R.string.action_move_down)
-    val editLabel = stringResource(R.string.folder_edit)
-    LaunchedEffect(topics) { boxes.keys.retainAll(topics.map { it.id }.toSet()) }
+    LaunchedEffect(topics) { boxes.keys.retainAll(topics.map(key).toSet()) }
 
     fun step(
         id: String,
         by: Int,
     ): Boolean {
-        val ids = currentTopics.map { it.id }
+        val ids = currentTopics.map(key)
         val from = ids.indexOf(id)
         val moved = ChipOrder.moved(ids, from, from + by)
         if (moved === ids) return false
@@ -230,7 +248,7 @@ private fun ReorderableTopicChips(
         itemVerticalAlignment = Alignment.CenterVertically,
     ) {
         order.forEach { topic ->
-            val id = topic.id
+            val id = key(topic)
             androidx.compose.runtime.key(id) {
                 val isDragging = dragged == id
                 Surface(
@@ -255,7 +273,7 @@ private fun ReorderableTopicChips(
                                     }
                                 }
                             }.semantics(mergeDescendants = true) {
-                                contentDescription = "$editLabel: ${topic.title}"
+                                contentDescription = "$editLabel: ${label(topic)}"
                                 customActions =
                                     listOf(
                                         CustomAccessibilityAction(moveUp) { step(id, -1) },
@@ -286,15 +304,15 @@ private fun ReorderableTopicChips(
                                             onDrag = { change, amount ->
                                                 change.consume()
                                                 pointer += amount
-                                                val list = order.map { it.id }
+                                                val list = order.map(key)
                                                 val from = list.indexOf(id)
                                                 val to = ChipOrder.indexAt(list.map { boxes[it] ?: ChipOrder.Box(0f, 0f, 0f, 0f) }, pointer.x, pointer.y)
                                                 if (to >= 0 && to != from) order.add(to, order.removeAt(from))
                                             },
                                             onDragEnd = {
                                                 dragged = null
-                                                val ids = order.map { it.id }
-                                                if (ids != currentTopics.map { it.id }) currentOnReorder(ids)
+                                                val ids = order.map(key)
+                                                if (ids != currentTopics.map(key)) currentOnReorder(ids)
                                             },
                                             onDragCancel = {
                                                 dragged = null
@@ -304,8 +322,15 @@ private fun ReorderableTopicChips(
                                         )
                                     },
                         )
-                        Icon(rememberFolderIconPainter(topic.icon), contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize))
-                        Text(topic.title, style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(horizontal = 8.dp))
+                        icon(topic)
+                        Text(
+                            label(topic),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = if (isError(topic)) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.padding(horizontal = 8.dp).widthIn(max = 200.dp),
+                        )
                         Icon(painterResource(R.drawable.ic_edit), contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }

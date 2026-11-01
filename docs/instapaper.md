@@ -64,7 +64,7 @@ filter, and notes and highlights on the cards of a folder. Signed in, `web/src/l
 it the same as Instapaper in the background, by the Android app's rules (`ServiceSync.kt`): what
 changed there since the last look comes in (`since`), what changed here goes there (title, link,
 tags, like, archive, folder, reading progress); the web app asks the same import question
-(`app.chooseInstapaperImport`, #251), and Manage › Saved › Instapaper says how many came in.
+(`app.chooseInstapaperImport`, #251), and Settings › Manage topics › Instapaper says how many came in.
 `web/src/lib/instapaperSync.ts` is Instapaper's side (`InstapaperReadingList.kt`'s twin), through the
 Worker. It runs after every sync with the Reader account (when the page opens, a moment after a
 change, and when it comes back into view). This browser's copy of what Instapaper had is kept in
@@ -72,7 +72,7 @@ IndexedDB (`instapaperSync`) and forgotten on sign-out; Saved stays.
 
 ## How sign-in works
 
-1. Settings › Instapaper › **Sign in** opens `https://www.instapaper.com/oauth2/authorize` with the
+1. Settings › Manage topics › Instapaper › **Sign in** opens `https://www.instapaper.com/oauth2/authorize` with the
    client ID, the callback address, `response_type=code` and a random `state` (kept on the device).
 2. The user approves Reader on Instapaper's page. Instapaper sends them back to the callback
    address with `?code=...&state=...`.

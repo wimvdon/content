@@ -103,32 +103,46 @@ object ItemSearch {
 }
 
 /**
- * Search's filters (#171): which kind (All, Feeds, Saved), then for feeds a folder or one feed, and
- * for Saved a folder, a tag and a type. Only the chosen kind's filters apply; changing the kind
- * clears them.
+ * Search's filters: one row of chips. **Feeds** (a menu: all feeds, or some of them, picked with
+ * check boxes) and **Saved** pick the kind; neither shows both. Then a **topic**, one at a time,
+ * which narrows both kinds: feeds with that topic and saved articles with it. Picking feeds means
+ * only feeds; Saved lets go of the picked feeds. A topic keeps only the picked feeds that have it.
  */
 data class SearchFilters(
     val scope: SearchFilter = SearchFilter.All,
-    /** A folder of feeds (its id). */
-    val feedFolderId: String? = null,
-    /** One feed (its address). */
-    val feedUrl: String? = null,
-    /** A folder of Saved (its name, case ignored). */
-    val savedFolder: String? = null,
-    val tag: String? = null,
+    /** Some feeds (their addresses), with [scope] Feeds; empty: every feed. */
+    val feedUrls: Set<String> = emptySet(),
+    /** A topic's name (case ignored). */
+    val topic: String? = null,
 ) {
-    /** Whether any filter beyond the kind is chosen. */
-    val narrowed: Boolean get() = feedFolderId != null || feedUrl != null || savedFolder != null || tag != null
+    /** Whether anything beyond the kind is chosen. */
+    val narrowed: Boolean get() = feedUrls.isNotEmpty() || topic != null
 
-    /** The kind [scope], without the other kind's filters. */
-    fun withScope(scope: SearchFilter): SearchFilters = SearchFilters(scope)
+    /** The kind [scope]; the picked feeds go, the topic stays (it is about both kinds). */
+    fun withScope(scope: SearchFilter): SearchFilters = copy(scope = scope, feedUrls = emptySet())
+
+    /** The Feeds menu's check box for one feed: picks it (only feeds then) or lets go of it. */
+    fun toggleFeed(url: String): SearchFilters {
+        val urls = if (url in feedUrls) feedUrls - url else feedUrls + url
+        return copy(scope = SearchFilter.Feeds, feedUrls = urls)
+    }
+
+    /** A topic chip: picks it, or with null lets go; picked feeds without it are let go too. */
+    fun withTopic(
+        topic: String?,
+        library: Library,
+    ): SearchFilters {
+        if (topic == null) return copy(topic = null)
+        val kept = feedUrls.filterTo(LinkedHashSet()) { url -> library.feed(url)?.let { SearchResults.hasTopic(it, topic, library) } == true }
+        return copy(topic = topic, feedUrls = kept)
+    }
 }
 
 /**
  * What the Search tab lists (#171). With words typed, the matches ([feedMatches] and [itemMatches],
  * found by ArticleSearch and ItemSearch) as Search ranks them; without, everything, newest first:
  * all feed articles, all of Saved (archived ones too), or both. Either way only what the filters
- * let through. Plain Kotlin, unit tested; the web app does the same in web/src/lib/search.ts.
+ * let through. Plain Kotlin, unit tested.
  */
 object SearchResults {
     /**
@@ -140,6 +154,36 @@ object SearchResults {
     /** How many articles the list shows without words typed. */
     const val MAX_BROWSED = 500
 
+    /** Whether a feed has [topic]: as one of its tags, or as its folder. */
+    fun hasTopic(
+        feed: Feed,
+        topic: String,
+        library: Library,
+    ): Boolean =
+        feed.tags.any { it.equals(topic, ignoreCase = true) } ||
+            feed.folderId?.let { library.folder(it) }?.title?.equals(topic, ignoreCase = true) == true
+
+    /**
+     * The topic chips for [scope]: the topics that some feed (unless only Saved is searched) or some
+     * saved article (unless only feeds) has, in the user's order; the chosen one always stays.
+     */
+    fun topics(
+        library: Library,
+        scope: SearchFilter,
+        chosen: String?,
+    ): List<String> =
+        library.topicNames().filter { topic ->
+            topic.equals(chosen, ignoreCase = true) ||
+                (scope != SearchFilter.Saved && library.feeds.any { hasTopic(it, topic, library) }) ||
+                (scope != SearchFilter.Feeds && library.items.any { i -> i.readingList != null && i.tags.any { it.equals(topic, ignoreCase = true) } })
+        }
+
+    /** The feeds the Feeds menu offers: those with the chosen topic, else all of them. */
+    fun menuFeeds(
+        library: Library,
+        topic: String?,
+    ): List<Feed> = if (topic == null) library.feeds else library.feeds.filter { hasTopic(it, topic, library) }
+
     fun of(
         query: String,
         library: Library,
@@ -150,14 +194,15 @@ object SearchResults {
         val browsing = ArticleSearch.words(query).isEmpty()
         val articles = if (browsing) library.articles else feedMatches
         val items = if (browsing) library.items.filter { it.readingList != null } else itemMatches
-        val folderOfFeed = library.feeds.associate { it.url to it.folderId }
+        val topic = filters.topic
+        val feedsByUrl = library.feeds.associateBy { it.url }
         val feeds =
             when (filters.scope) {
                 SearchFilter.Saved -> emptyList()
                 else ->
                     articles.filter { a ->
-                        (filters.feedUrl == null || a.feedUrl == filters.feedUrl) &&
-                            (filters.feedFolderId == null || folderOfFeed[a.feedUrl] == filters.feedFolderId)
+                        (filters.feedUrls.isEmpty() || a.feedUrl in filters.feedUrls) &&
+                            (topic == null || feedsByUrl[a.feedUrl]?.let { hasTopic(it, topic, library) } == true)
                     }
             }
         val saved =
@@ -165,17 +210,13 @@ object SearchResults {
                 SearchFilter.Feeds -> emptyList()
                 else ->
                     items.filter { i ->
-                        i.readingList != null &&
-                            (filters.savedFolder == null || Saved.folderOf(i)?.equals(filters.savedFolder, ignoreCase = true) == true) &&
-                            (filters.tag == null || i.tags.any { it.equals(filters.tag, ignoreCase = true) })
+                        i.readingList != null && (topic == null || i.tags.any { it.equals(topic, ignoreCase = true) })
                     }
             }
-        // Feed filters are about feeds: with one chosen under All, Saved's matches stay out too.
-        val onlyFeeds = filters.scope == SearchFilter.All && (filters.feedUrl != null || filters.feedFolderId != null)
         return MixedSearch.mix(
             if (browsing) "" else query,
             feeds,
-            if (onlyFeeds) emptyList() else saved,
+            saved,
             filters.scope,
             if (browsing) MAX_BROWSED else ArticleSearch.MAX_RESULTS,
         )

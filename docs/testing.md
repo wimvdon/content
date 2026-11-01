@@ -38,7 +38,7 @@ when the run fails.
 | `FullArticlesTest` | Loaded full articles are kept in the cache and not downloaded again; ones kept by an older extractor are extracted again and removed; a page that can't be downloaded fails |
 | `ArticleBlocksTest` | Splitting articles into text, pictures (captions, srcset, lazy-loaded, tracking pixels skipped, https) and embeds (YouTube, Vimeo, videos, others); first picture; same picture in other sizes; a caption written twice in a row shows once |
 | `OpmlTest` | Import with folders and duplicates, an Inoreader export with folders, export round trip with folders, non-OPML files |
-| `LibraryTest` | Merging downloads (read state kept, duplicates, limits), sorting, Unread filter, counts, mark read (and undo), remove feed, rename feed (kept through refreshes), a whole refresh merged at once, future dates; folders: add, edit, remove, move feeds, folder selection, OPML import into folders and export |
+| `LibraryTest` | Merging downloads (read state kept, duplicates, limits), sorting, Unread filter and Feeds' Unread and Read tabs (`FeedTab`), counts, mark read (and undo), remove feed, rename feed (kept through refreshes), a whole refresh merged at once, future dates; folders: add, edit, remove, move feeds, folder selection, OPML import into folders and export |
 | `LibraryItemsTest` | Links with tracking parameters are one item and duplicates from before join with everything of both (#253); a saved feed article tagged with its feed's folder (#120: existing spelling reused, not twice, nothing outside folders); one item per link (#106): links written another way are one item, saving a feed article makes its item without a copy, saving again brings it back to read, archive keeps the bookmark, keep as bookmark keeps the reading list place, remove bookmark keeps the reading list place, read again, tags cleaned and renamed (joined), lists newest first, removing a feed keeps its items |
 | `LibraryRowsTest` | The library to database rows and back unchanged (order, tabs, line breaks, tags, highlights), broken rows repaired, only changed articles and items written, an empty database filled |
 | `EmailLinksTest` | Email sign-in (#166): the token read from an emailed link (only Content's own address), what a used link gave (a key or an added address), the Gravatar address of an email in one form. The web app's `emailLinks.test.ts` does the same and checks the calls; the Worker's `email.test.ts` checks signed tokens (changed, ended, another key), a link that works once, the same account every time, adding an address to an Instapaper account and refusing one that opens another, and what the email says |
@@ -64,7 +64,7 @@ when the run fails.
 | `SiteIconTest` | Choosing a site's icon: largest size, apple-touch-icon, relative and http addresses, skipping SVG and inline icons, home page and favicon.ico fallback |
 | `IconCatalogTest` | Reading the icon file, search order (name, words, categories, related words), suggestions, old icon names, and that the bundled file has every suggested and migrated icon |
 | `ArticleDaysTest` | Grouping the list by local day, time zones |
-| `MixedSearchTest` | Search's ranking: the whole query in a title above single words above text-only matches, feed and reading list results in one list (then newest), the All/Feeds/Reading list chips; `SearchResultsTest`: the Search tab without words (everything, newest first) and its filters (feed folder, feed, Saved folder, tag, type); `ItemSearchTest`: the reading list searched by title, website, description, tags, note and highlights, title matches first; the web app's `test/search.test.ts` checks the ranking too |
+| `MixedSearchTest` | Search's ranking: the whole query in a title above single words above text-only matches, feed and reading list results in one list (then newest), the All/Feeds/Reading list chips; `SearchResultsTest`: the Search tab without words (everything, newest first) and its one chip row (the Feeds menu with several feeds, Saved, a topic for both kinds, the topic chips and the menu's feeds for a topic); `ItemSearchTest`: the reading list searched by title, website, description, tags, note and highlights, title matches first; the web app's `test/search.test.ts` checks the ranking too |
 | `SavedTest` | Saved (#119): each item in one place (To read, a folder, Archive) and All with them all, newest first; Liked and tags (all of them); chips in the topics' order (alphabetical without topics); folders and counts, a filter without a folder or tags that are gone; filing and archiving (out of the folder); renaming (joining) and removing folders; the folder through sync and its merge |
 | `TopicsTest` | Topics: every tag gets its topic once (the same id on every device), topics with one name joined with their feeds, no second topic with a taken name, renaming on feeds and saved articles (to another one's name joins the two), removing keeps feeds and articles, counts and the topics' order, a saved feed article gets its feed's topic; Feeds' places and Back going up a level; reordering topics and one topic's feeds; merging; the topic being viewed (Edit topic). The web app's `test/topics.test.ts` checks the same library the same way. |
 | `FeedChipsTest` | Feeds' chip rows without ☰: the topics then the feeds without a topic, a chosen topic's feeds in a second row, a feed keeping its topic lit (or lit itself in the first row when it has none), the chosen topic staying a chip, a tagged feed counting as in its topic |
@@ -102,14 +102,14 @@ and then (always before a release):
 - [ ] In an article, tap the title: the page opens in the browser. Aa › Auto dark on, background
       Sepia, phone in dark mode: the page is dark; in light mode: sepia.
 - [ ] Open an article from a summary-only feed (e.g. `theverge.com`): the full article loads.
-      ⋮ › Show feed text / Show full article switches; Settings › Reader › Load full articles off
+      ⋮ › Show feed text / Show full article switches; Settings › Article view › Load full articles off
       stops it.
 - [ ] **Backup:** with a cable and `adb`, `adb shell bmgr backupnow to.wim.content`,
       uninstall, reinstall, `adb shell bmgr restore to.wim.content` (or set up a
       new phone from backup): feeds and settings come back.
 - [ ] **Pictures:** list rows show thumbnails; the reader shows the picture above the title and
       pictures between paragraphs; a YouTube embed shows a card with a preview that opens YouTube.
-      Settings › Reader › Show images off hides them all.
+      Settings › Article view › Show images off hides them all.
 - [ ] **Sync** (needs `ACCOUNT_KEY` on the Worker, `docs/account.md`, and the Instapaper sign-in
       below): signed in, Settings › Account says "Last synced just now". Sign in on the web app (or
       a second phone) with the same Instapaper account: the same feeds, folders and read marks
@@ -146,17 +146,18 @@ and then (always before a release):
       dot while something in it is unread (a rail at the left in landscape on a tablet). The Mark all
       read button and messages sit above the bar. Signed out, there is no Inbox.
 - [ ] **Navigation:** there is no ☰. The search bar ends with Settings (your picture signed in,
-      else a cogwheel). In Feeds the chips are Unread/All, the topics, then the feeds without a
-      topic, with no X and no Manage topics icon at the end (tap a chosen chip again for
-      everything); picking a topic shows a second row with its feeds, and
-      tapping one shows that feed alone. Settings › Feeds › Manage topics opens the same page. In a
+      else a cogwheel). Feeds has the tabs Unread and Read (Read: only articles already read; no
+      Mark all read button there), Saved To read and All. Under them the chips: in Feeds the topics,
+      then the feeds without a topic, with no X (tap a chosen chip again for everything); picking a
+      topic shows a second row with its feeds, and tapping one shows that feed alone. **+** in the
+      search bar (Feeds, Saved and the Inbox alike) opens Add: Subscribe to feed opens Add feed, Save
+      article the save sheet asking for the address. In a
       topic, a feed, Saved or the Inbox, Back goes up a level; on All, Back closes the app.
 - [ ] **Archive from the reader:** a saved article in To read has an Archive button next to its
       list at the bottom; tapping it closes the article, shows Archived with Undo, and Undo puts it
       back. An archived article has no Archive button.
-- [ ] **Saved:** tabs To read, All, each folder and Archive; the Liked chip and tag chips (several
-      at once) filter it. To read,
-      All and Archive look like the feed list (Settings › View applies); a folder shows notes in two
+- [ ] **Saved:** tabs To read and All (archived articles too); the Liked chip and topic chips
+      filter it. To read and All look like the feed list (Settings › View applies); a folder shows notes in two
       columns (picture, title, note or description, site, tags). Add link asks for an address and a
       folder. In the reader (#139): the top bar has the full-article button (lit while the full article
       shows; tap: the feed's text, tap again: the full article), Aa and ⋮, before and after saving;
@@ -197,10 +198,16 @@ and then (always before a release):
       Edit says **Done**; drag a chip by its grip onto another place: the order changes there and in
       the chip rows. Tap a chip: rename it (to another topic's name: they join), change its icon, or
       Remove (asks under the chips). Web app: the same, dragging with the mouse or ← → on a chip.
-- [ ] **Manage feeds** (Settings › Feeds › Manage topics): create a folder, search an icon (e.g. *soccer*) and pick it, move feeds into it (they show under it); the bottom bar appears, its
-      tabs show only that folder's articles; Mark all read (round button) only marks that
-      section and Undo restores it; removing the folder keeps its feeds and hides the bar.
-- [ ] **Dark mode** and **Settings › Appearance**: switch Theme and Dynamic color. Text stays
+- [ ] **Settings** lists Account, Manage feeds, Manage topics, Theme, Article list and Article view;
+      each opens its page and back returns to the list. **Manage feeds**: the feeds as chips by topic
+      (a failing one in red); drag one by its grip within its topic; tap one: the Edit feed sheet
+      (rename, another topic, Remove asks in the sheet); Add feed stays on the page; OPML import and
+      export below. **Manage topics**: the topics as chips with grip and pen; drag to reorder, tap to
+      rename, change the icon or remove; New topic; Instapaper below.
+- [ ] **Search:** one chip row: Feeds (menu: All feeds, tick several feeds, Clear), Saved, then
+      the topics; a topic narrows feeds and Saved; with a topic picked the Feeds menu lists only its
+      feeds.
+- [ ] **Dark mode** and **Settings › Theme**: switch Theme and Dynamic color. Text stays
       readable, status bar icons stay visible (also on sepia and dark reader pages).
 - [ ] **Rotation**: the screen keeps its state.
 - [ ] **Language**: Settings › System › Languages › App languages › Reader › each language.
@@ -225,7 +232,7 @@ Or ask Claude Code to do it: give it the stack trace and the version.
 Sign-in needs the real Instapaper, the Worker's secret and a verified App Link, so it can't be tested
 in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
 
-- [ ] Settings › Connected services › Instapaper › **Sign in with Instapaper** opens Instapaper; approving returns to the app
+- [ ] Settings › Manage topics › Instapaper › **Sign in with Instapaper** opens Instapaper; approving returns to the app
       with "Signed in to Instapaper", and Settings shows your user name.
 - [ ] Right after signing in, everything in the Instapaper account appears in Saved (archived ones
       under Archive, Instapaper's folders as folders), and what was in Saved appears in Instapaper.

@@ -47,7 +47,6 @@
     <string name="import_nothing_new">Nessun nuovo feed in questo file.</string>
     <string name="export_done">Feed esportati</string>
     <string name="export_failed">Impossibile salvare il file.</string>
-    <string name="section_reader">Lettura</string>
     <string name="reader_text_settings">Testo</string>
     <string name="reader_font">Carattere</string>
     <string name="reader_font_sans">Sans</string>
@@ -153,7 +152,6 @@
     <string name="action_save_and_archive">Salva e archivia</string>
     <string name="action_open">Apri</string>
     <string name="action_undo">Annulla</string>
-    <string name="folders_explanation">Raggruppa i feed per argomento per leggerli insieme. Anche ciò che salvi ha argomenti.</string>
     <string name="filter_unread">Non letti</string>
     <string name="filter_all">Tutti</string>
     <string name="folder_new">Nuovo argomento</string>
@@ -247,16 +245,12 @@
     <string name="search_none_title">Nessun risultato</string>
     <string name="search_none_body">Nessun articolo contiene tutte queste parole.</string>
     <string name="search_label_feed">Feed</string>
-    <string name="search_any_folder">Qualsiasi argomento</string>
-    <string name="search_any_feed">Tutti i feed</string>
-    <string name="search_feed">Feed</string>
     <!-- A share from another app without a web link (#97). -->
     <string name="share_no_link">Nessun link da salvare</string>
     <string name="action_archive">Archivia</string>
     <string name="saved_archived">Archiviato</string>
     <string name="action_unarchive">Di nuovo da leggere</string>
     <string name="action_like">Mi piace</string>
-    <string name="add_link_title">Aggiungi link</string>
     <string name="add_link_address">Indirizzo web</string>
     <string name="add_link_invalid">Non è un indirizzo web.</string>
     <string name="note_title">Nota</string>
@@ -301,7 +295,6 @@
     <string name="services_problem_limit">Instapaper non consente altre evidenziazioni questo mese.</string>
     <string name="highlights_none">Seleziona del testo e tocca Evidenzia.</string>
     <string name="saved_title">Salvati</string>
-    <string name="topic_field">Argomento</string>
     <string name="saved_to">Salvato in %1$s</string>
     <string name="saved_remove">Rimuovi da Salvati</string>
     <string name="saved_remove_body">Rimuovere questo elemento, con nota, argomenti ed evidenziazioni? Archiviarlo lo lascia trovabile.</string>
@@ -321,34 +314,34 @@
     <string name="account_link_taken">Quell’indirizzo appartiene già a un altro account Content.</string>
     <string name="account_link_failed">L’accesso non è riuscito. Riprova.</string>
     <string name="action_refresh">Aggiorna</string>
-    <string name="menu_manage">Gestisci argomenti</string>
     <string name="share_copy_link">Copia link</string>
     <string name="share_more">Altro</string>
     <string name="instapaper_import_title">Importare da Instapaper?</string>
     <string name="instapaper_import_body">Portare una volta sola tutto ciò che c’è ora nel tuo Instapaper? In ogni caso, da ora Salvati e Instapaper restano uguali.</string>
     <string name="instapaper_import_skip">Non importare</string>
-    <plurals name="topic_saved_count">
-        <item quantity="one">%d salvato</item>
-        <item quantity="other">%d salvati</item>
-    </plurals>
     <string name="welcome_title">Benvenuto in Content</string>
     <string name="welcome_body">Crea un account o accedi.</string>
     <string name="welcome_without_account">Oppure inizia solo su questo dispositivo:</string>
     <string name="welcome_import">Importa da un altro lettore</string>
     <string name="topic_in_feeds">Feed · %1$s</string>
     <string name="topic_in_saved">Salvati · %1$s</string>
-    <string name="topic_merge">Unisci con…</string>
-    <string name="topic_merge_title">Unisci %1$s con…</string>
-    <string name="topic_merge_body">L’argomento scelto resta, con nome e icona. Riceve i feed e gli articoli salvati di questo argomento.</string>
-    <string name="topic_merge_action">Unisci</string>
-    <string name="topic_remove">Rimuovi argomento</string>
-    <string name="topic_add_feed">Aggiungi un feed a %1$s</string>
-    <plurals name="topic_failing_count">
-        <item quantity="one">%d feed non funziona</item>
-        <item quantity="other">%d feed non funzionano</item>
-    </plurals>
-    <plurals name="topic_to_read_count">
-        <item quantity="one">%d da leggere</item>
-        <item quantity="other">%d da leggere</item>
-    </plurals>
+    <string name="filter_read">Letti</string>
+    <string name="home_no_read_title">Non hai ancora letto nulla</string>
+    <string name="search_all_feeds">Tutti i feed</string>
+    <string name="add_title">Aggiungi</string>
+    <string name="add_choice_feed">Iscriviti a un feed</string>
+    <string name="add_choice_feed_body">Iscriviti a un feed RSS inserendo l’indirizzo della pubblicazione</string>
+    <string name="add_choice_article">Salva articolo</string>
+    <string name="add_choice_article_body">Salva e organizza un articolo inserendo il suo indirizzo</string>
+    <string name="settings_account_signed_out">Accesso non effettuato</string>
+    <string name="settings_feeds_title">Gestisci feed</string>
+    <string name="settings_feeds_summary">I tuoi feed e i loro argomenti, importazione ed esportazione OPML</string>
+    <string name="settings_topics_summary">Argomenti e Instapaper</string>
+    <string name="settings_list_summary">Vista, segna come letto scorrendo, parole nascoste</string>
+    <string name="section_article_view">Vista articolo</string>
+    <string name="settings_article_view_summary">Testo, articoli completi, siti a pagamento</string>
+    <string name="manage_feeds_hint">Tocca un feed per rinominarlo, cambiarne l’argomento o rimuoverlo. Trascinane uno dalla maniglia per cambiare l’ordine.</string>
+    <string name="manage_feeds_none">Ancora nessun feed.</string>
+    <string name="topics_title">Argomenti</string>
+    <string name="manage_topics_hint">Gli argomenti raggruppano i tuoi feed e gli articoli salvati. Tocca un argomento per rinominarlo, cambiarne l’icona o rimuoverlo; trascinane uno dalla maniglia per cambiare l’ordine. Se gli dai il nome di un altro argomento, i due vengono uniti.</string>
 </resources>
