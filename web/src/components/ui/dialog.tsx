@@ -95,7 +95,8 @@ function RootDialog({ open, onOpenChange, title, description, children, footer, 
                   {cancel ? <D.Close className="-ml-3 h-9 shrink-0 cursor-pointer rounded-lg px-3 text-sm font-medium text-primary hover:bg-muted">{cancel}</D.Close> : null}
                   <div className="flex flex-1 flex-wrap items-center justify-end gap-2">
                     {footer}
-                    {done ? <D.Close className="h-9 shrink-0 cursor-pointer rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90">{done}</D.Close> : null}
+                    {/* Done only closes (changes are kept at once): a text button, as on Android. */}
+                    {done ? <D.Close className="h-9 shrink-0 cursor-pointer rounded-lg px-3 text-sm font-medium text-primary hover:bg-muted">{done}</D.Close> : null}
                   </div>
                 </div>
               ) : null}

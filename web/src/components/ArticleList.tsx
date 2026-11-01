@@ -209,14 +209,17 @@ function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport,
             </div>
           ))
         )}
+        {/* Mark all as read under the last article, as on Android: only in Unread, with something
+            unread. Outlined: a floating button is for adding, not for clearing everything. */}
+        {library.feeds.length > 0 && tab === "unread" && unread > 0 && days.length > 0 ? (
+          <div className="flex justify-center pt-4">
+            <Button variant="outline" onClick={() => onUndo(app.markAllRead())}>
+              <CheckCheck />
+              {t("markAllRead")}
+            </Button>
+          </div>
+        ) : null}
       </div>
-      {/* Mark all as read, as Android's round button at the bottom right: only in Unread, with something unread. */}
-      {library.feeds.length > 0 && tab === "unread" && unread > 0 ? (
-        <Button onClick={() => onUndo(app.markAllRead())} className="absolute right-4 bottom-4 z-20 h-12 rounded-2xl px-5 shadow-lg" title={t("markAllRead")}>
-          <CheckCheck />
-          {t("markAllRead")}
-        </Button>
-      ) : null}
       {shareDialog}
     </section>
   );
@@ -309,7 +312,7 @@ function SavedArticles({
           >
             {/* Filtered to nothing: one click back to the whole tab; an empty To read offers Add link. */}
             {!plain ? (
-              <Button onClick={() => set({ likedOnly: false, tags: [] })}>{t("showAll")}</Button>
+              <Button variant="outline" onClick={() => set({ likedOnly: false, tags: [] })}>{t("showAll")}</Button>
             ) : filter.tab.kind === "toread" ? (
               <Button variant="tonal" onClick={app.addLink}>
                 <Link2 />

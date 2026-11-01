@@ -145,8 +145,8 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   the bottom. The chip row is left out there. A phone-sized window has the bar at the bottom and the
   switch and the chips above the list (the chips scroll sideways with a finger, a mouse wheel, or by
   dragging them with the mouse), and Settings in the search bar.
-- **Refresh** (web) is the round arrow in the search bar, in every place (or press **r**). **Mark all as read** is a button at the top of the list, only in Unread
-  (on the phone it is under the last article).
+- **Refresh** (web) is the round arrow in the search bar, in every place (or press **r**). **Mark all as read** is a button under the last article, only in Unread,
+  as on the phone.
 - Under the search bar, **a switch** says **what you see**: in Feeds **Unread** or **All** (every
   article, read ones too), in Saved **To read** or **All** (everything saved, archived articles
   too). It looks like To read / Archive in the save sheet; tap the other half to change. Under the

@@ -178,7 +178,8 @@ export function TopicChips({
         </>
       )}
       {alwaysEditing ? (
-        <button type="button" disabled={disabled} onClick={() => setDialog("new")} className={action}>
+        // Manage tags: New tag is the dialog's action (tonal, as Add feed in Manage feeds).
+        <button type="button" disabled={disabled} onClick={() => setDialog("new")} className={cn(action, "bg-accent text-accent-foreground hover:bg-accent/80")}>
           <Plus className="size-4" aria-hidden="true" />
           {t("newFolder")}
         </button>

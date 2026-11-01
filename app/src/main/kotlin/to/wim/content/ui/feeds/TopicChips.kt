@@ -25,6 +25,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -123,7 +124,8 @@ fun TopicChipRow(
             // New topic and Edit topics are actions, not topics: text buttons, so they don't look like chips.
             if (actions != null) {
                 if (editable) {
-                    TextButton(onClick = { creating = true }, enabled = enabled, contentPadding = ButtonDefaults.TextButtonWithIconContentPadding) {
+                    // Manage tags: New tag is the sheet's action (tonal, like Add feed in Manage feeds).
+                    FilledTonalButton(onClick = { creating = true }, enabled = enabled, contentPadding = ButtonDefaults.ButtonWithIconContentPadding) {
                         Icon(painterResource(R.drawable.ic_add), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
                         Text(stringResource(R.string.folder_new), modifier = Modifier.padding(start = 8.dp))
                     }
@@ -194,8 +196,9 @@ fun ManageTopicsSheet(
             TopicChipRow(topics = topics, selected = { false }, onToggle = {}, actions = actions, onCreated = {}, alwaysEditing = true)
             // Every change is stored at once: Done at the bottom right (on a page, the back arrow).
             if (!LocalInSheetPage.current) {
+                // Done only closes: a text button.
                 SheetActions(onCancel = onDismiss, cancel = false) {
-                    Button(onClick = onDismiss) { Text(stringResource(R.string.action_done)) }
+                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_done)) }
                 }
             }
         }

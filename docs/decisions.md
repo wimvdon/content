@@ -2,6 +2,22 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-01: Material 3 fine-tuning pass (owner's request)
+
+The screens were reviewed against a Material 3 checklist (component by purpose, emphasis per
+region, button vs text vs icon, colour roles, states, accessibility). Changed:
+- **Done** in Manage feeds and Manage tags only closes (changes are kept at once): a text button,
+  not a filled one. The sheet's action is adding: **Add feed** and **New tag** are tonal buttons.
+- Every empty state's action is an outlined button (Saved's **Show all** was filled).
+- The web's floating **Mark all as read** moves under the last article as an outlined button, as
+  on Android: a floating button is for the screen's main action (adding), not for clearing.
+- A saved article's tags, note and highlights sit under its title (see the entry above).
+Kept, with the reason: the feed name in article rows stays `primary` (it is tappable: it shows
+that feed alone); section headings in `primary` Title Small (Material's list subheaders); the
+reader's Share as the round button next to the toolbar (the owner's layout; Material allows the
+floating toolbar's FAB to be its most used action). Noted for later: the feed name in a row is a
+small touch target (the row itself opens the article; the chips offer the same filter).
+
 ## 2026-11-01: A saved article's tags, note and highlights sit under its title
 
 They describe the article, so they are shown with it (owner's idea): one row of chips under the
