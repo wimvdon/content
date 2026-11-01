@@ -1,6 +1,11 @@
 package to.wim.content.ui.feeds
 
 import androidx.compose.foundation.layout.Arrangement
+import to.wim.content.ui.theme.DragHandle
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -95,31 +100,55 @@ fun ManageFeedsSheet(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             val folderNone = stringResource(R.string.folder_none)
-            ReorderableChipGroups(
-                groups =
-                    groups.map { (topic, inGroup) ->
-                        ChipGroup(topic?.id ?: NO_TOPIC, inGroup) {
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                if (topic != null) Icon(rememberFolderIconPainter(topic.icon), contentDescription = null, modifier = Modifier.size(18.dp))
-                                Text(
-                                    topic?.title ?: folderNone,
-                                    style = MaterialTheme.typography.labelLarge,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.semantics { heading() },
-                                )
-                            }
-                        }
-                    },
+            val dropHere = stringResource(R.string.manage_feeds_drop_here)
+            // Rows under each tag's heading, as the design kit's reordering lists (DESIGN.md,
+            // Reordering): drag a row by the grip at its end, within a tag or under another heading.
+            ReorderableSections(
+                sections = groups.map { (topic, inGroup) -> (topic?.id ?: NO_TOPIC) to inGroup },
                 key = { it.url },
-                label = { it.title },
-                icon = { FeedIcon(it, FeedIconSize.Small) },
                 onReorder = { groupId, urls -> actions.onReorderFeeds(groupId.takeUnless { it == NO_TOPIC }, urls) },
                 onMove = { feed, groupId, urls -> actions.onMoveFeed(feed, groupId.takeUnless { it == NO_TOPIC }, urls) },
-                emptyLabel = stringResource(R.string.manage_feeds_drop_here),
-                onEdit = { editing = it.url },
-                editLabel = stringResource(R.string.feed_edit),
-                isError = { problems.containsKey(it.url) },
-            )
+                heading = { groupId ->
+                    val topic = topics.firstOrNull { it.id == groupId }
+                    val empty = groups.firstOrNull { (t, _) -> (t?.id ?: NO_TOPIC) == groupId }?.second.isNullOrEmpty()
+                    Column(Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 4.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            if (topic != null) Icon(rememberFolderIconPainter(topic.icon), contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.primary)
+                            Text(
+                                topic?.title ?: folderNone,
+                                style = MaterialTheme.typography.titleSmall,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.semantics { heading() },
+                            )
+                        }
+                        // An empty tag: where a feed dragged under its heading goes.
+                        if (empty) {
+                            Text(dropHere, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 8.dp))
+                        }
+                    }
+                },
+            ) { feed ->
+                val editLabel = stringResource(R.string.feed_edit)
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 56.dp)
+                        .clickable(onClickLabel = editLabel) { editing = feed.url },
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    FeedIcon(feed, FeedIconSize.Medium)
+                    Text(
+                        feed.title,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = if (problems.containsKey(feed.url)) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+                    DragHandle(handleModifier)
+                }
+            }
             // Changes are stored at once: Done at the bottom right, Add feed at the left.
             SheetActions(
                 onCancel = onDismiss,

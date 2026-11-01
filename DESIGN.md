@@ -237,17 +237,20 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
 - Topics: one way to group feeds and saved articles (a feed in one topic, a saved article in any
   number), each with a name, an icon and its place in the user's order, which every chip row and
   the sheets follow. **Manage topics** (a sheet, from Settings' large button and from **Edit
-  topics** in the Add feed, Edit feed and Save/Organise sheets, over them) shows them as chips in
-  edit mode (grip, icon, name, pen; **New topic** after them), with **Done** at the bottom right as its
+  topics** in the Add feed, Edit feed and Save/Organise sheets, over them) shows them as a
+  reorderable list (2026-11-01, instead of chips: rows don't reflow under the finger): each row the
+  topic's icon, its name and the grip at the end (`ReorderableColumn`); **New topic** after them, with **Done** at the bottom right as its
   changes are kept at once. **Manage feeds** (a sheet from Settings' other large button) shows the
-  feeds the same way, grouped by topic under a Label Large heading with the topic's icon (a failing
-  feed's name in the error colour), then Add feed; tapping a feed opens the Edit feed sheet (name,
+  feeds the same way: rows (site icon, name, grip at the end) under a heading per topic (Title Small,
+  `primary`, with the topic's icon; then No topic; an empty topic says "Drag a feed here"); a row
+  dragged under another heading moves into that topic (`ReorderableSections`, `SectionOrder`); a failing
+  feed's name in the error colour; then Add feed; tapping a feed opens the Edit feed sheet (name,
   address, topic chips, Save; Remove is a trash can at the top right and asks in a dialog). Topic chips look the same everywhere (#314): a `FilterChip` with the
   topic's icon and name, no check mark, in Feeds' and Saved's chip rows and in the sheets. After the
   chips in a sheet, **Edit topics** is a text button with a pen (an action, so it doesn't look like a
-  topic chip). In Manage topics drag a chip among the others to reorder; tap it for the topic sheet
+  topic chip). In Manage topics drag a row by its grip to reorder; tap it for the topic sheet
   (name, icon, a trash can at the top right; a name already taken joins the two). Remove topic asks
-  in a dialog over the sheet. The web: the same, with the grip, ← → on a focused chip, and dialogs.
+  in a dialog over the sheet. The web: still chips with a grip (← → on a focused chip) in dialogs, for now.
 - Settings (the owner's choice, 2026-11-01, instead of the shared "one scrolling list"): two large
   buttons at the top, **Manage feeds** and **Manage topics** (side by side on `surfaceContainerHigh`,
   the icon on a `secondaryContainer` circle, the name and how many), then a list of pages, each a
