@@ -1,5 +1,7 @@
 package to.wim.content
 
+import to.wim.content.instapaper.InstapaperText
+import to.wim.content.data.InstapaperLinks
 import android.app.Application
 import android.content.Context
 import android.util.Log
@@ -88,7 +90,7 @@ class RssReaderApp :
                 SharedText.resolve(
                     saved = true,
                     stored = { sync.storedText(item.key) },
-                    extract = { (fullArticles.load(item.url) as? FullArticle.Loaded)?.html },
+                    extract = { articleText(item.url) },
                     store = { html -> sync.storeText(item.key, html) },
                 )
             },
@@ -100,6 +102,19 @@ class RssReaderApp :
 
     /** Sites signed in to (#180): their cookies go with requests to them. On this device only. */
     val siteSignIns: SiteSignInStore by lazy { SiteSignInStore(this, appScope) }
+
+    private val instapaperText: InstapaperText by lazy { InstapaperText(http) }
+
+    /**
+     * This device's text for the article at [url]: the full article Content extracts from its page,
+     * or, for an Instapaper article without a web address (a forwarded email: `InstapaperLinks`),
+     * Instapaper's text through the feed loader. Null when there is none.
+     */
+    suspend fun articleText(url: String): String? {
+        val bookmark = InstapaperLinks.bookmarkId(url) ?: return (fullArticles.load(url) as? FullArticle.Loaded)?.html
+        val token = instapaper.session()?.token ?: return null
+        return instapaperText.load(token, bookmark)
+    }
 
     val fullArticles: FullArticles by lazy {
         FullArticles(File(cacheDir, "articles"), fetch = fetcher::fetch, extract = WebArticleExtractor(this)::extract)

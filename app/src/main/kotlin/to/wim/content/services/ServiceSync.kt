@@ -1,5 +1,6 @@
 package to.wim.content.services
 
+import to.wim.content.data.InstapaperLinks
 import to.wim.content.data.Item
 import to.wim.content.data.ItemKeys
 import to.wim.content.data.Library
@@ -91,6 +92,9 @@ object ServiceSync {
             for (item in library.items) {
                 if (item.readingList == null) continue
                 val have = rows[item.key]
+                // An article that only exists in Instapaper (a forwarded email, by Instapaper's page) is
+                // never saved there again as a link.
+                if (have == null && InstapaperLinks.bookmarkId(item.url) != null) continue
                 when {
                     have == null -> {
                         val recent = now - item.readingList.addedAt <= CONTENT_DAYS * DAY_MS

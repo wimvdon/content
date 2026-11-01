@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { instapaperBookmarkId } from "./instapaperLinks";
 import { forgetRecipient, rememberRecipient } from "./recipients";
 import { notificationsOn, refreshServiceWorker, turnOff as turnOffNotifications, turnOn as turnOnNotifications, type TurnOnResult } from "./notifications";
 import { AccountClient, emailLinkToken, finishEmailLink, LiveUpdates, sendEmailLink, SIGNIN_PATH, SyncError, type AccountSession, type EmailLinkProblem, type SyncProblem } from "./account";
@@ -12,6 +13,7 @@ import {
   newState,
   parseCallback,
   type Session as InstapaperSession,
+  instapaperText,
 } from "./instapaper";
 import { applyHighlights, notCopied, syncHighlights, type HighlightLink } from "./highlightCopy";
 import { INSTAPAPER_ID, InstapaperSync } from "./instapaperSync";
@@ -673,6 +675,23 @@ class AppStore {
     this.set({ syncStatus: { kind: "idle" } });
   }
 
+  /**
+   * This browser's text for the article at `url`: the full article extracted from its page, or, for an
+   * Instapaper article without a web address (a forwarded email: instapaperLinks.ts), Instapaper's text
+   * through the feed loader. Null when there is none.
+   */
+  articleText = async (url: string): Promise<string | null> => {
+    const bookmark = instapaperBookmarkId(url);
+    if (bookmark !== null) {
+      const token = this.state.instapaper?.token;
+      return token ? instapaperText(token, bookmark) : null;
+    }
+    const known = await cached(url);
+    if (known) return known;
+    const page = await fetchViaProxy(url, true);
+    return extractArticle(page.text, page.url);
+  };
+
   /** The text stored in the account for saved item `key` (sharedText.ts); null without an account. */
   storedText = async (key: string): Promise<string | null> => {
     const account = this.accountKey();
@@ -884,12 +903,7 @@ class AppStore {
           resolveText(
             true,
             () => this.storedText(item.key),
-            async () => {
-              const known = await cached(item.url);
-              if (known) return known;
-              const page = await fetchViaProxy(item.url, true);
-              return extractArticle(page.text, page.url);
-            },
+            () => this.articleText(item.url),
             (own) => this.storeText(item.key, own),
           ),
       )

@@ -140,6 +140,8 @@ class LibraryRepository(
     suspend fun describe(itemKey: String) {
         val item = current().item(itemKey) ?: return
         if (!item.needsDescription()) return
+        // Instapaper's page for an email needs its sign-in: nothing to read there.
+        if (InstapaperLinks.bookmarkId(item.url) != null) return
         val info =
             try {
                 val page = fetch(item.url)

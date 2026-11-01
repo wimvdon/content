@@ -52,6 +52,22 @@ Sync now. Never in the background.
   The web app does the same through the feed loader, which allows up to 1 MiB for saving a bookmark
   (64 KiB for its other calls).
 - A link saved without a title (shared or added) takes Instapaper's title when Instapaper knows it.
+- **Forwarded emails and other articles without an address** (Instapaper's "private content": its
+  `url` is null, `category` 1 for an email, `private_source` set). They come in with Instapaper's own
+  page as their address, `https://www.instapaper.com/read/<id>` (`data/InstapaperLinks.kt`,
+  `web/src/lib/instapaperLinks.ts`), so they sync and are kept like any article, and Open in browser
+  shows them in Instapaper. Their text can't come from that page (it needs the Instapaper sign-in),
+  so when one is opened, the app asks the feed loader (`POST /instapaper/text`), which asks
+  Instapaper's parser (`POST /bookmarks/{id}/parse`) with the user's token and Content's
+  **Instaparser key**. The API gives parsed text without a key only to the account that registered
+  the app, which is why #134 dropped it; the key's free tier (1,000 credits a month, 1 request a
+  second, no overage) is enough because only these articles use it, only when opened, and the text
+  is then stored in the account like any other (`SharedText`), so each costs one credit. When the
+  credits are used up (402) or the parser is busy (429), the reader shows the opening lines and Open
+  in browser. Such an article is never saved to Instapaper again as a link (`ServiceSync`, when it
+  has no row), and Content doesn't fetch Instapaper's page for its picture. Before this, they were
+  left out: a cursor without the `p:` prefix (from before) reads the whole account once, so the ones
+  skipped come in.
 - **Signing out** forgets what was synced with Instapaper; the reading list stays.
 
 
@@ -130,9 +146,11 @@ delete, reorder) and tags (list, create, rename). The Android app calls Instapap
    `worker/wrangler.toml` (`INSTAPAPER_CLIENT_ID`), `web/src/lib/config.ts` and `InstapaperAuth.kt`; it
    is public.
 2. **Put the client secret in the Worker**, never in the repository: Cloudflare dashboard › Workers
-   & Pages › `rss-reader-worker` › Settings › Variables and Secrets › Add, type **Secret**, name
+   & Pages › `content-worker` › Settings › Variables and Secrets › Add, type **Secret**, name
    `INSTAPAPER_CLIENT_SECRET`. (Or `npx wrangler secret put INSTAPAPER_CLIENT_SECRET` in `worker/`.)
-   Secrets survive deployments; a plain variable would not.
+   Secrets survive deployments; a plain variable would not. **The Instaparser key** (for forwarded
+   emails, see above) goes the same way: type **Secret**, name `INSTAPARSER_API_KEY`, the key from
+   instaparser.com as the value.
 3. **App Links** need `assetlinks.json` on the callback's website, with the package name
    `to.wim.content` (and, until everyone has moved over, the old `be.wimvandonck.content` and `be.wimvandonck.reader`) and the SHA-256 fingerprint of the release signing key. If the signing key
    ever changes, update the fingerprint here. Check it after each deployment:
@@ -177,7 +195,8 @@ Both ways, with the same rules and tests on Android (`services/HighlightCopy.kt`
 
 ## Not supported
 
-- Instapaper's parsed text for accounts other than the owner's (it needs an Instaparser key).
+- Instapaper's parsed text for articles that have a web address: Content's own text is used (#134);
+  only articles without one (forwarded emails, PDFs) use Instapaper's, with the Instaparser key.
 - Signing in from a debug build's App Link: debug APKs are signed with a different key every CI run
   and have another package name (`.debug`), so Android doesn't verify the link for them and opens the
   browser, where the *web app* finishes the sign-in. Try the Android sign-in with a released build.

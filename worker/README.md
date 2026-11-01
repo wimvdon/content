@@ -12,8 +12,9 @@ What it does, and doesn't:
 - At most 120 requests per minute per IP address (`LIMITER`).
 - Stores nothing of what it loads and logs nothing (`observability` off). Cloudflare's cache keeps a
   feed for 5 minutes so many readers of one feed cost one download.
-- The Android app uses it only to finish signing in to Instapaper (`POST /instapaper/token`) and for
-  the Reader account (`/account/...`).
+- The Android app uses it only to finish signing in to Instapaper (`POST /instapaper/token`), for the
+  text of an Instapaper article without a web address (`POST /instapaper/text`) and for the Reader
+  account (`/account/...`).
 
 ## Deploying
 
@@ -47,11 +48,17 @@ npx wrangler dev
   address can't be chosen by the caller).
 - `/instapaper/api/...` forwards a short list of Instapaper calls for the web app (browsers can't call
   Instapaper). Only the web app's own addresses are answered; everything else is refused.
+- `POST /instapaper/text` with `{"id": 123}` and the user's token gives the text of one of their
+  Instapaper articles that has no web address (a forwarded email, a PDF): Instapaper's parser with
+  Content's Instaparser key (`INSTAPARSER_API_KEY`), answered as `{"title", "html"}`. Both apps use
+  it, only for such articles; 402 (the month's free credits used up) and 429 pass on as they are.
 
 Set once: the client ID and redirect address are in `wrangler.toml`. The client secret is **not**; add
 it as a Worker secret, never in the repository: Cloudflare dashboard › this Worker › Settings ›
 Variables and Secrets › Add › type **Secret** › `INSTAPAPER_CLIENT_SECRET` (or
-`npx wrangler secret put INSTAPAPER_CLIENT_SECRET`).
+`npx wrangler secret put INSTAPAPER_CLIENT_SECRET`). The Instaparser key goes the same way, as the
+**Secret** `INSTAPARSER_API_KEY`; without it, `/instapaper/text` answers 503 and emails show their
+opening lines with Open in browser.
 
 ## Reader accounts
 

@@ -433,6 +433,11 @@ between devices). There are no options (#251):
   tag there (a tag is a topic), and how far you read, goes both ways, while the app is open (when it opens, a moment
   after a change, and when you pull down on Saved). Articles in Instapaper's folders arrive in To read.
 - Instapaper's home list is **To read** and its archive is the **Archive**.
+- **Forwarded emails** (and PDFs you uploaded to Instapaper) come into Saved too, titled by their
+  subject. Open one to read it in Content: its text comes from Instapaper the first time (the
+  first open takes a moment), and highlights work as in any article. If Instapaper can't give the text
+  right then, you see its opening lines and **Open in browser** shows it in Instapaper. Emails you
+  forwarded before this update come in at the next sync.
 - The reader always shows Reader's own full article, for every account: an article that came in
   from Instapaper reads exactly like one saved from a feed.
 - If Instapaper doesn't answer or asks to wait, nothing is lost: the rest goes the next time.

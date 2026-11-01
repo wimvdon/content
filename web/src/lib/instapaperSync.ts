@@ -6,6 +6,7 @@
  */
 
 import { InstapaperError, type Bookmark, type InstapaperApi } from "./instapaper";
+import { instapaperReadLink } from "./instapaperLinks";
 import type { HighlightService, RemoteHighlight } from "./highlightCopy";
 import { ServiceSyncError, type RemoteChanges, type RemoteEntry, type SavedSyncService } from "./serviceSync";
 
@@ -15,6 +16,8 @@ export const INSTAPAPER_ID = "instapaper";
 const PAGE = 500;
 /** How much earlier than the request the next `since` starts, for clocks that differ. */
 const CURSOR_MARGIN_S = 300;
+/** Marks a cursor made since private content (emails) comes in; one without it reads everything once. */
+export const CURSOR_PREFIX = "p:";
 
 type Api = Pick<InstapaperApi, "changesSince" | "folders" | "tags" | "save" | "setTags" | "move" | "like" | "updateBookmark" | "remove"> &
   Partial<Pick<InstapaperApi, "highlights" | "addHighlight" | "deleteHighlight">>;
@@ -38,7 +41,9 @@ export class InstapaperSync implements SavedSyncService, HighlightService {
       // Recorded before asking, a little early, so nothing changed meanwhile is missed.
       const asked = Math.floor(this.now() / 1000) - CURSOR_MARGIN_S;
       this.tagIds = new Map((await this.api.tags()).map((t) => [t.name.toLowerCase(), t.id]));
-      const since = Number(cursor) || 1;
+      // A cursor from before private content came in (no prefix) reads everything once, so the
+      // emails skipped then come in now.
+      const since = (cursor?.startsWith(CURSOR_PREFIX) && Number(cursor.slice(CURSOR_PREFIX.length))) || 1;
       const entries: RemoteEntry[] = [];
       const deleted: string[] = [];
       for (let offset = 0; ; ) {
@@ -52,13 +57,17 @@ export class InstapaperSync implements SavedSyncService, HighlightService {
         offset += count;
         if (count < PAGE) break;
       }
-      return { entries, deleted, cursor: String(Math.max(1, asked)) };
+      return { entries, deleted, cursor: CURSOR_PREFIX + Math.max(1, asked) };
     });
   }
 
-  /** A bookmark as an entry. Articles without a web address are left out. */
+  /**
+   * A bookmark as an entry. One without an address (a forwarded email, a PDF: Instapaper's private
+   * content) gets Instapaper's own page as its address (instapaperLinks.ts); one with an address that
+   * isn't a web address is left out, as on Android.
+   */
   entryOf(b: Bookmark): RemoteEntry | null {
-    const url = b.url;
+    const url = !b.url?.trim() ? instapaperReadLink(b.id) : /^https?:\/\//i.test(b.url) ? b.url : null;
     if (!url) return null;
     return {
       remoteId: String(b.id),

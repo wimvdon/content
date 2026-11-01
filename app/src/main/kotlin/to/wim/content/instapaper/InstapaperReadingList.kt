@@ -1,5 +1,6 @@
 package to.wim.content.instapaper
 
+import to.wim.content.data.InstapaperLinks
 import to.wim.content.services.HighlightService
 import to.wim.content.services.ReadingListService
 import to.wim.content.services.RemoteHighlight
@@ -40,7 +41,9 @@ class InstapaperReadingList(
             val asked = now() / 1000 - CURSOR_MARGIN_S
             folders = client.folders().associate { it.id to it.title }
             tagIds = client.tags().associate { it.name.lowercase() to it.id }
-            val since = cursor?.toLongOrNull() ?: 1L
+            // A cursor from before private content came in (no prefix) reads everything once, so the
+            // emails skipped then come in now.
+            val since = cursor?.takeIf { it.startsWith(CURSOR_PREFIX) }?.removePrefix(CURSOR_PREFIX)?.toLongOrNull() ?: 1L
             val entries = ArrayList<RemoteEntry>()
             val deleted = ArrayList<String>()
             var offset = 0
@@ -51,12 +54,16 @@ class InstapaperReadingList(
                 offset += page.count
                 if (page.count < PAGE) break
             }
-            RemoteChanges(entries, deleted, asked.coerceAtLeast(1).toString())
+            RemoteChanges(entries, deleted, CURSOR_PREFIX + asked.coerceAtLeast(1))
         }
 
-    /** A bookmark as an entry, with its folder. Articles without a web address are left out. */
+    /**
+     * A bookmark as an entry. One without an address (a forwarded email, a PDF: Instapaper's private
+     * content) gets Instapaper's own page as its address ([InstapaperLinks]); one with an address
+     * that isn't a web address is left out.
+     */
     fun entryOf(b: InstapaperBookmark): RemoteEntry? {
-        val url = b.link ?: return null
+        val url = b.link ?: if (b.url.isNullOrBlank()) InstapaperLinks.readLink(b.id) else return null
         val tags = b.tags.map { it.name }
         return RemoteEntry(
             remoteId = b.id.toString(),
@@ -202,6 +209,9 @@ class InstapaperReadingList(
 
         /** How much earlier than the request the next `since` starts, for clocks that differ. */
         const val CURSOR_MARGIN_S = 300L
+
+        /** Marks a cursor made since private content (emails) comes in; one without it reads everything once. */
+        const val CURSOR_PREFIX = "p:"
 
         fun problemOf(problem: InstapaperProblem): ServiceProblem =
             when (problem) {

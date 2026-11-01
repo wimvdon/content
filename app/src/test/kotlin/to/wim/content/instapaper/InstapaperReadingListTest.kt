@@ -66,21 +66,38 @@ class InstapaperReadingListTest {
                     else -> 200 to """{"bookmarks":[${bookmark(600, "https://b.example/x", folder = 3, tags = """[{"id":9,"name":"Recipes"}]""")},${bookmark(601, null)}],"deleted_ids":[],"total":502}"""
                 }
             }
-            val changes = service.changes("1755000000")
+            val changes = service.changes("p:1755000000")
             assertTrue(calls.any { it == "GET /bookmarks?since=1755000000&limit=500&offset=0" })
             assertTrue(calls.any { it == "GET /bookmarks?since=1755000000&limit=500&offset=500" })
-            // 499 + the one with a link from the second page; the private one without an address is left out.
-            assertEquals(500, changes.entries.size)
+            // 499 + both from the second page: the private one without an address (a forwarded
+            // email) comes in with Instapaper's page as its address.
+            assertEquals(501, changes.entries.size)
+            assertEquals("https://www.instapaper.com/read/601", changes.entries.last().url)
             assertEquals(listOf("900"), changes.deleted)
-            val x = changes.entries.last()
+            val x = changes.entries[499]
             assertEquals(listOf("Recipes"), x.tags)
             // Folders became tags (#187): the folder there is not read.
             assertNull(x.folder)
             assertEquals(0.42f, x.progress, 0.001f)
             assertEquals(1_755_000_000_000L, x.addedAt)
             // The next sync starts a little before this one.
-            assertEquals((1_755_000_600L - InstapaperReadingList.CURSOR_MARGIN_S).toString(), changes.cursor)
+            assertEquals("p:" + (1_755_000_600L - InstapaperReadingList.CURSOR_MARGIN_S), changes.cursor)
         }
+
+    @Test
+    fun `a cursor from before emails came in reads everything once`() =
+        runBlocking {
+            answer = { _, path, _ -> if (path.startsWith("/bookmarks")) 200 to """{"bookmarks":[],"deleted_ids":[]}""" else 200 to """{"folders":[],"tags":[]}""" }
+            val changes = service.changes("1755000000")
+            assertTrue(calls.any { it.startsWith("GET /bookmarks?since=1&") })
+            assertTrue(changes.cursor.startsWith("p:"))
+        }
+
+    @Test
+    fun `an address that isn't a web address is still left out`() {
+        val b = InstapaperClient.parseBookmark(Json.parse(bookmark(7, "ftp://x.example/7")))!!
+        assertNull(service.entryOf(b))
+    }
 
     @Test
     fun `the first sync asks for everything`() =
