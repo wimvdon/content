@@ -1,4 +1,4 @@
-import { ArrowLeft, BookmarkPlus, BookOpenText, ChevronDown, ChevronRight, LayoutList, Palette, Plus, Puzzle, Rss, Tag as TagIcon, Trash2, UserRound } from "lucide-react";
+import { Smartphone, ArrowLeft, BookmarkPlus, BookOpenText, ChevronDown, ChevronRight, LayoutList, Palette, Plus, Puzzle, Rss, Tag as TagIcon, Trash2, UserRound } from "lucide-react";
 import { ConfirmRemove } from "./ConfirmRemove";
 import { EditChips, TopicChips, chip, chipOn } from "./TopicChips";
 import { useEffect, useMemo, useState } from "react";
@@ -576,6 +576,14 @@ function AccountSection() {
           <EmailLinkForm />
         </>
       )}
+      {/* The Android app, with the same account (its Account section points here, to content.wim.to). No link until it is in the Play Store. */}
+      <div className="flex items-start gap-3 pt-3">
+        <Smartphone className="mt-0.5 size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+        <div className="min-w-0">
+          <p className="text-sm font-medium">{t("androidAppTitle")}</p>
+          <p className="text-sm text-muted-foreground">{t("androidAppSummary")}</p>
+        </div>
+      </div>
       <Dialog
         open={confirmDelete}
         onOpenChange={setConfirmDelete}

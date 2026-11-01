@@ -340,4 +340,6 @@
         <item quantity="one">%d topic</item>
         <item quantity="other">%d topics</item>
     </plurals>
+    <string name="account_web_title">Content on the web</string>
+    <string name="account_web_summary">Read on your computer too, at content.wim.to, signed in with the same account</string>
 </resources>

@@ -106,6 +106,10 @@ have one. **Add an email address** adds a second address to the same library. In
 connected service (#215), not a way to sign in (Settings › Integrations › Instapaper): connecting or
 disconnecting it doesn't sign you in or out.
 
+The Account section also points to the other app: on the phone, **Content on the web** opens
+content.wim.to in the browser (sign in there with the same address); in the web app, **Content for
+Android** says it is coming to the Google Play Store (no link until it is there).
+
 Only Load full articles and Mark as read on scroll sync. How the app looks (theme, the reader's
 font, size, spacing and page colour, Show images and the list view) stays on each device, so a
 phone and a laptop can each have their own.
