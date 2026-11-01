@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { feedLinks, findFeed, normalizeUrl, substackPublication } from "../src/lib/discovery";
 import { searchIcons, parseIcons } from "../src/lib/icons";
-import { emptyLibrary, articlesFor, setRead, removeFolder, addFolder, addFeed, newFeed, moveFeed, renameFeed, mergeFeed, reorder, unreadKeys, removeFeed, sameSelection, MAX_ARTICLES_PER_FEED, moveWithinFolder, chipTag, choosesFolder, feedTags } from "../src/lib/library";
+import { emptyLibrary, articlesFor, setRead, removeFolder, addFolder, addFeed, newFeed, moveFeed, renameFeed, mergeFeed, reorder, unreadKeys, removeFeed, sameSelection, MAX_ARTICLES_PER_FEED, READ_MARKS_KEPT_MS, moveWithinFolder, chipTag, choosesFolder, feedTags } from "../src/lib/library";
 import { importOpml, parseOpml, writeOpml } from "../src/lib/opml";
 import { FetchError } from "../src/lib/proxy";
 import { sanitizeArticle } from "../src/lib/sanitize";
@@ -85,6 +85,12 @@ describe("read marks that leave this browser (#157)", () => {
     const day = 24 * 60 * 60 * 1000;
     const lib = addFeed({ ...emptyLibrary(), readElsewhere: { "x 1": 10 * day, "x 2": 800 * day } }, newFeed("a", "A"));
     expect(mergeFeed(lib, "a", { title: "A", siteUrl: null, items: items(["1", 1]) }, 800 * day).readElsewhere).toEqual({ "x 2": 800 * day });
+  });
+  it("lets new articles older than the read marks are kept arrive read (#317)", () => {
+    const day = 24 * 60 * 60 * 1000;
+    const now = 1000 * day;
+    const lib = mergeFeed(addFeed(emptyLibrary(), newFeed("a", "A")), "a", { title: "A", siteUrl: null, items: items(["ancient", now - READ_MARKS_KEPT_MS - day], ["recent", now - 30 * day]) }, now);
+    expect(lib.articles.map((x) => [x.id, x.read])).toEqual([["recent", false], ["ancient", true]]);
   });
   it("keeps a removed feed's read marks, so adding it again brings them back read", () => {
     let lib = addFeed(emptyLibrary(), newFeed("a", "A"));

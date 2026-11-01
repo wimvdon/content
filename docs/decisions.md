@@ -2,6 +2,16 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-01: Articles older than two years arrive read (#317)
+
+The owner saw very old articles keep turning up in Unread, probably since the release that changed
+the app ID (a new install). Read marks are only kept and synced for two years (#245), so an article
+older than that, which a feed still lists, has no mark: on a new install, in a fresh browser or once
+its mark went, it came back unread. Now a feed article that is new to a device and dated more than
+two years ago arrives read (`Library.merge`, `mergeFeed` on the web, tested). Articles already on a
+device keep their state, and undated ones are unaffected. Rejected: keeping marks longer (the account
+grows with every article ever read, for articles nobody wants to read now).
+
 ## 2026-11-01: Topics edited in their chips, on the phone and the web (#314)
 
 - At the owner's request, editing topics happens in the Add feed and Organise sheets' own topic

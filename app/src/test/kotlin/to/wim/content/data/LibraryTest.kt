@@ -258,6 +258,19 @@ class LibraryTest {
     }
 
     @Test
+    fun `new articles older than the read marks are kept arrive as read`() {
+        val day = 24L * 60 * 60 * 1000
+        val now = 1_000 * day
+        val library =
+            Library().addFeed(Feed(a, "A")).merge(a, parsed(item("ancient", now - Library.READ_MARKS_KEPT_MS - day), item("recent", now - 30 * day)), now = now)
+        assertTrue(library.article(Article.keyOf(a, "ancient"))!!.read)
+        assertFalse(library.article(Article.keyOf(a, "recent"))!!.read)
+        // One already here keeps its state, unread too.
+        val unread = library.setRead(Article.keyOf(a, "ancient"), false).merge(a, parsed(item("ancient", now - Library.READ_MARKS_KEPT_MS - day)), now = now + day)
+        assertFalse(unread.article(Article.keyOf(a, "ancient"))!!.read)
+    }
+
+    @Test
     fun `known read leaves articles already here alone`() {
         val library = twoFeeds.copy(readElsewhere = mapOf(Article.keyOf(a, "1") to 100L)).mergeAll(mapOf(a to parsed(item("1", 100))), now = 2_000)
         assertFalse(library.article(Article.keyOf(a, "1"))!!.read)
