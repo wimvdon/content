@@ -163,6 +163,10 @@
     <string name="folder_remove_body">Se quitará %1$s. Sus feeds y artículos guardados se quedan, sin este tema.</string>
     <string name="folder_none">Sin tema</string>
     <string name="setting_mark_read_on_scroll_title">Marcar como leído al desplazarse</string>
+    <string name="setting_hidden_words_title">Ocultar artículos con palabras</string>
+    <string name="setting_hidden_words_none">Ninguna</string>
+    <string name="setting_hidden_words_label">Palabras</string>
+    <string name="setting_hidden_words_hint">Separa las palabras con comas o saltos de línea. Se ocultan los artículos de los feeds cuyo título contenga una de ellas como palabra completa, sin importar mayúsculas.</string>
     <string name="action_mark_read">Marcar como leído</string>
     <string name="section_list">Lista de artículos</string>
     <string name="setting_list_view">Vista</string>

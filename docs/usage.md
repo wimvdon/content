@@ -174,6 +174,12 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   marked as read once you scroll them off the top of the list, only ones that were on screen: new
   articles arriving above are never marked unseen. They stay in the unread list (see above), so
   you can scroll back to them.
+- **Hide articles with words** (in **Settings › Article list**, Android only): type words or
+  phrases, separated by commas or new lines. Feed articles with one of them in their title are left
+  out of the article lists, the unread counts and the topic chips. A word counts only as a whole
+  word, and capitals don't matter: "AI" hides "New AI rules", not "He said so". Only the title is
+  checked, and search still finds hidden articles. Empty the field to show everything again. The
+  words are the same on your other Android devices (synced as `android.hiddenWords`).
 - If some feeds can't be downloaded, a message says how many; **Manage topics** shows which ones and why
   for each one.
 
@@ -329,7 +335,7 @@ a web link says "No link to save".
   **Sign out**, **Delete synced data** and **Add an email address** (see Sync between devices).
 - **Instapaper:** the service Saved is also kept in (see Instapaper account). It sits right under
   your Content account: both are connections.
-- **Article list:** View (Small, Medium, Large) and **Mark as read on scroll**.
+- **Article list:** View (Small, Medium, Large), **Mark as read on scroll** and **Hide articles with words**.
 - **Reader:** **Always open the website** (Android only, off by default: tapping a feed article opens its website in the browser tab over Content, with its Save button, and marks it read; saved articles still open in the reader, which keeps your place, highlights and notes), **Load full articles**, **Show images**, and the same text settings as **Aa**, with a preview in the page colour you chose.
 - **Sites you're signed in to:** the sites you pay for and signed in to from an article (see The
   reader), each with **Remove**.

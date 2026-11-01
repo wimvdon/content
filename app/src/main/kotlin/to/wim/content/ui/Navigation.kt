@@ -104,7 +104,9 @@ import to.wim.content.ui.reader.fontFamily
 import to.wim.content.data.AddFeedResult
 import to.wim.content.data.Article
 import to.wim.content.data.ArticleOpening
+import to.wim.content.data.ArticleFilter
 import to.wim.content.data.ArticleSearch
+import to.wim.content.data.withoutHidden
 import to.wim.content.data.SearchFilters
 import to.wim.content.data.SearchResults
 import to.wim.content.ui.home.MainTab
@@ -680,11 +682,13 @@ fun RssReaderNavigation(
                             selection = shownSelection.up(library.feeds) ?: FeedSelection.All
                         }
                     }
+                    // Without the articles hidden by their words (#277): the lists, counts and chips.
+                    val listed = remember(library, current.hiddenWords) { library.withoutHidden(ArticleFilter.parse(current.hiddenWords)) }
                     val articles =
-                        remember(library, shownSelection, current.unreadOnly, readThisVisit) {
-                            library.articlesFor(shownSelection, current.unreadOnly, keep = readThisVisit)
+                        remember(listed, shownSelection, current.unreadOnly, readThisVisit) {
+                            listed.articlesFor(shownSelection, current.unreadOnly, keep = readThisVisit)
                         }
-                    val unreadCounts = remember(library) { library.unreadCounts() }
+                    val unreadCounts = remember(listed) { listed.unreadCounts() }
                     val savedItems = remember(library, shownFilter) { Saved.items(library, shownFilter) }
                     // What others shared arrives with a sync (#167): take it in when the Inbox shows, not only at the next one.
                     LaunchedEffect(section) { if (section == HomeSection.Inbox) app.appScope.launch { app.sync.syncIfDue() } }
@@ -744,7 +748,7 @@ fun RssReaderNavigation(
                                             },
                                         )
                                     },
-                                topicChips = remember(library, current.unreadOnly, shownSelection) { library.feedChips(current.unreadOnly, shownSelection.chipTag(library.folders)) },
+                                topicChips = remember(listed, current.unreadOnly, shownSelection) { listed.feedChips(current.unreadOnly, shownSelection.chipTag(library.folders)) },
                                 accountEmail = accountEmail,
                             ),
                         snackbarHostState = snackbar,
@@ -983,6 +987,7 @@ fun RssReaderNavigation(
                                 onAlwaysOpenWebsiteChange = { enabled -> app.appScope.launch { app.settings.setAlwaysOpenWebsite(enabled) } },
                                 onShowImagesChange = { enabled -> app.appScope.launch { app.settings.setShowImages(enabled) } },
                                 onMarkReadOnScrollChange = { enabled -> app.appScope.launch { app.settings.setMarkReadOnScroll(enabled) } },
+                                onHiddenWordsChange = { text -> app.appScope.launch { app.settings.setHiddenWords(text) } },
                                 onListViewChange = { view -> app.appScope.launch { app.settings.setListView(view) } },
                                 onThemeModeChange = { mode -> app.appScope.launch { app.settings.setThemeMode(mode) } },
                                 onDynamicColorChange = { enabled -> app.appScope.launch { app.settings.setDynamicColor(enabled) } },

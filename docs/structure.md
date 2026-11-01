@@ -49,6 +49,7 @@ rss-reader/
         │   │   │   ├── db/                    Room: tables, queries, the database
         │   │   │   ├── LibraryRepository.kt   Room, refresh, add feed, OPML
         │   │   │   ├── Settings.kt            Theme, reader style, Save target (plain Kotlin)
+        │   │   │   ├── ArticleFilter.kt       Hide articles with words (#277) (plain Kotlin)
         │   │   │   ├── SettingsStore.kt       Preferences DataStore
 │   │   │   └── FullArticles.kt        Full articles for summary-only feeds, cached
         │   │   ├── push/                      Notifications when something is shared (#235): Firebase

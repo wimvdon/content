@@ -23,6 +23,7 @@ class SyncSettingsTest {
             showImages = false,
             markReadOnScroll = true,
             alwaysOpenWebsite = true,
+            hiddenWords = "crypto, apple watch",
             listView = ListView.Large,
         )
 
@@ -43,6 +44,7 @@ class SyncSettingsTest {
                 "android.markReadOnScroll" to "true",
                 "android.alwaysOpenWebsite" to "true",
                 "android.listView" to "Large",
+                "android.hiddenWords" to "crypto, apple watch",
                 SyncSettings.RECIPIENTS to "[]",
             ),
             values,
@@ -139,5 +141,17 @@ class SyncSettingsTest {
         // Missing or not a list: this device's stay.
         assertEquals(mine.recipients, SyncSettings.applyTo(mine, emptyMap()).recipients)
         assertEquals(mine.recipients, SyncSettings.applyTo(mine, mapOf(SyncSettings.RECIPIENTS to "nonsense")).recipients)
+    }
+
+    @Test
+    fun `the hidden words (#277) travel to other Android devices, emptied too`() {
+        val values = SyncSettings.of(Settings(hiddenWords = "crypto"))
+        assertEquals("crypto", values[SyncSettings.HIDDEN_WORDS])
+        assertEquals("crypto", SyncSettings.applyTo(Settings(), values).hiddenWords)
+        // Cleared on another phone: cleared here; missing (an older version): kept.
+        assertEquals("", SyncSettings.applyTo(custom, mapOf(SyncSettings.HIDDEN_WORDS to "")).hiddenWords)
+        assertEquals(custom.hiddenWords, SyncSettings.applyTo(custom, emptyMap()).hiddenWords)
+        // The web app's settings never set it.
+        assertEquals(custom.hiddenWords, SyncSettings.applyTo(custom, mapOf("web.hiddenWords" to "x")).hiddenWords)
     }
 }

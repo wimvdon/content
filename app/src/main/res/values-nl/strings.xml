@@ -161,6 +161,10 @@
     <string name="folder_remove_body">%1$s wordt verwijderd. De feeds en bewaarde artikels blijven, zonder dit onderwerp.</string>
     <string name="folder_none">Geen onderwerp</string>
     <string name="setting_mark_read_on_scroll_title">Als gelezen markeren bij scrollen</string>
+    <string name="setting_hidden_words_title">Artikels met woorden verbergen</string>
+    <string name="setting_hidden_words_none">Geen</string>
+    <string name="setting_hidden_words_label">Woorden</string>
+    <string name="setting_hidden_words_hint">Scheid woorden met komma\'s of nieuwe regels. Feedartikels met een van die woorden als heel woord in hun titel worden verborgen; hoofdletters tellen niet.</string>
     <string name="action_mark_read">Als gelezen markeren</string>
     <string name="section_list">Artikellijst</string>
     <string name="setting_list_view">Weergave</string>

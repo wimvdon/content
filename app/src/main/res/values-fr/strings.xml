@@ -163,6 +163,10 @@
     <string name="folder_remove_body">%1$s sera supprimé. Ses flux et articles enregistrés restent, sans ce sujet.</string>
     <string name="folder_none">Sans sujet</string>
     <string name="setting_mark_read_on_scroll_title">Marquer comme lu en défilant</string>
+    <string name="setting_hidden_words_title">Masquer les articles avec des mots</string>
+    <string name="setting_hidden_words_none">Aucun</string>
+    <string name="setting_hidden_words_label">Mots</string>
+    <string name="setting_hidden_words_hint">Séparez les mots par des virgules ou des retours à la ligne. Les articles des flux dont le titre contient l\'un d\'eux comme mot entier sont masqués, majuscules ou non.</string>
     <string name="action_mark_read">Marquer comme lu</string>
     <string name="section_list">Liste d\'articles</string>
     <string name="setting_list_view">Affichage</string>

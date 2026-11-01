@@ -76,6 +76,7 @@ The account's document (it was `rss-reader-sync.json` in Google Drive before), U
   | `android.reader.font`, `.textSize`, `.spacing`, `.background`, `.autoDark` | `Sans`/`Serif`; 14 to 28 (sp); `Compact`/`Normal`/`Relaxed`; `Default`/`Sepia`/`Dark`; `true`/`false` | Android |
   | `android.fullArticles`, `android.showImages`, `android.markReadOnScroll`, `android.alwaysOpenWebsite` | `true`, `false` | Android |
   | `android.listView` | `Small`, `Medium`, `Large` | Android |
+  | `android.hiddenWords` | Hide articles with words (#277): the words as typed, separated by commas or new lines; `""` for none | Android |
   | `web.theme` | `system`, `light`, `dark` | web |
   | `web.reader.font`, `.textSize`, `.spacing`, `.background`, `.autoDark` | `sans`/`serif`; 14 to 28 (px); `compact`/`normal`/`relaxed`; `default`/`sepia`/`dark`; `true`/`false` | web |
   | `web.fullArticles`, `web.showImages`, `web.markReadOnScroll` | `true`, `false` | web |

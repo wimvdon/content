@@ -163,6 +163,10 @@
     <string name="folder_remove_body">%1$s verrà rimosso. I suoi feed e articoli salvati restano, senza questo argomento.</string>
     <string name="folder_none">Senza argomento</string>
     <string name="setting_mark_read_on_scroll_title">Segna come letto scorrendo</string>
+    <string name="setting_hidden_words_title">Nascondi articoli con parole</string>
+    <string name="setting_hidden_words_none">Nessuna</string>
+    <string name="setting_hidden_words_label">Parole</string>
+    <string name="setting_hidden_words_hint">Separa le parole con virgole o a capo. Gli articoli dei feed il cui titolo contiene una di esse come parola intera vengono nascosti, maiuscole o no.</string>
     <string name="action_mark_read">Segna come letto</string>
     <string name="section_list">Elenco articoli</string>
     <string name="setting_list_view">Vista</string>
