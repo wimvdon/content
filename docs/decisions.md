@@ -2,6 +2,13 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-01: No X after the web's chips either
+
+The web's chip row (Feeds and Saved, narrow windows) ended with an X that cleared the filter; Android
+dropped it in #307. Removed on the web too: Material 3's filter chips are let go by tapping the chosen
+one again, an X is an input chip's "remove" (it reads as deleting something), and one chip at a time
+means clearing is always that one tap. Owner's choice.
+
 ## 2026-11-01: One chip row in Feeds, and a tighter header (phone and web)
 
 Choosing a topic in Feeds used to add a second chip row with its feeds, so the header could be four
