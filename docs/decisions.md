@@ -2,6 +2,14 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-01: Feeds' tabs are Unread and All
+
+The owner's choice: Feeds' second tab is **All** (every article, read ones too) instead of **Read**,
+like Saved's **To read** and **All**. Both apps: `FeedTab.All` on Android, `"all"` on the web; the
+web's sidebar has **All** under Saved instead of the Archive. The stored setting (`unreadOnly`)
+stays the same, so nothing needs migrating. Rejected: keeping Read (a list of what you've finished
+is rarely what you look for; All also finds an article read a moment ago).
+
 ## 2026-11-01: Forwarded emails from Instapaper, with Instapaper's text through an Instaparser key
 
 A user's forwarded emails never reached Saved: Instapaper gives them no address (`url` null,

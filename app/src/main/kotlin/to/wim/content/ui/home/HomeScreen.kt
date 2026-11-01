@@ -289,7 +289,7 @@ fun HomeScreen(
                             )
                         } else if (inFeeds && state.feeds.isNotEmpty()) {
                             HomeTabs(
-                                labels = listOf(stringResource(R.string.filter_unread), stringResource(R.string.filter_read)),
+                                labels = listOf(stringResource(R.string.filter_unread), stringResource(R.string.filter_all)),
                                 selected = if (state.unreadOnly) 0 else 1,
                                 onSelect = { i -> actions.onUnreadOnlyChange(i == 0) },
                             )
@@ -410,7 +410,7 @@ fun HomeScreen(
                                 }
                             HomeContent.Loading -> ArticleSkeletons()
                             HomeContent.NoArticles -> NothingToShow(unread = null, state.refreshing, actions.onRefresh)
-                            HomeContent.Empty -> NothingToShow(unread = pageState.unreadOnly, state.refreshing, actions.onRefresh)
+                            HomeContent.Empty -> NothingToShow(unread = pageState.unreadOnly.takeIf { it }, state.refreshing, actions.onRefresh)
                             HomeContent.Articles -> ArticleList(pageState, actions)
                         }
                     }
@@ -887,8 +887,8 @@ private fun Welcome(
 }
 
 /**
- * Nothing to show: no articles downloaded yet ([unread] null), all caught up in Unread, or nothing
- * read yet in Read. Refresh looks for new articles (not in Read: new ones arrive unread).
+ * Nothing to show: no articles (yet) ([unread] null, also All with nothing in it), or all caught up
+ * in Unread. Refresh looks for new articles.
  */
 @Composable
 private fun NothingToShow(
@@ -899,13 +899,9 @@ private fun NothingToShow(
     EmptyState(
         painterResource(if (unread == true) R.drawable.ic_done_all else R.drawable.ic_article),
         stringResource(
-            when (unread) {
-                null -> R.string.home_no_articles_title
-                true -> R.string.home_caught_up_title
-                false -> R.string.home_no_read_title
-            },
+            if (unread == true) R.string.home_caught_up_title else R.string.home_no_articles_title,
         ),
     ) {
-        if (unread != false) OutlinedButton(onClick = onRefresh, enabled = !refreshing) { Text(stringResource(R.string.action_refresh)) }
+        OutlinedButton(onClick = onRefresh, enabled = !refreshing) { Text(stringResource(R.string.action_refresh)) }
     }
 }

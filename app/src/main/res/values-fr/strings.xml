@@ -325,8 +325,6 @@
     <string name="welcome_import">Importer depuis un autre lecteur</string>
     <string name="topic_in_feeds">Flux · %1$s</string>
     <string name="topic_in_saved">Enregistrés · %1$s</string>
-    <string name="filter_read">Lus</string>
-    <string name="home_no_read_title">Rien de lu pour l’instant</string>
     <string name="search_all_feeds">Tous les flux</string>
     <string name="add_title">Ajouter</string>
     <string name="add_choice_feed">S’abonner à un flux</string>
