@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -55,7 +54,7 @@ import to.wim.content.ui.home.rememberFolderIconPainter
 /**
  * The topics as chips in the Add feed and Organise sheets (#314), each with its icon, the same in
  * both. [leading] comes first (No topic, or Like); [extra] are names the article has that aren't
- * topics (yet), shown plainly. At the end, with [actions]: **New topic** (the topic sheet: a name
+ * topics (yet), shown plainly. At the end, with [actions], two text buttons (not chips, #314): **New topic** (the topic sheet: a name
  * and an icon; the new topic is chosen at once through [onCreated]) and **Edit**. Edit puts a drag
  * handle and a pen on every topic chip, and turns into **Done**: drag a chip to reorder the topics,
  * tap it (or the pen) to rename it, change its icon or remove it; renaming it to another topic's
@@ -105,27 +104,30 @@ fun TopicChipRow(
                     FilterChip(selected = isExtraSelected(name), onClick = { onToggleExtra(name) }, enabled = enabled, label = { Text(name) })
                 }
             }
+            // New topic and Edit are actions, not topics: text buttons, so they don't look like chips.
             if (actions != null) {
                 if (!editable) {
-                    AssistChip(
-                        onClick = { creating = true },
-                        enabled = enabled,
-                        label = { Text(stringResource(R.string.folder_new)) },
-                        leadingIcon = { Icon(painterResource(R.drawable.ic_add), contentDescription = null, modifier = Modifier.size(18.dp)) },
-                    )
+                    TextButton(onClick = { creating = true }, enabled = enabled, contentPadding = ButtonDefaults.TextButtonWithIconContentPadding) {
+                        Icon(painterResource(R.drawable.ic_add), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                        Text(stringResource(R.string.folder_new), modifier = Modifier.padding(start = 8.dp))
+                    }
                 }
                 if (topics.isNotEmpty() || editable) {
-                    AssistChip(
+                    TextButton(
                         onClick = {
                             editMode = !editMode
                             removing = null
                         },
                         enabled = enabled,
-                        label = { Text(stringResource(if (editable) R.string.action_done else R.string.action_edit)) },
-                        leadingIcon = {
-                            Icon(painterResource(if (editable) R.drawable.ic_check else R.drawable.ic_edit), contentDescription = null, modifier = Modifier.size(18.dp))
-                        },
-                    )
+                        contentPadding = ButtonDefaults.TextButtonWithIconContentPadding,
+                    ) {
+                        Icon(
+                            painterResource(if (editable) R.drawable.ic_check else R.drawable.ic_edit),
+                            contentDescription = null,
+                            modifier = Modifier.size(ButtonDefaults.IconSize),
+                        )
+                        Text(stringResource(if (editable) R.string.action_done else R.string.action_edit), modifier = Modifier.padding(start = 8.dp))
+                    }
                 }
             }
         }

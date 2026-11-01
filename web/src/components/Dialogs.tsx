@@ -1,6 +1,7 @@
 import { ArrowDown, ArrowLeft, ArrowUp, ChevronDown, EllipsisVertical, Merge, Pencil, Plus, Trash2 } from "lucide-react";
 import { useEscape } from "./ui/useEscape";
 import { ConfirmRemove } from "./ConfirmRemove";
+import { ManageFeedsIcon } from "./ManageIcons";
 import { TopicChips, chip, chipOn } from "./TopicChips";
 import { useEffect, useMemo, useState } from "react";
 import { gravatarUrl } from "@/lib/account";
@@ -51,11 +52,9 @@ export function AddFeedDialog({ open, onOpenChange, folderId }: Props & { folder
       title={t("addFeed")}
       description={t("addFeedHint")}
       closeLabel={t("close")}
+      cancel={t("cancel")}
       footer={
         <>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>
-            {t("cancel")}
-          </Button>
           <Button onClick={() => void add()} disabled={busy || !input.trim()}>
             {busy ? t("adding") : t("add")}
           </Button>
@@ -478,6 +477,7 @@ export function FolderDialog({
       onOpenChange={(o) => !o && onClose()}
       title={folder === "new" ? t("newFolder") : t("editFolder")}
       closeLabel={t("close")}
+      cancel={t("cancel")}
       footer={
         <>
           {folder !== "new" ? (
@@ -490,9 +490,6 @@ export function FolderDialog({
               {t("remove")}
             </Button>
           ) : null}
-          <Button variant="ghost" onClick={onClose}>
-            {t("cancel")}
-          </Button>
           <Button onClick={save} disabled={!title.trim()}>
             {t("save")}
           </Button>
@@ -543,7 +540,7 @@ export function FolderDialog({
 }
 
 /** Settings in the order DESIGN.md gives: the account first, then the app's own, then appearance. */
-export function SettingsDialog({ open, onOpenChange, onImport }: Props & { onImport: () => void }) {
+export function SettingsDialog({ open, onOpenChange, onImport, onManage }: Props & { onImport: () => void; onManage: () => void }) {
   const { settings, library } = useApp();
   return (
     <Dialog open={open} onOpenChange={onOpenChange} title={t("settings")} closeLabel={t("close")} wide>
@@ -551,6 +548,15 @@ export function SettingsDialog({ open, onOpenChange, onImport }: Props & { onImp
         <AccountSection />
         {/* Connection first: the account, then the service Saved is also kept in. */}
         <InstapaperSettings />
+        {/* Managing topics is its own section after the connections, as on Android (#314): the
+            sheets edit topics in their chips, and the menu no longer has it. */}
+        <section className="space-y-2">
+          <h3 className="text-sm font-medium text-primary">{t("manageTitle")}</h3>
+          <Button variant="outline" onClick={onManage}>
+            <ManageFeedsIcon className="size-4" />
+            {t("manage")}
+          </Button>
+        </section>
         <section className="space-y-2">
           <h3 className="text-sm font-medium text-primary">{t("articleList")}</h3>
           <div className="flex flex-wrap items-center justify-between gap-2 py-1">

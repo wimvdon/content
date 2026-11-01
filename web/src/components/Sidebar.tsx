@@ -6,23 +6,20 @@ import { choosesFolder, unreadByFeed } from "@/lib/library";
 import { toReadCount } from "@/lib/saved";
 import { FeedIcon } from "./FeedIcon";
 import { FolderIcon } from "./FolderIcon";
-import { ManageFeedsIcon } from "./ManageIcons";
 import { cn } from "./ui/cn";
 
 const FEEDS = "section-feeds";
 const SAVED = "section-saved";
 
 /**
- * The ☰ menu: Feeds and Saved as two sections that stay as you fold them, then Manage feeds and
- * Saved, and Settings, as on Android. A feed folder shows its feeds only while you are in it (#251).
+ * The ☰ menu: Feeds and Saved as two sections that stay as you fold them, then Settings (Manage
+ * topics is in it, #314). A feed folder shows its feeds only while you are in it (#251).
  */
 export function Sidebar({
   onNavigate,
-  onManage,
   onSettings,
 }: {
   onNavigate?: () => void;
-  onManage: () => void;
   onSettings: () => void;
 }) {
   const { library, selection, savedFilter } = useApp();
@@ -152,9 +149,8 @@ export function Sidebar({
         </Section>
       </div>
 
-      {/* At the bottom: Manage topics (topics with their feeds), and Settings. */}
+      {/* At the bottom: Settings (Manage topics is in it, as on Android, #314). */}
       <div className="border-t p-2">
-        <Row onClick={onManage} icon={<ManageFeedsIcon />} label={t("manage")} />
         <Row onClick={onSettings} icon={<SettingsIcon className="size-5" />} label={t("settings")} />
       </div>
     </nav>

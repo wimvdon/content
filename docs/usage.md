@@ -80,6 +80,11 @@ web, the sidebar lists them). A feed added while a topic
 is open goes into that topic. Long-pressing Content's icon on the home screen offers your first four
 topics: tap one to open the app on it (#251).
 
+**Sheets:** every sheet (save, Organise, Add feed, a topic, a highlight, Report a problem) has
+**Cancel** at the top right and its main button at the bottom right. The save sheet is called
+**Save** while saving and **Organise** for an article saved before. On the web, **+** in the
+search bar adds a feed (Feeds) or a link (Saved), and Manage topics is in Settings.
+
 **Saved:** an article you save from a feed gets the feed's topic by itself (Save, the long press, the
 save sheet). In the save and Organise sheets you turn topics on or off, every topic in your order,
 and **New topic** makes one (it is turned on at once). **Editing topics in a sheet (#314):** after
@@ -233,7 +238,7 @@ After **Save**, **Organise** opens (#304; it was "Save and share", #256): the **
 order, tap to turn one on or off; **New topic** makes one that doesn't exist yet) and a **Note**. It
 doesn't send: to send an article to people with Content, use **Share** (or the share menu's **Send
 with Content**). The Archive isn't a list you pick (#305): the buttons at the bottom say where the
-article goes. **Save** puts it in To read, **Save to Archive** straight in the Archive (for something
+article goes. **Save** puts it in To read, **Save and archive** straight in the Archive (for something
 you've read already and only want to keep). Either keeps what you chose, also a topic you typed but
 didn't add yet, and a message says where it went ("Saved to Archive"), with **Undo** when you saved
 from the article. **Cancel** (at the top right, or closing the sheet) saves nothing: right after Save
@@ -377,7 +382,7 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   with any number of topics.
 - **Getting articles in:** **Save** in an article; press and hold a feed article › **Save** (the save sheet opens, then the message offers **Open**); **+** in the search bar in
   Saved (the save sheet, which asks for the address); and sharing a link to Reader from another app. These go to To read unless you tap
-  **Save to Archive** in the save sheet. A feed article you save stays the same article: its feed, text and
+  **Save and archive** in the save sheet. A feed article you save stays the same article: its feed, text and
   picture come along, and it isn't copied.
 - **Archive when you're done:** **Archive** in a saved article's bottom bar (it closes, with
   **Undo**), or press and hold its card › **Archive**. In the Archive the same button and menu say

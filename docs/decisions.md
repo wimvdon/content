@@ -2,6 +2,20 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-01: Sheets alike: Cancel at the top right, Save and Organise headings, the web like Android
+
+At the owner's request, after #305 and #314:
+- **Save and archive** (was "Save to Archive"), with the Archive's box; **Save** has To read's open
+  book while saving, so the icons say where the article goes.
+- The one save sheet is headed **Save** while saving (a new link, a share, just saved) and
+  **Organise** for an article saved before; "Organise" for a new save read wrong.
+- **Cancel at the top right of every sheet** (one `SheetHeader`): save/Organise, Add feed, the topic
+  sheet, a highlight, Report a problem. Their bottom row keeps only Remove (left) and the main
+  button. On the web the same dialogs show Cancel in words instead of ×.
+- **New topic and Edit are text buttons**, not chips: they are actions, not topics.
+- **The web follows Android**: + in the search bar adds a feed (Feeds) or a link (Saved); Manage
+  topics left the ☰ menu for Settings; the sheets edit topics in their chips (#314).
+
 ## 2026-11-01: Articles older than two years arrive read (#317)
 
 The owner saw very old articles keep turning up in Unread, probably since the release that changed

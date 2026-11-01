@@ -372,11 +372,9 @@ function ReportDialog({ link, html, onClose }: { link: string; html: string; onC
       onOpenChange={(o) => !o && onClose()}
       title={t("reportTitle")}
       closeLabel={t("close")}
+      cancel={t("cancel")}
       footer={
         <>
-          <Button variant="ghost" onClick={onClose}>
-            {t("cancel")}
-          </Button>
           <Button
             onClick={() => {
               const text = textOf(html);

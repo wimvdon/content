@@ -53,7 +53,7 @@ fun ReportSheet(
                 .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Text(stringResource(R.string.report_title), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
+            SheetHeader(stringResource(R.string.report_title), onCancel = onDismiss)
             Column(Modifier.selectableGroup()) {
                 for (p in ArticleReport.Problem.entries) {
                     Row(
@@ -76,10 +76,7 @@ fun ReportSheet(
                 modifier = Modifier.fillMaxWidth(),
             )
             Text(stringResource(R.string.report_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Row(Modifier.align(Alignment.End), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
-                Button(onClick = { onSend(problem, comment) }) { Text(stringResource(R.string.report_send)) }
-            }
+            Button(onClick = { onSend(problem, comment) }, modifier = Modifier.align(Alignment.End)) { Text(stringResource(R.string.report_send)) }
         }
     }
 }
