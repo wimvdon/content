@@ -15,31 +15,29 @@ import androidx.compose.ui.unit.dp
 import to.wim.content.R
 
 /**
- * The reader's bar for a saved article (#139, #251, #305): two buttons that say in words what they
- * do. **Archive** (the Archive's box) archives it in one tap, closes the reader and shows Undo; once
- * archived it is **Back to read**, as Mark as read turns into Mark as unread. **Organise** (a tag)
- * opens the sheet with the topics, Like and the note. The highlights and Share follow at the bar's
- * right end; a long label gives way (ellipsis) before they do.
+ * The reader's toolbar buttons for a saved article (#139, #251, #305, #331): two buttons that say in
+ * words what they do. **Archive** (the Archive's box) archives it in one tap, keeps the article open
+ * and shows Undo; an archived article has only **Organise** (a tag), which opens the sheet with To
+ * read / Archive, the topics, Like and the note. The highlights and Share follow in the floating
+ * toolbar ([ReaderToolbar]).
  */
 @Composable
 internal fun SavedBar(item: ReaderItem) {
     // Archive is the quick action while it is to read; archived, there is only Organise (its To read
     // / Archive choice puts it back).
     val archived = item.item.archived
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 8.dp)) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
         if (!archived) {
             BarButton(
                 icon = R.drawable.ic_inventory,
                 label = stringResource(R.string.action_archive),
                 onClick = item.onArchive,
-                modifier = Modifier.weight(1f, fill = false),
             )
         }
         BarButton(
             icon = R.drawable.ic_label,
             label = stringResource(R.string.organise_title),
             onClick = item.onOrganise,
-            modifier = Modifier.weight(1f, fill = false),
         )
     }
 }

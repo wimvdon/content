@@ -2,6 +2,20 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-01: The reader's actions in a floating toolbar
+
+The reader's bottom app bar (Save, or Archive and Organise; the highlights; Share) becomes a
+**floating toolbar**, on the phone and the web: a pill at the bottom in the middle, over the text,
+that slides away while you read down and comes back when you scroll up, at the top and at the end of
+the article (`ReaderToolbarVisibility`; the web's `toolbarHidden`).
+- Material 3's toolbars are for a set of actions on what is on screen, and a reading surface should
+  stay calm: the text gets the whole screen while reading, the actions are one small scroll up away.
+- **Built from a `Surface` and a `Row`**, no new library: Material 3 1.4 (our BOM) has no public
+  `FloatingToolbar` yet. When it gets one, switching is a small change.
+- The text keeps room under its end so the last lines scroll clear; messages (Archived, Undo) show
+  above the toolbar.
+- Rejected: a floating toolbar for Unread / All (a view choice, not an action: that is the segmented switch).
+
 ## 2026-11-01: A switch instead of tabs for Unread / All and To read / All
 
 The owner liked the To read / Archive switch in the save sheet and felt the tabs weren't right:

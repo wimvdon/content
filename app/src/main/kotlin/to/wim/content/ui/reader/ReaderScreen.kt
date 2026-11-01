@@ -4,7 +4,6 @@ import android.text.format.DateUtils
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.LaunchedEffect
@@ -38,6 +37,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,6 +59,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.draw.clip
@@ -162,12 +163,20 @@ fun ReaderScreen(
     val hasLink = article?.link != null
     val onList = item?.item?.readingList != null
     val scrollState = rememberScrollState()
+    // The library actions float over the article (#139, #156, #305), stepping aside while you read down.
+    val hasToolbar = article != null && (hasLink || onList)
+    val toolbarShown by remember {
+        derivedStateOf { ReaderToolbarVisibility.shown(scrollBehavior.state.collapsedFraction, atEnd = !scrollState.canScrollForward) }
+    }
     // The position is worked out on the text that stays: not while the full text is still loading (#270).
     if (item != null && onList) ReadingProgress(scrollState, item.item.progress, ready = fullText !is FullTextState.Loading, item.onProgress)
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        // Messages (Archived, with Undo) appear above the floating toolbar while it shows.
+        snackbarHost = {
+            SnackbarHost(snackbarHostState, Modifier.padding(bottom = if (hasToolbar && toolbarShown) ReaderToolbarHeight + ReaderToolbarMargin else 0.dp))
+        },
         topBar = {
             TopAppBar(
                 title = {},
@@ -250,45 +259,6 @@ fun ReaderScreen(
                     ),
             )
         },
-        bottomBar = {
-            // The library bar (#139, #156, #305): on the left Save, or once saved Archive and Organise;
-            // on the right Share.
-            if (article != null && (hasLink || onList)) {
-                BottomAppBar(containerColor = MaterialTheme.colorScheme.surfaceContainer) {
-                    // The left part takes all the room the right end leaves, so Share always sits at
-                    // the right edge however short the folder's name (two weights split it before).
-                    Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
-                        if (item != null && onList) {
-                            SavedBar(item)
-                        } else {
-                            FilledTonalButton(onClick = actions.onSave, modifier = Modifier.padding(start = 16.dp)) {
-                                Icon(painterResource(R.drawable.ic_list), contentDescription = null)
-                                Text(
-                                    stringResource(R.string.action_save),
-                                    modifier = Modifier.padding(start = 8.dp),
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                            }
-                        }
-                    }
-                    // The article's highlights, with their count, next to Share.
-                    val count = highlights?.highlights?.size ?: 0
-                    if (count > 0) {
-                        val label = pluralStringResource(R.plurals.highlights_count, count, count)
-                        TextButton(onClick = { highlightsOpen = true }, modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = label }) {
-                            Icon(painterResource(R.drawable.ic_quote), contentDescription = null)
-                            Text(count.toString(), modifier = Modifier.padding(start = 8.dp))
-                        }
-                    }
-                    if (hasLink) {
-                        IconButton(onClick = actions.onShare, modifier = Modifier.padding(end = 4.dp)) {
-                            Icon(painterResource(R.drawable.ic_share), contentDescription = stringResource(R.string.action_share))
-                        }
-                    }
-                }
-            }
-        },
         containerColor = MaterialTheme.colorScheme.surface,
     ) { innerPadding ->
         if (article == null) {
@@ -301,6 +271,7 @@ fun ReaderScreen(
                 FilledTonalButton(onClick = actions.onBack) { Text(stringResource(R.string.action_back)) }
             }
         } else {
+            Box(Modifier.fillMaxSize()) {
             ArticleBody(
                 showImages = showImages,
                 article = article,
@@ -313,8 +284,49 @@ fun ReaderScreen(
                 highlights = highlights,
                 highlightsOpen = highlightsOpen,
                 onHighlightsOpenChange = { highlightsOpen = it },
+                // Room under the text, so its end can scroll clear of the toolbar.
+                bottomSpace = if (hasToolbar) ReaderToolbarHeight + ReaderToolbarMargin else 0.dp,
                 modifier = Modifier.padding(innerPadding),
             )
+            if (hasToolbar) {
+                // On the left Save, or once saved Archive and Organise; the highlights' count; Share.
+                ReaderToolbar(
+                    visible = toolbarShown,
+                    modifier =
+                        Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(innerPadding)
+                            .padding(start = 16.dp, end = 16.dp, bottom = ReaderToolbarMargin),
+                ) {
+                    if (item != null && onList) {
+                        SavedBar(item)
+                    } else {
+                        FilledTonalButton(onClick = actions.onSave) {
+                            Icon(painterResource(R.drawable.ic_list), contentDescription = null)
+                            Text(
+                                stringResource(R.string.action_save),
+                                modifier = Modifier.padding(start = 8.dp),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    }
+                    val count = highlights?.highlights?.size ?: 0
+                    if (count > 0) {
+                        val label = pluralStringResource(R.plurals.highlights_count, count, count)
+                        TextButton(onClick = { highlightsOpen = true }, modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = label }) {
+                            Icon(painterResource(R.drawable.ic_quote), contentDescription = null)
+                            Text(count.toString(), modifier = Modifier.padding(start = 8.dp))
+                        }
+                    }
+                    if (hasLink) {
+                        IconButton(onClick = actions.onShare) {
+                            Icon(painterResource(R.drawable.ic_share), contentDescription = stringResource(R.string.action_share))
+                        }
+                    }
+                }
+            }
+            }
         }
     }
 
@@ -368,6 +380,7 @@ private fun ArticleBody(
     highlights: ReaderHighlights?,
     highlightsOpen: Boolean,
     onHighlightsOpenChange: (Boolean) -> Unit,
+    bottomSpace: Dp = 0.dp,
     modifier: Modifier = Modifier,
 ) {
     val linkColor = MaterialTheme.colorScheme.primary
@@ -445,7 +458,7 @@ private fun ArticleBody(
                 Modifier
                     .widthIn(max = 680.dp)
                     .fillMaxWidth()
-                    .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 32.dp),
+                    .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 32.dp + bottomSpace),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             if (hero != null) HeroImage(hero)
