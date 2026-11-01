@@ -77,7 +77,8 @@ always opens in it like this, with a back arrow at the top left, never as a seco
 the feeds without a topic, each as a chip with its site icon. Pick a topic and the row shows only
 that topic, followed by its feeds: tap one to read only that feed, tap it again for the whole topic,
 and tap the topic to see all your topics again. With only one chip to show (say, all your unread
-articles are in Music), there is no chip row: it would show the same list. The web app does the same (with a wide window, the
+articles are in one feed), there is no chip row: it would show the same list. A single topic whose
+unread articles are in two or more feeds keeps its chip, so you can still get to one of those feeds. The web app does the same (with a wide window, the
 sidebar lists them). A feed added while a topic
 is open goes into that topic. Long-pressing Content's icon on the home screen offers your first four
 topics: tap one to open the app on it (#251).

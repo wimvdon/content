@@ -145,6 +145,9 @@ describe("topics", () => {
     const looseRow = feedChipRow(withLoose, "unread", { kind: "all" });
     expect(urls(looseRow.loose)).toEqual(["https://c/feed"]);
     expect(looseRow.shown).toBe(true);
+    // Tech is the only topic with something unread, but in two feeds: its chip stays, as it leads to them.
+    const twoFeeds = { ...lib, articles: [...lib.articles, article("https://d/feed", "5", false)] };
+    expect(feedChipRow(twoFeeds, "unread", { kind: "all" }).shown).toBe(true);
     // Only that loose feed has something unread: one chip again, no row.
     const onlyLoose = { ...lib, articles: [article("https://c/feed", "4", false)] };
     expect(feedChipRow(onlyLoose, "unread", { kind: "all" }).shown).toBe(false);

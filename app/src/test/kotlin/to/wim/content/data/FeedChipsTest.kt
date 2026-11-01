@@ -67,9 +67,11 @@ class FeedChipsTest {
     @Test
     fun `the row shows only with more than one chip, or with something chosen`() {
         assertTrue(FeedChips.of(feeds, folders, topics, FeedSelection.All).rowShown)
-        // Only News has something unread: one chip, which would filter nothing.
+        // Only News has something unread, in two feeds: the one chip stays, as it leads to BBC and NPR.
         val news = setOf(bbc.url, npr.url)
-        assertFalse(FeedChips.of(feeds, folders, listOf("News"), FeedSelection.All, news).rowShown)
+        assertTrue(FeedChips.of(feeds, folders, listOf("News"), FeedSelection.All, news).rowShown)
+        // Only one of its feeds has something unread: the chip would lead nowhere, so no row.
+        assertFalse(FeedChips.of(feeds, folders, listOf("News"), FeedSelection.All, setOf(bbc.url)).rowShown)
         // One topic and one loose feed: two chips, each narrows the list.
         assertTrue(FeedChips.of(feeds, folders, listOf("News"), FeedSelection.All, news + blog.url).rowShown)
         // Only one loose feed: hidden too.
