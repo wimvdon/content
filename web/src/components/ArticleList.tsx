@@ -111,32 +111,35 @@ function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport,
       {library.feeds.length > 0 ? (
         <>
           <FeedViewSwitch className="mx-4 mt-1 mb-0 lg:hidden" />
-          <TagChips
-            icons={topicIcons(library)}
-            tags={oneFeed ? [oneFeed, ...row.topics] : row.topics}
-            // A folder picked in the menu lights up its chip: the folder's name is its feeds' tag.
-            selected={oneFeed ?? row.chosenTopic ?? chipTag(library, selection)}
-            // Tapping the chosen topic (or its feed's) lets go: the topics come back.
-            onSelect={(tag) => app.select(tag === null || tag === oneFeed ? { kind: "all" } : { kind: "tag", tag })}
-            // The chosen topic's feeds, after it: one tapped shows it alone, tapped again the topic.
-            after={
-              row.chosenTopic !== null && row.feeds.length > 0
-                ? row.feeds.map((f) => {
-                    const on = f.url === row.chosenFeed;
-                    const topic = row.chosenTopic!;
-                    return (
-                      <FilterChip key={f.url} selected={on} check={false} onClick={() => app.select(on ? { kind: "tag", tag: topic } : { kind: "feed", feedUrl: f.url })}>
-                        <FeedIcon feed={f} className="size-4" />
-                        <span className="max-w-48 truncate">{f.title}</span>
-                      </FilterChip>
-                    );
-                  })
-                : null
-            }
-            // A feed or folder chosen elsewhere is a filter too: the X goes back to every feed.
-            filtered={selection.kind !== "all"}
-            onClear={() => app.select({ kind: "all" })}
-          />
+          {/* Only when a chip would narrow the list (a single one covering it all is left out). */}
+          {row.shown ? (
+            <TagChips
+              icons={topicIcons(library)}
+              tags={oneFeed ? [oneFeed, ...row.topics] : row.topics}
+              // A folder picked in the menu lights up its chip: the folder's name is its feeds' tag.
+              selected={oneFeed ?? row.chosenTopic ?? chipTag(library, selection)}
+              // Tapping the chosen topic (or its feed's) lets go: the topics come back.
+              onSelect={(tag) => app.select(tag === null || tag === oneFeed ? { kind: "all" } : { kind: "tag", tag })}
+              // The chosen topic's feeds, after it: one tapped shows it alone, tapped again the topic.
+              after={
+                row.chosenTopic !== null && row.feeds.length > 0
+                  ? row.feeds.map((f) => {
+                      const on = f.url === row.chosenFeed;
+                      const topic = row.chosenTopic!;
+                      return (
+                        <FilterChip key={f.url} selected={on} check={false} onClick={() => app.select(on ? { kind: "tag", tag: topic } : { kind: "feed", feedUrl: f.url })}>
+                          <FeedIcon feed={f} className="size-4" />
+                          <span className="max-w-48 truncate">{f.title}</span>
+                        </FilterChip>
+                      );
+                    })
+                  : null
+              }
+              // A feed or folder chosen elsewhere is a filter too: the X goes back to every feed.
+              filtered={selection.kind !== "all"}
+              onClear={() => app.select({ kind: "all" })}
+            />
+          ) : null}
           {problems.size > 0 ? <p className="px-4 pb-1 text-xs text-destructive">{plural("feedsFailed", problems.size)}</p> : null}
         </>
       ) : null}

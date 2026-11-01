@@ -137,11 +137,17 @@ describe("topics", () => {
     const lib = { ...base, feeds: [...base.feeds, d], articles: [article("https://a/feed", "1", false), article("https://b/feed", "2", true), article("https://d/feed", "3", true)] };
     const urls = (feeds: { url: string }[]) => feeds.map((f) => f.url);
     // Nothing chosen: the topics, no feeds.
-    expect(feedChipRow(lib, "unread", { kind: "all" })).toEqual({ topics: ["Tech"], chosenTopic: null, feeds: [], chosenFeed: null });
+    // Nothing chosen and one topic with every unread article: no row, it would filter nothing.
+    expect(feedChipRow(lib, "unread", { kind: "all" })).toEqual({ topics: ["Tech"], chosenTopic: null, feeds: [], chosenFeed: null, shown: false });
+    expect(feedChipRow(lib, "all", { kind: "all" }).shown).toBe(true);
+    // One topic, but an unread article in a feed without one: the chip narrows the list, so it shows.
+    const withLoose = { ...lib, articles: [...lib.articles, article("https://c/feed", "4", false)] };
+    expect(feedChipRow(withLoose, "unread", { kind: "all" }).shown).toBe(true);
     // A topic chosen (in any case): that topic alone, then its feeds with something in the tab shown.
     const tech = feedChipRow(lib, "unread", { kind: "tag", tag: "tech" });
     expect(tech.topics).toEqual(["Tech"]);
     expect(tech.chosenTopic).toBe("Tech");
+    expect(tech.shown).toBe(true);
     expect(urls(tech.feeds)).toEqual(["https://a/feed"]);
     expect(urls(feedChipRow(lib, "all", { kind: "tag", tag: "Tech" }).feeds)).toEqual(["https://a/feed", "https://d/feed"]);
     // A feed chosen: its topic is lit and the feed stays, even with nothing in the tab shown.

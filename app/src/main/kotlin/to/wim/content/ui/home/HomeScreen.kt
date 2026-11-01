@@ -292,6 +292,8 @@ fun HomeScreen(
                                 remember(state.feeds, state.folders, feedTags, state.selection, state.feedChipsShown) {
                                     FeedChips.of(state.feeds, state.folders, feedTags, state.selection, state.feedChipsShown)
                                 }
+                            // Only with more than one chip: a single one filters nothing.
+                            if (chips.rowShown) {
                             TagChips(
                                 tags = chips.rowTopics,
                                 top = 0.dp,
@@ -323,6 +325,7 @@ fun HomeScreen(
                                         else -> null
                                     },
                             )
+                            }
                         }
                     }
                 },

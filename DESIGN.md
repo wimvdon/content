@@ -289,7 +289,8 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   (16dp). While a topic (or one of its feeds) is chosen, the **same row** shows only that topic (lit),
   then after the divider its feeds the same way (#338, owner's choice: one chip row, never two): tap
   one to show it alone (its topic stays lit), tap it again for the whole topic; tap the topic to let
-  go, and every topic comes back. The web does the same. The chips sit right under the switch (their
+  go, and every topic comes back. The web does the same. Feeds' row only shows when a chip would narrow the list: not with a single
+  chip (it would show what the list already shows), unless something is chosen. The chips sit right under the switch (their
   touch area is the gap). So every place is one or two taps from the list. **+** is the FAB, the screen's main action, the
   same in Feeds, Saved and the Inbox (it was in the search bar before, owner's choice): the Add sheet, two
   `surfaceContainerHigh` rows with their icon on a `secondaryContainer` circle, **Subscribe to feed**

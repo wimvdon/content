@@ -8,7 +8,9 @@ Choosing a topic in Feeds used to add a second chip row with its feeds, so the h
 rows (search bar, switch, topics, feeds): about a third of a phone screen. Now the one row shows only
 the chosen topic, then its feeds; tapping the topic brings every topic back (`FeedChips.rowTopics`
 and `rowLoose`; the web's `feedChipRow`, which gains the topic's feeds as chips). The chips also sit
-right under the switch: their 48dp touch area is the gap. Owner's choice.
+right under the switch: their 48dp touch area is the gap. Owner's choice. The row is also left out
+when it would hold a single chip (it would filter nothing), unless something is chosen; on the web,
+whose row has no loose feeds, when that one topic holds every article shown.
 - Rejected: Unread / All as a chip in the row (saves another row, but a view would look like one
   more filter).
 

@@ -32,6 +32,14 @@ data class FeedChips(
     val rowLoose: List<Feed>
         get() = if (chosenTopic != null) emptyList() else loose
 
+    /**
+     * Whether the row shows at all: only with more than one chip, as a single one would show what the
+     * list already shows (every article is in a topic or a loose feed, each a chip). Something chosen
+     * always keeps it, so it can be let go.
+     */
+    val rowShown: Boolean
+        get() = chosenTopic != null || chosenFeed != null || rowTopics.size + rowLoose.size > 1
+
     companion object {
         fun of(
             feeds: List<Feed>,

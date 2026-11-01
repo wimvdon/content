@@ -190,6 +190,11 @@ export interface FeedChipRow {
   feeds: Feed[];
   /** The feed picked, if any. */
   chosenFeed: string | null;
+  /**
+   * Whether the row shows: not when its one topic chip has every article of the tab shown (it would
+   * filter nothing, as on Android); always with something chosen, so it can be let go.
+   */
+  shown: boolean;
 }
 
 /**
@@ -205,7 +210,13 @@ export function feedChipRow(lib: Library, tab: FeedTab, selection: Selection): F
   const picked = chipTag(lib, selection);
   const ofFeed = single?.tags?.find((tag) => all.some((t) => key(t) === key(tag))) ?? single?.tags?.[0] ?? null;
   const chosen = picked ?? ofFeed;
-  if (chosen === null) return { topics: feedChips(lib, tab, null), chosenTopic: null, feeds: [], chosenFeed };
+  if (chosen === null) {
+    const topics = feedChips(lib, tab, null);
+    const tagsOf = new Map(lib.feeds.map((f) => [f.url, f.tags ?? []]));
+    const outside = (topic: string) => lib.articles.some((a) => inFeedTab(a, tab) && !(tagsOf.get(a.feedUrl) ?? []).some((t) => key(t) === key(topic)));
+    const shown = chosenFeed !== null || topics.length > 1 || (topics.length === 1 && outside(topics[0]));
+    return { topics, chosenTopic: null, feeds: [], chosenFeed, shown };
+  }
   // The topic's own spelling, as its chip has it elsewhere.
   const name = all.find((t) => key(t) === key(chosen)) ?? chosen;
   const feeds = lib.feeds.filter(
@@ -213,5 +224,5 @@ export function feedChipRow(lib: Library, tab: FeedTab, selection: Selection): F
       (f.tags ?? []).some((t) => key(t) === key(name)) &&
       (f.url === chosenFeed || lib.articles.some((a) => a.feedUrl === f.url && inFeedTab(a, tab))),
   );
-  return { topics: [name], chosenTopic: name, feeds, chosenFeed };
+  return { topics: [name], chosenTopic: name, feeds, chosenFeed, shown: true };
 }

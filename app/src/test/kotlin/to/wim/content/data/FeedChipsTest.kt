@@ -1,6 +1,7 @@
 package to.wim.content.data
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -61,6 +62,21 @@ class FeedChipsTest {
         val loose = FeedChips.of(feeds, folders, topics, FeedSelection.Single(blog.url))
         assertEquals(topics, loose.rowTopics)
         assertEquals(listOf(blog, gone), loose.rowLoose)
+    }
+
+    @Test
+    fun `the row shows only with more than one chip, or with something chosen`() {
+        assertTrue(FeedChips.of(feeds, folders, topics, FeedSelection.All).rowShown)
+        // Only News has something unread: one chip, which would filter nothing.
+        val news = setOf(bbc.url, npr.url)
+        assertFalse(FeedChips.of(feeds, folders, listOf("News"), FeedSelection.All, news).rowShown)
+        // One topic and one loose feed: two chips, each narrows the list.
+        assertTrue(FeedChips.of(feeds, folders, listOf("News"), FeedSelection.All, news + blog.url).rowShown)
+        // Only one loose feed: hidden too.
+        assertFalse(FeedChips.of(feeds, folders, emptyList(), FeedSelection.All, setOf(blog.url)).rowShown)
+        // Chosen, it stays, so it can be let go.
+        assertTrue(FeedChips.of(feeds, folders, listOf("News"), FeedSelection.Tagged("News"), news).rowShown)
+        assertTrue(FeedChips.of(feeds, folders, emptyList(), FeedSelection.Single(blog.url), setOf(blog.url)).rowShown)
     }
 
     @Test
