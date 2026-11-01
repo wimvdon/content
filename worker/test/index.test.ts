@@ -47,11 +47,29 @@ describe("handle", () => {
       "https://a.example/old": () => new Response(null, { status: 301, headers: { Location: "/new" } }),
       "https://a.example/new": feed,
       "https://a.example/bad": () => new Response(null, { status: 302, headers: { Location: "http://a.example/feed" } }),
+      "https://a.example/garbled": () => new Response(null, { status: 302, headers: { Location: "https://[" } }),
     });
     const moved = await handle(ask("https://a.example/old"), env, fetcher);
     expect(moved.status).toBe(200);
     expect(moved.headers.get("X-Final-Url")).toBe("https://a.example/new");
     expect((await handle(ask("https://a.example/bad"), env, fetcher)).status).toBe(502);
+    // A Location that isn't an address is a bad redirect, not a crash (which would lose the CORS headers).
+    const garbled = await handle(ask("https://a.example/garbled"), env, fetcher);
+    expect(garbled.status).toBe(502);
+    expect(garbled.headers.get("Access-Control-Allow-Origin")).toBe("https://app.example");
+  });
+
+  it("says the site couldn't be reached when its answer breaks off", async () => {
+    const broken = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new Uint8Array([60]));
+        controller.error(new Error("reset"));
+      },
+    });
+    const { fetcher } = site({ "https://a.example/cut": () => new Response(broken, { headers: { "Content-Type": "text/html" } }) });
+    const response = await handle(ask("https://a.example/cut"), env, fetcher);
+    expect(response.status).toBe(502);
+    expect(response.headers.get("Access-Control-Allow-Origin")).toBe("https://app.example");
   });
 
   it("refuses pictures, other files and bodies that are too large", async () => {

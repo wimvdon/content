@@ -110,7 +110,7 @@ export async function handle(request: Request, env: Env, fetcher: Fetcher): Prom
     }
     if (upstream.status >= 300 && upstream.status < 400) {
       const location = upstream.headers.get("Location");
-      const next = location ? checkTarget(new URL(location, current).toString()) : null;
+      const next = location ? checkTarget(resolveLocation(location, current)) : null;
       if (!next) return plain(502, "Bad redirect", cors);
       current = next;
       continue;
@@ -124,7 +124,13 @@ export async function handle(request: Request, env: Env, fetcher: Fetcher): Prom
     if (type && !ALLOWED_TYPES.some((re) => re.test(type.toLowerCase()))) return plain(415, "Not a feed or page", cors);
     const length = Number(upstream.headers.get("Content-Length") ?? "0");
     if (length > MAX_BYTES) return plain(413, "Too large", cors);
-    const body = await readLimited(upstream);
+    let body: Uint8Array | null;
+    try {
+      body = await readLimited(upstream);
+    } catch {
+      // The site broke off the answer halfway.
+      return plain(502, "Couldn't reach the site", cors);
+    }
     if (!body) return plain(413, "Too large", cors);
     return new Response(body, {
       status: 200,
@@ -158,6 +164,15 @@ export function checkTarget(raw: string | null): string | null {
   if (!host.includes(".")) return null;
   url.hash = "";
   return url.toString();
+}
+
+/** A redirect's Location against the address that sent it, or null when it isn't an address at all. */
+function resolveLocation(location: string, base: string): string | null {
+  try {
+    return new URL(location, base).toString();
+  } catch {
+    return null;
+  }
 }
 
 async function readLimited(response: Response): Promise<Uint8Array | null> {
