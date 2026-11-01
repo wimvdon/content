@@ -277,10 +277,10 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   (Gravatar, 32dp circle) while signed in with Show images on, else a cogwheel. The web's sidebar is
   always on screen, so there both sections stay open until you fold one, and stay as you left them.
   Back from Saved, the Inbox or a feed section goes to All articles.
-- Three levels, the same in Feeds and Saved: the navigation bar says where (Feeds or Saved); **secondary
-  tabs** under the search bar (lighter than primary ones: the chosen one in the text colour with a
-  thin line its width; owner's choice, #323) say which view (Feeds: **Unread** and **Read**; Saved: **To read** and
-  **All**); one row of chips under them says which group: the topics in Feeds, Liked (heart) and
+- Three levels, the same in Feeds and Saved: the navigation bar says where (Feeds or Saved); a
+  **segmented switch** under the search bar (the same as To read / Archive in the save sheet, full
+  width with 16dp sides; on the web's wide window in the sidebar) says which view (Feeds: **Unread**
+  and **All**; Saved: **To read** and **All**); one row of chips under it says which group: the topics in Feeds, Liked (heart) and
   the topics in Saved, in the topics' order, each only when it has something in the tab shown (the
   chosen one stays). Group chips have no check mark and chosen ones keep their weight, so a chip
   never changes width and the row never moves (#208). There is no X (one group at a time: tapping
@@ -372,12 +372,11 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   `surfaceContainer`, read rows on `surfaceContainerLow`; the feed name is in `primary`. Rows and
   cards don't swipe (#305): a long press holds their actions (Mark as read, Save, Share; in Saved
   Archive or Back to read first). The top bar shows the section and its unread count, with no ⋮ menu (refresh is pull-down; adding
-  feeds lives on Manage feeds). Unread and Read are the tabs above the chip row (the chips: 16dp
-  sides, 8dp above and below, like the chips in Search); swiping the list sideways goes to the other
-  tab (a `HorizontalPager` under the tabs; on the web a swipe on a touch screen). The web app has the same tabs. The top bar holds only icon buttons, as Material 3's top app bar does.
+  feeds lives on Manage feeds). Unread and All are the switch above the chip row (the chips: 16dp
+  sides, 8dp above and below, like the chips in Search); the list doesn't swipe sideways. The web app has the same switch. The top bar holds only icon buttons, as Material 3's top app bar does.
   In a narrow window the web app has the same Feeds | Saved navigation bar at the bottom.
   Settings is the last button of the search bar (the account's picture or a cogwheel).
-  The header (the search bar, the tabs, then the chip rows) is one block that slides away
+  The header (the search bar, the switch, then the chip rows) is one block that slides away
   while scrolling down and comes back as soon as you scroll up (Material's "enter always"; the web
   app too since #323),
   staying on `surface` while articles pass under it (no grey band behind the tabs and chips, owner's

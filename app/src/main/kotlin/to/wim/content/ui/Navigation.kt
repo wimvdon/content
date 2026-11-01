@@ -769,15 +769,12 @@ fun RssReaderNavigation(
                     }
                     // Without the articles hidden by their words (#277): the lists, counts and chips.
                     val listed = remember(library, current.hiddenWords) { library.withoutHidden(ArticleFilter.parse(current.hiddenWords)) }
-                    // Both tabs' lists, so swiping shows the other one as it slides in.
-                    val feedPages =
-                        remember(listed, shownSelection, readThisVisit) {
-                            FeedTab.entries.map { tab -> listed.articlesFor(shownSelection, tab, keep = readThisVisit) }
+                    val articles =
+                        remember(listed, shownSelection, readThisVisit, current.unreadOnly) {
+                            listed.articlesFor(shownSelection, FeedTab.of(current.unreadOnly), keep = readThisVisit)
                         }
-                    val articles = feedPages[FeedTab.of(current.unreadOnly).ordinal]
                     val unreadCounts = remember(listed) { listed.unreadCounts() }
                     val savedItems = remember(library, shownFilter) { Saved.items(library, shownFilter) }
-                    val savedPages = remember(library, shownFilter) { Saved.states.map { Saved.items(library, shownFilter.copy(tab = it)) } }
                     // What others shared arrives with a sync (#167): take it in when the Inbox shows, not only at the next one.
                     LaunchedEffect(section) { if (section == HomeSection.Inbox) app.appScope.launch { app.sync.syncIfDue() } }
                     val minutes by produceState(emptyMap<String, Int>(), library.items, library.articles, textWords) {
@@ -810,9 +807,7 @@ fun RssReaderNavigation(
                                         library = library,
                                         titleFont = current.reader.font.fontFamily(),
                                         listView = current.listView,
-                                        pages = savedPages,
                                     ),
-                                feedPages = feedPages,
                                 toReadCount = remember(library) { library.items.count { Saved.isIn(it, SavedTab.ToRead) } },
                                 signedIn = accountState is AccountState.SignedIn,
                                 inboxUnread = remember(library) { Inbox.unread(library) },

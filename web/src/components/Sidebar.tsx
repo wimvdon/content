@@ -8,13 +8,15 @@ import { topicIcons } from "@/lib/topics";
 import { FeedIcon } from "./FeedIcon";
 import { FolderIcon } from "./FolderIcon";
 import { cn } from "./ui/cn";
+import { FeedViewSwitch, SavedViewSwitch } from "./ViewSwitch";
 
 /**
  * The side of a wide window, with the same levels as the Android app, laid out for a large screen:
  *
  * 1. **Where you are** (Android's navigation bar): Feeds, Saved and, signed in, the Inbox, each with
  *    what is still unread or to read.
- * 2. The tabs (Unread / All, To read / All) stay above the list, as on Android.
+ * 2. **Which view**: the switch Unread / All in Feeds, To read / All in Saved (on a phone-sized
+ *    window it sits above the list, as on Android).
  * 3. **What narrows it** (Android's chips), for the place shown: in Feeds All feeds, the topics (a
  *    topic's feeds under it while you are in it) and the feeds without a topic; in Saved Liked and
  *    the topics. With this list here, the chip row is left out on wide windows.
@@ -44,6 +46,8 @@ export function Sidebar({ onSettings }: { onSettings: () => void }) {
       </div>
 
       <div className="mx-4 my-3 border-t" />
+      {inFeeds && library.feeds.length > 0 ? <FeedViewSwitch className="mx-4 mb-3" /> : null}
+      {inSaved ? <SavedViewSwitch className="mx-4 mb-3" /> : null}
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-2">
         {inFeeds ? feedFilters() : null}
         {inSaved ? savedFilters() : null}

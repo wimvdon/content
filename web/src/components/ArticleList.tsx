@@ -6,7 +6,7 @@ import { app, useApp } from "@/lib/app";
 import { snippet } from "@/lib/html";
 import { dayLabel, plural, t } from "@/lib/i18n";
 import { articleKey, articlesInTab, chipTag, feedTabOf, sortTime, unreadKeys, type Article, type Feed } from "@/lib/library";
-import { chipTags, itemArticle, noteOf, sameTab, savedItems, savedStates, showsLiked, showsNotes, sourceOf, type NoteContent, type SavedFilter } from "@/lib/saved";
+import { chipTags, itemArticle, noteOf, savedItems, showsLiked, showsNotes, sourceOf, type NoteContent, type SavedFilter } from "@/lib/saved";
 import { sharedByLabel } from "@/lib/sharing";
 import { inboxItems } from "@/lib/inbox";
 import type { Item, SharedBy } from "@/lib/items";
@@ -20,6 +20,8 @@ import { FolderIcon } from "./FolderIcon";
 import { Button } from "./ui/button";
 import { cn } from "./ui/cn";
 import { WithRowMenu } from "./RowMenu";
+import { FeedViewSwitch, SavedViewSwitch } from "./ViewSwitch";
+import { dragMove, dragStart, type Drag } from "@/lib/dragScroll";
 import { FilterChip } from "./ui/chip";
 
 type ListProps = {
@@ -53,9 +55,8 @@ export function ArticleList(props: ListProps) {
 function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport, onUndo, onSearch, onMessage }: ListProps) {
   const { library, selection, settings, readThisVisit, refreshing, loaded, problems, account } = useApp();
   const [share, shareDialog] = useShare((text) => onMessage(text));
-  // Feeds' tabs, as on Android: Unread and All.
+  // Feeds' views, as on Android: Unread and All (the switch above the list, or in the sidebar).
   const tab = feedTabOf(settings.unreadOnly);
-  const swipe = useSwipe((next) => app.setUnreadOnly(next === 0), tab === "unread" ? 0 : 1, 2);
   const articles = useMemo(() => articlesInTab(library, selection, tab, readThisVisit), [library, selection, tab, readThisVisit]);
   const feeds = useMemo(() => new Map(library.feeds.map((f) => [f.url, f])), [library.feeds]);
   const unread = unreadKeys(library, selection).size;
@@ -107,7 +108,7 @@ function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport,
       <SearchBar onSettings={onSettings} onSearch={onSearch} onAdd={onAdd} />
       {library.feeds.length > 0 ? (
         <>
-          <Tabs labels={[t("unread"), t("all")]} selected={tab === "unread" ? 0 : 1} onSelect={(i) => app.setUnreadOnly(i === 0)} trailing={<RefreshButton />} />
+          <FeedViewSwitch className="mx-4 mt-1 mb-1 lg:hidden" />
           <TagChips
             icons={topicIcons(library)}
             // One feed chosen by its name (#185): its chip comes first, chosen.
@@ -132,7 +133,6 @@ function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport,
           onScroll(e);
         }}
         ref={listRef}
-        {...swipe}
       >
         {!loaded || (refreshing && library.articles.length === 0) ? (
           <Skeletons />
@@ -267,15 +267,13 @@ function SavedArticles({
   const tags = useMemo(() => chipTags(library, filter), [library, filter]);
   const set = (change: Partial<SavedFilter>) => app.showSaved({ ...filter, ...change });
   const plain = !filter.likedOnly && filter.tags.length === 0;
-  // Saved's tabs, as on Android: To read and All.
-  const tabIndex = Math.max(0, savedStates.findIndex((s) => sameTab(s, filter.tab)));
-  const swipe = useSwipe((i) => set({ tab: savedStates[i] }), tabIndex, savedStates.length);
   const header = useCollapsingHeader();
   return (
     <section className="flex h-full min-w-0 flex-col" aria-label={t("saved")}>
       <CollapsingHeader hidden={header.hidden} onShow={header.show}>
       <SearchBar onSettings={onSettings} onSearch={onSearch} onAdd={onAdd} />
-      <Tabs labels={[t("toRead"), t("all")]} selected={tabIndex} onSelect={(i) => set({ tab: savedStates[i] })} trailing={<RefreshButton />} />
+      {/* Saved's views, as on Android: To read and All (on a wide window, in the sidebar). */}
+      <SavedViewSwitch className="mx-4 mt-1 mb-1 lg:hidden" />
       <TagChips
         icons={topicIcons(library)}
         // Liked is a group like a tag (#206): one at a time, before the tags.
@@ -302,7 +300,7 @@ function SavedArticles({
         onClear={() => set({ likedOnly: false, tags: [] })}
       />
       </CollapsingHeader>
-      <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-6" role="feed" onScroll={header.onScroll} {...swipe}>
+      <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-6" role="feed" onScroll={header.onScroll}>
         {!loaded ? (
           <Skeletons />
         ) : items.length === 0 ? (
@@ -386,11 +384,10 @@ function InboxArticles({
   const [share, shareDialog] = useShare((text) => onMessage(text));
   return (
     <section className="flex h-full min-w-0 flex-col" aria-label={t("inboxTitle")}>
-      {/* A place of its own (#246), as on Android: the search bar, then its title and Refresh. */}
+      {/* A place of its own (#246), as on Android: the search bar, then its title. */}
       <SearchBar onSettings={onSettings} onSearch={onSearch} onAdd={onAdd} />
       <div className="flex h-11 shrink-0 items-center border-b pr-2 pl-5">
         <h1 className="min-w-0 flex-1 text-sm font-medium">{t("inboxTitle")}</h1>
-        <RefreshButton />
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-6" role="feed">
         {!loaded ? (
@@ -457,7 +454,8 @@ function Sender({ by, images }: { by: SharedBy; images: boolean }) {
 
 /**
  * The title bar as a large search bar (#189), as on Android: "Search articles", which opens Search,
- * then + (Subscribe to feed or Save article, the same in every place) and, on a phone-sized window,
+ * then Refresh (feeds, the account and Instapaper; Android pulls the list down), + (Subscribe to feed
+ * or Save article, the same in every place) and, on a phone-sized window,
  * Settings (a wide window has it in the sidebar). No ☰: the places are in the navigation bar or
  * the sidebar, the filters in the chips or the sidebar.
  */
@@ -471,6 +469,7 @@ function SearchBar({ onSettings, onSearch, onAdd }: { onSettings: () => void; on
         <button type="button" onClick={onSearch} title={t("search") + " (/)"} className="min-w-0 flex-1 cursor-pointer truncate text-left text-muted-foreground">
           {t("searchHint")}
         </button>
+        <RefreshButton />
         <Button variant="ghost" size="icon" onClick={onAdd} aria-label={t("addTitle")} title={t("addTitle")}>
           <Plus />
         </Button>
@@ -482,7 +481,7 @@ function SearchBar({ onSettings, onSearch, onAdd }: { onSettings: () => void; on
   );
 }
 
-/** Refresh, at the end of the tabs (Feeds, Saved) or the Inbox's title: feeds, the account and Instapaper, as on Android. */
+/** Refresh, in the search bar of every place: feeds, the account and Instapaper, as Android's pull to refresh. */
 function RefreshButton() {
   const { refreshing } = useApp();
   return (
@@ -493,38 +492,7 @@ function RefreshButton() {
 }
 
 /**
- * The tabs under the search bar, as on Android: the views of the place shown, Unread and All in
- * Feeds, To read and All in Saved; [trailing] (Refresh) at their end. The chips below them (on a
- * wide window, the sidebar) narrow the view to a topic.
- */
-function Tabs({ labels, selected, onSelect, trailing }: { labels: string[]; selected: number; onSelect: (index: number) => void; trailing?: React.ReactNode }) {
-  return (
-    <div className="flex shrink-0 items-center border-b pr-2">
-    <div role="tablist" className="flex flex-1 px-2">
-      {labels.map((label, i) => (
-        <button
-          key={label}
-          type="button"
-          role="tab"
-          aria-selected={i === selected}
-          onClick={() => i !== selected && onSelect(i)}
-          className={cn(
-            "relative h-11 flex-1 cursor-pointer text-sm font-medium hover:bg-muted/60",
-            // Material's secondary tabs, as on Android: the chosen one in the text colour with a thin line the tab's width.
-            i === selected ? "text-foreground after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-primary" : "text-muted-foreground",
-          )}
-        >
-          {label}
-        </button>
-      ))}
-    </div>
-    {trailing}
-    </div>
-  );
-}
-
-/**
- * The header (search bar, tabs, chips) slides away while scrolling down the list and comes back when
+ * The header (search bar, view switch, chips) slides away while scrolling down the list and comes back when
  * scrolling up, as on Android (CollapsingHeader): more room for the articles. Back at the top, or with
  * the keyboard in the header, it shows.
  */
@@ -558,35 +526,49 @@ function CollapsingHeader({ hidden, onShow, children }: { hidden: boolean; onSho
 }
 
 /**
- * A sideways swipe on a touch screen goes to the next or previous tab, as on Android: handlers for
- * the list. Only a mostly sideways swipe of at least 60px counts, so scrolling stays scrolling.
+ * Drag a sideways row with the mouse or a pen (a finger already scrolls it): handlers for the row.
+ * The click that ends a drag is swallowed, so the chip under the pointer isn't chosen.
  */
-function useSwipe(onSelect: (index: number) => void, selected: number, count: number) {
-  const start = useRef<{ x: number; y: number } | null>(null);
+function useDragScroll() {
+  const drag = useRef<Drag | null>(null);
+  const dragged = useRef(false);
   return {
-    onTouchStart: (e: React.TouchEvent) => {
-      const touch = e.touches[0];
-      start.current = touch ? { x: touch.clientX, y: touch.clientY } : null;
+    onPointerDown: (e: React.PointerEvent<HTMLElement>) => {
+      if (e.pointerType === "touch" || e.button !== 0) return;
+      drag.current = dragStart(e.clientX, e.currentTarget.scrollLeft);
+      dragged.current = false;
     },
-    onTouchEnd: (e: React.TouchEvent) => {
-      const from = start.current;
-      const touch = e.changedTouches[0];
-      start.current = null;
-      if (!from || !touch) return;
-      const dx = touch.clientX - from.x;
-      const dy = touch.clientY - from.y;
-      if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
-      const next = selected + (dx < 0 ? 1 : -1);
-      if (next >= 0 && next < count) onSelect(next);
+    onPointerMove: (e: React.PointerEvent<HTMLElement>) => {
+      if (!drag.current) return;
+      const wasDragging = drag.current.dragging;
+      const next = dragMove(drag.current, e.clientX);
+      drag.current = next.drag;
+      if (next.drag.dragging && !wasDragging) e.currentTarget.setPointerCapture(e.pointerId);
+      if (next.scrollLeft !== null) e.currentTarget.scrollLeft = next.scrollLeft;
     },
+    onPointerUp: () => {
+      dragged.current = drag.current?.dragging ?? false;
+      drag.current = null;
+    },
+    onPointerCancel: () => {
+      drag.current = null;
+    },
+    onClickCapture: (e: React.MouseEvent) => {
+      if (!dragged.current) return;
+      dragged.current = false;
+      e.preventDefault();
+      e.stopPropagation();
+    },
+    onDragStart: (e: React.DragEvent) => e.preventDefault(),
   };
 }
 
 /**
- * The chip row under the tabs on a phone-sized window: the groups as chips, one at a time (topics in
- * Feeds, Liked and topics in Saved). While a group or another filter is on, an X at the end clears
- * it. Nothing to show: no row. It scrolls sideways with a swipe, and with a mouse wheel too. A wide
- * window has these in the sidebar instead.
+ * The chip row under the view switch on a phone-sized window: the groups as chips, one at a time
+ * (topics in Feeds, Liked and topics in Saved). While a group or another filter is on, an X at the
+ * end clears it. Nothing to show: no row. It scrolls sideways with a finger, a mouse wheel, or by
+ * dragging it with the mouse (a drag doesn't click the chip it started on). A wide window has these
+ * in the sidebar instead.
  */
 function TagChips({
   icons,
@@ -610,6 +592,7 @@ function TagChips({
   filtered: boolean;
   onClear: () => void;
 }) {
+  const drag = useDragScroll();
   if (!state && !liked && tags.length === 0 && !filtered) return null;
   return (
     <div
@@ -620,6 +603,7 @@ function TagChips({
       onWheel={(e) => {
         if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) e.currentTarget.scrollLeft += e.deltaY;
       }}
+      {...drag}
     >
       {state}
       {state && (tags.length > 0 || liked) ? <span className="h-6 w-px shrink-0 bg-border" aria-hidden="true" /> : null}
