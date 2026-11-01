@@ -153,7 +153,7 @@ private fun NotesGrid(
 ) {
     val archiveLabel = stringResource(R.string.action_archive)
     val unarchiveLabel = stringResource(R.string.action_unarchive)
-    val organiseLabel = stringResource(R.string.organise_title)
+    val topicsLabel = stringResource(R.string.tags_title)
     val shareLabel = stringResource(R.string.action_share)
     val gridState = rememberSaveable(home.filter, saver = LazyStaggeredGridState.Saver) { LazyStaggeredGridState() }
     LazyVerticalStaggeredGrid(
@@ -175,8 +175,8 @@ private fun NotesGrid(
                 showImages,
                 onClick = { onOpen(item) },
                 modifier = Modifier.animateItem(),
-                // Long-press (#221, #305): Archive (or Back to read), Organise (topics, note) and Share.
-                // Remove is in Organise (its trash can), kept rare. No swipes anywhere.
+                // Long-press (#221, #305): Archive (or Back to read), Topics and Share. The note, Like and
+                // Remove are in the reader (its toolbar, its ⋮). No swipes anywhere.
                 menu =
                     listOf(
                         if (item.archived) {
@@ -184,7 +184,7 @@ private fun NotesGrid(
                         } else {
                             RowMenuAction(R.drawable.ic_inventory, archiveLabel) { onArchive(item) }
                         },
-                        RowMenuAction(R.drawable.ic_label, organiseLabel) { onFile(item) },
+                        RowMenuAction(R.drawable.ic_label, topicsLabel) { onFile(item) },
                         RowMenuAction(R.drawable.ic_share, shareLabel) { onShare(item) },
                     ),
             )

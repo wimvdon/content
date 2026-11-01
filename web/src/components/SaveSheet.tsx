@@ -8,13 +8,11 @@ import { topicNames } from "@/lib/topics";
 import { choiceOf, emptyChoice, isArchived, tagChoices, withArchived, withoutTopic, withTag, withTopicRenamed, withTyped, type Place, type SaveChoice } from "@/lib/saveChoice";
 import { savedFolders } from "@/lib/saved";
 import { canConfirm } from "@/lib/sendTo";
-import { RemoveDialog } from "./SavedActions";
 import { Button } from "./ui/button";
 import { cn } from "./ui/cn";
 import { Dialog } from "./ui/dialog";
 import { TopicChips, chip, chipOn } from "./TopicChips";
 import { Input } from "./ui/input";
-import { RemoveButton } from "./ConfirmRemove";
 
 /**
  * The one sheet for an article (#143, #304, #305), as on Android: Add link (nothing is saved until
@@ -42,7 +40,7 @@ function Sheet({
   itemKey,
   onMessage,
 }: {
-  kind: "new" | "justSaved" | "organise";
+  kind: "new" | "justSaved" | "topics" | "note";
   initial: SaveChoice;
   itemKey: string | null;
   onMessage: Message;
@@ -50,10 +48,7 @@ function Sheet({
   const { library } = useApp();
   const [choice, setChoice] = useState(initial);
   const [address, setAddress] = useState("");
-  const has = (name: string) => choice.tags.some((x) => x.trim().toLowerCase() === name.trim().toLowerCase());
   const saved = kind !== "new";
-  const savedItem = itemKey ? library.items.find((i) => i.key === itemKey) : undefined;
-  const [removing, setRemoving] = useState(false);
   const typed = normalizeUrl(address);
   const link = typed && isWebLink(typed) ? typed : null;
   const name = (place: Place) => (place.kind === "toread" ? t("toRead") : place.kind === "archive" ? t("archiveTab") : place.name);
@@ -77,15 +72,12 @@ function Sheet({
     app.closeSheet();
   };
   // One sheet, headed for what it does: Save while saving, Organise for one saved before.
-  const title = kind === "organise" ? t("organiseTitle") : t("saveArticle");
+  const title = kind === "topics" ? t("tags") : kind === "note" ? t("note") : t("saveArticle");
   return (
     <Dialog
       open
       onOpenChange={(o) => !o && cancel()}
       title={title}
-      // Organising a saved article: Remove as a trash can at the top right, away from Cancel and
-      // Save; it asks first. Just saved, Cancel already takes the save back.
-      headerAction={kind === "organise" && savedItem ? <RemoveButton onClick={() => setRemoving(true)} /> : undefined}
       closeLabel={t("close")}
       cancel={t("cancel")}
       footer={
@@ -98,23 +90,17 @@ function Sheet({
         </>
       }
     >
-      {removing && savedItem ? (
-        <RemoveDialog
-          item={savedItem}
-          open
-          onClose={() => setRemoving(false)}
-          onRemoved={() => {
-            onMessage(t("savedRemoved"));
-            app.closeSheet();
-          }}
-        />
-      ) : null}
       <div className="space-y-5">
         {kind === "new" ? (
           <Input autoFocus value={address} onChange={(e) => setAddress(e.target.value)} onKeyDown={(e) => e.key === "Enter" && link && save(choice)} placeholder={t("webAddress")} aria-label={t("webAddress")} type="url" inputMode="url" />
         ) : null}
+        {kind === "topics" ? (
+          <Topics choice={choice} setChoice={setChoice} withLike={false} />
+        ) : kind === "note" ? (
+          <NoteField choice={choice} setChoice={setChoice} autoFocus />
+        ) : null}
         {/* Only sent: nothing of it is kept, so there is nothing to tag or note. */}
-        {choice.keep ? (
+        {kind !== "topics" && kind !== "note" && choice.keep ? (
           <>
         {/* To read or Archive, above the topics, as on Android's segmented choice. */}
         <div role="radiogroup" aria-label={t("saveArticle")} className="grid grid-cols-2 rounded-full border p-0.5">
@@ -136,35 +122,10 @@ function Sheet({
           })}
         </div>
         <Section title={t("tags")}>
-          <TopicChips
-            topics={library.folders}
-            selected={(topic) => has(topic.title)}
-            onToggle={(topic) => setChoice((c) => withTag(c, topic.title))}
-            // A topic made here is on the article at once.
-            onCreated={(_, title) => setChoice((c) => (c.tags.some((x) => x.toLowerCase() === title.toLowerCase()) ? c : { ...c, tags: [...c.tags, title] }))}
-            onRenamed={(from, to) => setChoice((c) => withTopicRenamed(c, from, to))}
-            onRemoved={(name) => setChoice((c) => withoutTopic(c, name))}
-            // Its names that aren't topics (yet), as plain chips after the topics.
-            extra={tagChoices(topicNames(library), choice.tags).filter((name) => !library.folders.some((f) => f.title.toLowerCase() === name.trim().toLowerCase()))}
-            isExtraSelected={has}
-            onToggleExtra={(name) => setChoice((c) => withTag(c, name))}
-            leading={
-              <button type="button" aria-pressed={choice.liked} onClick={() => setChoice((c) => ({ ...c, liked: !c.liked }))} className={cn(chip, choice.liked ? chipOn : "hover:bg-muted")}>
-                <Heart className={cn("size-4", choice.liked && "fill-current")} aria-hidden="true" />
-                {t("like")}
-              </button>
-            }
-          />
+          <Topics choice={choice} setChoice={setChoice} withLike />
         </Section>
         <Section title={t("note")}>
-          <textarea
-            value={choice.note}
-            onChange={(e) => setChoice({ ...choice, note: e.target.value })}
-            aria-label={t("note")}
-            placeholder={t("note")}
-            rows={4}
-            className="w-full resize-y rounded-lg border bg-transparent px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          />
+          <NoteField choice={choice} setChoice={setChoice} />
         </Section>
           </>
         ) : null}
@@ -179,5 +140,51 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       <h3 className="text-sm font-medium text-primary">{title}</h3>
       {children}
     </section>
+  );
+}
+
+type ChoiceProps = { choice: SaveChoice; setChoice: React.Dispatch<React.SetStateAction<SaveChoice>> };
+
+/** The topics as chips; Like first while saving (in the reader Like is its own button). */
+function Topics({ choice, setChoice, withLike }: ChoiceProps & { withLike: boolean }) {
+  const { library } = useApp();
+  const has = (name: string) => choice.tags.some((x) => x.trim().toLowerCase() === name.trim().toLowerCase());
+  return (
+    <TopicChips
+      topics={library.folders}
+      selected={(topic) => has(topic.title)}
+      onToggle={(topic) => setChoice((c) => withTag(c, topic.title))}
+      // A topic made here is on the article at once.
+      onCreated={(_, title) => setChoice((c) => (c.tags.some((x) => x.toLowerCase() === title.toLowerCase()) ? c : { ...c, tags: [...c.tags, title] }))}
+      onRenamed={(from, to) => setChoice((c) => withTopicRenamed(c, from, to))}
+      onRemoved={(name) => setChoice((c) => withoutTopic(c, name))}
+      // Its names that aren't topics (yet), as plain chips after the topics.
+      extra={tagChoices(topicNames(library), choice.tags).filter((name) => !library.folders.some((f) => f.title.toLowerCase() === name.trim().toLowerCase()))}
+      isExtraSelected={has}
+      onToggleExtra={(name) => setChoice((c) => withTag(c, name))}
+      leading={
+        withLike ? (
+          <button type="button" aria-pressed={choice.liked} onClick={() => setChoice((c) => ({ ...c, liked: !c.liked }))} className={cn(chip, choice.liked ? chipOn : "hover:bg-muted")}>
+            <Heart className={cn("size-4", choice.liked && "fill-current")} aria-hidden="true" />
+            {t("like")}
+          </button>
+        ) : undefined
+      }
+    />
+  );
+}
+
+/** The note, a few lines to start with. */
+function NoteField({ choice, setChoice, autoFocus }: ChoiceProps & { autoFocus?: boolean }) {
+  return (
+    <textarea
+      autoFocus={autoFocus}
+      value={choice.note}
+      onChange={(e) => setChoice((c) => ({ ...c, note: e.target.value }))}
+      aria-label={t("note")}
+      placeholder={t("note")}
+      rows={4}
+      className="w-full resize-y rounded-lg border bg-transparent px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    />
   );
 }

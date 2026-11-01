@@ -258,7 +258,7 @@ function SavedArticles({
             onMessage(t("archived"), { label: t("undo"), run: () => app.archiveItem(item.key, false) });
           },
         },
-    { icon: <TagIcon />, label: t("organiseTitle"), onClick: () => app.openOrganise(item.key) },
+    { icon: <TagIcon />, label: t("tags"), onClick: () => app.openTopics(item.key) },
     { icon: <Share2 />, label: t("share"), onClick: () => share(item.title, item.url, item) },
     // No Remove here: it is in Organise (its trash can), kept rare and deliberate, as on Android.
   ];

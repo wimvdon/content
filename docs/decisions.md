@@ -2,6 +2,20 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-01: No Organise sheet: a saved article's actions are the reader's toolbar buttons
+
+A saved article's toolbar had Archive and Organise (a sheet with To read / Archive, the topics with
+Like, the note and Remove). Now each is a button: **Archive** (tonal, like Save) while to read, or **To read** (plain) once archived,
+**Topics** (a small sheet with only the topic chips), **Note** (a small sheet with only the note) and
+**Like** (a heart), then the highlights; **Share** is its own round button beside the pill (Material
+3's floating toolbar with a FAB). Remove from Saved moved to the reader's ⋮; a row's long press is
+Archive, Topics, Share. Owner's idea, phone and web.
+- One tap for what you do while reading (a note, a topic, Like), and Archive shows its state.
+- Delete stays out of the toolbar: next to Note it would be a main action, one slip away; ⋮ holds
+  the rare ones (#305's rule that Remove is deliberate).
+- The labels become icons; their names show on a long press (tooltips) and to screen readers.
+- Rejected: calling them Tags here; one name, Topics, for the one thing (the same chips everywhere).
+
 ## 2026-11-01: Remove is a trash can at the top of a sheet, and asks in a popup
 
 Edit feed, the topic sheet and Organise had a red **Remove** at the bottom left, right next to

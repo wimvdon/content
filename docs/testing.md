@@ -320,27 +320,29 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
       to the feed's text with the page button: the highlights are still there (or say approximate).
       Web app: select text with the mouse, pick Highlight or Note in the bar above it; click a
       marker to edit; a highlight made on the phone shows on the web after sync, and the other way.
-- [ ] In a saved article the floating toolbar has two labelled buttons (#305): **Archive** (a box) and
-      **Organise** (a tag). Tap **Archive**: the article stays open, "Archived" shows with **Undo**;
-      Undo puts it back. Open an archived article: only **Organise**; its **To read** moves it back.
-      Web app: the same.
+- [ ] In a saved article the floating toolbar has a tonal **Archive** (box and word), then icons
+      **Topics** (a tag), **Note** and **Like** (a heart), with **Share** as a round button next to it;
+      press and hold an icon: its name shows. Tap **Archive**: the article stays open, "Archived" shows
+      with **Undo**, and the button becomes a plain **To read** (open book). Tap it: back to To read,
+      and the tonal Archive returns. **Topics**: a sheet with only the topic chips; Save keeps
+      them. **Note**: a sheet with only the note, the keyboard open; once written the icon has a pen.
+      **Like**: the heart fills, and the article is under Liked in Saved. Web app: the same.
 - [ ] **Add link** and a link shared from another app: the sheet asks for the address (or shows the
       link), **To read** / **Archive** (To read picked), **Cancel** at the bottom left saves nothing,
       and **Save** at the right. With Archive picked: "Saved to Archive"; else "Saved to To read".
-- [ ] **Organise** a saved article (long press a card in Saved): To read / Archive, topics, Like, the
-      note, Cancel and Remove at the left, Save at the right. **Cancel** changes nothing.
+- [ ] Long press a card in Saved › **Topics**: the topic chips only; **Cancel** changes nothing.
 - [ ] **The reader's ⋮:** a feed article: Mark as unread, Show full article (or Show feed text),
       Open in browser, Sign in to this site, Report a problem, in that order; no page icon in the top
-      bar. A saved article: no Remove from Saved (it is in Organise).
+      bar. A saved article: these, then **Remove from Saved** (asks in a popup; once removed, the
+      reader closes).
 - [ ] Nothing in a sheet asks which service, and no sheet explains an empty field.
 - [ ] **Save, the list icon and Open (#142):** nothing says "Read later", in any language; the
       navigation bar's Saved is a list icon, To read keeps the open book. After saving from the
       reader the message has no Open; after a long press › Save, Add link or a share (over Chrome) it has
       **Open**, which lands on that article. Web app: the same icons, and Open after Add link.
-- [ ] Web app: **Save** on a feed article and **Organise** on a saved one open the same sheet;
-      **Add link** in Saved too, with Cancel.
+- [ ] Web app: **Save** on a feed article opens the save sheet; **Add link** in Saved too, with Cancel.
 - [ ] Nothing swipes (#305): not feed rows, the Inbox or Saved. Long press a card in Saved › To
-      read: **Archive** first (archived, with Undo), then Organise, Share, Remove. In Archive the first
+      read: **Archive** first (archived, with Undo), then Topics and Share. In Archive the first
       entry is **Back to read**. Web app: the same with right-click.
 
 ## Web app: Saved like Android's (#147)

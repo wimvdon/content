@@ -275,7 +275,6 @@
         <item quantity="one">%d item</item>
         <item quantity="other">%d items</item>
     </plurals>
-    <string name="organise_title">Organise</string>
     <string name="highlights_title">Highlights</string>
     <string name="highlight_action">Highlight</string>
     <string name="highlight_title">Highlight</string>

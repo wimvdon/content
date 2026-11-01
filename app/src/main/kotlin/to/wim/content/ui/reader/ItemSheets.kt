@@ -15,6 +15,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AlertDialog
@@ -70,8 +74,15 @@ enum class SheetKind {
     /** Saved a moment ago (the reader, a long press): "Saved to …"; Remove takes the save back, closing keeps it. */
     JustSaved,
 
-    /** An article saved before, organised from Saved or the reader (#139). */
-    Organise,
+    /**
+     * An article saved before: its topics only (the reader's Topics button, a row's long press). The
+     * Organise sheet is gone (2026-11-01): To read / Archive, Like and the note are the reader's
+     * toolbar buttons, Remove is in its ⋮.
+     */
+    Topics,
+
+    /** An article saved before: its note only (the reader's Note button). */
+    Note,
 }
 
 /**
@@ -103,8 +114,6 @@ fun SaveSheet(
     key: String? = url,
     /** Cancel, or the sheet closed without Save. */
     onCancel: () -> Unit = {},
-    /** Remove, at the bottom left of [SheetKind.Organise]: out of Saved. The caller asks first. */
-    onRemove: () -> Unit = {},
     /** Signed in to a Content account: Send with Content is offered (#256). */
     signedIn: Boolean = false,
     /** Whether an address added under Send with Content has a Content account; null when that couldn't be asked. */
@@ -166,21 +175,12 @@ fun SaveSheet(
                 stringResource(
                     when {
                         sendOnly -> R.string.share_send_with_content
-                        kind == SheetKind.Organise -> R.string.organise_title
+                        kind == SheetKind.Topics -> R.string.tags_title
+                        kind == SheetKind.Note -> R.string.note_title
                         else -> R.string.action_save
                     },
                 ),
                 onCancel = cancel,
-                // Organising a saved article: Remove (asks first). Just saved, Cancel takes the save back.
-                onDelete =
-                    if (kind == SheetKind.Organise) {
-                        {
-                            onDismiss()
-                            onRemove()
-                        }
-                    } else {
-                        null
-                    },
             )
             if (kind == SheetKind.New) {
                 if (url == null) {
@@ -199,8 +199,12 @@ fun SaveSheet(
                     }
                 }
             }
-            // Only sent: nothing of it is kept, so there is nothing to tag or note.
-            if (choice.keep) {
+            if (kind == SheetKind.Topics) {
+                TopicsPart(choice, allTags, topics, onChange = { choice = it }, topicActions = sheetTopicActions, withLike = false)
+            } else if (kind == SheetKind.Note) {
+                NotePart(choice, onChange = { choice = it }, autoFocus = true)
+            } else if (choice.keep) {
+                // Only sent: nothing of it is kept, so there is nothing to tag or note.
                 // To read or Archive (To read to start with, saving): where it goes, above the topics.
                 SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
                     listOf(false, true).forEachIndexed { i, archive ->
@@ -274,44 +278,75 @@ private fun SavedParts(
     onChange: (SaveChoice) -> Unit,
     topicActions: TopicEditActions?,
 ) {
-    fun has(name: String) = choice.tags.any { it.trim().equals(name.trim(), ignoreCase = true) }
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         SheetSection(stringResource(R.string.tags_title))
-        TopicChipRow(
-            topics = topics,
-            selected = { has(it.title) },
-            onToggle = { onChange(SaveChoices.withTag(choice, it.title)) },
-            actions = topicActions,
-            // A topic made here is on the article at once.
-            onCreated = { name -> if (name.isNotEmpty() && !has(name)) onChange(choice.copy(tags = choice.tags + name)) },
-            // Its names that aren't topics (yet), as plain chips after the topics.
-            extra = SaveChoices.tagChoices(allTags, choice.tags).filter { name -> topics.none { it.title.equals(name.trim(), ignoreCase = true) } },
-            isExtraSelected = ::has,
-            onToggleExtra = { onChange(SaveChoices.withTag(choice, it)) },
-            leading = {
-                FilterChip(
-                    selected = choice.liked,
-                    onClick = { onChange(choice.copy(liked = !choice.liked)) },
-                    label = { Text(stringResource(R.string.action_like)) },
-                    leadingIcon = {
-                        Icon(
-                            painterResource(if (choice.liked) R.drawable.ic_favorite_filled else R.drawable.ic_favorite),
-                            contentDescription = null,
-                            modifier = Modifier.size(FilterChipDefaults.IconSize),
-                        )
-                    },
-                )
-            },
-        )
+        TopicsPart(choice, allTags, topics, onChange, topicActions, withLike = true)
         SheetSection(stringResource(R.string.note_title))
-        OutlinedTextField(
-            value = choice.note,
-            onValueChange = { onChange(choice.copy(note = it)) },
-            placeholder = { Text(stringResource(R.string.note_title)) },
-            minLines = 3,
-            modifier = Modifier.fillMaxWidth(),
-        )
+        NotePart(choice, onChange)
     }
+}
+
+/** The topics as chips (with Like first while saving: in the reader Like is its own button). */
+@Composable
+private fun TopicsPart(
+    choice: SaveChoice,
+    allTags: List<String>,
+    topics: List<Folder>,
+    onChange: (SaveChoice) -> Unit,
+    topicActions: TopicEditActions?,
+    withLike: Boolean,
+) {
+    fun has(name: String) = choice.tags.any { it.trim().equals(name.trim(), ignoreCase = true) }
+    TopicChipRow(
+        topics = topics,
+        selected = { has(it.title) },
+        onToggle = { onChange(SaveChoices.withTag(choice, it.title)) },
+        actions = topicActions,
+        // A topic made here is on the article at once.
+        onCreated = { name -> if (name.isNotEmpty() && !has(name)) onChange(choice.copy(tags = choice.tags + name)) },
+        // Its names that aren't topics (yet), as plain chips after the topics.
+        extra = SaveChoices.tagChoices(allTags, choice.tags).filter { name -> topics.none { it.title.equals(name.trim(), ignoreCase = true) } },
+        isExtraSelected = ::has,
+        onToggleExtra = { onChange(SaveChoices.withTag(choice, it)) },
+        leading =
+            if (withLike) {
+                {
+                    FilterChip(
+                        selected = choice.liked,
+                        onClick = { onChange(choice.copy(liked = !choice.liked)) },
+                        label = { Text(stringResource(R.string.action_like)) },
+                        leadingIcon = {
+                            Icon(
+                                painterResource(if (choice.liked) R.drawable.ic_favorite_filled else R.drawable.ic_favorite),
+                                contentDescription = null,
+                                modifier = Modifier.size(FilterChipDefaults.IconSize),
+                            )
+                        },
+                    )
+                }
+            } else {
+                null
+            },
+    )
+}
+
+/** The note, a few lines to start with. */
+@Composable
+private fun NotePart(
+    choice: SaveChoice,
+    onChange: (SaveChoice) -> Unit,
+    autoFocus: Boolean = false,
+) {
+    val focus = remember { FocusRequester() }
+    OutlinedTextField(
+        value = choice.note,
+        onValueChange = { onChange(choice.copy(note = it)) },
+        placeholder = { Text(stringResource(R.string.note_title)) },
+        minLines = 3,
+        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+        modifier = Modifier.fillMaxWidth().focusRequester(focus),
+    )
+    if (autoFocus) LaunchedEffect(Unit) { focus.requestFocus() }
 }
 
 /**

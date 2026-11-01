@@ -283,7 +283,6 @@
         <item quantity="many">%d éléments</item>
         <item quantity="other">%d éléments</item>
     </plurals>
-    <string name="organise_title">Organiser</string>
     <string name="highlights_title">Surlignages</string>
     <string name="highlight_action">Surligner</string>
     <string name="highlight_title">Surlignage</string>
