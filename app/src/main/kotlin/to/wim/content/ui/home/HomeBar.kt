@@ -6,7 +6,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,17 +20,12 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.RadioButton
+import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,7 +41,7 @@ import to.wim.content.sync.Gravatar
 
 /**
  * The title bar as a large search bar (#189): the magnifier, "Search articles" (which opens Search),
- * then + (#307: Add feed in Feeds, the Save sheet in Saved), and at the end Settings: the account's
+ * then + (the same everywhere: it asks Subscribe to feed or Save article), and at the end Settings: the account's
  * picture when it has one (Gravatar, with Show images on), else a cogwheel. There is no ☰ menu:
  * every place is a chip or in the navigation bar.
  */
@@ -55,7 +49,7 @@ import to.wim.content.sync.Gravatar
 fun HomeSearchBar(
     onSearch: () -> Unit,
     onSettings: () -> Unit,
-    /** The + and what it says to a screen reader; null where there is nothing to add (the Inbox). */
+    /** The + and what it says to a screen reader; null: no +. */
     onAdd: (() -> Unit)? = null,
     addLabel: String = "",
     /** The Content account's address, for its picture; null when signed out. */
@@ -114,52 +108,40 @@ fun HomeSearchBar(
 }
 
 /**
- * The state chip at the start of the chip row (#205): what of the place is shown, Unread or All in
- * Feeds, To read or Archive in Saved. A menu picks another; it is lit while it leaves things out.
+ * The tabs under the search bar: the views of the place shown, Unread and Read in Feeds, To read and
+ * All in Saved. Material's primary tabs, as they switch between views of the same content; the chips
+ * below them narrow the view to a topic or feed.
  */
 @Composable
-fun StateChip(
-    options: List<String>,
+fun HomeTabs(
+    labels: List<String>,
     selected: Int,
     onSelect: (Int) -> Unit,
-    /** Whether the chosen state leaves things out (everything but All). */
-    filtering: Boolean,
 ) {
-    var open by remember { mutableStateOf(false) }
-    Box {
-        FilterChip(
-            selected = filtering,
-            onClick = { open = true },
-            label = { Text(options[selected], maxLines = 1) },
-            trailingIcon = { Icon(painterResource(R.drawable.ic_expand_more), contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) },
-        )
-        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-            options.forEachIndexed { index, label ->
-                DropdownMenuItem(
-                    text = { Text(label) },
-                    leadingIcon = { RadioButton(selected = index == selected, onClick = null) },
-                    onClick = {
-                        open = false
-                        if (index != selected) onSelect(index)
-                    },
-                )
-            }
+    PrimaryTabRow(selectedTabIndex = selected, containerColor = MaterialTheme.colorScheme.surface) {
+        labels.forEachIndexed { index, label ->
+            Tab(
+                selected = index == selected,
+                onClick = { if (index != selected) onSelect(index) },
+                text = { Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+            )
         }
     }
 }
 
 /**
- * The chip row under the search bar: the [state] chip, then the groups as chips, one at a time
- * (topics in Feeds, Liked and topics in Saved): tapping the chosen one again lets go, so there is
- * no X to clear it (#307), and no Manage topics icon (it is the pen in the Add feed and Save sheets,
- * and in Settings).
+ * A chip row: the groups as chips, one at a time (topics and feeds without one in Feeds, Liked and
+ * topics in Saved, topics in Search): tapping the chosen one again lets go, so there is no X to
+ * clear it (#307). Search puts its kind chips first ([state]), with a divider after them. Nothing
+ * at all to show: no row.
  */
 @Composable
 fun TagChips(
     tags: List<String>,
     selected: String?,
     onSelect: (String?) -> Unit,
-    state: @Composable () -> Unit,
+    /** Chips before the groups, set apart by a divider (Search's Feeds and Saved). */
+    state: (@Composable () -> Unit)? = null,
     /** Saved's Liked chip (#206), the first group. */
     liked: (@Composable () -> Unit)? = null,
     /** Feeds' feeds without a topic (FeedChips), after the topics and a divider. */
@@ -167,6 +149,7 @@ fun TagChips(
     /** A topic's icon by its name (#314: the same chips in Feeds and Saved); null: no icon. */
     iconOf: (String) -> String? = { null },
 ) {
+    if (state == null && tags.isEmpty() && liked == null && loose == null) return
     Row(
         Modifier
             .fillMaxWidth()
@@ -175,8 +158,10 @@ fun TagChips(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        state()
-        if (tags.isNotEmpty() || liked != null) VerticalDivider(Modifier.height(24.dp))
+        if (state != null) {
+            state()
+            if (tags.isNotEmpty() || liked != null) VerticalDivider(Modifier.height(24.dp))
+        }
         liked?.invoke()
         tags.forEach { tag ->
             val on = selected != null && tag.equals(selected, ignoreCase = true)

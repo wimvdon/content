@@ -47,7 +47,6 @@
     <string name="import_nothing_new">Aucun nouveau flux dans ce fichier.</string>
     <string name="export_done">Flux exportés</string>
     <string name="export_failed">Impossible d\'enregistrer le fichier.</string>
-    <string name="section_reader">Lecture</string>
     <string name="reader_text_settings">Texte</string>
     <string name="reader_font">Police</string>
     <string name="reader_font_sans">Sans serif</string>
@@ -153,7 +152,6 @@
     <string name="action_save_and_archive">Enregistrer et archiver</string>
     <string name="action_open">Ouvrir</string>
     <string name="action_undo">Annuler</string>
-    <string name="folders_explanation">Classez vos flux par sujet pour les lire ensemble. Ce que vous enregistrez reçoit aussi des sujets.</string>
     <string name="filter_unread">Non lus</string>
     <string name="filter_all">Tous</string>
     <string name="folder_new">Nouveau sujet</string>
@@ -247,16 +245,12 @@
     <string name="search_none_title">Aucun résultat</string>
     <string name="search_none_body">Aucun article ne contient tous ces mots.</string>
     <string name="search_label_feed">Flux</string>
-    <string name="search_any_folder">Tous les sujets</string>
-    <string name="search_any_feed">Tous les flux</string>
-    <string name="search_feed">Flux</string>
     <!-- A share from another app without a web link (#97). -->
     <string name="share_no_link">Aucun lien à enregistrer</string>
     <string name="action_archive">Archiver</string>
     <string name="saved_archived">Archivé</string>
     <string name="action_unarchive">Remettre à lire</string>
     <string name="action_like">J’aime</string>
-    <string name="add_link_title">Ajouter un lien</string>
     <string name="add_link_address">Adresse web</string>
     <string name="add_link_invalid">Ce n’est pas une adresse web.</string>
     <string name="note_title">Note</string>
@@ -301,7 +295,6 @@
     <string name="services_problem_limit">Instapaper n’autorise plus de surlignages ce mois-ci.</string>
     <string name="highlights_none">Sélectionnez du texte et touchez Surligner.</string>
     <string name="saved_title">Enregistrés</string>
-    <string name="topic_field">Sujet</string>
     <string name="saved_to">Enregistré dans %1$s</string>
     <string name="saved_remove">Retirer des enregistrés</string>
     <string name="saved_remove_body">Supprimer cet élément, avec sa note, ses sujets et ses surlignages ? L\'archiver le garde trouvable.</string>
@@ -321,34 +314,34 @@
     <string name="account_link_taken">Cette adresse appartient déjà à un autre compte Content.</string>
     <string name="account_link_failed">La connexion n’a pas fonctionné. Réessayez.</string>
     <string name="action_refresh">Actualiser</string>
-    <string name="menu_manage">Gérer les sujets</string>
     <string name="share_copy_link">Copier le lien</string>
     <string name="share_more">Plus</string>
     <string name="instapaper_import_title">Importer depuis Instapaper ?</string>
     <string name="instapaper_import_body">Récupérer une fois tout ce qui se trouve maintenant dans votre Instapaper ? Dans tous les cas, Enregistrés et Instapaper restent identiques à partir de maintenant.</string>
     <string name="instapaper_import_skip">Ne pas importer</string>
-    <plurals name="topic_saved_count">
-        <item quantity="one">%d enregistré</item>
-        <item quantity="other">%d enregistrés</item>
-    </plurals>
     <string name="welcome_title">Bienvenue dans Content</string>
     <string name="welcome_body">Créez un compte ou connectez-vous.</string>
     <string name="welcome_without_account">Ou commencez sur cet appareil seulement :</string>
     <string name="welcome_import">Importer depuis un autre lecteur</string>
     <string name="topic_in_feeds">Flux · %1$s</string>
     <string name="topic_in_saved">Enregistrés · %1$s</string>
-    <string name="topic_merge">Fusionner avec…</string>
-    <string name="topic_merge_title">Fusionner %1$s avec…</string>
-    <string name="topic_merge_body">Le sujet choisi reste, avec son nom et son icône. Il reçoit les flux et articles enregistrés de ce sujet.</string>
-    <string name="topic_merge_action">Fusionner</string>
-    <string name="topic_remove">Supprimer le sujet</string>
-    <string name="topic_add_feed">Ajouter un flux à %1$s</string>
-    <plurals name="topic_failing_count">
-        <item quantity="one">%d flux en échec</item>
-        <item quantity="other">%d flux en échec</item>
-    </plurals>
-    <plurals name="topic_to_read_count">
-        <item quantity="one">%d à lire</item>
-        <item quantity="other">%d à lire</item>
-    </plurals>
+    <string name="filter_read">Lus</string>
+    <string name="home_no_read_title">Rien de lu pour l’instant</string>
+    <string name="search_all_feeds">Tous les flux</string>
+    <string name="add_title">Ajouter</string>
+    <string name="add_choice_feed">S’abonner à un flux</string>
+    <string name="add_choice_feed_body">Abonnez-vous à un flux RSS en saisissant l’adresse de la publication</string>
+    <string name="add_choice_article">Enregistrer un article</string>
+    <string name="add_choice_article_body">Enregistrez et classez un article en saisissant son adresse</string>
+    <string name="settings_account_signed_out">Non connecté</string>
+    <string name="settings_feeds_title">Gérer les flux</string>
+    <string name="settings_feeds_summary">Vos flux et leurs sujets, import et export OPML</string>
+    <string name="settings_topics_summary">Sujets et Instapaper</string>
+    <string name="settings_list_summary">Affichage, marquer comme lu en défilant, mots masqués</string>
+    <string name="section_article_view">Affichage des articles</string>
+    <string name="settings_article_view_summary">Texte, articles complets, sites payants</string>
+    <string name="manage_feeds_hint">Touchez un flux pour le renommer, changer son sujet ou le supprimer. Faites-en glisser un par sa poignée pour changer l’ordre.</string>
+    <string name="manage_feeds_none">Aucun flux pour l’instant.</string>
+    <string name="topics_title">Sujets</string>
+    <string name="manage_topics_hint">Les sujets regroupent vos flux et vos articles enregistrés. Touchez un sujet pour le renommer, changer son icône ou le supprimer ; faites-en glisser un par sa poignée pour changer l’ordre. Lui donner le nom d’un autre sujet fusionne les deux.</string>
 </resources>

@@ -47,13 +47,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import to.wim.content.R
-import to.wim.content.ui.feeds.LooseFeedActions
 import to.wim.content.ui.feeds.TopicEditActions
-import to.wim.content.ui.feeds.TopicPage
-import to.wim.content.ui.feeds.TopicPageActions
-import to.wim.content.ui.feeds.TopicRow
-import to.wim.content.ui.feeds.TopicScreen
-import to.wim.content.ui.feeds.TopicsScreen
 import to.wim.content.data.ArticleReport
 import to.wim.content.sync.AccountState
 import to.wim.content.sync.ShareResult
@@ -83,7 +77,6 @@ import to.wim.content.data.item
 import to.wim.content.data.itemFor
 import to.wim.content.data.needsDescription
 import to.wim.content.data.topicNames
-import to.wim.content.data.topicCounts
 import to.wim.content.data.up
 import to.wim.content.data.chipTag
 import to.wim.content.data.feedChips
@@ -116,6 +109,7 @@ import to.wim.content.ui.home.SearchActions
 import to.wim.content.ui.home.SearchScreen
 import to.wim.content.ui.home.SearchState
 import to.wim.content.data.FeedSelection
+import to.wim.content.data.FeedTab
 import to.wim.content.data.FullArticle
 import to.wim.content.data.Library
 import to.wim.content.data.Settings
@@ -126,6 +120,7 @@ import to.wim.content.sync.AccountNotice
 import to.wim.content.instapaper.InstapaperState
 import to.wim.content.rssReaderApp
 import to.wim.content.ui.home.AddFeedSheet
+import to.wim.content.ui.home.AddChoiceSheet
 import to.wim.content.ui.home.HomeActions
 import to.wim.content.ui.home.HomeScreen
 import to.wim.content.ui.home.HomeState
@@ -137,6 +132,7 @@ import to.wim.content.ui.reader.ReaderScreen
 import to.wim.content.ui.reader.ReaderTheme
 import to.wim.content.ui.settings.SettingsActions
 import to.wim.content.ui.settings.SettingsScreen
+import to.wim.content.ui.settings.SettingsPageScreen
 import to.wim.content.ui.settings.SettingsState
 import to.wim.content.ui.theme.Motion
 import to.wim.content.ui.theme.SystemBarsFollowTheme
@@ -153,11 +149,8 @@ sealed interface Screen {
 
     data object Settings : Screen
 
-    /** Manage topics: every topic with what it holds (TopicsScreen). */
-    data object Feeds : Screen
-
-    /** One topic's page (TopicScreen). The feeds without a topic are listed in Manage topics itself. */
-    data class Topic(val id: String) : Screen
+    /** One of Settings' pages: Account, Manage feeds, Manage topics, Theme, Article list, Article view. */
+    data class SettingsPage(val page: to.wim.content.ui.settings.SettingsPage) : Screen
 
     /** Search through every feed's articles and Saved. */
     data object Search : Screen
@@ -171,24 +164,24 @@ sealed interface Screen {
             when (screen) {
                 Home -> "home"
                 Settings -> "settings"
-                Feeds -> "feeds"
                 Search -> "search"
                 is Reader -> "reader:" + screen.articleKey
                 is SiteSignIn -> "signin:" + screen.url
-                is Topic -> "topic:" + screen.id
+                is SettingsPage -> "settings:" + screen.page.name
             }
 
         fun decode(text: String): Screen =
             when {
                 text == "settings" -> Settings
-                text == "feeds" -> Feeds
-                // Its Saved tab was a screen of its own before.
-                text == "manage-saved" -> Feeds
+                text.startsWith("settings:") ->
+                    to.wim.content.ui.settings.SettingsPage.entries
+                        .firstOrNull { it.name == text.removePrefix("settings:") }
+                        ?.let(::SettingsPage) ?: Settings
+                // Manage topics and a topic's page were screens of their own before Settings' pages.
+                text == "feeds" || text == "manage-saved" || text.startsWith("topic:") -> SettingsPage(to.wim.content.ui.settings.SettingsPage.Topics)
                 text == "search" -> Search
                 text.startsWith("reader:") -> Reader(text.removePrefix("reader:"))
                 text.startsWith("signin:") -> SiteSignIn(text.removePrefix("signin:"))
-                // An empty id was the No topic page, gone: its feeds are in Manage topics now.
-                text.startsWith("topic:") -> text.removePrefix("topic:").ifEmpty { null }?.let(::Topic) ?: Feeds
                 else -> Home
             }
     }
@@ -388,6 +381,8 @@ fun RssReaderNavigation(
 
     // Add feed dialog, shared by the list, the drawer and Settings.
     var addDialogOpen by rememberSaveable { mutableStateOf(false) }
+    // The search bar's +: Subscribe to feed or Save article, asked first.
+    var addChoiceOpen by rememberSaveable { mutableStateOf(false) }
     // Add feed from a topic page: the topic to add into ("" for No topic), and stay on that page.
     var addIntoTopic by rememberSaveable { mutableStateOf<String?>(null) }
     var addBusy by remember { mutableStateOf(false) }
@@ -666,6 +661,88 @@ fun RssReaderNavigation(
 
     BackHandler(enabled = backStack.size > 1) { pop() }
 
+    // Settings and its pages share what they show and what they can do.
+    val settingsState =
+        SettingsState(
+            settings = current,
+            syncStatus = syncStatus,
+            account = accountState,
+            accountName = accountName,
+            notifyShared = current.notifyShared.takeIf { app.push.available },
+            siteSignIns = siteSignIns.map { it.site },
+            hasFeeds = library.feeds.isNotEmpty(),
+            feeds = library.feeds,
+            topics = library.folders,
+            problems = problems,
+            instapaper =
+                InstapaperSettingsState(
+                    instapaper = instapaperState,
+                    status = serviceStatuses[InstapaperReadingList.ID] ?: ServiceStatus.None,
+                ),
+        )
+    val settingsActions =
+        SettingsActions(
+            onBack = ::pop,
+            onOpenPage = { push(Screen.SettingsPage(it)) },
+            onAddFeed = {
+                // Without a topic, on Manage feeds, and stay there.
+                addIntoTopic = ""
+                addDialogOpen = true
+            },
+            onEditFeed = { feed, title, topicId -> editFeed(feed, title, topicId) },
+            onRemoveFeed = { feed -> app.appScope.launch { repository.removeFeed(feed.url) } },
+            onReorderFeeds = { topicId, urls -> app.appScope.launch { repository.reorderFeedsIn(topicId, urls) } },
+            topicActions = topicActions,
+            onReaderStyleChange = { style -> app.appScope.launch { app.settings.setReaderStyle(style) } },
+            onInstapaperSignIn = { uiScope.launch { ExternalApps.openLink(context, app.instapaper.begin()) } },
+            onInstapaperSync = { app.appScope.launch { app.services.sync() } },
+            // Disconnects Instapaper only; the Content account stays signed in (#166).
+            onInstapaperSignOut = { app.appScope.launch { app.instapaper.signOut() } },
+            onInstapaperImport = { everything -> app.appScope.launch { app.services.chooseImport(InstapaperReadingList.ID, everything) } },
+            onImportOpml = importOpml,
+            onExportOpml = exportOpml,
+            onFullArticlesChange = { enabled -> app.appScope.launch { app.settings.setFullArticles(enabled) } },
+            onAlwaysOpenWebsiteChange = { enabled -> app.appScope.launch { app.settings.setAlwaysOpenWebsite(enabled) } },
+            onShowImagesChange = { enabled -> app.appScope.launch { app.settings.setShowImages(enabled) } },
+            onMarkReadOnScrollChange = { enabled -> app.appScope.launch { app.settings.setMarkReadOnScroll(enabled) } },
+            onHiddenWordsChange = { text -> app.appScope.launch { app.settings.setHiddenWords(text) } },
+            onListViewChange = { view -> app.appScope.launch { app.settings.setListView(view) } },
+            onThemeModeChange = { mode -> app.appScope.launch { app.settings.setThemeMode(mode) } },
+            onDynamicColorChange = { enabled -> app.appScope.launch { app.settings.setDynamicColor(enabled) } },
+            onSyncNow = {
+                app.appScope.launch {
+                    app.sync.sync()
+                    app.services.sync()
+                }
+            },
+            onSignOut = { app.appScope.launch { app.sync.signOut() } },
+            onRemoveSiteSignIn = { site ->
+                siteSignIns.firstOrNull { it.site == site }?.let { forgetSiteCookies(it.site, it.cookie) }
+                app.appScope.launch { app.siteSignIns.remove(site) }
+            },
+            onNotifyShared = { on, result ->
+                uiScope.launch {
+                    if (on) {
+                        val ok = app.push.turnOn()
+                        if (!ok) showMessage(resources.getString(R.string.sync_failed_offline))
+                        result(ok)
+                    } else {
+                        app.push.turnOff()
+                        result(true)
+                    }
+                }
+            },
+            onSendLink = { email, result ->
+                uiScope.launch { result(runCatching { app.account.sendLink(email) }.isSuccess) }
+            },
+            onDeleteAccountData = {
+                app.appScope.launch {
+                    val deleted = app.sync.deleteAccountData()
+                    showMessage(resources.getString(if (deleted) R.string.account_deleted else R.string.sync_failed_offline))
+                }
+            },
+        )
+
     val appDark = current.appearance.isDark(isSystemInDarkTheme())
     val axisOffset = with(LocalDensity.current) { 30.dp.roundToPx() }
     AnimatedContent(
@@ -696,7 +773,7 @@ fun RssReaderNavigation(
                     val listed = remember(library, current.hiddenWords) { library.withoutHidden(ArticleFilter.parse(current.hiddenWords)) }
                     val articles =
                         remember(listed, shownSelection, current.unreadOnly, readThisVisit) {
-                            listed.articlesFor(shownSelection, current.unreadOnly, keep = readThisVisit)
+                            listed.articlesFor(shownSelection, FeedTab.of(current.unreadOnly), keep = readThisVisit)
                         }
                     val unreadCounts = remember(listed) { listed.unreadCounts() }
                     val savedItems = remember(library, shownFilter) { Saved.items(library, shownFilter) }
@@ -758,7 +835,7 @@ fun RssReaderNavigation(
                                             },
                                         )
                                     },
-                                topicChips = remember(listed, current.unreadOnly, shownSelection) { listed.feedChips(current.unreadOnly, shownSelection.chipTag(library.folders)) },
+                                topicChips = remember(listed, current.unreadOnly, shownSelection) { listed.feedChips(FeedTab.of(current.unreadOnly), shownSelection.chipTag(library.folders)) },
                                 accountEmail = accountEmail,
                             ),
                         snackbarHostState = snackbar,
@@ -782,8 +859,8 @@ fun RssReaderNavigation(
                                     openArticle(article)
                                 },
                                 onToggleRead = { article ->
-                                    // Stays in the Unread list until it changes, like opened articles.
-                                    if (!article.read) readThisVisit = readThisVisit + article.key
+                                    // Stays in its tab (Unread or Read) until the list changes, like opened articles.
+                                    readThisVisit = readThisVisit + article.key
                                     app.appScope.launch { repository.setRead(article.key, !article.read) }
                                 },
                                 // Long-press › Save, like the reader's Save button.
@@ -822,8 +899,7 @@ fun RssReaderNavigation(
                                     section = HomeSection.Saved
                                 },
                                 onOpenItem = ::openItem,
-                                // Add link: the save sheet asks for the address, into the folder shown.
-                                onAddLink = { openSave(null, null) },
+                                onAdd = { addChoiceOpen = true },
                                 onArchiveItem = ::archive,
                                 onFileItem = {
                                     fileKey = it.key
@@ -964,163 +1040,12 @@ fun RssReaderNavigation(
 
                 Screen.Settings -> {
                     SystemBarsFollowTheme(appDark)
-                    SettingsScreen(
-                        state =
-                            SettingsState(
-                                settings = current,
-                                syncStatus = syncStatus,
-                                account = accountState,
-                                accountName = accountName,
-                                notifyShared = current.notifyShared.takeIf { app.push.available },
-                                siteSignIns = siteSignIns.map { it.site },
-                                hasFeeds = library.feeds.isNotEmpty(),
-                                instapaper =
-                                    InstapaperSettingsState(
-                                        instapaper = instapaperState,
-                                        status = serviceStatuses[InstapaperReadingList.ID] ?: ServiceStatus.None,
-                                    ),
-                            ),
-                        snackbarHostState = snackbar,
-                        actions =
-                            SettingsActions(
-                                onBack = ::pop,
-                                onOpenManage = { push(Screen.Feeds) },
-                                onReaderStyleChange = { style -> app.appScope.launch { app.settings.setReaderStyle(style) } },
-                                onInstapaperSignIn = { uiScope.launch { ExternalApps.openLink(context, app.instapaper.begin()) } },
-                                onInstapaperSync = { app.appScope.launch { app.services.sync() } },
-                                // Disconnects Instapaper only; the Content account stays signed in (#166).
-                                onInstapaperSignOut = { app.appScope.launch { app.instapaper.signOut() } },
-                                onInstapaperImport = { everything -> app.appScope.launch { app.services.chooseImport(InstapaperReadingList.ID, everything) } },
-                                onImportOpml = importOpml,
-                                onExportOpml = exportOpml,
-                                onFullArticlesChange = { enabled -> app.appScope.launch { app.settings.setFullArticles(enabled) } },
-                                onAlwaysOpenWebsiteChange = { enabled -> app.appScope.launch { app.settings.setAlwaysOpenWebsite(enabled) } },
-                                onShowImagesChange = { enabled -> app.appScope.launch { app.settings.setShowImages(enabled) } },
-                                onMarkReadOnScrollChange = { enabled -> app.appScope.launch { app.settings.setMarkReadOnScroll(enabled) } },
-                                onHiddenWordsChange = { text -> app.appScope.launch { app.settings.setHiddenWords(text) } },
-                                onListViewChange = { view -> app.appScope.launch { app.settings.setListView(view) } },
-                                onThemeModeChange = { mode -> app.appScope.launch { app.settings.setThemeMode(mode) } },
-                                onDynamicColorChange = { enabled -> app.appScope.launch { app.settings.setDynamicColor(enabled) } },
-                                onSyncNow = {
-                                    app.appScope.launch {
-                                        app.sync.sync()
-                                        app.services.sync()
-                                    }
-                                },
-                                onSignOut = { app.appScope.launch { app.sync.signOut() } },
-                                onRemoveSiteSignIn = { site ->
-                                    siteSignIns.firstOrNull { it.site == site }?.let { forgetSiteCookies(it.site, it.cookie) }
-                                    app.appScope.launch { app.siteSignIns.remove(site) }
-                                },
-                                onNotifyShared = { on, result ->
-                                    uiScope.launch {
-                                        if (on) {
-                                            val ok = app.push.turnOn()
-                                            if (!ok) showMessage(resources.getString(R.string.sync_failed_offline))
-                                            result(ok)
-                                        } else {
-                                            app.push.turnOff()
-                                            result(true)
-                                        }
-                                    }
-                                },
-                                onSendLink = { email, result ->
-                                    uiScope.launch { result(runCatching { app.account.sendLink(email) }.isSuccess) }
-                                },
-                                onDeleteAccountData = {
-                                    app.appScope.launch {
-                                        val deleted = app.sync.deleteAccountData()
-                                        showMessage(resources.getString(if (deleted) R.string.account_deleted else R.string.sync_failed_offline))
-                                    }
-                                },
-                            ),
-                    )
+                    SettingsScreen(settingsState, snackbar, settingsActions)
                 }
 
-                Screen.Feeds -> {
+                is Screen.SettingsPage -> {
                     SystemBarsFollowTheme(appDark)
-                    val counts = remember(library) { library.topicCounts() }
-                    TopicsScreen(
-                        topics =
-                            library.folders.map { topic ->
-                                val count = counts[topic.id]
-                                TopicRow(
-                                    topic = topic,
-                                    feeds = count?.feeds ?: 0,
-                                    saved = count?.saved ?: 0,
-                                    failing = library.feeds.count { it.folderId == topic.id && problems.containsKey(it.url) },
-                                )
-                            },
-                        looseFeeds = library.feeds.filter { feed -> feed.folderId == null || library.folders.none { it.id == feed.folderId } },
-                        allTopics = library.folders,
-                        problems = problems,
-                        looseActions =
-                            LooseFeedActions(
-                                onEditFeed = { feed, title, topicId -> editFeed(feed, title, topicId) },
-                                onRemoveFeed = { feed -> app.appScope.launch { repository.removeFeed(feed.url) } },
-                                onReorderFeeds = { urls -> app.appScope.launch { repository.reorderFeedsIn(null, urls) } },
-                            ),
-                        snackbarHostState = snackbar,
-                        onBack = ::pop,
-                        onOpen = { push(Screen.Topic(it)) },
-                        onReorder = { ids -> app.appScope.launch { repository.reorderTopics(ids) } },
-                        onAddFeed = {
-                            // Without a topic, listed on this page, and stay here.
-                            addIntoTopic = ""
-                            addDialogOpen = true
-                        },
-                        onNewTopic = { title, icon ->
-                            app.appScope.launch {
-                                val id = repository.addFolder(title, icon)
-                                uiScope.launch { push(Screen.Topic(id)) }
-                            }
-                        },
-                    )
-                }
-
-                is Screen.Topic -> {
-                    SystemBarsFollowTheme(appDark)
-                    val topic = library.folder(screen.id)
-                    // A removed or merged topic: back to the list.
-                    if (topic == null) {
-                        LaunchedEffect(Unit) { pop() }
-                    } else {
-                        val count = remember(library) { library.topicCounts()[topic.id] }
-                        val topicFeeds = library.feeds.filter { it.folderId == topic.id }
-                        TopicScreen(
-                            page =
-                                TopicPage(
-                                    topic = topic,
-                                    feeds = topicFeeds,
-                                    saved = count?.saved ?: 0,
-                                    toRead = count?.toRead ?: 0,
-                                ),
-                            topics = library.folders,
-                            problems = problems,
-                            snackbarHostState = snackbar,
-                            actions =
-                                TopicPageActions(
-                                    onBack = ::pop,
-                                    onAddFeed = {
-                                        addIntoTopic = screen.id
-                                        addDialogOpen = true
-                                    },
-                                    onEditFeed = { feed, title, topicId -> editFeed(feed, title, topicId) },
-                                    onRemoveFeed = { feed -> app.appScope.launch { repository.removeFeed(feed.url) } },
-                                    onReorderFeeds = { urls -> app.appScope.launch { repository.reorderFeedsIn(screen.id, urls) } },
-                                    onEdit = { title, icon -> app.appScope.launch { repository.updateFolder(topic.id, title, icon) } },
-                                    onMerge = { intoId ->
-                                        app.appScope.launch { repository.mergeTopic(topic.id, intoId) }
-                                        pop()
-                                        push(Screen.Topic(intoId))
-                                    },
-                                    onRemove = {
-                                        app.appScope.launch { repository.removeFolder(topic.id) }
-                                        pop()
-                                    },
-                                ),
-                        )
-                    }
+                    SettingsPageScreen(screen.page, settingsState, snackbar, settingsActions)
                 }
 
                 is Screen.SiteSignIn -> {
@@ -1165,14 +1090,16 @@ fun RssReaderNavigation(
                                 hasItems = library.items.any { it.readingList != null },
                                 filters = searchFilters,
                                 library = library,
-                                feedFolders = library.folders,
-                                savedTags = remember(library) { Saved.tags(library, SavedTab.All) },
+                                topics = remember(library, searchFilters) { SearchResults.topics(library, searchFilters.scope, searchFilters.topic) },
+                                folders = library.folders,
+                                menuFeeds = remember(library, searchFilters.topic) { SearchResults.menuFeeds(library, searchFilters.topic) },
                                 titleFont = current.reader.font.fontFamily(),
                             ),
                         actions =
                             SearchActions(
                                 onQueryChange = { searchQuery = it },
                                 onFiltersChange = { searchFilters = it },
+                                onTopic = { searchFilters = searchFilters.withTopic(it, library) },
                                 onOpenArticle = { article ->
                                     // Like from the list: it stays in the Unread list when you go back (#157).
                                     readThisVisit = readThisVisit + article.key
@@ -1348,8 +1275,23 @@ fun RssReaderNavigation(
         )
     }
 
+    if (addChoiceOpen) {
+        AddChoiceSheet(
+            onSubscribe = {
+                addChoiceOpen = false
+                addDialogOpen = true
+            },
+            // The save sheet asks for the address (into the folder shown in Saved).
+            onSaveArticle = {
+                addChoiceOpen = false
+                openSave(null, null)
+            },
+            onDismiss = { addChoiceOpen = false },
+        )
+    }
+
     if (addDialogOpen) {
-        // From a topic's page, that topic ("" from Manage topics: none); else the topic being viewed, if any.
+        // "" from Manage feeds: no topic, and you stay there; else the topic being viewed, if any.
         val fromTopicPage = addIntoTopic
         AddFeedSheet(
             busy = addBusy,
@@ -1369,7 +1311,7 @@ fun RssReaderNavigation(
                     } else if (result is AddFeedResult.Added) {
                         addDialogOpen = false
                         addIntoTopic = null
-                        // From Manage topics or a topic's page, you stay there; else the new feed shows.
+                        // From Manage feeds, you stay there; else the new feed shows.
                         if (fromTopicPage == null) {
                             selection = FeedSelection.Single(result.feed.url)
                             section = HomeSection.Feeds
@@ -1423,8 +1365,8 @@ private val SavedFilterSaver =
             SavedFilter(
                 tab =
                     when {
-                        // All was dropped from Saved (#298): a state kept from before opens To read.
-                        tab == "archive" -> SavedTab.Archive
+                        // Saved's tabs are To read and All: the Archive, kept from before, opens All.
+                        tab == "all" || tab == "archive" -> SavedTab.All
                         tab.startsWith("folder:") -> SavedTab.Folder(tab.removePrefix("folder:"))
                         else -> SavedTab.ToRead
                     },
@@ -1454,20 +1396,17 @@ private val SelectionSaver =
         },
     )
 
-/** Search's kind and filters (#171), kept across rotation and process death. */
+/** Search's kind, picked feeds and topic, kept across rotation and process death. */
 private val SearchFiltersSaver =
     Saver<SearchFilters, String>(
-        save = { f ->
-            listOf(f.scope.name, f.feedFolderId, f.feedUrl, f.savedFolder, f.tag).joinToString("\u0000") { it.orEmpty() }
-        },
+        save = { f -> listOf(f.scope.name, f.feedUrls.joinToString("\u0001"), f.topic.orEmpty()).joinToString("\u0000") },
         restore = {
-            val parts = it.split('\u0000').map { p -> p.ifEmpty { null } }
+            val parts = it.split('\u0000')
             SearchFilters(
                 scope = SearchFilter.entries.firstOrNull { s -> s.name == parts.getOrNull(0) } ?: SearchFilter.All,
-                feedFolderId = parts.getOrNull(1),
-                feedUrl = parts.getOrNull(2),
-                savedFolder = parts.getOrNull(3),
-                tag = parts.getOrNull(4),
+                // A state kept from the older filters (five parts) starts without them.
+                feedUrls = if (parts.size == 3) parts[1].split('\u0001').filter { u -> u.isNotEmpty() }.toSet() else emptySet(),
+                topic = if (parts.size == 3) parts[2].ifEmpty { null } else null,
             )
         },
     )

@@ -76,7 +76,7 @@ fun AccountSection(
 ) {
     if (state is AccountState.Loading) return
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
-    SettingsSection(title = stringResource(R.string.section_account)) {
+    SettingsSection(title = stringResource(R.string.account_title)) {
         if (state !is AccountState.SignedIn) {
             ListItem(
                 headlineContent = { Text(stringResource(R.string.account_title)) },

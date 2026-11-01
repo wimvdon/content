@@ -56,6 +56,21 @@ data class Article(
     }
 }
 
+/** Feeds' two tabs: the articles still unread, and those already read. */
+enum class FeedTab {
+    Unread,
+    Read,
+    ;
+
+    /** Whether [article] belongs in this tab. */
+    fun has(article: Article): Boolean = article.read == (this == Read)
+
+    companion object {
+        /** The tab stored as Settings.unreadOnly (true: Unread). */
+        fun of(unreadOnly: Boolean): FeedTab = if (unreadOnly) Unread else Read
+    }
+}
+
 /** Which articles the article list shows: every feed, one folder, or one feed. */
 sealed interface FeedSelection {
     data object All : FeedSelection
@@ -357,6 +372,20 @@ data class Library(
     ): List<Article> =
         articles
             .filter { selection.includes(it) && (!unreadOnly || !it.read || it.key in keep) }
+            .sortedByDescending { it.sortTime }
+
+    /**
+     * The articles of one of Feeds' tabs, newest first: the unread ones, or the ones already read.
+     * Articles in [keep] (read or marked unread during this visit) stay where they were, so rows
+     * don't jump away under your finger.
+     */
+    fun articlesFor(
+        selection: FeedSelection,
+        tab: FeedTab,
+        keep: Set<String> = emptySet(),
+    ): List<Article> =
+        articles
+            .filter { selection.includes(it) && (tab.has(it) || it.key in keep) }
             .sortedByDescending { it.sortTime }
 
     /** [selection] if its feed or folder still exists, else All (it was removed meanwhile). */

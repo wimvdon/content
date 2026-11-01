@@ -230,31 +230,30 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   over the shared "shape with a white detail" rule. Themed layer: the same symbol.
 - Seed `#0091EA` (azure), tertiary from the icon's sky blue.
 - Signature element: the reader page. Its font (Sans or Serif), text size, spacing, background
-  (Theme, Sepia or Dark) and Auto dark (dark page whenever the app is dark) are set in one Text sheet that is also Settings › Reader; the whole
+  (Theme, Sepia or Dark) and Auto dark (dark page whenever the app is dark) are set in one Text sheet that is also Settings › Article view; the whole
   screen, top bar and system bar icons included, takes the page colour.
 - Article titles in the reader are the hero text (bold, in the reader's font). Unread rows in the
   list use SemiBold titles and a primary dot; read rows use `onSurfaceVariant`.
 - Topics: one way to group feeds and saved articles (a feed in one topic, a saved article in any
   number), each with a name, an icon and its place in the user's order, which every chip row and
-  the sheets follow. Manage topics (in Settings) is a
-  list and a page per topic. Topic chips look the same everywhere (#314): a `FilterChip` with the
+  the sheets follow. Settings › Manage topics shows them as chips in edit mode (grip, icon, name,
+  pen; **New topic** after them), and Settings › Manage feeds the feeds the same way, grouped by
+  topic under a Label Large heading with the topic's icon (a failing feed's name in the error
+  colour); tapping a feed opens the Edit feed sheet (name, address, topic chips, Remove asked in the
+  sheet, Save). Topic chips look the same everywhere (#314): a `FilterChip` with the
   topic's icon and name, no check mark, in Feeds' and Saved's chip rows and in the sheets. The Add
   feed and Organise sheets edit topics right in their chips: after them **New topic** and **Edit**
   as text buttons with an icon (actions, so they don't look like topic chips); Edit gives every topic chip a drag handle (left) and a pen (right) and
   becomes **Done**. Drag a chip among the others to reorder; tap it for the topic sheet (name, icon,
   Remove; a name already taken joins the two). Remove topic asks under the chips, not in a dialog
-  over the sheet. The web: the same chips, with the grip, ← → on a focused chip, and the topic dialog. The list: a large top app bar over topic rows (`surfaceContainerHigh`, the topic's icon on
-  a `secondaryContainer` circle, "4 feeds · 12 saved" under the name, "1 feed fails" in the error
-  colour), a drag handle at the end, then the feeds without a topic as feed rows (no "No topic"
-  row or page), and two extended FABs: Add feed (the FAB) and
-  above it New topic (`secondaryContainer`, lowered elevation; Material's FAB menu isn't in the
-  stable library yet). A topic's page is for managing only, no ways into reading: a large top app
-  bar with its icon and name and, right after them, the pen that edits them; ⋮ at the end (Merge with…, Remove topic in the error colour); its
-  feeds as `ListItem`s with a drag handle, then Add a feed to it; how many saved articles it has, as
-  text. Settings sections:
+  over the sheet. The web: the same chips, with the grip, ← → on a focused chip, and the topic dialog.
+- Settings (the owner's choice, 2026-11-01, instead of the shared "one scrolling list"): a list of
+  pages, each a `SettingItem` with a Material Symbol, its title, what it holds and a chevron:
   Account (sign in with an emailed link; signed in, who, the last sync or what went wrong, Sync now,
-  Sign out and Delete synced data in the error colour, which asks first), Sites you're signed in to,
-  Article list, Reader, Appearance, footer (no Save and Share button settings since #256).
+  Sign out and Delete synced data in the error colour, which asks first), Manage feeds (with Move to
+  or from another reader), Manage topics (with Instapaper), Theme, Article list, Article view (with
+  Text and Sites you're signed in to); then the footer. Every page is a `SettingsScaffold` with the
+  page's name in the large top app bar and its sections inside.
 - Folder icons come from the whole Material Symbols set (outlined, rounded), picked with a search
   field and a grid in the folder sheet. The app's other icons (the reading list's To read (an open
   book), Liked, Archive (a box) and tags included) use the same outlined, rounded style; only an icon that
@@ -266,8 +265,8 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   (a bell, with Material's small badge while something in it is unread; it was a bell in the search
   bar before). Search is
   an action in the top bar of both destinations (a magnifier) that opens one search page for
-  everything: the field in its top bar, a row of filter chips (All, Feeds, Saved) above the
-  results, and the results as one list of article rows ranked by relevance, each with a small label
+  everything: the field in its top bar, one row of filter chips above the results (**Feeds**, a
+  menu chip with All feeds and a check box per feed; **Saved**; a divider; the topic chips), and the results as one list of article rows ranked by relevance, each with a small label
   (Feed or Saved). It is not a navigation bar item: it acts on the content of both
   destinations rather than being a place of its own. **Android has no ☰ drawer** (the owner's
   choice): Feeds, Saved and the Inbox are the navigation bar, and every place inside them is a chip.
@@ -275,21 +274,22 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   (Gravatar, 32dp circle) while signed in with Show images on, else a cogwheel. The web's sidebar is
   always on screen, so there both sections stay open until you fold one, and stay as you left them.
   Back from Saved, the Inbox or a feed section goes to All articles.
-- Three levels, the same in Feeds and Saved (#205): the navigation bar says where (Feeds or Saved);
-  one row of chips under the search bar says which group and which state. The row starts with the
-  **state chip**, a filter chip with a drop-down arrow and a menu of radio items (Feeds: Unread or
-  All; Saved: To read or Archive), lit while it leaves things out. A divider, then the groups,
-  one at a time: the topics in Feeds, the topics in Saved, in the topics' order, each only when it
-  has something in the state shown (the chosen one stays), with Liked (heart) before them (#206). Group chips have no check mark and chosen
-  ones keep their weight, so a chip never changes width and the row never moves (#208). There is no
-  X (one group at a time: tapping the chosen one again lets go) and no manage icon at the end (#307). In Feeds the feeds without a topic follow the topics in the same row, after a second
-  divider, as filter chips with their site icon (16dp). While a topic (or one of its feeds) is
-  chosen, a **second row** under the first shows that topic's feeds the same way: tap one to show it
-  alone (its topic stays lit), tap it again for the whole topic. So every place is one or two taps
-  from the list. The Mark all read FAB is on Feeds
-  only and only marks the section shown; Saved has no FAB: **+** in the search bar (between the
-  search text and Settings) adds, Add feed in Feeds, the Organise sheet (asking for the address) in Saved (#307).
-- Saved's lists look like what they are for: To read and Archive are read through, so they use
+- Three levels, the same in Feeds and Saved: the navigation bar says where (Feeds or Saved); **primary
+  tabs** under the search bar say which view (Feeds: **Unread** and **Read**; Saved: **To read** and
+  **All**); one row of chips under them says which group: the topics in Feeds, Liked (heart) and
+  the topics in Saved, in the topics' order, each only when it has something in the tab shown (the
+  chosen one stays). Group chips have no check mark and chosen ones keep their weight, so a chip
+  never changes width and the row never moves (#208). There is no X (one group at a time: tapping
+  the chosen one again lets go) and no manage icon at the end (#307). In Feeds the feeds without a
+  topic follow the topics in the same row, after a divider, as filter chips with their site icon
+  (16dp). While a topic (or one of its feeds) is chosen, a **second row** under the first shows that
+  topic's feeds the same way: tap one to show it alone (its topic stays lit), tap it again for the
+  whole topic. So every place is one or two taps from the list. The Mark all read FAB is in Feeds'
+  Unread tab only and only marks the section shown; Saved has no FAB. **+** in the search bar
+  (between the search text and Settings) is the same in every destination: the Add sheet, two
+  `surfaceContainerHigh` rows with their icon on a `secondaryContainer` circle, **Subscribe to feed**
+  and **Save article**, each with a line saying what it does.
+- Saved's lists look like what they are for: To read and All are read through, so they use
   the feed list's rows and its view setting (Small, Medium, Large), under a line with how many and
   about how long; a folder is a collection to browse, so its items are notes in Noter's style:
   `OutlinedCard`s on `surface` in a staggered grid (cells at least 160dp: two columns on a phone),
@@ -351,7 +351,7 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
 - Sheets and dialogs (#256): a bottom sheet for anything done with an article or that needs room
   (Save and share, Add feed with its topic chips (#307), Content's share sheet, highlights, Aa,
   Report a problem, the folder sheet with its icon search); a dialog only to confirm something or
-  type one name (remove, rename, edit a feed, Add feed from the share menu). No dialog opens on top of a sheet.
+  type one name (remove, rename, Add feed from the share menu); editing a feed is a sheet, like Add feed. No dialog opens on top of a sheet.
 - Content's share sheet (#251): a `ModalBottomSheet` with the article's title and site, **Send with
   Content** the same To field as in the Save and share sheet, then a full-width Send button, then the apps as 48dp icons with their names,
   four to a row, Copy link and More last.
@@ -362,20 +362,18 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   `surfaceContainer`, read rows on `surfaceContainerLow`; the feed name is in `primary`. Rows and
   cards don't swipe (#305): a long press holds their actions (Mark as read, Save, Share; in Saved
   Archive or Back to read first). The top bar shows the section and its unread count, with no ⋮ menu (refresh is pull-down; adding
-  feeds lives on Manage feeds). Unread or All is the state chip at the start of the chip row
-  (16dp sides, 8dp above and below, like the chips in Search), lit while it shows Unread only.
-  The web app has the same chip. The top bar holds only icon buttons, as Material 3's top app bar does.
+  feeds lives on Manage feeds). Unread and Read are the tabs above the chip row (the chips: 16dp
+  sides, 8dp above and below, like the chips in Search). The web app still has its Unread/All chip. The top bar holds only icon buttons, as Material 3's top app bar does.
   In a narrow window the web app has the same Feeds | Saved navigation bar at the bottom.
   Settings is the last button of the search bar (the account's picture or a cogwheel).
-  The header (a small `TopAppBar`, the folder tabs attached to it, then the chip row) is one block that slides away
+  The header (the search bar, the tabs, then the chip rows) is one block that slides away
   while scrolling down and comes back as soon as you scroll up (Material's "enter always"),
   staying on `surface` while articles pass under it (no grey band behind the tabs and chips, owner's
   choice); articles sit under sticky day headers (Today,
   Yesterday, date) in `primary` Title Small; Mark all as read is an icon-only FAB. The web
   app's sidebar and favicon use the app's logo (the launcher icon's C on its own: no circle or
   white tile).
-- Settings starts with the connections: Account, then Instapaper; Move to or from another reader
-  (OPML) sits before Appearance. Managing topics is its own section after the connections in Settings, and the pen in the Add feed and Organise sheets. The first screen,
+- Settings starts with the Account page; Manage feeds holds OPML and Manage topics Instapaper. The first screen,
   signed out, is a welcome with the email sign-in first. See docs/architecture.md, "Navigation and
   settings: where everything lives".
 

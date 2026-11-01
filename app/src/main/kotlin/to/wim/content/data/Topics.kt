@@ -185,15 +185,15 @@ fun Library.mergeTopic(
 
 
 /**
- * Feeds' topic chips: the topics with articles in the state shown (unread ones with Unread), in the
- * user's order; a topic with nothing to show is left out, except the one chosen ([chosen]), so a
- * chip never disappears under your finger.
+ * Feeds' topic chips: the topics with articles in the tab shown (unread ones in Unread, read ones
+ * in Read), in the user's order; a topic with nothing to show is left out, except the one chosen
+ * ([chosen]), so a chip never disappears under your finger.
  */
 fun Library.feedChips(
-    unreadOnly: Boolean,
+    tab: FeedTab,
     chosen: String?,
 ): List<String> =
     feedTags().filter { tag ->
         tag.equals(chosen, ignoreCase = true) ||
-            articles.any { a -> (!unreadOnly || !a.read) && feed(a.feedUrl)?.tags.orEmpty().any { it.equals(tag, ignoreCase = true) } }
+            articles.any { a -> tab.has(a) && feed(a.feedUrl)?.tags.orEmpty().any { it.equals(tag, ignoreCase = true) } }
     }

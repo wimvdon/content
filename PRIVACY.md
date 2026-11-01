@@ -15,13 +15,13 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   feed addresses on the same site to find its feed. These websites see your IP address and the
   app's name and version (the "user agent"), like any visit. No cookies or identifiers are sent.
 - **Article pages.** When you open an article whose feed has only a summary, the app downloads
-  that article's web page to show the whole article (turn this off in Settings › Reader › Load
+  that article's web page to show the whole article (turn this off in Settings › Article view › Load
   full articles; you can also switch it per article). Only the article text is kept; the page's
   scripts, images and trackers are not loaded. The website sees the same as for its feed.
 - **Pictures.** Article pictures, list thumbnails and video previews are downloaded from where
   the feed or article says they are: usually the website itself or its image server (CDN), and
   for YouTube videos i.ytimg.com and for Dailymotion videos dailymotion.com. Those servers see your
-  IP address, like any visit. Turn this off in Settings › Reader › Show images.
+  IP address, like any visit. Turn this off in Settings › Article view › Show images.
 - **Embedded players, only when you tap one.** An article's embedded video or audio (YouTube,
   Vimeo, Spotify, SoundCloud, Dailymotion, Apple Music, Apple Podcasts, Bandcamp, TikTok) shows as
   a card; nothing is loaded from the service until you tap (or click) it. Then the service's own
@@ -83,7 +83,7 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   your IP address, under Cloudflare's privacy policy. **Sign out** (Settings › Account) forgets this
   device's key; **Delete synced data** deletes the document, the records, the stored article texts and every device's key from the server
   at once (your devices keep their own copy of the library).
-- **Instapaper (off unless you sign in).** Settings › Instapaper › Sign in opens Instapaper's own
+- **Instapaper (off unless you sign in).** Settings › Manage topics › Instapaper › Sign in opens Instapaper's own
   page in your browser, where you approve Reader; Reader never sees your Instapaper password.
   Instapaper then sends back a one-time code, which the app gives to the owner's feed loader (a
   Cloudflare Worker, built from `worker/`). The loader adds Reader's client secret, swaps the code

@@ -54,29 +54,41 @@ class SearchResultsTest {
     }
 
     @Test
-    fun `feeds by folder or by feed`() {
-        assertEquals(listOf("n2", "n1"), browse(SearchFilters(SearchFilter.Feeds, feedFolderId = "f1")))
-        assertEquals(listOf("t1"), browse(SearchFilters(SearchFilter.Feeds, feedUrl = tech)))
+    fun `Feeds is every feed, or the ones picked in its menu`() {
+        assertEquals(listOf("t1"), browse(SearchFilters().toggleFeed(tech)))
+        assertEquals(listOf("n2", "t1", "n1"), browse(SearchFilters().toggleFeed(tech).toggleFeed(news)))
+        // Picking a feed means only feeds; unpicking the last one leaves every feed.
+        assertEquals(SearchFilter.Feeds, SearchFilters().toggleFeed(tech).scope)
+        assertEquals(SearchFilters(SearchFilter.Feeds), SearchFilters().toggleFeed(tech).toggleFeed(tech))
     }
 
     @Test
-    fun `Saved by folder and tag (case ignored)`() {
-        assertEquals(listOf("a.example/1"), browse(SearchFilters(SearchFilter.Saved, savedFolder = "work")))
-        assertEquals(listOf("a.example/2", "a.example/1"), browse(SearchFilters(SearchFilter.Saved, tag = "ai")))
+    fun `a topic narrows feeds and Saved (case ignored)`() {
+        val topical = library.copy(folders = listOf(Folder("f1", "AI")))
+        fun browse(filters: SearchFilters) = names(SearchResults.of("", topical, emptyList(), emptyList(), filters))
+        // The News feed is in the AI folder; two saved articles have the tag.
+        assertEquals(listOf("a.example/2", "n2", "a.example/1", "n1"), browse(SearchFilters(topic = "ai")))
+        assertEquals(listOf("n2", "n1"), browse(SearchFilters(SearchFilter.Feeds, topic = "ai")))
+        assertEquals(listOf("a.example/2", "a.example/1"), browse(SearchFilters(SearchFilter.Saved, topic = "AI")))
+        assertEquals(listOf("AI"), SearchResults.topics(topical, SearchFilter.All, null))
+        assertEquals(listOf(news), SearchResults.menuFeeds(topical, "ai").map { it.url })
+        // A topic keeps only the picked feeds that have it.
+        assertEquals(setOf(news), SearchFilters().toggleFeed(tech).toggleFeed(news).withTopic("AI", topical).feedUrls)
+        assertEquals(null, SearchFilters(topic = "AI").withTopic(null, topical).topic)
     }
 
     @Test
     fun `typed words search, and the filters narrow the matches`() {
         val hits = SearchResults.of("green", library, listOf(library.articles[2]), listOf(library.items[0]), SearchFilters())
         assertEquals(listOf("n2", "a.example/1"), names(hits))
-        val onlyNews = SearchResults.of("green", library, listOf(library.articles[2]), listOf(library.items[0]), SearchFilters(SearchFilter.Feeds, feedUrl = tech))
-        assertEquals(emptyList<String>(), names(onlyNews))
+        val onlyTech = SearchResults.of("green", library, listOf(library.articles[2]), listOf(library.items[0]), SearchFilters().toggleFeed(tech))
+        assertEquals(emptyList<String>(), names(onlyTech))
     }
 
     @Test
-    fun `choosing another kind clears the other kind's filters`() {
-        val filters = SearchFilters(SearchFilter.Saved, savedFolder = "Work", tag = "ai")
-        assertEquals(SearchFilters(SearchFilter.Feeds), filters.withScope(SearchFilter.Feeds))
+    fun `choosing another kind lets go of the picked feeds, not the topic`() {
+        val filters = SearchFilters(topic = "ai").toggleFeed(news)
+        assertEquals(SearchFilters(SearchFilter.Saved, topic = "ai"), filters.withScope(SearchFilter.Saved))
         assertEquals(true, filters.narrowed)
         assertEquals(false, SearchFilters(SearchFilter.Saved).narrowed)
     }

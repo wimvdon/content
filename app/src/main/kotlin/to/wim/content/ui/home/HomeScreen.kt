@@ -176,8 +176,8 @@ class HomeActions(
     val onShowSaved: () -> Unit = {},
     val onSavedFilter: (SavedFilter) -> Unit = {},
     val onOpenItem: (Item) -> Unit = {},
-    /** The search bar's + in Saved (#307): the Save sheet, which asks for the address. */
-    val onAddLink: () -> Unit = {},
+    /** The search bar's +, in every place: asks Subscribe to feed or Save article. */
+    val onAdd: () -> Unit = {},
     /** Archives a saved item, or puts an archived one back to read (a card's menu in Saved). */
     val onArchiveItem: (Item) -> Unit = {},
     /** Opens Organise for a saved item (a card's menu in Saved). */
@@ -241,39 +241,26 @@ fun HomeScreen(
                         HomeSearchBar(
                             onSearch = actions.onOpenSearch,
                             onSettings = actions.onOpenSettings,
-                            // + (#307): Add feed in Feeds, the Save sheet in Saved (Saved's FAB is gone).
-                            onAdd =
-                                when {
-                                    reading != null -> actions.onAddLink
-                                    inFeeds -> actions.onAddFeed
-                                    else -> null
-                                },
-                            addLabel = stringResource(if (reading != null) R.string.add_link_title else R.string.feeds_add),
+                            // + is the same in every place: it asks Subscribe to feed or Save article.
+                            onAdd = actions.onAdd,
+                            addLabel = stringResource(R.string.add_title),
                             accountEmail = state.accountEmail,
                             showImages = state.showImages,
                         )
                         if (reading != null) {
-                            val stateLabels =
-                                listOf(
-                                    stringResource(R.string.reading_list_to_read),
-                                    stringResource(R.string.reading_list_archive),
-                                )
+                            HomeTabs(
+                                labels = listOf(stringResource(R.string.reading_list_to_read), stringResource(R.string.filter_all)),
+                                selected = Saved.states.indexOf(reading.filter.tab).coerceAtLeast(0),
+                                // A topic stays chosen when the tab changes.
+                                onSelect = { i -> Saved.states.getOrNull(i)?.let { actions.onSavedFilter(reading.filter.copy(tab = it)) } },
+                            )
                             TagChips(
                                 tags = reading.tags,
                                 iconOf = { name -> state.folders.firstOrNull { it.title.equals(name, ignoreCase = true) }?.icon },
                                 selected = reading.filter.tags.firstOrNull(),
                                 onSelect = { t -> actions.onSavedFilter(reading.filter.copy(likedOnly = false, tags = setOfNotNull(t))) },
-                                state = {
-                                    StateChip(
-                                        options = stateLabels,
-                                        selected = Saved.states.indexOf(reading.filter.tab).coerceAtLeast(0),
-                                        // Saved's two states, as in its chip (All was dropped, #298).
-                                        onSelect = { i -> Saved.states.getOrNull(i)?.let { actions.onSavedFilter(reading.filter.copy(tab = it)) } },
-                                        filtering = true,
-                                    )
-                                },
                                 // Liked is a group like a tag (#206): one at a time, before the tags; only when
-                                // something liked is in the state shown (or Liked is chosen).
+                                // something liked is in the tab shown (or Liked is chosen).
                                 liked =
                                     if (!reading.showsLiked) {
                                         null
@@ -296,7 +283,11 @@ fun HomeScreen(
                                     },
                             )
                         } else if (inFeeds && state.feeds.isNotEmpty()) {
-                            val stateLabels = listOf(stringResource(R.string.filter_unread), stringResource(R.string.filter_all))
+                            HomeTabs(
+                                labels = listOf(stringResource(R.string.filter_unread), stringResource(R.string.filter_read)),
+                                selected = if (state.unreadOnly) 0 else 1,
+                                onSelect = { i -> actions.onUnreadOnlyChange(i == 0) },
+                            )
                             val chips = remember(state.feeds, state.folders, feedTags, state.selection) { FeedChips.of(state.feeds, state.folders, feedTags, state.selection) }
                             TagChips(
                                 tags = chips.topics,
@@ -304,14 +295,6 @@ fun HomeScreen(
                                 selected = chips.chosenTopic,
                                 // A topic, or nothing: tapping the chosen topic (or its feed's) again lets go.
                                 onSelect = { t -> actions.onSelect(if (t == null) FeedSelection.All else FeedSelection.Tagged(t)) },
-                                state = {
-                                    StateChip(
-                                        options = stateLabels,
-                                        selected = if (state.unreadOnly) 0 else 1,
-                                        onSelect = { i -> actions.onUnreadOnlyChange(i == 0) },
-                                        filtering = state.unreadOnly,
-                                    )
-                                },
                                 // The feeds without a topic, at the end of the row (#251 had them in ☰).
                                 loose =
                                     if (chips.loose.isEmpty()) {
@@ -337,8 +320,8 @@ fun HomeScreen(
                 },
                 bottomBar = { if (!wide) MainNavigationBar(tab, onTab, state.inbox != null, state.inboxUnread) },
                 floatingActionButton = {
-                    // Marks everything in the section being viewed as read: All, a folder or a feed.
-                    if (state.feeds.isNotEmpty() && unreadHere > 0 && inFeeds) {
+                    // Marks everything in the section being viewed as read: All, a folder or a feed (Unread only).
+                    if (state.feeds.isNotEmpty() && unreadHere > 0 && inFeeds && state.unreadOnly) {
                         FloatingActionButton(onClick = actions.onMarkAllRead) {
                             Icon(painterResource(R.drawable.ic_done_all), contentDescription = stringResource(R.string.action_mark_all_read))
                         }
@@ -386,6 +369,7 @@ fun HomeScreen(
                             !state.loaded -> HomeContent.Loading
                             state.feeds.isEmpty() -> HomeContent.NoFeeds
                             !state.hasAnyArticles && state.refreshing -> HomeContent.Loading
+                            !state.hasAnyArticles -> HomeContent.NoArticles
                             state.articles.isEmpty() -> HomeContent.Empty
                             else -> HomeContent.Articles
                         }
@@ -402,7 +386,8 @@ fun HomeScreen(
                                     Welcome(actions.onSendLink, actions.onAddFeed, actions.onImportOpml)
                                 }
                             HomeContent.Loading -> ArticleSkeletons()
-                            HomeContent.Empty -> AllCaughtUp(state.unreadOnly, state.refreshing, actions.onRefresh) { actions.onUnreadOnlyChange(false) }
+                            HomeContent.NoArticles -> NothingToShow(unread = null, state.refreshing, actions.onRefresh)
+                            HomeContent.Empty -> NothingToShow(unread = state.unreadOnly, state.refreshing, actions.onRefresh)
                             HomeContent.Articles -> ArticleList(state, actions)
                         }
                     }
@@ -414,7 +399,7 @@ fun HomeScreen(
     }
 }
 
-private enum class HomeContent { NoFeeds, Loading, Empty, Articles }
+private enum class HomeContent { NoFeeds, Loading, NoArticles, Empty, Articles }
 
 private const val SKELETON_ROWS = 6
 
@@ -877,19 +862,26 @@ private fun Welcome(
     }
 }
 
-/** Nothing (unread) to show: Show all, and Refresh to look for new articles. */
+/**
+ * Nothing to show: no articles downloaded yet ([unread] null), all caught up in Unread, or nothing
+ * read yet in Read. Refresh looks for new articles (not in Read: new ones arrive unread).
+ */
 @Composable
-private fun AllCaughtUp(
-    unreadOnly: Boolean,
+private fun NothingToShow(
+    unread: Boolean?,
     refreshing: Boolean,
     onRefresh: () -> Unit,
-    onShowAll: () -> Unit,
 ) {
     EmptyState(
-        painterResource(if (unreadOnly) R.drawable.ic_done_all else R.drawable.ic_article),
-        stringResource(if (unreadOnly) R.string.home_caught_up_title else R.string.home_no_articles_title),
+        painterResource(if (unread == true) R.drawable.ic_done_all else R.drawable.ic_article),
+        stringResource(
+            when (unread) {
+                null -> R.string.home_no_articles_title
+                true -> R.string.home_caught_up_title
+                false -> R.string.home_no_read_title
+            },
+        ),
     ) {
-        if (unreadOnly) Button(onClick = onShowAll) { Text(stringResource(R.string.home_show_all)) }
-        OutlinedButton(onClick = onRefresh, enabled = !refreshing) { Text(stringResource(R.string.action_refresh)) }
+        if (unread != false) OutlinedButton(onClick = onRefresh, enabled = !refreshing) { Text(stringResource(R.string.action_refresh)) }
     }
 }

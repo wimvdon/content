@@ -224,9 +224,9 @@ fun AddFeedSheet(
     }
 }
 
-/** One topic to pick in the Add feed sheet: its icon (a check when chosen) and name. */
+/** One topic to pick in the Add feed and Edit feed sheets: its icon (a check when chosen) and name. */
 @Composable
-private fun TopicChip(
+internal fun TopicChip(
     label: String,
     icon: String?,
     selected: Boolean,

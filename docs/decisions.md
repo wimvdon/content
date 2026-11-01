@@ -2,6 +2,33 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-01: Tabs, one +, one Search row, Settings as pages
+
+At the owner's request (Android; the web app keeps its controls for now):
+- **Tabs replace the state chip** (#205): Feeds has **Unread** and **Read** (only the articles
+  already read, `FeedTab`; All is gone, as it mixed the two), Saved **To read** and **All** (All
+  replaced the Archive, which mixed nothing but hid what is still to read). Material's primary tabs:
+  they switch between views of the same content, which a chip with a menu hid. The chips below are
+  the topics (and the feeds without one), as before. Mark all read only in Unread.
+- **One + everywhere**: the search bar's + did Add feed in Feeds and the save sheet in Saved without
+  saying so. It now asks first (the Add sheet: **Subscribe to feed**, **Save article**), so it is
+  the same in Feeds, Saved and the Inbox.
+- **Search has one chip row**: **Feeds** (a menu: All feeds, or several feeds ticked; with a topic
+  picked only its feeds, and a topic lets go of picked feeds without it), **Saved**, then the
+  **topics**, which narrow both kinds. Rejected: a kind row (All, Feeds, Saved) plus a filter row
+  per kind, two rows where a topic means the same for both; and a Topic menu chip, since the topics
+  are chips everywhere else.
+- **Settings is a list of pages** (Account, Manage feeds, Manage topics, Theme, Article list,
+  Article view), each with the same large top app bar. The shared rule in DESIGN.md ("one scrolling
+  list") is for the template's small apps; this app's list had grown to ten sections, so the owner
+  chose pages here (noted in DESIGN.md's "This app"). OPML moved to Manage feeds, Instapaper to
+  Manage topics (it syncs topics as tags), the paywalled sites to Article view.
+- **Managing is chips, not lists**: Manage feeds shows the feeds as chips by topic, Manage topics the
+  topics as chips, both with the grip and pen of the sheets' Edit mode (`ReorderableChips`, now for
+  feeds too). The topic list and topic pages are gone; merging is renaming to the other topic's name,
+  as in the sheets. Editing a feed is a sheet (`FeedSheet`) like Add feed, with the topic chips,
+  instead of a dialog with radio buttons.
+
 ## 2026-11-01: Sheets alike: Cancel at the top right, Save and Organise headings, the web like Android
 
 At the owner's request, after #305 and #314:

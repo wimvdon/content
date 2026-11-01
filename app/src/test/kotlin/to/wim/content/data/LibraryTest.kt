@@ -92,6 +92,19 @@ class LibraryTest {
     }
 
     @Test
+    fun `Feeds' tabs, Unread lists the unread articles, Read the read ones, and kept ones stay put`() {
+        val read = twoFeeds.setRead(Article.keyOf(a, "2"), true)
+        assertEquals(listOf(Article.keyOf(b, "1"), Article.keyOf(a, "1")), read.articlesFor(FeedSelection.All, FeedTab.Unread).map { it.key })
+        assertEquals(listOf(Article.keyOf(a, "2")), read.articlesFor(FeedSelection.All, FeedTab.Read).map { it.key })
+        assertEquals(emptyList<Article>(), read.articlesFor(FeedSelection.Single(b), FeedTab.Read))
+        // Marked unread from the Read tab: it stays there until the list changes.
+        val unread = read.setRead(Article.keyOf(a, "2"), false)
+        assertEquals(1, unread.articlesFor(FeedSelection.All, FeedTab.Read, keep = setOf(Article.keyOf(a, "2"))).size)
+        assertEquals(FeedTab.Unread, FeedTab.of(unreadOnly = true))
+        assertEquals(FeedTab.Read, FeedTab.of(unreadOnly = false))
+    }
+
+    @Test
     fun `undated articles sort by when they were first seen`() {
         val library = Library().addFeed(Feed(a, "A")).merge(a, parsed(item("old", 500), item("undated")), now = 900)
         assertEquals("undated", library.articlesFor(FeedSelection.All, unreadOnly = false).first().id)
