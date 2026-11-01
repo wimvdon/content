@@ -109,7 +109,7 @@ fun SaveSheet(
     sendOnly: Boolean = false,
     /** Every topic, in the user's order: the sheet's topic chips. */
     topics: List<Folder> = emptyList(),
-    /** Editing topics in the sheet (#307, #314): New topic and Edit after the chips; null: neither. */
+    /** Editing topics from the sheet: Edit topics after the chips opens Manage topics over it; null: no Edit topics. */
     topicActions: TopicEditActions? = null,
 ) {
     var address by rememberSaveable(key) { mutableStateOf(url.orEmpty()) }
@@ -259,8 +259,8 @@ fun SaveSheet(
 }
 
 /**
- * The parts of the sheet for what is kept: the topics as chips with Like in front, New topic and
- * Edit at the end (#314), then the note.
+ * The parts of the sheet for what is kept: the topics as chips with Like in front, Edit topics at
+ * the end, then the note.
  */
 @Composable
 private fun SavedParts(
@@ -319,10 +319,12 @@ internal fun SheetHeader(
     title: String,
     onCancel: () -> Unit,
     enabled: Boolean = true,
+    /** Done in a sheet whose changes are stored at once (Manage feeds, Manage topics); else Cancel. */
+    closeLabel: String = stringResource(R.string.action_cancel),
 ) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f).semantics { heading() })
-        TextButton(onClick = onCancel, enabled = enabled) { Text(stringResource(R.string.action_cancel)) }
+        TextButton(onClick = onCancel, enabled = enabled) { Text(closeLabel) }
     }
 }
 

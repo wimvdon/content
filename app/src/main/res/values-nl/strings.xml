@@ -325,13 +325,17 @@
     <string name="add_choice_article_body">Bewaar en orden een artikel door zijn adres in te vullen</string>
     <string name="settings_account_signed_out">Niet aangemeld</string>
     <string name="settings_feeds_title">Feeds beheren</string>
-    <string name="settings_feeds_summary">Je feeds en hun onderwerpen, OPML importeren en exporteren</string>
-    <string name="settings_topics_summary">Onderwerpen en Instapaper</string>
     <string name="settings_list_summary">Weergave, gelezen bij scrollen, verborgen woorden</string>
     <string name="section_article_view">Artikelweergave</string>
     <string name="settings_article_view_summary">Tekst, volledige artikels, sites waarvoor je betaalt</string>
     <string name="manage_feeds_hint">Tik op een feed om hem te hernoemen, een ander onderwerp te geven of te verwijderen. Sleep er een aan zijn greep om de volgorde te wijzigen.</string>
     <string name="manage_feeds_none">Nog geen feeds.</string>
-    <string name="topics_title">Onderwerpen</string>
     <string name="manage_topics_hint">Onderwerpen groeperen je feeds en bewaarde artikels. Tik op een onderwerp om het te hernoemen, een ander icoon te geven of te verwijderen; sleep er een aan zijn greep om de volgorde te wijzigen. Geef je het de naam van een ander onderwerp, dan worden ze samengevoegd.</string>
+    <string name="topics_edit">Onderwerpen bewerken</string>
+    <string name="section_integrations">Integraties</string>
+    <string name="settings_integrations_summary">Instapaper, OPML importeren en exporteren</string>
+    <plurals name="topics_count">
+        <item quantity="one">%d onderwerp</item>
+        <item quantity="other">%d onderwerpen</item>
+    </plurals>
 </resources>

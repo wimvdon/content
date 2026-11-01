@@ -125,8 +125,8 @@ fun AddFeedDialog(
 
 /**
  * Add feed as a sheet (#307), like the Organise sheet: the website or feed address, then its topic as
- * chips (No topic, then every topic in your order, with its icon), New topic and Edit at the end of
- * them to make, rename, reorder or remove topics right there (#314), Cancel at the top right and Add at the bottom. [busy] shows a spinner in Add while
+ * chips (No topic, then every topic in your order, with its icon), Edit topics at the end of them
+ * (the Manage topics sheet, over this one), Cancel at the top right and Add at the bottom. [busy] shows a spinner in Add while
  * the app looks for the feed; [error] explains why the last attempt failed.
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -139,7 +139,7 @@ fun AddFeedSheet(
     initialTopic: String?,
     onAdd: (address: String, topicId: String?) -> Unit,
     onDismiss: () -> Unit,
-    /** Editing topics in the sheet (#314); null: no New topic or Edit. */
+    /** Edit topics after the chips (the Manage topics sheet); null: no Edit topics. */
     topicActions: TopicEditActions? = null,
 ) {
     var address by rememberSaveable { mutableStateOf("") }

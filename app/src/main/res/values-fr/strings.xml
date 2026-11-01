@@ -335,13 +335,18 @@
     <string name="add_choice_article_body">Enregistrez et classez un article en saisissant son adresse</string>
     <string name="settings_account_signed_out">Non connecté</string>
     <string name="settings_feeds_title">Gérer les flux</string>
-    <string name="settings_feeds_summary">Vos flux et leurs sujets, import et export OPML</string>
-    <string name="settings_topics_summary">Sujets et Instapaper</string>
     <string name="settings_list_summary">Affichage, marquer comme lu en défilant, mots masqués</string>
     <string name="section_article_view">Affichage des articles</string>
     <string name="settings_article_view_summary">Texte, articles complets, sites payants</string>
     <string name="manage_feeds_hint">Touchez un flux pour le renommer, changer son sujet ou le supprimer. Faites-en glisser un par sa poignée pour changer l’ordre.</string>
     <string name="manage_feeds_none">Aucun flux pour l’instant.</string>
-    <string name="topics_title">Sujets</string>
     <string name="manage_topics_hint">Les sujets regroupent vos flux et vos articles enregistrés. Touchez un sujet pour le renommer, changer son icône ou le supprimer ; faites-en glisser un par sa poignée pour changer l’ordre. Lui donner le nom d’un autre sujet fusionne les deux.</string>
+    <string name="topics_edit">Modifier les sujets</string>
+    <string name="section_integrations">Intégrations</string>
+    <string name="settings_integrations_summary">Instapaper, import et export OPML</string>
+    <plurals name="topics_count">
+        <item quantity="one">%d sujet</item>
+        <item quantity="many">%d sujets</item>
+        <item quantity="other">%d sujets</item>
+    </plurals>
 </resources>

@@ -108,8 +108,9 @@ describe("Saved (#119, #147)", () => {
     expect(shownFilter(lib, toReadOld)).toBe(toReadOld);
     expect(savedItems(lib, toReadOld)).toEqual([]);
     expect(keys(savedItems(lib, { ...toReadOld, tab: { kind: "archive" } }))).toEqual(["a.example/4"]);
-    expect(shownFilter(lib, filter({ tab: { kind: "archive" } })).tab).toEqual({ kind: "archive" });
-    expect(savedStates.map((s) => s.kind)).toEqual(["toread", "archive", "all"]);
+    // The Archive isn't a tab any more: one kept from before shows All.
+    expect(shownFilter(lib, filter({ tab: { kind: "archive" } })).tab).toEqual({ kind: "all" });
+    expect(savedStates.map((s) => s.kind)).toEqual(["toread", "all"]);
     // The one in Work isn't in To read; the archived one isn't either.
     expect([...toReadTagCounts(lib)]).toEqual([["ai", 1], ["news", 1], ["old", 0]]);
     // The liked video is in To read (#206).

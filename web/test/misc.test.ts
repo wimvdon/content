@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { feedLinks, findFeed, normalizeUrl, substackPublication } from "../src/lib/discovery";
 import { searchIcons, parseIcons } from "../src/lib/icons";
-import { emptyLibrary, articlesFor, setRead, removeFolder, addFolder, addFeed, newFeed, moveFeed, renameFeed, mergeFeed, reorder, unreadKeys, removeFeed, sameSelection, MAX_ARTICLES_PER_FEED, READ_MARKS_KEPT_MS, moveWithinFolder, chipTag, choosesFolder, feedTags } from "../src/lib/library";
+import { emptyLibrary, articlesFor, articlesInTab, feedTabOf, reorderFeedsIn, setRead, removeFolder, addFolder, addFeed, newFeed, moveFeed, renameFeed, mergeFeed, reorder, unreadKeys, removeFeed, sameSelection, MAX_ARTICLES_PER_FEED, READ_MARKS_KEPT_MS, moveWithinFolder, chipTag, choosesFolder, feedTags } from "../src/lib/library";
 import { importOpml, parseOpml, writeOpml } from "../src/lib/opml";
 import { FetchError } from "../src/lib/proxy";
 import { sanitizeArticle } from "../src/lib/sanitize";
@@ -63,6 +63,17 @@ describe("library", () => {
     lib = setRead(lib, new Set(["a 1"]), true);
     expect(articlesFor(lib, { kind: "all" }, true)).toEqual([]);
     expect(articlesFor(lib, { kind: "all" }, true, new Set(["a 1"])).length).toBe(1);
+    // Feeds' tabs (as on Android): Unread and Read, and kept articles stay put.
+    expect(articlesInTab(lib, { kind: "all" }, "unread")).toEqual([]);
+    expect(articlesInTab(lib, { kind: "all" }, "read").length).toBe(1);
+    expect(articlesInTab(lib, { kind: "all" }, "unread", new Set(["a 1"])).length).toBe(1);
+    expect(feedTabOf(true)).toBe("unread");
+    // Manage feeds' drag: one folder's feeds in a new order, the others keeping their places.
+    const feed = (url: string, folderId: string | null) => ({ ...newFeed(url, url), folderId });
+    const four = { ...emptyLibrary(), feeds: [feed("a", "f"), feed("b", null), feed("c", "f"), feed("d", "f")] };
+    expect(reorderFeedsIn(four, "f", ["d", "a"]).feeds.map((f) => f.url)).toEqual(["d", "b", "a", "c"]);
+    expect(reorderFeedsIn(four, "f", ["a", "c", "d"])).toBe(four);
+    expect(reorderFeedsIn(four, null, ["b"])).toBe(four);
     lib = removeFolder(lib, "f");
     expect(lib.feeds[0].folderId).toBeNull();
     expect(reorder([1, 2, 3], 0, 1)).toEqual([2, 1, 3]);

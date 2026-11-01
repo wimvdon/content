@@ -12,11 +12,11 @@ in the browser and keeps its data there (IndexedDB).
 - Full articles for feeds that send a summary or a teaser use Defuddle
   (https://github.com/kepano/defuddle), the same code the Android app runs; the reader switches between the feed's text and the full article, and keeps the
   last 100 full articles in the browser.
-- Text settings (Aa, also in Settings): font, size, spacing, background (theme, sepia, dark) and
+- Text settings (Aa, also in Settings › Article view): font, size, spacing, background (theme, sepia, dark) and
   Auto dark, as in the Android app. Settings › Article list › Mark as read on scroll.
 - Article HTML is cleaned with DOMPurify before it is shown. Video players and other embeds
   become a card that opens them in a new tab; nothing plays inside the page.
-- Keyboard: `j`/`k` next/previous article, `m` read/unread, `o` open on the website, `r` refresh.
+- Keyboard: `j`/`k` next/previous article, `m` read/unread, `o` open on the website, `r` refresh. On a touch screen, swipe the list sideways for the other tab.
 - Languages: English, Dutch, French, German, Spanish, Italian (the browser's language).
 
 ## Addresses it uses

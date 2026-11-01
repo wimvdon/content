@@ -100,10 +100,10 @@ export function tabTags(lib: Library, tab: SavedTab): string[] {
 }
 
 /**
- * The states Saved's state chip offers (#205): To read, Archive or everything. A tag stays chosen
- * when the state changes, as a folder does with Unread and All in Feeds.
+ * Saved's tabs, as on Android: To read, and All (everything saved, archived articles too; it
+ * replaced the Archive). A tag stays chosen when the tab changes, as a topic does in Feeds.
  */
-export const savedStates: SavedTab[] = [{ kind: "toread" }, { kind: "archive" }, { kind: "all" }];
+export const savedStates: SavedTab[] = [{ kind: "toread" }, { kind: "all" }];
 
 /** How many liked items are still to read, for the menu's Liked row (#206). */
 export const likedToReadCount = (lib: Library) => lib.items.filter((i) => i.liked && isIn(i, { kind: "toread" })).length;
@@ -113,10 +113,18 @@ export function toReadTagCounts(lib: Library): Map<string, number> {
   return new Map(tabTags(lib, { kind: "all" }).map((tag) => [tag, lib.items.filter((i) => isIn(i, { kind: "toread" }) && i.tags.some((x) => same(x, tag))).length]));
 }
 
-/** The filter without a folder or tags that are gone (from all of Saved, not just the state shown). */
+/**
+ * The filter without a folder or tags that are gone (from all of Saved, not just the tab shown).
+ * The Archive, no longer a tab of its own, shows All.
+ */
 export function shownFilter(lib: Library, filter: SavedFilter): SavedFilter {
   const tab = filter.tab;
-  const withTab = tab.kind === "folder" && !savedFolders(lib).some((f) => same(f, tab.name)) ? { ...filter, tab: { kind: "toread" } as SavedTab } : filter;
+  const withTab =
+    tab.kind === "folder" && !savedFolders(lib).some((f) => same(f, tab.name))
+      ? { ...filter, tab: { kind: "toread" } as SavedTab }
+      : tab.kind === "archive"
+        ? { ...filter, tab: { kind: "all" } as SavedTab }
+        : filter;
   const tags = tabTags(lib, { kind: "all" });
   const kept = withTab.tags.filter((t) => tags.some((x) => same(x, t)));
   return kept.length === withTab.tags.length ? withTab : { ...withTab, tags: kept };

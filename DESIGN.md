@@ -236,23 +236,26 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   list use SemiBold titles and a primary dot; read rows use `onSurfaceVariant`.
 - Topics: one way to group feeds and saved articles (a feed in one topic, a saved article in any
   number), each with a name, an icon and its place in the user's order, which every chip row and
-  the sheets follow. Settings › Manage topics shows them as chips in edit mode (grip, icon, name,
-  pen; **New topic** after them), and Settings › Manage feeds the feeds the same way, grouped by
-  topic under a Label Large heading with the topic's icon (a failing feed's name in the error
-  colour); tapping a feed opens the Edit feed sheet (name, address, topic chips, Remove asked in the
-  sheet, Save). Topic chips look the same everywhere (#314): a `FilterChip` with the
-  topic's icon and name, no check mark, in Feeds' and Saved's chip rows and in the sheets. The Add
-  feed and Organise sheets edit topics right in their chips: after them **New topic** and **Edit**
-  as text buttons with an icon (actions, so they don't look like topic chips); Edit gives every topic chip a drag handle (left) and a pen (right) and
-  becomes **Done**. Drag a chip among the others to reorder; tap it for the topic sheet (name, icon,
-  Remove; a name already taken joins the two). Remove topic asks under the chips, not in a dialog
-  over the sheet. The web: the same chips, with the grip, ← → on a focused chip, and the topic dialog.
-- Settings (the owner's choice, 2026-11-01, instead of the shared "one scrolling list"): a list of
-  pages, each a `SettingItem` with a Material Symbol, its title, what it holds and a chevron:
-  Account (sign in with an emailed link; signed in, who, the last sync or what went wrong, Sync now,
-  Sign out and Delete synced data in the error colour, which asks first), Manage feeds (with Move to
-  or from another reader), Manage topics (with Instapaper), Theme, Article list, Article view (with
-  Text and Sites you're signed in to); then the footer. Every page is a `SettingsScaffold` with the
+  the sheets follow. **Manage topics** (a sheet, from Settings' large button and from **Edit
+  topics** in the Add feed, Edit feed and Save/Organise sheets, over them) shows them as chips in
+  edit mode (grip, icon, name, pen; **New topic** after them), with **Done** at the top right as its
+  changes are kept at once. **Manage feeds** (a sheet from Settings' other large button) shows the
+  feeds the same way, grouped by topic under a Label Large heading with the topic's icon (a failing
+  feed's name in the error colour), then Add feed; tapping a feed opens the Edit feed sheet (name,
+  address, topic chips, Remove asked in the sheet, Save). Topic chips look the same everywhere (#314): a `FilterChip` with the
+  topic's icon and name, no check mark, in Feeds' and Saved's chip rows and in the sheets. After the
+  chips in a sheet, **Edit topics** is a text button with a pen (an action, so it doesn't look like a
+  topic chip). In Manage topics drag a chip among the others to reorder; tap it for the topic sheet
+  (name, icon, Remove; a name already taken joins the two). Remove topic asks under the chips, not
+  in a dialog over the sheet. The web: the same, with the grip, ← → on a focused chip, and dialogs.
+- Settings (the owner's choice, 2026-11-01, instead of the shared "one scrolling list"): two large
+  buttons at the top, **Manage feeds** and **Manage topics** (side by side on `surfaceContainerHigh`,
+  the icon on a `secondaryContainer` circle, the name and how many), then a list of pages, each a
+  `SettingItem` with a Material Symbol, its title, what it holds and a chevron: Account (sign in with
+  an emailed link; signed in, who, the last sync or what went wrong, Sync now, Sign out and Delete
+  synced data in the error colour, which asks first), Integrations (Move to or from another reader,
+  Instapaper), Theme, Article list, Article view (with Text and Sites you're signed in to); then the
+  footer. The web: the same in one dialog, a page replacing the list with ← Settings above it. Every page is a `SettingsScaffold` with the
   page's name in the large top app bar and its sections inside.
 - Folder icons come from the whole Material Symbols set (outlined, rounded), picked with a search
   field and a grid in the folder sheet. The app's other icons (the reading list's To read (an open
@@ -363,7 +366,8 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   cards don't swipe (#305): a long press holds their actions (Mark as read, Save, Share; in Saved
   Archive or Back to read first). The top bar shows the section and its unread count, with no ⋮ menu (refresh is pull-down; adding
   feeds lives on Manage feeds). Unread and Read are the tabs above the chip row (the chips: 16dp
-  sides, 8dp above and below, like the chips in Search). The web app still has its Unread/All chip. The top bar holds only icon buttons, as Material 3's top app bar does.
+  sides, 8dp above and below, like the chips in Search); swiping the list sideways goes to the other
+  tab (a `HorizontalPager` under the tabs; on the web a swipe on a touch screen). The web app has the same tabs. The top bar holds only icon buttons, as Material 3's top app bar does.
   In a narrow window the web app has the same Feeds | Saved navigation bar at the bottom.
   Settings is the last button of the search bar (the account's picture or a cogwheel).
   The header (the search bar, the tabs, then the chip rows) is one block that slides away
@@ -373,7 +377,7 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   Yesterday, date) in `primary` Title Small; Mark all as read is an icon-only FAB. The web
   app's sidebar and favicon use the app's logo (the launcher icon's C on its own: no circle or
   white tile).
-- Settings starts with the Account page; Manage feeds holds OPML and Manage topics Instapaper. The first screen,
+- Settings starts with Manage feeds and Manage topics, then the Account page; Integrations holds OPML and Instapaper. The first screen,
   signed out, is a welcome with the email sign-in first. See docs/architecture.md, "Navigation and
   settings: where everything lives".
 

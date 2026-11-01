@@ -5,7 +5,7 @@
  * sync file keeps folders and tags as they were; these rules keep the two in step.
  */
 import { changeItem, cleanTags, feedArticleFor, renameTag, type Item } from "./items";
-import { feedFoldersToTags, feedTags, removeFolder, type Folder, type Library } from "./library";
+import { feedFoldersToTags, feedTags, inFeedTab, removeFolder, type FeedTab, type Folder, type Library } from "./library";
 
 const key = (name: string) => name.trim().toLowerCase();
 
@@ -160,14 +160,14 @@ export function mergeTopic(lib: Library, fromId: string, intoId: string): Librar
 
 
 /**
- * Feeds' topic chips: the topics with articles in the state shown (unread ones with Unread), in the
- * user's order; one with nothing to show is left out, except the one chosen. Like Android's feedChips.
+ * Feeds' topic chips: the topics with articles in the tab shown (unread ones in Unread, read ones
+ * in Read), in the user's order; one with nothing to show is left out, except the one chosen. Like Android's feedChips.
  */
-export function feedChips(lib: Library, unreadOnly: boolean, chosen: string | null): string[] {
+export function feedChips(lib: Library, tab: FeedTab, chosen: string | null): string[] {
   const byUrl = new Map(lib.feeds.map((f) => [f.url, f]));
   return feedTags(lib).filter(
     (tag) =>
       (chosen !== null && key(tag) === key(chosen)) ||
-      lib.articles.some((a) => (!unreadOnly || !a.read) && (byUrl.get(a.feedUrl)?.tags ?? []).some((t) => key(t) === key(tag))),
+      lib.articles.some((a) => inFeedTab(a, tab) && (byUrl.get(a.feedUrl)?.tags ?? []).some((t) => key(t) === key(tag))),
   );
 }

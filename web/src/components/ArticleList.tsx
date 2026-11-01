@@ -1,11 +1,10 @@
-import { Plus, Archive, ArchiveRestore, ArrowLeft, Bell, BookmarkPlus, BookOpen, CheckCheck, ChevronDown, Circle, CircleCheck, ExternalLink, Folder as FolderGlyph, Heart, Highlighter, Link2, Menu, Newspaper, Quote, RefreshCw, Rss, Search, Share2, StickyNote, Tag as TagIcon, Trash2, X, type LucideIcon } from "lucide-react";
+import { Plus, Archive, ArchiveRestore, ArrowLeft, Bell, BookmarkPlus, BookOpen, CheckCheck, Circle, CircleCheck, ExternalLink, Folder as FolderGlyph, Heart, Highlighter, Link2, Menu, Newspaper, Quote, RefreshCw, Rss, Search, Share2, StickyNote, Tag as TagIcon, Trash2, X, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useEscape } from "./ui/useEscape";
 import { RemoveDialog } from "./SavedActions";
 import { app, useApp } from "@/lib/app";
 import { snippet } from "@/lib/html";
 import { dayLabel, plural, t } from "@/lib/i18n";
-import { articleKey, articlesFor, chipTag, sortTime, unreadKeys, type Article, type Feed } from "@/lib/library";
+import { articleKey, articlesInTab, chipTag, feedTabOf, sortTime, unreadKeys, type Article, type Feed } from "@/lib/library";
 import { chipTags, itemArticle, noteOf, sameTab, savedItems, savedStates, showsLiked, showsNotes, sourceOf, type NoteContent, type SavedFilter } from "@/lib/saved";
 import { sharedByLabel } from "@/lib/sharing";
 import { inboxItems, inboxUnread } from "@/lib/inbox";
@@ -28,6 +27,8 @@ type ListProps = {
   onOpen: (a: Article) => void;
   onMenu: () => void;
   onAddFeed: () => void;
+  /** The search bar's +, the same in every place: Subscribe to feed or Save article. */
+  onAdd: () => void;
   onImport: () => void;
   onUndo: (keys: Set<string>) => void;
   /** Opens Search (the title bar's button, #183). */
@@ -40,25 +41,25 @@ type ListProps = {
 export function ArticleList(props: ListProps) {
   const { selection, inboxOpen } = useApp();
   return inboxOpen ? (
-    <InboxArticles openKey={props.openKey} onOpen={props.onOpen} onMessage={props.onMessage} />
+    <InboxArticles openKey={props.openKey} onOpen={props.onOpen} onMessage={props.onMessage} onAdd={props.onAdd} />
   ) : selection.kind === "saved" ? (
-    <SavedArticles openKey={props.openKey} onOpen={props.onOpen} onMenu={props.onMenu} onSearch={props.onSearch} onMessage={props.onMessage} />
+    <SavedArticles openKey={props.openKey} onOpen={props.onOpen} onMenu={props.onMenu} onSearch={props.onSearch} onMessage={props.onMessage} onAdd={props.onAdd} />
   ) : (
     <FeedArticles {...props} />
   );
 }
 
-function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, onSearch, onMessage }: ListProps) {
+function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onAdd, onImport, onUndo, onSearch, onMessage }: ListProps) {
   const { library, selection, settings, readThisVisit, refreshing, loaded, problems, account } = useApp();
   const [share, shareDialog] = useShare((text) => onMessage(text));
-  const articles = useMemo(
-    () => articlesFor(library, selection, settings.unreadOnly, readThisVisit),
-    [library, selection, settings.unreadOnly, readThisVisit],
-  );
+  // Feeds' tabs, as on Android: Unread and Read.
+  const tab = feedTabOf(settings.unreadOnly);
+  const swipe = useSwipe((next) => app.setUnreadOnly(next === 0), tab === "unread" ? 0 : 1, 2);
+  const articles = useMemo(() => articlesInTab(library, selection, tab, readThisVisit), [library, selection, tab, readThisVisit]);
   const feeds = useMemo(() => new Map(library.feeds.map((f) => [f.url, f])), [library.feeds]);
   const unread = unreadKeys(library, selection).size;
   // Only topics with something in the state shown (and the one chosen), as on Android.
-  const tags = useMemo(() => feedChips(library, settings.unreadOnly, chipTag(library, selection)), [library, settings.unreadOnly, selection]);
+  const tags = useMemo(() => feedChips(library, tab, chipTag(library, selection)), [library, tab, selection]);
   const oneFeed = selection.kind === "feed" ? (feeds.get(selection.feedUrl)?.title ?? null) : null;
   const title =
     selection.kind === "folder"
@@ -101,8 +102,8 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, on
   return (
     <section className="flex h-full min-w-0 flex-col" aria-label={title}>
       <SearchBar onMenu={onMenu} onSearch={onSearch}>
-        {/* + adds what the place holds, as on Android (#307): here a feed. */}
-        <Button variant="ghost" size="icon" onClick={onAddFeed} aria-label={t("addFeed")} title={t("addFeed")}>
+        {/* + is the same in every place, as on Android: it asks Subscribe to feed or Save article. */}
+        <Button variant="ghost" size="icon" onClick={onAdd} aria-label={t("addTitle")} title={t("addTitle")}>
           <Plus />
         </Button>
         {library.feeds.length > 0 ? (
@@ -110,7 +111,7 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, on
             <Button variant="ghost" size="icon" onClick={() => void app.refresh()} disabled={refreshing} aria-label={t("refresh")} title={t("refresh") + " (r)"}>
               <RefreshCw className={cn(refreshing && "animate-spin")} />
             </Button>
-            <Button variant="ghost" size="icon" disabled={unread === 0} onClick={() => onUndo(app.markAllRead())} aria-label={t("markAllRead")} title={t("markAllRead")}>
+            <Button variant="ghost" size="icon" disabled={unread === 0 || tab === "read"} onClick={() => onUndo(app.markAllRead())} aria-label={t("markAllRead")} title={t("markAllRead")}>
               <CheckCheck />
             </Button>
           </>
@@ -118,9 +119,9 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, on
       </SearchBar>
       {library.feeds.length > 0 ? (
         <>
+          <Tabs labels={[t("unread"), t("readTab")]} selected={tab === "unread" ? 0 : 1} onSelect={(i) => app.setUnreadOnly(i === 0)} />
           <TagChips
             icons={topicIcons(library)}
-            state={<StateChip options={[t("unread"), t("all")]} selected={settings.unreadOnly ? 0 : 1} onSelect={(i) => app.setUnreadOnly(i === 0)} filtering={settings.unreadOnly} />}
             // One feed chosen by its name (#185): its chip comes first, chosen.
             tags={oneFeed ? [oneFeed, ...tags] : tags}
             // A folder picked in the menu lights up its chip: the folder's name is its feeds' tag.
@@ -133,7 +134,7 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, on
           {problems.size > 0 ? <p className="px-4 pb-1 text-xs text-destructive">{plural("feedsFailed", problems.size)}</p> : null}
         </>
       ) : null}
-      <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-6" role="feed" aria-busy={refreshing} onScroll={onScroll} ref={listRef}>
+      <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-6" role="feed" aria-busy={refreshing} onScroll={onScroll} ref={listRef} {...swipe}>
         {!loaded || (refreshing && library.articles.length === 0) ? (
           <Skeletons />
         ) : library.feeds.length === 0 && !account ? (
@@ -159,18 +160,15 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, on
           </Empty>
         ) : articles.length === 0 ? (
           <Empty
-            icon={settings.unreadOnly ? CheckCheck : Newspaper}
-            title={settings.unreadOnly ? t("caughtUpTitle") : t("noArticlesTitle")}
+            icon={library.articles.length === 0 || tab === "read" ? Newspaper : CheckCheck}
+            title={library.articles.length === 0 ? t("noArticlesTitle") : tab === "unread" ? t("caughtUpTitle") : t("noReadTitle")}
           >
-            {settings.unreadOnly ? (
-              <Button onClick={() => app.setUnreadOnly(false)}>
-                {t("showAll")}
+            {/* Look for new articles (#251), as on Android; not in Read: new ones arrive unread. */}
+            {tab === "unread" || library.articles.length === 0 ? (
+              <Button variant="outline" onClick={() => void app.refresh()} disabled={refreshing}>
+                {t("refresh")}
               </Button>
             ) : null}
-            {/* Look for new articles (#251), as on Android. */}
-            <Button variant="outline" onClick={() => void app.refresh()} disabled={refreshing}>
-              {t("refresh")}
-            </Button>
           </Empty>
         ) : (
           days.map(([day, list]) => (
@@ -224,12 +222,14 @@ function SavedArticles({
   onMenu,
   onSearch,
   onMessage,
+  onAdd,
 }: {
   openKey: string | null;
   onOpen: (a: Article) => void;
   onMenu: () => void;
   onSearch: () => void;
   onMessage: ListProps["onMessage"];
+  onAdd: () => void;
 }) {
   const { library, savedFilter: filter, loaded } = useApp();
   const [share, shareDialog] = useShare((text) => onMessage(text));
@@ -261,24 +261,20 @@ function SavedArticles({
   const tags = useMemo(() => chipTags(library, filter), [library, filter]);
   const set = (change: Partial<SavedFilter>) => app.showSaved({ ...filter, ...change });
   const plain = !filter.likedOnly && filter.tags.length === 0;
+  // Saved's tabs, as on Android: To read and All.
+  const tabIndex = Math.max(0, savedStates.findIndex((s) => sameTab(s, filter.tab)));
+  const swipe = useSwipe((i) => set({ tab: savedStates[i] }), tabIndex, savedStates.length);
   return (
     <section className="flex h-full min-w-0 flex-col" aria-label={t("saved")}>
       <SearchBar onMenu={onMenu} onSearch={onSearch}>
-        {/* + adds what the place holds, as on Android (#307): here a link. */}
-        <Button variant="ghost" size="icon" onClick={app.addLink} aria-label={t("addLink")} title={t("addLink")}>
+        {/* + is the same in every place, as on Android: it asks Subscribe to feed or Save article. */}
+        <Button variant="ghost" size="icon" onClick={onAdd} aria-label={t("addTitle")} title={t("addTitle")}>
           <Plus />
         </Button>
       </SearchBar>
+      <Tabs labels={[t("toRead"), t("all")]} selected={tabIndex} onSelect={(i) => set({ tab: savedStates[i] })} />
       <TagChips
         icons={topicIcons(library)}
-        state={
-          <StateChip
-            options={[t("toRead"), t("archiveTab"), t("all")]}
-            selected={Math.max(0, savedStates.findIndex((s) => sameTab(s, filter.tab)))}
-            onSelect={(i) => set({ tab: savedStates[i] })}
-            filtering={filter.tab.kind !== "all"}
-          />
-        }
         // Liked is a group like a tag (#206): one at a time, before the tags.
         liked={
           showsLiked(library, filter) ? (
@@ -302,7 +298,7 @@ function SavedArticles({
         filtered={!plain}
         onClear={() => set({ likedOnly: false, tags: [] })}
       />
-      <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-6" role="feed">
+      <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-6" role="feed" {...swipe}>
         {!loaded ? (
           <Skeletons />
         ) : items.length === 0 ? (
@@ -366,7 +362,7 @@ function SavedArticles({
  * feed's articles with who sent it in place of the feed. Unread ones are bold with a dot; opening one
  * reads it. Right-click or press and hold: read or unread, Save, Share, Remove from inbox.
  */
-function InboxArticles({ openKey, onOpen, onMessage }: { openKey: string | null; onOpen: (a: Article) => void; onMessage: ListProps["onMessage"] }) {
+function InboxArticles({ openKey, onOpen, onMessage, onAdd }: { openKey: string | null; onOpen: (a: Article) => void; onMessage: ListProps["onMessage"]; onAdd: () => void }) {
   const { library, settings, loaded } = useApp();
   const items = useMemo(() => inboxItems(library), [library]);
   const [share, shareDialog] = useShare((text) => onMessage(text));
@@ -376,7 +372,11 @@ function InboxArticles({ openKey, onOpen, onMessage }: { openKey: string | null;
         <Button variant="ghost" size="icon" onClick={() => app.showInbox(false)} aria-label={t("back")}>
           <ArrowLeft />
         </Button>
-        <h1 className="text-lg font-medium">{t("inboxTitle")}</h1>
+        <h1 className="min-w-0 flex-1 text-lg font-medium">{t("inboxTitle")}</h1>
+        {/* + is the same in every place, as on Android. */}
+        <Button variant="ghost" size="icon" onClick={onAdd} aria-label={t("addTitle")} title={t("addTitle")}>
+          <Plus />
+        </Button>
       </header>
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-6" role="feed">
         {!loaded ? (
@@ -480,61 +480,59 @@ function SearchBar({ onMenu, onSearch, children }: { onMenu: () => void; onSearc
 }
 
 /**
- * The state chip at the start of the chip row (#205): what of the place is shown, Unread or All in
- * Feeds, To read, Archive or All in Saved. A menu picks another; it is lit while it leaves things out.
+ * The tabs under the search bar, as on Android: the views of the place shown, Unread and Read in
+ * Feeds, To read and All in Saved. The chips below them narrow the view to a topic.
  */
-function StateChip({ options, selected, onSelect, filtering }: { options: string[]; selected: number; onSelect: (index: number) => void; filtering: boolean }) {
-  const [at, setAt] = useState<{ top: number; left: number } | null>(null);
-  useEscape(at !== null, () => setAt(null));
+function Tabs({ labels, selected, onSelect }: { labels: string[]; selected: number; onSelect: (index: number) => void }) {
   return (
-    <>
-      <button
-        type="button"
-        aria-haspopup="true"
-        aria-expanded={at !== null}
-        onClick={(e) => {
-          // The chip row scrolls sideways, so the menu is placed on the page, under the chip.
-          const r = e.currentTarget.getBoundingClientRect();
-          setAt({ top: r.bottom + 4, left: r.left });
-        }}
-        className={cn(
-          "inline-flex h-8 shrink-0 cursor-pointer items-center gap-1 rounded-lg border pr-2 pl-3 text-sm",
-          filtering ? "border-transparent bg-accent text-accent-foreground" : "hover:bg-muted",
-        )}
-      >
-        {options[selected]}
-        <ChevronDown className="size-4" />
-      </button>
-      {at ? (
-        <>
-          <div className="fixed inset-0 z-20" onClick={() => setAt(null)} aria-hidden="true" />
-          <div role="radiogroup" aria-label={t("filter")} style={{ top: at.top, left: at.left }} className="fixed z-30 w-44 rounded-xl border bg-card py-1 shadow-lg">
-            {options.map((label, i) => (
-              <button
-                key={label}
-                type="button"
-                role="radio"
-                aria-checked={i === selected}
-                onClick={() => {
-                  setAt(null);
-                  if (i !== selected) onSelect(i);
-                }}
-                className="flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left text-sm hover:bg-muted"
-              >
-                <span className={cn("size-4 rounded-full border-2", i === selected ? "border-primary bg-primary shadow-[inset_0_0_0_2px_var(--color-card)]" : "border-muted-foreground")} />
-                <span className="flex-1">{label}</span>
-              </button>
-            ))}
-          </div>
-        </>
-      ) : null}
-    </>
+    <div role="tablist" className="flex shrink-0 border-b px-2">
+      {labels.map((label, i) => (
+        <button
+          key={label}
+          type="button"
+          role="tab"
+          aria-selected={i === selected}
+          onClick={() => i !== selected && onSelect(i)}
+          className={cn(
+            "relative h-11 flex-1 cursor-pointer text-sm font-medium hover:bg-muted/60",
+            i === selected ? "text-primary after:absolute after:inset-x-6 after:bottom-0 after:h-[3px] after:rounded-t-full after:bg-primary" : "text-muted-foreground",
+          )}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
   );
 }
 
 /**
- * The chip row under the search bar: the state chip, then the groups as chips, one at a time
- * (folders in Feeds, tags in Saved). While a group or another filter is on, an X at the end clears it.
+ * A sideways swipe on a touch screen goes to the next or previous tab, as on Android: handlers for
+ * the list. Only a mostly sideways swipe of at least 60px counts, so scrolling stays scrolling.
+ */
+function useSwipe(onSelect: (index: number) => void, selected: number, count: number) {
+  const start = useRef<{ x: number; y: number } | null>(null);
+  return {
+    onTouchStart: (e: React.TouchEvent) => {
+      const touch = e.touches[0];
+      start.current = touch ? { x: touch.clientX, y: touch.clientY } : null;
+    },
+    onTouchEnd: (e: React.TouchEvent) => {
+      const from = start.current;
+      const touch = e.changedTouches[0];
+      start.current = null;
+      if (!from || !touch) return;
+      const dx = touch.clientX - from.x;
+      const dy = touch.clientY - from.y;
+      if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+      const next = selected + (dx < 0 ? 1 : -1);
+      if (next >= 0 && next < count) onSelect(next);
+    },
+  };
+}
+
+/**
+ * The chip row under the tabs: the groups as chips, one at a time (topics in Feeds, Liked and topics
+ * in Saved). While a group or another filter is on, an X at the end clears it. Nothing to show: no row.
  */
 function TagChips({
   icons,
@@ -548,7 +546,8 @@ function TagChips({
 }: {
   /** The topics' icons by name (lower case), the same in Feeds and Saved (#314). */
   icons: Map<string, string>;
-  state: React.ReactNode;
+  /** Chips before the groups, set apart by a divider. */
+  state?: React.ReactNode;
   /** Saved's Liked chip (#206), the first group. */
   liked?: React.ReactNode;
   tags: string[];
@@ -557,10 +556,11 @@ function TagChips({
   filtered: boolean;
   onClear: () => void;
 }) {
+  if (!state && !liked && tags.length === 0 && !filtered) return null;
   return (
     <div role="group" aria-label={t("filter")} className="flex shrink-0 items-center gap-2 overflow-x-auto px-4 py-2 [scrollbar-width:none]">
       {state}
-      {tags.length > 0 || liked ? <span className="h-6 w-px shrink-0 bg-border" aria-hidden="true" /> : null}
+      {state && (tags.length > 0 || liked) ? <span className="h-6 w-px shrink-0 bg-border" aria-hidden="true" /> : null}
       {liked}
       {tags.map((tag) => {
         const on = selected !== null && tag.toLowerCase() === selected.toLowerCase();

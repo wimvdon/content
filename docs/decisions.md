@@ -11,9 +11,29 @@ compile the app's code and resources. CI still builds the debug and release APKs
 problem still turns the pull request red. Rejected: no local checks at all (every test or lint
 failure would then cost a CI round trip).
 
+## 2026-11-01: Manage sheets, Integrations, Edit topics, swiping tabs; the web the same
+
+Follow-up the owner asked for after #320, which had left the web app behind (CLAUDE.md asks for
+parity; that was a miss):
+- **Manage feeds and Manage topics are sheets** (dialogs on the web), opened from **two large
+  buttons at the top of Settings**, so other places can open them too. Settings' pages are now
+  Account, **Integrations** (OPML and Instapaper, which are ways in and out rather than reading
+  settings or topics), Theme, Article list and Article view.
+- **Edit topics instead of New topic and Edit in the sheets**: the Add feed, Edit feed and
+  Save/Organise sheets end their topic chips with one **Edit topics** button that opens Manage topics
+  over the sheet; Done or Back returns to the sheet as it was. One place edits topics, and the
+  sheets stay about the feed or article. The sheet still follows a topic renamed or removed there.
+- **Swipe between tabs** (Android: a `HorizontalPager` under the tabs, both tabs' lists computed so
+  the next one slides in; the web: a sideways touch swipe on the list).
+- **The web app now matches** #320 and this: the tabs (Unread, Read; To read, All), the + choice,
+  Search's one chip row with the Feeds menu, Settings with the two buttons and pages, Manage feeds and
+  Manage topics as chip dialogs, the Edit feed dialog with topic chips, Edit topics in the sheets.
+  New: `reorderFeedsIn` (dragging feeds, as on Android), `articlesInTab`, `searchTopics`,
+  `menuFeeds`, `toggleFeed`, `withTopic`, all tested.
+
 ## 2026-11-01: Tabs, one +, one Search row, Settings as pages
 
-At the owner's request (Android; the web app keeps its controls for now):
+At the owner's request (Android; the web app followed in the next entry):
 - **Tabs replace the state chip** (#205): Feeds has **Unread** and **Read** (only the articles
   already read, `FeedTab`; All is gone, as it mixed the two), Saved **To read** and **All** (All
   replaced the Archive, which mixed nothing but hid what is still to read). Material's primary tabs:
