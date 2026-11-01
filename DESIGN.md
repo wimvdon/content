@@ -283,7 +283,8 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   and **All**; Saved: **To read** and **All**); one row of chips under it says which group: the topics in Feeds, Liked (heart) and
   the topics in Saved, in the topics' order, each only when it has something in the tab shown (the
   chosen one stays). Group chips have no check mark and chosen ones keep their weight, so a chip
-  never changes width and the row never moves (#208). There is no X (one group at a time: tapping
+  never changes width and the row never moves (#208). There is no X (Material 3's filter chips: an X is an input chip's "remove"; the web dropped
+  its X too, 2026-11-01; one group at a time: tapping
   the chosen one again lets go) and no manage icon at the end (#307). In Feeds the feeds without a
   topic follow the topics in the same row, after a divider, as filter chips with their site icon
   (16dp). While a topic (or one of its feeds) is chosen, the **same row** shows only that topic (lit),

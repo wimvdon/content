@@ -1,4 +1,4 @@
-import { Plus, Archive, ArchiveRestore, Bell, BookmarkPlus, BookOpen, CheckCheck, Circle, CircleCheck, ExternalLink, Folder as FolderGlyph, Heart, Highlighter, Link2, Newspaper, Quote, RefreshCw, Rss, Search, Settings as SettingsIcon, Share2, StickyNote, Tag as TagIcon, Trash2, X, type LucideIcon } from "lucide-react";
+import { Plus, Archive, ArchiveRestore, Bell, BookmarkPlus, BookOpen, CheckCheck, Circle, CircleCheck, ExternalLink, Folder as FolderGlyph, Heart, Highlighter, Link2, Newspaper, Quote, RefreshCw, Rss, Search, Settings as SettingsIcon, Share2, StickyNote, Tag as TagIcon, Trash2, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { headerHidden } from "@/lib/header";
 import { RemoveDialog } from "./SavedActions";
@@ -125,9 +125,6 @@ function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport,
                   ? feedChipList(row.feeds, row.chosenFeed, (f, on) => app.select(on ? { kind: "tag", tag: row.chosenTopic! } : { kind: "feed", feedUrl: f.url }))
                   : feedChipList(row.loose, row.chosenFeed, (f, on) => app.select(on ? { kind: "all" } : { kind: "feed", feedUrl: f.url }))
               }
-              // A feed or folder chosen elsewhere is a filter too: the X goes back to every feed.
-              filtered={selection.kind !== "all"}
-              onClear={() => app.select({ kind: "all" })}
             />
           ) : null}
           {problems.size > 0 ? <p className="px-4 pb-1 text-xs text-destructive">{plural("feedsFailed", problems.size)}</p> : null}
@@ -306,8 +303,6 @@ function SavedArticles({
         tags={tags}
         selected={filter.tags[0] ?? null}
         onSelect={(tag) => set({ tags: tag === null ? [] : [tag], likedOnly: false })}
-        filtered={!plain}
-        onClear={() => set({ likedOnly: false, tags: [] })}
       />
       </CollapsingHeader>
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-6" role="feed" onScroll={header.onScroll}>
@@ -589,8 +584,9 @@ function useDragScroll() {
 
 /**
  * The chip row under the view switch on a phone-sized window: the groups as chips, one at a time
- * (topics in Feeds, Liked and topics in Saved). While a group or another filter is on, an X at the
- * end clears it. Nothing to show: no row. It scrolls sideways with a finger, a mouse wheel, or by
+ * (topics and feeds in Feeds, Liked and topics in Saved). Tapping the chosen chip again lets go, so
+ * there is no X (Material 3's filter chips; an X is an input chip's "remove", and Android dropped it
+ * in #307). Nothing to show: no row. It scrolls sideways with a finger, a mouse wheel, or by
  * dragging it with the mouse (a drag doesn't click the chip it started on). A wide window has these
  * in the sidebar instead.
  */
@@ -602,8 +598,6 @@ function TagChips({
   tags,
   selected,
   onSelect,
-  filtered,
-  onClear,
 }: {
   /** The topics' icons by name (lower case), the same in Feeds and Saved (#314). */
   icons: Map<string, string>;
@@ -616,11 +610,9 @@ function TagChips({
   tags: string[];
   selected: string | null;
   onSelect: (tag: string | null) => void;
-  filtered: boolean;
-  onClear: () => void;
 }) {
   const drag = useDragScroll();
-  if (!state && !liked && tags.length === 0 && !filtered) return null;
+  if (!state && !liked && tags.length === 0 && !after) return null;
   return (
     <div
       role="group"
@@ -649,11 +641,6 @@ function TagChips({
           <span className="h-6 w-px shrink-0 bg-border" aria-hidden="true" />
           {after}
         </>
-      ) : null}
-      {filtered ? (
-        <Button variant="ghost" size="icon" onClick={onClear} aria-label={t("clear")} title={t("clear")}>
-          <X />
-        </Button>
       ) : null}
     </div>
   );
