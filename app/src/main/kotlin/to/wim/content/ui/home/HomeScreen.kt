@@ -185,7 +185,6 @@ class HomeActions(
     /** Opens Organise for a saved item (a card's menu in Saved). */
     val onFileItem: (Item) -> Unit = {},
     /** Long-press › Remove from Saved (#263), with Undo. */
-    val onRemoveItem: (Item) -> Unit = {},
     /** Opens the search through every feed's articles and Saved. */
     val onOpenSearch: () -> Unit = {},
 )
@@ -364,7 +363,6 @@ fun HomeScreen(
                             onArchive = actions.onArchiveItem,
                             onFile = actions.onFileItem,
                             onShare = actions.onShareItem,
-                            onRemove = actions.onRemoveItem,
                             onClearFilters = { actions.onSavedFilter(reading.filter.copy(likedOnly = false, tags = emptySet())) },
                         )
                     }

@@ -59,6 +59,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import to.wim.content.R
+import to.wim.content.ui.reader.ConfirmRemoveDialog
 import to.wim.content.ui.reader.ContentSheet
 import to.wim.content.data.Feed
 import to.wim.content.data.Folder
@@ -80,9 +81,10 @@ internal fun FolderSheet(
     folder: Folder?,
     onSave: (title: String, icon: String) -> Unit,
     onDismiss: () -> Unit,
-    /** Shown as Remove when editing an existing folder. */
+    /** Remove (the header's trash can) when editing an existing topic; called once confirmed. */
     onRemove: (() -> Unit)? = null,
 ) {
+    var removing by rememberSaveable { mutableStateOf(false) }
     val catalog = LocalContext.current.rssReaderApp.iconCatalog
     var title by rememberSaveable { mutableStateOf(folder?.title.orEmpty()) }
     var icon by rememberSaveable { mutableStateOf(folder?.icon ?: IconCatalog.DEFAULT) }
@@ -90,7 +92,11 @@ internal fun FolderSheet(
     val results = remember(query) { catalog.search(query) }
     ContentSheet(onDismiss = onDismiss) {
         Column(Modifier.padding(start = 24.dp, end = 24.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            SheetHeader(stringResource(if (folder == null) R.string.folder_new else R.string.folder_edit), onCancel = onDismiss)
+            SheetHeader(
+                stringResource(if (folder == null) R.string.folder_new else R.string.folder_edit),
+                onCancel = onDismiss,
+                onDelete = if (folder != null && onRemove != null) ({ removing = true }) else null,
+            )
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 // The chosen icon, next to the title it goes with.
                 Box(
@@ -150,22 +156,21 @@ internal fun FolderSheet(
                     }
                 }
             }
-            // Cancel at the bottom left, with Remove next to it, away from Save.
-            SheetActions(
-                onCancel = onDismiss,
-                leading = {
-                    if (onRemove != null) {
-                        TextButton(onClick = onRemove) {
-                            Text(stringResource(R.string.action_remove), color = MaterialTheme.colorScheme.error)
-                        }
-                    }
-                },
-            ) {
+            // Cancel at the bottom left, Save at the right; Remove is the header's trash can.
+            SheetActions(onCancel = onDismiss) {
                 Button(onClick = { onSave(title.trim(), icon) }, enabled = title.isNotBlank()) {
                     Text(stringResource(R.string.action_save))
                 }
             }
         }
+    }
+    if (removing && folder != null && onRemove != null) {
+        ConfirmRemoveDialog(
+            title = stringResource(R.string.folder_remove_title),
+            text = stringResource(R.string.folder_remove_body, folder.title),
+            onRemove = onRemove,
+            onDismiss = { removing = false },
+        )
     }
 }
 
@@ -174,8 +179,8 @@ private val ICON_GRID_HEIGHT = 240.dp
 /**
  * Edit a feed, as a sheet like Add feed: its name (blank brings back the feed's own title), its
  * address, why its last download failed (if it did), its topic as chips (No topic, then every
- * topic, with Edit topics as in Add feed), Remove at the bottom left (asking first, in the
- * sheet) next to Cancel, and Save at the right, as in every sheet.
+ * topic, with Edit topics as in Add feed), Remove as a trash can at the top right (asking first,
+ * in a dialog), Cancel at the bottom left and Save at the right, as in every sheet.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -208,7 +213,7 @@ internal fun FeedSheet(
                 .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            SheetHeader(stringResource(R.string.feed_edit), onCancel = onDismiss)
+            SheetHeader(stringResource(R.string.feed_edit), onCancel = onDismiss, onDelete = { removing = true })
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 FeedIcon(feed, FeedIconSize.Large)
                 OutlinedTextField(
@@ -241,33 +246,18 @@ internal fun FeedSheet(
                 onCreated = { made = it },
                 leading = { TopicChip(stringResource(R.string.folder_none), icon = null, selected = chosen == null, enabled = true) { topicId = null } },
             )
-            if (removing) {
-                // Remove feed? asks here, in the sheet, instead of a dialog over it.
-                Column(Modifier.padding(top = 4.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(stringResource(R.string.feeds_remove_title), style = MaterialTheme.typography.titleMedium)
-                    Text(stringResource(R.string.feeds_remove_body, feed.title), style = MaterialTheme.typography.bodyMedium)
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Spacer(Modifier.weight(1f))
-                        TextButton(onClick = { removing = false }) { Text(stringResource(R.string.action_cancel)) }
-                        TextButton(onClick = onRemove, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) {
-                            Text(stringResource(R.string.action_remove))
-                        }
-                    }
-                }
-            } else {
-                // Cancel at the bottom left, with Remove next to it, away from Save.
-                SheetActions(
-                    onCancel = onDismiss,
-                    leading = {
-                        TextButton(onClick = { removing = true }) {
-                            Text(stringResource(R.string.action_remove), color = MaterialTheme.colorScheme.error)
-                        }
-                    },
-                ) {
-                    Button(onClick = { onSave(title, chosen) }) { Text(stringResource(R.string.action_save)) }
-                }
+            SheetActions(onCancel = onDismiss) {
+                Button(onClick = { onSave(title, chosen) }) { Text(stringResource(R.string.action_save)) }
             }
         }
+    }
+    if (removing) {
+        ConfirmRemoveDialog(
+            title = stringResource(R.string.feeds_remove_title),
+            text = stringResource(R.string.feeds_remove_body, feed.title),
+            onRemove = onRemove,
+            onDismiss = { removing = false },
+        )
     }
 }
 

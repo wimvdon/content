@@ -1,4 +1,4 @@
-import { Archive, BookOpen, Heart, Trash2 } from "lucide-react";
+import { Archive, BookOpen, Heart } from "lucide-react";
 import { useState } from "react";
 import { app, useApp } from "@/lib/app";
 import { normalizeUrl } from "@/lib/discovery";
@@ -14,6 +14,7 @@ import { cn } from "./ui/cn";
 import { Dialog } from "./ui/dialog";
 import { TopicChips, chip, chipOn } from "./TopicChips";
 import { Input } from "./ui/input";
+import { RemoveButton } from "./ConfirmRemove";
 
 /**
  * The one sheet for an article (#143, #304, #305), as on Android: Add link (nothing is saved until
@@ -82,22 +83,13 @@ function Sheet({
       open
       onOpenChange={(o) => !o && cancel()}
       title={title}
+      // Organising a saved article: Remove as a trash can at the top right, away from Cancel and
+      // Save; it asks first. Just saved, Cancel already takes the save back.
+      headerAction={kind === "organise" && savedItem ? <RemoveButton onClick={() => setRemoving(true)} /> : undefined}
       closeLabel={t("close")}
       cancel={t("cancel")}
       footer={
         <>
-          {/* Organising a saved article: Remove next to Cancel, away from Save; it asks first. Just
-              saved, Cancel already takes the save back. */}
-          {kind === "organise" && savedItem ? (
-            <Button
-              variant="destructive"
-              className="mr-auto"
-              onClick={() => setRemoving(true)}
-            >
-              <Trash2 />
-              {t("remove")}
-            </Button>
-          ) : null}
           {/* Save, with the icon of where it goes: To read's open book, the Archive's box. */}
           <Button onClick={() => save(choice)} disabled={!canConfirm(choice, saved || link !== null)}>
             {choice.keep ? isArchived(choice) ? <Archive /> : <BookOpen /> : null}

@@ -20,6 +20,13 @@ type Props = {
   done?: string;
   /** The back arrow's label, when this dialog opens as a page of another. */
   backLabel?: string;
+  /** A button at the right end of the title row: Remove's trash can, away from Cancel and Save. */
+  headerAction?: ReactNode;
+  /**
+   * A confirmation (Remove …?): a small dialog over the one it is asked from, never a page of it, so
+   * it reads as a question, as on Android.
+   */
+  popup?: boolean;
 };
 
 /** A page open in a dialog: what Back does (the same as closing it). */
@@ -38,10 +45,10 @@ const PageHost = createContext<Host | null>(null);
  */
 export function Dialog(props: Props) {
   const host = useContext(PageHost);
-  return host ? <DialogPage host={host} {...props} /> : <RootDialog {...props} />;
+  return host && !props.popup ? <DialogPage host={host} {...props} /> : <RootDialog {...props} />;
 }
 
-function RootDialog({ open, onOpenChange, title, description, children, footer, closeLabel, wide, cancel, done }: Props) {
+function RootDialog({ open, onOpenChange, title, description, children, footer, closeLabel, wide, cancel, done, headerAction }: Props) {
   const [pages, setPages] = useState<Page[]>([]);
   const [slot, setSlot] = useState<HTMLDivElement | null>(null);
   const top = pages.at(-1) ?? null;
@@ -72,6 +79,7 @@ function RootDialog({ open, onOpenChange, title, description, children, footer, 
                   <D.Title className="text-lg font-semibold">{title}</D.Title>
                   {description ? <D.Description className="mt-1 text-sm text-muted-foreground">{description}</D.Description> : <D.Description className="sr-only">{title}</D.Description>}
                 </div>
+                {headerAction ? <div className="-mt-1 -mr-2 shrink-0">{headerAction}</div> : null}
                 {cancel || done ? null : (
                   <D.Close className="-mr-2 rounded-full p-2 hover:bg-muted" aria-label={closeLabel}>
                     <X className="size-4" />
@@ -101,7 +109,7 @@ function RootDialog({ open, onOpenChange, title, description, children, footer, 
   );
 }
 
-function DialogPage({ host, open, onOpenChange, title, description, children, footer, backLabel }: Props & { host: Host }) {
+function DialogPage({ host, open, onOpenChange, title, description, children, footer, backLabel, headerAction }: Props & { host: Host }) {
   const id = useId();
   const back = useRef(() => onOpenChange(false));
   useLayoutEffect(() => {
@@ -132,6 +140,7 @@ function DialogPage({ host, open, onOpenChange, title, description, children, fo
           <h2 className="text-lg font-semibold">{title}</h2>
           {description ? <p className="mt-1 text-sm text-muted-foreground">{description}</p> : null}
         </div>
+        {headerAction ? <div className="-mr-2 shrink-0">{headerAction}</div> : null}
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto px-6 pt-1 pb-4">{children}</div>
       {footer ? (

@@ -1,7 +1,6 @@
 import { Plus, Archive, ArchiveRestore, Bell, BookmarkPlus, BookOpen, CheckCheck, Circle, CircleCheck, ExternalLink, Folder as FolderGlyph, Heart, Highlighter, Link2, Newspaper, Quote, RefreshCw, Rss, Search, Settings as SettingsIcon, Share2, StickyNote, Tag as TagIcon, Trash2, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { headerHidden } from "@/lib/header";
-import { RemoveDialog } from "./SavedActions";
 import { app, useApp } from "@/lib/app";
 import { snippet } from "@/lib/html";
 import { dayLabel, plural, t } from "@/lib/i18n";
@@ -246,7 +245,6 @@ function SavedArticles({
 }) {
   const { library, savedFilter: filter, loaded } = useApp();
   const [share, shareDialog] = useShare((text) => onMessage(text));
-  const [removing, setRemoving] = useState<Item | null>(null);
   // Right-click or press and hold on a saved item (#221, #263, #305), cards and rows alike: Archive
   // (or Back to read) first, as on Android.
   const menuOf = (item: Item) => [
@@ -262,12 +260,7 @@ function SavedArticles({
         },
     { icon: <TagIcon />, label: t("organiseTitle"), onClick: () => app.openOrganise(item.key) },
     { icon: <Share2 />, label: t("share"), onClick: () => share(item.title, item.url, item) },
-    {
-      icon: <Trash2 />,
-      label: t("savedRemove"),
-      // Asks first, as everywhere.
-      onClick: () => setRemoving(item),
-    },
+    // No Remove here: it is in Organise (its trash can), kept rare and deliberate, as on Android.
   ];
   const items = useMemo(() => savedItems(library, filter), [library, filter]);
   // The topics with something in the state shown, and the one chosen (it stays when the state changes).
@@ -359,7 +352,6 @@ function SavedArticles({
         )}
       </div>
       {shareDialog}
-      {removing ? <RemoveDialog item={removing} open onClose={() => setRemoving(null)} onRemoved={() => onMessage(t("savedRemoved"))} /> : null}
     </section>
   );
 }

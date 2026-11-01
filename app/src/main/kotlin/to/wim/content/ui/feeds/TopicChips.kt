@@ -47,7 +47,7 @@ import to.wim.content.ui.home.rememberFolderIconPainter
  *
  * With [alwaysEditing] (the Manage topics sheet itself) every chip has a drag handle and a pen: drag
  * a chip to reorder the topics, tap it (or the pen) to rename it, change its icon or remove it;
- * renaming it to another topic's name joins the two. Removing asks first, under the chips. **New
+ * renaming it to another topic's name joins the two. Removing (the topic sheet's trash can) asks first, in a dialog. **New
  * topic** (the topic sheet: a name and an icon) comes after them.
  */
 @OptIn(ExperimentalLayoutApi::class)
@@ -69,7 +69,6 @@ fun TopicChipRow(
     var managing by rememberSaveable { mutableStateOf(false) }
     var creating by rememberSaveable { mutableStateOf(false) }
     var editing by rememberSaveable { mutableStateOf<String?>(null) }
-    var removing by rememberSaveable { mutableStateOf<String?>(null) }
     val editable = actions != null && alwaysEditing
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (editable) {
@@ -118,25 +117,6 @@ fun TopicChipRow(
                 }
             }
         }
-        val toRemove = topics.firstOrNull { it.id == removing }
-        if (toRemove != null && actions != null) {
-            // Remove topic? asks here, in the sheet, instead of a dialog over it.
-            Column(Modifier.padding(top = 4.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(stringResource(R.string.folder_remove_title), style = MaterialTheme.typography.titleMedium)
-                Text(stringResource(R.string.folder_remove_body, toRemove.title), style = MaterialTheme.typography.bodyMedium)
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Spacer(Modifier.weight(1f))
-                    TextButton(onClick = { removing = null }) { Text(stringResource(R.string.action_cancel)) }
-                    TextButton(
-                        onClick = {
-                            removing = null
-                            actions.onRemove(toRemove)
-                        },
-                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                    ) { Text(stringResource(R.string.action_remove)) }
-                }
-            }
-        }
     }
 
     if (managing && actions != null) {
@@ -162,9 +142,10 @@ fun TopicChipRow(
                 actions.onEdit(edited, title, icon)
             },
             onDismiss = { editing = null },
+            // Asked in the topic sheet's own dialog first.
             onRemove = {
                 editing = null
-                removing = edited.id
+                actions.onRemove(edited)
             },
         )
     }

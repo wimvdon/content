@@ -1,5 +1,5 @@
 import { Smartphone, ArrowLeft, BookmarkPlus, BookOpenText, ChevronDown, ChevronRight, LayoutList, Palette, Plus, Puzzle, Rss, Tag as TagIcon, Trash2, UserRound } from "lucide-react";
-import { ConfirmRemove } from "./ConfirmRemove";
+import { ConfirmRemove, RemoveButton } from "./ConfirmRemove";
 import { insertedBefore } from "@/lib/topics";
 import { CHIP_TYPE, EditChips, TopicChips, chip, chipOn } from "./TopicChips";
 import { useEffect, useMemo, useState } from "react";
@@ -205,15 +205,9 @@ function EditFeedDialog({ feed, onClose }: { feed: Feed; onClose: () => void }) 
       description={feed.url}
       closeLabel={t("close")}
       cancel={t("cancel")}
-      footer={
-        <>
-          <Button variant="destructive" className="mr-auto" onClick={() => setConfirming(true)}>
-            <Trash2 />
-            {t("remove")}
-          </Button>
-          <Button onClick={save}>{t("save")}</Button>
-        </>
-      }
+      // Remove as a trash can at the top right, away from Cancel and Save; it asks first.
+      headerAction={<RemoveButton onClick={() => setConfirming(true)} />}
+      footer={<Button onClick={save}>{t("save")}</Button>}
     >
       <div className="space-y-4">
         <div className="space-y-1.5">
@@ -313,22 +307,11 @@ export function FolderDialog({
       title={folder === "new" ? t("newFolder") : t("editFolder")}
       closeLabel={t("close")}
       cancel={t("cancel")}
+      headerAction={folder !== "new" ? <RemoveButton onClick={() => setConfirming(true)} /> : undefined}
       footer={
-        <>
-          {folder !== "new" ? (
-            <Button
-              variant="destructive"
-              className="mr-auto"
-              onClick={() => setConfirming(true)}
-            >
-              <Trash2 />
-              {t("remove")}
-            </Button>
-          ) : null}
-          <Button onClick={save} disabled={!title.trim()}>
-            {t("save")}
-          </Button>
-        </>
+        <Button onClick={save} disabled={!title.trim()}>
+          {t("save")}
+        </Button>
       }
     >
       <div className="space-y-4">
@@ -607,6 +590,7 @@ function AccountSection() {
         </div>
       </div>
       <Dialog
+        popup
         open={confirmDelete}
         onOpenChange={setConfirmDelete}
         title={t("deleteAccountData")}
@@ -777,3 +761,4 @@ function ImportGuide({ title, steps, note }: { title: string; steps: string[]; n
     </details>
   );
 }
+
