@@ -134,15 +134,20 @@ describe("topics", () => {
     const base = topicsForTags(library);
     // A second feed in Tech, with only a read article.
     const d = { ...newFeed("https://d/feed", "D"), tags: ["Tech"] };
-    const lib = { ...base, feeds: [...base.feeds, d], articles: [article("https://a/feed", "1", false), article("https://b/feed", "2", true), article("https://d/feed", "3", true)] };
     const urls = (feeds: { url: string }[]) => feeds.map((f) => f.url);
+    const lib = { ...base, feeds: [...base.feeds, d], articles: [article("https://a/feed", "1", false), article("https://b/feed", "2", true), article("https://d/feed", "3", true)] };
     // Nothing chosen: the topics, no feeds.
-    // Nothing chosen and one topic with every unread article: no row, it would filter nothing.
-    expect(feedChipRow(lib, "unread", { kind: "all" })).toEqual({ topics: ["Tech"], chosenTopic: null, feeds: [], chosenFeed: null, shown: false });
+    // Nothing chosen and a single chip (Tech, the only one with something unread): no row, it would filter nothing.
+    expect(feedChipRow(lib, "unread", { kind: "all" })).toEqual({ topics: ["Tech"], chosenTopic: null, feeds: [], loose: [], chosenFeed: null, shown: false });
     expect(feedChipRow(lib, "all", { kind: "all" }).shown).toBe(true);
-    // One topic, but an unread article in a feed without one: the chip narrows the list, so it shows.
+    // An unread article in a feed without a topic: that feed is a chip after the topics, so two chips.
     const withLoose = { ...lib, articles: [...lib.articles, article("https://c/feed", "4", false)] };
-    expect(feedChipRow(withLoose, "unread", { kind: "all" }).shown).toBe(true);
+    const looseRow = feedChipRow(withLoose, "unread", { kind: "all" });
+    expect(urls(looseRow.loose)).toEqual(["https://c/feed"]);
+    expect(looseRow.shown).toBe(true);
+    // Only that loose feed has something unread: one chip again, no row.
+    const onlyLoose = { ...lib, articles: [article("https://c/feed", "4", false)] };
+    expect(feedChipRow(onlyLoose, "unread", { kind: "all" }).shown).toBe(false);
     // A topic chosen (in any case): that topic alone, then its feeds with something in the tab shown.
     const tech = feedChipRow(lib, "unread", { kind: "tag", tag: "tech" });
     expect(tech.topics).toEqual(["Tech"]);
@@ -155,8 +160,14 @@ describe("topics", () => {
     expect(one.chosenTopic).toBe("Tech");
     expect(one.chosenFeed).toBe("https://d/feed");
     expect(urls(one.feeds)).toEqual(["https://a/feed", "https://d/feed"]);
-    // A feed without a topic: no topic is lit, the topics stay.
-    expect(feedChipRow(lib, "all", { kind: "feed", feedUrl: "https://c/feed" }).chosenTopic).toBeNull();
+    // A feed without a topic: no topic is lit, the topics stay, and it stays a chip (lit) even with
+    // nothing in the tab shown, so the row stays.
+    const loose = feedChipRow(lib, "unread", { kind: "feed", feedUrl: "https://c/feed" });
+    expect(loose.chosenTopic).toBeNull();
+    expect(urls(loose.loose)).toEqual(["https://c/feed"]);
+    expect(loose.shown).toBe(true);
+    // A topic chosen: no loose feeds.
+    expect(feedChipRow(withLoose, "unread", { kind: "tag", tag: "Tech" }).loose).toEqual([]);
   });
 
   it("leaves out Saved's topic chips and Liked with nothing in the state shown, except the chosen ones", () => {

@@ -7,10 +7,10 @@ Newest first. Add an entry for every notable choice: what was decided, why, and 
 Choosing a topic in Feeds used to add a second chip row with its feeds, so the header could be four
 rows (search bar, switch, topics, feeds): about a third of a phone screen. Now the one row shows only
 the chosen topic, then its feeds; tapping the topic brings every topic back (`FeedChips.rowTopics`
-and `rowLoose`; the web's `feedChipRow`, which gains the topic's feeds as chips). The chips also sit
+and `rowLoose`; the web's `feedChipRow`, which gains the topic's feeds and the feeds without a topic
+as chips, so the row behaves the same on both). The chips also sit
 right under the switch: their 48dp touch area is the gap. Owner's choice. The row is also left out
-when it would hold a single chip (it would filter nothing), unless something is chosen; on the web,
-whose row has no loose feeds, when that one topic holds every article shown.
+when it would hold a single chip (it would filter nothing), unless something is chosen, on the phone and the web alike.
 - Rejected: Unread / All as a chip in the row (saves another row, but a view would look like one
   more filter).
 

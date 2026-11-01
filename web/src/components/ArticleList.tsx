@@ -63,8 +63,6 @@ function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport,
   // One chip row, as on Android: the topics with something in the state shown, or the topic chosen
   // and its feeds.
   const row = useMemo(() => feedChipRow(library, tab, selection), [library, tab, selection]);
-  // A feed without a topic, chosen by its name (#185): its chip comes first, chosen.
-  const oneFeed = selection.kind === "feed" && row.chosenTopic === null ? (feeds.get(selection.feedUrl)?.title ?? null) : null;
   const title =
     selection.kind === "folder"
       ? (library.folders.find((f) => f.id === selection.folderId)?.title ?? "")
@@ -115,25 +113,17 @@ function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport,
           {row.shown ? (
             <TagChips
               icons={topicIcons(library)}
-              tags={oneFeed ? [oneFeed, ...row.topics] : row.topics}
+              tags={row.topics}
               // A folder picked in the menu lights up its chip: the folder's name is its feeds' tag.
-              selected={oneFeed ?? row.chosenTopic ?? chipTag(library, selection)}
+              selected={row.chosenTopic ?? chipTag(library, selection)}
               // Tapping the chosen topic (or its feed's) lets go: the topics come back.
-              onSelect={(tag) => app.select(tag === null || tag === oneFeed ? { kind: "all" } : { kind: "tag", tag })}
-              // The chosen topic's feeds, after it: one tapped shows it alone, tapped again the topic.
+              onSelect={(tag) => app.select(tag === null ? { kind: "all" } : { kind: "tag", tag })}
+              // After the topics and a divider, as on Android: the chosen topic's feeds (one tapped
+              // shows it alone, tapped again the topic), or else the feeds without a topic.
               after={
-                row.chosenTopic !== null && row.feeds.length > 0
-                  ? row.feeds.map((f) => {
-                      const on = f.url === row.chosenFeed;
-                      const topic = row.chosenTopic!;
-                      return (
-                        <FilterChip key={f.url} selected={on} check={false} onClick={() => app.select(on ? { kind: "tag", tag: topic } : { kind: "feed", feedUrl: f.url })}>
-                          <FeedIcon feed={f} className="size-4" />
-                          <span className="max-w-48 truncate">{f.title}</span>
-                        </FilterChip>
-                      );
-                    })
-                  : null
+                row.chosenTopic !== null
+                  ? feedChipList(row.feeds, row.chosenFeed, (f, on) => app.select(on ? { kind: "tag", tag: row.chosenTopic! } : { kind: "feed", feedUrl: f.url }))
+                  : feedChipList(row.loose, row.chosenFeed, (f, on) => app.select(on ? { kind: "all" } : { kind: "feed", feedUrl: f.url }))
               }
               // A feed or folder chosen elsewhere is a filter too: the X goes back to every feed.
               filtered={selection.kind !== "all"}
@@ -543,6 +533,20 @@ function CollapsingHeader({ hidden, onShow, children }: { hidden: boolean; onSho
       <div className="min-h-0 overflow-hidden">{children}</div>
     </div>
   );
+}
+
+/** Feeds as chips with their icon (a topic's, or those without one); none: nothing. */
+function feedChipList(list: Feed[], chosen: string | null, onClick: (feed: Feed, on: boolean) => void): React.ReactNode {
+  if (list.length === 0) return null;
+  return list.map((f) => {
+    const on = f.url === chosen;
+    return (
+      <FilterChip key={f.url} selected={on} check={false} onClick={() => onClick(f, on)}>
+        <FeedIcon feed={f} className="size-4" />
+        <span className="max-w-48 truncate">{f.title}</span>
+      </FilterChip>
+    );
+  });
 }
 
 /**
