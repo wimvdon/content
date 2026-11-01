@@ -314,10 +314,14 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   always shows the whole article (#208), then Aa and ⋮); a **floating toolbar** (Material 3's
   floating toolbar, built from a `Surface` and a `Row` as Material 3 1.4 has none: a pill on
   `surfaceContainer`, 64dp high, 16dp above the bottom, in the middle) is this article in your
-  library, with **Share** at its end: a tonal **Save** before it is saved, then two text buttons with
-  an icon and a word each (#305): **Archive** (the Archive's box; one tap archives it, the article
-  stays open and shows Archived with Undo, #331), only while it is to read, and **Organise** (a tag),
-  which opens the sheet. All its buttons are in one neutral colour (`onSurfaceVariant`, as Material 3's
+  library, with **Share** beside it as its own round button (`secondaryContainer`, 64dp: Material 3's
+  floating toolbar with a FAB): a tonal **Save** before it is saved, then icon buttons (2026-11-01,
+  owner's choice, instead of Archive and Organise with words; their names show on a long press, as a
+  tooltip): **Archive** (the Archive's box, a toggle lit while archived: one tap archives it, the
+  article stays open and shows Archived with Undo, #331; again, back to To read), **Topics** (a tag:
+  the Topics sheet, topic chips only), **Note** (the Note sheet; a note with a pen once written) and
+  **Like** (a heart, filled while liked), then the highlights' count. There is no Organise sheet any
+  more; **Remove from Saved** is in ⋮. All its buttons are in one neutral colour (`onSurfaceVariant`, as Material 3's
   toolbars have it; the text buttons were `primary` before, so Share looked different), only the tonal
   Save stands out; the web's ghost buttons were already alike. It slides away while reading down and comes back scrolling up, at the top and
   at the end of the article; the text keeps room under its end, and messages show above it. The text ends
@@ -352,14 +356,13 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   segmented **To read** / **Archive** choice (To read to start with when saving); **Save** (filled)
   shows the same icon (To read's open book or the Archive's box), and says **Save and send** or **Send** when
   sending: closing the sheet is Cancel, so only the button changes or sends
-  anything; the heading is **Save** while saving, or "Organise" for an article saved before: that one has no Send
-  with Content (Share is next to Organise) and Remove as a trash can at the right end of its title row
-  (the owner's choice, 2026-11-01: away from Cancel and Save, where Material puts delete on an edit
-  screen; the same in Edit feed and the topic sheet, phone and web). Right after a save there is no Remove:
+  anything; the heading is **Save** while saving. For an article saved before the same sheet opens
+  as **Topics** (only the topic chips: the reader's Topics button, a row's long press) or **Note**
+  (only the note); To read / Archive and Like are the reader's toggles. Right after a save
   Cancel (or closing the sheet) saves and sends nothing, so it takes the save back. Remove from Saved
-  asks first in a dialog, and is only in Organise: not in the reader's ⋮ nor in a row's long press (Archive,
-  Organise, Share), so it stays rare and deliberate (2026-11-01). Earlier it was also in Organise, the reader's ⋮, a row's menu
-  in Saved; no Undo. A
+  asks first in a dialog, and is only in the reader's ⋮: not in its toolbar nor in a row's long press
+  (Archive, Topics, Share), so it stays rare and deliberate (2026-11-01); no Undo. Edit feed and the
+  topic sheet have Remove as a trash can at the right end of the title row, asking first in a dialog. A
   folder or tag still being typed is taken by the button. One snackbar says where it went and who
   got it ("Saved to To read · Sent to …"). Other apps' share menus have three targets: Save and share
   (the same sheet), Send with Content (the sheet with only Send with Content,

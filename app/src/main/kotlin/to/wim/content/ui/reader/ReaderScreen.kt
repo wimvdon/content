@@ -24,6 +24,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -126,19 +127,25 @@ class ReaderActions(
  */
 class ReaderItem(
     val item: Item,
-    /** Opens Organise (#139, #143, #305): the topics with Like, and the note. */
-    val onOrganise: () -> Unit,
-    /** Archives it in one tap; the reader stays open and a message says so, with Undo. */
+    /** Archive, or back to To read when archived; the reader stays open and a message says so. */
     val onArchive: () -> Unit = {},
+    /** Opens the topic chips (the Topics sheet). */
+    val onTopics: () -> Unit = {},
+    /** Opens the note (the Note sheet). */
+    val onNote: () -> Unit = {},
+    /** Like, or Unlike when liked. */
+    val onLike: () -> Unit = {},
+    /** Remove from Saved, in ⋮ (it asks first). */
+    val onRemove: () -> Unit = {},
     /** How far it was read, 0 to 1, as the reader scrolls. */
     val onProgress: (Float) -> Unit,
 )
 
 /**
  * One article, in the reader's font, size, spacing and page colour (#139). The top bar is for this
- * reading (Back, Aa, ⋮); the bar below is for this article in your library: one Save before it is
- * saved, then Archive (while to read) and Organise (#305); its highlights and Share at the right end. The text
- * ends with Read on website.
+ * reading (Back, Aa, ⋮); the floating toolbar below is for this article in your library: one Save
+ * before it is saved, then Archive, Topics, Note and Like ([SavedBar]); its highlights, and Share as
+ * its own round button. Remove from Saved is in ⋮. The text ends with Read on website.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -249,6 +256,17 @@ fun ReaderScreen(
                                 },
                             )
                         }
+                        // A saved article: Remove from Saved, the rare one, here and not in the toolbar.
+                        if (item != null && onList) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.saved_remove)) },
+                                leadingIcon = { Icon(painterResource(R.drawable.ic_delete), contentDescription = null) },
+                                onClick = {
+                                    menuOpen = false
+                                    item.onRemove()
+                                },
+                            )
+                        }
                     }
                 },
                 scrollBehavior = scrollBehavior,
@@ -289,7 +307,8 @@ fun ReaderScreen(
                 modifier = Modifier.padding(innerPadding),
             )
             if (hasToolbar) {
-                // On the left Save, or once saved Archive and Organise; the highlights' count; Share.
+                // Save, or once saved Archive, Topics, Note and Like; the highlights' count; Share as
+                // its own round button next to the pill.
                 ReaderToolbar(
                     visible = toolbarShown,
                     modifier =
@@ -297,6 +316,21 @@ fun ReaderScreen(
                             .align(Alignment.BottomCenter)
                             .padding(innerPadding)
                             .padding(start = 16.dp, end = 16.dp, bottom = ReaderToolbarMargin),
+                    fab =
+                        if (hasLink) {
+                            {
+                                FloatingActionButton(
+                                    onClick = actions.onShare,
+                                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier.size(ReaderToolbarHeight),
+                                ) {
+                                    Icon(painterResource(R.drawable.ic_share), contentDescription = stringResource(R.string.action_share))
+                                }
+                            }
+                        } else {
+                            null
+                        },
                 ) {
                     if (item != null && onList) {
                         SavedBar(item)
@@ -317,11 +351,6 @@ fun ReaderScreen(
                         TextButton(onClick = { highlightsOpen = true }, colors = toolbarTextButtonColors(), modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = label }) {
                             Icon(painterResource(R.drawable.ic_quote), contentDescription = null)
                             Text(count.toString(), modifier = Modifier.padding(start = 8.dp))
-                        }
-                    }
-                    if (hasLink) {
-                        IconButton(onClick = actions.onShare) {
-                            Icon(painterResource(R.drawable.ic_share), contentDescription = stringResource(R.string.action_share))
                         }
                     }
                 }

@@ -1,4 +1,4 @@
-import { ALargeSmall, ArrowLeft, Circle, CircleCheck, EllipsisVertical, ExternalLink, FileText, Flag } from "lucide-react";
+import { ALargeSmall, ArrowLeft, Circle, CircleCheck, EllipsisVertical, ExternalLink, FileText, Flag, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toolbarHidden } from "@/lib/header";
 import { positionOf, scrollFor } from "@/lib/readingProgress";
@@ -17,7 +17,7 @@ import { sanitizeArticle } from "@/lib/sanitize";
 import { FeedIcon } from "./FeedIcon";
 import { HighlightDialog, HighlightedText, HighlightsDialog } from "./Highlights";
 import { useAnchors } from "./useAnchors";
-import { LibraryBar } from "./SavedActions";
+import { LibraryBar, RemoveDialog } from "./SavedActions";
 import { pageClass, textStyle, useAppDark } from "./readerPage";
 import { ReaderStyleControls } from "./ReaderStyleControls";
 import { Button } from "./ui/button";
@@ -96,6 +96,8 @@ export function ArticleView({
   // The dialog to file it (folder and tags) says it was saved.
   const saveArticle = () => article.link && app.saveArticle(article.link, article.title);
   const [menuOpen, setMenuOpen] = useState(false);
+  // Remove from Saved, from ⋮: asks first; once removed, the reader closes.
+  const [removing, setRemoving] = useState(false);
   useEscape(menuOpen, () => setMenuOpen(false));
   const [reportOpen, setReportOpen] = useState(false);
   // Highlights (#102): those of the article's item; one open, a new one waiting for its note, the list.
@@ -204,6 +206,8 @@ export function ArticleView({
                   </a>
                 ) : null}
                 {article.link ? <MenuItem icon={<Flag />} label={t("reportMenu")} onClick={() => setReportOpen(true)} close={() => setMenuOpen(false)} /> : null}
+                {/* A saved article: Remove from Saved, the rare one, here and not in the toolbar. */}
+                {saved ? <MenuItem icon={<Trash2 />} label={t("savedRemove")} onClick={() => setRemoving(true)} close={() => setMenuOpen(false)} /> : null}
               </div>
             </>
           ) : null}
@@ -278,6 +282,17 @@ export function ArticleView({
           ) : null}
         </div>
       </div>
+      {removing && saved ? (
+        <RemoveDialog
+          item={saved}
+          open
+          onClose={() => setRemoving(false)}
+          onRemoved={() => {
+            onMessage(t("savedRemoved"));
+            onBack();
+          }}
+        />
+      ) : null}
       <LibraryBar
         hidden={toolbarIsHidden}
         item={saved}

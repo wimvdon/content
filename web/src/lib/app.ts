@@ -99,7 +99,7 @@ export interface State {
   instapaperNotCopied: Record<string, string[]>;
 }
 
-export type Sheet = { kind: "new" } | { kind: "justSaved" | "organise"; key: string };
+export type Sheet = { kind: "new" } | { kind: "justSaved" | "topics" | "note"; key: string };
 
 const INSTAPAPER_STATE_KEY = "instapaper-sign-in-state";
 /** This browser's copy of what Instapaper had (serviceSync.ts), in IndexedDB. */
@@ -795,8 +795,11 @@ class AppStore {
   /** Add link: the sheet asks for the address; nothing is saved until Save. */
   addLink = () => this.set({ sheet: { kind: "new" } });
 
-  /** Organise a saved item: its folder, tags with Like, and note. */
-  openOrganise = (key: string) => this.set({ sheet: { kind: "organise", key } });
+  /** A saved item's topics (the reader's Topics button, a row's menu), as on Android. */
+  openTopics = (key: string) => this.set({ sheet: { kind: "topics", key } });
+
+  /** A saved item's note (the reader's Note button). */
+  openNote = (key: string) => this.set({ sheet: { kind: "note", key } });
 
   closeSheet = () => this.set({ sheet: null });
 

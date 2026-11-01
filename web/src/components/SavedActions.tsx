@@ -1,4 +1,4 @@
-import { Archive, ListPlus, Quote, Share2, Tag, Trash2 } from "lucide-react";
+import { Archive, Heart, ListPlus, NotebookPen, Quote, Share2, StickyNote, Tag, Trash2 } from "lucide-react";
 import { app } from "@/lib/app";
 import { plural, t } from "@/lib/i18n";
 import type { Item } from "@/lib/items";
@@ -7,11 +7,12 @@ import { cn } from "./ui/cn";
 import { Dialog } from "./ui/dialog";
 
 /**
- * The reader's library actions (#139, #156, #305) as a floating toolbar, as on Android: a pill at
- * the bottom in the middle, over the text, that steps aside while reading down ([hidden]). One Save
- * before the article is saved; after, **Archive** (only while it is to read: it archives it in one
- * tap and the article stays open, with a message and Undo) and **Organise** (To read or Archive,
- * the topics, Like and the note; archived, the only one). Then the highlights and Share.
+ * The reader's library actions as a floating toolbar, as on Android: a pill at the bottom in the
+ * middle, over the text, that steps aside while reading down ([hidden]). One Save before the article
+ * is saved; after, every action one click away, as icons (2026-11-01, instead of Archive and
+ * Organise): **Archive** (lit while archived; again: back to To read), **Topics**, **Note** and
+ * **Like** (a filled heart while liked). Then the highlights, and Share as its own round button next
+ * to the pill. Remove from Saved is in the reader's ⋮.
  */
 export function LibraryBar({
   item,
@@ -26,79 +27,89 @@ export function LibraryBar({
   onSave: (() => void) | null;
   onShare: (() => void) | null;
   onArchived: (undo: () => void) => void;
-  /** How many highlights it has; with any, a quote mark and the count open their list, next to Share. */
+  /** How many highlights it has; with any, a quote mark and the count open their list. */
   highlightCount: number;
   onHighlights: () => void;
   /** Stepped aside while reading down. */
   hidden: boolean;
 }) {
-  // After Save or Archive and Organise: the highlights, then Share.
-  const share = (
-    <div className="flex shrink-0 items-center">
-      {highlightCount > 0 ? (
-        <Button variant="ghost" onClick={onHighlights} aria-label={plural("highlightsCount", highlightCount)} title={t("highlightsTitle")}>
-          <Quote />
-          {highlightCount}
-        </Button>
-      ) : null}
-      {onShare ? (
-        <Button variant="ghost" size="icon" onClick={onShare} aria-label={t("share")} title={t("share")}>
-          <Share2 />
-        </Button>
-      ) : null}
-    </div>
-  );
+  const highlights =
+    highlightCount > 0 ? (
+      <Button variant="ghost" onClick={onHighlights} aria-label={plural("highlightsCount", highlightCount)} title={t("highlightsTitle")}>
+        <Quote />
+        {highlightCount}
+      </Button>
+    ) : null;
+  const share = onShare ? (
+    <button
+      type="button"
+      onClick={onShare}
+      aria-label={t("share")}
+      title={t("share")}
+      className="pointer-events-auto flex size-14 shrink-0 cursor-pointer items-center justify-center rounded-2xl bg-accent text-accent-foreground shadow-lg hover:bg-accent/80 [&_svg]:size-5"
+    >
+      <Share2 />
+    </button>
+  ) : null;
   if (!item) {
     if (!onSave && !onShare && highlightCount === 0) return null;
     return (
-      <Floating hidden={hidden}>
+      <Floating hidden={hidden} fab={share}>
         {onSave ? (
           <Button variant="tonal" onClick={onSave}>
             <ListPlus />
             {t("saveArticle")}
           </Button>
         ) : null}
-        {share}
+        {highlights}
       </Floating>
     );
   }
   const archived = item.readingList?.state === "archived";
+  const archiveLabel = archived ? t("backToRead") : t("archive");
   return (
-    <Floating hidden={hidden}>
-      {!archived ? (
-        <Button
-          variant="ghost"
-          className="min-w-0"
-          onClick={() => {
+    <Floating hidden={hidden} fab={share}>
+      <Button
+        variant="ghost"
+        size="icon"
+        aria-pressed={archived}
+        aria-label={archiveLabel}
+        title={archiveLabel}
+        className={cn(archived && "bg-accent text-accent-foreground hover:bg-accent/80")}
+        onClick={() => {
+          if (archived) app.archiveItem(item.key, false);
+          else {
             app.archiveItem(item.key, true);
             onArchived(() => app.archiveItem(item.key, false));
-          }}
-        >
-          <Archive />
-          <span className="truncate">{t("archive")}</span>
-        </Button>
-      ) : null}
-      <Button variant="ghost" className="min-w-0" onClick={() => app.openOrganise(item.key)}>
-        <Tag />
-        <span className="truncate">{t("organiseTitle")}</span>
+          }
+        }}
+      >
+        <Archive />
       </Button>
-      {share}
+      <Button variant="ghost" size="icon" aria-label={t("tags")} title={t("tags")} onClick={() => app.openTopics(item.key)}>
+        <Tag />
+      </Button>
+      <Button variant="ghost" size="icon" aria-label={t("note")} title={t("note")} onClick={() => app.openNote(item.key)}>
+        {item.note.trim() ? <NotebookPen /> : <StickyNote />}
+      </Button>
+      <Button variant="ghost" size="icon" aria-pressed={item.liked} aria-label={t("like")} title={t("like")} onClick={() => app.likeItem(item.key, !item.liked)}>
+        <Heart className={cn(item.liked && "fill-current")} />
+      </Button>
+      {highlights}
     </Floating>
   );
 }
 
-/** The pill itself: at the bottom in the middle of the reader, sliding down out of sight when [hidden]. */
-function Floating({ hidden, children }: { hidden: boolean; children: React.ReactNode }) {
+/** The pill itself, with Share beside it: at the bottom in the middle of the reader, sliding down out of sight when [hidden]. */
+function Floating({ hidden, fab, children }: { hidden: boolean; fab?: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-4 z-10 flex justify-center px-4">
       <div
         inert={hidden}
-        className={cn(
-          "pointer-events-auto flex min-w-0 items-center gap-1 rounded-full border bg-card p-2 shadow-lg transition duration-200 ease-out motion-reduce:transition-none",
-          hidden && "translate-y-[calc(100%+1rem)] opacity-0",
-        )}
+        className={cn("flex min-w-0 items-center gap-2 transition duration-200 ease-out motion-reduce:transition-none", hidden && "translate-y-[calc(100%+1rem)] opacity-0")}
       >
-        {children}
+        <div className="pointer-events-auto flex min-w-0 items-center gap-1 rounded-full border bg-card p-2 shadow-lg">{children}</div>
+        {fab}
       </div>
     </div>
   );

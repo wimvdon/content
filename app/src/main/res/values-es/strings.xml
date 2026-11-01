@@ -283,7 +283,6 @@
         <item quantity="many">%d elementos</item>
         <item quantity="other">%d elementos</item>
     </plurals>
-    <string name="organise_title">Organizar</string>
     <string name="highlights_title">Resaltados</string>
     <string name="highlight_action">Resaltar</string>
     <string name="highlight_title">Resaltado</string>

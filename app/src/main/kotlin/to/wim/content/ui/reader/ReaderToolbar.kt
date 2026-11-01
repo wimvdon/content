@@ -5,6 +5,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.height
@@ -51,6 +52,8 @@ internal val ReaderToolbarMargin = 16.dp
 internal fun ReaderToolbar(
     visible: Boolean,
     modifier: Modifier = Modifier,
+    /** Share, as its own round button next to the pill (Material 3's floating toolbar with a FAB). */
+    fab: (@Composable () -> Unit)? = null,
     content: @Composable RowScope.() -> Unit,
 ) {
     AnimatedVisibility(
@@ -59,6 +62,7 @@ internal fun ReaderToolbar(
         enter = slideInVertically { it * 2 } + fadeIn(),
         exit = slideOutVertically { it * 2 } + fadeOut(),
     ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
         Surface(
             shape = CircleShape,
             color = MaterialTheme.colorScheme.surfaceContainer,
@@ -71,6 +75,8 @@ internal fun ReaderToolbar(
                 verticalAlignment = Alignment.CenterVertically,
                 content = content,
             )
+        }
+        fab?.invoke()
         }
     }
 }

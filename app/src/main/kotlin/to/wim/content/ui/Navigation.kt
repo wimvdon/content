@@ -317,10 +317,10 @@ fun RssReaderNavigation(
             onReorder = { ids -> app.appScope.launch { repository.reorderTopics(ids) } },
         )
 
-    // The saved item whose Organise sheet is open (the reader, or a card's menu in Saved).
+    // The saved item whose Topics (or Note) sheet is open: the reader's buttons, or Topics in a
+    // card's long press in Saved.
     var fileKey by rememberSaveable { mutableStateOf<String?>(null) }
-    // Organise was opened from the reader: removing the article there closes it too.
-    var fileFromReader by rememberSaveable { mutableStateOf(false) }
+    var fileNote by rememberSaveable { mutableStateOf(false) }
     // Remove from Saved asks first, wherever it is tapped; from the reader, the reader closes after.
     var removingKey by rememberSaveable { mutableStateOf<String?>(null) }
     var removingFromReader by rememberSaveable { mutableStateOf(false) }
@@ -902,7 +902,7 @@ fun RssReaderNavigation(
                                 onArchiveItem = ::archive,
                                 onFileItem = {
                                     fileKey = it.key
-                                    fileFromReader = false
+                                    fileNote = false
                                 },
                                 onShareArticle = ::share,
                                 onShareItem = { item -> share(ReadingLists.article(item, library)) },
@@ -1015,12 +1015,19 @@ fun RssReaderNavigation(
                                 item?.let { i ->
                                     ReaderItem(
                                         item = i,
-                                        onOrganise = {
-                                            fileKey = i.key
-                                            fileFromReader = true
-                                        },
-                                        // Archive keeps the reader open: a message says so, with Undo.
+                                        // Archive (or back to To read) keeps the reader open: a message says so.
                                         onArchive = { archive(i) },
+                                        onTopics = {
+                                            fileKey = i.key
+                                            fileNote = false
+                                        },
+                                        onNote = {
+                                            fileKey = i.key
+                                            fileNote = true
+                                        },
+                                        onLike = { editLibrary { it.setLiked(i.key, !i.liked) } },
+                                        // Asks first; once removed, the reader closes.
+                                        onRemove = { askRemove(i.key, fromReader = true) },
                                         onProgress = { progress ->
                                             if (kotlin.math.abs(progress - i.progress) >= 0.01f) {
                                                 editLibrary { lib -> lib.changeItem(i.key) { if (it.readingList == null) it else it.copy(progress = progress) } }
@@ -1133,13 +1140,18 @@ fun RssReaderNavigation(
         }
     }
 
-    // Right after something is saved (the reader, a long press), or organising a saved one (a card's
-    // menu in Saved): the one sheet (#143), which writes what it says when it closes.
+    // Right after something is saved (the reader, a long press), or a saved one's topics or note (the
+    // reader's buttons, a card's long press): the one sheet (#143), which writes what it says on Save.
     val sheetKey = addedKey ?: fileKey
     val sheetItem = sheetKey?.let { library.item(it) }
     if (sheetItem != null) {
         SaveSheet(
-            kind = if (addedKey != null) SheetKind.JustSaved else SheetKind.Organise,
+            kind =
+                when {
+                    addedKey != null -> SheetKind.JustSaved
+                    fileNote -> SheetKind.Note
+                    else -> SheetKind.Topics
+                },
             initial = SaveChoices.of(sheetItem),
             folders = Saved.folders(library),
             allTags = library.topicNames(),
@@ -1157,8 +1169,6 @@ fun RssReaderNavigation(
                     editLibrary { SaveChoices.undoSave(it, sheetItem.key, before) }
                 }
             },
-            // Remove in Organise: asks first, as everywhere.
-            onRemove = { askRemove(sheetItem.key, fileFromReader) },
             onDismiss = {
                 addedKey = null
                 fileKey = null
