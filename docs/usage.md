@@ -132,7 +132,17 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
 
 - The **bar at the bottom** switches between **Feeds**, **Saved** and, signed in, the **Inbox** (with
   a dot while something shared with you is unread). On a tablet or in landscape it sits at the left
-  side; on the web, a wide window has no bar: the menu at the left does it.
+  side. On the web the same three places are the bar at the bottom of a phone-sized window, and the
+  top of the **sidebar** in a wide one.
+- **On the web, in a wide window**, the sidebar has the same levels as the phone, laid out for a
+  large screen: at the top the places (Feeds, Saved, Inbox, with their counts), under them what the
+  phone's chips do for the place shown (Feeds: All feeds, the topics, a topic's feeds under it while
+  you're in it, the feeds without a topic; Saved: everything, Liked and the topics), and Settings at
+  the bottom. The chip row is left out there. A phone-sized window has the bar at the bottom and the
+  chips (they scroll sideways with a swipe or a mouse wheel), and Settings in the search bar.
+- **Refresh** (web) sits at the end of the tabs in Feeds and Saved, and next to the Inbox's title
+  (or press **r**). **Mark all as read** is a button at the bottom right of the list, only in Unread,
+  as on the phone.
 - Under the search bar, **two tabs** say **what you see**: in Feeds **Unread** and **All** (every
   article, read ones too), in Saved **To read** and **All** (everything saved, archived articles
   too). Under the tabs, one row of chips: your **topics** and then the feeds without a topic

@@ -1,4 +1,3 @@
-import * as D from "@radix-ui/react-dialog";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArticleList } from "./components/ArticleList";
 import { ArticleView } from "./components/ArticleView";
@@ -28,7 +27,6 @@ export default function App() {
   const openArticle = opened?.selection === selection ? opened.article : null;
   // The section at the time it opens: Open after saving switches to Saved first.
   const setOpenArticle = useCallback((article: Article | null) => setOpened(article ? { article, selection: app.get().selection } : null), []);
-  const [drawer, setDrawer] = useState(false);
   // Search takes the list's place until it is closed; the article opened from it stays open.
   const [searching, setSearching] = useState(false);
   const [dialog, setDialog] = useState<"add" | "addChoice" | "settings" | null>(null);
@@ -112,7 +110,7 @@ export default function App() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (dialog || manageFeeds || manageTopics || state.sheet || e.metaKey || e.ctrlKey || e.altKey || (e.target as HTMLElement).closest("input, textarea, select")) return;
-      // Nothing behind an open dialog or menu (the drawer, Aa, Remove, a feed's or folder's dialog).
+      // Nothing behind an open dialog or menu (Aa, Remove, a feed's or folder's dialog).
       if (document.querySelector('[role="dialog"], [role="menu"]')) return;
       const index = openArticle ? visible.findIndex((a) => articleKey(a) === articleKey(openArticle)) : -1;
       if (e.key === "j" || e.key === "k") {
@@ -149,15 +147,6 @@ export default function App() {
     setMessage({ text: plural("markedRead", keys.size), action: { label: t("undo"), run: () => app.setRead(keys, false) } });
   };
 
-  const sidebar = (
-    <Sidebar
-      onNavigate={() => setDrawer(false)}
-      onSettings={() => {
-        setDrawer(false);
-        setDialog("settings");
-      }}
-    />
-  );
 
   // Manage feeds (with Add feed as its page) and Manage topics: pages of Settings when opened from
   // there, else dialogs of their own.
@@ -179,16 +168,10 @@ export default function App() {
 
   return (
     <div className="flex h-full">
-      <aside className="hidden w-72 shrink-0 border-r bg-muted/40 lg:block">{sidebar}</aside>
-      <D.Root open={drawer} onOpenChange={setDrawer}>
-        <D.Portal>
-          <D.Overlay className="fixed inset-0 z-40 bg-black/40 lg:hidden" />
-          <D.Content className="fixed inset-y-0 left-0 z-50 w-80 max-w-[85vw] bg-background shadow-xl lg:hidden" aria-describedby={undefined}>
-            <D.Title className="sr-only">{t("navigation")}</D.Title>
-            {sidebar}
-          </D.Content>
-        </D.Portal>
-      </D.Root>
+      {/* A wide window: the places and the filters at the side (the navigation bar and the chips on a phone). */}
+      <aside className="hidden w-72 shrink-0 border-r bg-muted/40 lg:block">
+        <Sidebar onSettings={() => setDialog("settings")} />
+      </aside>
       <main className={`min-w-0 flex-1 flex-col border-r lg:max-w-md ${openArticle ? "hidden lg:flex" : "flex"}`}>
         <div className="min-h-0 flex-1">
           {searching ? (
@@ -197,7 +180,7 @@ export default function App() {
             <ArticleList
               openKey={openArticle ? articleKey(openArticle) : null}
               onOpen={open}
-              onMenu={() => setDrawer(true)}
+              onSettings={() => setDialog("settings")}
               onAddFeed={() => setDialog("add")}
               onAdd={() => setDialog("addChoice")}
               onImport={() => fileInput.current?.click()}

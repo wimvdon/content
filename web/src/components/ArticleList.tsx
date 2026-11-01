@@ -1,4 +1,4 @@
-import { Plus, Archive, ArchiveRestore, ArrowLeft, Bell, BookmarkPlus, BookOpen, CheckCheck, Circle, CircleCheck, ExternalLink, Folder as FolderGlyph, Heart, Highlighter, Link2, Menu, Newspaper, Quote, RefreshCw, Rss, Search, Share2, StickyNote, Tag as TagIcon, Trash2, X, type LucideIcon } from "lucide-react";
+import { Plus, Archive, ArchiveRestore, Bell, BookmarkPlus, BookOpen, CheckCheck, Circle, CircleCheck, ExternalLink, Folder as FolderGlyph, Heart, Highlighter, Link2, Newspaper, Quote, RefreshCw, Rss, Search, Settings as SettingsIcon, Share2, StickyNote, Tag as TagIcon, Trash2, X, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { headerHidden } from "@/lib/header";
 import { RemoveDialog } from "./SavedActions";
@@ -8,9 +8,8 @@ import { dayLabel, plural, t } from "@/lib/i18n";
 import { articleKey, articlesInTab, chipTag, feedTabOf, sortTime, unreadKeys, type Article, type Feed } from "@/lib/library";
 import { chipTags, itemArticle, noteOf, sameTab, savedItems, savedStates, showsLiked, showsNotes, sourceOf, type NoteContent, type SavedFilter } from "@/lib/saved";
 import { sharedByLabel } from "@/lib/sharing";
-import { inboxItems, inboxUnread } from "@/lib/inbox";
+import { inboxItems } from "@/lib/inbox";
 import type { Item, SharedBy } from "@/lib/items";
-import { NewDot } from "./NewDot";
 import { Avatar } from "./ShareWithUser";
 import { useShare } from "./useShare";
 import { scrolledPast } from "@/lib/scrollRead";
@@ -26,7 +25,8 @@ import { FilterChip } from "./ui/chip";
 type ListProps = {
   openKey: string | null;
   onOpen: (a: Article) => void;
-  onMenu: () => void;
+  /** Settings, from the search bar on a phone-sized window (the sidebar has it on a wide one). */
+  onSettings: () => void;
   onAddFeed: () => void;
   /** The search bar's +, the same in every place: Subscribe to feed or Save article. */
   onAdd: () => void;
@@ -42,18 +42,18 @@ type ListProps = {
 export function ArticleList(props: ListProps) {
   const { selection, inboxOpen } = useApp();
   return inboxOpen ? (
-    <InboxArticles openKey={props.openKey} onOpen={props.onOpen} onMessage={props.onMessage} onAdd={props.onAdd} />
+    <InboxArticles openKey={props.openKey} onOpen={props.onOpen} onMessage={props.onMessage} onAdd={props.onAdd} onSearch={props.onSearch} onSettings={props.onSettings} />
   ) : selection.kind === "saved" ? (
-    <SavedArticles openKey={props.openKey} onOpen={props.onOpen} onMenu={props.onMenu} onSearch={props.onSearch} onMessage={props.onMessage} onAdd={props.onAdd} />
+    <SavedArticles openKey={props.openKey} onOpen={props.onOpen} onSettings={props.onSettings} onSearch={props.onSearch} onMessage={props.onMessage} onAdd={props.onAdd} />
   ) : (
     <FeedArticles {...props} />
   );
 }
 
-function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onAdd, onImport, onUndo, onSearch, onMessage }: ListProps) {
+function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport, onUndo, onSearch, onMessage }: ListProps) {
   const { library, selection, settings, readThisVisit, refreshing, loaded, problems, account } = useApp();
   const [share, shareDialog] = useShare((text) => onMessage(text));
-  // Feeds' tabs, as on Android: Unread and Read.
+  // Feeds' tabs, as on Android: Unread and All.
   const tab = feedTabOf(settings.unreadOnly);
   const swipe = useSwipe((next) => app.setUnreadOnly(next === 0), tab === "unread" ? 0 : 1, 2);
   const articles = useMemo(() => articlesInTab(library, selection, tab, readThisVisit), [library, selection, tab, readThisVisit]);
@@ -102,27 +102,12 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onAdd, onImport, onU
 
   const header = useCollapsingHeader();
   return (
-    <section className="flex h-full min-w-0 flex-col" aria-label={title}>
+    <section className="relative flex h-full min-w-0 flex-col" aria-label={title}>
       <CollapsingHeader hidden={header.hidden} onShow={header.show}>
-      <SearchBar onMenu={onMenu} onSearch={onSearch}>
-        {/* + is the same in every place, as on Android: it asks Subscribe to feed or Save article. */}
-        <Button variant="ghost" size="icon" onClick={onAdd} aria-label={t("addTitle")} title={t("addTitle")}>
-          <Plus />
-        </Button>
-        {library.feeds.length > 0 ? (
-          <>
-            <Button variant="ghost" size="icon" onClick={() => void app.refresh()} disabled={refreshing} aria-label={t("refresh")} title={t("refresh") + " (r)"}>
-              <RefreshCw className={cn(refreshing && "animate-spin")} />
-            </Button>
-            <Button variant="ghost" size="icon" disabled={unread === 0 || tab === "all"} onClick={() => onUndo(app.markAllRead())} aria-label={t("markAllRead")} title={t("markAllRead")}>
-              <CheckCheck />
-            </Button>
-          </>
-        ) : null}
-      </SearchBar>
+      <SearchBar onSettings={onSettings} onSearch={onSearch} onAdd={onAdd} />
       {library.feeds.length > 0 ? (
         <>
-          <Tabs labels={[t("unread"), t("all")]} selected={tab === "unread" ? 0 : 1} onSelect={(i) => app.setUnreadOnly(i === 0)} />
+          <Tabs labels={[t("unread"), t("all")]} selected={tab === "unread" ? 0 : 1} onSelect={(i) => app.setUnreadOnly(i === 0)} trailing={<RefreshButton />} />
           <TagChips
             icons={topicIcons(library)}
             // One feed chosen by its name (#185): its chip comes first, chosen.
@@ -219,6 +204,13 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onAdd, onImport, onU
           ))
         )}
       </div>
+      {/* Mark all as read, as Android's round button at the bottom right: only in Unread, with something unread. */}
+      {library.feeds.length > 0 && tab === "unread" && unread > 0 ? (
+        <Button onClick={() => onUndo(app.markAllRead())} className="absolute right-4 bottom-4 z-20 h-12 rounded-2xl px-5 shadow-lg" title={t("markAllRead")}>
+          <CheckCheck />
+          {t("markAllRead")}
+        </Button>
+      ) : null}
       {shareDialog}
     </section>
   );
@@ -233,14 +225,14 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onAdd, onImport, onU
 function SavedArticles({
   openKey,
   onOpen,
-  onMenu,
+  onSettings,
   onSearch,
   onMessage,
   onAdd,
 }: {
   openKey: string | null;
   onOpen: (a: Article) => void;
-  onMenu: () => void;
+  onSettings: () => void;
   onSearch: () => void;
   onMessage: ListProps["onMessage"];
   onAdd: () => void;
@@ -282,13 +274,8 @@ function SavedArticles({
   return (
     <section className="flex h-full min-w-0 flex-col" aria-label={t("saved")}>
       <CollapsingHeader hidden={header.hidden} onShow={header.show}>
-      <SearchBar onMenu={onMenu} onSearch={onSearch}>
-        {/* + is the same in every place, as on Android: it asks Subscribe to feed or Save article. */}
-        <Button variant="ghost" size="icon" onClick={onAdd} aria-label={t("addTitle")} title={t("addTitle")}>
-          <Plus />
-        </Button>
-      </SearchBar>
-      <Tabs labels={[t("toRead"), t("all")]} selected={tabIndex} onSelect={(i) => set({ tab: savedStates[i] })} />
+      <SearchBar onSettings={onSettings} onSearch={onSearch} onAdd={onAdd} />
+      <Tabs labels={[t("toRead"), t("all")]} selected={tabIndex} onSelect={(i) => set({ tab: savedStates[i] })} trailing={<RefreshButton />} />
       <TagChips
         icons={topicIcons(library)}
         // Liked is a group like a tag (#206): one at a time, before the tags.
@@ -379,22 +366,32 @@ function SavedArticles({
  * feed's articles with who sent it in place of the feed. Unread ones are bold with a dot; opening one
  * reads it. Right-click or press and hold: read or unread, Save, Share, Remove from inbox.
  */
-function InboxArticles({ openKey, onOpen, onMessage, onAdd }: { openKey: string | null; onOpen: (a: Article) => void; onMessage: ListProps["onMessage"]; onAdd: () => void }) {
+function InboxArticles({
+  openKey,
+  onOpen,
+  onMessage,
+  onAdd,
+  onSearch,
+  onSettings,
+}: {
+  openKey: string | null;
+  onOpen: (a: Article) => void;
+  onMessage: ListProps["onMessage"];
+  onAdd: () => void;
+  onSearch: () => void;
+  onSettings: () => void;
+}) {
   const { library, settings, loaded } = useApp();
   const items = useMemo(() => inboxItems(library), [library]);
   const [share, shareDialog] = useShare((text) => onMessage(text));
   return (
     <section className="flex h-full min-w-0 flex-col" aria-label={t("inboxTitle")}>
-      <header className="flex shrink-0 items-center gap-1 px-3 pt-3 pb-1">
-        <Button variant="ghost" size="icon" onClick={() => app.showInbox(false)} aria-label={t("back")}>
-          <ArrowLeft />
-        </Button>
-        <h1 className="min-w-0 flex-1 text-lg font-medium">{t("inboxTitle")}</h1>
-        {/* + is the same in every place, as on Android. */}
-        <Button variant="ghost" size="icon" onClick={onAdd} aria-label={t("addTitle")} title={t("addTitle")}>
-          <Plus />
-        </Button>
-      </header>
+      {/* A place of its own (#246), as on Android: the search bar, then its title and Refresh. */}
+      <SearchBar onSettings={onSettings} onSearch={onSearch} onAdd={onAdd} />
+      <div className="flex h-11 shrink-0 items-center border-b pr-2 pl-5">
+        <h1 className="min-w-0 flex-1 text-sm font-medium">{t("inboxTitle")}</h1>
+        <RefreshButton />
+      </div>
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-6" role="feed">
         {!loaded ? (
           <Skeletons />
@@ -458,51 +455,52 @@ function Sender({ by, images }: { by: SharedBy; images: boolean }) {
   );
 }
 
-/** The inbox's bell (#246), with a dot while something shared with you is unread; only while signed in. */
-function InboxBell() {
-  const { account, library } = useApp();
-  if (!account) return null;
-  const unread = inboxUnread(library) > 0;
-  return (
-    <Button variant="ghost" size="icon" className="relative" onClick={() => app.showInbox(true)} aria-label={t("inboxTitle")} title={t("inboxTitle")}>
-      <Bell />
-      {unread ? <NewDot className="absolute top-2 right-2" /> : null}
-    </Button>
-  );
-}
-
-/** A tab's name: To read, All, Archive or the folder's own. */
 /**
- * The title bar as a large search bar (#189), as on Android: ☰ at its start, then "Search articles",
- * which opens Search, and the list's own buttons at its end.
+ * The title bar as a large search bar (#189), as on Android: "Search articles", which opens Search,
+ * then + (Subscribe to feed or Save article, the same in every place) and, on a phone-sized window,
+ * Settings (a wide window has it in the sidebar). No ☰: the places are in the navigation bar or
+ * the sidebar, the filters in the chips or the sidebar.
  */
-function SearchBar({ onMenu, onSearch, children }: { onMenu: () => void; onSearch: () => void; children?: React.ReactNode }) {
+function SearchBar({ onSettings, onSearch, onAdd }: { onSettings: () => void; onSearch: () => void; onAdd: () => void }) {
   return (
     <header className="shrink-0 px-3 pt-3 pb-1">
       <div className="flex h-14 items-center gap-1 rounded-full bg-muted px-1">
-        <Button variant="ghost" size="icon" className="lg:hidden" onClick={onMenu} aria-label={t("openMenu")}>
-          <Menu />
+        <Button variant="ghost" size="icon" onClick={onSearch} aria-label={t("search")} title={t("search") + " (/)"}>
+          <Search />
         </Button>
-        <button type="button" onClick={onSearch} title={t("search") + " (/)"} className="min-w-0 flex-1 cursor-pointer truncate px-2 text-left text-muted-foreground">
+        <button type="button" onClick={onSearch} title={t("search") + " (/)"} className="min-w-0 flex-1 cursor-pointer truncate text-left text-muted-foreground">
           {t("searchHint")}
         </button>
-        {children}
-        <InboxBell />
-        <Button variant="ghost" size="icon" onClick={onSearch} aria-label={t("search")}>
-          <Search />
+        <Button variant="ghost" size="icon" onClick={onAdd} aria-label={t("addTitle")} title={t("addTitle")}>
+          <Plus />
+        </Button>
+        <Button variant="ghost" size="icon" className="lg:hidden" onClick={onSettings} aria-label={t("settings")} title={t("settings")}>
+          <SettingsIcon />
         </Button>
       </div>
     </header>
   );
 }
 
-/**
- * The tabs under the search bar, as on Android: the views of the place shown, Unread and Read in
- * Feeds, To read and All in Saved. The chips below them narrow the view to a topic.
- */
-function Tabs({ labels, selected, onSelect }: { labels: string[]; selected: number; onSelect: (index: number) => void }) {
+/** Refresh, at the end of the tabs (Feeds, Saved) or the Inbox's title: feeds, the account and Instapaper, as on Android. */
+function RefreshButton() {
+  const { refreshing } = useApp();
   return (
-    <div role="tablist" className="flex shrink-0 border-b px-2">
+    <Button variant="ghost" size="icon" onClick={() => void app.refresh()} disabled={refreshing} aria-label={t("refresh")} title={t("refresh") + " (r)"}>
+      <RefreshCw className={cn(refreshing && "animate-spin")} />
+    </Button>
+  );
+}
+
+/**
+ * The tabs under the search bar, as on Android: the views of the place shown, Unread and All in
+ * Feeds, To read and All in Saved; [trailing] (Refresh) at their end. The chips below them (on a
+ * wide window, the sidebar) narrow the view to a topic.
+ */
+function Tabs({ labels, selected, onSelect, trailing }: { labels: string[]; selected: number; onSelect: (index: number) => void; trailing?: React.ReactNode }) {
+  return (
+    <div className="flex shrink-0 items-center border-b pr-2">
+    <div role="tablist" className="flex flex-1 px-2">
       {labels.map((label, i) => (
         <button
           key={label}
@@ -519,6 +517,8 @@ function Tabs({ labels, selected, onSelect }: { labels: string[]; selected: numb
           {label}
         </button>
       ))}
+    </div>
+    {trailing}
     </div>
   );
 }
@@ -583,8 +583,10 @@ function useSwipe(onSelect: (index: number) => void, selected: number, count: nu
 }
 
 /**
- * The chip row under the tabs: the groups as chips, one at a time (topics in Feeds, Liked and topics
- * in Saved). While a group or another filter is on, an X at the end clears it. Nothing to show: no row.
+ * The chip row under the tabs on a phone-sized window: the groups as chips, one at a time (topics in
+ * Feeds, Liked and topics in Saved). While a group or another filter is on, an X at the end clears
+ * it. Nothing to show: no row. It scrolls sideways with a swipe, and with a mouse wheel too. A wide
+ * window has these in the sidebar instead.
  */
 function TagChips({
   icons,
@@ -610,7 +612,15 @@ function TagChips({
 }) {
   if (!state && !liked && tags.length === 0 && !filtered) return null;
   return (
-    <div role="group" aria-label={t("filter")} className="flex shrink-0 items-center gap-2 overflow-x-auto px-4 py-2 [scrollbar-width:none]">
+    <div
+      role="group"
+      aria-label={t("filter")}
+      className="flex shrink-0 items-center gap-2 overflow-x-auto px-4 py-2 [scrollbar-width:none] lg:hidden"
+      // A mouse wheel scrolls down: here that moves the chips sideways.
+      onWheel={(e) => {
+        if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) e.currentTarget.scrollLeft += e.deltaY;
+      }}
+    >
       {state}
       {state && (tags.length > 0 || liked) ? <span className="h-6 w-px shrink-0 bg-border" aria-hidden="true" /> : null}
       {liked}
