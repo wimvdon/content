@@ -149,7 +149,6 @@
     <string name="action_save">Salva</string>
     <string name="action_edit">Modifica</string>
     <string name="action_done">Fatto</string>
-    <string name="action_save_and_archive">Salva e archivia</string>
     <string name="action_open">Apri</string>
     <string name="action_undo">Annulla</string>
     <string name="filter_unread">Non letti</string>

@@ -58,6 +58,7 @@ import to.wim.content.data.Folder
 import to.wim.content.data.chosenTopic
 import to.wim.content.ui.feeds.TopicEditActions
 import to.wim.content.ui.feeds.TopicChipRow
+import to.wim.content.ui.reader.SheetActions
 import to.wim.content.ui.reader.SheetHeader
 import to.wim.content.ui.reader.SheetSection
 
@@ -127,7 +128,7 @@ fun AddFeedDialog(
 /**
  * Add feed as a sheet (#307), like the Organise sheet: the website or feed address, then its topic as
  * chips (No topic, then every topic in your order, with its icon), Edit topics at the end of them
- * (the Manage topics sheet, over this one), Cancel at the top right and Add at the bottom. [busy] shows a spinner in Add while
+ * (the Manage topics sheet, as a page of this one), Cancel at the bottom left and Add at the right. [busy] shows a spinner in Add while
  * the app looks for the feed; [error] explains why the last attempt failed.
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -179,8 +180,6 @@ fun AddFeedSheet(
                 .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            // Cancel at the top right, as in every sheet; while it looks for the feed, Cancel can't
-            // stop it, so it shows as off rather than doing nothing.
             SheetHeader(stringResource(R.string.feeds_add), onCancel = onDismiss, enabled = !busy)
             OutlinedTextField(
                 value = address,
@@ -208,8 +207,9 @@ fun AddFeedSheet(
                 enabled = !busy,
                 leading = { TopicChip(stringResource(R.string.folder_none), icon = null, selected = chosen == null, enabled = !busy) { topicId = null } },
             )
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Spacer(Modifier.weight(1f))
+            // Cancel at the bottom left, as in every sheet; while it looks for the feed, Cancel can't
+            // stop it, so it shows as off rather than doing nothing.
+            SheetActions(onCancel = onDismiss, enabled = !busy) {
                 Button(onClick = add, enabled = canAdd) {
                     if (busy) {
                         CircularProgressIndicator(strokeWidth = 2.dp, color = LocalContentColor.current, modifier = Modifier.size(18.dp))

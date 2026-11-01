@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
@@ -32,6 +33,9 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -72,13 +76,12 @@ enum class SheetKind {
 
 /**
  * The one sheet for an article (#143, #304, #305): saving one, tagging one saved last week. Headed
- * Save while saving and Organise for one saved before, with Cancel at the top right; it doesn't send (#304; Share and the
- * share menu's Send with Content do that). In order: what is being saved (only for [SheetKind.New]:
- * the address field for Add link, or the shared link's title and site), the topics with Like in
- * front, the note. The Archive is a state, not a list to pick (#305): saving, the buttons say where
- * it goes, **Save and archive** or **Save** (To read). Organising one saved before, Remove sits at the
- * bottom left and Save at the right; it doesn't move the article (the reader's Archive button and a
- * card's menu do). Closing the sheet is Cancel, so only the buttons change anything. [sendOnly]
+ * Save while saving and Organise for one saved before; it doesn't send (#304; Share and the share
+ * menu's Send with Content do that). In order: what is being saved (only for [SheetKind.New]: the
+ * address field for Add link, or the shared link's title and site), **To read** or **Archive**
+ * (To read to start with when saving; Save's icon follows it), the topics with Like in front, the
+ * note. At the bottom, Cancel at the left (with Remove next to it when organising one saved
+ * before) and Save at the right. Closing the sheet is Cancel, so only Save changes anything. [sendOnly]
  * makes it the share menu's Send with Content instead: only the people to send to (#256). Topics
  * are edited right in their chips (#314: New topic, and Edit for a pen and a drag handle on each);
  * a topic renamed or removed there changes the sheet's choice too.
@@ -188,6 +191,23 @@ fun SaveSheet(
             }
             // Only sent: nothing of it is kept, so there is nothing to tag or note.
             if (choice.keep) {
+                // To read or Archive (To read to start with, saving): where it goes, above the topics.
+                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                    listOf(false, true).forEachIndexed { i, archive ->
+                        SegmentedButton(
+                            selected = SaveChoices.archived(choice) == archive,
+                            onClick = { choice = SaveChoices.withArchived(choice, archive) },
+                            shape = SegmentedButtonDefaults.itemShape(index = i, count = 2),
+                            icon = {
+                                Icon(
+                                    painterResource(if (archive) R.drawable.ic_inventory else R.drawable.ic_reading_list),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SegmentedButtonDefaults.IconSize),
+                                )
+                            },
+                        ) { Text(stringResource(if (archive) R.string.reading_list_archive else R.string.reading_list_to_read)) }
+                    }
+                }
                 SavedParts(
                     choice,
                     allTags,
@@ -204,41 +224,31 @@ fun SaveSheet(
                     Text(stringResource(R.string.share_user_signed_out), style = MaterialTheme.typography.bodyMedium)
                 }
             }
-            FlowRow(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                itemVerticalAlignment = Alignment.CenterVertically,
+            val canSave = SendTo.canConfirm(choice, hasLink = saved || link != null)
+            // Cancel at the bottom left; organising a saved article, Remove next to it, away from Save.
+            // Just saved, Cancel already takes the save back, so there is nothing to remove.
+            SheetActions(
+                onCancel = cancel,
+                leading = {
+                    if (kind == SheetKind.Organise) {
+                        TextButton(
+                            onClick = {
+                                onDismiss()
+                                onRemove()
+                            },
+                            colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                        ) { Text(stringResource(R.string.action_remove)) }
+                    }
+                },
             ) {
-                // Organising a saved article: Remove at the bottom left, away from Save. Just saved,
-                // Cancel already takes the save back, so there is nothing to remove.
-                if (kind == SheetKind.Organise) {
-                    TextButton(
-                        onClick = {
-                            onDismiss()
-                            onRemove()
-                        },
-                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                    ) {
-                        Icon(painterResource(R.drawable.ic_delete), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
-                        Text(stringResource(R.string.action_remove), modifier = Modifier.padding(start = 8.dp))
-                    }
-                }
-                if (kind == SheetKind.Organise) Spacer(Modifier.weight(1f))
-                // Archive is a state, not a list to pick (#305): saving, the button says where it
-                // goes. Save and archive keeps something you have read already; Save puts it in To read.
-                val canSave = SendTo.canConfirm(choice, hasLink = saved || link != null)
-                val saving = SaveChoices.offersArchive(kind == SheetKind.Organise, choice)
-                if (saving) {
-                    OutlinedButton(enabled = canSave, onClick = { save(SaveChoices.toArchive(choice)) }) {
-                        Icon(painterResource(R.drawable.ic_inventory), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
-                        Text(stringResource(R.string.action_save_and_archive), modifier = Modifier.padding(start = 8.dp))
-                    }
-                }
                 Button(enabled = canSave, onClick = { save(choice) }) {
-                    // Saving, the icons say where it goes: To read's open book, the Archive's box.
-                    if (saving) {
-                        Icon(painterResource(R.drawable.ic_reading_list), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                    // Kept, the icon says where it goes: To read's open book, the Archive's box.
+                    if (choice.keep && !sendOnly) {
+                        Icon(
+                            painterResource(if (SaveChoices.archived(choice)) R.drawable.ic_inventory else R.drawable.ic_reading_list),
+                            contentDescription = null,
+                            modifier = Modifier.size(ButtonDefaults.IconSize),
+                        )
                         Spacer(Modifier.size(8.dp))
                     }
                     Text(
@@ -309,17 +319,15 @@ private fun SavedParts(
 }
 
 /**
- * A sheet's heading with **Cancel** at its top right (#305), the same in every sheet: away from the
- * button that saves at the bottom. [enabled] false shows Cancel as off (while busy). On a page of a
- * sheet ([ContentSheet]) a back arrow before the title takes its place.
+ * A sheet's heading, the same in every sheet: its title. Cancel is at the bottom left
+ * ([SheetActions]). On a page of a sheet ([ContentSheet]) a back arrow before the title goes back
+ * ([onCancel]; [enabled] false shows it as off, while busy).
  */
 @Composable
 internal fun SheetHeader(
     title: String,
     onCancel: () -> Unit,
     enabled: Boolean = true,
-    /** Done in a sheet whose changes are stored at once (Manage feeds, Manage topics); else Cancel. */
-    closeLabel: String = stringResource(R.string.action_cancel),
 ) {
     // A page of a sheet (ContentSheet): a back arrow takes you back to the sheet under it.
     if (LocalInSheetPage.current) {
@@ -331,9 +339,30 @@ internal fun SheetHeader(
         }
         return
     }
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f).semantics { heading() })
-        TextButton(onClick = onCancel, enabled = enabled) { Text(closeLabel) }
+    Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp).semantics { heading() })
+}
+
+/**
+ * A sheet's buttons, at its bottom, the same in every sheet: **Cancel** at the left (not on a page
+ * of a sheet, whose back arrow does it; [cancel] false for sheets without Cancel, such as Manage
+ * feeds with Done), then [leading] (Remove, in red), and [actions] at the right (the main button).
+ * [enabled] false shows Cancel as off (while busy).
+ */
+@Composable
+internal fun SheetActions(
+    onCancel: () -> Unit,
+    enabled: Boolean = true,
+    cancel: Boolean = true,
+    leading: @Composable RowScope.() -> Unit = {},
+    actions: @Composable RowScope.() -> Unit = {},
+) {
+    Row(Modifier.fillMaxWidth().padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (cancel && !LocalInSheetPage.current) {
+            TextButton(onClick = onCancel, enabled = enabled) { Text(stringResource(R.string.action_cancel)) }
+        }
+        leading()
+        Spacer(Modifier.weight(1f))
+        actions()
     }
 }
 

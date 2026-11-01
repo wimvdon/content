@@ -14,8 +14,10 @@ type Props = {
   footer?: ReactNode;
   closeLabel: string;
   wide?: boolean;
-  /** A sheet (#305): Cancel in words at the top right instead of ×, the same as on Android. */
+  /** A sheet: Cancel in words at the bottom left instead of ×, the same as on Android. */
   cancel?: string;
+  /** A dialog whose changes are kept at once (Manage feeds, Manage topics): Done at the bottom right instead of ×. */
+  done?: string;
   /** The back arrow's label, when this dialog opens as a page of another. */
   backLabel?: string;
 };
@@ -39,7 +41,7 @@ export function Dialog(props: Props) {
   return host ? <DialogPage host={host} {...props} /> : <RootDialog {...props} />;
 }
 
-function RootDialog({ open, onOpenChange, title, description, children, footer, closeLabel, wide, cancel }: Props) {
+function RootDialog({ open, onOpenChange, title, description, children, footer, closeLabel, wide, cancel, done }: Props) {
   const [pages, setPages] = useState<Page[]>([]);
   const [slot, setSlot] = useState<HTMLDivElement | null>(null);
   const top = pages.at(-1) ?? null;
@@ -70,9 +72,7 @@ function RootDialog({ open, onOpenChange, title, description, children, footer, 
                   <D.Title className="text-lg font-semibold">{title}</D.Title>
                   {description ? <D.Description className="mt-1 text-sm text-muted-foreground">{description}</D.Description> : <D.Description className="sr-only">{title}</D.Description>}
                 </div>
-                {cancel ? (
-                  <D.Close className="-mr-2 h-9 shrink-0 cursor-pointer rounded-lg px-3 text-sm font-medium text-primary hover:bg-muted">{cancel}</D.Close>
-                ) : (
+                {cancel || done ? null : (
                   <D.Close className="-mr-2 rounded-full p-2 hover:bg-muted" aria-label={closeLabel}>
                     <X className="size-4" />
                   </D.Close>
@@ -80,7 +80,17 @@ function RootDialog({ open, onOpenChange, title, description, children, footer, 
               </div>
               {/* pt-1: the first field's focus ring isn't cut off by the scrolling body. */}
               <div className="min-h-0 flex-1 overflow-y-auto px-6 pt-1 pb-4">{children}</div>
-              {footer ? <div className="flex flex-wrap justify-end gap-2 border-t px-6 py-3">{footer}</div> : null}
+              {/* Cancel at the bottom left, as on Android (SheetActions); a Remove (mr-auto) sits next
+                  to it, the main button at the right; Done at the far right. */}
+              {footer || cancel || done ? (
+                <div className="flex flex-wrap items-center gap-2 border-t px-6 py-3">
+                  {cancel ? <D.Close className="-ml-3 h-9 shrink-0 cursor-pointer rounded-lg px-3 text-sm font-medium text-primary hover:bg-muted">{cancel}</D.Close> : null}
+                  <div className="flex flex-1 flex-wrap items-center justify-end gap-2">
+                    {footer}
+                    {done ? <D.Close className="h-9 shrink-0 cursor-pointer rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90">{done}</D.Close> : null}
+                  </div>
+                </div>
+              ) : null}
             </div>
             {/* The pages opened from within it: only the last one shows. */}
             <div ref={setSlot} className="contents" />
@@ -124,7 +134,11 @@ function DialogPage({ host, open, onOpenChange, title, description, children, fo
         </div>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto px-6 pt-1 pb-4">{children}</div>
-      {footer ? <div className="flex flex-wrap justify-end gap-2 border-t px-6 py-3">{footer}</div> : null}
+      {footer ? (
+        <div className="flex flex-wrap items-center gap-2 border-t px-6 py-3">
+          <div className="flex flex-1 flex-wrap items-center justify-end gap-2">{footer}</div>
+        </div>
+      ) : null}
     </div>,
     host.slot,
   );

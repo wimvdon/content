@@ -36,6 +36,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.foundation.layout.Spacer
+import to.wim.content.ui.reader.SheetActions
 import to.wim.content.ui.reader.SheetHeader
 import to.wim.content.ui.reader.SheetSection
 import to.wim.content.ui.home.TopicChip
@@ -149,14 +150,17 @@ internal fun FolderSheet(
                     }
                 }
             }
-            // Cancel is at the top right; Remove at the bottom left, away from Save.
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                if (onRemove != null) {
-                    TextButton(onClick = onRemove) {
-                        Text(stringResource(R.string.action_remove), color = MaterialTheme.colorScheme.error)
+            // Cancel at the bottom left, with Remove next to it, away from Save.
+            SheetActions(
+                onCancel = onDismiss,
+                leading = {
+                    if (onRemove != null) {
+                        TextButton(onClick = onRemove) {
+                            Text(stringResource(R.string.action_remove), color = MaterialTheme.colorScheme.error)
+                        }
                     }
-                }
-                Spacer(Modifier.weight(1f))
+                },
+            ) {
                 Button(onClick = { onSave(title.trim(), icon) }, enabled = title.isNotBlank()) {
                     Text(stringResource(R.string.action_save))
                 }
@@ -171,7 +175,7 @@ private val ICON_GRID_HEIGHT = 240.dp
  * Edit a feed, as a sheet like Add feed: its name (blank brings back the feed's own title), its
  * address, why its last download failed (if it did), its topic as chips (No topic, then every
  * topic, with Edit topics as in Add feed), Remove at the bottom left (asking first, in the
- * sheet) and Save at the right. Cancel at the top right, as in every sheet.
+ * sheet) next to Cancel, and Save at the right, as in every sheet.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -251,12 +255,15 @@ internal fun FeedSheet(
                     }
                 }
             } else {
-                // Remove at the bottom left, away from Save.
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    TextButton(onClick = { removing = true }) {
-                        Text(stringResource(R.string.action_remove), color = MaterialTheme.colorScheme.error)
-                    }
-                    Spacer(Modifier.weight(1f))
+                // Cancel at the bottom left, with Remove next to it, away from Save.
+                SheetActions(
+                    onCancel = onDismiss,
+                    leading = {
+                        TextButton(onClick = { removing = true }) {
+                            Text(stringResource(R.string.action_remove), color = MaterialTheme.colorScheme.error)
+                        }
+                    },
+                ) {
                     Button(onClick = { onSave(title, chosen) }) { Text(stringResource(R.string.action_save)) }
                 }
             }

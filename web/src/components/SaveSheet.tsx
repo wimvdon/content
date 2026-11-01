@@ -5,7 +5,7 @@ import { normalizeUrl } from "@/lib/discovery";
 import { t } from "@/lib/i18n";
 import { isWebLink } from "@/lib/items";
 import { topicNames } from "@/lib/topics";
-import { choiceOf, emptyChoice, offersArchive, tagChoices, toArchive, withoutTopic, withTag, withTopicRenamed, withTyped, type Place, type SaveChoice } from "@/lib/saveChoice";
+import { choiceOf, emptyChoice, isArchived, tagChoices, withArchived, withoutTopic, withTag, withTopicRenamed, withTyped, type Place, type SaveChoice } from "@/lib/saveChoice";
 import { savedFolders } from "@/lib/saved";
 import { canConfirm } from "@/lib/sendTo";
 import { RemoveDialog } from "./SavedActions";
@@ -19,11 +19,10 @@ import { Input } from "./ui/input";
  * The one sheet for an article (#143, #304, #305), as on Android: Add link (nothing is saved until
  * Save, and Cancel saves nothing), just saved from the reader ("Saved to …"), or one saved before.
  * Headed Save while saving and Organise for one saved before; it doesn't send (#304; Share does).
- * In order: the address (Add link only), the topics with Like in front, the note. The Archive is a
- * state, not a list to pick (#305): saving, the buttons say where it goes, Save and archive or Save
- * (To read), each with its icon. An article saved before has Remove at the bottom left, which asks
- * first, and doesn't move (the reader's Archive button and a card's menu do). Cancel at the top
- * right, or closing the sheet, saves nothing; right after a save it takes the save back.
+ * In order: the address (Add link only), To read or Archive (To read to start with when saving; Save
+ * shows its icon), the topics with Like in front, the note. Cancel at the bottom left, with Remove
+ * next to it for an article saved before (it asks first); Save at the right. Cancel, or closing the
+ * sheet, saves nothing; right after a save it takes the save back.
  */
 /** A message under the sheet, with Open for a new save (its key). */
 type Message = (text: string, openKey?: string) => void;
@@ -77,7 +76,6 @@ function Sheet({
     app.closeSheet();
   };
   // One sheet, headed for what it does: Save while saving, Organise for one saved before.
-  const saving = offersArchive(kind === "organise", choice);
   const title = kind === "organise" ? t("organiseTitle") : t("saveArticle");
   return (
     <Dialog
@@ -88,7 +86,7 @@ function Sheet({
       cancel={t("cancel")}
       footer={
         <>
-          {/* Organising a saved article: Remove at the bottom left, away from Save; it asks first. Just
+          {/* Organising a saved article: Remove next to Cancel, away from Save; it asks first. Just
               saved, Cancel already takes the save back. */}
           {kind === "organise" && savedItem ? (
             <Button
@@ -100,15 +98,9 @@ function Sheet({
               {t("remove")}
             </Button>
           ) : null}
-          {/* Saving, the buttons and their icons say where it goes (#305); Cancel is at the top right. */}
-          {saving ? (
-            <Button variant="outline" onClick={() => save(toArchive(choice))} disabled={!canConfirm(choice, saved || link !== null)}>
-              <Archive />
-              {t("saveAndArchive")}
-            </Button>
-          ) : null}
+          {/* Save, with the icon of where it goes: To read's open book, the Archive's box. */}
           <Button onClick={() => save(choice)} disabled={!canConfirm(choice, saved || link !== null)}>
-            {saving ? <BookOpen /> : null}
+            {choice.keep ? isArchived(choice) ? <Archive /> : <BookOpen /> : null}
             {t("saveArticle")}
           </Button>
         </>
@@ -132,6 +124,25 @@ function Sheet({
         {/* Only sent: nothing of it is kept, so there is nothing to tag or note. */}
         {choice.keep ? (
           <>
+        {/* To read or Archive, above the topics, as on Android's segmented choice. */}
+        <div role="radiogroup" aria-label={t("saveArticle")} className="grid grid-cols-2 rounded-full border p-0.5">
+          {[false, true].map((archive) => {
+            const on = isArchived(choice) === archive;
+            return (
+              <button
+                key={String(archive)}
+                type="button"
+                role="radio"
+                aria-checked={on}
+                onClick={() => setChoice((c) => withArchived(c, archive))}
+                className={cn("inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-full text-sm font-medium", on ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:bg-muted")}
+              >
+                {archive ? <Archive className="size-4" aria-hidden="true" /> : <BookOpen className="size-4" aria-hidden="true" />}
+                {archive ? t("archiveTab") : t("toRead")}
+              </button>
+            );
+          })}
+        </div>
         <Section title={t("tags")}>
           <TopicChips
             topics={library.folders}

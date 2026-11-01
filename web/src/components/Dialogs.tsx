@@ -132,7 +132,7 @@ export function ManageFeedsDialog({ open, onOpenChange, onAddFeed, children }: P
     return library.feeds.length === 0 ? [] : [...inTopics, [null, loose] as const];
   }, [library]);
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} title={t("manageFeedsTitle")} closeLabel={t("close")} cancel={t("done")}>
+    <Dialog open={open} onOpenChange={onOpenChange} title={t("manageFeedsTitle")} closeLabel={t("close")} done={t("done")}>
       <p className="pb-3 text-sm text-muted-foreground">{t(library.feeds.length === 0 ? "manageFeedsNone" : "manageFeedsHint")}</p>
       <div className="space-y-4">
         {groups.map(([topic, feeds]) => (

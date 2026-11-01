@@ -190,11 +190,12 @@ and then (always before a release):
 - [ ] **+ in the search bar (#307):** in Feeds it opens the Add feed sheet (address, Topic chips
       starting on the topic shown, Cancel and Add); in Saved the save sheet asking for an address;
       not in the Inbox. Saved has no round button any more.
-- [ ] **Sheets alike:** Save on a feed article: the sheet is headed **Save**, Cancel at the top right,
-      **Save and archive** (box icon) and **Save** (open book) at the bottom. Organise on a saved
-      article: headed **Organise**. Add feed, New topic, a highlight and Report a problem: Cancel at
-      the top right, no Cancel at the bottom. Edit topics is a text button, not a chip. Web:
-      the same, Cancel in words at the top right, + in the search bar, Manage topics in Settings.
+- [ ] **Sheets alike:** Save on a feed article: the sheet is headed **Save**, **To read** / **Archive**
+      above the topics (To read picked), Cancel at the bottom left and **Save** at the bottom right
+      with the icon of the choice. Organise on a saved article: headed **Organise**, the same choice
+      showing where it is. Add feed, New topic, a highlight and Report a problem: Cancel at the
+      bottom left. Manage feeds and Manage topics: Done at the bottom right. Edit topics is a text
+      button, not a chip. Web: the same.
 - [ ] **Topic chips (#314):** Feeds' and Saved's chip rows show each topic's icon. In the Add feed
       and Organise sheets the topics have their icons too, then **Edit topics**. New
       topic: name and icon, Save: the new topic is chosen. Edit: each chip gets a grip and a pen and
@@ -313,14 +314,17 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
       Web app: select text with the mouse, pick Highlight or Note in the bar above it; click a
       marker to edit; a highlight made on the phone shows on the web after sync, and the other way.
 - [ ] In a saved article the bottom bar has two labelled buttons (#305): **Archive** (a box) and
-      **Organise** (a tag). Tap **Archive**: back in the list with "Archived" and **Undo**; Undo puts
-      it back. Open an archived article: the button says **Back to read**; tap it and the article
-      stays open, now in To read. **Organise** opens the sheet. Web app: the same two buttons.
+      **Organise** (a tag). Tap **Archive**: the article stays open, "Archived" shows with **Undo**;
+      Undo puts it back. Open an archived article: only **Organise**; its **To read** moves it back.
+      Web app: the same.
 - [ ] **Add link** and a link shared from another app: the sheet asks for the address (or shows the
-      link), has no To read / Archive chips, **Cancel** at the top right saves nothing, and at the
-      bottom **Save and archive** and **Save**. Save and archive: "Saved to Archive"; Save: "Saved to To read".
-- [ ] **Organise** a saved article (long press a card in Saved): topics, Like, the note, Remove and
-      Save; no Save and archive. **Cancel** changes nothing.
+      link), **To read** / **Archive** (To read picked), **Cancel** at the bottom left saves nothing,
+      and **Save** at the right. With Archive picked: "Saved to Archive"; else "Saved to To read".
+- [ ] **Organise** a saved article (long press a card in Saved): To read / Archive, topics, Like, the
+      note, Cancel and Remove at the left, Save at the right. **Cancel** changes nothing.
+- [ ] **The reader's ⋮:** a feed article: Mark as unread, Show full article (or Show feed text),
+      Open in browser, Sign in to this site, Report a problem, in that order; no page icon in the top
+      bar. A saved article: no Remove from Saved (it is in Organise).
 - [ ] Nothing in a sheet asks which service, and no sheet explains an empty field.
 - [ ] **Save, the list icon and Open (#142):** nothing says "Read later", in any language; the
       navigation bar's Saved is a list icon, To read keeps the open book. After saving from the

@@ -149,7 +149,6 @@
     <string name="action_save">Guardar</string>
     <string name="action_edit">Editar</string>
     <string name="action_done">Listo</string>
-    <string name="action_save_and_archive">Guardar y archivar</string>
     <string name="action_open">Abrir</string>
     <string name="action_undo">Deshacer</string>
     <string name="filter_unread">Sin leer</string>

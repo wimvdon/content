@@ -76,7 +76,9 @@ fun ReportSheet(
                 modifier = Modifier.fillMaxWidth(),
             )
             Text(stringResource(R.string.report_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Button(onClick = { onSend(problem, comment) }, modifier = Modifier.align(Alignment.End)) { Text(stringResource(R.string.report_send)) }
+            SheetActions(onCancel = onDismiss) {
+                Button(onClick = { onSend(problem, comment) }) { Text(stringResource(R.string.report_send)) }
+            }
         }
     }
 }

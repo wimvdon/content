@@ -1025,12 +1025,8 @@ fun RssReaderNavigation(
                                             fileKey = i.key
                                             fileFromReader = true
                                         },
-                                        // Archive closes the reader (with Undo); Back to read keeps it open.
-                                        onArchive = {
-                                            archive(i)
-                                            if (!i.archived) pop()
-                                        },
-                                        onRemove = { askRemove(i.key, fromReader = true) },
+                                        // Archive keeps the reader open: a message says so, with Undo.
+                                        onArchive = { archive(i) },
                                         onProgress = { progress ->
                                             if (kotlin.math.abs(progress - i.progress) >= 0.01f) {
                                                 editLibrary { lib -> lib.changeItem(i.key) { if (it.readingList == null) it else it.copy(progress = progress) } }

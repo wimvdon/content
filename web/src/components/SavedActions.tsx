@@ -1,4 +1,4 @@
-import { Archive, ArchiveRestore, ListPlus, Quote, Share2, Tag, Trash2 } from "lucide-react";
+import { Archive, ListPlus, Quote, Share2, Tag, Trash2 } from "lucide-react";
 import { app } from "@/lib/app";
 import { plural, t } from "@/lib/i18n";
 import type { Item } from "@/lib/items";
@@ -7,10 +7,9 @@ import { Dialog } from "./ui/dialog";
 
 /**
  * The reader's library bar (#139, #156, #305), under the text: one Save before the article is
- * saved; after, two buttons that say in words what they do, as on Android. **Archive** archives it
- * in one tap (back to the list, with Undo); once archived it is **Back to read**, as Mark as read
- * turns into Mark as unread. **Organise** opens the sheet with the topics, Like and the note. The
- * highlights and Share sit at the right end.
+ * saved; after, as on Android, **Archive** (only while it is to read: it archives it in one tap and
+ * the article stays open, with a message and Undo) and **Organise** (To read or Archive, the
+ * topics, Like and the note; archived, the only one). The highlights and Share sit at the right end.
  */
 export function LibraryBar({
   item,
@@ -61,18 +60,19 @@ export function LibraryBar({
   const archived = item.readingList?.state === "archived";
   return (
     <div className="flex items-center gap-1 border-t bg-muted/40 px-2 py-2">
-      <Button
-        variant="ghost"
-        className="min-w-0"
-        onClick={() => {
-          app.archiveItem(item.key, !archived);
-          // Archived: done with it, back to the list with Undo. Back to read keeps it open.
-          if (!archived) onArchived(() => app.archiveItem(item.key, false));
-        }}
-      >
-        {archived ? <ArchiveRestore /> : <Archive />}
-        <span className="truncate">{t(archived ? "backToRead" : "archive")}</span>
-      </Button>
+      {!archived ? (
+        <Button
+          variant="ghost"
+          className="min-w-0"
+          onClick={() => {
+            app.archiveItem(item.key, true);
+            onArchived(() => app.archiveItem(item.key, false));
+          }}
+        >
+          <Archive />
+          <span className="truncate">{t("archive")}</span>
+        </Button>
+      ) : null}
       <Button variant="ghost" className="min-w-0" onClick={() => app.openOrganise(item.key)}>
         <Tag />
         <span className="truncate">{t("organiseTitle")}</span>

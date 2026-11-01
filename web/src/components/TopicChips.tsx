@@ -222,7 +222,7 @@ export function ManageTopicsDialog({
 }) {
   const { library } = useApp();
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} title={t("manageTitle")} closeLabel={t("close")} cancel={t("done")}>
+    <Dialog open={open} onOpenChange={onOpenChange} title={t("manageTitle")} closeLabel={t("close")} done={t("done")}>
       <p className="pb-3 text-sm text-muted-foreground">{t("manageTopicsHint")}</p>
       <TopicChips topics={library.folders} selected={() => false} onToggle={() => {}} onRenamed={onRenamed} onRemoved={onRemoved} alwaysEditing />
     </Dialog>
