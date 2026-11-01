@@ -302,7 +302,7 @@ describe("Instapaper as Saved's service (instapaperSync.ts)", () => {
     api.bookmarks = [...Array.from({ length: 499 }, (_, i) => bookmark(i + 1, `https://a.example/${i}`)), bookmark(600, "https://b.example/x", { folder_id: 3, progress: { percentage: 0.42 }, tags: [{ id: 9, name: "Recipes", slug: "recipes", count: 1 }] }), bookmark(601, null)];
     api.deleted = [900];
     const sync = new InstapaperSync(api, () => 1_755_000_600_000);
-    const changes = await sync.changes("p:1755000000");
+    const changes = await sync.changes("p2:1755000000");
     // A page counts its bookmarks and deletions, as on Android.
     expect(api.calls).toEqual(["since 1755000000 0 500", "since 1755000000 500 500"]);
     // 499 and both from the second page: the private one without an address (a forwarded email)
@@ -312,17 +312,26 @@ describe("Instapaper as Saved's service (instapaperSync.ts)", () => {
     expect(changes.deleted).toEqual(["900"]);
     expect(changes.entries[499]).toMatchObject({ folder: null, tags: ["Recipes"], progress: 0.42, addedAt: 1_755_000_000_000 });
     // The next one starts a little before this one.
-    expect(changes.cursor).toBe("p:" + (1_755_000_600 - 300));
+    expect(changes.cursor).toBe("p2:" + (1_755_000_600 - 300));
   });
 
-  it("reads everything once after a cursor from before emails came in, and still leaves out odd addresses", async () => {
+  it("reads everything once after a cursor from before emails came in as they do now", async () => {
+    for (const old of ["1755000000", "p:1755000000"]) {
+      const api = new FakeApi();
+      const sync = new InstapaperSync(api, () => 1_755_000_600_000);
+      const changes = await sync.changes(old);
+      expect(api.calls[0]).toBe("since 1 0 500");
+      expect(changes.cursor.startsWith("p2:")).toBe(true);
+    }
+  });
+
+  it("brings in private content by Instapaper's page, whatever address it has", async () => {
     const api = new FakeApi();
-    api.bookmarks = [bookmark(1, "ftp://x.example/1")];
-    const sync = new InstapaperSync(api, () => 1_755_000_600_000);
-    const changes = await sync.changes("1755000000");
-    expect(api.calls[0]).toBe("since 1 0 500");
-    expect(changes.entries).toHaveLength(0);
-    expect(changes.cursor.startsWith("p:")).toBe(true);
+    // An instapaper-private:// address (a forwarded email), another that isn't a web address, one
+    // marked private, and an ordinary article.
+    api.bookmarks = [bookmark(1, "instapaper-private://email/abc"), bookmark(2, "ftp://x.example/2"), bookmark(3, "https://mail.example/x", { private_source: "email" }), bookmark(4, "https://a.example/4")];
+    const changes = await new InstapaperSync(api).changes(null);
+    expect(changes.entries.map((e) => e.url)).toEqual(["https://www.instapaper.com/read/1", "https://www.instapaper.com/read/2", "https://www.instapaper.com/read/3", "https://a.example/4"]);
   });
 
   it("adds with tags, or into the archive, never into a folder (#187)", async () => {

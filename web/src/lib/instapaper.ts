@@ -31,6 +31,8 @@ export interface Bookmark {
   tags: Tag[];
   /** How far it was read (API v2), when Instapaper sends it. */
   progress?: { percentage?: number; timestamp?: number } | null;
+  /** Set for private content (a forwarded email, an uploaded file): where it came from. */
+  private_source?: string | null;
 }
 
 /** A `since` page: what changed and what was deleted since a time. */

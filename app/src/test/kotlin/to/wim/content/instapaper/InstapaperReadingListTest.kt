@@ -66,7 +66,7 @@ class InstapaperReadingListTest {
                     else -> 200 to """{"bookmarks":[${bookmark(600, "https://b.example/x", folder = 3, tags = """[{"id":9,"name":"Recipes"}]""")},${bookmark(601, null)}],"deleted_ids":[],"total":502}"""
                 }
             }
-            val changes = service.changes("p:1755000000")
+            val changes = service.changes("p2:1755000000")
             assertTrue(calls.any { it == "GET /bookmarks?since=1755000000&limit=500&offset=0" })
             assertTrue(calls.any { it == "GET /bookmarks?since=1755000000&limit=500&offset=500" })
             // 499 + both from the second page: the private one without an address (a forwarded
@@ -81,22 +81,34 @@ class InstapaperReadingListTest {
             assertEquals(0.42f, x.progress, 0.001f)
             assertEquals(1_755_000_000_000L, x.addedAt)
             // The next sync starts a little before this one.
-            assertEquals("p:" + (1_755_000_600L - InstapaperReadingList.CURSOR_MARGIN_S), changes.cursor)
+            assertEquals("p2:" + (1_755_000_600L - InstapaperReadingList.CURSOR_MARGIN_S), changes.cursor)
         }
 
     @Test
     fun `a cursor from before emails came in reads everything once`() =
         runBlocking {
             answer = { _, path, _ -> if (path.startsWith("/bookmarks")) 200 to """{"bookmarks":[],"deleted_ids":[]}""" else 200 to """{"folders":[],"tags":[]}""" }
-            val changes = service.changes("1755000000")
-            assertTrue(calls.any { it.startsWith("GET /bookmarks?since=1&") })
-            assertTrue(changes.cursor.startsWith("p:"))
+            for (old in listOf("1755000000", "p:1755000000")) {
+                calls.clear()
+                val changes = service.changes(old)
+                assertTrue(calls.any { it.startsWith("GET /bookmarks?since=1&") })
+                assertTrue(changes.cursor.startsWith("p2:"))
+            }
         }
 
     @Test
-    fun `an address that isn't a web address is still left out`() {
-        val b = InstapaperClient.parseBookmark(Json.parse(bookmark(7, "ftp://x.example/7")))!!
-        assertNull(service.entryOf(b))
+    fun `private content comes in by Instapaper's page, whatever address it has`() {
+        // An instapaper-private:// address (a forwarded email), any other address that isn't a web
+        // address, and one marked private: none is kept as it is.
+        for (address in listOf("instapaper-private://email/abc", "ftp://x.example/7", "javascript:alert(1)")) {
+            val b = InstapaperClient.parseBookmark(Json.parse(bookmark(7, address)))!!
+            assertEquals("https://www.instapaper.com/read/7", service.entryOf(b).url)
+        }
+        val marked = InstapaperClient.parseBookmark(Json.parse(bookmark(8, "https://mail.example/x").dropLast(1) + ""","private_source":"email","category":1}"""))!!
+        assertEquals("email", marked.privateSource)
+        assertEquals("https://www.instapaper.com/read/8", service.entryOf(marked).url)
+        // An ordinary article keeps its own address.
+        assertEquals("https://a.example/9", service.entryOf(InstapaperClient.parseBookmark(Json.parse(bookmark(9, "https://a.example/9")))!!).url)
     }
 
     @Test

@@ -16,8 +16,12 @@ export const INSTAPAPER_ID = "instapaper";
 const PAGE = 500;
 /** How much earlier than the request the next `since` starts, for clocks that differ. */
 const CURSOR_MARGIN_S = 300;
-/** Marks a cursor made since private content (emails) comes in; one without it reads everything once. */
-export const CURSOR_PREFIX = "p:";
+/**
+ * Marks a cursor made since private content (emails) comes in as it does now; one without it (from
+ * before, "p:" included: 6.8.2 still left out emails with an `instapaper-private://` address) reads
+ * everything once.
+ */
+export const CURSOR_PREFIX = "p2:";
 
 type Api = Pick<InstapaperApi, "changesSince" | "folders" | "tags" | "save" | "setTags" | "move" | "like" | "updateBookmark" | "remove"> &
   Partial<Pick<InstapaperApi, "highlights" | "addHighlight" | "deleteHighlight">>;
@@ -48,10 +52,7 @@ export class InstapaperSync implements SavedSyncService, HighlightService {
       const deleted: string[] = [];
       for (let offset = 0; ; ) {
         const page = await this.api.changesSince(since, offset, PAGE);
-        for (const b of page.bookmarks) {
-          const entry = this.entryOf(b);
-          if (entry) entries.push(entry);
-        }
+        for (const b of page.bookmarks) entries.push(this.entryOf(b));
         deleted.push(...page.deleted_ids.map(String));
         const count = page.bookmarks.length + page.deleted_ids.length;
         offset += count;
@@ -62,13 +63,13 @@ export class InstapaperSync implements SavedSyncService, HighlightService {
   }
 
   /**
-   * A bookmark as an entry. One without an address (a forwarded email, a PDF: Instapaper's private
-   * content) gets Instapaper's own page as its address (instapaperLinks.ts); one with an address that
-   * isn't a web address is left out, as on Android.
+   * A bookmark as an entry. Private content (a forwarded email, an uploaded file: marked as private,
+   * or without a web address, such as none or an `instapaper-private://` one) gets Instapaper's own
+   * page as its address (instapaperLinks.ts), as on Android.
    */
-  entryOf(b: Bookmark): RemoteEntry | null {
-    const url = !b.url?.trim() ? instapaperReadLink(b.id) : /^https?:\/\//i.test(b.url) ? b.url : null;
-    if (!url) return null;
+  entryOf(b: Bookmark): RemoteEntry {
+    const web = b.url && /^https?:\/\//i.test(b.url.trim()) ? b.url.trim() : null;
+    const url = web && !b.private_source?.trim() ? web : instapaperReadLink(b.id);
     return {
       remoteId: String(b.id),
       url,
@@ -109,9 +110,7 @@ export class InstapaperSync implements SavedSyncService, HighlightService {
         await this.api.move(saved.id, "archive");
         saved = { ...saved, archived: true, folder_id: null };
       }
-      const entry = this.entryOf(saved);
-      if (!entry) throw new ServiceSyncError("refused");
-      return entry;
+      return this.entryOf(saved);
     });
   }
 
