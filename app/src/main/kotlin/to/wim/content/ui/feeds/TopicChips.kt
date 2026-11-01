@@ -1,5 +1,10 @@
 package to.wim.content.ui.feeds
 
+import to.wim.content.ui.theme.ReorderableColumn
+import to.wim.content.ui.theme.DragHandle
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -45,8 +50,8 @@ import to.wim.content.ui.home.rememberFolderIconPainter
  * ([ManageTopicsSheet]) as a page of the same sheet ([ContentSheet]); its back arrow (or Back) comes
  * back to the sheet as it was.
  *
- * With [alwaysEditing] (the Manage topics sheet itself) every chip has a drag handle and a pen: drag
- * a chip to reorder the topics, tap it (or the pen) to rename it, change its icon or remove it;
+ * With [alwaysEditing] (the Manage topics sheet itself) the topics are rows with a grip at the end
+ * (the design kit's ReorderableColumn): drag a row to reorder them, tap it to rename it, change its icon or remove it;
  * renaming it to another topic's name joins the two. Removing (the topic sheet's trash can) asks first, in a dialog. **New
  * topic** (the topic sheet: a name and an icon) comes after them.
  */
@@ -72,14 +77,27 @@ fun TopicChipRow(
     val editable = actions != null && alwaysEditing
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (editable) {
-            ReorderableChips(
+            // Rows, as every reorderable list (DESIGN.md, Reordering): the tag's icon and name, the
+            // grip at the end; tap a row to rename it, change its icon or remove it.
+            val editLabel = stringResource(R.string.folder_edit)
+            ReorderableColumn(
                 items = topics,
                 key = { it.id },
-                label = { it.title },
-                icon = { Icon(rememberFolderIconPainter(it.icon), contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) },
-                onReorder = { actions!!.onReorder(it) },
-                onEdit = { editing = it.id },
-            )
+                onMove = { from, to -> actions!!.onReorder(topics.map { it.id }.toMutableList().apply { add(to, removeAt(from)) }) },
+            ) { topic ->
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 56.dp)
+                        .clickable(onClickLabel = editLabel) { editing = topic.id },
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    Icon(rememberFolderIconPainter(topic.icon), contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(topic.title, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                    DragHandle(handleModifier)
+                }
+            }
         }
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -184,26 +202,3 @@ fun ManageTopicsSheet(
     }
 }
 
-/** Chips to reorder and edit in one group: the topics while editing ([ReorderableChipGroups]). */
-@Composable
-internal fun <T> ReorderableChips(
-    items: List<T>,
-    key: (T) -> String,
-    label: (T) -> String,
-    icon: @Composable (T) -> Unit,
-    onReorder: (keys: List<String>) -> Unit,
-    onEdit: (T) -> Unit,
-    editLabel: String = stringResource(R.string.folder_edit),
-    isError: (T) -> Boolean = { false },
-) {
-    ReorderableChipGroups(
-        groups = listOf(ChipGroup("", items)),
-        key = key,
-        label = label,
-        icon = icon,
-        onReorder = { _, keys -> onReorder(keys) },
-        onEdit = onEdit,
-        editLabel = editLabel,
-        isError = isError,
-    )
-}

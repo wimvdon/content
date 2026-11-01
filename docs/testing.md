@@ -75,6 +75,7 @@ when the run fails.
 | `ArticleFilterTest` | Hide articles with words (#277): words split on commas, semicolons and new lines, whole words and phrases only, case ignored, accented letters as letters, hidden articles out of the list and the unread counts |
 | `ArticleSearchTest` | Search: every word, case and accents ignored, title, text, feed name and author, title matches first, removed feeds left out |
 | `FeedArrangementTest` | Manage page order: rows per folder, dragging feeds between folders and out of them, forbidden moves, reordering folders |
+| `SectionOrderTest` | Manage feeds' list in sections: headings and rows flattened, a row passing headings, nothing above the first heading, a drop moving a feed into another topic (or reordering its own) |
 | `SettingsTest` | Text size limits, reader and theme darkness (and Auto dark), Save/Share targets (storage and the old Save setting), defaults |
 | `ListEndTest` | Mark all as read under the last article: only in Unread, only while something in it is unread |
 
@@ -210,11 +211,13 @@ and then (always before a release):
       Remove (the trash can at the top right; it asks in a popup). Web app: the same, dragging with the mouse or ← → on a chip.
 - [ ] **Settings** starts with two large buttons, Manage feeds and Manage topics (how many under
       each), then Account, Integrations, Theme, Article list and Article view; each page opens and back
-      returns to the list. **Manage feeds** (a sheet): the feeds as chips by topic (a failing one in
-      red); drag one by its grip within its topic, and into another topic (or No topic, or an empty topic): it
+      returns to the list. **Manage feeds** (a sheet): the feeds as rows under a heading per topic (a
+      failing one in red), each with a grip at the end; drag one by its grip up or down within its
+      topic, and past another heading into that topic (or No topic, or an empty topic, "Drag a feed
+      here"): the rows move smoothly one place at a time, the dragged one lifted with a shadow; it
       stays there after closing and reopening the sheet, and the sheet doesn't scroll while dragging; tap one: the Edit feed sheet (rename, another topic,
       the trash can at the top right asks Remove feed? in a popup), shown in the same sheet with a back arrow; Add feed the same. **Manage topics** (a sheet): the topics as
-      chips with grip and pen; drag to reorder, tap to rename, change the icon or remove; New topic.
+      rows with a grip at the end; drag to reorder, tap to rename, change the icon or remove; New topic.
       **Integrations**: OPML import and export, then Instapaper. Web: the same in the Settings dialog.
 - [ ] **Edit topics:** in Add feed, Edit feed and Save/Organise, Edit topics after the chips opens
       Manage topics in the same sheet, with a back arrow; rename a topic there, tap the arrow (or

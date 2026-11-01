@@ -57,17 +57,18 @@ has a name and an icon, and its place in your order. The same topics are on your
 web app.
 
 **Managing them: Manage topics** (the large button at the top of Settings, or **Edit topics** in a
-sheet; on the web the same). A sheet with your topics as chips, in your order, each with its icon,
-a grip (⋮⋮) and a pen. Drag a chip by its grip to reorder: this order is the one everything uses
-(the chips and the sheets). Tap a chip to rename it, change its icon or remove it (its feeds and
+sheet; on the web the same). A sheet with your topics as a list, in your order, each with its icon
+and a grip (⋮⋮) at the end. Drag a row by its grip to reorder: this order is the one everything uses
+(the chips and the sheets). Tap a row to rename it, change its icon or remove it (its feeds and
 saved articles stay, without it); giving it another topic's name merges the two. **New topic**
 makes one: a name and an icon from the whole Material Symbols set (type in English, such as
 *news*, *car* or *food*). Changes are kept at once: **Done** closes it.
 
-**Managing feeds: Manage feeds** (the other large button at the top of Settings). A sheet with your feeds as chips with their site icons, grouped
-by topic (in your order, then **No topic**; every topic, an empty one too, with "Drag a feed here");
-a feed that can't be downloaded has its name in red. Drag a chip by its grip to reorder the feeds of
-a topic, or into another topic (or No topic) to move it there. Tap one for the **Edit feed** sheet: its
+**Managing feeds: Manage feeds** (the other large button at the top of Settings). A sheet with your feeds as a list, each with its site icon
+and a grip (⋮⋮) at the end, under a heading per topic (in your order, then **No topic**; every
+topic, an empty one too, with "Drag a feed here"); a feed that can't be downloaded has its name in
+red. Drag a row by its grip up or down to reorder the feeds of a topic, or past another topic's
+heading to move it there. Tap one for the **Edit feed** sheet: its
 name (empty brings back the feed's own), its address, why it fails if it does, its topic as chips,
 **Remove** (it asks first, in the sheet) and **Save**. **Add feed** at the end adds one without a
 topic, in the same sheet; afterwards you are back in Manage feeds. A sheet opened from within a sheet
@@ -425,7 +426,7 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   (the heart), then the highlights; **Share** is the round button next to it. **Remove from Saved**
   is in **⋮**; it asks first and takes the note, topics and highlights with it (Archive keeps it
   searchable instead).
-- **Manage topics** (Settings, or Edit topics in a sheet): your topics as chips: drag to reorder,
+- **Manage topics** (Settings, or Edit topics in a sheet): your topics as a list: drag by the grip to reorder,
   tap to rename, change the icon or remove one (a name already taken merges the two).
 - **In the web app** Saved is the same: the same tabs, chips and cards, and **+** › **Save article**
   in the search bar. In an article the top bar is the reading (the full
