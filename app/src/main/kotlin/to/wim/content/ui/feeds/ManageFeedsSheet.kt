@@ -30,6 +30,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import to.wim.content.R
+import to.wim.content.ui.reader.ContentSheet
 import to.wim.content.data.Feed
 import to.wim.content.data.FeedProblem
 import to.wim.content.data.Folder
@@ -41,7 +42,7 @@ import to.wim.content.ui.reader.SheetHeader
 
 /** What the Manage feeds sheet can do with the feeds; each change is stored at once. */
 class ManageFeedsActions(
-    /** Add feed: it lands without a topic, and the sheet stays open under it. */
+    /** Add feed: it lands without a topic, as a page of this sheet ([ManageFeedsSheet]'s `addFeed`). */
     val onAddFeed: () -> Unit,
     val onEditFeed: (feed: Feed, title: String, topicId: String?) -> Unit,
     val onRemoveFeed: (Feed) -> Unit,
@@ -52,7 +53,7 @@ class ManageFeedsActions(
  * Manage feeds as a sheet (from Settings, and wherever else it is linked): the feeds as chips,
  * grouped by topic (in the topics' order, then No topic), like the chips in Feeds and the sheets.
  * Drag a chip by its handle to reorder it within its topic; tap it for the Edit feed sheet (name,
- * topic, Remove). A feed that fails to download has its name in the error colour. Add feed at the
+ * topic, Remove) as a page of this sheet, with a back arrow. A feed that fails to download has its name in the error colour. Add feed at the
  * end. Changes are stored at once: **Done** at the top right.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -64,6 +65,8 @@ fun ManageFeedsSheet(
     actions: ManageFeedsActions,
     topicActions: TopicEditActions?,
     onDismiss: () -> Unit,
+    /** The Add feed sheet while it is open: declared here, so it opens as a page of this sheet. */
+    addFeed: @Composable () -> Unit = {},
 ) {
     var editing by rememberSaveable { mutableStateOf<String?>(null) }
     val groups =
@@ -72,7 +75,7 @@ fun ManageFeedsSheet(
             val loose = feeds.filter { feed -> feed.folderId == null || topics.none { it.id == feed.folderId } }
             (inTopics + (null to loose)).filter { it.second.isNotEmpty() }
         }
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+    ContentSheet(onDismiss = onDismiss) {
         Column(
             Modifier
                 .verticalScroll(rememberScrollState())
@@ -115,6 +118,7 @@ fun ManageFeedsSheet(
                 Text(stringResource(R.string.feeds_add), modifier = Modifier.padding(start = 8.dp))
             }
         }
+        addFeed()
     }
     feeds.firstOrNull { it.url == editing }?.let { feed ->
         FeedSheet(

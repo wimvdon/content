@@ -20,7 +20,7 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -116,8 +116,9 @@ fun HomeSearchBar(
 
 /**
  * The tabs under the search bar: the views of the place shown, Unread and Read in Feeds, To read and
- * All in Saved. Material's primary tabs, as they switch between views of the same content; the chips
- * below them narrow the view to a topic or feed.
+ * All in Saved. Material's secondary tabs (lighter than primary ones: a thin line under the chosen
+ * one), as they switch between views within one place; the chips below them narrow the view to a
+ * topic or feed. The whole header slides away while scrolling down (CollapsingHeader).
  */
 @Composable
 fun HomeTabs(
@@ -125,7 +126,7 @@ fun HomeTabs(
     selected: Int,
     onSelect: (Int) -> Unit,
 ) {
-    PrimaryTabRow(selectedTabIndex = selected, containerColor = MaterialTheme.colorScheme.surface) {
+    SecondaryTabRow(selectedTabIndex = selected, containerColor = MaterialTheme.colorScheme.surface) {
         labels.forEachIndexed { index, label ->
             Tab(
                 selected = index == selected,

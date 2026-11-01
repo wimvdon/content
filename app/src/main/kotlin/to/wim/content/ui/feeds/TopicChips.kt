@@ -55,6 +55,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import to.wim.content.R
+import to.wim.content.ui.reader.ContentSheet
 import to.wim.content.data.ChipOrder
 import to.wim.content.data.Folder
 import to.wim.content.ui.home.rememberFolderIconPainter
@@ -62,8 +63,9 @@ import to.wim.content.ui.home.rememberFolderIconPainter
 /**
  * The topics as chips, the same in the Add feed, Edit feed and Save/Organise sheets: [leading] comes
  * first (No topic, or Like); [extra] are names the article has that aren't topics (yet), shown
- * plainly. With [actions], an **Edit topics** text button at the end opens the Manage topics sheet
- * over the sheet ([ManageTopicsSheet]); Done or Back comes back to the sheet as it was.
+ * plainly. With [actions], an **Edit topics** text button at the end opens Manage topics
+ * ([ManageTopicsSheet]) as a page of the same sheet ([ContentSheet]); its back arrow (or Back) comes
+ * back to the sheet as it was.
  *
  * With [alwaysEditing] (the Manage topics sheet itself) every chip has a drag handle and a pen: drag
  * a chip to reorder the topics, tap it (or the pen) to rename it, change its icon or remove it;
@@ -192,7 +194,7 @@ fun TopicChipRow(
 
 /**
  * Manage topics as a sheet: from Settings, and from Edit topics in the Add feed, Edit feed and
- * Save/Organise sheets, over them. The topics as editing chips (drag to reorder, tap to rename,
+ * Save/Organise sheets, as a page of that sheet (with a back arrow instead of Done). The topics as editing chips (drag to reorder, tap to rename,
  * change the icon or remove; a name already taken joins the two), then New topic. Every change is
  * stored at once, so the sheet has **Done** at the top right instead of Cancel.
  */
@@ -203,7 +205,7 @@ fun ManageTopicsSheet(
     actions: TopicEditActions,
     onDismiss: () -> Unit,
 ) {
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+    ContentSheet(onDismiss = onDismiss) {
         Column(
             Modifier
                 .verticalScroll(rememberScrollState())

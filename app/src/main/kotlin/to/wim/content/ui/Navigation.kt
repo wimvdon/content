@@ -1278,6 +1278,48 @@ fun RssReaderNavigation(
         )
     }
 
+    // Add feed, from Manage feeds a page of that sheet (declared inside it), else a sheet of its own.
+    val addFeedSheet: @Composable () -> Unit = {
+        if (addDialogOpen) {
+            // "" from the Manage feeds sheet: no topic, and it stays open; else the topic being viewed, if any.
+            val fromTopicPage = addIntoTopic
+            AddFeedSheet(
+                busy = addBusy,
+                error = addError,
+                topics = library.folders,
+                initialTopic = if (fromTopicPage != null) fromTopicPage.ifEmpty { null } else (library.shown(selection) as? FeedSelection.InFolder)?.folderId,
+                onAdd = { address, topicId ->
+                    addBusy = true
+                    addError = null
+                    app.appScope.launch {
+                        val result = repository.addFeed(address, topicId)
+                        addBusy = false
+                        val error = result.errorRes()
+                        if (error != null) {
+                            // Closed while it looked: the problem comes as a message instead.
+                            if (addDialogOpen) addError = resources.getString(error) else showMessage(resources.getString(error))
+                        } else if (result is AddFeedResult.Added) {
+                            addDialogOpen = false
+                            addIntoTopic = null
+                            // From Manage feeds, you stay there; else the new feed shows.
+                            if (fromTopicPage == null) {
+                                selection = FeedSelection.Single(result.feed.url)
+                                section = HomeSection.Feeds
+                            }
+                            showMessage(resources.getString(R.string.add_feed_added, result.feed.title))
+                        }
+                    }
+                },
+                // A sheet closes when swiped down too: what it was looking for still comes, as a message.
+                onDismiss = {
+                    addDialogOpen = false
+                    addIntoTopic = null
+                    addError = null
+                },
+                topicActions = topicActions,
+            )
+        }
+    }
     if (manageFeedsOpen) {
         ManageFeedsSheet(
             feeds = library.feeds,
@@ -1286,7 +1328,7 @@ fun RssReaderNavigation(
             actions =
                 ManageFeedsActions(
                     onAddFeed = {
-                        // Without a topic; Manage feeds stays open under Add feed.
+                        // Without a topic, as a page of Manage feeds; back there afterwards.
                         addIntoTopic = ""
                         addDialogOpen = true
                     },
@@ -1296,6 +1338,7 @@ fun RssReaderNavigation(
                 ),
             topicActions = topicActions,
             onDismiss = { manageFeedsOpen = false },
+            addFeed = addFeedSheet,
         )
     }
     if (manageTopicsOpen) {
@@ -1317,45 +1360,7 @@ fun RssReaderNavigation(
         )
     }
 
-    if (addDialogOpen) {
-        // "" from the Manage feeds sheet: no topic, and it stays open; else the topic being viewed, if any.
-        val fromTopicPage = addIntoTopic
-        AddFeedSheet(
-            busy = addBusy,
-            error = addError,
-            topics = library.folders,
-            initialTopic = if (fromTopicPage != null) fromTopicPage.ifEmpty { null } else (library.shown(selection) as? FeedSelection.InFolder)?.folderId,
-            onAdd = { address, topicId ->
-                addBusy = true
-                addError = null
-                app.appScope.launch {
-                    val result = repository.addFeed(address, topicId)
-                    addBusy = false
-                    val error = result.errorRes()
-                    if (error != null) {
-                        // Closed while it looked: the problem comes as a message instead.
-                        if (addDialogOpen) addError = resources.getString(error) else showMessage(resources.getString(error))
-                    } else if (result is AddFeedResult.Added) {
-                        addDialogOpen = false
-                        addIntoTopic = null
-                        // From Manage feeds, you stay there; else the new feed shows.
-                        if (fromTopicPage == null) {
-                            selection = FeedSelection.Single(result.feed.url)
-                            section = HomeSection.Feeds
-                        }
-                        showMessage(resources.getString(R.string.add_feed_added, result.feed.title))
-                    }
-                }
-            },
-            // A sheet closes when swiped down too: what it was looking for still comes, as a message.
-            onDismiss = {
-                addDialogOpen = false
-                addIntoTopic = null
-                addError = null
-            },
-            topicActions = topicActions,
-        )
-    }
+    if (!manageFeedsOpen) addFeedSheet()
 }
 
 /**

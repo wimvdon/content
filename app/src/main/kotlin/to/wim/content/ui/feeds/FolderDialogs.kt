@@ -58,6 +58,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import to.wim.content.R
+import to.wim.content.ui.reader.ContentSheet
 import to.wim.content.data.Feed
 import to.wim.content.data.Folder
 import to.wim.content.data.IconCatalog
@@ -86,7 +87,7 @@ internal fun FolderSheet(
     var icon by rememberSaveable { mutableStateOf(folder?.icon ?: IconCatalog.DEFAULT) }
     var query by rememberSaveable { mutableStateOf("") }
     val results = remember(query) { catalog.search(query) }
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+    ContentSheet(onDismiss = onDismiss) {
         Column(Modifier.padding(start = 24.dp, end = 24.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             SheetHeader(stringResource(if (folder == null) R.string.folder_new else R.string.folder_edit), onCancel = onDismiss)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -196,7 +197,7 @@ internal fun FeedSheet(
         }
     }
     val chosen = chosenTopic(topicId, topics)
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+    ContentSheet(onDismiss = onDismiss) {
         Column(
             Modifier
                 .verticalScroll(rememberScrollState())
