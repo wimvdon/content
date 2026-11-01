@@ -260,6 +260,7 @@ fun HomeScreen(
                                 )
                             TagChips(
                                 tags = reading.tags,
+                                iconOf = { name -> state.folders.firstOrNull { it.title.equals(name, ignoreCase = true) }?.icon },
                                 selected = reading.filter.tags.firstOrNull(),
                                 onSelect = { t -> actions.onSavedFilter(reading.filter.copy(likedOnly = false, tags = setOfNotNull(t))) },
                                 state = {
@@ -299,6 +300,7 @@ fun HomeScreen(
                             val chips = remember(state.feeds, state.folders, feedTags, state.selection) { FeedChips.of(state.feeds, state.folders, feedTags, state.selection) }
                             TagChips(
                                 tags = chips.topics,
+                                iconOf = { name -> state.folders.firstOrNull { it.title.equals(name, ignoreCase = true) }?.icon },
                                 selected = chips.chosenTopic,
                                 // A topic, or nothing: tapping the chosen topic (or its feed's) again lets go.
                                 onSelect = { t -> actions.onSelect(if (t == null) FeedSelection.All else FeedSelection.Tagged(t)) },

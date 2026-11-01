@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Item } from "../src/lib/items";
 import { chipTags, showsLiked } from "../src/lib/saved";
 import { emptyLibrary, feedFoldersToTags, newFeed, type Library } from "../src/lib/library";
-import { addTopic, feedChips, inTopicOrder, mergeTopic, removeTopic, renameTopic, tagWithFeedTopic, topicCounts, topicIdFor, topicNamed, topicNames, topicsForTags } from "../src/lib/topics";
+import { addTopic, feedChips, inTopicOrder, mergeTopic, moved, removeTopic, reorderTopics, renameTopic, tagWithFeedTopic, topicCounts, topicIdFor, topicNamed, topicNames, topicsForTags } from "../src/lib/topics";
 
 const saved = (key: string, ...tags: string[]): Item => ({
   key,
@@ -138,5 +138,28 @@ describe("topics", () => {
     expect(showsLiked(lib, { tab: { kind: "toread" }, likedOnly: false, tags: [] })).toBe(false);
     expect(showsLiked(lib, { tab: { kind: "archive" }, likedOnly: false, tags: [] })).toBe(true);
     expect(showsLiked(lib, { tab: { kind: "toread" }, likedOnly: true, tags: [] })).toBe(true);
+  });
+});
+
+describe("reordering topics by their chips (#314)", () => {
+  const lib = (): Library => {
+    let l = emptyLibrary();
+    for (const name of ["A", "B", "C"]) l = addTopic(l, name.toLowerCase(), name);
+    return l;
+  };
+
+  it("puts the topics in the order of the ids, the others after", () => {
+    expect(reorderTopics(lib(), ["c", "a"]).folders.map((f) => f.id)).toEqual(["c", "a", "b"]);
+    expect(reorderTopics(lib(), ["b", "x", "b"]).folders.map((f) => f.id)).toEqual(["b", "a", "c"]);
+    const same = lib();
+    expect(reorderTopics(same, ["a", "b", "c"])).toBe(same);
+  });
+
+  it("moves one entry and keeps the others in order", () => {
+    expect(moved(["a", "b", "c"], 0, 2)).toEqual(["b", "c", "a"]);
+    expect(moved(["a", "b", "c"], 2, 0)).toEqual(["c", "a", "b"]);
+    const same = ["a", "b"];
+    expect(moved(same, 0, 5)).toBe(same);
+    expect(moved(same, 1, 1)).toBe(same);
   });
 });

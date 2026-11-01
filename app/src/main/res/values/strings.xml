@@ -148,6 +148,8 @@
     <string name="import_substack_step2">Tap Share and pick Content › Add feed.</string>
     <string name="import_substack_step3">Tap Add. Do the same for each publication.</string>
     <string name="action_save">Save</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_done">Done</string>
     <string name="action_save_to_archive">Save to Archive</string>
     <string name="action_open">Open</string>
     <string name="action_undo">Undo</string>

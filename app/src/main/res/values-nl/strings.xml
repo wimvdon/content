@@ -146,6 +146,8 @@
     <string name="import_substack_step2">Tik op Delen en kies Content › Feed toevoegen.</string>
     <string name="import_substack_step3">Tik op Toevoegen. Doe hetzelfde voor elke publicatie.</string>
     <string name="action_save">Opslaan</string>
+    <string name="action_edit">Bewerken</string>
+    <string name="action_done">Klaar</string>
     <string name="action_save_to_archive">Opslaan in Archief</string>
     <string name="action_open">Openen</string>
     <string name="action_undo">Ongedaan maken</string>

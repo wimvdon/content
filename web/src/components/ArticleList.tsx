@@ -16,7 +16,8 @@ import { useShare } from "./useShare";
 import { scrolledPast } from "@/lib/scrollRead";
 import { FeedIcon } from "./FeedIcon";
 import { EmailLinkForm } from "./Dialogs";
-import { feedChips } from "@/lib/topics";
+import { feedChips, topicIcons } from "@/lib/topics";
+import { FolderIcon } from "./FolderIcon";
 import { Button } from "./ui/button";
 import { cn } from "./ui/cn";
 import { WithRowMenu } from "./RowMenu";
@@ -114,6 +115,7 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onImport, onUndo, on
       {library.feeds.length > 0 ? (
         <>
           <TagChips
+            icons={topicIcons(library)}
             state={<StateChip options={[t("unread"), t("all")]} selected={settings.unreadOnly ? 0 : 1} onSelect={(i) => app.setUnreadOnly(i === 0)} filtering={settings.unreadOnly} />}
             // One feed chosen by its name (#185): its chip comes first, chosen.
             tags={oneFeed ? [oneFeed, ...tags] : tags}
@@ -263,6 +265,7 @@ function SavedArticles({
         </Button>
       </SearchBar>
       <TagChips
+        icons={topicIcons(library)}
         state={
           <StateChip
             options={[t("toRead"), t("archiveTab"), t("all")]}
@@ -529,6 +532,7 @@ function StateChip({ options, selected, onSelect, filtering }: { options: string
  * (folders in Feeds, tags in Saved). While a group or another filter is on, an X at the end clears it.
  */
 function TagChips({
+  icons,
   state,
   liked,
   tags,
@@ -537,6 +541,8 @@ function TagChips({
   filtered,
   onClear,
 }: {
+  /** The topics' icons by name (lower case), the same in Feeds and Saved (#314). */
+  icons: Map<string, string>;
   state: React.ReactNode;
   /** Saved's Liked chip (#206), the first group. */
   liked?: React.ReactNode;
@@ -555,6 +561,7 @@ function TagChips({
         const on = selected !== null && tag.toLowerCase() === selected.toLowerCase();
         return (
           <FilterChip key={tag} selected={on} check={false} onClick={() => onSelect(on ? null : tag)}>
+            {icons.has(tag.trim().toLowerCase()) ? <FolderIcon name={icons.get(tag.trim().toLowerCase())!} className="size-4" /> : null}
             {tag}
           </FilterChip>
         );

@@ -82,13 +82,12 @@ topics: tap one to open the app on it (#251).
 
 **Saved:** an article you save from a feed gets the feed's topic by itself (Save, the long press, the
 save sheet). In the save and Organise sheets you turn topics on or off, every topic in your order,
-and **New topic** makes one. **Manage topics in a sheet (#307):** the pen next to **Topics** in the
-save and Organise sheets, and next to **Topic** in the Add feed sheet, turns the sheet into Manage
-topics: your topics in your order (drag the grip to reorder), tap one or its pen to rename it,
-change its icon or remove it (the sheet asks first), and **New topic**. The back arrow (or Back)
-returns to the sheet as you left it; a topic you renamed or removed there is renamed or removed in
-the sheet too. Saved's chips show the topics your saved articles have, with
-their icons. A topic that comes in from Instapaper (where it is a tag) or another device is added
+and **New topic** makes one (it is turned on at once). **Editing topics in a sheet (#314):** after
+the topic chips in the Organise and Add feed sheets (phone and web), **Edit** puts a grip and a pen
+on every topic: drag a chip to reorder your topics (on the web also ← → on a focused chip), tap one
+to rename it, change its icon or remove it (the sheet asks first); renaming it to another topic's
+name joins the two. **Done** ends it. A topic you renamed or removed is renamed or removed in the
+sheet too. Every chip row shows the topics with their icons, in Feeds and Saved alike. A topic that comes in from Instapaper (where it is a tag) or another device is added
 at the end of your topics.
 
 ## Sync between devices

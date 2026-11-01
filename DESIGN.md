@@ -237,10 +237,13 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
 - Topics: one way to group feeds and saved articles (a feed in one topic, a saved article in any
   number), each with a name, an icon and its place in the user's order, which every chip row and
   the sheets follow. Manage topics (in Settings) is a
-  list and a page per topic. The Add feed and Organise sheets have a pen right after their topics'
-  heading (#307) that turns the sheet into a lighter Manage topics: a back arrow and the title,
-  the topic rows (no counts) with a pen and the drag handle, New topic as a text button; Remove
-  topic asks on that page, not in a dialog over the sheet. The list: a large top app bar over topic rows (`surfaceContainerHigh`, the topic's icon on
+  list and a page per topic. Topic chips look the same everywhere (#314): a `FilterChip` with the
+  topic's icon and name, no check mark, in Feeds' and Saved's chip rows and in the sheets. The Add
+  feed and Organise sheets edit topics right in their chips: after them a **New topic** and an
+  **Edit** `AssistChip`; Edit gives every topic chip a drag handle (left) and a pen (right) and
+  becomes **Done**. Drag a chip among the others to reorder; tap it for the topic sheet (name, icon,
+  Remove; a name already taken joins the two). Remove topic asks under the chips, not in a dialog
+  over the sheet. The web: the same chips, with the grip, ← → on a focused chip, and the topic dialog. The list: a large top app bar over topic rows (`surfaceContainerHigh`, the topic's icon on
   a `secondaryContainer` circle, "4 feeds · 12 saved" under the name, "1 feed fails" in the error
   colour), a drag handle at the end, then the feeds without a topic as feed rows (no "No topic"
   row or page), and two extended FABs: Add feed (the FAB) and
