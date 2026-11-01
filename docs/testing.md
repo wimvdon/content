@@ -254,10 +254,10 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
       Add link from a folder tab starts in that folder. Empty To read on the web offers Add link.
 - [ ] Removing a feed, a feed folder, a Saved folder or a tag asks first (both apps); Remove is red.
       Remove from Saved says "Removed from Saved".
-- [ ] Save and share (#256): pick a person under Send with Content, the button says Save and send,
-      and one message says "Saved to … · Sent to …". Share a link from another app to a person at the
-      top of the share menu: Send with Content opens with them picked, the button says Send. The
-      sheet has no Don't save anywhere; the share menu's Save and share saves; its Send with Content only sends; its Add feed
+- [ ] Organise (#304): Save in the reader, Add link and the share menu's Save all open a sheet
+      headed Organise, with no Send with Content in it (both apps). Share a link from another app to
+      a person at the top of the share menu: Send with Content opens with them picked, the button
+      says Send. The sheet has no Don't save anywhere; the share menu's Save saves; its Send with Content only sends; its Add feed
       opens Add feed with the link. After saving, a tap anywhere but Open goes back to the other app.
 - [ ] Send with Content: hold a person, each one shared with before gets an ×; tapping it removes
       them (also on the other device after a sync), Done ends it. Dragging a feed in Manage feeds

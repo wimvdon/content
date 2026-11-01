@@ -2,6 +2,18 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-01: The save sheet is Organise, without sending (#304)
+
+- At the owner's request ("Remove share from Save and share, make it = Organise"), saving and
+  organising are the same sheet, headed **Organise** every way in (the reader's Save, a swipe, Add
+  link, the share menu, the custom tab's Save): the list, topics with Like, the note, Cancel and
+  Save. **Send with Content is gone from it**; sending is Share's (Content's share sheet, the web's
+  Share) and the share menu's Send with Content. Both apps alike.
+- Android's share menu target that opened the sheet is called **Save** (it was "Save and share");
+  a share target named "Organise" wouldn't say that it saves.
+- Rejected: keeping "Save and share" as the heading for a new save (it named sending the sheet no
+  longer does).
+
 ## 2026-10-31: No ☰ on Android: every place is a chip
 
 - At the owner's request the Android app has no navigation drawer. It listed Feeds' places (the

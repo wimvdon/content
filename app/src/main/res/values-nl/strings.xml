@@ -82,7 +82,6 @@
     <string name="inbox_removed">Uit inbox verwijderd</string>
     <string name="share_user_send">Versturen</string>
     <string name="share_user_sent">Verstuurd naar %1$s</string>
-    <string name="save_share_title">Opslaan en delen</string>
     <string name="action_save_and_send">Opslaan en versturen</string>
     <string name="share_recipients_done">Klaar</string>
     <string name="share_to">Aan</string>

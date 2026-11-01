@@ -138,15 +138,14 @@ enum class SheetKind {
 }
 
 /**
- * Save and share (#143, #256), the one sheet for an article: saving one, filing one later, tagging
- * one saved last week, and sending it with Content on the way. In order: what is being saved (only
- * for [SheetKind.New]: the address field for Add link, or the shared link's title and site), the
- * folder as chips (To read and Archive, a divider, the folders and New folder: #156; before the save
- * also Don't save, to only send it), the tags with Like in front, the note, then Send with Content
- * when signed in (the people shared with as chips, several at once, and Add address). Then Cancel
- * and the button, which says Save, Save and send or Send; closing the sheet is Cancel, so only the
- * button changes or sends anything. Just saved, Remove takes the place of Cancel: it takes the save
- * back, where closing keeps it as it was saved.
+ * Organise (#143, #304), the one sheet for an article: saving one, filing one later, tagging one
+ * saved last week. Headed Organise every way in: it no longer sends (#304; Share and the share
+ * menu's Send with Content do that). In order: what is being saved (only for [SheetKind.New]: the
+ * address field for Add link, or the shared link's title and site), the list as chips (To read and
+ * Archive, then any folder left: #156), the topics with Like in front, the note. Then Cancel and
+ * Save; closing the sheet is Cancel, so only Save changes anything. Organising a saved article,
+ * Remove sits at the bottom left. [sendOnly] makes it the share menu's Send with Content instead:
+ * only the people to send to (#256).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -209,9 +208,8 @@ fun SaveSheet(
                 stringResource(
                     when {
                         sendOnly -> R.string.share_send_with_content
-                        // Nothing to share here (Share is next to Organise): it only organises.
-                        kind == SheetKind.Organise -> R.string.organise_title
-                        else -> R.string.save_share_title
+                        // Saving and organising are the same sheet (#304): sending is Share's.
+                        else -> R.string.organise_title
                     },
                 ),
                 style = MaterialTheme.typography.titleLarge,
@@ -246,13 +244,13 @@ fun SaveSheet(
             }
             // Only sent: nothing of it is kept, so there is nothing to tag or note.
             if (choice.keep) SavedParts(choice, allTags, tagName, onTagNameChange = { tagName = it }, onChange = { choice = it })
-            // Organising a saved article doesn't send: Share is right next to Organise.
-            if (signedIn && kind != SheetKind.Organise) {
-                // The sheet's title says it already when it only sends.
-                if (!sendOnly) SheetSection(stringResource(R.string.share_send_with_content))
-                SendToSection(choice.sendTo, onChange = { choice = choice.copy(sendTo = it) }, hasAccount = hasAccount)
-            } else if (sendOnly) {
-                Text(stringResource(R.string.share_user_signed_out), style = MaterialTheme.typography.bodyMedium)
+            // Only the share menu's Send with Content sends (#304): saving and organising don't.
+            if (sendOnly) {
+                if (signedIn) {
+                    SendToSection(choice.sendTo, onChange = { choice = choice.copy(sendTo = it) }, hasAccount = hasAccount)
+                } else {
+                    Text(stringResource(R.string.share_user_signed_out), style = MaterialTheme.typography.bodyMedium)
+                }
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 // Organising a saved article: Remove at the bottom left, away from Save. Just saved,

@@ -25,7 +25,7 @@ import coil3.toBitmap
 
 /**
  * Direct share (#235, #256): the people shared with as sharing shortcuts at the top of other apps'
- * share menus. Picking one opens Save and share on Don't save, with them picked to send to. Pictures
+ * share menus. Picking one opens Send with Content, with them picked to send to. Pictures
  * come from Gravatar when Show images is on, else the first letter of the name. Content's own share
  * sheet has them itself (#251).
  *
