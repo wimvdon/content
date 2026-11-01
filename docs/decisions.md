@@ -2,6 +2,15 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-01: Claude Code sessions don't build the APK before pushing
+
+Sessions ran `./gradlew testDebugUnitTest lintDebug assembleDebug` before every push, and CI then
+runs the same and more. The APK built in the session was never used: the owner installs the one
+from CI. Sessions now run only the unit tests and lint, which catch nearly every problem and
+compile the app's code and resources. CI still builds the debug and release APKs, so a packaging
+problem still turns the pull request red. Rejected: no local checks at all (every test or lint
+failure would then cost a CI round trip).
+
 ## 2026-11-01: Tabs, one +, one Search row, Settings as pages
 
 At the owner's request (Android; the web app keeps its controls for now):

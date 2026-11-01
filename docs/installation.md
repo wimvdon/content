@@ -20,7 +20,7 @@ Gradle is downloaded by the wrapper. There is no server, account or API key to s
 ```bash
 git clone https://github.com/wimvdon/rss-reader.git
 cd rss-reader
-./gradlew testDebugUnitTest lintDebug assembleDebug   # what every change must pass
+./gradlew testDebugUnitTest lintDebug                 # what every change must pass (CI builds the APKs)
 ./gradlew installDebug                                 # install on a connected phone/emulator
 ./gradlew assembleRelease                              # minified release build (unsigned without keystore.properties)
 python3 -m unittest discover -s scripts/tests          # tests for the release scripts
