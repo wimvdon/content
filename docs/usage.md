@@ -82,7 +82,9 @@ topics: tap one to open the app on it (#251).
 **Sheets:** every sheet (Add, save, Organise, Add feed, Edit feed, a topic, a highlight, Report a
 problem) has **Cancel** at the top right and its main button at the bottom right. The save sheet is called
 **Save** while saving and **Organise** for an article saved before. On the web, **+** in the
-search bar asks the same as on the phone, and Settings has the same two buttons and pages.
+search bar asks the same as on the phone, and Settings has the same two buttons and pages. A tall sheet stops
+just below the status bar. With the keyboard open, Back, a swipe down or a tap beside the sheet
+closes the keyboard first; the sheet stays until you do it again.
 
 **Saved:** an article you save from a feed gets the feed's topic by itself (Save, the long press, the
 save sheet). In the save and Organise sheets you turn topics on or off, every topic in your order,
