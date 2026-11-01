@@ -63,7 +63,7 @@ fun InboxContent(
     val unreadLabel = stringResource(R.string.action_mark_unread)
     LazyColumn(
         modifier = Modifier.fillMaxSize().readableWidth(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 32.dp),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 88.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         items(inbox.items, key = { it.key }) { item ->

@@ -288,11 +288,12 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   topic follow the topics in the same row, after a divider, as filter chips with their site icon
   (16dp). While a topic (or one of its feeds) is chosen, a **second row** under the first shows that
   topic's feeds the same way: tap one to show it alone (its topic stays lit), tap it again for the
-  whole topic. So every place is one or two taps from the list. The Mark all read FAB is in Feeds'
-  Unread tab only and only marks the section shown; Saved has no FAB. **+** in the search bar
-  (between the search text and Settings) is the same in every destination: the Add sheet, two
+  whole topic. So every place is one or two taps from the list. **+** is the FAB, the screen's main action, the
+  same in Feeds, Saved and the Inbox (it was in the search bar before, owner's choice): the Add sheet, two
   `surfaceContainerHigh` rows with their icon on a `secondaryContainer` circle, **Subscribe to feed**
-  and **Save article**, each with a line saying what it does.
+  and **Save article**, each with a line saying what it does. **Mark all as read** is an outlined
+  button (✓✓ and the words) under the last article, in Feeds' Unread view only, while something in
+  the section shown is unread, and only marks that section: you've reached the end, you're done.
 - Saved's lists look like what they are for: To read and All are read through, so they use
   the feed list's rows and its view setting (Small, Medium, Large), under a line with how many and
   about how long; a folder is a collection to browse, so its items are notes in Noter's style:
@@ -385,7 +386,7 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   app too since #323),
   staying on `surface` while articles pass under it (no grey band behind the tabs and chips, owner's
   choice); articles sit under sticky day headers (Today,
-  Yesterday, date) in `primary` Title Small; Mark all as read is an icon-only FAB. The web
+  Yesterday, date) in `primary` Title Small; Mark all as read is a button at the end of the list. The web
   app's sidebar and favicon use the app's logo (the launcher icon's C on its own: no circle or
   white tile).
 - Settings starts with Manage feeds and Manage topics, then the Account page; Integrations holds OPML and Instapaper. The first screen,
