@@ -323,13 +323,14 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
       to the feed's text with the page button: the highlights are still there (or say approximate).
       Web app: select text with the mouse, pick Highlight or Note in the bar above it; click a
       marker to edit; a highlight made on the phone shows on the web after sync, and the other way.
-- [ ] In a saved article the floating toolbar has a tonal **Archive** (box and word), then icons
-      **Tags** (a tag), **Note** and **Like** (a heart), with **Share** as a round button next to it;
-      press and hold an icon: its name shows. Tap **Archive**: the article stays open, "Archived" shows
-      with **Undo**, and the button becomes a plain **To read** (open book). Tap it: back to To read,
-      and the tonal Archive returns. **Tags**: a sheet with only the tag chips; Save keeps
-      them. **Note**: a sheet with only the note, the keyboard open; once written the icon has a pen.
-      **Like**: the heart fills, and the article is under Liked in Saved. Web app: the same.
+- [ ] In a saved article the floating toolbar has a tonal **Archive** (box and word) and **Like** (a
+      heart), with **Share** as a round button next to it. Tap **Archive**: the article stays open,
+      "Archived" shows with **Undo**, and the button becomes a plain **To read** (open book); tap it:
+      back to To read. **Like**: the heart fills, and the article is under Liked in Saved. Under the
+      title and details: the article's tags as chips with their icons, **+ Tag**, **+ Note** (no note
+      yet) and, with highlights, "3 highlights". A tag or + Tag: the Tags sheet; + Note: the Note
+      sheet, keyboard open; once written the note shows there as a block, and tapping it edits it;
+      "3 highlights" opens their list. Web app: the same.
 - [ ] **Add link** and a link shared from another app: the sheet asks for the address (or shows the
       link), **To read** / **Archive** (To read picked), **Cancel** at the bottom left saves nothing,
       and **Save** at the right. With Archive picked: "Saved to Archive"; else "Saved to To read".

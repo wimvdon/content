@@ -420,10 +420,10 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   a few lines of your first highlight (quoted) or else the article's description, a glimpse of your
   note in small letters, its tags as small chips, then the site, a marker icon with how many
   highlights it has, and a heart when liked.
-- In the reader, the floating toolbar at the bottom has a button for each thing you can do with a
-  saved article (press and hold one to see its name): **Archive** (or **To read** once archived), **Tags**
-  (the tag chips), **Note** (your note; the icon gets a pen once you've written one) and **Like**
-  (the heart), then the highlights; **Share** is the round button next to it. **Remove from Saved**
+- In the reader, under a saved article's title: its **tags** (tap one, or **+ Tag**, to change
+  them), **+ Note** (or your note itself, tap it to edit) and, with highlights, how many (tap for
+  the list). The floating toolbar at the bottom has **Archive** (or **To read** once archived) and
+  **Like** (the heart); **Share** is the round button next to it. **Remove from Saved**
   is in **⋮**; it asks first and takes the note, tags and highlights with it (Archive keeps it
   searchable instead).
 - **Manage tags** (Settings, or Edit tags in a sheet): your tags as a list: drag by the grip to reorder,

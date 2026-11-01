@@ -1,4 +1,4 @@
-import { ALargeSmall, ArrowLeft, Circle, CircleCheck, EllipsisVertical, ExternalLink, FileText, Flag, Trash2 } from "lucide-react";
+import { ALargeSmall, ArrowLeft, Circle, CircleCheck, EllipsisVertical, ExternalLink, FileText, Flag, Plus, Quote, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toolbarHidden } from "@/lib/header";
 import { positionOf, scrollFor } from "@/lib/readingProgress";
@@ -7,7 +7,7 @@ import { useShare } from "./useShare";
 import { MAX_REPORT_COMMENT, REPORT_PROBLEMS, report, textOf, type ReportProblem } from "@/lib/articleReport";
 import { needsFullText, wantsFullText } from "@/lib/fullArticle";
 import { cachedNow, keep } from "@/lib/fullArticleStore";
-import { formatDateTime, t, type Key } from "@/lib/i18n";
+import { formatDateTime, plural, t, type Key } from "@/lib/i18n";
 import { itemForArticle, type Highlight } from "@/lib/items";
 import { articleKey, sortTime, type Article } from "@/lib/library";
 import { hostOf, isItemArticle, siteOf, sourceOf } from "@/lib/saved";
@@ -18,6 +18,9 @@ import { FeedIcon } from "./FeedIcon";
 import { HighlightDialog, HighlightedText, HighlightsDialog } from "./Highlights";
 import { useAnchors } from "./useAnchors";
 import { LibraryBar, RemoveDialog } from "./SavedActions";
+import { chip } from "./TopicChips";
+import { FolderIcon } from "./FolderIcon";
+import { topicIcons } from "@/lib/topics";
 import { pageClass, textStyle, useAppDark } from "./readerPage";
 import { ReaderStyleControls } from "./ReaderStyleControls";
 import { Button } from "./ui/button";
@@ -111,6 +114,7 @@ export function ArticleView({
   const [openHighlight, setOpenHighlight] = useState<string | null>(null);
   const [draft, setDraft] = useState<Highlight | null>(null);
   const [listOpen, setListOpen] = useState(false);
+  const tagIcons = useMemo(() => topicIcons(library), [library]);
   const opened = openHighlight ? highlights.find((h) => h.id === openHighlight) : undefined;
 
   // Reading progress of a saved article, as on Android: back where it was left when it opens (once
@@ -236,16 +240,44 @@ export function ArticleView({
             )}
           </h1>
           {article.author ? <p className="mt-2 text-sm text-muted-foreground">{article.author}</p> : null}
-          {saved && saved.tags.length > 0 ? (
-            <ul className="mt-3 flex flex-wrap gap-1.5" aria-label={t("tags")}>
-              {saved.tags.map((tag) => (
-                <li key={tag} className="rounded-full bg-muted px-2.5 py-0.5 text-xs text-muted-foreground">
-                  {tag}
-                </li>
-              ))}
-            </ul>
+          {/* A saved article: its tags, + Tag, + Note (without a note) and its highlights, as on
+              Android; the note below, clicked to edit. */}
+          {saved ? (
+            <div className="mt-4 space-y-3">
+              <div className="flex flex-wrap gap-2">
+                {saved.tags.map((tag) => {
+                  const icon = tagIcons.get(tag.trim().toLowerCase());
+                  return (
+                    <button key={tag} type="button" className={cn(chip, "hover:bg-muted")} onClick={() => app.openTopics(saved.key)}>
+                      {icon ? <FolderIcon name={icon} className="size-4" /> : null}
+                      {tag}
+                    </button>
+                  );
+                })}
+                <button type="button" className={cn(chip, "hover:bg-muted")} onClick={() => app.openTopics(saved.key)}>
+                  <Plus className="size-4" aria-hidden="true" />
+                  {t("topic")}
+                </button>
+                {saved.note.trim() ? null : (
+                  <button type="button" className={cn(chip, "hover:bg-muted")} onClick={() => app.openNote(saved.key)}>
+                    <Plus className="size-4" aria-hidden="true" />
+                    {t("note")}
+                  </button>
+                )}
+                {highlights.length > 0 ? (
+                  <button type="button" className={cn(chip, "hover:bg-muted")} onClick={() => setListOpen(true)}>
+                    <Quote className="size-4" aria-hidden="true" />
+                    {plural("highlightsCount", highlights.length)}
+                  </button>
+                ) : null}
+              </div>
+              {saved.note.trim() ? (
+                <button type="button" onClick={() => app.openNote(saved.key)} className="block w-full cursor-pointer rounded-xl bg-muted px-4 py-3 text-left text-sm whitespace-pre-line hover:bg-muted/80">
+                  {saved.note}
+                </button>
+              ) : null}
+            </div>
           ) : null}
-          {saved?.note ? <p className="mt-4 rounded-xl bg-muted px-4 py-3 text-sm whitespace-pre-line">{saved.note}</p> : null}
           {showHero ? <img src={article.imageUrl!} alt="" referrerPolicy="no-referrer" className="mt-6 w-full rounded-xl bg-muted object-cover" onError={(e) => (e.currentTarget.style.display = "none")} /> : null}
           {useFull && !loaded ? <p className="mt-6 text-sm text-muted-foreground">{t("loadingFull")}</p> : null}
           {useFull && loaded && !loaded.html ? (
@@ -298,7 +330,8 @@ export function ArticleView({
         item={saved}
         onSave={article.link && !fromSaved ? saveArticle : null}
         onShare={article.link ? () => share(article.title, article.link!, found) : null}
-        highlightCount={highlights.length}
+        // A saved article shows its highlights under the title; the toolbar only for one not saved.
+        highlightCount={saved ? 0 : highlights.length}
         onHighlights={() => setListOpen(true)}
         onArchived={(undo) => {
           // As on Android: the article stays open; a message says so, with Undo.

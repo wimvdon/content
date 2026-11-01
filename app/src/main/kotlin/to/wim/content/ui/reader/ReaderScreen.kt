@@ -137,6 +137,8 @@ class ReaderItem(
     val onLike: () -> Unit = {},
     /** Remove from Saved, in ⋮ (it asks first). */
     val onRemove: () -> Unit = {},
+    /** Each tag's icon, by its name in lower case (the chips under the title). */
+    val tagIcons: Map<String, String> = emptyMap(),
     /** How far it was read, 0 to 1, as the reader scrolls. */
     val onProgress: (Float) -> Unit,
 )
@@ -304,6 +306,7 @@ fun ReaderScreen(
                 onHighlightsOpenChange = { highlightsOpen = it },
                 // Room under the text, so its end can scroll clear of the toolbar.
                 bottomSpace = if (hasToolbar) ReaderToolbarHeight + ReaderToolbarMargin else 0.dp,
+                item = item,
                 modifier = Modifier.padding(innerPadding),
             )
             if (hasToolbar) {
@@ -345,7 +348,8 @@ fun ReaderScreen(
                             )
                         }
                     }
-                    val count = highlights?.highlights?.size ?: 0
+                    // A saved article shows its highlights under the title (SavedHeader); here only for one not saved.
+                    val count = if (item != null && onList) 0 else highlights?.highlights?.size ?: 0
                     if (count > 0) {
                         val label = pluralStringResource(R.plurals.highlights_count, count, count)
                         TextButton(onClick = { highlightsOpen = true }, colors = toolbarTextButtonColors(), modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = label }) {
@@ -410,6 +414,8 @@ private fun ArticleBody(
     highlightsOpen: Boolean,
     onHighlightsOpenChange: (Boolean) -> Unit,
     bottomSpace: Dp = 0.dp,
+    /** A saved article: its tags, note and highlights under the title ([SavedHeader]). */
+    item: ReaderItem? = null,
     modifier: Modifier = Modifier,
 ) {
     val linkColor = MaterialTheme.colorScheme.primary
@@ -521,6 +527,9 @@ private fun ArticleBody(
             )
             if (meta.isNotEmpty()) {
                 Text(meta, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            if (item != null && item.item.readingList != null) {
+                SavedHeader(item, highlights?.highlights?.size ?: 0) { onHighlightsOpenChange(true) }
             }
             when (fullText) {
                 FullTextState.Loading -> {
