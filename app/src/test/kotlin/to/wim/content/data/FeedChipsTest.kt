@@ -1,6 +1,7 @@
 package to.wim.content.data
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -16,7 +17,7 @@ class FeedChipsTest {
     private val topics = listOf("News", "Tech")
 
     @Test
-    fun `on All, the topics then the feeds without a topic, and no second row`() {
+    fun `on All, the topics then the feeds without a topic, and no topic's feeds`() {
         val chips = FeedChips.of(feeds, folders, topics, FeedSelection.All)
         assertEquals(topics, chips.topics)
         assertEquals(listOf(blog, gone), chips.loose)
@@ -26,7 +27,7 @@ class FeedChipsTest {
     }
 
     @Test
-    fun `a topic chosen shows its feeds in a second row`() {
+    fun `a topic chosen shows its feeds`() {
         val chips = FeedChips.of(feeds, folders, topics, FeedSelection.Tagged("news"))
         assertEquals("news", chips.chosenTopic)
         assertEquals(listOf(bbc, npr), chips.topicFeeds)
@@ -36,12 +37,46 @@ class FeedChipsTest {
     }
 
     @Test
-    fun `a feed in a topic keeps its topic chosen and the second row, with the feed chosen`() {
+    fun `a feed in a topic keeps its topic chosen and its feeds, with the feed chosen`() {
         val chips = FeedChips.of(feeds, folders, topics, FeedSelection.Single(npr.url))
         assertEquals("News", chips.chosenTopic)
         assertEquals(listOf(bbc, npr), chips.topicFeeds)
         assertEquals(npr.url, chips.chosenFeed)
         assertEquals(listOf(blog, gone), chips.loose)
+    }
+
+    @Test
+    fun `one row - all topics and loose feeds, or the chosen topic alone with its feeds`() {
+        val all = FeedChips.of(feeds, folders, topics, FeedSelection.All)
+        assertEquals(topics, all.rowTopics)
+        assertEquals(listOf(blog, gone), all.rowLoose)
+        // A topic chosen (in any case): only that topic, in its own spelling, and no loose feeds.
+        val news = FeedChips.of(feeds, folders, topics, FeedSelection.Tagged("news"))
+        assertEquals(listOf("News"), news.rowTopics)
+        assertTrue(news.rowLoose.isEmpty())
+        // A feed in a topic: the same.
+        val one = FeedChips.of(feeds, folders, topics, FeedSelection.Single(npr.url))
+        assertEquals(listOf("News"), one.rowTopics)
+        assertTrue(one.rowLoose.isEmpty())
+        // A feed without a topic: everything stays, the feed lit among the loose ones.
+        val loose = FeedChips.of(feeds, folders, topics, FeedSelection.Single(blog.url))
+        assertEquals(topics, loose.rowTopics)
+        assertEquals(listOf(blog, gone), loose.rowLoose)
+    }
+
+    @Test
+    fun `the row shows only with more than one chip, or with something chosen`() {
+        assertTrue(FeedChips.of(feeds, folders, topics, FeedSelection.All).rowShown)
+        // Only News has something unread: one chip, which would filter nothing.
+        val news = setOf(bbc.url, npr.url)
+        assertFalse(FeedChips.of(feeds, folders, listOf("News"), FeedSelection.All, news).rowShown)
+        // One topic and one loose feed: two chips, each narrows the list.
+        assertTrue(FeedChips.of(feeds, folders, listOf("News"), FeedSelection.All, news + blog.url).rowShown)
+        // Only one loose feed: hidden too.
+        assertFalse(FeedChips.of(feeds, folders, emptyList(), FeedSelection.All, setOf(blog.url)).rowShown)
+        // Chosen, it stays, so it can be let go.
+        assertTrue(FeedChips.of(feeds, folders, listOf("News"), FeedSelection.Tagged("News"), news).rowShown)
+        assertTrue(FeedChips.of(feeds, folders, emptyList(), FeedSelection.Single(blog.url), setOf(blog.url)).rowShown)
     }
 
     @Test

@@ -5,8 +5,10 @@ package to.wim.content.data
  *
  * - The first row: the state chip, the [topics] (those with something in the state shown), then the
  *   [loose] feeds (the ones without a topic), each a chip of its own.
- * - The second row, only while a topic is chosen (or one of its feeds): that topic's [topicFeeds].
- *   Tapping one shows that feed alone; tapping it again goes back to the whole topic.
+ * - While a topic is chosen (or one of its feeds), the same row shows only that topic, then its
+ *   [topicFeeds] ([rowTopics], [rowLoose]): one row, never two. Tapping a feed shows it alone;
+ *   tapping it again goes back to the whole topic; tapping the topic lets go, and the topics and
+ *   loose feeds come back.
  *
  * Like the topics, a feed is only a chip when it has something in the tab shown ([shown]: unread
  * articles in Unread, read ones in Read); the feed chosen stays, so a chip never disappears under
@@ -22,6 +24,22 @@ data class FeedChips(
     val loose: List<Feed>,
     val chosenFeed: String?,
 ) {
+    /** The topic chips the row shows: all [topics], or only the chosen one (in its own spelling). */
+    val rowTopics: List<String>
+        get() = chosenTopic?.let { chosen -> listOf(topics.firstOrNull { it.equals(chosen, ignoreCase = true) } ?: chosen) } ?: topics
+
+    /** The feeds without a topic the row shows: none while a topic is chosen (its feeds follow it instead). */
+    val rowLoose: List<Feed>
+        get() = if (chosenTopic != null) emptyList() else loose
+
+    /**
+     * Whether the row shows at all: only with more than one chip, as a single one would show what the
+     * list already shows (every article is in a topic or a loose feed, each a chip). Something chosen
+     * always keeps it, so it can be let go.
+     */
+    val rowShown: Boolean
+        get() = chosenTopic != null || chosenFeed != null || rowTopics.size + rowLoose.size > 1
+
     companion object {
         fun of(
             feeds: List<Feed>,

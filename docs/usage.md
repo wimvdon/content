@@ -74,9 +74,11 @@ topic, in the same sheet; afterwards you are back in Manage feeds. A sheet opene
 always opens in it like this, with a back arrow at the top left, never as a second sheet on top. OPML import and export are in Settings › **Integrations**.
 
 **Feeds:** the chips under the search bar list the topics that have feeds, in your order, then
-the feeds without a topic, each as a chip with its site icon. Pick a topic and a second row of
-chips shows its feeds: tap one to read only that feed, tap it again for the whole topic (on the
-web, the sidebar lists them). A feed added while a topic
+the feeds without a topic, each as a chip with its site icon. Pick a topic and the row shows only
+that topic, followed by its feeds: tap one to read only that feed, tap it again for the whole topic,
+and tap the topic to see all your topics again. With only one chip to show (say, all your unread
+articles are in Music), there is no chip row: it would show the same list. The web app does the same (with a wide window, the
+sidebar lists them). A feed added while a topic
 is open goes into that topic. Long-pressing Content's icon on the home screen offers your first four
 topics: tap one to open the app on it (#251).
 
@@ -149,7 +151,7 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   switch, one row of chips: your **topics** and then the feeds without a topic
   (Feeds), or **Liked** and your **topics** (Saved), in your order: tap one to show only that, tap
   it again to show everything again (only one is picked at a time, so there is no X). With a topic
-  picked in Feeds, a second row shows its feeds (on the web, the sidebar lists the feeds). Switching keeps the topic you picked. A
+  picked in Feeds, the same row shows that topic and its feeds instead (the web too). Switching keeps the topic you picked. A
   topic (or Liked) with nothing in the view shown has no chip: in Unread, only topics with unread
   articles; in All, every topic with articles. Feeds' feed chips do the same: a feed with nothing
   unread has no chip in Unread. The one you picked stays.

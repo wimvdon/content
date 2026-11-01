@@ -255,6 +255,7 @@ fun HomeScreen(
                             )
                             TagChips(
                                 tags = reading.tags,
+                                top = 0.dp,
                                 iconOf = { name -> state.folders.firstOrNull { it.title.equals(name, ignoreCase = true) }?.icon },
                                 selected = reading.filter.tags.firstOrNull(),
                                 onSelect = { t -> actions.onSavedFilter(reading.filter.copy(likedOnly = false, tags = setOfNotNull(t))) },
@@ -291,31 +292,39 @@ fun HomeScreen(
                                 remember(state.feeds, state.folders, feedTags, state.selection, state.feedChipsShown) {
                                     FeedChips.of(state.feeds, state.folders, feedTags, state.selection, state.feedChipsShown)
                                 }
+                            // Only with more than one chip: a single one filters nothing.
+                            if (chips.rowShown) {
                             TagChips(
-                                tags = chips.topics,
+                                tags = chips.rowTopics,
+                                top = 0.dp,
                                 iconOf = { name -> state.folders.firstOrNull { it.title.equals(name, ignoreCase = true) }?.icon },
                                 selected = chips.chosenTopic,
                                 // A topic, or nothing: tapping the chosen topic (or its feed's) again lets go.
                                 onSelect = { t -> actions.onSelect(if (t == null) FeedSelection.All else FeedSelection.Tagged(t)) },
-                                // The feeds without a topic, at the end of the row (#251 had them in ☰).
+                                // After the topics and a divider, in the same row: the feeds without a topic
+                                // (#251 had them in ☰), or, while a topic is chosen, that topic's feeds.
                                 loose =
-                                    if (chips.loose.isEmpty()) {
-                                        null
-                                    } else {
-                                        {
-                                            chips.loose.forEach { feed ->
-                                                val on = feed.url == chips.chosenFeed
-                                                FeedChip(feed, on) { actions.onSelect(if (on) FeedSelection.All else FeedSelection.Single(feed.url)) }
+                                    when {
+                                        chips.chosenTopic != null && chips.topicFeeds.isNotEmpty() -> {
+                                            {
+                                                val topic = chips.chosenTopic
+                                                chips.topicFeeds.forEach { feed ->
+                                                    val on = feed.url == chips.chosenFeed
+                                                    FeedChip(feed, on) { actions.onSelect(if (on) FeedSelection.Tagged(topic) else FeedSelection.Single(feed.url)) }
+                                                }
                                             }
                                         }
+                                        chips.rowLoose.isNotEmpty() -> {
+                                            {
+                                                chips.rowLoose.forEach { feed ->
+                                                    val on = feed.url == chips.chosenFeed
+                                                    FeedChip(feed, on) { actions.onSelect(if (on) FeedSelection.All else FeedSelection.Single(feed.url)) }
+                                                }
+                                            }
+                                        }
+                                        else -> null
                                     },
                             )
-                            // A topic chosen: its feeds, a second row.
-                            val topic = chips.chosenTopic
-                            if (topic != null && chips.topicFeeds.isNotEmpty()) {
-                                TopicFeedChips(chips.topicFeeds, chips.chosenFeed) { url ->
-                                    actions.onSelect(if (url == null) FeedSelection.Tagged(topic) else FeedSelection.Single(url))
-                                }
                             }
                         }
                     }

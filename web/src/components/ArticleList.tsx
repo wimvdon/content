@@ -15,7 +15,7 @@ import { useShare } from "./useShare";
 import { scrolledPast } from "@/lib/scrollRead";
 import { FeedIcon } from "./FeedIcon";
 import { EmailLinkForm } from "./Dialogs";
-import { feedChips, topicIcons } from "@/lib/topics";
+import { feedChipRow, topicIcons } from "@/lib/topics";
 import { FolderIcon } from "./FolderIcon";
 import { Button } from "./ui/button";
 import { cn } from "./ui/cn";
@@ -60,9 +60,9 @@ function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport,
   const articles = useMemo(() => articlesInTab(library, selection, tab, readThisVisit), [library, selection, tab, readThisVisit]);
   const feeds = useMemo(() => new Map(library.feeds.map((f) => [f.url, f])), [library.feeds]);
   const unread = unreadKeys(library, selection).size;
-  // Only topics with something in the state shown (and the one chosen), as on Android.
-  const tags = useMemo(() => feedChips(library, tab, chipTag(library, selection)), [library, tab, selection]);
-  const oneFeed = selection.kind === "feed" ? (feeds.get(selection.feedUrl)?.title ?? null) : null;
+  // One chip row, as on Android: the topics with something in the state shown, or the topic chosen
+  // and its feeds.
+  const row = useMemo(() => feedChipRow(library, tab, selection), [library, tab, selection]);
   const title =
     selection.kind === "folder"
       ? (library.folders.find((f) => f.id === selection.folderId)?.title ?? "")
@@ -108,18 +108,28 @@ function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport,
       <SearchBar onSettings={onSettings} onSearch={onSearch} onAdd={onAdd} />
       {library.feeds.length > 0 ? (
         <>
-          <FeedViewSwitch className="mx-4 mt-1 mb-1 lg:hidden" />
-          <TagChips
-            icons={topicIcons(library)}
-            // One feed chosen by its name (#185): its chip comes first, chosen.
-            tags={oneFeed ? [oneFeed, ...tags] : tags}
-            // A folder picked in the menu lights up its chip: the folder's name is its feeds' tag.
-            selected={oneFeed ?? chipTag(library, selection)}
-            onSelect={(tag) => app.select(tag === null || tag === oneFeed ? { kind: "all" } : { kind: "tag", tag })}
-            // A feed or folder chosen elsewhere is a filter too: the X goes back to every feed.
-            filtered={selection.kind !== "all"}
-            onClear={() => app.select({ kind: "all" })}
-          />
+          <FeedViewSwitch className="mx-4 mt-1 mb-0 lg:hidden" />
+          {/* Only when a chip would narrow the list (a single one covering it all is left out). */}
+          {row.shown ? (
+            <TagChips
+              icons={topicIcons(library)}
+              tags={row.topics}
+              // A folder picked in the menu lights up its chip: the folder's name is its feeds' tag.
+              selected={row.chosenTopic ?? chipTag(library, selection)}
+              // Tapping the chosen topic (or its feed's) lets go: the topics come back.
+              onSelect={(tag) => app.select(tag === null ? { kind: "all" } : { kind: "tag", tag })}
+              // After the topics and a divider, as on Android: the chosen topic's feeds (one tapped
+              // shows it alone, tapped again the topic), or else the feeds without a topic.
+              after={
+                row.chosenTopic !== null
+                  ? feedChipList(row.feeds, row.chosenFeed, (f, on) => app.select(on ? { kind: "tag", tag: row.chosenTopic! } : { kind: "feed", feedUrl: f.url }))
+                  : feedChipList(row.loose, row.chosenFeed, (f, on) => app.select(on ? { kind: "all" } : { kind: "feed", feedUrl: f.url }))
+              }
+              // A feed or folder chosen elsewhere is a filter too: the X goes back to every feed.
+              filtered={selection.kind !== "all"}
+              onClear={() => app.select({ kind: "all" })}
+            />
+          ) : null}
           {problems.size > 0 ? <p className="px-4 pb-1 text-xs text-destructive">{plural("feedsFailed", problems.size)}</p> : null}
         </>
       ) : null}
@@ -273,7 +283,7 @@ function SavedArticles({
       <CollapsingHeader hidden={header.hidden} onShow={header.show}>
       <SearchBar onSettings={onSettings} onSearch={onSearch} onAdd={onAdd} />
       {/* Saved's views, as on Android: To read and All (on a wide window, in the sidebar). */}
-      <SavedViewSwitch className="mx-4 mt-1 mb-1 lg:hidden" />
+      <SavedViewSwitch className="mx-4 mt-1 mb-0 lg:hidden" />
       <TagChips
         icons={topicIcons(library)}
         // Liked is a group like a tag (#206): one at a time, before the tags.
@@ -525,6 +535,20 @@ function CollapsingHeader({ hidden, onShow, children }: { hidden: boolean; onSho
   );
 }
 
+/** Feeds as chips with their icon (a topic's, or those without one); none: nothing. */
+function feedChipList(list: Feed[], chosen: string | null, onClick: (feed: Feed, on: boolean) => void): React.ReactNode {
+  if (list.length === 0) return null;
+  return list.map((f) => {
+    const on = f.url === chosen;
+    return (
+      <FilterChip key={f.url} selected={on} check={false} onClick={() => onClick(f, on)}>
+        <FeedIcon feed={f} className="size-4" />
+        <span className="max-w-48 truncate">{f.title}</span>
+      </FilterChip>
+    );
+  });
+}
+
 /**
  * Drag a sideways row with the mouse or a pen (a finger already scrolls it): handlers for the row.
  * The click that ends a drag is swallowed, so the chip under the pointer isn't chosen.
@@ -574,6 +598,7 @@ function TagChips({
   icons,
   state,
   liked,
+  after,
   tags,
   selected,
   onSelect,
@@ -586,6 +611,8 @@ function TagChips({
   state?: React.ReactNode;
   /** Saved's Liked chip (#206), the first group. */
   liked?: React.ReactNode;
+  /** Chips after the groups, set apart by a divider (Feeds: the chosen topic's feeds). */
+  after?: React.ReactNode;
   tags: string[];
   selected: string | null;
   onSelect: (tag: string | null) => void;
@@ -598,7 +625,7 @@ function TagChips({
     <div
       role="group"
       aria-label={t("filter")}
-      className="flex shrink-0 items-center gap-2 overflow-x-auto px-4 py-2 [scrollbar-width:none] lg:hidden"
+      className="flex shrink-0 items-center gap-2 overflow-x-auto px-4 pt-1.5 pb-2 [scrollbar-width:none] lg:hidden"
       // A mouse wheel scrolls down: here that moves the chips sideways.
       onWheel={(e) => {
         if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) e.currentTarget.scrollLeft += e.deltaY;
@@ -617,6 +644,12 @@ function TagChips({
           </FilterChip>
         );
       })}
+      {after ? (
+        <>
+          <span className="h-6 w-px shrink-0 bg-border" aria-hidden="true" />
+          {after}
+        </>
+      ) : null}
       {filtered ? (
         <Button variant="ghost" size="icon" onClick={onClear} aria-label={t("clear")} title={t("clear")}>
           <X />

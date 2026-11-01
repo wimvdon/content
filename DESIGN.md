@@ -286,9 +286,12 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   never changes width and the row never moves (#208). There is no X (one group at a time: tapping
   the chosen one again lets go) and no manage icon at the end (#307). In Feeds the feeds without a
   topic follow the topics in the same row, after a divider, as filter chips with their site icon
-  (16dp). While a topic (or one of its feeds) is chosen, a **second row** under the first shows that
-  topic's feeds the same way: tap one to show it alone (its topic stays lit), tap it again for the
-  whole topic. So every place is one or two taps from the list. **+** is the FAB, the screen's main action, the
+  (16dp). While a topic (or one of its feeds) is chosen, the **same row** shows only that topic (lit),
+  then after the divider its feeds the same way (#338, owner's choice: one chip row, never two): tap
+  one to show it alone (its topic stays lit), tap it again for the whole topic; tap the topic to let
+  go, and every topic comes back. The web does the same (its row has the feeds without a topic too). Feeds' row only shows when a chip would narrow the list: not with a single
+  chip (it would show what the list already shows), unless something is chosen. The chips sit right under the switch (their
+  touch area is the gap). So every place is one or two taps from the list. **+** is the FAB, the screen's main action, the
   same in Feeds, Saved and the Inbox (it was in the search bar before, owner's choice): the Add sheet, two
   `surfaceContainerHigh` rows with their icon on a `secondaryContainer` circle, **Subscribe to feed**
   and **Save article**, each with a line saying what it does. **Mark all as read** is an outlined
@@ -381,7 +384,7 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   sides, 8dp above and below, like the chips in Search); the list doesn't swipe sideways. The web app has the same switch. The top bar holds only icon buttons, as Material 3's top app bar does.
   In a narrow window the web app has the same Feeds | Saved navigation bar at the bottom.
   Settings is the last button of the search bar (the account's picture or a cogwheel).
-  The header (the search bar, the switch, then the chip rows) is one block that slides away
+  The header (the search bar, the switch, then the chip row) is one block that slides away
   while scrolling down and comes back as soon as you scroll up (Material's "enter always"; the web
   app too since #323),
   staying on `surface` while articles pass under it (no grey band behind the tabs and chips, owner's
