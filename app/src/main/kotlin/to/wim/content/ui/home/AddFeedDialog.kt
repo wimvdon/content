@@ -56,8 +56,8 @@ import to.wim.content.R
 import to.wim.content.data.Folder
 import to.wim.content.data.chosenTopic
 import to.wim.content.ui.feeds.TopicEditActions
-import to.wim.content.ui.feeds.TopicsEditor
-import to.wim.content.ui.reader.TopicsHeading
+import to.wim.content.ui.feeds.TopicChipRow
+import to.wim.content.ui.reader.SheetSection
 
 /**
  * Asks for a website or feed address. [busy] shows a spinner in the Add button while the app
@@ -124,8 +124,8 @@ fun AddFeedDialog(
 
 /**
  * Add feed as a sheet (#307), like the Organise sheet: the website or feed address, then its topic as
- * chips (No topic, then every topic in your order), with the pen next to it that turns the sheet
- * into Manage topics (Back returns here), and Cancel and Add. [busy] shows a spinner in Add while
+ * chips (No topic, then every topic in your order, with its icon), New topic and Edit at the end of
+ * them to make, rename, reorder or remove topics right there (#314), and Cancel and Add. [busy] shows a spinner in Add while
  * the app looks for the feed; [error] explains why the last attempt failed.
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -138,15 +138,23 @@ fun AddFeedSheet(
     initialTopic: String?,
     onAdd: (address: String, topicId: String?) -> Unit,
     onDismiss: () -> Unit,
-    /** Manage topics in the sheet; null: no pen. */
+    /** Editing topics in the sheet (#314); null: no New topic or Edit. */
     topicActions: TopicEditActions? = null,
 ) {
     var address by rememberSaveable { mutableStateOf("") }
     // The address last tried: its problem shows until the address is changed.
     var tried by rememberSaveable { mutableStateOf("") }
     var topicId by rememberSaveable { mutableStateOf(initialTopic) }
-    var managing by rememberSaveable { mutableStateOf(false) }
-    // The keyboard opens once, not again when coming back from Manage topics.
+    // A topic made in the sheet (#314): chosen once it exists.
+    var made by rememberSaveable { mutableStateOf<String?>(null) }
+    LaunchedEffect(topics, made) {
+        val name = made ?: return@LaunchedEffect
+        topics.firstOrNull { it.title.equals(name, ignoreCase = true) }?.let {
+            topicId = it.id
+            made = null
+        }
+    }
+    // The keyboard opens once, not again after editing a topic.
     var focused by rememberSaveable { mutableStateOf(false) }
     val chosen = chosenTopic(topicId, topics)
     val shownError = error?.takeIf { address == tried }
@@ -158,69 +166,60 @@ fun AddFeedSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        // On Manage topics, Back goes back to the sheet rather than closing it.
-        properties = ModalBottomSheetProperties(shouldDismissOnBackPress = !managing),
     ) {
-        BackHandler(enabled = managing) { managing = false }
-        if (managing && topicActions != null) {
-            Column(
-                Modifier
-                    .verticalScroll(rememberScrollState())
-                    .padding(start = 12.dp, end = 24.dp, bottom = 24.dp),
-            ) {
-                TopicsEditor(topics = topics, actions = topicActions, onBack = { managing = false })
+        val focus = remember { FocusRequester() }
+        LaunchedEffect(Unit) {
+            if (!focused) {
+                focused = true
+                focus.requestFocus()
             }
-        } else {
-            val focus = remember { FocusRequester() }
-            LaunchedEffect(Unit) {
-                if (!focused) {
-                    focused = true
-                    focus.requestFocus()
-                }
-            }
-            Column(
-                Modifier
-                    .verticalScroll(rememberScrollState())
-                    .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Text(
-                    stringResource(R.string.feeds_add),
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.semantics { heading() },
-                )
-                OutlinedTextField(
-                    value = address,
-                    onValueChange = { address = it },
-                    label = { Text(stringResource(R.string.add_feed_label)) },
-                    singleLine = true,
-                    enabled = !busy,
-                    isError = shownError != null,
-                    supportingText =
-                        shownError?.let {
-                            { Text(it, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }) }
-                        },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(onDone = { if (canAdd) add() }),
-                    modifier = Modifier.fillMaxWidth().focusRequester(focus),
-                )
-                TopicsHeading(stringResource(R.string.feed_folder), topicActions?.let { { managing = true } })
-                FlowRow(Modifier.selectableGroup(), horizontalArrangement = Arrangement.spacedBy(8.dp), itemVerticalAlignment = Alignment.CenterVertically) {
-                    TopicChip(stringResource(R.string.folder_none), icon = null, selected = chosen == null, enabled = !busy) { topicId = null }
-                    topics.forEach { topic ->
-                        TopicChip(topic.title, topic.icon, selected = chosen == topic.id, enabled = !busy) { topicId = topic.id }
-                    }
-                }
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Spacer(Modifier.weight(1f))
-                    // While it looks for the feed, Cancel can't stop it: shown as off rather than doing nothing.
-                    TextButton(onClick = onDismiss, enabled = !busy) { Text(stringResource(R.string.action_cancel)) }
-                    Button(onClick = add, enabled = canAdd) {
-                        if (busy) {
-                            CircularProgressIndicator(strokeWidth = 2.dp, color = LocalContentColor.current, modifier = Modifier.size(18.dp))
-                        } else {
-                            Text(stringResource(R.string.action_add))
-                        }
+        }
+        Column(
+            Modifier
+                .verticalScroll(rememberScrollState())
+                .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                stringResource(R.string.feeds_add),
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.semantics { heading() },
+            )
+            OutlinedTextField(
+                value = address,
+                onValueChange = { address = it },
+                label = { Text(stringResource(R.string.add_feed_label)) },
+                singleLine = true,
+                enabled = !busy,
+                isError = shownError != null,
+                supportingText =
+                    shownError?.let {
+                        { Text(it, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }) }
+                    },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { if (canAdd) add() }),
+                modifier = Modifier.fillMaxWidth().focusRequester(focus),
+            )
+            SheetSection(stringResource(R.string.feed_folder))
+            TopicChipRow(
+                topics = topics,
+                selected = { chosen == it.id },
+                // One topic: tapping the chosen one again is No topic.
+                onToggle = { topicId = if (chosen == it.id) null else it.id },
+                actions = topicActions,
+                onCreated = { made = it },
+                enabled = !busy,
+                leading = { TopicChip(stringResource(R.string.folder_none), icon = null, selected = chosen == null, enabled = !busy) { topicId = null } },
+            )
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Spacer(Modifier.weight(1f))
+                // While it looks for the feed, Cancel can't stop it: shown as off rather than doing nothing.
+                TextButton(onClick = onDismiss, enabled = !busy) { Text(stringResource(R.string.action_cancel)) }
+                Button(onClick = add, enabled = canAdd) {
+                    if (busy) {
+                        CircularProgressIndicator(strokeWidth = 2.dp, color = LocalContentColor.current, modifier = Modifier.size(18.dp))
+                    } else {
+                        Text(stringResource(R.string.action_add))
                     }
                 }
             }

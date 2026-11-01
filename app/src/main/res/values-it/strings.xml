@@ -148,6 +148,8 @@
     <string name="import_substack_step2">Tocca Condividi e scegli Content › Aggiungi feed.</string>
     <string name="import_substack_step3">Tocca Aggiungi. Fai lo stesso per ogni pubblicazione.</string>
     <string name="action_save">Salva</string>
+    <string name="action_edit">Modifica</string>
+    <string name="action_done">Fatto</string>
     <string name="action_save_to_archive">Salva in Archivio</string>
     <string name="action_open">Apri</string>
     <string name="action_undo">Annulla</string>

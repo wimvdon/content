@@ -185,10 +185,13 @@ and then (always before a release):
 - [ ] Import and export OPML (for example an Inoreader export); folders come along both ways.
 - [ ] **+ in the search bar (#307):** in Feeds it opens the Add feed sheet (address, Topic chips
       starting on the topic shown, Cancel and Add); in Saved the save sheet asking for an address;
-      not in the Inbox. Saved has no round button any more. The pen next to Topic (Add feed) or
-      Topics (save and Organise sheets) shows Manage topics in the sheet: drag to reorder, tap to
-      rename or change the icon, Remove asks on the page, New topic; the back arrow returns to the
-      sheet with what was typed, and a topic renamed or removed there is so in the sheet too.
+      not in the Inbox. Saved has no round button any more.
+- [ ] **Topic chips (#314):** Feeds' and Saved's chip rows show each topic's icon. In the Add feed
+      and Organise sheets the topics have their icons too, then **New topic** and **Edit**. New
+      topic: name and icon, Save: the new topic is chosen. Edit: each chip gets a grip and a pen and
+      Edit says **Done**; drag a chip by its grip onto another place: the order changes there and in
+      the chip rows. Tap a chip: rename it (to another topic's name: they join), change its icon, or
+      Remove (asks under the chips). Web app: the same, dragging with the mouse or ← → on a chip.
 - [ ] **Manage feeds** (Settings › Feeds › Manage topics): create a folder, search an icon (e.g. *soccer*) and pick it, move feeds into it (they show under it); the bottom bar appears, its
       tabs show only that folder's articles; Mark all read (round button) only marks that
       section and Undo restores it; removing the folder keeps its feeds and hides the bar.

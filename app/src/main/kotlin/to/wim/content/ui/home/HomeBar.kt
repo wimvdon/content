@@ -164,6 +164,8 @@ fun TagChips(
     liked: (@Composable () -> Unit)? = null,
     /** Feeds' feeds without a topic (FeedChips), after the topics and a divider. */
     loose: (@Composable () -> Unit)? = null,
+    /** A topic's icon by its name (#314: the same chips in Feeds and Saved); null: no icon. */
+    iconOf: (String) -> String? = { null },
 ) {
     Row(
         Modifier
@@ -183,6 +185,10 @@ fun TagChips(
                 selected = on,
                 onClick = { onSelect(if (on) null else tag) },
                 label = { Text(tag) },
+                leadingIcon =
+                    iconOf(tag)?.let { icon ->
+                        { Icon(rememberFolderIconPainter(icon), contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) }
+                    },
             )
         }
         if (loose != null) {

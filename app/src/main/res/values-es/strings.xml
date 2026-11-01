@@ -148,6 +148,8 @@
     <string name="import_substack_step2">Toca Compartir y elige Content › Añadir feed.</string>
     <string name="import_substack_step3">Toca Añadir. Haz lo mismo con cada publicación.</string>
     <string name="action_save">Guardar</string>
+    <string name="action_edit">Editar</string>
+    <string name="action_done">Listo</string>
     <string name="action_save_to_archive">Guardar en Archivo</string>
     <string name="action_open">Abrir</string>
     <string name="action_undo">Deshacer</string>

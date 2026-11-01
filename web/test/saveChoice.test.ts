@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { itemOf } from "../src/lib/items";
 import { emptyLibrary, type Library } from "../src/lib/library";
-import { applyChoice, choiceOf, emptyChoice, newFolder, offersArchive, places, saveNew, tagChoices, tagsLabel, toArchive, undoSave, withTag, withTyped } from "../src/lib/saveChoice";
+import { applyChoice, choiceOf, emptyChoice, newFolder, offersArchive, places, saveNew, tagChoices, tagsLabel, toArchive, undoSave, withoutTopic, withTag, withTopicRenamed, withTyped } from "../src/lib/saveChoice";
 import { archiveItem, folderOf, isIn, saveLink } from "../src/lib/saved";
 
 function sample(): Library {
@@ -114,5 +114,17 @@ describe("Save with text still typed", () => {
     expect(typed.place).toEqual({ kind: "folder", name: "Work" });
     expect(typed.tags).toEqual(["News", "Brussels"]);
     expect(withTyped(choice, "", "news", [])).toBe(choice);
+  });
+});
+
+describe("topics edited in the sheet (#314)", () => {
+  it("follow on the sheet's choice", () => {
+    const choice = { ...emptyChoice, tags: ["Tech", "News"] };
+    expect(withTopicRenamed(choice, "tech", "Gadgets").tags).toEqual(["Gadgets", "News"]);
+    // Renamed to a topic it has already: one tag.
+    expect(withTopicRenamed(choice, "Tech", "news").tags).toEqual(["News"]);
+    expect(withTopicRenamed(choice, "Recipes", "Food")).toBe(choice);
+    expect(withoutTopic(choice, "TECH").tags).toEqual(["News"]);
+    expect(withoutTopic(choice, "Recipes")).toBe(choice);
   });
 });

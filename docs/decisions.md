@@ -2,6 +2,22 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-01: Topics edited in their chips, on the phone and the web (#314)
+
+- At the owner's request, editing topics happens in the Add feed and Organise sheets' own topic
+  chips instead of a Manage topics page inside the sheet (#307): **New topic** and **Edit** at the
+  end of the chips; Edit adds a drag handle and a pen to each chip. Pen (tap): name, icon, remove;
+  renaming to another topic's name merges them, so no separate Merge. Drag: reorder.
+- Topics look the same everywhere: their icon on every topic chip, in Feeds and Saved (Saved's had
+  none) and in both sheets (Organise's had none).
+- Chips wrap over lines, so the design kit's `ReorderableColumn` doesn't fit; dragging uses its own
+  small code in `ui/feeds/TopicChips.kt`, with the "which chip is under the finger" and "move one"
+  rules in plain Kotlin (`data/ChipOrder.kt`, tested). Screen readers get Move up / Move down.
+- The web app had no topic editing in its sheets; it now has the same chips (`TopicChips.tsx`):
+  HTML drag and drop, ← → on a focused chip, and the topic dialog. Its Add feed dialog gets the topic
+  chips too (it took the topic shown). `reorderTopics`, `withTopicRenamed` and `withoutTopic` are
+  ported from Android, with tests.
+
 ## 2026-11-01: The Archive is a state, not a list; no more swipes (#305)
 
 - At the owner's request (option B in the issue): the Archive behaves like read and unread in

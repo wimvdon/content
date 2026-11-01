@@ -76,6 +76,23 @@ export const offersArchive = (organising: boolean, choice: SaveChoice): boolean 
 /** Save to Archive (#305): the same choice, but into the Archive. */
 export const toArchive = (choice: SaveChoice): SaveChoice => ({ ...choice, place: { kind: "archive" } });
 
+/**
+ * A topic renamed while the sheet is open (#314): the sheet's choice follows, so Save doesn't bring
+ * the old name back. Renamed to another topic's name, the two are one. As SaveChoices.withTopicRenamed.
+ */
+export function withTopicRenamed(choice: SaveChoice, from: string, to: string): SaveChoice {
+  const clean = to.trim();
+  if (!clean || !choice.tags.some((t) => same(t, from))) return choice;
+  const joined = choice.tags.some((t) => !same(t, from) && same(t, clean));
+  const tags = joined ? choice.tags.filter((t) => !same(t, from)) : choice.tags.map((t) => (same(t, from) ? clean : t));
+  return { ...choice, tags: tags.filter((t, i) => tags.findIndex((u) => same(u, t)) === i) };
+}
+
+/** A topic removed while the sheet is open (#314): off the choice too. */
+export function withoutTopic(choice: SaveChoice, name: string): SaveChoice {
+  return choice.tags.some((t) => same(t, name)) ? { ...choice, tags: choice.tags.filter((t) => !same(t, name)) } : choice;
+}
+
 /** The tag on or off (case ignored), as the reader's Tags menu does it (#156). */
 export function withTag(choice: SaveChoice, tag: string): SaveChoice {
   const clean = tag.trim();

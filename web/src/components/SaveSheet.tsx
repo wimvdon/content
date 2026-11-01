@@ -1,17 +1,18 @@
-import { Heart, Plus, Trash2 } from "lucide-react";
+import { Heart, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { app, useApp } from "@/lib/app";
 import { normalizeUrl } from "@/lib/discovery";
 import { t } from "@/lib/i18n";
 import { isWebLink } from "@/lib/items";
 import { topicNames } from "@/lib/topics";
-import { choiceOf, emptyChoice, offersArchive, tagChoices, toArchive, withTyped, type Place, type SaveChoice } from "@/lib/saveChoice";
+import { choiceOf, emptyChoice, offersArchive, tagChoices, toArchive, withoutTopic, withTag, withTopicRenamed, withTyped, type Place, type SaveChoice } from "@/lib/saveChoice";
 import { savedFolders } from "@/lib/saved";
 import { canConfirm } from "@/lib/sendTo";
 import { RemoveDialog } from "./SavedActions";
 import { Button } from "./ui/button";
 import { cn } from "./ui/cn";
 import { Dialog } from "./ui/dialog";
+import { TopicChips, chip, chipOn } from "./TopicChips";
 import { Input } from "./ui/input";
 
 /**
@@ -49,8 +50,7 @@ function Sheet({
   const { library } = useApp();
   const [choice, setChoice] = useState(initial);
   const [address, setAddress] = useState("");
-  // A tag typed but not added yet: Save takes it too, rather than dropping it.
-  const [tagName, setTagName] = useState("");
+  const has = (name: string) => choice.tags.some((x) => x.trim().toLowerCase() === name.trim().toLowerCase());
   const saved = kind !== "new";
   const savedItem = itemKey ? library.items.find((i) => i.key === itemKey) : undefined;
   const [removing, setRemoving] = useState(false);
@@ -58,7 +58,7 @@ function Sheet({
   const link = typed && isWebLink(typed) ? typed : null;
   const name = (place: Place) => (place.kind === "toread" ? t("toRead") : place.kind === "archive" ? t("archiveTab") : place.name);
   const save = (picked: SaveChoice) => {
-    const chosen = withTyped(picked, "", tagName, savedFolders(library));
+    const chosen = withTyped(picked, "", "", savedFolders(library));
     const savedTo = t("savedTo").replace("{place}", name(chosen.place));
     if (saved && itemKey) {
       if (JSON.stringify(chosen) !== JSON.stringify(initial)) app.organise(itemKey, chosen);
@@ -130,14 +130,24 @@ function Sheet({
         {choice.keep ? (
           <>
         <Section title={t("tags")}>
-          <TagsRow
-            tags={choice.tags}
-            allTags={topicNames(library)}
-            onChange={(tags) => setChoice({ ...choice, tags })}
-            liked={choice.liked}
-            onLike={() => setChoice({ ...choice, liked: !choice.liked })}
-            name={tagName}
-            setName={setTagName}
+          <TopicChips
+            topics={library.folders}
+            selected={(topic) => has(topic.title)}
+            onToggle={(topic) => setChoice((c) => withTag(c, topic.title))}
+            // A topic made here is on the article at once.
+            onCreated={(_, title) => setChoice((c) => (c.tags.some((x) => x.toLowerCase() === title.toLowerCase()) ? c : { ...c, tags: [...c.tags, title] }))}
+            onRenamed={(from, to) => setChoice((c) => withTopicRenamed(c, from, to))}
+            onRemoved={(name) => setChoice((c) => withoutTopic(c, name))}
+            // Its names that aren't topics (yet), as plain chips after the topics.
+            extra={tagChoices(topicNames(library), choice.tags).filter((name) => !library.folders.some((f) => f.title.toLowerCase() === name.trim().toLowerCase()))}
+            isExtraSelected={has}
+            onToggleExtra={(name) => setChoice((c) => withTag(c, name))}
+            leading={
+              <button type="button" aria-pressed={choice.liked} onClick={() => setChoice((c) => ({ ...c, liked: !c.liked }))} className={cn(chip, choice.liked ? chipOn : "hover:bg-muted")}>
+                <Heart className={cn("size-4", choice.liked && "fill-current")} aria-hidden="true" />
+                {t("like")}
+              </button>
+            }
           />
         </Section>
         <Section title={t("note")}>
@@ -163,84 +173,5 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       <h3 className="text-sm font-medium text-primary">{title}</h3>
       {children}
     </section>
-  );
-}
-
-const chip = "inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border px-3 text-sm";
-const on = "border-transparent bg-accent text-accent-foreground";
-
-/**
- * The tags (#143), as on Android: Like, then every tag in use as a chip to click on or off, in a
- * steady order so nothing moves when one is chosen, then New tag, which opens a field to make a tag
- * that doesn't exist yet.
- */
-function TagsRow({
-  tags,
-  allTags,
-  onChange,
-  liked,
-  onLike,
-  name,
-  setName,
-}: {
-  tags: string[];
-  allTags: string[];
-  onChange: (tags: string[]) => void;
-  liked: boolean;
-  onLike: () => void;
-  name: string;
-  setName: (name: string) => void;
-}) {
-  const [adding, setAdding] = useState(false);
-  const has = (n: string) => tags.some((x) => x.toLowerCase() === n.toLowerCase());
-  const add = (n: string) => {
-    const tag = n.trim();
-    if (tag && !has(tag)) onChange([...tags, tag]);
-  };
-  return (
-    <div className="space-y-2">
-      <div className="flex flex-wrap items-center gap-1.5">
-        <button type="button" aria-pressed={liked} onClick={onLike} className={cn(chip, liked ? on : "hover:bg-muted")}>
-          <Heart className={cn("size-4", liked && "fill-current")} aria-hidden="true" />
-          {t("like")}
-        </button>
-        {tagChoices(allTags, tags).map((x) => {
-          const chosen = has(x);
-          return (
-            <button
-              key={x}
-              type="button"
-              aria-pressed={chosen}
-              onClick={() => onChange(chosen ? tags.filter((y) => y.toLowerCase() !== x.toLowerCase()) : [...tags, x])}
-              className={cn(chip, chosen ? on : "hover:bg-muted")}
-            >
-              {x}
-            </button>
-          );
-        })}
-        {!adding ? (
-          <button type="button" onClick={() => setAdding(true)} className={cn(chip, "hover:bg-muted")}>
-            <Plus className="size-4" aria-hidden="true" />
-            {t("tagAdd")}
-          </button>
-        ) : null}
-      </div>
-      {adding ? (
-        <form
-          className="flex gap-2"
-          onSubmit={(e) => {
-            e.preventDefault();
-            add(name);
-            setName("");
-          }}
-        >
-          <Input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder={t("tagAdd")} aria-label={t("tagAdd")} maxLength={60} />
-          <Button type="submit" variant="tonal" disabled={!name.trim()}>
-            <Plus />
-            {t("add")}
-          </Button>
-        </form>
-      ) : null}
-    </div>
   );
 }

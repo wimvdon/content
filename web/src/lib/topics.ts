@@ -50,6 +50,23 @@ export function topicsForTags(lib: Library): Library {
   return { ...lib, folders: [...topics, ...added], feeds };
 }
 
+/** The topics in a new order, by id (#314: dragging their chips); topics not named keep their place at the end. As Android's reorderTopics. */
+export function reorderTopics(lib: Library, ids: string[]): Library {
+  const byId = new Map(lib.folders.map((f) => [f.id, f]));
+  const ordered = [...new Set(ids)].flatMap((id) => (byId.has(id) ? [byId.get(id)!] : []));
+  const rest = lib.folders.filter((f) => !ordered.includes(f));
+  const result = [...ordered, ...rest];
+  return result.every((f, i) => f === lib.folders[i]) ? lib : { ...lib, folders: result };
+}
+
+/** `list` with the entry at `from` moved to `to`; the same list when either is out of range. As Android's ChipOrder.moved. */
+export function moved<T>(list: T[], from: number, to: number): T[] {
+  if (from < 0 || to < 0 || from >= list.length || to >= list.length || from === to) return list;
+  const out = [...list];
+  out.splice(to, 0, ...out.splice(from, 1));
+  return out;
+}
+
 /** The topic with this name (case ignored), or undefined. */
 export const topicNamed = (lib: Library, name: string) => lib.folders.find((f) => key(f.title) === key(name));
 

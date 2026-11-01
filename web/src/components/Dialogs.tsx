@@ -1,6 +1,7 @@
 import { ArrowDown, ArrowLeft, ArrowUp, ChevronDown, EllipsisVertical, Merge, Pencil, Plus, Trash2 } from "lucide-react";
 import { useEscape } from "./ui/useEscape";
 import { ConfirmRemove } from "./ConfirmRemove";
+import { TopicChips, chip, chipOn } from "./TopicChips";
 import { useEffect, useMemo, useState } from "react";
 import { gravatarUrl } from "@/lib/account";
 import { app, useApp, type ListView, type Theme } from "@/lib/app";
@@ -23,15 +24,22 @@ import { pushSupported } from "@/lib/notifications";
 
 type Props = { open: boolean; onOpenChange: (open: boolean) => void };
 
-/** Opened with a new key each time (App), so the address starts empty. */
+/**
+ * Add feed, opened with a new key each time (App), so the address starts empty. Then its topic as
+ * chips (No topic, then every topic with its icon), with New topic and Edit at the end to make,
+ * rename, reorder or remove topics right there (#314), as on Android.
+ */
 export function AddFeedDialog({ open, onOpenChange, folderId }: Props & { folderId: string | null }) {
+  const { library } = useApp();
   const [input, setInput] = useState("");
+  const [topicId, setTopicId] = useState<string | null>(folderId);
+  const chosen = topicId && library.folders.some((f) => f.id === topicId) ? topicId : null;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const add = async () => {
     setBusy(true);
     setError(null);
-    const result = await app.addFeed(input, folderId);
+    const result = await app.addFeed(input, chosen);
     setBusy(false);
     if (result === "added") onOpenChange(false);
     else setError(t(addErrors[result]));
@@ -63,6 +71,22 @@ export function AddFeedDialog({ open, onOpenChange, folderId }: Props & { folder
         <Input autoFocus value={input} onChange={(e) => setInput(e.target.value)} placeholder="example.com" inputMode="url" aria-label={t("address")} />
         {error ? <p className="mt-2 text-sm text-destructive" role="alert">{error}</p> : null}
       </form>
+      <section className="mt-5 space-y-2">
+        <h3 className="text-sm font-medium text-primary">{t("topic")}</h3>
+        <TopicChips
+          topics={library.folders}
+          selected={(topic) => chosen === topic.id}
+          // One topic: clicking the chosen one again is No topic.
+          onToggle={(topic) => setTopicId(chosen === topic.id ? null : topic.id)}
+          onCreated={(id) => setTopicId(id)}
+          disabled={busy}
+          leading={
+            <button type="button" aria-pressed={chosen === null} disabled={busy} onClick={() => setTopicId(null)} className={cn(chip, chosen === null ? chipOn : "hover:bg-muted")}>
+              {t("noFolder")}
+            </button>
+          }
+        />
+      </section>
     </Dialog>
   );
 }
@@ -419,7 +443,20 @@ function EditFeedDialog({ feed, folders, onClose }: { feed: Feed | null; folders
   );
 }
 
-function FolderDialog({ folder, onClose, onCreated }: { folder: Folder | "new" | null; onClose: () => void; onCreated?: (id: string) => void }) {
+export function FolderDialog({
+  folder,
+  onClose,
+  onCreated,
+  onRenamed,
+  onRemoved,
+}: {
+  folder: Folder | "new" | null;
+  onClose: () => void;
+  onCreated?: (id: string) => void;
+  /** An existing topic saved with this name (#314: the Organise sheet's choice follows). */
+  onRenamed?: (from: string, to: string) => void;
+  onRemoved?: (title: string) => void;
+}) {
   const icons = useIcons();
   const [title, setTitle] = useState(folder && folder !== "new" ? folder.title : "");
   const [icon, setIcon] = useState(folder && folder !== "new" ? folder.icon : "folder");
@@ -428,7 +465,10 @@ function FolderDialog({ folder, onClose, onCreated }: { folder: Folder | "new" |
   if (!folder) return null;
   const save = () => {
     if (folder === "new") onCreated?.(app.addFolder(title, icon));
-    else app.updateFolder(folder.id, title, icon);
+    else {
+      app.updateFolder(folder.id, title, icon);
+      onRenamed?.(folder.title, title);
+    }
     onClose();
   };
   const found = icons ? searchIcons(icons, query) : [];
@@ -492,6 +532,7 @@ function FolderDialog({ folder, onClose, onCreated }: { folder: Folder | "new" |
           body={t("removeFolderBody").replace("{name}", folder.title)}
           onConfirm={() => {
             app.removeFolder(folder.id);
+            onRemoved?.(folder.title);
             onClose();
           }}
           onClose={() => setConfirming(false)}
