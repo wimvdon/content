@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
@@ -116,8 +117,8 @@ internal fun SavedContent(
             ),
             body = if (toRead) stringResource(R.string.saved_empty_body) else null,
         ) {
-            // Filtered to nothing: one tap back to the whole tab, as Feeds' "All caught up" has Show all.
-            if (!plain) Button(onClick = onClearFilters) { Text(stringResource(R.string.home_show_all)) }
+            // Filtered to nothing: one tap back to the whole tab. Outlined, as every empty state's action.
+            if (!plain) OutlinedButton(onClick = onClearFilters) { Text(stringResource(R.string.home_show_all)) }
         }
         return
     }

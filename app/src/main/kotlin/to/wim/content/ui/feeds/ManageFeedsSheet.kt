@@ -20,6 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -160,7 +161,8 @@ fun ManageFeedsSheet(
                     }
                 },
             ) {
-                Button(onClick = onDismiss) { Text(stringResource(R.string.action_done)) }
+                // Done only closes (changes are kept at once): a text button; Add feed is the action here.
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_done)) }
             }
         }
         addFeed()
