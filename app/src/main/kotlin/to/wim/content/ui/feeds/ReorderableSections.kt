@@ -106,8 +106,7 @@ internal fun <T> ReorderableSections(
             key(entry.key) {
                 when (entry) {
                     is SectionOrder.Heading -> Box(Modifier.onSizeChanged { heights[entry.key] = it.height }) { heading(entry.group) }
-                    is SectionOrder.Row -> {
-                        val item = byKey[entry.key] ?: return@key
+                    is SectionOrder.Row -> byKey[entry.key]?.let { item ->
                         val k = entry.key
                         val isDragging = dragged == k
                         val handle =
