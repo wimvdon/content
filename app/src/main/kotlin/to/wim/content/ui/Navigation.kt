@@ -80,6 +80,7 @@ import to.wim.content.data.topicNames
 import to.wim.content.data.up
 import to.wim.content.data.chipTag
 import to.wim.content.data.feedChips
+import to.wim.content.data.feedsWithArticles
 import to.wim.content.data.tagWithFeedFolder
 import to.wim.content.data.removeTag
 import to.wim.content.data.renameTag
@@ -838,6 +839,7 @@ fun RssReaderNavigation(
                                         )
                                     },
                                 topicChips = remember(listed, current.unreadOnly, shownSelection) { listed.feedChips(FeedTab.of(current.unreadOnly), shownSelection.chipTag(library.folders)) },
+                                feedChipsShown = remember(listed, current.unreadOnly) { listed.feedsWithArticles(FeedTab.of(current.unreadOnly)) },
                                 accountEmail = accountEmail,
                             ),
                         snackbarHostState = snackbar,

@@ -8,6 +8,10 @@ package to.wim.content.data
  * - The second row, only while a topic is chosen (or one of its feeds): that topic's [topicFeeds].
  *   Tapping one shows that feed alone; tapping it again goes back to the whole topic.
  *
+ * Like the topics, a feed is only a chip when it has something in the tab shown ([shown]: unread
+ * articles in Unread, read ones in Read); the feed chosen stays, so a chip never disappears under
+ * your finger.
+ *
  * [chosenTopic] is the topic chip shown chosen: the topic picked, or the topic of the feed picked.
  * [chosenFeed] is the feed picked, if any. Plain Kotlin, unit tested.
  */
@@ -24,15 +28,21 @@ data class FeedChips(
             folders: List<Folder>,
             topics: List<String>,
             selection: FeedSelection,
+            /** The feeds (by address) with something in the tab shown; null: every feed. */
+            shown: Set<String>? = null,
         ): FeedChips {
             val chosenFeed = (selection as? FeedSelection.Single)?.feedUrl
             val single = chosenFeed?.let { url -> feeds.firstOrNull { it.url == url } }
             val chosenTopic =
                 selection.chipTag(folders)
                     ?: single?.let { feed -> topicOf(feed, folders, topics) }
-            val topicFeeds = chosenTopic?.let { topic -> feeds.filter { feed -> feed.tags.any { it.equals(topic, ignoreCase = true) } } }.orEmpty()
+            val visible = { feed: Feed -> shown == null || feed.url in shown || feed.url == chosenFeed }
+            val topicFeeds =
+                chosenTopic
+                    ?.let { topic -> feeds.filter { feed -> feed.tags.any { it.equals(topic, ignoreCase = true) } && visible(feed) } }
+                    .orEmpty()
             // A feed picked that is in no topic chip stays a loose chip, so it can be seen chosen.
-            val loose = feeds.filter { feed -> isLoose(feed, folders) || (feed == single && chosenTopic == null) }
+            val loose = feeds.filter { feed -> (isLoose(feed, folders) && visible(feed)) || (feed == single && chosenTopic == null) }
             // The chosen topic stays a chip even if it has nothing in the state shown.
             val shownTopics = if (chosenTopic != null && topics.none { it.equals(chosenTopic, ignoreCase = true) }) topics + chosenTopic else topics
             return FeedChips(shownTopics, chosenTopic, topicFeeds, loose, chosenFeed)

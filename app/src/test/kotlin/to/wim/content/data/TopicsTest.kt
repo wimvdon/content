@@ -158,6 +158,14 @@ class TopicsTest {
     }
 
     @Test
+    fun `Feeds' feed chips are the feeds with articles in the tab shown`() {
+        val article = { feed: String, id: String, read: Boolean -> Article(feed, id, id, null, null, "", null, 0L, read = read) }
+        val lib = library.copy(articles = listOf(article("https://a/feed", "1", false), article("https://b/feed", "2", true)))
+        assertEquals(setOf("https://a/feed"), lib.feedsWithArticles(FeedTab.Unread))
+        assertEquals(setOf("https://b/feed"), lib.feedsWithArticles(FeedTab.Read))
+    }
+
+    @Test
     fun `Saved's chips leave out topics and Liked with nothing in the state shown, except the chosen ones`() {
         val archived = saved("x.example/9", "Old").copy(readingList = ReadingListEntry(ReadingState.Archived, 1L), liked = true)
         val lib = library.copy(items = library.items + archived).topicsForTags()

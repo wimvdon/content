@@ -36,6 +36,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -187,13 +189,15 @@ fun TagChips(
     loose: (@Composable () -> Unit)? = null,
     /** A topic's icon by its name (#314: the same chips in Feeds and Saved); null: no icon. */
     iconOf: (String) -> String? = { null },
+    /** Less room under the row when a second row follows (a topic's feeds). */
+    rowBelow: Boolean = false,
 ) {
     if (state == null && tags.isEmpty() && liked == null && loose == null) return
     Row(
         Modifier
             .fillMaxWidth()
             .horizontalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = if (rowBelow) 0.dp else 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -244,9 +248,15 @@ fun TopicFeedChips(
     chosenFeed: String?,
     onSelect: (feedUrl: String?) -> Unit,
 ) {
+    val overlap = with(LocalDensity.current) { RowOverlap.roundToPx() }
     Row(
         Modifier
-            .fillMaxWidth()
+            // The chips' touch areas reach above them: the row moves up a little, so the gap
+            // between the two rows is close to the gap between the chips.
+            .layout { measurable, constraints ->
+                val p = measurable.measure(constraints)
+                layout(p.width, (p.height - overlap).coerceAtLeast(0)) { p.place(0, -overlap) }
+            }.fillMaxWidth()
             .horizontalScroll(rememberScrollState())
             .padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -258,3 +268,6 @@ fun TopicFeedChips(
         }
     }
 }
+
+/** How far the second chip row moves up into the first one's touch area. */
+private val RowOverlap = 4.dp
