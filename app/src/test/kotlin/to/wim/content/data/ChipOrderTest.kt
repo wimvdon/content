@@ -39,4 +39,34 @@ class ChipOrderTest {
         assertSame(same, ChipOrder.moved(same, 0, 5))
         assertSame(same, ChipOrder.moved(same, 1, 1))
     }
+
+    @Test
+    fun `a chip dragged over another group goes before or after the chip it is over`() {
+        val targets =
+            listOf(
+                ChipOrder.Target(ChipOrder.Slot(0, 0), ChipOrder.Box(0f, 0f, 100f, 40f)),
+                ChipOrder.Target(ChipOrder.Slot(0, 1), ChipOrder.Box(110f, 0f, 210f, 40f)),
+                ChipOrder.Target(ChipOrder.Slot(1, 0), ChipOrder.Box(0f, 80f, 100f, 120f)),
+                ChipOrder.Target(ChipOrder.Slot(2, 0), ChipOrder.Box(0f, 160f, 200f, 200f), empty = true),
+            )
+        // In its own group: that chip's place.
+        assertEquals(ChipOrder.Slot(0, 1), ChipOrder.slotAt(targets, ownGroup = 0, x = 200f, y = 20f))
+        // In another group: before the chip on its left half, after it on its right half.
+        assertEquals(ChipOrder.Slot(1, 0), ChipOrder.slotAt(targets, ownGroup = 0, x = 20f, y = 100f))
+        assertEquals(ChipOrder.Slot(1, 1), ChipOrder.slotAt(targets, ownGroup = 0, x = 80f, y = 100f))
+        // An empty group: its start, wherever the point is in it.
+        assertEquals(ChipOrder.Slot(2, 0), ChipOrder.slotAt(targets, ownGroup = 0, x = 190f, y = 180f))
+        assertEquals(null, ChipOrder.slotAt(emptyList(), ownGroup = 0, x = 0f, y = 0f))
+    }
+
+    @Test
+    fun `moves an entry into another group, or within its own`() {
+        val groups = listOf(listOf("a", "b"), listOf("c"), emptyList())
+        assertEquals(listOf(listOf("b"), listOf("a", "c"), emptyList()), ChipOrder.movedAcross(groups, "a", ChipOrder.Slot(1, 0)))
+        assertEquals(listOf(listOf("a", "b"), emptyList(), listOf("c")), ChipOrder.movedAcross(groups, "c", ChipOrder.Slot(2, 5)))
+        assertEquals(listOf(listOf("b", "a"), listOf("c"), emptyList()), ChipOrder.movedAcross(groups, "a", ChipOrder.Slot(0, 1)))
+        assertSame(groups, ChipOrder.movedAcross(groups, "a", ChipOrder.Slot(0, 0)))
+        assertSame(groups, ChipOrder.movedAcross(groups, "x", ChipOrder.Slot(1, 0)))
+        assertSame(groups, ChipOrder.movedAcross(groups, "a", ChipOrder.Slot(7, 0)))
+    }
 }

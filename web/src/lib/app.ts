@@ -431,6 +431,7 @@ class AppStore {
   moveFeedBy = (url: string, delta: number) => this.updateLibrary((lib) => L.moveWithinFolder(lib, url, delta));
   /** Manage feeds' drag: one topic's feeds (null: those without one) in a new order. */
   reorderFeedsIn = (folderId: string | null, urls: string[]) => this.updateLibrary((lib) => L.reorderFeedsIn(lib, folderId, urls));
+  moveFeedInto = (url: string, folderId: string | null, urls: string[]) => this.updateLibrary((lib) => L.moveFeedInto(lib, url, folderId, urls));
   moveFolderBy = (id: string, delta: number) =>
     this.updateLibrary((lib) => ({ ...lib, folders: L.reorder(lib.folders, lib.folders.findIndex((f) => f.id === id), delta) }));
 

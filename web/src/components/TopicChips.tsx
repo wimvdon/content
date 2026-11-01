@@ -9,6 +9,9 @@ import { FolderIcon } from "./FolderIcon";
 import { Dialog } from "./ui/dialog";
 import { cn } from "./ui/cn";
 
+/** The dragged chip's key, so another group can take it (Manage feeds). */
+export const CHIP_TYPE = "application/x-content-chip";
+
 export const chip = "inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border px-3 text-sm disabled:cursor-default disabled:opacity-50";
 export const chipOn = "border-transparent bg-accent text-accent-foreground";
 /** New topic and Edit topics are actions, not topics: text buttons, so they don't look like chips. */
@@ -17,7 +20,8 @@ const action = "inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-lg p
 /**
  * Chips to reorder and edit, as on Android (`ReorderableChips`): topics in Manage topics, and feeds in
  * Manage feeds. Each has a grip, its icon, its name and a pen. Drag a chip among the others (or focus
- * it and press ← →) to reorder; the new order is stored on drop. Clicking a chip edits it.
+ * it and press ← →) to reorder; the new order is stored on drop. Clicking a chip edits it. With
+ * `onDropFrom`, a chip of another group (Manage feeds' topics) dropped on one of these goes before it.
  */
 export function EditChips<T>({
   items,
@@ -28,6 +32,7 @@ export function EditChips<T>({
   onEdit,
   editLabel,
   error = () => false,
+  onDropFrom,
 }: {
   items: T[];
   id: (item: T) => string;
@@ -38,6 +43,8 @@ export function EditChips<T>({
   editLabel: string;
   /** A name in the error colour (a feed that fails to download). */
   error?: (item: T) => boolean;
+  /** A chip of another group dropped on the chip `before`. */
+  onDropFrom?: (key: string, before: string) => void;
 }) {
   // While dragging: the order shown, which is stored on drop.
   const [order, setOrder] = useState<string[] | null>(null);
@@ -61,6 +68,7 @@ export function EditChips<T>({
             draggable
             onDragStart={(e) => {
               e.dataTransfer.effectAllowed = "move";
+              e.dataTransfer.setData(CHIP_TYPE, k);
               setDragged(k);
               setOrder(ids);
             }}
@@ -69,7 +77,14 @@ export function EditChips<T>({
               if (!dragged || dragged === k || !order) return;
               setOrder(moved(order, order.indexOf(dragged), order.indexOf(k)));
             }}
-            onDrop={(e) => e.preventDefault()}
+            onDrop={(e) => {
+              e.preventDefault();
+              const from = e.dataTransfer.getData(CHIP_TYPE);
+              if (onDropFrom && from && !ids.includes(from)) {
+                e.stopPropagation();
+                onDropFrom(from, k);
+              }
+            }}
             onDragEnd={() => {
               if (order && order.some((x, i) => x !== ids[i])) onReorder(order);
               setDragged(null);

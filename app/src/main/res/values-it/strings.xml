@@ -336,7 +336,8 @@
     <string name="settings_list_summary">Vista, segna come letto scorrendo, parole nascoste</string>
     <string name="section_article_view">Vista articolo</string>
     <string name="settings_article_view_summary">Testo, articoli completi, siti a pagamento</string>
-    <string name="manage_feeds_hint">Tocca un feed per rinominarlo, cambiarne l’argomento o rimuoverlo. Trascinane uno dalla maniglia per cambiare l’ordine.</string>
+    <string name="manage_feeds_hint">Tocca un feed per rinominarlo, cambiarne l’argomento o rimuoverlo. Trascinane uno dalla maniglia per cambiare l’ordine o spostarlo in un altro argomento.</string>
+    <string name="manage_feeds_drop_here">Trascina qui un feed</string>
     <string name="manage_feeds_none">Ancora nessun feed.</string>
     <string name="manage_topics_hint">Gli argomenti raggruppano i tuoi feed e gli articoli salvati. Tocca un argomento per rinominarlo, cambiarne l’icona o rimuoverlo; trascinane uno dalla maniglia per cambiare l’ordine. Se gli dai il nome di un altro argomento, i due vengono uniti.</string>
     <string name="topics_edit">Modifica argomenti</string>

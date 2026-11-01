@@ -135,6 +135,19 @@ class TopicsTest {
     }
 
     @Test
+    fun `a feed dragged into another topic moves there, in the place it was dropped`() {
+        val settled = library.topicsForTags()
+        // a(f1), b(f2), c(none): a dropped before b in f2.
+        val moved = settled.moveFeedInto("https://a/feed", "f2", listOf("https://a/feed", "https://b/feed"))
+        assertEquals("f2", moved.feed("https://a/feed")!!.folderId)
+        assertEquals(listOf("https://a/feed", "https://b/feed"), moved.feeds.filter { it.folderId == "f2" }.map { it.url })
+        // Out of every topic.
+        val loose = settled.moveFeedInto("https://b/feed", null, listOf("https://c/feed", "https://b/feed"))
+        assertNull(loose.feed("https://b/feed")!!.folderId)
+        assertEquals(listOf("https://c/feed", "https://b/feed"), loose.feeds.filter { it.folderId == null }.map { it.url })
+    }
+
+    @Test
     fun `merging keeps the topic picked, with the other's feeds and saved articles`() {
         val merged = library.topicsForTags().mergeTopic("f1", "f2")
         assertEquals(listOf("f2", "topic:recipes"), merged.folders.map { it.id })

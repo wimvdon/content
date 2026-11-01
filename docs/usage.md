@@ -65,8 +65,9 @@ makes one: a name and an icon from the whole Material Symbols set (type in Engli
 *news*, *car* or *food*). Changes are kept at once: **Done** closes it.
 
 **Managing feeds: Manage feeds** (the other large button at the top of Settings). A sheet with your feeds as chips with their site icons, grouped
-by topic (in your order, then **No topic**); a feed that can't be downloaded has its name in red.
-Drag a chip by its grip to reorder the feeds of a topic. Tap one for the **Edit feed** sheet: its
+by topic (in your order, then **No topic**; every topic, an empty one too, with "Drag a feed here");
+a feed that can't be downloaded has its name in red. Drag a chip by its grip to reorder the feeds of
+a topic, or into another topic (or No topic) to move it there. Tap one for the **Edit feed** sheet: its
 name (empty brings back the feed's own), its address, why it fails if it does, its topic as chips,
 **Remove** (it asks first, in the sheet) and **Save**. **Add feed** at the end adds one without a
 topic, in the same sheet; afterwards you are back in Manage feeds. A sheet opened from within a sheet

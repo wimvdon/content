@@ -1,6 +1,7 @@
 import { Smartphone, ArrowLeft, BookmarkPlus, BookOpenText, ChevronDown, ChevronRight, LayoutList, Palette, Plus, Puzzle, Rss, Tag as TagIcon, Trash2, UserRound } from "lucide-react";
 import { ConfirmRemove } from "./ConfirmRemove";
-import { EditChips, TopicChips, chip, chipOn } from "./TopicChips";
+import { insertedBefore } from "@/lib/topics";
+import { CHIP_TYPE, EditChips, TopicChips, chip, chipOn } from "./TopicChips";
 import { useEffect, useMemo, useState } from "react";
 import { gravatarUrl } from "@/lib/account";
 import { app, useApp, type ListView, type Theme } from "@/lib/app";
@@ -116,35 +117,56 @@ function exportOpml() {
  * to edit it (name, topic, Remove). A feed that fails to download has its name in red. Add feed at
  * the end (over this dialog). Every change is stored at once, so it has **Done**.
  */
+/** A feed dragged from another topic into `topicId`, before the feed `before` (null: at the end). */
+function dropInto(topicId: string | null, feeds: Feed[], url: string, before: string | null) {
+  app.moveFeedInto(url, topicId, insertedBefore(feeds.map((f) => f.url), url, before));
+}
+
 export function ManageFeedsDialog({ open, onOpenChange, onAddFeed, children }: Props & { onAddFeed: () => void; children?: ReactNode }) {
   const { library, problems } = useApp();
   const [editing, setEditing] = useState<Feed | null>(null);
   const groups = useMemo(() => {
     const inTopics = library.folders.map((topic) => [topic, library.feeds.filter((f) => f.folderId === topic.id)] as const);
     const loose = library.feeds.filter((f) => f.folderId === null || !library.folders.some((x) => x.id === f.folderId));
-    return [...inTopics, [null, loose] as const].filter(([, feeds]) => feeds.length > 0);
+    // Every topic, so a feed can be dragged into an empty one; none at all without feeds.
+    return library.feeds.length === 0 ? [] : [...inTopics, [null, loose] as const];
   }, [library]);
   return (
     <Dialog open={open} onOpenChange={onOpenChange} title={t("manageFeedsTitle")} closeLabel={t("close")} cancel={t("done")}>
       <p className="pb-3 text-sm text-muted-foreground">{t(library.feeds.length === 0 ? "manageFeedsNone" : "manageFeedsHint")}</p>
       <div className="space-y-4">
         {groups.map(([topic, feeds]) => (
-          <section key={topic?.id ?? ""} className="space-y-2">
+          <section
+            key={topic?.id ?? ""}
+            className="space-y-2"
+            // A feed of another topic dropped here (not on a chip): at the end of this topic.
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => {
+              e.preventDefault();
+              const url = e.dataTransfer.getData(CHIP_TYPE);
+              if (url && !feeds.some((f) => f.url === url)) dropInto(topic?.id ?? null, feeds as Feed[], url, null);
+            }}
+          >
             <h3 className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
               {topic ? <FolderIcon name={topic.icon} className="size-4" /> : null}
               {topic?.title ?? t("noFolder")}
             </h3>
             <div className="flex flex-wrap items-center gap-1.5">
-              <EditChips
-                items={feeds as Feed[]}
-                id={(f) => f.url}
-                label={(f) => f.title}
-                icon={(f) => <FeedIcon feed={f} className="size-4" />}
-                onReorder={(urls) => app.reorderFeedsIn(topic?.id ?? null, urls)}
-                onEdit={setEditing}
-                editLabel={t("editFeed")}
-                error={(f) => problems.has(f.url)}
-              />
+              {feeds.length === 0 ? (
+                <span className="inline-flex h-8 items-center rounded-lg border border-dashed px-3 text-sm text-muted-foreground">{t("manageFeedsDropHere")}</span>
+              ) : (
+                <EditChips
+                  items={feeds as Feed[]}
+                  id={(f) => f.url}
+                  label={(f) => f.title}
+                  icon={(f) => <FeedIcon feed={f} className="size-4" />}
+                  onReorder={(urls) => app.reorderFeedsIn(topic?.id ?? null, urls)}
+                  onDropFrom={(url, before) => dropInto(topic?.id ?? null, feeds as Feed[], url, before)}
+                  onEdit={setEditing}
+                  editLabel={t("editFeed")}
+                  error={(f) => problems.has(f.url)}
+                />
+              )}
             </div>
           </section>
         ))}

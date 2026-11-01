@@ -336,7 +336,8 @@
     <string name="settings_list_summary">Vista, marcar como leído al desplazarse, palabras ocultas</string>
     <string name="section_article_view">Vista de artículo</string>
     <string name="settings_article_view_summary">Texto, artículos completos, sitios de pago</string>
-    <string name="manage_feeds_hint">Toca un feed para cambiarle el nombre, cambiar su tema o quitarlo. Arrastra uno por su asa para cambiar el orden.</string>
+    <string name="manage_feeds_hint">Toca un feed para cambiarle el nombre, cambiar su tema o quitarlo. Arrastra uno por su asa para cambiar el orden o moverlo a otro tema.</string>
+    <string name="manage_feeds_drop_here">Arrastra un feed aquí</string>
     <string name="manage_feeds_none">Aún no hay feeds.</string>
     <string name="manage_topics_hint">Los temas agrupan tus feeds y artículos guardados. Toca un tema para cambiarle el nombre o el icono, o quitarlo; arrastra uno por su asa para cambiar el orden. Si le das el nombre de otro tema, se unen los dos.</string>
     <string name="topics_edit">Editar temas</string>
