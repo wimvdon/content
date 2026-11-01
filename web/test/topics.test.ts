@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Item } from "../src/lib/items";
 import { chipTags, showsLiked } from "../src/lib/saved";
 import { emptyLibrary, feedFoldersToTags, newFeed, type Library } from "../src/lib/library";
-import { addTopic, feedChips, inTopicOrder, insertedBefore, mergeTopic, moved, removeTopic, reorderTopics, renameTopic, tagWithFeedTopic, topicCounts, topicIdFor, topicNamed, topicNames, topicsForTags } from "../src/lib/topics";
+import { addTopic, feedChipRow, feedChips, inTopicOrder, insertedBefore, mergeTopic, moved, removeTopic, reorderTopics, renameTopic, tagWithFeedTopic, topicCounts, topicIdFor, topicNamed, topicNames, topicsForTags } from "../src/lib/topics";
 
 const saved = (key: string, ...tags: string[]): Item => ({
   key,
@@ -127,6 +127,30 @@ describe("topics", () => {
     expect(feedChips(lib, "unread", null)).toEqual(["Tech"]);
     expect([...feedChips(lib, "all", null)].sort()).toEqual(["News", "Tech"]);
     expect(feedChips(lib, "unread", "news")).toEqual(["Tech", "News"]);
+  });
+
+  it("shows Feeds' chips in one row: the topics, or the topic chosen and its feeds", () => {
+    const article = (feedUrl: string, id: string, read: boolean) => ({ feedUrl, id, title: id, link: null, author: null, html: "", publishedAt: null, fetchedAt: 0, read, imageUrl: null });
+    const base = topicsForTags(library);
+    // A second feed in Tech, with only a read article.
+    const d = { ...newFeed("https://d/feed", "D"), tags: ["Tech"] };
+    const lib = { ...base, feeds: [...base.feeds, d], articles: [article("https://a/feed", "1", false), article("https://b/feed", "2", true), article("https://d/feed", "3", true)] };
+    const urls = (feeds: { url: string }[]) => feeds.map((f) => f.url);
+    // Nothing chosen: the topics, no feeds.
+    expect(feedChipRow(lib, "unread", { kind: "all" })).toEqual({ topics: ["Tech"], chosenTopic: null, feeds: [], chosenFeed: null });
+    // A topic chosen (in any case): that topic alone, then its feeds with something in the tab shown.
+    const tech = feedChipRow(lib, "unread", { kind: "tag", tag: "tech" });
+    expect(tech.topics).toEqual(["Tech"]);
+    expect(tech.chosenTopic).toBe("Tech");
+    expect(urls(tech.feeds)).toEqual(["https://a/feed"]);
+    expect(urls(feedChipRow(lib, "all", { kind: "tag", tag: "Tech" }).feeds)).toEqual(["https://a/feed", "https://d/feed"]);
+    // A feed chosen: its topic is lit and the feed stays, even with nothing in the tab shown.
+    const one = feedChipRow(lib, "unread", { kind: "feed", feedUrl: "https://d/feed" });
+    expect(one.chosenTopic).toBe("Tech");
+    expect(one.chosenFeed).toBe("https://d/feed");
+    expect(urls(one.feeds)).toEqual(["https://a/feed", "https://d/feed"]);
+    // A feed without a topic: no topic is lit, the topics stay.
+    expect(feedChipRow(lib, "all", { kind: "feed", feedUrl: "https://c/feed" }).chosenTopic).toBeNull();
   });
 
   it("leaves out Saved's topic chips and Liked with nothing in the state shown, except the chosen ones", () => {

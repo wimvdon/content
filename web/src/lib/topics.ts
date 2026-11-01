@@ -5,7 +5,7 @@
  * sync file keeps folders and tags as they were; these rules keep the two in step.
  */
 import { changeItem, cleanTags, feedArticleFor, renameTag, type Item } from "./items";
-import { feedFoldersToTags, feedTags, inFeedTab, removeFolder, type FeedTab, type Folder, type Library } from "./library";
+import { chipTag, feedFoldersToTags, feedTags, inFeedTab, removeFolder, type Feed, type FeedTab, type Folder, type Library, type Selection } from "./library";
 
 const key = (name: string) => name.trim().toLowerCase();
 
@@ -178,4 +178,40 @@ export function feedChips(lib: Library, tab: FeedTab, chosen: string | null): st
       (chosen !== null && key(tag) === key(chosen)) ||
       lib.articles.some((a) => inFeedTab(a, tab) && (byUrl.get(a.feedUrl)?.tags ?? []).some((t) => key(t) === key(tag))),
   );
+}
+
+/** Feeds' one chip row (see feedChipRow). */
+export interface FeedChipRow {
+  /** The topic chips: all of them (feedChips), or only the chosen one. */
+  topics: string[];
+  /** The topic shown chosen: the topic picked, or the topic of the feed picked. */
+  chosenTopic: string | null;
+  /** The chosen topic's feeds, after it in the same row; empty without a topic. */
+  feeds: Feed[];
+  /** The feed picked, if any. */
+  chosenFeed: string | null;
+}
+
+/**
+ * Feeds' chip row, one row as on Android: without a topic chosen, the topics (feedChips); with one
+ * (or one of its feeds), that topic alone, then its feeds that have something in the tab shown (the
+ * feed picked stays). Tapping a feed shows it alone, tapping it again the whole topic; tapping the
+ * topic lets go of it, and the topics come back.
+ */
+export function feedChipRow(lib: Library, tab: FeedTab, selection: Selection): FeedChipRow {
+  const chosenFeed = selection.kind === "feed" ? selection.feedUrl : null;
+  const single = chosenFeed === null ? undefined : lib.feeds.find((f) => f.url === chosenFeed);
+  const all = feedTags(lib);
+  const picked = chipTag(lib, selection);
+  const ofFeed = single?.tags?.find((tag) => all.some((t) => key(t) === key(tag))) ?? single?.tags?.[0] ?? null;
+  const chosen = picked ?? ofFeed;
+  if (chosen === null) return { topics: feedChips(lib, tab, null), chosenTopic: null, feeds: [], chosenFeed };
+  // The topic's own spelling, as its chip has it elsewhere.
+  const name = all.find((t) => key(t) === key(chosen)) ?? chosen;
+  const feeds = lib.feeds.filter(
+    (f) =>
+      (f.tags ?? []).some((t) => key(t) === key(name)) &&
+      (f.url === chosenFeed || lib.articles.some((a) => a.feedUrl === f.url && inFeedTab(a, tab))),
+  );
+  return { topics: [name], chosenTopic: name, feeds, chosenFeed };
 }

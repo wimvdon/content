@@ -31,12 +31,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.layout
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
 import to.wim.content.R
@@ -117,7 +116,8 @@ fun ViewSwitch(
         Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .padding(top = 4.dp, bottom = 8.dp),
+            // No room under it: the chips' own touch area keeps them apart (#338: a tighter header).
+            .padding(top = 4.dp),
     ) {
         labels.forEachIndexed { index, label ->
             SegmentedButton(
@@ -144,19 +144,19 @@ fun TagChips(
     state: (@Composable () -> Unit)? = null,
     /** Saved's Liked chip (#206), the first group. */
     liked: (@Composable () -> Unit)? = null,
-    /** Feeds' feeds without a topic (FeedChips), after the topics and a divider. */
+    /** Feeds' feeds after the topics and a divider (FeedChips): those without a topic, or the chosen topic's. */
     loose: (@Composable () -> Unit)? = null,
     /** A topic's icon by its name (#314: the same chips in Feeds and Saved); null: no icon. */
     iconOf: (String) -> String? = { null },
-    /** Less room under the row when a second row follows (a topic's feeds). */
-    rowBelow: Boolean = false,
+    /** Room above the row: none right under the view switch, whose touch area already makes the gap. */
+    top: Dp = 8.dp,
 ) {
     if (state == null && tags.isEmpty() && liked == null && loose == null) return
     Row(
         Modifier
             .fillMaxWidth()
             .horizontalScroll(rememberScrollState())
-            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = if (rowBelow) 0.dp else 8.dp),
+            .padding(start = 16.dp, end = 16.dp, top = top, bottom = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -185,7 +185,7 @@ fun TagChips(
     }
 }
 
-/** A feed as a chip, with its icon: in the first row (no topic) or the second (a topic's feeds). */
+/** A feed as a chip, with its icon: one without a topic, or one of the chosen topic's feeds. */
 @Composable
 fun FeedChip(
     feed: Feed,
@@ -199,34 +199,3 @@ fun FeedChip(
         leadingIcon = { FeedIcon(feed, FeedIconSize.Small) },
     )
 }
-
-/** The second chip row, while a topic is chosen (FeedChips): its feeds; one tapped shows it alone, again the topic. */
-@Composable
-fun TopicFeedChips(
-    feeds: List<Feed>,
-    chosenFeed: String?,
-    onSelect: (feedUrl: String?) -> Unit,
-) {
-    val overlap = with(LocalDensity.current) { RowOverlap.roundToPx() }
-    Row(
-        Modifier
-            // The chips' touch areas reach above them: the row moves up a little, so the gap
-            // between the two rows is close to the gap between the chips.
-            .layout { measurable, constraints ->
-                val p = measurable.measure(constraints)
-                layout(p.width, (p.height - overlap).coerceAtLeast(0)) { p.place(0, -overlap) }
-            }.fillMaxWidth()
-            .horizontalScroll(rememberScrollState())
-            .padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        feeds.forEach { feed ->
-            val on = feed.url == chosenFeed
-            FeedChip(feed, on) { onSelect(if (on) null else feed.url) }
-        }
-    }
-}
-
-/** How far the second chip row moves up into the first one's touch area. */
-private val RowOverlap = 4.dp
