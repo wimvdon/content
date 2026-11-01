@@ -245,7 +245,7 @@ data class Library(
      * kept, up to [MAX_ARTICLES_PER_FEED] per feed (the newest ones). New articles in
      * [readElsewhere] (read on another device) arrive as read, and read ones that no longer fit
      * keep their mark there (#157): leaving this device doesn't make them unread elsewhere. Marks
-     * older than [READ_MARKS_KEPT_MS] go.
+     * older than [READ_MARKS_KEPT_MS] go, and articles that old the feed lists are read (#317).
      */
     fun merge(
         feedUrl: String,
@@ -259,6 +259,8 @@ data class Library(
             parsed.items.mapNotNull { item ->
                 if (!seen.add(item.id)) return@mapNotNull null
                 val old = existing[item.id]
+                // A date in the future (a wrong clock or time zone) would stick to the top.
+                val published = (item.publishedAt ?: old?.publishedAt)?.coerceAtMost(now)
                 Article(
                     feedUrl = feedUrl,
                     id = item.id,
@@ -266,10 +268,9 @@ data class Library(
                     link = item.link,
                     author = item.author,
                     html = item.html.take(MAX_HTML_LENGTH),
-                    // A date in the future (a wrong clock or time zone) would stick to the top.
-                    publishedAt = (item.publishedAt ?: old?.publishedAt)?.coerceAtMost(now),
+                    publishedAt = published,
                     fetchedAt = old?.fetchedAt ?: now,
-                    read = old?.read ?: (Article.keyOf(feedUrl, item.id) in readElsewhere),
+                    read = (old?.read ?: (Article.keyOf(feedUrl, item.id) in readElsewhere)) || tooOld(published, now),
                     imageUrl = item.imageUrl ?: old?.imageUrl,
                 )
             }
@@ -300,6 +301,17 @@ data class Library(
                 },
         )
     }
+
+    /**
+     * Whether a feed article is read because it is too old (#317): read marks of articles older than
+     * [READ_MARKS_KEPT_MS] aren't kept or synced, so such an article read before would otherwise come
+     * back unread on every new device, after a reinstall or once its mark went. It also clears the
+     * ones that already came back.
+     */
+    private fun tooOld(
+        publishedAt: Long?,
+        now: Long,
+    ): Boolean = publishedAt != null && publishedAt < now - READ_MARKS_KEPT_MS
 
     /**
      * Merges the downloads of a whole refresh at once, so the list changes in one step and new
