@@ -194,8 +194,8 @@ export function removeFolder(lib: Library, id: string): Library {
  * Applies a fresh download of a feed: new articles arrive unread (or read when another device read
  * them, readElsewhere), known ones keep their read state; at most MAX_ARTICLES_PER_FEED newest are
  * kept. Read ones that no longer fit keep their mark in readElsewhere (#157): leaving this browser
- * doesn't make them unread elsewhere. Marks older than READ_MARKS_KEPT_MS go, and new articles that
- * old arrive read (#317).
+ * doesn't make them unread elsewhere. Marks older than READ_MARKS_KEPT_MS go, and articles that old
+ * the feed lists are read (#317).
  */
 export function mergeFeed(lib: Library, feedUrl: string, parsed: ParsedFeed, now: number): Library {
   const feed = lib.feeds.find((f) => f.url === feedUrl);
@@ -217,8 +217,9 @@ export function mergeFeed(lib: Library, feedUrl: string, parsed: ParsedFeed, now
       html: item.html.slice(0, MAX_HTML_LENGTH),
       publishedAt: published === null ? null : Math.min(published, now),
       fetchedAt: old?.fetchedAt ?? now,
-      // Too old to have a read mark (#317): read, or it would come back unread on every new device.
-      read: old?.read ?? (keyOf(feedUrl, item.id) in lib.readElsewhere || (published !== null && published < now - READ_MARKS_KEPT_MS)),
+      // Too old to have a read mark (#317): read, or it would come back unread on every new device;
+      // one that already came back is read at the next refresh.
+      read: (old?.read ?? keyOf(feedUrl, item.id) in lib.readElsewhere) || (published !== null && published < now - READ_MARKS_KEPT_MS),
       imageUrl: item.imageUrl ?? old?.imageUrl ?? null,
     });
   }

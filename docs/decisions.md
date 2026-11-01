@@ -7,9 +7,10 @@ Newest first. Add an entry for every notable choice: what was decided, why, and 
 The owner saw very old articles keep turning up in Unread, probably since the release that changed
 the app ID (a new install). Read marks are only kept and synced for two years (#245), so an article
 older than that, which a feed still lists, has no mark: on a new install, in a fresh browser or once
-its mark went, it came back unread. Now a feed article that is new to a device and dated more than
-two years ago arrives read (`Library.merge`, `mergeFeed` on the web, tested). Articles already on a
-device keep their state, and undated ones are unaffected. Rejected: keeping marks longer (the account
+its mark went, it came back unread. Now a feed article dated more than two years ago is read whenever its feed is refreshed
+(`Library.merge`, `mergeFeed` on the web, tested): new ones arrive read, and ones that already came
+back unread are cleared. Undated ones are unaffected; marking such an article unread lasts until the
+next refresh. Rejected: keeping marks longer (the account
 grows with every article ever read, for articles nobody wants to read now).
 
 ## 2026-11-01: Topics edited in their chips, on the phone and the web (#314)

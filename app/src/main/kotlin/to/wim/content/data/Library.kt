@@ -245,7 +245,7 @@ data class Library(
      * kept, up to [MAX_ARTICLES_PER_FEED] per feed (the newest ones). New articles in
      * [readElsewhere] (read on another device) arrive as read, and read ones that no longer fit
      * keep their mark there (#157): leaving this device doesn't make them unread elsewhere. Marks
-     * older than [READ_MARKS_KEPT_MS] go, and new articles that old arrive read (#317).
+     * older than [READ_MARKS_KEPT_MS] go, and articles that old the feed lists are read (#317).
      */
     fun merge(
         feedUrl: String,
@@ -270,7 +270,7 @@ data class Library(
                     html = item.html.take(MAX_HTML_LENGTH),
                     publishedAt = published,
                     fetchedAt = old?.fetchedAt ?: now,
-                    read = old?.read ?: (Article.keyOf(feedUrl, item.id) in readElsewhere || arrivesRead(published, now)),
+                    read = (old?.read ?: (Article.keyOf(feedUrl, item.id) in readElsewhere)) || tooOld(published, now),
                     imageUrl = item.imageUrl ?: old?.imageUrl,
                 )
             }
@@ -303,11 +303,12 @@ data class Library(
     }
 
     /**
-     * Whether a new article arrives already read because it is too old (#317): read marks of
-     * articles older than [READ_MARKS_KEPT_MS] aren't kept or synced, so such an article read before
-     * would otherwise come back unread on every new device, after a reinstall or once its mark went.
+     * Whether a feed article is read because it is too old (#317): read marks of articles older than
+     * [READ_MARKS_KEPT_MS] aren't kept or synced, so such an article read before would otherwise come
+     * back unread on every new device, after a reinstall or once its mark went. It also clears the
+     * ones that already came back.
      */
-    private fun arrivesRead(
+    private fun tooOld(
         publishedAt: Long?,
         now: Long,
     ): Boolean = publishedAt != null && publishedAt < now - READ_MARKS_KEPT_MS

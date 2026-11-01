@@ -91,6 +91,9 @@ describe("read marks that leave this browser (#157)", () => {
     const now = 1000 * day;
     const lib = mergeFeed(addFeed(emptyLibrary(), newFeed("a", "A")), "a", { title: "A", siteUrl: null, items: items(["ancient", now - READ_MARKS_KEPT_MS - day], ["recent", now - 30 * day]) }, now);
     expect(lib.articles.map((x) => [x.id, x.read])).toEqual([["recent", false], ["ancient", true]]);
+    // One that already came back unread is read at the next refresh.
+    const again = mergeFeed(setRead(lib, new Set(["a ancient"]), false), "a", { title: "A", siteUrl: null, items: items(["ancient", now - READ_MARKS_KEPT_MS - day]) }, now + day);
+    expect(again.articles.find((x) => x.id === "ancient")?.read).toBe(true);
   });
   it("keeps a removed feed's read marks, so adding it again brings them back read", () => {
     let lib = addFeed(emptyLibrary(), newFeed("a", "A"));
