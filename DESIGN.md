@@ -311,7 +311,9 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   library, with **Share** at its end: a tonal **Save** before it is saved, then two text buttons with
   an icon and a word each (#305): **Archive** (the Archive's box; one tap archives it, the article
   stays open and shows Archived with Undo, #331), only while it is to read, and **Organise** (a tag),
-  which opens the sheet. It slides away while reading down and comes back scrolling up, at the top and
+  which opens the sheet. All its buttons are in one neutral colour (`onSurfaceVariant`, as Material 3's
+  toolbars have it; the text buttons were `primary` before, so Share looked different), only the tonal
+  Save stands out; the web's ghost buttons were already alike. It slides away while reading down and comes back scrolling up, at the top and
   at the end of the article; the text keeps room under its end, and messages show above it. The text ends
   with Read on website and nothing else. ⋮ holds the rare ones: Open in browser, Mark as unread,
   Sign in to this site (only while not signed in to it), Report a problem, Remove from Saved.

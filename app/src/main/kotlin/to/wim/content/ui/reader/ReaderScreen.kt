@@ -314,7 +314,7 @@ fun ReaderScreen(
                     val count = highlights?.highlights?.size ?: 0
                     if (count > 0) {
                         val label = pluralStringResource(R.plurals.highlights_count, count, count)
-                        TextButton(onClick = { highlightsOpen = true }, modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = label }) {
+                        TextButton(onClick = { highlightsOpen = true }, colors = toolbarTextButtonColors(), modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = label }) {
                             Icon(painterResource(R.drawable.ic_quote), contentDescription = null)
                             Text(count.toString(), modifier = Modifier.padding(start = 8.dp))
                         }

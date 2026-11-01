@@ -49,7 +49,7 @@ private fun BarButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    TextButton(onClick = onClick, modifier = modifier) {
+    TextButton(onClick = onClick, modifier = modifier, colors = toolbarTextButtonColors()) {
         Icon(painterResource(icon), contentDescription = null)
         Text(label, modifier = Modifier.padding(start = 8.dp), maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
