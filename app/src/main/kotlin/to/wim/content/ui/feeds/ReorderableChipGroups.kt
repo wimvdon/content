@@ -1,7 +1,8 @@
 package to.wim.content.ui.feeds
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -31,7 +32,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChangeIgnoreConsumed
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -63,8 +66,11 @@ internal class ChipGroup<T>(
  * Move up and Move down within the group. [isError] draws a chip's name in the error colour (a feed
  * that fails to download).
  *
- * Every chip and header is one child of a single row, so a chip dragged into another group stays the
- * same chip (and keeps its drag) while it moves.
+ * The drag is followed by the whole row, not by the chip: a chip dragged into another group moves to
+ * another place among the row's children, and a drag held by the chip itself could end there (the
+ * drop into another topic was then lost). A press on a chip's handle starts it; the row takes the
+ * gesture before the chips and the sheet (it is read in the first pass), so the sheet doesn't scroll
+ * and the chip isn't tapped while dragging. A tap on the handle still opens the chip.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -93,10 +99,14 @@ internal fun <T> ReorderableChipGroups(
     var grip by remember { mutableStateOf(Offset.Zero) }
     // Where each chip is, and each empty group's place (by EMPTY + the group's id).
     val boxes = remember { mutableStateMapOf<String, ChipOrder.Box>() }
+    // Where each chip's drag handle is, and where the row itself is, within the window.
+    val handles = remember { mutableStateMapOf<String, ChipOrder.Box>() }
+    var origin by remember { mutableStateOf(Offset.Zero) }
     LaunchedEffect(stored) {
         if (dragged == null) working = null
         val live = stored.flatten().toSet() + groups.map { EMPTY + it.id }
         boxes.keys.retainAll(live)
+        handles.keys.retainAll(live)
     }
     val order = working ?: stored
     val byKey = groups.flatMap { it.items }.associateBy(key)
@@ -141,7 +151,78 @@ internal fun <T> ReorderableChipGroups(
         }
     }
 
+    fun start(
+        id: String,
+        at: Offset,
+    ) {
+        val box = boxes[id] ?: return
+        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+        grip = Offset(at.x - box.left, at.y - box.top)
+        pointer = at
+        working = currentStored
+        dragFrom = currentStored.indexOfFirst { id in it }
+        dragged = id
+    }
+
+    fun moveTo(id: String) {
+        val now = working ?: return
+        val own = now.indexOfFirst { id in it }
+        val targets =
+            now.flatMapIndexed { gi, ids ->
+                if (ids.isEmpty()) {
+                    val box = boxes[EMPTY + currentGroups[gi].id]
+                    if (box == null || currentOnMove == null) emptyList() else listOf(ChipOrder.Target(ChipOrder.Slot(gi, 0), box, empty = true))
+                } else if (gi != own && currentOnMove == null) {
+                    emptyList()
+                } else {
+                    ids.mapIndexedNotNull { i, k -> boxes[k]?.let { ChipOrder.Target(ChipOrder.Slot(gi, i), it) } }
+                }
+            }
+        val slot = ChipOrder.slotAt(targets, own, pointer.x, pointer.y) ?: return
+        val next = ChipOrder.movedAcross(now, id, slot)
+        if (next !== now) working = next
+    }
+
     FlowRow(
+        modifier =
+            Modifier
+                .onGloballyPositioned { c -> origin = c.boundsInRoot().topLeft }
+                .pointerInput(Unit) {
+                    awaitEachGesture {
+                        val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+                        val at = origin + down.position
+                        val id = handles.entries.firstOrNull { it.value.contains(at.x, at.y) }?.key ?: return@awaitEachGesture
+                        // Past the touch slop it is a drag; lifted before, a tap (the chip opens).
+                        var travelled = Offset.Zero
+                        while (true) {
+                            val change = awaitPointerEvent(PointerEventPass.Initial).changes.firstOrNull { it.id == down.id } ?: return@awaitEachGesture
+                            if (!change.pressed) return@awaitEachGesture
+                            travelled += change.positionChangeIgnoreConsumed()
+                            if (travelled.getDistance() > viewConfiguration.touchSlop) {
+                                change.consume()
+                                break
+                            }
+                        }
+                        start(id, at)
+                        pointer = at + travelled
+                        moveTo(id)
+                        while (true) {
+                            val change = awaitPointerEvent(PointerEventPass.Initial).changes.firstOrNull { it.id == down.id }
+                            if (change == null) {
+                                dragged = null
+                                working = null
+                                return@awaitEachGesture
+                            }
+                            change.consume()
+                            if (!change.pressed) {
+                                drop(id)
+                                return@awaitEachGesture
+                            }
+                            pointer = origin + change.position
+                            moveTo(id)
+                        }
+                    }
+                },
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
         itemVerticalAlignment = Alignment.CenterVertically,
@@ -216,46 +297,11 @@ internal fun <T> ReorderableChipGroups(
                                     Modifier
                                         .padding(start = 4.dp)
                                         .size(32.dp)
-                                        .padding(6.dp)
-                                        .pointerInput(id) {
-                                            detectDragGestures(
-                                                onDragStart = { at ->
-                                                    val box = boxes[id] ?: return@detectDragGestures
-                                                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                    // The handle sits 4dp in from the chip's left edge.
-                                                    grip = Offset(at.x + 4.dp.toPx(), at.y + (box.bottom - box.top - size.height) / 2)
-                                                    pointer = Offset(box.left + grip.x, box.top + grip.y)
-                                                    working = currentStored
-                                                    dragFrom = currentStored.indexOfFirst { id in it }
-                                                    dragged = id
-                                                },
-                                                onDrag = { change, amount ->
-                                                    change.consume()
-                                                    pointer += amount
-                                                    val now = working ?: return@detectDragGestures
-                                                    val own = now.indexOfFirst { id in it }
-                                                    val targets =
-                                                        now.flatMapIndexed { gi, ids ->
-                                                            if (ids.isEmpty()) {
-                                                                val box = boxes[EMPTY + currentGroups[gi].id]
-                                                                if (box == null || currentOnMove == null) emptyList() else listOf(ChipOrder.Target(ChipOrder.Slot(gi, 0), box, empty = true))
-                                                            } else if (gi != own && currentOnMove == null) {
-                                                                emptyList()
-                                                            } else {
-                                                                ids.mapIndexedNotNull { i, k -> boxes[k]?.let { ChipOrder.Target(ChipOrder.Slot(gi, i), it) } }
-                                                            }
-                                                        }
-                                                    val slot = ChipOrder.slotAt(targets, own, pointer.x, pointer.y) ?: return@detectDragGestures
-                                                    val next = ChipOrder.movedAcross(now, id, slot)
-                                                    if (next !== now) working = next
-                                                },
-                                                onDragEnd = { drop(id) },
-                                                onDragCancel = {
-                                                    dragged = null
-                                                    working = null
-                                                },
-                                            )
-                                        },
+                                        // The whole 32dp square is where a drag starts.
+                                        .onGloballyPositioned { c ->
+                                            val b = c.boundsInRoot()
+                                            handles[id] = ChipOrder.Box(b.left, b.top, b.right, b.bottom)
+                                        }.padding(6.dp),
                             )
                             icon(item)
                             Text(

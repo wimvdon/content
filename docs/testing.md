@@ -211,7 +211,8 @@ and then (always before a release):
 - [ ] **Settings** starts with two large buttons, Manage feeds and Manage topics (how many under
       each), then Account, Integrations, Theme, Article list and Article view; each page opens and back
       returns to the list. **Manage feeds** (a sheet): the feeds as chips by topic (a failing one in
-      red); drag one by its grip within its topic; tap one: the Edit feed sheet (rename, another topic,
+      red); drag one by its grip within its topic, and into another topic (or No topic, or an empty topic): it
+      stays there after closing and reopening the sheet, and the sheet doesn't scroll while dragging; tap one: the Edit feed sheet (rename, another topic,
       Remove asks in the sheet), shown in the same sheet with a back arrow; Add feed the same. **Manage topics** (a sheet): the topics as
       chips with grip and pen; drag to reorder, tap to rename, change the icon or remove; New topic.
       **Integrations**: OPML import and export, then Instapaper. Web: the same in the Settings dialog.
