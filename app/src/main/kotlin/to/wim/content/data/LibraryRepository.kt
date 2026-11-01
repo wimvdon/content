@@ -411,6 +411,15 @@ class LibraryRepository(
         edit { it.moveFeed(url, folderId) }
     }
 
+    /** A feed dragged into another topic in Manage feeds, with that topic's new order. */
+    suspend fun moveFeedInto(
+        url: String,
+        topicId: String?,
+        urls: List<String>,
+    ) {
+        edit { it.moveFeedInto(url, topicId, urls) }
+    }
+
     suspend fun renameFeed(
         url: String,
         title: String,

@@ -328,7 +328,8 @@
     <string name="settings_list_summary">View, mark as read on scroll, hidden words</string>
     <string name="section_article_view">Article view</string>
     <string name="settings_article_view_summary">Text, full articles, sites you pay for</string>
-    <string name="manage_feeds_hint">Tap a feed to rename it, change its topic or remove it. Drag one by its handle to reorder it.</string>
+    <string name="manage_feeds_hint">Tap a feed to rename it, change its topic or remove it. Drag one by its handle to reorder it or move it to another topic.</string>
+    <string name="manage_feeds_drop_here">Drag a feed here</string>
     <string name="manage_feeds_none">No feeds yet.</string>
     <string name="manage_topics_hint">Topics group your feeds and saved articles. Tap a topic to rename it, change its icon or remove it; drag one by its handle to reorder it. Giving it another topic’s name merges the two.</string>
     <string name="topics_edit">Edit topics</string>

@@ -47,12 +47,15 @@ class ManageFeedsActions(
     val onEditFeed: (feed: Feed, title: String, topicId: String?) -> Unit,
     val onRemoveFeed: (Feed) -> Unit,
     val onReorderFeeds: (topicId: String?, urls: List<String>) -> Unit,
+    /** A feed dragged into another topic (null: none), with that topic's feeds in their new order. */
+    val onMoveFeed: (feed: Feed, topicId: String?, urls: List<String>) -> Unit = { _, _, _ -> },
 )
 
 /**
  * Manage feeds as a sheet (from Settings, and wherever else it is linked): the feeds as chips,
  * grouped by topic (in the topics' order, then No topic), like the chips in Feeds and the sheets.
- * Drag a chip by its handle to reorder it within its topic; tap it for the Edit feed sheet (name,
+ * Every topic shows, an empty one too. Drag a chip by its handle to reorder it within its topic or
+ * to move it into another topic (or No topic); tap it for the Edit feed sheet (name,
  * topic, Remove) as a page of this sheet, with a back arrow. A feed that fails to download has its name in the error colour. Add feed at the
  * end. Changes are stored at once: **Done** at the top right.
  */
@@ -73,7 +76,8 @@ fun ManageFeedsSheet(
         remember(feeds, topics) {
             val inTopics = topics.map { topic -> topic to feeds.filter { it.folderId == topic.id } }
             val loose = feeds.filter { feed -> feed.folderId == null || topics.none { it.id == feed.folderId } }
-            (inTopics + (null to loose)).filter { it.second.isNotEmpty() }
+            // Every topic, so a feed can be dragged into an empty one; none at all without feeds.
+            if (feeds.isEmpty()) emptyList() else inTopics + (null to loose)
         }
     ContentSheet(onDismiss = onDismiss) {
         Column(
@@ -88,31 +92,32 @@ fun ManageFeedsSheet(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            groups.forEach { (topic, inGroup) ->
-                key(topic?.id) {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            if (topic != null) Icon(rememberFolderIconPainter(topic.icon), contentDescription = null, modifier = Modifier.size(18.dp))
-                            Text(
-                                topic?.title ?: stringResource(R.string.folder_none),
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.semantics { heading() },
-                            )
+            val folderNone = stringResource(R.string.folder_none)
+            ReorderableChipGroups(
+                groups =
+                    groups.map { (topic, inGroup) ->
+                        ChipGroup(topic?.id ?: NO_TOPIC, inGroup) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                if (topic != null) Icon(rememberFolderIconPainter(topic.icon), contentDescription = null, modifier = Modifier.size(18.dp))
+                                Text(
+                                    topic?.title ?: folderNone,
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.semantics { heading() },
+                                )
+                            }
                         }
-                        ReorderableChips(
-                            items = inGroup,
-                            key = { it.url },
-                            label = { it.title },
-                            icon = { FeedIcon(it, FeedIconSize.Small) },
-                            onReorder = { urls -> actions.onReorderFeeds(topic?.id, urls) },
-                            onEdit = { editing = it.url },
-                            editLabel = stringResource(R.string.feed_edit),
-                            isError = { problems.containsKey(it.url) },
-                        )
-                    }
-                }
-            }
+                    },
+                key = { it.url },
+                label = { it.title },
+                icon = { FeedIcon(it, FeedIconSize.Small) },
+                onReorder = { groupId, urls -> actions.onReorderFeeds(groupId.takeUnless { it == NO_TOPIC }, urls) },
+                onMove = { feed, groupId, urls -> actions.onMoveFeed(feed, groupId.takeUnless { it == NO_TOPIC }, urls) },
+                emptyLabel = stringResource(R.string.manage_feeds_drop_here),
+                onEdit = { editing = it.url },
+                editLabel = stringResource(R.string.feed_edit),
+                isError = { problems.containsKey(it.url) },
+            )
             FilledTonalButton(onClick = actions.onAddFeed, contentPadding = ButtonDefaults.ButtonWithIconContentPadding) {
                 Icon(painterResource(R.drawable.ic_add), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
                 Text(stringResource(R.string.feeds_add), modifier = Modifier.padding(start = 8.dp))
@@ -138,3 +143,6 @@ fun ManageFeedsSheet(
         )
     }
 }
+
+/** The No topic group's id among the topics' (a topic's id is never empty). */
+private const val NO_TOPIC = ""

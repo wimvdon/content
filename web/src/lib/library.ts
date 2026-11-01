@@ -173,6 +173,15 @@ export function reorderFeedsIn(lib: Library, folderId: string | null, urls: stri
   return { ...lib, feeds };
 }
 
+/**
+ * A feed dragged into another folder (null: none) in Manage feeds, like Android's moveFeedInto: it
+ * moves there, and that folder's feeds take the order `urls` (with the feed among them).
+ */
+export function moveFeedInto(lib: Library, url: string, folderId: string | null, urls: string[]): Library {
+  const moved = moveFeed(lib, url, folderId);
+  return reorderFeedsIn(moved, moved.feeds.find((f) => f.url === url)?.folderId ?? null, urls);
+}
+
 export function setFeedIcon(lib: Library, url: string, iconUrl: string): Library {
   return { ...lib, feeds: lib.feeds.map((f) => (f.url === url ? { ...f, iconUrl } : f)) };
 }

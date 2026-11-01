@@ -336,7 +336,8 @@
     <string name="settings_list_summary">Affichage, marquer comme lu en défilant, mots masqués</string>
     <string name="section_article_view">Affichage des articles</string>
     <string name="settings_article_view_summary">Texte, articles complets, sites payants</string>
-    <string name="manage_feeds_hint">Touchez un flux pour le renommer, changer son sujet ou le supprimer. Faites-en glisser un par sa poignée pour changer l’ordre.</string>
+    <string name="manage_feeds_hint">Touchez un flux pour le renommer, changer son sujet ou le supprimer. Faites-en glisser un par sa poignée pour changer l’ordre ou le déplacer vers un autre sujet.</string>
+    <string name="manage_feeds_drop_here">Faites glisser un flux ici</string>
     <string name="manage_feeds_none">Aucun flux pour l’instant.</string>
     <string name="manage_topics_hint">Les sujets regroupent vos flux et vos articles enregistrés. Touchez un sujet pour le renommer, changer son icône ou le supprimer ; faites-en glisser un par sa poignée pour changer l’ordre. Lui donner le nom d’un autre sujet fusionne les deux.</string>
     <string name="topics_edit">Modifier les sujets</string>

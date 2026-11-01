@@ -171,6 +171,19 @@ fun Library.reorderFeedsIn(
 }
 
 /**
+ * A feed dragged into another topic (null: none) in Manage feeds: it moves there, and that topic's
+ * feeds take the order [urls] (with the feed among them).
+ */
+fun Library.moveFeedInto(
+    url: String,
+    topicId: String?,
+    urls: List<String>,
+): Library {
+    val moved = moveFeed(url, topicId)
+    return moved.reorderFeedsIn(moved.feed(url)?.folderId, urls)
+}
+
+/**
  * Merges topic [fromId] into [intoId]: the other one stays, with its name and icon, and gets this
  * one's feeds and saved articles (a topic page's Merge with…).
  */

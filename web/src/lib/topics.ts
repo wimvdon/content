@@ -67,6 +67,14 @@ export function moved<T>(list: T[], from: number, to: number): T[] {
   return out;
 }
 
+/** `list` with `item` put before `before` (at the end when `before` is null or not there). */
+export function insertedBefore<T>(list: T[], item: T, before: T | null): T[] {
+  const out = list.filter((x) => x !== item);
+  const at = before === null ? -1 : out.indexOf(before);
+  out.splice(at < 0 ? out.length : at, 0, item);
+  return out;
+}
+
 /** The topic with this name (case ignored), or undefined. */
 export const topicNamed = (lib: Library, name: string) => lib.folders.find((f) => key(f.title) === key(name));
 

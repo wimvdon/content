@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Item } from "../src/lib/items";
 import { chipTags, showsLiked } from "../src/lib/saved";
 import { emptyLibrary, feedFoldersToTags, newFeed, type Library } from "../src/lib/library";
-import { addTopic, feedChips, inTopicOrder, mergeTopic, moved, removeTopic, reorderTopics, renameTopic, tagWithFeedTopic, topicCounts, topicIdFor, topicNamed, topicNames, topicsForTags } from "../src/lib/topics";
+import { addTopic, feedChips, inTopicOrder, insertedBefore, mergeTopic, moved, removeTopic, reorderTopics, renameTopic, tagWithFeedTopic, topicCounts, topicIdFor, topicNamed, topicNames, topicsForTags } from "../src/lib/topics";
 
 const saved = (key: string, ...tags: string[]): Item => ({
   key,
@@ -158,6 +158,10 @@ describe("reordering topics by their chips (#314)", () => {
   it("moves one entry and keeps the others in order", () => {
     expect(moved(["a", "b", "c"], 0, 2)).toEqual(["b", "c", "a"]);
     expect(moved(["a", "b", "c"], 2, 0)).toEqual(["c", "a", "b"]);
+    // A chip dropped from another group: before the chip it was dropped on, else at the end.
+    expect(insertedBefore(["a", "b"], "x", "b")).toEqual(["a", "x", "b"]);
+    expect(insertedBefore(["a", "b"], "x", null)).toEqual(["a", "b", "x"]);
+    expect(insertedBefore([], "x", "gone")).toEqual(["x"]);
     const same = ["a", "b"];
     expect(moved(same, 0, 5)).toBe(same);
     expect(moved(same, 1, 1)).toBe(same);

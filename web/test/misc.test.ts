@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { feedLinks, findFeed, normalizeUrl, substackPublication } from "../src/lib/discovery";
 import { searchIcons, parseIcons } from "../src/lib/icons";
-import { emptyLibrary, articlesFor, articlesInTab, feedTabOf, reorderFeedsIn, setRead, removeFolder, addFolder, addFeed, newFeed, moveFeed, renameFeed, mergeFeed, reorder, unreadKeys, removeFeed, sameSelection, MAX_ARTICLES_PER_FEED, READ_MARKS_KEPT_MS, moveWithinFolder, chipTag, choosesFolder, feedTags } from "../src/lib/library";
+import { emptyLibrary, articlesFor, articlesInTab, feedTabOf, reorderFeedsIn, moveFeedInto, setRead, removeFolder, addFolder, addFeed, newFeed, moveFeed, renameFeed, mergeFeed, reorder, unreadKeys, removeFeed, sameSelection, MAX_ARTICLES_PER_FEED, READ_MARKS_KEPT_MS, moveWithinFolder, chipTag, choosesFolder, feedTags } from "../src/lib/library";
 import { importOpml, parseOpml, writeOpml } from "../src/lib/opml";
 import { FetchError } from "../src/lib/proxy";
 import { sanitizeArticle } from "../src/lib/sanitize";
@@ -74,6 +74,13 @@ describe("library", () => {
     expect(reorderFeedsIn(four, "f", ["d", "a"]).feeds.map((f) => f.url)).toEqual(["d", "b", "a", "c"]);
     expect(reorderFeedsIn(four, "f", ["a", "c", "d"])).toBe(four);
     expect(reorderFeedsIn(four, null, ["b"])).toBe(four);
+    // Dragged into another folder (or out of every one), in the place it was dropped.
+    const withFolder = { ...four, folders: [{ id: "f", title: "F", icon: "folder" }] };
+    const into = moveFeedInto(withFolder, "b", "f", ["a", "b", "c", "d"]);
+    expect(into.feeds.find((f) => f.url === "b")?.folderId).toBe("f");
+    expect(into.feeds.map((f) => f.url)).toEqual(["a", "b", "c", "d"]);
+    const out = moveFeedInto(withFolder, "c", null, ["c", "b"]);
+    expect(out.feeds.filter((f) => f.folderId === null).map((f) => f.url)).toEqual(["c", "b"]);
     lib = removeFolder(lib, "f");
     expect(lib.feeds[0].folderId).toBeNull();
     expect(reorder([1, 2, 3], 0, 1)).toEqual([2, 1, 3]);

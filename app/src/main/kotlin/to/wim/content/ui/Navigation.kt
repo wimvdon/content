@@ -1336,6 +1336,7 @@ fun RssReaderNavigation(
                     onEditFeed = { feed, title, topicId -> editFeed(feed, title, topicId) },
                     onRemoveFeed = { feed -> app.appScope.launch { repository.removeFeed(feed.url) } },
                     onReorderFeeds = { topicId, urls -> app.appScope.launch { repository.reorderFeedsIn(topicId, urls) } },
+                    onMoveFeed = { feed, topicId, urls -> app.appScope.launch { repository.moveFeedInto(feed.url, topicId, urls) } },
                 ),
             topicActions = topicActions,
             onDismiss = { manageFeedsOpen = false },
