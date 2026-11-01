@@ -50,7 +50,7 @@ object LauncherFolders {
  */
 object ShareTargets {
     enum class Target {
-        /** Save and share: the save sheet, which can also send it with Content. */
+        /** Save: the Organise sheet, which only saves (#304). */
         Save,
 
         /** Send with Content only: nothing is saved. Also a person picked in the share menu (#235). */

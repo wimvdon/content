@@ -68,17 +68,16 @@
             android:theme="@style/Theme.RssReader.Translucent" />
 
         <!-- Links shared from other apps (#97, #103): only a sheet over the app that shared it, not
-             the whole of Content. Separate targets in the share menu (ShareTargets): Save and share
-             (the save sheet) and Send with Content (only sends). The people shared with show at the
+             the whole of Content. Separate targets in the share menu (ShareTargets): Save
+             (the Organise sheet, #304) and Send with Content (only sends). The people shared with show at the
              top of the share menu too and open Send with Content (res/xml/shortcuts.xml). Aliases,
-             so the tab's own screen stays unexported. The priorities ask for the order Save and
-             share, Send with Content, Add feed; Android's share menu may still put the ones used
+             so the tab's own screen stays unexported. The priorities ask for the order Save, Send with Content, Add feed; Android's share menu may still put the ones used
              most first. -->
         <activity-alias
             android:name=".ui.ShareActivity"
             android:targetActivity=".ui.SaveFromTabActivity"
             android:exported="true"
-            android:label="@string/save_share_title">
+            android:label="@string/action_save">
             <intent-filter android:priority="3">
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />

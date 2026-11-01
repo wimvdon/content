@@ -2,28 +2,25 @@ import { Archive, BookOpen, Check, Folder as FolderGlyph, Heart, Plus, Trash2 } 
 import { useState } from "react";
 import { app, useApp } from "@/lib/app";
 import { normalizeUrl } from "@/lib/discovery";
-import { plural, t } from "@/lib/i18n";
+import { t } from "@/lib/i18n";
 import { isWebLink } from "@/lib/items";
 import { topicNames } from "@/lib/topics";
 import { choiceOf, emptyChoice, newFolder, places, samePlace, tagChoices, withTyped, type Place, type SaveChoice } from "@/lib/saveChoice";
 import { savedFolders } from "@/lib/saved";
-import { actionOf, canConfirm, outcomeOf, problemKey, type ShareStatus } from "@/lib/sendTo";
-import { sharedArticle, type SharedArticle } from "@/lib/sharing";
+import { canConfirm } from "@/lib/sendTo";
 import { RemoveDialog } from "./SavedActions";
-import { SendToSection } from "./ShareWithUser";
 import { Button } from "./ui/button";
 import { cn } from "./ui/cn";
 import { Dialog } from "./ui/dialog";
 import { Input } from "./ui/input";
 
 /**
- * Save and share (#143, #256), the one sheet for an article, as on Android: Add link (nothing is
- * saved until Save, and Cancel saves nothing), just saved from the reader ("Saved to …"), or one
- * saved before (Organise). In order: the address (Add link only), the folder as chips, the tags with
- * Like in front, the note, then Send with Content when signed in (the people shared with, several at
- * once, and Add address; not in Organise, which has Share next to it). The button says Save or Save
- * and send. Organise has Remove at the bottom left, which asks first. Cancel, or closing the
- * sheet, saves and sends nothing: right after a save it takes the save back.
+ * Organise (#143, #304), the one sheet for an article, as on Android: Add link (nothing is saved
+ * until Save, and Cancel saves nothing), just saved from the reader ("Saved to …"), or one saved
+ * before. Headed Organise every way in: it doesn't send (#304; Share does). In order: the address
+ * (Add link only), the list as chips, the topics with Like in front, the note. An article saved
+ * before has Remove at the bottom left, which asks first. Cancel, or closing the sheet, saves
+ * nothing: right after a save it takes the save back.
  */
 /** A message under the sheet, with Open for a new save (its key). */
 type Message = (text: string, openKey?: string) => void;
@@ -47,9 +44,8 @@ function Sheet({
   itemKey: string | null;
   onMessage: Message;
 }) {
-  const { library, account } = useApp();
+  const { library } = useApp();
   const [choice, setChoice] = useState(initial);
-  const signedIn = account !== null;
   const [address, setAddress] = useState("");
   // A folder or tag typed but not added yet: Save takes it too, rather than dropping it.
   const [folderName, setFolderName] = useState("");
@@ -60,41 +56,28 @@ function Sheet({
   const typed = normalizeUrl(address);
   const link = typed && isWebLink(typed) ? typed : null;
   const name = (place: Place) => (place.kind === "toread" ? t("toRead") : place.kind === "archive" ? t("archiveTab") : place.name);
-  // Sends to everyone picked (#256), then one message says how it went, after where it was saved.
-  const send = async (to: string[], article: SharedArticle, savedTo: string | null, openKey?: string) => {
-    const results: [string, ShareStatus][] = [];
-    for (const email of to) results.push([email, await app.shareWithUser(email, [article])]);
-    const outcome = outcomeOf(results);
-    if (!outcome) return;
-    const sent = "sent" in outcome ? (outcome.sent.length === 1 ? t("shareUserSent").replace("{email}", outcome.sent[0]) : plural("sentPeople", outcome.sent.length)) : t(problemKey(outcome.status));
-    onMessage(savedTo ? `${savedTo} · ${sent}` : sent, openKey);
-  };
   const save = () => {
     const chosen = withTyped(choice, folderName, tagName, savedFolders(library));
     const savedTo = t("savedTo").replace("{place}", name(chosen.place));
-    const item = itemKey ? library.items.find((i) => i.key === itemKey) : undefined;
     if (saved && itemKey) {
-      if (JSON.stringify({ ...chosen, sendTo: [] }) !== JSON.stringify({ ...initial, sendTo: [] })) app.organise(itemKey, chosen);
+      if (JSON.stringify(chosen) !== JSON.stringify(initial)) app.organise(itemKey, chosen);
       // Saved from the reader: already in the article, so no Open (#142).
-      if (chosen.sendTo.length > 0 && item) void send(chosen.sendTo, sharedArticle(item), kind === "justSaved" ? savedTo : null);
-      else if (kind === "justSaved") onMessage(savedTo);
+      if (kind === "justSaved") onMessage(savedTo);
     } else if (link) {
       const key = app.saveNew(link, chosen);
       if (!key) onMessage(t("addLinkInvalid"));
-      else if (chosen.sendTo.length > 0) void send(chosen.sendTo, { url: link, title: link }, savedTo, key);
       else onMessage(savedTo, key);
     }
     app.closeSheet();
   };
-  // Cancel, or closing the sheet, saves and sends nothing: just saved, the save is taken back.
+  // Cancel, or closing the sheet, saves nothing: just saved, the save is taken back.
   const cancel = () => {
     if (kind === "justSaved" && itemKey) app.undoSave(itemKey);
     app.closeSheet();
   };
-  // The sheet itself picks To read or the Archive, so the title doesn't name one (#229).
-  // Organise has nothing to share (Share is next to it), so it is named for what it does.
-  const title = kind === "organise" ? t("organiseTitle") : t("saveShareTitle");
-  const action = actionOf(choice);
+  // The sheet itself picks To read or the Archive, so the title doesn't name one (#229). Saving and
+  // organising are one sheet, headed Organise (#304): sending is Share's.
+  const title = t("organiseTitle");
   return (
     <Dialog
       open
@@ -119,7 +102,7 @@ function Sheet({
             {t("cancel")}
           </Button>
           <Button onClick={save} disabled={!canConfirm(choice, saved || link !== null)}>
-            {action === "save" ? t("saveArticle") : action === "saveAndSend" ? t("saveAndSend") : t("shareUserSend")}
+            {t("saveArticle")}
           </Button>
         </>
       }
@@ -173,11 +156,6 @@ function Sheet({
           />
         </Section>
           </>
-        ) : null}
-        {signedIn && kind !== "organise" ? (
-          <Section title={t("shareUserMenu")}>
-            <SendToSection picked={choice.sendTo} onChange={(sendTo) => setChoice({ ...choice, sendTo })} />
-          </Section>
         ) : null}
       </div>
     </Dialog>

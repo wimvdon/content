@@ -83,7 +83,6 @@
     <string name="inbox_removed">Retiré de la boîte de réception</string>
     <string name="share_user_send">Envoyer</string>
     <string name="share_user_sent">Envoyé à %1$s</string>
-    <string name="save_share_title">Enregistrer et partager</string>
     <string name="action_save_and_send">Enregistrer et envoyer</string>
     <string name="share_recipients_done">OK</string>
     <string name="share_to">À</string>

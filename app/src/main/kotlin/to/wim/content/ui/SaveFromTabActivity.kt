@@ -46,8 +46,8 @@ import kotlinx.coroutines.launch
 /**
  * The save sheet on a see-through screen (#95, #103): over the custom tab for its Save button, and
  * over the other app for a link shared to Content, without opening the whole app. Other apps' share
- * menus show two targets ([ShareTargets], aliases in the manifest): Save and share, the sheet without
- * Don't save, and Send with Content, which only sends. A person shown with Content in the share menu
+ * menus show two targets ([ShareTargets], aliases in the manifest): Save, the Organise sheet (it
+ * doesn't send, #304), and Send with Content, which only sends. A person shown with Content in the share menu
  * (#235) opens Send with Content with that person picked. Saving shows a message with Open (#142);
  * it goes, and so does this screen, when it times out or the screen is tapped anywhere. Closing the
  * sheet goes back at once.

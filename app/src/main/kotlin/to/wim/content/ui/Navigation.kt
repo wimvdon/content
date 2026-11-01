@@ -535,7 +535,7 @@ fun RssReaderNavigation(
         }
 
     /**
-     * Sends with Content to everyone picked in the Save and share sheet (#256), then one message says
+     * Sends with Content to everyone picked (#256), then one message says
      * how it went, after [saved] (where it was saved, or null when only sent), with Open for [open]
      * (the saved article, when not in it already).
      */
@@ -1231,8 +1231,6 @@ fun RssReaderNavigation(
                 fileKey = null
             },
             key = sheetItem.key,
-            signedIn = accountState is AccountState.SignedIn,
-            hasAccount = app.sync::hasAccount,
         )
     }
 
@@ -1270,8 +1268,6 @@ fun RssReaderNavigation(
                 }
             },
             onDismiss = { saveOpen = false },
-            signedIn = accountState is AccountState.SignedIn,
-            hasAccount = app.sync::hasAccount,
         )
     }
 
@@ -1302,7 +1298,7 @@ fun RssReaderNavigation(
             apps = remember(shareApps, current.shareCounts) { ShareApps.rank(shareApps, current.shareCounts, { it.id }, { it.target.label }).take(ShareApps.SHOWN) },
             onSend = { emails ->
                 close()
-                // One message for everyone picked, as the Save and share sheet says it.
+                // One message for everyone picked, as the share menu's Send with Content says it.
                 uiScope.launch {
                     val results = emails.map { email -> email to app.sync.share(email, listOf(Sharing.articleFor(library, sharing, title))) }
                     when (val outcome = SendTo.outcome(results)) {

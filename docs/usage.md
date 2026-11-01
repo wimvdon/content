@@ -224,19 +224,15 @@ come into Content (when the article opens, or at the next sync). Free Instapaper
 five new ones a month: the others stay in Content, say "Not in Instapaper yet" in the list of
 highlights, and are tried again the next day.
 
-After **Save**, **Save and share** opens (#256): the **List** (To read or **Archive**), the **Topics** with **Like** in front (every topic, in your
-order, tap to turn one on or off; **New topic** makes one that doesn't exist yet), a **Note**, and, signed
-in, **Send with Content**, laid out like an email's **To** field: the people you pick sit in it as
-chips (**×** takes one out); type a name or address after them, and below are suggestions, the
-people you sent something to before (tap to add). A whole new address gives **Add …** (Content
-checks they have an account). The button then says **Save** or
-**Save and send** (to only send a link, use Share or the share menu's Send with Content). It keeps what you chose, also a topic you typed but
-didn't add yet, and one message says where it went and who got it. **Cancel** (or closing the sheet)
-saves and sends nothing: right after Save in the reader or a swipe, it takes the save back, as if you
-never saved it.
+After **Save**, **Organise** opens (#304; it was "Save and share", #256): the **List** (To read or **Archive**), the **Topics** with **Like** in front (every topic, in your
+order, tap to turn one on or off; **New topic** makes one that doesn't exist yet) and a **Note**. It
+doesn't send: to send an article to people with Content, use **Share** (or the share menu's **Send
+with Content**). **Save** keeps what you chose, also a topic you typed but didn't add yet, and a
+message says where it went. **Cancel** (or closing the sheet) saves nothing: right after Save in the
+reader or a swipe, it takes the save back, as if you never saved it.
 The same sheet opens when you press and hold a saved article in Saved, a row in To read or a card
 elsewhere, and pick **Organise** (web: right-click it), or tap Organise in a saved article's bottom
-bar. Organise has no Send with Content (Share is right next to it) and has **Remove** at the bottom
+bar. For an article saved before, it has **Remove** at the bottom
 left, which takes the article out of Saved after asking; **Share** and **Remove from Saved** (it
 asks too) are in that menu too, and in To read also **Archive** (or **To read** in the Archive). Cards don't swipe. When it
 closes, a message says where the article went; after a swipe, **Add link** or a link shared from
@@ -278,11 +274,10 @@ off (for example to save data); embed cards stay, without preview.
 ## Save and Share
 
 The reader has a **Save** button and a **Share** button (#256: there are no settings for them any
-more). **Save** saves the article to **To read** and opens **Save and share**, where you can also
-send it to people with Content (see Saved). **Share** opens Content's share sheet.
+more). **Save** saves the article to **To read** and opens **Organise** (see Saved). **Share** opens Content's share sheet.
 
 **Content's share sheet** (#251; the web app's Share too). At the top, signed in, **Send with
-Content**, the same **To** field as in Save and share: the people you pick as chips, a field for a
+Content**, laid out like an email's **To** field: the people you pick as chips, a field for a
 name or address, suggestions below (the people you sent something to before; tap to add) and **Add
 …** for a whole new address; then **Send** sends to everyone picked. To tidy the suggestions,
 press and hold one (web: right-click): each gets a trash button, which forgets them on all your
@@ -296,8 +291,7 @@ Connecting Instapaper changes nothing here: what is in Saved is also kept in the
 **From other apps** (#235, #256). Content has three targets in other apps' share menus, each opening
 over the app you were in:
 
-- **Save and share**: the save sheet (list, topics, note and, signed in, Send with Content). It has
-  only saves (and sends, if you pick people); to only send, pick the next one.
+- **Save**: the Organise sheet (list, topics, note). It only saves; to send, pick the next one.
 - **Send with Content**: only the people to send it to; nothing lands in Saved. Signed out, it asks
   you to sign in to your Content account first.
 - **Add feed**: Add feed with the shared link filled in; tap **Add**.
