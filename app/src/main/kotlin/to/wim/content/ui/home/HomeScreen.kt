@@ -140,6 +140,8 @@ data class HomeState(
     val accountEmail: String? = null,
     /** Feeds' topic chips: the topics with articles in the state shown, and the one chosen (feedChips). */
     val topicChips: List<String>? = null,
+    /** Feeds' feed chips: the feeds (by address) with articles in the tab shown; null: every feed. */
+    val feedChipsShown: Set<String>? = null,
     /** How many articles shared with you are unread, for the Inbox's badge. */
     val inboxUnread: Int = 0,
     /** The Inbox, for its destination; null while signed out. */
@@ -291,7 +293,10 @@ fun HomeScreen(
                                 selected = if (state.unreadOnly) 0 else 1,
                                 onSelect = { i -> actions.onUnreadOnlyChange(i == 0) },
                             )
-                            val chips = remember(state.feeds, state.folders, feedTags, state.selection) { FeedChips.of(state.feeds, state.folders, feedTags, state.selection) }
+                            val chips =
+                                remember(state.feeds, state.folders, feedTags, state.selection, state.feedChipsShown) {
+                                    FeedChips.of(state.feeds, state.folders, feedTags, state.selection, state.feedChipsShown)
+                                }
                             TagChips(
                                 tags = chips.topics,
                                 iconOf = { name -> state.folders.firstOrNull { it.title.equals(name, ignoreCase = true) }?.icon },

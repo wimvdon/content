@@ -137,7 +137,8 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   it again to show everything again (only one is picked at a time, so there is no X). With a topic
   picked in Feeds, a second row shows its feeds (on the web, the sidebar lists the feeds). Changing the tab keeps the topic you picked. A
   topic (or Liked) with nothing in the tab shown has no chip: in Unread, only topics with unread
-  articles; in Read, only topics with read ones. The one you picked stays.
+  articles; in Read, only topics with read ones. Feeds' feed chips do the same: a feed with nothing
+  unread has no chip in Unread. The one you picked stays.
 - **There is no ☰ menu in the Android app.** Feeds, Saved and the Inbox are the bar at the
   bottom; everything inside them is a tab or a chip. In the search bar, **+** adds, the same in
   every place: it asks **Subscribe to feed** (the Add feed sheet) or **Save article** (the save

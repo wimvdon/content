@@ -197,3 +197,6 @@ fun Library.feedChips(
         tag.equals(chosen, ignoreCase = true) ||
             articles.any { a -> tab.has(a) && feed(a.feedUrl)?.tags.orEmpty().any { it.equals(tag, ignoreCase = true) } }
     }
+
+/** The feeds (by address) with articles in the tab shown: Feeds' feed chips leave out the others. */
+fun Library.feedsWithArticles(tab: FeedTab): Set<String> = articles.filter { tab.has(it) }.mapTo(HashSet()) { it.feedUrl }

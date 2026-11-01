@@ -68,4 +68,17 @@ class FeedChipsTest {
         assertEquals(listOf(verge, tagged), chips.topicFeeds)
         assertTrue(tagged !in chips.loose)
     }
+
+    @Test
+    fun `a feed with nothing in the tab shown is no chip, except the one chosen`() {
+        val shown = setOf(npr.url, gone.url)
+        val all = FeedChips.of(feeds, folders, topics, FeedSelection.All, shown)
+        assertEquals(listOf(gone), all.loose)
+        val topic = FeedChips.of(feeds, folders, topics, FeedSelection.Tagged("News"), shown)
+        assertEquals(listOf(npr), topic.topicFeeds)
+        // The feed chosen stays, so it doesn't disappear under your finger.
+        val chosen = FeedChips.of(feeds, folders, topics, FeedSelection.Single(bbc.url), shown)
+        assertEquals(listOf(bbc, npr), chosen.topicFeeds)
+        assertEquals(listOf(blog, gone), FeedChips.of(feeds, folders, topics, FeedSelection.Single(blog.url), shown).loose)
+    }
 }
