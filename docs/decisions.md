@@ -2,6 +2,15 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-01: Manage feeds and Manage topics are reorderable lists, not chips
+
+Dragging feeds as chips worked badly: the chips wrap over lines, so every move reflows the others
+under the finger and the drop target jumps. Both sheets now follow the shared Reordering rule (rows
+with the grip at their end): Manage topics uses the design kit's `ReorderableColumn`; Manage feeds is
+a list with a heading per topic, `ReorderableSections` (same look and swap-with-the-neighbour drag),
+where a row passes headings like rows, so dropping it under another heading moves the feed there
+(`SectionOrder`, unit tested). The web keeps its chips for now. Owner's request.
+
 ## 2026-11-01: No Organise sheet: a saved article's actions are the reader's toolbar buttons
 
 A saved article's toolbar had Archive and Organise (a sheet with To read / Archive, the topics with
