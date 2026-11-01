@@ -148,6 +148,7 @@
     <string name="import_substack_step2">Toca Compartir y elige Content › Añadir feed.</string>
     <string name="import_substack_step3">Toca Añadir. Haz lo mismo con cada publicación.</string>
     <string name="action_save">Guardar</string>
+    <string name="action_save_to_archive">Guardar en Archivo</string>
     <string name="action_open">Abrir</string>
     <string name="action_undo">Deshacer</string>
     <string name="folders_explanation">Agrupa los feeds por temas para leerlos juntos. Lo que guardas también lleva temas.</string>
@@ -298,7 +299,6 @@
     <string name="services_problem_limit">Instapaper no permite más resaltados este mes.</string>
     <string name="highlights_none">Selecciona texto y toca Resaltar.</string>
     <string name="saved_title">Guardados</string>
-    <string name="folder_field">Lista</string>
     <string name="topic_field">Tema</string>
     <string name="saved_to">Guardado en %1$s</string>
     <string name="saved_remove">Quitar de Guardados</string>

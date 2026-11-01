@@ -1,11 +1,11 @@
-import { Archive, BookOpen, Check, Folder as FolderGlyph, Heart, Plus, Trash2 } from "lucide-react";
+import { Heart, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { app, useApp } from "@/lib/app";
 import { normalizeUrl } from "@/lib/discovery";
 import { t } from "@/lib/i18n";
 import { isWebLink } from "@/lib/items";
 import { topicNames } from "@/lib/topics";
-import { choiceOf, emptyChoice, newFolder, places, samePlace, tagChoices, withTyped, type Place, type SaveChoice } from "@/lib/saveChoice";
+import { choiceOf, emptyChoice, offersArchive, tagChoices, toArchive, withTyped, type Place, type SaveChoice } from "@/lib/saveChoice";
 import { savedFolders } from "@/lib/saved";
 import { canConfirm } from "@/lib/sendTo";
 import { RemoveDialog } from "./SavedActions";
@@ -15,12 +15,14 @@ import { Dialog } from "./ui/dialog";
 import { Input } from "./ui/input";
 
 /**
- * Organise (#143, #304), the one sheet for an article, as on Android: Add link (nothing is saved
- * until Save, and Cancel saves nothing), just saved from the reader ("Saved to …"), or one saved
- * before. Headed Organise every way in: it doesn't send (#304; Share does). In order: the address
- * (Add link only), the list as chips, the topics with Like in front, the note. An article saved
- * before has Remove at the bottom left, which asks first. Cancel, or closing the sheet, saves
- * nothing: right after a save it takes the save back.
+ * Organise (#143, #304, #305), the one sheet for an article, as on Android: Add link (nothing is
+ * saved until Save, and Cancel saves nothing), just saved from the reader ("Saved to …"), or one
+ * saved before. Headed Organise every way in: it doesn't send (#304; Share does). In order: the
+ * address (Add link only), the topics with Like in front, the note. The Archive is a state, not a
+ * list to pick (#305): saving, the buttons say where it goes, Save to Archive or Save (To read).
+ * An article saved before has Remove at the bottom left, which asks first, and doesn't move (the
+ * reader's Archive button and a card's menu do). Closing the sheet (× at the top right) is Cancel:
+ * it saves nothing, and right after a save it takes the save back.
  */
 /** A message under the sheet, with Open for a new save (its key). */
 type Message = (text: string, openKey?: string) => void;
@@ -47,8 +49,7 @@ function Sheet({
   const { library } = useApp();
   const [choice, setChoice] = useState(initial);
   const [address, setAddress] = useState("");
-  // A folder or tag typed but not added yet: Save takes it too, rather than dropping it.
-  const [folderName, setFolderName] = useState("");
+  // A tag typed but not added yet: Save takes it too, rather than dropping it.
   const [tagName, setTagName] = useState("");
   const saved = kind !== "new";
   const savedItem = itemKey ? library.items.find((i) => i.key === itemKey) : undefined;
@@ -56,8 +57,8 @@ function Sheet({
   const typed = normalizeUrl(address);
   const link = typed && isWebLink(typed) ? typed : null;
   const name = (place: Place) => (place.kind === "toread" ? t("toRead") : place.kind === "archive" ? t("archiveTab") : place.name);
-  const save = () => {
-    const chosen = withTyped(choice, folderName, tagName, savedFolders(library));
+  const save = (picked: SaveChoice) => {
+    const chosen = withTyped(picked, "", tagName, savedFolders(library));
     const savedTo = t("savedTo").replace("{place}", name(chosen.place));
     if (saved && itemKey) {
       if (JSON.stringify(chosen) !== JSON.stringify(initial)) app.organise(itemKey, chosen);
@@ -98,10 +99,13 @@ function Sheet({
               {t("remove")}
             </Button>
           ) : null}
-          <Button variant="ghost" onClick={cancel}>
-            {t("cancel")}
-          </Button>
-          <Button onClick={save} disabled={!canConfirm(choice, saved || link !== null)}>
+          {/* Saving, the buttons say where it goes (#305); Cancel is the × at the top right. */}
+          {offersArchive(kind === "organise", choice) ? (
+            <Button variant="outline" onClick={() => save(toArchive(choice))} disabled={!canConfirm(choice, saved || link !== null)}>
+              {t("saveToArchive")}
+            </Button>
+          ) : null}
+          <Button onClick={() => save(choice)} disabled={!canConfirm(choice, saved || link !== null)}>
             {t("saveArticle")}
           </Button>
         </>
@@ -120,17 +124,8 @@ function Sheet({
       ) : null}
       <div className="space-y-5">
         {kind === "new" ? (
-          <Input autoFocus value={address} onChange={(e) => setAddress(e.target.value)} onKeyDown={(e) => e.key === "Enter" && link && save()} placeholder={t("webAddress")} aria-label={t("webAddress")} type="url" inputMode="url" />
+          <Input autoFocus value={address} onChange={(e) => setAddress(e.target.value)} onKeyDown={(e) => e.key === "Enter" && link && save(choice)} placeholder={t("webAddress")} aria-label={t("webAddress")} type="url" inputMode="url" />
         ) : null}
-        <Section title={t("savedPlace")}>
-          <FolderChips
-            place={choice.place}
-            folders={savedFolders(library)}
-            onChange={(place) => setChoice({ ...choice, place })}
-            name={folderName}
-            setName={setFolderName}
-          />
-        </Section>
         {/* Only sent: nothing of it is kept, so there is nothing to tag or note. */}
         {choice.keep ? (
           <>
@@ -173,57 +168,6 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 const chip = "inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border px-3 text-sm";
 const on = "border-transparent bg-accent text-accent-foreground";
-
-/** The place as chips, pick one (#156): To read and Archive, a divider, each folder, and New folder. */
-function FolderChips({
-  place,
-  folders,
-  onChange,
-  name,
-  setName,
-}: {
-  place: Place;
-  folders: string[];
-  onChange: (p: Place) => void;
-  name: string;
-  setName: (name: string) => void;
-}) {
-  const [making, setMaking] = useState(false);
-  return (
-    <div className="space-y-2">
-      <div role="radiogroup" aria-label={t("savedPlace")} className="flex flex-wrap items-center gap-1.5">
-        {places(folders, place).map((option) => {
-          const selected = samePlace(option, place);
-          const Icon = selected ? Check : option.kind === "toread" ? BookOpen : option.kind === "archive" ? Archive : FolderGlyph;
-          return (
-            <button key={option.kind === "folder" ? `f:${option.name}` : option.kind} type="button" role="radio" aria-checked={selected} onClick={() => onChange(option)} className={cn(chip, selected ? on : "hover:bg-muted")}>
-              <Icon className="size-4" aria-hidden="true" />
-              {option.kind === "toread" ? t("toRead") : option.kind === "archive" ? t("archive") : option.name}
-            </button>
-          );
-        })}
-      </div>
-      {making ? (
-        <form
-          className="flex gap-2"
-          onSubmit={(e) => {
-            e.preventDefault();
-            const made = newFolder(name, folders);
-            if (made) onChange(made);
-            setName("");
-            setMaking(false);
-          }}
-        >
-          <Input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder={t("newFolder")} aria-label={t("newFolder")} maxLength={60} />
-          <Button type="submit" variant="tonal" disabled={!name.trim()}>
-            <Plus />
-            {t("add")}
-          </Button>
-        </form>
-      ) : null}
-    </div>
-  );
-}
 
 /**
  * The tags (#143), as on Android: Like, then every tag in use as a chip to click on or off, in a

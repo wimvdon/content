@@ -1,4 +1,4 @@
-import { Archive, ArrowLeft, Bell, BookmarkPlus, BookOpen, CheckCheck, ChevronDown, Circle, CircleCheck, ExternalLink, Folder as FolderGlyph, Heart, Highlighter, Link2, Menu, Newspaper, Quote, RefreshCw, Rss, Search, Share2, StickyNote, Tag as TagIcon, Trash2, X, type LucideIcon } from "lucide-react";
+import { Archive, ArchiveRestore, ArrowLeft, Bell, BookmarkPlus, BookOpen, CheckCheck, ChevronDown, Circle, CircleCheck, ExternalLink, Folder as FolderGlyph, Heart, Highlighter, Link2, Menu, Newspaper, Quote, RefreshCw, Rss, Search, Share2, StickyNote, Tag as TagIcon, Trash2, X, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useEscape } from "./ui/useEscape";
 import { RemoveDialog } from "./SavedActions";
@@ -228,8 +228,19 @@ function SavedArticles({
   const { library, savedFilter: filter, loaded } = useApp();
   const [share, shareDialog] = useShare((text) => onMessage(text));
   const [removing, setRemoving] = useState<Item | null>(null);
-  // Right-click or press and hold on a saved item (#221, #263), cards and rows alike.
+  // Right-click or press and hold on a saved item (#221, #263, #305), cards and rows alike: Archive
+  // (or Back to read) first, as on Android.
   const menuOf = (item: Item) => [
+    item.readingList?.state === "archived"
+      ? { icon: <ArchiveRestore />, label: t("backToRead"), onClick: () => app.archiveItem(item.key, false) }
+      : {
+          icon: <Archive />,
+          label: t("archive"),
+          onClick: () => {
+            app.archiveItem(item.key, true);
+            onMessage(t("archived"), { label: t("undo"), run: () => app.archiveItem(item.key, false) });
+          },
+        },
     { icon: <TagIcon />, label: t("organiseTitle"), onClick: () => app.openOrganise(item.key) },
     { icon: <Share2 />, label: t("share"), onClick: () => share(item.title, item.url, item) },
     {

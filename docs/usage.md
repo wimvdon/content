@@ -80,7 +80,7 @@ web, the sidebar lists them). A feed added while a topic
 is open goes into that topic. Long-pressing Content's icon on the home screen offers your first four
 topics: tap one to open the app on it (#251).
 
-**Saved:** an article you save from a feed gets the feed's topic by itself (Save, the swipe, the
+**Saved:** an article you save from a feed gets the feed's topic by itself (Save, the long press, the
 save sheet). In the save and Organise sheets you turn topics on or off, every topic in your order,
 and **New topic** makes one. **Manage topics in a sheet (#307):** the pen next to **Topics** in the
 save and Organise sheets, and next to **Topic** in the Add feed sheet, turns the sheet into Manage
@@ -151,15 +151,14 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
 - Under the title you see how many articles are unread. Two chips just above the list
   (under the topic chips), **Unread** and **All**, choose between only unread articles and all
   articles; the chosen one is filled, with a check mark. The web app has the same two chips.
-- **What stays in the Unread list.** An article you read (opened, also from Search, swiped,
+- **What stays in the Unread list.** An article you read (opened, also from Search,
   marked with its button or scrolled past) stays in the list, dimmed, so nothing disappears under
   your finger. The list starts afresh only when you pick another feed or topic, switch between
   Unread and All, or refresh yourself. Going to Saved and back, or tapping the
   same feed again, keeps it as it was; a refresh the app does by itself does too.
 - Scrolling down slides the title, the topic chips and the **Unread** and **All** chips out of the way, so you see
   more articles; scroll up a little and they come straight back.
-- **Swipe** a feed article either way past about a third of its width (you feel a short tick) to
-  save it (#221). **Press and hold** it for a menu: **Mark as read** (or unread), **Save** and
+- Nothing swipes (#305). **Press and hold** a feed article for a menu: **Mark as read** (or unread), **Save** and
   **Share**. In the web app, right-click it (or press and hold on a touch screen) for the same
   menu; the round button that appears on an article when you point at it marks it read or unread,
   and so does **m** for the open article. Next to it, **Open in a new tab** (an arrow out of a box)
@@ -231,26 +230,30 @@ come into Content (when the article opens, or at the next sync). Free Instapaper
 five new ones a month: the others stay in Content, say "Not in Instapaper yet" in the list of
 highlights, and are tried again the next day.
 
-After **Save**, **Organise** opens (#304; it was "Save and share", #256): the **List** (To read or **Archive**), the **Topics** with **Like** in front (every topic, in your
+After **Save**, **Organise** opens (#304; it was "Save and share", #256): the **Topics** with **Like** in front (every topic, in your
 order, tap to turn one on or off; **New topic** makes one that doesn't exist yet) and a **Note**. It
 doesn't send: to send an article to people with Content, use **Share** (or the share menu's **Send
-with Content**). **Save** keeps what you chose, also a topic you typed but didn't add yet, and a
-message says where it went. **Cancel** (or closing the sheet) saves nothing: right after Save in the
-reader or a swipe, it takes the save back, as if you never saved it.
+with Content**). The Archive isn't a list you pick (#305): the buttons at the bottom say where the
+article goes. **Save** puts it in To read, **Save to Archive** straight in the Archive (for something
+you've read already and only want to keep). Either keeps what you chose, also a topic you typed but
+didn't add yet, and a message says where it went ("Saved to Archive"), with **Undo** when you saved
+from the article. **Cancel** (at the top right, or closing the sheet) saves nothing: right after Save
+in the reader, it takes the save back, as if you never saved it.
 The same sheet opens when you press and hold a saved article in Saved, a row in To read or a card
 elsewhere, and pick **Organise** (web: right-click it), or tap Organise in a saved article's bottom
 bar. For an article saved before, it has **Remove** at the bottom
-left, which takes the article out of Saved after asking; **Share** and **Remove from Saved** (it
-asks too) are in that menu too, and in To read also **Archive** (or **To read** in the Archive). Cards don't swipe. When it
-closes, a message says where the article went; after a swipe, **Add link** or a link shared from
+left, which takes the article out of Saved after asking, and only **Save** (it doesn't move the
+article). That menu starts with **Archive** (or **Back to read** in the Archive), then Organise,
+**Share** and **Remove from Saved** (it asks too). When it
+closes, a message says where the article went; after a long press, **Add link** or a link shared from
 another app it also has **Open**, which goes to the article in Saved.
 
 **Inbox** (#167, #246). Signed in, the **Inbox** is the third place in the bar at the bottom (on the web,
 also in the sidebar). What other Content users send you lands there, not in Saved: a list like a feed's, newest first, with
 who sent it (their Gravatar picture and name) where the feed's name would be. Unread ones are bold
-with a dot, and a dot on the Inbox's icon says something unread waits; opening one marks it read. Swipe one
-to save it (it stays in the inbox, as a feed article stays in its feed), or press and hold (web:
-right-click) for **Mark as read/unread**, **Save**, **Share** and **Remove from inbox** (with
+with a dot, and a dot on the Inbox's icon says something unread waits; opening one marks it read. Press and
+hold one (web: right-click) for **Mark as read/unread**, **Save** (it stays in the inbox, as a feed
+article stays in its feed), **Share** and **Remove from inbox** (with
 **Undo**). Something already in Saved arrives in the inbox too, and stays where it is in Saved; the
 same article shared again comes back unread with its latest sender. Removing a saved article from
 Saved leaves it in the inbox. Opening the inbox checks for new shares first, so they show up right away.
@@ -373,13 +376,13 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   start on one and go on on another. An article you barely began or finished opens at the top.
 - **Each article is on one list:** **To read** (where everything new arrives) or the **Archive**,
   with any number of topics.
-- **Getting articles in:** **Save** in an article; **swipe a feed article** either way in the list,
-  or press and hold it › **Save** (the save sheet opens, then the message offers **Open**); **+** in the search bar in
-  Saved (the save sheet, which asks for the address); and sharing a link to Reader from another app. These go to To read unless you pick
-  the Archive in the save sheet. A feed article you save stays the same article: its feed, text and
+- **Getting articles in:** **Save** in an article; press and hold a feed article › **Save** (the save sheet opens, then the message offers **Open**); **+** in the search bar in
+  Saved (the save sheet, which asks for the address); and sharing a link to Reader from another app. These go to To read unless you tap
+  **Save to Archive** in the save sheet. A feed article you save stays the same article: its feed, text and
   picture come along, and it isn't copied.
-- **Swipe in To read and Archive:** left archives (with **Undo**; in Archive, back to read),
-  right opens **Organise**.
+- **Archive when you're done:** **Archive** in a saved article's bottom bar (it closes, with
+  **Undo**), or press and hold its card › **Archive**. In the Archive the same button and menu say
+  **Back to read**. Next to Archive, **Organise** opens the topics, Like and the note.
 - **The chips** under the search bar: first **To read** or **Archive** (tap it to pick),
   then **Liked** (set apart by its heart) and your topics, in your order, one at a time.
 - **To read looks like your feeds**: the same rows, in the view you chose for the

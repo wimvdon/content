@@ -126,9 +126,9 @@ class ReaderActions(
  */
 class ReaderItem(
     val item: Item,
-    /** Opens Organise (#139, #143): the folder, tags with Like, and the note; New folder and Add a tag. */
+    /** Opens Organise (#139, #143, #305): the topics with Like, and the note. */
     val onOrganise: () -> Unit,
-    /** Archives it in one tap: the reader closes, and the list says so with Undo. */
+    /** Archives it in one tap (the reader closes, and the list says so with Undo), or puts an archived one back to read. */
     val onArchive: () -> Unit = {},
     /** Out of Saved, with its note, tags and highlights. */
     val onRemove: () -> Unit,
@@ -139,7 +139,7 @@ class ReaderItem(
 /**
  * One article, in the reader's font, size, spacing and page colour (#139). The top bar is for this
  * reading (Back, Aa, ⋮); the bar below is for this article in your library: one Save before it is
- * saved, then its folder (which opens Organise); its highlights and Share at the right end. The text
+ * saved, then Archive (or Back to read) and Organise (#305); its highlights and Share at the right end. The text
  * ends with Read on website.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -152,7 +152,7 @@ fun ReaderScreen(
     showImages: Boolean,
     snackbarHostState: SnackbarHostState,
     actions: ReaderActions,
-    /** In Saved: the bar below shows its folder, Like and Archive instead of Save. */
+    /** In Saved: the bar below shows Archive and Organise instead of Save. */
     item: ReaderItem? = null,
     /** Highlights (#102); null where the article can't be highlighted (no link). */
     highlights: ReaderHighlights? = null,
@@ -262,7 +262,7 @@ fun ReaderScreen(
             )
         },
         bottomBar = {
-            // The library bar (#139, #156): on the left Save, or once saved the folder and the tags;
+            // The library bar (#139, #156, #305): on the left Save, or once saved Archive and Organise;
             // on the right Share.
             if (article != null && (hasLink || onList)) {
                 BottomAppBar(containerColor = MaterialTheme.colorScheme.surfaceContainer) {

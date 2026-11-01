@@ -321,7 +321,7 @@ fun RssReaderNavigation(
             onReorder = { ids -> app.appScope.launch { repository.reorderTopics(ids) } },
         )
 
-    // The saved item whose File sheet is open (a swipe right in Saved).
+    // The saved item whose Organise sheet is open (the reader, or a card's menu in Saved).
     var fileKey by rememberSaveable { mutableStateOf<String?>(null) }
     // Organise was opened from the reader: removing the article there closes it too.
     var fileFromReader by rememberSaveable { mutableStateOf(false) }
@@ -786,7 +786,7 @@ fun RssReaderNavigation(
                                     if (!article.read) readThisVisit = readThisVisit + article.key
                                     app.appScope.launch { repository.setRead(article.key, !article.read) }
                                 },
-                                // Swipe left is Save, like the reader's Save button.
+                                // Long-press › Save, like the reader's Save button.
                                 onReadLater = { article -> article.link?.let { readLater(it, article.title, inReader = false) } },
                                 onRefresh = ::refresh,
                                 onMarkAllRead = {
@@ -945,9 +945,10 @@ fun RssReaderNavigation(
                                             fileKey = i.key
                                             fileFromReader = true
                                         },
+                                        // Archive closes the reader (with Undo); Back to read keeps it open.
                                         onArchive = {
                                             archive(i)
-                                            pop()
+                                            if (!i.archived) pop()
                                         },
                                         onRemove = { askRemove(i.key, fromReader = true) },
                                         onProgress = { progress ->
@@ -1203,14 +1204,16 @@ fun RssReaderNavigation(
     ) {
         val text = resources.getString(R.string.saved_to, placeName(place))
         if (addedFromReader) {
-            showMessage(text)
+            // Says where it went (#305), with Undo: as if Save was never tapped.
+            val before = addedBefore
+            showMessage(text, resources.getString(R.string.action_undo)) { editLibrary { SaveChoices.undoSave(it, item.key, before) } }
         } else {
             showMessage(text, resources.getString(R.string.action_open)) { push(Screen.Reader(ReadingLists.readerKey(item))) }
         }
     }
 
-    // Right after something is saved (the reader, a swipe), or organising a saved one (a swipe
-    // right in Saved): the one sheet (#143), which writes what it says when it closes.
+    // Right after something is saved (the reader, a long press), or organising a saved one (a card's
+    // menu in Saved): the one sheet (#143), which writes what it says when it closes.
     val sheetKey = addedKey ?: fileKey
     val sheetItem = sheetKey?.let { library.item(it) }
     if (sheetItem != null) {

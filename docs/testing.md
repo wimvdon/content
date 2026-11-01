@@ -119,8 +119,8 @@ and then (always before a release):
       Save and share); **Share** opens the share menu or the chosen app. An uninstalled app falls back
       to the share menu. Settings › Save and share looks the same signed in to Instapaper or not.
 - [ ] **List:** at app start the list shows loading placeholders, never "No feeds yet" first.
-      Swipe an article right past a third: a tick, it becomes read, then unread; swipe one left (Save, a list
-      icon): the save sheet opens, then "Saved to To read" with **Open**, which opens the article; a short swipe does nothing; The Unread chip in its own row under the folder tabs (not in the top bar) switches unread only (filled, check) / all.
+      Rows don't swipe (#305); long press one for Mark as read, Save and Share. Save: the sheet opens,
+      then "Saved to To read" with **Open**, which opens the article. The Unread chip in its own row under the folder tabs (not in the top bar) switches unread only (filled, check) / all.
       Scroll down: the title, the folder tabs and the Unread chip slide away together; scroll up a
       little: they come back; pulling down at the very top refreshes, and the spinner stays in place
       until the refresh is done (no jump back up and down again), also on the reading list. Settings › Article list › View: Small,
@@ -172,7 +172,7 @@ and then (always before a release):
       top of the screen are marked read (their dot goes) but stay until you refresh. Scroll down,
       pull to refresh so new articles arrive at the top: they stay unread (#157).
 - [ ] **What stays in the Unread list (#157):** open an article and go back, open one from Search,
-      swipe one right: each stays, dimmed. Go to Saved and back, or tap the same feed again: they
+      long press one › Mark as read: each stays, dimmed. Go to Saved and back, or tap the same feed again: they
       are still there. Pick another feed, switch Unread/All, or pull to refresh: they are gone.
       Mark all read: the list empties ("All caught up"); Undo brings them back unread.
 - [ ] Saved rows (also archived ones and Saved hits in Search) are never dimmed and have no dot.
@@ -275,7 +275,7 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
 - [ ] Web app: Escape closes a menu, then the article; shortcuts do nothing behind a dialog. On a
       phone, messages show above the bottom bar, and the round read button shows on every row.
       Moving a feed up or down in Manage feeds always moves it within its folder.
-- [ ] Swipe a feed article left: "Saved to To read" with **File**; tap File: the same sheet.
+- [ ] Long press a feed article › **Save**: the sheet opens; Save: "Saved to To read".
 - [ ] **Highlights (#102):** in an article, press and hold a word, drag over a sentence and tap
       **Highlight** in the menu: it turns yellow. Select another and tap **Note**, type, Save. The
       bottom bar shows a quote mark with 2; tap it: both, with the note. Tap a marker: change its
@@ -283,26 +283,25 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
       to the feed's text with the page button: the highlights are still there (or say approximate).
       Web app: select text with the mouse, pick Highlight or Note in the bar above it; click a
       marker to edit; a highlight made on the phone shows on the web after sync, and the other way.
-- [ ] In a saved article the bottom bar has two buttons (#156): where it is (e.g. "To read") and
-      its tags (or "Tags"). Tap the first: To read and Archive with their icons, a line, your
-      folders, New folder. Pick **Archive**: back in the list with "Archived" and **Undo**; Undo puts
-      it back in its folder. Pick a folder: the button shows that folder.
-- [ ] Tap the tags button: Like, a line, your tags with a check on its own, New tag. Tap Like
-      and a tag: the menu stays open, the button shows the tags (a filled heart when liked).
-      Web app: the same two menus under the article.
+- [ ] In a saved article the bottom bar has two labelled buttons (#305): **Archive** (a box) and
+      **Organise** (a tag). Tap **Archive**: back in the list with "Archived" and **Undo**; Undo puts
+      it back. Open an archived article: the button says **Back to read**; tap it and the article
+      stays open, now in To read. **Organise** opens the sheet. Web app: the same two buttons.
 - [ ] **Add link** and a link shared from another app: the sheet asks for the address (or shows the
-      link), offers the same folder chips, and **Cancel** saves nothing.
-- [ ] **Organise** a saved article (swipe right in Saved): the same chips, and **Cancel**, which
-      changes nothing.
+      link), has no To read / Archive chips, **Cancel** at the top right saves nothing, and at the
+      bottom **Save to Archive** and **Save**. Save to Archive: "Saved to Archive"; Save: "Saved to To read".
+- [ ] **Organise** a saved article (long press a card in Saved): topics, Like, the note, Remove and
+      Save; no Save to Archive. **Cancel** changes nothing.
 - [ ] Nothing in a sheet asks which service, and no sheet explains an empty field.
 - [ ] **Save, the list icon and Open (#142):** nothing says "Read later", in any language; the
       navigation bar's Saved is a list icon, To read keeps the open book. After saving from the
-      reader the message has no Open; after a swipe, Add link or a share (over Chrome) it has
+      reader the message has no Open; after a long press › Save, Add link or a share (over Chrome) it has
       **Open**, which lands on that article. Web app: the same icons, and Open after Add link.
 - [ ] Web app: **Save** on a feed article and **Organise** on a saved one open the same sheet;
       **Add link** in Saved too, with Cancel.
-- [ ] In Saved › To read, swipe a row left: archived with Undo; swipe right: the Organise sheet. In
-      Archive, swiping left puts it back to read.
+- [ ] Nothing swipes (#305): not feed rows, the Inbox or Saved. Long press a card in Saved › To
+      read: **Archive** first (archived, with Undo), then Organise, Share, Remove. In Archive the first
+      entry is **Back to read**. Web app: the same with right-click.
 
 ## Web app: Saved like Android's (#147)
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { itemOf } from "../src/lib/items";
 import { emptyLibrary, type Library } from "../src/lib/library";
-import { applyChoice, choiceOf, emptyChoice, newFolder, places, saveNew, tagChoices, tagsLabel, undoSave, withTag, withTyped } from "../src/lib/saveChoice";
+import { applyChoice, choiceOf, emptyChoice, newFolder, offersArchive, places, saveNew, tagChoices, tagsLabel, toArchive, undoSave, withTag, withTyped } from "../src/lib/saveChoice";
 import { archiveItem, folderOf, isIn, saveLink } from "../src/lib/saved";
 
 function sample(): Library {
@@ -53,6 +53,25 @@ describe("the save and Organise sheet (#143)", () => {
     const archived = applyChoice(lib, "a.example/2", { ...choiceOf(itemOf(lib, "a.example/2")!), place: { kind: "archive" } });
     expect(folderOf(itemOf(archived, "a.example/2")!)).toBeNull();
     expect(applyChoice(lib, "gone.example", emptyChoice)).toBe(lib);
+  });
+});
+
+describe("Save to Archive (#305)", () => {
+  it("is offered while saving, not organising or only sending", () => {
+    expect(offersArchive(false, emptyChoice)).toBe(true);
+    expect(offersArchive(true, emptyChoice)).toBe(false);
+    expect(offersArchive(false, { ...emptyChoice, keep: false })).toBe(false);
+  });
+
+  it("keeps the like, topics and note and saves into the Archive", () => {
+    const choice = { ...emptyChoice, liked: true, tags: ["ai"], note: "Mine" };
+    expect(toArchive(choice)).toEqual({ ...choice, place: { kind: "archive" } });
+    const [lib, item] = saveNew(emptyLibrary(), "https://b.example/1", null, 10, toArchive(choice));
+    expect(item?.readingList?.state).toBe("archived");
+    expect(itemOf(lib, "b.example/1")?.tags).toEqual(["ai"]);
+    // Just saved from the reader, then Save to Archive: the article moves to the Archive.
+    const moved = applyChoice(sample(), "a.example/1", toArchive(choiceOf(itemOf(sample(), "a.example/1")!)));
+    expect(itemOf(moved, "a.example/1")?.readingList?.state).toBe("archived");
   });
 });
 

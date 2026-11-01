@@ -66,6 +66,16 @@ export function withTyped(choice: SaveChoice, folder: string, tag: string, folde
   return samePlace(place, choice.place) && tags === choice.tags ? choice : { ...choice, place, tags };
 }
 
+/**
+ * Whether the sheet offers Save to Archive next to Save (#305): only while saving (Add link, or one
+ * saved a moment ago), not organising one saved before, and not when nothing is kept. As
+ * SaveChoices.offersArchive on Android.
+ */
+export const offersArchive = (organising: boolean, choice: SaveChoice): boolean => !organising && choice.keep;
+
+/** Save to Archive (#305): the same choice, but into the Archive. */
+export const toArchive = (choice: SaveChoice): SaveChoice => ({ ...choice, place: { kind: "archive" } });
+
 /** The tag on or off (case ignored), as the reader's Tags menu does it (#156). */
 export function withTag(choice: SaveChoice, tag: string): SaveChoice {
   const clean = tag.trim();

@@ -148,6 +148,7 @@
     <string name="import_substack_step2">Tap Share and pick Content › Add feed.</string>
     <string name="import_substack_step3">Tap Add. Do the same for each publication.</string>
     <string name="action_save">Save</string>
+    <string name="action_save_to_archive">Save to Archive</string>
     <string name="action_open">Open</string>
     <string name="action_undo">Undo</string>
     <string name="folders_explanation">Put feeds in topics to read them together. What you save gets topics too.</string>
@@ -290,7 +291,6 @@
     <string name="services_problem_limit">Instapaper allows no more highlights this month.</string>
     <string name="highlights_none">Select text and tap Highlight to mark it.</string>
     <string name="saved_title">Saved</string>
-    <string name="folder_field">List</string>
     <string name="topic_field">Topic</string>
     <string name="saved_to">Saved to %1$s</string>
     <string name="saved_remove">Remove from Saved</string>
