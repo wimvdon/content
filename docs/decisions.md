@@ -2,6 +2,18 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-01: + is the floating button; Mark all as read moves to the end of the list (Android)
+
+The floating button in Feeds was Mark all as read, and **+** sat in the search bar. Now **+** is the
+floating button in Feeds, Saved and the Inbox, and **Mark all as read** is an outlined button under
+the last article of Unread (`ListEnd`). Owner's idea.
+- Material 3's FAB is for the screen's main action: adding fits that better than clearing, and it
+  is now in the same place in every destination. The search bar is just search and Settings.
+- At the end of the list the button says what it means (you've seen it all) and no longer covers
+  the last article. The cost: marking a long list read means scrolling to its end first.
+- The web keeps + and Mark all as read as small buttons in the list's header: floating buttons are
+  a phone pattern.
+
 ## 2026-11-01: The reader's actions in a floating toolbar
 
 The reader's bottom app bar (Save, or Archive and Organise; the highlights; Share) becomes a

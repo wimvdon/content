@@ -76,6 +76,7 @@ when the run fails.
 | `ArticleSearchTest` | Search: every word, case and accents ignored, title, text, feed name and author, title matches first, removed feeds left out |
 | `FeedArrangementTest` | Manage page order: rows per folder, dragging feeds between folders and out of them, forbidden moves, reordering folders |
 | `SettingsTest` | Text size limits, reader and theme darkness (and Auto dark), Save/Share targets (storage and the old Save setting), defaults |
+| `ListEndTest` | Mark all as read under the last article: only in Unread, only while something in it is unread |
 
 ## Strategy
 
@@ -152,8 +153,8 @@ and then (always before a release):
       else a cogwheel). Feeds has the tabs Unread and Read (Read: only articles already read; no
       Mark all read button there), Saved To read and All. Under them the chips: in Feeds the topics,
       then the feeds without a topic, with no X (tap a chosen chip again for everything); picking a
-      topic shows a second row with its feeds, and tapping one shows that feed alone. **+** in the
-      search bar (Feeds, Saved and the Inbox alike) opens Add: Subscribe to feed opens Add feed, Save
+      topic shows a second row with its feeds, and tapping one shows that feed alone. The round **+**
+      button at the bottom right (Feeds, Saved and the Inbox alike; no + in the search bar) opens Add: Subscribe to feed opens Add feed, Save
       article the save sheet asking for the address. In a
       topic, a feed, Saved or the Inbox, Back goes up a level; on All, Back closes the app.
 - [ ] **Archive from the reader:** a saved article in To read has an Archive button next to its
@@ -178,7 +179,8 @@ and then (always before a release):
 - [ ] **What stays in the Unread list (#157):** open an article and go back, open one from Search,
       long press one › Mark as read: each stays, dimmed. Go to Saved and back, or tap the same feed again: they
       are still there. Pick another feed, switch Unread/All, or pull to refresh: they are gone.
-      Mark all read: the list empties ("All caught up"); Undo brings them back unread.
+      Scroll to the end of Unread: Mark all as read is a button under the last article (not in All, and
+      gone when nothing is unread). Tap it: the list empties ("All caught up"); Undo brings them back unread.
 - [ ] Saved rows (also archived ones and Saved hits in Search) are never dimmed and have no dot.
       Opening a saved article saved from a feed marks that feed article read, in both apps.
 - [ ] Web app: pointing at an article in the list shows a round button that marks it read or

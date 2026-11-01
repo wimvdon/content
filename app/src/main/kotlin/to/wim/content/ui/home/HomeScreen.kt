@@ -243,9 +243,6 @@ fun HomeScreen(
                         HomeSearchBar(
                             onSearch = actions.onOpenSearch,
                             onSettings = actions.onOpenSettings,
-                            // + is the same in every place: it asks Subscribe to feed or Save article.
-                            onAdd = actions.onAdd,
-                            addLabel = stringResource(R.string.add_title),
                             accountEmail = state.accountEmail,
                             showImages = state.showImages,
                         )
@@ -325,11 +322,10 @@ fun HomeScreen(
                 },
                 bottomBar = { if (!wide) MainNavigationBar(tab, onTab, state.inbox != null, state.inboxUnread) },
                 floatingActionButton = {
-                    // Marks everything in the section being viewed as read: All, a folder or a feed (Unread only).
-                    if (state.feeds.isNotEmpty() && unreadHere > 0 && inFeeds && state.unreadOnly) {
-                        FloatingActionButton(onClick = actions.onMarkAllRead) {
-                            Icon(painterResource(R.drawable.ic_done_all), contentDescription = stringResource(R.string.action_mark_all_read))
-                        }
+                    // + is the screen's main action, the same in Feeds, Saved and the Inbox: it asks
+                    // Subscribe to feed or Save article. Mark all as read sits at the end of the list.
+                    FloatingActionButton(onClick = actions.onAdd) {
+                        Icon(painterResource(R.drawable.ic_add), contentDescription = stringResource(R.string.add_title))
                     }
                 },
             ) { innerPadding ->
@@ -393,7 +389,7 @@ fun HomeScreen(
                             HomeContent.Loading -> ArticleSkeletons()
                             HomeContent.NoArticles -> NothingToShow(unread = null, state.refreshing, actions.onRefresh)
                             HomeContent.Empty -> NothingToShow(unread = state.unreadOnly.takeIf { it }, state.refreshing, actions.onRefresh)
-                            HomeContent.Articles -> ArticleList(state, actions)
+                            HomeContent.Articles -> ArticleList(state, actions, ListEnd.showsMarkAllRead(state.unreadOnly, unreadHere))
                         }
                     }
                 }
@@ -412,6 +408,8 @@ private const val SKELETON_ROWS = 6
 private fun ArticleList(
     state: HomeState,
     actions: HomeActions,
+    /** Mark all as read under the last article: in Unread, while something in it is unread. */
+    markAllRead: Boolean,
 ) {
     // A different feed starts at the top.
     val listState = rememberSaveable(state.selection, saver = LazyListState.Saver) { LazyListState() }
@@ -448,7 +446,7 @@ private fun ArticleList(
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize().readableWidth(),
-        // Room at the end for the floating action button.
+        // Room at the end for the floating + button.
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 88.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -475,6 +473,17 @@ private fun ArticleList(
                                 article.link?.let { RowMenuAction(R.drawable.ic_share, stringResource(R.string.action_share)) { actions.onShareArticle(article) } },
                             ),
                     )
+                }
+            }
+        }
+        // At the end of the list: you've seen it all, so mark it all as read (All, a topic or a feed).
+        if (markAllRead) {
+            item(key = "mark-all-read") {
+                Box(Modifier.fillMaxWidth().padding(top = 8.dp).animateItem(), contentAlignment = Alignment.Center) {
+                    OutlinedButton(onClick = actions.onMarkAllRead) {
+                        Icon(painterResource(R.drawable.ic_done_all), contentDescription = null)
+                        Text(stringResource(R.string.action_mark_all_read), modifier = Modifier.padding(start = 8.dp))
+                    }
                 }
             }
         }

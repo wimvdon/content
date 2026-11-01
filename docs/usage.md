@@ -10,7 +10,7 @@ Signed in without feeds yet, the screen says **No feeds yet**, with Add feed and
 
 ## Adding feeds
 
-Tap **+** in the search bar (in Feeds, Saved or the Inbox: it is the same everywhere) and pick
+Tap the round **+** button at the bottom right (in Feeds, Saved or the Inbox: it is the same everywhere; on the web, **+** at the top of the list) and pick
 **Subscribe to feed**. (Also: **Add feed** on the empty screen, or in **Manage feeds** in Settings.)
 The other choice, **Save article**, saves one article by its address (see Saved). The **Add feed**
 sheet opens: type an address, pick its **Topic** (**No topic**, or one of yours; it starts on the
@@ -141,8 +141,8 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   the bottom. The chip row is left out there. A phone-sized window has the bar at the bottom and the
   switch and the chips above the list (the chips scroll sideways with a finger, a mouse wheel, or by
   dragging them with the mouse), and Settings in the search bar.
-- **Refresh** (web) is the round arrow in the search bar, in every place (or press **r**). **Mark all as read** is a button at the bottom right of the list, only in Unread,
-  as on the phone.
+- **Refresh** (web) is the round arrow in the search bar, in every place (or press **r**). **Mark all as read** is a button at the top of the list, only in Unread
+  (on the phone it is under the last article).
 - Under the search bar, **a switch** says **what you see**: in Feeds **Unread** or **All** (every
   article, read ones too), in Saved **To read** or **All** (everything saved, archived articles
   too). It looks like To read / Archive in the save sheet; tap the other half to change. Under the
@@ -154,7 +154,7 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   articles; in All, every topic with articles. Feeds' feed chips do the same: a feed with nothing
   unread has no chip in Unread. The one you picked stays.
 - **There is no ☰ menu in the Android app.** Feeds, Saved and the Inbox are the bar at the
-  bottom; everything inside them is the switch or a chip. In the search bar, **+** adds, the same in
+  bottom; everything inside them is the switch or a chip. The round **+** button at the bottom right adds, the same in
   every place: it asks **Subscribe to feed** (the Add feed sheet) or **Save article** (the save
   sheet, which asks for the address).
   **Settings** is the button at the end of the search bar: your Gravatar picture while signed in, else a cogwheel. On the web, a wide window
@@ -175,7 +175,7 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   The web app has the same row.
 - Articles are grouped under **Today**, **Yesterday** and then the date; the date stays at the
   top while you scroll through that day.
-- The **Mark all as read** button (bottom right) is only in Unread, and marks what it shows.
+- The **Mark all as read** button (under the last article) is only in Unread, and marks what it shows.
 - **What stays in the Unread list.** An article you read (opened, also from Search,
   marked with its button or scrolled past) stays in the list, dimmed, so nothing disappears under
   your finger. The list starts afresh only when
@@ -194,7 +194,7 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   first and then added at once, each article in its place by date.
 - **Back** goes up a level: from one feed to its topic, from a topic to All, from Saved or the Inbox to Feeds;
   back on All closes the app.
-- The round **✓✓** (Mark all as read) button at the bottom right marks everything in the section you are in as
+- The **✓✓ Mark all as read** button under the last article marks everything in the section you are in as
   read: all feeds on All, the topic's feeds in a topic, or the one feed you opened, also the
   ones you haven't scrolled to. You're done with it, so the Unread list empties (All caught up).
   A message says how many; **Undo** brings them back.
@@ -401,7 +401,7 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   start on one and go on on another. An article you barely began or finished opens at the top.
 - **Each article is on one list:** **To read** (where everything new arrives) or the **Archive**,
   with any number of topics.
-- **Getting articles in:** **Save** in an article; press and hold a feed article › **Save** (the save sheet opens, then the message offers **Open**); **+** in the search bar ›
+- **Getting articles in:** **Save** in an article; press and hold a feed article › **Save** (the save sheet opens, then the message offers **Open**); the round **+** button ›
   **Save article** (the save sheet, which asks for the address); and sharing a link to Reader from another app. These go to To read unless you tap
   **Archive** in the save sheet. A feed article you save stays the same article: its feed, text and
   picture come along, and it isn't copied.
