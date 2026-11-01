@@ -85,6 +85,7 @@ import to.wim.content.data.tagWithFeedFolder
 import to.wim.content.data.removeTag
 import to.wim.content.data.renameTag
 import to.wim.content.data.setLiked
+import to.wim.content.data.topicIcons
 import to.wim.content.data.setReadingState
 import to.wim.content.data.tagCounts
 import to.wim.content.feed.FeedDiscovery
@@ -1028,6 +1029,7 @@ fun RssReaderNavigation(
                                         onLike = { editLibrary { it.setLiked(i.key, !i.liked) } },
                                         // Asks first; once removed, the reader closes.
                                         onRemove = { askRemove(i.key, fromReader = true) },
+                                        tagIcons = library.topicIcons(),
                                         onProgress = { progress ->
                                             if (kotlin.math.abs(progress - i.progress) >= 0.01f) {
                                                 editLibrary { lib -> lib.changeItem(i.key) { if (it.readingList == null) it else it.copy(progress = progress) } }

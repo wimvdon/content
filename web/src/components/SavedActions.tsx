@@ -1,4 +1,4 @@
-import { Archive, BookOpen, Heart, ListPlus, NotebookPen, Quote, Share2, StickyNote, Tag, Trash2 } from "lucide-react";
+import { Archive, BookOpen, Heart, ListPlus, Quote, Share2, Trash2 } from "lucide-react";
 import { app } from "@/lib/app";
 import { plural, t } from "@/lib/i18n";
 import type { Item } from "@/lib/items";
@@ -11,7 +11,8 @@ import { Dialog } from "./ui/dialog";
  * middle, over the text, that steps aside while reading down ([hidden]). One Save before the article
  * is saved; after, every action one click away, as icons (2026-11-01, instead of Archive and
  * Organise): first **Archive** (tonal, like Save) while it is to read, or **To read** (plain) once
- * archived, in words; then icons: **Topics**, **Note** and **Like** (a filled heart while liked). Then the highlights, and Share as its own round button next
+ * archived, in words; then **Like** (a filled heart while liked). Tags, the note and the highlights
+ * sit under the article's title. Then the highlights, and Share as its own round button next
  * to the pill. Remove from Saved is in the reader's ⋮.
  */
 export function LibraryBar({
@@ -88,12 +89,6 @@ export function LibraryBar({
           <span className="truncate">{t("archive")}</span>
         </Button>
       )}
-      <Button variant="ghost" size="icon" aria-label={t("tags")} title={t("tags")} onClick={() => app.openTopics(item.key)}>
-        <Tag />
-      </Button>
-      <Button variant="ghost" size="icon" aria-label={t("note")} title={t("note")} onClick={() => app.openNote(item.key)}>
-        {item.note.trim() ? <NotebookPen /> : <StickyNote />}
-      </Button>
       <Button variant="ghost" size="icon" aria-pressed={item.liked} aria-label={t("like")} title={t("like")} onClick={() => app.likeItem(item.key, !item.liked)}>
         <Heart className={cn(item.liked && "fill-current")} />
       </Button>

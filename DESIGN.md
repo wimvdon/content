@@ -322,10 +322,12 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   instead of Archive and Organise) first what moves it, in words: a tonal **Archive** (the Archive's
   box, styled like Save: the next step; one tap archives it, the article stays open and shows
   Archived with Undo, #331) while it is to read, or a plain **To read** (the open book: puts it back)
-  once archived; then icon buttons, their names on a long press as a tooltip: **Tags** (a tag:
-  the Tags sheet, tag chips only), **Note** (the Note sheet; a note with a pen once written) and
-  **Like** (a heart, filled while liked), then the highlights' count. There is no Organise sheet any
-  more; **Remove from Saved** is in ⋮. All its buttons are in one neutral colour (`onSurfaceVariant`, as Material 3's
+  once archived; then **Like** (an icon toggle, a heart filled while liked; its name on a long
+  press as a tooltip). What describes a saved article sits under its title and details instead
+  (`SavedHeader`, 2026-11-01): one row of chips, its tags as input chips with their icons, an assist
+  chip **+ Tag** (the Tags sheet, tag chips only), **+ Note** while it has none (the Note sheet), and
+  with highlights an assist chip with the quote mark and how many (their list); a note shows below
+  as a `surfaceContainerHigh` block, tapped to edit. There is no Organise sheet any more; **Remove from Saved** is in ⋮. All its buttons are in one neutral colour (`onSurfaceVariant`, as Material 3's
   toolbars have it; the text buttons were `primary` before, so Share looked different), only the tonal
   Save stands out; the web's ghost buttons were already alike. It slides away while reading down and comes back scrolling up, at the top and
   at the end of the article; the text keeps room under its end, and messages show above it. The text ends

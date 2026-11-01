@@ -2,6 +2,13 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-01: A saved article's tags, note and highlights sit under its title
+
+They describe the article, so they are shown with it (owner's idea): one row of chips under the
+title and details (the tags as input chips, + Tag, + Note without a note, the highlights' count as
+assist chips) and the note as a block below, tapped to edit. The toolbar keeps what acts on the
+article: Archive / To read and Like, with Share beside it. Phone and web.
+
 ## 2026-11-01: Topics are called tags everywhere
 
 What the app called topics (groups for feeds, and labels on saved articles) is now called **tags**
