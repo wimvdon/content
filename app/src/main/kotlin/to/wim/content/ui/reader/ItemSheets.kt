@@ -171,6 +171,16 @@ fun SaveSheet(
                     },
                 ),
                 onCancel = cancel,
+                // Organising a saved article: Remove (asks first). Just saved, Cancel takes the save back.
+                onDelete =
+                    if (kind == SheetKind.Organise) {
+                        {
+                            onDismiss()
+                            onRemove()
+                        }
+                    } else {
+                        null
+                    },
             )
             if (kind == SheetKind.New) {
                 if (url == null) {
@@ -225,22 +235,8 @@ fun SaveSheet(
                 }
             }
             val canSave = SendTo.canConfirm(choice, hasLink = saved || link != null)
-            // Cancel at the bottom left; organising a saved article, Remove next to it, away from Save.
-            // Just saved, Cancel already takes the save back, so there is nothing to remove.
-            SheetActions(
-                onCancel = cancel,
-                leading = {
-                    if (kind == SheetKind.Organise) {
-                        TextButton(
-                            onClick = {
-                                onDismiss()
-                                onRemove()
-                            },
-                            colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                        ) { Text(stringResource(R.string.action_remove)) }
-                    }
-                },
-            ) {
+            // Cancel at the bottom left, Save at the right; Remove is the header's trash can.
+            SheetActions(onCancel = cancel) {
                 Button(enabled = canSave, onClick = { save(choice) }) {
                     // Kept, the icon says where it goes: To read's open book, the Archive's box.
                     if (choice.keep && !sendOnly) {
@@ -328,7 +324,19 @@ internal fun SheetHeader(
     title: String,
     onCancel: () -> Unit,
     enabled: Boolean = true,
+    /**
+     * Remove, as a trash can at the right end of the title row (Edit feed, a topic, Organise): away
+     * from Cancel and Save, where Material puts delete on an edit screen. It asks first, in a dialog.
+     */
+    onDelete: (() -> Unit)? = null,
 ) {
+    val delete: @Composable () -> Unit = {
+        if (onDelete != null) {
+            IconButton(onClick = onDelete, enabled = enabled, modifier = Modifier.offset(x = 12.dp)) {
+                Icon(painterResource(R.drawable.ic_delete), contentDescription = stringResource(R.string.action_remove))
+            }
+        }
+    }
     // A page of a sheet (ContentSheet): a back arrow takes you back to the sheet under it.
     if (LocalInSheetPage.current) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -336,16 +344,21 @@ internal fun SheetHeader(
                 Icon(painterResource(R.drawable.ic_arrow_back), contentDescription = stringResource(R.string.action_back))
             }
             Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f).offset(x = (-8).dp).semantics { heading() })
+            delete()
         }
         return
     }
-    Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp).semantics { heading() })
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f).padding(vertical = 12.dp).semantics { heading() })
+        delete()
+    }
 }
 
 /**
  * A sheet's buttons, at its bottom, the same in every sheet: **Cancel** at the left (not on a page
  * of a sheet, whose back arrow does it; [cancel] false for sheets without Cancel, such as Manage
- * feeds with Done), then [leading] (Remove, in red), and [actions] at the right (the main button).
+ * feeds with Done), then [leading] (Add feed in Manage feeds), and [actions] at the right (the main
+ * button). Remove is not here but in the header ([SheetHeader]'s trash can), away from both.
  * [enabled] false shows Cancel as off (while busy).
  */
 @Composable
@@ -378,10 +391,29 @@ fun RemoveDialog(
     onRemove: () -> Unit,
     onDismiss: () -> Unit,
 ) {
+    ConfirmRemoveDialog(
+        title = stringResource(R.string.saved_remove),
+        text = stringResource(R.string.saved_remove_body),
+        onRemove = onRemove,
+        onDismiss = onDismiss,
+    )
+}
+
+/**
+ * Remove …? asked in a dialog, also over a sheet (Remove feed, Remove topic): a question pops up, it
+ * doesn't sit in the sheet's text (the owner's choice, 2026-11-01). Remove in red, Cancel next to it.
+ */
+@Composable
+fun ConfirmRemoveDialog(
+    title: String,
+    text: String,
+    onRemove: () -> Unit,
+    onDismiss: () -> Unit,
+) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.saved_remove)) },
-        text = { Text(stringResource(R.string.saved_remove_body)) },
+        title = { Text(title) },
+        text = { Text(text) },
         confirmButton = {
             TextButton(onClick = {
                 onDismiss()

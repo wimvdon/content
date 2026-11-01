@@ -242,11 +242,11 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   changes are kept at once. **Manage feeds** (a sheet from Settings' other large button) shows the
   feeds the same way, grouped by topic under a Label Large heading with the topic's icon (a failing
   feed's name in the error colour), then Add feed; tapping a feed opens the Edit feed sheet (name,
-  address, topic chips, Remove asked in the sheet, Save). Topic chips look the same everywhere (#314): a `FilterChip` with the
+  address, topic chips, Save; Remove is a trash can at the top right and asks in a dialog). Topic chips look the same everywhere (#314): a `FilterChip` with the
   topic's icon and name, no check mark, in Feeds' and Saved's chip rows and in the sheets. After the
   chips in a sheet, **Edit topics** is a text button with a pen (an action, so it doesn't look like a
   topic chip). In Manage topics drag a chip among the others to reorder; tap it for the topic sheet
-  (name, icon, Remove; a name already taken joins the two). Remove topic asks under the chips, not
+  (name, icon, a trash can at the top right; a name already taken joins the two). Remove topic asks
   in a dialog over the sheet. The web: the same, with the grip, ← → on a focused chip, and dialogs.
 - Settings (the owner's choice, 2026-11-01, instead of the shared "one scrolling list"): two large
   buttons at the top, **Manage feeds** and **Manage topics** (side by side on `surfaceContainerHigh`,
@@ -353,9 +353,12 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   shows the same icon (To read's open book or the Archive's box), and says **Save and send** or **Send** when
   sending: closing the sheet is Cancel, so only the button changes or sends
   anything; the heading is **Save** while saving, or "Organise" for an article saved before: that one has no Send
-  with Content (Share is next to Organise) and a red Remove at the bottom left. Right after a save there is no Remove:
-  Cancel (or closing the sheet) saves and sends nothing, so it takes the save back. Remove from Saved (error
-  colour, trash icon) asks first in a dialog, wherever it is: Organise, the reader's ⋮, a row's menu
+  with Content (Share is next to Organise) and Remove as a trash can at the right end of its title row
+  (the owner's choice, 2026-11-01: away from Cancel and Save, where Material puts delete on an edit
+  screen; the same in Edit feed and the topic sheet, phone and web). Right after a save there is no Remove:
+  Cancel (or closing the sheet) saves and sends nothing, so it takes the save back. Remove from Saved
+  asks first in a dialog, and is only in Organise: not in the reader's ⋮ nor in a row's long press (Archive,
+  Organise, Share), so it stays rare and deliberate (2026-11-01). Earlier it was also in Organise, the reader's ⋮, a row's menu
   in Saved; no Undo. A
   folder or tag still being typed is taken by the button. One snackbar says where it went and who
   got it ("Saved to To read · Sent to …"). Other apps' share menus have three targets: Save and share
@@ -367,7 +370,8 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   (Save and share, Add feed with its topic chips (#307), Content's share sheet, highlights, Aa,
   Report a problem, the folder sheet with its icon search); a dialog only to confirm something or
   type one name (remove, rename, Add feed from the share menu); editing a feed is a sheet, like Add feed. No dialog opens on top of a sheet,
-  and no sheet on top of another (#323): a sheet opened from within one (Edit topics in Add feed, a
+  except to confirm a removal (Remove feed?, Remove topic?, Remove from Saved?: the owner's choice,
+  2026-11-01, a question pops up instead of sitting in the sheet's text), and no sheet on top of another (#323): a sheet opened from within one (Edit topics in Add feed, a
   feed or Add feed in Manage feeds, New topic in Manage topics) becomes a **page of the same sheet**,
   its header a back arrow and the title (`ContentSheet`, `SheetHeader`); the arrow or Back shows the
   sheet under it as it was. The web: the same in one dialog (Escape is Back there), and Manage feeds

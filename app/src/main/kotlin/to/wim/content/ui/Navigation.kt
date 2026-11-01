@@ -904,7 +904,6 @@ fun RssReaderNavigation(
                                     fileKey = it.key
                                     fileFromReader = false
                                 },
-                                onRemoveItem = { item -> askRemove(item.key, fromReader = false) },
                                 onShareArticle = ::share,
                                 onShareItem = { item -> share(ReadingLists.article(item, library)) },
                                 onOpenSearch = { push(Screen.Search) },

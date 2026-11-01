@@ -108,6 +108,7 @@ function Floating({ hidden, children }: { hidden: boolean; children: React.React
 export function RemoveDialog({ item, open, onClose, onRemoved }: { item: Item; open: boolean; onClose: () => void; onRemoved: () => void }) {
   return (
     <Dialog
+      popup
       open={open}
       onOpenChange={(o) => !o && onClose()}
       title={t("savedRemove")}

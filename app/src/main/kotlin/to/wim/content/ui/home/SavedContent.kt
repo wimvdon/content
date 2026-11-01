@@ -93,8 +93,6 @@ internal fun SavedContent(
     onFile: (Item) -> Unit = {},
     /** Long-press › Share (#221). */
     onShare: (Item) -> Unit = {},
-    /** Long-press › Remove from Saved (#263). */
-    onRemove: (Item) -> Unit = {},
     /** Clears Liked and the tags, for an empty list they filtered out. */
     onClearFilters: () -> Unit = {},
 ) {
@@ -123,7 +121,7 @@ internal fun SavedContent(
         }
         return
     }
-    NotesGrid(home, showImages, onOpen, onArchive, onFile, onShare, onRemove)
+    NotesGrid(home, showImages, onOpen, onArchive, onFile, onShare)
 }
 
 /** How many articles, and about how long they take. */
@@ -152,13 +150,11 @@ private fun NotesGrid(
     onArchive: (Item) -> Unit,
     onFile: (Item) -> Unit,
     onShare: (Item) -> Unit,
-    onRemove: (Item) -> Unit,
 ) {
     val archiveLabel = stringResource(R.string.action_archive)
     val unarchiveLabel = stringResource(R.string.action_unarchive)
     val organiseLabel = stringResource(R.string.organise_title)
     val shareLabel = stringResource(R.string.action_share)
-    val removeLabel = stringResource(R.string.saved_remove)
     val gridState = rememberSaveable(home.filter, saver = LazyStaggeredGridState.Saver) { LazyStaggeredGridState() }
     LazyVerticalStaggeredGrid(
         state = gridState,
@@ -179,8 +175,8 @@ private fun NotesGrid(
                 showImages,
                 onClick = { onOpen(item) },
                 modifier = Modifier.animateItem(),
-                // Long-press (#221, #263, #305): Archive (or Back to read), Organise (topics, note),
-                // Share and Remove. No swipes anywhere: the long press holds every action.
+                // Long-press (#221, #305): Archive (or Back to read), Organise (topics, note) and Share.
+                // Remove is in Organise (its trash can), kept rare. No swipes anywhere.
                 menu =
                     listOf(
                         if (item.archived) {
@@ -190,7 +186,6 @@ private fun NotesGrid(
                         },
                         RowMenuAction(R.drawable.ic_label, organiseLabel) { onFile(item) },
                         RowMenuAction(R.drawable.ic_share, shareLabel) { onShare(item) },
-                        RowMenuAction(R.drawable.ic_delete, removeLabel) { onRemove(item) },
                     ),
             )
         }

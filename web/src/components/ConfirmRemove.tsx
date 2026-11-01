@@ -7,6 +7,7 @@ import { Dialog } from "./ui/dialog";
 export function ConfirmRemove({ open, title, body, onConfirm, onClose }: { open: boolean; title: string; body: string; onConfirm: () => void; onClose: () => void }) {
   return (
     <Dialog
+      popup
       open={open}
       onOpenChange={(o) => !o && onClose()}
       title={title}
@@ -31,5 +32,14 @@ export function ConfirmRemove({ open, title, body, onConfirm, onClose }: { open:
     >
       <p className="text-sm">{body}</p>
     </Dialog>
+  );
+}
+
+/** Remove in an edit dialog's title row: a trash can (Edit feed, a topic, Organise), as on Android. */
+export function RemoveButton({ onClick }: { onClick: () => void }) {
+  return (
+    <Button variant="ghost" size="icon" onClick={onClick} aria-label={t("remove")} title={t("remove")}>
+      <Trash2 />
+    </Button>
   );
 }

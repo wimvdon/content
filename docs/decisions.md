@@ -2,6 +2,21 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-01: Remove is a trash can at the top of a sheet, and asks in a popup
+
+Edit feed, the topic sheet and Organise had a red **Remove** at the bottom left, right next to
+Cancel, and Remove feed? / Remove topic? asked in the sheet's own text. Now Remove is a trash can at
+the right end of the sheet's title row (the web: the dialog's), and every Remove …? asks in a dialog
+over the sheet. A saved article's long press no longer has Remove: it is only in Organise. Owner's
+choice.
+- Material puts delete on an edit screen in its top bar, away from the routine buttons; with a
+  confirmation after it, a small icon is safe there. Save stays the sheet's main action.
+- A question that pops up reads as one; text appearing in the sheet was easy to miss. This is the one
+  exception to "no dialog over a sheet" (#323).
+- Remove from Saved was already out of the reader's ⋮; out of the long press too, it stays rare and
+  deliberate, with Archive as the usual way to be done with an article.
+- Rejected: the trash can at the bottom left (still in the row of routine buttons).
+
 ## 2026-11-01: No X after the web's chips either
 
 The web's chip row (Feeds and Saved, narrow windows) ended with an X that cleared the filter; Android

@@ -270,10 +270,10 @@ the article. **Cancel** (at the bottom left, or closing the sheet) saves nothing
 in the reader, it takes the save back, as if you never saved it.
 The same sheet opens when you press and hold a saved article in Saved, a row in To read or a card
 elsewhere, and pick **Organise** (web: right-click it), or tap Organise in a saved article's bottom
-bar. For an article saved before, it has **Remove** at the bottom
-left, next to Cancel, which takes the article out of Saved after asking; To read or Archive there
-moves it. That menu starts with **Archive** (or **Back to read** in the Archive), then Organise,
-**Share** and **Remove from Saved** (it asks too). When it
+bar. For an article saved before, it has a **trash can** at the
+top right, which takes the article out of Saved after asking (in a popup); To read or Archive there
+moves it. That menu starts with **Archive** (or **Back to read** in the Archive), then Organise and
+**Share** (Remove from Saved is only in Organise). When it
 closes, a message says where the article went; after a long press, **Add link** or a link shared from
 another app it also has **Open**, which goes to the article in Saved.
 
