@@ -87,6 +87,29 @@ describe("parseFeed", () => {
     expect(fallbackId("Only text", null, "Body")).toBe("hash:" + javaHashCode("Only text|null|Body").toString(16));
   });
 
+  it("keeps only http and https links, so a feed can't make a link run script", () => {
+    const rss = parseFeed(
+      `<rss version="2.0"><channel><title>T</title><link>javascript:alert(1)</link>
+        <item><title>A</title><link>javascript:alert(document.domain)</link><guid>https://example.com/a</guid></item>
+        <item><title>B</title><link>data:text/html,hi</link></item>
+      </channel></rss>`,
+      "https://example.com/feed.xml",
+    );
+    expect(rss.siteUrl).toBeNull();
+    expect(rss.items[0].link).toBe("https://example.com/a");
+    expect(rss.items[1].link).toBeNull();
+    const atom = parseFeed(
+      `<feed xmlns="http://www.w3.org/2005/Atom"><title>T</title><link rel="alternate" href="javascript:void(0)"/>
+        <entry><title>A</title><id>a</id><link rel="alternate" href="JavaScript:alert(1)"/></entry>
+        <entry><title>B</title><id>b</id><link rel="alternate" href="/b"/></entry>
+      </feed>`,
+      "https://example.com/feed.xml",
+    );
+    expect(atom.siteUrl).toBeNull();
+    expect(atom.items[0].link).toBeNull();
+    expect(atom.items[1].link).toBe("https://example.com/b");
+  });
+
   it("refuses web pages", () => {
     expect(() => parseFeed("<html><body>Hi</body></html>", "https://x.example/")).toThrow(NotAFeedError);
     expect(() => parseFeed("not xml at all", "https://x.example/")).toThrow(NotAFeedError);

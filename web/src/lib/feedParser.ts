@@ -68,7 +68,7 @@ function replaceHtmlEntities(text: string): string {
 
 function parseRss(channel: Element, root: Element, baseUrl: string): ParsedFeed {
   const siteLink = childText(channel, "link", RSS_NS);
-  const siteUrl = siteLink ? resolve(baseUrl, siteLink) : null;
+  const siteUrl = siteLink ? webLink(baseUrl, siteLink) : null;
   const linkBase = siteUrl ?? baseUrl;
   let itemElements = children(channel, "item", RSS_NS);
   if (itemElements.length === 0) itemElements = children(root, "item", RSS_NS);
@@ -77,7 +77,7 @@ function parseRss(channel: Element, root: Element, baseUrl: string): ParsedFeed 
     const guid = guidElement?.textContent?.trim() || null;
     const guidIsLink = guidElement?.getAttribute("isPermaLink")?.toLowerCase() !== "false";
     const linkText = childText(item, "link", RSS_NS);
-    const link = (linkText ? resolve(linkBase, linkText) : null) ?? (guid && guidIsLink && guid.startsWith("http") ? guid : null);
+    const link = (linkText ? webLink(linkBase, linkText) : null) ?? (guid && guidIsLink && guid.startsWith("http") ? guid : null);
     const description = childText(item, "description", RSS_NS) ?? "";
     const content = childText(item, "encoded", [CONTENT_NS]) ?? "";
     const html = content.length > description.length ? content : description;
@@ -105,7 +105,7 @@ function parseAtom(feed: Element, baseUrl: string): ParsedFeed {
   const items = children(feed, "entry", ATOM_NSS).map((entry) => {
     const entryBase = xmlBase(entry, feedBase);
     const href = alternateLink(entry);
-    const link = href ? resolve(entryBase, href) : null;
+    const link = href ? webLink(entryBase, href) : null;
     const contentEl = child(entry, "content", ATOM_NSS);
     const summaryEl = child(entry, "summary", ATOM_NSS);
     const content = contentEl ? atomText(contentEl) : "";
@@ -127,7 +127,7 @@ function parseAtom(feed: Element, baseUrl: string): ParsedFeed {
   const siteHref = alternateLink(feed);
   return {
     title: titleEl ? toPlainText(atomText(titleEl)) : "",
-    siteUrl: siteHref ? resolve(feedBase, siteHref) : null,
+    siteUrl: siteHref ? webLink(feedBase, siteHref) : null,
     items,
   };
 }
@@ -222,6 +222,15 @@ function alternateLink(element: Element): string | null {
 function xmlBase(element: Element, parentBase: string): string {
   const base = element.getAttributeNS("http://www.w3.org/XML/1998/namespace", "base");
   return base?.trim() ? resolve(parentBase, base) : parentBase;
+}
+
+/**
+ * A link the reader can open: http or https only. A feed can't slip in a `javascript:` (or `data:`,
+ * …) address that would run in the web app when the article is opened in a new tab.
+ */
+function webLink(base: string, href: string): string | null {
+  const url = resolve(base, href);
+  return /^https?:\/\//i.test(url) ? url : null;
 }
 
 function resolve(base: string, href: string): string {
