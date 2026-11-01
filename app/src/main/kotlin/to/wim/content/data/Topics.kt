@@ -118,6 +118,15 @@ fun Library.topicIcons(): Map<String, String> = folders.associate { it.title.tri
 /** Every topic's name, in the user's order: what the save and Organise sheets offer. */
 fun Library.topicNames(): List<String> = folders.map { it.title }
 
+/**
+ * The topic the Add feed sheet has chosen (#307): [id] while that topic exists, else none (it was
+ * removed on the sheet's Manage topics page, or merged into another).
+ */
+fun chosenTopic(
+    id: String?,
+    topics: List<Folder>,
+): String? = id?.takeIf { chosen -> topics.any { it.id == chosen } }
+
 /** The topics that have feeds, in the user's order: Feeds' places in ☰ and its chips. */
 fun feedTopics(
     feeds: List<Feed>,

@@ -35,6 +35,7 @@ import to.wim.content.data.tagWithFeedFolder
 import to.wim.content.instapaper.SharedLink
 import to.wim.content.rssReaderApp
 import to.wim.content.sync.AccountState
+import to.wim.content.ui.feeds.TopicEditActions
 import to.wim.content.ui.reader.SaveSheet
 import to.wim.content.ui.reader.ProvideShareRecipients
 import to.wim.content.ui.reader.messageRes
@@ -134,6 +135,15 @@ private fun SaveFromTab(
             signedIn = signedIn,
             hasAccount = app.sync::hasAccount,
             sendOnly = sendOnly,
+            // The pen next to Topics (#307), as in the app.
+            topics = library.folders,
+            topicActions =
+                TopicEditActions(
+                    onNew = { title, icon -> app.appScope.launch { app.library.addFolder(title, icon) } },
+                    onEdit = { topic, title, icon -> app.appScope.launch { app.library.updateFolder(topic.id, title, icon) } },
+                    onRemove = { topic -> app.appScope.launch { app.library.removeFolder(topic.id) } },
+                    onReorder = { ids -> app.appScope.launch { app.library.reorderTopics(ids) } },
+                ),
             onSave = { url, choice ->
                 val key = ItemKeys.of(url)
                 if (url == null) return@SaveSheet

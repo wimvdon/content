@@ -10,9 +10,11 @@ Signed in without feeds yet, the screen says **No feeds yet**, with Add feed and
 
 ## Adding feeds
 
-Tap **Add feed** (on the empty screen, or on a topic's page in **Manage topics**, which adds it
-to that topic) and type an
-address. Any of these work:
+Tap **+** in the search bar in Feeds (or **Add feed** on the empty screen, or on a topic's page in
+**Manage topics**, which adds it to that topic). The **Add feed** sheet opens: type an address, pick
+its **Topic** (**No topic**, or one of yours; it starts on the topic you are looking at), and tap
+**Add**. The pen next to **Topic** opens **Manage topics** inside the sheet (see Topics); its back
+arrow returns to the sheet with what you typed. As the address, any of these work:
 
 - a feed address (`https://example.com/feed.xml`);
 - a website (`example.com`): the app looks for the feed the site announces, then tries common
@@ -53,7 +55,7 @@ you save, at once. A feed is in one topic (or none); a saved article can have se
 has a name and an icon, and its place in your order. The same topics are on your phone and in the
 web app.
 
-**One place to manage them: Manage topics** (the icon at the end of the chips under the search bar, or Settings › Feeds › Manage topics). It lists every topic with its icon and what it
+**One place to manage them: Manage topics** (Settings › Feeds › Manage topics). It lists every topic with its icon and what it
 holds: "4 feeds · 12 saved", and "1 feed fails" in red when one can't be downloaded. Drag the grip
 (⋮⋮) to reorder: this order is the one everything uses (the chips and the save sheet).
 Two buttons at the bottom: **Add feed** (it lands without a topic, and you stay on the list) and, above it, **New topic**, which makes one: a name and an icon from the whole Material
@@ -80,7 +82,12 @@ topics: tap one to open the app on it (#251).
 
 **Saved:** an article you save from a feed gets the feed's topic by itself (Save, the swipe, the
 save sheet). In the save and Organise sheets you turn topics on or off, every topic in your order,
-and **New topic** makes one. Saved's chips show the topics your saved articles have, with
+and **New topic** makes one. **Manage topics in a sheet (#307):** the pen next to **Topics** in the
+save and Organise sheets, and next to **Topic** in the Add feed sheet, turns the sheet into Manage
+topics: your topics in your order (drag the grip to reorder), tap one or its pen to rename it,
+change its icon or remove it (the sheet asks first), and **New topic**. The back arrow (or Back)
+returns to the sheet as you left it; a topic you renamed or removed there is renamed or removed in
+the sheet too. Saved's chips show the topics your saved articles have, with
 their icons. A topic that comes in from Instapaper (where it is a tag) or another device is added
 at the end of your topics.
 
@@ -119,14 +126,14 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   side; on the web, a wide window has no bar: the menu at the left does it.
 - Under the search bar, one row of chips. The first chip says **what you see**: in Feeds **Unread**
   or **All**, in Saved **To read** or **Archive**; tap it to pick another. After it come
-  your **topics** (Feeds), or **Liked** and your **topics** (Saved), in your order: tap one to show only that, tap it again or the
-  **X** to show everything again. Changing the first chip keeps the topic you picked. A topic (or
+  your **topics** (Feeds), or **Liked** and your **topics** (Saved), in your order: tap one to show
+  only that, tap it again to show everything again (only one is picked at a time, so there is no X). Changing the first chip keeps the topic you picked. A topic (or
   Liked) with nothing in the state shown has no chip: with Unread, only topics with unread articles;
   in the Archive, only topics with archived articles. The one you picked stays.
 - **There is no ☰ menu in the Android app.** Feeds, Saved and the Inbox are the bar at the
-  bottom; everything inside them is a chip (the topics, the feeds, To read or Archive, Liked). The
-  icon at the end of the chips opens **Manage topics**. **Settings** is the button at the end of the
-  search bar: your Gravatar picture while signed in, else a cogwheel. On the web, a wide window
+  bottom; everything inside them is a chip (the topics, the feeds, To read or Archive, Liked). In the
+  search bar, **+** adds: in Feeds a feed (the Add feed sheet), in Saved a link (the save sheet).
+  **Settings** is the button at the end of the search bar: your Gravatar picture while signed in, else a cogwheel. On the web, a wide window
   shows the sidebar at the left all the time (☰ in a narrow one), with the same places.
 - **Search** (tap the search bar; on the web also the **/** key) searches everything: the articles of all your feeds that are on the device (titles,
   text, feed names and authors) and Saved, archived articles too (titles, websites, descriptions,
@@ -338,7 +345,8 @@ a web link says "No link to save".
 - **Appearance:** Theme (System, Light, Dark) and Dynamic color (wallpaper colours instead of
   the app's blue).
 
-Your topics and their feeds are managed in **Manage topics**, at the end of the chips or in Settings (see Topics).
+Your topics and their feeds are managed in **Manage topics** in Settings (see Topics); the topics
+themselves also with the pen in the Add feed and save sheets.
 
 ## Backup and moving to a new phone
 
@@ -366,8 +374,8 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
 - **Each article is on one list:** **To read** (where everything new arrives) or the **Archive**,
   with any number of topics.
 - **Getting articles in:** **Save** in an article; **swipe a feed article** either way in the list,
-  or press and hold it › **Save** (the save sheet opens, then the message offers **Open**); **Add link** (the button at the bottom right of
-  Saved); and sharing a link to Reader from another app. These go to To read unless you pick
+  or press and hold it › **Save** (the save sheet opens, then the message offers **Open**); **+** in the search bar in
+  Saved (the save sheet, which asks for the address); and sharing a link to Reader from another app. These go to To read unless you pick
   the Archive in the save sheet. A feed article you save stays the same article: its feed, text and
   picture come along, and it isn't copied.
 - **Swipe in To read and Archive:** left archives (with **Undo**; in Archive, back to read),

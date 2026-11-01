@@ -127,4 +127,16 @@ class SaveChoicesTest {
         assertEquals(listOf("News", "Brussels"), typed.tags)
         assertSame(choice, SaveChoices.withTyped(choice, folder = "", tag = "news", folders = emptyList()))
     }
+
+    @Test
+    fun `a topic renamed or removed on the sheet changes its choice too`() {
+        val choice = SaveChoice(tags = listOf("Tech", "News"))
+        assertEquals(listOf("Technology", "News"), SaveChoices.withTopicRenamed(choice, "tech", " Technology ").tags)
+        // Renamed to a topic it has already: one tag.
+        assertEquals(listOf("News"), SaveChoices.withTopicRenamed(choice, "Tech", "news").tags)
+        assertSame(choice, SaveChoices.withTopicRenamed(choice, "Recipes", "Food"))
+        assertSame(choice, SaveChoices.withTopicRenamed(choice, "Tech", " "))
+        assertEquals(listOf("News"), SaveChoices.withoutTopic(choice, "TECH").tags)
+        assertSame(choice, SaveChoices.withoutTopic(choice, "Recipes"))
+    }
 }

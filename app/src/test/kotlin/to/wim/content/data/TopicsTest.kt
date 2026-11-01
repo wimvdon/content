@@ -168,4 +168,11 @@ class TopicsTest {
         assertTrue(Saved.showsLiked(lib, SavedFilter(SavedTab.Archive)))
         assertTrue(Saved.showsLiked(lib, SavedFilter(SavedTab.ToRead, likedOnly = true)))
     }
+
+    @Test
+    fun `the Add feed sheet's topic is none once it is gone`() {
+        assertEquals("f1", chosenTopic("f1", library.folders))
+        assertNull(chosenTopic("gone", library.folders))
+        assertNull(chosenTopic(null, library.folders))
+    }
 }

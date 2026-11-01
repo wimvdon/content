@@ -108,6 +108,36 @@ object SaveChoices {
     }
 
     /**
+     * A topic renamed on the sheet's own Manage topics page (#307): the sheet's choice follows, so
+     * Save doesn't bring the old name back as a topic of its own. Renamed to another topic's name,
+     * the two are one tag. The same choice when it doesn't have the topic.
+     */
+    fun withTopicRenamed(
+        choice: SaveChoice,
+        from: String,
+        to: String,
+    ): SaveChoice {
+        val clean = to.trim()
+        if (clean.isEmpty() || choice.tags.none { it.trim().equals(from.trim(), ignoreCase = true) }) return choice
+        fun isOld(tag: String) = tag.trim().equals(from.trim(), ignoreCase = true)
+        // Joined with a topic the choice has already: that one stays, with its own spelling.
+        val joined = choice.tags.any { !isOld(it) && it.trim().equals(clean, ignoreCase = true) }
+        val tags = if (joined) choice.tags.filterNot(::isOld) else choice.tags.map { if (isOld(it)) clean else it }
+        return choice.copy(tags = tags.distinctBy { it.trim().lowercase() })
+    }
+
+    /** A topic removed on the sheet's Manage topics page (#307): off the choice too. */
+    fun withoutTopic(
+        choice: SaveChoice,
+        name: String,
+    ): SaveChoice =
+        if (choice.tags.none { it.trim().equals(name.trim(), ignoreCase = true) }) {
+            choice
+        } else {
+            choice.copy(tags = choice.tags.filterNot { it.trim().equals(name.trim(), ignoreCase = true) })
+        }
+
+    /**
      * The tags the save sheet offers: every tag in use, then the item's own that aren't in use
      * elsewhere yet (a new one goes last), each once (case ignored). The order doesn't change when
      * a tag is turned on or off, so the chips stay put.

@@ -208,11 +208,12 @@ private fun topicDetail(
     return if (failing == 0) counts else stringResource(R.string.topic_counts, counts, pluralStringResource(R.plurals.topic_failing_count, failing, failing))
 }
 
+/** A topic as a row: its icon in a circle, its name and [detail] (none in a sheet's Manage topics), then [trailing]. */
 @Composable
-private fun TopicLine(
+internal fun TopicLine(
     icon: @Composable () -> Unit,
     title: String,
-    detail: String,
+    detail: String?,
     failing: Boolean,
     lifted: Boolean,
     onClick: () -> Unit,
@@ -233,11 +234,13 @@ private fun TopicLine(
             Box(Modifier.size(40.dp).background(MaterialTheme.colorScheme.secondaryContainer, CircleShape), contentAlignment = Alignment.Center) { icon() }
             Column(Modifier.weight(1f)) {
                 Text(title, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(
-                    detail,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (failing) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                if (detail != null) {
+                    Text(
+                        detail,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (failing) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
             trailing()
         }

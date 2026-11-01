@@ -48,6 +48,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import to.wim.content.R
 import to.wim.content.ui.feeds.LooseFeedActions
+import to.wim.content.ui.feeds.TopicEditActions
 import to.wim.content.ui.feeds.TopicPage
 import to.wim.content.ui.feeds.TopicPageActions
 import to.wim.content.ui.feeds.TopicRow
@@ -124,7 +125,7 @@ import to.wim.content.instapaper.InstapaperNotice
 import to.wim.content.sync.AccountNotice
 import to.wim.content.instapaper.InstapaperState
 import to.wim.content.rssReaderApp
-import to.wim.content.ui.home.AddFeedDialog
+import to.wim.content.ui.home.AddFeedSheet
 import to.wim.content.ui.home.HomeActions
 import to.wim.content.ui.home.HomeScreen
 import to.wim.content.ui.home.HomeState
@@ -310,6 +311,15 @@ fun RssReaderNavigation(
     fun editLibrary(change: (Library) -> Library) {
         app.appScope.launch { repository.edit(change) }
     }
+
+    // Manage topics inside the Add feed and Save sheets (#307): stored at once, like Manage topics itself.
+    val topicActions =
+        TopicEditActions(
+            onNew = { title, icon -> app.appScope.launch { repository.addFolder(title, icon) } },
+            onEdit = { topic, title, icon -> app.appScope.launch { repository.updateFolder(topic.id, title, icon) } },
+            onRemove = { topic -> app.appScope.launch { repository.removeFolder(topic.id) } },
+            onReorder = { ids -> app.appScope.launch { repository.reorderTopics(ids) } },
+        )
 
     // The saved item whose File sheet is open (a swipe right in Saved).
     var fileKey by rememberSaveable { mutableStateOf<String?>(null) }
@@ -804,7 +814,6 @@ fun RssReaderNavigation(
                                 onAddFeed = { addDialogOpen = true },
                                 onImportOpml = importOpml,
                                 onOpenSettings = { push(Screen.Settings) },
-                                onOpenManage = { push(Screen.Feeds) },
                                 onShowFeeds = { section = HomeSection.Feeds },
                                 onShowSaved = { section = HomeSection.Saved },
                                 onShowInbox = { section = HomeSection.Inbox },
@@ -1231,6 +1240,8 @@ fun RssReaderNavigation(
                 fileKey = null
             },
             key = sheetItem.key,
+            topics = library.folders,
+            topicActions = topicActions,
         )
     }
 
@@ -1268,6 +1279,8 @@ fun RssReaderNavigation(
                 }
             },
             onDismiss = { saveOpen = false },
+            topics = library.folders,
+            topicActions = topicActions,
         )
     }
 
@@ -1333,24 +1346,27 @@ fun RssReaderNavigation(
     }
 
     if (addDialogOpen) {
-        AddFeedDialog(
+        // From a topic's page, that topic ("" from Manage topics: none); else the topic being viewed, if any.
+        val fromTopicPage = addIntoTopic
+        AddFeedSheet(
             busy = addBusy,
             error = addError,
-            onAdd = { address ->
+            topics = library.folders,
+            initialTopic = if (fromTopicPage != null) fromTopicPage.ifEmpty { null } else (library.shown(selection) as? FeedSelection.InFolder)?.folderId,
+            onAdd = { address, topicId ->
                 addBusy = true
                 addError = null
                 app.appScope.launch {
-                    // Added to the topic whose page it came from, else to the topic being viewed, if any.
-                    val fromTopicPage = addIntoTopic
-                    val folderId = if (fromTopicPage != null) fromTopicPage.ifEmpty { null } else (library.shown(selection) as? FeedSelection.InFolder)?.folderId
-                    val result = repository.addFeed(address, folderId)
+                    val result = repository.addFeed(address, topicId)
                     addBusy = false
                     val error = result.errorRes()
                     if (error != null) {
-                        addError = resources.getString(error)
+                        // Closed while it looked: the problem comes as a message instead.
+                        if (addDialogOpen) addError = resources.getString(error) else showMessage(resources.getString(error))
                     } else if (result is AddFeedResult.Added) {
                         addDialogOpen = false
                         addIntoTopic = null
+                        // From Manage topics or a topic's page, you stay there; else the new feed shows.
                         if (fromTopicPage == null) {
                             selection = FeedSelection.Single(result.feed.url)
                             section = HomeSection.Feeds
@@ -1359,13 +1375,13 @@ fun RssReaderNavigation(
                     }
                 }
             },
+            // A sheet closes when swiped down too: what it was looking for still comes, as a message.
             onDismiss = {
-                if (!addBusy) {
-                    addDialogOpen = false
-                    addIntoTopic = null
-                    addError = null
-                }
+                addDialogOpen = false
+                addIntoTopic = null
+                addError = null
             },
+            topicActions = topicActions,
         )
     }
 }
