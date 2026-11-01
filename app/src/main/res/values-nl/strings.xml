@@ -338,4 +338,6 @@
         <item quantity="one">%d onderwerp</item>
         <item quantity="other">%d onderwerpen</item>
     </plurals>
+    <string name="account_web_title">Content op het web</string>
+    <string name="account_web_summary">Lees ook op je computer, op content.wim.to, aangemeld met hetzelfde account</string>
 </resources>

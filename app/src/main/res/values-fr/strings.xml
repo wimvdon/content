@@ -349,4 +349,6 @@
         <item quantity="many">%d sujets</item>
         <item quantity="other">%d sujets</item>
     </plurals>
+    <string name="account_web_title">Content sur le web</string>
+    <string name="account_web_summary">Lisez aussi sur votre ordinateur, sur content.wim.to, connecté avec le même compte</string>
 </resources>

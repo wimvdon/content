@@ -43,6 +43,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import to.wim.content.R
+import to.wim.content.ui.home.rememberFolderIconPainter
+import to.wim.content.ui.ExternalApps
+import androidx.compose.foundation.clickable
 import to.wim.content.sync.AccountState
 import to.wim.content.sync.Gravatar
 import to.wim.content.sync.SyncProblem
@@ -84,6 +87,7 @@ fun AccountSection(
                 leadingContent = { Icon(painterResource(R.drawable.ic_cloud_sync), contentDescription = null) },
             )
             EmailLinkForm(R.string.account_email_send, onSendLink)
+            WebAppRow()
             return@SettingsSection
         }
         val email = state.session.email
@@ -143,6 +147,7 @@ fun AccountSection(
             )
             EmailLinkForm(R.string.account_email_send, onSendLink)
         }
+        WebAppRow()
     }
     if (confirmDelete) {
         AlertDialog(
@@ -270,3 +275,18 @@ private fun NotifySharedSwitch(
         },
     )
 }
+
+/** The web app (content.wim.to): the same account on a computer. Tapping it opens it in the browser. */
+@Composable
+private fun WebAppRow() {
+    val context = LocalContext.current
+    ListItem(
+        headlineContent = { Text(stringResource(R.string.account_web_title)) },
+        supportingContent = { Text(stringResource(R.string.account_web_summary)) },
+        leadingContent = { Icon(rememberFolderIconPainter("computer"), contentDescription = null) },
+        trailingContent = { Icon(painterResource(R.drawable.ic_open_in_new), contentDescription = null) },
+        modifier = Modifier.clickable { ExternalApps.openLink(context, WEB_APP_URL) },
+    )
+}
+
+private const val WEB_APP_URL = "https://content.wim.to"

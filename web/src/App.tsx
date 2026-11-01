@@ -32,11 +32,11 @@ export default function App() {
   // Search takes the list's place until it is closed; the article opened from it stays open.
   const [searching, setSearching] = useState(false);
   const [dialog, setDialog] = useState<"add" | "addChoice" | "settings" | null>(null);
-  // Manage feeds and Manage topics, Settings' two buttons: open on their own, so Add feed can open over Manage feeds.
+  // Manage feeds and Manage topics, Settings' two buttons (pages of Settings when opened from there).
   const [manageFeeds, setManageFeeds] = useState(false);
   const [manageTopics, setManageTopics] = useState(false);
-  // Add feed from Manage feeds: without a topic (null); otherwise the topic being viewed.
-  const [addInto, setAddInto] = useState<string | null | undefined>(undefined);
+  // Add feed from Manage feeds: a page of it, without a topic.
+  const [addFromManage, setAddFromManage] = useState(false);
   const [message, setMessage] = useState<Message | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -159,6 +159,24 @@ export default function App() {
     />
   );
 
+  // Manage feeds (with Add feed as its page) and Manage topics: pages of Settings when opened from
+  // there, else dialogs of their own.
+  const manageDialogs = (
+    <>
+      <ManageFeedsDialog
+        open={manageFeeds}
+        onOpenChange={(o) => {
+          setManageFeeds(o);
+          if (!o) setAddFromManage(false);
+        }}
+        onAddFeed={() => setAddFromManage(true)}
+      >
+        {addFromManage ? <AddFeedDialog open onOpenChange={(o) => setAddFromManage(o)} folderId={null} /> : null}
+      </ManageFeedsDialog>
+      <ManageTopicsDialog open={manageTopics} onOpenChange={setManageTopics} />
+    </>
+  );
+
   return (
     <div className="flex h-full">
       <aside className="hidden w-72 shrink-0 border-r bg-muted/40 lg:block">{sidebar}</aside>
@@ -211,30 +229,27 @@ export default function App() {
       <AddFeedDialog
         key={dialog === "add" ? "open" : "closed"}
         open={dialog === "add"}
-        onOpenChange={(o) => {
-          setDialog(o ? "add" : null);
-          if (!o) setAddInto(undefined);
-        }}
-        folderId={addInto !== undefined ? addInto : selection.kind === "folder" ? selection.folderId : null}
+        onOpenChange={(o) => setDialog(o ? "add" : null)}
+        folderId={selection.kind === "folder" ? selection.folderId : null}
       />
-      <ManageFeedsDialog
-        open={manageFeeds}
-        onOpenChange={setManageFeeds}
-        onAddFeed={() => {
-          // Without a topic; Manage feeds stays open under Add feed.
-          setAddInto(null);
-          setDialog("add");
-        }}
-      />
-      <ManageTopicsDialog open={manageTopics} onOpenChange={setManageTopics} />
+      {dialog === "settings" ? null : manageDialogs}
       <SettingsDialog
         key={dialog === "settings" ? "settings" : "closed"}
         open={dialog === "settings"}
-        onOpenChange={(o) => setDialog(o ? "settings" : null)}
+        onOpenChange={(o) => {
+          setDialog(o ? "settings" : null);
+          if (!o) {
+            setManageFeeds(false);
+            setManageTopics(false);
+            setAddFromManage(false);
+          }
+        }}
         onImport={() => fileInput.current?.click()}
         onManageFeeds={() => setManageFeeds(true)}
         onManageTopics={() => setManageTopics(true)}
-      />
+      >
+        {dialog === "settings" ? manageDialogs : null}
+      </SettingsDialog>
       <InstapaperImportDialog />
       <SaveSheet
         onMessage={(text, openKey) =>

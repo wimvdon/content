@@ -1,4 +1,4 @@
-import { ArrowLeft, BookmarkPlus, BookOpenText, ChevronDown, ChevronRight, LayoutList, Palette, Plus, Puzzle, Rss, Tag as TagIcon, Trash2, UserRound } from "lucide-react";
+import { Smartphone, ArrowLeft, BookmarkPlus, BookOpenText, ChevronDown, ChevronRight, LayoutList, Palette, Plus, Puzzle, Rss, Tag as TagIcon, Trash2, UserRound } from "lucide-react";
 import { ConfirmRemove } from "./ConfirmRemove";
 import { EditChips, TopicChips, chip, chipOn } from "./TopicChips";
 import { useEffect, useMemo, useState } from "react";
@@ -20,12 +20,14 @@ import { InstapaperSettings } from "./ServiceSettings";
 import { SwitchRow } from "./ui/switch";
 import { pushSupported } from "@/lib/notifications";
 
+import type { ReactNode } from "react";
+
 type Props = { open: boolean; onOpenChange: (open: boolean) => void };
 
 /**
  * Add feed, opened with a new key each time (App), so the address starts empty. Then its topic as
- * chips (No topic, then every topic with its icon), with Edit topics at the end (Manage topics over
- * this dialog), as on Android.
+ * chips (No topic, then every topic with its icon), with Edit topics at the end (Manage topics as a
+ * page of this dialog, with a back arrow), as on Android.
  */
 export function AddFeedDialog({ open, onOpenChange, folderId }: Props & { folderId: string | null }) {
   const { library } = useApp();
@@ -114,7 +116,7 @@ function exportOpml() {
  * to edit it (name, topic, Remove). A feed that fails to download has its name in red. Add feed at
  * the end (over this dialog). Every change is stored at once, so it has **Done**.
  */
-export function ManageFeedsDialog({ open, onOpenChange, onAddFeed }: Props & { onAddFeed: () => void }) {
+export function ManageFeedsDialog({ open, onOpenChange, onAddFeed, children }: Props & { onAddFeed: () => void; children?: ReactNode }) {
   const { library, problems } = useApp();
   const [editing, setEditing] = useState<Feed | null>(null);
   const groups = useMemo(() => {
@@ -152,6 +154,8 @@ export function ManageFeedsDialog({ open, onOpenChange, onAddFeed }: Props & { o
         </Button>
       </div>
       {editing ? <EditFeedDialog key={editing.url} feed={editing} onClose={() => setEditing(null)} /> : null}
+      {/* Add feed, as a page of this dialog. */}
+      {children}
     </Dialog>
   );
 }
@@ -362,7 +366,8 @@ export function SettingsDialog({
   onImport,
   onManageFeeds,
   onManageTopics,
-}: Props & { onImport: () => void; onManageFeeds: () => void; onManageTopics: () => void }) {
+  children,
+}: Props & { onImport: () => void; onManageFeeds: () => void; onManageTopics: () => void; children?: ReactNode }) {
   const { settings, library, account } = useApp();
   // App opens it with a new key each time, so it starts on the main page.
   const [page, setPage] = useState<SettingsPage | null>(null);
@@ -491,6 +496,8 @@ export function SettingsDialog({
           ) : null}
         </div>
       )}
+      {/* Manage feeds and Manage topics, opened from the two buttons: pages of this dialog. */}
+      {children}
     </Dialog>
   );
 }
@@ -569,6 +576,14 @@ function AccountSection() {
           <EmailLinkForm />
         </>
       )}
+      {/* The Android app, with the same account (its Account section points here, to content.wim.to). No link until it is in the Play Store. */}
+      <div className="flex items-start gap-3 pt-3">
+        <Smartphone className="mt-0.5 size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+        <div className="min-w-0">
+          <p className="text-sm font-medium">{t("androidAppTitle")}</p>
+          <p className="text-sm text-muted-foreground">{t("androidAppSummary")}</p>
+        </div>
+      </div>
       <Dialog
         open={confirmDelete}
         onOpenChange={setConfirmDelete}

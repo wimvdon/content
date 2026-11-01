@@ -24,6 +24,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import to.wim.content.R
+import to.wim.content.ui.reader.ContentSheet
 import to.wim.content.ui.reader.SheetHeader
 import to.wim.content.ui.theme.AppShapes
 
@@ -38,7 +39,7 @@ fun AddChoiceSheet(
     onSaveArticle: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+    ContentSheet(onDismiss = onDismiss) {
         Column(
             Modifier.padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),

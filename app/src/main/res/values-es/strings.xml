@@ -349,4 +349,6 @@
         <item quantity="many">%d temas</item>
         <item quantity="other">%d temas</item>
     </plurals>
+    <string name="account_web_title">Content en la web</string>
+    <string name="account_web_summary">Lee también en tu ordenador, en content.wim.to, con la misma cuenta</string>
 </resources>

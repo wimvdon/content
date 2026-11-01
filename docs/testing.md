@@ -18,7 +18,7 @@ On every pull request and push to `main`:
 | Lint | `./gradlew lintDebug` | Android API misuse, missing translations, accessibility, hard-coded text, … (errors fail the build) |
 | Debug build | `./gradlew assembleDebug` | Compile errors; produces the APK to test on the phone |
 | Release build | `./gradlew assembleRelease` | Problems caused by R8 minification / resource shrinking |
-| Web app and feed loader | `npm test`, `npm run lint`, `npm run build` in `web/`; `npm test`, `npm run typecheck` in `worker/` | Parser ids that match Android, feed links only http and https (no `javascript:`), reading the Android app's sync file, merge (also settings), one sync with the account (conflicts merged again), the account client and live connection, OPML, HTML cleaning (picture sizes, lazy-loaded and tracking pictures, paragraph breaks), embed cards, items (one per link, memberships, tags), the library in IndexedDB (only changes written, older libraries read, Saved from before #106 moved in), Saved (`test/saved.test.ts`: the tabs, Liked, tags and type, folders and tags renamed or removed, saving into a folder with a note, filing and archiving, the card's note, highlight or description, an item shown like its feed article), search over saved items (folders, notes and highlights too), the Search tab's list without words and its filters, per-item sync (the same cases as Android's `ItemSyncTest`, `test/syncRows.test.ts`), Save and share's sending (the same cases as `SendToTest`, `test/sendTo.test.ts`), a saved article's reading progress (where it is, where to scroll back to, what is worth storing: `test/readingProgress.test.ts`), when to load the full article, the full-article cache, reader text settings, mark as read on scroll; the Worker's origin check, address rules, redirects (garbled ones too), answers cut off halfway, size and type limits, and its accounts (device keys, versions and conflicts, encryption, sign-out and delete; item rows: changes since a version, conflicts, deletions, pages, encrypted under ids that don't show the key) |
+| Web app and feed loader | `npm test`, `npm run lint`, `npm run build` in `web/`; `npm test`, `npm run typecheck` in `worker/` | Parser ids that match Android, feed links only http and https (no `javascript:`), reading the Android app's sync file, merge (also settings), one sync with the account (conflicts merged again), the account client and live connection, OPML, HTML cleaning (picture sizes, lazy-loaded and tracking pictures, paragraph breaks), embed cards, items (one per link, memberships, tags), the library in IndexedDB (only changes written, older libraries read, Saved from before #106 moved in), Saved (`test/saved.test.ts`: the tabs, Liked, tags and type, folders and tags renamed or removed, saving into a folder with a note, filing and archiving, the card's note, highlight or description, an item shown like its feed article), search over saved items (folders, notes and highlights too), the Search tab's list without words and its filters, per-item sync (the same cases as Android's `ItemSyncTest`, `test/syncRows.test.ts`), Save and share's sending (the same cases as `SendToTest`, `test/sendTo.test.ts`), a saved article's reading progress (where it is, where to scroll back to, what is worth storing: `test/readingProgress.test.ts`), when to load the full article, the full-article cache, reader text settings, mark as read on scroll, when the header slides away (`test/header.test.ts`); the Worker's origin check, address rules, redirects (garbled ones too), answers cut off halfway, size and type limits, and its accounts (device keys, versions and conflicts, encryption, sign-out and delete; item rows: changes since a version, conflicts, deletions, pages, encrypted under ids that don't show the key) |
 
 Reports (test results, lint HTML) are attached to every CI run as the `reports` artifact, also
 when the run fails.
@@ -202,12 +202,17 @@ and then (always before a release):
       each), then Account, Integrations, Theme, Article list and Article view; each page opens and back
       returns to the list. **Manage feeds** (a sheet): the feeds as chips by topic (a failing one in
       red); drag one by its grip within its topic; tap one: the Edit feed sheet (rename, another topic,
-      Remove asks in the sheet); Add feed opens over it. **Manage topics** (a sheet): the topics as
+      Remove asks in the sheet), shown in the same sheet with a back arrow; Add feed the same. **Manage topics** (a sheet): the topics as
       chips with grip and pen; drag to reorder, tap to rename, change the icon or remove; New topic.
       **Integrations**: OPML import and export, then Instapaper. Web: the same in the Settings dialog.
 - [ ] **Edit topics:** in Add feed, Edit feed and Save/Organise, Edit topics after the chips opens
-      Manage topics over the sheet; rename a topic there, tap Done: back in the sheet, with what you
-      typed, and the chip renamed. Web: the same.
+      Manage topics in the same sheet, with a back arrow; rename a topic there, tap the arrow (or
+      Back): back in the sheet, with what you typed, and the chip renamed. Never two sheets on top
+      of each other. Web: the same in one dialog (Escape goes back a page); Settings › Manage feeds
+      and Manage topics are pages of the Settings dialog.
+- [ ] **Header:** the tabs are secondary tabs (a thin line under the chosen one). Scroll the list
+      down: the search bar, tabs and chips slide away; scroll up a little: they come back. Web: the
+      same.
 - [ ] **Swipe between tabs:** swipe the Feeds list left: Read; right: Unread. The same in Saved (To
       read, All). Web on a phone: the same with a touch swipe.
 - [ ] **Search:** one chip row: Feeds (menu: All feeds, tick several feeds, Clear), Saved, then

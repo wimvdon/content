@@ -53,6 +53,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import to.wim.content.R
+import to.wim.content.ui.reader.ContentSheet
 import to.wim.content.data.Folder
 import to.wim.content.data.chosenTopic
 import to.wim.content.ui.feeds.TopicEditActions
@@ -164,10 +165,7 @@ fun AddFeedSheet(
         onAdd(address, chosen)
     }
     val canAdd = address.isNotBlank() && !busy
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-    ) {
+    ContentSheet(onDismiss = onDismiss) {
         val focus = remember { FocusRequester() }
         LaunchedEffect(Unit) {
             if (!focused) {

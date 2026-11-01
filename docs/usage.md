@@ -14,8 +14,8 @@ Tap **+** in the search bar (in Feeds, Saved or the Inbox: it is the same everyw
 **Subscribe to feed**. (Also: **Add feed** on the empty screen, or in **Manage feeds** in Settings.)
 The other choice, **Save article**, saves one article by its address (see Saved). The **Add feed**
 sheet opens: type an address, pick its **Topic** (**No topic**, or one of yours; it starts on the
-topic you are looking at), and tap **Add**. **Edit topics** after the topic chips opens Manage topics
-over the sheet; **Done** brings you back to it as you left it (see Topics). As the address, any of these work:
+topic you are looking at), and tap **Add**. **Edit topics** after the topic chips shows Manage topics
+in the same sheet; its back arrow (or Back) brings you back to Add feed as you left it (see Topics). As the address, any of these work:
 
 - a feed address (`https://example.com/feed.xml`);
 - a website (`example.com`): the app looks for the feed the site announces, then tries common
@@ -69,7 +69,8 @@ by topic (in your order, then **No topic**); a feed that can't be downloaded has
 Drag a chip by its grip to reorder the feeds of a topic. Tap one for the **Edit feed** sheet: its
 name (empty brings back the feed's own), its address, why it fails if it does, its topic as chips,
 **Remove** (it asks first, in the sheet) and **Save**. **Add feed** at the end adds one without a
-topic, and Manage feeds stays open under it. OPML import and export are in Settings › **Integrations**.
+topic, in the same sheet; afterwards you are back in Manage feeds. A sheet opened from within a sheet
+always opens in it like this, with a back arrow at the top left, never as a second sheet on top. OPML import and export are in Settings › **Integrations**.
 
 **Feeds:** the chips under the search bar list the topics that have feeds, in your order, then
 the feeds without a topic, each as a chip with its site icon. Pick a topic and a second row of
@@ -85,7 +86,7 @@ search bar asks the same as on the phone, and Settings has the same two buttons 
 
 **Saved:** an article you save from a feed gets the feed's topic by itself (Save, the long press, the
 save sheet). In the save and Organise sheets you turn topics on or off, every topic in your order,
-and **Edit topics** opens Manage topics over the sheet. **Editing topics:** in Manage topics (phone and web) every topic has a grip and a pen
+and **Edit topics** shows Manage topics in the same sheet, with a back arrow. **Editing topics:** in Manage topics (phone and web) every topic has a grip and a pen
 on every topic: drag a chip to reorder your topics (on the web also ← → on a focused chip), tap one
 to rename it, change its icon or remove it (the sheet asks first); renaming it to another topic's
 name joins the two. **Done** ends it. A topic you renamed or removed is renamed or removed in the
@@ -104,6 +105,10 @@ works once, for 30 minutes. No password. Your Gravatar picture shows next to you
 have one. **Add an email address** adds a second address to the same library. Instapaper is only a
 connected service (#215), not a way to sign in (Settings › Integrations › Instapaper): connecting or
 disconnecting it doesn't sign you in or out.
+
+The Account section also points to the other app: on the phone, **Content on the web** opens
+content.wim.to in the browser (sign in there with the same address); in the web app, **Content for
+Android** says it is coming to the Google Play Store (no link until it is there).
 
 Only Load full articles and Mark as read on scroll sync. How the app looks (theme, the reader's
 font, size, spacing and page colour, Show images and the list view) stays on each device, so a

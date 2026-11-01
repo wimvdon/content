@@ -1,5 +1,6 @@
 import { Plus, Archive, ArchiveRestore, ArrowLeft, Bell, BookmarkPlus, BookOpen, CheckCheck, Circle, CircleCheck, ExternalLink, Folder as FolderGlyph, Heart, Highlighter, Link2, Menu, Newspaper, Quote, RefreshCw, Rss, Search, Share2, StickyNote, Tag as TagIcon, Trash2, X, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { headerHidden } from "@/lib/header";
 import { RemoveDialog } from "./SavedActions";
 import { app, useApp } from "@/lib/app";
 import { snippet } from "@/lib/html";
@@ -99,8 +100,10 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onAdd, onImport, onU
     });
   };
 
+  const header = useCollapsingHeader();
   return (
     <section className="flex h-full min-w-0 flex-col" aria-label={title}>
+      <CollapsingHeader hidden={header.hidden} onShow={header.show}>
       <SearchBar onMenu={onMenu} onSearch={onSearch}>
         {/* + is the same in every place, as on Android: it asks Subscribe to feed or Save article. */}
         <Button variant="ghost" size="icon" onClick={onAdd} aria-label={t("addTitle")} title={t("addTitle")}>
@@ -134,7 +137,18 @@ function FeedArticles({ openKey, onOpen, onMenu, onAddFeed, onAdd, onImport, onU
           {problems.size > 0 ? <p className="px-4 pb-1 text-xs text-destructive">{plural("feedsFailed", problems.size)}</p> : null}
         </>
       ) : null}
-      <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-6" role="feed" aria-busy={refreshing} onScroll={onScroll} ref={listRef} {...swipe}>
+      </CollapsingHeader>
+      <div
+        className="min-h-0 flex-1 overflow-y-auto px-2 pb-6"
+        role="feed"
+        aria-busy={refreshing}
+        onScroll={(e) => {
+          header.onScroll(e);
+          onScroll(e);
+        }}
+        ref={listRef}
+        {...swipe}
+      >
         {!loaded || (refreshing && library.articles.length === 0) ? (
           <Skeletons />
         ) : library.feeds.length === 0 && !account ? (
@@ -264,8 +278,10 @@ function SavedArticles({
   // Saved's tabs, as on Android: To read and All.
   const tabIndex = Math.max(0, savedStates.findIndex((s) => sameTab(s, filter.tab)));
   const swipe = useSwipe((i) => set({ tab: savedStates[i] }), tabIndex, savedStates.length);
+  const header = useCollapsingHeader();
   return (
     <section className="flex h-full min-w-0 flex-col" aria-label={t("saved")}>
+      <CollapsingHeader hidden={header.hidden} onShow={header.show}>
       <SearchBar onMenu={onMenu} onSearch={onSearch}>
         {/* + is the same in every place, as on Android: it asks Subscribe to feed or Save article. */}
         <Button variant="ghost" size="icon" onClick={onAdd} aria-label={t("addTitle")} title={t("addTitle")}>
@@ -298,7 +314,8 @@ function SavedArticles({
         filtered={!plain}
         onClear={() => set({ likedOnly: false, tags: [] })}
       />
-      <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-6" role="feed" {...swipe}>
+      </CollapsingHeader>
+      <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-6" role="feed" onScroll={header.onScroll} {...swipe}>
         {!loaded ? (
           <Skeletons />
         ) : items.length === 0 ? (
@@ -495,12 +512,47 @@ function Tabs({ labels, selected, onSelect }: { labels: string[]; selected: numb
           onClick={() => i !== selected && onSelect(i)}
           className={cn(
             "relative h-11 flex-1 cursor-pointer text-sm font-medium hover:bg-muted/60",
-            i === selected ? "text-primary after:absolute after:inset-x-6 after:bottom-0 after:h-[3px] after:rounded-t-full after:bg-primary" : "text-muted-foreground",
+            // Material's secondary tabs, as on Android: the chosen one in the text colour with a thin line the tab's width.
+            i === selected ? "text-foreground after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-primary" : "text-muted-foreground",
           )}
         >
           {label}
         </button>
       ))}
+    </div>
+  );
+}
+
+/**
+ * The header (search bar, tabs, chips) slides away while scrolling down the list and comes back when
+ * scrolling up, as on Android (CollapsingHeader): more room for the articles. Back at the top, or with
+ * the keyboard in the header, it shows.
+ */
+function useCollapsingHeader() {
+  const [hidden, setHidden] = useState(false);
+  const last = useRef(0);
+  // While the header slides, the list's height changes and the browser may move the scroll a little: not the reader's doing.
+  const still = useRef(0);
+  const set = (value: boolean) => {
+    if (value === hidden) return;
+    still.current = Date.now() + 300;
+    setHidden(value);
+  };
+  const onScroll = (e: React.UIEvent<HTMLElement>) => {
+    const list = e.currentTarget;
+    const top = list.scrollTop;
+    const by = top - last.current;
+    last.current = top;
+    if (top > 8 && Date.now() < still.current) return;
+    set(headerHidden(hidden, top, by, top + list.clientHeight >= list.scrollHeight - 2));
+  };
+  return { hidden, onScroll, show: () => setHidden(false) };
+}
+
+function CollapsingHeader({ hidden, onShow, children }: { hidden: boolean; onShow: () => void; children: React.ReactNode }) {
+  return (
+    <div className={cn("grid shrink-0 transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none", hidden ? "grid-rows-[0fr]" : "grid-rows-[1fr]")} onFocus={onShow}>
+      <div className="min-h-0 overflow-hidden">{children}</div>
     </div>
   );
 }

@@ -2,6 +2,26 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-01: One sheet with pages, secondary tabs (#323)
+
+The owner found the search bar, tabs and chips heavy on Android, and sheets opening on top of each
+other confusing:
+- **A sheet opened from within a sheet is a page of it** (`ContentSheet`): Edit topics in Add feed,
+  Edit feed and Save/Organise; a feed and Add feed in Manage feeds; New topic and a topic in Manage
+  topics. The page's header is a back arrow and its title; the arrow or Back (the phone's back
+  gesture, Escape on the web) shows the sheet under it as it was. Material advises against stacking
+  dialogs or sheets; one surface whose content changes keeps the place clear, and Android's back
+  gesture works step by step. The pages stay composed while hidden (each is declared inside the one
+  under it), so what was typed stays. The web's `Dialog` does the same with a portal into the open
+  dialog, and Settings' Manage feeds and Manage topics are pages of the Settings dialog. Rejected: a
+  navigation library inside the sheet (a dependency, and the sheets' state already lives where they
+  are declared).
+- **Secondary tabs** instead of primary ones: Material's tabs for views within one place, lighter
+  (a thin line under the chosen tab, no bold indicator). Rejected: Unread/Read in the bottom bar (that
+  bar is for the app's places, Feeds and Saved; mixing views into it confuses the two), a segmented
+  button (it suggests tapping, while the lists swipe) and a filter chip (what #205 had, too hidden).
+- **The header slides away** while scrolling down on the web too, as it already did on Android.
+
 ## 2026-11-01: Claude Code sessions don't build the APK before pushing
 
 Sessions ran `./gradlew testDebugUnitTest lintDebug assembleDebug` before every push, and CI then

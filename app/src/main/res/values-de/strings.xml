@@ -338,4 +338,6 @@
         <item quantity="one">%d Thema</item>
         <item quantity="other">%d Themen</item>
     </plurals>
+    <string name="account_web_title">Content im Web</string>
+    <string name="account_web_summary">Lies auch am Computer, auf content.wim.to, mit demselben Konto angemeldet</string>
 </resources>

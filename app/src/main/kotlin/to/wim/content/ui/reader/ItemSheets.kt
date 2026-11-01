@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -149,10 +150,7 @@ fun SaveSheet(
         onCancel()
         onDismiss()
     }
-    ModalBottomSheet(
-        onDismissRequest = cancel,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-    ) {
+    ContentSheet(onDismiss = cancel) {
         Column(
             Modifier
                 .verticalScroll(rememberScrollState())
@@ -312,7 +310,8 @@ private fun SavedParts(
 
 /**
  * A sheet's heading with **Cancel** at its top right (#305), the same in every sheet: away from the
- * button that saves at the bottom. [enabled] false shows Cancel as off (while busy).
+ * button that saves at the bottom. [enabled] false shows Cancel as off (while busy). On a page of a
+ * sheet ([ContentSheet]) a back arrow before the title takes its place.
  */
 @Composable
 internal fun SheetHeader(
@@ -322,6 +321,16 @@ internal fun SheetHeader(
     /** Done in a sheet whose changes are stored at once (Manage feeds, Manage topics); else Cancel. */
     closeLabel: String = stringResource(R.string.action_cancel),
 ) {
+    // A page of a sheet (ContentSheet): a back arrow takes you back to the sheet under it.
+    if (LocalInSheetPage.current) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onCancel, enabled = enabled, modifier = Modifier.offset(x = (-12).dp)) {
+                Icon(painterResource(R.drawable.ic_arrow_back), contentDescription = stringResource(R.string.action_back))
+            }
+            Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f).offset(x = (-8).dp).semantics { heading() })
+        }
+        return
+    }
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f).semantics { heading() })
         TextButton(onClick = onCancel, enabled = enabled) { Text(closeLabel) }

@@ -277,8 +277,9 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   (Gravatar, 32dp circle) while signed in with Show images on, else a cogwheel. The web's sidebar is
   always on screen, so there both sections stay open until you fold one, and stay as you left them.
   Back from Saved, the Inbox or a feed section goes to All articles.
-- Three levels, the same in Feeds and Saved: the navigation bar says where (Feeds or Saved); **primary
-  tabs** under the search bar say which view (Feeds: **Unread** and **Read**; Saved: **To read** and
+- Three levels, the same in Feeds and Saved: the navigation bar says where (Feeds or Saved); **secondary
+  tabs** under the search bar (lighter than primary ones: the chosen one in the text colour with a
+  thin line its width; owner's choice, #323) say which view (Feeds: **Unread** and **Read**; Saved: **To read** and
   **All**); one row of chips under them says which group: the topics in Feeds, Liked (heart) and
   the topics in Saved, in the topics' order, each only when it has something in the tab shown (the
   chosen one stays). Group chips have no check mark and chosen ones keep their weight, so a chip
@@ -354,7 +355,12 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
 - Sheets and dialogs (#256): a bottom sheet for anything done with an article or that needs room
   (Save and share, Add feed with its topic chips (#307), Content's share sheet, highlights, Aa,
   Report a problem, the folder sheet with its icon search); a dialog only to confirm something or
-  type one name (remove, rename, Add feed from the share menu); editing a feed is a sheet, like Add feed. No dialog opens on top of a sheet.
+  type one name (remove, rename, Add feed from the share menu); editing a feed is a sheet, like Add feed. No dialog opens on top of a sheet,
+  and no sheet on top of another (#323): a sheet opened from within one (Edit topics in Add feed, a
+  feed or Add feed in Manage feeds, New topic in Manage topics) becomes a **page of the same sheet**,
+  its header a back arrow and the title (`ContentSheet`, `SheetHeader`); the arrow or Back shows the
+  sheet under it as it was. The web: the same in one dialog (Escape is Back there), and Manage feeds
+  and Manage topics open as pages of the Settings dialog.
 - Content's share sheet (#251): a `ModalBottomSheet` with the article's title and site, **Send with
   Content** the same To field as in the Save and share sheet, then a full-width Send button, then the apps as 48dp icons with their names,
   four to a row, Copy link and More last.
@@ -371,7 +377,8 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   In a narrow window the web app has the same Feeds | Saved navigation bar at the bottom.
   Settings is the last button of the search bar (the account's picture or a cogwheel).
   The header (the search bar, the tabs, then the chip rows) is one block that slides away
-  while scrolling down and comes back as soon as you scroll up (Material's "enter always"),
+  while scrolling down and comes back as soon as you scroll up (Material's "enter always"; the web
+  app too since #323),
   staying on `surface` while articles pass under it (no grey band behind the tabs and chips, owner's
   choice); articles sit under sticky day headers (Today,
   Yesterday, date) in `primary` Title Small; Mark all as read is an icon-only FAB. The web
