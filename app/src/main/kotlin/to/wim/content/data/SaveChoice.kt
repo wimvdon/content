@@ -119,8 +119,11 @@ object SaveChoices {
     ): SaveChoice {
         val clean = to.trim()
         if (clean.isEmpty() || choice.tags.none { it.trim().equals(from.trim(), ignoreCase = true) }) return choice
-        val tags = choice.tags.map { if (it.trim().equals(from.trim(), ignoreCase = true)) clean else it }.distinctBy { it.trim().lowercase() }
-        return choice.copy(tags = tags)
+        fun isOld(tag: String) = tag.trim().equals(from.trim(), ignoreCase = true)
+        // Joined with a topic the choice has already: that one stays, with its own spelling.
+        val joined = choice.tags.any { !isOld(it) && it.trim().equals(clean, ignoreCase = true) }
+        val tags = if (joined) choice.tags.filterNot(::isOld) else choice.tags.map { if (isOld(it)) clean else it }
+        return choice.copy(tags = tags.distinctBy { it.trim().lowercase() })
     }
 
     /** A topic removed on the sheet's Manage topics page (#307): off the choice too. */
