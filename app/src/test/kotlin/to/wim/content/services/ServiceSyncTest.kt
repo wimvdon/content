@@ -189,6 +189,16 @@ class ServiceSyncTest {
     }
 
     @Test
+    fun `an email that only Instapaper has is never saved there again as a link`() {
+        // In Saved by Instapaper's page (it came from there), with no row: deleted there, or rows forgotten.
+        var lib = Library().addToReadingList("https://www.instapaper.com/read/77", "A newsletter", 1).first
+        val fake = FakeService()
+        runBlocking { ServiceSync.run(fake, ServiceState()) { change -> change(lib).also { lib = it } } }
+        assertTrue(fake.calls.none { it.startsWith("add") })
+        assertTrue(fake.entries.isEmpty())
+    }
+
+    @Test
     fun `a new article goes with Content's text to a service that takes it, only when saved recently`() {
         val day = 24 * 60 * 60 * 1000L
         val now = 30 * day

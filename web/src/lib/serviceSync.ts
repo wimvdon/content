@@ -8,6 +8,7 @@
  * importService, once. A failed call keeps everything and is tried again.
  */
 
+import { instapaperBookmarkId } from "./instapaperLinks";
 import { cleanKey, cleanTags, itemOf, keyOfLink, looseKeyOfLink, newItem, putItem, type Item } from "./items";
 import type { Library } from "./library";
 import { mergeTags } from "./syncRows";
@@ -147,6 +148,9 @@ export async function syncService(
     for (const item of library.items) {
       if (!item.readingList) continue;
       const have = rows[item.key];
+      // An article that only exists in Instapaper (a forwarded email, by Instapaper's page) is never
+      // saved there again as a link.
+      if (!have && instapaperBookmarkId(item.url) !== null) continue;
       if (!have) {
         const recent = now - item.readingList.addedAt <= CONTENT_DAYS * DAY_MS;
         const text = service.content && recent ? await textOf(item).catch(() => null) : null;

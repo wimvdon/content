@@ -17,7 +17,8 @@ enabled = false
 ALLOWED_ORIGINS = "https://content.wim.to,https://content-web.wim-d57.workers.dev,https://content-worker.wim.to,http://localhost:5173"
 
 # Instapaper sign-in (docs/instapaper.md). The client ID is public. The client secret is NOT here:
-# set it as a Worker secret named INSTAPAPER_CLIENT_SECRET.
+# set it as a Worker secret named INSTAPAPER_CLIENT_SECRET. The Instaparser key (the text of forwarded
+# emails, /instapaper/text) is a secret too: INSTAPARSER_API_KEY.
 INSTAPAPER_CLIENT_ID = "94f820c94dc04d0386c71d7b0c26bd80"
 # Must equal a callback URI registered with the Instapaper application, character for character.
 INSTAPAPER_REDIRECT_URI = "https://content.wim.to/instapaper/callback"

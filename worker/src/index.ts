@@ -24,6 +24,8 @@ export interface Env {
   INSTAPAPER_REDIRECT_URI?: string;
   /** The client secret. Only ever a Worker secret, never in this repository. */
   INSTAPAPER_CLIENT_SECRET?: string;
+  /** Instaparser key (a secret), for the text of Instapaper articles without a web address: forwarded emails (`/instapaper/text`). */
+  INSTAPARSER_API_KEY?: string;
   /** The accounts' Durable Objects (wrangler.toml) and the secret their data is encrypted with. */
   ACCOUNTS?: DurableObjectNamespace;
   ACCOUNT_KEY?: string;

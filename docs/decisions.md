@@ -2,6 +2,25 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-01: Forwarded emails from Instapaper, with Instapaper's text through an Instaparser key
+
+A user's forwarded emails never reached Saved: Instapaper gives them no address (`url` null,
+"private content"), and Content left every article without a web address out. Now:
+- They come in with **Instapaper's own page as their address** (`instapaper.com/read/<id>`), so the
+  rest of the app (keys, sync, Open in browser) treats them as any article. Rejected: a new kind of
+  item without an address (every part of both apps and the sync format assumes one).
+- **Their text comes from Instapaper's parser**, through the feed loader with Content's Instaparser
+  key (`POST /instapaper/text`), only for these articles, only when one is opened, then stored in the
+  account like any text, so each costs one credit of the free tier (1,000 a month, the owner's key).
+  This reverses #134 for these articles only: there is no web page to take the text from, and the key
+  is now free. Articles with an address keep Content's own text. Rejected: showing only a card that
+  opens Instapaper (no reading in Content, no highlights); signing in to instapaper.com inside Content
+  (Android only, and depends on Instapaper's page).
+- The key is a Worker secret (`INSTAPARSER_API_KEY`), like the client secret: never in the apps.
+- A cursor from before (no `p:` prefix) reads the whole account once, so the emails skipped come in.
+- The API reference (now readable) confirms the `since` paging both apps use: offset by bookmarks
+  plus deleted ids, stop at a short page.
+
 ## 2026-11-01: One sheet with pages, secondary tabs (#323)
 
 The owner found the search bar, tabs and chips heavy on Android, and sheets opening on top of each

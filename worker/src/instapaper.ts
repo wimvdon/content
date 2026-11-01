@@ -5,6 +5,10 @@
  *    access token. This is the only place the client secret exists. Both apps use it.
  *  - /instapaper/api/...: forwards a few Instapaper calls for the web app, because Instapaper's
  *    API doesn't allow calls from a browser (no CORS). The Android app calls Instapaper directly.
+ *  - POST /instapaper/text {"id": 123}: the text of one of the user's Instapaper articles that has
+ *    no web address (a forwarded email, a PDF), from Instapaper's parser with Content's Instaparser
+ *    key, the only place the key exists. Both apps use it, only for such articles, once each (the
+ *    text is then stored in the account like any article's). Answers {"title", "html"}.
  *
  * Nothing is stored or logged. The access token only passes through. Instapaper is only a
  * connected service (#215): signing in to it opens no Content account.
@@ -14,6 +18,8 @@ import type { Env } from "./index";
 
 export const API_BASE = "https://www.instapaper.com/api/2";
 export const TOKEN_URL = "https://www.instapaper.com/oauth2/token";
+/** The largest text passed on (a long newsletter is well under this). */
+export const MAX_TEXT_BYTES = 2 * 1024 * 1024;
 const MAX_BODY_BYTES = 64 * 1024;
 /** Saving a bookmark may carry the article's text (#247), so it may be larger. */
 export const MAX_SAVE_BYTES = 1024 * 1024;
@@ -51,11 +57,13 @@ const API_ROUTES: { method: string; path: RegExp }[] = [
 
 export async function handleInstapaper(request: Request, env: Env, fetcher: Fetcher, url: URL): Promise<Response> {
   const isToken = url.pathname === "/instapaper/token";
+  const isText = url.pathname === "/instapaper/text";
   const isApi = url.pathname.startsWith("/instapaper/api/");
-  if (!isToken && !isApi) return plain(404, "Not found");
+  if (!isToken && !isText && !isApi) return plain(404, "Not found");
 
   // The web app always sends its address. The Android app sends none: fine for the token exchange
-  // (it needs a one-time code and the redirect address is fixed here), never for forwarded calls.
+  // (it needs a one-time code and the redirect address is fixed here) and for an article's text (it
+  // needs the user's Instapaper token), never for forwarded calls.
   const origin = request.headers.get("Origin");
   if (origin ? !allowedOrigins(env).includes(origin) : isApi) return plain(403, "Not allowed");
   const cors = origin ? corsHeaders(origin) : {};
@@ -67,7 +75,54 @@ export async function handleInstapaper(request: Request, env: Env, fetcher: Fetc
     if (!success) return plain(429, "Too many requests", cors);
   }
 
+  if (isText) return articleText(request, env, fetcher, cors);
   return isToken ? exchangeCode(request, env, fetcher, cors) : forward(request, fetcher, url, cors);
+}
+
+/**
+ * The text of the user's Instapaper article [id], parsed by Instapaper with Content's Instaparser
+ * key (the API only gives the text to its own developer without one). Only the title and the HTML
+ * go back; nothing is kept. Instaparser's own limits pass on as they are: 402 when the month's
+ * credits are used up, 429 when called too fast; the apps then offer to open it in Instapaper.
+ */
+async function articleText(request: Request, env: Env, fetcher: Fetcher, cors: Record<string, string>): Promise<Response> {
+  if (request.method !== "POST") return plain(405, "Only POST", cors);
+  const key = env.INSTAPARSER_API_KEY;
+  if (!key) return plain(503, "Article texts aren't set up on this server", cors);
+  const auth = request.headers.get("Authorization") ?? "";
+  if (!/^Bearer [\w.~+/=-]{8,512}$/.test(auth)) {
+    return plain(401, "Send the Instapaper token as Authorization: Bearer <token>", cors);
+  }
+  const body = await readJson(request);
+  const id = body && typeof body.id === "number" && Number.isSafeInteger(body.id) && body.id > 0 ? body.id : 0;
+  if (!id) return plain(400, 'Send the bookmark as JSON: {"id": 123}', cors);
+
+  let upstream: Response;
+  try {
+    upstream = await fetcher(`${API_BASE}/bookmarks/${id}/parse`, {
+      method: "POST",
+      headers: { Authorization: auth, Accept: "application/json", "Content-Type": "application/json", "User-Agent": USER_AGENT },
+      body: JSON.stringify({ instaparser_api_key: key }),
+      redirect: "manual",
+    });
+  } catch {
+    return plain(502, "Couldn't reach Instapaper", cors);
+  }
+  if (upstream.status >= 300 && upstream.status < 400) return plain(502, "Bad redirect", cors);
+  if (!upstream.ok) return plain(upstream.status, "Instapaper didn't give the text", cors);
+  const text = await upstream.text();
+  if (text.length > MAX_TEXT_BYTES) return plain(413, "Too large", cors);
+  type Parsed = { metadata?: { title?: unknown }; content?: { body?: unknown } } | null;
+  let parsed: Parsed;
+  try {
+    parsed = JSON.parse(text) as Parsed;
+  } catch {
+    parsed = null;
+  }
+  const html = typeof parsed?.content?.body === "string" ? parsed.content.body : "";
+  if (!html.trim()) return plain(502, "Instapaper sent no text", cors);
+  const title = typeof parsed?.metadata?.title === "string" ? parsed.metadata.title : "";
+  return json({ title, html }, 200, cors);
 }
 
 async function exchangeCode(

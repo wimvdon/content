@@ -289,6 +289,66 @@ describe("/instapaper/api", () => {
   });
 });
 
+describe("POST /instapaper/text", () => {
+  const withKey: Env = { ...env, INSTAPARSER_API_KEY: "parser-key" };
+  function textRequest(body: unknown, init: { origin?: string | null; method?: string; auth?: string | null } = {}) {
+    const origin = init.origin === undefined ? APP : init.origin;
+    const auth = init.auth === undefined ? BEARER.Authorization : init.auth;
+    return new Request("https://worker.example/instapaper/text", {
+      method: init.method ?? "POST",
+      headers: { ...(origin ? { Origin: origin } : {}), ...(auth ? { Authorization: auth } : {}), "Content-Type": "application/json" },
+      body: init.method === "GET" ? undefined : JSON.stringify(body),
+    });
+  }
+  const parsed = { metadata: { title: "A newsletter", private_source: "email", category: 1 }, content: { body: "<p>Hello</p>", words: 1 } };
+
+  it("asks Instapaper's parser with the key and the user's token, and gives back the title and text", async () => {
+    const { fetcher, calls } = upstream(() => jsonResponse(parsed));
+    const response = await handle(textRequest({ id: 42 }), withKey, fetcher);
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ title: "A newsletter", html: "<p>Hello</p>" });
+    expect(calls).toHaveLength(1);
+    expect(calls[0].input).toBe(`${API_BASE}/bookmarks/42/parse`);
+    expect(calls[0].init?.method).toBe("POST");
+    expect((calls[0].init?.headers as Record<string, string>).Authorization).toBe(BEARER.Authorization);
+    expect(JSON.parse(String(calls[0].init?.body))).toEqual({ instaparser_api_key: "parser-key" });
+    expect(calls[0].init?.redirect).toBe("manual");
+  });
+
+  it("answers the Android app, which sends no Origin, but no other web site", async () => {
+    const { fetcher } = upstream(() => jsonResponse(parsed));
+    expect((await handle(textRequest({ id: 42 }, { origin: null }), withKey, fetcher)).status).toBe(200);
+    expect((await handle(textRequest({ id: 42 }, { origin: "https://evil.example" }), withKey, fetcher)).status).toBe(403);
+  });
+
+  it("needs the key, a token and a bookmark id, and only POST", async () => {
+    const { fetcher, calls } = upstream(() => jsonResponse(parsed));
+    expect((await handle(textRequest({ id: 42 }), env, fetcher)).status).toBe(503);
+    expect((await handle(textRequest({ id: 42 }, { auth: null }), withKey, fetcher)).status).toBe(401);
+    expect((await handle(textRequest({ id: "42" }), withKey, fetcher)).status).toBe(400);
+    expect((await handle(textRequest({ id: -1 }), withKey, fetcher)).status).toBe(400);
+    expect((await handle(textRequest({}, { method: "GET" }), withKey, fetcher)).status).toBe(405);
+    expect(calls).toHaveLength(0);
+  });
+
+  it("passes on used-up credits, the parser's limits and articles without text", async () => {
+    for (const status of [402, 403, 429, 400]) {
+      const { fetcher } = upstream(() => jsonResponse({ error: { code: status } }, status));
+      expect((await handle(textRequest({ id: 42 }), withKey, fetcher)).status).toBe(status);
+    }
+    const empty = upstream(() => jsonResponse({ metadata: {}, content: { body: "" } }));
+    expect((await handle(textRequest({ id: 42 }), withKey, empty.fetcher)).status).toBe(502);
+    const offline = upstream(() => Promise.reject(new Error("down")));
+    expect((await handle(textRequest({ id: 42 }), withKey, offline.fetcher)).status).toBe(502);
+  });
+
+  it("stops at the rate limit", async () => {
+    const { fetcher } = upstream(() => jsonResponse(parsed));
+    const limited: Env = { ...withKey, LIMITER: { limit: async () => ({ success: false }) } };
+    expect((await handle(textRequest({ id: 42 }), limited, fetcher)).status).toBe(429);
+  });
+});
+
 describe("unknown /instapaper paths", () => {
   it("are not found", async () => {
     const { fetcher } = upstream(() => jsonResponse({}));

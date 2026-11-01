@@ -99,7 +99,12 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   Instapaper what you take off the reading list. An article you saved in the last week also goes
   with the text Content shows for it (the article as Content took it from its website, #247), so
   Instapaper shows the same text; the web app does the same. On the app owner's own account it also asks
-  Instapaper for its text of an article you open, which is kept on your device only. The web app
+  Instapaper for its text of an article you open, which is kept on your device only. An Instapaper
+  article without a web address (an email you forwarded to Instapaper, a PDF) comes into Saved with
+  Instapaper's own page as its address; when you open it, the app asks the owner's feed loader for its
+  text, which asks Instapaper's parser for it with your Instapaper token and the app's Instaparser key
+  and passes the text back without keeping or logging it. That text is then stored in your Content
+  account like the text of any saved article, so it is asked for only once. The web app
   reads and changes your saved list (archive, like, delete, move to a folder, tags, folders).
   **Sync highlights with Instapaper** (off unless you turn it on, per device): the passage you
   highlighted and its note go to that article in Instapaper, and the app reads the article's

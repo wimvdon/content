@@ -4,13 +4,13 @@ import { positionOf, scrollFor } from "@/lib/readingProgress";
 import { app, useApp } from "@/lib/app";
 import { useShare } from "./useShare";
 import { MAX_REPORT_COMMENT, REPORT_PROBLEMS, report, textOf, type ReportProblem } from "@/lib/articleReport";
-import { extractArticle, needsFullText, wantsFullText } from "@/lib/fullArticle";
-import { cached, cachedNow, keep } from "@/lib/fullArticleStore";
+import { needsFullText, wantsFullText } from "@/lib/fullArticle";
+import { cachedNow, keep } from "@/lib/fullArticleStore";
 import { formatDateTime, t, type Key } from "@/lib/i18n";
 import { itemForArticle, type Highlight } from "@/lib/items";
 import { articleKey, sortTime, type Article } from "@/lib/library";
 import { hostOf, isItemArticle, siteOf, sourceOf } from "@/lib/saved";
-import { FetchError, fetchViaProxy } from "@/lib/proxy";
+import { FetchError } from "@/lib/proxy";
 import { resolveText } from "@/lib/sharedText";
 import { sanitizeArticle } from "@/lib/sanitize";
 import { FeedIcon } from "./FeedIcon";
@@ -70,12 +70,7 @@ export function ArticleView({
       const html = await resolveText(
         savedKey !== null,
         () => (savedKey ? app.storedText(savedKey) : Promise.resolve(null)),
-        async () => {
-          const known = await cached(link);
-          if (known) return known;
-          const page = await fetchViaProxy(link, true);
-          return extractArticle(page.text, page.url);
-        },
+        () => app.articleText(link),
         (own) => (savedKey ? app.storeText(savedKey, own) : Promise.resolve(null)),
       );
       if (html) void keep(link, html);

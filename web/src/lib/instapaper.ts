@@ -114,6 +114,27 @@ export function parseCallback(search: string): Callback {
 type Fetch = (input: string, init?: RequestInit) => Promise<Response>;
 const browserFetch: Fetch = (input, init) => fetch(input, init);
 
+/**
+ * The text of an Instapaper article without a web address (a forwarded email: instapaperLinks.ts),
+ * from Instapaper's parser through the feed loader, which adds Content's Instaparser key. Null when
+ * there is none: offline, the month's free credits used up (402) or no text to give; the reader then
+ * offers to open it in Instapaper. Asked once per article: the text is then stored in the account.
+ */
+export async function instapaperText(token: string, bookmarkId: number, doFetch: Fetch = browserFetch, proxy = PROXY_URL): Promise<string | null> {
+  try {
+    const response = await doFetch(`${proxy}/instapaper/text`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ id: bookmarkId }),
+    });
+    if (!response.ok) return null;
+    const body = (await response.json().catch(() => null)) as { html?: unknown } | null;
+    return typeof body?.html === "string" && body.html.trim() ? body.html : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Swaps the one-time code for an access token, through the Worker (it adds the client secret). */
 export async function exchangeCode(code: string, doFetch: Fetch = browserFetch, proxy = PROXY_URL): Promise<Session> {
   let response: Response;

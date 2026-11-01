@@ -110,7 +110,6 @@ import to.wim.content.ui.home.SearchScreen
 import to.wim.content.ui.home.SearchState
 import to.wim.content.data.FeedSelection
 import to.wim.content.data.FeedTab
-import to.wim.content.data.FullArticle
 import to.wim.content.data.Library
 import to.wim.content.data.Settings
 import to.wim.content.data.needsFullText
@@ -946,7 +945,7 @@ fun RssReaderNavigation(
                                     SharedText.resolve(
                                         saved,
                                         stored = { item?.let { app.sync.storedText(it.key) } },
-                                        extract = { (app.fullArticles.load(link) as? FullArticle.Loaded)?.html },
+                                        extract = { app.articleText(link) },
                                         store = { own -> item?.let { app.sync.storeText(it.key, own) } },
                                     )
                                 if (html != null) {
