@@ -295,6 +295,15 @@ export function includes(lib: Library, selection: Selection, a: Article): boolea
   }
 }
 
+/**
+ * Switching from All to Unread (2026-11-02), as on Android: a chosen tag, folder or feed with nothing
+ * unread lets go (All), since its chip isn't there in Unread; one with unread articles stays chosen.
+ */
+export function selectionForUnread(lib: Library, selection: Selection): Selection {
+  if (selection.kind === "all" || selection.kind === "saved") return selection;
+  return lib.articles.some((a) => !a.read && includes(lib, selection, a)) ? selection : { kind: "all" };
+}
+
 export function unreadKeys(lib: Library, selection: Selection): Set<string> {
   return new Set(lib.articles.filter((a) => !a.read && includes(lib, selection, a)).map(articleKey));
 }

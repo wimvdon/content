@@ -870,6 +870,8 @@ fun RssReaderNavigation(
                                     },
                                     onUnreadOnlyChange = {
                                         readThisVisit = emptySet()
+                                        // To Unread: a chip with nothing unread there lets go (hidden words count).
+                                        if (it) selection = listed.selectionForUnread(shownSelection)
                                         app.appScope.launch { app.settings.setUnreadOnly(it) }
                                     },
                                     onOpenArticle = { article ->

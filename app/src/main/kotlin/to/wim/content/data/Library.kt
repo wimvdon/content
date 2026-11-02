@@ -411,6 +411,13 @@ data class Library(
 
     fun unreadCount(selection: FeedSelection): Int = articles.count { selection.includes(it) && !it.read }
 
+    /**
+     * Switching from All to Unread (2026-11-02): a chosen tag, folder or feed with nothing unread
+     * lets go (All), since its chip isn't there in Unread; one with unread articles stays chosen.
+     */
+    fun selectionForUnread(selection: FeedSelection): FeedSelection =
+        if (selection != FeedSelection.All && unreadCount(selection) == 0) FeedSelection.All else selection
+
     private fun FeedSelection.includes(article: Article): Boolean =
         when (this) {
             FeedSelection.All -> feed(article.feedUrl) != null

@@ -343,6 +343,12 @@ class AppStore {
     if (unreadOnly === this.state.settings.unreadOnly) return;
     this.updateSettings({ unreadOnly });
     this.set({ readThisVisit: new Set() });
+    // To Unread: a chip with nothing unread there lets go (hidden words count), as on Android.
+    if (unreadOnly) {
+      const listed = withoutHidden(this.state.library, hiddenWords(this.state.settings.hiddenWords));
+      const next = L.selectionForUnread(listed, this.state.selection);
+      if (next !== this.state.selection) this.select(next);
+    }
   }
 
   private fetch = (url: string) => fetchViaProxy(url);

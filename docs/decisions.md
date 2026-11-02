@@ -2,6 +2,13 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-02: Switching to Unread lets go of a chip with nothing unread
+
+Owner's choice. With a tag or feed chosen in All, switching to Unread kept it chosen even when it had
+nothing unread: an empty list under a chip that Unread otherwise hides. Now such a choice lets go
+(All, every unread article); one that has unread articles stays chosen. Hidden words count (an
+article they hide isn't unread there). Phone and web (the web's sidebar too).
+
 ## 2026-11-02: A message closes on a tap elsewhere and when you move on
 
 Owner's choice. A message at the bottom (Saved to To read, Archived, …) now closes when you tap
