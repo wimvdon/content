@@ -27,7 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.SnackbarHost
+import to.wim.content.ui.MessageHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -156,7 +156,7 @@ fun SettingsScreen(
         title = stringResource(R.string.menu_settings),
         backLabel = stringResource(R.string.action_back),
         onBack = actions.onBack,
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { MessageHost(snackbarHostState) },
     ) {
         item(key = "manage") {
             Row(
@@ -251,7 +251,7 @@ fun SettingsPageScreen(
         title = stringResource(page.titleRes()),
         backLabel = stringResource(R.string.action_back),
         onBack = actions.onBack,
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { MessageHost(snackbarHostState) },
     ) {
         when (page) {
             SettingsPage.Account ->

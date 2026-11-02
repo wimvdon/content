@@ -25,7 +25,9 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Modifier
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -229,8 +231,10 @@ fun RssReaderNavigation(
     val library = libraryOrNull ?: Library()
     val snackbar = remember { SnackbarHostState() }
     val uiScope = rememberCoroutineScope()
-    // One message at a time: a new one replaces the one showing, so they never queue up.
+    // One message at a time: a new one replaces the one showing, so they never queue up; a tap
+    // elsewhere or moving to another screen closes it (2026-11-02).
     val messages = remember(uiScope) { LatestOnly(uiScope) }
+    val messageArea = remember { MessageArea() }
 
     val backStack = rememberSaveable(saver = BackStackSaver) { mutableStateListOf<Screen>(Screen.Home) }
     var selection by rememberSaveable(stateSaver = SelectionSaver) { mutableStateOf<FeedSelection>(FeedSelection.All) }
@@ -267,8 +271,11 @@ fun RssReaderNavigation(
         if (backStack.size > 1) screenStates.removeState(Screen.encode(backStack.removeAt(backStack.lastIndex)))
     }
 
+    /** The place a message belongs to: the screen, and on Home its section (Feeds, Saved, Inbox). */
+    fun messagePlace(): Any = backStack.last().let { if (it == Screen.Home) it to section else it }
+
     fun showMessage(text: String) {
-        messages.launch { snackbar.showSnackbar(text) }
+        messages.launch(messagePlace()) { snackbar.showSnackbar(text) }
     }
 
     /** A feed's new name and topic, from its dialog in Manage topics or on a topic's page. */
@@ -294,7 +301,7 @@ fun RssReaderNavigation(
         action: String,
         onAction: () -> Unit,
     ) {
-        messages.launch {
+        messages.launch(messagePlace()) {
             if (snackbar.showSnackbar(text, actionLabel = action, duration = SnackbarDuration.Short) == SnackbarResult.ActionPerformed) onAction()
         }
     }
@@ -750,378 +757,384 @@ fun RssReaderNavigation(
 
     val appDark = current.appearance.isDark(isSystemInDarkTheme())
     val axisOffset = with(LocalDensity.current) { 30.dp.roundToPx() }
-    AnimatedContent(
-        targetState = backStack.size to backStack.last(),
-        transitionSpec = { Motion.sharedAxisX(forward = targetState.first > initialState.first, offsetPx = axisOffset) },
-        contentKey = { it.second },
-        label = "screen",
-    ) { (_, screen) ->
-        screenStates.SaveableStateProvider(Screen.encode(screen)) {
-            when (screen) {
-                Screen.Home -> {
-                    SystemBarsFollowTheme(appDark)
-                    // A removed feed or folder can't stay selected.
-                    val shownSelection = library.shown(selection)
-                    val shownFilter = remember(library, savedFilter) { Saved.shown(library, savedFilter) }
-                    // Back goes up a level: from Saved to Feeds, from a feed to its topic, from a topic to
-                    // All; back on All leaves the app.
-                    BackHandler(enabled = backStack.size == 1 && (shownSelection != FeedSelection.All || section != HomeSection.Feeds)) {
-                        if (section != HomeSection.Feeds) {
-                            // Back from Saved keeps what Feeds showed (#157).
-                            section = HomeSection.Feeds
-                        } else {
-                            readThisVisit = emptySet()
-                            selection = shownSelection.up(library.feeds) ?: FeedSelection.All
+    // Moving to another screen (or section) closes a message shown on the one before.
+    val place = messagePlace()
+    LaunchedEffect(place) { messages.movedTo(place) }
+    CompositionLocalProvider(LocalMessageArea provides messageArea) {
+        AnimatedContent(
+            targetState = backStack.size to backStack.last(),
+            modifier = Modifier.closesMessageOnTap(messageArea) { messages.cancel() },
+            transitionSpec = { Motion.sharedAxisX(forward = targetState.first > initialState.first, offsetPx = axisOffset) },
+            contentKey = { it.second },
+            label = "screen",
+        ) { (_, screen) ->
+            screenStates.SaveableStateProvider(Screen.encode(screen)) {
+                when (screen) {
+                    Screen.Home -> {
+                        SystemBarsFollowTheme(appDark)
+                        // A removed feed or folder can't stay selected.
+                        val shownSelection = library.shown(selection)
+                        val shownFilter = remember(library, savedFilter) { Saved.shown(library, savedFilter) }
+                        // Back goes up a level: from Saved to Feeds, from a feed to its topic, from a topic to
+                        // All; back on All leaves the app.
+                        BackHandler(enabled = backStack.size == 1 && (shownSelection != FeedSelection.All || section != HomeSection.Feeds)) {
+                            if (section != HomeSection.Feeds) {
+                                // Back from Saved keeps what Feeds showed (#157).
+                                section = HomeSection.Feeds
+                            } else {
+                                readThisVisit = emptySet()
+                                selection = shownSelection.up(library.feeds) ?: FeedSelection.All
+                            }
                         }
-                    }
-                    // Without the articles hidden by their words (#277): the lists, counts and chips.
-                    val listed = remember(library, current.hiddenWords) { library.withoutHidden(ArticleFilter.parse(current.hiddenWords)) }
-                    val articles =
-                        remember(listed, shownSelection, readThisVisit, current.unreadOnly) {
-                            listed.articlesFor(shownSelection, FeedTab.of(current.unreadOnly), keep = readThisVisit)
+                        // Without the articles hidden by their words (#277): the lists, counts and chips.
+                        val listed = remember(library, current.hiddenWords) { library.withoutHidden(ArticleFilter.parse(current.hiddenWords)) }
+                        val articles =
+                            remember(listed, shownSelection, readThisVisit, current.unreadOnly) {
+                                listed.articlesFor(shownSelection, FeedTab.of(current.unreadOnly), keep = readThisVisit)
+                            }
+                        val unreadCounts = remember(listed) { listed.unreadCounts() }
+                        val savedItems = remember(library, shownFilter) { Saved.items(library, shownFilter) }
+                        // What others shared arrives with a sync (#167): take it in when the Inbox shows, not only at the next one.
+                        LaunchedEffect(section) { if (section == HomeSection.Inbox) app.appScope.launch { app.sync.syncIfDue() } }
+                        val minutes by produceState(emptyMap<String, Int>(), library.items, library.articles, textWords) {
+                            value = withContext(Dispatchers.Default) { readingMinutes(library, textWords) }
                         }
-                    val unreadCounts = remember(listed) { listed.unreadCounts() }
-                    val savedItems = remember(library, shownFilter) { Saved.items(library, shownFilter) }
-                    // What others shared arrives with a sync (#167): take it in when the Inbox shows, not only at the next one.
-                    LaunchedEffect(section) { if (section == HomeSection.Inbox) app.appScope.launch { app.sync.syncIfDue() } }
-                    val minutes by produceState(emptyMap<String, Int>(), library.items, library.articles, textWords) {
-                        value = withContext(Dispatchers.Default) { readingMinutes(library, textWords) }
-                    }
-                    HomeScreen(
-                        state =
-                            HomeState(
-                                feeds = library.feeds,
-                                folders = library.folders,
-                                markReadOnScroll = current.markReadOnScroll,
-                                listView = current.listView,
-                                articles = articles,
-                                selection = shownSelection,
-                                unreadOnly = current.unreadOnly,
-                                unreadCounts = unreadCounts,
-                                refreshing = refreshing || refreshRunning,
-                                hasAnyArticles = library.articles.isNotEmpty(),
-                                loaded = libraryOrNull != null,
-                                showImages = current.showImages,
-                                section = section,
-                                saved =
-                                    SavedHome(
-                                        filter = shownFilter,
-                                        items = savedItems,
-                                        folders = remember(library) { Saved.folders(library) },
-                                        tags = remember(library, shownFilter) { Saved.chipTags(library, shownFilter) },
-                                        showsLiked = remember(library, shownFilter) { Saved.showsLiked(library, shownFilter) },
-                                        minutes = minutes,
-                                        library = library,
-                                        titleFont = current.reader.font.fontFamily(),
-                                        listView = current.listView,
-                                    ),
-                                toReadCount = remember(library) { library.items.count { Saved.isIn(it, SavedTab.ToRead) } },
-                                signedIn = accountState is AccountState.SignedIn,
-                                inboxUnread = remember(library) { Inbox.unread(library) },
-                                inbox =
-                                    if (accountState !is AccountState.SignedIn) {
-                                        null
-                                    } else {
-                                        InboxHome(
-                                            items = remember(library) { Inbox.items(library) },
+                        HomeScreen(
+                            state =
+                                HomeState(
+                                    feeds = library.feeds,
+                                    folders = library.folders,
+                                    markReadOnScroll = current.markReadOnScroll,
+                                    listView = current.listView,
+                                    articles = articles,
+                                    selection = shownSelection,
+                                    unreadOnly = current.unreadOnly,
+                                    unreadCounts = unreadCounts,
+                                    refreshing = refreshing || refreshRunning,
+                                    hasAnyArticles = library.articles.isNotEmpty(),
+                                    loaded = libraryOrNull != null,
+                                    showImages = current.showImages,
+                                    section = section,
+                                    saved =
+                                        SavedHome(
+                                            filter = shownFilter,
+                                            items = savedItems,
+                                            folders = remember(library) { Saved.folders(library) },
+                                            tags = remember(library, shownFilter) { Saved.chipTags(library, shownFilter) },
+                                            showsLiked = remember(library, shownFilter) { Saved.showsLiked(library, shownFilter) },
+                                            minutes = minutes,
                                             library = library,
-                                            onOpen = { item ->
-                                                editLibrary { Inbox.markRead(it, item.key) }
-                                                openItem(item)
+                                            titleFont = current.reader.font.fontFamily(),
+                                            listView = current.listView,
+                                        ),
+                                    toReadCount = remember(library) { library.items.count { Saved.isIn(it, SavedTab.ToRead) } },
+                                    signedIn = accountState is AccountState.SignedIn,
+                                    inboxUnread = remember(library) { Inbox.unread(library) },
+                                    inbox =
+                                        if (accountState !is AccountState.SignedIn) {
+                                            null
+                                        } else {
+                                            InboxHome(
+                                                items = remember(library) { Inbox.items(library) },
+                                                library = library,
+                                                onOpen = { item ->
+                                                    editLibrary { Inbox.markRead(it, item.key) }
+                                                    openItem(item)
+                                                },
+                                                onToggleRead = { item -> editLibrary { Inbox.markRead(it, item.key, read = item.sharedBy?.read != true) } },
+                                                onSave = { item -> readLater(item.url, item.title, inReader = false) },
+                                                onShare = { item -> share(ReadingLists.article(item, library)) },
+                                                onRemove = { item ->
+                                                    editLibrary { Inbox.remove(it, item.key) }
+                                                    showMessage(resources.getString(R.string.inbox_removed), resources.getString(R.string.action_undo)) {
+                                                        editLibrary { lib -> lib.item(item.key)?.let { lib.putItem(it.copy(sharedBy = item.sharedBy)) } ?: lib.putItem(item) }
+                                                    }
+                                                },
+                                            )
+                                        },
+                                    topicChips = remember(listed, current.unreadOnly, shownSelection) { listed.feedChips(FeedTab.of(current.unreadOnly), shownSelection.chipTag(library.folders)) },
+                                    feedChipsShown = remember(listed, current.unreadOnly) { listed.feedsWithArticles(FeedTab.of(current.unreadOnly)) },
+                                    accountEmail = accountEmail,
+                                ),
+                            snackbarHostState = snackbar,
+                            actions =
+                                HomeActions(
+                                    onSendLink = { email, result ->
+                                        uiScope.launch { result(runCatching { app.account.sendLink(email) }.isSuccess) }
+                                    },
+                                    onSelect = {
+                                        // The same feed or folder again keeps the articles read this visit (#157).
+                                        if (it != selection) readThisVisit = emptySet()
+                                        selection = it
+                                        section = HomeSection.Feeds
+                                    },
+                                    onUnreadOnlyChange = {
+                                        readThisVisit = emptySet()
+                                        app.appScope.launch { app.settings.setUnreadOnly(it) }
+                                    },
+                                    onOpenArticle = { article ->
+                                        readThisVisit = readThisVisit + article.key
+                                        openArticle(article)
+                                    },
+                                    onToggleRead = { article ->
+                                        // Stays in its tab (Unread or Read) until the list changes, like opened articles.
+                                        readThisVisit = readThisVisit + article.key
+                                        app.appScope.launch { repository.setRead(article.key, !article.read) }
+                                    },
+                                    // Long-press › Save, like the reader's Save button.
+                                    onReadLater = { article -> article.link?.let { readLater(it, article.title, inReader = false) } },
+                                    onRefresh = ::refresh,
+                                    onMarkAllRead = {
+                                        // Done with the section: nothing read stays in the Unread list (#157).
+                                        readThisVisit = emptySet()
+                                        app.appScope.launch {
+                                            val keys = repository.markAllRead(shownSelection)
+                                            if (keys.isEmpty()) return@launch
+                                            showMessage(resources.getQuantityString(R.plurals.marked_read, keys.size, keys.size), resources.getString(R.string.action_undo)) {
+                                                app.appScope.launch { repository.setRead(keys, false) }
+                                            }
+                                        }
+                                    },
+                                    onScrolledPast = { keys ->
+                                        // Kept in the Unread list until it changes, like opened articles.
+                                        readThisVisit = readThisVisit + keys
+                                        app.appScope.launch { repository.setRead(keys, true) }
+                                    },
+                                    onAddFeed = { addDialogOpen = true },
+                                    onImportOpml = importOpml,
+                                    onOpenSettings = { push(Screen.Settings) },
+                                    onShowFeeds = { section = HomeSection.Feeds },
+                                    onShowSaved = { section = HomeSection.Saved },
+                                    onShowInbox = { section = HomeSection.Inbox },
+                                    onSavedFilter = {
+                                        savedFilter = it
+                                        section = HomeSection.Saved
+                                    },
+                                    onOpenItem = ::openItem,
+                                    onAdd = { addChoiceOpen = true },
+                                    onArchiveItem = ::archive,
+                                    onFileItem = {
+                                        fileKey = it.key
+                                        fileNote = false
+                                    },
+                                    onShareArticle = ::share,
+                                    onShareItem = { item -> share(ReadingLists.article(item, library)) },
+                                    onOpenSearch = { push(Screen.Search) },
+                                ),
+                        )
+                    }
+
+                    is Screen.Reader -> {
+                        val itemKey = ReadingLists.itemKeyOf(screen.articleKey)
+                        // A feed article, or an item of the reading list; a saved feed article is both (#104).
+                        val feedArticle = if (itemKey == null) library.article(screen.articleKey) else null
+                        val item = itemKey?.let { library.item(it) } ?: feedArticle?.let { library.itemFor(it) }
+                        val fromFeed = feedArticle ?: item?.let { ReadingLists.feedArticle(it, library) }
+                        // Always Reader's own text: the feed's, else the full article it extracts (#134).
+                        val article = feedArticle ?: fromFeed ?: item?.let { ReadingLists.article(it, library) }
+                        // The full article loads by itself when the setting is on and the feed only has a
+                        // summary; the reader's menu switches between the two (null: follow the setting).
+                        var fullTextChoice by rememberSaveable(screen.articleKey) { mutableStateOf<Boolean?>(null) }
+                        val isSummary = remember(article?.html, article?.link) { article != null && needsFullText(article.html, article.link) }
+                        val wantFullText = article?.link != null && wantsFullText(fullTextChoice, current.fullArticles, fromFeed != null, isSummary, saved = item?.readingList != null)
+                        var fullText by remember(screen.articleKey) { mutableStateOf<FullTextState>(FullTextState.Off) }
+                        // Signed in to the article's site (#180): its text loads again, with the sign-in.
+                        val signedIn = article?.link?.let { SiteSignIns.forUrl(it, siteSignIns) }
+                        LaunchedEffect(screen.articleKey, wantFullText, signedIn?.savedAt) {
+                            val link = article?.link
+                            fullText =
+                                if (!wantFullText || link == null) {
+                                    FullTextState.Off
+                                } else {
+                                    fullText = FullTextState.Loading
+                                    // A saved article shows the one text every device shows (stored in the account),
+                                    // unless this device is signed in to its site: then its own full text (#180).
+                                    val saved = item?.readingList != null && signedIn == null
+                                    val html =
+                                        SharedText.resolve(
+                                            saved,
+                                            stored = { item?.let { app.sync.storedText(it.key) } },
+                                            extract = { app.articleText(link) },
+                                            store = { own -> item?.let { app.sync.storeText(it.key, own) } },
+                                        )
+                                    if (html != null) {
+                                        // Kept with the item, so its reading time is known.
+                                        item?.let { repository.putText(it.key, ReadingLists.EXTRACTED, html) }
+                                        FullTextState.Shown(html)
+                                    } else {
+                                        FullTextState.Failed
+                                    }
+                                }
+                        }
+                        // Opening a feed article marks it as read.
+                        LaunchedEffect(screen.articleKey) { fromFeed?.let { a -> app.appScope.launch { repository.setRead(a.key, true) } } }
+                        // A saved article's highlights made in Instapaper's own apps come in when it opens (#164).
+                        LaunchedEffect(screen.articleKey) { item?.takeIf { it.readingList != null }?.let { app.services.lookAtHighlights(it.key) } }
+                        // One that came in without the page's picture (the inbox, Instapaper, or saved before #268)
+                        // gets it when it opens (#275).
+                        LaunchedEffect(screen.articleKey) { item?.takeIf { it.needsDescription() }?.let { app.appScope.launch { repository.describe(it.key) } } }
+                        SystemBarsFollowTheme(current.reader.isDark(appDark))
+                        ReaderTheme(style = current.reader, appearance = current.appearance, appDark = appDark) {
+                            ReaderScreen(
+                                article = article,
+                                feed = fromFeed?.let { library.feed(it.feedUrl) } ?: item?.let { ReadingLists.source(it, library) },
+                                style = current.reader,
+                                // The same with or without a service, which only syncs Saved.
+                                fullText = fullText,
+                                showImages = current.showImages,
+                                snackbarHostState = snackbar,
+                                highlights =
+                                    (item?.url ?: article?.link)?.let { link ->
+                                        ReaderHighlights(
+                                            highlights = item?.highlights.orEmpty(),
+                                            // A feed article that isn't saved yet goes to To read with its first highlight.
+                                            onAdd = { h -> editLibrary { it.addHighlight(link, article?.title, h, System.currentTimeMillis()) } },
+                                            onNote = { id, note -> item?.let { i -> editLibrary { it.setHighlightNote(i.key, id, note) } } },
+                                            onRemove = { id -> item?.let { i -> editLibrary { it.removeHighlight(i.key, id) } } },
+                                            notCopied = item?.let { notCopied[it.key] }.orEmpty(),
+                                        )
+                                    },
+                                actions =
+                                    ReaderActions(
+                                        onBack = ::pop,
+                                        onStyleChange = { style -> app.appScope.launch { app.settings.setReaderStyle(style) } },
+                                        onSave = { article?.let { it.link?.let { link -> readLater(link, it.title, inReader = true) } } },
+                                        onShare = { article?.let(::share) },
+                                        onOpenInBrowser = { article?.let { a -> a.link?.let { ExternalApps.openInTab(context, it, a.title) } } },
+                                        // Only while not signed in to the site yet (#251); Settings forgets a sign-in.
+                                        onSignIn = article?.link?.takeIf { signedIn == null && SiteSignIns.siteOf(it) != null }?.let { link -> { push(Screen.SiteSignIn(link)) } },
+                                        onReport =
+                                            article?.link?.let { link ->
+                                                { problem, comment ->
+                                                    val version = runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull().orEmpty()
+                                                    // The text the reader shows, so it can be compared with the page (#251).
+                                                    val text = ArticleReport.textOf((fullText as? FullTextState.Shown)?.html ?: article.html)
+                                                    val report = ArticleReport.report(link, problem, comment, "Android", version, text)
+                                                    if (report.cut) copyToClipboard(text)
+                                                    ExternalApps.openLink(context, report.url)
+                                                }
                                             },
-                                            onToggleRead = { item -> editLibrary { Inbox.markRead(it, item.key, read = item.sharedBy?.read != true) } },
-                                            onSave = { item -> readLater(item.url, item.title, inReader = false) },
-                                            onShare = { item -> share(ReadingLists.article(item, library)) },
-                                            onRemove = { item ->
-                                                editLibrary { Inbox.remove(it, item.key) }
-                                                showMessage(resources.getString(R.string.inbox_removed), resources.getString(R.string.action_undo)) {
-                                                    editLibrary { lib -> lib.item(item.key)?.let { lib.putItem(it.copy(sharedBy = item.sharedBy)) } ?: lib.putItem(item) }
+                                        onMarkUnread =
+                                            feedArticle?.let { a ->
+                                                {
+                                                    app.appScope.launch { repository.setRead(a.key, false) }
+                                                    pop()
+                                                }
+                                            },
+                                        onOpenLink = { url -> ExternalApps.openInTab(context, url, null) },
+                                        onToggleFullText = { fullTextChoice = !wantFullText },
+                                    ),
+                                item =
+                                    item?.let { i ->
+                                        ReaderItem(
+                                            item = i,
+                                            // Archive (or back to To read) keeps the reader open: a message says so.
+                                            onArchive = { archive(i) },
+                                            onTopics = {
+                                                fileKey = i.key
+                                                fileNote = false
+                                            },
+                                            onNote = {
+                                                fileKey = i.key
+                                                fileNote = true
+                                            },
+                                            onLike = { editLibrary { it.setLiked(i.key, !i.liked) } },
+                                            // Asks first; once removed, the reader closes.
+                                            onRemove = { askRemove(i.key, fromReader = true) },
+                                            onProgress = { progress ->
+                                                if (kotlin.math.abs(progress - i.progress) >= 0.01f) {
+                                                    editLibrary { lib -> lib.changeItem(i.key) { if (it.readingList == null) it else it.copy(progress = progress) } }
                                                 }
                                             },
                                         )
                                     },
-                                topicChips = remember(listed, current.unreadOnly, shownSelection) { listed.feedChips(FeedTab.of(current.unreadOnly), shownSelection.chipTag(library.folders)) },
-                                feedChipsShown = remember(listed, current.unreadOnly) { listed.feedsWithArticles(FeedTab.of(current.unreadOnly)) },
-                                accountEmail = accountEmail,
-                            ),
-                        snackbarHostState = snackbar,
-                        actions =
-                            HomeActions(
-                                onSendLink = { email, result ->
-                                    uiScope.launch { result(runCatching { app.account.sendLink(email) }.isSuccess) }
-                                },
-                                onSelect = {
-                                    // The same feed or folder again keeps the articles read this visit (#157).
-                                    if (it != selection) readThisVisit = emptySet()
-                                    selection = it
-                                    section = HomeSection.Feeds
-                                },
-                                onUnreadOnlyChange = {
-                                    readThisVisit = emptySet()
-                                    app.appScope.launch { app.settings.setUnreadOnly(it) }
-                                },
-                                onOpenArticle = { article ->
-                                    readThisVisit = readThisVisit + article.key
-                                    openArticle(article)
-                                },
-                                onToggleRead = { article ->
-                                    // Stays in its tab (Unread or Read) until the list changes, like opened articles.
-                                    readThisVisit = readThisVisit + article.key
-                                    app.appScope.launch { repository.setRead(article.key, !article.read) }
-                                },
-                                // Long-press › Save, like the reader's Save button.
-                                onReadLater = { article -> article.link?.let { readLater(it, article.title, inReader = false) } },
-                                onRefresh = ::refresh,
-                                onMarkAllRead = {
-                                    // Done with the section: nothing read stays in the Unread list (#157).
-                                    readThisVisit = emptySet()
-                                    app.appScope.launch {
-                                        val keys = repository.markAllRead(shownSelection)
-                                        if (keys.isEmpty()) return@launch
-                                        showMessage(resources.getQuantityString(R.plurals.marked_read, keys.size, keys.size), resources.getString(R.string.action_undo)) {
-                                            app.appScope.launch { repository.setRead(keys, false) }
-                                        }
-                                    }
-                                },
-                                onScrolledPast = { keys ->
-                                    // Kept in the Unread list until it changes, like opened articles.
-                                    readThisVisit = readThisVisit + keys
-                                    app.appScope.launch { repository.setRead(keys, true) }
-                                },
-                                onAddFeed = { addDialogOpen = true },
-                                onImportOpml = importOpml,
-                                onOpenSettings = { push(Screen.Settings) },
-                                onShowFeeds = { section = HomeSection.Feeds },
-                                onShowSaved = { section = HomeSection.Saved },
-                                onShowInbox = { section = HomeSection.Inbox },
-                                onSavedFilter = {
-                                    savedFilter = it
-                                    section = HomeSection.Saved
-                                },
-                                onOpenItem = ::openItem,
-                                onAdd = { addChoiceOpen = true },
-                                onArchiveItem = ::archive,
-                                onFileItem = {
-                                    fileKey = it.key
-                                    fileNote = false
-                                },
-                                onShareArticle = ::share,
-                                onShareItem = { item -> share(ReadingLists.article(item, library)) },
-                                onOpenSearch = { push(Screen.Search) },
-                            ),
-                    )
-                }
-
-                is Screen.Reader -> {
-                    val itemKey = ReadingLists.itemKeyOf(screen.articleKey)
-                    // A feed article, or an item of the reading list; a saved feed article is both (#104).
-                    val feedArticle = if (itemKey == null) library.article(screen.articleKey) else null
-                    val item = itemKey?.let { library.item(it) } ?: feedArticle?.let { library.itemFor(it) }
-                    val fromFeed = feedArticle ?: item?.let { ReadingLists.feedArticle(it, library) }
-                    // Always Reader's own text: the feed's, else the full article it extracts (#134).
-                    val article = feedArticle ?: fromFeed ?: item?.let { ReadingLists.article(it, library) }
-                    // The full article loads by itself when the setting is on and the feed only has a
-                    // summary; the reader's menu switches between the two (null: follow the setting).
-                    var fullTextChoice by rememberSaveable(screen.articleKey) { mutableStateOf<Boolean?>(null) }
-                    val isSummary = remember(article?.html, article?.link) { article != null && needsFullText(article.html, article.link) }
-                    val wantFullText = article?.link != null && wantsFullText(fullTextChoice, current.fullArticles, fromFeed != null, isSummary, saved = item?.readingList != null)
-                    var fullText by remember(screen.articleKey) { mutableStateOf<FullTextState>(FullTextState.Off) }
-                    // Signed in to the article's site (#180): its text loads again, with the sign-in.
-                    val signedIn = article?.link?.let { SiteSignIns.forUrl(it, siteSignIns) }
-                    LaunchedEffect(screen.articleKey, wantFullText, signedIn?.savedAt) {
-                        val link = article?.link
-                        fullText =
-                            if (!wantFullText || link == null) {
-                                FullTextState.Off
-                            } else {
-                                fullText = FullTextState.Loading
-                                // A saved article shows the one text every device shows (stored in the account),
-                                // unless this device is signed in to its site: then its own full text (#180).
-                                val saved = item?.readingList != null && signedIn == null
-                                val html =
-                                    SharedText.resolve(
-                                        saved,
-                                        stored = { item?.let { app.sync.storedText(it.key) } },
-                                        extract = { app.articleText(link) },
-                                        store = { own -> item?.let { app.sync.storeText(it.key, own) } },
-                                    )
-                                if (html != null) {
-                                    // Kept with the item, so its reading time is known.
-                                    item?.let { repository.putText(it.key, ReadingLists.EXTRACTED, html) }
-                                    FullTextState.Shown(html)
-                                } else {
-                                    FullTextState.Failed
-                                }
-                            }
+                            )
+                        }
                     }
-                    // Opening a feed article marks it as read.
-                    LaunchedEffect(screen.articleKey) { fromFeed?.let { a -> app.appScope.launch { repository.setRead(a.key, true) } } }
-                    // A saved article's highlights made in Instapaper's own apps come in when it opens (#164).
-                    LaunchedEffect(screen.articleKey) { item?.takeIf { it.readingList != null }?.let { app.services.lookAtHighlights(it.key) } }
-                    // One that came in without the page's picture (the inbox, Instapaper, or saved before #268)
-                    // gets it when it opens (#275).
-                    LaunchedEffect(screen.articleKey) { item?.takeIf { it.needsDescription() }?.let { app.appScope.launch { repository.describe(it.key) } } }
-                    SystemBarsFollowTheme(current.reader.isDark(appDark))
-                    ReaderTheme(style = current.reader, appearance = current.appearance, appDark = appDark) {
-                        ReaderScreen(
-                            article = article,
-                            feed = fromFeed?.let { library.feed(it.feedUrl) } ?: item?.let { ReadingLists.source(it, library) },
-                            style = current.reader,
-                            // The same with or without a service, which only syncs Saved.
-                            fullText = fullText,
-                            showImages = current.showImages,
-                            snackbarHostState = snackbar,
-                            highlights =
-                                (item?.url ?: article?.link)?.let { link ->
-                                    ReaderHighlights(
-                                        highlights = item?.highlights.orEmpty(),
-                                        // A feed article that isn't saved yet goes to To read with its first highlight.
-                                        onAdd = { h -> editLibrary { it.addHighlight(link, article?.title, h, System.currentTimeMillis()) } },
-                                        onNote = { id, note -> item?.let { i -> editLibrary { it.setHighlightNote(i.key, id, note) } } },
-                                        onRemove = { id -> item?.let { i -> editLibrary { it.removeHighlight(i.key, id) } } },
-                                        notCopied = item?.let { notCopied[it.key] }.orEmpty(),
-                                    )
-                                },
-                            actions =
-                                ReaderActions(
-                                    onBack = ::pop,
-                                    onStyleChange = { style -> app.appScope.launch { app.settings.setReaderStyle(style) } },
-                                    onSave = { article?.let { it.link?.let { link -> readLater(link, it.title, inReader = true) } } },
-                                    onShare = { article?.let(::share) },
-                                    onOpenInBrowser = { article?.let { a -> a.link?.let { ExternalApps.openInTab(context, it, a.title) } } },
-                                    // Only while not signed in to the site yet (#251); Settings forgets a sign-in.
-                                    onSignIn = article?.link?.takeIf { signedIn == null && SiteSignIns.siteOf(it) != null }?.let { link -> { push(Screen.SiteSignIn(link)) } },
-                                    onReport =
-                                        article?.link?.let { link ->
-                                            { problem, comment ->
-                                                val version = runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull().orEmpty()
-                                                // The text the reader shows, so it can be compared with the page (#251).
-                                                val text = ArticleReport.textOf((fullText as? FullTextState.Shown)?.html ?: article.html)
-                                                val report = ArticleReport.report(link, problem, comment, "Android", version, text)
-                                                if (report.cut) copyToClipboard(text)
-                                                ExternalApps.openLink(context, report.url)
-                                            }
-                                        },
-                                    onMarkUnread =
-                                        feedArticle?.let { a ->
-                                            {
-                                                app.appScope.launch { repository.setRead(a.key, false) }
-                                                pop()
-                                            }
-                                        },
-                                    onOpenLink = { url -> ExternalApps.openInTab(context, url, null) },
-                                    onToggleFullText = { fullTextChoice = !wantFullText },
-                                ),
-                            item =
-                                item?.let { i ->
-                                    ReaderItem(
-                                        item = i,
-                                        // Archive (or back to To read) keeps the reader open: a message says so.
-                                        onArchive = { archive(i) },
-                                        onTopics = {
-                                            fileKey = i.key
-                                            fileNote = false
-                                        },
-                                        onNote = {
-                                            fileKey = i.key
-                                            fileNote = true
-                                        },
-                                        onLike = { editLibrary { it.setLiked(i.key, !i.liked) } },
-                                        // Asks first; once removed, the reader closes.
-                                        onRemove = { askRemove(i.key, fromReader = true) },
-                                        onProgress = { progress ->
-                                            if (kotlin.math.abs(progress - i.progress) >= 0.01f) {
-                                                editLibrary { lib -> lib.changeItem(i.key) { if (it.readingList == null) it else it.copy(progress = progress) } }
-                                            }
-                                        },
-                                    )
-                                },
+
+                    Screen.Settings -> {
+                        SystemBarsFollowTheme(appDark)
+                        SettingsScreen(settingsState, snackbar, settingsActions)
+                    }
+
+                    is Screen.SettingsPage -> {
+                        SystemBarsFollowTheme(appDark)
+                        SettingsPageScreen(screen.page, settingsState, snackbar, settingsActions)
+                    }
+
+                    is Screen.SiteSignIn -> {
+                        SystemBarsFollowTheme(appDark)
+                        SiteSignInScreen(
+                            url = screen.url,
+                            onBack = ::pop,
+                            onDone = { site, cookie ->
+                                pop()
+                                if (cookie == null) {
+                                    showMessage(resources.getString(R.string.site_sign_in_nothing, site))
+                                } else {
+                                    app.appScope.launch {
+                                        app.siteSignIns.save(SiteSignIn(site, cookie, System.currentTimeMillis()))
+                                        app.fullArticles.forget(screen.url)
+                                    }
+                                    showMessage(resources.getString(R.string.site_sign_in_saved, site))
+                                }
+                            },
                         )
                     }
-                }
 
-                Screen.Settings -> {
-                    SystemBarsFollowTheme(appDark)
-                    SettingsScreen(settingsState, snackbar, settingsActions)
-                }
-
-                is Screen.SettingsPage -> {
-                    SystemBarsFollowTheme(appDark)
-                    SettingsPageScreen(screen.page, settingsState, snackbar, settingsActions)
-                }
-
-                is Screen.SiteSignIn -> {
-                    SystemBarsFollowTheme(appDark)
-                    SiteSignInScreen(
-                        url = screen.url,
-                        onBack = ::pop,
-                        onDone = { site, cookie ->
-                            pop()
-                            if (cookie == null) {
-                                showMessage(resources.getString(R.string.site_sign_in_nothing, site))
-                            } else {
-                                app.appScope.launch {
-                                    app.siteSignIns.save(SiteSignIn(site, cookie, System.currentTimeMillis()))
-                                    app.fullArticles.forget(screen.url)
-                                }
-                                showMessage(resources.getString(R.string.site_sign_in_saved, site))
+                    Screen.Search -> {
+                        SystemBarsFollowTheme(appDark)
+                        // Preparing every article's text takes a moment with many feeds: off the main thread.
+                        val search by produceState<ArticleSearch?>(null, library) { value = withContext(Dispatchers.Default) { ArticleSearch(library) } }
+                        // Without words typed, the list is everything the filters let through (#171).
+                        val feedMatches = remember(search, searchQuery) { if (searchQuery.isBlank()) emptyList() else search?.search(searchQuery) }
+                        val itemMatches = remember(library.items, searchQuery) { ItemSearch.search(library.items.filter { it.readingList != null }, searchQuery) }
+                        val results =
+                            remember(library, feedMatches, itemMatches, searchQuery, searchFilters) {
+                                feedMatches?.let { SearchResults.of(searchQuery, library, it, itemMatches, searchFilters) }
                             }
-                        },
-                    )
-                }
+                        SearchScreen(
+                            state =
+                                SearchState(
+                                    query = searchQuery,
+                                    results = results,
+                                    feeds = library.feeds,
+                                    listView = current.listView,
+                                    showImages = current.showImages,
+                                    hasItems = library.items.any { it.readingList != null },
+                                    filters = searchFilters,
+                                    library = library,
+                                    topics = remember(library, searchFilters) { SearchResults.topics(library, searchFilters.scope, searchFilters.topic) },
+                                    folders = library.folders,
+                                    menuFeeds = remember(library, searchFilters.topic) { SearchResults.menuFeeds(library, searchFilters.topic) },
+                                    titleFont = current.reader.font.fontFamily(),
+                                ),
+                            actions =
+                                SearchActions(
+                                    onQueryChange = { searchQuery = it },
+                                    onFiltersChange = { searchFilters = it },
+                                    onTopic = { searchFilters = searchFilters.withTopic(it, library) },
+                                    onOpenArticle = { article ->
+                                        // Like from the list: it stays in the Unread list when you go back (#157).
+                                        readThisVisit = readThisVisit + article.key
+                                        openArticle(article)
+                                    },
+                                    onOpenItem = ::openItem,
+                                    onTab = { tab ->
+                                        pop()
+                                        section =
+                                            when (tab) {
+                                                MainTab.Saved -> HomeSection.Saved
+                                                MainTab.Inbox -> HomeSection.Inbox
+                                                else -> HomeSection.Feeds
+                                            }
+                                    },
+                                    onBack = ::pop,
+                                ),
+                        )
+                    }
 
-                Screen.Search -> {
-                    SystemBarsFollowTheme(appDark)
-                    // Preparing every article's text takes a moment with many feeds: off the main thread.
-                    val search by produceState<ArticleSearch?>(null, library) { value = withContext(Dispatchers.Default) { ArticleSearch(library) } }
-                    // Without words typed, the list is everything the filters let through (#171).
-                    val feedMatches = remember(search, searchQuery) { if (searchQuery.isBlank()) emptyList() else search?.search(searchQuery) }
-                    val itemMatches = remember(library.items, searchQuery) { ItemSearch.search(library.items.filter { it.readingList != null }, searchQuery) }
-                    val results =
-                        remember(library, feedMatches, itemMatches, searchQuery, searchFilters) {
-                            feedMatches?.let { SearchResults.of(searchQuery, library, it, itemMatches, searchFilters) }
-                        }
-                    SearchScreen(
-                        state =
-                            SearchState(
-                                query = searchQuery,
-                                results = results,
-                                feeds = library.feeds,
-                                listView = current.listView,
-                                showImages = current.showImages,
-                                hasItems = library.items.any { it.readingList != null },
-                                filters = searchFilters,
-                                library = library,
-                                topics = remember(library, searchFilters) { SearchResults.topics(library, searchFilters.scope, searchFilters.topic) },
-                                folders = library.folders,
-                                menuFeeds = remember(library, searchFilters.topic) { SearchResults.menuFeeds(library, searchFilters.topic) },
-                                titleFont = current.reader.font.fontFamily(),
-                            ),
-                        actions =
-                            SearchActions(
-                                onQueryChange = { searchQuery = it },
-                                onFiltersChange = { searchFilters = it },
-                                onTopic = { searchFilters = searchFilters.withTopic(it, library) },
-                                onOpenArticle = { article ->
-                                    // Like from the list: it stays in the Unread list when you go back (#157).
-                                    readThisVisit = readThisVisit + article.key
-                                    openArticle(article)
-                                },
-                                onOpenItem = ::openItem,
-                                onTab = { tab ->
-                                    pop()
-                                    section =
-                                        when (tab) {
-                                            MainTab.Saved -> HomeSection.Saved
-                                            MainTab.Inbox -> HomeSection.Inbox
-                                            else -> HomeSection.Feeds
-                                        }
-                                },
-                                onBack = ::pop,
-                            ),
-                    )
                 }
-
             }
         }
     }

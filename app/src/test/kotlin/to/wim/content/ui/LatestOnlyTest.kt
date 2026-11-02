@@ -5,6 +5,7 @@ import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.yield
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -41,5 +42,46 @@ class LatestOnlyTest {
             messages.launch { shown += "three" }
             yield()
             assertEquals(listOf("three"), shown)
+        }
+
+    @Test
+    fun movingToAnotherPlaceClosesTheMessageAndStayingKeepsIt() =
+        runBlocking {
+            val messages = LatestOnly(this)
+            val closed = CompletableDeferred<Boolean>()
+            messages.launch(place = "reader") {
+                try {
+                    awaitCancellation()
+                } finally {
+                    closed.complete(true)
+                }
+            }
+            yield()
+            // The same place (a message shown right after moving there, such as Removed): it stays.
+            messages.movedTo("reader")
+            yield()
+            assertFalse(closed.isCompleted)
+            messages.movedTo("home")
+            assertTrue(closed.await())
+        }
+
+    @Test
+    fun aTapElsewhereClosesTheMessage() =
+        runBlocking {
+            val messages = LatestOnly(this)
+            val closed = CompletableDeferred<Boolean>()
+            messages.launch {
+                try {
+                    awaitCancellation()
+                } finally {
+                    closed.complete(true)
+                }
+            }
+            yield()
+            messages.cancel()
+            assertTrue(closed.await())
+            // Nothing showing: closing or moving again does nothing.
+            messages.cancel()
+            messages.movedTo("home")
         }
 }

@@ -55,7 +55,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
+import to.wim.content.ui.MessageHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -236,7 +236,7 @@ fun HomeScreen(
             if (wide) MainNavigationRail(tab, onTab, state.inbox != null, state.inboxUnread)
             Scaffold(
                 modifier = Modifier.weight(1f).nestedScroll(scrollBehavior.nestedScrollConnection),
-                snackbarHost = { SnackbarHost(snackbarHostState) },
+                snackbarHost = { MessageHost(snackbarHostState) },
                 topBar = {
                     CollapsingHeader(scrollBehavior) {
                         HomeSearchBar(

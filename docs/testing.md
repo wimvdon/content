@@ -32,7 +32,7 @@ when the run fails.
 | `HtmlTest` | Clean-up for the reader, plain text, snippets, entities, escaping |
 | `FeedDiscoveryTest` | Address normalising (https, feed://), feed links in a page, common paths |
 | `FeedFinderTest` | Address → feed with a fake web: direct feed, linked feed, common path, no feed, errors |
-| `LatestOnlyTest` | Messages don't queue: a new one cancels the one showing, and of several waiting only the last shows |
+| `LatestOnlyTest` | Messages don't queue: a new one cancels the one showing, and of several waiting only the last shows; moving to another screen closes one (one shown on the new screen stays), and so does a tap elsewhere; the web's `test/messages.test.ts` checks the same for its views |
 | `ArticleExtractorTest` | The plain parts around the article extractor: handing the page to the WebView as JavaScript strings, reading its result (also no article, errors and unexpected values), charsets, when a feed text counts as a summary (short, or a teaser that links to its own article). Finding the article is the web app's code, tested by `web/test/articleExtractor.test.ts` with the sample pages in `testdata/articles/` for both apps |
 | `SharedTextTest` | One text per saved article: the first device's is stored and every device shows it, two at once (the one stored first wins), offline the device's own, nothing stored for articles that aren't saved (the web app's `sharedText.test.ts` checks the same) |
 | `TextLayoutTest` | Article text as reader blocks: a block per paragraph (also from divs and double line breaks), headings, bulleted, numbered and nested lists, quotes, code |
@@ -351,6 +351,10 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
 - [ ] Long press a feed article › **Save**: no sheet; "Saved to To read" with **Open** at once.
 - [ ] **One message at a time:** long press › Save on one article, then quickly on another: the
       second message replaces the first, it doesn't wait for it to go.
+- [ ] **Messages close when you leave them:** save from a long press, then tap anywhere else (not
+      the message): it goes; scrolling the list doesn't close it. Save again, then open Saved or an
+      article: it goes. Its **Open** or **Undo** still works. Remove a saved article from the
+      reader's ⋮: the reader closes and "Removed" stays. Web app: the same with a click.
 - [ ] **Highlights (#102):** in an article, press and hold a word, drag over a sentence and tap
       **Highlight** in the menu: it turns yellow. Select another and tap **Note**, type, Save. The
       bottom bar shows a quote mark with 2; tap it: both, with the note. Tap a marker: change its

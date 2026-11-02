@@ -16,6 +16,7 @@ import { articleKey, articlesFor, type Article } from "./lib/library";
 import { useListedLibrary } from "./components/useListed";
 import { websiteFor } from "./lib/articleOpening";
 import { itemArticle, savedItems } from "./lib/saved";
+import { closesOnMove, viewKey, type Shown } from "./lib/messages";
 
 /** A message at the bottom, with at most one action (Undo, Open). */
 type Message = { text: string; action?: { label: string; run: () => void } };
@@ -23,7 +24,7 @@ type Message = { text: string; action?: { label: string; run: () => void } };
 /** Three panes on wide screens (feeds, list, article); one at a time on phones. */
 export default function App() {
   const state = useApp();
-  const { settings, library, selection, readThisVisit, instapaperNotice, accountNotice, received, savedFilter } = state;
+  const { settings, library, selection, readThisVisit, instapaperNotice, accountNotice, received, savedFilter, inboxOpen } = state;
   // The open article belongs to the section it was opened in: another section closes it.
   const [opened, setOpened] = useState<{ article: Article; selection: typeof selection } | null>(null);
   const openArticle = opened?.selection === selection ? opened.article : null;
@@ -89,6 +90,34 @@ export default function App() {
           action: { label: t("open"), run: () => app.showInbox(true) },
         }
       : null);
+
+  // A click elsewhere, or moving to another view, closes the message (2026-11-02), as on Android.
+  const toast = useRef<HTMLDivElement>(null);
+  const dismiss = useCallback(() => {
+    setMessage(null);
+    app.clearInstapaperNotice();
+    app.clearAccountNotice();
+    app.clearReceived();
+  }, []);
+  const view = viewKey(selection, inboxOpen, searching, openArticle ? articleKey(openArticle) : null);
+  // What is showing, by what it came from (stable, unlike the message built from it).
+  const shownFrom = message ?? instapaperNotice ?? accountNotice ?? received ?? null;
+  const before = useRef<Shown | null>(null);
+  useEffect(() => {
+    const now = { view, message: shownFrom };
+    if (closesOnMove(before.current, now)) dismiss();
+    before.current = now;
+  }, [view, shownFrom, dismiss]);
+  const showing = shownFrom !== null;
+  useEffect(() => {
+    if (!showing) return;
+    const onClick = (e: MouseEvent) => {
+      if (!toast.current?.contains(e.target as Node)) dismiss();
+    };
+    // Capture: before the click does its own thing, which may show a new message.
+    document.addEventListener("click", onClick, true);
+    return () => document.removeEventListener("click", onClick, true);
+  }, [showing, dismiss]);
 
   const open = useCallback((a: Article) => {
     app.open(a);
@@ -269,7 +298,7 @@ export default function App() {
       />
       {shown ? (
         // Above the bottom bars on a phone (the article's library bar, Feeds | Saved).
-        <div role="status" className="fixed bottom-20 left-1/2 z-50 flex max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-3 rounded-xl bg-foreground px-4 py-3 text-sm text-background shadow-lg lg:bottom-4">
+        <div ref={toast} role="status" className="fixed bottom-20 left-1/2 z-50 flex max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-3 rounded-xl bg-foreground px-4 py-3 text-sm text-background shadow-lg lg:bottom-4">
           <span>{shown.text}</span>
           {shown.action ? (
             <Button

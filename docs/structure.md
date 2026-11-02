@@ -80,6 +80,7 @@ rss-reader/
         │   │       ├── MainActivity.kt, Navigation.kt   Entry, back stack, wiring
         │   │       ├── ExternalApps.kt        Browser, share, Instapaper, Play Store
         │   │       ├── LatestOnly.kt          One message at a time: a new one replaces the one showing
+        │   │       ├── MessageHost.kt         The screens' messages; a tap elsewhere closes one
         │   │       ├── DirectShare.kt         The people in other apps' share menus; folders in the launcher
         │   │       ├── home/                  Article list, search bar, tabs, chip rows, Add and Add feed sheets, messages, inbox
         │   │       ├── reader/                Reader screen, text settings, reader colours, Organise sheet, Content's share sheet, SheetPages.kt (ContentSheet: every sheet; one opened from within a sheet is a page of it)
