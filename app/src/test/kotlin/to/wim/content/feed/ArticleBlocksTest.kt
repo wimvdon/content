@@ -196,20 +196,18 @@ class ArticleBlocksTest {
     }
 
     @Test
-    fun `an audio player of a fixed height loads in a see-through page that gives it that height`() {
-        // As the page itself, Spotify picked its layout before the view had a height, and came out too short.
+    fun `an audio player loads directly too, on a see-through view`() {
+        // Inside an iframe of a page of our own, Spotify, SoundCloud and Bandcamp didn't load on Android.
         val spotify = Embeds.of("https://open.spotify.com/embed/episode/abc123")
-        val load = Embeds.playerLoad(spotify)
-        assertTrue(load is PlayerLoad.Page)
-        val html = (load as PlayerLoad.Page).html
-        assertTrue(html.contains("<iframe src=\"https://open.spotify.com/embed/episode/abc123\" style=\"height:352px\""))
-        assertTrue(html.contains("background:transparent"))
+        assertEquals(PlayerLoad.Url("https://open.spotify.com/embed/episode/abc123"), Embeds.playerLoad(spotify))
         assertTrue(Embeds.seeThrough(spotify))
-        // Bandcamp's player only works inside a page (as the page itself: black, with just its privacy line).
+        val soundCloud = Embeds.of("https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1&visual=true")
+        assertEquals(PlayerLoad.Url("https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1&visual=true"), Embeds.playerLoad(soundCloud))
+        assertTrue(Embeds.seeThrough(soundCloud))
         val bandcamp = Embeds.of("https://bandcamp.com/EmbeddedPlayer/album=123/size=large/bgcol=ffffff/linkcol=0687f5/transparent=true/")
-        val bandcampPage = Embeds.playerLoad(bandcamp) as PlayerLoad.Page
-        assertTrue(bandcampPage.html.contains("<iframe src=\"https://bandcamp.com/EmbeddedPlayer/album=123/size=large/bgcol=ffffff/linkcol=0687f5/transparent=true/\" style=\"height:470px\""))
-        // Videos keep their black page, and the reader's own video player too.
+        assertEquals(PlayerLoad.Url("https://bandcamp.com/EmbeddedPlayer/album=123/size=large/bgcol=ffffff/linkcol=0687f5/transparent=true/"), Embeds.playerLoad(bandcamp))
+        assertTrue(Embeds.seeThrough(bandcamp))
+        // Videos keep their black view, and the reader's own video player its black page.
         val youTube = Embeds.of("https://www.youtube.com/embed/abc123XYZ_-")
         assertFalse(Embeds.seeThrough(youTube))
         assertFalse(Embeds.seeThrough(Embeds.video("https://example.com/v.mp4", null)))

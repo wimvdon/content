@@ -82,7 +82,18 @@ The web's dialogs closed on a click beside them while typing; that click now onl
 The save and Organise sheet stays as it was (owner's choice, after trying one tap everywhere): one
 tap only in an open article, the sheet everywhere else.
 
-## 2026-11-02: Audio players on Android in a page of their own, see-through
+## 2026-11-02: Audio players on Android load directly, without a placeholder
+
+Owner's report: on Android, Bandcamp and SoundCloud players loaded nothing after the change below,
+and the owner asked for them to load as directly as possible. The page of our own (an iframe in a
+small page, hidden behind a placeholder until loaded) is gone: every service's player is again the
+WebView's page itself, with Content's web app as referrer, as YouTube already was. What had made
+Spotify too short and Bandcamp black that way is handled differently: the view loads the player
+only once it has its size, and an audio player's view is see-through instead of black. Only a
+site's own video file still plays in a page of the reader's own. The web app is unchanged (its
+iframes worked); this was an Android-only fault.
+
+## 2026-11-02: Audio players on Android in a page of their own, see-through (replaced above)
 
 Spotify's player on Android flashed black when tapped and then came out too short; Bandcamp's
 showed only black with its privacy line. Both were loaded as the WebView's page itself, which
