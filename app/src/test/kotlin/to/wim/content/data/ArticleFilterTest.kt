@@ -26,6 +26,26 @@ class ArticleFilterTest {
     }
 
     @Test
+    fun `entries are added as groups, each once, removed one by one and stored one per line`() {
+        val one = ArticleFilter.withEntry(emptyList(), "  WIRED   coupon code ")
+        assertEquals(listOf("wired coupon code"), one)
+        // A second group, a duplicate (case ignored) and nothing typed change only what they should.
+        val two = ArticleFilter.withEntry(one, "Crypto")
+        assertEquals(listOf("wired coupon code", "crypto"), two)
+        assertEquals(two, ArticleFilter.withEntry(two, "CRYPTO"))
+        assertEquals(two, ArticleFilter.withEntry(two, "  "))
+        // Several typed at once, as before, still become one chip each.
+        assertEquals(listOf("wired coupon code", "crypto", "ai", "apple watch"), ArticleFilter.withEntry(two, "AI, apple watch"))
+        assertEquals(listOf("crypto"), ArticleFilter.withoutEntry(two, "wired coupon code"))
+        // Stored one per line, read back the same, and the filter matches the group as a whole.
+        val text = ArticleFilter.text(two)
+        assertEquals("wired coupon code\ncrypto", text)
+        assertEquals(two, ArticleFilter.words(text))
+        assertTrue(ArticleFilter.parse(text).hidesTitle("Best Buy coupon code", "WIRED"))
+        assertFalse(ArticleFilter.parse(text).hidesTitle("Best Buy coupon code", "The Verge"))
+    }
+
+    @Test
     fun `a word matches as a whole word, ignoring case`() {
         val filter = ArticleFilter.parse("AI")
         assertTrue(filter.hidesTitle("New AI rules"))

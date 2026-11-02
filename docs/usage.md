@@ -209,8 +209,10 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   marked as read once you scroll them off the top of the list, only ones that were on screen: new
   articles arriving above are never marked unseen. They stay in the unread list (see above), so
   you can scroll back to them.
-- **Hide articles with words** (in **Settings › Article list**, on the phone and the web): type
-  entries, separated by commas or new lines. An article is left out of the article lists, the
+- **Hide articles with words** (in **Settings › Article list**, on the phone and the web): add
+  a word or a group of words at a time: type it and tap **+** (or press Enter). Each one shows as a
+  chip; its **X** takes it out again, and **Save** keeps the chips (and anything still in the
+  field). An article is left out of the article lists, the
   unread counts and the tag chips when every word of an entry is in its title or in its feed's
   name, in any order: "WIRED coupon code" hides WIRED's coupon code articles, "wired" alone all of
   WIRED, "crypto" every title with crypto in it. A word counts as a whole word, or its plural or

@@ -4,7 +4,8 @@ package to.wim.content.data
  * Hide articles with certain words (#277): feed articles that match one of the user's entries are
  * left out of the feed lists, their counts and their tag chips.
  *
- * The entries are typed in Settings › Article list, separated by commas or new lines. An entry of
+ * The entries are added one by one in Settings › Article list, as chips (2026-11-02), and stored one
+ * per line (older settings may still use commas or semicolons, which still separate). An entry of
  * several words matches when **every** word is there, in any order, in the article's title or the
  * name of its feed (2026-11-02): "WIRED coupon code" hides WIRED's articles with "coupon code"
  * in their title, and nothing else of WIRED; "wired" alone hides all of WIRED. A word
@@ -73,6 +74,24 @@ class ArticleFilter private constructor(
                 .map { it.trim().replace(Regex("\\s+"), " ").lowercase() }
                 .filter { it.isNotEmpty() }
                 .distinct()
+
+        /**
+         * The entries after adding [typed] (the dialog's field, 2026-11-02): one word or group of
+         * words, or several separated by commas, each kept once.
+         */
+        fun withEntry(
+            entries: List<String>,
+            typed: String,
+        ): List<String> = (entries + words(typed)).distinct()
+
+        /** The entries without [entry] (its chip's X). */
+        fun withoutEntry(
+            entries: List<String>,
+            entry: String,
+        ): List<String> = entries - entry
+
+        /** How the entries are stored and synced: one per line, which [parse] and [words] read back. */
+        fun text(entries: List<String>): String = entries.joinToString("\n")
 
         /** What may follow a word and still count as it: nothing, a plural or a possessive. */
         private val ENDINGS = listOf("", "s", "es", "'s", "’s")

@@ -5,7 +5,8 @@ import { sortTime, type Article, type Library } from "./library";
  * of the user's entries are left out of the feed lists, their counts and their tag chips. Search
  * still finds them.
  *
- * The entries are typed in Settings › Article list, separated by commas, semicolons or new lines. An
+ * The entries are added one by one in Settings › Article list, as chips (2026-11-02), and stored one
+ * per line (older settings may still use commas or semicolons, which still separate). An
  * entry of several words matches when every word is there, in any order, in the article's title or
  * its feed's name: "WIRED coupon code" hides WIRED's articles with "coupon code(s)" in their title,
  * "wired" alone all of WIRED. A word matches as a whole word, ignoring case: "AI" hides "New AI
@@ -23,6 +24,24 @@ export function hiddenWords(text: string): string[] {
     if (word && !out.includes(word)) out.push(word);
   }
   return out;
+}
+
+/**
+ * The entries after adding [typed] (the dialog's field, 2026-11-02): one word or group of words, or
+ * several separated by commas, each kept once.
+ */
+export function withEntry(entries: string[], typed: string): string[] {
+  return hiddenWords([...entries, typed].join("\n"));
+}
+
+/** The entries without [entry] (its chip's X). */
+export function withoutEntry(entries: string[], entry: string): string[] {
+  return entries.filter((e) => e !== entry);
+}
+
+/** How the entries are stored and synced: one per line, which [hiddenWords] reads back. */
+export function entriesText(entries: string[]): string {
+  return entries.join("\n");
 }
 
 const isLetterOrDigit = (c: string) => /[\p{L}\p{N}]/u.test(c);
