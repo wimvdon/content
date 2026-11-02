@@ -210,6 +210,7 @@ and then (always before a release):
       Edit says **Done**; drag a chip by its grip onto another place: the order changes there and in
       the chip rows. Tap a chip: rename it (to another tag's name: they join), change its icon, or
       Remove (the trash can at the top right; it asks in a popup). Web app: the same, dragging with the mouse or ← → on a chip.
+- [ ] **Manage feeds** and **Manage tags:** every row has a pen before its grip; tapping the row opens its edit page.
 - [ ] **Settings** starts with two large buttons, Manage feeds and Manage tags (how many under
       each), then Account, Integrations, Theme, Article list and Article view; each page opens and back
       returns to the list. **Manage feeds** (a sheet): the feeds as rows under a heading per tag (a

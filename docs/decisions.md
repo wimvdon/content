@@ -2,6 +2,13 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-02: A pen on every row of Manage feeds and Manage tags
+
+Owner's choice, as in Noter: each feed and tag row on the phone now shows a pen before its grip, so
+it is clear that tapping a row edits it (name, tag or icon, Remove). The web's chips there already
+had a pen; the phone catches up. The pen is part of the row (the whole row is the button), not a
+separate button, so screen readers still hear one "Edit" per row.
+
 ## 2026-11-02: A long press's Save is one tap too; a new message replaces the one showing
 
 Owner's choice, the same as the reader's Save earlier today: **press and hold › Save** (a feed
