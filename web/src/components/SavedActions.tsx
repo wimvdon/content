@@ -1,4 +1,4 @@
-import { Archive, ArchiveRestore, Heart, ListPlus, Quote, Share2, Tag, Trash2 } from "lucide-react";
+import { Archive, ArchiveRestore, Heart, BookOpen, Quote, Share2, Tag, Trash2 } from "lucide-react";
 import { app } from "@/lib/app";
 import { plural, t } from "@/lib/i18n";
 import type { Item } from "@/lib/items";
@@ -52,7 +52,7 @@ export function LibraryBar({
       <Floating hidden={hidden}>
         {onSave ? (
           <Button variant="ghost" onClick={onSave}>
-            <ListPlus />
+            <BookOpen />
             {t("saveArticle")}
           </Button>
         ) : null}

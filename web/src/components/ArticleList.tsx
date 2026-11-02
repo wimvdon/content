@@ -1,4 +1,4 @@
-import { Plus, Archive, ArchiveRestore, Bell, BookmarkPlus, BookOpen, CheckCheck, Circle, CircleCheck, ExternalLink, Folder as FolderGlyph, Heart, Highlighter, Link2, Newspaper, Quote, RefreshCw, Rss, Search, Settings as SettingsIcon, Share2, StickyNote, Tag as TagIcon, Trash2, type LucideIcon } from "lucide-react";
+import { Plus, Archive, ArchiveRestore, Bell, BookOpen, CheckCheck, Circle, CircleCheck, ExternalLink, Folder as FolderGlyph, Heart, Highlighter, Link2, Newspaper, Quote, RefreshCw, Rss, Search, Settings as SettingsIcon, Share2, StickyNote, Tag as TagIcon, Trash2, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { headerHidden } from "@/lib/header";
 import { app, useApp } from "@/lib/app";
@@ -199,7 +199,7 @@ function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport,
                         { icon: a.read ? <Circle /> : <CircleCheck />, label: a.read ? t("markUnread") : t("markRead"), onClick: () => app.toggleRead(a) },
                         ...(a.link
                           ? [
-                              { icon: <BookmarkPlus />, label: t("save"), onClick: () => saveFromMenu(a.link!, a.title, onSaved) },
+                              { icon: <BookOpen />, label: t("save"), onClick: () => saveFromMenu(a.link!, a.title, onSaved) },
                               { icon: <Share2 />, label: t("share"), onClick: () => share(a.title, a.link!) },
                             ]
                           : []),
@@ -419,7 +419,7 @@ function InboxArticles({
                     items={[
                       { icon: by.read ? <Circle /> : <CircleCheck />, label: by.read ? t("markUnread") : t("markRead"), onClick: toggle },
                       // Already in Saved: nothing to save.
-                      ...(item.readingList ? [] : [{ icon: <BookmarkPlus />, label: t("save"), onClick: () => saveFromMenu(item.url, item.title, onSaved) }]),
+                      ...(item.readingList ? [] : [{ icon: <BookOpen />, label: t("save"), onClick: () => saveFromMenu(item.url, item.title, onSaved) }]),
                       { icon: <Share2 />, label: t("share"), onClick: () => share(item.title, item.url, item) },
                       {
                         icon: <Trash2 />,

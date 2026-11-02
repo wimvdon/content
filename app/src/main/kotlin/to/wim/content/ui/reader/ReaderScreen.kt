@@ -292,7 +292,7 @@ fun ReaderScreen(
                         SavedBar(item)
                     } else {
                         TextButton(onClick = actions.onSave, colors = toolbarTextButtonColors()) {
-                            Icon(painterResource(R.drawable.ic_list), contentDescription = null)
+                            Icon(painterResource(R.drawable.ic_reading_list), contentDescription = null)
                             Text(
                                 stringResource(R.string.action_save),
                                 modifier = Modifier.padding(start = 8.dp),

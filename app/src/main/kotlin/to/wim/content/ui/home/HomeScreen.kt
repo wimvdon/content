@@ -476,7 +476,7 @@ private fun ArticleList(
                                     if (article.read) R.drawable.ic_mark_unread else R.drawable.ic_mark_read,
                                     stringResource(if (article.read) R.string.action_mark_unread else R.string.action_mark_read),
                                 ) { actions.onToggleRead(article) },
-                                article.link?.let { RowMenuAction(R.drawable.ic_list, stringResource(R.string.action_save)) { actions.onReadLater(article) } },
+                                article.link?.let { RowMenuAction(R.drawable.ic_reading_list, stringResource(R.string.action_save)) { actions.onReadLater(article) } },
                                 article.link?.let { RowMenuAction(R.drawable.ic_share, stringResource(R.string.action_share)) { actions.onShareArticle(article) } },
                             ),
                     )
