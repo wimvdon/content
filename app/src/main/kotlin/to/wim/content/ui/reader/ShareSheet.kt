@@ -71,6 +71,8 @@ fun ShareSheet(
     var picked by remember { mutableStateOf(listOf<String>()) }
     // ContentSheet, as every sheet: Edit people opens as a page of it, with a back arrow.
     ContentSheet(onDismiss = onDismiss) {
+        // Every choice slides the sheet away first (rememberSheetClose).
+        val close = rememberSheetClose()
         Column(
             Modifier
                 .verticalScroll(rememberScrollState())
@@ -87,7 +89,7 @@ fun ShareSheet(
                 Column(Modifier.padding(horizontal = 24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     SendToSection(picked, onChange = { picked = it }, hasAccount = hasAccount)
                     // Full width under the people: plainly the button for this part, not for the apps below.
-                    Button(onClick = { onSend(picked) }, enabled = picked.isNotEmpty(), modifier = Modifier.fillMaxWidth()) {
+                    Button(onClick = { close { onSend(picked) } }, enabled = picked.isNotEmpty(), modifier = Modifier.fillMaxWidth()) {
                         Text(stringResource(R.string.share_user_send))
                     }
                 }
@@ -101,14 +103,14 @@ fun ShareSheet(
             ) {
                 for (app in apps) {
                     val icon = remember(app) { app.icon.toBitmap(TILE_PIXELS, TILE_PIXELS).asImageBitmap() }
-                    Tile(label = app.target.label, onClick = { onApp(app) }) {
+                    Tile(label = app.target.label, onClick = { close { onApp(app) } }) {
                         Image(icon, contentDescription = null, modifier = Modifier.size(TILE_ICON))
                     }
                 }
-                Tile(label = stringResource(R.string.share_copy_link), onClick = onCopyLink) {
+                Tile(label = stringResource(R.string.share_copy_link), onClick = { close(onCopyLink) }) {
                     Circle { Icon(painterResource(R.drawable.ic_copy), contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer) }
                 }
-                Tile(label = stringResource(R.string.share_more), onClick = onMore) {
+                Tile(label = stringResource(R.string.share_more), onClick = { close(onMore) }) {
                     Circle { Icon(painterResource(R.drawable.ic_more_horiz), contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer) }
                 }
             }

@@ -559,15 +559,19 @@ private fun HighlightDialogs(
     onListOpenChange: (Boolean) -> Unit,
 ) {
     val open = openId?.let { id -> highlights.highlights.firstOrNull { it.id == id } }
-    if (open != null) {
-        HighlightSheet(
-            highlight = open,
-            anchor = anchors[open.id],
-            onSave = { note -> if (note.trim() != open.note) highlights.onNote(open.id, note) },
-            onRemove = { highlights.onRemove(open.id) },
-            onDismiss = { onOpenIdChange(null) },
-        )
+    val openSheet: @Composable () -> Unit = {
+        if (open != null) {
+            HighlightSheet(
+                highlight = open,
+                anchor = anchors[open.id],
+                onSave = { note -> if (note.trim() != open.note) highlights.onNote(open.id, note) },
+                onRemove = { highlights.onRemove(open.id) },
+                onDismiss = { onOpenIdChange(null) },
+            )
+        }
     }
+    // Tapped in the text: its own sheet. From the list: a page of the list's sheet (below).
+    if (!listOpen) openSheet()
     if (draft != null) {
         HighlightSheet(
             highlight = draft,
@@ -582,11 +586,13 @@ private fun HighlightDialogs(
             highlights = highlights.highlights,
             anchors = anchors,
             notCopied = highlights.notCopied,
-            onOpen = {
+            // The highlight opens as a page of the list (back arrow to it), not a second sheet.
+            onOpen = { onOpenIdChange(it) },
+            onDismiss = {
+                onOpenIdChange(null)
                 onListOpenChange(false)
-                onOpenIdChange(it)
             },
-            onDismiss = { onListOpenChange(false) },
+            page = openSheet,
         )
     }
 }

@@ -43,12 +43,30 @@ class ArticleFilterTest {
     }
 
     @Test
-    fun `a phrase matches as a whole, and letters with accents count as letters`() {
+    fun `an entry of several words needs every one, in any order, and accents count as letters`() {
         val filter = ArticleFilter.parse("apple watch, café")
         assertTrue(filter.hidesTitle("The Apple Watch review"))
-        assertFalse(filter.hidesTitle("Apple announces a watch"))
+        assertTrue(filter.hidesTitle("Apple announces a watch"))
+        assertFalse(filter.hidesTitle("Apple announces a phone"))
         assertTrue(filter.hidesTitle("Best CAFÉ in town"))
         assertFalse(filter.hidesTitle("Cafés everywhere"))
+    }
+
+    @Test
+    fun `the feed's name counts too, so one publication's kind of article can go`() {
+        val filter = ArticleFilter.parse("WIRED coupon code")
+        assertTrue(filter.hidesTitle("Best Buy coupon code: 20% off", source = "WIRED"))
+        assertFalse(filter.hidesTitle("Best Buy coupon code: 20% off", source = "The Verge"))
+        assertFalse(filter.hidesTitle("The best laptops of the year", source = "WIRED"))
+        // One word that is the feed's name hides all of it.
+        assertTrue(ArticleFilter.parse("wired").hidesTitle("The best laptops of the year", source = "WIRED"))
+        val library =
+            Library(
+                feeds = listOf(Feed(feed, "WIRED"), Feed("https://b.example.com/feed", "The Verge")),
+                articles = listOf(article("1", "Coupon code for shoes"), article("2", "Phones"), article("3", "Coupon code for shoes").copy(feedUrl = "https://b.example.com/feed")),
+            )
+        assertEquals(listOf("2", "3"), library.withoutHidden(filter).articles.map { it.id })
+        assertEquals(1, filter.preview(library.articles) { a -> library.feeds.firstOrNull { it.url == a.feedUrl }?.title }.count)
     }
 
     @Test

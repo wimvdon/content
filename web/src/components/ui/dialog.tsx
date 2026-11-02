@@ -56,15 +56,26 @@ function RootDialog({ open, onOpenChange, title, description, children, footer, 
   const add = useCallback((page: Page) => setPages((list) => [...list.filter((p) => p.id !== page.id), page]), []);
   const remove = useCallback((id: string) => setPages((list) => list.filter((p) => p.id !== id)), []);
   const host: Host = { slot, top: top?.id ?? null, add, remove };
+  const content = useRef<HTMLDivElement>(null);
   return (
     <D.Root open={open} onOpenChange={onOpenChange}>
       <D.Portal>
         <D.Overlay className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[1px]" />
         <D.Content
+          ref={content}
           className={cn(
             "fixed top-1/2 left-1/2 z-50 flex max-h-[90dvh] w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 flex-col rounded-2xl border bg-card shadow-xl focus:outline-none",
             wide ? "max-w-2xl" : "max-w-md",
           )}
+          // While typing in it, a click beside the dialog only ends the typing, as on Android (where it
+          // closes the keyboard first): what was typed isn't lost by a stray click. A second click closes it.
+          onPointerDownOutside={(e) => {
+            const active = document.activeElement;
+            if (active instanceof HTMLElement && active.matches("input, textarea, [contenteditable]") && content.current?.contains(active)) {
+              e.preventDefault();
+              active.blur();
+            }
+          }}
           // Escape on a page goes back to the dialog under it; on the dialog itself it closes.
           onEscapeKeyDown={(e) => {
             if (!top) return;

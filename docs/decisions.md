@@ -2,6 +2,27 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-02: Hidden words combine and include the feed's name; sheets close less easily
+
+Owner's request. An entry of Hide articles with words hides an article when **every** word of it is
+in the title or the feed's name, in any order: "WIRED coupon code" hides one kind of article of one
+publication, "wired" alone all of it. Before, an entry was one phrase looked for in the title only.
+A phrase in order ("apple watch" only together) is gone with it; entries of several words were
+almost always meant this way.
+
+Sheets were checked for closing too easily and for jumps. Found and fixed (phone):
+- Highlight, the highlights list and Report a problem used Material's sheet directly, without the
+  guard every other sheet has: a swipe or a tap beside them while typing closed them and lost the
+  text. They are `ContentSheet`s now (the keyboard closes first; the sheet waits until it has
+  settled). The list opened half-way and could be dragged in between: now all the way, as the rest.
+- A highlight tapped in the list closed the list's sheet and opened another (one dropping, one
+  rising): it is a page of the list's sheet now, with a back arrow.
+- A sheet closed by its own buttons (Cancel, Save, Done, Add's two choices, the share sheet's
+  targets) vanished in one frame: they slide it down first now (`rememberSheetClose`).
+The web's dialogs closed on a click beside them while typing; that click now only ends the typing.
+The save and Organise sheet stays as it was (owner's choice, after trying one tap everywhere): one
+tap only in an open article, the sheet everywhere else.
+
 ## 2026-11-02: Audio players on Android in a page of their own, see-through
 
 Spotify's player on Android flashed black when tapped and then came out too short; Bandcamp's

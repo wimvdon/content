@@ -209,14 +209,16 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   marked as read once you scroll them off the top of the list, only ones that were on screen: new
   articles arriving above are never marked unseen. They stay in the unread list (see above), so
   you can scroll back to them.
-- **Hide articles with words** (in **Settings › Article list**, on the phone and the web): type words or
-  phrases, separated by commas or new lines. Feed articles with one of them in their title are left
-  out of the article lists, the unread counts and the tag chips. A word counts only as a whole
-  word, and capitals don't matter: "AI" hides "New AI rules", not "He said so". Only the title is
-  checked, and search still finds hidden articles. While you type, the dialog shows how many of the
-  recent articles on the device the words would hide, with the five newest (title and feed), so
-  you see what goes before you tap Save. Empty the field to show everything again. The
-  words are the same on your phones and in the web app (synced as `articles.hiddenWords`).
+- **Hide articles with words** (in **Settings › Article list**, on the phone and the web): type
+  entries, separated by commas or new lines. An article is left out of the article lists, the
+  unread counts and the tag chips when every word of an entry is in its title or in its feed's
+  name, in any order: "WIRED coupon code" hides WIRED's coupon code articles, "wired" alone all of
+  WIRED, "crypto" every title with crypto in it. A word counts only as a whole word, and capitals
+  don't matter: "AI" hides "New AI rules", not "He said so". The article's text isn't searched,
+  and Search still finds hidden articles. While you type, the dialog shows how many of the recent
+  articles on the device the words would hide, with the five newest (title and feed), so you see
+  what goes before you tap Save. Empty the field to show everything again. The words are the same
+  on your phones and in the web app (synced as `articles.hiddenWords`).
 - If some feeds can't be downloaded, a message says how many; **Manage feeds** (in Settings) shows
   which ones (in red); tap one to see why.
 

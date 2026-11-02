@@ -375,7 +375,12 @@ private fun HiddenWordsSetting(
             onDismissRequest = { editing = false },
             title = { Text(stringResource(R.string.setting_hidden_words_title)) },
             text = {
-                val preview = remember(draft, articles) { ArticleFilter.parse(draft).preview(articles) }
+                // The feed's name counts too ("WIRED coupon code").
+                val preview =
+                    remember(draft, articles, feeds) {
+                        val names = feeds.associate { it.url to it.title }
+                        ArticleFilter.parse(draft).preview(articles) { names[it.feedUrl] }
+                    }
                 Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
                         value = draft,

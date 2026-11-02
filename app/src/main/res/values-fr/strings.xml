@@ -166,7 +166,7 @@
     <string name="setting_hidden_words_title">Masquer les articles avec des mots</string>
     <string name="setting_hidden_words_none">Aucun</string>
     <string name="setting_hidden_words_label">Mots</string>
-    <string name="setting_hidden_words_hint">Séparez les mots par des virgules ou des retours à la ligne. Les articles des flux dont le titre contient l\'un d\'eux comme mot entier sont masqués, majuscules ou non.</string>
+    <string name="setting_hidden_words_hint">Séparez les entrées par des virgules ou des retours à la ligne. Un article est masqué quand chaque mot d’une entrée est dans son titre ou le nom de son flux : « WIRED coupon code » masque les articles de codes promo de WIRED. Majuscules ou non.</string>
     <string name="setting_hidden_words_preview_none">Aucun article récent ne serait masqué.</string>
     <plurals name="setting_hidden_words_preview">
         <item quantity="one">%d article récent serait masqué :</item>

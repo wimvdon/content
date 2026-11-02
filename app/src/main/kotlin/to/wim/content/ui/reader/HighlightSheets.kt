@@ -17,11 +17,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -64,7 +62,10 @@ fun HighlightSheet(
     onDismiss: () -> Unit,
 ) {
     var note by rememberSaveable(highlight.id) { mutableStateOf(highlight.note) }
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+    // ContentSheet, as every sheet with a field: a swipe or a tap beside it while typing closes the
+    // keyboard, not the sheet. Opened from the highlights' list it is a page of it, with a back arrow.
+    ContentSheet(onDismiss = onDismiss) {
+        val close = rememberSheetClose()
         Column(
             Modifier
                 .verticalScroll(rememberScrollState())
@@ -86,15 +87,19 @@ fun HighlightSheet(
                 leading = {
                     if (onRemove != null) {
                         TextButton(onClick = {
-                            onRemove()
-                            onDismiss()
+                            close {
+                                onRemove()
+                                onDismiss()
+                            }
                         }) { Text(stringResource(R.string.highlight_remove), color = MaterialTheme.colorScheme.error) }
                     }
                 },
             ) {
                 Button(onClick = {
-                    onSave(note)
-                    onDismiss()
+                    close {
+                        onSave(note)
+                        onDismiss()
+                    }
                 }) { Text(stringResource(R.string.action_save)) }
             }
         }
@@ -110,8 +115,12 @@ fun HighlightsSheet(
     onOpen: (String) -> Unit,
     onDismiss: () -> Unit,
     notCopied: Set<String> = emptySet(),
+    /** A highlight opened from the list: its sheet, as a page of this one. */
+    page: @Composable () -> Unit = {},
 ) {
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    // Open all the way at once, as every sheet (it opened half-way and could be dragged in between).
+    ContentSheet(onDismiss = onDismiss) {
+        page()
         Column(
             Modifier
                 .verticalScroll(rememberScrollState())

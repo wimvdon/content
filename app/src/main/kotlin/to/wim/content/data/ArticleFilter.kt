@@ -1,22 +1,30 @@
 package to.wim.content.data
 
 /**
- * Hide articles with certain words (#277): feed articles whose title contains one of the user's
- * words are left out of the feed lists, their counts and their topic chips.
+ * Hide articles with certain words (#277): feed articles that match one of the user's entries are
+ * left out of the feed lists, their counts and their tag chips.
  *
- * The words are typed in Settings › List, separated by commas or new lines. A word matches as a
- * whole word or phrase, ignoring case: "AI" hides "New AI rules" and "ai: a recap", not "said"
- * or "Thailand"; "apple watch" hides "The Apple Watch review". Only the title counts: it is what
- * the list shows, and articles are not searched through.
+ * The entries are typed in Settings › Article list, separated by commas or new lines. An entry of
+ * several words matches when **every** word is there, in any order, in the article's title or the
+ * name of its feed (2026-11-02): "WIRED coupon code" hides WIRED's articles with "coupon code"
+ * in their title, and nothing else of WIRED; "wired" alone hides all of WIRED. A word
+ * matches as a whole word, ignoring case: "AI" hides "New AI rules" and "ai: a recap", not "said" or
+ * "Thailand". The article's text is not searched through.
  */
 class ArticleFilter private constructor(
-    /** The words and phrases, in lower case, without duplicates. */
+    /** The entries, in lower case, without duplicates. */
     val words: List<String>,
 ) {
     val isEmpty: Boolean get() = words.isEmpty()
 
-    /** Whether [article] is hidden. */
-    fun hides(article: Article): Boolean = hidesTitle(article.title)
+    /** Each entry's words. */
+    private val terms: List<List<String>> = words.map { it.split(' ').filter(String::isNotEmpty) }
+
+    /** Whether [article] is hidden; [source] is the name of its feed (the publication). */
+    fun hides(
+        article: Article,
+        source: String? = null,
+    ): Boolean = hidesTitle(article.title, source)
 
     /**
      * What the setting's dialog shows while typing (2026-11-02): how many of [articles] the words
@@ -25,9 +33,11 @@ class ArticleFilter private constructor(
     fun preview(
         articles: List<Article>,
         limit: Int = PREVIEW_LIMIT,
+        /** The name of an article's feed, which the words are looked for in too. */
+        sourceOf: (Article) -> String? = { null },
     ): Preview {
         if (words.isEmpty()) return Preview(0, emptyList())
-        val hidden = articles.filter(::hides)
+        val hidden = articles.filter { hides(it, sourceOf(it)) }
         return Preview(hidden.size, hidden.sortedByDescending { it.sortTime }.take(limit))
     }
 
@@ -37,11 +47,16 @@ class ArticleFilter private constructor(
         val newest: List<Article>,
     )
 
-    /** Whether a title with one of the words is hidden. */
-    fun hidesTitle(title: String): Boolean {
-        if (words.isEmpty() || title.isEmpty()) return false
+    /** Whether a title (of a feed named [source]) matches an entry: every one of its words is in the one or the other. */
+    fun hidesTitle(
+        title: String,
+        source: String? = null,
+    ): Boolean {
+        if (terms.isEmpty()) return false
         val text = title.lowercase()
-        return words.any { containsWord(text, it) }
+        val from = source?.lowercase().orEmpty()
+        if (text.isEmpty() && from.isEmpty()) return false
+        return terms.any { entry -> entry.all { word -> containsWord(text, word) || containsWord(from, word) } }
     }
 
     companion object {
@@ -78,5 +93,9 @@ class ArticleFilter private constructor(
     }
 }
 
-/** This library without the articles [filter] hides: what the feed lists show (#277). */
-fun Library.withoutHidden(filter: ArticleFilter): Library = if (filter.isEmpty) this else copy(articles = articles.filterNot(filter::hides))
+/** This library without the articles [filter] hides (their feed's name counts too): what the feed lists show (#277). */
+fun Library.withoutHidden(filter: ArticleFilter): Library {
+    if (filter.isEmpty) return this
+    val names = feeds.associate { it.url to it.title }
+    return copy(articles = articles.filterNot { filter.hides(it, names[it.feedUrl]) })
+}
