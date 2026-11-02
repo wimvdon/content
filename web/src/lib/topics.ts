@@ -5,7 +5,7 @@
  * sync file keeps folders and tags as they were; these rules keep the two in step.
  */
 import { changeItem, cleanTags, feedArticleFor, renameTag, type Item } from "./items";
-import { chipTag, feedFoldersToTags, feedTags, inFeedTab, removeFolder, type Feed, type FeedTab, type Folder, type Library, type Selection } from "./library";
+import { chipTag, choosesFolder, feedFoldersToTags, feedTags, inFeedTab, removeFolder, type Feed, type FeedTab, type Folder, type Library, type Selection } from "./library";
 
 const key = (name: string) => name.trim().toLowerCase();
 
@@ -231,4 +231,31 @@ export function feedChipRow(lib: Library, tab: FeedTab, selection: Selection): F
       (f.url === chosenFeed || lib.articles.some((a) => a.feedUrl === f.url && inFeedTab(a, tab))),
   );
   return { topics: [name], chosenTopic: name, feeds, loose: [], chosenFeed, shown: true };
+}
+
+/** One topic in the sidebar's Feeds list (see sidebarFeeds). */
+export interface SidebarTopic {
+  folder: Folder;
+  /** Its feeds the sidebar lists while the topic is open. */
+  feeds: Feed[];
+}
+
+/**
+ * The sidebar's Feeds list, the same rule as the chips (feedChips, feedChipRow) and Android: the
+ * topics, their feeds and the feeds without a topic that have articles in the tab shown (in Unread
+ * a topic with nothing unread is left out); the topic or feed chosen stays, so it never disappears
+ * under your pointer.
+ */
+export function sidebarFeeds(lib: Library, tab: FeedTab, selection: Selection): { topics: SidebarTopic[]; loose: Feed[] } {
+  const withArticles = new Set(lib.articles.filter((a) => inFeedTab(a, tab)).map((a) => a.feedUrl));
+  const chosenFeed = selection.kind === "feed" ? selection.feedUrl : null;
+  const keeps = (f: Feed) => f.url === chosenFeed || withArticles.has(f.url);
+  const topics = lib.folders.flatMap((folder) => {
+    const all = lib.feeds.filter((f) => f.folderId === folder.id);
+    const feeds = all.filter(keeps);
+    if (all.length === 0 || (feeds.length === 0 && !choosesFolder(selection, folder))) return [];
+    return [{ folder, feeds }];
+  });
+  const loose = lib.feeds.filter((f) => (!f.folderId || !lib.folders.some((x) => x.id === f.folderId)) && keeps(f));
+  return { topics, loose };
 }

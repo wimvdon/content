@@ -284,6 +284,8 @@ rule: **the same hierarchy as Android, not the same widgets**.
   and only the r key (not discoverable).
 - **Filters** (Android's chips): on a wide window a list under the places in the sidebar, for the
   place shown; the chip row only on narrow windows, where a mouse wheel now scrolls it sideways.
+  The list follows the chips' rule (2026-11-02, as on Android): topics and feeds with nothing in
+  the view shown (in Unread: nothing unread) are left out, except the one chosen.
 - **Mark all as read** is a floating button at the bottom right of the list, as Android's round
   button, only in Unread.
 

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Item } from "../src/lib/items";
 import { chipTags, showsLiked } from "../src/lib/saved";
 import { emptyLibrary, feedFoldersToTags, newFeed, type Library } from "../src/lib/library";
-import { addTopic, feedChipRow, feedChips, inTopicOrder, insertedBefore, mergeTopic, moved, removeTopic, reorderTopics, renameTopic, tagWithFeedTopic, topicCounts, topicIdFor, topicNamed, topicNames, topicsForTags } from "../src/lib/topics";
+import { addTopic, feedChipRow, feedChips, inTopicOrder, insertedBefore, mergeTopic, moved, removeTopic, reorderTopics, renameTopic, sidebarFeeds, tagWithFeedTopic, topicCounts, topicIdFor, topicNamed, topicNames, topicsForTags } from "../src/lib/topics";
 
 const saved = (key: string, ...tags: string[]): Item => ({
   key,
@@ -127,6 +127,23 @@ describe("topics", () => {
     expect(feedChips(lib, "unread", null)).toEqual(["Tech"]);
     expect([...feedChips(lib, "all", null)].sort()).toEqual(["News", "Tech"]);
     expect(feedChips(lib, "unread", "news")).toEqual(["Tech", "News"]);
+  });
+
+  it("leaves out the sidebar's topics and feeds with nothing in the tab shown, except the one chosen", () => {
+    const article = (feedUrl: string, id: string, read: boolean) => ({ feedUrl, id, title: id, link: null, author: null, html: "", publishedAt: null, fetchedAt: 0, read, imageUrl: null });
+    const base = topicsForTags(library);
+    const d = { ...newFeed("https://d/feed", "D"), folderId: "f1", tags: ["Tech"] };
+    const lib = { ...base, feeds: [...base.feeds, d], articles: [article("https://a/feed", "1", false), article("https://b/feed", "2", true), article("https://c/feed", "3", true)] };
+    const shape = (s: ReturnType<typeof sidebarFeeds>) => ({ topics: s.topics.map((x) => [x.folder.title, x.feeds.map((f) => f.url)]), loose: s.loose.map((f) => f.url) });
+    // Unread: News (only a read article), D and C (nothing unread) are left out.
+    expect(shape(sidebarFeeds(lib, "unread", { kind: "all" }))).toEqual({ topics: [["Tech", ["https://a/feed"]]], loose: [] });
+    // All: everything with articles; D has none.
+    expect(shape(sidebarFeeds(lib, "all", { kind: "all" }))).toEqual({ topics: [["Tech", ["https://a/feed"]], ["News", ["https://b/feed"]]], loose: ["https://c/feed"] });
+    // The topic or feed chosen stays.
+    expect(shape(sidebarFeeds(lib, "unread", { kind: "folder", folderId: "f2" })).topics).toEqual([["Tech", ["https://a/feed"]], ["News", []]]);
+    expect(shape(sidebarFeeds(lib, "unread", { kind: "tag", tag: "news" })).topics).toEqual([["Tech", ["https://a/feed"]], ["News", []]]);
+    expect(shape(sidebarFeeds(lib, "unread", { kind: "feed", feedUrl: "https://b/feed" })).topics).toEqual([["Tech", ["https://a/feed"]], ["News", ["https://b/feed"]]]);
+    expect(shape(sidebarFeeds(lib, "unread", { kind: "feed", feedUrl: "https://c/feed" })).loose).toEqual(["https://c/feed"]);
   });
 
   it("shows Feeds' chips in one row: the topics, or the topic chosen and its feeds", () => {

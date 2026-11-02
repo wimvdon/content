@@ -2,10 +2,10 @@ import { Bell, BookOpen, Heart, Rss, Settings as SettingsIcon } from "lucide-rea
 import { app, useApp } from "@/lib/app";
 import { useListedLibrary } from "./useListed";
 import { t } from "@/lib/i18n";
-import { choosesFolder, unreadByFeed } from "@/lib/library";
+import { choosesFolder, feedTabOf, unreadByFeed } from "@/lib/library";
 import { inboxUnread } from "@/lib/inbox";
 import { chipTags, showsLiked, toReadCount } from "@/lib/saved";
-import { topicIcons } from "@/lib/topics";
+import { sidebarFeeds, topicIcons } from "@/lib/topics";
 import { FeedIcon } from "./FeedIcon";
 import { FolderIcon } from "./FolderIcon";
 import { cn } from "./ui/cn";
@@ -26,7 +26,7 @@ import { FeedViewSwitch, SavedViewSwitch } from "./ViewSwitch";
  * bottom and the chips do this.
  */
 export function Sidebar({ onSettings }: { onSettings: () => void }) {
-  const { selection, savedFilter, inboxOpen, account } = useApp();
+  const { selection, savedFilter, inboxOpen, account, settings } = useApp();
   // Counts and chips without the articles the hidden words leave out.
   const library = useListedLibrary();
   const counts = unreadByFeed(library);
@@ -63,17 +63,14 @@ export function Sidebar({ onSettings }: { onSettings: () => void }) {
     </nav>
   );
 
-  /** Feeds' filters: All feeds, the topics with feeds (a topic's feeds while you are in it), then the feeds without a topic. */
+  /** Feeds' filters: All feeds, the topics with something in the view shown (a topic's feeds while you are in it), then the feeds without a topic, as on Android. */
   function feedFilters() {
-    const loose = library.feeds.filter((f) => !f.folderId || !library.folders.some((x) => x.id === f.folderId));
+    const { topics, loose } = sidebarFeeds(library, feedTabOf(settings.unreadOnly), selection);
     return (
       <div className="space-y-0.5" role="group" aria-label={t("filter")}>
         <Row selected={selection.kind === "all"} onClick={() => app.select({ kind: "all" })} icon={<Rss />} label={t("allFeeds")} count={total} />
-        {library.folders
-          .filter((f) => library.feeds.some((x) => x.folderId === f.id))
-          .map((folder) => {
-            const feeds = library.feeds.filter((f) => f.folderId === folder.id);
-            const count = feeds.reduce((n, f) => n + (counts.get(f.url) ?? 0), 0);
+        {topics.map(({ folder, feeds }) => {
+            const count = library.feeds.filter((f) => f.folderId === folder.id).reduce((n, f) => n + (counts.get(f.url) ?? 0), 0);
             const open = choosesFolder(selection, folder) || (selection.kind === "feed" && feeds.some((f) => f.url === selection.feedUrl));
             return (
               <div key={folder.id}>
