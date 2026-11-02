@@ -82,12 +82,12 @@ export function embedOf(url: string): Embed {
       kind: "youtube",
       url: `https://www.youtube.com/watch?v=${id}`,
       thumbnailUrl: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
-      player: `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&playsinline=1`,
+      player: `https://www.youtube-nocookie.com/embed/${id}?rel=0&playsinline=1`,
       size: VIDEO_SIZE,
     };
   }
   m = VIMEO_ID.exec(url);
-  if (m) return { kind: "vimeo", url: `https://vimeo.com/${m[1]}`, thumbnailUrl: null, player: `https://player.vimeo.com/video/${m[1]}?autoplay=1`, size: VIDEO_SIZE };
+  if (m) return { kind: "vimeo", url: `https://vimeo.com/${m[1]}`, thumbnailUrl: null, player: `https://player.vimeo.com/video/${m[1]}`, size: VIDEO_SIZE };
   m = SPOTIFY.exec(url);
   if (m) {
     const [, type, id] = m;
@@ -106,7 +106,7 @@ export function embedOf(url: string): Embed {
       kind: "dailymotion",
       url: `https://www.dailymotion.com/video/${id}`,
       thumbnailUrl: `https://www.dailymotion.com/thumbnail/video/${id}`,
-      player: `https://www.dailymotion.com/embed/video/${id}?autoplay=1`,
+      player: `https://www.dailymotion.com/embed/video/${id}`,
       size: VIDEO_SIZE,
     };
   }

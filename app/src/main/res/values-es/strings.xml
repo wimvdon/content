@@ -130,7 +130,6 @@
     <string name="reader_full_articles_summary">Si un feed solo tiene un resumen, traer el artículo entero del sitio web</string>
     <string name="reader_show_images_title">Mostrar imágenes</string>
     <string name="reader_show_images_summary">En los artículos y la lista</string>
-    <string name="embed_tap_to_play">Toca para reproducir</string>
     <string name="embed_open_in">Abrir en %1$s</string>
     <string name="embed_video">Reproducir vídeo</string>
     <string name="embed_other">Abrir contenido insertado</string>

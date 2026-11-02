@@ -244,10 +244,10 @@ and then (always before a release):
       instead of making it vanish. In the highlights list, tap one: it opens in the same sheet with a
       back arrow, which returns to the list. Web app: typing in a dialog, a click beside it ends the
       typing; a second click closes it.
-- [ ] **Audio players** (an article with a Spotify, SoundCloud or Bandcamp player): tap the card: the
-      player loads right there, no placeholder in between, and shows whole (Spotify with its cover,
-      SoundCloud with its play button, Bandcamp with its artwork and controls), nothing cut off. A YouTube
-      video still plays as before.
+- [ ] **Players show straight away** (an article with a Spotify, SoundCloud, Bandcamp or YouTube
+      player): open it: the players are there at once, no card to tap first, and nothing plays by
+      itself. Each shows whole (Spotify with its cover, SoundCloud with its play button, Bandcamp
+      with its artwork and controls) and plays when you tap play. Web app: the same, with a click.
 - [ ] **Settings sync between phone and web:** on the phone, turn on Always open the website and
       add a hidden word; sync. In the web app (same account, after a sync): both are the same there,
       and clicking a feed article opens its website in a new tab. Change the theme or the list view

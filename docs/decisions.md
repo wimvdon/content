@@ -82,6 +82,16 @@ The web's dialogs closed on a click beside them while typing; that click now onl
 The save and Organise sheet stays as it was (owner's choice, after trying one tap everywhere): one
 tap only in an open article, the sheet everywhere else.
 
+## 2026-11-02: Embedded players show straight away, without a card to tap
+
+Owner's choice, replacing the 2026-10-31 "card first, on tap" rule: an article's players (YouTube,
+Vimeo, Spotify, SoundCloud, Dailymotion, Apple, Bandcamp, TikTok, and a site's own video files)
+show in the article as soon as it opens, on the phone and on the web. So nothing starts on its
+own, the players no longer ask to autoplay (`autoplay=1` left out, the video element without
+autoplay, Android's WebView needs a tap before playing). The services now see an article being
+opened, not only a player being played: PRIVACY.md says so. X, Instagram and unknown embeds stay
+cards that open them.
+
 ## 2026-11-02: Audio players on Android load directly, without a placeholder
 
 Owner's report: on Android, Bandcamp and SoundCloud players loaded nothing after the change below,

@@ -41,7 +41,7 @@ class ArticleBlocksTest {
                 EmbedKind.YouTube,
                 "https://www.youtube.com/watch?v=abc123XYZ_-",
                 "https://i.ytimg.com/vi/abc123XYZ_-/hqdefault.jpg",
-                player = "https://www.youtube-nocookie.com/embed/abc123XYZ_-?autoplay=1&rel=0&playsinline=1",
+                player = "https://www.youtube-nocookie.com/embed/abc123XYZ_-?rel=0&playsinline=1",
             ),
             blocks[5],
         )
@@ -57,7 +57,7 @@ class ArticleBlocksTest {
     fun `recognises Vimeo, plain videos and other embeds`() {
         assertEquals(EmbedKind.Vimeo, ArticleBlocks.embedFor("https://player.vimeo.com/video/76979871", base)?.kind)
         assertEquals("https://vimeo.com/76979871", ArticleBlocks.embedFor("https://player.vimeo.com/video/76979871", base)?.url)
-        assertEquals("https://player.vimeo.com/video/76979871?autoplay=1", ArticleBlocks.embedFor("https://player.vimeo.com/video/76979871", base)?.player)
+        assertEquals("https://player.vimeo.com/video/76979871", ArticleBlocks.embedFor("https://player.vimeo.com/video/76979871", base)?.player)
         val other = ArticleBlocks.embedFor("http://maps.example.com/embed?x=1", base)!!
         // Unknown iframes never play inside: their card opens them (upgraded to https).
         assertEquals(ArticleBlock.Embed(EmbedKind.Other, "https://maps.example.com/embed?x=1", null), other)
@@ -87,7 +87,7 @@ class ArticleBlocksTest {
         val daily = embed("https://www.dailymotion.com/embed/video/x8abc12")
         assertEquals(EmbedKind.Dailymotion, daily.kind)
         assertEquals("https://www.dailymotion.com/video/x8abc12", daily.url)
-        assertEquals("https://www.dailymotion.com/embed/video/x8abc12?autoplay=1", daily.player)
+        assertEquals("https://www.dailymotion.com/embed/video/x8abc12", daily.player)
         assertEquals("https://www.dailymotion.com/video/x8abc12", embed("https://geo.dailymotion.com/player.html?video=x8abc12").url)
 
         val song = embed("https://embed.music.apple.com/be/album/name/123?i=456")
@@ -115,7 +115,7 @@ class ArticleBlocksTest {
         assertTrue(page.contains("<iframe src=\"https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/a&amp;x=&quot;&gt;&lt;script&gt;\""))
         assertFalse(page.contains("<script>"))
         val video = Embeds.playerPage(Embeds.video("https://example.com/v.mp4", null))!!
-        assertTrue(video.contains("<video src=\"https://example.com/v.mp4\" controls autoplay playsinline></video>"))
+        assertTrue(video.contains("<video src=\"https://example.com/v.mp4\" controls playsinline></video>"))
         assertNull(Embeds.playerPage(ArticleBlock.Embed(EmbedKind.Other, "https://example.com/", null)))
     }
 
@@ -188,7 +188,7 @@ class ArticleBlocksTest {
     fun `a video service's player loads as the page itself, a site's video in a page of its own`() {
         // YouTube refuses a player inside a page without an address (error 153): it loads directly.
         val youTube = ArticleBlocks.embedFor("https://www.youtube.com/embed/abc123XYZ_-", base)!!
-        assertEquals(PlayerLoad.Url("https://www.youtube-nocookie.com/embed/abc123XYZ_-?autoplay=1&rel=0&playsinline=1"), Embeds.playerLoad(youTube))
+        assertEquals(PlayerLoad.Url("https://www.youtube-nocookie.com/embed/abc123XYZ_-?rel=0&playsinline=1"), Embeds.playerLoad(youTube))
         val video = Embeds.playerLoad(Embeds.video("https://example.com/v.mp4", null))
         assertTrue(video is PlayerLoad.Page && video.html.contains("<video src=\"https://example.com/v.mp4\""))
         assertNull(Embeds.playerLoad(ArticleBlock.Embed(EmbedKind.X, "https://x.com/i/status/1", null)))
