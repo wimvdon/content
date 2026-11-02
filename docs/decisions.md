@@ -82,6 +82,16 @@ The web's dialogs closed on a click beside them while typing; that click now onl
 The save and Organise sheet stays as it was (owner's choice, after trying one tap everywhere): one
 tap only in an open article, the sheet everywhere else.
 
+## 2026-11-02: Bandcamp's player takes the height its site gives it
+
+Owner's report (with a screenshot): a large Bandcamp player without its big artwork sat in a 470
+high space, with a large empty area under it. The height came from the address alone ("size=large"
+→ 470). Now the height the site itself gives the iframe (its height attribute or "height: …px" in
+its style) is used, and without one a better guess from the address: small 42, large without
+artwork (artwork=small or none) 120, large with artwork 470. Phone and web (`statedHeight`, the same
+on both). Bandcamp's own "Sorry, this track or album is not available" is Bandcamp's answer for
+that release, not the app's.
+
 ## 2026-11-02: Android's player view fills its space (SoundCloud, Bandcamp, Spotify)
 
 Owner's report: SoundCloud and Bandcamp still showed nothing on Android, and Spotify only its small

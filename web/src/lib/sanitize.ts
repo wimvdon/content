@@ -1,5 +1,5 @@
 import DOMPurify from "dompurify";
-import { EMBED_SERVICES, embedFor, postQuotesToFrames, videoEmbed, type Embed } from "./embeds";
+import { EMBED_SERVICES, embedFor, postQuotesToFrames, statedHeight, videoEmbed, type Embed } from "./embeds";
 import { t, type Key } from "./i18n";
 import { candidateSize, parseSrcset, type SrcsetCandidate } from "./srcset";
 
@@ -14,14 +14,18 @@ export function sanitizeArticle(html: string, baseUrl: string, showImages = true
   // An iframe's fallback content never shows, and with markup in it DOMPurify drops the whole
   // iframe (and so its card).
   // Posts written for a service's script (Bluesky, Mastodon, Threads, Reddit) become their iframes.
-  const clean = DOMPurify.sanitize(postQuotesToFrames(html).replace(/(<iframe\b[^>]*>)[\s\S]*?<\/iframe\s*>/gi, "$1</iframe>"), {
+  // The height a site gives an iframe in its style is kept as data-stated-height (styles are removed).
+  const clean = DOMPurify.sanitize(postQuotesToFrames(html).replace(/(<iframe\b[^>]*>)[\s\S]*?<\/iframe\s*>/gi, (_, tag: string) => `${withStatedHeight(tag)}</iframe>`), {
     FORBID_TAGS: ["style", "form", "input", "button", "textarea", "select", "object", "embed"],
     // width and height stay for now: they say how big a picture is meant to be (see below).
     FORBID_ATTR: ["style", "class", "id"],
     ADD_TAGS: ["iframe"],
     RETURN_DOM_FRAGMENT: true,
   });
-  for (const frame of Array.from(clean.querySelectorAll("iframe"))) replaceWithCard(frame, embedFor(frame.getAttribute("src"), baseUrl));
+  for (const frame of Array.from(clean.querySelectorAll("iframe"))) {
+    const height = Number(frame.getAttribute("data-stated-height")) || statedHeight(frame.getAttribute("height"), null);
+    replaceWithCard(frame, embedFor(frame.getAttribute("src"), baseUrl, height));
+  }
   for (const video of Array.from(clean.querySelectorAll("video"))) {
     const src = video.getAttribute("src") ?? video.querySelector("source[src]")?.getAttribute("src");
     replaceWithCard(video, videoEmbed(src, video.getAttribute("poster"), baseUrl));
@@ -159,6 +163,13 @@ function replaceWithCard(element: Element, embed: Embed | null) {
   }
   card.appendChild(label);
   element.replaceWith(card);
+}
+
+/** An iframe's opening tag with the height its style gives it as data-stated-height, when it gives one. */
+function withStatedHeight(tag: string): string {
+  const style = /\sstyle\s*=\s*("([^"]*)"|'([^']*)')/i.exec(tag);
+  const height = style ? statedHeight(null, style[2] ?? style[3]) : null;
+  return height ? tag.replace(/^<iframe\b/i, `<iframe data-stated-height="${height}"`) : tag;
 }
 
 function absolute(href: string, base: string): string | null {
