@@ -81,6 +81,7 @@ The account's document (it was `rss-reader-sync.json` in Google Drive before), U
   | `web.reader.font`, `.textSize`, `.spacing`, `.background`, `.autoDark` | `sans`/`serif`; 14 to 28 (px); `compact`/`normal`/`relaxed`; `default`/`sepia`/`dark`; `true`/`false` | web |
   | `web.fullArticles`, `web.showImages`, `web.markReadOnScroll` | `true`, `false` | web |
   | `web.listView` | `small`, `medium`, `large` | web |
+  | `web.hiddenWords` | Hide articles with words (#277), as on Android: the words as typed; `""` for none | web |
   | `services.instapaper.token` | the Instapaper sign-in, shared by every device of the account (`SharedInstapaper.kt`, `web/src/lib/sharedInstapaper.ts`, see `instapaper.md`): `{"token", "username", "userId"}`; `""` once disconnected | both |
   | `sharing.recipients` | the people shared with (#235): a JSON list of email addresses in lower case, most recent first, at most 12 | both |
   | `services.instapaper.imported` | the answer to the import question when Instapaper was connected (#251): `{"at": ms, "count": n, "everything": true}` (`false`: not imported); one without `everything` (from before #251) counts as everything; an app without one keeps the file's | both |

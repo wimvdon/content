@@ -7,7 +7,12 @@ Newest first. Add an entry for every notable choice: what was decided, why, and 
 Owner's request. While typing in the dialog it shows how many of the feed articles on the device
 the words would hide, and the newest five (title and feed), updated with every key; nothing is
 hidden until Save. Only the articles already on the device are checked: nothing is downloaded.
-Android only, as the web app has no such filter.
+
+The web app didn't have Hide articles with words at all; it has it now (`web/src/lib/articleFilter.ts`,
+the same matching, tested), with the same preview, synced as `web.hiddenWords` like its other list
+settings. And a rule in `CLAUDE.md` (owner's request): **feature parity**, every feature in both
+apps in the same pull request, each in its own design system; only what one platform can't do is
+left out, and that is named.
 
 ## 2026-11-02: The reader's toolbar without fills; Search's feeds as a second chip row
 

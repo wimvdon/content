@@ -1,5 +1,6 @@
 import { Smartphone, ArrowLeft, BookmarkPlus, BookOpenText, ChevronDown, ChevronRight, LayoutList, Palette, Plus, Puzzle, Rss, Tag as TagIcon, Trash2, UserRound } from "lucide-react";
 import { ConfirmRemove, RemoveButton } from "./ConfirmRemove";
+import { HiddenWordsRow } from "./HiddenWords";
 import { insertedBefore } from "@/lib/topics";
 import { CHIP_TYPE, EditChips, TopicChips, chip, chipOn } from "./TopicChips";
 import { useEffect, useMemo, useState } from "react";
@@ -485,6 +486,7 @@ export function SettingsDialog({
                 />
               </div>
               <SwitchRow title={t("markReadOnScroll")} checked={settings.markReadOnScroll} onChange={(v) => app.updateSettings({ markReadOnScroll: v })} />
+              <HiddenWordsRow />
             </section>
           ) : null}
           {page === "reader" ? (

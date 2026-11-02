@@ -38,6 +38,7 @@ import { extractArticle } from "./fullArticle";
 import { defaultReaderStyle, readerStyleOf, type ReaderStyle } from "./readerStyle";
 import { load, remove, save } from "./storage";
 import * as S from "./sync";
+import { hiddenWords, withoutHidden } from "./articleFilter";
 import * as SS from "./syncSettings";
 
 /** Everything the web app shows, kept in one place; components subscribe with useApp(). */
@@ -57,6 +58,8 @@ export interface Settings {
   /** Show article pictures, thumbnails and embed previews (they load from the sites). */
   showImages: boolean;
   listView: ListView;
+  /** Hide feed articles whose title has one of these words (#277), as typed (articleFilter.ts). */
+  hiddenWords: string;
   /** What was imported from each service when it was connected (#145), by id. */
   imports: Record<string, ServiceImport>;
   /** The people shared with (#235), most recent first; synced (recipients.ts). */
@@ -116,6 +119,7 @@ export const defaultSettings: Settings = {
   markReadOnScroll: false,
   showImages: true,
   listView: "medium",
+  hiddenWords: "",
   imports: {},
   recipients: [],
 };
@@ -475,7 +479,8 @@ class AppStore {
 
   /** Done with the section: everything unread in it is read, and nothing read stays in the Unread list (#157). */
   markAllRead(): Set<string> {
-    const keys = L.unreadKeys(this.state.library, this.state.selection);
+    // What the list shows: not the articles the hidden words leave out.
+    const keys = L.unreadKeys(withoutHidden(this.state.library, hiddenWords(this.state.settings.hiddenWords)), this.state.selection);
     this.set({ readThisVisit: new Set() });
     this.setRead(keys, true);
     return keys;

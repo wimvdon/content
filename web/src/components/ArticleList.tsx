@@ -2,6 +2,7 @@ import { Plus, Archive, ArchiveRestore, Bell, BookmarkPlus, BookOpen, CheckCheck
 import { useEffect, useMemo, useRef, useState } from "react";
 import { headerHidden } from "@/lib/header";
 import { app, useApp } from "@/lib/app";
+import { useListedLibrary } from "./useListed";
 import { snippet } from "@/lib/html";
 import { dayLabel, plural, t } from "@/lib/i18n";
 import { articleKey, articlesInTab, chipTag, feedTabOf, sortTime, unreadKeys, type Article, type Feed } from "@/lib/library";
@@ -52,7 +53,9 @@ export function ArticleList(props: ListProps) {
 }
 
 function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport, onUndo, onSearch, onMessage }: ListProps) {
-  const { library, selection, settings, readThisVisit, refreshing, loaded, problems, account } = useApp();
+  const { selection, settings, readThisVisit, refreshing, loaded, problems, account } = useApp();
+  // The list, its counts and chips without the articles the hidden words leave out (#277).
+  const library = useListedLibrary();
   const [share, shareDialog] = useShare((text) => onMessage(text));
   // Feeds' views, as on Android: Unread and All (the switch above the list, or in the sidebar).
   const tab = feedTabOf(settings.unreadOnly);

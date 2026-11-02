@@ -13,6 +13,7 @@ import { sharedByLabel } from "@/lib/sharing";
 import { app, useApp } from "./lib/app";
 import { plural, t } from "./lib/i18n";
 import { articleKey, articlesFor, type Article } from "./lib/library";
+import { useListedLibrary } from "./components/useListed";
 import { itemArticle, savedItems } from "./lib/saved";
 
 /** A message at the bottom, with at most one action (Undo, Open). */
@@ -101,9 +102,11 @@ export default function App() {
     open(itemArticle(item, app.get().library));
   };
 
+  // The feed lists without the articles the hidden words leave out (#277), for j and k.
+  const listed = useListedLibrary();
   const visible = useMemo(
-    () => (selection.kind === "saved" ? savedItems(library, savedFilter).map((i) => itemArticle(i, library)) : articlesFor(library, selection, settings.unreadOnly, readThisVisit)),
-    [library, selection, settings.unreadOnly, readThisVisit, savedFilter],
+    () => (selection.kind === "saved" ? savedItems(library, savedFilter).map((i) => itemArticle(i, library)) : articlesFor(listed, selection, settings.unreadOnly, readThisVisit)),
+    [library, listed, selection, settings.unreadOnly, readThisVisit, savedFilter],
   );
 
   // Keyboard: j/k next and previous, m read/unread, o open on the website, r refresh.

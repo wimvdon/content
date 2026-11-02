@@ -11,7 +11,7 @@ import { decodeImport, encodeImport, type ServiceImport } from "./serviceImport"
  * same in every browser and the Android app's are the same on every phone, but the two never mix
  * (the owner's choice): a computer and a phone often want something different. That is how it
  * looks (the theme, the reader's font, size, spacing and page colour, Show images, the list view)
- * and what it does (Load full articles, Mark as read on scroll).
+ * and what it does (Load full articles, Mark as read on scroll, Hide articles with words).
  *
  * Shared by both apps: what was imported from each connected service (#145), the people shared with
  * (#235) and the Instapaper sign-in (INSTAPAPER_TOKEN, sharedInstapaper.ts: connect once, on every
@@ -29,6 +29,7 @@ export const FULL_ARTICLES = `${PREFIX}fullArticles`;
 export const SHOW_IMAGES = `${PREFIX}showImages`;
 export const MARK_READ_ON_SCROLL = `${PREFIX}markReadOnScroll`;
 export const LIST_VIEW = `${PREFIX}listView`;
+export const HIDDEN_WORDS = `${PREFIX}hiddenWords`;
 
 /** Load full articles and Mark as read on scroll were shared by both apps before; read once, never written. */
 export const LEGACY_FULL_ARTICLES = "fullArticles";
@@ -44,7 +45,7 @@ export const INSTAPAPER_TOKEN = "services.instapaper.token";
 export const SERVICES = ["instapaper"];
 export const importName = (service: string) => `services.${service}.imported`;
 
-const KNOWN = new Set([THEME, READER_FONT, READER_TEXT_SIZE, READER_SPACING, READER_BACKGROUND, READER_AUTO_DARK, FULL_ARTICLES, SHOW_IMAGES, MARK_READ_ON_SCROLL, LIST_VIEW, RECIPIENTS]);
+const KNOWN = new Set([THEME, READER_FONT, READER_TEXT_SIZE, READER_SPACING, READER_BACKGROUND, READER_AUTO_DARK, FULL_ARTICLES, SHOW_IMAGES, MARK_READ_ON_SCROLL, LIST_VIEW, HIDDEN_WORDS, RECIPIENTS]);
 
 /** Names earlier versions wrote; dropped from the file when this browser saves it. */
 const dropped = (name: string) =>
@@ -75,6 +76,7 @@ export function syncedSettings(settings: Settings, base: Record<string, string> 
     [SHOW_IMAGES]: String(settings.showImages),
     [MARK_READ_ON_SCROLL]: String(settings.markReadOnScroll),
     [LIST_VIEW]: settings.listView,
+    [HIDDEN_WORDS]: settings.hiddenWords,
     [RECIPIENTS]: encodeRecipients(settings.recipients),
   });
   for (const id of SERVICES) {
@@ -111,6 +113,7 @@ export function applySynced(settings: Settings, values: Record<string, string>):
     showImages: bool(SHOW_IMAGES, settings.showImages),
     markReadOnScroll: bool(MARK_READ_ON_SCROLL, bool(LEGACY_MARK_READ_ON_SCROLL, settings.markReadOnScroll)),
     listView: pick(LIST_VIEW, LIST_VIEWS, settings.listView),
+    hiddenWords: typeof values[HIDDEN_WORDS] === "string" ? values[HIDDEN_WORDS] : settings.hiddenWords,
     imports,
     recipients: decodeRecipients(values[RECIPIENTS]) ?? settings.recipients,
   };

@@ -152,7 +152,7 @@ describe("synced settings", () => {
   });
 
   it("go under web., the same in every browser, and come back the same", () => {
-    const mine = { ...settings, markReadOnScroll: true, readerStyle: { ...settings.readerStyle, spacing: "relaxed" as const, background: "sepia" as const, autoDark: true } };
+    const mine = { ...settings, markReadOnScroll: true, hiddenWords: "crypto, apple watch", readerStyle: { ...settings.readerStyle, spacing: "relaxed" as const, background: "sepia" as const, autoDark: true } };
     const values = SS.syncedSettings(mine);
     expect(values).toEqual({
       "web.theme": "dark",
@@ -165,6 +165,7 @@ describe("synced settings", () => {
       "web.showImages": "false",
       "web.markReadOnScroll": "true",
       "web.listView": "large",
+      "web.hiddenWords": "crypto, apple watch",
       "sharing.recipients": "[]",
     });
     expect(SS.applySynced(defaultSettings, values)).toEqual(mine);
@@ -172,7 +173,7 @@ describe("synced settings", () => {
 
   it("leave the Android app's settings, and names older versions wrote, alone", () => {
     const fromElsewhere = {
-      "android.theme": "Light", "android.fullArticles": "true", "android.listView": "Small",
+      "android.theme": "Light", "android.fullArticles": "true", "android.hiddenWords": "ai", "android.listView": "Small",
       theme: "light", "reader.font": "serif", "reader.textSize": "16", "reader.background": "sepia", showImages: "true", listView: "small",
     };
     expect(SS.applySynced(settings, fromElsewhere)).toEqual(settings);
