@@ -213,7 +213,9 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   phrases, separated by commas or new lines. Feed articles with one of them in their title are left
   out of the article lists, the unread counts and the tag chips. A word counts only as a whole
   word, and capitals don't matter: "AI" hides "New AI rules", not "He said so". Only the title is
-  checked, and search still finds hidden articles. Empty the field to show everything again. The
+  checked, and search still finds hidden articles. While you type, the dialog shows how many of the
+  recent articles on the device the words would hide, with the five newest (title and feed), so
+  you see what goes before you tap Save. Empty the field to show everything again. The
   words are the same on your other Android devices (synced as `android.hiddenWords`).
 - If some feeds can't be downloaded, a message says how many; **Manage feeds** (in Settings) shows
   which ones (in red); tap one to see why.

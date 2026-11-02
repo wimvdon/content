@@ -18,6 +18,25 @@ class ArticleFilter private constructor(
     /** Whether [article] is hidden. */
     fun hides(article: Article): Boolean = hidesTitle(article.title)
 
+    /**
+     * What the setting's dialog shows while typing (2026-11-02): how many of [articles] the words
+     * hide, and the newest [limit] of them, so you see what would go before saving.
+     */
+    fun preview(
+        articles: List<Article>,
+        limit: Int = PREVIEW_LIMIT,
+    ): Preview {
+        if (words.isEmpty()) return Preview(0, emptyList())
+        val hidden = articles.filter(::hides)
+        return Preview(hidden.size, hidden.sortedByDescending { it.sortTime }.take(limit))
+    }
+
+    /** [count] articles hidden; [newest] are the most recent of them. */
+    data class Preview(
+        val count: Int,
+        val newest: List<Article>,
+    )
+
     /** Whether a title with one of the words is hidden. */
     fun hidesTitle(title: String): Boolean {
         if (words.isEmpty() || title.isEmpty()) return false
@@ -26,6 +45,9 @@ class ArticleFilter private constructor(
     }
 
     companion object {
+        /** How many hidden articles the preview lists. */
+        const val PREVIEW_LIMIT = 5
+
         /** The filter for the text typed in Settings: words separated by commas or new lines. */
         fun parse(text: String): ArticleFilter = ArticleFilter(words(text))
 

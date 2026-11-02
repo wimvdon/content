@@ -70,4 +70,19 @@ class ArticleFilterTest {
         assertEquals(1, shown.unreadCount(FeedSelection.All))
         assertEquals(2, library.unreadCount(FeedSelection.All))
     }
+
+    @Test
+    fun `the preview counts what the words hide and lists the newest first`() {
+        val articles = (1..8).map { article("$it", if (it % 2 == 0) "AI news $it" else "Gardening $it") } + article("20", "Said nothing")
+        val preview = ArticleFilter.parse("ai").preview(articles, limit = 3)
+        assertEquals(4, preview.count)
+        assertEquals(listOf("8", "6", "4"), preview.newest.map { it.id })
+    }
+
+    @Test
+    fun `no words, no preview`() {
+        val preview = ArticleFilter.parse(" , ").preview(listOf(article("1", "AI news")))
+        assertEquals(0, preview.count)
+        assertTrue(preview.newest.isEmpty())
+    }
 }

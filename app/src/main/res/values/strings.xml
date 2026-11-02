@@ -166,6 +166,11 @@
     <string name="setting_hidden_words_none">None</string>
     <string name="setting_hidden_words_label">Words</string>
     <string name="setting_hidden_words_hint">Separate words with commas or new lines. Feed articles with one of them as a whole word in their title are hidden; case doesn\'t matter.</string>
+    <string name="setting_hidden_words_preview_none">No recent articles would be hidden.</string>
+    <plurals name="setting_hidden_words_preview">
+        <item quantity="one">%d recent article would be hidden:</item>
+        <item quantity="other">%d recent articles would be hidden:</item>
+    </plurals>
     <string name="action_mark_read">Mark as read</string>
     <string name="section_list">Article list</string>
     <string name="setting_list_view">View</string>

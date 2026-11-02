@@ -679,6 +679,7 @@ fun RssReaderNavigation(
             hasFeeds = library.feeds.isNotEmpty(),
             feeds = library.feeds,
             topics = library.folders,
+            articles = library.articles,
             instapaper =
                 InstapaperSettingsState(
                     instapaper = instapaperState,

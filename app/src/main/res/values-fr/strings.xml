@@ -166,6 +166,12 @@
     <string name="setting_hidden_words_none">Aucun</string>
     <string name="setting_hidden_words_label">Mots</string>
     <string name="setting_hidden_words_hint">Séparez les mots par des virgules ou des retours à la ligne. Les articles des flux dont le titre contient l\'un d\'eux comme mot entier sont masqués, majuscules ou non.</string>
+    <string name="setting_hidden_words_preview_none">Aucun article récent ne serait masqué.</string>
+    <plurals name="setting_hidden_words_preview">
+        <item quantity="one">%d article récent serait masqué :</item>
+        <item quantity="many">%d articles récents seraient masqués :</item>
+        <item quantity="other">%d articles récents seraient masqués :</item>
+    </plurals>
     <string name="action_mark_read">Marquer comme lu</string>
     <string name="section_list">Liste d\'articles</string>
     <string name="setting_list_view">Affichage</string>
