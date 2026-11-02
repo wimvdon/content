@@ -64,8 +64,8 @@ saved articles stay, without it); giving it another tag's name merges the two. *
 makes one: a name and an icon from the whole Material Symbols set (type in English, such as
 *news*, *car* or *food*). Changes are kept at once: **Done** closes it.
 
-**Managing feeds: Manage feeds** (the other large button at the top of Settings). A sheet with your feeds as a list, each with its site icon
-and a grip (⋮⋮) at the end, under a heading per tag (in your order, then **No tag**; every
+**Managing feeds: Manage feeds** (the other large button at the top of Settings). A sheet with your feeds as a list, each with its site icon,
+a pen and a grip (⋮⋮) at the end, under a heading per tag (in your order, then **No tag**; every
 tag, an empty one too, with "Drag a feed here"); a feed that can't be downloaded has its name in
 red. Drag a row by its grip up or down to reorder the feeds of a tag, or past another tag's
 heading to move it there. Tap one for the **Edit feed** sheet: its
@@ -93,7 +93,7 @@ closes the keyboard first; the sheet stays until you do it again.
 
 **Saved:** an article you save from a feed gets the feed's tag by itself (Save, the long press, the
 save sheet). In the save and Organise sheets you turn tags on or off, every tag in your order,
-and **Edit tags** shows Manage tags in the same sheet, with a back arrow. **Editing tags:** in Manage tags every tag is a row with a grip at the end (on the web a chip
+and **Edit tags** shows Manage tags in the same sheet, with a back arrow. **Editing tags:** in Manage tags every tag is a row with a pen and a grip at the end (on the web a chip
 with a grip and a pen): drag it to reorder your tags (on the web also ← → on a focused chip), tap one
 to rename it, change its icon or remove it (the sheet asks first); renaming it to another tag's
 name joins the two. **Done** ends it. A tag you renamed or removed is renamed or removed in the

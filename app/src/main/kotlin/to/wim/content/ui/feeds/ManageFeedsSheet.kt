@@ -64,7 +64,7 @@ class ManageFeedsActions(
  * Manage feeds as a sheet (from Settings, and wherever else it is linked): the feeds as chips,
  * grouped by topic (in the topics' order, then No topic), like the chips in Feeds and the sheets.
  * Every topic shows, an empty one too. Drag a chip by its handle to reorder it within its topic or
- * to move it into another topic (or No topic); tap it for the Edit feed sheet (name,
+ * to move it into another topic (or No topic); tap it (the pen before the grip says so) for the Edit feed sheet (name,
  * topic, Remove) as a page of this sheet, with a back arrow. A feed that fails to download has its name in the error colour. Add feed at the
  * bottom left. Changes are stored at once: **Done** at the bottom right.
  */
@@ -148,6 +148,8 @@ fun ManageFeedsSheet(
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f),
                     )
+                    // A pen before the grip (2026-11-02): tapping the row edits it, as the web's chips show.
+                    Icon(painterResource(R.drawable.ic_edit), contentDescription = null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     DragHandle(handleModifier)
                 }
             }

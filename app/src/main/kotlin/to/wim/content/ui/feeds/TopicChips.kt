@@ -53,7 +53,7 @@ import to.wim.content.ui.home.rememberFolderIconPainter
  * back to the sheet as it was.
  *
  * With [alwaysEditing] (the Manage topics sheet itself) the topics are rows with a grip at the end
- * (the design kit's ReorderableColumn): drag a row to reorder them, tap it to rename it, change its icon or remove it;
+ * (the design kit's ReorderableColumn) and a pen before it: drag a row to reorder them, tap it to rename it, change its icon or remove it;
  * renaming it to another topic's name joins the two. Removing (the topic sheet's trash can) asks first, in a dialog. **New
  * topic** (the topic sheet: a name and an icon) comes after them.
  */
@@ -97,6 +97,8 @@ fun TopicChipRow(
                 ) {
                     Icon(rememberFolderIconPainter(topic.icon), contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(topic.title, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                    // A pen before the grip (2026-11-02): tapping the row edits it, as the web's chips show.
+                    Icon(painterResource(R.drawable.ic_edit), contentDescription = null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     DragHandle(handleModifier)
                 }
             }
