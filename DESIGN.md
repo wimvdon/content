@@ -271,8 +271,9 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   (a bell, with Material's small badge while something in it is unread; it was a bell in the search
   bar before). Search is
   an action in the top bar of both destinations (a magnifier) that opens one search page for
-  everything: the field in its top bar, one row of filter chips above the results (**Feeds**, a
-  menu chip with All feeds and a check box per feed; **Saved**; a divider; the tag chips), and the results as one list of article rows ranked by relevance, each with a small label
+  everything: the field in its top bar, filter chips above the results (**Feeds** and **Saved**,
+  toggles; a divider; the tag chips; with Feeds on, a second row of every feed as a chip with its
+  icon, several can be picked, 2026-11-02, instead of a menu with check boxes), and the results as one list of article rows ranked by relevance, each with a small label
   (Feed or Saved). It is not a navigation bar item: it acts on the content of both
   destinations rather than being a place of its own. **Android has no ☰ drawer** (the owner's
   choice): Feeds, Saved and the Inbox are the navigation bar, and every place inside them is a chip.
@@ -317,22 +318,24 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   always shows the whole article (#208), then Aa and ⋮); a **floating toolbar** (Material 3's
   floating toolbar, built from a `Surface` and a `Row` as Material 3 1.4 has none: a pill on
   `surfaceContainer`, 64dp high, 16dp above the bottom, in the middle) is this article in your
-  library, with **Share** beside it as its own round button (`secondaryContainer`, 64dp: Material 3's
-  floating toolbar with a FAB): a tonal **Save** before it is saved, then (2026-11-01, owner's choice,
-  instead of Archive and Organise) first what moves it, in words: a tonal **Archive** (the Archive's
-  box, styled like Save: the next step; one tap archives it, the article stays open and shows
-  Archived with Undo, #331) while it is to read, or a plain **To read** (the open book: puts it back)
-  once archived; then **Like** (an icon toggle, a heart filled while liked; its name on a long
-  press as a tooltip). What describes a saved article sits under its title and details instead
-  (`SavedHeader`, 2026-11-01): one row of chips, its tags as input chips with their icons, an assist
-  chip **+ Tag** (the Tags sheet, tag chips only), **+ Note** while it has none (the Note sheet), and
-  with highlights an assist chip with the quote mark and how many (their list); a note shows below
-  as a `surfaceContainerHigh` block, tapped to edit. There is no Organise sheet any more; **Remove from Saved** is in ⋮. All its buttons are in one neutral colour (`onSurfaceVariant`, as Material 3's
-  toolbars have it; the text buttons were `primary` before, so Share looked different), only the tonal
-  Save stands out; the web's ghost buttons were already alike. It slides away while reading down and comes back scrolling up, at the top and
+  library (2026-11-02, owner's choice): **no button has a fill**, all are in the toolbar's neutral
+  colour (`onSurfaceVariant`); the next step stands out by its words. Before it is saved: **Save**
+  (icon and word), the highlights, **Share** (an icon, the pill's last button: no round button
+  beside it any more). Saved: **Archive** (the Archive's box and its word; one tap archives it, the
+  article stays open and shows Archived with Undo, #331) while it is to read, or only the unarchive
+  icon (named To read, on a long press as a tooltip) once archived; then **Like** (an icon toggle, a
+  heart filled while liked), **Tags** (the label icon: the Tags sheet) and **Share**. Right after
+  Save in the reader the toolbar and ⋮ are a saved article's at once (`ReaderMenu`). What describes a
+  saved article sits under its title and details (`SavedHeader`): an assist chip **+ Note** while it
+  has none (the Note sheet; a note's sheet has the trash can at the top right, asking first) and with
+  highlights an assist chip with the quote mark and how many (their list); a note shows below as a
+  `surfaceContainerHigh` block, tapped to edit. Its tags are not shown there (the toolbar's Tags).
+  There is no Organise sheet any more; **Remove from Saved** is in ⋮. The web's ghost buttons
+  follow the same layout. It slides away while reading down and comes back scrolling up, at the top and
   at the end of the article; the text keeps room under its end, and messages show above it. The text ends
-  with Read on website and nothing else. ⋮ holds the rare ones: Open in browser, Mark as unread,
-  Sign in to this site (only while not signed in to it), Report a problem, Remove from Saved.
+  with Read on website and nothing else. ⋮ holds the rare ones: Mark as unread and the text switch
+  (only before it is saved), Open in browser, Sign in to this site (only while not signed in to
+  it), Report a problem, Remove from Saved (only once saved).
 - Highlights (#102): **Highlight** and **Note** come first in the menu over selected text, then
   Copy, Share, Select all and the apps that act on text (#251; the web: a small bar above the
   selection). A highlight is a marker yellow (`#FFD54F` at 45 %)

@@ -11,8 +11,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.InputChip
-import androidx.compose.material3.InputChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -24,15 +22,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import to.wim.content.R
-import to.wim.content.ui.home.rememberFolderIconPainter
 
 /**
- * What a saved article carries, under its title and details (2026-11-01, instead of toolbar
- * buttons): they describe the article, so they sit with it. One row of chips: its tags as input
- * chips (Material 3: the user's own tags), each with its tag's icon; **+ Tag** (an assist chip: an
- * action on this content) to change them; **+ Note** while there is no note; and, with highlights,
- * the quote mark and how many, which opens their list. A note shows below as a filled card with its
- * text; tapping it edits it. Every chip opens what it names.
+ * What a saved article carries, under its title and details (2026-11-01): they describe the
+ * article, so they sit with it. One row of chips: **+ Note** while there is no note (an assist chip:
+ * an action on this content) and, with highlights, the quote mark and how many, which opens their
+ * list. A note shows below as a filled card with its text; tapping it edits it. Its tags are the
+ * toolbar's Tags button (2026-11-02), not chips here.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -44,18 +40,6 @@ internal fun SavedHeader(
     val note = item.item.note.trim()
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            item.item.tags.forEach { tag ->
-                InputChip(
-                    selected = false,
-                    onClick = item.onTopics,
-                    label = { Text(tag) },
-                    leadingIcon =
-                        item.tagIcons[tag.trim().lowercase()]?.let { icon ->
-                            { Icon(rememberFolderIconPainter(icon), contentDescription = null, modifier = Modifier.size(InputChipDefaults.IconSize)) }
-                        },
-                )
-            }
-            AddChip(stringResource(R.string.feed_folder), onClick = item.onTopics)
             if (note.isEmpty()) AddChip(stringResource(R.string.note_title), onClick = item.onNote)
             if (highlightCount > 0) {
                 AssistChip(

@@ -253,6 +253,8 @@
     <string name="add_link_address">Adresse web</string>
     <string name="add_link_invalid">Ce n’est pas une adresse web.</string>
     <string name="note_title">Note</string>
+    <string name="note_remove_title">Supprimer la note ?</string>
+    <string name="note_remove_body">La note de cet article sera supprimée.</string>
     <string name="duration_hours">%1$d h %2$d min</string>
     <string name="duration_minutes">%d min</string>
     <string name="reading_list_to_read">À lire</string>
@@ -323,7 +325,6 @@
     <string name="welcome_import">Importer depuis un autre lecteur</string>
     <string name="topic_in_feeds">Flux · %1$s</string>
     <string name="topic_in_saved">Enregistrés · %1$s</string>
-    <string name="search_all_feeds">Tous les flux</string>
     <string name="add_title">Ajouter</string>
     <string name="add_choice_feed">S’abonner à un flux</string>
     <string name="add_choice_feed_body">Abonnez-vous à un flux RSS en saisissant l’adresse de la publication</string>

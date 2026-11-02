@@ -1,11 +1,5 @@
 package to.wim.content.ui.home
 
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.RadioButton
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.text.style.TextOverflow
 import to.wim.content.data.SearchFilters
 import to.wim.content.data.SearchResults
 import to.wim.content.data.Saved
@@ -14,14 +8,9 @@ import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import to.wim.content.data.Folder
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Column
@@ -88,7 +77,7 @@ data class SearchState(
     /** The topics, for their chips and icons (SearchResults.topics: those with something in the kind shown). */
     val topics: List<String> = emptyList(),
     val folders: List<Folder> = emptyList(),
-    /** The feeds the Feeds menu offers (SearchResults.menuFeeds). */
+    /** The feeds of the second chip row, with Feeds on (SearchResults.menuFeeds). */
     val menuFeeds: List<Feed> = emptyList(),
     /** Titles of note cards in the reader's font, as in Saved's folders. */
     val titleFont: FontFamily = FontFamily.Default,
@@ -109,8 +98,8 @@ class SearchActions(
 
 /**
  * The Search tab (#171): the articles of every feed and Saved (archived articles too). A search field
- * in the top bar; one row of chips (SearchFilters): Feeds (a menu: all feeds, or some), Saved, then
- * the topics; below, the matches, mixed and best first, each labelled Feed or Saved. With nothing
+ * in the top bar; chips (SearchFilters): Feeds and Saved, then the tags, and with Feeds on a second
+ * row of the feeds; below, the matches, mixed and best first, each labelled Feed or Saved. With nothing
  * typed it lists everything the filters let through, newest first.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -271,8 +260,9 @@ private val SearchHit.key: String
         }
 
 /**
- * The one chip row above the results: Feeds (a menu: All feeds, or some feeds with check boxes, and
- * Clear), Saved (a toggle), a divider, then the topics, one at a time, as in Feeds and Saved.
+ * The chips above the results (2026-11-02): Feeds and Saved (toggles), a divider, then the tags, one
+ * at a time, as in Feeds and Saved. With Feeds on, a second row has every feed (of the chosen tag)
+ * as a chip with its icon, instead of a menu: tapping some searches only those, none means every feed.
  */
 @Composable
 private fun FilterRow(
@@ -280,94 +270,58 @@ private fun FilterRow(
     actions: SearchActions,
 ) {
     val f = state.filters
+    val feedsOn = f.scope == SearchFilter.Feeds
     TagChips(
         tags = state.topics,
         selected = f.topic,
         onSelect = actions.onTopic,
         iconOf = { name -> state.folders.firstOrNull { it.title.equals(name, ignoreCase = true) }?.icon },
         state = {
-            if (state.feeds.isNotEmpty()) FeedsMenuChip(state, actions.onFiltersChange)
+            if (state.feeds.isNotEmpty()) {
+                KindChip(stringResource(R.string.feeds_title), feedsOn) {
+                    actions.onFiltersChange(f.withScope(if (feedsOn) SearchFilter.All else SearchFilter.Feeds))
+                }
+            }
             if (state.hasItems) {
                 val on = f.scope == SearchFilter.Saved
-                FilterChip(
-                    selected = on,
-                    onClick = { actions.onFiltersChange(f.withScope(if (on) SearchFilter.All else SearchFilter.Saved)) },
-                    label = { Text(stringResource(R.string.saved_title)) },
-                    leadingIcon =
-                        if (on) {
-                            { Icon(painterResource(R.drawable.ic_check), contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) }
-                        } else {
-                            null
-                        },
-                )
+                KindChip(stringResource(R.string.saved_title), on) {
+                    actions.onFiltersChange(f.withScope(if (on) SearchFilter.All else SearchFilter.Saved))
+                }
             }
         },
     )
-}
-
-/**
- * Feeds as a chip with a menu: All feeds, then every feed (of the chosen topic) with a check box, so
- * several can be picked; the menu stays open while ticking them. Clear shows both kinds again. The
- * chip says what is picked: Feeds, the one feed's name, or how many.
- */
-@Composable
-private fun FeedsMenuChip(
-    state: SearchState,
-    onChange: (SearchFilters) -> Unit,
-) {
-    val f = state.filters
-    val on = f.scope == SearchFilter.Feeds
-    var open by remember { mutableStateOf(false) }
-    val picked = f.feedUrls
-    val label =
-        when (picked.size) {
-            0 -> stringResource(R.string.feeds_title)
-            1 -> state.feeds.firstOrNull { it.url in picked }?.title ?: stringResource(R.string.feeds_title)
-            else -> pluralStringResource(R.plurals.feeds_count, picked.size, picked.size)
-        }
-    Box {
-        FilterChip(
-            selected = on,
-            onClick = { open = true },
-            label = { Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = 200.dp)) },
-            leadingIcon =
-                if (on) {
-                    { Icon(painterResource(R.drawable.ic_check), contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) }
-                } else {
-                    null
-                },
-            trailingIcon = { Icon(painterResource(R.drawable.ic_expand_more), contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) },
-        )
-        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.search_all_feeds)) },
-                leadingIcon = { RadioButton(selected = on && picked.isEmpty(), onClick = null) },
-                onClick = {
-                    open = false
-                    onChange(f.withScope(SearchFilter.Feeds))
-                },
-            )
-            HorizontalDivider()
+    if (feedsOn && state.menuFeeds.isNotEmpty()) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState())
+                .padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             state.menuFeeds.forEach { feed ->
-                DropdownMenuItem(
-                    text = { Text(feed.title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                    leadingIcon = { Checkbox(checked = feed.url in picked, onCheckedChange = null) },
-                    trailingIcon = { FeedIcon(feed, FeedIconSize.Small) },
-                    onClick = { onChange(f.toggleFeed(feed.url)) },
-                    modifier = Modifier.widthIn(max = 320.dp),
-                )
-            }
-            if (on) {
-                HorizontalDivider()
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.action_clear)) },
-                    leadingIcon = { Icon(painterResource(R.drawable.ic_close), contentDescription = null) },
-                    onClick = {
-                        open = false
-                        onChange(f.withScope(SearchFilter.All))
-                    },
-                )
+                FeedChip(feed, chosen = feed.url in f.feedUrls) { actions.onFiltersChange(f.toggleFeed(feed.url)) }
             }
         }
     }
+}
+
+/** Feeds or Saved: a toggle, with a check mark while on. */
+@Composable
+private fun KindChip(
+    label: String,
+    on: Boolean,
+    onClick: () -> Unit,
+) {
+    FilterChip(
+        selected = on,
+        onClick = onClick,
+        label = { Text(label) },
+        leadingIcon =
+            if (on) {
+                { Icon(painterResource(R.drawable.ic_check), contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) }
+            } else {
+                null
+            },
+    )
 }

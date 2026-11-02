@@ -64,7 +64,7 @@ when the run fails.
 | `SiteIconTest` | Choosing a site's icon: largest size, apple-touch-icon, relative and http addresses, skipping SVG and inline icons, home page and favicon.ico fallback |
 | `IconCatalogTest` | Reading the icon file, search order (name, words, categories, related words), suggestions, old icon names, and that the bundled file has every suggested and migrated icon |
 | `ArticleDaysTest` | Grouping the list by local day, time zones |
-| `MixedSearchTest` | Search's ranking: the whole query in a title above single words above text-only matches, feed and reading list results in one list (then newest), the All/Feeds/Reading list chips; `SearchResultsTest`: the Search tab without words (everything, newest first) and its one chip row (the Feeds menu with several feeds, Saved, a tag for both kinds, the tag chips and the menu's feeds for a tag); `ItemSearchTest`: the reading list searched by title, website, description, tags, note and highlights, title matches first; the web app's `test/search.test.ts` checks the ranking too |
+| `MixedSearchTest` | Search's ranking: the whole query in a title above single words above text-only matches, feed and reading list results in one list (then newest), the All/Feeds/Reading list chips; `SearchResultsTest`: the Search tab without words (everything, newest first) and its chips (several feeds picked in the feeds row, Saved, a tag for both kinds, the tag chips and the feeds row for a tag); `ReaderMenuTest`: the reader's ⋮ for a feed article and, once saved, a saved article's (web: `test/readerMenu.test.ts`); `ItemSearchTest`: the reading list searched by title, website, description, tags, note and highlights, title matches first; the web app's `test/search.test.ts` checks the ranking too |
 | `SavedTest` | Saved (#119): each item in one place (To read, a folder, Archive) and All with them all, newest first; Liked and tags (all of them); chips in the tags' order (alphabetical without tags); folders and counts, a filter without a folder or tags that are gone; filing and archiving (out of the folder); renaming (joining) and removing folders; the folder through sync and its merge |
 | `TopicsTest` | Tags: every tag gets its tag once (the same id on every device), tags with one name joined with their feeds, no second tag with a taken name, renaming on feeds and saved articles (to another one's name joins the two), removing keeps feeds and articles, counts and the tags' order, a saved feed article gets its feed's tag; Feeds' places and Back going up a level; reordering tags and one tag's feeds; merging; the tag being viewed (Edit tag). The web app's `test/topics.test.ts` checks the same library the same way. |
 | `FeedChipsTest` | Feeds' chip rows without ☰: the tags then the feeds without a tag, a chosen tag's feeds, one row (only the chosen tag, then its feeds, no loose ones), no row with a single chip unless something is chosen or it is a tag with two or more feeds, a feed keeping its tag lit (or lit itself in the first row when it has none), the chosen tag staying a chip, a tagged feed counting as in its tag |
@@ -229,9 +229,10 @@ and then (always before a release):
       same.
 - [ ] **Swipe between tabs:** swipe the Feeds list left: Read; right: Unread. The same in Saved (To
       read, All). Web on a phone: the same with a touch swipe.
-- [ ] **Search:** one chip row: Feeds (menu: All feeds, tick several feeds, Clear), Saved, then
-      the tags; a tag narrows feeds and Saved; with a tag picked the Feeds menu lists only its
-      feeds.
+- [ ] **Search:** chips: Feeds, Saved, then the tags. Tap **Feeds**: only feed articles, and a
+      second row of chips with every feed (icon and name); tap some: only those feeds, tap again to
+      let go; tap Feeds again: both kinds and no second row. A tag narrows feeds and Saved; with a
+      tag picked the second row has only its feeds.
 - [ ] **Dark mode** and **Settings › Theme**: switch Theme and Dynamic color. Text stays
       readable, status bar icons stay visible (also on sepia and dark reader pages).
 - [ ] **Rotation**: the screen keeps its state.
@@ -323,14 +324,19 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
       to the feed's text with the page button: the highlights are still there (or say approximate).
       Web app: select text with the mouse, pick Highlight or Note in the bar above it; click a
       marker to edit; a highlight made on the phone shows on the web after sync, and the other way.
-- [ ] In a saved article the floating toolbar has a tonal **Archive** (box and word) and **Like** (a
-      heart), with **Share** as a round button next to it. Tap **Archive**: the article stays open,
-      "Archived" shows with **Undo**, and the button becomes a plain **To read** (open book); tap it:
-      back to To read. **Like**: the heart fills, and the article is under Liked in Saved. Under the
-      title and details: the article's tags as chips with their icons, **+ Tag**, **+ Note** (no note
-      yet) and, with highlights, "3 highlights". A tag or + Tag: the Tags sheet; + Note: the Note
-      sheet, keyboard open; once written the note shows there as a block, and tapping it edits it;
-      "3 highlights" opens their list. Web app: the same.
+- [ ] In a saved article the floating toolbar has no coloured buttons: **Archive** (box and word),
+      then the icons **Like** (heart), **Tags** (label) and **Share**. Tap **Archive**: the article
+      stays open, "Archived" shows with **Undo**, and Archive becomes an icon only (a box with an
+      arrow: To read); tap it: back to To read. **Like**: the heart fills, and the article is under
+      Liked in Saved. **Tags**: the Tags sheet. Under the title and details: **+ Note** (no note yet)
+      and, with highlights, "3 highlights", no tags. + Note: the Note sheet, keyboard open; once
+      written the note shows there as a block, and tapping it edits it; the Note sheet of a note has
+      a trash can at the top right, which asks and then removes the note. "3 highlights" opens
+      their list. Web app: the same.
+- [ ] Open a feed article (not saved): the toolbar shows **Save** (word), and Share. ⋮ has Mark as
+      unread and Show full article. Tap **Save** and close the sheet with Save: without leaving the
+      article, the toolbar becomes Archive, Like, Tags, Share, and ⋮ has no Mark as unread or text
+      switch any more, but **Remove from Saved** at the end. Web app: the same.
 - [ ] **Add link** and a link shared from another app: the sheet asks for the address (or shows the
       link), **To read** / **Archive** (To read picked), **Cancel** at the bottom left saves nothing,
       and **Save** at the right. With Archive picked: "Saved to Archive"; else "Saved to To read".

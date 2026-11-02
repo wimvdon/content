@@ -246,6 +246,8 @@
     <string name="add_link_address">Webadresse</string>
     <string name="add_link_invalid">Das ist keine Webadresse.</string>
     <string name="note_title">Notiz</string>
+    <string name="note_remove_title">Notiz entfernen?</string>
+    <string name="note_remove_body">Die Notiz zu diesem Artikel wird entfernt.</string>
     <string name="duration_hours">%1$d Std. %2$d Min.</string>
     <string name="duration_minutes">%d Min.</string>
     <string name="reading_list_to_read">Zu lesen</string>
@@ -313,7 +315,6 @@
     <string name="welcome_import">Aus einem anderen Reader importieren</string>
     <string name="topic_in_feeds">Feeds · %1$s</string>
     <string name="topic_in_saved">Gespeichert · %1$s</string>
-    <string name="search_all_feeds">Alle Feeds</string>
     <string name="add_title">Hinzufügen</string>
     <string name="add_choice_feed">Feed abonnieren</string>
     <string name="add_choice_feed_body">Abonniere einen RSS-Feed, indem du die Adresse der Publikation eingibst</string>

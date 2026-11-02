@@ -19,8 +19,7 @@ import { HighlightDialog, HighlightedText, HighlightsDialog } from "./Highlights
 import { useAnchors } from "./useAnchors";
 import { LibraryBar, RemoveDialog } from "./SavedActions";
 import { chip } from "./TopicChips";
-import { FolderIcon } from "./FolderIcon";
-import { topicIcons } from "@/lib/topics";
+import { readerMenu } from "@/lib/readerMenu";
 import { pageClass, textStyle, useAppDark } from "./readerPage";
 import { ReaderStyleControls } from "./ReaderStyleControls";
 import { Button } from "./ui/button";
@@ -114,7 +113,6 @@ export function ArticleView({
   const [openHighlight, setOpenHighlight] = useState<string | null>(null);
   const [draft, setDraft] = useState<Highlight | null>(null);
   const [listOpen, setListOpen] = useState(false);
-  const tagIcons = useMemo(() => topicIcons(library), [library]);
   const opened = openHighlight ? highlights.find((h) => h.id === openHighlight) : undefined;
 
   // Reading progress of a saved article, as on Android: back where it was left when it opens (once
@@ -182,36 +180,35 @@ export function ArticleView({
             <>
               <div className="fixed inset-0 z-20" onClick={() => setMenuOpen(false)} aria-hidden="true" />
               <div role="menu" className="absolute right-0 z-30 mt-1 w-60 rounded-xl border bg-card py-1 shadow-lg">
-                {/* As on Android: Mark as read or unread, the feed's text or the full article (not for a
-                    saved article: it always shows the whole article, #208), Open website, Report a
-                    problem. Remove from Saved is in Organise. */}
-                {!fromSaved ? (
-                  <MenuItem
-                    icon={current.read ? <Circle /> : <CircleCheck />}
-                    label={current.read ? t("markUnread") : t("markRead")}
-                    onClick={() => app.toggleRead(current)}
-                    close={() => setMenuOpen(false)}
-                  />
-                ) : null}
-                {canLoad && !saved ? (
-                  <MenuItem icon={<FileText />} label={useFull ? t("showFeedText") : t("showFull")} onClick={() => setUseFull(!useFull)} close={() => setMenuOpen(false)} />
-                ) : null}
-                {article.link ? (
-                  <a
-                    role="menuitem"
-                    href={article.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={() => setMenuOpen(false)}
-                    className="flex w-full items-center gap-3 px-3 py-2 text-sm hover:bg-muted [&_svg]:size-4 [&_svg]:text-muted-foreground"
-                  >
-                    <ExternalLink />
-                    {t("openWebsite")}
-                  </a>
-                ) : null}
-                {article.link ? <MenuItem icon={<Flag />} label={t("reportMenu")} onClick={() => setReportOpen(true)} close={() => setMenuOpen(false)} /> : null}
-                {/* A saved article: Remove from Saved, the rare one, here and not in the toolbar. */}
-                {saved ? <MenuItem icon={<Trash2 />} label={t("savedRemove")} onClick={() => setRemoving(true)} close={() => setMenuOpen(false)} /> : null}
+                {/* What it offers follows readerMenu: a saved article's menu as soon as it is saved. */}
+                {readerMenu({ feedArticle: !fromSaved, saved: !!saved, hasLink: !!article.link, canLoad }).map((entry) => {
+                  const close = () => setMenuOpen(false);
+                  switch (entry) {
+                    case "markRead":
+                      return <MenuItem key={entry} icon={current.read ? <Circle /> : <CircleCheck />} label={current.read ? t("markUnread") : t("markRead")} onClick={() => app.toggleRead(current)} close={close} />;
+                    case "toggleText":
+                      return <MenuItem key={entry} icon={<FileText />} label={useFull ? t("showFeedText") : t("showFull")} onClick={() => setUseFull(!useFull)} close={close} />;
+                    case "openWebsite":
+                      return (
+                        <a
+                          key={entry}
+                          role="menuitem"
+                          href={article.link!}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={close}
+                          className="flex w-full items-center gap-3 px-3 py-2 text-sm hover:bg-muted [&_svg]:size-4 [&_svg]:text-muted-foreground"
+                        >
+                          <ExternalLink />
+                          {t("openWebsite")}
+                        </a>
+                      );
+                    case "report":
+                      return <MenuItem key={entry} icon={<Flag />} label={t("reportMenu")} onClick={() => setReportOpen(true)} close={close} />;
+                    case "remove":
+                      return <MenuItem key={entry} icon={<Trash2 />} label={t("savedRemove")} onClick={() => setRemoving(true)} close={close} />;
+                  }
+                })}
               </div>
             </>
           ) : null}
@@ -240,24 +237,11 @@ export function ArticleView({
             )}
           </h1>
           {article.author ? <p className="mt-2 text-sm text-muted-foreground">{article.author}</p> : null}
-          {/* A saved article: its tags, + Tag, + Note (without a note) and its highlights, as on
-              Android; the note below, clicked to edit. */}
+          {/* A saved article: + Note (without a note) and its highlights, as on Android; the note
+              below, clicked to edit. Its tags are the toolbar's Tags button. */}
           {saved ? (
             <div className="mt-4 space-y-3">
               <div className="flex flex-wrap gap-2">
-                {saved.tags.map((tag) => {
-                  const icon = tagIcons.get(tag.trim().toLowerCase());
-                  return (
-                    <button key={tag} type="button" className={cn(chip, "hover:bg-muted")} onClick={() => app.openTopics(saved.key)}>
-                      {icon ? <FolderIcon name={icon} className="size-4" /> : null}
-                      {tag}
-                    </button>
-                  );
-                })}
-                <button type="button" className={cn(chip, "hover:bg-muted")} onClick={() => app.openTopics(saved.key)}>
-                  <Plus className="size-4" aria-hidden="true" />
-                  {t("topic")}
-                </button>
                 {saved.note.trim() ? null : (
                   <button type="button" className={cn(chip, "hover:bg-muted")} onClick={() => app.openNote(saved.key)}>
                     <Plus className="size-4" aria-hidden="true" />

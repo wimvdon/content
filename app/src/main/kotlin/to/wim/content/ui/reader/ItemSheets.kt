@@ -146,6 +146,7 @@ fun SaveSheet(
                 onReorder = actions.onReorder,
             )
         }
+    var deletingNote by rememberSaveable(key) { mutableStateOf(false) }
     val saved = kind != SheetKind.New
     val save = { picked: SaveChoice ->
         val chosen = SaveChoices.withTyped(picked, "", "", folders)
@@ -181,6 +182,8 @@ fun SaveSheet(
                     },
                 ),
                 onCancel = cancel,
+                // A note there already: the trash can deletes it (asking first, 2026-11-02).
+                onDelete = if (kind == SheetKind.Note && initial.note.isNotBlank()) ({ deletingNote = true }) else null,
             )
             if (kind == SheetKind.New) {
                 if (url == null) {
@@ -263,6 +266,14 @@ fun SaveSheet(
                 }
             }
         }
+    }
+    if (deletingNote) {
+        ConfirmRemoveDialog(
+            title = stringResource(R.string.note_remove_title),
+            text = stringResource(R.string.note_remove_body),
+            onRemove = { save(choice.copy(note = "")) },
+            onDismiss = { deletingNote = false },
+        )
     }
 }
 

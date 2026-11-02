@@ -2,6 +2,25 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-02: The reader's toolbar without fills; Search's feeds as a second chip row
+
+Owner's request. Phone and web.
+- **No button in the reader's toolbar has a fill.** The next step stands out by its words instead:
+  **Save** (not saved yet) and **Archive** (to read) are an icon with text; everything else is an
+  icon. Saved: Archive, Like, Tags, Share; archived: the unarchive icon (To read), Like, Tags,
+  Share. **Share is back in the pill** as its last icon, not a round button beside it.
+- **Tags moved from under the title to the toolbar** (an icon that opens the Tags sheet). Under the
+  title stay + Note, the note itself and the highlights' count.
+- **The ⋮ menu follows the save at once** (`ReaderMenu`, web `readerMenu`): a feed article saved in
+  the reader shows a saved article's menu (no Mark as unread or text switch; Remove from Saved),
+  without going back and opening it again.
+- **A note can be removed:** the Note sheet has the trash can at the top right, asking first, as
+  Edit feed and the tag sheet have it.
+- **Search: Feeds is a toggle, and its feeds a second row of chips** instead of a menu with check
+  boxes. Rejected keeping the menu: it hid which feeds were picked behind a count, needed three
+  kinds of controls (radio, check boxes, Clear), and chips are what Feeds and Saved use already.
+  The second row only shows while Feeds is on, so the screen stays as it was otherwise.
+
 ## 2026-11-01: Material 3 fine-tuning pass (owner's request)
 
 The screens were reviewed against a Material 3 checklist (component by purpose, emphasis per

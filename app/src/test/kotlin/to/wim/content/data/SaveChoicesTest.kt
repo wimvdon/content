@@ -110,6 +110,18 @@ class SaveChoicesTest {
     }
 
     @Test
+    fun `the Note sheet's trash can removes only the note`() {
+        val key = "a.example/2"
+        val noted = SaveChoices.apply(library, key, SaveChoice(Place.Folder("Work"), liked = true, tags = listOf("a"), note = "Mine"))
+        val choice = SaveChoices.of(noted.item(key)!!)
+        val cleared = SaveChoices.apply(noted, key, choice.copy(note = "")).item(key)!!
+        assertEquals("", cleared.note)
+        assertEquals(listOf("a"), cleared.tags)
+        assertTrue(cleared.liked)
+        assertEquals("Work", Saved.folderOf(cleared))
+    }
+
+    @Test
     fun `the Tags menu turns a tag on and off, case ignored`() {
         val choice = SaveChoice(tags = listOf("News"))
         assertEquals(listOf("News", "Brussels"), SaveChoices.withTag(choice, " Brussels ").tags)
