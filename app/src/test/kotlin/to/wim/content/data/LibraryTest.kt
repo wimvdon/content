@@ -119,6 +119,15 @@ class LibraryTest {
     }
 
     @Test
+    fun `switching to Unread lets go of a chosen feed or tag with nothing unread`() {
+        val aRead = twoFeeds.markAllRead(FeedSelection.Single(a))
+        assertEquals(FeedSelection.All, aRead.selectionForUnread(FeedSelection.Single(a)))
+        assertEquals(FeedSelection.Single(b), aRead.selectionForUnread(FeedSelection.Single(b)))
+        assertEquals(FeedSelection.All, aRead.selectionForUnread(FeedSelection.Tagged("nothing")))
+        assertEquals(FeedSelection.All, aRead.selectionForUnread(FeedSelection.All))
+    }
+
+    @Test
     fun `set read changes one article and can undo`() {
         val key = Article.keyOf(b, "1")
         val read = twoFeeds.setRead(key, true)

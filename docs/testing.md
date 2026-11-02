@@ -351,6 +351,9 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
 - [ ] Long press a feed article › **Save**: no sheet; "Saved to To read" with **Open** at once.
 - [ ] **One message at a time:** long press › Save on one article, then quickly on another: the
       second message replaces the first, it doesn't wait for it to go.
+- [ ] **Unread lets go of an empty chip:** in Feeds › All, tap a tag or feed whose articles are all
+      read, then switch to **Unread**: no chip is chosen and the list shows every unread article.
+      With a tag that has unread ones, it stays chosen. Web app: the same (the sidebar too).
 - [ ] **Messages close when you leave them:** save from a long press, then tap anywhere else (not
       the message): it goes; scrolling the list doesn't close it. Save again, then open Saved or an
       article: it goes. Its **Open** or **Undo** still works. Remove a saved article from the

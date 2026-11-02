@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { feedLinks, findFeed, normalizeUrl, substackPublication } from "../src/lib/discovery";
 import { searchIcons, parseIcons } from "../src/lib/icons";
-import { emptyLibrary, articlesFor, articlesInTab, feedTabOf, reorderFeedsIn, moveFeedInto, setRead, removeFolder, addFolder, addFeed, newFeed, moveFeed, renameFeed, mergeFeed, reorder, unreadKeys, removeFeed, sameSelection, MAX_ARTICLES_PER_FEED, READ_MARKS_KEPT_MS, moveWithinFolder, chipTag, choosesFolder, feedTags } from "../src/lib/library";
+import { emptyLibrary, articlesFor, articlesInTab, feedTabOf, reorderFeedsIn, moveFeedInto, setRead, removeFolder, addFolder, addFeed, newFeed, moveFeed, renameFeed, mergeFeed, reorder, unreadKeys, selectionForUnread, removeFeed, sameSelection, MAX_ARTICLES_PER_FEED, READ_MARKS_KEPT_MS, moveWithinFolder, chipTag, choosesFolder, feedTags } from "../src/lib/library";
 import { importOpml, parseOpml, writeOpml } from "../src/lib/opml";
 import { FetchError } from "../src/lib/proxy";
 import { sanitizeArticle } from "../src/lib/sanitize";
@@ -68,6 +68,12 @@ describe("library", () => {
     expect(articlesInTab(lib, { kind: "all" }, "all").length).toBe(1);
     expect(articlesInTab(lib, { kind: "all" }, "unread", new Set(["a 1"])).length).toBe(1);
     expect(feedTabOf(true)).toBe("unread");
+    // To Unread: a folder or feed with nothing unread lets go; one with unread articles stays chosen.
+    expect(selectionForUnread(lib, { kind: "folder", folderId: "f" })).toEqual({ kind: "all" });
+    expect(selectionForUnread(lib, { kind: "feed", feedUrl: "a" })).toEqual({ kind: "all" });
+    const unread = setRead(lib, new Set(["a 1"]), false);
+    expect(selectionForUnread(unread, { kind: "feed", feedUrl: "a" })).toEqual({ kind: "feed", feedUrl: "a" });
+    expect(selectionForUnread(lib, { kind: "saved" })).toEqual({ kind: "saved" });
     // Manage feeds' drag: one folder's feeds in a new order, the others keeping their places.
     const feed = (url: string, folderId: string | null) => ({ ...newFeed(url, url), folderId });
     const four = { ...emptyLibrary(), feeds: [feed("a", "f"), feed("b", null), feed("c", "f"), feed("d", "f")] };
