@@ -202,6 +202,7 @@ export default function App() {
               onUndo={undoMarkAll}
               onSearch={() => setSearching(true)}
               onMessage={(text, action) => setMessage({ text, action })}
+              onSaved={(key) => setMessage({ text: t("savedTo").replace("{place}", t("toRead")), action: { label: t("open"), run: () => openSaved(key) } })}
             />
           )}
         </div>

@@ -59,7 +59,7 @@ function Sheet({
     const savedTo = t("savedTo").replace("{place}", name(chosen.place));
     if (saved && itemKey) {
       if (JSON.stringify(chosen) !== JSON.stringify(initial)) app.organise(itemKey, chosen);
-      // Saved from the reader: already in the article, so no Open (#142).
+      // Saved by the browser extension a moment ago: the message says where it went.
       if (kind === "justSaved") onMessage(savedTo);
     } else if (link) {
       const key = app.saveNew(link, chosen);
