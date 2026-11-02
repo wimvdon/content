@@ -164,7 +164,8 @@
     <string name="setting_hidden_words_title">Artikels met woorden verbergen</string>
     <string name="setting_hidden_words_none">Geen</string>
     <string name="setting_hidden_words_label">Woorden</string>
-    <string name="setting_hidden_words_hint">Scheid regels met komma’s of nieuwe regels. Een artikel wordt verborgen als elk woord van een regel in de titel of de naam van de feed staat: „WIRED coupon code” verbergt de couponcode-artikels van WIRED. Hoofdletters tellen niet.</string>
+    <string name="setting_hidden_words_hint">Voeg een woord of een groep woorden toe. Een artikel wordt verborgen als elk woord van een groep in de titel of de naam van de feed staat: „WIRED coupon code” verbergt de couponcode-artikels van WIRED. Hoofdletters tellen niet.</string>
+    <string name="setting_hidden_words_remove">%1$s verwijderen</string>
     <string name="setting_hidden_words_preview_none">Er zouden geen recente artikels verborgen worden.</string>
     <plurals name="setting_hidden_words_preview">
         <item quantity="one">%d recent artikel zou verborgen worden:</item>

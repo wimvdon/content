@@ -1,5 +1,14 @@
 package to.wim.content.ui.settings
 
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.InputChip
+import androidx.compose.material3.InputChipDefaults
+import androidx.compose.ui.text.input.ImeAction
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
@@ -352,9 +361,11 @@ private fun ListRows(
 }
 
 /**
- * Hide articles with words (#277): the words in the summary; a dialog to change them, which shows
- * while typing how many recent articles they would hide and the newest of them (2026-11-02).
+ * Hide articles with words (#277): the words in the summary; a dialog to change them, each word or
+ * group of words a chip with an X and a field to add one (2026-11-02), which shows how many recent
+ * articles they would hide and the newest of them.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun HiddenWordsSetting(
     text: String,
@@ -370,7 +381,16 @@ private fun HiddenWordsSetting(
         onClick = { editing = true },
     )
     if (editing) {
-        var draft by rememberSaveable { mutableStateOf(text) }
+        // Each word or group of words is a chip with an X (2026-11-02); the field adds one at a time.
+        var entries by rememberSaveable { mutableStateOf(words) }
+        var typed by rememberSaveable { mutableStateOf("") }
+        // What Save stores: the chips, and what is still in the field.
+        val draft = ArticleFilter.withEntry(entries, typed)
+
+        fun add() {
+            entries = ArticleFilter.withEntry(entries, typed)
+            typed = ""
+        }
         AlertDialog(
             onDismissRequest = { editing = false },
             title = { Text(stringResource(R.string.setting_hidden_words_title)) },
@@ -379,15 +399,34 @@ private fun HiddenWordsSetting(
                 val preview =
                     remember(draft, articles, feeds) {
                         val names = feeds.associate { it.url to it.title }
-                        ArticleFilter.parse(draft).preview(articles) { names[it.feedUrl] }
+                        ArticleFilter.parse(ArticleFilter.text(draft)).preview(articles) { names[it.feedUrl] }
                     }
                 Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (entries.isNotEmpty()) {
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            entries.forEach { entry ->
+                                val remove = stringResource(R.string.setting_hidden_words_remove, entry)
+                                InputChip(
+                                    selected = false,
+                                    onClick = { entries = ArticleFilter.withoutEntry(entries, entry) },
+                                    label = { Text(entry, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = 200.dp)) },
+                                    trailingIcon = { Icon(painterResource(R.drawable.ic_close), contentDescription = remove, modifier = Modifier.size(InputChipDefaults.IconSize)) },
+                                )
+                            }
+                        }
+                    }
                     OutlinedTextField(
-                        value = draft,
-                        onValueChange = { draft = it },
+                        value = typed,
+                        onValueChange = { typed = it },
                         label = { Text(stringResource(R.string.setting_hidden_words_label)) },
-                        minLines = 3,
-                        maxLines = 8,
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(onDone = { add() }),
+                        trailingIcon = {
+                            IconButton(onClick = ::add, enabled = typed.isNotBlank()) {
+                                Icon(painterResource(R.drawable.ic_add), contentDescription = stringResource(R.string.action_add))
+                            }
+                        },
                         modifier = Modifier.fillMaxWidth(),
                     )
                     Text(
@@ -395,12 +434,12 @@ private fun HiddenWordsSetting(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    if (ArticleFilter.words(draft).isNotEmpty()) HiddenPreview(preview, feeds)
+                    if (draft.isNotEmpty()) HiddenPreview(preview, feeds)
                 }
             },
             confirmButton = {
                 TextButton(onClick = {
-                    onChange(draft.trim())
+                    onChange(ArticleFilter.text(draft))
                     editing = false
                 }) { Text(stringResource(R.string.action_save)) }
             },

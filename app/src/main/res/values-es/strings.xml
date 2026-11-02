@@ -166,7 +166,8 @@
     <string name="setting_hidden_words_title">Ocultar artículos con palabras</string>
     <string name="setting_hidden_words_none">Ninguna</string>
     <string name="setting_hidden_words_label">Palabras</string>
-    <string name="setting_hidden_words_hint">Separa las entradas con comas o saltos de línea. Un artículo se oculta cuando cada palabra de una entrada está en su título o en el nombre de su feed: «WIRED coupon code» oculta los artículos de cupones de WIRED. Da igual mayúsculas o minúsculas.</string>
+    <string name="setting_hidden_words_hint">Añade una palabra o un grupo de palabras. Un artículo se oculta cuando cada palabra de un grupo está en su título o en el nombre de su feed: «WIRED coupon code» oculta los artículos de cupones de WIRED. Da igual mayúsculas o minúsculas.</string>
+    <string name="setting_hidden_words_remove">Quitar %1$s</string>
     <string name="setting_hidden_words_preview_none">No se ocultaría ningún artículo reciente.</string>
     <plurals name="setting_hidden_words_preview">
         <item quantity="one">Se ocultaría %d artículo reciente:</item>

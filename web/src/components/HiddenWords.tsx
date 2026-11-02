@@ -1,13 +1,16 @@
+import { Plus, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { app, useApp } from "@/lib/app";
-import { hiddenPreview, hiddenWords } from "@/lib/articleFilter";
+import { entriesText, hiddenPreview, hiddenWords, withEntry, withoutEntry } from "@/lib/articleFilter";
 import { plural, t } from "@/lib/i18n";
 import { Button } from "./ui/button";
 import { Dialog } from "./ui/dialog";
+import { Input } from "./ui/input";
 
 /**
  * Hide articles with words (#277), as on Android: a row in Settings › Article list with the words as
- * its summary; clicking it opens a popup to change them. While typing, it shows how many recent
+ * its summary; clicking it opens a popup to change them: each word or group of words is a chip with an
+ * X, and a field adds one at a time (2026-11-02). While typing, it shows how many recent
  * articles the words would hide and the newest of them (title and feed), so you see what goes
  * before Save.
  */
@@ -28,8 +31,14 @@ export function HiddenWordsRow() {
 
 function HiddenWordsDialog({ initial, onClose }: { initial: string; onClose: () => void }) {
   const { library } = useApp();
-  const [draft, setDraft] = useState(initial);
-  const words = useMemo(() => hiddenWords(draft), [draft]);
+  const [entries, setEntries] = useState(() => hiddenWords(initial));
+  const [typed, setTyped] = useState("");
+  // What Save stores: the chips, and what is still in the field.
+  const words = useMemo(() => withEntry(entries, typed), [entries, typed]);
+  const add = () => {
+    setEntries(withEntry(entries, typed));
+    setTyped("");
+  };
   const feeds = useMemo(() => new Map(library.feeds.map((f) => [f.url, f.title])), [library.feeds]);
   // The feed's name counts too ("WIRED coupon code").
   const preview = useMemo(() => hiddenPreview(library.articles, words, undefined, (a) => feeds.get(a.feedUrl) ?? null), [library.articles, words, feeds]);
@@ -47,7 +56,7 @@ function HiddenWordsDialog({ initial, onClose }: { initial: string; onClose: () 
           </Button>
           <Button
             onClick={() => {
-              app.updateSettings({ hiddenWords: draft.trim() });
+              app.updateSettings({ hiddenWords: entriesText(words) });
               onClose();
             }}
           >
@@ -57,15 +66,44 @@ function HiddenWordsDialog({ initial, onClose }: { initial: string; onClose: () 
       }
     >
       <div className="space-y-2">
-        <textarea
-          autoFocus
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          aria-label={t("hiddenWordsLabel")}
-          placeholder={t("hiddenWordsLabel")}
-          rows={3}
-          className="w-full resize-y rounded-lg border bg-transparent px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        />
+        {entries.length > 0 ? (
+          <ul className="flex flex-wrap gap-2 pb-1">
+            {entries.map((entry) => (
+              <li key={entry}>
+                <span className="inline-flex h-8 max-w-full items-center gap-1 rounded-lg border pr-1 pl-3 text-sm">
+                  <span className="max-w-48 truncate">{entry}</span>
+                  <button
+                    type="button"
+                    onClick={() => setEntries(withoutEntry(entries, entry))}
+                    aria-label={t("hiddenWordsRemove").replace("{name}", entry)}
+                    title={t("hiddenWordsRemove").replace("{name}", entry)}
+                    className="inline-flex size-6 cursor-pointer items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
+                  >
+                    <X className="size-4" aria-hidden="true" />
+                  </button>
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        <div className="flex gap-2">
+          <Input
+            autoFocus
+            value={typed}
+            onChange={(e) => setTyped(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                add();
+              }
+            }}
+            aria-label={t("hiddenWordsLabel")}
+            placeholder={t("hiddenWordsLabel")}
+          />
+          <Button variant="ghost" size="icon" onClick={add} disabled={typed.trim() === ""} aria-label={t("add")} title={t("add")}>
+            <Plus />
+          </Button>
+        </div>
         <p className="text-xs text-muted-foreground">{t("hiddenWordsHint")}</p>
         {words.length > 0 ? (
           <div className="space-y-2 pt-2" aria-live="polite">

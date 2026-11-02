@@ -2,6 +2,14 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-02: Hidden words are chips, one word or group of words at a time
+
+Owner's choice. Hide articles with words was one text field with entries separated by commas or new
+lines, which made a group ("WIRED coupon code") hard to tell from three words. Now each word or
+group of words is a chip with an **X**, added with a field and **+** (or Enter); Save keeps the
+chips and whatever is still in the field. Stored and synced as before, one entry per line in the
+same setting, so older settings (with commas) and the other app read it unchanged. Phone and web.
+
 ## 2026-11-02: A pen on every row of Manage feeds and Manage tags
 
 Owner's choice, as in Noter: each feed and tag row on the phone now shows a pen before its grip, so
