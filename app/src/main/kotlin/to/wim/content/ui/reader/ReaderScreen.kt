@@ -30,7 +30,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
+import to.wim.content.ui.MessageHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -181,7 +181,7 @@ fun ReaderScreen(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         // Messages (Archived, with Undo) appear above the floating toolbar while it shows.
         snackbarHost = {
-            SnackbarHost(snackbarHostState, Modifier.padding(bottom = if (hasToolbar && toolbarShown) ReaderToolbarHeight + ReaderToolbarMargin else 0.dp))
+            MessageHost(snackbarHostState, Modifier.padding(bottom = if (hasToolbar && toolbarShown) ReaderToolbarHeight + ReaderToolbarMargin else 0.dp))
         },
         topBar = {
             TopAppBar(

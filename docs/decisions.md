@@ -2,6 +2,16 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-02: A message closes on a tap elsewhere and when you move on
+
+Owner's choice. A message at the bottom (Saved to To read, Archived, …) now closes when you tap
+anywhere outside it, and when you move to another screen: another article, Settings, Saved, the
+Inbox, Search (on the web also another feed or tag). A tap on the message itself (Open, Undo) still
+works, and scrolling doesn't close it, so Undo stays in reach while you look. A message shown
+together with the move (Removed, as the reader closes) belongs to where you land and stays. Phone
+and web. Rejected: closing on every touch, scrolls included (Undo would vanish as soon as you
+looked at the list).
+
 ## 2026-11-02: One-tap Save shows To read's icon
 
 Owner's choice. The Save buttons that save at once (the reader's toolbar, a long press or a row's
