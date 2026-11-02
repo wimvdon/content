@@ -282,4 +282,35 @@ class ArticleBlocksTest {
         assertNull(Embeds.measuredHeight(null))
         assertEquals(Embeds.MAX_POST_HEIGHT, Embeds.measuredHeight("99999"))
     }
+
+    @Test
+    fun `Bandcamp's player takes the height its site gives it, or one that fits its address`() {
+        // The large player without its big artwork, as a site wrote it: 120 high, not 470.
+        val blocks =
+            ArticleBlocks.split(
+                "<iframe style=\"border: 0; width: 100%; height: 120px;\" src=\"https://bandcamp.com/EmbeddedPlayer/album=1/size=large/bgcol=333333/linkcol=ffffff/artwork=none/tracklist=false/transparent=true/\" seamless></iframe>",
+                base,
+            )
+        assertEquals(120, (blocks.single() as ArticleBlock.Embed).size.height)
+        assertEquals(EmbedSize.fixed(208), ArticleBlocks.embedFor("https://bandcamp.com/EmbeddedPlayer/album=1/size=large/", base, statedHeight = 208)!!.size)
+        // Without a height from the site: from the address.
+        fun height(src: String) = Embeds.of(src).size.height
+        assertEquals(470, height("https://bandcamp.com/EmbeddedPlayer/album=1/size=large/tracklist=false/"))
+        assertEquals(120, height("https://bandcamp.com/EmbeddedPlayer/album=1/size=large/artwork=small/"))
+        assertEquals(42, height("https://bandcamp.com/EmbeddedPlayer/album=1/size=small/"))
+        assertEquals(120, height("https://bandcamp.com/EmbeddedPlayer/album=1/"))
+        // Other players keep their own sizes, whatever the site says.
+        assertEquals(352, Embeds.of("https://open.spotify.com/embed/track/abc", statedHeight = 80).size.height)
+    }
+
+    @Test
+    fun `reads the height a site gives an iframe, in pixels only`() {
+        assertEquals(120, Embeds.statedHeight(null, "border: 0; width: 100%; height: 120px;"))
+        assertEquals(120, Embeds.statedHeight("470", "height:120px"))
+        assertEquals(208, Embeds.statedHeight("208", null))
+        assertEquals(208, Embeds.statedHeight("208px", "width: 100%"))
+        assertNull(Embeds.statedHeight("100%", "max-height: 300px"))
+        assertNull(Embeds.statedHeight("5", null))
+        assertNull(Embeds.statedHeight(null, null))
+    }
 }

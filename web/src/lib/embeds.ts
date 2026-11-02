@@ -135,14 +135,42 @@ export function postQuotesToFrames(html: string): string {
   });
 }
 
-/** The card for an iframe's address, or null when there is nothing to open. */
-export function embedFor(src: string | null | undefined, baseUrl: string): Embed | null {
+/**
+ * The card for an iframe's address, or null when there is nothing to open. `statedHeight` is the
+ * height the site gives the iframe, in pixels, when it gives one.
+ */
+export function embedFor(src: string | null | undefined, baseUrl: string, statedHeight: number | null = null): Embed | null {
   const url = httpsUrl(src, baseUrl);
-  return url ? embedOf(url) : null;
+  return url ? embedOf(url, statedHeight) : null;
 }
 
-/** The embed for an https address. */
-export function embedOf(url: string): Embed {
+/**
+ * The height in pixels a site gives an iframe, from its height attribute ("120" or "120px") or its
+ * style ("height: 120px"), or null when it gives none in pixels or one out of bounds. The same as
+ * Android's `Embeds.statedHeight`.
+ */
+export function statedHeight(attribute: string | null | undefined, style: string | null | undefined): number | null {
+  const fromStyle = style ? /(?:^|;)\s*height\s*:\s*(\d+)(?:\.\d+)?\s*px/i.exec(style)?.[1] : undefined;
+  const fromAttribute = attribute?.trim().replace(/px$/i, "").trim();
+  const height = Number(fromStyle ?? (fromAttribute && /^\d+$/.test(fromAttribute) ? fromAttribute : NaN));
+  return Number.isInteger(height) && height >= 40 && height <= 1500 ? height : null;
+}
+
+/**
+ * How high Bandcamp's player is for its address, when the site doesn't say: the small one 42, the
+ * large one 120 without its big artwork (artwork=small or none), else 470 with it.
+ */
+function bandcampHeight(url: string): number {
+  const path = url.toLowerCase();
+  if (!path.includes("size=large")) return path.includes("size=small") ? 42 : 120;
+  return path.includes("artwork=small") || path.includes("artwork=none") ? 120 : 470;
+}
+
+/**
+ * The embed for an https address. `statedHeight` is the height the site gives the iframe, used
+ * where the address doesn't say it (Bandcamp).
+ */
+export function embedOf(url: string, statedHeight: number | null = null): Embed {
   let m = YOUTUBE_ID.exec(url);
   if (m) {
     const id = m[1];
@@ -184,7 +212,7 @@ export function embedOf(url: string): Embed {
     // One song or episode (?i=…) is a short player; an album, playlist or show a tall one.
     return { kind: service === "music" ? "appleMusic" : "applePodcasts", url: `https://${service}.apple.com/${path}`, thumbnailUrl: null, player: url, size: fixed(query(url, "i") !== null ? 175 : 450) };
   }
-  if (url.startsWith("https://bandcamp.com/EmbeddedPlayer/")) return { kind: "bandcamp", url, thumbnailUrl: null, player: url, size: fixed(url.includes("size=large") ? 470 : 120) };
+  if (url.startsWith("https://bandcamp.com/EmbeddedPlayer/")) return { kind: "bandcamp", url, thumbnailUrl: null, player: url, size: fixed(statedHeight ?? bandcampHeight(url)) };
   m = TIKTOK.exec(url);
   if (m) return { kind: "tiktok", url: `https://www.tiktok.com/embed/v2/${m[1]}`, thumbnailUrl: null, player: `https://www.tiktok.com/player/v1/${m[1]}`, size: VERTICAL_SIZE };
   m = BLUESKY.exec(url);

@@ -86,7 +86,7 @@ object ArticleBlocks {
             val tag = m.value.substringAfter('<').takeWhile { it.isLetter() }.lowercase()
             when (tag) {
                 "figure" -> figureBlocks(m.value, baseUrl).forEach(::add)
-                "iframe" -> embedFor(attributes(m.value)["src"], baseUrl)?.let(::add)
+                "iframe" -> frameEmbed(m.value, baseUrl)?.let(::add)
                 "video" -> videoBlock(m.value, baseUrl)?.let(::add)
                 else -> imageFor(m.value, baseUrl)?.let { add(ArticleBlock.Image(it, null)) }
             }
@@ -150,7 +150,7 @@ object ArticleBlocks {
                 ?.get(1)
                 ?.let(Html::toPlainText)
                 ?.ifEmpty { null }
-        iframe.find(figureHtml)?.let { m -> embedFor(attributes(m.value)["src"], baseUrl)?.let { return listOf(it) } }
+        iframe.find(figureHtml)?.let { m -> frameEmbed(m.value, baseUrl)?.let { return listOf(it) } }
         video.find(figureHtml)?.let { m -> videoBlock(m.value, baseUrl)?.let { return listOf(it) } }
         val image = img.findAll(figureHtml).firstNotNullOfOrNull { imageFor(it.value, baseUrl) }
         return when {
@@ -170,14 +170,27 @@ object ArticleBlocks {
         return Embeds.video(url, attrs["poster"]?.let { imageUrl(it, baseUrl) })
     }
 
-    /** The embed card for an iframe or video address, or null when there's nothing to open. */
+    /** The embed for an iframe tag, with the height its site gives it, or null when there's nothing to open. */
+    private fun frameEmbed(
+        tag: String,
+        baseUrl: String,
+    ): ArticleBlock.Embed? {
+        val attrs = attributes(tag)
+        return embedFor(attrs["src"], baseUrl, Embeds.statedHeight(attrs["height"], attrs["style"]))
+    }
+
+    /**
+     * The embed card for an iframe or video address, or null when there's nothing to open.
+     * [statedHeight] is the height the site gives the iframe, in pixels, when it gives one.
+     */
     fun embedFor(
         src: String?,
         baseUrl: String,
+        statedHeight: Int? = null,
     ): ArticleBlock.Embed? {
         val url = src?.let { resolve(baseUrl, it) } ?: return null
         // Players only load over https; an http address is upgraded, like pictures.
-        return Embeds.of(if (url.startsWith("http://", ignoreCase = true)) "https://" + url.substring(7) else url)
+        return Embeds.of(if (url.startsWith("http://", ignoreCase = true)) "https://" + url.substring(7) else url, statedHeight)
     }
 
     /** The address of an <img> tag, or null for tracking pixels and unusable sources. */

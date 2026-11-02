@@ -106,8 +106,14 @@ object Embeds {
             if (src == null) quote else """<iframe src="${Html.escape(src)}"></iframe>"""
         }
 
-    /** The embed for an https address (already resolved), or [EmbedKind.Other]. */
-    fun of(url: String): ArticleBlock.Embed {
+    /**
+     * The embed for an https address (already resolved), or [EmbedKind.Other]. [statedHeight] is
+     * the height the site gives the iframe, used where the address doesn't say it (Bandcamp).
+     */
+    fun of(
+        url: String,
+        statedHeight: Int? = null,
+    ): ArticleBlock.Embed {
         youTube.find(url)?.let {
             val id = it.groupValues[1]
             return ArticleBlock.Embed(
@@ -155,8 +161,7 @@ object Embeds {
             return ArticleBlock.Embed(kind, "https://$service.apple.com/$path", null, player = url, size = EmbedSize.fixed(if (one) 175 else 450))
         }
         if (url.startsWith("https://bandcamp.com/EmbeddedPlayer/")) {
-            val large = "size=large" in url
-            return ArticleBlock.Embed(EmbedKind.Bandcamp, url, null, player = url, size = EmbedSize.fixed(if (large) 470 else 120))
+            return ArticleBlock.Embed(EmbedKind.Bandcamp, url, null, player = url, size = EmbedSize.fixed(statedHeight ?: bandcampHeight(url)))
         }
         tikTok.find(url)?.let {
             val id = it.groupValues[1]
@@ -277,6 +282,35 @@ object Embeds {
 
     /** Whether a player draws its own card (a fixed height), shown on a see-through view rather than on black. */
     fun seeThrough(embed: ArticleBlock.Embed): Boolean = embed.kind != EmbedKind.Video && embed.size.height != null
+
+    /**
+     * How high Bandcamp's player is for its address, when the site doesn't say: the small one 42,
+     * the large one 120 without its big artwork (artwork=small or none), else 470 with it.
+     */
+    private fun bandcampHeight(url: String): Int {
+        val path = url.lowercase()
+        return when {
+            "size=large" !in path -> if ("size=small" in path) 42 else 120
+            "artwork=small" in path || "artwork=none" in path -> 120
+            else -> 470
+        }
+    }
+
+    private val styleHeight = Regex("""(?:^|;)\s*height\s*:\s*(\d+)(?:\.\d+)?\s*px""", RegexOption.IGNORE_CASE)
+
+    /**
+     * The height in pixels a site gives an iframe, from its height attribute ("120" or "120px") or
+     * its style ("height: 120px"), or null when it gives none in pixels (a percentage, nothing) or
+     * one out of bounds. The same as the web app's `statedHeight`.
+     */
+    fun statedHeight(
+        attribute: String?,
+        style: String?,
+    ): Int? {
+        val fromStyle = style?.let { styleHeight.find(it)?.groupValues?.get(1)?.toIntOrNull() }
+        val fromAttribute = attribute?.trim()?.removeSuffix("px")?.trim()?.toIntOrNull()
+        return (fromStyle ?: fromAttribute)?.takeIf { it in 40..1500 }
+    }
 
     /** The address player pages are loaded under, and the referrer players see: Content's web app. */
     const val PLAYER_ORIGIN = "https://content.wim.to/"

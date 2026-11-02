@@ -6,7 +6,7 @@ import { importOpml, parseOpml, writeOpml } from "../src/lib/opml";
 import { FetchError } from "../src/lib/proxy";
 import { sanitizeArticle } from "../src/lib/sanitize";
 import { parseSrcset } from "../src/lib/srcset";
-import { embedFor, embedOf, postQuotesToFrames, videoEmbed, VERTICAL_SIZE, VIDEO_SIZE } from "../src/lib/embeds";
+import { embedFor, embedOf, postQuotesToFrames, statedHeight, videoEmbed, VERTICAL_SIZE, VIDEO_SIZE } from "../src/lib/embeds";
 import { heightFromMessage, playAll, playEmbed } from "../src/lib/embedPlayer";
 import { needsFullText, touch, wantsFullText } from "../src/lib/fullArticle";
 import { articleKey, type Article } from "../src/lib/library";
@@ -285,6 +285,32 @@ describe("sanitize", () => {
     expect(Array.from(doc.querySelectorAll("a.embed")).map((a) => a.getAttribute("data-kind"))).toEqual(["bluesky", "mastodon", "threads", "reddit"]);
     expect(doc.querySelector('a.embed[data-kind="bluesky"]')?.getAttribute("data-fits")).toBe("true");
     expect(Array.from(doc.querySelectorAll("blockquote")).map((q) => q.textContent)).toEqual(["No address", "A plain quote"]);
+  });
+
+  it("gives Bandcamp's player the height its site gives it, or one that fits its address", () => {
+    const html = sanitizeArticle(
+      '<iframe style="border: 0; width: 100%; height: 120px;" src="https://bandcamp.com/EmbeddedPlayer/album=1/size=large/bgcol=333333/artwork=none/tracklist=false/transparent=true/" seamless></iframe>',
+      "https://a.example/post",
+    );
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    expect(doc.querySelector("a.embed")?.getAttribute("data-height")).toBe("120");
+    expect(embedFor("https://bandcamp.com/EmbeddedPlayer/album=1/size=large/", "https://a.example/", 208)?.size?.height).toBe(208);
+    const height = (src: string) => embedOf(src).size?.height;
+    expect(height("https://bandcamp.com/EmbeddedPlayer/album=1/size=large/tracklist=false/")).toBe(470);
+    expect(height("https://bandcamp.com/EmbeddedPlayer/album=1/size=large/artwork=small/")).toBe(120);
+    expect(height("https://bandcamp.com/EmbeddedPlayer/album=1/size=small/")).toBe(42);
+    expect(height("https://bandcamp.com/EmbeddedPlayer/album=1/")).toBe(120);
+    expect(embedOf("https://open.spotify.com/embed/track/abc", 80).size?.height).toBe(352);
+  });
+
+  it("reads the height a site gives an iframe, in pixels only", () => {
+    expect(statedHeight(null, "border: 0; width: 100%; height: 120px;")).toBe(120);
+    expect(statedHeight("470", "height:120px")).toBe(120);
+    expect(statedHeight("208", null)).toBe(208);
+    expect(statedHeight("208px", "width: 100%")).toBe(208);
+    expect(statedHeight("100%", "max-height: 300px")).toBeNull();
+    expect(statedHeight("5", null)).toBeNull();
+    expect(statedHeight(null, null)).toBeNull();
   });
 
   it("reads the height a post's frame asks for, within bounds", () => {
