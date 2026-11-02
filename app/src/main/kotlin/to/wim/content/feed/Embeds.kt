@@ -19,6 +19,14 @@ enum class EmbedKind(
     ApplePodcasts("Apple Podcasts"),
     Bandcamp("Bandcamp"),
     TikTok("TikTok"),
+    Bluesky("Bluesky"),
+    Mastodon("Mastodon"),
+    Threads("Threads"),
+    Reddit("Reddit"),
+    Twitch("Twitch"),
+    GoogleMaps("Google Maps"),
+    CodePen("CodePen"),
+    Giphy("GIPHY"),
     X("X"),
     Instagram("Instagram"),
 
@@ -31,17 +39,21 @@ enum class EmbedKind(
 
 /**
  * How big a player is: [height] in dp when it is fixed (audio players), else [aspect] (width ÷
- * height) for videos.
+ * height) for videos. A post (Bluesky, Mastodon, …) [fitsContent]: it takes the height of what it
+ * shows once loaded, [height] until then (the web app keeps that height when the post can't say).
  */
 data class EmbedSize(
     val aspect: Float = 16f / 9f,
     val height: Int? = null,
+    val fitsContent: Boolean = false,
 ) {
     companion object {
         val VIDEO = EmbedSize()
         val VERTICAL = EmbedSize(aspect = 9f / 16f)
 
         fun fixed(height: Int) = EmbedSize(height = height)
+
+        fun post(height: Int) = EmbedSize(height = height, fitsContent = true)
     }
 }
 
@@ -58,6 +70,41 @@ object Embeds {
     private val tikTok = Regex("""tiktok\.com/(?:embed/(?:v2/)?|player/v1/|@[^/]+/video/)(\d+)""")
     private val tweet = Regex("""(?:platform\.twitter\.com/embed/Tweet\.html\?(?:.*&)?id=|(?:twitter|x)\.com/[^/]+/status/)(\d+)""")
     private val instagram = Regex("""instagram\.com/(p|reel|tv)/([A-Za-z0-9_-]+)""")
+    private val bluesky = Regex("""^https://embed\.bsky\.app/embed/(did:[a-z0-9]+:[A-Za-z0-9._:%-]+)/app\.bsky\.feed\.post/([A-Za-z0-9]+)""")
+    private val mastodon = Regex("""^https://([a-z0-9.-]+\.[a-z]{2,})/@([A-Za-z0-9_]+(?:@[a-z0-9.-]+)?)/(\d+)/embed""")
+    private val threads = Regex("""^https://(?:www\.)?threads\.(?:net|com)/@([A-Za-z0-9._]+)/post/([A-Za-z0-9_-]+)/embed""")
+    private val reddit = Regex("""^https://(?:embed\.reddit\.com|(?:www\.)?redditmedia\.com)/(r/[A-Za-z0-9_]+/comments/[A-Za-z0-9]+(?:/[^?#]*)?)""")
+    private val twitchVideo = Regex("""^https://player\.twitch\.tv/\?""")
+    private val twitchClip = Regex("""^https://clips\.twitch\.tv/embed\?""")
+    private val googleMaps = Regex("""^https://(?:www\.|maps\.)?google\.[a-z.]+/maps/embed""")
+    private val codePen = Regex("""^https://codepen\.io/([A-Za-z0-9_-]+)/embed/(?:preview/)?([A-Za-z0-9]+)""")
+    private val giphy = Regex("""^https://giphy\.com/embed/([A-Za-z0-9]+)""")
+
+    // Posts written as a quote that the service's script turns into the post (scripts never run in
+    // the reader): the class and the attribute that name the post.
+    private val postQuote = Regex("""<blockquote\b[^>]*\bclass\s*=\s*["'][^"']*\b(bluesky-embed|mastodon-embed|text-post-media|reddit-embed-bq)\b[^>]*>.*?</blockquote\s*>""", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
+    private val blueskyUri = Regex("""data-bluesky-uri\s*=\s*["']at://(did:[^/"']+)/app\.bsky\.feed\.post/([A-Za-z0-9]+)["']""")
+    private val mastodonEmbed = Regex("""data-embed-url\s*=\s*["'](https://[^"']+/embed)["']""")
+    private val threadsPermalink = Regex("""data-text-post-permalink\s*=\s*["'](https://(?:www\.)?threads\.(?:net|com)/@[A-Za-z0-9._]+/post/[A-Za-z0-9_-]+)""")
+    private val redditLink = Regex("""href\s*=\s*["']https://(?:www\.|old\.)?reddit\.com/(r/[A-Za-z0-9_]+/comments/[A-Za-z0-9]+(?:/[^"'?#]*)?)""")
+
+    /**
+     * [html] with each post written as a quote for the service's script (Bluesky, Mastodon,
+     * Threads, Reddit) turned into an iframe of that post, so the reader shows it like the iframes
+     * it knows. A quote it can't read stays a quote. The same as the web app's `postQuotesToFrames`.
+     */
+    fun postQuotesToFrames(html: String): String =
+        postQuote.replace(html) { m ->
+            val quote = m.value
+            val src =
+                when (m.groupValues[1].lowercase()) {
+                    "bluesky-embed" -> blueskyUri.find(quote)?.let { "https://embed.bsky.app/embed/${it.groupValues[1]}/app.bsky.feed.post/${it.groupValues[2]}" }
+                    "mastodon-embed" -> mastodonEmbed.find(quote)?.groupValues?.get(1)
+                    "text-post-media" -> threadsPermalink.find(quote)?.let { it.groupValues[1] + "/embed" }
+                    else -> redditLink.find(quote)?.let { "https://embed.reddit.com/${it.groupValues[1]}" }
+                }
+            if (src == null) quote else """<iframe src="${Html.escape(src)}"></iframe>"""
+        }
 
     /** The embed for an https address (already resolved), or [EmbedKind.Other]. */
     fun of(url: String): ArticleBlock.Embed {
@@ -115,6 +162,46 @@ object Embeds {
             val id = it.groupValues[1]
             return ArticleBlock.Embed(EmbedKind.TikTok, "https://www.tiktok.com/embed/v2/$id", null, player = "https://www.tiktok.com/player/v1/$id", size = EmbedSize.VERTICAL)
         }
+        bluesky.find(url)?.let {
+            val (did, post) = it.destructured
+            return ArticleBlock.Embed(EmbedKind.Bluesky, "https://bsky.app/profile/$did/post/$post", null, player = it.value, size = EmbedSize.post(400))
+        }
+        mastodon.find(url)?.let {
+            val (host, user, id) = it.destructured
+            return ArticleBlock.Embed(EmbedKind.Mastodon, "https://$host/@$user/$id", null, player = it.value, size = EmbedSize.post(400))
+        }
+        threads.find(url)?.let {
+            val (user, id) = it.destructured
+            return ArticleBlock.Embed(EmbedKind.Threads, "https://www.threads.net/@$user/post/$id", null, player = "https://www.threads.net/@$user/post/$id/embed", size = EmbedSize.post(550))
+        }
+        reddit.find(url)?.let {
+            val path = it.groupValues[1].trimEnd('/')
+            return ArticleBlock.Embed(EmbedKind.Reddit, "https://www.reddit.com/$path/", null, player = "https://embed.reddit.com/$path/?embed=true", size = EmbedSize.post(400))
+        }
+        if (twitchVideo.containsMatchIn(url) || twitchClip.containsMatchIn(url)) {
+            val clip = query(url, "clip")
+            val video = query(url, "video")
+            val channel = query(url, "channel")
+            val page =
+                when {
+                    clip != null -> "https://clips.twitch.tv/$clip"
+                    video != null -> "https://www.twitch.tv/videos/${video.removePrefix("v")}"
+                    channel != null -> "https://www.twitch.tv/$channel"
+                    else -> "https://www.twitch.tv"
+                }
+            // Twitch only plays inside the page it is told about: Content's web app.
+            val withoutParent = url.split('?', limit = 2).let { (start, rest) -> start + "?" + rest.split('&').filterNot { p -> p.startsWith("parent=") || p.startsWith("autoplay=") }.joinToString("&") }
+            return ArticleBlock.Embed(EmbedKind.Twitch, page, null, player = "$withoutParent&parent=content.wim.to&autoplay=false")
+        }
+        if (googleMaps.containsMatchIn(url)) return ArticleBlock.Embed(EmbedKind.GoogleMaps, url, null, player = url, size = EmbedSize(aspect = 4f / 3f))
+        codePen.find(url)?.let {
+            val (user, pen) = it.destructured
+            return ArticleBlock.Embed(EmbedKind.CodePen, "https://codepen.io/$user/pen/$pen", null, player = url, size = EmbedSize.fixed(400))
+        }
+        giphy.find(url)?.let {
+            val id = it.groupValues[1]
+            return ArticleBlock.Embed(EmbedKind.Giphy, "https://giphy.com/gifs/$id", null, player = "https://giphy.com/embed/$id", size = EmbedSize(aspect = 4f / 3f))
+        }
         tweet.find(url)?.let { return ArticleBlock.Embed(EmbedKind.X, "https://x.com/i/status/${it.groupValues[1]}", null) }
         instagram.find(url)?.let {
             val (type, id) = it.destructured
@@ -163,9 +250,30 @@ object Embeds {
      */
     fun playerLoad(embed: ArticleBlock.Embed): PlayerLoad? {
         val player = embed.player ?: return null
-        if (embed.kind != EmbedKind.Video) return PlayerLoad.Url(player)
+        // Twitch checks that it plays inside Content's web app, so it needs a page around it.
+        if (embed.kind != EmbedKind.Video && embed.kind != EmbedKind.Twitch) return PlayerLoad.Url(player)
         return playerPage(embed)?.let(PlayerLoad::Page)
     }
+
+    /**
+     * Script that measures a post's page (Android): the lowest edge of anything on it, in CSS
+     * pixels (dp in the view). The view starts small, so a page that fills the view still grows.
+     */
+    const val MEASURE_SCRIPT =
+        "(function(){var b=0,a=document.body?document.body.getElementsByTagName('*'):[];" +
+            "for(var i=0;i<a.length;i++){var r=a[i].getBoundingClientRect();if(r.height>0&&r.bottom>b)b=r.bottom;}" +
+            "return Math.ceil(b+(window.scrollY||0));})()"
+
+    /** The height a post takes for what [MEASURE_SCRIPT] gave back, or null when it measured nothing. */
+    fun measuredHeight(result: String?): Int? {
+        val height = result?.trim('"')?.toDoubleOrNull()?.let { kotlin.math.ceil(it).toInt() } ?: return null
+        if (height < MIN_POST_HEIGHT) return null
+        return height.coerceAtMost(MAX_POST_HEIGHT)
+    }
+
+    /** How high a post is before it has been measured (Android), and the limits of what it may take. */
+    const val MIN_POST_HEIGHT = 120
+    const val MAX_POST_HEIGHT = 3000
 
     /** Whether a player draws its own card (a fixed height), shown on a see-through view rather than on black. */
     fun seeThrough(embed: ArticleBlock.Embed): Boolean = embed.kind != EmbedKind.Video && embed.size.height != null

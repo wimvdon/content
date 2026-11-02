@@ -309,8 +309,9 @@ automatic loading off. Full articles are kept for a while, so opening one again 
 share from another app gets the picture (and description) the page itself names, and so does a saved article without a picture when you open it. In the reader the
 picture appears above the title, and the pictures inside the article appear between the
 paragraphs, with their captions. Embedded videos and audio from **YouTube, Vimeo, Spotify, SoundCloud, Dailymotion,
-Apple Music, Apple Podcasts, Bandcamp and TikTok** show the service's own player right in the
-article as soon as you open it; it plays when you tap play, and **Open in …** under it opens the
+Apple Music, Apple Podcasts, Bandcamp, TikTok and Twitch**, posts from **Bluesky, Mastodon, Threads
+and Reddit**, and **Google Maps, CodePen and GIPHY** show the service's own player right in the
+article as soon as you open it (a post as high as it is); it plays when you tap play, and **Open in …** under it opens the
 same thing in the service's app or site. Full screen works from the player's own button. A video
 the website hosts itself shows in a plain video player the same way. Those services see that you
 opened the article (see PRIVACY.md). X and Instagram posts, and embeds of other kinds, are cards that

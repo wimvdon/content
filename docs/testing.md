@@ -244,6 +244,10 @@ and then (always before a release):
       instead of making it vanish. In the highlights list, tap one: it opens in the same sheet with a
       back arrow, which returns to the list. Web app: typing in a dialog, a click beside it ends the
       typing; a second click closes it.
+- [ ] **Posts and other embeds** (an article with a Bluesky, Mastodon, Threads or Reddit post, or
+      a Twitch video, Google map, CodePen or GIPHY): the post or map shows in the article, a post as
+      high as it is (no big empty space, nothing cut off), its links open in the browser or app.
+      Web app: the same.
 - [ ] **Players show straight away** (an article with a Spotify, SoundCloud, Bandcamp or YouTube
       player): open it: the players are there at once, no card to tap first, and nothing plays by
       itself. Each shows whole (Spotify with its cover, SoundCloud with its play button, Bandcamp

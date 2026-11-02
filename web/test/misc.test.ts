@@ -6,8 +6,8 @@ import { importOpml, parseOpml, writeOpml } from "../src/lib/opml";
 import { FetchError } from "../src/lib/proxy";
 import { sanitizeArticle } from "../src/lib/sanitize";
 import { parseSrcset } from "../src/lib/srcset";
-import { embedFor, videoEmbed, VERTICAL_SIZE, VIDEO_SIZE } from "../src/lib/embeds";
-import { playAll, playEmbed } from "../src/lib/embedPlayer";
+import { embedFor, embedOf, postQuotesToFrames, videoEmbed, VERTICAL_SIZE, VIDEO_SIZE } from "../src/lib/embeds";
+import { heightFromMessage, playAll, playEmbed } from "../src/lib/embedPlayer";
 import { needsFullText, touch, wantsFullText } from "../src/lib/fullArticle";
 import { articleKey, type Article } from "../src/lib/library";
 import { defaultReaderStyle, MAX_TEXT_SIZE, MIN_TEXT_SIZE, pageBackground, readerStyleOf, withTextSize } from "../src/lib/readerStyle";
@@ -251,6 +251,51 @@ describe("sanitize", () => {
     expect(frames).toEqual(["https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1", "https://bandcamp.com/EmbeddedPlayer/album=1/size=large/"]);
     expect(document.querySelector<HTMLVideoElement>(".embed-player video")?.autoplay).toBe(false);
     expect(Array.from(document.querySelectorAll("a.embed")).map((a) => a.getAttribute("href"))).toEqual(["https://posts.example/1"]);
+  });
+
+  it("knows the posts, maps, pens and GIFs of the common services, as Android does", () => {
+    const bluesky = embedOf("https://embed.bsky.app/embed/did:plc:abc123/app.bsky.feed.post/3kxyz");
+    expect([bluesky.kind, bluesky.url, bluesky.player, bluesky.size?.fitsContent]).toEqual(["bluesky", "https://bsky.app/profile/did:plc:abc123/post/3kxyz", "https://embed.bsky.app/embed/did:plc:abc123/app.bsky.feed.post/3kxyz", true]);
+    const mastodon = embedOf("https://mastodon.social/@Gargron/112345678901234567/embed");
+    expect([mastodon.kind, mastodon.url]).toEqual(["mastodon", "https://mastodon.social/@Gargron/112345678901234567"]);
+    const threads = embedOf("https://www.threads.com/@zuck/post/C8abc_1/embed");
+    expect([threads.kind, threads.url]).toEqual(["threads", "https://www.threads.net/@zuck/post/C8abc_1"]);
+    const reddit = embedOf("https://embed.reddit.com/r/Android/comments/1abcde/some_title/?utm_source=embedv2");
+    expect([reddit.kind, reddit.url, reddit.player]).toEqual(["reddit", "https://www.reddit.com/r/Android/comments/1abcde/some_title/", "https://embed.reddit.com/r/Android/comments/1abcde/some_title/?embed=true"]);
+    const twitch = embedOf("https://player.twitch.tv/?video=v123456&parent=example.com&autoplay=true");
+    expect([twitch.kind, twitch.url, twitch.player]).toEqual(["twitch", "https://www.twitch.tv/videos/123456", "https://player.twitch.tv/?video=v123456&parent=content.wim.to&autoplay=false"]);
+    expect(embedOf("https://clips.twitch.tv/embed?clip=FunnyClip&parent=example.com").url).toBe("https://clips.twitch.tv/FunnyClip");
+    expect(embedOf("https://www.google.com/maps/embed?pb=!1m18!1m12").kind).toBe("googleMaps");
+    const pen = embedOf("https://codepen.io/someone/embed/preview/abcDEF?default-tab=result");
+    expect([pen.kind, pen.url, pen.size?.height]).toEqual(["codepen", "https://codepen.io/someone/pen/abcDEF", 400]);
+    const gif = embedOf("https://giphy.com/embed/xT9IgG50Fb7Mi0prBC");
+    expect([gif.kind, gif.url]).toEqual(["giphy", "https://giphy.com/gifs/xT9IgG50Fb7Mi0prBC"]);
+    expect(embedOf("https://example.com/@me/123/other").kind).toBe("other");
+  });
+
+  it("turns posts written for a service's script into their players, and keeps other quotes", () => {
+    const html = postQuotesToFrames(
+      '<blockquote class="bluesky-embed" data-bluesky-uri="at://did:plc:abc123/app.bsky.feed.post/3kxyz" data-bluesky-cid="x"><p>Hello</p></blockquote>' +
+        '<blockquote class="mastodon-embed" data-embed-url="https://mastodon.social/@Gargron/1123/embed"><a href="https://mastodon.social/@Gargron/1123">Post</a></blockquote>' +
+        '<blockquote class="text-post-media" data-text-post-permalink="https://www.threads.net/@zuck/post/C8abc" data-text-post-version="0"><a href="x">Post</a></blockquote>' +
+        '<blockquote class="reddit-embed-bq" data-embed-height="500"><a href="https://www.reddit.com/r/Android/comments/1abcde/some_title/">Title</a></blockquote>' +
+        '<blockquote class="bluesky-embed"><p>No address</p></blockquote><blockquote><p>A plain quote</p></blockquote>',
+    );
+    const doc = new DOMParser().parseFromString(sanitizeArticle(html, "https://a.example/post"), "text/html");
+    expect(Array.from(doc.querySelectorAll("a.embed")).map((a) => a.getAttribute("data-kind"))).toEqual(["bluesky", "mastodon", "threads", "reddit"]);
+    expect(doc.querySelector('a.embed[data-kind="bluesky"]')?.getAttribute("data-fits")).toBe("true");
+    expect(Array.from(doc.querySelectorAll("blockquote")).map((q) => q.textContent)).toEqual(["No address", "A plain quote"]);
+  });
+
+  it("reads the height a post's frame asks for, within bounds", () => {
+    expect(heightFromMessage({ id: "a", height: 480.2 })).toBe(481);
+    expect(heightFromMessage({ type: "setHeight", id: 1, height: 600 })).toBe(600);
+    expect(heightFromMessage('{"type":"resize.embed","data":512}')).toBe(512);
+    expect(heightFromMessage('{"type":"MEASURE","details":{"height":700}}')).toBe(700);
+    expect(heightFromMessage({ height: 99999 })).toBe(3000);
+    expect(heightFromMessage({ height: 10 })).toBeNull();
+    expect(heightFromMessage("not json")).toBeNull();
+    expect(heightFromMessage({ type: "other" })).toBeNull();
   });
 
   it("leaves out pictures and embed previews when Show images is off, but keeps the cards", () => {

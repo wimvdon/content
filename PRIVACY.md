@@ -1,6 +1,6 @@
 # Privacy policy
 
-_Last updated: 2026-11-02 (embedded players show straight away)_
+_Last updated: 2026-11-02 (more embedded services)_
 
 Reader has no analytics, advertising or crash reporting. It works without an account. If you sign
 in (with your email address, or with Instapaper), Reader keeps your feed list,
@@ -23,8 +23,9 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   for YouTube videos i.ytimg.com and for Dailymotion videos dailymotion.com. Those servers see your
   IP address, like any visit. Turn this off in Settings › Article view › Show images.
 - **Embedded players, as soon as you open the article.** An article's embedded video or audio
-  (YouTube, Vimeo, Spotify, SoundCloud, Dailymotion, Apple Music, Apple Podcasts, Bandcamp, TikTok)
-  shows the service's own player in the article as soon as you open it, without playing until you
+  (YouTube, Vimeo, Spotify, SoundCloud, Dailymotion, Apple Music, Apple Podcasts, Bandcamp, TikTok),
+  and its embedded posts, maps, code and GIFs (Bluesky, Mastodon servers, Threads, Reddit, Twitch,
+  Google Maps, CodePen, GIPHY), shows the service's own player in the article as soon as you open it, without playing until you
   tap (or click) play. It loads from that service (YouTube's from youtube-nocookie.com), with
   its own scripts, and may set its own cookies, under that service's privacy policy; it sees your
   IP address and that Content's web app is the page showing it. A video the article's own site

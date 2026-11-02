@@ -1,5 +1,5 @@
 import DOMPurify from "dompurify";
-import { EMBED_SERVICES, embedFor, videoEmbed, type Embed } from "./embeds";
+import { EMBED_SERVICES, embedFor, postQuotesToFrames, videoEmbed, type Embed } from "./embeds";
 import { t, type Key } from "./i18n";
 import { candidateSize, parseSrcset, type SrcsetCandidate } from "./srcset";
 
@@ -13,7 +13,8 @@ import { candidateSize, parseSrcset, type SrcsetCandidate } from "./srcset";
 export function sanitizeArticle(html: string, baseUrl: string, showImages = true): string {
   // An iframe's fallback content never shows, and with markup in it DOMPurify drops the whole
   // iframe (and so its card).
-  const clean = DOMPurify.sanitize(html.replace(/(<iframe\b[^>]*>)[\s\S]*?<\/iframe\s*>/gi, "$1</iframe>"), {
+  // Posts written for a service's script (Bluesky, Mastodon, Threads, Reddit) become their iframes.
+  const clean = DOMPurify.sanitize(postQuotesToFrames(html).replace(/(<iframe\b[^>]*>)[\s\S]*?<\/iframe\s*>/gi, "$1</iframe>"), {
     FORBID_TAGS: ["style", "form", "input", "button", "textarea", "select", "object", "embed"],
     // width and height stay for now: they say how big a picture is meant to be (see below).
     FORBID_ATTR: ["style", "class", "id"],
@@ -137,6 +138,7 @@ function replaceWithCard(element: Element, embed: Embed | null) {
     if (service) card.setAttribute("data-service", service);
     const size = embed.size;
     if (size?.height) card.setAttribute("data-height", String(size.height));
+    if (size?.fitsContent) card.setAttribute("data-fits", "true");
     else if (size) card.setAttribute("data-aspect", String(size.aspect));
   }
   if (embed.thumbnailUrl) {
