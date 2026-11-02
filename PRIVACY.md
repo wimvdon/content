@@ -1,6 +1,6 @@
 # Privacy policy
 
-_Last updated: 2026-10-31 (embedded players)_
+_Last updated: 2026-11-02 (embedded players show straight away)_
 
 Reader has no analytics, advertising or crash reporting. It works without an account. If you sign
 in (with your email address, or with Instapaper), Reader keeps your feed list,
@@ -22,10 +22,10 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   the feed or article says they are: usually the website itself or its image server (CDN), and
   for YouTube videos i.ytimg.com and for Dailymotion videos dailymotion.com. Those servers see your
   IP address, like any visit. Turn this off in Settings › Article view › Show images.
-- **Embedded players, only when you tap one.** An article's embedded video or audio (YouTube,
-  Vimeo, Spotify, SoundCloud, Dailymotion, Apple Music, Apple Podcasts, Bandcamp, TikTok) shows as
-  a card; nothing is loaded from the service until you tap (or click) it. Then the service's own
-  player loads in the card's place, from that service (YouTube's from youtube-nocookie.com), with
+- **Embedded players, as soon as you open the article.** An article's embedded video or audio
+  (YouTube, Vimeo, Spotify, SoundCloud, Dailymotion, Apple Music, Apple Podcasts, Bandcamp, TikTok)
+  shows the service's own player in the article as soon as you open it, without playing until you
+  tap (or click) play. It loads from that service (YouTube's from youtube-nocookie.com), with
   its own scripts, and may set its own cookies, under that service's privacy policy; it sees your
   IP address and that Content's web app is the page showing it. A video the article's own site
   hosts plays in the app's own player, from that site. X and Instagram posts don't play inside:
@@ -226,9 +226,9 @@ Reader account that signing in with Instapaper opens.
   uses it only to finish signing in to Instapaper and for sync (see above).
 - **Pictures and website icons** load directly from the websites, without telling them which
   page you came from.
-- **Embedded videos and posts** show as a card; nothing plays inside the page. YouTube cards
-  show the video's preview picture from i.ytimg.com, which then sees your IP address. Clicking
-  a card opens the video or post on its own website in a new tab.
+- **Embedded players** (the services named above) show inside the article as soon as you open
+  it, as on the phone: the service sees your IP address and that Content's web app shows it. X and
+  Instagram posts and other embeds are cards; clicking one opens it on its own website in a new tab.
 - **Sync** works as described above, through the same feed loader: the web app reads and saves
   the same document in your Reader account and keeps the same live connection while the page is
   visible. Whether a sidebar section is folded shut is remembered in the browser's local storage.

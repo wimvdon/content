@@ -67,12 +67,12 @@ object Embeds {
                 EmbedKind.YouTube,
                 "https://www.youtube.com/watch?v=$id",
                 "https://i.ytimg.com/vi/$id/hqdefault.jpg",
-                player = "https://www.youtube-nocookie.com/embed/$id?autoplay=1&rel=0&playsinline=1",
+                player = "https://www.youtube-nocookie.com/embed/$id?rel=0&playsinline=1",
             )
         }
         vimeo.find(url)?.let {
             val id = it.groupValues[1]
-            return ArticleBlock.Embed(EmbedKind.Vimeo, "https://vimeo.com/$id", null, player = "https://player.vimeo.com/video/$id?autoplay=1")
+            return ArticleBlock.Embed(EmbedKind.Vimeo, "https://vimeo.com/$id", null, player = "https://player.vimeo.com/video/$id")
         }
         spotify.find(url)?.let {
             val (type, id) = it.destructured
@@ -97,7 +97,7 @@ object Embeds {
                 EmbedKind.Dailymotion,
                 "https://www.dailymotion.com/video/$id",
                 "https://www.dailymotion.com/thumbnail/video/$id",
-                player = "https://www.dailymotion.com/embed/video/$id?autoplay=1",
+                player = "https://www.dailymotion.com/embed/video/$id",
             )
         }
         appleEmbed.find(url)?.let {
@@ -142,7 +142,7 @@ object Embeds {
         val fixed = embed.size.height?.takeIf { embed.kind != EmbedKind.Video }
         val content =
             if (embed.kind == EmbedKind.Video) {
-                """<video src="$src" controls autoplay playsinline></video>"""
+                """<video src="$src" controls playsinline></video>"""
             } else {
                 val height = fixed?.let { """ style="height:${it}px"""" }.orEmpty()
                 """<iframe src="$src"$height allow="autoplay; encrypted-media; fullscreen; picture-in-picture; clipboard-write" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>"""

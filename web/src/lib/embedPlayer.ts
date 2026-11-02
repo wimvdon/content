@@ -1,10 +1,10 @@
 import { t } from "./i18n";
 
 /**
- * Plays an embed card (made by `sanitizeArticle`): the service's own player, or the site's video in
- * the page's player, takes the card's place at the size the service asks for, with an "Open in …"
- * link under it. Nothing loads from the service before this click. False for a card without a
- * player, which then opens as a link.
+ * Shows an embed card's player (the card made by `sanitizeArticle`): the service's own player, or
+ * the site's video in the page's player, takes the card's place at the size the service asks for,
+ * with an "Open in …" link under it. It plays once clicked. False for a card without a player,
+ * which stays a link.
  */
 export function playEmbed(card: HTMLAnchorElement): boolean {
   const player = card.dataset.player;
@@ -17,7 +17,6 @@ export function playEmbed(card: HTMLAnchorElement): boolean {
     const video = doc.createElement("video");
     video.src = player;
     video.controls = true;
-    video.autoplay = true;
     video.playsInline = true;
     media = video;
   } else {
@@ -51,4 +50,9 @@ export function playEmbed(card: HTMLAnchorElement): boolean {
   }
   card.replaceWith(box);
   return true;
+}
+
+/** Shows the player of every embed card in [root] straight away (see `playEmbed`). */
+export function playAll(root: ParentNode): void {
+  for (const card of Array.from(root.querySelectorAll<HTMLAnchorElement>("a.embed[data-player]"))) playEmbed(card);
 }

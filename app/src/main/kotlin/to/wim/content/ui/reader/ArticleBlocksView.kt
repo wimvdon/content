@@ -367,9 +367,10 @@ fun InlineImage(
 }
 
 /**
- * Embedded content (a video, a post): a card, and once a card with a player is tapped, the player
- * in its place ([EmbedPlayer]) with a link to the service under it. A card without a player
- * opens [ArticleBlock.Embed.url] in its app or the browser.
+ * Embedded content (a video, a post): an embed with a player shows that player straight away
+ * ([EmbedPlayer], it plays when tapped), with a link to the service under it (the owner's choice,
+ * 2026-11-02). One without a player is a card that opens [ArticleBlock.Embed.url] in its app or
+ * the browser.
  */
 @Composable
 fun EmbedBlock(
@@ -377,9 +378,8 @@ fun EmbedBlock(
     showThumbnail: Boolean,
     onOpen: (String) -> Unit,
 ) {
-    var playing by remember(embed) { mutableStateOf(false) }
-    if (!playing || embed.player == null) {
-        EmbedCard(embed, showThumbnail, onOpen = { if (embed.player != null) playing = true else onOpen(embed.url) })
+    if (embed.player == null) {
+        EmbedCard(embed, showThumbnail, onOpen = { onOpen(embed.url) })
         return
     }
     Column(Modifier.fillMaxWidth()) {
@@ -395,8 +395,8 @@ fun EmbedBlock(
 }
 
 /**
- * The card of an embed: a preview picture with a play button when there is one, the service's
- * name, and what tapping does (play here, or the site it opens).
+ * The card of an embed without a player (a post, another site's iframe): a preview picture when
+ * there is one, the service's name, and the site it opens.
  */
 @Composable
 private fun EmbedCard(
@@ -404,11 +404,10 @@ private fun EmbedCard(
     showThumbnail: Boolean,
     onOpen: () -> Unit,
 ) {
-    val playable = embed.player != null
     val label =
         embed.kind.label
             ?: stringResource(if (embed.kind == EmbedKind.Video) R.string.embed_video else R.string.embed_other)
-    val detail = if (playable) stringResource(R.string.embed_tap_to_play) else embed.url.substringAfter("://").substringBefore('/')
+    val detail = embed.url.substringAfter("://").substringBefore('/')
     Surface(
         onClick = onOpen,
         shape = MaterialTheme.shapes.medium,
@@ -446,7 +445,7 @@ private fun EmbedCard(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Icon(
-                    painterResource(if (playable) R.drawable.ic_play else R.drawable.ic_open_in_new),
+                    painterResource(R.drawable.ic_open_in_new),
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
                 )

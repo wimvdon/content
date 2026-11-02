@@ -7,7 +7,7 @@ import { FetchError } from "../src/lib/proxy";
 import { sanitizeArticle } from "../src/lib/sanitize";
 import { parseSrcset } from "../src/lib/srcset";
 import { embedFor, videoEmbed, VERTICAL_SIZE, VIDEO_SIZE } from "../src/lib/embeds";
-import { playEmbed } from "../src/lib/embedPlayer";
+import { playAll, playEmbed } from "../src/lib/embedPlayer";
 import { needsFullText, touch, wantsFullText } from "../src/lib/fullArticle";
 import { articleKey, type Article } from "../src/lib/library";
 import { defaultReaderStyle, MAX_TEXT_SIZE, MIN_TEXT_SIZE, pageBackground, readerStyleOf, withTextSize } from "../src/lib/readerStyle";
@@ -198,7 +198,7 @@ describe("sanitize", () => {
     expect(html).not.toContain("data:");
   });
 
-  it("shows players and embeds as cards, nothing loading from the service until one is clicked", () => {
+  it("turns players and embeds into cards that carry their players", () => {
     const html = sanitizeArticle(
       '<iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ"><p>fallback</p></iframe><iframe src="//player.vimeo.com/video/123"></iframe>' +
         '<iframe src="https://posts.example/embed/9"></iframe><iframe src="javascript:alert(1)"></iframe><video poster="/p.jpg"><source src="/v.mp4"></video>',
@@ -215,10 +215,10 @@ describe("sanitize", () => {
       ["https://a.example/v.mp4", "https://a.example/p.jpg", "_blank"],
     ]);
     expect(doc.querySelector("a.embed img")?.getAttribute("referrerpolicy")).toBe("no-referrer");
-    // The players to load on a click; the unknown embed has none and only opens.
+    // The players the reader shows in their place; the unknown embed has none and only opens.
     expect(Array.from(doc.querySelectorAll("a.embed")).map((a) => a.getAttribute("data-player"))).toEqual([
-      "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?autoplay=1&rel=0&playsinline=1",
-      "https://player.vimeo.com/video/123?autoplay=1",
+      "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?rel=0&playsinline=1",
+      "https://player.vimeo.com/video/123",
       null,
       "https://a.example/v.mp4",
     ]);
@@ -238,6 +238,19 @@ describe("sanitize", () => {
     expect(open.getAttribute("href")).toBe("https://open.spotify.com/track/abc");
     expect(open.textContent).toBe("Open in Spotify");
     expect(document.querySelectorAll("a.embed")).toHaveLength(1);
+  });
+
+  it("shows every player straight away, without playing it, and keeps cards without one", () => {
+    document.body.innerHTML = sanitizeArticle(
+      '<iframe src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1"></iframe><iframe src="https://bandcamp.com/EmbeddedPlayer/album=1/size=large/"></iframe>' +
+        '<iframe src="https://posts.example/1"></iframe><video src="/v.mp4"></video>',
+      "https://a.example/post",
+    );
+    playAll(document.body);
+    const frames = Array.from(document.querySelectorAll<HTMLIFrameElement>(".embed-player iframe")).map((f) => f.getAttribute("src"));
+    expect(frames).toEqual(["https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1", "https://bandcamp.com/EmbeddedPlayer/album=1/size=large/"]);
+    expect(document.querySelector<HTMLVideoElement>(".embed-player video")?.autoplay).toBe(false);
+    expect(Array.from(document.querySelectorAll("a.embed")).map((a) => a.getAttribute("href"))).toEqual(["https://posts.example/1"]);
   });
 
   it("leaves out pictures and embed previews when Show images is off, but keeps the cards", () => {
@@ -312,7 +325,7 @@ describe("embeds", () => {
   it("finds YouTube and Vimeo videos in their player addresses", () => {
     expect(embedFor("https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?rel=0", "https://a.example/")?.url).toBe("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
     expect(embedFor("https://youtu.be/dQw4w9WgXcQ", "https://a.example/")?.kind).toBe("youtube");
-    expect(embedFor("https://vimeo.com/video/42", "https://a.example/")).toEqual({ kind: "vimeo", url: "https://vimeo.com/42", thumbnailUrl: null, player: "https://player.vimeo.com/video/42?autoplay=1", size: VIDEO_SIZE });
+    expect(embedFor("https://vimeo.com/video/42", "https://a.example/")).toEqual({ kind: "vimeo", url: "https://vimeo.com/42", thumbnailUrl: null, player: "https://player.vimeo.com/video/42", size: VIDEO_SIZE });
     expect(embedFor("http://posts.example/1", "https://a.example/")).toEqual({ kind: "other", url: "https://posts.example/1", thumbnailUrl: null });
     expect(embedFor("", "https://a.example/")).toBeNull();
     expect(videoEmbed(null, "/p.jpg", "https://a.example/")).toBeNull();
@@ -327,7 +340,7 @@ describe("embeds", () => {
     const cloud = embedFor("https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/artist/song&color=%23ff5500", base)!;
     expect([cloud.kind, cloud.url, cloud.size?.height]).toEqual(["soundcloud", "https://soundcloud.com/artist/song", 166]);
     const daily = embedFor("https://www.dailymotion.com/embed/video/x8abc12", base)!;
-    expect([daily.kind, daily.url, daily.player]).toEqual(["dailymotion", "https://www.dailymotion.com/video/x8abc12", "https://www.dailymotion.com/embed/video/x8abc12?autoplay=1"]);
+    expect([daily.kind, daily.url, daily.player]).toEqual(["dailymotion", "https://www.dailymotion.com/video/x8abc12", "https://www.dailymotion.com/embed/video/x8abc12"]);
     expect(embedFor("https://geo.dailymotion.com/player.html?video=x8abc12", base)?.url).toBe("https://www.dailymotion.com/video/x8abc12");
     const song = embedFor("https://embed.music.apple.com/be/album/name/123?i=456", base)!;
     expect([song.kind, song.url, song.size?.height]).toEqual(["appleMusic", "https://music.apple.com/be/album/name/123?i=456", 175]);

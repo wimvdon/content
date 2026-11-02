@@ -32,7 +32,7 @@ import to.wim.content.feed.Embeds
 import to.wim.content.feed.PlayerLoad
 
 /**
- * An embedded player, loaded once its card is tapped: the service's own player (or the site's
+ * An embedded player, shown as soon as the article is: the service's own player (or the site's
  * video) in a small web view, the size the service asks for. Its full screen button shows the
  * player over everything. Audio players of a fixed height draw their own card on a see-through
  * view. The player loads once the view has its size, so it picks the right layout. A link the player opens (the service's logo, "watch on …") goes to
@@ -66,7 +66,8 @@ fun EmbedPlayer(
                     // The players are the services' own pages: they need their scripts.
                     settings.javaScriptEnabled = true
                     settings.domStorageEnabled = true
-                    settings.mediaPlaybackRequiresUserGesture = false
+                    // Shown straight away, so a player only plays once tapped.
+                    settings.mediaPlaybackRequiresUserGesture = true
                     // The player's own text size: the phone's larger font size would cram its fixed height.
                     settings.textZoom = 100
                     setBackgroundColor(if (seeThrough) android.graphics.Color.TRANSPARENT else android.graphics.Color.BLACK)

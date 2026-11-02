@@ -1,7 +1,7 @@
 import { Highlighter, NotebookPen, Trash2 } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createHighlight, resolve, type Anchor } from "@/lib/anchors";
-import { playEmbed } from "@/lib/embedPlayer";
+import { playAll, playEmbed } from "@/lib/embedPlayer";
 import { mark, offsetOf, pageText } from "@/lib/highlightDom";
 import { t } from "@/lib/i18n";
 import type { Highlight } from "@/lib/items";
@@ -43,6 +43,13 @@ export function HighlightedText({
       const anchor = resolve(h, text);
       if (anchor.kind !== "notFound") mark(el, anchor.start, anchor.end, h.id, anchor.kind === "approximate");
     }
+  }, [html, highlights]);
+
+  // Embeds with a player show it straight away, in their card's place (the owner's choice, 2026-11-02).
+  // After the highlights, so their places in the text are those of the cards, as when they were made.
+  useLayoutEffect(() => {
+    const el = root.current;
+    if (el) playAll(el);
   }, [html, highlights]);
 
   // The bar over a selection in the text.
