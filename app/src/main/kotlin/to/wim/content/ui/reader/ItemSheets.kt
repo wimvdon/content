@@ -71,9 +71,6 @@ enum class SheetKind {
     /** A share or Add link: nothing is saved until Save, and Cancel saves nothing. */
     New,
 
-    /** Saved a moment ago (the reader, a long press): "Saved to …"; Remove takes the save back, closing keeps it. */
-    JustSaved,
-
     /**
      * An article saved before: its topics only (the reader's Topics button, a row's long press). The
      * Organise sheet is gone (2026-11-01): To read / Archive, Like and the note are the reader's
@@ -157,8 +154,7 @@ fun SaveSheet(
         }
         onDismiss()
     }
-    // Cancel, or closing the sheet, saves and sends nothing: before the save nothing happens, and an
-    // article saved a moment ago is taken back ([onCancel]). Organising, it changes nothing (#156).
+    // Cancel, or closing the sheet, saves and sends nothing ([onCancel]). Organising, it changes nothing (#156).
     val cancel = {
         onCancel()
         onDismiss()

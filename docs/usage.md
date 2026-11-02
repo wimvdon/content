@@ -410,7 +410,7 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   start on one and go on on another. An article you barely began or finished opens at the top.
 - **Each article is on one list:** **To read** (where everything new arrives) or the **Archive**,
   with any number of tags.
-- **Getting articles in:** **Save** in an article; press and hold a feed article › **Save** (the save sheet opens, then the message offers **Open**); the round **+** button ›
+- **Getting articles in:** **Save** in an article; press and hold a feed article › **Save** (saved to To read at once; the message offers **Open**); the round **+** button ›
   **Save article** (the save sheet, which asks for the address); and sharing a link to Reader from another app. These go to To read unless you tap
   **Archive** in the save sheet. A feed article you save stays the same article: its feed, text and
   picture come along, and it isn't copied.

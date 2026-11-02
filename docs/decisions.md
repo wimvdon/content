@@ -2,6 +2,17 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-02: A long press's Save is one tap too; a new message replaces the one showing
+
+Owner's choice, the same as the reader's Save earlier today: **press and hold › Save** (a feed
+article, the inbox; on the web the row's menu) saves to To read at once, without the sheet, and
+says "Saved to To read" with **Open**, which opens the article. Topics, Like and the note are in
+the reader's toolbar once it is open. The sheet still opens for Add link and another app's share
+menu (and the browser extension's Save to Content), where you choose before anything is saved.
+And messages no longer queue up: on the phone a new one closes the one still showing (and any
+waiting their turn), so several quick actions don't leave a row of messages to sit through. The
+web already showed one message at a time (a new one replaces the old one). Phone and web.
+
 ## 2026-11-02: A hidden word also finds its plural and possessive
 
 "WIRED coupon code" didn't hide WIRED's deals: their titles say "Coupon Codes", and a word only

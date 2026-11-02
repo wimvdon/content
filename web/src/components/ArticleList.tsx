@@ -38,13 +38,21 @@ type ListProps = {
   onSearch: () => void;
   /** A message at the bottom, with at most one action (Undo). */
   onMessage: (text: string, action?: { label: string; run: () => void }) => void;
+  /** Saved from a row's menu in one tap: the message says where it went, with Open. */
+  onSaved: (key: string) => void;
 };
+
+/** A row menu's Save: one tap, no sheet (2026-11-02), as on Android; the message then has Open. */
+function saveFromMenu(url: string, title: string, onSaved: ListProps["onSaved"]) {
+  const saved = app.saveArticle(url, title, false);
+  if (saved) onSaved(saved.key);
+}
 
 /** The articles of the chosen feed, folder or All articles, Saved, or the inbox (#246). */
 export function ArticleList(props: ListProps) {
   const { selection, inboxOpen } = useApp();
   return inboxOpen ? (
-    <InboxArticles openKey={props.openKey} onOpen={props.onOpen} onMessage={props.onMessage} onAdd={props.onAdd} onSearch={props.onSearch} onSettings={props.onSettings} />
+    <InboxArticles openKey={props.openKey} onOpen={props.onOpen} onMessage={props.onMessage} onSaved={props.onSaved} onAdd={props.onAdd} onSearch={props.onSearch} onSettings={props.onSettings} />
   ) : selection.kind === "saved" ? (
     <SavedArticles openKey={props.openKey} onOpen={props.onOpen} onSettings={props.onSettings} onSearch={props.onSearch} onMessage={props.onMessage} onAdd={props.onAdd} />
   ) : (
@@ -52,7 +60,7 @@ export function ArticleList(props: ListProps) {
   );
 }
 
-function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport, onUndo, onSearch, onMessage }: ListProps) {
+function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport, onUndo, onSearch, onMessage, onSaved }: ListProps) {
   const { selection, settings, readThisVisit, refreshing, loaded, problems, account } = useApp();
   // The list, its counts and chips without the articles the hidden words leave out (#277).
   const library = useListedLibrary();
@@ -191,7 +199,7 @@ function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport,
                         { icon: a.read ? <Circle /> : <CircleCheck />, label: a.read ? t("markUnread") : t("markRead"), onClick: () => app.toggleRead(a) },
                         ...(a.link
                           ? [
-                              { icon: <BookmarkPlus />, label: t("save"), onClick: () => app.saveArticle(a.link!, a.title) },
+                              { icon: <BookmarkPlus />, label: t("save"), onClick: () => saveFromMenu(a.link!, a.title, onSaved) },
                               { icon: <Share2 />, label: t("share"), onClick: () => share(a.title, a.link!) },
                             ]
                           : []),
@@ -371,6 +379,7 @@ function InboxArticles({
   openKey,
   onOpen,
   onMessage,
+  onSaved,
   onAdd,
   onSearch,
   onSettings,
@@ -378,6 +387,7 @@ function InboxArticles({
   openKey: string | null;
   onOpen: (a: Article) => void;
   onMessage: ListProps["onMessage"];
+  onSaved: ListProps["onSaved"];
   onAdd: () => void;
   onSearch: () => void;
   onSettings: () => void;
@@ -409,7 +419,7 @@ function InboxArticles({
                     items={[
                       { icon: by.read ? <Circle /> : <CircleCheck />, label: by.read ? t("markUnread") : t("markRead"), onClick: toggle },
                       // Already in Saved: nothing to save.
-                      ...(item.readingList ? [] : [{ icon: <BookmarkPlus />, label: t("save"), onClick: () => app.saveArticle(item.url, item.title) }]),
+                      ...(item.readingList ? [] : [{ icon: <BookmarkPlus />, label: t("save"), onClick: () => saveFromMenu(item.url, item.title, onSaved) }]),
                       { icon: <Share2 />, label: t("share"), onClick: () => share(item.title, item.url, item) },
                       {
                         icon: <Trash2 />,

@@ -32,6 +32,7 @@ when the run fails.
 | `HtmlTest` | Clean-up for the reader, plain text, snippets, entities, escaping |
 | `FeedDiscoveryTest` | Address normalising (https, feed://), feed links in a page, common paths |
 | `FeedFinderTest` | Address → feed with a fake web: direct feed, linked feed, common path, no feed, errors |
+| `LatestOnlyTest` | Messages don't queue: a new one cancels the one showing, and of several waiting only the last shows |
 | `ArticleExtractorTest` | The plain parts around the article extractor: handing the page to the WebView as JavaScript strings, reading its result (also no article, errors and unexpected values), charsets, when a feed text counts as a summary (short, or a teaser that links to its own article). Finding the article is the web app's code, tested by `web/test/articleExtractor.test.ts` with the sample pages in `testdata/articles/` for both apps |
 | `SharedTextTest` | One text per saved article: the first device's is stored and every device shows it, two at once (the one stored first wins), offline the device's own, nothing stored for articles that aren't saved (the web app's `sharedText.test.ts` checks the same) |
 | `TextLayoutTest` | Article text as reader blocks: a block per paragraph (also from divs and double line breaks), headings, bulleted, numbered and nested lists, quotes, code |
@@ -124,8 +125,8 @@ and then (always before a release):
       Save and share); **Share** opens the share menu or the chosen app. An uninstalled app falls back
       to the share menu. Settings › Save and share looks the same signed in to Instapaper or not.
 - [ ] **List:** at app start the list shows loading placeholders, never "No feeds yet" first.
-      Rows don't swipe (#305); long press one for Mark as read, Save and Share. Save: the sheet opens,
-      then "Saved to To read" with **Open**, which opens the article. The Unread chip in its own row under the folder tabs (not in the top bar) switches unread only (filled, check) / all.
+      Rows don't swipe (#305); long press one for Mark as read, Save and Share. Save: no sheet, at once
+      "Saved to To read" with **Open**, which opens the article. The Unread chip in its own row under the folder tabs (not in the top bar) switches unread only (filled, check) / all.
       Scroll down: the title, the folder tabs and the Unread chip slide away together; scroll up a
       little: they come back; pulling down at the very top refreshes, and the spinner stays in place
       until the refresh is done (no jump back up and down again), also on the reading list. Settings › Article list › View: Small,
@@ -342,7 +343,9 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
 - [ ] Web app: Escape closes a menu, then the article; shortcuts do nothing behind a dialog. On a
       phone, messages show above the bottom bar, and the round read button shows on every row.
       Moving a feed up or down in Manage feeds always moves it within its folder.
-- [ ] Long press a feed article › **Save**: the sheet opens; Save: "Saved to To read".
+- [ ] Long press a feed article › **Save**: no sheet; "Saved to To read" with **Open** at once.
+- [ ] **One message at a time:** long press › Save on one article, then quickly on another: the
+      second message replaces the first, it doesn't wait for it to go.
 - [ ] **Highlights (#102):** in an article, press and hold a word, drag over a sentence and tap
       **Highlight** in the menu: it turns yellow. Select another and tap **Note**, type, Save. The
       bottom bar shows a quote mark with 2; tap it: both, with the note. Tap a marker: change its
@@ -377,7 +380,7 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
       navigation bar's Saved is a list icon, To read keeps the open book. After saving from the
       reader the message has no Open; after a long press › Save, Add link or a share (over Chrome) it has
       **Open**, which lands on that article. Web app: the same icons, and Open after Add link.
-- [ ] Web app: **Save** on a feed article opens the save sheet; **Add link** in Saved too, with Cancel.
+- [ ] Web app: **Save** in a feed article's menu saves at once, "Saved to To read" with **Open**; **Add link** in Saved opens the save sheet, with Cancel.
 - [ ] Nothing swipes (#305): not feed rows, the Inbox or Saved. Long press a card in Saved › To
       read: **Archive** first (archived, with Undo), then Tags and Share. In Archive the first
       entry is **Back to read**. Web app: the same with right-click.

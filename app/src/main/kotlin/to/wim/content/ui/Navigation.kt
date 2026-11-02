@@ -229,6 +229,8 @@ fun RssReaderNavigation(
     val library = libraryOrNull ?: Library()
     val snackbar = remember { SnackbarHostState() }
     val uiScope = rememberCoroutineScope()
+    // One message at a time: a new one replaces the one showing, so they never queue up.
+    val messages = remember(uiScope) { LatestOnly(uiScope) }
 
     val backStack = rememberSaveable(saver = BackStackSaver) { mutableStateListOf<Screen>(Screen.Home) }
     var selection by rememberSaveable(stateSaver = SelectionSaver) { mutableStateOf<FeedSelection>(FeedSelection.All) }
@@ -239,12 +241,6 @@ fun RssReaderNavigation(
     // The destination shown (Feeds or Saved) and Saved's tab, chips and type.
     var section by rememberSaveable { mutableStateOf(HomeSection.Feeds) }
     var savedFilter by rememberSaveable(stateSaver = SavedFilterSaver) { mutableStateOf(SavedFilter()) }
-    // The item just saved, while the sheet to file it is open, and whether that was in the reader
-    // (already in the article: its message needs no Open).
-    var addedKey by rememberSaveable { mutableStateOf<String?>(null) }
-    var addedFromReader by rememberSaveable { mutableStateOf(false) }
-    // The item as it was before that save (null: not saved then), for Remove on the sheet.
-    var addedBefore by remember { mutableStateOf<Item?>(null) }
     // The save sheet while it is open: the link (empty: type one) and its title.
     var saveOpen by rememberSaveable { mutableStateOf(false) }
     var saveUrl by rememberSaveable { mutableStateOf("") }
@@ -272,7 +268,7 @@ fun RssReaderNavigation(
     }
 
     fun showMessage(text: String) {
-        uiScope.launch { snackbar.showSnackbar(text) }
+        messages.launch { snackbar.showSnackbar(text) }
     }
 
     /** A feed's new name and topic, from its dialog in Manage topics or on a topic's page. */
@@ -298,7 +294,7 @@ fun RssReaderNavigation(
         action: String,
         onAction: () -> Unit,
     ) {
-        uiScope.launch {
+        messages.launch {
             if (snackbar.showSnackbar(text, actionLabel = action, duration = SnackbarDuration.Short) == SnackbarResult.ActionPerformed) onAction()
         }
     }
@@ -521,10 +517,11 @@ fun RssReaderNavigation(
     ) {
         app.appScope.launch {
             var added: Item? = null
+            var before: Item? = null
             repository.edit { library ->
                 val (updated, item) = library.addToReadingList(link, title, System.currentTimeMillis())
                 added = item
-                addedBefore = item?.let { library.item(it.key) }
+                before = item?.let { library.item(it.key) }
                 if (item != null) updated.tagWithFeedFolder(item.key) else updated
             }
             val item = added
@@ -532,16 +529,15 @@ fun RssReaderNavigation(
                 showMessage(resources.getString(R.string.add_link_invalid))
                 return@launch
             }
+            // One tap, no sheet (2026-11-02): the message says where it went. In the reader (whose
+            // toolbar has Archive, Like and Tags) with Undo, as if Save was never tapped; from a long
+            // press with Open, to the article (#142).
+            val text = resources.getString(R.string.saved_to, resources.getString(R.string.reading_list_to_read))
             if (inReader) {
-                // One tap (2026-11-02): the reader's toolbar has Archive, Like and Tags, so no sheet; the
-                // message says where it went, with Undo, as if Save was never tapped.
-                val before = addedBefore
-                showMessage(resources.getString(R.string.saved_to, resources.getString(R.string.reading_list_to_read)), resources.getString(R.string.action_undo)) {
-                    editLibrary { SaveChoices.undoSave(it, item.key, before) }
-                }
+                val was = before
+                showMessage(text, resources.getString(R.string.action_undo)) { editLibrary { SaveChoices.undoSave(it, item.key, was) } }
             } else {
-                addedFromReader = false
-                addedKey = item.key
+                showMessage(text, resources.getString(R.string.action_open)) { push(Screen.Reader(ReadingLists.readerKey(item))) }
             }
             repository.describe(item.key)
         }
@@ -882,14 +878,8 @@ fun RssReaderNavigation(
                                     app.appScope.launch {
                                         val keys = repository.markAllRead(shownSelection)
                                         if (keys.isEmpty()) return@launch
-                                        uiScope.launch {
-                                            val result =
-                                                snackbar.showSnackbar(
-                                                    resources.getQuantityString(R.plurals.marked_read, keys.size, keys.size),
-                                                    actionLabel = resources.getString(R.string.action_undo),
-                                                    duration = SnackbarDuration.Short,
-                                                )
-                                            if (result == SnackbarResult.ActionPerformed) app.appScope.launch { repository.setRead(keys, false) }
+                                        showMessage(resources.getQuantityString(R.plurals.marked_read, keys.size, keys.size), resources.getString(R.string.action_undo)) {
+                                            app.appScope.launch { repository.setRead(keys, false) }
                                         }
                                     }
                                 },
@@ -1136,54 +1126,17 @@ fun RssReaderNavigation(
         }
     }
 
-    /** Just saved: says where it went; from the list, Open goes to the article (#142). */
-    fun confirmSaved(
-        item: Item,
-        place: Place,
-    ) {
-        val text = resources.getString(R.string.saved_to, placeName(place))
-        if (addedFromReader) {
-            // Says where it went (#305), with Undo: as if Save was never tapped.
-            val before = addedBefore
-            showMessage(text, resources.getString(R.string.action_undo)) { editLibrary { SaveChoices.undoSave(it, item.key, before) } }
-        } else {
-            showMessage(text, resources.getString(R.string.action_open)) { push(Screen.Reader(ReadingLists.readerKey(item))) }
-        }
-    }
-
-    // Right after something is saved (the reader, a long press), or a saved one's topics or note (the
-    // reader's buttons, a card's long press): the one sheet (#143), which writes what it says on Save.
-    val sheetKey = addedKey ?: fileKey
-    val sheetItem = sheetKey?.let { library.item(it) }
+    // A saved one's topics or note (the reader's buttons, a card's long press): the one sheet (#143),
+    // which writes what it says on Save.
+    val sheetItem = fileKey?.let { library.item(it) }
     if (sheetItem != null) {
         SaveSheet(
-            kind =
-                when {
-                    addedKey != null -> SheetKind.JustSaved
-                    fileNote -> SheetKind.Note
-                    else -> SheetKind.Topics
-                },
+            kind = if (fileNote) SheetKind.Note else SheetKind.Topics,
             initial = SaveChoices.of(sheetItem),
             folders = Saved.folders(library),
             allTags = library.topicNames(),
-            onSave = { _, choice ->
-                editLibrary { SaveChoices.apply(it, sheetItem.key, choice) }
-                when {
-                    choice.sendTo.isNotEmpty() -> sendAll(choice.sendTo, sheetItem.title, sheetItem.url, choice.place.takeIf { addedKey != null }, sheetItem.takeIf { addedKey != null && !addedFromReader })
-                    addedKey != null -> confirmSaved(sheetItem, choice.place)
-                }
-            },
-            // Cancelled right after saving: neither saved nor sent, as if Save was never tapped.
-            onCancel = {
-                if (addedKey != null) {
-                    val before = addedBefore
-                    editLibrary { SaveChoices.undoSave(it, sheetItem.key, before) }
-                }
-            },
-            onDismiss = {
-                addedKey = null
-                fileKey = null
-            },
+            onSave = { _, choice -> editLibrary { SaveChoices.apply(it, sheetItem.key, choice) } },
+            onDismiss = { fileKey = null },
             key = sheetItem.key,
             topics = library.folders,
             topicActions = topicActions,

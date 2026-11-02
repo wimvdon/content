@@ -785,9 +785,10 @@ class AppStore {
   // Saved (saved.ts): always the library's items; a connected service syncs them (syncInstapaper).
 
   /**
-   * Saves an article to To read and, with [withSheet] (a row's menu), opens the sheet to file, like,
-   * tag and note it at once (#143). The reader saves in one tap (2026-11-02): its toolbar then has
-   * Archive, Like and Tags. Returns the item's key and what it was before (for Undo), or null.
+   * Saves an article to To read and, with [withSheet] (the browser extension's Save to Content), opens
+   * the sheet to file, like, tag and note it at once (#143). The reader and a row's menu save in one
+   * tap (2026-11-02), with a message (Undo in the reader, Open from a row). Returns the item's key and
+   * what it was before (for Undo), or null.
    */
   saveArticle = (url: string, title: string, withSheet = true): { key: string; before: Item | null } | null => {
     let key: string | null = null;
