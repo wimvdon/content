@@ -1,5 +1,6 @@
 package to.wim.content.ui.feeds
 
+import to.wim.content.ui.reader.rememberSheetClose
 import to.wim.content.ui.theme.ReorderableColumn
 import to.wim.content.ui.theme.DragHandle
 import androidx.compose.ui.text.style.TextOverflow
@@ -198,7 +199,8 @@ fun ManageTopicsSheet(
             if (!LocalInSheetPage.current) {
                 // Done only closes: a text button.
                 SheetActions(onCancel = onDismiss, cancel = false) {
-                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_done)) }
+                    val close = rememberSheetClose()
+                    TextButton(onClick = { close(onDismiss) }) { Text(stringResource(R.string.action_done)) }
                 }
             }
         }

@@ -30,8 +30,9 @@ function HiddenWordsDialog({ initial, onClose }: { initial: string; onClose: () 
   const { library } = useApp();
   const [draft, setDraft] = useState(initial);
   const words = useMemo(() => hiddenWords(draft), [draft]);
-  const preview = useMemo(() => hiddenPreview(library.articles, words), [library.articles, words]);
   const feeds = useMemo(() => new Map(library.feeds.map((f) => [f.url, f.title])), [library.feeds]);
+  // The feed's name counts too ("WIRED coupon code").
+  const preview = useMemo(() => hiddenPreview(library.articles, words, undefined, (a) => feeds.get(a.feedUrl) ?? null), [library.articles, words, feeds]);
   return (
     <Dialog
       popup

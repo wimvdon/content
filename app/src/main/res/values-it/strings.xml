@@ -166,7 +166,7 @@
     <string name="setting_hidden_words_title">Nascondi articoli con parole</string>
     <string name="setting_hidden_words_none">Nessuna</string>
     <string name="setting_hidden_words_label">Parole</string>
-    <string name="setting_hidden_words_hint">Separa le parole con virgole o a capo. Gli articoli dei feed il cui titolo contiene una di esse come parola intera vengono nascosti, maiuscole o no.</string>
+    <string name="setting_hidden_words_hint">Separa le voci con virgole o a capo. Un articolo viene nascosto quando ogni parola di una voce è nel titolo o nel nome del feed: «WIRED coupon code» nasconde gli articoli sui codici sconto di WIRED. Maiuscole o no.</string>
     <string name="setting_hidden_words_preview_none">Nessun articolo recente verrebbe nascosto.</string>
     <plurals name="setting_hidden_words_preview">
         <item quantity="one">%d articolo recente verrebbe nascosto:</item>

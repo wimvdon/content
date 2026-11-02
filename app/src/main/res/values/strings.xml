@@ -166,7 +166,7 @@
     <string name="setting_hidden_words_title">Hide articles with words</string>
     <string name="setting_hidden_words_none">None</string>
     <string name="setting_hidden_words_label">Words</string>
-    <string name="setting_hidden_words_hint">Separate words with commas or new lines. Feed articles with one of them as a whole word in their title are hidden; case doesn\'t matter.</string>
+    <string name="setting_hidden_words_hint">Separate entries with commas or new lines. An article is hidden when every word of an entry is in its title or its feed’s name: “WIRED coupon code” hides WIRED’s coupon code articles. Case doesn’t matter.</string>
     <string name="setting_hidden_words_preview_none">No recent articles would be hidden.</string>
     <plurals name="setting_hidden_words_preview">
         <item quantity="one">%d recent article would be hidden:</item>

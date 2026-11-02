@@ -164,7 +164,7 @@
     <string name="setting_hidden_words_title">Artikel mit Wörtern ausblenden</string>
     <string name="setting_hidden_words_none">Keine</string>
     <string name="setting_hidden_words_label">Wörter</string>
-    <string name="setting_hidden_words_hint">Trenne Wörter mit Kommas oder Zeilenumbrüchen. Feed-Artikel, deren Titel eines davon als ganzes Wort enthält, werden ausgeblendet; Groß- und Kleinschreibung zählt nicht.</string>
+    <string name="setting_hidden_words_hint">Trenne Einträge mit Kommas oder Zeilenumbrüchen. Ein Artikel wird ausgeblendet, wenn jedes Wort eines Eintrags im Titel oder im Namen des Feeds steht: „WIRED coupon code“ blendet die Gutscheincode-Artikel von WIRED aus. Groß- und Kleinschreibung zählt nicht.</string>
     <string name="setting_hidden_words_preview_none">Keine neueren Artikel würden ausgeblendet.</string>
     <plurals name="setting_hidden_words_preview">
         <item quantity="one">%d neuerer Artikel würde ausgeblendet:</item>

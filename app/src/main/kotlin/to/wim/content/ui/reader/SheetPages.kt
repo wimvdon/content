@@ -27,6 +27,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalFocusManager
@@ -54,6 +55,22 @@ private val LocalSheetPages = staticCompositionLocalOf<SheetPages?> { null }
 
 /** True inside a page of a sheet: [SheetHeader] shows a back arrow instead of Cancel or Done. */
 internal val LocalInSheetPage = staticCompositionLocalOf { false }
+
+/** The open sheet's slide down, then what closes it ([rememberSheetClose]); null outside a [ContentSheet]. */
+private val LocalSheetHide = staticCompositionLocalOf<((() -> Unit) -> Unit)?> { null }
+
+/**
+ * How a sheet's own buttons close it (Cancel, Save, Done, a choice): the sheet slides down first,
+ * then [after] runs (it is what removes the sheet). Removed at once, a sheet vanished in a single
+ * frame instead of sliding away (2026-11-02). On a page of a sheet, or outside a sheet, [after] runs
+ * at once: a page only goes back to the sheet under it.
+ */
+@Composable
+internal fun rememberSheetClose(): (after: () -> Unit) -> Unit {
+    val hide = LocalSheetHide.current
+    val inPage = LocalInSheetPage.current
+    return remember(hide, inPage) { { after -> if (hide == null || inPage) after() else hide(after) } }
+}
 
 /**
  * A bottom sheet, the way every sheet in the app opens (Material: one sheet, never one over another).
@@ -113,7 +130,25 @@ internal fun ContentSheet(
         // the status bar's padding while it grows or is dragged.
         modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top)),
     ) {
-        CompositionLocalProvider(LocalSheetPages provides pages) {
+        // A button's close: slide down, then [after]; should [after] not close it (nothing to save),
+        // the sheet comes back up. Twice at once does it once.
+        var closing by remember { mutableStateOf(false) }
+        val hide: (() -> Unit) -> Unit = { after ->
+            if (!closing) {
+                closing = true
+                scope.launch { sheetState.hide() }.invokeOnCompletion {
+                    after()
+                    closing = false
+                    // Still shown a frame later: [after] kept it open.
+                    scope.launch {
+                        withFrameNanos {}
+                        withFrameNanos {}
+                        sheetState.show()
+                    }
+                }
+            }
+        }
+        CompositionLocalProvider(LocalSheetPages provides pages, LocalSheetHide provides hide) {
             val imeOpen = WindowInsets.isImeVisible
             val focus = LocalFocusManager.current
             val softKeyboard = LocalSoftwareKeyboardController.current

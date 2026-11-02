@@ -243,9 +243,10 @@ fun SaveSheet(
             }
             val canSave = SendTo.canConfirm(choice, hasLink = saved || link != null)
             // Cancel at the bottom left, Save at the right; Remove is the header's trash can.
+            val close = rememberSheetClose()
             SheetActions(onCancel = cancel) {
                 // Just the word (2026-11-02): To read or Archive is the choice above, with its own icons.
-                Button(enabled = canSave, onClick = { save(choice) }) {
+                Button(enabled = canSave, onClick = { close { save(choice) } }) {
                     Text(
                         stringResource(
                             when (SendTo.action(choice)) {
@@ -407,9 +408,11 @@ internal fun SheetActions(
     leading: @Composable RowScope.() -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {},
 ) {
+    val close = rememberSheetClose()
     Row(Modifier.fillMaxWidth().padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         if (cancel && !LocalInSheetPage.current) {
-            TextButton(onClick = onCancel, enabled = enabled) { Text(stringResource(R.string.action_cancel)) }
+            // The sheet slides away, then closes (rememberSheetClose).
+            TextButton(onClick = { close(onCancel) }, enabled = enabled) { Text(stringResource(R.string.action_cancel)) }
         }
         leading()
         Spacer(Modifier.weight(1f))

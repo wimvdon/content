@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { hiddenPreview, hiddenWords, hidesTitle, withoutHidden } from "../src/lib/articleFilter";
-import { emptyLibrary, type Article } from "../src/lib/library";
+import { emptyLibrary, newFeed, type Article } from "../src/lib/library";
 
 const article = (id: string, title: string): Article => ({ feedUrl: "https://a.example.com/feed", id, title, link: null, author: null, html: "", publishedAt: Number(id), fetchedAt: 0, read: false, imageUrl: null });
 
@@ -8,6 +8,17 @@ describe("Hide articles with words", () => {
   it("splits on commas, semicolons and new lines, trimmed, without empty ones or duplicates", () => {
     expect(hiddenWords(" Crypto, apple   watch\n\n;AI ,crypto,\r\n ")).toEqual(["crypto", "apple watch", "ai"]);
     expect(hiddenWords(" , \n ")).toEqual([]);
+  });
+
+  it("needs every word of an entry, in the title or the feed's name", () => {
+    const words = hiddenWords("WIRED coupon code");
+    expect(hidesTitle(words, "Best Buy coupon code: 20% off", "WIRED")).toBe(true);
+    expect(hidesTitle(words, "Best Buy coupon code: 20% off", "The Verge")).toBe(false);
+    expect(hidesTitle(words, "The best laptops", "WIRED")).toBe(false);
+    expect(hidesTitle(hiddenWords("wired"), "The best laptops", "WIRED")).toBe(true);
+    expect(hidesTitle(hiddenWords("apple watch"), "Apple announces a watch")).toBe(true);
+    const library = { ...emptyLibrary(), feeds: [{ ...newFeed("https://a.example.com/feed", "WIRED") }], articles: [article("1", "Coupon code for shoes"), article("2", "Phones")] };
+    expect(withoutHidden(library, words).articles.map((a) => a.id)).toEqual(["2"]);
   });
 
   it("matches whole words and phrases only, case ignored, accented letters as letters", () => {

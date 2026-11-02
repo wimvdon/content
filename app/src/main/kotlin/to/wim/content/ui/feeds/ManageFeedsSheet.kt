@@ -1,5 +1,6 @@
 package to.wim.content.ui.feeds
 
+import to.wim.content.ui.reader.rememberSheetClose
 import androidx.compose.foundation.layout.Arrangement
 import to.wim.content.ui.theme.DragHandle
 import androidx.compose.ui.text.style.TextOverflow
@@ -162,7 +163,8 @@ fun ManageFeedsSheet(
                 },
             ) {
                 // Done only closes (changes are kept at once): a text button; Add feed is the action here.
-                TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_done)) }
+                val close = rememberSheetClose()
+                TextButton(onClick = { close(onDismiss) }) { Text(stringResource(R.string.action_done)) }
             }
         }
         addFeed()

@@ -1,5 +1,6 @@
 package to.wim.content.ui.feeds
 
+import to.wim.content.ui.reader.rememberSheetClose
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
@@ -157,8 +158,9 @@ internal fun FolderSheet(
                 }
             }
             // Cancel at the bottom left, Save at the right; Remove is the header's trash can.
+            val close = rememberSheetClose()
             SheetActions(onCancel = onDismiss) {
-                Button(onClick = { onSave(title.trim(), icon) }, enabled = title.isNotBlank()) {
+                Button(onClick = { close { onSave(title.trim(), icon) } }, enabled = title.isNotBlank()) {
                     Text(stringResource(R.string.action_save))
                 }
             }
@@ -246,8 +248,9 @@ internal fun FeedSheet(
                 onCreated = { made = it },
                 leading = { TopicChip(stringResource(R.string.folder_none), icon = null, selected = chosen == null, enabled = true) { topicId = null } },
             )
+            val close = rememberSheetClose()
             SheetActions(onCancel = onDismiss) {
-                Button(onClick = { onSave(title, chosen) }) { Text(stringResource(R.string.action_save)) }
+                Button(onClick = { close { onSave(title, chosen) } }) { Text(stringResource(R.string.action_save)) }
             }
         }
     }

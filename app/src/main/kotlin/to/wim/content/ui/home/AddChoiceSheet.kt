@@ -1,5 +1,6 @@
 package to.wim.content.ui.home
 
+import to.wim.content.ui.reader.rememberSheetClose
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -46,17 +47,19 @@ fun AddChoiceSheet(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             SheetHeader(stringResource(R.string.add_title), onCancel = onDismiss)
+            // A choice slides this sheet away before the next one comes up.
+            val close = rememberSheetClose()
             AddChoice(
                 icon = painterResource(R.drawable.ic_rss_feed),
                 title = stringResource(R.string.add_choice_feed),
                 body = stringResource(R.string.add_choice_feed_body),
-                onClick = onSubscribe,
+                onClick = { close(onSubscribe) },
             )
             AddChoice(
                 icon = painterResource(R.drawable.ic_bookmark_add),
                 title = stringResource(R.string.add_choice_article),
                 body = stringResource(R.string.add_choice_article_body),
-                onClick = onSaveArticle,
+                onClick = { close(onSaveArticle) },
             )
             SheetActions(onCancel = onDismiss)
         }
