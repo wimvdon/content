@@ -46,6 +46,17 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.minimumInteractiveComponentSize
+import androidx.compose.runtime.remember
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
 import to.wim.content.R
 import to.wim.content.data.SendTo
 import to.wim.content.sync.ShareResult
@@ -57,7 +68,9 @@ import kotlinx.coroutines.launch
  * Under it, suggestions: people shared with before (#235, with their Gravatar picture and name) who
  * aren't picked, filtered by what is typed; tap one to add them. A whole new address typed in gives
  * "Add …", checked for a Content account first. Long-press a suggestion to tidy the list: each gets
- * a trash button that forgets them (on every device); Done ends it. Sending is the sheet's button.
+ * a trash button that forgets them (on every device); so does Edit next to the "Recent" subheader
+ * above them, and Done ends it. Only a chip's × takes someone out of the To box. Sending is the
+ * sheet's button.
  */
 @OptIn(ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
 @Composable
@@ -79,6 +92,8 @@ fun SendToSection(
         value = recipients.emails.associateWith { recipients.nameOf(it)?.takeIf { name -> name.isNotBlank() } }
     }
     val suggestions = SendTo.suggestions(recipients.emails, picked, query) { names[it] }
+    val field = remember { FocusRequester() }
+    var focused by remember { mutableStateOf(false) }
     val newAddress = SendTo.newAddress(recipients.emails, picked, query)
 
     fun add(email: String) {
@@ -106,7 +121,16 @@ fun SendToSection(
         FlowRow(
             Modifier
                 .fillMaxWidth()
-                .border(1.dp, if (problem != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline, MaterialTheme.shapes.extraSmall)
+                // As an outlined text field: 2dp in primary while typing in it, the error colour after a problem.
+                .border(
+                    if (focused) 2.dp else 1.dp,
+                    when {
+                        problem != null -> MaterialTheme.colorScheme.error
+                        focused -> MaterialTheme.colorScheme.primary
+                        else -> MaterialTheme.colorScheme.outline
+                    },
+                    MaterialTheme.shapes.extraSmall,
+                )
                 .padding(horizontal = 12.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -117,15 +141,35 @@ fun SendToSection(
                 val name = recipientName(recipients, email)
                 val label = name ?: email
                 val removeLabel = stringResource(R.string.share_recipient_remove, label)
+                // Only × takes someone out (2026-11-02): a tap on the chip itself goes to the field, so
+                // nobody is dropped by accident. Filled in secondaryContainer, not "selected".
                 InputChip(
-                    selected = true,
-                    onClick = { onChange(picked.filterNot { it.equals(email, ignoreCase = true) }) },
+                    selected = false,
+                    onClick = { field.requestFocus() },
                     label = { Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                     avatar = { RecipientAvatar(email, name, recipients.showImages, size = InputChipDefaults.AvatarSize) },
-                    trailingIcon = { Icon(painterResource(R.drawable.ic_close), contentDescription = removeLabel, modifier = Modifier.size(InputChipDefaults.IconSize)) },
+                    trailingIcon = {
+                        Icon(
+                            painterResource(R.drawable.ic_close),
+                            contentDescription = removeLabel,
+                            modifier =
+                                Modifier
+                                    .size(InputChipDefaults.IconSize)
+                                    .minimumInteractiveComponentSize()
+                                    .clickable(role = Role.Button, onClickLabel = removeLabel) { onChange(picked.filterNot { it.equals(email, ignoreCase = true) }) },
+                        )
+                    },
+                    colors =
+                        InputChipDefaults.inputChipColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            labelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            trailingIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        ),
+                    border = null,
                 )
             }
             val hint = stringResource(R.string.share_to_hint)
+            val toLabel = stringResource(R.string.share_to)
             BasicTextField(
                 value = query,
                 onValueChange = {
@@ -148,10 +192,24 @@ fun SendToSection(
                     if (query.isEmpty()) Text(hint, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     field()
                 },
-                modifier = Modifier.widthIn(min = 160.dp).padding(vertical = 8.dp).semantics { contentDescription = hint },
+                modifier =
+                    Modifier
+                        .widthIn(min = 160.dp)
+                        .padding(vertical = 8.dp)
+                        .focusRequester(field)
+                        .onFocusChanged { focused = it.isFocused }
+                        // The field's name is "To", its hint what to type, as a text field's label and placeholder.
+                        .semantics { contentDescription = "$toLabel, $hint" },
             )
         }
-        problem?.let { Text(stringResource(it.messageRes()), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
+        problem?.let {
+            Text(
+                stringResource(it.messageRes()),
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(horizontal = 16.dp).semantics { liveRegion = LiveRegionMode.Polite },
+            )
+        }
         // Someone new: their whole address, typed in.
         newAddress?.let { email ->
             ListItem(
@@ -167,7 +225,21 @@ fun SendToSection(
                 modifier = Modifier.combinedClickable(onClick = { addNew(email) }),
             )
         }
-        // The suggestions: people shared with before, not picked yet.
+        // The suggestions: people shared with before, not picked yet, under a "Recent" subheader whose
+        // Edit (then Done) shows the trash buttons; a long press on someone does the same.
+        if (suggestions.isNotEmpty()) {
+            Row(Modifier.fillMaxWidth().padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    stringResource(R.string.share_recipients_recent),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f).padding(start = 16.dp).semantics { heading() },
+                )
+                TextButton(onClick = { editing = !editing }) {
+                    Text(stringResource(if (editing) R.string.action_done else R.string.action_edit))
+                }
+            }
+        }
         for (email in suggestions) {
             val name = names[email]
             val label = name ?: email
@@ -207,11 +279,6 @@ fun SendToSection(
                                 )
                         },
             )
-        }
-        if (editing) {
-            TextButton(onClick = { editing = false }, modifier = Modifier.align(Alignment.End)) {
-                Text(stringResource(R.string.share_recipients_done))
-            }
         }
     }
 }

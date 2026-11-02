@@ -71,6 +71,11 @@ Secrets, keystores (`*.jks`, `*.keystore`), `keystore.properties`, passwords or 
 - Before finishing a change there, run in that folder: `npm ci`, `npm test`, `npm run build`
   (web, also `npm run lint`) or `npm run typecheck` (worker).
 
+## Design
+- For any UI work (new screens, changes, reviews), use the `material-design-3-ui` skill in
+  `.claude/skills/` together with `DESIGN.md`; where they differ, `DESIGN.md` (the owner's
+  choices) wins.
+
 ## Keep docs in sync
 - Behaviour change → update `docs/` and, if it touches data or permissions, `PRIVACY.md`.
 - Notable decision (new library, architecture choice, minSdk change, …) → add a dated entry to

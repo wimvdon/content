@@ -83,7 +83,7 @@
     <string name="share_user_send">Send</string>
     <string name="share_user_sent">Sent to %1$s</string>
     <string name="action_save_and_send">Save and send</string>
-    <string name="share_recipients_done">Done</string>
+    <string name="share_recipients_recent">Recent</string>
     <string name="share_to">To</string>
     <string name="share_to_hint">Name or email address</string>
     <string name="share_add_person">Add %1$s</string>

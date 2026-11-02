@@ -2,6 +2,7 @@
 
 ```
 rss-reader/
+├── .claude/skills/material-design-3-ui/  The Material 3 design skill for Claude Code sessions (third-party, MIT, unchanged)
 ├── .editorconfig                     Editor rules (4 spaces, 120 columns)
 ├── .gitattributes                    LF everywhere; *.bat → CRLF; keystores/images binary
 ├── .github/

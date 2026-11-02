@@ -2,6 +2,23 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-02: A Material 3 skill, and the share sheet's recipients reviewed with it
+
+Owner's request. The `material-design-3-ui` skill (github.com/skydashnet/material-design-3-ui-skill,
+MIT, Markdown only: guidance, no code) is installed in the repository at
+`.claude/skills/material-design-3-ui/`, copied unchanged, so every session has it for UI work. The
+share sheet's Send with Content was reviewed against it. It already used Material 3's parts for the
+job (input chips for the people, list items for the suggestions, a filled Send, titled sections).
+Changed, phone and web:
+- The To box behaves like an outlined text field: a 2dp `primary` outline while typing (it had no
+  focus state on Android), "To" as the field's name for screen readers, the problem read out.
+- Only a chip's × takes someone out: tapping the chip itself did it on Android, easy by accident (a
+  destructive action should be hard to trigger by mistake). The chip is no longer marked "selected"
+  (it isn't a choice), filled in `secondaryContainer`. The web's × got a 24px target.
+- Forgetting people is no longer only a hidden long press: a **Recent** subheader over the
+  suggestions has **Edit** / **Done** at its end. The long press stays as a shortcut.
+Kept: the full-width Send under the people (the section's one main action), the app tiles.
+
 ## 2026-11-02: Hide articles with words previews what it hides
 
 Owner's request. While typing in the dialog it shows how many of the feed articles on the device

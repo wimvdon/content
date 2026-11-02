@@ -320,9 +320,10 @@ more). **Save** saves the article to **To read** and opens **Organise** (see Sav
 **Content's share sheet** (#251; the web app's Share too). At the top, signed in, **Send with
 Content**, laid out like an email's **To** field: the people you pick as chips, a field for a
 name or address, suggestions below (the people you sent something to before; tap to add) and **Add
-…** for a whole new address; then **Send** sends to everyone picked. To tidy the suggestions,
-press and hold one (web: right-click): each gets a trash button, which forgets them on all your
-devices; **Done** ends it. Below, the apps: the ones you pick most
+…** for a whole new address; then **Send** sends to everyone picked. Only a chip's **×** takes someone
+out again. To tidy the suggestions, tap **Edit** next to **Recent** above them (or press and hold
+one; web: right-click): each gets a trash button, which forgets them on all your devices; **Done**
+ends it. Below, the apps: the ones you pick most
 in this sheet first (Android doesn't tell apps which ones you use elsewhere, so Content counts the
 picks here, on this phone only; until then well-known messaging and mail apps come first), then
 **Copy link**, and **More** for Android's own share menu with every app.

@@ -83,7 +83,7 @@
     <string name="share_user_send">Envoyer</string>
     <string name="share_user_sent">Envoyé à %1$s</string>
     <string name="action_save_and_send">Enregistrer et envoyer</string>
-    <string name="share_recipients_done">OK</string>
+    <string name="share_recipients_recent">Récents</string>
     <string name="share_to">À</string>
     <string name="share_to_hint">Nom ou adresse e-mail</string>
     <string name="share_add_person">Ajouter %1$s</string>

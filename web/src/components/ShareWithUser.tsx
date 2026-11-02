@@ -1,4 +1,4 @@
-import { Check, Plus, Trash2, X } from "lucide-react";
+import { Plus, Trash2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { gravatarUrl } from "@/lib/account";
 import { app, useApp } from "@/lib/app";
@@ -142,7 +142,8 @@ function useNames(emails: string[]): Record<string, string | null> {
  * suggestions: people shared with before who aren't picked, filtered by what is typed; click one to add
  * them. A whole new address typed in gives "Add …", checked for a Content account first. Hold a
  * suggestion (or right-click it) to tidy the list: each gets a trash button that forgets them on every
- * device; Done ends it. Sending is the sheet's button.
+ * device; so does Edit next to the "Recent" subheader above them, and Done ends it. Sending is the
+ * sheet's button.
  */
 export function SendToSection({ picked, onChange }: { picked: string[]; onChange: (picked: string[]) => void }) {
   const { settings } = useApp();
@@ -179,16 +180,16 @@ export function SendToSection({ picked, onChange }: { picked: string[]; onChange
         {picked.map((email) => {
           const label = names[email] ?? email;
           return (
-            <span key={email.toLowerCase()} title={email} className="inline-flex h-7 max-w-full items-center gap-1.5 rounded-full bg-accent pr-1 pl-0.5 text-sm text-accent-foreground">
+            <span key={email.toLowerCase()} title={email} className="inline-flex h-7 max-w-full items-center gap-1.5 rounded-full bg-accent pr-0.5 pl-0.5 text-sm text-accent-foreground">
               <Avatar email={email} label={label} images={settings.showImages} />
               <span className="truncate">{label}</span>
               <button
                 type="button"
                 aria-label={t("shareRecipientRemove").replace("{name}", label)}
                 onClick={() => onChange(picked.filter((e) => e.toLowerCase() !== email.toLowerCase()))}
-                className="cursor-pointer rounded-full p-0.5 hover:bg-background/60"
+                className="flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-full hover:bg-background/60"
               >
-                <X className="size-3.5" aria-hidden="true" />
+                <X className="size-4" aria-hidden="true" />
               </button>
             </span>
           );
@@ -223,6 +224,16 @@ export function SendToSection({ picked, onChange }: { picked: string[]; onChange
           <Plus className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
           <span className="truncate">{t("shareAddPerson").replace("{email}", typed)}</span>
         </button>
+      ) : null}
+      {/* The people shared with before under a "Recent" subheader, as on Android: Edit (then Done)
+          shows the trash buttons; holding someone does the same. */}
+      {shown.length > 0 ? (
+        <div className="flex items-center pt-1">
+          <h3 className="min-w-0 flex-1 px-2 text-sm font-medium text-muted-foreground">{t("recipientsRecent")}</h3>
+          <Button variant="ghost" size="sm" aria-pressed={editing} onClick={() => setEditing(!editing)}>
+            {editing ? t("done") : t("edit")}
+          </Button>
+        </div>
       ) : null}
       {shown.map((email) => {
         const name = names[email] ?? null;
@@ -271,14 +282,6 @@ export function SendToSection({ picked, onChange }: { picked: string[]; onChange
           </div>
         );
       })}
-      {editing ? (
-        <div className="flex justify-end">
-          <Button variant="ghost" size="sm" onClick={() => setEditing(false)}>
-            <Check className="size-4" aria-hidden="true" />
-            {t("recipientsDone")}
-          </Button>
-        </div>
-      ) : null}
     </div>
   );
 }

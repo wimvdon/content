@@ -354,11 +354,15 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   row (Like, then every tag in use as a `FilterChip` without a check mark, in a steady order so
   nothing moves when one is chosen, then a New tag `AssistChip` that opens a field to make a new
   one), **Note** with the room, then, signed in, **Send with Content**:
-  an email-style To field (#284): an outlined box with "To", the people picked as `InputChip`s
-  (avatar, name, × to take them out) and a borderless field for a name or address; under it, up to
-  five suggestions as `ListItem`s (avatar, name, address; tap adds), filtered by what is typed, and
-  "Add …" for a whole new address (checked for a Content account first). Long-press a suggestion
-  for trash buttons that forget people; Done ends it. Section titles in Title Small, `primary`.
+  an email-style To field (#284): an outlined box with "To" (as an outlined text field: 1dp
+  `outline`, 2dp `primary` while typing in it, `error` after a problem, with the message under it
+  read out), the people picked as `InputChip`s in `secondaryContainer` (avatar, name; only the ×
+  takes them out, a tap on the chip goes to the field, 2026-11-02) and a borderless field for a name
+  or address; under it a **Recent** subheader (Label Large, `onSurfaceVariant`) with **Edit** /
+  **Done** at its end, then up to five suggestions as `ListItem`s (avatar, name, address; tap
+  adds), filtered by what is typed, and "Add …" for a whole new address (checked for a Content
+  account first). Edit (or a long press on a suggestion) shows trash buttons that forget people;
+  Done ends it. Section titles in Title Small, `primary`.
   **Cancel** sits at the bottom left (`SheetActions`), in this sheet and every other one (Add feed,
   the tag sheet, a highlight, Report a problem; Remove, in the error colour, next to it), and the
   main button at the bottom right; the heading is only the title (`SheetHeader`). Above the tags a

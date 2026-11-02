@@ -313,8 +313,11 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
       a person at the top of the share menu: Send with Content opens with them picked, the button
       says Send. The sheet has no Don't save anywhere; the share menu's Save saves; its Send with Content only sends; its Add feed
       opens Add feed with the link. After saving, a tap anywhere but Open goes back to the other app.
-- [ ] Send with Content: hold a person, each one shared with before gets an ×; tapping it removes
-      them (also on the other device after a sync), Done ends it. Dragging a feed in Manage feeds
+- [ ] Send with Content: tap the To field: its outline turns thicker and coloured. Pick someone:
+      their chip shows; tapping the chip does nothing to them, only its × takes them out. Above the
+      people shared with before, **Recent** with **Edit**: tap Edit (or hold a person), each gets a
+      trash button; tapping it forgets them (also on the other device after a sync), **Done** ends
+      it. Web app: the same. Dragging a feed in Manage feeds
       and folders and dropping it: it glides into place, nothing jumps.
 - [ ] Notifications on (phone): something shared with you shows its title, intro, picture and
       sender, makes no sound, and opens the inbox.
