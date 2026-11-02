@@ -321,7 +321,7 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
       tap two: both are filled, Send is on. **Edit people** opens **People** in the same sheet
       (back arrow): type an address without a Content account and tap Add: it says so; one with an
       account: it is added and, back in the sheet, picked. The trash can forgets someone (also on
-      the other device after a sync). With nobody yet the button says **Add someone**. Web app:
+      the other device after a sync). With nobody yet there is only a tonal **Add someone** button. Web app:
       the same. Dragging a feed in Manage feeds
       and folders and dropping it: it glides into place, nothing jumps.
 - [ ] Notifications on (phone): something shared with you shows its title, intro, picture and

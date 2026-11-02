@@ -46,7 +46,7 @@ import to.wim.content.sync.ShareResult
 /**
  * Send with Content (#256), the same way as tags (2026-11-02, instead of an email-style To field):
  * the people shared with before as filter chips, each with their Gravatar picture (#235) and name;
- * tap one or more to pick them. **Edit people** after the chips (as Edit tags) opens [ManagePeopleSheet]
+ * tap one or more to pick them. With nobody yet, a tonal **Add someone** is all it shows. **Edit people** after the chips (as Edit tags) opens [ManagePeopleSheet]
  * as a page of the same sheet: add someone by their address (checked for a Content account first; they
  * are picked at once) or forget someone. Sending is the sheet's button.
  */
@@ -76,10 +76,18 @@ fun SendToSection(
                 leadingIcon = { RecipientAvatar(email, name, recipients.showImages, size = FilterChipDefaults.IconSize) },
             )
         }
-        // An action, not a person: a text button, as Edit tags.
-        TextButton(onClick = { managing = true }, contentPadding = ButtonDefaults.TextButtonWithIconContentPadding) {
-            Icon(painterResource(if (people.isEmpty()) R.drawable.ic_add else R.drawable.ic_edit), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
-            Text(stringResource(if (people.isEmpty()) R.string.share_people_add else R.string.share_people_edit), modifier = Modifier.padding(start = 8.dp))
+        if (people.isEmpty()) {
+            // Nobody yet: adding someone is the section's first step, so it stands out (tonal, as New tag).
+            FilledTonalButton(onClick = { managing = true }, contentPadding = ButtonDefaults.ButtonWithIconContentPadding) {
+                Icon(painterResource(R.drawable.ic_add), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                Text(stringResource(R.string.share_people_add), modifier = Modifier.padding(start = 8.dp))
+            }
+        } else {
+            // An action, not a person: a text button, as Edit tags.
+            TextButton(onClick = { managing = true }, contentPadding = ButtonDefaults.TextButtonWithIconContentPadding) {
+                Icon(painterResource(R.drawable.ic_edit), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                Text(stringResource(R.string.share_people_edit), modifier = Modifier.padding(start = 8.dp))
+            }
         }
     }
     if (managing) {

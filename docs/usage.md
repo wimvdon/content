@@ -318,8 +318,8 @@ more). **Save** saves the article to **To read** and opens **Organise** (see Sav
 
 **Content's share sheet** (#251; the web app's Share too). At the top, signed in, **Send with
 Content**: the people you sent something to before as chips, as tags are; tap one or more to pick
-them, then **Send** sends to everyone picked. **Edit people** after the chips (**Add someone** while
-there is nobody yet) opens **People**: type an email address and tap **Add** (it checks that they
+them, then **Send** sends to everyone picked. **Edit people** after the chips (a more visible **Add someone**
+while there is nobody yet) opens **People**: type an email address and tap **Add** (it checks that they
 have a Content account, then they are picked), or tap the trash can next to someone to forget them
 on all your devices; the back arrow returns to the sheet. Below, the apps: the ones you pick most
 in this sheet first (Android doesn't tell apps which ones you use elsewhere, so Content counts the

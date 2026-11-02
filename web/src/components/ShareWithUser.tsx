@@ -160,10 +160,18 @@ export function SendToSection({ picked, onChange }: { picked: string[]; onChange
           </button>
         );
       })}
-      <button type="button" onClick={() => setManaging(true)} className={action}>
-        {shown.length === 0 ? <Plus className="size-4" aria-hidden="true" /> : <Pencil className="size-4" aria-hidden="true" />}
-        {shown.length === 0 ? t("peopleAdd") : t("peopleEdit")}
-      </button>
+      {shown.length === 0 ? (
+        // Nobody yet: adding someone is the first step, so it stands out (tonal, as New tag).
+        <Button variant="tonal" onClick={() => setManaging(true)}>
+          <Plus />
+          {t("peopleAdd")}
+        </Button>
+      ) : (
+        <button type="button" onClick={() => setManaging(true)} className={action}>
+          <Pencil className="size-4" aria-hidden="true" />
+          {t("peopleEdit")}
+        </button>
+      )}
       {managing ? (
         <ManagePeopleDialog
           onAdded={(email) => !has(picked, email) && onChange([...picked, email])}

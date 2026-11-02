@@ -357,7 +357,7 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   the people as chips, the same way as tags (2026-11-02, owner's choice, instead of an
   email-style To field): every person shared with before as a `FilterChip` with their Gravatar
   picture (or first letter) and name, no check mark, tap to pick several; then an **Edit people**
-  text button with a pen (as Edit tags; **Add someone** with a + while there is nobody), which
+  text button with a pen (as Edit tags; while there is nobody, a tonal **Add someone** with a + instead, as New tag), which
   opens **People** as a page of the same sheet (as Manage tags): each person as a `ListItem`
   (picture, name, address) with a trash can that forgets them, then an outlined **Email address**
   field (Material's standard 4dp corners; the error under it) and a tonal **Add** that checks for a
