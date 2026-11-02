@@ -1,65 +1,56 @@
 package to.wim.content.ui.reader
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.border
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.InputChip
-import androidx.compose.material3.InputChipDefaults
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.CustomAccessibilityAction
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.customActions
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import to.wim.content.R
 import to.wim.content.data.SendTo
 import to.wim.content.sync.ShareResult
-import kotlinx.coroutines.launch
 
 /**
- * Send with Content (#256, #284), laid out like an email's To field, which people know: the people
- * picked as chips in a To box (× takes one out), with a field after them for a name or address.
- * Under it, suggestions: people shared with before (#235, with their Gravatar picture and name) who
- * aren't picked, filtered by what is typed; tap one to add them. A whole new address typed in gives
- * "Add …", checked for a Content account first. Long-press a suggestion to tidy the list: each gets
- * a trash button that forgets them (on every device); Done ends it. Sending is the sheet's button.
+ * Send with Content (#256), the same way as tags (2026-11-02, instead of an email-style To field):
+ * the people shared with before as filter chips, each with their Gravatar picture (#235) and name;
+ * tap one or more to pick them. With nobody yet, a tonal **Add someone** is all it shows. **Edit people** after the chips (as Edit tags) opens [ManagePeopleSheet]
+ * as a page of the same sheet: add someone by their address (checked for a Content account first; they
+ * are picked at once) or forget someone. Sending is the sheet's button.
  */
-@OptIn(ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SendToSection(
     picked: List<String>,
@@ -68,32 +59,86 @@ fun SendToSection(
     hasAccount: suspend (String) -> Boolean?,
 ) {
     val recipients = LocalShareRecipients.current
-    var query by rememberSaveable { mutableStateOf("") }
-    var editing by rememberSaveable { mutableStateOf(false) }
+    var managing by rememberSaveable { mutableStateOf(false) }
+    // Someone picked who isn't in the list (Direct Share) still shows, after the others.
+    val people = SendTo.people(recipients.emails, picked)
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        itemVerticalAlignment = Alignment.CenterVertically,
+    ) {
+        for (email in people) {
+            val name = recipientName(recipients, email)
+            // No check mark: the fill shows it, and the chips keep their width and place, as tags.
+            FilterChip(
+                selected = SendTo.has(picked, email),
+                onClick = { onChange(SendTo.toggle(picked, email)) },
+                label = { Text(name ?: email, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = 200.dp)) },
+                leadingIcon = { RecipientAvatar(email, name, recipients.showImages, size = FilterChipDefaults.IconSize) },
+            )
+        }
+        if (people.isEmpty()) {
+            // Nobody yet: adding someone is the section's first step, so it stands out (tonal, as New tag).
+            FilledTonalButton(onClick = { managing = true }, contentPadding = ButtonDefaults.ButtonWithIconContentPadding) {
+                Icon(painterResource(R.drawable.ic_add), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                Text(stringResource(R.string.share_people_add), modifier = Modifier.padding(start = 8.dp))
+            }
+        } else {
+            // An action, not a person: a text button, as Edit tags.
+            TextButton(onClick = { managing = true }, contentPadding = ButtonDefaults.TextButtonWithIconContentPadding) {
+                Icon(painterResource(R.drawable.ic_edit), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                Text(stringResource(R.string.share_people_edit), modifier = Modifier.padding(start = 8.dp))
+            }
+        }
+    }
+    if (managing) {
+        ManagePeopleSheet(
+            hasAccount = hasAccount,
+            // Someone added here is picked at once, as a tag made in the sheet.
+            onAdded = { email -> if (!SendTo.has(picked, email)) onChange(picked + email) },
+            onForgot = { email -> onChange(picked.filterNot { it.equals(email, ignoreCase = true) }) },
+            onDismiss = { managing = false },
+        )
+    }
+}
+
+/**
+ * Edit people, as Manage tags: the people you can send to, each with their picture, name and address
+ * and a trash can that forgets them (on every device); under them an address field and **Add**,
+ * which checks for a Content account first and says so when there is none. Opened from the share
+ * sheet it is a page of it ([ContentSheet]), with a back arrow.
+ */
+@Composable
+fun ManagePeopleSheet(
+    hasAccount: suspend (String) -> Boolean?,
+    onAdded: (String) -> Unit,
+    onForgot: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val recipients = LocalShareRecipients.current
+    val scope = rememberCoroutineScope()
+    var address by rememberSaveable { mutableStateOf("") }
     var checking by rememberSaveable { mutableStateOf(false) }
     var problem by rememberSaveable { mutableStateOf<ShareResult?>(null) }
-    val scope = rememberCoroutineScope()
-    val haptics = LocalHapticFeedback.current
-    // The Gravatar names, so typing a name finds its person.
-    val names by produceState(emptyMap<String, String?>(), recipients.emails) {
-        value = recipients.emails.associateWith { recipients.nameOf(it)?.takeIf { name -> name.isNotBlank() } }
-    }
-    val suggestions = SendTo.suggestions(recipients.emails, picked, query) { names[it] }
-    val newAddress = SendTo.newAddress(recipients.emails, picked, query)
+    val typed = address.trim()
+    val canAdd = SendTo.isEmail(typed) && !checking
 
-    fun add(email: String) {
-        onChange(if (SendTo.has(picked, email)) picked else picked + email)
-        query = ""
-        problem = null
-    }
-
-    // Someone new is checked for a Content account before they join the To field.
-    fun addNew(email: String) {
-        if (checking) return
+    fun add() {
+        if (!canAdd) return
+        // Someone already in the list: just picked.
+        if (SendTo.has(recipients.emails, typed)) {
+            onAdded(recipients.emails.first { it.equals(typed, ignoreCase = true) })
+            address = ""
+            return
+        }
         checking = true
+        problem = null
         scope.launch {
-            when (hasAccount(email)) {
-                true -> add(email)
+            when (hasAccount(typed)) {
+                true -> {
+                    recipients.add(typed)
+                    onAdded(typed.lowercase())
+                    address = ""
+                }
                 false -> problem = ShareResult.NoAccount
                 null -> problem = ShareResult.Offline
             }
@@ -101,116 +146,56 @@ fun SendToSection(
         }
     }
 
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        // The To box: the people picked, then the field.
-        FlowRow(
-            Modifier
-                .fillMaxWidth()
-                .border(1.dp, if (problem != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline, MaterialTheme.shapes.extraSmall)
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-            itemVerticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(stringResource(R.string.share_to), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            for (email in picked) {
-                val name = recipientName(recipients, email)
-                val label = name ?: email
-                val removeLabel = stringResource(R.string.share_recipient_remove, label)
-                InputChip(
-                    selected = true,
-                    onClick = { onChange(picked.filterNot { it.equals(email, ignoreCase = true) }) },
-                    label = { Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                    avatar = { RecipientAvatar(email, name, recipients.showImages, size = InputChipDefaults.AvatarSize) },
-                    trailingIcon = { Icon(painterResource(R.drawable.ic_close), contentDescription = removeLabel, modifier = Modifier.size(InputChipDefaults.IconSize)) },
-                )
+    ContentSheet(onDismiss = onDismiss) {
+        Column(Modifier.padding(start = 24.dp, end = 24.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            SheetHeader(stringResource(R.string.share_people_title), onCancel = onDismiss)
+            if (recipients.emails.isEmpty()) {
+                Text(stringResource(R.string.share_people_none), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            val hint = stringResource(R.string.share_to_hint)
-            BasicTextField(
-                value = query,
-                onValueChange = {
-                    query = it
-                    problem = null
-                },
-                singleLine = true,
-                textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
-                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Done),
-                // Done adds what was typed: the one suggestion it matches, or a whole new address.
-                keyboardActions =
-                    KeyboardActions(onDone = {
-                        when {
-                            newAddress != null -> addNew(newAddress)
-                            query.isNotBlank() && suggestions.size == 1 -> add(suggestions.single())
-                        }
-                    }),
-                decorationBox = { field ->
-                    if (query.isEmpty()) Text(hint, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    field()
-                },
-                modifier = Modifier.widthIn(min = 160.dp).padding(vertical = 8.dp).semantics { contentDescription = hint },
-            )
-        }
-        problem?.let { Text(stringResource(it.messageRes()), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
-        // Someone new: their whole address, typed in.
-        newAddress?.let { email ->
-            ListItem(
-                headlineContent = { Text(stringResource(R.string.share_add_person, email), maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                leadingContent = {
-                    if (checking) {
-                        CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp)
-                    } else {
-                        Icon(painterResource(R.drawable.ic_add), contentDescription = null)
-                    }
-                },
-                colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-                modifier = Modifier.combinedClickable(onClick = { addNew(email) }),
-            )
-        }
-        // The suggestions: people shared with before, not picked yet.
-        for (email in suggestions) {
-            val name = names[email]
-            val label = name ?: email
-            val forgetLabel = stringResource(R.string.share_recipient_forget, label)
-            ListItem(
-                headlineContent = { Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                supportingContent = name?.let { { Text(email, maxLines = 1, overflow = TextOverflow.Ellipsis) } },
-                leadingContent = { RecipientAvatar(email, name, recipients.showImages, size = 40.dp) },
-                trailingContent =
-                    if (editing) {
-                        {
-                            IconButton(onClick = { scope.launch { recipients.forget(email) } }) {
+            Column {
+                for (email in recipients.emails) {
+                    val name = recipientName(recipients, email)
+                    val forgetLabel = stringResource(R.string.share_recipient_forget, name ?: email)
+                    ListItem(
+                        headlineContent = { Text(name ?: email, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        supportingContent = name?.let { { Text(email, maxLines = 1, overflow = TextOverflow.Ellipsis) } },
+                        leadingContent = { RecipientAvatar(email, name, recipients.showImages, size = 40.dp) },
+                        trailingContent = {
+                            IconButton(onClick = {
+                                scope.launch { recipients.forget(email) }
+                                onForgot(email)
+                            }) {
                                 Icon(painterResource(R.drawable.ic_delete), contentDescription = forgetLabel)
                             }
-                        }
-                    } else {
-                        null
-                    },
-                colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-                modifier =
-                    Modifier
-                        .combinedClickable(
-                            onClick = { if (!editing) add(email) },
-                            onLongClick = {
-                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                editing = true
-                            },
-                        )
-                        // Screen readers: Remove as an action of the row, no long-press needed.
-                        .semantics {
-                            customActions =
-                                listOf(
-                                    CustomAccessibilityAction(forgetLabel) {
-                                        scope.launch { recipients.forget(email) }
-                                        true
-                                    },
-                                )
                         },
-            )
-        }
-        if (editing) {
-            TextButton(onClick = { editing = false }, modifier = Modifier.align(Alignment.End)) {
-                Text(stringResource(R.string.share_recipients_done))
+                        colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                    )
+                }
+            }
+            Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = address,
+                    onValueChange = {
+                        address = it
+                        problem = null
+                    },
+                    label = { Text(stringResource(R.string.share_people_address)) },
+                    singleLine = true,
+                    isError = problem != null,
+                    supportingText = problem?.let { { Text(stringResource(it.messageRes())) } },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = { add() }),
+                    modifier = Modifier.weight(1f),
+                )
+                // The page's action, tonal as New tag in Manage tags.
+                FilledTonalButton(onClick = { add() }, enabled = canAdd, modifier = Modifier.padding(top = 8.dp)) {
+                    if (checking) {
+                        CircularProgressIndicator(Modifier.size(ButtonDefaults.IconSize), strokeWidth = 2.dp)
+                    } else {
+                        Icon(painterResource(R.drawable.ic_add), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                    }
+                    Text(stringResource(R.string.share_people_add_action), modifier = Modifier.padding(start = 8.dp))
+                }
             }
         }
     }

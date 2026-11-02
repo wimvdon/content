@@ -82,12 +82,13 @@
     <string name="share_user_send">Versturen</string>
     <string name="share_user_sent">Verstuurd naar %1$s</string>
     <string name="action_save_and_send">Opslaan en versturen</string>
-    <string name="share_recipients_done">Klaar</string>
-    <string name="share_to">Aan</string>
-    <string name="share_to_hint">Naam of e-mailadres</string>
-    <string name="share_add_person">%1$s toevoegen</string>
-    <string name="share_recipient_remove">Niet naar %1$s sturen</string>
-    <string name="share_recipient_forget">%1$s uit de suggesties verwijderen</string>
+    <string name="share_people_edit">Mensen bewerken</string>
+    <string name="share_people_add">Iemand toevoegen</string>
+    <string name="share_people_title">Mensen</string>
+    <string name="share_people_address">E-mailadres</string>
+    <string name="share_people_add_action">Toevoegen</string>
+    <string name="share_people_none">Wie je hier toevoegt, kun je kiezen als je deelt. Ze hebben een Content-account nodig.</string>
+    <string name="share_recipient_forget">%1$s verwijderen</string>
     <plurals name="share_sent_people">
         <item quantity="one">Verstuurd naar %1$d persoon</item>
         <item quantity="other">Verstuurd naar %1$d personen</item>
@@ -164,6 +165,11 @@
     <string name="setting_hidden_words_none">Geen</string>
     <string name="setting_hidden_words_label">Woorden</string>
     <string name="setting_hidden_words_hint">Scheid woorden met komma\'s of nieuwe regels. Feedartikels met een van die woorden als heel woord in hun titel worden verborgen; hoofdletters tellen niet.</string>
+    <string name="setting_hidden_words_preview_none">Er zouden geen recente artikels verborgen worden.</string>
+    <plurals name="setting_hidden_words_preview">
+        <item quantity="one">%d recent artikel zou verborgen worden:</item>
+        <item quantity="other">%d recente artikels zouden verborgen worden:</item>
+    </plurals>
     <string name="action_mark_read">Als gelezen markeren</string>
     <string name="section_list">Artikellijst</string>
     <string name="setting_list_view">Weergave</string>
@@ -246,6 +252,8 @@
     <string name="add_link_address">Webadres</string>
     <string name="add_link_invalid">Dat is geen webadres.</string>
     <string name="note_title">Notitie</string>
+    <string name="note_remove_title">Notitie verwijderen?</string>
+    <string name="note_remove_body">De notitie bij dit artikel wordt verwijderd.</string>
     <string name="duration_hours">%1$d u %2$d min</string>
     <string name="duration_minutes">%d min</string>
     <string name="reading_list_to_read">Te lezen</string>
@@ -313,7 +321,6 @@
     <string name="welcome_import">Importeren uit een andere lezer</string>
     <string name="topic_in_feeds">Feeds · %1$s</string>
     <string name="topic_in_saved">Bewaard · %1$s</string>
-    <string name="search_all_feeds">Alle feeds</string>
     <string name="add_title">Toevoegen</string>
     <string name="add_choice_feed">Abonneren op feed</string>
     <string name="add_choice_feed_body">Abonneer je op een RSS-feed door het adres van de publicatie in te vullen</string>

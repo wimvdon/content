@@ -1,7 +1,7 @@
-import { Check, ChevronDown, Search, X } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useApp } from "@/lib/app";
-import { plural, t } from "@/lib/i18n";
+import { t } from "@/lib/i18n";
 import { articleKey, type Article } from "@/lib/library";
 import { articleNote, itemArticle, noteOf, sourceOf } from "@/lib/saved";
 import { topicIcons } from "@/lib/topics";
@@ -9,14 +9,12 @@ import { indexArticles, menuFeeds, narrowed, noFilters, searchResults, searchTop
 import { Empty, NoteCard, Row } from "./ArticleList";
 import { FeedIcon } from "./FeedIcon";
 import { FolderIcon } from "./FolderIcon";
-import { useEscape } from "./ui/useEscape";
 import { Button } from "./ui/button";
 import { FilterChip } from "./ui/chip";
-import { cn } from "./ui/cn";
 
 /**
- * The Search tab (#171), in place of the list: a field, one row of chips (Feeds with its menu,
- * Saved, the topics), and below the matches, mixed and best first, each labelled Feed or Saved under All (like the Android app's
+ * The Search tab (#171), in place of the list: a field, chips (Feeds, Saved, the tags; with Feeds
+ * on, a second row of the feeds), and below the matches, mixed and best first, each labelled Feed or Saved under All (like the Android app's
  * Search tab). With nothing typed it lists everything the filters let through, newest first. The
  * query and filters stay while an article is read, so the results are still there.
  */
@@ -125,8 +123,9 @@ export function SearchPanel({ openKey, onOpen, onClose }: { openKey: string | nu
 }
 
 /**
- * The one chip row above the results, as on Android: Feeds (a menu: All feeds, or some feeds with
- * check boxes, and Clear), Saved (on or off), a divider, then the topics, one at a time.
+ * The chips above the results, as on Android: Feeds and Saved (on or off), a divider, then the tags,
+ * one at a time. With Feeds on, a second row has every feed (of the chosen tag) as a chip with its
+ * icon, instead of a menu: clicking some searches only those, none means every feed.
  */
 function FilterRow({ filters, onChange }: { filters: SearchFilters; onChange: (f: SearchFilters) => void }) {
   const { library } = useApp();
@@ -135,116 +134,45 @@ function FilterRow({ filters, onChange }: { filters: SearchFilters; onChange: (f
   const hasSaved = library.items.some((i) => i.readingList !== null);
   if (library.feeds.length === 0 && !hasSaved) return null;
   const saved = filters.scope === "saved";
+  const feedsOn = filters.scope === "feeds";
+  const feeds = feedsOn ? menuFeeds(library, filters.topic) : [];
+  const row = "flex shrink-0 items-center gap-2 overflow-x-auto px-4 [scrollbar-width:none]";
   return (
-    <div role="group" aria-label={t("filter")} className="flex shrink-0 items-center gap-2 overflow-x-auto px-4 pt-1 pb-3 [scrollbar-width:none]">
-      {library.feeds.length > 0 ? <FeedsMenu filters={filters} onChange={onChange} /> : null}
-      {hasSaved ? (
-        <FilterChip selected={saved} onClick={() => onChange(withScope(filters, saved ? "all" : "saved"))}>
-          {t("saved")}
-        </FilterChip>
-      ) : null}
-      {topics.length > 0 ? <span className="h-6 w-px shrink-0 bg-border" aria-hidden="true" /> : null}
-      {topics.map((topic) => {
-        const on = filters.topic !== null && topic.toLowerCase() === filters.topic.toLowerCase();
-        const icon = icons.get(topic.trim().toLowerCase());
-        return (
-          <FilterChip key={topic} selected={on} check={false} onClick={() => onChange(withTopic(filters, on ? null : topic, library))}>
-            {icon ? <FolderIcon name={icon} className="size-4" /> : null}
-            {topic}
+    <div role="group" aria-label={t("filter")} className="space-y-2 pt-1 pb-3">
+      <div className={row}>
+        {library.feeds.length > 0 ? (
+          <FilterChip selected={feedsOn} onClick={() => onChange(withScope(filters, feedsOn ? "all" : "feeds"))}>
+            {t("feeds")}
           </FilterChip>
-        );
-      })}
-    </div>
-  );
-}
-
-/**
- * Feeds as a chip with a menu: All feeds, then every feed (of the chosen topic) with a check box, so
- * several can be picked; the menu stays open while ticking them. Clear shows both kinds again. The
- * chip says what is picked: Feeds, the one feed's name, or how many.
- */
-function FeedsMenu({ filters, onChange }: { filters: SearchFilters; onChange: (f: SearchFilters) => void }) {
-  const { library } = useApp();
-  const [at, setAt] = useState<{ top: number; left: number } | null>(null);
-  useEscape(at !== null, () => setAt(null));
-  const on = filters.scope === "feeds";
-  const picked = filters.feedUrls;
-  const feeds = menuFeeds(library, filters.topic);
-  const label =
-    picked.length === 0
-      ? t("feeds")
-      : picked.length === 1
-        ? (library.feeds.find((f) => f.url === picked[0])?.title ?? t("feeds"))
-        : plural("feedsCount", picked.length);
-  const item = "flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left text-sm hover:bg-muted";
-  return (
-    <>
-      <button
-        type="button"
-        aria-haspopup="true"
-        aria-expanded={at !== null}
-        onClick={(e) => {
-          // The chip row scrolls sideways, so the menu is placed on the page, under the chip.
-          const r = e.currentTarget.getBoundingClientRect();
-          setAt({ top: r.bottom + 4, left: r.left });
-        }}
-        className={cn("inline-flex h-8 shrink-0 cursor-pointer items-center gap-1 rounded-lg border pr-2 pl-3 text-sm", on ? "border-transparent bg-accent font-medium text-accent-foreground" : "hover:bg-muted")}
-      >
-        {on ? <Check className="size-4" aria-hidden="true" /> : null}
-        <span className="max-w-40 truncate">{label}</span>
-        <ChevronDown className="size-4" aria-hidden="true" />
-      </button>
-      {at ? (
-        <>
-          <div className="fixed inset-0 z-20" onClick={() => setAt(null)} aria-hidden="true" />
-          <div role="menu" aria-label={t("feeds")} style={{ top: at.top, left: at.left }} className="fixed z-30 max-h-[60vh] w-72 overflow-y-auto rounded-xl border bg-card py-1 shadow-lg">
-            <button
-              type="button"
-              role="menuitemradio"
-              aria-checked={on && picked.length === 0}
-              onClick={() => {
-                setAt(null);
-                onChange(withScope(filters, "feeds"));
-              }}
-              className={item}
-            >
-              <span className={cn("size-4 shrink-0 rounded-full border-2", on && picked.length === 0 ? "border-primary bg-primary shadow-[inset_0_0_0_2px_var(--color-card)]" : "border-muted-foreground")} />
-              {t("allFeeds")}
-            </button>
-            <div className="my-1 h-px bg-border" />
-            {feeds.map((feed) => {
-              const ticked = picked.includes(feed.url);
-              return (
-                <button key={feed.url} type="button" role="menuitemcheckbox" aria-checked={ticked} onClick={() => onChange(toggleFeed(filters, feed.url))} className={item}>
-                  <span className={cn("flex size-4 shrink-0 items-center justify-center rounded-sm border-2", ticked ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground")}>
-                    {ticked ? <Check className="size-3" aria-hidden="true" /> : null}
-                  </span>
-                  <span className="min-w-0 flex-1 truncate">{feed.title}</span>
-                  <FeedIcon feed={feed} className="size-4" />
-                </button>
-              );
-            })}
-            {on ? (
-              <>
-                <div className="my-1 h-px bg-border" />
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={() => {
-                    setAt(null);
-                    onChange(withScope(filters, "all"));
-                  }}
-                  className={item}
-                >
-                  <X className="size-4" aria-hidden="true" />
-                  {t("clear")}
-                </button>
-              </>
-            ) : null}
-          </div>
-        </>
+        ) : null}
+        {hasSaved ? (
+          <FilterChip selected={saved} onClick={() => onChange(withScope(filters, saved ? "all" : "saved"))}>
+            {t("saved")}
+          </FilterChip>
+        ) : null}
+        {topics.length > 0 ? <span className="h-6 w-px shrink-0 bg-border" aria-hidden="true" /> : null}
+        {topics.map((topic) => {
+          const on = filters.topic !== null && topic.toLowerCase() === filters.topic.toLowerCase();
+          const icon = icons.get(topic.trim().toLowerCase());
+          return (
+            <FilterChip key={topic} selected={on} check={false} onClick={() => onChange(withTopic(filters, on ? null : topic, library))}>
+              {icon ? <FolderIcon name={icon} className="size-4" /> : null}
+              {topic}
+            </FilterChip>
+          );
+        })}
+      </div>
+      {feeds.length > 0 ? (
+        <div role="group" aria-label={t("feeds")} className={row}>
+          {feeds.map((feed) => (
+            <FilterChip key={feed.url} selected={filters.feedUrls.includes(feed.url)} check={false} onClick={() => onChange(toggleFeed(filters, feed.url))}>
+              <FeedIcon feed={feed} className="size-4" />
+              <span className="max-w-40 truncate">{feed.title}</span>
+            </FilterChip>
+          ))}
+        </div>
       ) : null}
-    </>
+    </div>
   );
 }
 

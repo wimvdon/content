@@ -5,7 +5,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.height
@@ -37,6 +36,34 @@ object ReaderToolbarVisibility {
     ): Boolean = atEnd || collapsedFraction < 0.5f
 }
 
+/**
+ * What the reader's ⋮ menu offers, in this order. A feed article not saved: Mark as unread, the feed's
+ * text or the full article. Once saved (also right after Save in the reader, 2026-11-02) it is a saved
+ * article's menu: no Mark as unread or text switch, and Remove from Saved at the end. Both: Open in
+ * browser, Sign in to website, Report a problem. Plain Kotlin, tested on the JVM.
+ */
+object ReaderMenu {
+    enum class Entry { MarkUnread, ToggleText, OpenInBrowser, SignIn, Report, Remove }
+
+    fun entries(
+        /** It is (also) an article of one of your feeds, which has a read state. */
+        feedArticle: Boolean,
+        /** It is in Saved (to read or archived). */
+        saved: Boolean,
+        hasLink: Boolean,
+        canSignIn: Boolean,
+        canReport: Boolean,
+    ): List<Entry> =
+        buildList {
+            if (feedArticle && !saved) add(Entry.MarkUnread)
+            if (hasLink && !saved) add(Entry.ToggleText)
+            if (hasLink) add(Entry.OpenInBrowser)
+            if (canSignIn) add(Entry.SignIn)
+            if (canReport) add(Entry.Report)
+            if (saved) add(Entry.Remove)
+        }
+}
+
 /** The toolbar's height, and the room it keeps from the bottom edge. */
 internal val ReaderToolbarHeight = 64.dp
 internal val ReaderToolbarMargin = 16.dp
@@ -44,16 +71,15 @@ internal val ReaderToolbarMargin = 16.dp
 /**
  * The reader's actions as a floating toolbar (Material 3 Expressive): a pill above the article, at
  * the bottom in the middle, that slides away while reading down. Built from a `Surface` and a `Row`
- * (Material 3 1.4 has no public FloatingToolbar). Its buttons are all in one neutral colour
- * (`onSurfaceVariant`, as Material 3's toolbars have it): Share, the highlights' count, Archive and
- * Organise look alike; only the tonal Save stands out, as the one thing to do first.
+ * (Material 3 1.4 has no public FloatingToolbar). No button has a fill of its own (2026-11-02): all
+ * are in the toolbar's neutral colour (`onSurfaceVariant`, as Material 3's toolbars have it), and the
+ * next step stands out by its words: Save, or Archive, is an icon with text; the rest are icons.
+ * Share is the last icon in the pill.
  */
 @Composable
 internal fun ReaderToolbar(
     visible: Boolean,
     modifier: Modifier = Modifier,
-    /** Share, as its own round button next to the pill (Material 3's floating toolbar with a FAB). */
-    fab: (@Composable () -> Unit)? = null,
     content: @Composable RowScope.() -> Unit,
 ) {
     AnimatedVisibility(
@@ -62,7 +88,6 @@ internal fun ReaderToolbar(
         enter = slideInVertically { it * 2 } + fadeIn(),
         exit = slideOutVertically { it * 2 } + fadeOut(),
     ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
         Surface(
             shape = CircleShape,
             color = MaterialTheme.colorScheme.surfaceContainer,
@@ -75,8 +100,6 @@ internal fun ReaderToolbar(
                 verticalAlignment = Alignment.CenterVertically,
                 content = content,
             )
-        }
-        fab?.invoke()
         }
     }
 }

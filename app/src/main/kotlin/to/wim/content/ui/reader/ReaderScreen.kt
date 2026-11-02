@@ -24,7 +24,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -129,7 +128,7 @@ class ReaderItem(
     val item: Item,
     /** Archive, or back to To read when archived; the reader stays open and a message says so. */
     val onArchive: () -> Unit = {},
-    /** Opens the topic chips (the Topics sheet). */
+    /** Opens the tag chips (the Tags sheet): the toolbar's Tags button. */
     val onTopics: () -> Unit = {},
     /** Opens the note (the Note sheet). */
     val onNote: () -> Unit = {},
@@ -137,8 +136,6 @@ class ReaderItem(
     val onLike: () -> Unit = {},
     /** Remove from Saved, in ⋮ (it asks first). */
     val onRemove: () -> Unit = {},
-    /** Each tag's icon, by its name in lower case (the chips under the title). */
-    val tagIcons: Map<String, String> = emptyMap(),
     /** How far it was read, 0 to 1, as the reader scrolls. */
     val onProgress: (Float) -> Unit,
 )
@@ -146,8 +143,8 @@ class ReaderItem(
 /**
  * One article, in the reader's font, size, spacing and page colour (#139). The top bar is for this
  * reading (Back, Aa, ⋮); the floating toolbar below is for this article in your library: one Save
- * before it is saved, then Archive, Topics, Note and Like ([SavedBar]); its highlights, and Share as
- * its own round button. Remove from Saved is in ⋮. The text ends with Read on website.
+ * before it is saved, then Archive, Like and Tags ([SavedBar]); its highlights, and Share. Remove
+ * from Saved is in ⋮ ([ReaderMenu]). The text ends with Read on website.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -201,71 +198,42 @@ fun ReaderScreen(
                     IconButton(onClick = { menuOpen = true }) {
                         Icon(painterResource(R.drawable.ic_more_vert), contentDescription = stringResource(R.string.action_more))
                     }
-                    // In this order: Mark as unread, the feed's text or the full article (a feed article;
-                    // a saved one always shows the whole article, #208), Open in browser, Sign in to
-                    // website, Report a problem. Remove from Saved is in Organise.
+                    // What it offers follows ReaderMenu: a saved article's menu as soon as it is saved.
+                    val entries =
+                        ReaderMenu.entries(
+                            feedArticle = actions.onMarkUnread != null,
+                            saved = item != null && onList,
+                            hasLink = hasLink,
+                            canSignIn = actions.onSignIn != null,
+                            canReport = actions.onReport != null,
+                        )
                     DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
-                        val markUnread = actions.onMarkUnread
-                        if (markUnread != null) {
+                        entries.forEach { entry ->
+                            val (label, icon) =
+                                when (entry) {
+                                    ReaderMenu.Entry.MarkUnread -> R.string.action_mark_unread to R.drawable.ic_mark_unread
+                                    ReaderMenu.Entry.ToggleText -> {
+                                        val showingFull = fullText is FullTextState.Shown || fullText is FullTextState.Loading
+                                        (if (showingFull) R.string.reader_show_feed_text else R.string.reader_show_full) to R.drawable.ic_article
+                                    }
+                                    ReaderMenu.Entry.OpenInBrowser -> R.string.action_open_in_browser to R.drawable.ic_open_in_new
+                                    ReaderMenu.Entry.SignIn -> R.string.site_sign_in_menu to R.drawable.ic_login
+                                    ReaderMenu.Entry.Report -> R.string.report_menu to R.drawable.ic_flag
+                                    ReaderMenu.Entry.Remove -> R.string.saved_remove to R.drawable.ic_delete
+                                }
                             DropdownMenuItem(
-                                text = { Text(stringResource(R.string.action_mark_unread)) },
-                                leadingIcon = { Icon(painterResource(R.drawable.ic_mark_unread), contentDescription = null) },
+                                text = { Text(stringResource(label)) },
+                                leadingIcon = { Icon(painterResource(icon), contentDescription = null) },
                                 onClick = {
                                     menuOpen = false
-                                    markUnread()
-                                },
-                            )
-                        }
-                        if (hasLink && !onList) {
-                            val showingFull = fullText is FullTextState.Shown || fullText is FullTextState.Loading
-                            DropdownMenuItem(
-                                text = { Text(stringResource(if (showingFull) R.string.reader_show_feed_text else R.string.reader_show_full)) },
-                                leadingIcon = { Icon(painterResource(R.drawable.ic_article), contentDescription = null) },
-                                onClick = {
-                                    menuOpen = false
-                                    actions.onToggleFullText()
-                                },
-                            )
-                        }
-                        if (hasLink) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.action_open_in_browser)) },
-                                leadingIcon = { Icon(painterResource(R.drawable.ic_open_in_new), contentDescription = null) },
-                                onClick = {
-                                    menuOpen = false
-                                    actions.onOpenInBrowser()
-                                },
-                            )
-                        }
-                        val signIn = actions.onSignIn
-                        if (signIn != null) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.site_sign_in_menu)) },
-                                leadingIcon = { Icon(painterResource(R.drawable.ic_login), contentDescription = null) },
-                                onClick = {
-                                    menuOpen = false
-                                    signIn()
-                                },
-                            )
-                        }
-                        if (actions.onReport != null) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.report_menu)) },
-                                leadingIcon = { Icon(painterResource(R.drawable.ic_flag), contentDescription = null) },
-                                onClick = {
-                                    menuOpen = false
-                                    reportOpen = true
-                                },
-                            )
-                        }
-                        // A saved article: Remove from Saved, the rare one, here and not in the toolbar.
-                        if (item != null && onList) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.saved_remove)) },
-                                leadingIcon = { Icon(painterResource(R.drawable.ic_delete), contentDescription = null) },
-                                onClick = {
-                                    menuOpen = false
-                                    item.onRemove()
+                                    when (entry) {
+                                        ReaderMenu.Entry.MarkUnread -> actions.onMarkUnread?.invoke()
+                                        ReaderMenu.Entry.ToggleText -> actions.onToggleFullText()
+                                        ReaderMenu.Entry.OpenInBrowser -> actions.onOpenInBrowser()
+                                        ReaderMenu.Entry.SignIn -> actions.onSignIn?.invoke()
+                                        ReaderMenu.Entry.Report -> reportOpen = true
+                                        ReaderMenu.Entry.Remove -> item?.onRemove?.invoke()
+                                    }
                                 },
                             )
                         }
@@ -310,8 +278,8 @@ fun ReaderScreen(
                 modifier = Modifier.padding(innerPadding),
             )
             if (hasToolbar) {
-                // Save, or once saved Archive, Topics, Note and Like; the highlights' count; Share as
-                // its own round button next to the pill.
+                // Save, or once saved Archive (or To read), Like and Tags; the highlights' count of
+                // one not saved; Share last. No fills: the words of Save or Archive stand out.
                 ReaderToolbar(
                     visible = toolbarShown,
                     modifier =
@@ -319,26 +287,11 @@ fun ReaderScreen(
                             .align(Alignment.BottomCenter)
                             .padding(innerPadding)
                             .padding(start = 16.dp, end = 16.dp, bottom = ReaderToolbarMargin),
-                    fab =
-                        if (hasLink) {
-                            {
-                                FloatingActionButton(
-                                    onClick = actions.onShare,
-                                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                                    modifier = Modifier.size(ReaderToolbarHeight),
-                                ) {
-                                    Icon(painterResource(R.drawable.ic_share), contentDescription = stringResource(R.string.action_share))
-                                }
-                            }
-                        } else {
-                            null
-                        },
                 ) {
                     if (item != null && onList) {
                         SavedBar(item)
                     } else {
-                        FilledTonalButton(onClick = actions.onSave) {
+                        TextButton(onClick = actions.onSave, colors = toolbarTextButtonColors()) {
                             Icon(painterResource(R.drawable.ic_list), contentDescription = null)
                             Text(
                                 stringResource(R.string.action_save),
@@ -355,6 +308,14 @@ fun ReaderScreen(
                         TextButton(onClick = { highlightsOpen = true }, colors = toolbarTextButtonColors(), modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = label }) {
                             Icon(painterResource(R.drawable.ic_quote), contentDescription = null)
                             Text(count.toString(), modifier = Modifier.padding(start = 8.dp))
+                        }
+                    }
+                    if (hasLink) {
+                        val shareLabel = stringResource(R.string.action_share)
+                        Tipped(shareLabel) {
+                            IconButton(onClick = actions.onShare) {
+                                Icon(painterResource(R.drawable.ic_share), contentDescription = shareLabel)
+                            }
                         }
                     }
                 }

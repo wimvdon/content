@@ -45,7 +45,7 @@ The account's document (it was `rss-reader-sync.json` in Google Drive before), U
       "tags": ["News"]
     }
   ],
-  "settings": { "fullArticles": "true", "markReadOnScroll": "false" }
+  "settings": { "articles.fullArticles": "true", "android.theme": "System" }
 }
 ```
 
@@ -64,23 +64,26 @@ The account's document (it was `rss-reader-sync.json` in Google Drive before), U
 - Articles themselves are not synced: every device downloads them from the feeds.
 - `settings` (added in version 2) maps shared names to text values (`SyncSettings` on Android,
   `web/src/lib/syncSettings.ts`). Each app reads the names it knows and keeps the others, so a
-  setting only one app has survives a sync by the other. **Each app's own settings sync under its
-  own prefix** (the owner's choice): `android.` settings are the same on every Android device,
-  `web.` settings in every browser, and the two never mix, since a phone and a computer often want
-  something different:
+  setting only one app has survives a sync by the other. **How things look syncs under each app's
+  own prefix**: `android.` settings are the same on every Android device, `web.` settings in every
+  browser, and the two never mix, since a phone and a computer often want a different look. **What
+  the app does is shared by both** under `articles.` (the owner's choice, 2026-11-02; before, those
+  were per app too). Until a file has an `articles.` name, each app reads its own name of before
+  (`android.fullArticles`, `web.hiddenWords`, …) and drops it when it saves:
 
   | Name | Values | Apps |
   |---|---|---|
   | `android.theme` | `System`, `Light`, `Dark` | Android |
   | `android.dynamicColor` | `true`, `false` | Android |
   | `android.reader.font`, `.textSize`, `.spacing`, `.background`, `.autoDark` | `Sans`/`Serif`; 14 to 28 (sp); `Compact`/`Normal`/`Relaxed`; `Default`/`Sepia`/`Dark`; `true`/`false` | Android |
-  | `android.fullArticles`, `android.showImages`, `android.markReadOnScroll`, `android.alwaysOpenWebsite` | `true`, `false` | Android |
+  | `android.showImages` | `true`, `false` | Android |
   | `android.listView` | `Small`, `Medium`, `Large` | Android |
-  | `android.hiddenWords` | Hide articles with words (#277): the words as typed, separated by commas or new lines; `""` for none | Android |
   | `web.theme` | `system`, `light`, `dark` | web |
   | `web.reader.font`, `.textSize`, `.spacing`, `.background`, `.autoDark` | `sans`/`serif`; 14 to 28 (px); `compact`/`normal`/`relaxed`; `default`/`sepia`/`dark`; `true`/`false` | web |
-  | `web.fullArticles`, `web.showImages`, `web.markReadOnScroll` | `true`, `false` | web |
+  | `web.showImages` | `true`, `false` | web |
   | `web.listView` | `small`, `medium`, `large` | web |
+  | `articles.fullArticles`, `articles.markReadOnScroll`, `articles.alwaysOpenWebsite` | `true`, `false` | both |
+  | `articles.hiddenWords` | Hide articles with words (#277): the words as typed, separated by commas or new lines; `""` for none | both |
   | `services.instapaper.token` | the Instapaper sign-in, shared by every device of the account (`SharedInstapaper.kt`, `web/src/lib/sharedInstapaper.ts`, see `instapaper.md`): `{"token", "username", "userId"}`; `""` once disconnected | both |
   | `sharing.recipients` | the people shared with (#235): a JSON list of email addresses in lower case, most recent first, at most 12 | both |
   | `services.instapaper.imported` | the answer to the import question when Instapaper was connected (#251): `{"at": ms, "count": n, "everything": true}` (`false`: not imported); one without `everything` (from before #251) counts as everything; an app without one keeps the file's | both |

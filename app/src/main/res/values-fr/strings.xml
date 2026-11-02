@@ -83,12 +83,13 @@
     <string name="share_user_send">Envoyer</string>
     <string name="share_user_sent">Envoyé à %1$s</string>
     <string name="action_save_and_send">Enregistrer et envoyer</string>
-    <string name="share_recipients_done">OK</string>
-    <string name="share_to">À</string>
-    <string name="share_to_hint">Nom ou adresse e-mail</string>
-    <string name="share_add_person">Ajouter %1$s</string>
-    <string name="share_recipient_remove">Ne pas envoyer à %1$s</string>
-    <string name="share_recipient_forget">Retirer %1$s des suggestions</string>
+    <string name="share_people_edit">Modifier les personnes</string>
+    <string name="share_people_add">Ajouter quelqu’un</string>
+    <string name="share_people_title">Personnes</string>
+    <string name="share_people_address">Adresse e-mail</string>
+    <string name="share_people_add_action">Ajouter</string>
+    <string name="share_people_none">Les personnes ajoutées ici peuvent être choisies quand vous partagez. Elles ont besoin d’un compte Content.</string>
+    <string name="share_recipient_forget">Retirer %1$s</string>
     <plurals name="share_sent_people">
         <item quantity="one">Envoyé à %1$d personne</item>
         <item quantity="many">Envoyé à %1$d personnes</item>
@@ -166,6 +167,12 @@
     <string name="setting_hidden_words_none">Aucun</string>
     <string name="setting_hidden_words_label">Mots</string>
     <string name="setting_hidden_words_hint">Séparez les mots par des virgules ou des retours à la ligne. Les articles des flux dont le titre contient l\'un d\'eux comme mot entier sont masqués, majuscules ou non.</string>
+    <string name="setting_hidden_words_preview_none">Aucun article récent ne serait masqué.</string>
+    <plurals name="setting_hidden_words_preview">
+        <item quantity="one">%d article récent serait masqué :</item>
+        <item quantity="many">%d articles récents seraient masqués :</item>
+        <item quantity="other">%d articles récents seraient masqués :</item>
+    </plurals>
     <string name="action_mark_read">Marquer comme lu</string>
     <string name="section_list">Liste d\'articles</string>
     <string name="setting_list_view">Affichage</string>
@@ -253,6 +260,8 @@
     <string name="add_link_address">Adresse web</string>
     <string name="add_link_invalid">Ce n’est pas une adresse web.</string>
     <string name="note_title">Note</string>
+    <string name="note_remove_title">Supprimer la note ?</string>
+    <string name="note_remove_body">La note de cet article sera supprimée.</string>
     <string name="duration_hours">%1$d h %2$d min</string>
     <string name="duration_minutes">%d min</string>
     <string name="reading_list_to_read">À lire</string>
@@ -323,7 +332,6 @@
     <string name="welcome_import">Importer depuis un autre lecteur</string>
     <string name="topic_in_feeds">Flux · %1$s</string>
     <string name="topic_in_saved">Enregistrés · %1$s</string>
-    <string name="search_all_feeds">Tous les flux</string>
     <string name="add_title">Ajouter</string>
     <string name="add_choice_feed">S’abonner à un flux</string>
     <string name="add_choice_feed_body">Abonnez-vous à un flux RSS en saisissant l’adresse de la publication</string>

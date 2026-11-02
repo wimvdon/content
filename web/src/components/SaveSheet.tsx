@@ -11,6 +11,7 @@ import { canConfirm } from "@/lib/sendTo";
 import { Button } from "./ui/button";
 import { cn } from "./ui/cn";
 import { Dialog } from "./ui/dialog";
+import { ConfirmRemove, RemoveButton } from "./ConfirmRemove";
 import { TopicChips, chip, chipOn } from "./TopicChips";
 import { Input } from "./ui/input";
 
@@ -48,6 +49,7 @@ function Sheet({
   const { library } = useApp();
   const [choice, setChoice] = useState(initial);
   const [address, setAddress] = useState("");
+  const [removingNote, setRemovingNote] = useState(false);
   const saved = kind !== "new";
   const typed = normalizeUrl(address);
   const link = typed && isWebLink(typed) ? typed : null;
@@ -80,6 +82,8 @@ function Sheet({
       title={title}
       closeLabel={t("close")}
       cancel={t("cancel")}
+      // A note there already: the trash can removes it, asking first (as on Android).
+      headerAction={kind === "note" && initial.note.trim() ? <RemoveButton onClick={() => setRemovingNote(true)} /> : undefined}
       footer={
         <>
           {/* Save, with the icon of where it goes: To read's open book, the Archive's box. */}
@@ -130,6 +134,7 @@ function Sheet({
           </>
         ) : null}
       </div>
+      <ConfirmRemove open={removingNote} title={t("noteRemoveTitle")} body={t("noteRemoveBody")} onConfirm={() => save({ ...choice, note: "" })} onClose={() => setRemovingNote(false)} />
     </Dialog>
   );
 }

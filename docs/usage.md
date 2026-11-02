@@ -168,15 +168,15 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   tags, notes and highlights). Every word you type must appear; capitals and accents
   don't matter ("cafe" finds "Café"). The results are one list, best match first: the whole search
   in the title, then more of its words in the title, then the newest. Each result says **Feed** or
-  **Saved** when both kinds are shown. One row of chips above the results: **Feeds**, **Saved**, then
-  your **tags**. **Feeds** opens a menu: **All feeds**, or tick one or more feeds (with a tag
-  picked, only that tag's feeds are listed), and **Clear** to show both kinds again. **Saved**
-  shows only Saved; tap it again for both. A **tag** narrows both kinds: feeds with that tag and
+  **Saved** when both kinds are shown. Chips above the results: **Feeds**, **Saved**, then your **tags**.
+  **Feeds** shows only feed articles, with a second row of chips: every feed (with a tag picked,
+  only that tag's feeds); tap one or more to search only those, tap again to let go. Tap Feeds
+  again for both kinds. **Saved** shows only Saved; tap it again for both. A **tag** narrows both kinds: feeds with that tag and
   saved articles with it. With nothing typed,
   Search lists everything those chips let through, newest first: with no filter that is all your
   feed articles and all of Saved (archive included).
   Everything and **Saved** show their results as notes; **Feeds** shows rows, like your feeds.
-  The web app has the same row.
+  The web app has the same chips.
 - Articles are grouped under **Today**, **Yesterday** and then the date; the date stays at the
   top while you scroll through that day.
 - The **Mark all as read** button (under the last article) is only in Unread, and marks what it shows.
@@ -209,12 +209,14 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   marked as read once you scroll them off the top of the list, only ones that were on screen: new
   articles arriving above are never marked unseen. They stay in the unread list (see above), so
   you can scroll back to them.
-- **Hide articles with words** (in **Settings › Article list**, Android only): type words or
+- **Hide articles with words** (in **Settings › Article list**, on the phone and the web): type words or
   phrases, separated by commas or new lines. Feed articles with one of them in their title are left
   out of the article lists, the unread counts and the tag chips. A word counts only as a whole
   word, and capitals don't matter: "AI" hides "New AI rules", not "He said so". Only the title is
-  checked, and search still finds hidden articles. Empty the field to show everything again. The
-  words are the same on your other Android devices (synced as `android.hiddenWords`).
+  checked, and search still finds hidden articles. While you type, the dialog shows how many of the
+  recent articles on the device the words would hide, with the five newest (title and feed), so
+  you see what goes before you tap Save. Empty the field to show everything again. The
+  words are the same on your phones and in the web app (synced as `articles.hiddenWords`).
 - If some feeds can't be downloaded, a message says how many; **Manage feeds** (in Settings) shows
   which ones (in red); tap one to see why.
 
@@ -228,17 +230,17 @@ website (in the web app, in a new tab) (the same as **Read on website** at the e
 | Button | What it does |
 |---|---|
 | **Aa** | Text settings: font (Sans or Serif), text size, spacing (Compact, Normal, Relaxed), background (Theme, Sepia or Dark) and **Auto dark** (the dark page whenever the app is dark, e.g. Sepia by day and dark at night). Changes apply right away and are remembered for every article. |
-| ⋮ | In this order: **Mark as unread** (back to the list, where it waits unread; the web app keeps the article open and offers **Mark as read** too), **Show full article** / **Show feed text** (a feed article: the whole article from the website, or the feed's own text; a saved article always shows the whole article), **Open in browser**, **Sign in to this site** (#180: for a site you pay for, such as standaard.be; sign in on its page and tap **Done**, and from then on its articles load in full; only while you aren't signed in to that site yet; Settings › Article view › Sites you're signed in to lists them, with **Remove**), **Report a problem with this article** (#181: pick what is wrong, add a comment if you like, and **Send** opens a pre-filled report on GitHub in your browser, with the article's link and the text Content shows, #251, so it can be compared with the website; a text too long for the address is cut short there and put whole on the clipboard to paste; submit it there). **Remove from Saved** is in Organise. Open in browser, and links in an article, open in a tab of your browser on top of Reader, with a **Save** button in its toolbar: it opens the save sheet over the page (see Saving from other apps); save or close it to keep reading. |
+| ⋮ | In this order: **Mark as unread** (back to the list, where it waits unread; the web app keeps the article open and offers **Mark as read** too), **Show full article** / **Show feed text** (a feed article: the whole article from the website, or the feed's own text; a saved article always shows the whole article), **Open in browser**, **Sign in to this site** (#180: for a site you pay for, such as standaard.be; sign in on its page and tap **Done**, and from then on its articles load in full; only while you aren't signed in to that site yet; Settings › Article view › Sites you're signed in to lists them, with **Remove**), **Report a problem with this article** (#181: pick what is wrong, add a comment if you like, and **Send** opens a pre-filled report on GitHub in your browser, with the article's link and the text Content shows, #251, so it can be compared with the website; a text too long for the address is cut short there and put whole on the clipboard to paste; submit it there). **Remove from Saved** (a saved article: instead of Mark as unread and the text switch). Open in browser, and links in an article, open in a tab of your browser on top of Reader, with a **Save** button in its toolbar: it opens the save sheet over the page (see Saving from other apps); save or close it to keep reading. |
 
 The **floating toolbar** (a rounded bar at the bottom in the middle, over the text) is the article
 in your library, with **Share** at its end (Content's share sheet, or straight to the app you
 chose). It slides out of the way while you read down, and comes back when you scroll up a little,
 at the top and at the end of the article. Before it is saved it has **Save** on the left: it
 saves the article to **To read** (by default), or sends it to the app you chose (see below). Once
-saved, Save makes way for **its list** (To read or Archive): tap it for **Organise**, the sheet
-with the list, Like, the tags and the note (#251: on a phone there was no room for the list and
-the tags side by side). Until it is archived, an **Archive** button (a box) sits next to its list:
-one tap archives it; the article stays open and says **Archived** with **Undo**. Next to Share, a quote mark with a count opens the article's highlights and
+saved (right away, without leaving the article) the toolbar is **Archive** (in words; once
+archived, the To read icon puts it back), **Like**, **Tags** and Share; one tap on Archive archives
+it, the article stays open and says **Archived** with **Undo**. No button has a colour of its own:
+the words show the next step. ⋮ then shows a saved article's options. Before Share, a quote mark with a count opens the article's highlights and
 notes. The text ends with **Read on website**. Reader remembers how far you read and opens the
 article there again.
 
@@ -315,11 +317,11 @@ The reader has a **Save** button and a **Share** button (#256: there are no sett
 more). **Save** saves the article to **To read** and opens **Organise** (see Saved). **Share** opens Content's share sheet.
 
 **Content's share sheet** (#251; the web app's Share too). At the top, signed in, **Send with
-Content**, laid out like an email's **To** field: the people you pick as chips, a field for a
-name or address, suggestions below (the people you sent something to before; tap to add) and **Add
-…** for a whole new address; then **Send** sends to everyone picked. To tidy the suggestions,
-press and hold one (web: right-click): each gets a trash button, which forgets them on all your
-devices; **Done** ends it. Below, the apps: the ones you pick most
+Content**: the people you sent something to before as chips, as tags are; tap one or more to pick
+them, then **Send** sends to everyone picked. **Edit people** after the chips (a more visible **Add someone**
+while there is nobody yet) opens **People**: type an email address and tap **Add** (it checks that they
+have a Content account, then they are picked), or tap the trash can next to someone to forget them
+on all your devices; the back arrow returns to the sheet. Below, the apps: the ones you pick most
 in this sheet first (Android doesn't tell apps which ones you use elsewhere, so Content counts the
 picks here, on this phone only; until then well-known messaging and mail apps come first), then
 **Copy link**, and **More** for Android's own share menu with every app.
@@ -376,7 +378,7 @@ the list. The app's version is at the bottom. The web app's Settings is the same
   service Saved is also kept in (see Instapaper account).
 - **Theme:** System, Light or Dark, and Dynamic color (wallpaper colours instead of the app's blue).
 - **Article list:** View (Small, Medium, Large), **Mark as read on scroll** and **Hide articles with words**.
-- **Article view:** **Always open the website** (Android only, off by default: tapping a feed article opens its website in the browser tab over Content, with its Save button, and marks it read; saved articles still open in the reader, which keeps your place, highlights and notes), **Load full articles**, **Show images**, then **Text**: the same text settings as **Aa**, with a preview in the page colour you chose; then **Sites you're signed in to** (Android): the sites you pay for and signed in to from an article (see The reader), each with **Remove**.
+- **Article view:** **Always open the website** (off by default: tapping a feed article opens its website in the browser tab over Content, with its Save button, and marks it read; on the web in a new tab; saved articles still open in the reader, which keeps your place, highlights and notes; this, Load full articles, Mark as read on scroll and Hide articles with words are the same on your phones and in the web app, while how things look is set per app), **Load full articles**, **Show images**, then **Text**: the same text settings as **Aa**, with a preview in the page colour you chose; then **Sites you're signed in to** (Android): the sites you pay for and signed in to from an article (see The reader), each with **Remove**.
 
 ## Backup and moving to a new phone
 
@@ -420,10 +422,11 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   a few lines of your first highlight (quoted) or else the article's description, a glimpse of your
   note in small letters, its tags as small chips, then the site, a marker icon with how many
   highlights it has, and a heart when liked.
-- In the reader, under a saved article's title: its **tags** (tap one, or **+ Tag**, to change
-  them), **+ Note** (or your note itself, tap it to edit) and, with highlights, how many (tap for
-  the list). The floating toolbar at the bottom has **Archive** (or **To read** once archived) and
-  **Like** (the heart); **Share** is the round button next to it. **Remove from Saved**
+- In the reader, under a saved article's title: **+ Note** (or your note itself, tap it to edit;
+  the trash can at the top of the Note sheet removes it) and, with highlights, how many (tap for
+  the list). The floating toolbar at the bottom has **Archive** (or, once archived, the To read
+  icon), then **Like** (the heart), **Tags** and **Share**. Right after **Save** in the reader the
+  toolbar and ⋮ become a saved article's. **Remove from Saved**
   is in **⋮**; it asks first and takes the note, tags and highlights with it (Archive keeps it
   searchable instead).
 - **Manage tags** (Settings, or Edit tags in a sheet): your tags as a list: drag by the grip to reorder,

@@ -1,5 +1,6 @@
 import { Smartphone, ArrowLeft, BookmarkPlus, BookOpenText, ChevronDown, ChevronRight, LayoutList, Palette, Plus, Puzzle, Rss, Tag as TagIcon, Trash2, UserRound } from "lucide-react";
 import { ConfirmRemove, RemoveButton } from "./ConfirmRemove";
+import { HiddenWordsRow } from "./HiddenWords";
 import { insertedBefore } from "@/lib/topics";
 import { CHIP_TYPE, EditChips, TopicChips, chip, chipOn } from "./TopicChips";
 import { useEffect, useMemo, useState } from "react";
@@ -485,11 +486,13 @@ export function SettingsDialog({
                 />
               </div>
               <SwitchRow title={t("markReadOnScroll")} checked={settings.markReadOnScroll} onChange={(v) => app.updateSettings({ markReadOnScroll: v })} />
+              <HiddenWordsRow />
             </section>
           ) : null}
           {page === "reader" ? (
             <>
               <section className="space-y-2">
+                <SwitchRow title={t("alwaysWebsite")} summary={t("alwaysWebsiteSummary")} checked={settings.alwaysOpenWebsite} onChange={(v) => app.updateSettings({ alwaysOpenWebsite: v })} />
                 <SwitchRow title={t("fullArticles")} summary={t("fullArticlesSummary")} checked={settings.fullArticles} onChange={(v) => app.updateSettings({ fullArticles: v })} />
                 <SwitchRow title={t("showImages")} summary={t("showImagesSummary")} checked={settings.showImages} onChange={(v) => app.updateSettings({ showImages: v })} />
               </section>

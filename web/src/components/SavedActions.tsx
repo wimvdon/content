@@ -1,4 +1,4 @@
-import { Archive, BookOpen, Heart, ListPlus, Quote, Share2, Trash2 } from "lucide-react";
+import { Archive, ArchiveRestore, Heart, ListPlus, Quote, Share2, Tag, Trash2 } from "lucide-react";
 import { app } from "@/lib/app";
 import { plural, t } from "@/lib/i18n";
 import type { Item } from "@/lib/items";
@@ -8,12 +8,12 @@ import { Dialog } from "./ui/dialog";
 
 /**
  * The reader's library actions as a floating toolbar, as on Android: a pill at the bottom in the
- * middle, over the text, that steps aside while reading down ([hidden]). One Save before the article
- * is saved; after, every action one click away, as icons (2026-11-01, instead of Archive and
- * Organise): first **Archive** (tonal, like Save) while it is to read, or **To read** (plain) once
- * archived, in words; then **Like** (a filled heart while liked). Tags, the note and the highlights
- * sit under the article's title. Then the highlights, and Share as its own round button next
- * to the pill. Remove from Saved is in the reader's ⋮.
+ * middle, over the text, that steps aside while reading down ([hidden]). No button has a fill of its
+ * own (2026-11-02): the next step stands out by its words. Before the article is saved: **Save**
+ * with its name, the highlights, Share. After: **Archive** with its name while it is to read, or only
+ * the unarchive icon (To read) once archived; then **Like** (a filled heart while liked), **Tags** and
+ * **Share** as icons. The note and the highlights sit under the article's title; Remove from Saved
+ * is in the reader's ⋮.
  */
 export function LibraryBar({
   item,
@@ -42,43 +42,36 @@ export function LibraryBar({
       </Button>
     ) : null;
   const share = onShare ? (
-    <button
-      type="button"
-      onClick={onShare}
-      aria-label={t("share")}
-      title={t("share")}
-      className="pointer-events-auto flex size-14 shrink-0 cursor-pointer items-center justify-center rounded-2xl bg-accent text-accent-foreground shadow-lg hover:bg-accent/80 [&_svg]:size-5"
-    >
+    <Button variant="ghost" size="icon" onClick={onShare} aria-label={t("share")} title={t("share")}>
       <Share2 />
-    </button>
+    </Button>
   ) : null;
   if (!item) {
     if (!onSave && !onShare && highlightCount === 0) return null;
     return (
-      <Floating hidden={hidden} fab={share}>
+      <Floating hidden={hidden}>
         {onSave ? (
-          <Button variant="tonal" onClick={onSave}>
+          <Button variant="ghost" onClick={onSave}>
             <ListPlus />
             {t("saveArticle")}
           </Button>
         ) : null}
         {highlights}
+        {share}
       </Floating>
     );
   }
   const archived = item.readingList?.state === "archived";
   return (
-    <Floating hidden={hidden} fab={share}>
-      {/* What moves it, in words: Archive (tonal, like Save: the next step) while to read, To read
-          (plain: it puts it back) once archived. */}
+    <Floating hidden={hidden}>
+      {/* What moves it: Archive in words while to read (the next step), the unarchive icon once archived. */}
       {archived ? (
-        <Button variant="ghost" className="min-w-0" onClick={() => app.archiveItem(item.key, false)}>
-          <BookOpen />
-          <span className="truncate">{t("toRead")}</span>
+        <Button variant="ghost" size="icon" aria-label={t("toRead")} title={t("toRead")} onClick={() => app.archiveItem(item.key, false)}>
+          <ArchiveRestore />
         </Button>
       ) : (
         <Button
-          variant="tonal"
+          variant="ghost"
           className="min-w-0"
           onClick={() => {
             app.archiveItem(item.key, true);
@@ -92,21 +85,24 @@ export function LibraryBar({
       <Button variant="ghost" size="icon" aria-pressed={item.liked} aria-label={t("like")} title={t("like")} onClick={() => app.likeItem(item.key, !item.liked)}>
         <Heart className={cn(item.liked && "fill-current")} />
       </Button>
+      <Button variant="ghost" size="icon" aria-label={t("tags")} title={t("tags")} onClick={() => app.openTopics(item.key)}>
+        <Tag />
+      </Button>
       {highlights}
+      {share}
     </Floating>
   );
 }
 
-/** The pill itself, with Share beside it: at the bottom in the middle of the reader, sliding down out of sight when [hidden]. */
-function Floating({ hidden, fab, children }: { hidden: boolean; fab?: React.ReactNode; children: React.ReactNode }) {
+/** The pill itself: at the bottom in the middle of the reader, sliding down out of sight when [hidden]. */
+function Floating({ hidden, children }: { hidden: boolean; children: React.ReactNode }) {
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-4 z-10 flex justify-center px-4">
       <div
         inert={hidden}
-        className={cn("flex min-w-0 items-center gap-2 transition duration-200 ease-out motion-reduce:transition-none", hidden && "translate-y-[calc(100%+1rem)] opacity-0")}
+        className={cn("pointer-events-auto flex min-w-0 items-center gap-1 rounded-full border bg-card p-2 shadow-lg transition duration-200 ease-out motion-reduce:transition-none", hidden && "translate-y-[calc(100%+1rem)] opacity-0")}
       >
-        <div className="pointer-events-auto flex min-w-0 items-center gap-1 rounded-full border bg-card p-2 shadow-lg">{children}</div>
-        {fab}
+        {children}
       </div>
     </div>
   );

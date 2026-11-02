@@ -15,14 +15,17 @@ import to.wim.content.data.ThemeMode
  * The settings in the sync file: names with text values (docs/sync.md). Each app reads the names it
  * knows and keeps the others as they are, so the web app's settings survive a sync by this app.
  *
- * The Android app's own settings go under "android." (the web app's under "web."), so they are the
- * same on every Android device and the web app's are the same in every browser, but the two never
- * mix (the owner's choice): a phone and a computer often want something different. That is how it
- * looks (theme, dynamic colour, the reader's font, size, spacing and page colour, Show images, the
- * list view) and what it does (Load full articles, Mark as read on scroll, Always open the website,
- * Hide articles with these words).
+ * How things look is the Android app's own, under "android." (the web app's under "web."): the
+ * same on every Android device, but never mixed with the web's, as a phone and a computer often
+ * want a different look (theme, dynamic colour, the reader's font, size, spacing and page colour,
+ * Show images, the list view).
  *
- * Shared by both apps: what was imported from each connected service (#145:
+ * What the app does is shared by both apps (the owner's choice, 2026-11-02), under "articles.":
+ * Load full articles, Mark as read on scroll, Always open the website and Hide articles with these
+ * words. Until a file has those, each is read from this app's own name of before ("android.…"),
+ * which is then dropped.
+ *
+ * Also shared: what was imported from each connected service (#145:
  * "services.<id>.imported"), the people shared with (#235: [RECIPIENTS]) and the Instapaper
  * sign-in ([INSTAPAPER_TOKEN]: connect once, on every device).
  *
@@ -41,12 +44,22 @@ object SyncSettings {
     const val READER_SPACING = PREFIX + "reader.spacing"
     const val READER_BACKGROUND = PREFIX + "reader.background"
     const val READER_AUTO_DARK = PREFIX + "reader.autoDark"
-    const val FULL_ARTICLES = PREFIX + "fullArticles"
     const val SHOW_IMAGES = PREFIX + "showImages"
-    const val MARK_READ_ON_SCROLL = PREFIX + "markReadOnScroll"
-    const val ALWAYS_OPEN_WEBSITE = PREFIX + "alwaysOpenWebsite"
     const val LIST_VIEW = PREFIX + "listView"
-    const val HIDDEN_WORDS = PREFIX + "hiddenWords"
+
+    /** The prefix of what the app does, shared with the web app. */
+    const val SHARED = "articles."
+    const val FULL_ARTICLES = SHARED + "fullArticles"
+    const val MARK_READ_ON_SCROLL = SHARED + "markReadOnScroll"
+    const val ALWAYS_OPEN_WEBSITE = SHARED + "alwaysOpenWebsite"
+    const val HIDDEN_WORDS = SHARED + "hiddenWords"
+
+    /** This app's own names for them before they were shared; read while the shared one is missing, never written. */
+    const val OWN_FULL_ARTICLES = PREFIX + "fullArticles"
+    const val OWN_MARK_READ_ON_SCROLL = PREFIX + "markReadOnScroll"
+    const val OWN_ALWAYS_OPEN_WEBSITE = PREFIX + "alwaysOpenWebsite"
+    const val OWN_HIDDEN_WORDS = PREFIX + "hiddenWords"
+    private val ownBefore = setOf(OWN_FULL_ARTICLES, OWN_MARK_READ_ON_SCROLL, OWN_ALWAYS_OPEN_WEBSITE, OWN_HIDDEN_WORDS)
 
     /** Load full articles and Mark as read on scroll were shared by both apps before; read once, never written. */
     const val LEGACY_FULL_ARTICLES = "fullArticles"
@@ -71,7 +84,8 @@ object SyncSettings {
 
     /** Names earlier versions wrote; dropped from the file when this device saves it. */
     private fun dropped(name: String) =
-        name.endsWith(".scope") || name.startsWith("services.raindrop.") || name == LEGACY_FULL_ARTICLES || name == LEGACY_MARK_READ_ON_SCROLL
+        name.endsWith(".scope") || name.startsWith("services.raindrop.") || name == LEGACY_FULL_ARTICLES || name == LEGACY_MARK_READ_ON_SCROLL ||
+            name in ownBefore
 
     /**
      * This device's synced settings, plus the names from [base] that this app doesn't know.
@@ -138,12 +152,12 @@ object SyncSettings {
                     background = enum(READER_BACKGROUND, ReaderBackground.entries, reader.background),
                     autoDark = bool(READER_AUTO_DARK, reader.autoDark),
                 ),
-            fullArticles = bool(FULL_ARTICLES, bool(LEGACY_FULL_ARTICLES, settings.fullArticles)),
+            fullArticles = bool(FULL_ARTICLES, bool(OWN_FULL_ARTICLES, bool(LEGACY_FULL_ARTICLES, settings.fullArticles))),
             showImages = bool(SHOW_IMAGES, settings.showImages),
-            markReadOnScroll = bool(MARK_READ_ON_SCROLL, bool(LEGACY_MARK_READ_ON_SCROLL, settings.markReadOnScroll)),
-            alwaysOpenWebsite = bool(ALWAYS_OPEN_WEBSITE, settings.alwaysOpenWebsite),
+            markReadOnScroll = bool(MARK_READ_ON_SCROLL, bool(OWN_MARK_READ_ON_SCROLL, bool(LEGACY_MARK_READ_ON_SCROLL, settings.markReadOnScroll))),
+            alwaysOpenWebsite = bool(ALWAYS_OPEN_WEBSITE, bool(OWN_ALWAYS_OPEN_WEBSITE, settings.alwaysOpenWebsite)),
             listView = enum(LIST_VIEW, ListView.entries, settings.listView),
-            hiddenWords = values[HIDDEN_WORDS] ?: settings.hiddenWords,
+            hiddenWords = values[HIDDEN_WORDS] ?: values[OWN_HIDDEN_WORDS] ?: settings.hiddenWords,
             imports = settings.imports + imports,
             recipients = Recipients.decode(values[RECIPIENTS]) ?: settings.recipients,
         )

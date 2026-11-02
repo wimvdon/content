@@ -31,8 +31,10 @@ class ShareRecipients(
     val emails: List<String> = emptyList(),
     val showImages: Boolean = false,
     val nameOf: suspend (String) -> String? = { null },
-    /** Forgets someone: no longer offered (long-press a person, then ×). */
+    /** Forgets someone: no longer offered (Edit people, then the trash can). */
     val forget: suspend (String) -> Unit = {},
+    /** Remembers someone added in Edit people, first in the list (on every device). */
+    val add: suspend (String) -> Unit = {},
 )
 
 /** The recipients for Send with Content, which opens over the app (SaveFromTabActivity) and from Manage tags. */
@@ -49,7 +51,7 @@ fun ProvideShareRecipients(content: @Composable () -> Unit) {
     val settings by app.settings.settings.collectAsStateWithLifecycle()
     val emails = settings?.recipients.orEmpty()
     val showImages = settings?.showImages ?: false
-    val recipients = remember(emails, showImages) { ShareRecipients(emails, showImages, app.sync::profileName, app.settings::forgetRecipient) }
+    val recipients = remember(emails, showImages) { ShareRecipients(emails, showImages, app.sync::profileName, app.settings::forgetRecipient, app.settings::rememberRecipient) }
     CompositionLocalProvider(LocalShareRecipients provides recipients, content)
 }
 

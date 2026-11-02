@@ -57,6 +57,12 @@ Secrets, keystores (`*.jks`, `*.keystore`), `keystore.properties`, passwords or 
 - Versions are automatic (git tags / release workflow). Don't edit `versionName`/`versionCode`.
 
 ## Web app and feed loader
+- **Feature parity: the phone and the web app do the same things.** Every new feature or behaviour
+  change goes into both apps in the same pull request, each in its own design system (Material 3
+  on Android, the web's own parts). Never build something for one app only. The only exceptions are
+  things one platform can't do (Android's share menu, Direct Share, the browser's keyboard
+  shortcuts); name the exception in the pull request and in `docs/decisions.md`. If an existing
+  feature turns out to be missing in one app, say so and add it.
 - `web/` is the web app (React, TypeScript, Vite, Tailwind, shadcn-style parts in
   `src/components/ui/`), `worker/` the Cloudflare Worker that loads feeds for it. The Android
   rules above apply in spirit: logic in `web/src/lib/` with Vitest tests, all text in
@@ -64,6 +70,11 @@ Secrets, keystores (`*.jks`, `*.keystore`), `keystore.properties`, passwords or 
   asking. The sync file format is shared with Android (`docs/sync.md`): change both together.
 - Before finishing a change there, run in that folder: `npm ci`, `npm test`, `npm run build`
   (web, also `npm run lint`) or `npm run typecheck` (worker).
+
+## Design
+- For any UI work (new screens, changes, reviews), use the `material-design-3-ui` skill in
+  `.claude/skills/` together with `DESIGN.md`; where they differ, `DESIGN.md` (the owner's
+  choices) wins.
 
 ## Keep docs in sync
 - Behaviour change → update `docs/` and, if it touches data or permissions, `PRIVACY.md`.

@@ -17,12 +17,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,12 +45,12 @@ import to.wim.content.ui.ExternalApps
 
 /**
  * Content's own share sheet (#251), in place of Android's: first Send with Content, the same as in
- * the Save and share sheet ([SendToSection], #256: the people shared with before as chips to pick,
- * Add address for someone new, then Send to everyone picked); then the apps used most from this sheet
+ * the Save and share sheet ([SendToSection], #256: the people as chips to pick, as tags, with Edit
+ * people to add or forget someone, then Send to everyone picked); then the apps used most from this sheet
  * (Android doesn't tell apps which ones you use elsewhere), Copy link, and More for Android's own
  * share sheet with every app.
  */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ShareSheet(
     title: String,
@@ -72,7 +69,8 @@ fun ShareSheet(
     onDismiss: () -> Unit,
 ) {
     var picked by remember { mutableStateOf(listOf<String>()) }
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+    // ContentSheet, as every sheet: Edit people opens as a page of it, with a back arrow.
+    ContentSheet(onDismiss = onDismiss) {
         Column(
             Modifier
                 .verticalScroll(rememberScrollState())

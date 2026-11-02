@@ -2,6 +2,66 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-02: What the app does syncs between the phone and the web; how it looks doesn't
+
+Owner's choice, reversing part of the earlier "the two never mix" rule. Only how things look stays
+per app (`android.` / `web.`): theme, dynamic colour, the list view, the reader's font, size,
+spacing, page colour and Auto dark, and Show images (a phone on mobile data may want it off, so it
+counts with the look). What the app does is shared under `articles.`: Load full articles, Mark as
+read on scroll, Always open the website and Hide articles with words. Each app reads its own name of
+before while the shared one is missing, so nobody loses a setting, and drops it when it saves.
+Always open the website was Android only; the web app has it now (feature parity): a feed article
+clicked in a list opens on its website in a new tab, marked read; saved ones and j/k keep the reader.
+
+## 2026-11-02: A Material 3 skill; Send with Content's people as chips, as tags
+
+Owner's request. The `material-design-3-ui` skill (github.com/skydashnet/material-design-3-ui-skill,
+MIT, Markdown only: guidance, no code) is installed in the repository at
+`.claude/skills/material-design-3-ui/`, copied unchanged, so every session has it for UI work.
+
+The share sheet's Send with Content was reviewed against it, then redesigned (owner's idea): the
+email-style To field (a box with "To", input chips, a typing field and suggestions under it) is
+gone. The people are filter chips, the same as tags, and **Edit people** opens a **People** page of
+the sheet, as Edit tags opens Manage tags: the list with a trash can each, and an address field with
+**Add** (checked for a Content account; the person is picked at once). Why: there are at most 12
+people (`Recipients.MAX`), so chips show them all and nothing needs typing to find someone; picking
+is one tap; adding and forgetting, which are rare, move out of the way; and the sheet looks like the
+save sheet's tags. It also removes what the review found in the To field (no focus state on
+Android, a tap on a chip removing the person, forgetting only by a hidden long press). Asked
+whether the To field should be rounded: Material 3's text fields keep small (4dp) corners; fully
+round is for search bars and chips, so the address field on the People page stays standard.
+
+## 2026-11-02: Hide articles with words previews what it hides
+
+Owner's request. While typing in the dialog it shows how many of the feed articles on the device
+the words would hide, and the newest five (title and feed), updated with every key; nothing is
+hidden until Save. Only the articles already on the device are checked: nothing is downloaded.
+
+The web app didn't have Hide articles with words at all; it has it now (`web/src/lib/articleFilter.ts`,
+the same matching, tested), with the same preview, synced as `web.hiddenWords` like its other list
+settings. And a rule in `CLAUDE.md` (owner's request): **feature parity**, every feature in both
+apps in the same pull request, each in its own design system; only what one platform can't do is
+left out, and that is named.
+
+## 2026-11-02: The reader's toolbar without fills; Search's feeds as a second chip row
+
+Owner's request. Phone and web.
+- **No button in the reader's toolbar has a fill.** The next step stands out by its words instead:
+  **Save** (not saved yet) and **Archive** (to read) are an icon with text; everything else is an
+  icon. Saved: Archive, Like, Tags, Share; archived: the unarchive icon (To read), Like, Tags,
+  Share. **Share is back in the pill** as its last icon, not a round button beside it.
+- **Tags moved from under the title to the toolbar** (an icon that opens the Tags sheet). Under the
+  title stay + Note, the note itself and the highlights' count.
+- **The ⋮ menu follows the save at once** (`ReaderMenu`, web `readerMenu`): a feed article saved in
+  the reader shows a saved article's menu (no Mark as unread or text switch; Remove from Saved),
+  without going back and opening it again.
+- **A note can be removed:** the Note sheet has the trash can at the top right, asking first, as
+  Edit feed and the tag sheet have it.
+- **Search: Feeds is a toggle, and its feeds a second row of chips** instead of a menu with check
+  boxes. Rejected keeping the menu: it hid which feeds were picked behind a count, needed three
+  kinds of controls (radio, check boxes, Clear), and chips are what Feeds and Saved use already.
+  The second row only shows while Feeds is on, so the screen stays as it was otherwise.
+
 ## 2026-11-01: Material 3 fine-tuning pass (owner's request)
 
 The screens were reviewed against a Material 3 checklist (component by purpose, emphasis per

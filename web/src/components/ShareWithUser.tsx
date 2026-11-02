@@ -1,13 +1,15 @@
-import { Check, Plus, Trash2, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { gravatarUrl } from "@/lib/account";
 import { app, useApp } from "@/lib/app";
 import { plural, t } from "@/lib/i18n";
-import { has, newAddress, outcomeOf, problemKey, suggestions, type ShareStatus } from "@/lib/sendTo";
+import { has, isEmail, outcomeOf, people, problemKey, toggle, type ShareStatus } from "@/lib/sendTo";
 import type { SharedArticle } from "@/lib/sharing";
 import { Button } from "./ui/button";
 import { Dialog } from "./ui/dialog";
 import { cn } from "./ui/cn";
+import { Input } from "./ui/input";
+import { action, chip, chipOn } from "./TopicChips";
 
 
 /**
@@ -116,10 +118,7 @@ export function Avatar({ email, label, images, className = "size-6" }: { email: 
   );
 }
 
-/** How long a press lasts before it is a hold (as Android's long-press). */
-const HOLD_MS = 500;
-
-/** A Gravatar name for each address, loaded once per address, so typing a name finds its person. */
+/** A Gravatar name for each address, loaded once per address. */
 function useNames(emails: string[]): Record<string, string | null> {
   const [names, setNames] = useState<Record<string, string | null>>({});
   // One string, so the effect runs again only when the list of addresses changes.
@@ -137,148 +136,150 @@ function useNames(emails: string[]): Record<string, string | null> {
 }
 
 /**
- * Send with Content (#256, #284), laid out like an email's To field, as on Android: the people picked as
- * chips in a To box (× takes one out), with a field after them for a name or address. Under it,
- * suggestions: people shared with before who aren't picked, filtered by what is typed; click one to add
- * them. A whole new address typed in gives "Add …", checked for a Content account first. Hold a
- * suggestion (or right-click it) to tidy the list: each gets a trash button that forgets them on every
- * device; Done ends it. Sending is the sheet's button.
+ * Send with Content (#256), the same way as tags, as on Android (2026-11-02, instead of an
+ * email-style To field): the people shared with before as filter chips with their Gravatar picture
+ * and name; click one or more to pick them. **Edit people** after the chips (as Edit tags) opens the
+ * People page of the same dialog: add someone by their address (checked for a Content account first;
+ * they are picked at once) or forget someone. Sending is the dialog's button.
  */
 export function SendToSection({ picked, onChange }: { picked: string[]; onChange: (picked: string[]) => void }) {
   const { settings } = useApp();
-  const [query, setQuery] = useState("");
-  const [editing, setEditing] = useState(false);
-  const [checking, setChecking] = useState(false);
-  const [problem, setProblem] = useState<string | null>(null);
-  const names = useNames([...settings.recipients, ...picked]);
-  const shown = suggestions(settings.recipients, picked, query, (e) => names[e]);
-  const typed = newAddress(settings.recipients, picked, query);
-  const hold = useRef<{ timer: number; held: boolean } | null>(null);
-  const add = (email: string) => {
-    onChange(has(picked, email) ? picked : [...picked, email]);
-    setQuery("");
-    setProblem(null);
-  };
-  // Someone new is checked for a Content account before they join the To field.
-  const addNew = (email: string) => {
-    if (checking) return;
-    setChecking(true);
-    void app.hasAccount(email).then((found) => {
-      setChecking(false);
-      if (found === true) add(email);
-      else setProblem(found === false ? "noAccount" : "offline");
-    });
-  };
-  const endHold = () => {
-    if (hold.current) window.clearTimeout(hold.current.timer);
-  };
+  const [managing, setManaging] = useState(false);
+  // Someone picked who isn't in the list still shows, after the others.
+  const shown = people(settings.recipients, picked);
+  const names = useNames(shown);
   return (
-    <div className="space-y-1">
-      <label className={cn("flex min-h-10 flex-wrap items-center gap-1.5 rounded-md border px-3 py-1.5 focus-within:ring-2 focus-within:ring-ring", problem ? "border-destructive" : "")}>
-        <span className="text-sm text-muted-foreground">{t("shareTo")}</span>
-        {picked.map((email) => {
-          const label = names[email] ?? email;
-          return (
-            <span key={email.toLowerCase()} title={email} className="inline-flex h-7 max-w-full items-center gap-1.5 rounded-full bg-accent pr-1 pl-0.5 text-sm text-accent-foreground">
-              <Avatar email={email} label={label} images={settings.showImages} />
-              <span className="truncate">{label}</span>
-              <button
-                type="button"
-                aria-label={t("shareRecipientRemove").replace("{name}", label)}
-                onClick={() => onChange(picked.filter((e) => e.toLowerCase() !== email.toLowerCase()))}
-                className="cursor-pointer rounded-full p-0.5 hover:bg-background/60"
-              >
-                <X className="size-3.5" aria-hidden="true" />
-              </button>
-            </span>
-          );
-        })}
-        <input
-          type="email"
-          autoComplete="email"
-          aria-label={t("shareToHint")}
-          placeholder={t("shareToHint")}
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            setProblem(null);
-          }}
-          onKeyDown={(e) => {
-            // Enter adds what was typed: a whole new address, or the one suggestion it matches.
-            if (e.key !== "Enter") return;
-            e.preventDefault();
-            if (typed) addNew(typed);
-            else if (query.trim() && shown.length === 1) add(shown[0]);
-          }}
-          className="min-w-40 flex-1 bg-transparent py-1 text-sm outline-none"
-        />
-      </label>
-      {problem ? (
-        <p role="alert" className="text-sm text-destructive">
-          {t(problemKey(problem))}
-        </p>
-      ) : null}
-      {typed ? (
-        <button type="button" onClick={() => addNew(typed)} className="flex w-full cursor-pointer items-center gap-3 rounded-md px-2 py-2 text-left text-sm hover:bg-muted">
-          <Plus className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
-          <span className="truncate">{t("shareAddPerson").replace("{email}", typed)}</span>
-        </button>
-      ) : null}
+    <div className="flex flex-wrap items-center gap-2">
       {shown.map((email) => {
-        const name = names[email] ?? null;
-        const label = name ?? email;
-        const forgetLabel = t("recipientForget").replace("{name}", label);
+        const label = names[email] ?? email;
+        const on = has(picked, email);
         return (
-          <div key={email} className="flex items-center gap-1 rounded-md hover:bg-muted">
-            <button
-              type="button"
-              title={email}
-              onClick={() => {
-                if (hold.current?.held) {
-                  hold.current = null;
-                  return;
-                }
-                if (!editing) add(email);
-              }}
-              onPointerDown={() => {
-                if (editing) return;
-                const state = { held: false, timer: 0 };
-                state.timer = window.setTimeout(() => {
-                  state.held = true;
-                  setEditing(true);
-                }, HOLD_MS);
-                hold.current = state;
-              }}
-              onPointerUp={endHold}
-              onPointerLeave={endHold}
-              onContextMenu={(e) => {
-                e.preventDefault();
-                setEditing(true);
-              }}
-              className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 px-2 py-1.5 text-left text-sm select-none"
-            >
-              <Avatar email={email} label={label} images={settings.showImages} className="size-8" />
-              <span className="min-w-0">
-                <span className="block truncate">{label}</span>
-                {name ? <span className="block truncate text-xs text-muted-foreground">{email}</span> : null}
-              </span>
-            </button>
-            {editing ? (
-              <button type="button" aria-label={forgetLabel} title={forgetLabel} onClick={() => app.forgetRecipient(email)} className="cursor-pointer rounded-md p-2 text-muted-foreground hover:text-destructive">
-                <Trash2 className="size-4" aria-hidden="true" />
-              </button>
-            ) : null}
-          </div>
+          <button key={email.toLowerCase()} type="button" aria-pressed={on} title={email} onClick={() => onChange(toggle(picked, email))} className={cn(chip, "max-w-full pl-1", on ? chipOn : "hover:bg-muted")}>
+            <Avatar email={email} label={label} images={settings.showImages} />
+            <span className="truncate">{label}</span>
+          </button>
         );
       })}
-      {editing ? (
-        <div className="flex justify-end">
-          <Button variant="ghost" size="sm" onClick={() => setEditing(false)}>
-            <Check className="size-4" aria-hidden="true" />
-            {t("recipientsDone")}
-          </Button>
-        </div>
+      {shown.length === 0 ? (
+        // Nobody yet: adding someone is the first step, so it stands out (tonal, as New tag).
+        <Button variant="tonal" onClick={() => setManaging(true)}>
+          <Plus />
+          {t("peopleAdd")}
+        </Button>
+      ) : (
+        <button type="button" onClick={() => setManaging(true)} className={action}>
+          <Pencil className="size-4" aria-hidden="true" />
+          {t("peopleEdit")}
+        </button>
+      )}
+      {managing ? (
+        <ManagePeopleDialog
+          onAdded={(email) => !has(picked, email) && onChange([...picked, email])}
+          onForgot={(email) => onChange(picked.filter((e) => e.toLowerCase() !== email.toLowerCase()))}
+          onClose={() => setManaging(false)}
+        />
       ) : null}
     </div>
+  );
+}
+
+/**
+ * Edit people, as Manage tags: the people you can send to, each with their picture, name and address
+ * and a trash can that forgets them (on every device); under them an address field and **Add**,
+ * which checks for a Content account first. Opened from a dialog it is a page of it, with a back arrow.
+ */
+export function ManagePeopleDialog({ onAdded, onForgot, onClose }: { onAdded: (email: string) => void; onForgot: (email: string) => void; onClose: () => void }) {
+  const { settings } = useApp();
+  const names = useNames(settings.recipients);
+  const [address, setAddress] = useState("");
+  const [checking, setChecking] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
+  const typed = address.trim();
+  const canAdd = isEmail(typed) && !checking;
+  const add = () => {
+    if (!canAdd) return;
+    const known = settings.recipients.find((e) => e.toLowerCase() === typed.toLowerCase());
+    if (known) {
+      onAdded(known);
+      setAddress("");
+      return;
+    }
+    setChecking(true);
+    setProblem(null);
+    void app.hasAccount(typed).then((found) => {
+      setChecking(false);
+      if (found === true) {
+        app.addRecipient(typed);
+        onAdded(typed.toLowerCase());
+        setAddress("");
+      } else setProblem(found === false ? "noAccount" : "offline");
+    });
+  };
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()} title={t("peopleTitle")} closeLabel={t("close")}>
+      <div className="space-y-3">
+        {settings.recipients.length === 0 ? <p className="text-sm text-muted-foreground">{t("peopleNone")}</p> : null}
+        <ul className="space-y-1">
+          {settings.recipients.map((email) => {
+            const name = names[email] ?? null;
+            const label = name ?? email;
+            const forgetLabel = t("recipientForget").replace("{name}", label);
+            return (
+              <li key={email} className="flex items-center gap-3 rounded-md px-2 py-1.5">
+                <Avatar email={email} label={label} images={settings.showImages} className="size-8" />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm">{label}</span>
+                  {name ? <span className="block truncate text-xs text-muted-foreground">{email}</span> : null}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label={forgetLabel}
+                  title={forgetLabel}
+                  onClick={() => {
+                    app.forgetRecipient(email);
+                    onForgot(email);
+                  }}
+                >
+                  <Trash2 />
+                </Button>
+              </li>
+            );
+          })}
+        </ul>
+        <div className="flex items-start gap-2">
+          <div className="min-w-0 flex-1 space-y-1">
+            <Input
+              type="email"
+              autoComplete="email"
+              value={address}
+              onChange={(e) => {
+                setAddress(e.target.value);
+                setProblem(null);
+              }}
+              onKeyDown={(e) => {
+                if (e.key !== "Enter") return;
+                e.preventDefault();
+                add();
+              }}
+              placeholder={t("peopleAddress")}
+              aria-label={t("peopleAddress")}
+              aria-invalid={problem !== null}
+              className={cn(problem && "border-destructive")}
+            />
+            {problem ? (
+              <p role="alert" className="text-sm text-destructive">
+                {t(problemKey(problem))}
+              </p>
+            ) : null}
+          </div>
+          {/* The page's action, tonal as New tag in Manage tags. */}
+          <Button variant="tonal" onClick={add} disabled={!canAdd}>
+            {checking ? <Loader2 className="animate-spin" /> : <Plus />}
+            {t("peopleAddAction")}
+          </Button>
+        </div>
+      </div>
+    </Dialog>
   );
 }

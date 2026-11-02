@@ -1,5 +1,6 @@
 import { Bell, BookOpen, Heart, Rss, Settings as SettingsIcon } from "lucide-react";
 import { app, useApp } from "@/lib/app";
+import { useListedLibrary } from "./useListed";
 import { t } from "@/lib/i18n";
 import { choosesFolder, unreadByFeed } from "@/lib/library";
 import { inboxUnread } from "@/lib/inbox";
@@ -25,7 +26,9 @@ import { FeedViewSwitch, SavedViewSwitch } from "./ViewSwitch";
  * bottom and the chips do this.
  */
 export function Sidebar({ onSettings }: { onSettings: () => void }) {
-  const { library, selection, savedFilter, inboxOpen, account } = useApp();
+  const { selection, savedFilter, inboxOpen, account } = useApp();
+  // Counts and chips without the articles the hidden words leave out.
+  const library = useListedLibrary();
   const counts = unreadByFeed(library);
   const total = library.feeds.reduce((n, f) => n + (counts.get(f.url) ?? 0), 0);
   const inSaved = !inboxOpen && selection.kind === "saved";

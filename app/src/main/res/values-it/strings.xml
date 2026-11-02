@@ -83,12 +83,13 @@
     <string name="share_user_send">Invia</string>
     <string name="share_user_sent">Inviato a %1$s</string>
     <string name="action_save_and_send">Salva e invia</string>
-    <string name="share_recipients_done">Fatto</string>
-    <string name="share_to">A</string>
-    <string name="share_to_hint">Nome o indirizzo email</string>
-    <string name="share_add_person">Aggiungi %1$s</string>
-    <string name="share_recipient_remove">Non inviare a %1$s</string>
-    <string name="share_recipient_forget">Rimuovi %1$s dai suggerimenti</string>
+    <string name="share_people_edit">Modifica persone</string>
+    <string name="share_people_add">Aggiungi qualcuno</string>
+    <string name="share_people_title">Persone</string>
+    <string name="share_people_address">Indirizzo email</string>
+    <string name="share_people_add_action">Aggiungi</string>
+    <string name="share_people_none">Le persone aggiunte qui si possono scegliere quando condividi. Serve loro un account Content.</string>
+    <string name="share_recipient_forget">Rimuovi %1$s</string>
     <plurals name="share_sent_people">
         <item quantity="one">Inviato a %1$d persona</item>
         <item quantity="many">Inviato a %1$d persone</item>
@@ -166,6 +167,12 @@
     <string name="setting_hidden_words_none">Nessuna</string>
     <string name="setting_hidden_words_label">Parole</string>
     <string name="setting_hidden_words_hint">Separa le parole con virgole o a capo. Gli articoli dei feed il cui titolo contiene una di esse come parola intera vengono nascosti, maiuscole o no.</string>
+    <string name="setting_hidden_words_preview_none">Nessun articolo recente verrebbe nascosto.</string>
+    <plurals name="setting_hidden_words_preview">
+        <item quantity="one">%d articolo recente verrebbe nascosto:</item>
+        <item quantity="many">%d articoli recenti verrebbero nascosti:</item>
+        <item quantity="other">%d articoli recenti verrebbero nascosti:</item>
+    </plurals>
     <string name="action_mark_read">Segna come letto</string>
     <string name="section_list">Elenco articoli</string>
     <string name="setting_list_view">Vista</string>
@@ -253,6 +260,8 @@
     <string name="add_link_address">Indirizzo web</string>
     <string name="add_link_invalid">Non è un indirizzo web.</string>
     <string name="note_title">Nota</string>
+    <string name="note_remove_title">Rimuovere la nota?</string>
+    <string name="note_remove_body">La nota di questo articolo verrà rimossa.</string>
     <string name="duration_hours">%1$d h %2$d min</string>
     <string name="duration_minutes">%d min</string>
     <string name="reading_list_to_read">Da leggere</string>
@@ -323,7 +332,6 @@
     <string name="welcome_import">Importa da un altro lettore</string>
     <string name="topic_in_feeds">Feed · %1$s</string>
     <string name="topic_in_saved">Salvati · %1$s</string>
-    <string name="search_all_feeds">Tutti i feed</string>
     <string name="add_title">Aggiungi</string>
     <string name="add_choice_feed">Iscriviti a un feed</string>
     <string name="add_choice_feed_body">Iscriviti a un feed RSS inserendo l’indirizzo della pubblicazione</string>

@@ -43,6 +43,12 @@ import androidx.compose.material3.OutlinedButton
 import to.wim.content.ui.feeds.ImportGuides
 import to.wim.content.ui.home.rememberFolderIconPainter
 import to.wim.content.data.Feed
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import to.wim.content.data.Article
 import to.wim.content.data.Folder
 import androidx.compose.foundation.layout.size
 import androidx.compose.ui.Alignment
@@ -84,6 +90,8 @@ data class SettingsState(
     /** The feeds and topics, for how many the Manage feeds and Manage topics buttons say. */
     val feeds: List<Feed> = emptyList(),
     val topics: List<Folder> = emptyList(),
+    /** The feed articles on the device: Hide articles with words previews what it would hide. */
+    val articles: List<Article> = emptyList(),
 )
 
 /** Settings' pages: the main page lists them, each opens its own (Settings › Account and so on). */
@@ -279,7 +287,7 @@ fun SettingsPageScreen(
                 }
             }
             SettingsPage.Theme -> item(key = "appearance") { AppearanceRows(state.settings, actions) }
-            SettingsPage.List -> item(key = "list") { ListRows(state.settings, actions) }
+            SettingsPage.List -> item(key = "list") { ListRows(state, actions) }
             SettingsPage.Reader -> {
                 item(key = "reader") { ReaderRows(state.settings, actions) }
                 // Sites you pay for belong to reading: they decide which articles load in full (#180).
@@ -315,9 +323,10 @@ private fun SiteSignInsSection(
 /** Settings › Article list: how the list looks and behaves. */
 @Composable
 private fun ListRows(
-    settings: Settings,
+    state: SettingsState,
     actions: SettingsActions,
 ) {
+    val settings = state.settings
     Column {
         SettingsBlock {
         Text(stringResource(R.string.setting_list_view), style = MaterialTheme.typography.bodyLarge)
@@ -338,14 +347,19 @@ private fun ListRows(
             checked = settings.markReadOnScroll,
             onCheckedChange = actions.onMarkReadOnScrollChange,
         )
-        HiddenWordsSetting(settings.hiddenWords, actions.onHiddenWordsChange)
+        HiddenWordsSetting(settings.hiddenWords, state.articles, state.feeds, actions.onHiddenWordsChange)
     }
 }
 
-/** Hide articles with words (#277): the words in the summary; a dialog to change them. */
+/**
+ * Hide articles with words (#277): the words in the summary; a dialog to change them, which shows
+ * while typing how many recent articles they would hide and the newest of them (2026-11-02).
+ */
 @Composable
 private fun HiddenWordsSetting(
     text: String,
+    articles: List<Article>,
+    feeds: List<Feed>,
     onChange: (String) -> Unit,
 ) {
     var editing by rememberSaveable { mutableStateOf(false) }
@@ -361,7 +375,8 @@ private fun HiddenWordsSetting(
             onDismissRequest = { editing = false },
             title = { Text(stringResource(R.string.setting_hidden_words_title)) },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                val preview = remember(draft, articles) { ArticleFilter.parse(draft).preview(articles) }
+                Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
                         value = draft,
                         onValueChange = { draft = it },
@@ -375,6 +390,7 @@ private fun HiddenWordsSetting(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                    if (ArticleFilter.words(draft).isNotEmpty()) HiddenPreview(preview, feeds)
                 }
             },
             confirmButton = {
@@ -385,6 +401,32 @@ private fun HiddenWordsSetting(
             },
             dismissButton = { TextButton(onClick = { editing = false }) { Text(stringResource(R.string.action_cancel)) } },
         )
+    }
+}
+
+/** How many recent articles the words would hide, then the newest of them: title and feed. */
+@Composable
+private fun HiddenPreview(
+    preview: ArticleFilter.Preview,
+    feeds: List<Feed>,
+) {
+    Column(Modifier.padding(top = 8.dp).semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite }, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            if (preview.count == 0) {
+                stringResource(R.string.setting_hidden_words_preview_none)
+            } else {
+                pluralStringResource(R.plurals.setting_hidden_words_preview, preview.count, preview.count)
+            },
+            style = MaterialTheme.typography.titleSmall,
+        )
+        preview.newest.forEach { article ->
+            Column {
+                Text(article.title, style = MaterialTheme.typography.bodyMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                feeds.firstOrNull { it.url == article.feedUrl }?.let { feed ->
+                    Text(feed.title, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+            }
+        }
     }
 }
 

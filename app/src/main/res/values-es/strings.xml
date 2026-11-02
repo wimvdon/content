@@ -83,12 +83,13 @@
     <string name="share_user_send">Enviar</string>
     <string name="share_user_sent">Enviado a %1$s</string>
     <string name="action_save_and_send">Guardar y enviar</string>
-    <string name="share_recipients_done">Listo</string>
-    <string name="share_to">Para</string>
-    <string name="share_to_hint">Nombre o dirección de correo</string>
-    <string name="share_add_person">Añadir %1$s</string>
-    <string name="share_recipient_remove">No enviar a %1$s</string>
-    <string name="share_recipient_forget">Quitar a %1$s de las sugerencias</string>
+    <string name="share_people_edit">Editar personas</string>
+    <string name="share_people_add">Añadir a alguien</string>
+    <string name="share_people_title">Personas</string>
+    <string name="share_people_address">Correo electrónico</string>
+    <string name="share_people_add_action">Añadir</string>
+    <string name="share_people_none">Las personas que añadas aquí se pueden elegir al compartir. Necesitan una cuenta de Content.</string>
+    <string name="share_recipient_forget">Quitar a %1$s</string>
     <plurals name="share_sent_people">
         <item quantity="one">Enviado a %1$d persona</item>
         <item quantity="many">Enviado a %1$d personas</item>
@@ -166,6 +167,12 @@
     <string name="setting_hidden_words_none">Ninguna</string>
     <string name="setting_hidden_words_label">Palabras</string>
     <string name="setting_hidden_words_hint">Separa las palabras con comas o saltos de línea. Se ocultan los artículos de los feeds cuyo título contenga una de ellas como palabra completa, sin importar mayúsculas.</string>
+    <string name="setting_hidden_words_preview_none">No se ocultaría ningún artículo reciente.</string>
+    <plurals name="setting_hidden_words_preview">
+        <item quantity="one">Se ocultaría %d artículo reciente:</item>
+        <item quantity="many">Se ocultarían %d artículos recientes:</item>
+        <item quantity="other">Se ocultarían %d artículos recientes:</item>
+    </plurals>
     <string name="action_mark_read">Marcar como leído</string>
     <string name="section_list">Lista de artículos</string>
     <string name="setting_list_view">Vista</string>
@@ -253,6 +260,8 @@
     <string name="add_link_address">Dirección web</string>
     <string name="add_link_invalid">No es una dirección web.</string>
     <string name="note_title">Nota</string>
+    <string name="note_remove_title">¿Quitar la nota?</string>
+    <string name="note_remove_body">Se quitará la nota de este artículo.</string>
     <string name="duration_hours">%1$d h %2$d min</string>
     <string name="duration_minutes">%d min</string>
     <string name="reading_list_to_read">Por leer</string>
@@ -323,7 +332,6 @@
     <string name="welcome_import">Importar desde otro lector</string>
     <string name="topic_in_feeds">Feeds · %1$s</string>
     <string name="topic_in_saved">Guardados · %1$s</string>
-    <string name="search_all_feeds">Todos los feeds</string>
     <string name="add_title">Añadir</string>
     <string name="add_choice_feed">Suscribirse a un feed</string>
     <string name="add_choice_feed_body">Suscríbete a un feed RSS escribiendo la dirección de la publicación</string>

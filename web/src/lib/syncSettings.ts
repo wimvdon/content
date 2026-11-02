@@ -7,13 +7,16 @@ import { decodeImport, encodeImport, type ServiceImport } from "./serviceImport"
  * The settings in the sync file: names with text values (docs/sync.md). The web app reads the names
  * it knows and keeps the others as they are, so the Android app's settings survive a sync from the web.
  *
- * The web app's own settings go under "web." (the Android app's under "android."), so they are the
- * same in every browser and the Android app's are the same on every phone, but the two never mix
- * (the owner's choice): a computer and a phone often want something different. That is how it
- * looks (the theme, the reader's font, size, spacing and page colour, Show images, the list view)
- * and what it does (Load full articles, Mark as read on scroll).
+ * How things look is the web app's own, under "web." (the Android app's under "android."): the same
+ * in every browser, never mixed with the phone's (the theme, the reader's font, size, spacing and
+ * page colour, Show images, the list view).
  *
- * Shared by both apps: what was imported from each connected service (#145), the people shared with
+ * What the app does is shared with the Android app (the owner's choice, 2026-11-02), under
+ * "articles.": Load full articles, Mark as read on scroll, Always open the website and Hide articles
+ * with words. Until a file has those, each is read from the web's own name of before ("web.…"),
+ * which is then dropped.
+ *
+ * Also shared by both apps: what was imported from each connected service (#145), the people shared with
  * (#235) and the Instapaper sign-in (INSTAPAPER_TOKEN, sharedInstapaper.ts: connect once, on every
  * device). Not synced: Unread | All (it is where you are in the list, not a setting).
  */
@@ -25,10 +28,21 @@ export const READER_TEXT_SIZE = `${PREFIX}reader.textSize`;
 export const READER_SPACING = `${PREFIX}reader.spacing`;
 export const READER_BACKGROUND = `${PREFIX}reader.background`;
 export const READER_AUTO_DARK = `${PREFIX}reader.autoDark`;
-export const FULL_ARTICLES = `${PREFIX}fullArticles`;
 export const SHOW_IMAGES = `${PREFIX}showImages`;
-export const MARK_READ_ON_SCROLL = `${PREFIX}markReadOnScroll`;
 export const LIST_VIEW = `${PREFIX}listView`;
+
+/** What the app does, shared with the Android app. */
+export const SHARED = "articles.";
+export const FULL_ARTICLES = `${SHARED}fullArticles`;
+export const MARK_READ_ON_SCROLL = `${SHARED}markReadOnScroll`;
+export const ALWAYS_OPEN_WEBSITE = `${SHARED}alwaysOpenWebsite`;
+export const HIDDEN_WORDS = `${SHARED}hiddenWords`;
+
+/** The web's own names for them before they were shared: read while the shared one is missing, never written. */
+export const OWN_FULL_ARTICLES = `${PREFIX}fullArticles`;
+export const OWN_MARK_READ_ON_SCROLL = `${PREFIX}markReadOnScroll`;
+export const OWN_HIDDEN_WORDS = `${PREFIX}hiddenWords`;
+const OWN_BEFORE = new Set([OWN_FULL_ARTICLES, OWN_MARK_READ_ON_SCROLL, OWN_HIDDEN_WORDS]);
 
 /** Load full articles and Mark as read on scroll were shared by both apps before; read once, never written. */
 export const LEGACY_FULL_ARTICLES = "fullArticles";
@@ -44,11 +58,11 @@ export const INSTAPAPER_TOKEN = "services.instapaper.token";
 export const SERVICES = ["instapaper"];
 export const importName = (service: string) => `services.${service}.imported`;
 
-const KNOWN = new Set([THEME, READER_FONT, READER_TEXT_SIZE, READER_SPACING, READER_BACKGROUND, READER_AUTO_DARK, FULL_ARTICLES, SHOW_IMAGES, MARK_READ_ON_SCROLL, LIST_VIEW, RECIPIENTS]);
+const KNOWN = new Set([THEME, READER_FONT, READER_TEXT_SIZE, READER_SPACING, READER_BACKGROUND, READER_AUTO_DARK, FULL_ARTICLES, SHOW_IMAGES, MARK_READ_ON_SCROLL, ALWAYS_OPEN_WEBSITE, LIST_VIEW, HIDDEN_WORDS, RECIPIENTS]);
 
 /** Names earlier versions wrote; dropped from the file when this browser saves it. */
 const dropped = (name: string) =>
-  name.endsWith(".scope") || name.startsWith("services.raindrop.") || name === LEGACY_FULL_ARTICLES || name === LEGACY_MARK_READ_ON_SCROLL;
+  name.endsWith(".scope") || name.startsWith("services.raindrop.") || name === LEGACY_FULL_ARTICLES || name === LEGACY_MARK_READ_ON_SCROLL || OWN_BEFORE.has(name);
 
 const THEMES: Theme[] = ["system", "light", "dark"];
 const FONTS: ReaderFont[] = ["sans", "serif"];
@@ -74,7 +88,9 @@ export function syncedSettings(settings: Settings, base: Record<string, string> 
     [FULL_ARTICLES]: String(settings.fullArticles),
     [SHOW_IMAGES]: String(settings.showImages),
     [MARK_READ_ON_SCROLL]: String(settings.markReadOnScroll),
+    [ALWAYS_OPEN_WEBSITE]: String(settings.alwaysOpenWebsite),
     [LIST_VIEW]: settings.listView,
+    [HIDDEN_WORDS]: settings.hiddenWords,
     [RECIPIENTS]: encodeRecipients(settings.recipients),
   });
   for (const id of SERVICES) {
@@ -107,10 +123,12 @@ export function applySynced(settings: Settings, values: Record<string, string>):
       background: pick(READER_BACKGROUND, BACKGROUNDS, reader.background),
       autoDark: bool(READER_AUTO_DARK, reader.autoDark),
     },
-    fullArticles: bool(FULL_ARTICLES, bool(LEGACY_FULL_ARTICLES, settings.fullArticles)),
+    fullArticles: bool(FULL_ARTICLES, bool(OWN_FULL_ARTICLES, bool(LEGACY_FULL_ARTICLES, settings.fullArticles))),
     showImages: bool(SHOW_IMAGES, settings.showImages),
-    markReadOnScroll: bool(MARK_READ_ON_SCROLL, bool(LEGACY_MARK_READ_ON_SCROLL, settings.markReadOnScroll)),
+    markReadOnScroll: bool(MARK_READ_ON_SCROLL, bool(OWN_MARK_READ_ON_SCROLL, bool(LEGACY_MARK_READ_ON_SCROLL, settings.markReadOnScroll))),
+    alwaysOpenWebsite: bool(ALWAYS_OPEN_WEBSITE, settings.alwaysOpenWebsite),
     listView: pick(LIST_VIEW, LIST_VIEWS, settings.listView),
+    hiddenWords: typeof values[HIDDEN_WORDS] === "string" ? values[HIDDEN_WORDS] : typeof values[OWN_HIDDEN_WORDS] === "string" ? values[OWN_HIDDEN_WORDS] : settings.hiddenWords,
     imports,
     recipients: decodeRecipients(values[RECIPIENTS]) ?? settings.recipients,
   };
