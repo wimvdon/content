@@ -28,7 +28,7 @@ class SyncSettingsTest {
         )
 
     @Test
-    fun `the Android app's settings go under android and come back the same`() {
+    fun `how it looks goes under android, what it does under articles, and comes back the same`() {
         val values = SyncSettings.of(custom)
         assertEquals(
             mapOf(
@@ -39,12 +39,12 @@ class SyncSettingsTest {
                 "android.reader.spacing" to "Relaxed",
                 "android.reader.background" to "Sepia",
                 "android.reader.autoDark" to "true",
-                "android.fullArticles" to "false",
+                "articles.fullArticles" to "false",
                 "android.showImages" to "false",
-                "android.markReadOnScroll" to "true",
-                "android.alwaysOpenWebsite" to "true",
+                "articles.markReadOnScroll" to "true",
+                "articles.alwaysOpenWebsite" to "true",
                 "android.listView" to "Large",
-                "android.hiddenWords" to "crypto, apple watch",
+                "articles.hiddenWords" to "crypto, apple watch",
                 SyncSettings.RECIPIENTS to "[]",
             ),
             values,
@@ -144,14 +144,34 @@ class SyncSettingsTest {
     }
 
     @Test
-    fun `the hidden words (#277) travel to other Android devices, emptied too`() {
+    fun `the hidden words (#277) travel to the other devices and the web app, emptied too`() {
         val values = SyncSettings.of(Settings(hiddenWords = "crypto"))
         assertEquals("crypto", values[SyncSettings.HIDDEN_WORDS])
         assertEquals("crypto", SyncSettings.applyTo(Settings(), values).hiddenWords)
         // Cleared on another phone: cleared here; missing (an older version): kept.
         assertEquals("", SyncSettings.applyTo(custom, mapOf(SyncSettings.HIDDEN_WORDS to "")).hiddenWords)
         assertEquals(custom.hiddenWords, SyncSettings.applyTo(custom, emptyMap()).hiddenWords)
-        // The web app's settings never set it.
+        // The web app's own names of before never set it.
         assertEquals(custom.hiddenWords, SyncSettings.applyTo(custom, mapOf("web.hiddenWords" to "x")).hiddenWords)
+    }
+
+    @Test
+    fun `what the app does is read from this app's names of before until shared, then those are dropped`() {
+        val before =
+            mapOf(
+                SyncSettings.OWN_FULL_ARTICLES to "false", SyncSettings.OWN_MARK_READ_ON_SCROLL to "true",
+                SyncSettings.OWN_ALWAYS_OPEN_WEBSITE to "true", SyncSettings.OWN_HIDDEN_WORDS to "crypto",
+            )
+        val applied = SyncSettings.applyTo(Settings(), before)
+        assertFalse(applied.fullArticles)
+        assertEquals(true, applied.markReadOnScroll)
+        assertEquals(true, applied.alwaysOpenWebsite)
+        assertEquals("crypto", applied.hiddenWords)
+        // The shared names win once there.
+        assertEquals("ai", SyncSettings.applyTo(Settings(), before + (SyncSettings.HIDDEN_WORDS to "ai")).hiddenWords)
+        // Saving writes only the shared names.
+        val saved = SyncSettings.of(applied, before)
+        before.keys.forEach { assertFalse(it in saved) }
+        assertEquals("crypto", saved[SyncSettings.HIDDEN_WORDS])
     }
 }

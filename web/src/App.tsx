@@ -14,6 +14,7 @@ import { app, useApp } from "./lib/app";
 import { plural, t } from "./lib/i18n";
 import { articleKey, articlesFor, type Article } from "./lib/library";
 import { useListedLibrary } from "./components/useListed";
+import { websiteFor } from "./lib/articleOpening";
 import { itemArticle, savedItems } from "./lib/saved";
 
 /** A message at the bottom, with at most one action (Undo, Open). */
@@ -93,6 +94,17 @@ export default function App() {
     app.open(a);
     setOpenArticle(a);
   }, [setOpenArticle]);
+  // A click in a list: with Always open the website, a feed article opens on its site in a new tab
+  // (marked read, as on Android); j and k still step through the reader.
+  const openClicked = useCallback((a: Article) => {
+    const website = websiteFor(app.get().settings.alwaysOpenWebsite, a);
+    if (website) {
+      app.open(a);
+      window.open(website, "_blank", "noopener,noreferrer");
+    } else {
+      open(a);
+    }
+  }, [open]);
 
   /** Opens a saved article in Saved, as the message after saving offers. */
   const openSaved = (key: string) => {
@@ -178,11 +190,11 @@ export default function App() {
       <main className={`min-w-0 flex-1 flex-col border-r lg:max-w-md ${openArticle ? "hidden lg:flex" : "flex"}`}>
         <div className="min-h-0 flex-1">
           {searching ? (
-            <SearchPanel openKey={openArticle ? articleKey(openArticle) : null} onOpen={open} onClose={() => setSearching(false)} />
+            <SearchPanel openKey={openArticle ? articleKey(openArticle) : null} onOpen={openClicked} onClose={() => setSearching(false)} />
           ) : (
             <ArticleList
               openKey={openArticle ? articleKey(openArticle) : null}
-              onOpen={open}
+              onOpen={openClicked}
               onSettings={() => setDialog("settings")}
               onAddFeed={() => setDialog("add")}
               onAdd={() => setDialog("addChoice")}

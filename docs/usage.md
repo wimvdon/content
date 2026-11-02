@@ -216,8 +216,7 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   checked, and search still finds hidden articles. While you type, the dialog shows how many of the
   recent articles on the device the words would hide, with the five newest (title and feed), so
   you see what goes before you tap Save. Empty the field to show everything again. The
-  words are the same on your other phones (synced as `android.hiddenWords`), and the web app's on
-  every browser (`web.hiddenWords`), like the other list settings.
+  words are the same on your phones and in the web app (synced as `articles.hiddenWords`).
 - If some feeds can't be downloaded, a message says how many; **Manage feeds** (in Settings) shows
   which ones (in red); tap one to see why.
 
@@ -318,12 +317,11 @@ The reader has a **Save** button and a **Share** button (#256: there are no sett
 more). **Save** saves the article to **To read** and opens **Organise** (see Saved). **Share** opens Content's share sheet.
 
 **Content's share sheet** (#251; the web app's Share too). At the top, signed in, **Send with
-Content**, laid out like an email's **To** field: the people you pick as chips, a field for a
-name or address, suggestions below (the people you sent something to before; tap to add) and **Add
-…** for a whole new address; then **Send** sends to everyone picked. Only a chip's **×** takes someone
-out again. To tidy the suggestions, tap **Edit** next to **Recent** above them (or press and hold
-one; web: right-click): each gets a trash button, which forgets them on all your devices; **Done**
-ends it. Below, the apps: the ones you pick most
+Content**: the people you sent something to before as chips, as tags are; tap one or more to pick
+them, then **Send** sends to everyone picked. **Edit people** after the chips (**Add someone** while
+there is nobody yet) opens **People**: type an email address and tap **Add** (it checks that they
+have a Content account, then they are picked), or tap the trash can next to someone to forget them
+on all your devices; the back arrow returns to the sheet. Below, the apps: the ones you pick most
 in this sheet first (Android doesn't tell apps which ones you use elsewhere, so Content counts the
 picks here, on this phone only; until then well-known messaging and mail apps come first), then
 **Copy link**, and **More** for Android's own share menu with every app.
@@ -380,7 +378,7 @@ the list. The app's version is at the bottom. The web app's Settings is the same
   service Saved is also kept in (see Instapaper account).
 - **Theme:** System, Light or Dark, and Dynamic color (wallpaper colours instead of the app's blue).
 - **Article list:** View (Small, Medium, Large), **Mark as read on scroll** and **Hide articles with words**.
-- **Article view:** **Always open the website** (Android only, off by default: tapping a feed article opens its website in the browser tab over Content, with its Save button, and marks it read; saved articles still open in the reader, which keeps your place, highlights and notes), **Load full articles**, **Show images**, then **Text**: the same text settings as **Aa**, with a preview in the page colour you chose; then **Sites you're signed in to** (Android): the sites you pay for and signed in to from an article (see The reader), each with **Remove**.
+- **Article view:** **Always open the website** (off by default: tapping a feed article opens its website in the browser tab over Content, with its Save button, and marks it read; on the web in a new tab; saved articles still open in the reader, which keeps your place, highlights and notes; this, Load full articles, Mark as read on scroll and Hide articles with words are the same on your phones and in the web app, while how things look is set per app), **Load full articles**, **Show images**, then **Text**: the same text settings as **Aa**, with a preview in the page colour you chose; then **Sites you're signed in to** (Android): the sites you pay for and signed in to from an article (see The reader), each with **Remove**.
 
 ## Backup and moving to a new phone
 

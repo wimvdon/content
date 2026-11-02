@@ -58,6 +58,8 @@ export interface Settings {
   /** Show article pictures, thumbnails and embed previews (they load from the sites). */
   showImages: boolean;
   listView: ListView;
+  /** Feed articles open on their website (a new tab) instead of in the reader; saved ones still open in the reader. */
+  alwaysOpenWebsite: boolean;
   /** Hide feed articles whose title has one of these words (#277), as typed (articleFilter.ts). */
   hiddenWords: string;
   /** What was imported from each service when it was connected (#145), by id. */
@@ -119,6 +121,7 @@ export const defaultSettings: Settings = {
   markReadOnScroll: false,
   showImages: true,
   listView: "medium",
+  alwaysOpenWebsite: false,
   hiddenWords: "",
   imports: {},
   recipients: [],
@@ -651,6 +654,9 @@ class AppStore {
       return e instanceof SyncError && e.problem === "offline" ? "offline" : "failed";
     }
   };
+
+  /** Remembers someone added in Edit people, first in the list, on every device (synced). */
+  addRecipient = (email: string) => this.updateSettings({ recipients: rememberRecipient(this.state.settings.recipients, email) });
 
   /** Forgets someone shared with before: no longer offered, on every device (synced). */
   forgetRecipient = (email: string) => this.updateSettings({ recipients: forgetRecipient(this.state.settings.recipients, email) });

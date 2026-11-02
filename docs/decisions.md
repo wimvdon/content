@@ -2,22 +2,34 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
-## 2026-11-02: A Material 3 skill, and the share sheet's recipients reviewed with it
+## 2026-11-02: What the app does syncs between the phone and the web; how it looks doesn't
+
+Owner's choice, reversing part of the earlier "the two never mix" rule. Only how things look stays
+per app (`android.` / `web.`): theme, dynamic colour, the list view, the reader's font, size,
+spacing, page colour and Auto dark, and Show images (a phone on mobile data may want it off, so it
+counts with the look). What the app does is shared under `articles.`: Load full articles, Mark as
+read on scroll, Always open the website and Hide articles with words. Each app reads its own name of
+before while the shared one is missing, so nobody loses a setting, and drops it when it saves.
+Always open the website was Android only; the web app has it now (feature parity): a feed article
+clicked in a list opens on its website in a new tab, marked read; saved ones and j/k keep the reader.
+
+## 2026-11-02: A Material 3 skill; Send with Content's people as chips, as tags
 
 Owner's request. The `material-design-3-ui` skill (github.com/skydashnet/material-design-3-ui-skill,
 MIT, Markdown only: guidance, no code) is installed in the repository at
-`.claude/skills/material-design-3-ui/`, copied unchanged, so every session has it for UI work. The
-share sheet's Send with Content was reviewed against it. It already used Material 3's parts for the
-job (input chips for the people, list items for the suggestions, a filled Send, titled sections).
-Changed, phone and web:
-- The To box behaves like an outlined text field: a 2dp `primary` outline while typing (it had no
-  focus state on Android), "To" as the field's name for screen readers, the problem read out.
-- Only a chip's × takes someone out: tapping the chip itself did it on Android, easy by accident (a
-  destructive action should be hard to trigger by mistake). The chip is no longer marked "selected"
-  (it isn't a choice), filled in `secondaryContainer`. The web's × got a 24px target.
-- Forgetting people is no longer only a hidden long press: a **Recent** subheader over the
-  suggestions has **Edit** / **Done** at its end. The long press stays as a shortcut.
-Kept: the full-width Send under the people (the section's one main action), the app tiles.
+`.claude/skills/material-design-3-ui/`, copied unchanged, so every session has it for UI work.
+
+The share sheet's Send with Content was reviewed against it, then redesigned (owner's idea): the
+email-style To field (a box with "To", input chips, a typing field and suggestions under it) is
+gone. The people are filter chips, the same as tags, and **Edit people** opens a **People** page of
+the sheet, as Edit tags opens Manage tags: the list with a trash can each, and an address field with
+**Add** (checked for a Content account; the person is picked at once). Why: there are at most 12
+people (`Recipients.MAX`), so chips show them all and nothing needs typing to find someone; picking
+is one tap; adding and forgetting, which are rare, move out of the way; and the sheet looks like the
+save sheet's tags. It also removes what the review found in the To field (no focus state on
+Android, a tap on a chip removing the person, forgetting only by a hidden long press). Asked
+whether the To field should be rounded: Material 3's text fields keep small (4dp) corners; fully
+round is for search bars and chips, so the address field on the People page stays standard.
 
 ## 2026-11-02: Hide articles with words previews what it hides
 

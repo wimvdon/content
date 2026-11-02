@@ -492,6 +492,7 @@ export function SettingsDialog({
           {page === "reader" ? (
             <>
               <section className="space-y-2">
+                <SwitchRow title={t("alwaysWebsite")} summary={t("alwaysWebsiteSummary")} checked={settings.alwaysOpenWebsite} onChange={(v) => app.updateSettings({ alwaysOpenWebsite: v })} />
                 <SwitchRow title={t("fullArticles")} summary={t("fullArticlesSummary")} checked={settings.fullArticles} onChange={(v) => app.updateSettings({ fullArticles: v })} />
                 <SwitchRow title={t("showImages")} summary={t("showImagesSummary")} checked={settings.showImages} onChange={(v) => app.updateSettings({ showImages: v })} />
               </section>

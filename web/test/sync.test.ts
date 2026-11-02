@@ -151,8 +151,8 @@ describe("synced settings", () => {
     expect(S.decode('{"format":"rss-reader-sync","version":2,"settings":{"theme":"light","bad":5}}')!.settings).toEqual({ theme: "light" });
   });
 
-  it("go under web., the same in every browser, and come back the same", () => {
-    const mine = { ...settings, markReadOnScroll: true, hiddenWords: "crypto, apple watch", readerStyle: { ...settings.readerStyle, spacing: "relaxed" as const, background: "sepia" as const, autoDark: true } };
+  it("how it looks goes under web., what it does under articles., and comes back the same", () => {
+    const mine = { ...settings, markReadOnScroll: true, alwaysOpenWebsite: true, hiddenWords: "crypto, apple watch", readerStyle: { ...settings.readerStyle, spacing: "relaxed" as const, background: "sepia" as const, autoDark: true } };
     const values = SS.syncedSettings(mine);
     expect(values).toEqual({
       "web.theme": "dark",
@@ -161,11 +161,12 @@ describe("synced settings", () => {
       "web.reader.spacing": "relaxed",
       "web.reader.background": "sepia",
       "web.reader.autoDark": "true",
-      "web.fullArticles": "false",
+      "articles.fullArticles": "false",
       "web.showImages": "false",
-      "web.markReadOnScroll": "true",
+      "articles.markReadOnScroll": "true",
+      "articles.alwaysOpenWebsite": "true",
       "web.listView": "large",
-      "web.hiddenWords": "crypto, apple watch",
+      "articles.hiddenWords": "crypto, apple watch",
       "sharing.recipients": "[]",
     });
     expect(SS.applySynced(defaultSettings, values)).toEqual(mine);
@@ -190,6 +191,21 @@ describe("synced settings", () => {
     const saved = SS.syncedSettings(defaultSettings, before);
     expect(SS.LEGACY_FULL_ARTICLES in saved).toBe(false);
     expect(SS.LEGACY_MARK_READ_ON_SCROLL in saved).toBe(false);
+  });
+
+  it("share what the app does with the Android app, read from the web's names of before until then", () => {
+    const before = { [SS.OWN_FULL_ARTICLES]: "false", [SS.OWN_MARK_READ_ON_SCROLL]: "true", [SS.OWN_HIDDEN_WORDS]: "crypto" };
+    const applied = SS.applySynced(defaultSettings, before);
+    expect(applied.fullArticles).toBe(false);
+    expect(applied.markReadOnScroll).toBe(true);
+    expect(applied.hiddenWords).toBe("crypto");
+    // The shared names win once there; the phone's words reach the web.
+    expect(SS.applySynced(defaultSettings, { ...before, [SS.HIDDEN_WORDS]: "ai" }).hiddenWords).toBe("ai");
+    expect(SS.applySynced(defaultSettings, { [SS.ALWAYS_OPEN_WEBSITE]: "true" }).alwaysOpenWebsite).toBe(true);
+    // Saving writes only the shared names.
+    const saved = SS.syncedSettings(applied, before);
+    for (const name of Object.keys(before)) expect(name in saved).toBe(false);
+    expect(saved[SS.HIDDEN_WORDS]).toBe("crypto");
   });
 
   it("keep names the web app doesn't know and ignore bad values", () => {

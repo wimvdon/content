@@ -229,6 +229,10 @@ and then (always before a release):
       same.
 - [ ] **Swipe between tabs:** swipe the Feeds list left: Read; right: Unread. The same in Saved (To
       read, All). Web on a phone: the same with a touch swipe.
+- [ ] **Settings sync between phone and web:** on the phone, turn on Always open the website and
+      add a hidden word; sync. In the web app (same account, after a sync): both are the same there,
+      and clicking a feed article opens its website in a new tab. Change the theme or the list view
+      on one: the other keeps its own.
 - [ ] **Hide articles with words** (Settings › Article list): type a word that is in a few recent
       titles. Under the field: "3 recent articles would be hidden:" and their titles with the feed,
       newest first, changing as you type; a word in no title: "No recent articles would be
@@ -313,11 +317,12 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
       a person at the top of the share menu: Send with Content opens with them picked, the button
       says Send. The sheet has no Don't save anywhere; the share menu's Save saves; its Send with Content only sends; its Add feed
       opens Add feed with the link. After saving, a tap anywhere but Open goes back to the other app.
-- [ ] Send with Content: tap the To field: its outline turns thicker and coloured. Pick someone:
-      their chip shows; tapping the chip does nothing to them, only its × takes them out. Above the
-      people shared with before, **Recent** with **Edit**: tap Edit (or hold a person), each gets a
-      trash button; tapping it forgets them (also on the other device after a sync), **Done** ends
-      it. Web app: the same. Dragging a feed in Manage feeds
+- [ ] Send with Content: the people shared with before are chips with their picture and name;
+      tap two: both are filled, Send is on. **Edit people** opens **People** in the same sheet
+      (back arrow): type an address without a Content account and tap Add: it says so; one with an
+      account: it is added and, back in the sheet, picked. The trash can forgets someone (also on
+      the other device after a sync). With nobody yet the button says **Add someone**. Web app:
+      the same. Dragging a feed in Manage feeds
       and folders and dropping it: it glides into place, nothing jumps.
 - [ ] Notifications on (phone): something shared with you shows its title, intro, picture and
       sender, makes no sound, and opens the inbox.
