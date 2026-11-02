@@ -123,7 +123,7 @@ export function Sidebar({ onSettings }: { onSettings: () => void }) {
     const plain = !filter.likedOnly && filter.tags.length === 0;
     return (
       <div className="space-y-0.5" role="group" aria-label={t("filter")}>
-        <Row selected={plain} onClick={() => app.showSaved({ ...filter, likedOnly: false, tags: [] })} icon={<BookOpen />} label={t("showAll")} />
+        <Row selected={plain} onClick={() => app.showSaved({ ...filter, likedOnly: false, tags: [] })} icon={<BookOpen />} label={t("allArticles")} />
         {showsLiked(library, filter) ? (
           <Row selected={filter.likedOnly} onClick={() => app.showSaved({ ...filter, likedOnly: !filter.likedOnly, tags: [] })} icon={<Heart />} label={t("liked")} />
         ) : null}

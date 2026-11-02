@@ -2,6 +2,15 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-02: A hidden word also finds its plural and possessive
+
+"WIRED coupon code" didn't hide WIRED's deals: their titles say "Coupon Codes", and a word only
+counted when it stood alone. A word now also counts with -s, -es or 's after it ("code" finds
+"Codes", "Kohl" "Kohl's"); a longer word that starts with it still doesn't ("code" isn't "Coders",
+"AI" isn't "aid"). Phone and web. The web's Saved row "Show all" is called **All articles** now
+(owner's request), like the Feeds' one; the empty list's **Show all** button keeps its name (it is
+an action).
+
 ## 2026-11-02: Hidden words combine and include the feed's name; sheets close less easily
 
 Owner's request. An entry of Hide articles with words hides an article when **every** word of it is
