@@ -185,7 +185,7 @@ class ArticleBlocksTest {
     }
 
     @Test
-    fun `a service's player loads as the page itself, a site's video in a page of its own`() {
+    fun `a video service's player loads as the page itself, a site's video in a page of its own`() {
         // YouTube refuses a player inside a page without an address (error 153): it loads directly.
         val youTube = ArticleBlocks.embedFor("https://www.youtube.com/embed/abc123XYZ_-", base)!!
         assertEquals(PlayerLoad.Url("https://www.youtube-nocookie.com/embed/abc123XYZ_-?autoplay=1&rel=0&playsinline=1"), Embeds.playerLoad(youTube))
@@ -193,5 +193,26 @@ class ArticleBlocksTest {
         assertTrue(video is PlayerLoad.Page && video.html.contains("<video src=\"https://example.com/v.mp4\""))
         assertNull(Embeds.playerLoad(ArticleBlock.Embed(EmbedKind.X, "https://x.com/i/status/1", null)))
         assertEquals("https://content.wim.to/", Embeds.PLAYER_ORIGIN)
+    }
+
+    @Test
+    fun `an audio player of a fixed height loads in a see-through page that gives it that height`() {
+        // As the page itself, Spotify picked its layout before the view had a height, and came out too short.
+        val spotify = Embeds.of("https://open.spotify.com/embed/episode/abc123")
+        val load = Embeds.playerLoad(spotify)
+        assertTrue(load is PlayerLoad.Page)
+        val html = (load as PlayerLoad.Page).html
+        assertTrue(html.contains("<iframe src=\"https://open.spotify.com/embed/episode/abc123\" style=\"height:352px\""))
+        assertTrue(html.contains("background:transparent"))
+        assertTrue(Embeds.seeThrough(spotify))
+        // Bandcamp's player only works inside a page (as the page itself: black, with just its privacy line).
+        val bandcamp = Embeds.of("https://bandcamp.com/EmbeddedPlayer/album=123/size=large/bgcol=ffffff/linkcol=0687f5/transparent=true/")
+        val bandcampPage = Embeds.playerLoad(bandcamp) as PlayerLoad.Page
+        assertTrue(bandcampPage.html.contains("<iframe src=\"https://bandcamp.com/EmbeddedPlayer/album=123/size=large/bgcol=ffffff/linkcol=0687f5/transparent=true/\" style=\"height:470px\""))
+        // Videos keep their black page, and the reader's own video player too.
+        val youTube = Embeds.of("https://www.youtube.com/embed/abc123XYZ_-")
+        assertFalse(Embeds.seeThrough(youTube))
+        assertFalse(Embeds.seeThrough(Embeds.video("https://example.com/v.mp4", null)))
+        assertTrue((Embeds.playerLoad(Embeds.video("https://example.com/v.mp4", null)) as PlayerLoad.Page).html.contains("background:#000"))
     }
 }

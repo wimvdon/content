@@ -137,27 +137,38 @@ object Embeds {
     fun playerPage(embed: ArticleBlock.Embed): String? {
         val player = embed.player ?: return null
         val src = Html.escape(player)
+        // A player of a fixed height (Spotify, SoundCloud, Apple, Bandcamp) gets exactly that height,
+        // on a see-through page: it draws its own rounded card, so no black shows around it.
+        val fixed = embed.size.height?.takeIf { embed.kind != EmbedKind.Video }
         val content =
             if (embed.kind == EmbedKind.Video) {
                 """<video src="$src" controls autoplay playsinline></video>"""
             } else {
-                """<iframe src="$src" allow="autoplay; encrypted-media; fullscreen; picture-in-picture; clipboard-write" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>"""
+                val height = fixed?.let { """ style="height:${it}px"""" }.orEmpty()
+                """<iframe src="$src"$height allow="autoplay; encrypted-media; fullscreen; picture-in-picture; clipboard-write" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>"""
             }
+        val background = if (fixed != null) "transparent" else "#000"
         return "<!doctype html><html><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">" +
-            "<style>html,body{margin:0;height:100%;background:#000;overflow:hidden}iframe,video{display:block;border:0;width:100%;height:100%}</style>" +
+            "<style>html,body{margin:0;height:100%;background:$background;overflow:hidden}iframe,video{display:block;border:0;width:100%;height:100%}</style>" +
             "</head><body>$content</body></html>"
     }
 
     /**
-     * How a player is loaded (Android): a service's player as the page itself, with Content's web
-     * app as its referrer ([PlayerLoad.Url]); a site's video file in a small page of the reader's own
-     * ([PlayerLoad.Page], from [playerPage]). Null without a player.
+     * How a player is loaded (Android): a video service's player as the page itself, with Content's
+     * web app as its referrer ([PlayerLoad.Url]; YouTube refuses one inside a page, error 153); a
+     * player of a fixed height (Spotify, SoundCloud, Apple, Bandcamp) and a site's video file in a
+     * small page of the reader's own ([PlayerLoad.Page], from [playerPage]), as the web app shows
+     * them. As the page itself, Spotify picked its layout from the view's height before the view had
+     * one, and came out too short (2026-11-02). Null without a player.
      */
     fun playerLoad(embed: ArticleBlock.Embed): PlayerLoad? {
         val player = embed.player ?: return null
-        if (embed.kind != EmbedKind.Video) return PlayerLoad.Url(player)
+        if (embed.kind != EmbedKind.Video && embed.size.height == null) return PlayerLoad.Url(player)
         return playerPage(embed)?.let(PlayerLoad::Page)
     }
+
+    /** Whether a player draws its own card on a see-through page (a fixed height), rather than on black. */
+    fun seeThrough(embed: ArticleBlock.Embed): Boolean = embed.kind != EmbedKind.Video && embed.size.height != null
 
     /** The address player pages are loaded under, and the referrer players see: Content's web app. */
     const val PLAYER_ORIGIN = "https://content.wim.to/"

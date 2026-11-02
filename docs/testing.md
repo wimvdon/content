@@ -229,6 +229,10 @@ and then (always before a release):
       same.
 - [ ] **Swipe between tabs:** swipe the Feeds list left: Read; right: Unread. The same in Saved (To
       read, All). Web on a phone: the same with a touch swipe.
+- [ ] **Audio players** (an article with a Spotify, SoundCloud or Bandcamp player): tap the card: a
+      grey placeholder with a spinner the player's size, then the whole player (Spotify with its
+      cover, Bandcamp with its artwork and controls), no black flash, nothing cut off. A YouTube
+      video still plays as before.
 - [ ] **Settings sync between phone and web:** on the phone, turn on Always open the website and
       add a hidden word; sync. In the web app (same account, after a sync): both are the same there,
       and clicking a feed article opens its website in a new tab. Change the theme or the list view

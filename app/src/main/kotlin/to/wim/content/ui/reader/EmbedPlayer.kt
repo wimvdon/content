@@ -21,6 +21,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -34,7 +36,8 @@ import to.wim.content.feed.PlayerLoad
 /**
  * An embedded player, loaded once its card is tapped: the service's own player (or the site's
  * video) in a small web view, the size the service asks for. Its full screen button shows the
- * player over everything. A link the player opens (the service's logo, "watch on …") goes to
+ * player over everything. Audio players of a fixed height load in a small page that gives them
+ * exactly that height, see-through, with a placeholder of that size until they have loaded. A link the player opens (the service's logo, "watch on …") goes to
  * [onOpenLink], never into the small view.
  */
 @SuppressLint("SetJavaScriptEnabled")
@@ -46,6 +49,10 @@ fun EmbedPlayer(
     val load = remember(embed) { Embeds.playerLoad(embed) } ?: return
     var fullScreen by remember { mutableStateOf<FullScreen?>(null) }
     val size = embed.size
+    // An audio player (Spotify, SoundCloud, …) draws its own card on a see-through page; until it has
+    // loaded, a placeholder of its size shows instead of a black box (2026-11-02).
+    val seeThrough = remember(embed) { Embeds.seeThrough(embed) }
+    var loaded by remember(embed) { mutableStateOf(false) }
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier.fillMaxWidth(),
@@ -66,11 +73,20 @@ fun EmbedPlayer(
                     settings.mediaPlaybackRequiresUserGesture = false
                     // The player's own text size: the phone's larger font size would cram its fixed height.
                     settings.textZoom = 100
-                    setBackgroundColor(android.graphics.Color.BLACK)
+                    setBackgroundColor(if (seeThrough) android.graphics.Color.TRANSPARENT else android.graphics.Color.BLACK)
+                    if (seeThrough) alpha = 0f
                     // Spotify and others keep their session in a cookie of their own.
                     CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)
                     webViewClient =
                         object : WebViewClient() {
+                            override fun onPageFinished(
+                                view: WebView,
+                                url: String?,
+                            ) {
+                                view.alpha = 1f
+                                loaded = true
+                            }
+
                             override fun shouldOverrideUrlLoading(
                                 view: WebView,
                                 request: WebResourceRequest,
@@ -106,8 +122,13 @@ fun EmbedPlayer(
             },
             onRelease = { it.destroy() },
             // Not clipped: a clipped WebView can draw black on some devices.
-            modifier = sized.background(Color.Black),
+            modifier = if (seeThrough) sized else sized.background(Color.Black),
         )
+        if (seeThrough && !loaded) {
+            Box(sized.background(MaterialTheme.colorScheme.surfaceContainerHigh, MaterialTheme.shapes.medium), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        }
     }
     fullScreen?.let { shown ->
         Dialog(
