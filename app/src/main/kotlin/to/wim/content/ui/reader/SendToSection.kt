@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -172,7 +171,9 @@ fun ManagePeopleSheet(
                     )
                 }
             }
-            Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            // The field across the page, Add under it at the end (2026-11-02): side by side, the field
+            // stood taller than the button.
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = address,
                     onValueChange = {
@@ -185,10 +186,10 @@ fun ManagePeopleSheet(
                     supportingText = problem?.let { { Text(stringResource(it.messageRes())) } },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(onDone = { add() }),
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.fillMaxWidth(),
                 )
                 // The page's action, tonal as New tag in Manage tags.
-                FilledTonalButton(onClick = { add() }, enabled = canAdd, modifier = Modifier.padding(top = 8.dp)) {
+                FilledTonalButton(onClick = { add() }, enabled = canAdd, modifier = Modifier.align(Alignment.End)) {
                     if (checking) {
                         CircularProgressIndicator(Modifier.size(ButtonDefaults.IconSize), strokeWidth = 2.dp)
                     } else {

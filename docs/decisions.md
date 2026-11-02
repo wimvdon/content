@@ -2,6 +2,17 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-02: Save in the reader is one tap; the save sheet's Save is just the word
+
+Owner's choice. Since the reader's toolbar has Archive, Like and Tags for a saved article (and
++ Note under its title), the sheet after Save asked nothing those don't: Save in the reader now
+saves to To read at once, with "Saved to To read" and **Undo** (as if Save was never tapped). The
+sheet still opens where there is no toolbar after it: a long press in a list, Add link, another
+app's share menu. Its Save button no longer repeats the To read / Archive icon of the choice above
+it. And the People page's Add sits under the address field, at the end: next to it, the field
+stood taller than the button. Phone and web (the web's field and button were the same height
+already, so they stay side by side).
+
 ## 2026-11-02: What the app does syncs between the phone and the web; how it looks doesn't
 
 Owner's choice, reversing part of the earlier "the two never mix" rule. Only how things look stays

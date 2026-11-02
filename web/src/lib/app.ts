@@ -784,8 +784,12 @@ class AppStore {
 
   // Saved (saved.ts): always the library's items; a connected service syncs them (syncInstapaper).
 
-  /** Saves an article to To read and opens the sheet to file, like, tag and note it at once (#143). */
-  saveArticle = (url: string, title: string) => {
+  /**
+   * Saves an article to To read and, with [withSheet] (a row's menu), opens the sheet to file, like,
+   * tag and note it at once (#143). The reader saves in one tap (2026-11-02): its toolbar then has
+   * Archive, Like and Tags. Returns the item's key and what it was before (for Undo), or null.
+   */
+  saveArticle = (url: string, title: string, withSheet = true): { key: string; before: Item | null } | null => {
     let key: string | null = null;
     this.updateLibrary((lib) => {
       const [out, item] = Saved.saveLink(lib, url, title, Date.now());
@@ -794,14 +798,15 @@ class AppStore {
       // A feed article gets its feed's topic, as on Android.
       return item ? tagWithFeedTopic(out, item.key) : out;
     });
-    this.set({ sheet: key ? { kind: "justSaved", key } : null });
+    if (withSheet) this.set({ sheet: key ? { kind: "justSaved", key } : null });
+    return key ? { key, before: this.savedBefore } : null;
   };
 
   /** The item as it was before the last saveArticle (null: not saved then), for Remove on the sheet. */
   private savedBefore: Item | null = null;
 
   /** Remove on the sheet right after saving: takes the save back, as if it was never saved. */
-  undoSave = (key: string) => this.updateLibrary((lib) => undoSave(lib, key, this.savedBefore));
+  undoSave = (key: string, before: Item | null = this.savedBefore) => this.updateLibrary((lib) => undoSave(lib, key, before));
 
   /** Add link: the sheet asks for the address; nothing is saved until Save. */
   addLink = () => this.set({ sheet: { kind: "new" } });

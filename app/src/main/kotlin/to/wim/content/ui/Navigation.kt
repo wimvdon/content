@@ -509,9 +509,10 @@ fun RssReaderNavigation(
 
 
     /**
-     * Saves [link] to To read (#107), then opens the sheet to file, like, tag and note it (#143); when
-     * it closes, a message says where it went, with Open unless [inReader] (#142). A link without a
-     * title gets the page's own afterwards.
+     * Saves [link] to To read (#107). From the reader ([inReader]) that is all (one tap, 2026-11-02):
+     * "Saved to To read" with Undo, as its toolbar then has Archive, Like and Tags. Elsewhere (a long
+     * press) the sheet opens to file, like, tag and note it (#143); when it closes, a message says
+     * where it went, with Open (#142). A link without a title gets the page's own afterwards.
      */
     fun readLater(
         link: String,
@@ -531,8 +532,17 @@ fun RssReaderNavigation(
                 showMessage(resources.getString(R.string.add_link_invalid))
                 return@launch
             }
-            addedFromReader = inReader
-            addedKey = item.key
+            if (inReader) {
+                // One tap (2026-11-02): the reader's toolbar has Archive, Like and Tags, so no sheet; the
+                // message says where it went, with Undo, as if Save was never tapped.
+                val before = addedBefore
+                showMessage(resources.getString(R.string.saved_to, resources.getString(R.string.reading_list_to_read)), resources.getString(R.string.action_undo)) {
+                    editLibrary { SaveChoices.undoSave(it, item.key, before) }
+                }
+            } else {
+                addedFromReader = false
+                addedKey = item.key
+            }
             repository.describe(item.key)
         }
     }

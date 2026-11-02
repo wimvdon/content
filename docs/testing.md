@@ -347,7 +347,8 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
       a trash can at the top right, which asks and then removes the note. "3 highlights" opens
       their list. Web app: the same.
 - [ ] Open a feed article (not saved): the toolbar shows **Save** (word), and Share. ⋮ has Mark as
-      unread and Show full article. Tap **Save** and close the sheet with Save: without leaving the
+      unread and Show full article. Tap **Save**: no sheet opens; "Saved to To read" shows with
+      **Undo** (tap it: the article isn't saved any more, Save is back). Save again: without leaving the
       article, the toolbar becomes Archive, Like, Tags, Share, and ⋮ has no Mark as unread or text
       switch any more, but **Remove from Saved** at the end. Web app: the same.
 - [ ] **Add link** and a link shared from another app: the sheet asks for the address (or shows the

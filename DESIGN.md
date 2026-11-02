@@ -344,9 +344,11 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   field, Remove highlight, Cancel and Save. With highlights, the floating toolbar has a quote mark and the
   count before Share, which opens the list.
 - Save is the action's one name (#142), in the reader's floating toolbar, the long-press menus and the sheet's button;
-  "Read later" names nothing. After the sheet, a snackbar says "Saved to …", with **Open** (to the
-  article in Saved) when you weren't in it already: after a long press, Add link, or a share from another
-  app (where the snackbar is all of Reader that shows).
+  "Read later" names nothing. In the reader Save is one tap (2026-11-02, owner's choice): no sheet,
+  as the toolbar then has Archive, Like and Tags; a snackbar says "Saved to To read" with **Undo**.
+  Elsewhere the sheet opens, and after it a snackbar says "Saved to …", with **Open** (to the
+  article in Saved): after a long press, Add link, or a share from another app (where the snackbar
+  is all of Reader that shows).
 - One **Save and share** sheet (#143, #256), wherever you meet an article: a `ModalBottomSheet` with,
   in this order, what is being saved (only before the save: the address field for Add link, or a
   shared link's title and site; no list to pick since #305: the Archive is a state, chosen by the
@@ -360,13 +362,14 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   text button with a pen (as Edit tags; while there is nobody, a tonal **Add someone** with a + instead, as New tag), which
   opens **People** as a page of the same sheet (as Manage tags): each person as a `ListItem`
   (picture, name, address) with a trash can that forgets them, then an outlined **Email address**
-  field (Material's standard 4dp corners; the error under it) and a tonal **Add** that checks for a
+  field across the page (Material's standard 4dp corners; the error under it) and under it, at the
+  end, a tonal **Add** that checks for a
   Content account first and picks them at once. Section titles in Title Small, `primary`.
   **Cancel** sits at the bottom left (`SheetActions`), in this sheet and every other one (Add feed,
   the tag sheet, a highlight, Report a problem; Remove, in the error colour, next to it), and the
   main button at the bottom right; the heading is only the title (`SheetHeader`). Above the tags a
-  segmented **To read** / **Archive** choice (To read to start with when saving); **Save** (filled)
-  shows the same icon (To read's open book or the Archive's box), and says **Save and send** or **Send** when
+  segmented **To read** / **Archive** choice (To read to start with when saving); **Save** (filled,
+  only the word since 2026-11-02: the choice above has the icons) says **Save and send** or **Send** when
   sending: closing the sheet is Cancel, so only the button changes or sends
   anything; the heading is **Save** while saving. For an article saved before the same sheet opens
   as **Tags** (only the tag chips: the reader's Tags button, a row's long press) or **Note**
