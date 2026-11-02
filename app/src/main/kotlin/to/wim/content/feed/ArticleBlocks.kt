@@ -66,6 +66,8 @@ object ArticleBlocks {
         html: String,
         baseUrl: String,
     ): List<ArticleBlock> {
+        // Posts written for a service's script (Bluesky, Mastodon, Threads, Reddit) become their iframes.
+        val html = Embeds.postQuotesToFrames(html)
         val blocks = mutableListOf<ArticleBlock>()
         // Text between pictures that turn out to be nothing (tracking pixels) is read as one run.
         val text = StringBuilder()

@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import kotlinx.coroutines.delay
 import to.wim.content.feed.ArticleBlock
 import to.wim.content.feed.Embeds
 import to.wim.content.feed.PlayerLoad
@@ -47,6 +49,18 @@ fun EmbedPlayer(
     val load = remember(embed) { Embeds.playerLoad(embed) } ?: return
     var fullScreen by remember { mutableStateOf<FullScreen?>(null) }
     val size = embed.size
+    // A post (Bluesky, Mastodon, …) takes the height of what it shows: measured a few times while it loads.
+    var view by remember(embed) { mutableStateOf<WebView?>(null) }
+    var measured by remember(embed) { mutableStateOf<Int?>(null) }
+    if (size.fitsContent) {
+        LaunchedEffect(view) {
+            val webView = view ?: return@LaunchedEffect
+            repeat(MEASURES) {
+                delay(MEASURE_EVERY_MS)
+                webView.evaluateJavascript(Embeds.MEASURE_SCRIPT) { result -> Embeds.measuredHeight(result)?.let { measured = it } }
+            }
+        }
+    }
     // An audio player (Spotify, SoundCloud, …) draws its own card, on a see-through view.
     val seeThrough = remember(embed) { Embeds.seeThrough(embed) }
     Box(
@@ -54,7 +68,9 @@ fun EmbedPlayer(
         modifier = Modifier.fillMaxWidth(),
     ) {
         val sized =
-            if (size.height != null) {
+            if (size.fitsContent) {
+                Modifier.fillMaxWidth().height((measured ?: Embeds.MIN_POST_HEIGHT).dp)
+            } else if (size.height != null) {
                 Modifier.fillMaxWidth().height(size.height.dp)
             } else {
                 // Vertical videos (TikTok) stay narrow enough to fit the screen's height.
@@ -62,7 +78,11 @@ fun EmbedPlayer(
             }
         AndroidView(
             factory = { context ->
-                WebView(context).apply {
+                WebView(context).also { view = it }.apply {
+                    // Fill the space the reader gives it. Without this the view is "as high as its
+                    // content", and the page inside gets no height: players that fill their page
+                    // (SoundCloud, Bandcamp) showed nothing, Spotify its small bar (2026-11-02).
+                    layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
                     // The players are the services' own pages: they need their scripts.
                     settings.javaScriptEnabled = true
                     settings.domStorageEnabled = true
@@ -160,6 +180,10 @@ private fun View.whenSized(action: () -> Unit) {
         },
     )
 }
+
+/** How often, and how many times, a post's height is measured while it loads (about 15 seconds). */
+private const val MEASURES = 30
+private const val MEASURE_EVERY_MS = 500L
 
 private class FullScreen(
     val view: View,

@@ -1,8 +1,7 @@
 /**
  * Embedded content (video players, posts) in articles, the same as the Android app's Embeds.kt: a
- * card that, once clicked, loads the service's own player in its place (`player`, at `size`), or,
- * without a player, opens the page on the service in a new tab. X and Instagram posts need their
- * sites' scripts, so they only open.
+ * card whose player (`player`, at `size`) the reader shows in its place straight away, or, without a
+ * player, that opens the page on the service in a new tab. X and Instagram posts only open.
  */
 
 export type EmbedKind =
@@ -15,15 +14,27 @@ export type EmbedKind =
   | "applePodcasts"
   | "bandcamp"
   | "tiktok"
+  | "bluesky"
+  | "mastodon"
+  | "threads"
+  | "reddit"
+  | "twitch"
+  | "googleMaps"
+  | "codepen"
+  | "giphy"
   | "x"
   | "instagram"
   | "video"
   | "other";
 
-/** How big a player is: a fixed height in CSS pixels (audio players), else width ÷ height. */
+/**
+ * How big a player is: a fixed height in CSS pixels (audio players), else width ÷ height. A post
+ * (Bluesky, Mastodon, …) `fitsContent`: it takes the height the post reports, `height` until then.
+ */
 export interface EmbedSize {
   aspect: number;
   height: number | null;
+  fitsContent?: boolean;
 }
 
 export interface Embed {
@@ -48,6 +59,14 @@ export const EMBED_SERVICES: Record<EmbedKind, string | null> = {
   applePodcasts: "Apple Podcasts",
   bandcamp: "Bandcamp",
   tiktok: "TikTok",
+  bluesky: "Bluesky",
+  mastodon: "Mastodon",
+  threads: "Threads",
+  reddit: "Reddit",
+  twitch: "Twitch",
+  googleMaps: "Google Maps",
+  codepen: "CodePen",
+  giphy: "GIPHY",
   x: "X",
   instagram: "Instagram",
   video: null,
@@ -57,6 +76,7 @@ export const EMBED_SERVICES: Record<EmbedKind, string | null> = {
 export const VIDEO_SIZE: EmbedSize = { aspect: 16 / 9, height: null };
 export const VERTICAL_SIZE: EmbedSize = { aspect: 9 / 16, height: null };
 const fixed = (height: number): EmbedSize => ({ aspect: 16 / 9, height });
+const post = (height: number): EmbedSize => ({ aspect: 16 / 9, height, fitsContent: true });
 
 const YOUTUBE_ID = /(?:youtube(?:-nocookie)?\.com\/(?:embed\/|watch\?v=|v\/|shorts\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{6,20})/;
 const VIMEO_ID = /vimeo\.com\/(?:video\/)?(\d+)/;
@@ -66,6 +86,54 @@ const APPLE = /^https:\/\/embed\.(music|podcasts)\.apple\.com\/(.+)$/;
 const TIKTOK = /tiktok\.com\/(?:embed\/(?:v2\/)?|player\/v1\/|@[^/]+\/video\/)(\d+)/;
 const TWEET = /(?:platform\.twitter\.com\/embed\/Tweet\.html\?(?:.*&)?id=|(?:twitter|x)\.com\/[^/]+\/status\/)(\d+)/;
 const INSTAGRAM = /instagram\.com\/(p|reel|tv)\/([A-Za-z0-9_-]+)/;
+const BLUESKY = /^https:\/\/embed\.bsky\.app\/embed\/(did:[a-z0-9]+:[A-Za-z0-9._:%-]+)\/app\.bsky\.feed\.post\/([A-Za-z0-9]+)/;
+const MASTODON = /^https:\/\/([a-z0-9.-]+\.[a-z]{2,})\/@([A-Za-z0-9_]+(?:@[a-z0-9.-]+)?)\/(\d+)\/embed/;
+const THREADS = /^https:\/\/(?:www\.)?threads\.(?:net|com)\/@([A-Za-z0-9._]+)\/post\/([A-Za-z0-9_-]+)\/embed/;
+const REDDIT = /^https:\/\/(?:embed\.reddit\.com|(?:www\.)?redditmedia\.com)\/(r\/[A-Za-z0-9_]+\/comments\/[A-Za-z0-9]+(?:\/[^?#]*)?)/;
+const TWITCH = /^https:\/\/(?:player\.twitch\.tv\/\?|clips\.twitch\.tv\/embed\?)/;
+const GOOGLE_MAPS = /^https:\/\/(?:www\.|maps\.)?google\.[a-z.]+\/maps\/embed/;
+const CODEPEN = /^https:\/\/codepen\.io\/([A-Za-z0-9_-]+)\/embed\/(?:preview\/)?([A-Za-z0-9]+)/;
+const GIPHY = /^https:\/\/giphy\.com\/embed\/([A-Za-z0-9]+)/;
+
+/** Content's web app: Twitch only plays inside the page it is told about. */
+const PLAYER_HOST = "content.wim.to";
+
+// Posts written as a quote that the service's script turns into the post (scripts never run in
+// the reader): the class and the attribute that name the post.
+const POST_QUOTE = /<blockquote\b[^>]*\bclass\s*=\s*["'][^"']*\b(bluesky-embed|mastodon-embed|text-post-media|reddit-embed-bq)\b[^>]*>[\s\S]*?<\/blockquote\s*>/gi;
+const BLUESKY_URI = /data-bluesky-uri\s*=\s*["']at:\/\/(did:[^/"']+)\/app\.bsky\.feed\.post\/([A-Za-z0-9]+)["']/;
+const MASTODON_EMBED = /data-embed-url\s*=\s*["'](https:\/\/[^"']+\/embed)["']/;
+const THREADS_PERMALINK = /data-text-post-permalink\s*=\s*["'](https:\/\/(?:www\.)?threads\.(?:net|com)\/@[A-Za-z0-9._]+\/post\/[A-Za-z0-9_-]+)/;
+const REDDIT_LINK = /href\s*=\s*["']https:\/\/(?:www\.|old\.)?reddit\.com\/(r\/[A-Za-z0-9_]+\/comments\/[A-Za-z0-9]+(?:\/[^"'?#]*)?)/;
+
+/**
+ * `html` with each post written as a quote for the service's script (Bluesky, Mastodon, Threads,
+ * Reddit) turned into an iframe of that post, so it shows like the iframes the reader knows. A
+ * quote it can't read stays a quote. The same as Android's `Embeds.postQuotesToFrames`.
+ */
+export function postQuotesToFrames(html: string): string {
+  return html.replace(POST_QUOTE, (quote, kind: string) => {
+    let src: string | null = null;
+    let m: RegExpExecArray | null;
+    switch (kind.toLowerCase()) {
+      case "bluesky-embed":
+        m = BLUESKY_URI.exec(quote);
+        if (m) src = `https://embed.bsky.app/embed/${m[1]}/app.bsky.feed.post/${m[2]}`;
+        break;
+      case "mastodon-embed":
+        src = MASTODON_EMBED.exec(quote)?.[1] ?? null;
+        break;
+      case "text-post-media":
+        m = THREADS_PERMALINK.exec(quote);
+        if (m) src = `${m[1]}/embed`;
+        break;
+      default:
+        m = REDDIT_LINK.exec(quote);
+        if (m) src = `https://embed.reddit.com/${m[1]}`;
+    }
+    return src ? `<iframe src="${src.replace(/&/g, "&amp;").replace(/"/g, "&quot;")}"></iframe>` : quote;
+  });
+}
 
 /** The card for an iframe's address, or null when there is nothing to open. */
 export function embedFor(src: string | null | undefined, baseUrl: string): Embed | null {
@@ -119,6 +187,34 @@ export function embedOf(url: string): Embed {
   if (url.startsWith("https://bandcamp.com/EmbeddedPlayer/")) return { kind: "bandcamp", url, thumbnailUrl: null, player: url, size: fixed(url.includes("size=large") ? 470 : 120) };
   m = TIKTOK.exec(url);
   if (m) return { kind: "tiktok", url: `https://www.tiktok.com/embed/v2/${m[1]}`, thumbnailUrl: null, player: `https://www.tiktok.com/player/v1/${m[1]}`, size: VERTICAL_SIZE };
+  m = BLUESKY.exec(url);
+  if (m) return { kind: "bluesky", url: `https://bsky.app/profile/${m[1]}/post/${m[2]}`, thumbnailUrl: null, player: m[0], size: post(400) };
+  m = MASTODON.exec(url);
+  if (m) return { kind: "mastodon", url: `https://${m[1]}/@${m[2]}/${m[3]}`, thumbnailUrl: null, player: m[0], size: post(400) };
+  m = THREADS.exec(url);
+  if (m) {
+    const page = `https://www.threads.net/@${m[1]}/post/${m[2]}`;
+    return { kind: "threads", url: page, thumbnailUrl: null, player: `${page}/embed`, size: post(550) };
+  }
+  m = REDDIT.exec(url);
+  if (m) {
+    const path = m[1].replace(/\/+$/, "");
+    return { kind: "reddit", url: `https://www.reddit.com/${path}/`, thumbnailUrl: null, player: `https://embed.reddit.com/${path}/?embed=true`, size: post(400) };
+  }
+  if (TWITCH.test(url)) {
+    const clip = query(url, "clip");
+    const video = query(url, "video");
+    const channel = query(url, "channel");
+    const page = clip ? `https://clips.twitch.tv/${clip}` : video ? `https://www.twitch.tv/videos/${video.replace(/^v/, "")}` : channel ? `https://www.twitch.tv/${channel}` : "https://www.twitch.tv";
+    const [start, rest = ""] = url.split(/\?(.*)/s);
+    const kept = rest.split("&").filter((p) => !p.startsWith("parent=") && !p.startsWith("autoplay="));
+    return { kind: "twitch", url: page, thumbnailUrl: null, player: `${start}?${kept.join("&")}&parent=${PLAYER_HOST}&autoplay=false`, size: VIDEO_SIZE };
+  }
+  if (GOOGLE_MAPS.test(url)) return { kind: "googleMaps", url, thumbnailUrl: null, player: url, size: { aspect: 4 / 3, height: null } };
+  m = CODEPEN.exec(url);
+  if (m) return { kind: "codepen", url: `https://codepen.io/${m[1]}/pen/${m[2]}`, thumbnailUrl: null, player: url, size: fixed(400) };
+  m = GIPHY.exec(url);
+  if (m) return { kind: "giphy", url: `https://giphy.com/gifs/${m[1]}`, thumbnailUrl: null, player: `https://giphy.com/embed/${m[1]}`, size: { aspect: 4 / 3, height: null } };
   m = TWEET.exec(url);
   if (m) return { kind: "x", url: `https://x.com/i/status/${m[1]}`, thumbnailUrl: null };
   m = INSTAGRAM.exec(url);

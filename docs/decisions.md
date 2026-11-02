@@ -82,6 +82,28 @@ The web's dialogs closed on a click beside them while typing; that click now onl
 The save and Organise sheet stays as it was (owner's choice, after trying one tap everywhere): one
 tap only in an open article, the sheet everywhere else.
 
+## 2026-11-02: Android's player view fills its space (SoundCloud, Bandcamp, Spotify)
+
+Owner's report: SoundCloud and Bandcamp still showed nothing on Android, and Spotify only its small
+bar, after every earlier change (a page of our own, loading directly, waiting for the size). The
+cause was the same each time: Compose puts a view in with "as high as its content" layout
+parameters, and a WebView in that mode gives its page no height of its own, so players that fill
+their page (100% high) came out 0 high, and Spotify picked its small layout. The player's WebView
+now fills the space the reader gives it (MATCH_PARENT), as other Compose WebView wrappers do.
+
+## 2026-11-02: More embedded services: posts, Twitch, maps, pens and GIFs
+
+Owner's choice: besides the players, the reader shows **Bluesky, Mastodon (any server), Threads and
+Reddit** posts, **Twitch** videos and clips, **Google Maps**, **CodePen** and **GIPHY** inside the
+article, on the phone and the web, from their own embed pages. Posts that a site writes as a quote
+for the service's script (scripts never run in the reader) become that post's embed page
+(`postQuotesToFrames`, the same on both). A post takes its own height: Android measures the page
+it loaded a few times while it loads (starting small, so it only grows to fit); the web app reads
+the height the post's frame reports in its messages, and keeps a set height when it reports none.
+Twitch only plays inside the page it is told about, so its player is told Content's web app, and
+on Android loads in a page of the reader's own. Not chosen (for now): X and Instagram posts, and
+showing unknown embeds as they are (they could be ads or forms). PRIVACY.md names the new services.
+
 ## 2026-11-02: Embedded players show straight away, without a card to tap
 
 Owner's choice, replacing the 2026-10-31 "card first, on tap" rule: an article's players (YouTube,

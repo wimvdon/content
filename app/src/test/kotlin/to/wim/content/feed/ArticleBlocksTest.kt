@@ -213,4 +213,73 @@ class ArticleBlocksTest {
         assertFalse(Embeds.seeThrough(Embeds.video("https://example.com/v.mp4", null)))
         assertTrue((Embeds.playerLoad(Embeds.video("https://example.com/v.mp4", null)) as PlayerLoad.Page).html.contains("background:#000"))
     }
+
+    @Test
+    fun `posts, maps, pens and GIFs of the common services play inside`() {
+        val bluesky = Embeds.of("https://embed.bsky.app/embed/did:plc:abc123/app.bsky.feed.post/3kxyz")
+        assertEquals(EmbedKind.Bluesky, bluesky.kind)
+        assertEquals("https://bsky.app/profile/did:plc:abc123/post/3kxyz", bluesky.url)
+        assertEquals("https://embed.bsky.app/embed/did:plc:abc123/app.bsky.feed.post/3kxyz", bluesky.player)
+        assertTrue(bluesky.size.fitsContent)
+        val mastodon = Embeds.of("https://mastodon.social/@Gargron/112345678901234567/embed")
+        assertEquals(EmbedKind.Mastodon, mastodon.kind)
+        assertEquals("https://mastodon.social/@Gargron/112345678901234567", mastodon.url)
+        assertTrue(mastodon.size.fitsContent)
+        val threads = Embeds.of("https://www.threads.com/@zuck/post/C8abc_1/embed")
+        assertEquals(EmbedKind.Threads, threads.kind)
+        assertEquals("https://www.threads.net/@zuck/post/C8abc_1", threads.url)
+        val reddit = Embeds.of("https://embed.reddit.com/r/Android/comments/1abcde/some_title/?utm_source=embedv2")
+        assertEquals(EmbedKind.Reddit, reddit.kind)
+        assertEquals("https://www.reddit.com/r/Android/comments/1abcde/some_title/", reddit.url)
+        assertEquals("https://embed.reddit.com/r/Android/comments/1abcde/some_title/?embed=true", reddit.player)
+        // Twitch is told it plays inside Content's web app, and doesn't start by itself.
+        val twitch = Embeds.of("https://player.twitch.tv/?video=v123456&parent=example.com&autoplay=true")
+        assertEquals(EmbedKind.Twitch, twitch.kind)
+        assertEquals("https://www.twitch.tv/videos/123456", twitch.url)
+        assertEquals("https://player.twitch.tv/?video=v123456&parent=content.wim.to&autoplay=false", twitch.player)
+        assertTrue(Embeds.playerLoad(twitch) is PlayerLoad.Page)
+        val clip = Embeds.of("https://clips.twitch.tv/embed?clip=FunnyClip&parent=example.com")
+        assertEquals("https://clips.twitch.tv/FunnyClip", clip.url)
+        val map = Embeds.of("https://www.google.com/maps/embed?pb=!1m18!1m12")
+        assertEquals(EmbedKind.GoogleMaps, map.kind)
+        assertEquals("https://www.google.com/maps/embed?pb=!1m18!1m12", map.player)
+        val pen = Embeds.of("https://codepen.io/someone/embed/preview/abcDEF?default-tab=result")
+        assertEquals(EmbedKind.CodePen, pen.kind)
+        assertEquals("https://codepen.io/someone/pen/abcDEF", pen.url)
+        assertEquals(400, pen.size.height)
+        val gif = Embeds.of("https://giphy.com/embed/xT9IgG50Fb7Mi0prBC")
+        assertEquals(EmbedKind.Giphy, gif.kind)
+        assertEquals("https://giphy.com/gifs/xT9IgG50Fb7Mi0prBC", gif.url)
+        // An address that only looks like one stays an unknown embed.
+        assertEquals(EmbedKind.Other, Embeds.of("https://example.com/@me/123/other").kind)
+    }
+
+    @Test
+    fun `posts written for a service's script become their players`() {
+        val html =
+            "<p>Before</p>" +
+                "<blockquote class=\"bluesky-embed\" data-bluesky-uri=\"at://did:plc:abc123/app.bsky.feed.post/3kxyz\" data-bluesky-cid=\"x\"><p>Hello</p></blockquote>" +
+                "<blockquote class=\"mastodon-embed\" data-embed-url=\"https://mastodon.social/@Gargron/1123/embed\"><a href=\"https://mastodon.social/@Gargron/1123\">Post</a></blockquote>" +
+                "<blockquote class=\"text-post-media\" data-text-post-permalink=\"https://www.threads.net/@zuck/post/C8abc\" data-text-post-version=\"0\"><a href=\"x\">Post</a></blockquote>" +
+                "<blockquote class=\"reddit-embed-bq\" data-embed-height=\"500\"><a href=\"https://www.reddit.com/r/Android/comments/1abcde/some_title/\">Title</a></blockquote>" +
+                "<blockquote class=\"bluesky-embed\"><p>No address</p></blockquote>" +
+                "<blockquote><p>A plain quote</p></blockquote>"
+        val blocks = ArticleBlocks.split(html, base)
+        val kinds = blocks.filterIsInstance<ArticleBlock.Embed>().map { it.kind }
+        assertEquals(listOf(EmbedKind.Bluesky, EmbedKind.Mastodon, EmbedKind.Threads, EmbedKind.Reddit), kinds)
+        // A quote it can't read, and a plain quote, stay quotes.
+        val text = blocks.filterIsInstance<ArticleBlock.Quote>().flatMap { it.paragraphs }.joinToString(" ")
+        assertTrue(text.contains("No address"))
+        assertTrue(text.contains("A plain quote"))
+    }
+
+    @Test
+    fun `a post's measured height is kept within bounds`() {
+        assertEquals(480, Embeds.measuredHeight("480"))
+        assertEquals(481, Embeds.measuredHeight("480.6"))
+        assertNull(Embeds.measuredHeight("0"))
+        assertNull(Embeds.measuredHeight("null"))
+        assertNull(Embeds.measuredHeight(null))
+        assertEquals(Embeds.MAX_POST_HEIGHT, Embeds.measuredHeight("99999"))
+    }
 }
