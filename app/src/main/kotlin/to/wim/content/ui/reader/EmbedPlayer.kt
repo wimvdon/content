@@ -21,8 +21,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -36,8 +34,8 @@ import to.wim.content.feed.PlayerLoad
 /**
  * An embedded player, loaded once its card is tapped: the service's own player (or the site's
  * video) in a small web view, the size the service asks for. Its full screen button shows the
- * player over everything. Audio players of a fixed height load in a small page that gives them
- * exactly that height, see-through, with a placeholder of that size until they have loaded. A link the player opens (the service's logo, "watch on …") goes to
+ * player over everything. Audio players of a fixed height draw their own card on a see-through
+ * view. The player loads once the view has its size, so it picks the right layout. A link the player opens (the service's logo, "watch on …") goes to
  * [onOpenLink], never into the small view.
  */
 @SuppressLint("SetJavaScriptEnabled")
@@ -49,10 +47,8 @@ fun EmbedPlayer(
     val load = remember(embed) { Embeds.playerLoad(embed) } ?: return
     var fullScreen by remember { mutableStateOf<FullScreen?>(null) }
     val size = embed.size
-    // An audio player (Spotify, SoundCloud, …) draws its own card on a see-through page; until it has
-    // loaded, a placeholder of its size shows instead of a black box (2026-11-02).
+    // An audio player (Spotify, SoundCloud, …) draws its own card, on a see-through view.
     val seeThrough = remember(embed) { Embeds.seeThrough(embed) }
-    var loaded by remember(embed) { mutableStateOf(false) }
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier.fillMaxWidth(),
@@ -74,19 +70,10 @@ fun EmbedPlayer(
                     // The player's own text size: the phone's larger font size would cram its fixed height.
                     settings.textZoom = 100
                     setBackgroundColor(if (seeThrough) android.graphics.Color.TRANSPARENT else android.graphics.Color.BLACK)
-                    if (seeThrough) alpha = 0f
                     // Spotify and others keep their session in a cookie of their own.
                     CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)
                     webViewClient =
                         object : WebViewClient() {
-                            override fun onPageFinished(
-                                view: WebView,
-                                url: String?,
-                            ) {
-                                view.alpha = 1f
-                                loaded = true
-                            }
-
                             override fun shouldOverrideUrlLoading(
                                 view: WebView,
                                 request: WebResourceRequest,
@@ -112,11 +99,15 @@ fun EmbedPlayer(
                                 fullScreen = null
                             }
                         }
-                    when (load) {
-                        // The service's player as the page itself, with Content's web app as the page
-                        // that embeds it: YouTube refuses a player without one (error 153, a black box).
-                        is PlayerLoad.Url -> loadUrl(load.url, mapOf("Referer" to Embeds.PLAYER_ORIGIN))
-                        is PlayerLoad.Page -> loadDataWithBaseURL(Embeds.PLAYER_ORIGIN, load.html, "text/html", "utf-8", null)
+                    // Loaded once the view has its size: a player picks its layout from it (Spotify
+                    // came out too short, Bandcamp black, when loaded before).
+                    whenSized {
+                        when (load) {
+                            // The service's player as the page itself, with Content's web app as the page
+                            // that embeds it: YouTube refuses a player without one (error 153, a black box).
+                            is PlayerLoad.Url -> loadUrl(load.url, mapOf("Referer" to Embeds.PLAYER_ORIGIN))
+                            is PlayerLoad.Page -> loadDataWithBaseURL(Embeds.PLAYER_ORIGIN, load.html, "text/html", "utf-8", null)
+                        }
                     }
                 }
             },
@@ -124,11 +115,6 @@ fun EmbedPlayer(
             // Not clipped: a clipped WebView can draw black on some devices.
             modifier = if (seeThrough) sized else sized.background(Color.Black),
         )
-        if (seeThrough && !loaded) {
-            Box(sized.background(MaterialTheme.colorScheme.surfaceContainerHigh, MaterialTheme.shapes.medium), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-        }
     }
     fullScreen?.let { shown ->
         Dialog(
@@ -144,6 +130,34 @@ fun EmbedPlayer(
             )
         }
     }
+}
+
+/** Runs [action] once, as soon as the view has a width and a height. */
+private fun View.whenSized(action: () -> Unit) {
+    if (width > 0 && height > 0) {
+        action()
+        return
+    }
+    addOnLayoutChangeListener(
+        object : View.OnLayoutChangeListener {
+            override fun onLayoutChange(
+                v: View,
+                left: Int,
+                top: Int,
+                right: Int,
+                bottom: Int,
+                oldLeft: Int,
+                oldTop: Int,
+                oldRight: Int,
+                oldBottom: Int,
+            ) {
+                if (right - left <= 0 || bottom - top <= 0) return
+                v.removeOnLayoutChangeListener(this)
+                // After this layout pass, so the page sees the view's final size.
+                v.post(action)
+            }
+        },
+    )
 }
 
 private class FullScreen(

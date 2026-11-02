@@ -154,20 +154,20 @@ object Embeds {
     }
 
     /**
-     * How a player is loaded (Android): a video service's player as the page itself, with Content's
-     * web app as its referrer ([PlayerLoad.Url]; YouTube refuses one inside a page, error 153); a
-     * player of a fixed height (Spotify, SoundCloud, Apple, Bandcamp) and a site's video file in a
-     * small page of the reader's own ([PlayerLoad.Page], from [playerPage]), as the web app shows
-     * them. As the page itself, Spotify picked its layout from the view's height before the view had
-     * one, and came out too short (2026-11-02). Null without a player.
+     * How a player is loaded (Android): every service's player as the WebView's page itself, with
+     * Content's web app as its referrer ([PlayerLoad.Url]; YouTube refuses one without, error 153),
+     * and a site's video file in a small page of the reader's own ([PlayerLoad.Page], from
+     * [playerPage]). The audio players (Spotify, SoundCloud, Apple, Bandcamp) loaded inside an iframe
+     * of a page of our own didn't load at all on Android (2026-11-02); the view loads them only once
+     * it has its height, so they pick the right layout. Null without a player.
      */
     fun playerLoad(embed: ArticleBlock.Embed): PlayerLoad? {
         val player = embed.player ?: return null
-        if (embed.kind != EmbedKind.Video && embed.size.height == null) return PlayerLoad.Url(player)
+        if (embed.kind != EmbedKind.Video) return PlayerLoad.Url(player)
         return playerPage(embed)?.let(PlayerLoad::Page)
     }
 
-    /** Whether a player draws its own card on a see-through page (a fixed height), rather than on black. */
+    /** Whether a player draws its own card (a fixed height), shown on a see-through view rather than on black. */
     fun seeThrough(embed: ArticleBlock.Embed): Boolean = embed.kind != EmbedKind.Video && embed.size.height != null
 
     /** The address player pages are loaded under, and the referrer players see: Content's web app. */
