@@ -81,7 +81,7 @@ fun InboxContent(
                     menu =
                         listOfNotNull(
                             RowMenuAction(if (by.read) R.drawable.ic_mark_unread else R.drawable.ic_mark_read, if (by.read) unreadLabel else readLabel) { inbox.onToggleRead(item) },
-                            RowMenuAction(R.drawable.ic_list, saveLabel) { inbox.onSave(item) }.takeIf { save },
+                            RowMenuAction(R.drawable.ic_reading_list, saveLabel) { inbox.onSave(item) }.takeIf { save },
                             RowMenuAction(R.drawable.ic_share, shareLabel) { inbox.onShare(item) },
                             RowMenuAction(R.drawable.ic_delete, removeLabel) { inbox.onRemove(item) },
                         ),

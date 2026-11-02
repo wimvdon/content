@@ -121,7 +121,7 @@ and then (always before a release):
       a second phone) with the same Instapaper account: the same feeds, folders and read marks
       appear. Read an article on one with both open: within a few seconds it is read on the other,
       without refreshing. Rename a feed: the same. Delete synced data: both say to sign in again.
-- [ ] **Save** (a list icon) puts the article in Saved (or sends it to the app chosen in Settings ›
+- [ ] **Save** (the open book of To read, where it goes) puts the article in Saved (or sends it to the app chosen in Settings ›
       Save and share); **Share** opens the share menu or the chosen app. An uninstalled app falls back
       to the share menu. Settings › Save and share looks the same signed in to Instapaper or not.
 - [ ] **List:** at app start the list shows loading placeholders, never "No feeds yet" first.
@@ -382,7 +382,8 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
       reader closes).
 - [ ] Nothing in a sheet asks which service, and no sheet explains an empty field.
 - [ ] **Save, the list icon and Open (#142):** nothing says "Read later", in any language; the
-      navigation bar's Saved is a list icon, To read keeps the open book. After saving from the
+      navigation bar's Saved is a list icon, To read keeps the open book, and so do the one-tap Save
+      buttons (the reader's toolbar, a long press; web: the same). After saving from the
       reader the message has no Open; after a long press › Save, Add link or a share (over Chrome) it has
       **Open**, which lands on that article. Web app: the same icons, and Open after Add link.
 - [ ] Web app: **Save** in a feed article's menu saves at once, "Saved to To read" with **Open**; **Add link** in Saved opens the save sheet, with Cancel.

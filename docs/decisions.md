@@ -2,6 +2,13 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-02: One-tap Save shows To read's icon
+
+Owner's choice. The Save buttons that save at once (the reader's toolbar, a long press or a row's
+menu, the inbox) put the article in To read, so they show To read's open book instead of the list
+(Android) or the list-plus and bookmark-plus (web). Saved in the navigation keeps the list icon;
+Add › Save article keeps its bookmark, since that opens the sheet. Phone and web.
+
 ## 2026-11-02: Hidden words are chips, one word or group of words at a time
 
 Owner's choice. Hide articles with words was one text field with entries separated by commas or new
