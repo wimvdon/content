@@ -8,8 +8,8 @@ package to.wim.content.data
  * several words matches when **every** word is there, in any order, in the article's title or the
  * name of its feed (2026-11-02): "WIRED coupon code" hides WIRED's articles with "coupon code"
  * in their title, and nothing else of WIRED; "wired" alone hides all of WIRED. A word
- * matches as a whole word, ignoring case: "AI" hides "New AI rules" and "ai: a recap", not "said" or
- * "Thailand". The article's text is not searched through.
+ * matches as a whole word, or its plural or possessive, ignoring case: "AI" hides "New AI rules" and
+ * "ai: a recap", not "said" or "Thailand"; "code" also finds "Coupon Codes". The article's text is not searched through.
  */
 class ArticleFilter private constructor(
     /** The entries, in lower case, without duplicates. */
@@ -74,7 +74,10 @@ class ArticleFilter private constructor(
                 .filter { it.isNotEmpty() }
                 .distinct()
 
-        /** [text] (in lower case) has [word] with no letter or digit right before or after it. */
+        /** What may follow a word and still count as it: nothing, a plural or a possessive. */
+        private val ENDINGS = listOf("", "s", "es", "'s", "’s")
+
+        /** [text] (in lower case) has [word] (or its plural or possessive) with no letter or digit right before or after it. */
         private fun containsWord(
             text: String,
             word: String,
@@ -85,7 +88,11 @@ class ArticleFilter private constructor(
                 if (at < 0) return false
                 val end = at + word.length
                 val startOk = at == 0 || !text[at - 1].isLetterOrDigit()
-                val endOk = end == text.length || !text[end].isLetterOrDigit()
+                // The word itself, or its plural or possessive: "code" also finds "Coupon Codes" (2026-11-02).
+                val endOk =
+                    ENDINGS.any { ending ->
+                        text.startsWith(ending, end) && (end + ending.length == text.length || !text[end + ending.length].isLetterOrDigit())
+                    }
                 if (startOk && endOk) return true
                 from = at + 1
             }

@@ -213,8 +213,9 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   entries, separated by commas or new lines. An article is left out of the article lists, the
   unread counts and the tag chips when every word of an entry is in its title or in its feed's
   name, in any order: "WIRED coupon code" hides WIRED's coupon code articles, "wired" alone all of
-  WIRED, "crypto" every title with crypto in it. A word counts only as a whole word, and capitals
-  don't matter: "AI" hides "New AI rules", not "He said so". The article's text isn't searched,
+  WIRED, "crypto" every title with crypto in it. A word counts as a whole word, or its plural or
+  possessive ("code" also finds "Coupon Codes", "Kohl" finds "Kohl's"), and capitals don't
+  matter: "AI" hides "New AI rules", not "He said so"; "code" doesn't find "Coders". The article's text isn't searched,
   and Search still finds hidden articles. While you type, the dialog shows how many of the recent
   articles on the device the words would hide, with the five newest (title and feed), so you see
   what goes before you tap Save. Empty the field to show everything again. The words are the same

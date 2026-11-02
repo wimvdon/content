@@ -7,7 +7,7 @@ import { sortTime, type Article, type Library } from "./library";
  *
  * The entries are typed in Settings › Article list, separated by commas, semicolons or new lines. An
  * entry of several words matches when every word is there, in any order, in the article's title or
- * its feed's name: "WIRED coupon code" hides WIRED's articles with "coupon code" in their title,
+ * its feed's name: "WIRED coupon code" hides WIRED's articles with "coupon code(s)" in their title,
  * "wired" alone all of WIRED. A word matches as a whole word, ignoring case: "AI" hides "New AI
  * rules", not "said" or "Thailand".
  */
@@ -27,14 +27,18 @@ export function hiddenWords(text: string): string[] {
 
 const isLetterOrDigit = (c: string) => /[\p{L}\p{N}]/u.test(c);
 
-/** [text] (in lower case) has [word] with no letter or digit right before or after it. */
+/** What may follow a word and still count as it: nothing, a plural or a possessive ("code" finds "Codes"). */
+const ENDINGS = ["", "s", "es", "'s", "’s"];
+
+/** [text] (in lower case) has [word] (or its plural or possessive) with no letter or digit right before or after it. */
 function containsWord(text: string, word: string): boolean {
   let from = 0;
   for (;;) {
     const at = text.indexOf(word, from);
     if (at < 0) return false;
     const end = at + word.length;
-    if ((at === 0 || !isLetterOrDigit(text[at - 1])) && (end === text.length || !isLetterOrDigit(text[end]))) return true;
+    const endOk = ENDINGS.some((e) => text.startsWith(e, end) && (end + e.length === text.length || !isLetterOrDigit(text[end + e.length])));
+    if ((at === 0 || !isLetterOrDigit(text[at - 1])) && endOk) return true;
     from = at + 1;
   }
 }

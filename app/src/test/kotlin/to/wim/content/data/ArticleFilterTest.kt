@@ -49,13 +49,21 @@ class ArticleFilterTest {
         assertTrue(filter.hidesTitle("Apple announces a watch"))
         assertFalse(filter.hidesTitle("Apple announces a phone"))
         assertTrue(filter.hidesTitle("Best CAFÉ in town"))
-        assertFalse(filter.hidesTitle("Cafés everywhere"))
+        // Its plural counts, a longer word with accents doesn't.
+        assertTrue(filter.hidesTitle("Cafés everywhere"))
+        assertFalse(filter.hidesTitle("La cafétéria ferme"))
     }
 
     @Test
     fun `the feed's name counts too, so one publication's kind of article can go`() {
         val filter = ArticleFilter.parse("WIRED coupon code")
         assertTrue(filter.hidesTitle("Best Buy coupon code: 20% off", source = "WIRED"))
+        // WIRED's own titles have the plural: "code" finds "Codes", and possessives count too.
+        assertTrue(filter.hidesTitle("Kohl's Coupon Codes: 20% Off | November 2026", source = "WIRED"))
+        assertTrue(ArticleFilter.parse("kohl").hidesTitle("Kohl’s deals"))
+        assertTrue(ArticleFilter.parse("box").hidesTitle("Lunch boxes compared"))
+        // Other words that start with it are still other words.
+        assertFalse(ArticleFilter.parse("code").hidesTitle("Coders at work"))
         assertFalse(filter.hidesTitle("Best Buy coupon code: 20% off", source = "The Verge"))
         assertFalse(filter.hidesTitle("The best laptops of the year", source = "WIRED"))
         // One word that is the feed's name hides all of it.
