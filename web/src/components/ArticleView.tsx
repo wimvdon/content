@@ -96,7 +96,11 @@ export function ArticleView({
   const [share, shareDialog] = useShare((text) => onMessage(text));
 
   // The dialog to file it (folder and tags) says it was saved.
-  const saveArticle = () => article.link && app.saveArticle(article.link, article.title);
+  // One tap, as on Android: saved to To read, a message with Undo; the toolbar then has Archive, Like and Tags.
+  const saveArticle = () => {
+    const saved = article.link ? app.saveArticle(article.link, article.title, false) : null;
+    if (saved) onMessage(t("savedTo").replace("{place}", t("toRead")), { label: t("undo"), run: () => app.undoSave(saved.key, saved.before) });
+  };
   const [menuOpen, setMenuOpen] = useState(false);
   // Remove from Saved, from ⋮: asks first; once removed, the reader closes.
   const [removing, setRemoving] = useState(false);

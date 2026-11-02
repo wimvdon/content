@@ -244,16 +244,8 @@ fun SaveSheet(
             val canSave = SendTo.canConfirm(choice, hasLink = saved || link != null)
             // Cancel at the bottom left, Save at the right; Remove is the header's trash can.
             SheetActions(onCancel = cancel) {
+                // Just the word (2026-11-02): To read or Archive is the choice above, with its own icons.
                 Button(enabled = canSave, onClick = { save(choice) }) {
-                    // Kept, the icon says where it goes: To read's open book, the Archive's box.
-                    if (choice.keep && !sendOnly) {
-                        Icon(
-                            painterResource(if (SaveChoices.archived(choice)) R.drawable.ic_inventory else R.drawable.ic_reading_list),
-                            contentDescription = null,
-                            modifier = Modifier.size(ButtonDefaults.IconSize),
-                        )
-                        Spacer(Modifier.size(8.dp))
-                    }
                     Text(
                         stringResource(
                             when (SendTo.action(choice)) {

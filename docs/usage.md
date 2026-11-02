@@ -262,7 +262,9 @@ come into Content (when the article opens, or at the next sync). Free Instapaper
 five new ones a month: the others stay in Content, say "Not in Instapaper yet" in the list of
 highlights, and are tried again the next day.
 
-After **Save**, **Organise** opens (#304; it was "Save and share", #256): the **Tags** with **Like** in front (every tag, in your
+**Save** in the reader saves in one tap: "Saved to To read" shows, with **Undo**, and the toolbar
+then has Archive, Like and Tags. Saving from a long press, **Add link** or another app's share
+menu opens **Organise** (#304; it was "Save and share", #256): the **Tags** with **Like** in front (every tag, in your
 order, tap to turn one on or off; **Edit tags** opens Manage tags over the sheet) and a **Note**. It
 doesn't send: to send an article to people with Content, use **Share** (or the share menu's **Send
 with Content**). Above the tags, **To read** or **Archive** says where the article goes (To read
@@ -314,7 +316,7 @@ off (for example to save data); embed cards stay, without preview.
 ## Save and Share
 
 The reader has a **Save** button and a **Share** button (#256: there are no settings for them any
-more). **Save** saves the article to **To read** and opens **Organise** (see Saved). **Share** opens Content's share sheet.
+more). **Save** saves the article to **To read** in one tap, with **Undo** in the message (see Saved). **Share** opens Content's share sheet.
 
 **Content's share sheet** (#251; the web app's Share too). At the top, signed in, **Send with
 Content**: the people you sent something to before as chips, as tags are; tap one or more to pick

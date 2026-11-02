@@ -86,9 +86,8 @@ function Sheet({
       headerAction={kind === "note" && initial.note.trim() ? <RemoveButton onClick={() => setRemovingNote(true)} /> : undefined}
       footer={
         <>
-          {/* Save, with the icon of where it goes: To read's open book, the Archive's box. */}
+          {/* Just the word: To read or Archive is the choice above, with its own icons. */}
           <Button onClick={() => save(choice)} disabled={!canConfirm(choice, saved || link !== null)}>
-            {choice.keep ? isArchived(choice) ? <Archive /> : <BookOpen /> : null}
             {t("saveArticle")}
           </Button>
         </>

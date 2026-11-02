@@ -229,6 +229,10 @@ and then (always before a release):
       same.
 - [ ] **Swipe between tabs:** swipe the Feeds list left: Read; right: Unread. The same in Saved (To
       read, All). Web on a phone: the same with a touch swipe.
+- [ ] **Audio players** (an article with a Spotify, SoundCloud or Bandcamp player): tap the card: a
+      grey placeholder with a spinner the player's size, then the whole player (Spotify with its
+      cover, Bandcamp with its artwork and controls), no black flash, nothing cut off. A YouTube
+      video still plays as before.
 - [ ] **Settings sync between phone and web:** on the phone, turn on Always open the website and
       add a hidden word; sync. In the web app (same account, after a sync): both are the same there,
       and clicking a feed article opens its website in a new tab. Change the theme or the list view
@@ -347,7 +351,8 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
       a trash can at the top right, which asks and then removes the note. "3 highlights" opens
       their list. Web app: the same.
 - [ ] Open a feed article (not saved): the toolbar shows **Save** (word), and Share. ⋮ has Mark as
-      unread and Show full article. Tap **Save** and close the sheet with Save: without leaving the
+      unread and Show full article. Tap **Save**: no sheet opens; "Saved to To read" shows with
+      **Undo** (tap it: the article isn't saved any more, Save is back). Save again: without leaving the
       article, the toolbar becomes Archive, Like, Tags, Share, and ⋮ has no Mark as unread or text
       switch any more, but **Remove from Saved** at the end. Web app: the same.
 - [ ] **Add link** and a link shared from another app: the sheet asks for the address (or shows the
