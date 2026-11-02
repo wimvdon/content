@@ -82,6 +82,15 @@ The web's dialogs closed on a click beside them while typing; that click now onl
 The save and Organise sheet stays as it was (owner's choice, after trying one tap everywhere): one
 tap only in an open article, the sheet everywhere else.
 
+## 2026-11-02: Android's player view fills its space (SoundCloud, Bandcamp, Spotify)
+
+Owner's report: SoundCloud and Bandcamp still showed nothing on Android, and Spotify only its small
+bar, after every earlier change (a page of our own, loading directly, waiting for the size). The
+cause was the same each time: Compose puts a view in with "as high as its content" layout
+parameters, and a WebView in that mode gives its page no height of its own, so players that fill
+their page (100% high) came out 0 high, and Spotify picked its small layout. The player's WebView
+now fills the space the reader gives it (MATCH_PARENT), as other Compose WebView wrappers do.
+
 ## 2026-11-02: More embedded services: posts, Twitch, maps, pens and GIFs
 
 Owner's choice: besides the players, the reader shows **Bluesky, Mastodon (any server), Threads and

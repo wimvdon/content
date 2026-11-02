@@ -79,6 +79,10 @@ fun EmbedPlayer(
         AndroidView(
             factory = { context ->
                 WebView(context).also { view = it }.apply {
+                    // Fill the space the reader gives it. Without this the view is "as high as its
+                    // content", and the page inside gets no height: players that fill their page
+                    // (SoundCloud, Bandcamp) showed nothing, Spotify its small bar (2026-11-02).
+                    layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
                     // The players are the services' own pages: they need their scripts.
                     settings.javaScriptEnabled = true
                     settings.domStorageEnabled = true
