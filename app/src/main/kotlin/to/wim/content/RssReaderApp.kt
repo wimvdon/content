@@ -59,7 +59,11 @@ class RssReaderApp :
 
     private val fetcher: FeedFetcher by lazy {
         val version = runCatching { packageManager.getPackageInfo(packageName, 0).versionName }.getOrNull().orEmpty()
-        FeedFetcher(userAgent = "RSSReader/$version (Android)", cookieFor = { url -> SiteSignIns.cookieFor(url, siteSignIns.signIns.value) })
+        FeedFetcher(
+            userAgent = "RSSReader/$version (Android)",
+            cookieFor = { url -> SiteSignIns.cookieFor(url, siteSignIns.signIns.value) },
+            onCookies = { url, setCookies -> appScope.launch { siteSignIns.refresh(url, setCookies) } },
+        )
     }
 
     val library: LibraryRepository by lazy { LibraryRepository(this, appScope, fetch = fetcher::fetch) }

@@ -122,7 +122,9 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   this phone only, in a file of their own that Android's backup and phone transfer leave out; they
   are never synced and never sent to the owner's feed loader. From then on the app sends them only
   to that site (and its subdomains), over https, when it loads that site's feeds and articles, so
-  articles you pay for load in full. Settings › Article view › Sites you're signed in to › Remove forgets them.
+  articles you pay for load in full. When that site sends cookies back with a page (renewing your
+  sign-in, as it would in a browser), the app keeps them in the same file; another domain's
+  cookies are ignored. Settings › Article view › Sites you're signed in to › Remove forgets them.
 - **Sharing with another Content user (#167).** Only when you send something: Share › Send
   with Content or a person shown with it (one article, #246) or Manage tags › the people icon (a
   tag's articles). The app first asks
