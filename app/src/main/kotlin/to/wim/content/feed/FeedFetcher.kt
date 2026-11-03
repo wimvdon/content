@@ -13,12 +13,15 @@ import java.net.URL
  * sync (sync/AccountClient.kt, sync/LiveUpdates.kt) and Instapaper (instapaper/): it fetches
  * exactly the addresses the user subscribed to (or typed), sends no identifiers, and follows at
  * most [MAX_REDIRECTS] redirects. The only cookies it sends are a site's own sign-in, to that site
- * ([cookieFor], #180), so the articles you pay for load in full.
+ * ([cookieFor], #180), so the articles you pay for load in full; what that site sends back
+ * ([onCookies]) keeps the sign-in fresh, as in a browser.
  */
 class FeedFetcher(
     private val userAgent: String,
     /** The sign-in cookies for an address, or null (feed/SiteSignIns.kt). */
     private val cookieFor: (String) -> String? = { null },
+    /** A signed-in site's Set-Cookie headers, for an address its sign-in was sent to. */
+    private val onCookies: (String, List<String>) -> Unit = { _, _ -> },
 ) {
     suspend fun fetch(url: String): Fetched =
         withContext(Dispatchers.IO) {
@@ -37,8 +40,12 @@ class FeedFetcher(
                     connection.useCaches = false
                     connection.setRequestProperty("User-Agent", userAgent)
                     connection.setRequestProperty("Accept", ACCEPT)
-                    cookieFor(current)?.let { connection.setRequestProperty("Cookie", it) }
+                    val signedIn = cookieFor(current)?.also { connection.setRequestProperty("Cookie", it) } != null
                     val code = connection.responseCode
+                    if (signedIn) {
+                        val setCookies = connection.headerFields.filterKeys { it.equals("Set-Cookie", ignoreCase = true) }.values.flatten()
+                        if (setCookies.isNotEmpty()) onCookies(current, setCookies)
+                    }
                     when {
                         code in 300..399 -> {
                             val location = connection.getHeaderField("Location") ?: throw FetchException(FetchError.ServerError)

@@ -22,6 +22,14 @@ class ReaderMenuTest {
     }
 
     @Test
+    fun `signed in to the site, it offers to sign in again instead`() {
+        assertEquals(
+            listOf(Entry.OpenInBrowser, Entry.SignInAgain, Entry.Report, Entry.Remove),
+            ReaderMenu.entries(feedArticle = false, saved = true, hasLink = true, canSignIn = true, canReport = true, signedIn = true),
+        )
+    }
+
+    @Test
     fun `without a link only what needs none`() {
         assertEquals(listOf(Entry.MarkUnread), ReaderMenu.entries(feedArticle = true, saved = false, hasLink = false, canSignIn = false, canReport = false))
     }

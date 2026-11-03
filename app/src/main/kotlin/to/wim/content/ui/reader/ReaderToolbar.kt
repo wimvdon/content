@@ -40,10 +40,11 @@ object ReaderToolbarVisibility {
  * What the reader's ⋮ menu offers, in this order. A feed article not saved: Mark as unread, the feed's
  * text or the full article. Once saved (also right after Save in the reader, 2026-11-02) it is a saved
  * article's menu: no Mark as unread or text switch, and Remove from Saved at the end. Both: Open in
- * browser, Sign in to website, Report a problem. Plain Kotlin, tested on the JVM.
+ * browser, Sign in to this site (Sign in again once signed in, for when the site's sign-in ran out),
+Report a problem. Plain Kotlin, tested on the JVM.
  */
 object ReaderMenu {
-    enum class Entry { MarkUnread, ToggleText, OpenInBrowser, SignIn, Report, Remove }
+    enum class Entry { MarkUnread, ToggleText, OpenInBrowser, SignIn, SignInAgain, Report, Remove }
 
     fun entries(
         /** It is (also) an article of one of your feeds, which has a read state. */
@@ -53,12 +54,14 @@ object ReaderMenu {
         hasLink: Boolean,
         canSignIn: Boolean,
         canReport: Boolean,
+        /** Already signed in to the article's site: Sign in again replaces that sign-in. */
+        signedIn: Boolean = false,
     ): List<Entry> =
         buildList {
             if (feedArticle && !saved) add(Entry.MarkUnread)
             if (hasLink && !saved) add(Entry.ToggleText)
             if (hasLink) add(Entry.OpenInBrowser)
-            if (canSignIn) add(Entry.SignIn)
+            if (canSignIn) add(if (signedIn) Entry.SignInAgain else Entry.SignIn)
             if (canReport) add(Entry.Report)
             if (saved) add(Entry.Remove)
         }

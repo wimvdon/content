@@ -290,16 +290,6 @@ export function ArticleView({
             onAdd={(h, withNote) => (withNote ? setDraft(h) : link && app.addHighlight(link, article.title, h))}
             onOpen={setOpenHighlight}
           />
-          {article.link ? (
-            <div className="mt-10 border-t pt-6">
-              <Button variant="tonal" asChild>
-                <a href={article.link} target="_blank" rel="noopener noreferrer">
-                  <ExternalLink />
-                  {t("readOnWebsite")}
-                </a>
-              </Button>
-            </div>
-          ) : null}
         </div>
       </div>
       {removing && saved ? (

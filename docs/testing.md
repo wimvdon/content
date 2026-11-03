@@ -172,7 +172,7 @@ and then (always before a release):
       folder. In the reader (#139): the top bar has the full-article button (lit while the full article
       shows; tap: the feed's text, tap again: the full article), Aa and ⋮, before and after saving;
       the bar below has Save on the left, or once saved the folder and the tags side by side (both
-      icons in the same colour), and Share at the right end; the text ends with Read on website; ⋮
+      icons in the same colour), and Share at the right end; nothing after the text (Open in browser is in ⋮); ⋮
       has Open in browser, Mark as unread and Remove from Saved (asks first, everywhere), no Tags. Web app: the same.
       Nothing says "Finished reading", in any language.
       Leave an article halfway and open it again: it opens where you were. Manage tags

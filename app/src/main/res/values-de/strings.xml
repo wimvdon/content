@@ -62,7 +62,6 @@
     <string name="reader_background_sepia">Sepia</string>
     <string name="reader_background_dark">Dunkel</string>
     <string name="reader_preview">Gute Typografie ist unsichtbar: Du bemerkst die Geschichte, nicht die Buchstaben.</string>
-    <string name="reader_read_on_website">Auf der Website lesen</string>
     <string name="notify_shared_setting">Benachrichtigen, wenn etwas mit mir geteilt wird</string>
     <string name="notify_shared_denied">Benachrichtigungen sind für Content aus. Erlaube sie in den Android-Einstellungen › Apps › Content.</string>
     <string name="notify_shared_channel">Mit dir geteilt</string>
@@ -100,6 +99,8 @@
         <item quantity="other">%1$s hat %2$d Artikel mit dir geteilt</item>
     </plurals>
     <string name="site_sign_in_menu">Bei dieser Website anmelden</string>
+    <string name="site_sign_in_again_menu">Erneut bei dieser Website anmelden</string>
+    <string name="site_sign_in_again">Erneut anmelden</string>
     <string name="site_sign_in_title">Bei %1$s anmelden</string>
     <string name="site_sign_in_done">Fertig</string>
     <string name="site_sign_in_saved">Bei %1$s angemeldet. Ihre Artikel laden vollständig.</string>
@@ -122,6 +123,7 @@
     <string name="reader_show_feed_text">Text aus dem Feed anzeigen</string>
     <string name="reader_loading_full">Ganzer Artikel wird geladen…</string>
     <string name="reader_full_failed">Der ganze Artikel konnte nicht geladen werden. Du siehst den Text aus dem Feed.</string>
+    <string name="reader_full_failed_signed_in">Der ganze Artikel konnte nicht geladen werden. Du siehst den Text aus dem Feed. Ist die Anmeldung bei der Website abgelaufen, melde dich erneut an.</string>
     <string name="reader_always_website_title">Immer die Website öffnen</string>
     <string name="reader_always_website_summary">Artikel aus deinen Feeds öffnen sich auf ihrer Website statt im Reader. Gespeicherte Artikel öffnen sich weiter im Reader.</string>
     <string name="reader_full_articles_title">Ganze Artikel laden</string>

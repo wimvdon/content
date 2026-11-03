@@ -230,12 +230,12 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
 Tap an article to read it. It is marked as read. Saved articles have no read state of their
 own (archiving is what puts them away), but opening one marks the feed article it came from as
 read, in both apps. Tap (or click) the article's **title** to open it on its
-website (in the web app, in a new tab) (the same as **Read on website** at the end). In the top bar:
+website (in the web app, in a new tab) (the same as ⋮ › **Open in browser**). In the top bar:
 
 | Button | What it does |
 |---|---|
 | **Aa** | Text settings: font (Sans or Serif), text size, spacing (Compact, Normal, Relaxed), background (Theme, Sepia or Dark) and **Auto dark** (the dark page whenever the app is dark, e.g. Sepia by day and dark at night). Changes apply right away and are remembered for every article. |
-| ⋮ | In this order: **Mark as unread** (back to the list, where it waits unread; the web app keeps the article open and offers **Mark as read** too), **Show full article** / **Show feed text** (a feed article: the whole article from the website, or the feed's own text; a saved article always shows the whole article), **Open in browser**, **Sign in to this site** (#180: for a site you pay for, such as standaard.be; sign in on its page and tap **Done**, and from then on its articles load in full; only while you aren't signed in to that site yet; Settings › Article view › Sites you're signed in to lists them, with **Remove**), **Report a problem with this article** (#181: pick what is wrong, add a comment if you like, and **Send** opens a pre-filled report on GitHub in your browser, with the article's link and the text Content shows, #251, so it can be compared with the website; a text too long for the address is cut short there and put whole on the clipboard to paste; submit it there). **Remove from Saved** (a saved article: instead of Mark as unread and the text switch). Open in browser, and links in an article, open in a tab of your browser on top of Reader, with a **Save** button in its toolbar: it opens the save sheet over the page (see Saving from other apps); save or close it to keep reading. |
+| ⋮ | In this order: **Mark as unread** (back to the list, where it waits unread; the web app keeps the article open and offers **Mark as read** too), **Show full article** / **Show feed text** (a feed article: the whole article from the website, or the feed's own text; a saved article always shows the whole article), **Open in browser**, **Sign in to this site** (#180: for a site you pay for, such as standaard.be; sign in on its page and tap **Done**, and from then on its articles load in full; once signed in it reads **Sign in to this site again**, for when the site's sign-in has run out and its articles stop loading: its page usually still knows you, so tap **Done** (sign in first if it asks), and the new sign-in replaces the old one; cookies the site sends back with its pages keep the sign-in fresh, as in a browser; a full article that doesn't load while you're signed in to its site also offers **Sign in again**; Settings › Article view › Sites you're signed in to lists them, with **Remove**), **Report a problem with this article** (#181: pick what is wrong, add a comment if you like, and **Send** opens a pre-filled report on GitHub in your browser, with the article's link and the text Content shows, #251, so it can be compared with the website; a text too long for the address is cut short there and put whole on the clipboard to paste; submit it there). **Remove from Saved** (a saved article: instead of Mark as unread and the text switch). Open in browser, and links in an article, open in a tab of your browser on top of Reader, with a **Save** button in its toolbar: it opens the save sheet over the page (see Saving from other apps); save or close it to keep reading. |
 
 The **floating toolbar** (a rounded bar at the bottom in the middle, over the text) is the article
 in your library, with **Share** at its end (Content's share sheet, or straight to the app you
@@ -246,7 +246,7 @@ saved (right away, without leaving the article) the toolbar is **Archive** (in w
 archived, the To read icon puts it back), **Like**, **Tags** and Share; one tap on Archive archives
 it, the article stays open and says **Archived** with **Undo**. No button has a colour of its own:
 the words show the next step. ⋮ then shows a saved article's options. Before Share, a quote mark with a count opens the article's highlights and
-notes. The text ends with **Read on website**. Reader remembers how far you read and opens the
+notes. Reader remembers how far you read and opens the
 article there again.
 
 **Highlights and notes.** Press and hold on a word, drag the handles over a passage, and tap
@@ -303,7 +303,7 @@ replaced by the complete article (without the site's menus, ads and comments). I
 feed's text stays and a line says so. The page button in the top bar switches
 between the two for the open article; **Settings › Article view › Load full articles** turns the
 automatic loading off. Full articles are kept for a while, so opening one again is instant.
-**Read on website** at the end always opens the original page. 
+⋮ › **Open in browser** always opens the original page. 
 
 **Pictures and videos.** The list shows each article's picture as a thumbnail; a link you save or
 share from another app gets the picture (and description) the page itself names, and so does a saved article without a picture when you open it. In the reader the

@@ -63,7 +63,6 @@
     <string name="reader_background_sepia">Sepia</string>
     <string name="reader_background_dark">Dark</string>
     <string name="reader_preview">Good typography is invisible: you notice the story, not the letters.</string>
-    <string name="reader_read_on_website">Read on website</string>
     <string name="notify_shared_setting">Notify me when something is shared with me</string>
     <string name="notify_shared_denied">Notifications are off for Content. Allow them in Android’s settings › Apps › Content.</string>
     <string name="notify_shared_channel">Shared with you</string>
@@ -102,6 +101,8 @@
         <item quantity="other">%1$s shared %2$d articles with you</item>
     </plurals>
     <string name="site_sign_in_menu">Sign in to this site</string>
+    <string name="site_sign_in_again_menu">Sign in to this site again</string>
+    <string name="site_sign_in_again">Sign in again</string>
     <string name="site_sign_in_title">Sign in to %1$s</string>
     <string name="site_sign_in_done">Done</string>
     <string name="site_sign_in_saved">Signed in to %1$s. Its articles load in full.</string>
@@ -124,6 +125,7 @@
     <string name="reader_show_feed_text">Show feed text</string>
     <string name="reader_loading_full">Loading the full article…</string>
     <string name="reader_full_failed">Couldn’t load the full article. Showing the feed’s text.</string>
+    <string name="reader_full_failed_signed_in">Couldn’t load the full article. Showing the feed’s text. If the site’s sign-in ran out, sign in again.</string>
     <string name="reader_always_website_title">Always open the website</string>
     <string name="reader_always_website_summary">Feed articles open on their website instead of in the reader. Saved articles still open in the reader.</string>
     <string name="reader_full_articles_title">Load full articles</string>

@@ -2,6 +2,28 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-03: Sign in again to a site; no Read on website at the end of an article
+
+- **Sign in again** (owner's report: De Standaard's articles stopped loading until its sign-in was
+  removed and added again; signing in again only needed a confirmation, as the sign-in browser was
+  still signed in). The copy of the cookies Content keeps ran out while the site still knew the
+  phone. Two changes:
+  - **The sign-in stays fresh**: when a signed-in site sends cookies back with a page (Set-Cookie),
+    Content keeps them, as a browser does (`SiteSignIns.updated`): renewed ones replace the old,
+    cleared ones go, another domain's are ignored. A site that renews its sign-in that way no
+    longer runs out. One that renews it only through its page's own scripts still can.
+  - **⋮ always offers to sign in**: **Sign in to this site again** once signed in. The sign-in
+    browser keeps its own cookies, so it is usually just Done, which replaces the stored sign-in.
+    A full article that doesn't load while signed in to its site says the sign-in may have run
+    out, with **Sign in again**. This replaces #251's (2026-10-25) "Sign in to this site only shows
+    while you aren't signed in". Not done: guessing from a short text that a sign-in ran out (a
+    teaser and a short article look alike).
+- Android only, a platform exception: the web app has no sign-in of its own; it uses the browser's
+  own sign-in on the site (with the extension), which the site renews there itself.
+- **Read on website at the end of an article is gone**, in both apps, at the owner's request: ⋮ ›
+  Open in browser (and the title) already open the page. The web app keeps it inside the message
+  shown when the full article can't load, where it is the way to read the article.
+
 ## 2026-11-02: Switching to Unread lets go of a chip with nothing unread
 
 Owner's choice. With a tag or feed chosen in All, switching to Unread kept it chosen even when it had

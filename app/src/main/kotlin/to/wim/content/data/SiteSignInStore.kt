@@ -42,6 +42,17 @@ class SiteSignInStore(
             prefs[SIGN_INS] = SiteSignIns.encode(list.sortedBy { it.site })
         }
 
+    /** Keeps what the site at [url] sent back to its sign-in ([SiteSignIns.updated]); its time stays, so the reader doesn't reload. */
+    suspend fun refresh(
+        url: String,
+        setCookies: List<String>,
+    ) = dataStore.edit { prefs ->
+        val list = SiteSignIns.decode(prefs[SIGN_INS])
+        val signIn = SiteSignIns.forUrl(url, list) ?: return@edit
+        val cookie = SiteSignIns.updated(signIn.site, signIn.cookie, setCookies) ?: return@edit
+        prefs[SIGN_INS] = SiteSignIns.encode(list.map { if (it.site == signIn.site) it.copy(cookie = cookie) else it })
+    }
+
     suspend fun remove(site: String) =
         dataStore.edit { prefs ->
             prefs[SIGN_INS] = SiteSignIns.encode(SiteSignIns.decode(prefs[SIGN_INS]).filter { it.site != site })
