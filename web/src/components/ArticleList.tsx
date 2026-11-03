@@ -184,6 +184,7 @@ function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport,
           <Empty
             icon={library.articles.length === 0 || tab === "all" ? Newspaper : CheckCheck}
             title={library.articles.length === 0 || tab === "all" ? t("noArticlesTitle") : t("caughtUpTitle")}
+            celebrate={library.articles.length > 0 && tab !== "all"}
           >
             {/* Look for new articles (#251), as on Android; not in Read: new ones arrive unread. */}
             {tab === "unread" || library.articles.length === 0 ? (
@@ -893,15 +894,18 @@ export function Empty({
   title,
   text,
   children,
+  celebrate = false,
 }: {
   icon: LucideIcon;
   title: string;
   text?: string;
   children?: React.ReactNode;
+  /** All caught up springs in, a small reward for marking all as read. */
+  celebrate?: boolean;
 }) {
   return (
     <div className="mx-auto flex max-w-sm flex-col items-center gap-3 px-6 py-16 text-center">
-      <div className="mb-1 flex size-18 items-center justify-center rounded-full bg-accent text-accent-foreground">
+      <div className={cn("mb-1 flex size-18 items-center justify-center rounded-full bg-accent text-accent-foreground", celebrate && "spring-in")}>
         <Icon className="size-9" aria-hidden="true" />
       </div>
       <h2 className="text-lg font-semibold">{title}</h2>

@@ -1,13 +1,27 @@
 package to.wim.content.ui.home
 
 import androidx.compose.animation.core.animate
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -122,7 +136,8 @@ class PullToMarkState internal constructor(
                     haptics.performHapticFeedback(HapticFeedbackType.Confirm)
                     onMark()
                 }
-                animate(pull, 0f) { value, _ -> pull = value }
+                // Springs back, with a little bounce.
+                animate(pull, 0f, animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow)) { value, _ -> pull = value }
                 return available
             }
         }
@@ -138,8 +153,10 @@ fun rememberPullToMarkState(onMark: () -> Unit): PullToMarkState {
 
 /**
  * Mark all as read at the end of the list. Tapping it marks all as read; so does pulling past the
- * end ([state]): it moves up with the pull, its ring fills, and once far enough it is filled and
- * says to let go.
+ * end ([state]). Meant to be a small pleasure (owner's wish), in Material 3 Expressive's springy
+ * motion: it moves up and grows a little with the pull while its ring fills and turns; far enough,
+ * it pops (a bouncy spring) into its filled colour and the double tick springs in; let go and it
+ * springs back.
  */
 @Composable
 fun MarkAllReadButton(
@@ -147,24 +164,62 @@ fun MarkAllReadButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val armed = state.armed
+    val bouncy = spring<Float>(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium)
+    val scale by animateFloatAsState(if (armed) 1.12f else 1f + 0.05f * state.progress, bouncy, label = "scale")
+    val fill by animateFloatAsState(if (armed) 1f else 0f, spring(stiffness = Spring.StiffnessMedium), label = "fill")
+    val colors = MaterialTheme.colorScheme
     Box(
         modifier
             .fillMaxWidth()
             .padding(top = 8.dp)
-            .graphicsLayer { translationY = -state.pull * PullToMark.RESISTANCE },
+            .graphicsLayer {
+                translationY = -state.pull * PullToMark.RESISTANCE
+                scaleX = scale
+                scaleY = scale
+            },
         contentAlignment = Alignment.Center,
     ) {
-        val content: @Composable RowScope.() -> Unit = {
-            if (state.pull > 0f && !state.armed) {
-                CircularProgressIndicator(progress = { state.progress }, modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
-            } else {
-                Icon(painterResource(R.drawable.ic_done_all), contentDescription = null)
+        OutlinedButton(
+            onClick = onClick,
+            colors =
+                ButtonDefaults.outlinedButtonColors(
+                    containerColor = lerp(Color.Transparent, colors.primaryContainer, fill),
+                    contentColor = lerp(colors.primary, colors.onPrimaryContainer, fill),
+                ),
+            border = BorderStroke(1.dp, colors.outline.copy(alpha = 1f - fill)),
+        ) {
+            AnimatedContent(
+                targetState = state.pull > 0f && !armed,
+                transitionSpec = { (scaleIn(bouncy) + fadeIn()) togetherWith (scaleOut() + fadeOut()) },
+                label = "icon",
+            ) { pulling ->
+                if (pulling) {
+                    CircularProgressIndicator(
+                        progress = { state.progress },
+                        modifier = Modifier.size(18.dp).graphicsLayer { rotationZ = state.progress * 270f },
+                        strokeWidth = 2.dp,
+                    )
+                } else {
+                    Icon(painterResource(R.drawable.ic_done_all), contentDescription = null, modifier = Modifier.size(18.dp))
+                }
             }
             Text(
-                stringResource(if (state.armed) R.string.action_mark_all_read_release else R.string.action_mark_all_read),
+                stringResource(if (armed) R.string.action_mark_all_read_release else R.string.action_mark_all_read),
                 modifier = Modifier.padding(start = 8.dp),
             )
         }
-        if (state.armed) FilledTonalButton(onClick = onClick, content = content) else OutlinedButton(onClick = onClick, content = content)
+    }
+}
+
+/** The caught-up screen after marking all as read springs in, a small reward. */
+@Composable
+fun Modifier.springIn(): Modifier {
+    val grow = remember { Animatable(0.6f) }
+    LaunchedEffect(Unit) { grow.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)) }
+    return graphicsLayer {
+        scaleX = grow.value
+        scaleY = grow.value
+        alpha = ((grow.value - 0.6f) / 0.4f).coerceIn(0f, 1f)
     }
 }

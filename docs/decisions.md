@@ -11,6 +11,11 @@ Newest first. Add an entry for every notable choice: what was decided, why, and 
   at 96 dp it turns filled (tonal) with a tick of the phone and says **Let go to mark all as read**,
   and letting go marks all as read, with the usual Undo. A fling that reaches the end doesn't pull,
   only the finger. Logic: `PullToMark` (Android), `lib/pullToMark.ts` (web).
+- A small pleasure (owner's wish), in Material 3 Expressive's springy motion without new
+  libraries: the button grows a little with the pull and its ring turns as it fills; far enough, it
+  pops with a bouncy spring into its filled colour and the double tick springs in; let go and it
+  springs back with a little bounce, and All caught up springs in. The web does the same in CSS,
+  and stays calm with reduced motion.
 - Web: the same with the wheel, the trackpad or a finger. A wheel gesture only counts when it
   starts at the end, so a fast scroll coasting into the end marks nothing; it lets go when the
   wheel rests for a moment.

@@ -904,6 +904,8 @@ private fun NothingToShow(
         stringResource(
             if (unread == true) R.string.home_caught_up_title else R.string.home_no_articles_title,
         ),
+        // All caught up springs in, a small reward for marking all as read.
+        modifier = if (unread == true) Modifier.springIn() else Modifier,
     ) {
         OutlinedButton(onClick = onRefresh, enabled = !refreshing) { Text(stringResource(R.string.action_refresh)) }
     }
