@@ -1003,8 +1003,17 @@ fun RssReaderNavigation(
                                         onSave = { article?.let { it.link?.let { link -> readLater(link, it.title, inReader = true) } } },
                                         onShare = { article?.let(::share) },
                                         onOpenInBrowser = { article?.let { a -> a.link?.let { ExternalApps.openInTab(context, it, a.title) } } },
-                                        // Only while not signed in to the site yet (#251); Settings forgets a sign-in.
-                                        onSignIn = article?.link?.takeIf { signedIn == null && SiteSignIns.siteOf(it) != null }?.let { link -> { push(Screen.SiteSignIn(link)) } },
+                                        // Sign in, or sign in again once signed in: a site's sign-in can run out, and then
+                                        // its articles stop loading. Again starts from a signed-out page: the old
+                                        // cookies leave the sign-in browser, and Done replaces the stored sign-in.
+                                        onSignIn =
+                                            article?.link?.takeIf { SiteSignIns.siteOf(it) != null }?.let { link ->
+                                                {
+                                                    signedIn?.let { forgetSiteCookies(it.site, it.cookie) }
+                                                    push(Screen.SiteSignIn(link))
+                                                }
+                                            },
+                                        signedIn = signedIn != null,
                                         onReport =
                                             article?.link?.let { link ->
                                                 { problem, comment ->

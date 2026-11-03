@@ -62,7 +62,6 @@
     <string name="reader_background_sepia">Seppia</string>
     <string name="reader_background_dark">Scuro</string>
     <string name="reader_preview">La buona tipografia è invisibile: noti la storia, non le lettere.</string>
-    <string name="reader_read_on_website">Leggi sul sito</string>
     <string name="notify_shared_setting">Avvisami quando qualcuno condivide qualcosa con me</string>
     <string name="notify_shared_denied">Le notifiche di Content sono disattivate. Consentile in Impostazioni Android › App › Content.</string>
     <string name="notify_shared_channel">Condiviso con te</string>
@@ -102,6 +101,8 @@
         <item quantity="other">%1$s ha condiviso %2$d articoli con te</item>
     </plurals>
     <string name="site_sign_in_menu">Accedi a questo sito</string>
+    <string name="site_sign_in_again_menu">Accedi di nuovo a questo sito</string>
+    <string name="site_sign_in_again">Accedi di nuovo</string>
     <string name="site_sign_in_title">Accedi a %1$s</string>
     <string name="site_sign_in_done">Fatto</string>
     <string name="site_sign_in_saved">Accesso a %1$s effettuato. I suoi articoli si caricano interi.</string>
@@ -124,6 +125,7 @@
     <string name="reader_show_feed_text">Mostra il testo del feed</string>
     <string name="reader_loading_full">Caricamento dell\'articolo completo…</string>
     <string name="reader_full_failed">Impossibile caricare l\'articolo completo. Viene mostrato il testo del feed.</string>
+    <string name="reader_full_failed_signed_in">Impossibile caricare l\'articolo completo. Viene mostrato il testo del feed. Se l\'accesso al sito è scaduto, accedi di nuovo.</string>
     <string name="reader_always_website_title">Apri sempre il sito</string>
     <string name="reader_always_website_summary">Gli articoli dei feed si aprono sul loro sito invece che nel lettore. Quelli salvati si aprono ancora nel lettore.</string>
     <string name="reader_full_articles_title">Carica articoli completi</string>

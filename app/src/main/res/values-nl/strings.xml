@@ -62,7 +62,6 @@
     <string name="reader_background_sepia">Sepia</string>
     <string name="reader_background_dark">Donker</string>
     <string name="reader_preview">Goede typografie zie je niet: je merkt het verhaal op, niet de letters.</string>
-    <string name="reader_read_on_website">Lezen op website</string>
     <string name="notify_shared_setting">Meld het als er iets met mij gedeeld wordt</string>
     <string name="notify_shared_denied">Meldingen staan uit voor Content. Sta ze toe in de Android-instellingen › Apps › Content.</string>
     <string name="notify_shared_channel">Met jou gedeeld</string>
@@ -100,6 +99,8 @@
         <item quantity="other">%1$s deelde %2$d artikels met jou</item>
     </plurals>
     <string name="site_sign_in_menu">Aanmelden bij deze site</string>
+    <string name="site_sign_in_again_menu">Opnieuw aanmelden bij deze site</string>
+    <string name="site_sign_in_again">Opnieuw aanmelden</string>
     <string name="site_sign_in_title">Aanmelden bij %1$s</string>
     <string name="site_sign_in_done">Klaar</string>
     <string name="site_sign_in_saved">Aangemeld bij %1$s. De artikels laden volledig.</string>
@@ -122,6 +123,7 @@
     <string name="reader_show_feed_text">Tekst uit feed tonen</string>
     <string name="reader_loading_full">Volledig artikel laden…</string>
     <string name="reader_full_failed">Het volledige artikel kon niet geladen worden. Je ziet de tekst uit de feed.</string>
+    <string name="reader_full_failed_signed_in">Het volledige artikel kon niet geladen worden. Je ziet de tekst uit de feed. Is de aanmelding bij de site verlopen, meld je dan opnieuw aan.</string>
     <string name="reader_always_website_title">Altijd de website openen</string>
     <string name="reader_always_website_summary">Artikels uit je feeds openen op hun website in plaats van in de lezer. Bewaarde artikels openen nog in de lezer.</string>
     <string name="reader_full_articles_title">Volledige artikels laden</string>

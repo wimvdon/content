@@ -114,8 +114,13 @@ class ReaderActions(
     /** Switches between the full article and the feed's text. */
     val onToggleFullText: () -> Unit,
     val onOpenLink: (String) -> Unit,
-    /** Signs in to the article's site (#180), so articles you pay for load in full. Null without an https link. */
+    /**
+     * Signs in to the article's site (#180), so articles you pay for load in full; again when
+     * [signedIn], as a site's sign-in can run out. Null without an https link.
+     */
     val onSignIn: (() -> Unit)? = null,
+    /** Signed in to the article's site: ⋮ offers Sign in again, as does a full article that didn't load. */
+    val signedIn: Boolean = false,
     /** Reports a badly cleaned-up article (#181): a pre-filled GitHub issue in the browser. Null without a link. */
     val onReport: ((ArticleReport.Problem, String) -> Unit)? = null,
 )
@@ -144,7 +149,7 @@ class ReaderItem(
  * One article, in the reader's font, size, spacing and page colour (#139). The top bar is for this
  * reading (Back, Aa, ⋮); the floating toolbar below is for this article in your library: one Save
  * before it is saved, then Archive, Like and Tags ([SavedBar]); its highlights, and Share. Remove
- * from Saved is in ⋮ ([ReaderMenu]). The text ends with Read on website.
+ * from Saved is in ⋮ ([ReaderMenu]), as is Open in browser.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -206,6 +211,7 @@ fun ReaderScreen(
                             hasLink = hasLink,
                             canSignIn = actions.onSignIn != null,
                             canReport = actions.onReport != null,
+                            signedIn = actions.signedIn,
                         )
                     DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
                         entries.forEach { entry ->
@@ -218,6 +224,7 @@ fun ReaderScreen(
                                     }
                                     ReaderMenu.Entry.OpenInBrowser -> R.string.action_open_in_browser to R.drawable.ic_open_in_new
                                     ReaderMenu.Entry.SignIn -> R.string.site_sign_in_menu to R.drawable.ic_login
+                                    ReaderMenu.Entry.SignInAgain -> R.string.site_sign_in_again_menu to R.drawable.ic_login
                                     ReaderMenu.Entry.Report -> R.string.report_menu to R.drawable.ic_flag
                                     ReaderMenu.Entry.Remove -> R.string.saved_remove to R.drawable.ic_delete
                                 }
@@ -230,7 +237,7 @@ fun ReaderScreen(
                                         ReaderMenu.Entry.MarkUnread -> actions.onMarkUnread?.invoke()
                                         ReaderMenu.Entry.ToggleText -> actions.onToggleFullText()
                                         ReaderMenu.Entry.OpenInBrowser -> actions.onOpenInBrowser()
-                                        ReaderMenu.Entry.SignIn -> actions.onSignIn?.invoke()
+                                        ReaderMenu.Entry.SignIn, ReaderMenu.Entry.SignInAgain -> actions.onSignIn?.invoke()
                                         ReaderMenu.Entry.Report -> reportOpen = true
                                         ReaderMenu.Entry.Remove -> item?.onRemove?.invoke()
                                     }
@@ -268,6 +275,7 @@ fun ReaderScreen(
                 style = style,
                 onOpenLink = actions.onOpenLink,
                 onOpenInBrowser = actions.onOpenInBrowser,
+                onSignInAgain = actions.onSignIn?.takeIf { actions.signedIn },
                 scrollState = scrollState,
                 highlights = highlights,
                 highlightsOpen = highlightsOpen,
@@ -370,6 +378,8 @@ private fun ArticleBody(
     showImages: Boolean,
     onOpenLink: (String) -> Unit,
     onOpenInBrowser: () -> Unit,
+    /** Signed in to the site: a full article that didn't load offers to sign in again (its sign-in may have run out). */
+    onSignInAgain: (() -> Unit)?,
     scrollState: ScrollState,
     highlights: ReaderHighlights?,
     highlightsOpen: Boolean,
@@ -464,7 +474,7 @@ private fun ArticleBody(
                     Text(feed.title, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
                 }
             }
-            // Tapping the title opens the article on its website, like "Read on website".
+            // Tapping the title opens the article on its website, like ⋮ › Open in browser.
             val openLabel = stringResource(R.string.action_open_in_browser)
             Text(
                 text = article.title,
@@ -503,13 +513,20 @@ private fun ArticleBody(
                     )
                 }
 
-                FullTextState.Failed ->
+                FullTextState.Failed -> {
                     Text(
-                        text = stringResource(R.string.reader_full_failed),
+                        text = stringResource(if (onSignInAgain != null) R.string.reader_full_failed_signed_in else R.string.reader_full_failed),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
                     )
+                    if (onSignInAgain != null) {
+                        OutlinedButton(onClick = onSignInAgain) {
+                            Icon(painterResource(R.drawable.ic_login), contentDescription = null)
+                            Text(stringResource(R.string.site_sign_in_again), modifier = Modifier.padding(start = 8.dp))
+                        }
+                    }
+                }
 
                 else -> Unit
             }
@@ -522,12 +539,6 @@ private fun ArticleBody(
                     is ArticleBlock.ListBlock -> ListBlockView(block, bodyStyle, links, paragraph(block.items.size)) { openLink(it) }
                     is ArticleBlock.Image -> InlineImage(block.url, block.caption)
                     is ArticleBlock.Embed -> EmbedBlock(block, showThumbnail = showImages, onOpen = openLink)
-                }
-            }
-            if (article.link != null) {
-                OutlinedButton(onClick = onOpenInBrowser, modifier = Modifier.padding(top = 8.dp)) {
-                    Icon(painterResource(R.drawable.ic_open_in_new), contentDescription = null)
-                    Text(stringResource(R.string.reader_read_on_website), modifier = Modifier.padding(start = 8.dp))
                 }
             }
         }

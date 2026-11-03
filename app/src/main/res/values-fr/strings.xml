@@ -62,7 +62,6 @@
     <string name="reader_background_sepia">Sépia</string>
     <string name="reader_background_dark">Sombre</string>
     <string name="reader_preview">Une bonne typographie est invisible : on remarque l\'histoire, pas les lettres.</string>
-    <string name="reader_read_on_website">Lire sur le site</string>
     <string name="notify_shared_setting">Me prévenir quand quelque chose est partagé avec moi</string>
     <string name="notify_shared_denied">Les notifications sont désactivées pour Content. Autorisez-les dans les paramètres Android › Applications › Content.</string>
     <string name="notify_shared_channel">Partagés avec vous</string>
@@ -102,6 +101,8 @@
         <item quantity="other">%1$s a partagé %2$d articles avec vous</item>
     </plurals>
     <string name="site_sign_in_menu">Se connecter à ce site</string>
+    <string name="site_sign_in_again_menu">Se reconnecter à ce site</string>
+    <string name="site_sign_in_again">Se reconnecter</string>
     <string name="site_sign_in_title">Se connecter à %1$s</string>
     <string name="site_sign_in_done">OK</string>
     <string name="site_sign_in_saved">Connecté à %1$s. Ses articles se chargent en entier.</string>
@@ -124,6 +125,7 @@
     <string name="reader_show_feed_text">Afficher le texte du flux</string>
     <string name="reader_loading_full">Chargement de l\'article complet…</string>
     <string name="reader_full_failed">Impossible de charger l\'article complet. Le texte du flux est affiché.</string>
+    <string name="reader_full_failed_signed_in">Impossible de charger l\'article complet. Le texte du flux est affiché. Si la connexion au site a expiré, reconnectez-vous.</string>
     <string name="reader_always_website_title">Toujours ouvrir le site</string>
     <string name="reader_always_website_summary">Les articles des flux s\'ouvrent sur leur site plutôt que dans le lecteur. Les articles enregistrés s\'ouvrent toujours dans le lecteur.</string>
     <string name="reader_full_articles_title">Charger les articles complets</string>
