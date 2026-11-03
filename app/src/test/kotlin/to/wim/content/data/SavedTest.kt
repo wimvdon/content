@@ -196,4 +196,11 @@ class SavedTest {
         val items = listOf(item("1", 10, "zebra", "Apple"), item("2", 20, "middle"), item("3", 5, "apple"))
         assertEquals(listOf("middle", "Apple", "zebra"), items.recentTags())
     }
+
+    @Test
+    fun `the chip row shows with Liked or a tag, and not with neither (#333)`() {
+        assertTrue(Saved.showsChips(listOf("ai"), showsLiked = false))
+        assertTrue(Saved.showsChips(emptyList(), showsLiked = true))
+        assertEquals(false, Saved.showsChips(emptyList(), showsLiked = false))
+    }
 }

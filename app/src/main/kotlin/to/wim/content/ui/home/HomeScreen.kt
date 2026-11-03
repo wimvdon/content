@@ -30,6 +30,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -252,6 +254,8 @@ fun HomeScreen(
                                 // A topic stays chosen when the view changes.
                                 onSelect = { i -> Saved.states.getOrNull(i)?.let { actions.onSavedFilter(reading.filter.copy(tab = it)) } },
                             )
+                            // No chips (no tags, nothing liked): keep their room, so the count doesn't touch the switch (#333).
+                            if (!Saved.showsChips(reading.tags, reading.showsLiked)) Spacer(Modifier.height(8.dp))
                             TagChips(
                                 tags = reading.tags,
                                 top = 0.dp,
