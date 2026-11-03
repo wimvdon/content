@@ -454,9 +454,15 @@ private fun ArticleList(
                 }
         }
     }
+    // Pulling past the end marks all as read, as tapping Mark all as read does (2026-11-03).
+    val pullToMark = rememberPullToMarkState(actions.onMarkAllRead)
     LazyColumn(
         state = listState,
-        modifier = Modifier.fillMaxSize().readableWidth(),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .then(if (markAllRead) Modifier.nestedScroll(pullToMark.connection) else Modifier)
+                .readableWidth(),
         // Room at the end for the floating + button.
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 88.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -487,15 +493,11 @@ private fun ArticleList(
                 }
             }
         }
-        // At the end of the list: you've seen it all, so mark it all as read (All, a topic or a feed).
+        // At the end of the list: you've seen it all, so mark it all as read (All, a topic or a feed): tap it,
+        // or pull past the end.
         if (markAllRead) {
             item(key = "mark-all-read") {
-                Box(Modifier.fillMaxWidth().padding(top = 8.dp).animateItem(), contentAlignment = Alignment.Center) {
-                    OutlinedButton(onClick = actions.onMarkAllRead) {
-                        Icon(painterResource(R.drawable.ic_done_all), contentDescription = null)
-                        Text(stringResource(R.string.action_mark_all_read), modifier = Modifier.padding(start = 8.dp))
-                    }
-                }
+                MarkAllReadButton(pullToMark, onClick = actions.onMarkAllRead, modifier = Modifier.animateItem())
             }
         }
     }
@@ -902,6 +904,8 @@ private fun NothingToShow(
         stringResource(
             if (unread == true) R.string.home_caught_up_title else R.string.home_no_articles_title,
         ),
+        // All caught up springs in, a small reward for marking all as read.
+        modifier = if (unread == true) Modifier.springIn() else Modifier,
     ) {
         OutlinedButton(onClick = onRefresh, enabled = !refreshing) { Text(stringResource(R.string.action_refresh)) }
     }

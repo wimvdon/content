@@ -2,8 +2,6 @@ package to.wim.content.feed
 
 import to.wim.content.sync.Json
 import java.net.URI
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 
 /** Signed in to a site you subscribe to (#180): its sign-in cookies, kept on this device only. */
 data class SiteSignIn(
@@ -35,47 +33,19 @@ object SiteSignIns {
         return signIns.filter { host == it.site || host.endsWith("." + it.site) }.maxByOrNull { it.site.length }
     }
 
-    /** The cookies to send to [url], or null. */
+    /**
+     * The cookies to send to [url], or null: only for a site signed in to. They come from the
+     * sign-in browser's own cookies ([live], what it has for [url] now), the one place a site's
+     * sign-in is kept and renewed, as in a browser; the copy taken at Done only when it has none.
+     * A copy alone runs out while the site still knows you (2026-11-03: De Standaard).
+     */
     fun cookieFor(
         url: String,
         signIns: Collection<SiteSignIn>,
-    ): String? = forUrl(url, signIns)?.cookie?.takeIf { it.isNotBlank() }
-
-    /**
-     * [cookie] with what the site sent back while it was used ([setCookies], its Set-Cookie headers),
-     * as a browser keeps them: a renewed cookie replaces the old one, a new one is added, and one the
-     * site clears (an empty value, Max-Age 0 or less, an Expires in the past) goes. A site renews its
-     * sign-in this way; without it the kept copy runs out while the site still knows you (2026-11-03).
-     * A cookie for another domain than [site] is ignored. Null when nothing changes.
-     */
-    fun updated(
-        site: String,
-        cookie: String,
-        setCookies: List<String>,
-        now: Long = System.currentTimeMillis(),
+        live: (String) -> String? = { null },
     ): String? {
-        val jar = LinkedHashMap<String, String>()
-        for (part in cookie.split(';')) {
-            val name = part.substringBefore('=').trim()
-            if (name.isNotEmpty() && '=' in part) jar[name] = part.substringAfter('=').trim()
-        }
-        val before = LinkedHashMap(jar)
-        for (header in setCookies) {
-            val parts = header.split(';')
-            val first = parts.first()
-            val name = first.substringBefore('=').trim()
-            if (name.isEmpty() || '=' !in first) continue
-            val value = first.substringAfter('=').trim()
-            val attrs = parts.drop(1).associate { it.substringBefore('=').trim().lowercase() to it.substringAfter('=', "").trim() }
-            val domain = attrs["domain"]?.removePrefix(".")?.lowercase()?.removePrefix("www.")
-            if (domain != null && domain != site && !domain.endsWith(".$site") && !site.endsWith(".$domain")) continue
-            val maxAge = attrs["max-age"]?.toLongOrNull()
-            val expires = attrs["expires"]?.let { runCatching { ZonedDateTime.parse(it, DateTimeFormatter.RFC_1123_DATE_TIME).toInstant().toEpochMilli() }.getOrNull() }
-            val cleared = value.isEmpty() || (maxAge != null && maxAge <= 0) || (maxAge == null && expires != null && expires <= now)
-            if (cleared) jar.remove(name) else jar[name] = value
-        }
-        if (jar == before) return null
-        return jar.entries.joinToString("; ") { "${it.key}=${it.value}" }
+        val signIn = forUrl(url, signIns) ?: return null
+        return live(url)?.takeIf { it.isNotBlank() } ?: signIn.cookie.takeIf { it.isNotBlank() }
     }
 
     /** The names of the cookies in a Cookie header, to remove them from the sign-in browser. */

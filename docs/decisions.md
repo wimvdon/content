@@ -2,16 +2,47 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-03: Pull past the end of the list to mark all as read
+
+- Owner's idea. In Unread, pulling on past the last article marks all as read, as tapping Mark
+  all as read (which stays) does. After Material 3's pull to refresh (Material 3 1.4 has no
+  element for an action at the end of a list): the button moves up with the pull, at half the
+  finger's distance as an overscroll; a ring in it fills (a determinate `CircularProgressIndicator`);
+  at 96 dp it turns filled (tonal) with a tick of the phone and says **Let go to mark all as read**,
+  and letting go marks all as read, with the usual Undo. A fling that reaches the end doesn't pull,
+  only the finger. Logic: `PullToMark` (Android), `lib/pullToMark.ts` (web).
+- A small pleasure (owner's wish), in Material 3 Expressive's springy motion without new
+  libraries: the button grows a little with the pull and its ring turns as it fills; far enough, it
+  pops with a bouncy spring into its filled colour and the double tick springs in; let go and it
+  springs back with a little bounce, and All caught up springs in. The web does the same in CSS,
+  and stays calm with reduced motion.
+- Web: the same with the wheel, the trackpad or a finger. A wheel gesture only counts when it
+  starts at the end, so a fast scroll coasting into the end marks nothing; it lets go when the
+  wheel rests for a moment.
+
+## 2026-11-03: A site's sign-in is the sign-in browser's own cookies, not a copy
+
+- **The cause** (owner's report: De Standaard's articles stopped loading; signing in again only
+  needed Done, as the sign-in browser was still signed in): at Done, Content took one copy of the
+  cookies for that one address and sent that copy ever after. The sign-in browser keeps the real
+  store: every cookie with its own expiry, for every path of the site, renewed whenever the site
+  renews them. The copy can't follow any of that, so it ran out while the site still knew the phone.
+- **The fix**: one store, as in a browser. The app's requests to a signed-in site read the WebView's
+  cookie store for that address at that moment (`SiteCookieJar`, `SiteSignIns.cookieFor`), and keep
+  the cookies the site sends back in that same store, with their own expiry. The copy is only a
+  fallback for a device without a WebView. Removing a sign-in clears that site's cookies there.
+  This replaces the same day's 6.11.14 change, which merged the site's answers into the copy.
+- Still only to the signed-in site and its subdomains, over https; nothing new is sent anywhere.
+- Not done: loading the site in a hidden browser to let its own scripts renew a sign-in. That would
+  run the site's scripts (and their trackers) without you seeing it; asked of the owner first.
+
 ## 2026-11-03: Sign in again to a site; no Read on website at the end of an article
 
 - **Sign in again** (owner's report: De Standaard's articles stopped loading until its sign-in was
   removed and added again; signing in again only needed a confirmation, as the sign-in browser was
   still signed in). The copy of the cookies Content keeps ran out while the site still knew the
   phone. Two changes:
-  - **The sign-in stays fresh**: when a signed-in site sends cookies back with a page (Set-Cookie),
-    Content keeps them, as a browser does (`SiteSignIns.updated`): renewed ones replace the old,
-    cleared ones go, another domain's are ignored. A site that renews its sign-in that way no
-    longer runs out. One that renews it only through its page's own scripts still can.
+  - **The sign-in stays fresh**: superseded the same day, see the entry above.
   - **⋮ always offers to sign in**: **Sign in to this site again** once signed in. The sign-in
     browser keeps its own cookies, so it is usually just Done, which replaces the stored sign-in.
     A full article that doesn't load while signed in to its site says the sign-in may have run
