@@ -2,6 +2,27 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-03: The cookie: Mark all as read turns into it, empty pages show it
+
+- Owner's wish: pulling Mark all as read should turn the button into a Material 3 Expressive shape
+  that gets a colour, and be a small pleasure. From a mockup with five shapes the owner chose the
+  nine-sided **cookie**. While pulling: the label fades, a primary line runs round the outline (as
+  pull to refresh's ring fills), the pill shrinks to a circle, the circle becomes the cookie; far
+  enough, it fills with `primary`, pops with a bouncy spring, the double tick springs in and it
+  turns slowly. Letting go marks all as read; All caught up springs in on its cookie. Tapping still
+  works (`Cookie.morph`).
+- **Android only, by the owner's choice**: the cookie is Material 3 Expressive's, and the web app
+  has its own design language, where it doesn't fit. The web keeps the same gesture and behaviour
+  (pull past the end, a filling ring, let go to mark all as read) in its own style. A design
+  exception, not a missing feature.
+- Material 3 1.4 (the app's) has no Expressive shapes, and androidx.graphics-shapes would be a new
+  dependency: the app draws the cookie itself (a radius by angle, smooth curves through 144
+  points), and morphs by moving the pill's points to the cookie's at the same angles.
+- **Empty pages show their icon on the cookie**, in Content only (owner's choice over changing
+  every app through the template). The shared kit's `EmptyState` gets `LocalEmptyStateShape`, a
+  circle unless the theme says otherwise; Content's `Theme.kt` (the kit's one per-app file) sets
+  the cookie. The other apps are unchanged, and the template can take the local over as it is.
+
 ## 2026-11-03: Pull past the end of the list to mark all as read
 
 - Owner's idea. In Unread, pulling on past the last article marks all as read, as tapping Mark

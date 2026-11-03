@@ -19,8 +19,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
@@ -28,6 +30,12 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+
+/**
+ * The shape behind an empty page's icon: a circle unless the app's theme picks its own
+ * (Theme.kt). Content picks its cookie (2026-11-03).
+ */
+val LocalEmptyStateShape = staticCompositionLocalOf<Shape> { CircleShape }
 
 /**
  * What a screen shows when it has nothing to show: nothing added yet, nothing matches, loading
@@ -63,7 +71,7 @@ fun EmptyState(
                     Modifier
                         .padding(bottom = 8.dp)
                         .size(72.dp)
-                        .background(MaterialTheme.colorScheme.secondaryContainer, CircleShape),
+                        .background(MaterialTheme.colorScheme.secondaryContainer, LocalEmptyStateShape.current),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(icon, contentDescription = null, Modifier.size(36.dp), tint = MaterialTheme.colorScheme.onSecondaryContainer)
