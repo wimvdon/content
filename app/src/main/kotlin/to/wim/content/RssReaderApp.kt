@@ -19,6 +19,7 @@ import to.wim.content.feed.FeedFetcher
 import to.wim.content.instapaper.InstapaperAccount
 import to.wim.content.push.PushNotifications
 import to.wim.content.data.SiteSignInStore
+import to.wim.content.feed.SiteCookieJar
 import to.wim.content.feed.SiteSignIns
 import to.wim.content.feed.WebArticleExtractor
 import to.wim.content.sync.AccountState
@@ -61,8 +62,9 @@ class RssReaderApp :
         val version = runCatching { packageManager.getPackageInfo(packageName, 0).versionName }.getOrNull().orEmpty()
         FeedFetcher(
             userAgent = "RSSReader/$version (Android)",
-            cookieFor = { url -> SiteSignIns.cookieFor(url, siteSignIns.signIns.value) },
-            onCookies = { url, setCookies -> appScope.launch { siteSignIns.refresh(url, setCookies) } },
+            // The sign-in browser's own cookies, live: one store, renewed as in a browser (2026-11-03).
+            cookieFor = { url -> SiteSignIns.cookieFor(url, siteSignIns.signIns.value, SiteCookieJar::cookie) },
+            onCookies = SiteCookieJar::keep,
         )
     }
 

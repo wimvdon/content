@@ -83,15 +83,3 @@ fun SiteSignInScreen(
     }
     DisposableEffect(Unit) { onDispose { CookieManager.getInstance().flush() } }
 }
-
-/** Forgets a site's sign-in in the sign-in browser too, so removing it signs out there. */
-fun forgetSiteCookies(
-    site: String,
-    cookie: String,
-) {
-    val cookies = CookieManager.getInstance()
-    for (host in listOf("https://$site", "https://www.$site")) {
-        for (name in SiteSignIns.cookieNames(cookie)) cookies.setCookie(host, "$name=; Max-Age=0; Path=/")
-    }
-    cookies.flush()
-}

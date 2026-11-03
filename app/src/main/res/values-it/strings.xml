@@ -17,6 +17,7 @@
     <string name="action_remove">Rimuovi</string>
     <string name="action_more">Altre opzioni</string>
     <string name="action_mark_all_read">Segna tutto come letto</string>
+    <string name="action_mark_all_read_release">Rilascia per segnare tutto come letto</string>
     <string name="action_mark_unread">Segna come non letto</string>
     <string name="action_open_in_browser">Apri nel browser</string>
     <string name="action_share">Condividi</string>

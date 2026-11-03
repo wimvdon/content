@@ -18,6 +18,7 @@
     <string name="action_remove">Remove</string>
     <string name="action_more">More options</string>
     <string name="action_mark_all_read">Mark all as read</string>
+    <string name="action_mark_all_read_release">Let go to mark all as read</string>
     <string name="action_mark_unread">Mark as unread</string>
     <string name="action_open_in_browser">Open in browser</string>
     <string name="action_share">Share</string>

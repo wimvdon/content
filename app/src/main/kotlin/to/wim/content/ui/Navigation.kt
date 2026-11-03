@@ -53,10 +53,10 @@ import to.wim.content.ui.feeds.TopicEditActions
 import to.wim.content.data.ArticleReport
 import to.wim.content.sync.AccountState
 import to.wim.content.sync.ShareResult
+import to.wim.content.feed.SiteCookieJar
 import to.wim.content.feed.SiteSignIn
 import to.wim.content.feed.SiteSignIns
 import to.wim.content.ui.reader.SiteSignInScreen
-import to.wim.content.ui.reader.forgetSiteCookies
 import to.wim.content.data.Item
 import to.wim.content.data.ItemSearch
 import to.wim.content.data.Place
@@ -729,7 +729,7 @@ fun RssReaderNavigation(
             },
             onSignOut = { app.appScope.launch { app.sync.signOut() } },
             onRemoveSiteSignIn = { site ->
-                siteSignIns.firstOrNull { it.site == site }?.let { forgetSiteCookies(it.site, it.cookie) }
+                siteSignIns.firstOrNull { it.site == site }?.let { SiteCookieJar.forget(it.site, it.cookie) }
                 app.appScope.launch { app.siteSignIns.remove(site) }
             },
             onNotifyShared = { on, result ->

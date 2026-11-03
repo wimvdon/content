@@ -44,24 +44,13 @@ class SiteSignInsTest {
     }
 
     @Test
-    fun `keeps what the site renews, adds and clears, as a browser does`() {
-        val now = 1_800_000_000_000L
-        assertEquals(
-            "sid=2; plan=pro; token=t",
-            SiteSignIns.updated("standaard.be", "sid=1; plan=pro", listOf("sid=2; Path=/; Secure; HttpOnly", "token=t; Domain=.standaard.be; Max-Age=3600"), now),
-        )
-        // Cleared: Max-Age 0, an empty value, or an Expires in the past.
-        assertEquals("plan=pro", SiteSignIns.updated("standaard.be", "sid=1; plan=pro", listOf("sid=; Max-Age=0"), now))
-        assertEquals("plan=pro", SiteSignIns.updated("standaard.be", "sid=1; plan=pro", listOf("sid=x; Expires=Thu, 01 Jan 1970 00:00:00 GMT"), now))
-        // An Expires to come keeps it.
-        assertEquals("sid=3; plan=pro", SiteSignIns.updated("standaard.be", "sid=1; plan=pro", listOf("sid=3; Expires=Wed, 01 Jan 2031 00:00:00 GMT"), now))
-    }
-
-    @Test
-    fun `ignores another domain's cookies and says when nothing changes`() {
-        assertNull(SiteSignIns.updated("standaard.be", "sid=1", listOf("ad=1; Domain=tracker.example"), 0))
-        assertNull(SiteSignIns.updated("standaard.be", "sid=1", listOf("sid=1; Path=/"), 0))
-        assertNull(SiteSignIns.updated("standaard.be", "sid=1", emptyList(), 0))
-        assertEquals("sid=1; m=1", SiteSignIns.updated("standaard.be", "sid=1", listOf("m=1; Domain=m.standaard.be"), 0))
+    fun `sends the sign-in browser's cookies of now, the copy only when it has none`() {
+        val all = listOf(standaard)
+        val browser = mapOf("https://www.standaard.be/cnt/1" to "sid=renewed; plan=pro")
+        assertEquals("sid=renewed; plan=pro", SiteSignIns.cookieFor("https://www.standaard.be/cnt/1", all) { browser[it] })
+        assertEquals("sid=1; plan=pro", SiteSignIns.cookieFor("https://www.standaard.be/cnt/2", all) { browser[it] })
+        assertEquals("sid=1; plan=pro", SiteSignIns.cookieFor("https://www.standaard.be/cnt/2", all) { "" })
+        // Never for a site not signed in to, whatever the browser has.
+        assertNull(SiteSignIns.cookieFor("https://example.com/1", all) { "a=1" })
     }
 }
