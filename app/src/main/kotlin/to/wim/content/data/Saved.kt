@@ -150,6 +150,15 @@ object Saved {
     ): Boolean = filter.likedOnly || library.items.any { it.liked && isIn(it, filter.tab) }
 
     /**
+     * Whether Saved shows its chip row (Liked and the tags) under To read / All. Without it the
+     * header keeps the row's room, so the count doesn't touch the switch (#333).
+     */
+    fun showsChips(
+        tags: List<String>,
+        showsLiked: Boolean,
+    ): Boolean = showsLiked || tags.isNotEmpty()
+
+    /**
      * Saved's tabs: To read, and All (everything saved, archived articles too; it replaced the
      * Archive). A tag stays chosen when the tab changes, as a topic does with Unread and Read in Feeds.
      */

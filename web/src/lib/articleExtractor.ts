@@ -44,7 +44,7 @@ export function extractArticle(html: string, pageUrl: string): string | null {
     return null;
   }
   if (!content) return null;
-  const result = serialize(new DOMParser().parseFromString(`<body>${content}</body>`, "text/html").body, pageUrl).trim();
+  const result = introsAsParagraphs(serialize(new DOMParser().parseFromString(`<body>${content}</body>`, "text/html").body, pageUrl).trim());
   return toPlainText(result).length < MIN_TEXT_LENGTH ? null : result;
 }
 
@@ -102,6 +102,26 @@ function serializeElement(el: Element, pageUrl: string): string {
     return href ? `<a href="${escapeHtml(href)}">${inner}</a>` : inner;
   }
   return `<${tag}>${serialize(el, pageUrl)}</${tag}>`;
+}
+
+/** A heading this long that ends a sentence is a paragraph, wherever it is. */
+const LONG_HEADING = 100;
+
+/**
+ * An intro a site marks up as a heading (De Standaard's `<h2 class="story-intro">`, #364) as a bold
+ * paragraph: it reads as the start of the text, not a title, and Instapaper keeps it (it drops a
+ * heading at the top as the article's title). A heading is such an intro when it ends a sentence
+ * (., ?, ! or …, a closing quote after it) and opens the article (after its pictures) or is longer than [LONG_HEADING];
+ * real headings ("Zonde van de schil") stay.
+ */
+export function introsAsParagraphs(html: string): string {
+  return html.replace(/<(h[1-6])>([\s\S]*?)<\/\1>/g, (heading, _tag: string, inner: string, offset: number) => {
+    const text = toPlainText(inner);
+    if (!/[.!?…]["'”’»)]*$/.test(text)) return heading;
+    // Only pictures (and their captions) before it.
+    const opens = toPlainText(html.slice(0, offset).replace(/<figure>[\s\S]*?<\/figure>/g, "")) === "";
+    return opens || text.length > LONG_HEADING ? `<p><strong>${inner}</strong></p>` : heading;
+  });
 }
 
 const attr = (name: string, value: string) => ` ${name}="${escapeHtml(value)}"`;

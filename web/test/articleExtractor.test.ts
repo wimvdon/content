@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { extractArticle } from "../src/lib/articleExtractor";
+import { extractArticle, introsAsParagraphs } from "../src/lib/articleExtractor";
 import { toPlainText } from "../src/lib/html";
 
 /** The sample pages in testdata/articles. The Android app runs this same extractor, so they hold for both apps. */
@@ -87,5 +87,26 @@ describe("extractArticle", () => {
     );
     expect(withCommas).toContain(`srcset="${substack} 1456w, ${substack.replace("1456", "424")} 424w"`);
     for (const word of ["span", "style", "onclick", "onerror", "class"]) expect(article).not.toContain(word);
+  });
+});
+
+describe("introsAsParagraphs (#364)", () => {
+  const intro = "Moeten we de schil van groenten en fruit leren eten? Net datgene wat we vaak weggooien, bevat extra veel vezels.";
+
+  it("makes an intro heading at the top, after its pictures, a bold paragraph", () => {
+    expect(introsAsParagraphs(`<h2>${intro}</h2><p>Text.</p>`)).toBe(`<p><strong>${intro}</strong></p><p>Text.</p>`);
+    expect(introsAsParagraphs(`<figure><img src="a.jpg"><figcaption>A picture.</figcaption></figure><h2>Short, but a sentence.</h2><p>Text.</p>`))
+      .toContain("<p><strong>Short, but a sentence.</strong></p>");
+    // A quote after the full stop still ends the sentence.
+    expect(introsAsParagraphs(`<h2>“We doen wat ons aangeleerd is.”</h2><p>Text.</p>`)).toContain("<p><strong>“We doen");
+  });
+
+  it("makes a long sentence heading anywhere a bold paragraph", () => {
+    expect(introsAsParagraphs(`<p>Text.</p><h3>${intro}</h3>`)).toBe(`<p>Text.</p><p><strong>${intro}</strong></p>`);
+  });
+
+  it("keeps real headings", () => {
+    const html = `<h2>Zonde van de schil</h2><p>Text.</p><h2>Even lekker, sneller verzadigd</h2><p>Text.</p><h2>Waarom niet?</h2>`;
+    expect(introsAsParagraphs(html)).toBe(html);
   });
 });

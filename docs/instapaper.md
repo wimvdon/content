@@ -49,6 +49,8 @@ Sync now. Never in the background.
   connecting doesn't load the whole backlog; older ones, and any whose page can't be read, go as a
   link and Instapaper fetches the page itself, as before. Should Instapaper refuse the text (too large,
   say), the link alone is sent. Only on creation: an article already in Instapaper keeps its text there.
+  Instapaper drops a heading at the top of that text as the title, so an intro a site marks up as a
+  heading (De Standaard) becomes a bold paragraph in the extractor, for both apps (#364).
   The web app does the same through the feed loader, which allows up to 1 MiB for saving a bookmark
   (64 KiB for its other calls).
 - A link saved without a title (shared or added) takes Instapaper's title when Instapaper knows it.
