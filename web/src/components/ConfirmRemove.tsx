@@ -14,7 +14,7 @@ export function ConfirmRemove({ open, title, body, onConfirm, onClose }: { open:
       closeLabel={t("close")}
       footer={
         <>
-          <Button variant="ghost" onClick={onClose}>
+          <Button variant="outline" onClick={onClose}>
             {t("cancel")}
           </Button>
           <Button

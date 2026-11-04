@@ -3,21 +3,22 @@ import { cva, type VariantProps } from "class-variance-authority";
 import type { ButtonHTMLAttributes } from "react";
 import { cn } from "./cn";
 
+/** shadcn/ui's button (the web's own design language, not Material: DESIGN.md, "Other platforms"). */
 const buttonVariants = cva(
-  "inline-flex shrink-0 items-center justify-center gap-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0 cursor-pointer",
+  "inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0 cursor-pointer",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
-        tonal: "bg-accent text-accent-foreground hover:bg-accent/80",
-        outline: "border bg-transparent hover:bg-muted",
-        ghost: "hover:bg-muted",
-        destructive: "text-destructive hover:bg-destructive/10",
+        default: "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
+        secondary: "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80",
+        outline: "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        destructive: "bg-destructive text-white shadow-xs hover:bg-destructive/90",
       },
       size: {
-        default: "h-10 px-4",
+        default: "h-9 px-4",
         sm: "h-8 px-3 text-xs",
-        icon: "size-10",
+        icon: "size-9",
         iconSm: "size-8",
       },
     },

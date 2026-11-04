@@ -196,7 +196,7 @@ function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport,
         ) : (
           days.map(([day, list]) => (
             <div key={day}>
-              <h2 className="sticky top-0 z-10 bg-background px-3 pt-3 pb-1 text-sm font-medium text-primary">{dayLabel(day)}</h2>
+              <h2 className="sticky top-0 z-10 bg-background px-3 pt-3 pb-1 text-xs font-medium text-muted-foreground">{dayLabel(day)}</h2>
               <ul className="space-y-1">
                 {list.map((a) => (
                   <li key={articleKey(a)}>
@@ -325,7 +325,7 @@ function SavedArticles({
             {!plain ? (
               <Button variant="outline" onClick={() => set({ likedOnly: false, tags: [] })}>{t("showAll")}</Button>
             ) : filter.tab.kind === "toread" ? (
-              <Button variant="tonal" onClick={app.addLink}>
+              <Button variant="secondary" onClick={app.addLink}>
                 <Link2 />
                 {t("addLink")}
               </Button>
@@ -466,7 +466,7 @@ function Sender({ by, images }: { by: SharedBy; images: boolean }) {
 }
 
 /**
- * The title bar as a large search bar (#189), as on Android: "Search articles", which opens Search,
+ * The title bar (#189): a search field ("Search articles", or /), which opens Search,
  * then Refresh (feeds, the account and Instapaper; Android pulls the list down), + (Subscribe to feed
  * or Save article, the same in every place) and, on a phone-sized window,
  * Settings (a wide window has it in the sidebar). No ☰: the places are in the navigation bar or
@@ -474,14 +474,19 @@ function Sender({ by, images }: { by: SharedBy; images: boolean }) {
  */
 function SearchBar({ onSettings, onSearch, onAdd }: { onSettings: () => void; onSearch: () => void; onAdd: () => void }) {
   return (
-    <header className="shrink-0 px-3 pt-3 pb-1">
-      <div className="flex h-14 items-center gap-1 rounded-full bg-muted px-1">
-        <Button variant="ghost" size="icon" onClick={onSearch} aria-label={t("search")} title={t("search") + " (/)"}>
-          <Search />
-        </Button>
-        <button type="button" onClick={onSearch} title={t("search") + " (/)"} className="min-w-0 flex-1 cursor-pointer truncate text-left text-muted-foreground">
-          {t("searchHint")}
-        </button>
+    <header className="flex shrink-0 items-center gap-1 px-3 pt-3 pb-1">
+      {/* An input-style field (shadcn/ui), not Material's round search bar; / is its shortcut. */}
+      <button
+        type="button"
+        onClick={onSearch}
+        aria-label={t("search")}
+        title={t("search") + " (/)"}
+        className="mr-1 flex h-9 min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-md border bg-background px-3 text-left text-sm text-muted-foreground shadow-xs transition-colors hover:bg-accent"
+      >
+        <Search className="size-4 shrink-0" aria-hidden="true" />
+        <span className="min-w-0 flex-1 truncate">{t("searchHint")}</span>
+        <kbd className="hidden rounded border bg-muted px-1.5 font-mono text-[11px] sm:inline">/</kbd>
+      </button>
         <RefreshButton />
         <Button variant="ghost" size="icon" onClick={onAdd} aria-label={t("addTitle")} title={t("addTitle")}>
           <Plus />
@@ -489,7 +494,6 @@ function SearchBar({ onSettings, onSearch, onAdd }: { onSettings: () => void; on
         <Button variant="ghost" size="icon" className="lg:hidden" onClick={onSettings} aria-label={t("settings")} title={t("settings")}>
           <SettingsIcon />
         </Button>
-      </div>
     </header>
   );
 }
@@ -544,7 +548,7 @@ function feedChipList(list: Feed[], chosen: string | null, onClick: (feed: Feed,
   return list.map((f) => {
     const on = f.url === chosen;
     return (
-      <FilterChip key={f.url} selected={on} check={false} onClick={() => onClick(f, on)}>
+      <FilterChip key={f.url} selected={on} onClick={() => onClick(f, on)}>
         <FeedIcon feed={f} className="size-4" />
         <span className="max-w-48 truncate">{f.title}</span>
       </FilterChip>
@@ -638,7 +642,7 @@ function TagChips({
       {tags.map((tag) => {
         const on = selected !== null && tag.toLowerCase() === selected.toLowerCase();
         return (
-          <FilterChip key={tag} selected={on} check={false} onClick={() => onSelect(on ? null : tag)}>
+          <FilterChip key={tag} selected={on} onClick={() => onSelect(on ? null : tag)}>
             {icons.has(tag.trim().toLowerCase()) ? <FolderIcon name={icons.get(tag.trim().toLowerCase())!} className="size-4" /> : null}
             {tag}
           </FilterChip>
@@ -672,7 +676,7 @@ export function NoteCard(props: { note: NoteContent; feed: Feed | undefined; ope
         rel="noopener noreferrer"
         aria-label={t("openInNewTab")}
         title={t("openInNewTab")}
-        className="absolute top-1.5 right-1.5 flex size-8 cursor-pointer items-center justify-center rounded-full bg-card text-muted-foreground opacity-0 shadow-sm transition-opacity group-hover:opacity-100 hover:text-foreground focus-visible:opacity-100 [@media(hover:none)]:opacity-100 [&_svg]:size-4"
+        className="absolute top-1.5 right-1.5 flex size-8 cursor-pointer items-center justify-center rounded-md border bg-background text-muted-foreground opacity-0 shadow-xs transition-opacity group-hover:opacity-100 hover:text-foreground focus-visible:opacity-100 [@media(hover:none)]:opacity-100 [&_svg]:size-4"
       >
         <ExternalLink />
       </a>
@@ -690,16 +694,16 @@ function NoteCardButton({ note, feed, open, onOpen, label }: { note: NoteContent
       type="button"
       onClick={onOpen}
       aria-current={open ? "true" : undefined}
-      className={cn("flex w-full cursor-pointer flex-col overflow-hidden rounded-xl border text-left", open ? "bg-accent" : "bg-background hover:bg-muted")}
+      className={cn("flex w-full cursor-pointer flex-col overflow-hidden rounded-lg border text-left", open ? "bg-accent" : "bg-background hover:bg-muted")}
     >
       {image ? <img src={image} alt="" loading="lazy" referrerPolicy="no-referrer" className="h-24 w-full bg-muted object-cover" onError={(e) => (e.currentTarget.style.display = "none")} /> : null}
       <div className="flex flex-col gap-2 px-4 py-3">
-        {label ? <span className="text-xs font-medium text-primary">{label}</span> : null}
+        {label ? <span className="text-xs font-medium text-muted-foreground">{label}</span> : null}
         <h3 className="line-clamp-3 font-serif leading-snug font-medium">{note.title}</h3>
         {/* The text, kept short: the first highlight, quoted, or the site's description. */}
         {body?.kind === "quote" ? (
           <p className="flex gap-2 text-sm">
-            <Quote className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
+            <Quote className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
             <span className="line-clamp-3 font-serif">{body.text}</span>
           </p>
         ) : body ? (
@@ -773,7 +777,7 @@ export function Row({
   if (!onToggleRead && !article.link) return row;
   const toggle = article.read ? t("markUnread") : t("markRead");
   const hoverButton =
-    "flex size-8 cursor-pointer items-center justify-center rounded-full bg-card text-muted-foreground opacity-0 shadow-sm transition-opacity group-hover:opacity-100 hover:text-foreground focus-visible:opacity-100 [@media(hover:none)]:opacity-100 [&_svg]:size-4";
+    "flex size-8 cursor-pointer items-center justify-center rounded-md border bg-background text-muted-foreground opacity-0 shadow-xs transition-opacity group-hover:opacity-100 hover:text-foreground focus-visible:opacity-100 [@media(hover:none)]:opacity-100 [&_svg]:size-4";
   return (
     <div className="group relative">
       {row}
@@ -826,7 +830,7 @@ function RowButton({
       data-key={articleKey(article)}
       aria-current={open ? "true" : undefined}
       className={cn(
-        "flex w-full cursor-pointer gap-3 rounded-xl text-left transition-colors",
+        "flex w-full cursor-pointer gap-3 rounded-lg text-left transition-colors",
         view === "large" ? "flex-col overflow-hidden" : "p-3",
         open ? "bg-accent" : unread || noReadState ? "bg-card hover:bg-muted" : "hover:bg-muted",
       )}
@@ -834,7 +838,7 @@ function RowButton({
       {view === "large" && image ? <img src={image} alt="" loading="lazy" referrerPolicy="no-referrer" className="aspect-video w-full bg-muted object-cover" onError={hide} /> : null}
       <div className={cn("min-w-0 flex-1", view === "large" && "px-3 pb-3", view === "large" && !image && "pt-3")}>
         {feed || label || source ? (
-          <div className="mb-1 flex items-center gap-1.5 text-xs font-medium text-primary">
+          <div className="mb-1 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
             {source ? (
               <span className="flex min-w-0 items-center gap-1.5">{source}</span>
             ) : feed && onFeedClick ? (
@@ -853,7 +857,7 @@ function RowButton({
                   e.stopPropagation();
                   onFeedClick();
                 }}
-                className="flex min-w-0 items-center gap-1.5 rounded-full hover:underline"
+                className="flex min-w-0 items-center gap-1.5 rounded-sm hover:underline"
               >
                 <FeedIcon feed={feed} className="size-4" />
                 <span className="truncate">{feed.title}</span>
@@ -905,8 +909,9 @@ export function Empty({
 }) {
   return (
     <div className="mx-auto flex max-w-sm flex-col items-center gap-3 px-6 py-16 text-center">
-      <div className={cn("mb-1 flex size-18 items-center justify-center rounded-full bg-accent text-accent-foreground", celebrate && "spring-in")}>
-        <Icon className="size-9" aria-hidden="true" />
+      {/* shadcn/ui's empty state: the icon on a small muted square. */}
+      <div className={cn("mb-1 flex size-12 items-center justify-center rounded-lg bg-muted text-foreground", celebrate && "spring-in")}>
+        <Icon className="size-6" aria-hidden="true" />
       </div>
       <h2 className="text-lg font-semibold">{title}</h2>
       {text ? <p className="text-sm text-muted-foreground">{text}</p> : null}
@@ -919,7 +924,7 @@ export function Skeletons() {
   return (
     <div className="space-y-2 p-2" aria-hidden="true">
       {Array.from({ length: 6 }, (_, i) => (
-        <div key={i} className="animate-pulse rounded-xl bg-card p-3">
+        <div key={i} className="animate-pulse rounded-lg bg-card p-3">
           <div className="h-3 w-24 rounded bg-muted" />
           <div className="mt-2 h-4 w-11/12 rounded bg-muted" />
           <div className="mt-1.5 h-4 w-2/3 rounded bg-muted" />

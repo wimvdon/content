@@ -66,7 +66,7 @@ export function ShareWithUserDialog({
                 {typeof navigator !== "undefined" && "share" in navigator ? t("shareOtherApps") : t("copyLink")}
               </Button>
             ) : null}
-            <Button variant="ghost" onClick={onClose}>
+            <Button variant="outline" onClick={onClose}>
               {t("cancel")}
             </Button>
             <Button onClick={() => void send()} disabled={picked.length === 0 || sending}>
@@ -112,7 +112,7 @@ export function Avatar({ email, label, images, className = "size-6" }: { email: 
   return src && !missing ? (
     <img src={src} alt="" className={cn("shrink-0 rounded-full", className)} onError={() => setMissing(true)} />
   ) : (
-    <span className={cn("flex shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-medium text-primary", className)} aria-hidden="true">
+    <span className={cn("flex shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground", className)} aria-hidden="true">
       {label.slice(0, 1).toUpperCase()}
     </span>
   );
@@ -161,8 +161,8 @@ export function SendToSection({ picked, onChange }: { picked: string[]; onChange
         );
       })}
       {shown.length === 0 ? (
-        // Nobody yet: adding someone is the first step, so it stands out (tonal, as New tag).
-        <Button variant="tonal" onClick={() => setManaging(true)}>
+        // Nobody yet: adding someone is the first step, so it stands out (secondary, as New tag).
+        <Button variant="secondary" onClick={() => setManaging(true)}>
           <Plus />
           {t("peopleAdd")}
         </Button>
@@ -273,8 +273,8 @@ export function ManagePeopleDialog({ onAdded, onForgot, onClose }: { onAdded: (e
               </p>
             ) : null}
           </div>
-          {/* The page's action, tonal as New tag in Manage tags. */}
-          <Button variant="tonal" onClick={add} disabled={!canAdd}>
+          {/* The page's action, secondary as New tag in Manage tags. */}
+          <Button variant="secondary" onClick={add} disabled={!canAdd}>
             {checking ? <Loader2 className="animate-spin" /> : <Plus />}
             {t("peopleAddAction")}
           </Button>

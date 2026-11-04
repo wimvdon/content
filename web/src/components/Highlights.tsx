@@ -102,7 +102,7 @@ export function HighlightedText({
         <div
           role="toolbar"
           aria-label={t("highlightsTitle")}
-          className="fixed z-30 flex -translate-x-1/2 -translate-y-full gap-1 rounded-xl border bg-card p-1 shadow-lg"
+          className="fixed z-30 flex -translate-x-1/2 -translate-y-full gap-1 rounded-lg border bg-card p-1 shadow-lg"
           style={{ left: bar.x, top: bar.y - 8 }}
           // Keeps the selection while a button is pressed.
           onMouseDown={(e) => e.preventDefault()}

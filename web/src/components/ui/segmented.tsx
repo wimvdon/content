@@ -1,8 +1,7 @@
 import * as T from "@radix-ui/react-toggle-group";
-import { Check } from "lucide-react";
 import { cn } from "./cn";
 
-/** A connected two-way choice (like Unread | All in the Android app). */
+/** A small single choice (Theme, the reader's font…): shadcn/ui's tabs list, the chosen one raised. */
 export function Segmented<T extends string>({
   value,
   onChange,
@@ -20,18 +19,17 @@ export function Segmented<T extends string>({
       value={value}
       onValueChange={(v) => v && onChange(v as T)}
       aria-label={label}
-      className="inline-flex gap-0.5 rounded-full bg-muted p-0.5"
+      className="inline-flex h-9 items-center rounded-lg bg-muted p-[3px] text-muted-foreground"
     >
       {options.map((o) => (
         <T.Item
           key={o.value}
           value={o.value}
           className={cn(
-            "inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-full px-3 text-sm font-medium text-muted-foreground transition-colors",
-            "data-[state=on]:bg-primary data-[state=on]:text-primary-foreground",
+            "inline-flex h-full cursor-pointer items-center justify-center rounded-md px-3 text-sm font-medium transition-colors hover:text-foreground",
+            "data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm",
           )}
         >
-          {value === o.value ? <Check className="size-3.5" /> : null}
           {o.label}
         </T.Item>
       ))}

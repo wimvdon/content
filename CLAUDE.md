@@ -59,7 +59,8 @@ Secrets, keystores (`*.jks`, `*.keystore`), `keystore.properties`, passwords or 
 ## Web app and feed loader
 - **Feature parity: the phone and the web app do the same things.** Every new feature or behaviour
   change goes into both apps in the same pull request, each in its own design system (Material 3
-  on Android, the web's own parts). Never build something for one app only. The only exceptions are
+  on Android, shadcn/ui on the web: see "Design" below; parity is about behaviour, never looks).
+  Never build something for one app only. The only exceptions are
   things one platform can't do (Android's share menu, Direct Share, the browser's keyboard
   shortcuts); name the exception in the pull request and in `docs/decisions.md`. If an existing
   feature turns out to be missing in one app, say so and add it.
@@ -72,9 +73,22 @@ Secrets, keystores (`*.jks`, `*.keystore`), `keystore.properties`, passwords or 
   (web, also `npm run lint`) or `npm run typecheck` (worker).
 
 ## Design
-- For any UI work (new screens, changes, reviews), use the `material-design-3-ui` skill in
+- **Two design languages, never mixed.** Android is **Material 3**; the web app is **shadcn/ui**
+  (Radix with Tailwind, in `web/src/components/ui/`). The apps share what they *do* and the brand
+  (icon, seed blue, wording), never what they *look like*. "As on Android" in a web change means the
+  same behaviour, not the same widget.
+- **Android UI work** (new screens, changes, reviews): use the `material-design-3-ui` skill in
   `.claude/skills/` together with `DESIGN.md`; where they differ, `DESIGN.md` (the owner's
   choices) wins.
+- **Web UI work: no Material on the web.** Build from the parts in `web/src/components/ui/` and
+  shadcn/ui's look. Never use the Material skill there, and never bring in Material's components,
+  shapes, colour roles or motion: no filled tonal buttons, pill-shaped (`rounded-full`) buttons or
+  fields, segmented buttons with a check, filter chips with a check, a pill behind the selected
+  navigation item, a round 56 px search bar, snackbars, floating action buttons or floating
+  toolbars, text buttons in `primary` for Cancel or Done, `primary` section headings, a tinted
+  `accent`, 12–28 px corners, Expressive shapes or bouncy springs. Their shadcn counterparts are
+  listed in `DESIGN.md`, "Other platforms". A feature that needs a new kind of part on the web takes
+  shadcn/ui's version of it (or its nearest look), and says so in the pull request.
 
 ## Keep docs in sync
 - Behaviour change → update `docs/` and, if it touches data or permissions, `PRIVACY.md`.

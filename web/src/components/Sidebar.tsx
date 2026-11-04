@@ -164,12 +164,12 @@ function Row({
       onClick={onClick}
       aria-current={selected ? "page" : undefined}
       className={cn(
-        "flex w-full min-w-0 cursor-pointer items-center gap-3 rounded-full px-3 text-left text-sm",
-        strong ? "h-11 font-medium" : "h-9",
-        selected ? "bg-accent font-medium text-accent-foreground" : "hover:bg-muted",
+        "flex w-full min-w-0 cursor-pointer items-center gap-2 rounded-md px-2 text-left text-sm transition-colors",
+        strong ? "h-9 font-medium" : "h-8",
+        selected ? "bg-accent font-medium text-accent-foreground" : "hover:bg-accent hover:text-accent-foreground",
       )}
     >
-      <span className="shrink-0 text-muted-foreground [&>*]:size-5">{icon}</span>
+      <span className="shrink-0 text-muted-foreground [&>*]:size-4">{icon}</span>
       <span className="min-w-0 flex-1 truncate">{label}</span>
       {count !== undefined && count > 0 ? <span className="text-xs text-muted-foreground tabular-nums">{count}</span> : null}
     </button>

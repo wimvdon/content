@@ -6,7 +6,7 @@ import { NewDot } from "./NewDot";
 import { cn } from "./ui/cn";
 
 /**
- * Feeds | Saved | Inbox at the bottom (#189, #246), like the Android app's navigation bar: each goes
+ * Feeds | Saved | Inbox at the bottom (#189, #246), a plain tab bar in the web's own look: each goes
  * back to the list last shown there; the Inbox only while signed in, with a dot while something
  * shared with you is unread. Search opens from the search bar at the top. Not in wide windows: the
  * sidebar has the same places at its top.
@@ -22,17 +22,18 @@ export function NavigationBar({ searching, onNavigate }: { searching: boolean; o
         go();
         onNavigate();
       }}
-      className="flex flex-1 cursor-pointer flex-col items-center gap-1 py-2 text-xs font-medium"
+      className={cn("flex flex-1 cursor-pointer flex-col items-center gap-1 py-2 text-xs font-medium transition-colors", selected ? "text-foreground" : "text-muted-foreground hover:text-foreground")}
     >
-      <span className={cn("relative flex h-8 w-16 items-center justify-center rounded-full", selected ? "bg-accent text-accent-foreground" : "text-muted-foreground")}>
-        <Icon className="size-5" />
-        {dot ? <NewDot className="absolute top-1 right-4" /> : null}
+      {/* The place you're in is in the text colour, the others muted: no Material pill behind the icon. */}
+      <span className="relative">
+        <Icon className="size-5" strokeWidth={selected ? 2.25 : 1.75} />
+        {dot ? <NewDot className="absolute -top-0.5 -right-1.5" /> : null}
       </span>
-      <span className={selected ? "text-foreground" : "text-muted-foreground"}>{label}</span>
+      <span>{label}</span>
     </button>
   );
   return (
-    <nav className="flex border-t bg-muted/40 lg:hidden" aria-label={t("navigation")}>
+    <nav className="flex border-t bg-background lg:hidden" aria-label={t("navigation")}>
       {item(!searching && !inboxOpen && !inSaved, () => app.showSection(false), Rss, t("feedTab"))}
       {item(!searching && !inboxOpen && inSaved, () => app.showSection(true), BookOpen, t("saved"))}
       {account ? item(!searching && inboxOpen, () => app.showInbox(true), Bell, t("inboxTitle"), inboxUnread(library) > 0) : null}

@@ -1,6 +1,5 @@
 import { ALargeSmall, ArrowLeft, Circle, CircleCheck, EllipsisVertical, ExternalLink, FileText, Flag, Plus, Quote, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { toolbarHidden } from "@/lib/header";
 import { positionOf, scrollFor } from "@/lib/readingProgress";
 import { app, useApp } from "@/lib/app";
 import { useShare } from "./useShare";
@@ -154,17 +153,6 @@ export function ArticleView({
     };
   }, [progressKey]);
 
-  // The floating toolbar steps aside while reading down, as on Android.
-  const [toolbarIsHidden, setToolbarHidden] = useState(false);
-  const lastTop = useRef(0);
-  const onToolbarScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const el = e.currentTarget;
-    const top = el.scrollTop;
-    const by = top - lastTop.current;
-    lastTop.current = top;
-    setToolbarHidden((hidden) => toolbarHidden(hidden, top, by, top + el.clientHeight >= el.scrollHeight - 2));
-  };
-
   return (
     <article className="relative flex h-full min-w-0 flex-col" aria-label={article.title}>
       <div className="flex items-center gap-1 border-b px-2 py-2">
@@ -172,7 +160,19 @@ export function ArticleView({
           <ArrowLeft />
         </Button>
         <div className="flex-1" />
-        {/* This reading (#139): Aa and ⋮; the article in your library, and Share, are in the bar below. */}
+        {/* The article in your library and Share, then this reading (#139): Aa and ⋮. */}
+        <LibraryBar
+          item={saved}
+          onSave={article.link && !fromSaved ? saveArticle : null}
+          onShare={article.link ? () => share(article.title, article.link!, found) : null}
+          // A saved article shows its highlights under the title; the toolbar only for one not saved.
+          highlightCount={saved ? 0 : highlights.length}
+          onHighlights={() => setListOpen(true)}
+          onArchived={(undo) => {
+            // As on Android: the article stays open; a message says so, with Undo.
+            onMessage(t("archived"), { label: t("undo"), run: undo });
+          }}
+        />
         <Button variant="ghost" size="icon" onClick={() => setTextOpen(true)} aria-label={t("textSettings")} title={t("textSettings")}>
           <ALargeSmall />
         </Button>
@@ -183,7 +183,7 @@ export function ArticleView({
           {menuOpen ? (
             <>
               <div className="fixed inset-0 z-20" onClick={() => setMenuOpen(false)} aria-hidden="true" />
-              <div role="menu" className="absolute right-0 z-30 mt-1 w-60 rounded-xl border bg-card py-1 shadow-lg">
+              <div role="menu" className="absolute right-0 z-30 mt-1 w-60 rounded-md border bg-card p-1 shadow-md">
                 {/* What it offers follows readerMenu: a saved article's menu as soon as it is saved. */}
                 {readerMenu({ feedArticle: !fromSaved, saved: !!saved, hasLink: !!article.link, canLoad }).map((entry) => {
                   const close = () => setMenuOpen(false);
@@ -221,12 +221,11 @@ export function ArticleView({
       <Dialog open={textOpen} onOpenChange={setTextOpen} title={t("textSettings")} closeLabel={t("close")}>
         <ReaderStyleControls />
       </Dialog>
-      <div ref={page} onScroll={onToolbarScroll} className={cn("min-h-0 flex-1 overflow-y-auto bg-background text-foreground", pageClass(style, appDark))}>
-        {/* Room at the end, so the last lines scroll clear of the floating toolbar. */}
-        <div className="mx-auto max-w-2xl px-5 pt-8 pb-28">
+      <div ref={page} className={cn("min-h-0 flex-1 overflow-y-auto bg-background text-foreground", pageClass(style, appDark))}>
+        <div className="mx-auto max-w-2xl px-5 pt-8 pb-16">
           <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
             <FeedIcon feed={feed} className="size-5" />
-            <span className="truncate font-medium text-primary">{feed?.title}</span>
+            <span className="truncate font-medium text-foreground">{feed?.title}</span>
             <span aria-hidden="true">·</span>
             <time dateTime={new Date(sortTime(article)).toISOString()}>{formatDateTime(sortTime(article))}</time>
           </div>
@@ -260,20 +259,20 @@ export function ArticleView({
                 ) : null}
               </div>
               {saved.note.trim() ? (
-                <button type="button" onClick={() => app.openNote(saved.key)} className="block w-full cursor-pointer rounded-xl bg-muted px-4 py-3 text-left text-sm whitespace-pre-line hover:bg-muted/80">
+                <button type="button" onClick={() => app.openNote(saved.key)} className="block w-full cursor-pointer rounded-lg bg-muted px-4 py-3 text-left text-sm whitespace-pre-line hover:bg-muted/80">
                   {saved.note}
                 </button>
               ) : null}
             </div>
           ) : null}
-          {showHero ? <img src={article.imageUrl!} alt="" referrerPolicy="no-referrer" className="mt-6 w-full rounded-xl bg-muted object-cover" onError={(e) => (e.currentTarget.style.display = "none")} /> : null}
+          {showHero ? <img src={article.imageUrl!} alt="" referrerPolicy="no-referrer" className="mt-6 w-full rounded-lg bg-muted object-cover" onError={(e) => (e.currentTarget.style.display = "none")} /> : null}
           {useFull && !loaded ? <p className="mt-6 text-sm text-muted-foreground">{t("loadingFull")}</p> : null}
           {useFull && loaded && !loaded.html ? (
             // Why the full article isn't here, with the way to read it all the same.
-            <div className="mt-6 flex flex-wrap items-center gap-3 rounded-xl bg-muted px-4 py-3">
+            <div className="mt-6 flex flex-wrap items-center gap-3 rounded-lg bg-muted px-4 py-3">
               <p className="min-w-0 flex-1 text-sm text-muted-foreground">{t(loaded.blocked ? "fullBlocked" : "fullFailed")}</p>
               {article.link ? (
-                <Button variant="tonal" size="sm" asChild>
+                <Button variant="secondary" size="sm" asChild>
                   <a href={article.link} target="_blank" rel="noopener noreferrer">
                     <ExternalLink />
                     {t("readOnWebsite")}
@@ -303,19 +302,6 @@ export function ArticleView({
           }}
         />
       ) : null}
-      <LibraryBar
-        hidden={toolbarIsHidden}
-        item={saved}
-        onSave={article.link && !fromSaved ? saveArticle : null}
-        onShare={article.link ? () => share(article.title, article.link!, found) : null}
-        // A saved article shows its highlights under the title; the toolbar only for one not saved.
-        highlightCount={saved ? 0 : highlights.length}
-        onHighlights={() => setListOpen(true)}
-        onArchived={(undo) => {
-          // As on Android: the article stays open; a message says so, with Undo.
-          onMessage(t("archived"), { label: t("undo"), run: undo });
-        }}
-      />
       {opened && found ? (
         <HighlightDialog
           key={opened.id}

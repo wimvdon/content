@@ -1,4 +1,3 @@
-import { Check } from "lucide-react";
 import { app, useApp } from "@/lib/app";
 import { t } from "@/lib/i18n";
 import { feedTabOf } from "@/lib/library";
@@ -6,14 +5,13 @@ import { sameTab, savedStates } from "@/lib/saved";
 import { cn } from "./ui/cn";
 
 /**
- * Which view of the place: Unread / All in Feeds, To read / All in Saved. A segmented switch, as on
- * Android and as To read / Archive in the save sheet: the same articles narrowed, not separate pages,
- * so no tabs and no swiping between them. Above the list on a phone-sized window, in the sidebar on a
- * wide one.
+ * Which view of the place: Unread / All in Feeds, To read / All in Saved: the same articles
+ * narrowed. Drawn as shadcn/ui's tabs list (the chosen one raised), the web's own look. Above the
+ * list on a phone-sized window, in the sidebar on a wide one.
  */
 export function ViewSwitch({ labels, selected, onSelect, className }: { labels: string[]; selected: number; onSelect: (index: number) => void; className?: string }) {
   return (
-    <div role="radiogroup" aria-label={t("view")} className={cn("flex h-10 rounded-full border", className)}>
+    <div role="radiogroup" aria-label={t("view")} className={cn("flex h-9 items-center rounded-lg bg-muted p-[3px] text-muted-foreground", className)}>
       {labels.map((label, i) => {
         const on = i === selected;
         return (
@@ -24,14 +22,10 @@ export function ViewSwitch({ labels, selected, onSelect, className }: { labels: 
             aria-checked={on}
             onClick={() => !on && onSelect(i)}
             className={cn(
-              "flex min-w-0 flex-1 cursor-pointer items-center justify-center gap-1.5 px-3 text-sm font-medium",
-              i > 0 && "border-l",
-              i === 0 && "rounded-l-full",
-              i === labels.length - 1 && "rounded-r-full",
-              on ? "bg-accent text-accent-foreground" : "hover:bg-muted",
+              "flex h-full min-w-0 flex-1 cursor-pointer items-center justify-center rounded-md px-3 text-sm font-medium transition-colors",
+              on ? "bg-background text-foreground shadow-sm" : "hover:text-foreground",
             )}
           >
-            {on ? <Check className="size-4 shrink-0" aria-hidden="true" /> : null}
             <span className="truncate">{label}</span>
           </button>
         );

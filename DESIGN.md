@@ -438,7 +438,27 @@ each platform's own, so no app feels like a port.
 - Android: Material 3, everything above.
 - Web: [shadcn/ui](https://ui.shadcn.com) (Radix primitives with Tailwind), themed with the seed
   colour; a neutral look that copies neither Android nor iOS. Wide screens use three panes:
-  folders and feeds in a sidebar, the article list, the open article.
+  folders and feeds in a sidebar, the article list, the open article. **No Material on the web**
+  (2026-11-04, after an audit found it had crept in): the same behaviour as Android, in shadcn/ui's
+  parts. Where Android has a Material part, the web uses:
+
+  | Android (Material 3) | Web (shadcn/ui) |
+  |---|---|
+  | Filled tonal button | `secondary` button (neutral) |
+  | Pill buttons (full round) | `rounded-md` buttons, `h-9` |
+  | Segmented button with a check (Unread / All, To read / Archive) | Tabs list: muted track, the chosen one raised on `background`, no check |
+  | Filter chip with a check | Toggle (outline): bordered, `accent` when on, no check |
+  | Navigation bar with a pill behind the selected icon | Plain tab bar: selected in the text colour, the others muted |
+  | Navigation drawer items (pills) | Sidebar menu buttons (`rounded-md`, `accent` when chosen) |
+  | Search bar (56 px, full round) | An input-style field (`h-9`, bordered) with the `/` shortcut shown |
+  | Snackbar (dark, centred, text action) | Toast (Sonner's look): card colour with a border, bottom right, a small button |
+  | Dialog actions as `primary` text buttons, Cancel bottom left | Footer at the right: Cancel (outline) then the main button; × at the top right |
+  | Floating toolbar in the reader | Actions in the reader's top bar, before Aa and ⋮ |
+  | `primary` list subheaders (Today, Settings sections) | Muted small headings / semibold headings |
+  | Icon in a tinted circle (settings tiles, empty states) | Bordered cards with a muted icon; empty state: icon on a small muted square |
+  | `primaryContainer` / `secondaryContainer` tints | `accent` and `secondary` are neutral; only `primary` is blue |
+  | Shape scale (12–28 px corners), Expressive shapes | shadcn's radii (`--radius-lg` 10 px, `md` 8 px) |
+  | Springy, bouncy motion | Short ease-out fades and zooms (≈200 ms) |
 - iOS: Apple's Human Interface Guidelines with standard SwiftUI parts (navigation bar, tab bar or
   sidebar, swipe actions, sheets).
 - Shared code is the logic (feeds, library, read state, sync), not the screens.

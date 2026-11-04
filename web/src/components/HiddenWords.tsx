@@ -51,7 +51,7 @@ function HiddenWordsDialog({ initial, onClose }: { initial: string; onClose: () 
       closeLabel={t("close")}
       footer={
         <>
-          <Button variant="ghost" onClick={onClose}>
+          <Button variant="outline" onClick={onClose}>
             {t("cancel")}
           </Button>
           <Button
@@ -77,7 +77,7 @@ function HiddenWordsDialog({ initial, onClose }: { initial: string; onClose: () 
                     onClick={() => setEntries(withoutEntry(entries, entry))}
                     aria-label={t("hiddenWordsRemove").replace("{name}", entry)}
                     title={t("hiddenWordsRemove").replace("{name}", entry)}
-                    className="inline-flex size-6 cursor-pointer items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
+                    className="inline-flex size-6 cursor-pointer items-center justify-center rounded-sm text-muted-foreground hover:bg-muted hover:text-foreground"
                   >
                     <X className="size-4" aria-hidden="true" />
                   </button>

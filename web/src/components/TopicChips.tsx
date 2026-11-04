@@ -15,7 +15,7 @@ export const CHIP_TYPE = "application/x-content-chip";
 export const chip = "inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border px-3 text-sm disabled:cursor-default disabled:opacity-50";
 export const chipOn = "border-transparent bg-accent text-accent-foreground";
 /** New topic and Edit topics are actions, not topics: text buttons, so they don't look like chips. */
-export const action = "inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-lg px-2 text-sm font-medium text-primary hover:bg-muted disabled:cursor-default disabled:opacity-50";
+export const action = "inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-md px-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground disabled:cursor-default disabled:opacity-50";
 
 /**
  * Chips to reorder and edit, as on Android (`ReorderableChips`): topics in Manage topics, and feeds in
@@ -178,7 +178,7 @@ export function TopicChips({
         </>
       )}
       {alwaysEditing ? (
-        // Manage tags: New tag is the dialog's action (tonal, as Add feed in Manage feeds).
+        // Manage tags: New tag is the dialog's action (secondary, as Add feed in Manage feeds).
         <button type="button" disabled={disabled} onClick={() => setDialog("new")} className={cn(action, "bg-accent text-accent-foreground hover:bg-accent/80")}>
           <Plus className="size-4" aria-hidden="true" />
           {t("newFolder")}
