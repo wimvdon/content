@@ -3,6 +3,7 @@ import { ArrowLeft, X } from "lucide-react";
 import { createContext, useCallback, useContext, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { t } from "@/lib/i18n";
+import { Button } from "./button";
 import { cn } from "./cn";
 
 type Props = {
@@ -14,9 +15,9 @@ type Props = {
   footer?: ReactNode;
   closeLabel: string;
   wide?: boolean;
-  /** A sheet: Cancel in words at the bottom left instead of ×, the same as on Android. */
+  /** A form: Cancel as an outline button before the footer's main button (shadcn/ui's dialog footer). */
   cancel?: string;
-  /** A dialog whose changes are kept at once (Manage feeds, Manage topics): Done at the bottom right instead of ×. */
+  /** A dialog whose changes are kept at once (Manage feeds, Manage topics): Done at the bottom right. */
   done?: string;
   /** The back arrow's label, when this dialog opens as a page of another. */
   backLabel?: string;
@@ -37,10 +38,10 @@ type Host = { slot: HTMLDivElement | null; top: string | null; add: (page: Page)
 const PageHost = createContext<Host | null>(null);
 
 /**
- * A dialog, the way every one in the app opens (Material: one dialog, never one over another). Opened
+ * A dialog, the way every one in the app opens (one dialog, never one over another). Opened
  * from within another dialog (Edit topics in Add feed, a feed in Manage feeds, Manage feeds in
  * Settings), it doesn't open a second one: it becomes a page of that dialog, with a back arrow before
- * its title, as on Android (ContentSheet). Back (the arrow or Escape) shows the dialog under it as it
+ * its title. Back (the arrow or Escape) shows the dialog under it as it
  * was: its state stays where it was declared.
  */
 export function Dialog(props: Props) {
@@ -64,7 +65,7 @@ function RootDialog({ open, onOpenChange, title, description, children, footer, 
         <D.Content
           ref={content}
           className={cn(
-            "fixed top-1/2 left-1/2 z-50 flex max-h-[90dvh] w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 flex-col rounded-2xl border bg-card shadow-xl focus:outline-none",
+            "fixed top-1/2 left-1/2 z-50 flex max-h-[90dvh] w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 flex-col rounded-lg border bg-card shadow-xl focus:outline-none",
             wide ? "max-w-2xl" : "max-w-md",
           )}
           // While typing in it, a click beside the dialog only ends the typing, as on Android (where it
@@ -91,24 +92,27 @@ function RootDialog({ open, onOpenChange, title, description, children, footer, 
                   {description ? <D.Description className="mt-1 text-sm text-muted-foreground">{description}</D.Description> : <D.Description className="sr-only">{title}</D.Description>}
                 </div>
                 {headerAction ? <div className="-mt-1 -mr-2 shrink-0">{headerAction}</div> : null}
-                {cancel || done ? null : (
-                  <D.Close className="-mr-2 rounded-full p-2 hover:bg-muted" aria-label={closeLabel}>
-                    <X className="size-4" />
-                  </D.Close>
-                )}
+                <D.Close className="-mr-2 cursor-pointer rounded-md p-2 opacity-70 transition-opacity hover:opacity-100" aria-label={closeLabel}>
+                  <X className="size-4" />
+                </D.Close>
               </div>
               {/* pt-1: the first field's focus ring isn't cut off by the scrolling body. */}
               <div className="min-h-0 flex-1 overflow-y-auto px-6 pt-1 pb-4">{children}</div>
-              {/* Cancel at the bottom left, as on Android (SheetActions); a Remove (mr-auto) sits next
-                  to it, the main button at the right; Done at the far right. */}
+              {/* shadcn/ui's dialog footer: everything at the right, Cancel (outline) before the main
+                  button; Done (changes are kept at once) is the main button. */}
               {footer || cancel || done ? (
-                <div className="flex flex-wrap items-center gap-2 border-t px-6 py-3">
-                  {cancel ? <D.Close className="-ml-3 h-9 shrink-0 cursor-pointer rounded-lg px-3 text-sm font-medium text-primary hover:bg-muted">{cancel}</D.Close> : null}
-                  <div className="flex flex-1 flex-wrap items-center justify-end gap-2">
-                    {footer}
-                    {/* Done only closes (changes are kept at once): a text button, as on Android. */}
-                    {done ? <D.Close className="h-9 shrink-0 cursor-pointer rounded-lg px-3 text-sm font-medium text-primary hover:bg-muted">{done}</D.Close> : null}
-                  </div>
+                <div className="flex flex-wrap items-center justify-end gap-2 px-6 pt-2 pb-5">
+                  {cancel ? (
+                    <D.Close asChild>
+                      <Button variant="outline">{cancel}</Button>
+                    </D.Close>
+                  ) : null}
+                  {footer}
+                  {done ? (
+                    <D.Close asChild>
+                      <Button>{done}</Button>
+                    </D.Close>
+                  ) : null}
                 </div>
               ) : null}
             </div>
@@ -145,7 +149,7 @@ function DialogPage({ host, open, onOpenChange, title, description, children, fo
   return createPortal(
     <div ref={box} className={cn("flex min-h-0 flex-1 flex-col", !shown && "hidden")} role="group" aria-label={title}>
       <div className="flex items-start gap-1 py-3 pr-6 pl-3">
-        <button type="button" onClick={() => back.current()} className="mt-0.5 shrink-0 cursor-pointer rounded-full p-2 hover:bg-muted" aria-label={backLabel ?? t("back")}>
+        <button type="button" onClick={() => back.current()} className="mt-0.5 shrink-0 cursor-pointer rounded-md p-2 hover:bg-accent" aria-label={backLabel ?? t("back")}>
           <ArrowLeft className="size-4" />
         </button>
         <div className="min-w-0 flex-1 pt-1">
@@ -155,11 +159,7 @@ function DialogPage({ host, open, onOpenChange, title, description, children, fo
         {headerAction ? <div className="-mr-2 shrink-0">{headerAction}</div> : null}
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto px-6 pt-1 pb-4">{children}</div>
-      {footer ? (
-        <div className="flex flex-wrap items-center gap-2 border-t px-6 py-3">
-          <div className="flex flex-1 flex-wrap items-center justify-end gap-2">{footer}</div>
-        </div>
-      ) : null}
+      {footer ? <div className="flex flex-wrap items-center justify-end gap-2 px-6 pt-2 pb-5">{footer}</div> : null}
     </div>,
     host.slot,
   );

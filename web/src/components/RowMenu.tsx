@@ -61,7 +61,7 @@ export function WithRowMenu({ items, children }: { items: RowMenuItem[]; childre
           <div className="fixed inset-0 z-40" onClick={() => setAt(null)} onContextMenu={(e) => (e.preventDefault(), setAt(null))} aria-hidden="true" />
           <div
             role="menu"
-            className="fixed z-50 min-w-48 rounded-xl border bg-card py-1 shadow-lg"
+            className="fixed z-50 min-w-48 rounded-md border bg-card p-1 shadow-md"
             style={{ left: Math.min(at.x, window.innerWidth - 208), top: Math.min(at.y, window.innerHeight - 48 * items.length - 16) }}
           >
             {items.map((item) => (

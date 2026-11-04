@@ -16,7 +16,7 @@ export function InstapaperSettings() {
   if (!instapaper) {
     return (
       <section className="space-y-2">
-        <h3 className="text-sm font-medium text-primary">{NAME}</h3>
+        <h3 className="text-sm font-semibold">{NAME}</h3>
         <p className="text-sm text-muted-foreground">{t("instapaperBody")}</p>
         <Button variant="outline" onClick={() => app.connectInstapaper()}>
           {t("instapaperSignIn")}
@@ -28,7 +28,7 @@ export function InstapaperSettings() {
   if (instapaperImportChoice) {
     return (
       <section className="space-y-2">
-        <h3 className="text-sm font-medium text-primary">{NAME}</h3>
+        <h3 className="text-sm font-semibold">{NAME}</h3>
         <p className="text-sm text-muted-foreground">{t("instapaperImportBody")}</p>
         <div className="flex flex-wrap gap-2">
           <Button onClick={() => app.chooseInstapaperImport(true)}>{t("serviceImportTitle")}</Button>
@@ -44,7 +44,7 @@ export function InstapaperSettings() {
   }
   return (
     <section className="space-y-2">
-      <h3 className="text-sm font-medium text-primary">{NAME}</h3>
+      <h3 className="text-sm font-semibold">{NAME}</h3>
       <p className="text-sm text-muted-foreground">{instapaperBusy ? t("syncing") : t("instapaperSyncsEverything")}</p>
       <Button variant="ghost" onClick={() => void app.disconnectInstapaper()}>
         {t("instapaperSignOut")}

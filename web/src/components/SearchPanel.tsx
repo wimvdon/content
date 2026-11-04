@@ -155,7 +155,7 @@ function FilterRow({ filters, onChange }: { filters: SearchFilters; onChange: (f
           const on = filters.topic !== null && topic.toLowerCase() === filters.topic.toLowerCase();
           const icon = icons.get(topic.trim().toLowerCase());
           return (
-            <FilterChip key={topic} selected={on} check={false} onClick={() => onChange(withTopic(filters, on ? null : topic, library))}>
+            <FilterChip key={topic} selected={on} onClick={() => onChange(withTopic(filters, on ? null : topic, library))}>
               {icon ? <FolderIcon name={icon} className="size-4" /> : null}
               {topic}
             </FilterChip>
@@ -165,7 +165,7 @@ function FilterRow({ filters, onChange }: { filters: SearchFilters; onChange: (f
       {feeds.length > 0 ? (
         <div role="group" aria-label={t("feeds")} className={row}>
           {feeds.map((feed) => (
-            <FilterChip key={feed.url} selected={filters.feedUrls.includes(feed.url)} check={false} onClick={() => onChange(toggleFeed(filters, feed.url))}>
+            <FilterChip key={feed.url} selected={filters.feedUrls.includes(feed.url)} onClick={() => onChange(toggleFeed(filters, feed.url))}>
               <FeedIcon feed={feed} className="size-4" />
               <span className="max-w-40 truncate">{feed.title}</span>
             </FilterChip>

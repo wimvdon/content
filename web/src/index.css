@@ -2,7 +2,8 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Brand colours from the Android app (seed #0091EA, sky blue tertiary); the rest is neutral (shadcn/ui). */
+/* The web's own design language: shadcn/ui's neutral theme with the brand's blue (seed #0091EA) as
+   primary. Not Material: accent and secondary are neutral, as in shadcn (DESIGN.md, "Other platforms"). */
 :root {
   --background: oklch(0.99 0.002 240);
   --foreground: oklch(0.2 0.02 250);
@@ -13,8 +14,10 @@
   /* L 0.52: 5.3:1 on white, so small primary text passes WCAG AA. */
   --primary: oklch(0.52 0.17 245);
   --primary-foreground: oklch(0.99 0 0);
-  --accent: oklch(0.94 0.03 240);
-  --accent-foreground: oklch(0.3 0.08 250);
+  --accent: oklch(0.955 0.006 250);
+  --accent-foreground: oklch(0.2 0.02 250);
+  --secondary: oklch(0.955 0.006 250);
+  --secondary-foreground: oklch(0.2 0.02 250);
   --destructive: oklch(0.58 0.2 27);
   --ring: oklch(0.52 0.17 245);
   --unread: oklch(0.52 0.17 245);
@@ -29,8 +32,10 @@
   --border: oklch(0.3 0.012 250);
   --primary: oklch(0.72 0.14 240);
   --primary-foreground: oklch(0.18 0.03 250);
-  --accent: oklch(0.28 0.04 245);
-  --accent-foreground: oklch(0.9 0.04 240);
+  --accent: oklch(0.27 0.012 250);
+  --accent-foreground: oklch(0.94 0.005 240);
+  --secondary: oklch(0.27 0.012 250);
+  --secondary-foreground: oklch(0.94 0.005 240);
   --destructive: oklch(0.68 0.19 25);
   --ring: oklch(0.72 0.14 240);
   --unread: oklch(0.72 0.14 240);
@@ -48,8 +53,10 @@
   --muted-foreground: #6f5c45;
   --border: #e0d2b4;
   --primary: #8a4b12;
-  --accent: #f1d9b5;
-  --accent-foreground: #4a2800;
+  --accent: #ede2c9;
+  --accent-foreground: #3d2f1e;
+  --secondary: #ede2c9;
+  --secondary-foreground: #3d2f1e;
   --unread: #8a4b12;
 }
 
@@ -64,12 +71,16 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
   --color-destructive: var(--destructive);
   --color-ring: var(--ring);
   --color-unread: var(--unread);
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-serif: ui-serif, Georgia, "Times New Roman", serif;
-  --radius-lg: 0.75rem;
+  /* shadcn/ui's radii (Material's 12–28 px corners don't belong here). */
+  --radius-lg: 0.625rem;
+  --radius-md: 0.5rem;
 }
 
 html,
@@ -241,23 +252,20 @@ body {
   text-decoration: underline;
 }
 
-/* Mark all as read (pull past the end, 2026-11-03): a small pleasure, in Material 3 Expressive's
-   springy motion. The button pops when far enough; All caught up springs in. Calm with reduced motion. */
+/* Mark all as read (pull past the end, 2026-11-03), in the web's own calm motion (shadcn/ui's short
+   ease-out fades and zooms, no Material springs): a small pop when far enough, All caught up fades
+   in. None with reduced motion. */
 @keyframes spring-pop {
   0% { transform: scale(1); }
-  45% { transform: scale(1.18); }
-  70% { transform: scale(1.06); }
-  100% { transform: scale(1.12); }
-}
-@keyframes spring-in {
-  0% { transform: scale(0.6); opacity: 0; }
-  55% { transform: scale(1.08); opacity: 1; }
-  80% { transform: scale(0.97); }
+  50% { transform: scale(1.04); }
   100% { transform: scale(1); }
 }
-@media (prefers-reduced-motion: no-preference) {
-  .spring-pop { animation: spring-pop 380ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
-  .spring-in { animation: spring-in 520ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
-  .spring-back { transition: transform 420ms cubic-bezier(0.34, 1.56, 0.64, 1), background-color 200ms, color 200ms; }
+@keyframes spring-in {
+  0% { transform: scale(0.95); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
 }
-
+@media (prefers-reduced-motion: no-preference) {
+  .spring-pop { animation: spring-pop 200ms ease-out both; }
+  .spring-in { animation: spring-in 200ms ease-out both; }
+  .spring-back { transition: transform 200ms ease-out, background-color 150ms, color 150ms; }
+}

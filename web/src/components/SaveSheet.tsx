@@ -105,8 +105,8 @@ function Sheet({
         {/* Only sent: nothing of it is kept, so there is nothing to tag or note. */}
         {kind !== "topics" && kind !== "note" && choice.keep ? (
           <>
-        {/* To read or Archive, above the topics, as on Android's segmented choice. */}
-        <div role="radiogroup" aria-label={t("saveArticle")} className="grid grid-cols-2 rounded-full border p-0.5">
+        {/* To read or Archive, above the topics: a tabs list, the web's look. */}
+        <div role="radiogroup" aria-label={t("saveArticle")} className="grid h-9 grid-cols-2 rounded-lg bg-muted p-[3px] text-muted-foreground">
           {[false, true].map((archive) => {
             const on = isArchived(choice) === archive;
             return (
@@ -116,7 +116,7 @@ function Sheet({
                 role="radio"
                 aria-checked={on}
                 onClick={() => setChoice((c) => withArchived(c, archive))}
-                className={cn("inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-full text-sm font-medium", on ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:bg-muted")}
+                className={cn("inline-flex h-full cursor-pointer items-center justify-center gap-2 rounded-md text-sm font-medium transition-colors", on ? "bg-background text-foreground shadow-sm" : "hover:text-foreground")}
               >
                 {archive ? <Archive className="size-4" aria-hidden="true" /> : <BookOpen className="size-4" aria-hidden="true" />}
                 {archive ? t("archiveTab") : t("toRead")}
@@ -141,7 +141,7 @@ function Sheet({
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="space-y-2">
-      <h3 className="text-sm font-medium text-primary">{title}</h3>
+      <h3 className="text-sm font-semibold">{title}</h3>
       {children}
     </section>
   );

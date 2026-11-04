@@ -72,7 +72,7 @@ export function AddFeedDialog({ open, onOpenChange, folderId }: Props & { folder
         {error ? <p className="mt-2 text-sm text-destructive" role="alert">{error}</p> : null}
       </form>
       <section className="mt-5 space-y-2">
-        <h3 className="text-sm font-medium text-primary">{t("topic")}</h3>
+        <h3 className="text-sm font-semibold">{t("topic")}</h3>
         <TopicChips
           topics={library.folders}
           selected={(topic) => chosen === topic.id}
@@ -171,7 +171,7 @@ export function ManageFeedsDialog({ open, onOpenChange, onAddFeed, children }: P
             </div>
           </section>
         ))}
-        <Button variant="tonal" onClick={onAddFeed}>
+        <Button variant="secondary" onClick={onAddFeed}>
           <Plus />
           {t("addFeed")}
         </Button>
@@ -218,7 +218,7 @@ function EditFeedDialog({ feed, onClose }: { feed: Feed; onClose: () => void }) 
         </div>
         {problems.has(feed.url) ? <p className="text-sm text-destructive">{t("feedFailing")}</p> : null}
         <section className="space-y-2">
-          <h3 className="text-sm font-medium text-primary">{t("topic")}</h3>
+          <h3 className="text-sm font-semibold">{t("topic")}</h3>
           <TopicChips
             topics={library.folders}
             selected={(topic) => chosen === topic.id}
@@ -252,10 +252,8 @@ function EditFeedDialog({ feed, onClose }: { feed: Feed; onClose: () => void }) 
  */
 export function AddChoiceDialog({ open, onOpenChange, onFeed, onArticle }: Props & { onFeed: () => void; onArticle: () => void }) {
   const choice = (Icon: typeof Rss, title: string, body: string, onClick: () => void) => (
-    <button type="button" onClick={onClick} className="flex w-full cursor-pointer items-center gap-4 rounded-xl bg-muted p-4 text-left hover:bg-accent/60">
-      <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground">
-        <Icon className="size-5" aria-hidden="true" />
-      </span>
+    <button type="button" onClick={onClick} className="flex w-full cursor-pointer items-center gap-4 rounded-lg border bg-card p-4 text-left shadow-xs transition-colors hover:bg-accent">
+      <Icon className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
       <span className="min-w-0">
         <span className="block font-medium">{title}</span>
         <span className="block text-sm text-muted-foreground">{body}</span>
@@ -386,10 +384,8 @@ export function SettingsDialog({
   };
   const themeNames: Record<Theme, string> = { system: t("themeSystem"), light: t("themeLight"), dark: t("themeDark") };
   const big = (Icon: typeof Rss, title: string, detail: string, onClick: () => void) => (
-    <button type="button" onClick={onClick} className="flex cursor-pointer flex-col items-start gap-3 rounded-xl bg-muted p-4 text-left hover:bg-accent/60">
-      <span className="flex size-10 items-center justify-center rounded-full bg-accent text-accent-foreground">
-        <Icon className="size-5" aria-hidden="true" />
-      </span>
+    <button type="button" onClick={onClick} className="flex cursor-pointer flex-col items-start gap-3 rounded-lg border bg-card p-4 text-left shadow-xs transition-colors hover:bg-accent">
+      <Icon className="size-5 text-muted-foreground" aria-hidden="true" />
       <span>
         <span className="block font-medium">{title}</span>
         <span className="block text-sm text-muted-foreground">{detail}</span>
@@ -439,7 +435,7 @@ export function SettingsDialog({
             <>
               {/* Moving to or from another reader: the feeds in and out. */}
               <section className="space-y-2">
-                <h3 className="text-sm font-medium text-primary">{t("opmlTitle")}</h3>
+                <h3 className="text-sm font-semibold">{t("opmlTitle")}</h3>
                 <div className="flex flex-wrap gap-2">
                   <Button variant="outline" onClick={onImport}>
                     {t("importOpml")}
@@ -497,7 +493,7 @@ export function SettingsDialog({
                 <SwitchRow title={t("showImages")} summary={t("showImagesSummary")} checked={settings.showImages} onChange={(v) => app.updateSettings({ showImages: v })} />
               </section>
               <section className="space-y-2">
-                <h3 className="text-sm font-medium text-primary">{t("textSettings")}</h3>
+                <h3 className="text-sm font-semibold">{t("textSettings")}</h3>
                 <ReaderStyleControls preview />
               </section>
             </>
@@ -542,7 +538,7 @@ function AccountSection() {
   const failed = syncStatus.kind === "failed";
   return (
     <section className="space-y-2">
-      <h3 className="text-sm font-medium text-primary">{t("accountTitle")}</h3>
+      <h3 className="text-sm font-semibold">{t("accountTitle")}</h3>
       {account ? (
         <>
           <div className="flex items-center gap-3">
@@ -557,7 +553,7 @@ function AccountSection() {
           </div>
           <div className="flex flex-wrap gap-2 pt-1">
             {!(syncStatus.kind === "failed" && syncStatus.problem === "signedOut") ? (
-              <Button variant="tonal" onClick={() => void app.sync()} disabled={syncStatus.kind === "syncing"}>
+              <Button variant="secondary" onClick={() => void app.sync()} disabled={syncStatus.kind === "syncing"}>
                 {t("syncNow")}
               </Button>
             ) : null}
@@ -600,7 +596,7 @@ function AccountSection() {
         closeLabel={t("close")}
         footer={
           <>
-            <Button variant="ghost" onClick={() => setConfirmDelete(false)}>
+            <Button variant="outline" onClick={() => setConfirmDelete(false)}>
               {t("cancel")}
             </Button>
             <Button
@@ -752,7 +748,7 @@ function ImportGuide({ title, steps, note }: { title: string; steps: string[]; n
         <ol className="space-y-3">
           {steps.map((step, i) => (
             <li key={i} className="flex items-center gap-3 text-sm">
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground" aria-hidden="true">
+              <span className="flex size-7 shrink-0 items-center justify-center rounded-full border bg-muted text-xs font-medium text-foreground" aria-hidden="true">
                 {i + 1}
               </span>
               <span>{step}</span>

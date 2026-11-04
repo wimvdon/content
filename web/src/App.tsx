@@ -297,14 +297,13 @@ export default function App() {
         }}
       />
       {shown ? (
-        // Above the bottom bars on a phone (the article's library bar, Feeds | Saved).
-        <div ref={toast} role="status" className="fixed bottom-20 left-1/2 z-50 flex max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-3 rounded-xl bg-foreground px-4 py-3 text-sm text-background shadow-lg lg:bottom-4">
-          <span>{shown.text}</span>
+        // A toast (shadcn/ui's Sonner look): bottom right on a wide window, above the bottom bars on a phone.
+        <div ref={toast} role="status" className="fixed inset-x-4 bottom-20 z-50 flex items-center gap-3 rounded-lg border bg-card px-4 py-3 text-sm text-foreground shadow-lg sm:left-auto sm:w-[22rem] lg:right-6 lg:bottom-6">
+          <span className="min-w-0 flex-1">{shown.text}</span>
           {shown.action ? (
             <Button
               size="sm"
-              variant="ghost"
-              className="text-primary hover:bg-white/10"
+              className="shrink-0"
               onClick={() => {
                 shown.action?.run();
                 setMessage(null);

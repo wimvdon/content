@@ -243,7 +243,9 @@ website (in the web app, in a new tab) (the same as ⋮ › **Open in browser**)
 The **floating toolbar** (a rounded bar at the bottom in the middle, over the text) is the article
 in your library, with **Share** at its end (Content's share sheet, or straight to the app you
 chose). It slides out of the way while you read down, and comes back when you scroll up a little,
-at the top and at the end of the article. Before it is saved it has **Save** on the left: it
+at the top and at the end of the article. (In the web app these buttons sit in the reader's top
+bar, before Aa and ⋮, and stay there; on a narrow window Save and Archive show only their icon.)
+Before it is saved it has **Save** on the left: it
 saves the article to **To read** (by default), or sends it to the app you chose (see below). Once
 saved (right away, without leaving the article) the toolbar is **Archive** (in words; once
 archived, the To read icon puts it back), **Like**, **Tags** and Share; one tap on Archive archives

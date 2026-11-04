@@ -17,7 +17,7 @@ export function ReaderStyleControls({ preview }: { preview?: boolean }) {
   return (
     <div className="space-y-4">
       {preview ? (
-        <p className={cn("rounded-xl border bg-background p-4 text-foreground", pageClass(style, appDark))} style={textStyle(style)}>
+        <p className={cn("rounded-lg border bg-background p-4 text-foreground", pageClass(style, appDark))} style={textStyle(style)}>
           {t("readerPreview")}
         </p>
       ) : null}

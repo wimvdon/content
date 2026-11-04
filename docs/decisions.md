@@ -2,6 +2,30 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-04: No Material on the web; the rule made explicit
+
+Owner's request, after an audit (owner's impression that Material had crept into the web app). It
+had: since 2026-11-01 several changes were made for "phone and web" in Material's terms (the
+Unread / All segmented switch, the reader's floating toolbar, two Material 3 review passes that
+covered the web too), and "as on Android" was often read as "the same widget". The web app is back
+to its own design language, shadcn/ui, everywhere; behaviour is unchanged.
+- **Parts** (`web/src/components/ui/`): buttons `rounded-md` with shadcn's variants (`secondary`
+  instead of Material's tonal; destructive is the filled red button); toggles without a check
+  instead of filter chips; tabs lists instead of segmented buttons; neutral `accent` and
+  `secondary`; shadcn's radii; dialogs with × at the top right and the footer at the right (Cancel
+  as an outline button); toasts instead of a snackbar.
+- **Screens**: a plain tab bar at the bottom (no pill), sidebar items as menu buttons, an
+  input-style search field with `/`, the reader's library actions in its top bar instead of a
+  floating toolbar, muted day headings, plain section headings, bordered settings cards, empty
+  states with the icon on a small muted square, feed names in the text colours, calm motion.
+- **Kept, as behaviour**: the header that slides away while scrolling down (it keeps its tests),
+  dialogs that open their pages inside with a back arrow, pull past the end to mark all as read.
+  `toolbarHidden` (`lib/header.ts`) is no longer used now the reader has no floating toolbar; it and
+  its test stay until the owner agrees to remove them.
+- **The rule** (`CLAUDE.md`, "Design"; `DESIGN.md`, "Other platforms", with a table of Material
+  parts and their shadcn counterparts): two design languages, never mixed; parity is about
+  behaviour; the Material skill is for Android only.
+
 ## 2026-11-03: The cookie: Mark all as read turns into it, empty pages show it
 
 - Owner's wish: pulling Mark all as read should turn the button into a Material 3 Expressive shape
