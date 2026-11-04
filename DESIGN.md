@@ -231,8 +231,9 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
 - Seed `#0091EA` (azure), tertiary from the icon's sky blue.
 - Shape: Material 3 Expressive's nine-sided **cookie** (owner's choice, 2026-11-03), drawn by the
   app (`ui/CookieShape.kt`). Android only: the web app keeps its own design language. Empty pages show their icon on it instead of the
-  shared kit's circle (the kit's `LocalEmptyStateShape`, set in `Theme.kt`; the other apps keep the
-  circle). Mark all as read turns into it when pulled past the end of the list: the label fades, a
+  shared kit's circle (the kit's `LocalEmptyStateBadge`, set in `Theme.kt`; the other apps keep the
+  circle). As a page appears its cookie springs in and turns a few degrees into place, then stays
+  still; the icon on it doesn't move. Mark all as read turns into it when pulled past the end of the list: the label fades, a
   primary line runs round the outline, the pill shrinks to a circle that becomes the cookie, which
   fills with `primary`, pops and turns; letting go marks all as read.
 - Signature element: the reader page. Its font (Sans or Serif), text size, spacing, background

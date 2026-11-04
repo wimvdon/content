@@ -32,10 +32,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 /**
- * The shape behind an empty page's icon: a circle unless the app's theme picks its own
- * (Theme.kt). Content picks its cookie (2026-11-03).
+ * What sits behind an empty page's icon: a still circle unless the app's theme picks its own
+ * (Theme.kt): a [shape], and a [motion] for it (the icon stays still). Content picks its cookie,
+ * which springs in and turns a little as the page appears (2026-11-03).
  */
-val LocalEmptyStateShape = staticCompositionLocalOf<Shape> { CircleShape }
+class EmptyStateBadge(
+    val shape: Shape = CircleShape,
+    val motion: @Composable () -> Modifier = { Modifier },
+)
+
+val LocalEmptyStateBadge = staticCompositionLocalOf { EmptyStateBadge() }
 
 /**
  * What a screen shows when it has nothing to show: nothing added yet, nothing matches, loading
@@ -67,13 +73,19 @@ fun EmptyState(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
+                val badge = LocalEmptyStateBadge.current
                 Box(
                     Modifier
                         .padding(bottom = 8.dp)
-                        .size(72.dp)
-                        .background(MaterialTheme.colorScheme.secondaryContainer, LocalEmptyStateShape.current),
+                        .size(72.dp),
                     contentAlignment = Alignment.Center,
                 ) {
+                    Box(
+                        Modifier
+                            .matchParentSize()
+                            .then(badge.motion())
+                            .background(MaterialTheme.colorScheme.secondaryContainer, badge.shape),
+                    )
                     Icon(icon, contentDescription = null, Modifier.size(36.dp), tint = MaterialTheme.colorScheme.onSecondaryContainer)
                 }
                 Text(

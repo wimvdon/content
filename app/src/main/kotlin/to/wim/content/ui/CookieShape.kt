@@ -1,11 +1,20 @@
 package to.wim.content.ui
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
+import to.wim.content.ui.theme.EmptyStateBadge
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.max
@@ -154,4 +163,23 @@ object CookieShape : Shape {
         layoutDirection: LayoutDirection,
         density: Density,
     ): Outline = Outline.Generic(cookiePath(Cookie.points(min(size.width, size.height)), size.width / 2, size.height / 2))
+}
+
+/**
+ * The cookie behind an empty page's icon (the kit's EmptyState): as the page appears it springs in
+ * from a little smaller and turns a few degrees into place, then stays still.
+ */
+val CookieBadge = EmptyStateBadge(CookieShape) { Modifier.springTurnIn() }
+
+@Composable
+private fun Modifier.springTurnIn(): Modifier {
+    val grow = remember { Animatable(0f) }
+    LaunchedEffect(Unit) { grow.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)) }
+    return graphicsLayer {
+        val k = grow.value
+        scaleX = 0.6f + 0.4f * k
+        scaleY = 0.6f + 0.4f * k
+        rotationZ = -40f * (1f - k)
+        alpha = (k * 2f).coerceIn(0f, 1f)
+    }
 }

@@ -19,9 +19,11 @@ Newest first. Add an entry for every notable choice: what was decided, why, and 
   dependency: the app draws the cookie itself (a radius by angle, smooth curves through 144
   points), and morphs by moving the pill's points to the cookie's at the same angles.
 - **Empty pages show their icon on the cookie**, in Content only (owner's choice over changing
-  every app through the template). The shared kit's `EmptyState` gets `LocalEmptyStateShape`, a
-  circle unless the theme says otherwise; Content's `Theme.kt` (the kit's one per-app file) sets
-  the cookie. The other apps are unchanged, and the template can take the local over as it is.
+  every app through the template). The shared kit's `EmptyState` gets `LocalEmptyStateBadge` (a
+  shape and its motion), a still circle unless the theme says otherwise; Content's `Theme.kt` (the
+  kit's one per-app file) sets the cookie, which springs in and turns a few degrees into place as
+  the page appears, then stays still (owner's choice: once, not turning all the time). All caught
+  up does the same, instead of its own spring. The other apps are unchanged, and the template can take the local over as it is.
 
 ## 2026-11-03: Pull past the end of the list to mark all as read
 

@@ -16,7 +16,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import to.wim.content.data.Appearance
 import to.wim.content.rssReaderApp
-import to.wim.content.ui.CookieShape
+import to.wim.content.ui.CookieBadge
 
 // Fallback palette (no dynamic color, or dynamic color turned off): the azure of the app icon,
 // with the icon's sky blue as the tertiary accent. Material 3 tonal values from seed #0091EA.
@@ -118,8 +118,8 @@ fun RssReaderTheme(
     val dark = appearance.isDark(isSystemInDarkTheme())
     SystemBarsFollowTheme(dark)
     MaterialTheme(colorScheme = appColorScheme(LocalContext.current, dark, appearance.dynamicColor)) {
-        // Content's own shape behind the icon of an empty page (2026-11-03): its cookie.
-        CompositionLocalProvider(LocalEmptyStateShape provides CookieShape, content = content)
+        // Content's own shape behind the icon of an empty page (2026-11-03): its cookie, springing in.
+        CompositionLocalProvider(LocalEmptyStateBadge provides CookieBadge, content = content)
     }
 }
 

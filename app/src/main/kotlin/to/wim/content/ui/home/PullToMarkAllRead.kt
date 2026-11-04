@@ -1,7 +1,6 @@
 package to.wim.content.ui.home
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.animateFloatAsState
@@ -246,17 +245,5 @@ fun MarkAllReadButton(
                 }
             }
         }
-    }
-}
-
-/** The caught-up screen after marking all as read springs in, a small reward. */
-@Composable
-fun Modifier.springIn(): Modifier {
-    val grow = remember { Animatable(0.6f) }
-    LaunchedEffect(Unit) { grow.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)) }
-    return graphicsLayer {
-        scaleX = grow.value
-        scaleY = grow.value
-        alpha = ((grow.value - 0.6f) / 0.4f).coerceIn(0f, 1f)
     }
 }
