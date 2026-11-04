@@ -19,8 +19,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
@@ -28,6 +30,18 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+
+/**
+ * What sits behind an empty page's icon: a still circle unless the app's theme picks its own
+ * (Theme.kt): a [shape], and a [motion] for it (the icon stays still). Content picks its cookie,
+ * which springs in and turns a little as the page appears (2026-11-03).
+ */
+class EmptyStateBadge(
+    val shape: Shape = CircleShape,
+    val motion: @Composable () -> Modifier = { Modifier },
+)
+
+val LocalEmptyStateBadge = staticCompositionLocalOf { EmptyStateBadge() }
 
 /**
  * What a screen shows when it has nothing to show: nothing added yet, nothing matches, loading
@@ -59,13 +73,19 @@ fun EmptyState(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
+                val badge = LocalEmptyStateBadge.current
                 Box(
                     Modifier
                         .padding(bottom = 8.dp)
-                        .size(72.dp)
-                        .background(MaterialTheme.colorScheme.secondaryContainer, CircleShape),
+                        .size(72.dp),
                     contentAlignment = Alignment.Center,
                 ) {
+                    Box(
+                        Modifier
+                            .matchParentSize()
+                            .then(badge.motion())
+                            .background(MaterialTheme.colorScheme.secondaryContainer, badge.shape),
+                    )
                     Icon(icon, contentDescription = null, Modifier.size(36.dp), tint = MaterialTheme.colorScheme.onSecondaryContainer)
                 }
                 Text(

@@ -199,8 +199,9 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
 - **Back** goes up a level: from one feed to its tag, from a tag to All, from Saved or the Inbox to Feeds;
   back on All closes the app.
 - The **✓✓ Mark all as read** button under the last article (tap it, or keep pulling past the end of the
-  list: the button moves up and its ring fills; once it is filled and says **Let go to mark all as read**,
-  let go; on the web, keep scrolling past the end with the wheel, trackpad or finger) marks everything in the section you are in as
+  list: on the phone the button shrinks to a circle and turns into Content's cookie, which fills with
+  colour when you've pulled far enough; let go; on the web, keep scrolling past the end with the
+  wheel, trackpad or finger: its ring fills and it says **Let go to mark all as read**) marks everything in the section you are in as
   read: all feeds on All, the tag's feeds in a tag, or the one feed you opened, also the
   ones you haven't scrolled to. You're done with it, so the Unread list empties (All caught up).
   A message says how many; **Undo** brings them back.
