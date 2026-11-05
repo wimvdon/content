@@ -25,6 +25,26 @@ class PullToMarkTest {
     }
 
     @Test
+    fun `once far enough, moving back a little cancels, and pulling up again takes it back`() {
+        val slack = 12f
+        // At its furthest: armed.
+        assertTrue(PullToMark.armed(130f, peak = 130f, threshold = threshold, slack = slack))
+        // A little back (within the slack): still armed, a shaky finger doesn't cancel.
+        assertTrue(PullToMark.armed(125f, peak = 130f, threshold = threshold, slack = slack))
+        // Further back, though still past the threshold: cancelled.
+        assertFalse(PullToMark.armed(115f, peak = 130f, threshold = threshold, slack = slack))
+        // Below the threshold: never.
+        assertFalse(PullToMark.armed(95f, peak = 95f, threshold = threshold, slack = slack))
+    }
+
+    @Test
+    fun `a flick back down as you let go cancels, a still or upward release doesn't`() {
+        assertTrue(PullToMark.cancelsOnRelease(900f))
+        assertFalse(PullToMark.cancelsOnRelease(0f))
+        assertFalse(PullToMark.cancelsOnRelease(-900f))
+    }
+
+    @Test
     fun `back down gives way, never below nothing or past its limit`() {
         assertEquals(10f, PullToMark.drag(60f, 100f, threshold), 0f)
         assertEquals(0f, PullToMark.drag(10f, 100f, threshold), 0f)

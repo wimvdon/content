@@ -200,7 +200,9 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   back on All closes the app.
 - The **✓✓ Mark all as read** button under the last article (tap it, or keep pulling past the end of the
   list: on the phone the button shrinks to a circle and turns into Content's cookie, which fills with
-  colour when you've pulled far enough; let go; on the web, click it) marks everything in the section you are in as
+  colour when you've pulled far enough; let go. Changed your mind? Move your finger back down a
+  little, or flick it down as you let go: the cookie empties, a light tick says so, and nothing is
+  marked. On the web, click it) marks everything in the section you are in as
   read: all feeds on All, the tag's feeds in a tag, or the one feed you opened, also the
   ones you haven't scrolled to. You're done with it, so the Unread list empties (All caught up).
   A message says how many; **Undo** brings them back.
@@ -298,6 +300,8 @@ article stays in its feed), **Share** and **Remove from inbox** (with
 **Undo**). Something already in Saved arrives in the inbox too, and stays where it is in Saved; the
 same article shared again comes back unread with its latest sender. Removing a saved article from
 Saved leaves it in the inbox. Opening the inbox checks for new shares first, so they show up right away.
+While something in it is unread, **Mark all as read** ends the list, as in Feeds' Unread: tap it (on
+the phone you can also pull past the end, the same way), and **Undo** brings them back.
 For a notification when something arrives, see Notifications below.
 
 **Full articles.** Many feeds contain only the start of an article, or a few paragraphs with a

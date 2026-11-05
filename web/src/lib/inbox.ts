@@ -19,6 +19,15 @@ export function markInboxRead(lib: Library, key: string, read = true): Library {
   return putItem(lib, { ...item, sharedBy: { ...item.sharedBy, read } });
 }
 
+/** The keys of the unread items in the inbox: what Mark all as read marks, and Undo marks unread again. */
+export const inboxUnreadKeys = (lib: Library): string[] => lib.items.filter((i) => inInbox(i) && !i.sharedBy?.read).map((i) => i.key);
+
+/** The library with every item in the inbox read (Mark all as read, 2026-11-05), as on Android. */
+export const markInboxAllRead = (lib: Library): Library => inboxUnreadKeys(lib).reduce((l, key) => markInboxRead(l, key), lib);
+
+/** The library with items `keys` unread again in the inbox (Undo of Mark all as read). */
+export const markInboxUnread = (lib: Library, keys: string[]): Library => keys.reduce((l, key) => markInboxRead(l, key, false), lib);
+
 /** The library with item `key` out of the inbox; it stays in Saved if it is saved. */
 export function removeFromInbox(lib: Library, key: string): Library {
   const item = itemOf(lib, key);

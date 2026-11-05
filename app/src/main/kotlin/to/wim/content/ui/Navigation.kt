@@ -850,6 +850,15 @@ fun RssReaderNavigation(
                                                         editLibrary { lib -> lib.item(item.key)?.let { lib.putItem(it.copy(sharedBy = item.sharedBy)) } ?: lib.putItem(item) }
                                                     }
                                                 },
+                                                onMarkAllRead = {
+                                                    val keys = Inbox.unreadKeys(library)
+                                                    if (keys.isNotEmpty()) {
+                                                        editLibrary { Inbox.markAllRead(it) }
+                                                        showMessage(resources.getQuantityString(R.plurals.marked_read, keys.size, keys.size), resources.getString(R.string.action_undo)) {
+                                                            editLibrary { Inbox.markUnread(it, keys) }
+                                                        }
+                                                    }
+                                                },
                                             )
                                         },
                                     topicChips = remember(listed, current.unreadOnly, shownSelection) { listed.feedChips(FeedTab.of(current.unreadOnly), shownSelection.chipTag(library.folders)) },
