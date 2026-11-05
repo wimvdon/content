@@ -2,13 +2,17 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
-## 2026-11-05: Refresh starts as Material's indicator; only the result is the cookie
+## 2026-11-05: Refresh: Material's indicator turning smoothly into the cookie; loading as before
 
-Owner's choice after trying 6.11.19: while you pull and while it refreshes, the indicator is
-Material's own (the circle with the turning arrow), as everywhere on Android. Once it's done, that
-circle (where the spinner was, with its shadow) turns into the light cookie, springing, and says
-"+3" or shows a tick, then shrinks away (`CookieRefreshBox`, `RefreshCount.outline`). Replaces the
-cookie during the pull and the refresh from the entry below.
+Owner's choices after trying 6.11.19:
+- **Refresh** is Material's own indicator (`PullToRefreshDefaults.IndicatorBox`: its place, shadow,
+  and the way it slides in and out), with the arrow while you pull and Material's spinner while it
+  refreshes. The box's shape is ours: from the moment the refresh starts, the circle smoothly
+  becomes the cookie (0.9 s), the spinner turning inside. When it's done the spinner gives way to
+  "+3" or a tick, the cookie takes its light tone, and after a moment it slides away like
+  Material's (`CookieRefreshBox`, `RefreshCount.outline`).
+- **Loading the full article** is Material's thin progress bar again, as before 6.11.19: the
+  turning cookie there didn't work (`TurningCookie` is gone).
 
 ## 2026-11-05: The cookie for refresh and loading; one look per kind of pull
 

@@ -193,9 +193,9 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   and so does **m** for the open article. Next to it, **Open in a new tab** (an arrow out of a box)
   opens the article's website in a new browser tab without opening it in Content; Saved's cards and
   Search's results have it too.
-- **Pull down** to download new articles (on the phone, when it's done, the round indicator turns
-  into Content's cookie and says how many new articles came in, "+3", or shows a tick when nothing
-  did); with nothing (unread) to show, the **Refresh** button
+- **Pull down** to download new articles (on the phone the round indicator turns into Content's
+  cookie as it refreshes, then says how many new articles came in, "+3", or shows a tick when
+  nothing did); with nothing (unread) to show, the **Refresh** button
   does the same (#251). The app also does this once every time it starts. All feeds are downloaded
   first and then added at once, each article in its place by date.
 - **Back** goes up a level: from one feed to its tag, from a tag to All, from Saved or the Inbox to Feeds;

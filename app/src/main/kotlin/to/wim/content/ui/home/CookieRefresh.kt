@@ -1,11 +1,20 @@
 package to.wim.content.ui.home
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.snap
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.pulltorefresh.PullToRefreshState
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.GenericShape
@@ -28,7 +37,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -74,11 +82,12 @@ object RefreshCount {
 }
 
 /**
- * Pull to refresh (2026-11-05, owner's choice): while you pull and while it refreshes, Material's own
- * indicator (the circle with the turning arrow), as everywhere on Android. When it's done, that
- * circle turns into Content's cookie, in its light tone (Content was busy: never the blue fill of
- * actions that change your articles), and says how many of [shownKeys] (the list on screen) are
- * new, "+3", or a tick for nothing new; then it shrinks away.
+ * Pull to refresh (2026-11-05, owner's choice): Material's own indicator (its box, place, shadow
+ * and the way it leaves), shaped by us. While you pull it is the round indicator with the arrow;
+ * as the refresh starts, the circle smoothly becomes Content's cookie with Material's spinner
+ * turning inside; when it's done the spinner gives way to how many of [shownKeys] (the list on
+ * screen) are new, "+3", or a tick, the cookie takes its light tone (never the blue fill of
+ * actions that change your articles), and after a moment it slides away as Material's does.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -92,104 +101,120 @@ fun CookieRefreshBox(
     val state = rememberPullToRefreshState()
     val keys by rememberUpdatedState(shownKeys)
     var before by remember { mutableStateOf<Set<String>?>(null) }
-    // After a refresh: Settling (the circle stays where the spinner was) until the count is known, then the count.
-    var after by remember { mutableStateOf<RefreshResult?>(null) }
+    // Once the refresh is over: null while the count isn't known yet, then the count.
+    var result by remember { mutableStateOf<Int?>(null) }
+    var holding by remember { mutableStateOf(false) }
     LaunchedEffect(isRefreshing) {
         if (isRefreshing) {
             before = keys.toSet()
-            after = null
+            result = null
+            holding = true
         } else {
             val start = before ?: return@LaunchedEffect
             before = null
-            after = RefreshResult.Settling
             // The list follows the library a moment after the refresh ends.
             delay(150)
-            after = RefreshResult.Counted(RefreshCount.added(start, keys))
+            result = RefreshCount.added(start, keys)
             delay(RefreshCount.SHOWN_MS)
-            after = RefreshResult.Gone
-            delay(300)
-            after = null
+            holding = false
         }
     }
+    // The indicator stays out (as while refreshing) until the result has been seen.
+    val shown = isRefreshing || holding
     PullToRefreshBox(
-        isRefreshing = isRefreshing,
+        isRefreshing = shown,
         onRefresh = onRefresh,
         modifier = modifier,
         state = state,
-        indicator = {
-            val done = after
-            if (done == null) {
-                PullToRefreshDefaults.Indicator(state = state, isRefreshing = isRefreshing, modifier = Modifier.align(Alignment.TopCenter))
-            } else {
-                RefreshDone(done, Modifier.align(Alignment.TopCenter))
-            }
-        },
+        indicator = { RefreshIndicator(state, shown, if (isRefreshing) null else result, Modifier.align(Alignment.TopCenter)) },
         content = content,
     )
 }
 
-/** What the indicator shows once the refresh is over. */
-private sealed interface RefreshResult {
-    data object Settling : RefreshResult
-
-    data class Counted(
-        val added: Int,
-    ) : RefreshResult
-
-    data object Gone : RefreshResult
-}
-
-/** Material's indicator circle, where the spinner was, turning into the cookie with "+3" or a tick. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun RefreshDone(
-    done: RefreshResult,
+private fun RefreshIndicator(
+    state: PullToRefreshState,
+    shown: Boolean,
+    result: Int?,
     modifier: Modifier = Modifier,
 ) {
     val colors = MaterialTheme.colorScheme
-    val counted = done as? RefreshResult.Counted
-    val form by animateFloatAsState(if (done is RefreshResult.Settling) 0f else 1f, spring(dampingRatio = 0.45f, stiffness = Spring.StiffnessMediumLow), label = "form")
-    val leave by animateFloatAsState(if (done is RefreshResult.Gone) 0f else 1f, tween(250), label = "leave")
-    val container = lerp(PullToRefreshDefaults.indicatorContainerColor, colors.primaryContainer, form.coerceIn(0f, 1f))
+    // Circle to cookie, smoothly, from the moment the refresh starts; back to a circle once gone.
+    val form by animateFloatAsState(if (shown) 1f else 0f, if (shown) tween(900, easing = FastOutSlowInEasing) else snap(), label = "form")
+    val done by animateFloatAsState(if (result != null) 1f else 0f, spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessMediumLow), label = "done")
+    val container by animateColorAsState(if (result != null) colors.primaryContainer else PullToRefreshDefaults.indicatorContainerColor, tween(300), label = "container")
+    val ink = PullToRefreshDefaults.indicatorColor
     val measurer = rememberTextMeasurer()
     val labelStyle = MaterialTheme.typography.labelLarge.copy(color = colors.onPrimaryContainer, fontWeight = FontWeight.SemiBold)
-    val label = counted?.let { RefreshCount.label(it.added) }
+    val label = result?.let { RefreshCount.label(it) }
     val tick = painterResource(R.drawable.ic_check)
-    val said = counted?.added?.takeIf { it > 0 }?.let { pluralStringResource(R.plurals.refresh_added, it, it) }
-    val size = 40.dp
-    Box(
-        modifier
-            .size(size)
-            .graphicsLayer {
-                // Where Material's indicator sits while refreshing.
-                translationY = PullToRefreshDefaults.PositionalThreshold.toPx() - size.toPx()
-                // Material's indicator has a shadow; the shape keeps it as it becomes the cookie.
-                shadowElevation = PullToRefreshDefaults.Elevation.toPx()
-                shape = GenericShape { box, _ -> addPath(cookiePath(RefreshCount.outline(form, box.minDimension * (1f + 0.12f * form.coerceIn(0f, 1f))), box.width / 2, box.height / 2)) }
-                scaleX = leave
-                scaleY = leave
-                alpha = leave
-            }.semantics {
+    val said = result?.takeIf { it > 0 }?.let { pluralStringResource(R.plurals.refresh_added, it, it) }
+    val shape = remember(form) { GenericShape { box, _ -> addPath(cookiePath(RefreshCount.outline(form, box.minDimension), box.width / 2, box.height / 2)) } }
+    PullToRefreshDefaults.IndicatorBox(
+        state = state,
+        isRefreshing = shown,
+        modifier =
+            modifier.semantics {
                 if (said != null) {
                     contentDescription = said
                     liveRegion = LiveRegionMode.Polite
                 }
             },
+        maxDistance = PullToRefreshDefaults.PositionalThreshold,
+        shape = shape,
+        containerColor = container,
     ) {
-        Canvas(Modifier.size(size)) {
-            val d = this.size.minDimension
-            // A little larger as it becomes the cookie, as its bumps reach past the circle.
-            val outline = cookiePath(RefreshCount.outline(form, d * (1f + 0.12f * form.coerceIn(0f, 1f))), center.x, center.y)
-            drawPath(outline, container)
-            val ink = form.coerceIn(0f, 1f)
-            if (counted == null || ink <= 0f) return@Canvas
-            if (label != null) {
-                val text = measurer.measure(label, labelStyle)
-                drawText(text, topLeft = Offset(center.x - text.size.width / 2f, center.y - text.size.height / 2f), alpha = ink)
-            } else {
-                val icon = d * 0.5f
-                translate(center.x - icon / 2, center.y - icon / 2) {
-                    with(tick) { draw(Size(icon, icon), alpha = ink, colorFilter = ColorFilter.tint(colors.onPrimaryContainer)) }
+        when {
+            // Pulling: Material's arrow, a ring that grows with the pull.
+            !shown -> PullArrow({ state.distanceFraction }, ink)
+            // Refreshing: Material's spinner, inside the shape as it becomes the cookie.
+            result == null -> CircularProgressIndicator(Modifier.size(20.dp), color = ink, strokeWidth = 2.5.dp)
+            else ->
+                Canvas(Modifier.size(40.dp).graphicsLayer { scaleX = 0.6f + 0.4f * done; scaleY = 0.6f + 0.4f * done; alpha = done.coerceIn(0f, 1f) }) {
+                    if (label != null) {
+                        val text = measurer.measure(label, labelStyle)
+                        drawText(text, topLeft = Offset(center.x - text.size.width / 2f, center.y - text.size.height / 2f))
+                    } else {
+                        val icon = size.minDimension * 0.5f
+                        translate(center.x - icon / 2, center.y - icon / 2) {
+                            with(tick) { draw(Size(icon, icon), colorFilter = ColorFilter.tint(colors.onPrimaryContainer)) }
+                        }
+                    }
+                }
+        }
+    }
+}
+
+/** Material's pull arrow: a ring that grows with the pull, with its arrowhead; faint until far enough. */
+@Composable
+private fun PullArrow(
+    fraction: () -> Float,
+    color: Color,
+) {
+    Canvas(Modifier.size(40.dp)) {
+        val p = fraction().coerceIn(0f, 1f)
+        val alpha = if (fraction() >= 1f) 1f else 0.3f + 0.4f * p
+        val radius = 7.5.dp.toPx()
+        val stroke = 2.5.dp.toPx()
+        val start = -90f + 180f * p
+        val sweep = 300f * p
+        rotate(0f) {
+            drawArc(color.copy(alpha = alpha), start, sweep, useCenter = false, topLeft = Offset(center.x - radius, center.y - radius), size = Size(radius * 2, radius * 2), style = Stroke(stroke, cap = StrokeCap.Butt))
+            if (sweep > 2f) {
+                // The arrowhead at the end of the ring, pointing along it.
+                val end = Math.toRadians((start + sweep).toDouble())
+                val tip = Offset(center.x + radius * kotlin.math.cos(end).toFloat(), center.y + radius * kotlin.math.sin(end).toFloat())
+                val head = 5.dp.toPx() * p
+                rotate(start + sweep + 90f, pivot = tip) {
+                    val path =
+                        Path().apply {
+                            moveTo(tip.x - head, tip.y - head / 2)
+                            lineTo(tip.x + head, tip.y - head / 2)
+                            lineTo(tip.x, tip.y + head / 2)
+                            close()
+                        }
+                    drawPath(path, color.copy(alpha = alpha))
                 }
             }
         }
