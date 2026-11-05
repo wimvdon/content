@@ -34,10 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
@@ -63,7 +60,7 @@ object RefreshCount {
         after: Collection<String>,
     ): Int = after.count { it !in before }
 
-    /** What the cookie says: "+3", "+99" at most; null when nothing came in (a tick instead). */
+    /** What the cookie says: "+3", "+99" at most; null when nothing came in (no cookie then). */
     fun label(added: Int): String? =
         when {
             added <= 0 -> null
@@ -82,12 +79,11 @@ object RefreshCount {
 }
 
 /**
- * Pull to refresh (2026-11-05, owner's choice): Material's own indicator (its box, place, shadow
- * and the way it leaves), shaped by us. While you pull it is the round indicator with the arrow;
- * as the refresh starts, the circle smoothly becomes Content's cookie with Material's spinner
- * turning inside; when it's done the spinner gives way to how many of [shownKeys] (the list on
- * screen) are new, "+3", or a tick, the cookie takes its light tone (never the blue fill of
- * actions that change your articles), and after a moment it slides away as Material's does.
+ * Pull to refresh (2026-11-05, owner's choice): Material's standard indicator, as everywhere on
+ * Android (its box, arrow, spinner, place, shadow and the way it leaves). Only when the refresh
+ * brought new items into [shownKeys] (the list on screen) does its circle, once done, smoothly
+ * become Content's cookie in its light tone with "+3", for a moment, before it slides away. Nothing
+ * new: it leaves as Material's always does.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -114,8 +110,11 @@ fun CookieRefreshBox(
             before = null
             // The list follows the library a moment after the refresh ends.
             delay(150)
-            result = RefreshCount.added(start, keys)
-            delay(RefreshCount.SHOWN_MS)
+            val added = RefreshCount.added(start, keys)
+            if (added > 0) {
+                result = added
+                delay(RefreshCount.SHOWN_MS)
+            }
             holding = false
         }
     }
@@ -140,15 +139,15 @@ private fun RefreshIndicator(
     modifier: Modifier = Modifier,
 ) {
     val colors = MaterialTheme.colorScheme
-    // Circle to cookie, smoothly, from the moment the refresh starts; back to a circle once gone.
-    val form by animateFloatAsState(if (shown) 1f else 0f, if (shown) tween(900, easing = FastOutSlowInEasing) else snap(), label = "form")
+    // Circle to cookie, smoothly, only once new items came in; back to a circle once gone.
+    val grows = shown && result != null
+    val form by animateFloatAsState(if (grows) 1f else 0f, if (grows) tween(500, easing = FastOutSlowInEasing) else snap(), label = "form")
     val done by animateFloatAsState(if (result != null) 1f else 0f, spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessMediumLow), label = "done")
     val container by animateColorAsState(if (result != null) colors.primaryContainer else PullToRefreshDefaults.indicatorContainerColor, tween(300), label = "container")
     val ink = PullToRefreshDefaults.indicatorColor
     val measurer = rememberTextMeasurer()
     val labelStyle = MaterialTheme.typography.labelLarge.copy(color = colors.onPrimaryContainer, fontWeight = FontWeight.SemiBold)
     val label = result?.let { RefreshCount.label(it) }
-    val tick = painterResource(R.drawable.ic_check)
     val said = result?.takeIf { it > 0 }?.let { pluralStringResource(R.plurals.refresh_added, it, it) }
     val shape = remember(form) { GenericShape { box, _ -> addPath(cookiePath(RefreshCount.outline(form, box.minDimension), box.width / 2, box.height / 2)) } }
     PullToRefreshDefaults.IndicatorBox(
@@ -172,15 +171,8 @@ private fun RefreshIndicator(
             result == null -> CircularProgressIndicator(Modifier.size(20.dp), color = ink, strokeWidth = 2.5.dp)
             else ->
                 Canvas(Modifier.size(40.dp).graphicsLayer { scaleX = 0.6f + 0.4f * done; scaleY = 0.6f + 0.4f * done; alpha = done.coerceIn(0f, 1f) }) {
-                    if (label != null) {
-                        val text = measurer.measure(label, labelStyle)
-                        drawText(text, topLeft = Offset(center.x - text.size.width / 2f, center.y - text.size.height / 2f))
-                    } else {
-                        val icon = size.minDimension * 0.5f
-                        translate(center.x - icon / 2, center.y - icon / 2) {
-                            with(tick) { draw(Size(icon, icon), colorFilter = ColorFilter.tint(colors.onPrimaryContainer)) }
-                        }
-                    }
+                    val text = measurer.measure(label ?: return@Canvas, labelStyle)
+                    drawText(text, topLeft = Offset(center.x - text.size.width / 2f, center.y - text.size.height / 2f))
                 }
         }
     }

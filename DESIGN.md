@@ -237,11 +237,10 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   primary line runs round the outline, the pill shrinks to a circle that becomes the cookie, which
   fills with `primary`, pops and turns; letting go marks all as read.
 - One look per kind of pull (2026-11-05): **actions that change your articles** (Mark all as read)
-  turn into the cookie and fill with `primary`. **Pull to refresh** is Material's own indicator
-  (its box, arrow and spinner); as the refresh starts its circle smoothly becomes the cookie, with
-  the spinner inside, and when it's done it takes the light tone (`primaryContainer`, never the
-  `primary` fill of actions) and says how many new items came in ("+3", or a tick). Loading the
-  full article keeps Material's thin progress bar.
+  turn into the cookie and fill with `primary`. **Pull to refresh** is Material's standard
+  indicator; only when new items came in does its circle, once done, smoothly become the cookie
+  in its light tone (`primaryContainer`, never the `primary` fill of actions) with "+3" for a
+  moment. Loading the full article keeps Material's thin progress bar.
   Going somewhere (a next item) would never use the cookie.
 - Signature element: the reader page. Its font (Sans or Serif), text size, spacing, background
   (Theme, Sepia or Dark) and Auto dark (dark page whenever the app is dark) are set in one Text sheet that is also Settings › Article view; the whole
