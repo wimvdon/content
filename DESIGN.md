@@ -236,6 +236,11 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   still; the icon on it doesn't move. Mark all as read turns into it when pulled past the end of the list: the label fades, a
   primary line runs round the outline, the pill shrinks to a circle that becomes the cookie, which
   fills with `primary`, pops and turns; letting go marks all as read.
+- One look per kind of pull (2026-11-05): **actions that change your articles** (Mark all as read)
+  turn into the cookie and fill with `primary`; **Content busy** (pull to refresh, loading the full
+  article) is the cookie in `primaryContainer`, turning, with a `primary` line running round it
+  (`TurningCookie`), never filled; refresh then says how many new items came in ("+3", or a tick).
+  Going somewhere (a next item) would never use the cookie.
 - Signature element: the reader page. Its font (Sans or Serif), text size, spacing, background
   (Theme, Sepia or Dark) and Auto dark (dark page whenever the app is dark) are set in one Text sheet that is also Settings › Article view; the whole
   screen, top bar and system bar icons included, takes the page colour.

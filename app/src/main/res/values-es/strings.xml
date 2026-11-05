@@ -217,6 +217,10 @@
         <item quantity="many">%d sin leer</item>
         <item quantity="other">%d sin leer</item>
     </plurals>
+    <plurals name="refresh_added">
+        <item quantity="one">%d artículo nuevo</item>
+        <item quantity="other">%d artículos nuevos</item>
+    </plurals>
     <plurals name="marked_read">
         <item quantity="one">%d artículo marcado como leído</item>
         <item quantity="many">%d artículos marcados como leídos</item>

@@ -210,6 +210,10 @@
         <item quantity="one">%d ungelesen</item>
         <item quantity="other">%d ungelesen</item>
     </plurals>
+    <plurals name="refresh_added">
+        <item quantity="one">%d neuer Artikel</item>
+        <item quantity="other">%d neue Artikel</item>
+    </plurals>
     <plurals name="marked_read">
         <item quantity="one">%d Artikel als gelesen markiert</item>
         <item quantity="other">%d Artikel als gelesen markiert</item>
