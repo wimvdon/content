@@ -61,8 +61,8 @@ Secrets, keystores (`*.jks`, `*.keystore`), `keystore.properties`, passwords or 
   change goes into both apps in the same pull request, each in its own design system (Material 3
   on Android, shadcn/ui on the web: see "Design" below; parity is about behaviour, never looks).
   Never build something for one app only. The only exceptions are
-  things one platform can't do (Android's share menu, Direct Share, the browser's keyboard
-  shortcuts); name the exception in the pull request and in `docs/decisions.md`. If an existing
+  things one platform can't do or where they make no sense (Android's share menu, Direct Share,
+  touch gestures such as pulling past the end of a list, the browser's keyboard shortcuts); name the exception in the pull request and in `docs/decisions.md`. If an existing
   feature turns out to be missing in one app, say so and add it.
 - `web/` is the web app (React, TypeScript, Vite, Tailwind, shadcn-style parts in
   `src/components/ui/`), `worker/` the Cloudflare Worker that loads feeds for it. The Android

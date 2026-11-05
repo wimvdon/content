@@ -2,6 +2,14 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-05: Pull past the end to mark all as read is Android only
+
+Owner's choice: on a computer, scrolling on past the end of a list with a mouse wheel or trackpad
+to mark everything read makes no sense. The web keeps **Mark all as read** as a button under the
+last article (a click), and loses the gesture (`lib/pullToMark.ts`, its hook, its button and their
+test, with the "Let go to mark all as read" text). A parity exception, named in `CLAUDE.md`: touch
+gestures such as this one are Android's. This replaces the web part of 2026-11-03's entry.
+
 ## 2026-11-04: No Material on the web; the rule made explicit
 
 Owner's request, after an audit (owner's impression that Material had crept into the web app). It
@@ -63,7 +71,7 @@ to its own design language, shadcn/ui, everywhere; behaviour is unchanged.
   pops with a bouncy spring into its filled colour and the double tick springs in; let go and it
   springs back with a little bounce, and All caught up springs in. The web does the same in CSS,
   and stays calm with reduced motion.
-- Web: the same with the wheel, the trackpad or a finger. A wheel gesture only counts when it
+- Web (removed 2026-11-05, see above): the same with the wheel, the trackpad or a finger. A wheel gesture only counts when it
   starts at the end, so a fast scroll coasting into the end marks nothing; it lets go when the
   wheel rests for a moment.
 
