@@ -2,6 +2,14 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-05: Refresh starts as Material's indicator; only the result is the cookie
+
+Owner's choice after trying 6.11.19: while you pull and while it refreshes, the indicator is
+Material's own (the circle with the turning arrow), as everywhere on Android. Once it's done, that
+circle (where the spinner was, with its shadow) turns into the light cookie, springing, and says
+"+3" or shows a tick, then shrinks away (`CookieRefreshBox`, `RefreshCount.outline`). Replaces the
+cookie during the pull and the refresh from the entry below.
+
 ## 2026-11-05: The cookie for refresh and loading; one look per kind of pull
 
 Owner's choice from a mockup of every place a pull could go (Android), after the owner's concern
