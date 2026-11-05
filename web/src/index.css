@@ -252,20 +252,11 @@ body {
   text-decoration: underline;
 }
 
-/* Mark all as read (pull past the end, 2026-11-03), in the web's own calm motion (shadcn/ui's short
-   ease-out fades and zooms, no Material springs): a small pop when far enough, All caught up fades
-   in. None with reduced motion. */
-@keyframes spring-pop {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.04); }
-  100% { transform: scale(1); }
-}
+/* All caught up fades in (shadcn/ui's short ease-out zoom); none with reduced motion. */
 @keyframes spring-in {
   0% { transform: scale(0.95); opacity: 0; }
   100% { transform: scale(1); opacity: 1; }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .spring-pop { animation: spring-pop 200ms ease-out both; }
   .spring-in { animation: spring-in 200ms ease-out both; }
-  .spring-back { transition: transform 200ms ease-out, background-color 150ms, color 150ms; }
 }
