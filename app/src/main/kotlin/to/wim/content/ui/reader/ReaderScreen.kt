@@ -25,6 +25,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
@@ -64,7 +65,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import to.wim.content.R
-import to.wim.content.ui.TurningCookie
 import to.wim.content.data.ArticleReport
 import androidx.compose.ui.res.pluralStringResource
 import java.util.UUID
@@ -504,11 +504,13 @@ private fun ArticleBody(
             }
             when (fullText) {
                 FullTextState.Loading -> {
-                    // Content is busy (2026-11-05): the turning cookie where the text will appear.
                     val loading = stringResource(R.string.reader_loading_full)
-                    Box(Modifier.fillMaxWidth().padding(vertical = 24.dp), contentAlignment = Alignment.Center) {
-                        TurningCookie(Modifier.semantics { contentDescription = loading }, size = 44.dp)
-                    }
+                    LinearProgressIndicator(
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .semantics { contentDescription = loading },
+                    )
                 }
 
                 FullTextState.Failed -> {

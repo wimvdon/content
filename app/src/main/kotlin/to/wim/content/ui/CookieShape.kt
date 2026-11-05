@@ -1,21 +1,5 @@
 package to.wim.content.ui
 
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PathMeasure
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -198,46 +182,4 @@ private fun Modifier.springTurnIn(): Modifier {
         rotationZ = -40f * (1f - k)
         alpha = (k * 2f).coerceIn(0f, 1f)
     }
-}
-
-/**
- * Content is busy (2026-11-05): the cookie in its light tone, turning, with a primary line running
- * round it. Never filled with primary: that is for actions that change your articles (Mark all as
- * read). Shown while the full article loads and while refreshing ([CookieRefreshIndicator]).
- */
-@Composable
-fun TurningCookie(
-    modifier: Modifier = Modifier,
-    size: Dp = 40.dp,
-) {
-    val transition = rememberInfiniteTransition(label = "turning cookie")
-    val turn by transition.animateFloat(0f, (2 * PI).toFloat(), infiniteRepeatable(tween(6000, easing = LinearEasing)), label = "turn")
-    val run by transition.animateFloat(0f, 1f, infiniteRepeatable(tween(1400, easing = LinearEasing)), label = "run")
-    val colors = MaterialTheme.colorScheme
-    Canvas(modifier.size(size)) {
-        drawBusyCookie(this.size.minDimension, turn.toDouble(), colors.primaryContainer, colors.primary, start = run, length = 0.3f)
-    }
-}
-
-/** The light cookie with a line along [length] of its outline from [start] (both 0 to 1), round the centre. */
-fun DrawScope.drawBusyCookie(
-    size: Float,
-    turn: Double,
-    fill: Color,
-    line: Color,
-    start: Float,
-    length: Float,
-) {
-    val path = cookiePath(Cookie.points(size * 0.92f, turn), center.x, center.y)
-    drawPath(path, fill)
-    if (length <= 0f) return
-    val measure = PathMeasure().apply { setPath(path, false) }
-    val total = measure.length
-    val stroke = Stroke(width = size * 0.06f, cap = StrokeCap.Round)
-    val from = (start % 1f) * total
-    val to = from + length.coerceAtMost(1f) * total
-    val run = Path()
-    measure.getSegment(from, minOf(to, total), run, true)
-    if (to > total) measure.getSegment(0f, to - total, run, true)
-    drawPath(run, line, style = stroke)
 }
