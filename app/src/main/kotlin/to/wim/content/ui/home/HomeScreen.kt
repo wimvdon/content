@@ -63,7 +63,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -347,17 +346,19 @@ fun HomeScreen(
                         .padding(innerPadding),
                 ) {
                 if (inbox != null) {
-                    PullToRefreshBox(
+                    CookieRefreshBox(
                         isRefreshing = state.refreshing,
                         onRefresh = actions.onRefresh,
+                        shownKeys = remember(inbox.items) { inbox.items.map { it.key } },
                         modifier = Modifier.fillMaxSize(),
                     ) {
                         InboxContent(inbox, state.listView, state.showImages)
                     }
                 } else if (reading != null) {
-                    PullToRefreshBox(
+                    CookieRefreshBox(
                         isRefreshing = state.refreshing,
                         onRefresh = actions.onRefresh,
+                        shownKeys = remember(reading.items) { reading.items.map { it.key } },
                         modifier = Modifier.fillMaxSize(),
                     ) {
                         SavedContent(
@@ -371,9 +372,10 @@ fun HomeScreen(
                         )
                     }
                 } else {
-                PullToRefreshBox(
+                CookieRefreshBox(
                     isRefreshing = state.refreshing,
                     onRefresh = actions.onRefresh,
+                    shownKeys = remember(state.articles) { state.articles.map { it.key } },
                     modifier = Modifier.fillMaxSize(),
                 ) {
                     val content =

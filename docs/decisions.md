@@ -2,6 +2,25 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-05: The cookie for refresh and loading; one look per kind of pull
+
+Owner's choice from a mockup of every place a pull could go (Android), after the owner's concern
+that one shape shouldn't mean different things:
+- **One look per kind**: the cookie that fills with `primary` is only for actions that change your
+  articles (Mark all as read, in Feeds and the Inbox); Content being busy is the cookie in its light
+  tone, turning, never filled; going somewhere would be a peeking card, never the cookie.
+- **Built: pull to refresh with the cookie** (`CookieRefreshBox`, in Feeds, Saved and the Inbox,
+  replacing Material's spinner): a line runs round it while you pull, it turns while refreshing,
+  then says how many items of the list shown are new ("+3", `RefreshCount`), or a tick, and shrinks
+  away; screen readers hear "3 new articles".
+- **Built: loading the full article** shows the turning cookie where the text will appear, instead
+  of the thin bar (`TurningCookie`).
+- **Not built** (the owner's choice): the next article or next tag at the end, archiving at the end
+  of a saved article, pulling down to close an article, archiving all of To read.
+- **Android only**: both are part of Android's look (the web keeps its turning refresh icon and its
+  "Loading" text, in shadcn/ui's style). The count after a refresh is part of the cookie, so the web
+  doesn't show one either.
+
 ## 2026-11-05: Mark all as read in the Inbox; letting go is easy to cancel
 
 Owner's choices, after a list of where pulling past the end could work (the reader's end for the
