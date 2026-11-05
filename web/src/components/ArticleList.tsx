@@ -452,6 +452,21 @@ function InboxArticles({
             })}
           </ul>
         )}
+        {/* Mark all as read under the last item, as in Feeds' Unread (2026-11-05): while something is unread. */}
+        {items.some((i) => !i.sharedBy?.read) ? (
+          <div className="flex justify-center pt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                const keys = app.markInboxAllRead();
+                if (keys.length > 0) onMessage(plural("markedRead", keys.length), { label: t("undo"), run: () => app.markInboxUnread(keys) });
+              }}
+            >
+              <CheckCheck />
+              {t("markAllRead")}
+            </Button>
+          </div>
+        ) : null}
       </div>
       {shareDialog}
     </section>

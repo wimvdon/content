@@ -85,30 +85,56 @@ object PullToMark {
         threshold: Float,
     ): Float = if (threshold <= 0f) 0f else (pull / threshold).coerceIn(0f, 1f)
 
-    /** Letting go now marks all as read. */
+    /** Letting go now marks all as read (pulled far enough, not moving back). */
     fun armed(
         pull: Float,
         threshold: Float,
     ): Boolean = threshold > 0f && pull >= threshold
+
+    /**
+     * Easy to cancel (2026-11-05, owner's wish): once far enough, moving back down a little (more
+     * than [CANCEL_DP] of pull below the furthest it got, [peak]) lets go of it, so letting go then
+     * marks nothing. Pulling up again takes it back.
+     */
+    const val CANCEL_DP = 12f
+
+    fun armed(
+        pull: Float,
+        peak: Float,
+        threshold: Float,
+        slack: Float,
+    ): Boolean = armed(pull, threshold) && pull >= peak - slack
+
+    /** A flick down as you let go (the finger moving back, [velocity] in pixels a second) cancels too. */
+    const val CANCEL_VELOCITY = 400f
+
+    fun cancelsOnRelease(velocity: Float): Boolean = velocity > CANCEL_VELOCITY
 }
 
 /** The pull past the end of the list, fed by [connection] on the list. */
 @Stable
 class PullToMarkState internal constructor(
     private val threshold: Float,
+    private val slack: Float,
     private val haptics: HapticFeedback,
     private val onMark: () -> Unit,
 ) {
     var pull by mutableFloatStateOf(0f)
         private set
 
+    /** The furthest this pull got: moving back from it cancels ([PullToMark.CANCEL_DP]). */
+    private var peak = 0f
+
     val progress: Float get() = PullToMark.progress(pull, threshold)
-    val armed: Boolean get() = PullToMark.armed(pull, threshold)
+    val armed: Boolean get() = PullToMark.armed(pull, peak, threshold, slack)
 
     private fun drag(delta: Float) {
         val wasArmed = armed
         pull = PullToMark.drag(pull, delta, threshold)
+        peak = if (pull <= 0f) 0f else maxOf(peak, pull)
         if (armed && !wasArmed) haptics.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
+        // Cancelled by moving back: a lighter tick says so.
+        if (!armed && wasArmed) haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
     }
 
     val connection =
@@ -135,15 +161,18 @@ class PullToMarkState internal constructor(
                 return Offset(0f, available.y)
             }
 
-            // Letting go: marks all as read when armed, and the button goes back in place.
+            // Letting go: marks all as read when armed (unless flicked back down), and the button goes back in place.
             override suspend fun onPreFling(available: Velocity): Velocity {
                 if (pull <= 0f) return Velocity.Zero
-                if (armed) {
+                if (armed && PullToMark.cancelsOnRelease(available.y)) {
+                    haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                } else if (armed) {
                     haptics.performHapticFeedback(HapticFeedbackType.Confirm)
                     onMark()
                 }
                 // Springs back, with a little bounce.
                 animate(pull, 0f, animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow)) { value, _ -> pull = value }
+                peak = 0f
                 return available
             }
         }
@@ -151,10 +180,12 @@ class PullToMarkState internal constructor(
 
 @Composable
 fun rememberPullToMarkState(onMark: () -> Unit): PullToMarkState {
-    val threshold = with(LocalDensity.current) { PullToMark.THRESHOLD_DP.dp.toPx() }
+    val density = LocalDensity.current
+    val threshold = with(density) { PullToMark.THRESHOLD_DP.dp.toPx() }
+    val slack = with(density) { PullToMark.CANCEL_DP.dp.toPx() }
     val haptics = LocalHapticFeedback.current
     val mark by rememberUpdatedState(onMark)
-    return remember(threshold, haptics) { PullToMarkState(threshold, haptics) { mark() } }
+    return remember(threshold, slack, haptics) { PullToMarkState(threshold, slack, haptics) { mark() } }
 }
 
 /**

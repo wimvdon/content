@@ -21,7 +21,7 @@ import { localShared, sameUser, sharedAction, type SharedAction } from "./shared
 import { progressChanged } from "./readingProgress";
 import { addTopic, mergeTopic, removeTopic, renameTopic, reorderTopics, tagWithFeedTopic, topicNamed, topicsForTags } from "./topics";
 import { addHighlight, changeItem, itemOf, joinDuplicateItems, putItem, removeHighlight, renameTag, setHighlightNote, setLiked, type Highlight, type Item } from "./items";
-import { markInboxRead, removeFromInbox } from "./inbox";
+import { inboxUnreadKeys, markInboxAllRead, markInboxRead, markInboxUnread, removeFromInbox } from "./inbox";
 import { applyChoice, saveNew, undoSave, type SaveChoice } from "./saveChoice";
 import * as Saved from "./saved";
 import { emptyServiceSyncState, importService, rekeyed, syncService, type ServiceSyncState } from "./serviceSync";
@@ -855,6 +855,13 @@ class AppStore {
   /** The inbox (#246) in place of the list, or the list again. */
   showInbox = (open: boolean) => this.set({ inboxOpen: open });
   markInboxRead = (key: string, read = true) => this.updateLibrary((lib) => markInboxRead(lib, key, read));
+  /** Everything in the inbox read; the keys that were unread, for Undo. */
+  markInboxAllRead = (): string[] => {
+    const keys = inboxUnreadKeys(this.state.library);
+    if (keys.length > 0) this.updateLibrary(markInboxAllRead);
+    return keys;
+  };
+  markInboxUnread = (keys: string[]) => this.updateLibrary((lib) => markInboxUnread(lib, keys));
   /** Out of the inbox; the item as it was, for Undo. */
   removeFromInbox = (key: string): Item | undefined => {
     const before = itemOf(this.state.library, key);

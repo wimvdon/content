@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { itemOf, type Item, type SharedBy } from "../src/lib/items";
 import { emptyLibrary } from "../src/lib/library";
 import { defaultSavedFilter, removeSaved, saveLink, savedItems } from "../src/lib/saved";
-import { inboxItems, inboxUnread, markInboxRead, removeFromInbox } from "../src/lib/inbox";
+import { inboxItems, inboxUnread, inboxUnreadKeys, markInboxAllRead, markInboxRead, markInboxUnread, removeFromInbox } from "../src/lib/inbox";
 import { inboxOf, sharedByLabel, takeInShared } from "../src/lib/sharing";
 import { itemData, itemOfRow, mergeItems } from "../src/lib/syncRows";
 
@@ -70,6 +70,20 @@ describe("sharing with other Content users (#167) and the inbox (#246)", () => {
     expect(inboxUnread(read)).toBe(1);
     expect(inboxUnread(markInboxRead(read, "a.example/2", false))).toBe(2);
     expect(markInboxRead(read, "nope.example/x")).toBe(read);
+  });
+
+  it("marks the whole inbox read, and undo brings back only what was unread, as on Android", () => {
+    let lib = emptyLibrary();
+    for (const [i, n] of [[1, 100], [2, 200], [3, 300]] as const) lib = takeInShared(lib, [share(`m${i}`, ann, `https://a.example/${i}`)], n).library;
+    const oneRead = markInboxRead(lib, "a.example/1");
+    const keys = inboxUnreadKeys(oneRead);
+    expect(new Set(keys)).toEqual(new Set(["a.example/2", "a.example/3"]));
+    const all = markInboxAllRead(oneRead);
+    expect(inboxUnread(all)).toBe(0);
+    const undone = markInboxUnread(all, keys);
+    expect(inboxUnread(undone)).toBe(2);
+    expect(itemOf(undone, "a.example/1")?.sharedBy?.read).toBe(true);
+    expect(markInboxAllRead(all)).toBe(all);
   });
 
   it("syncs who shared it with the item, the same as the Android app", () => {

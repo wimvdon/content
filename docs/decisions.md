@@ -2,6 +2,19 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-05: Mark all as read in the Inbox; letting go is easy to cancel
+
+Owner's choices, after a list of where pulling past the end could work (the reader's end for the
+next article or to archive, a tag's end for the next tag, the Inbox): **the Inbox only**.
+- **The Inbox ends with Mark all as read** while something in it is unread, on the phone and the
+  web (a button; the phone can also pull past the end, with the cookie). It reads everything in
+  the inbox, with Undo, which makes only those unread again (`Inbox.markAllRead`/`markUnread`,
+  web `markInboxAllRead`/`markInboxUnread`).
+- **Easier to cancel** (Android): once the cookie is ready, moving the finger back down a little
+  (12 dp below the furthest it got) or flicking it down as you let go cancels, with a light tick;
+  the cookie empties. A shaky finger within the 12 dp doesn't cancel. Pulling up again takes it
+  back (`PullToMark.armed`, `cancelsOnRelease`).
+
 ## 2026-11-05: Pull past the end to mark all as read is Android only
 
 Owner's choice: on a computer, scrolling on past the end of a list with a mouse wheel or trackpad

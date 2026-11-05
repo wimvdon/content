@@ -95,6 +95,27 @@ class SharingTest {
     }
 
     @Test
+    fun `mark all as read reads the whole inbox, and undo brings back only what was unread`() {
+        val (lib, _) =
+            Sharing.takeIn(
+                Library(),
+                listOf(InboxMessage("m", ann, listOf(SharedArticle("https://a.example/1", "One"), SharedArticle("https://a.example/2", "Two"), SharedArticle("https://a.example/3", "Three")))),
+                100,
+            )
+        val oneRead = Inbox.markRead(lib, "a.example/1")
+        val keys = Inbox.unreadKeys(oneRead)
+        assertEquals(setOf("a.example/2", "a.example/3"), keys.toSet())
+        val all = Inbox.markAllRead(oneRead)
+        assertEquals(0, Inbox.unread(all))
+        assertEquals(emptyList<String>(), Inbox.unreadKeys(all))
+        val undone = Inbox.markUnread(all, keys)
+        assertEquals(2, Inbox.unread(undone))
+        assertEquals(true, undone.item("a.example/1")!!.sharedBy?.read)
+        // Nothing unread: the same library.
+        assertEquals(all, Inbox.markAllRead(all))
+    }
+
+    @Test
     fun `who shared it syncs with the item and stays once known`() {
         val item = saved("a.example/1", 1).copy(sharedBy = ann.copy(at = 5, inInbox = true, read = true))
         val data = SyncRows.itemData(item)

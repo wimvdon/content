@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -34,13 +35,16 @@ class InboxHome(
     val onSave: (Item) -> Unit,
     val onShare: (Item) -> Unit,
     val onRemove: (Item) -> Unit,
+    /** Everything in the inbox read (with Undo): the button at the end, or pulling past it (2026-11-05). */
+    val onMarkAllRead: () -> Unit = {},
 )
 
 /**
  * The Inbox (#246), a place in the navigation bar like Feed and Saved: what other Content users
  * shared with you, newest first, like a feed's articles with who sent it in place of the feed.
  * Unread ones are bold with a dot; opening one reads it. A long press marks it read or unread, saves,
- * shares or removes it from the inbox (no swipes: #305).
+ * shares or removes it from the inbox (no swipes: #305). While something is unread, Mark all as read
+ * ends the list: tap it, or pull past the end, as in Feeds' Unread (2026-11-05).
  */
 @Composable
 fun InboxContent(
@@ -61,8 +65,14 @@ fun InboxContent(
     val removeLabel = stringResource(R.string.inbox_remove)
     val readLabel = stringResource(R.string.action_mark_read)
     val unreadLabel = stringResource(R.string.action_mark_unread)
+    val anyUnread = inbox.items.any { it.sharedBy?.read == false }
+    val pullToMark = rememberPullToMarkState(inbox.onMarkAllRead)
     LazyColumn(
-        modifier = Modifier.fillMaxSize().readableWidth(),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .then(if (anyUnread) Modifier.nestedScroll(pullToMark.connection) else Modifier)
+                .readableWidth(),
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 88.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -87,6 +97,11 @@ fun InboxContent(
                         ),
                     source = { Sender(by, showImages) },
                 )
+            }
+        }
+        if (anyUnread) {
+            item(key = "mark-all-read") {
+                MarkAllReadButton(pullToMark, onClick = inbox.onMarkAllRead, modifier = Modifier.animateItem())
             }
         }
     }

@@ -117,6 +117,18 @@ object Inbox {
         return library.putItem(item.copy(sharedBy = item.sharedBy!!.copy(read = read)))
     }
 
+    /** The keys of the unread items in the inbox: what Mark all as read marks, and Undo marks unread again. */
+    fun unreadKeys(library: Library): List<String> = library.items.filter { it.inInbox && !it.sharedBy!!.read }.map { it.key }
+
+    /** The library with every item in the inbox read (Mark all as read, 2026-11-05). */
+    fun markAllRead(library: Library): Library = unreadKeys(library).fold(library) { lib, key -> markRead(lib, key) }
+
+    /** The library with items [keys] unread again in the inbox (Undo of Mark all as read). */
+    fun markUnread(
+        library: Library,
+        keys: Collection<String>,
+    ): Library = keys.fold(library) { lib, key -> markRead(lib, key, read = false) }
+
     /** The library with item [key] out of the inbox; it stays in Saved if it is saved. */
     fun remove(
         library: Library,
