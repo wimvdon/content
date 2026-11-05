@@ -2,6 +2,14 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-05: Refresh is Material's standard one; the cookie only says "+3"
+
+Owner's choice after trying 6.11.20: pull to refresh is Material's standard indicator throughout
+(arrow, spinner, round). Only when the refresh brought new items into the list shown does the
+circle, once done, smoothly become the light cookie with "+3", for a moment, before it slides away.
+Nothing new: no cookie and no tick, it leaves as Material's does. Replaces the cookie during the
+refresh from the entry below.
+
 ## 2026-11-05: Refresh: Material's indicator turning smoothly into the cookie; loading as before
 
 Owner's choices after trying 6.11.19:
