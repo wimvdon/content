@@ -2,6 +2,23 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-07: Mark all as read floats beside +, in Unread and All; the Saved mark is a label
+
+Owner's choices, from mockups. **Mark all as read** had gone missing in All (it was only a button
+at the end of Unread). On Android it is now a floating toolbar beside +, both centred above the
+navigation bar, in Unread and All while something in the section is unread (`ListEnd`). The pull
+past the end of the list works on it, as it did on the end-of-list button: the toolbar's background
+fades as its button becomes the cookie, and "Let go to mark all as read" shows above it once far
+enough; moving back cancels as before. The button under the last article is gone in Feeds (the
+Inbox keeps its own). The web app's design has no floating toolbars, so there it stays a button
+under the last article, now in All too (a look difference, not a behaviour one). Not chosen: a ✓✓
+button next to the Unread | All switch (slides away with the header) or only extending the
+end-of-list button to All.
+
+**The Saved mark** (below) is now a tonal label, Saved's icon and the word, at the end of the card's
+top line, the same kind of label as Search's Feed / Saved (owner: the circle was too much). Not
+chosen: a blue icon and word, a bookmark ribbon on the card's edge.
+
 ## 2026-11-07: Players hidden until drawn, and kept to their box; a more visible Saved mark
 
 Owner's report after 6.11.x: the Stereogum article still flashed black, right as it opened, over the

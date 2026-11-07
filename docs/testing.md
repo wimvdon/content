@@ -79,7 +79,7 @@ when the run fails.
 | `FeedArrangementTest` | Manage page order: rows per folder, dragging feeds between folders and out of them, forbidden moves, reordering folders |
 | `SectionOrderTest` | Manage feeds' list in sections: headings and rows flattened, a row passing headings, nothing above the first heading, a drop moving a feed into another tag (or reordering its own) |
 | `SettingsTest` | Text size limits, reader and theme darkness (and Auto dark), Save/Share targets (storage and the old Save setting), defaults |
-| `ListEndTest` | Mark all as read under the last article: only in Unread, only while something in it is unread |
+| `ListEndTest` | Mark all as read (Feeds' floating toolbar): in Unread and All, only while something in the section is unread |
 
 ## Strategy
 
@@ -186,8 +186,11 @@ and then (always before a release):
 - [ ] **What stays in the Unread list (#157):** open an article and go back, open one from Search,
       long press one › Mark as read: each stays, dimmed. Go to Saved and back, or tap the same feed again: they
       are still there. Pick another feed, switch Unread/All, or pull to refresh: they are gone.
-      Scroll to the end of Unread: Mark all as read is a button under the last article (not in All, and
-      gone when nothing is unread). Tap it: the list empties ("All caught up"); Undo brings them back unread.
+      Mark all as read floats beside + at the bottom, in Unread and in All (gone when nothing in the
+      section is unread). Tap it: Unread empties ("All caught up"); Undo brings them back unread.
+      Pull up past the end of the list: the bar fades, its button becomes the cookie, "Let go to mark
+      all as read" shows once far enough; let go: all read. Move back down first: nothing marked.
+      Web app: the button is under the last article, in Unread and All.
 - [ ] Saved rows (also archived ones and Saved hits in Search) are never dimmed and have no dot.
       Opening a saved article saved from a feed marks that feed article read, in both apps.
 - [ ] Web app: pointing at an article in the list shows a round button that marks it read or
@@ -254,9 +257,9 @@ and then (always before a release):
       itself. Each shows whole (Spotify with its cover, SoundCloud with its play button, Bandcamp
       with its artwork and controls) and plays when you tap play. Web app: the same, with a click.
 - [ ] **Saved mark in Feeds:** in Feeds, press and hold an article and tap Save: its card now shows
-      a filled circle with the Saved icon in its top corner, in every list view (over the picture
-      in Large), not covering the text. Archive it in Saved: the circle stays. Remove it from Saved:
-      it goes. Web app: the same (right-click › Save).
+      a small tonal "Saved" label (with the Saved icon) at the end of its top line, in every list
+      view. Archive it in Saved: the label stays. Remove it from Saved: it goes. Web app: the same
+      (right-click › Save).
 - [ ] **No black flash with players** (Android; an article with several players, such as
       Stereogum's "The 5 Best Songs Of The Week"): open it: the article area never goes black; each
       player's box shows, then its player once loaded. Back out: no black flash.

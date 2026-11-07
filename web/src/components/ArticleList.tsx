@@ -113,9 +113,10 @@ function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport,
   };
 
   const header = useCollapsingHeader();
-  // Mark all as read under the last article. Clicked only: pulling past the end is Android's
-  // touch gesture, which makes no sense with a mouse (2026-11-05).
-  const markAllShown = library.feeds.length > 0 && tab === "unread" && unread > 0 && days.length > 0;
+  // Mark all as read under the last article, in Unread and All alike while something is unread
+  // (2026-11-07; Android has it in a floating toolbar, which the web's design doesn't use). Clicked
+  // only: pulling past the end is Android's touch gesture, which makes no sense with a mouse (2026-11-05).
+  const markAllShown = library.feeds.length > 0 && unread > 0 && days.length > 0;
   return (
     <section className="relative flex h-full min-w-0 flex-col" aria-label={title}>
       <CollapsingHeader hidden={header.hidden} onShow={header.show}>
@@ -226,8 +227,8 @@ function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport,
             </div>
           ))
         )}
-        {/* Mark all as read under the last article, as on Android: only in Unread, with something
-            unread. Outlined: a floating button is for adding, not for clearing everything. */}
+        {/* Mark all as read under the last article, in Unread and All while something is unread (Android
+            has it in its floating toolbar). Outlined: a floating button is for adding, not for clearing everything. */}
         {markAllShown ? (
           <div className="flex justify-center pt-4">
             <Button variant="outline" onClick={() => onUndo(app.markAllRead())}>
@@ -794,26 +795,11 @@ export function Row({
   onFeedClick?: () => void;
   /** Shown where the feed's name goes: who shared it, in the inbox (#246). */
   source?: React.ReactNode;
-  /** In Saved: a small Saved mark on its top line (Feeds). */
+  /** In Saved: a small Saved label on its top line (Feeds). */
   saved?: boolean;
 }) {
   const row = <RowButton article={article} feed={feed} open={open} onOpen={onOpen} noReadState={noReadState} label={label} onFeedClick={onFeedClick} source={source} saved={saved} />;
-  // In Saved: a filled circle with Saved's icon in the card's top corner (Feeds), as on Android.
-  const savedMark = saved ? (
-    <span role="img" aria-label={t("savedMark")} title={t("savedMark")} className="flex size-7 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-xs [&_svg]:size-3.5">
-      <BookOpen />
-    </span>
-  ) : null;
-  if (!onToggleRead && !article.link) {
-    return savedMark ? (
-      <div className="relative">
-        {row}
-        <div className="pointer-events-none absolute top-1.5 right-1.5">{savedMark}</div>
-      </div>
-    ) : (
-      row
-    );
-  }
+  if (!onToggleRead && !article.link) return row;
   const toggle = article.read ? t("markUnread") : t("markRead");
   const hoverButton =
     "flex size-8 cursor-pointer items-center justify-center rounded-md border bg-background text-muted-foreground opacity-0 shadow-xs transition-opacity group-hover:opacity-100 hover:text-foreground focus-visible:opacity-100 [@media(hover:none)]:opacity-100 [&_svg]:size-4";
@@ -832,7 +818,6 @@ export function Row({
             {article.read ? <Circle /> : <CircleCheck />}
           </button>
         ) : null}
-        {savedMark}
       </div>
     </div>
   );
@@ -880,7 +865,7 @@ function RowButton({
       {view === "large" && image ? <img src={image} alt="" loading="lazy" referrerPolicy="no-referrer" className="aspect-video w-full bg-muted object-cover" onError={hide} /> : null}
       <div className={cn("min-w-0 flex-1", view === "large" && "px-3 pb-3", view === "large" && !image && "pt-3")}>
         {feed || label || source || saved ? (
-          <div className={cn("mb-1 flex items-center gap-1.5 text-xs font-medium text-muted-foreground", saved && "pr-8")}>
+          <div className="mb-1 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
             {source ? (
               <span className="flex min-w-0 items-center gap-1.5">{source}</span>
             ) : feed && onFeedClick ? (
@@ -909,6 +894,13 @@ function RowButton({
                 <FeedIcon feed={feed} className="size-4" />
                 <span className="truncate">{feed.title}</span>
               </>
+            ) : null}
+            {/* In Saved (Feeds): a small label, the same kind as Search's Feed / Saved one, as on Android. */}
+            {saved ? (
+              <span className="flex shrink-0 items-center gap-1 rounded-md bg-accent px-1.5 py-0.5 text-[0.7rem] text-accent-foreground [&_svg]:size-3">
+                <BookOpen aria-hidden="true" />
+                {t("savedMark")}
+              </span>
             ) : null}
             {label ? <span className="ml-auto shrink-0 rounded-md bg-accent px-1.5 py-0.5 text-[0.7rem] text-accent-foreground">{label}</span> : null}
           </div>
