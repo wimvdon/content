@@ -254,11 +254,12 @@ and then (always before a release):
       itself. Each shows whole (Spotify with its cover, SoundCloud with its play button, Bandcamp
       with its artwork and controls) and plays when you tap play. Web app: the same, with a click.
 - [ ] **Saved mark in Feeds:** in Feeds, press and hold an article and tap Save: its card now shows
-      a small Saved icon on its top line. Archive it in Saved: the icon stays. Remove it from Saved:
-      the icon goes. Web app: the same (right-click › Save), the icon after the feed's name.
+      a filled circle with the Saved icon in its top corner, in every list view (over the picture
+      in Large), not covering the text. Archive it in Saved: the circle stays. Remove it from Saved:
+      it goes. Web app: the same (right-click › Save).
 - [ ] **No black flash with players** (Android; an article with several players, such as
-      Stereogum's "The 5 Best Songs Of The Week"): open it: the screen slides in normally, without
-      going black for a moment; the players appear as the screen settles. Back out: no black flash.
+      Stereogum's "The 5 Best Songs Of The Week"): open it: the article area never goes black; each
+      player's box shows, then its player once loaded. Back out: no black flash.
 - [ ] **Settings sync between phone and web:** on the phone, turn on Always open the website and
       add a hidden word; sync. In the web app (same account, after a sync): both are the same there,
       and clicking a feed article opens its website in a new tab. Change the theme or the list view

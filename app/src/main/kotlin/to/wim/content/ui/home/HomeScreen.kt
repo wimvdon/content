@@ -621,7 +621,7 @@ internal fun ArticleRow(
     menu: List<RowMenuAction> = emptyList(),
     /** Shown where the feed's name goes: who shared it, in the inbox (#246). */
     source: (@Composable () -> Unit)? = null,
-    /** In Saved: a small Saved mark on its top line (Feeds). */
+    /** In Saved: a filled circle with Saved's icon in the card's top corner (Feeds). */
     saved: Boolean = false,
 ) {
     var menuOpen by remember { mutableStateOf(false) }
@@ -648,40 +648,72 @@ internal fun ArticleRow(
                 .longPressMenu(menu, onClick) { menuOpen = true },
     ) {
         RowMenu(menu, menuOpen) { menuOpen = false }
-        when (view) {
-            ListView.Small -> {
-                Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    MetaLine(shown, feed, time, showReadState, label, onFeedClick, source, saved)
-                    ArticleTitle(shown, MaterialTheme.typography.titleSmall, maxLines = 2)
-                }
-            }
-
-            ListView.Medium -> {
-                Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        MetaLine(shown, feed, time, showReadState, label, onFeedClick, source, saved)
-                        ArticleTitle(shown, MaterialTheme.typography.titleMedium, maxLines = 3)
-                        Snippet(snippet, maxLines = 2)
-                    }
-                    if (image != null) Thumbnail(image, Modifier.padding(top = 20.dp))
-                }
-            }
-
-            ListView.Large -> {
-                Column {
-                    if (image != null) LargePicture(image)
-                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        MetaLine(shown, feed, time, showReadState, label, onFeedClick, source, saved)
-                        ArticleTitle(shown, MaterialTheme.typography.titleLarge, maxLines = 3)
-                        Snippet(snippet, maxLines = 3)
+        Box {
+            when (view) {
+                ListView.Small -> {
+                    // Its two lines both pass the Saved mark, so the whole text keeps clear of it.
+                    Column(
+                        Modifier.padding(start = 16.dp, end = 16.dp + if (saved) SAVED_BADGE_ROOM else 0.dp, top = 12.dp, bottom = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                    ) {
+                        MetaLine(shown, feed, time, showReadState, label, onFeedClick, source)
+                        ArticleTitle(shown, MaterialTheme.typography.titleSmall, maxLines = 2)
                     }
                 }
+
+                ListView.Medium -> {
+                    Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            MetaLine(shown, feed, time, showReadState, label, onFeedClick, source, reserveEnd = saved && image == null)
+                            ArticleTitle(shown, MaterialTheme.typography.titleMedium, maxLines = 3)
+                            Snippet(snippet, maxLines = 2)
+                        }
+                        if (image != null) Thumbnail(image, Modifier.padding(top = 20.dp))
+                    }
+                }
+
+                ListView.Large -> {
+                    Column {
+                        if (image != null) LargePicture(image)
+                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            MetaLine(shown, feed, time, showReadState, label, onFeedClick, source, reserveEnd = saved && image == null)
+                            ArticleTitle(shown, MaterialTheme.typography.titleLarge, maxLines = 3)
+                            Snippet(snippet, maxLines = 3)
+                        }
+                    }
+                }
             }
+            // In Saved: a filled circle with Saved's icon in the top corner, over the picture if there is one.
+            if (saved) SavedBadge(Modifier.align(Alignment.TopEnd).padding(8.dp))
         }
     }
 }
 
-/** Unread dot, feed icon and name (or [source]), age, and the Saved mark when [saved]. */
+/** Room the card's text leaves at its end for the Saved mark. */
+private val SAVED_BADGE_ROOM = 24.dp
+
+/** The mark on a card in Feeds whose article is in Saved: Saved's icon in a filled circle. */
+@Composable
+private fun SavedBadge(modifier: Modifier = Modifier) {
+    val label = stringResource(R.string.article_saved)
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier =
+            modifier
+                .size(28.dp)
+                .background(MaterialTheme.colorScheme.primary, CircleShape)
+                .clearAndSetSemantics { contentDescription = label },
+    ) {
+        Icon(
+            painterResource(R.drawable.ic_list),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onPrimary,
+            modifier = Modifier.size(16.dp),
+        )
+    }
+}
+
+/** Unread dot, feed icon and name (or [source]), and age; [reserveEnd] keeps them clear of the Saved mark. */
 @Composable
 private fun MetaLine(
     article: Article,
@@ -691,10 +723,14 @@ private fun MetaLine(
     label: String?,
     onFeedClick: (() -> Unit)? = null,
     source: (@Composable () -> Unit)? = null,
-    saved: Boolean = false,
+    reserveEnd: Boolean = false,
 ) {
     val unreadLabel = stringResource(R.string.article_unread)
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = if (reserveEnd) Modifier.padding(end = SAVED_BADGE_ROOM) else Modifier,
+    ) {
         if (showUnreadDot && !article.read) {
             Box(
                 Modifier
@@ -734,14 +770,6 @@ private fun MetaLine(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1,
         )
-        if (saved) {
-            Icon(
-                painterResource(R.drawable.ic_list),
-                contentDescription = stringResource(R.string.article_saved),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(16.dp),
-            )
-        }
         if (label != null) {
             Text(
                 text = label,

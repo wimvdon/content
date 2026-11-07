@@ -187,9 +187,9 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   same feed again, keeps it as it was; a refresh the app does by itself does too.
 - Scrolling down slides the search bar, the switch and the chips out of the way, so you see
   more articles; scroll up a little and they come straight back.
-- An article that is in Saved (To read or Archive) has a small **Saved** mark (the Saved icon) on
-  its top line, after its age (phone) or the feed's name (web app), so you see in Feeds what you
-  already saved.
+- An article that is in Saved (To read or Archive) has a **Saved** mark in its card's top corner: a
+  filled circle with the Saved icon (over the picture, if the card has one), so you see in Feeds
+  what you already saved.
 - The list doesn't swipe sideways (use the switch), and articles themselves don't swipe (#305). **Press and hold** a feed article for a menu: **Mark as read** (or unread), **Save** and
   **Share**. In the web app, right-click it (or press and hold on a touch screen) for the same
   menu; the round button that appears on an article when you point at it marks it read or unread,

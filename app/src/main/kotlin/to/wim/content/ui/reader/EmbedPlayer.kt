@@ -23,12 +23,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import kotlinx.coroutines.delay
+import to.wim.content.R
 import to.wim.content.feed.ArticleBlock
 import to.wim.content.feed.Embeds
 import to.wim.content.feed.PlayerLoad
@@ -98,10 +100,32 @@ fun EmbedPlayer(
                     // The player's own text size: the phone's larger font size would cram its fixed height.
                     settings.textZoom = 100
                     setBackgroundColor(if (seeThrough) android.graphics.Color.TRANSPARENT else android.graphics.Color.BLACK)
+                    // Hidden until its page has drawn (WebView's own way, postVisualStateCallback): a
+                    // player still loading painted black over the whole article as it opened (2026-11-07).
+                    // Its box shows meanwhile; after a few seconds it shows anyway.
+                    visibility = View.INVISIBLE
+                    val reveal = Runnable { visibility = View.VISIBLE }
+                    setTag(R.id.embed_reveal, reveal)
+                    postDelayed(reveal, REVEAL_ANYWAY_MS)
                     // Spotify and others keep their session in a cookie of their own.
                     CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)
                     webViewClient =
                         object : WebViewClient() {
+                            override fun onPageCommitVisible(
+                                view: WebView,
+                                url: String?,
+                            ) {
+                                if (view.visibility == View.VISIBLE) return
+                                view.postVisualStateCallback(
+                                    0L,
+                                    object : WebView.VisualStateCallback() {
+                                        override fun onComplete(requestId: Long) {
+                                            view.visibility = View.VISIBLE
+                                        }
+                                    },
+                                )
+                            }
+
                             override fun shouldOverrideUrlLoading(
                                 view: WebView,
                                 request: WebResourceRequest,
@@ -139,9 +163,13 @@ fun EmbedPlayer(
                     }
                 }
             },
-            onRelease = { it.destroy() },
-            // Not clipped: a clipped WebView can draw black on some devices.
-            modifier = if (seeThrough) sized else sized.background(Color.Black),
+            onRelease = {
+                (it.getTag(R.id.embed_reveal) as? Runnable)?.let(it::removeCallbacks)
+                it.destroy()
+            },
+            // Kept to its own box (a plain rectangle: rounded corners made it draw black on some devices,
+            // #296): unclipped, a loading player painted black over the whole article.
+            modifier = (if (seeThrough) sized else sized.background(Color.Black)).clipToBounds(),
         )
     }
     fullScreen?.let { shown ->
@@ -187,6 +215,9 @@ private fun View.whenSized(action: () -> Unit) {
         },
     )
 }
+
+/** A player whose page never says it has drawn shows after this long anyway. */
+private const val REVEAL_ANYWAY_MS = 3_000L
 
 /** How often, and how many times, a post's height is measured while it loads (about 15 seconds). */
 private const val MEASURES = 30
