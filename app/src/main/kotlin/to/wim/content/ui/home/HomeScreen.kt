@@ -209,8 +209,8 @@ fun HomeScreen(
     // of the list works on it (2026-11-07).
     val markAll: () -> Unit = { if (inbox != null) inbox.onMarkAllRead() else actions.onMarkAllRead() }
     val pullToMark = rememberPullToMarkState(markAll)
-    // The toolbar stays in Feeds (once there are feeds) and the Inbox, so it doesn't come and go; its
-    // button is off while there is nothing to mark.
+    // The toolbar is in Feeds (once there are feeds) and the Inbox; with nothing to mark its button
+    // slides away and + stays alone in its corner.
     val toolbar = inbox != null || (inFeeds && state.feeds.isNotEmpty())
     val markAllRead =
         when {
@@ -355,7 +355,7 @@ fun HomeScreen(
                             Icon(painterResource(R.drawable.ic_add), contentDescription = stringResource(R.string.add_title))
                         }
                     }
-                    // + stays in its corner everywhere; the toolbar sits beside it.
+                    // + stays in its corner everywhere; Mark all as read sits beside it while there is something to mark.
                     if (toolbar) MarkAllReadToolbar(pullToMark, enabled = markAllRead, onMarkAllRead = markAll, add = add) else add()
                 },
             ) { innerPadding ->
