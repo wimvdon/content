@@ -187,8 +187,8 @@ and then (always before a release):
 - [ ] **What stays in the Unread list (#157):** open an article and go back, open one from Search,
       long press one › Mark as read: each stays, dimmed. Go to Saved and back, or tap the same feed again: they
       are still there. Pick another feed, switch Unread/All, or pull to refresh: they are gone.
-      Mark all as read (✓✓ in a round bar) floats beside + in the middle at the bottom, in Unread
-      and in All; a long press shows its name. With nothing unread in the section it slides away and
+      Mark all as read (✓✓ and its words in a bar) floats beside + in the middle at the bottom, in
+      Unread and in All. With nothing unread in the section it slides away and
       + moves to its corner, smoothly. Tap it: Unread empties ("All caught up"); Undo brings them back
       unread. Pulling past the end of the list does nothing special.
       The Inbox: the same bar while something shared with you is unread.

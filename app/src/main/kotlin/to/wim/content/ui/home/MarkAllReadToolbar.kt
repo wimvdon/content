@@ -11,9 +11,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -25,13 +29,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import to.wim.content.R
-import to.wim.content.ui.reader.Tipped
 
 /**
  * The bottom of Feeds, Saved and the Inbox (2026-11-07, the owner's choice from Material-only
  * mockups): + is the screen's FAB; in Feeds and the Inbox, while something is unread, Mark all as
- * read sits beside it as Material 3's floating toolbar with one icon button (✓✓, its name in a
- * tooltip on a long press), the pair in the middle. With nothing to mark the toolbar slides away and
+ * read sits beside it as Material 3's floating toolbar holding one text button (✓✓ and its words,
+ * owner's wish), the pair in the middle. With nothing to mark the toolbar slides away and
  * + moves to its corner, animated. Fills the width it is given (the Scaffold's centred FAB slot) and
  * lets touches beside the buttons through to the list.
  */
@@ -61,11 +64,13 @@ fun MarkAllReadToolbar(
                     tonalElevation = 3.dp,
                     shadowElevation = 3.dp,
                 ) {
-                    val label = stringResource(R.string.action_mark_all_read)
-                    Tipped(label) {
-                        IconButton(onClick = onMarkAllRead, modifier = Modifier.padding(8.dp)) {
-                            Icon(painterResource(R.drawable.ic_done_all), contentDescription = label)
-                        }
+                    TextButton(
+                        onClick = onMarkAllRead,
+                        colors = ButtonDefaults.textButtonColors(contentColor = LocalContentColor.current),
+                        modifier = Modifier.padding(8.dp),
+                    ) {
+                        Icon(painterResource(R.drawable.ic_done_all), contentDescription = null, modifier = Modifier.size(18.dp))
+                        Text(stringResource(R.string.action_mark_all_read), modifier = Modifier.padding(start = 8.dp))
                     }
                 }
             }

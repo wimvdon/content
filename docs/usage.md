@@ -203,8 +203,8 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   first and then added at once, each article in its place by date.
 - **Back** goes up a level: from one feed to its tag, from a tag to All, from Saved or the Inbox to Feeds;
   back on All closes the app.
-- The **✓✓ Mark all as read** button, beside + in the middle at the bottom (press and hold it for its
-  name; web app: under the last article), marks everything in the section you are in as
+- The **✓✓ Mark all as read** button, beside + in the middle at the bottom (web app: under the last
+  article), marks everything in the section you are in as
   read: all feeds on All, the tag's feeds in a tag, or the one feed you opened, also the
   ones you haven't scrolled to. You're done with it, so the Unread list empties (All caught up).
   A message says how many; **Undo** brings them back.
