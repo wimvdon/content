@@ -145,8 +145,8 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   the bottom. The chip row is left out there. A phone-sized window has the bar at the bottom and the
   switch and the chips above the list (the chips scroll sideways with a finger, a mouse wheel, or by
   dragging them with the mouse), and Settings in the search bar.
-- **Refresh** (web) is the round arrow in the search bar, in every place (or press **r**). **Mark all as read** is a button under the last article, only in Unread,
-  as on the phone.
+- **Refresh** (web) is the round arrow in the search bar, in every place (or press **r**). **Mark all as read** is a button under the last article, in Unread and All
+  (on the phone it floats beside +).
 - Under the search bar, **a switch** says **what you see**: in Feeds **Unread** or **All** (every
   article, read ones too), in Saved **To read** or **All** (everything saved, archived articles
   too). It looks like To read / Archive in the save sheet; tap the other half to change. Under the
@@ -179,7 +179,8 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   The web app has the same chips.
 - Articles are grouped under **Today**, **Yesterday** and then the date; the date stays at the
   top while you scroll through that day.
-- The **Mark all as read** button (under the last article) is only in Unread, and marks what it shows.
+- **Mark all as read** floats at the bottom of Feeds, next to **+** (in the web app: a button under the
+  last article), in Unread and All while something is unread, and marks what the section shows.
 - **What stays in the Unread list.** An article you read (opened, also from Search,
   marked with its button or scrolled past) stays in the list, dimmed, so nothing disappears under
   your finger. The list starts afresh only when
@@ -187,9 +188,8 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   same feed again, keeps it as it was; a refresh the app does by itself does too.
 - Scrolling down slides the search bar, the switch and the chips out of the way, so you see
   more articles; scroll up a little and they come straight back.
-- An article that is in Saved (To read or Archive) has a **Saved** mark in its card's top corner: a
-  filled circle with the Saved icon (over the picture, if the card has one), so you see in Feeds
-  what you already saved.
+- An article that is in Saved (To read or Archive) has a small **Saved** label (with the Saved icon)
+  at the end of its card's top line, so you see in Feeds what you already saved.
 - The list doesn't swipe sideways (use the switch), and articles themselves don't swipe (#305). **Press and hold** a feed article for a menu: **Mark as read** (or unread), **Save** and
   **Share**. In the web app, right-click it (or press and hold on a touch screen) for the same
   menu; the round button that appears on an article when you point at it marks it read or unread,
@@ -202,11 +202,12 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   first and then added at once, each article in its place by date.
 - **Back** goes up a level: from one feed to its tag, from a tag to All, from Saved or the Inbox to Feeds;
   back on All closes the app.
-- The **✓✓ Mark all as read** button under the last article (tap it, or keep pulling past the end of the
-  list: on the phone the button shrinks to a circle and turns into Content's cookie, which fills with
-  colour when you've pulled far enough; let go. Changed your mind? Move your finger back down a
+- The **✓✓ Mark all as read** button, beside + at the bottom (web app: under the last article): tap it,
+  or keep pulling past the end of the list: on the phone the button shrinks to a circle and turns into
+  Content's cookie, the floating bar around it fading, and it fills with colour when you've pulled far
+  enough ("Let go to mark all as read"); let go. Changed your mind? Move your finger back down a
   little, or flick it down as you let go: the cookie empties, a light tick says so, and nothing is
-  marked. On the web, click it) marks everything in the section you are in as
+  marked. On the web, click it. It marks everything in the section you are in as
   read: all feeds on All, the tag's feeds in a tag, or the one feed you opened, also the
   ones you haven't scrolled to. You're done with it, so the Unread list empties (All caught up).
   A message says how many; **Undo** brings them back.
@@ -304,8 +305,9 @@ article stays in its feed), **Share** and **Remove from inbox** (with
 **Undo**). Something already in Saved arrives in the inbox too, and stays where it is in Saved; the
 same article shared again comes back unread with its latest sender. Removing a saved article from
 Saved leaves it in the inbox. Opening the inbox checks for new shares first, so they show up right away.
-While something in it is unread, **Mark all as read** ends the list, as in Feeds' Unread: tap it (on
-the phone you can also pull past the end, the same way), and **Undo** brings them back.
+While something in it is unread, **Mark all as read** floats beside **+**, as in Feeds (in the web app
+it ends the list): tap it (on the phone you can also pull past the end, the same way), and **Undo**
+brings them back.
 For a notification when something arrives, see Notifications below.
 
 **Full articles.** Many feeds contain only the start of an article, or a few paragraphs with a

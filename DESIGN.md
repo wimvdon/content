@@ -313,9 +313,17 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   touch area is the gap). So every place is one or two taps from the list. **+** is the FAB, the screen's main action, the
   same in Feeds, Saved and the Inbox (it was in the search bar before, owner's choice): the Add sheet, two
   `surfaceContainerHigh` rows with their icon on a `secondaryContainer` circle, **Subscribe to feed**
-  and **Save article**, each with a line saying what it does. **Mark all as read** is an outlined
-  button (✓✓ and the words) under the last article, in Feeds' Unread view only, while something in
-  the section shown is unread, and only marks that section: you've reached the end, you're done.
+  and **Save article**, each with a line saying what it does. **Mark all as read** (✓✓ and the
+  words) floats beside + in Feeds and the Inbox (2026-11-07): a floating toolbar (a `surfaceContainer` pill with
+  its shadow) holding it as a text button, with + next to it, both centred, in Unread and All while
+  something in the section shown is unread (in the Inbox: something shared with you); it only marks
+  that section. Pulling past the end of the
+  list works on it: the toolbar's background fades as the button becomes the cookie, and "Let go to
+  mark all as read" shows above it. The web app keeps it as an outlined button under the last
+  article (no floating toolbars there), in Unread and All too.
+- An article in Saved shows a tonal **Saved** label (Saved's list icon and the word, in
+  `secondaryContainer`, the same kind of label as Search's Feed / Saved) at the end of its card's
+  top line in Feeds.
 - Saved's lists look like what they are for: To read and All are read through, so they use
   the feed list's rows and its view setting (Small, Medium, Large), under a line with how many and
   about how long; a folder is a collection to browse, so its items are notes in Noter's style:

@@ -46,6 +46,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -205,6 +206,16 @@ fun HomeScreen(
     val inbox = state.inbox?.takeIf { state.section == HomeSection.Inbox }
     val inFeeds = reading == null && inbox == null
     val unreadHere = state.unreadCounts[state.selection] ?: 0
+    // Mark all as read floats beside + in Feeds (Unread and All) and the Inbox, and pulling past the end
+    // of the list works on it (2026-11-07).
+    val markAll: () -> Unit = { if (inbox != null) inbox.onMarkAllRead() else actions.onMarkAllRead() }
+    val pullToMark = rememberPullToMarkState(markAll)
+    val markAllRead =
+        when {
+            inbox != null -> ListEnd.inboxHasUnread(inbox.items)
+            inFeeds -> state.articles.isNotEmpty() && ListEnd.showsMarkAllRead(unreadHere)
+            else -> false
+        }
     val feedTags = state.topicChips ?: remember(state.feeds, state.folders) { feedTagsInOrder(state.feeds, state.folders) }
     val wide = isWideWindow()
     // Feed, Saved and the Inbox in the navigation bar (#189, #246); Search opens from the search bar.
@@ -336,11 +347,15 @@ fun HomeScreen(
                 bottomBar = { if (!wide) MainNavigationBar(tab, onTab, state.inbox != null, state.inboxUnread) },
                 floatingActionButton = {
                     // + is the screen's main action, the same in Feeds, Saved and the Inbox: it asks
-                    // Subscribe to feed or Save article. Mark all as read sits at the end of the list.
-                    FloatingActionButton(onClick = actions.onAdd) {
-                        Icon(painterResource(R.drawable.ic_add), contentDescription = stringResource(R.string.add_title))
+                    // Subscribe to feed or Save article. In Feeds and the Inbox, Mark all as read floats beside it (2026-11-07).
+                    val add: @Composable () -> Unit = {
+                        FloatingActionButton(onClick = actions.onAdd) {
+                            Icon(painterResource(R.drawable.ic_add), contentDescription = stringResource(R.string.add_title))
+                        }
                     }
+                    if (markAllRead) MarkAllReadToolbar(pullToMark, markAll, add) else add()
                 },
+                floatingActionButtonPosition = if (markAllRead) FabPosition.Center else FabPosition.End,
             ) { innerPadding ->
                 Box(
                     Modifier
@@ -354,7 +369,7 @@ fun HomeScreen(
                         shownKeys = remember(inbox.items) { inbox.items.map { it.key } },
                         modifier = Modifier.fillMaxSize(),
                     ) {
-                        InboxContent(inbox, state.listView, state.showImages)
+                        InboxContent(inbox, state.listView, state.showImages, pullToMark.takeIf { markAllRead })
                     }
                 } else if (reading != null) {
                     CookieRefreshBox(
@@ -404,7 +419,7 @@ fun HomeScreen(
                             HomeContent.Loading -> ArticleSkeletons()
                             HomeContent.NoArticles -> NothingToShow(unread = null, state.refreshing, actions.onRefresh)
                             HomeContent.Empty -> NothingToShow(unread = state.unreadOnly.takeIf { it }, state.refreshing, actions.onRefresh)
-                            HomeContent.Articles -> ArticleList(state, actions, ListEnd.showsMarkAllRead(state.unreadOnly, unreadHere))
+                            HomeContent.Articles -> ArticleList(state, actions, pullToMark.takeIf { markAllRead })
                         }
                     }
                 }
@@ -423,8 +438,8 @@ private const val SKELETON_ROWS = 6
 private fun ArticleList(
     state: HomeState,
     actions: HomeActions,
-    /** Mark all as read under the last article: in Unread, while something in it is unread. */
-    markAllRead: Boolean,
+    /** Pulling past the end marks all as read, on the floating toolbar's button; null while nothing is unread. */
+    pullToMark: PullToMarkState?,
 ) {
     // A different feed starts at the top.
     val listState = rememberSaveable(state.selection, saver = LazyListState.Saver) { LazyListState() }
@@ -458,14 +473,12 @@ private fun ArticleList(
                 }
         }
     }
-    // Pulling past the end marks all as read, as tapping Mark all as read does (2026-11-03).
-    val pullToMark = rememberPullToMarkState(actions.onMarkAllRead)
     LazyColumn(
         state = listState,
         modifier =
             Modifier
                 .fillMaxSize()
-                .then(if (markAllRead) Modifier.nestedScroll(pullToMark.connection) else Modifier)
+                .then(if (pullToMark != null) Modifier.nestedScroll(pullToMark.connection) else Modifier)
                 .readableWidth(),
         // Room at the end for the floating + button.
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 88.dp),
@@ -496,13 +509,6 @@ private fun ArticleList(
                             ),
                     )
                 }
-            }
-        }
-        // At the end of the list: you've seen it all, so mark it all as read (All, a topic or a feed): tap it,
-        // or pull past the end.
-        if (markAllRead) {
-            item(key = "mark-all-read") {
-                MarkAllReadButton(pullToMark, onClick = actions.onMarkAllRead, modifier = Modifier.animateItem())
             }
         }
     }
@@ -621,7 +627,7 @@ internal fun ArticleRow(
     menu: List<RowMenuAction> = emptyList(),
     /** Shown where the feed's name goes: who shared it, in the inbox (#246). */
     source: (@Composable () -> Unit)? = null,
-    /** In Saved: a filled circle with Saved's icon in the card's top corner (Feeds). */
+    /** In Saved: a tonal Saved label at the end of its top line (Feeds). */
     saved: Boolean = false,
 ) {
     var menuOpen by remember { mutableStateOf(false) }
@@ -651,12 +657,8 @@ internal fun ArticleRow(
         Box {
             when (view) {
                 ListView.Small -> {
-                    // Its two lines both pass the Saved mark, so the whole text keeps clear of it.
-                    Column(
-                        Modifier.padding(start = 16.dp, end = 16.dp + if (saved) SAVED_BADGE_ROOM else 0.dp, top = 12.dp, bottom = 12.dp),
-                        verticalArrangement = Arrangement.spacedBy(2.dp),
-                    ) {
-                        MetaLine(shown, feed, time, showReadState, label, onFeedClick, source)
+                    Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        MetaLine(shown, feed, time, showReadState, label, onFeedClick, source, saved)
                         ArticleTitle(shown, MaterialTheme.typography.titleSmall, maxLines = 2)
                     }
                 }
@@ -664,7 +666,7 @@ internal fun ArticleRow(
                 ListView.Medium -> {
                     Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            MetaLine(shown, feed, time, showReadState, label, onFeedClick, source, reserveEnd = saved && image == null)
+                            MetaLine(shown, feed, time, showReadState, label, onFeedClick, source, saved)
                             ArticleTitle(shown, MaterialTheme.typography.titleMedium, maxLines = 3)
                             Snippet(snippet, maxLines = 2)
                         }
@@ -676,44 +678,18 @@ internal fun ArticleRow(
                     Column {
                         if (image != null) LargePicture(image)
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            MetaLine(shown, feed, time, showReadState, label, onFeedClick, source, reserveEnd = saved && image == null)
+                            MetaLine(shown, feed, time, showReadState, label, onFeedClick, source, saved)
                             ArticleTitle(shown, MaterialTheme.typography.titleLarge, maxLines = 3)
                             Snippet(snippet, maxLines = 3)
                         }
                     }
                 }
             }
-            // In Saved: a filled circle with Saved's icon in the top corner, over the picture if there is one.
-            if (saved) SavedBadge(Modifier.align(Alignment.TopEnd).padding(8.dp))
         }
     }
 }
 
-/** Room the card's text leaves at its end for the Saved mark. */
-private val SAVED_BADGE_ROOM = 24.dp
-
-/** The mark on a card in Feeds whose article is in Saved: Saved's icon in a filled circle. */
-@Composable
-private fun SavedBadge(modifier: Modifier = Modifier) {
-    val label = stringResource(R.string.article_saved)
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier =
-            modifier
-                .size(28.dp)
-                .background(MaterialTheme.colorScheme.primary, CircleShape)
-                .clearAndSetSemantics { contentDescription = label },
-    ) {
-        Icon(
-            painterResource(R.drawable.ic_list),
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onPrimary,
-            modifier = Modifier.size(16.dp),
-        )
-    }
-}
-
-/** Unread dot, feed icon and name (or [source]), and age; [reserveEnd] keeps them clear of the Saved mark. */
+/** Unread dot, feed icon and name (or [source]), age, and the Saved label when [saved]. */
 @Composable
 private fun MetaLine(
     article: Article,
@@ -723,14 +699,10 @@ private fun MetaLine(
     label: String?,
     onFeedClick: (() -> Unit)? = null,
     source: (@Composable () -> Unit)? = null,
-    reserveEnd: Boolean = false,
+    saved: Boolean = false,
 ) {
     val unreadLabel = stringResource(R.string.article_unread)
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = if (reserveEnd) Modifier.padding(end = SAVED_BADGE_ROOM) else Modifier,
-    ) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         if (showUnreadDot && !article.read) {
             Box(
                 Modifier
@@ -770,6 +742,30 @@ private fun MetaLine(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1,
         )
+        // In Saved (Feeds): a tonal label, the same kind as Search's Feed / Saved one, with Saved's icon.
+        if (saved) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                modifier =
+                    Modifier
+                        .background(MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.shapes.small)
+                        .padding(horizontal = 6.dp, vertical = 2.dp),
+            ) {
+                Icon(
+                    painterResource(R.drawable.ic_list),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.size(12.dp),
+                )
+                Text(
+                    text = stringResource(R.string.article_saved),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    maxLines = 1,
+                )
+            }
+        }
         if (label != null) {
             Text(
                 text = label,
