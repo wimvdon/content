@@ -46,6 +46,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -205,13 +206,8 @@ fun HomeScreen(
     val inbox = state.inbox?.takeIf { state.section == HomeSection.Inbox }
     val inFeeds = reading == null && inbox == null
     val unreadHere = state.unreadCounts[state.selection] ?: 0
-    // Mark all as read floats beside + in Feeds (Unread and All) and the Inbox, and pulling past the end
-    // of the list works on it (2026-11-07).
+    // Mark all as read floats beside + in Feeds (Unread and All) and the Inbox while something is unread (2026-11-07).
     val markAll: () -> Unit = { if (inbox != null) inbox.onMarkAllRead() else actions.onMarkAllRead() }
-    val pullToMark = rememberPullToMarkState(markAll)
-    // The toolbar is in Feeds (once there are feeds) and the Inbox; with nothing to mark its button
-    // slides away and + stays alone in its corner.
-    val toolbar = inbox != null || (inFeeds && state.feeds.isNotEmpty())
     val markAllRead =
         when {
             inbox != null -> ListEnd.inboxHasUnread(inbox.items)
@@ -355,9 +351,10 @@ fun HomeScreen(
                             Icon(painterResource(R.drawable.ic_add), contentDescription = stringResource(R.string.add_title))
                         }
                     }
-                    // + stays in its corner everywhere; Mark all as read sits beside it while there is something to mark.
-                    if (toolbar) MarkAllReadToolbar(pullToMark, enabled = markAllRead, onMarkAllRead = markAll, add = add) else add()
+                    // The pair in the middle while there is something to mark; else + moves to its corner.
+                    MarkAllReadToolbar(shown = markAllRead, onMarkAllRead = markAll, add = add)
                 },
+                floatingActionButtonPosition = FabPosition.Center,
             ) { innerPadding ->
                 Box(
                     Modifier
@@ -371,7 +368,7 @@ fun HomeScreen(
                         shownKeys = remember(inbox.items) { inbox.items.map { it.key } },
                         modifier = Modifier.fillMaxSize(),
                     ) {
-                        InboxContent(inbox, state.listView, state.showImages, pullToMark.takeIf { markAllRead })
+                        InboxContent(inbox, state.listView, state.showImages)
                     }
                 } else if (reading != null) {
                     CookieRefreshBox(
@@ -421,7 +418,7 @@ fun HomeScreen(
                             HomeContent.Loading -> ArticleSkeletons()
                             HomeContent.NoArticles -> NothingToShow(unread = null, state.refreshing, actions.onRefresh)
                             HomeContent.Empty -> NothingToShow(unread = state.unreadOnly.takeIf { it }, state.refreshing, actions.onRefresh)
-                            HomeContent.Articles -> ArticleList(state, actions, pullToMark.takeIf { markAllRead })
+                            HomeContent.Articles -> ArticleList(state, actions)
                         }
                     }
                 }
@@ -440,8 +437,6 @@ private const val SKELETON_ROWS = 6
 private fun ArticleList(
     state: HomeState,
     actions: HomeActions,
-    /** Pulling past the end marks all as read, on the floating toolbar's button; null while nothing is unread. */
-    pullToMark: PullToMarkState?,
 ) {
     // A different feed starts at the top.
     val listState = rememberSaveable(state.selection, saver = LazyListState.Saver) { LazyListState() }
@@ -480,7 +475,6 @@ private fun ArticleList(
         modifier =
             Modifier
                 .fillMaxSize()
-                .then(if (pullToMark != null) Modifier.nestedScroll(pullToMark.connection) else Modifier)
                 .readableWidth(),
         // Room at the end for the floating + button.
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 88.dp),

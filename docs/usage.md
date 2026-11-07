@@ -181,7 +181,7 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   top while you scroll through that day.
 - **Mark all as read** floats at the bottom of Feeds, next to **+** (in the web app: a button under the
   last article), in Unread and All, and marks what the section shows; with nothing unread it goes and
-  only **+** stays.
+  **+** moves to its corner.
 - **What stays in the Unread list.** An article you read (opened, also from Search,
   marked with its button or scrolled past) stays in the list, dimmed, so nothing disappears under
   your finger. The list starts afresh only when
@@ -203,11 +203,8 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   first and then added at once, each article in its place by date.
 - **Back** goes up a level: from one feed to its tag, from a tag to All, from Saved or the Inbox to Feeds;
   back on All closes the app.
-- The **✓✓ Mark all as read** button, beside + at the bottom (web app: under the last article): tap it,
-  or keep pulling past the end of the list: on the phone the button takes the cookie's bumpy edge, a
-  blue line runs round it, and it fills with colour when you've pulled far enough; let go. Changed your mind? Move your finger back down a
-  little, or flick it down as you let go: the cookie empties, a light tick says so, and nothing is
-  marked. On the web, click it. It marks everything in the section you are in as
+- The **✓✓ Mark all as read** button, beside + in the middle at the bottom (press and hold it for its
+  name; web app: under the last article), marks everything in the section you are in as
   read: all feeds on All, the tag's feeds in a tag, or the one feed you opened, also the
   ones you haven't scrolled to. You're done with it, so the Unread list empties (All caught up).
   A message says how many; **Undo** brings them back.
@@ -306,7 +303,7 @@ article stays in its feed), **Share** and **Remove from inbox** (with
 same article shared again comes back unread with its latest sender. Removing a saved article from
 Saved leaves it in the inbox. Opening the inbox checks for new shares first, so they show up right away.
 While something in it is unread, **Mark all as read** floats beside **+**, as in Feeds (in the web app
-it ends the list): tap it (on the phone you can also pull past the end, the same way), and **Undo**
+it ends the list): tap it, and **Undo**
 brings them back.
 For a notification when something arrives, see Notifications below.
 
