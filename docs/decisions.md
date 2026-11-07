@@ -2,11 +2,25 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-07: Players hidden until drawn, and kept to their box; a more visible Saved mark
+
+Owner's report after 6.11.x: the Stereogum article still flashed black, right as it opened, over the
+article area only (not the top bar). Waiting for the screen to move in (below) wasn't enough. Two
+changes on Android: a player's WebView is kept to its own box (`clipToBounds`, a plain rectangle;
+the rounded clip of #296 was what drew black, so the view had been left unclipped, letting a loading
+player paint past its box), and it stays invisible until its page has drawn, WebView's documented
+way (`onPageCommitVisible`, then `postVisualStateCallback`, then visible; after 3 seconds it shows
+anyway). Its box shows meanwhile. The web app is unchanged (its iframes never flashed).
+
+Owner's choice: the Saved mark in Feeds (entry below) is now a filled circle with Saved's icon in
+the card's top corner (`primary` on Android, `bg-primary` on the web), over the picture when there
+is one, instead of the small icon on the top line. The text keeps clear of it.
+
 ## 2026-11-07: Feeds marks the articles that are in Saved
 
-Owner's choice: an article in Feeds that is in Saved (To read or Archive) shows a small Saved mark,
-the Saved destination's own icon (a list on Android, the open book on the web) in the muted text
-colour on its top line. Only Liked, tagged or noted without being in Saved: no mark, as Saved
+Owner's choice: an article in Feeds that is in Saved (To read or Archive) shows a Saved mark,
+the Saved destination's own icon (a list on Android, the open book on the web); first small on its
+top line, now a filled circle in the card's corner (entry above). Only Liked, tagged or noted without being in Saved: no mark, as Saved
 doesn't list those either. Phone and web; the rule (`savedArticleKeys`) is the same on both.
 
 ## 2026-11-07: Players on Android wait until the reader has moved in

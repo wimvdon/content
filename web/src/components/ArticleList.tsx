@@ -798,7 +798,22 @@ export function Row({
   saved?: boolean;
 }) {
   const row = <RowButton article={article} feed={feed} open={open} onOpen={onOpen} noReadState={noReadState} label={label} onFeedClick={onFeedClick} source={source} saved={saved} />;
-  if (!onToggleRead && !article.link) return row;
+  // In Saved: a filled circle with Saved's icon in the card's top corner (Feeds), as on Android.
+  const savedMark = saved ? (
+    <span role="img" aria-label={t("savedMark")} title={t("savedMark")} className="flex size-7 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-xs [&_svg]:size-3.5">
+      <BookOpen />
+    </span>
+  ) : null;
+  if (!onToggleRead && !article.link) {
+    return savedMark ? (
+      <div className="relative">
+        {row}
+        <div className="pointer-events-none absolute top-1.5 right-1.5">{savedMark}</div>
+      </div>
+    ) : (
+      row
+    );
+  }
   const toggle = article.read ? t("markUnread") : t("markRead");
   const hoverButton =
     "flex size-8 cursor-pointer items-center justify-center rounded-md border bg-background text-muted-foreground opacity-0 shadow-xs transition-opacity group-hover:opacity-100 hover:text-foreground focus-visible:opacity-100 [@media(hover:none)]:opacity-100 [&_svg]:size-4";
@@ -817,6 +832,7 @@ export function Row({
             {article.read ? <Circle /> : <CircleCheck />}
           </button>
         ) : null}
+        {savedMark}
       </div>
     </div>
   );
@@ -864,7 +880,7 @@ function RowButton({
       {view === "large" && image ? <img src={image} alt="" loading="lazy" referrerPolicy="no-referrer" className="aspect-video w-full bg-muted object-cover" onError={hide} /> : null}
       <div className={cn("min-w-0 flex-1", view === "large" && "px-3 pb-3", view === "large" && !image && "pt-3")}>
         {feed || label || source || saved ? (
-          <div className="mb-1 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+          <div className={cn("mb-1 flex items-center gap-1.5 text-xs font-medium text-muted-foreground", saved && "pr-8")}>
             {source ? (
               <span className="flex min-w-0 items-center gap-1.5">{source}</span>
             ) : feed && onFeedClick ? (
@@ -894,7 +910,6 @@ function RowButton({
                 <span className="truncate">{feed.title}</span>
               </>
             ) : null}
-            {saved ? <BookOpen className="size-3.5 shrink-0" role="img" aria-label={t("savedMark")} /> : null}
             {label ? <span className="ml-auto shrink-0 rounded-md bg-accent px-1.5 py-0.5 text-[0.7rem] text-accent-foreground">{label}</span> : null}
           </div>
         ) : null}

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- An embedded player's "show it anyway" runnable, so it is cancelled when the player goes. -->
+    <item name="embed_reveal" type="id" />
+</resources>
