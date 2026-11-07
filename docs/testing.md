@@ -79,7 +79,7 @@ when the run fails.
 | `FeedArrangementTest` | Manage page order: rows per folder, dragging feeds between folders and out of them, forbidden moves, reordering folders |
 | `SectionOrderTest` | Manage feeds' list in sections: headings and rows flattened, a row passing headings, nothing above the first heading, a drop moving a feed into another tag (or reordering its own) |
 | `SettingsTest` | Text size limits, reader and theme darkness (and Auto dark), Save/Share targets (storage and the old Save setting), defaults |
-| `ListEndTest` | Mark all as read (Feeds' floating toolbar): in Unread and All, only while something in the section is unread |
+| `ListEndTest` | Mark all as read (the floating toolbar): in Feeds' Unread and All while something in the section is unread; in the Inbox while something shared is unread |
 
 ## Strategy
 
@@ -190,7 +190,8 @@ and then (always before a release):
       section is unread). Tap it: Unread empties ("All caught up"); Undo brings them back unread.
       Pull up past the end of the list: the bar fades, its button becomes the cookie, "Let go to mark
       all as read" shows once far enough; let go: all read. Move back down first: nothing marked.
-      Web app: the button is under the last article, in Unread and All.
+      The Inbox: the same bar while something shared with you is unread, the pull too.
+      Web app: the button is under the last article, in Unread, All and the Inbox.
 - [ ] Saved rows (also archived ones and Saved hits in Search) are never dimmed and have no dot.
       Opening a saved article saved from a feed marks that feed article read, in both apps.
 - [ ] Web app: pointing at an article in the list shows a round button that marks it read or

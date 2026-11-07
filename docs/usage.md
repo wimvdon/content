@@ -305,8 +305,9 @@ article stays in its feed), **Share** and **Remove from inbox** (with
 **Undo**). Something already in Saved arrives in the inbox too, and stays where it is in Saved; the
 same article shared again comes back unread with its latest sender. Removing a saved article from
 Saved leaves it in the inbox. Opening the inbox checks for new shares first, so they show up right away.
-While something in it is unread, **Mark all as read** ends the list, as in Feeds' Unread: tap it (on
-the phone you can also pull past the end, the same way), and **Undo** brings them back.
+While something in it is unread, **Mark all as read** floats beside **+**, as in Feeds (in the web app
+it ends the list): tap it (on the phone you can also pull past the end, the same way), and **Undo**
+brings them back.
 For a notification when something arrives, see Notifications below.
 
 **Full articles.** Many feeds contain only the start of an article, or a few paragraphs with a

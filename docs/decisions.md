@@ -9,8 +9,8 @@ at the end of Unread). On Android it is now a floating toolbar beside +, both ce
 navigation bar, in Unread and All while something in the section is unread (`ListEnd`). The pull
 past the end of the list works on it, as it did on the end-of-list button: the toolbar's background
 fades as its button becomes the cookie, and "Let go to mark all as read" shows above it once far
-enough; moving back cancels as before. The button under the last article is gone in Feeds (the
-Inbox keeps its own). The web app's design has no floating toolbars, so there it stays a button
+enough; moving back cancels as before. The Inbox gets the same toolbar while something shared with you
+is unread (owner's wish); the button under the last article is gone in both. The web app's design has no floating toolbars, so there it stays a button
 under the last article, now in All too (a look difference, not a behaviour one). Not chosen: a ✓✓
 button next to the Unread | All switch (slides away with the header) or only extending the
 end-of-list button to All.

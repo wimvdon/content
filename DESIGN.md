@@ -314,9 +314,10 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   same in Feeds, Saved and the Inbox (it was in the search bar before, owner's choice): the Add sheet, two
   `surfaceContainerHigh` rows with their icon on a `secondaryContainer` circle, **Subscribe to feed**
   and **Save article**, each with a line saying what it does. **Mark all as read** (✓✓ and the
-  words) floats beside + in Feeds (2026-11-07): a floating toolbar (a `surfaceContainer` pill with
+  words) floats beside + in Feeds and the Inbox (2026-11-07): a floating toolbar (a `surfaceContainer` pill with
   its shadow) holding it as a text button, with + next to it, both centred, in Unread and All while
-  something in the section shown is unread; it only marks that section. Pulling past the end of the
+  something in the section shown is unread (in the Inbox: something shared with you); it only marks
+  that section. Pulling past the end of the
   list works on it: the toolbar's background fades as the button becomes the cookie, and "Let go to
   mark all as read" shows above it. The web app keeps it as an outlined button under the last
   article (no floating toolbars there), in Unread and All too.

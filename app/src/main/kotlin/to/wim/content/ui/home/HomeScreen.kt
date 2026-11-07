@@ -206,9 +206,16 @@ fun HomeScreen(
     val inbox = state.inbox?.takeIf { state.section == HomeSection.Inbox }
     val inFeeds = reading == null && inbox == null
     val unreadHere = state.unreadCounts[state.selection] ?: 0
-    // Mark all as read is in Feeds' floating toolbar, beside +, and pulling past the end of the list works on it.
-    val pullToMark = rememberPullToMarkState(actions.onMarkAllRead)
-    val markAllRead = inFeeds && state.articles.isNotEmpty() && ListEnd.showsMarkAllRead(unreadHere)
+    // Mark all as read floats beside + in Feeds (Unread and All) and the Inbox, and pulling past the end
+    // of the list works on it (2026-11-07).
+    val markAll: () -> Unit = { if (inbox != null) inbox.onMarkAllRead() else actions.onMarkAllRead() }
+    val pullToMark = rememberPullToMarkState(markAll)
+    val markAllRead =
+        when {
+            inbox != null -> ListEnd.inboxHasUnread(inbox.items)
+            inFeeds -> state.articles.isNotEmpty() && ListEnd.showsMarkAllRead(unreadHere)
+            else -> false
+        }
     val feedTags = state.topicChips ?: remember(state.feeds, state.folders) { feedTagsInOrder(state.feeds, state.folders) }
     val wide = isWideWindow()
     // Feed, Saved and the Inbox in the navigation bar (#189, #246); Search opens from the search bar.
@@ -340,13 +347,13 @@ fun HomeScreen(
                 bottomBar = { if (!wide) MainNavigationBar(tab, onTab, state.inbox != null, state.inboxUnread) },
                 floatingActionButton = {
                     // + is the screen's main action, the same in Feeds, Saved and the Inbox: it asks
-                    // Subscribe to feed or Save article. In Feeds, Mark all as read floats beside it (2026-11-07).
+                    // Subscribe to feed or Save article. In Feeds and the Inbox, Mark all as read floats beside it (2026-11-07).
                     val add: @Composable () -> Unit = {
                         FloatingActionButton(onClick = actions.onAdd) {
                             Icon(painterResource(R.drawable.ic_add), contentDescription = stringResource(R.string.add_title))
                         }
                     }
-                    if (markAllRead) MarkAllReadToolbar(pullToMark, actions.onMarkAllRead, add) else add()
+                    if (markAllRead) MarkAllReadToolbar(pullToMark, markAll, add) else add()
                 },
                 floatingActionButtonPosition = if (markAllRead) FabPosition.Center else FabPosition.End,
             ) { innerPadding ->
@@ -362,7 +369,7 @@ fun HomeScreen(
                         shownKeys = remember(inbox.items) { inbox.items.map { it.key } },
                         modifier = Modifier.fillMaxSize(),
                     ) {
-                        InboxContent(inbox, state.listView, state.showImages)
+                        InboxContent(inbox, state.listView, state.showImages, pullToMark.takeIf { markAllRead })
                     }
                 } else if (reading != null) {
                     CookieRefreshBox(
