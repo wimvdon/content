@@ -143,6 +143,8 @@ import to.wim.content.ui.settings.SettingsState
 import to.wim.content.ui.theme.Motion
 import to.wim.content.ui.theme.SystemBarsFollowTheme
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -242,6 +244,8 @@ fun RssReaderNavigation(
     // Articles opened from the Unread list stay in it (marked as read) until the list changes:
     // another feed, the other filter, or a refresh. Otherwise rows would jump away.
     var readThisVisit by rememberSaveable { mutableStateOf(setOf<String>()) }
+    // The last Mark as read on scroll write, waited for before All caught up empties the list.
+    val scrollReadJob = remember { AtomicReference<Job?>(null) }
 
     // The destination shown (Feeds or Saved) and Saved's tab, chips and type.
     var section by rememberSaveable { mutableStateOf(HomeSection.Feeds) }
@@ -913,7 +917,17 @@ fun RssReaderNavigation(
                                     onScrolledPast = { keys ->
                                         // Kept in the Unread list until it changes, like opened articles.
                                         readThisVisit = readThisVisit + keys
-                                        app.appScope.launch { repository.setRead(keys, true) }
+                                        scrollReadJob.set(app.appScope.launch { repository.setRead(keys, true) })
+                                    },
+                                    onScrolledToCaughtUp = {
+                                        // Scrolled through to All caught up: done with the section, like
+                                        // Mark all as read, so nothing read stays in the Unread list (#157).
+                                        // Once the last ones are stored read, so none comes back unread for a moment.
+                                        val pending = scrollReadJob.get()
+                                        uiScope.launch {
+                                            pending?.join()
+                                            readThisVisit = emptySet()
+                                        }
                                     },
                                     onAddFeed = { addDialogOpen = true },
                                     onImportOpml = importOpml,

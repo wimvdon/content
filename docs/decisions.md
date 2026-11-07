@@ -2,6 +2,15 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-07: Scrolling into All caught up turns the list into the All caught up page
+
+Owner's feedback on v6.11.30: keeping on scrolling should end on the All caught up page itself, not
+on a block under the dimmed articles. Once All caught up fills the screen (it is the first item on
+screen, `ListEnd.reachedCaughtUp`), the section is done, as after Mark all as read: the articles
+read this visit leave the Unread list (after the last scroll marks are stored, so none flashes back
+unread) and the page with the header and Refresh shows. Only in Unread: All keeps read articles, so
+its list just ends. Android only, as the end itself (entry below).
+
 ## 2026-11-07: + in the search bar, Mark all as read is the FAB; All caught up ends the list
 
 Owner's choice from mockups (Android): **+** is back in the search bar, before Settings, in Feeds,

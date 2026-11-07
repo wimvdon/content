@@ -214,9 +214,10 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
 - **Mark as read on scroll** (in **Settings › Article list**, off by default): articles are
   marked as read once you scroll them off the top of the list, only ones that were on screen: new
   articles arriving above are never marked unseen. They stay in the unread list (see above), so
-  you can scroll back to them. On the phone the list then ends in **All caught up**, with room under
-  it, so you can just keep scrolling: the last articles go past the top too and are marked read, and
-  Mark all as read goes, with no need to tap it. (Not in the web app: a page there can't scroll past
+  you can scroll back to them. On the phone the Unread list then ends in **All caught up**, with room
+  under it, so you can just keep scrolling: the last articles go past the top too and are marked
+  read, and once All caught up fills the screen the list turns into the All caught up page (with
+  **Refresh**), as after Mark all as read, with no need to tap it. (Not in the web app: a page there can't scroll past
   its end.)
 - **Hide articles with words** (in **Settings › Article list**, on the phone and the web): add
   a word or a group of words at a time: type it and tap **+** (or press Enter). Each one shows as a
