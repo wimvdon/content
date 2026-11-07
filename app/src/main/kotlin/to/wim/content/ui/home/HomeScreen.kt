@@ -23,6 +23,9 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.animate
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -246,8 +249,19 @@ fun HomeScreen(
             }
         // The whole header slides away while scrolling down and returns when scrolling up.
         val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(canScroll = { hasArticles })
-        // Another section, or a list with nothing left to scroll, shows the header again.
-        LaunchedEffect(state.selection, state.section, reading?.filter, hasArticles) { scrollBehavior.state.heightOffset = 0f }
+        // Another section, or a list with nothing left to scroll, shows the header again. When the
+        // list turns into the All caught up page (scrolled into it), the header slides back in as
+        // slowly as the page fades in, not at once.
+        LaunchedEffect(state.selection, state.section, reading?.filter, hasArticles) {
+            val from = scrollBehavior.state.heightOffset
+            if (!hasArticles && from != 0f) {
+                animate(from, 0f, animationSpec = tween(ListEnd.CAUGHT_UP_FADE_MS, easing = Motion.Standard)) { value, _ ->
+                    scrollBehavior.state.heightOffset = value
+                }
+            } else {
+                scrollBehavior.state.heightOffset = 0f
+            }
+        }
         // On wide windows Feed and Saved move to a navigation rail at the side.
         Row(Modifier.fillMaxSize()) {
             if (wide) MainNavigationRail(tab, onTab, state.inbox != null, state.inboxUnread)
@@ -408,7 +422,15 @@ fun HomeScreen(
                         }
                     AnimatedContent(
                         targetState = content,
-                        transitionSpec = { fadeIn(Motion.fadeSpec()) togetherWith fadeOut(Motion.fadeSpec()) },
+                        transitionSpec = {
+                            // Scrolled into All caught up: the page fades in slowly, with the header.
+                            if (initialState == HomeContent.Articles && targetState == HomeContent.Empty) {
+                                val slow = tween<Float>(ListEnd.CAUGHT_UP_FADE_MS, easing = Motion.Standard)
+                                fadeIn(slow) togetherWith fadeOut(slow)
+                            } else {
+                                fadeIn(Motion.fadeSpec()) togetherWith fadeOut(Motion.fadeSpec())
+                            }
+                        },
                         label = "home",
                     ) { shown ->
                         when (shown) {
@@ -526,7 +548,17 @@ private fun ArticleList(
                 val info = listState.layoutInfo
                 val minimum = with(LocalDensity.current) { CAUGHT_UP_MIN_HEIGHT.roundToPx() }
                 val height = ListEnd.caughtUpHeight(info.viewportSize.height, info.beforeContentPadding, info.afterContentPadding, minimum)
-                CaughtUpEnd(Modifier.height(with(LocalDensity.current) { height.toDp() }))
+                val fadeDistance = with(LocalDensity.current) { CAUGHT_UP_FADE_DISTANCE.toPx() }
+                CaughtUpEnd(
+                    Modifier
+                        .height(with(LocalDensity.current) { height.toDp() })
+                        // Not there under the last articles: it fades in over the last stretch of
+                        // scrolling, as it nears the top (read while drawing, so scrolling doesn't recompose).
+                        .graphicsLayer {
+                            val top = listState.layoutInfo.visibleItemsInfo.lastOrNull { it.key == CAUGHT_UP_END }?.offset
+                            alpha = if (top == null) 0f else ListEnd.caughtUpAlpha(top, fadeDistance)
+                        },
+                )
             }
         }
     }
@@ -535,6 +567,9 @@ private fun ArticleList(
 private const val CAUGHT_UP_END = "end:caught-up"
 
 private val CAUGHT_UP_MIN_HEIGHT = 240.dp
+
+/** How far from the top All caught up starts to show: the last stretch of scrolling. */
+private val CAUGHT_UP_FADE_DISTANCE = 240.dp
 
 /** The end of the list with Mark as read on scroll on: All caught up on Content's cookie, as on an empty page. */
 @Composable
