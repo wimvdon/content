@@ -384,7 +384,7 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
       Web app: select text with the mouse, pick Highlight or Note in the bar above it; click a
       marker to edit; a highlight made on the phone shows on the web after sync, and the other way.
 - [ ] In a saved article the floating toolbar has no coloured buttons: **Archive** (box and word),
-      then the icons **Like** (heart) and **Tags** (label); **Share** in its own round button beside it. Tap **Archive**: the article
+      then the icons **Like** (heart) and **Tags** (label); **Share** apart beside it, a button like + in the lists. Tap **Archive**: the article
       stays open, "Archived" shows with **Undo**, and Archive becomes an icon only (a box with an
       arrow: To read); tap it: back to To read. **Like**: the heart fills, and the article is under
       Liked in Saved. **Tags**: the Tags sheet. Under the title and details: **+ Note** (no note yet)

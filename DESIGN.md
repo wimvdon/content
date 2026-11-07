@@ -342,9 +342,8 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   `surfaceContainer`, 64dp high, 16dp above the bottom, in the middle) is this article in your
   library (2026-11-02, owner's choice): **no button has a fill**, all are in the toolbar's neutral
   colour (`onSurfaceVariant`); the next step stands out by its words. Before it is saved: **Save**
-  (icon and word), the highlights, and **Share** apart in its own round button beside the
-  pill, the same colour (2026-11-07, owner's wish; Material 3's floating toolbar with a button of its
-  own). Saved: **Archive** (the Archive's box and its word; one tap archives it, the
+  (icon and word), the highlights, and **Share** apart, a FAB beside the pill in the same
+  style as + in the lists (2026-11-07, owner's wish; Material 3's floating toolbar with a FAB). Saved: **Archive** (the Archive's box and its word; one tap archives it, the
   article stays open and shows Archived with Undo, #331) while it is to read, or only the unarchive
   icon (named To read, on a long press as a tooltip) once archived; then **Like** (an icon toggle, a
   heart filled while liked), **Tags** (the label icon: the Tags sheet) and **Share**. Right after
