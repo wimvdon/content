@@ -312,9 +312,9 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   `surfaceContainerHigh` rows with their icon on a `secondaryContainer` circle, **Subscribe to feed**
   and **Save article**, each with a line saying what it does. **Mark all as read** floats beside +
   in Feeds and the Inbox (2026-11-07, chosen from Material-only mockups): Material 3's floating
-  toolbar (a `surfaceContainer` circle, 64 dp, with its shadow) holding one icon button, ✓✓ in
-  `onSurfaceVariant` with its name in a plain tooltip on a long press, the FAB 8 dp beside it, the
-  pair centred. While nothing in the section shown is unread (in the Inbox: nothing shared with you)
+  toolbar (a `surfaceContainer` pill, 64 dp tall, with its shadow) holding one text button, ✓✓ and
+  "Mark all as read" in `onSurfaceVariant` (owner's wish: with its words), the FAB 8 dp beside it,
+  the pair centred. While nothing in the section shown is unread (in the Inbox: nothing shared with you)
   the toolbar slides away and + moves to its corner, animated; it only marks that section. The web
   app keeps it as an outlined button under the last article (no floating toolbars there), in Unread
   and All too.
