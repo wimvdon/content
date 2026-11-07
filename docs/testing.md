@@ -188,8 +188,8 @@ and then (always before a release):
       long press one › Mark as read: each stays, dimmed. Go to Saved and back, or tap the same feed again: they
       are still there. Pick another feed, switch Unread/All, or pull to refresh: they are gone.
       Mark all as read (✓✓ and its words in a bar) floats beside + in the middle at the bottom, in
-      Unread and in All. With nothing unread in the section it slides away and
-      + moves to its corner, smoothly. Tap it: Unread empties ("All caught up"); Undo brings them back
+      Unread and in All. With nothing unread in the section it goes and + glides
+      smoothly to its corner (and back when something is unread). Tap it: Unread empties ("All caught up"); Undo brings them back
       unread. Pulling past the end of the list does nothing special.
       The Inbox: the same bar while something shared with you is unread.
       Web app: the button is under the last article, in Unread, All and the Inbox.
