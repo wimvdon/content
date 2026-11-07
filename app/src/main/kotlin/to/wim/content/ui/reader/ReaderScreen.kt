@@ -287,9 +287,23 @@ fun ReaderScreen(
             )
             if (hasToolbar) {
                 // Save, or once saved Archive (or To read), Like and Tags; the highlights' count of
-                // one not saved; Share last. No fills: the words of Save or Archive stand out.
+                // one not saved. No fills: the words of Save or Archive stand out.
+                // Share apart, in its own round button beside the pill (2026-11-07).
+                val shareLabel = stringResource(R.string.action_share)
                 ReaderToolbar(
                     visible = toolbarShown,
+                    separate =
+                        if (hasLink) {
+                            {
+                                Tipped(shareLabel) {
+                                    IconButton(onClick = actions.onShare) {
+                                        Icon(painterResource(R.drawable.ic_share), contentDescription = shareLabel)
+                                    }
+                                }
+                            }
+                        } else {
+                            null
+                        },
                     modifier =
                         Modifier
                             .align(Alignment.BottomCenter)
@@ -316,14 +330,6 @@ fun ReaderScreen(
                         TextButton(onClick = { highlightsOpen = true }, colors = toolbarTextButtonColors(), modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = label }) {
                             Icon(painterResource(R.drawable.ic_quote), contentDescription = null)
                             Text(count.toString(), modifier = Modifier.padding(start = 8.dp))
-                        }
-                    }
-                    if (hasLink) {
-                        val shareLabel = stringResource(R.string.action_share)
-                        Tipped(shareLabel) {
-                            IconButton(onClick = actions.onShare) {
-                                Icon(painterResource(R.drawable.ic_share), contentDescription = shareLabel)
-                            }
                         }
                     }
                 }

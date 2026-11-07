@@ -6,12 +6,16 @@ import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Canvas
-import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.RoundRect
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.Surface
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -208,8 +212,6 @@ fun MarkAllReadButton(
     state: PullToMarkState,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    /** In Feeds' floating toolbar (2026-11-07): a text button there, staying in place while pulled. */
-    inToolbar: Boolean = false,
 ) {
     val armed = state.armed
     val morph = Cookie.morph(state.progress)
@@ -243,33 +245,26 @@ fun MarkAllReadButton(
         while (armed) withFrameNanos { turn += 0.012 }
     }
     Box(
-        if (inToolbar) {
-            modifier
-        } else {
-            modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp)
-                .graphicsLayer { translationY = -state.pull * PullToMark.RESISTANCE }
-        },
+        modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp)
+            .graphicsLayer { translationY = -state.pull * PullToMark.RESISTANCE },
         contentAlignment = Alignment.TopCenter,
     ) {
-        // In the toolbar the cookie grows past the button's height: drawn over the toolbar, not clipped.
         Canvas(
             Modifier
-                .size(width = with(density) { pillWidth.toDp() }, height = if (inToolbar) 48.dp else 88.dp)
+                .size(width = with(density) { pillWidth.toDp() }, height = 88.dp)
                 .clickable(role = Role.Button, onClick = onClick)
                 .semantics { contentDescription = if (armed) release else label },
         ) {
             val cx = size.width / 2
-            val cy = if (inToolbar) size.height / 2 else 44.dp.toPx()
+            val cy = 44.dp.toPx()
             // Pops a little past its size when it fills, then settles.
             val scale = 1f + 0.1f * pop * (1f - pop) * 4f
             val outline = cookiePath(Cookie.outline(morph, pillWidth, pillHeight, circle, cookie * scale, turn), cx, cy)
             drawPath(outline, fill)
             if (!armed) {
-                // A text button in the toolbar: its outline only shows once pulled, as the line runs round it.
-                val rest = if (inToolbar) morph.form * 0.4f else 1f - morph.form * 0.6f
-                if (rest > 0f) drawPath(outline, colors.outline.copy(alpha = rest), style = Stroke(1.dp.toPx()))
+                drawPath(outline, colors.outline.copy(alpha = 1f - morph.form * 0.6f), style = Stroke(1.dp.toPx()))
                 if (state.pull > 0f) {
                     val measure = PathMeasure().apply { setPath(outline, false) }
                     val run = Path()
@@ -296,36 +291,60 @@ fun MarkAllReadButton(
 }
 
 /**
- * Feeds' floating toolbar (2026-11-07, the owner's choice): Mark all as read, in Unread and All while
- * something in the section is unread, with + beside it. Pulling past the end of the list works on its
- * button ([MarkAllReadButton]): the toolbar's background fades as the button becomes the cookie, and
- * "Let go to mark all as read" shows above it once far enough.
+ * The floating toolbar of Feeds and the Inbox (2026-11-07, the owner's choice): Mark all as read, then
+ * + beside it, at the bottom end. It stays while there is nothing to mark (the button is then off),
+ * so it doesn't come and go. Pulling past the end of the list works on its button, which keeps its
+ * own shape and size (owner's wish): a primary line runs round it as you pull, and far enough it
+ * fills with the primary colour, with a small pop; let go to mark all as read.
  */
 @Composable
 fun MarkAllReadToolbar(
     state: PullToMarkState,
+    enabled: Boolean,
     onMarkAllRead: () -> Unit,
     add: @Composable () -> Unit,
 ) {
-    val morph = Cookie.morph(state.progress)
-    val armed = state.armed
-    val hint by animateFloatAsState(if (armed) 1f else 0f, label = "hint")
-    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(
-            text = stringResource(R.string.action_mark_all_read_release),
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.graphicsLayer { alpha = hint }.clearAndSetSemantics { },
-        )
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Surface(
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 1f - morph.form),
-                shadowElevation = 3.dp * (1f - morph.form),
+    val armed = enabled && state.armed
+    val colors = MaterialTheme.colorScheme
+    val fill by animateColorAsState(if (armed) colors.primary else colors.primary.copy(alpha = 0f), spring(stiffness = Spring.StiffnessMedium), label = "fill")
+    val content by animateColorAsState(if (armed) colors.onPrimary else colors.primary, label = "content")
+    val pop by animateFloatAsState(if (armed) 1f else 0f, spring(dampingRatio = 0.35f, stiffness = Spring.StiffnessMediumLow), label = "pop")
+    val label = stringResource(R.string.action_mark_all_read)
+    val release = stringResource(R.string.action_mark_all_read_release)
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Surface(
+            shape = CircleShape,
+            color = colors.surfaceContainer,
+            tonalElevation = 3.dp,
+            shadowElevation = 3.dp,
+        ) {
+            TextButton(
+                onClick = onMarkAllRead,
+                enabled = enabled,
+                colors = ButtonDefaults.textButtonColors(contentColor = content),
+                modifier =
+                    Modifier
+                        .padding(8.dp)
+                        .graphicsLayer {
+                            // Pops a little past its size when it fills, then settles.
+                            val scale = 1f + 0.06f * pop * (1f - pop) * 4f
+                            scaleX = scale
+                            scaleY = scale
+                        }.drawBehind {
+                            val pill = Path().apply { addRoundRect(RoundRect(0f, 0f, size.width, size.height, CornerRadius(size.height / 2))) }
+                            drawPath(pill, fill)
+                            if (!armed && state.pull > 0f) {
+                                val measure = PathMeasure().apply { setPath(pill, false) }
+                                val run = Path()
+                                measure.getSegment(0f, measure.length * state.progress, run, true)
+                                drawPath(run, colors.primary, style = Stroke(2.5.dp.toPx(), cap = StrokeCap.Round))
+                            }
+                        }.semantics { contentDescription = if (armed) release else label },
             ) {
-                MarkAllReadButton(state, onClick = onMarkAllRead, inToolbar = true, modifier = Modifier.padding(8.dp))
+                Icon(painterResource(R.drawable.ic_done_all), contentDescription = null, modifier = Modifier.size(18.dp))
+                Text(label, modifier = Modifier.padding(start = 8.dp))
             }
-            add()
         }
+        add()
     }
 }

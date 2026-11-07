@@ -2,6 +2,17 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-07: The toolbar stays put, its button keeps its shape; Share apart in the reader
+
+Owner's feedback on the release with the floating toolbar (entry below). The button no longer becomes
+a circle and the cookie when pulled: it keeps its own shape and size, a `primary` line runs round it,
+and far enough it fills with `primary` with a small pop; the "Let go to mark all as read" line is
+gone (the fill says it). The toolbar no longer disappears: it stays in Feeds (once there are feeds)
+and the Inbox, its button off while nothing is unread, and + stays in its corner everywhere instead
+of moving to the middle. The end-of-list button of the Inbox's web counterpart is unchanged. In the
+reader, **Share** sits apart in its own round button beside the floating toolbar (Android; on the
+web the reader's actions are in its top bar, unchanged). The cookie stays for refresh and empty pages.
+
 ## 2026-11-07: Mark all as read floats beside +, in Unread and All; the Saved mark is a label
 
 Owner's choices, from mockups. **Mark all as read** had gone missing in All (it was only a button
