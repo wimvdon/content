@@ -80,6 +80,7 @@ rss-reader/
         │   │       ├── MainActivity.kt, Navigation.kt   Entry, back stack, wiring
         │   │       ├── ExternalApps.kt        Browser, share, Instapaper, Play Store
         │   │       ├── LatestOnly.kt          One message at a time: a new one replaces the one showing
+        │   │       ├── ScreenSettled.kt       Whether the screen has finished moving in: embedded players wait for it
         │   │       ├── MessageHost.kt         The screens' messages; a tap elsewhere closes one
         │   │       ├── DirectShare.kt         The people in other apps' share menus; folders in the launcher
         │   │       ├── home/                  Article list, search bar, tabs, chip rows, Add and Add feed sheets, messages, inbox

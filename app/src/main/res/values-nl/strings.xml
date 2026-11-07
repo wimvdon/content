@@ -39,6 +39,7 @@
     <string name="problem_too_large">Deze feed is te groot.</string>
     <string name="problem_not_a_feed">Op dit adres staat geen feed meer.</string>
     <string name="article_unread">Ongelezen</string>
+    <string name="article_saved">Bewaard</string>
     <string name="home_no_feeds_title">Nog geen feeds</string>
     <string name="home_no_feeds_body">Voeg een website of feed toe die je leuk vindt of importeer je feeds uit een andere lezer.</string>
     <string name="home_caught_up_title">Helemaal bij</string>

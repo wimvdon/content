@@ -77,6 +77,7 @@ import to.wim.content.data.changeItem
 import to.wim.content.data.putItem
 import to.wim.content.data.item
 import to.wim.content.data.itemFor
+import to.wim.content.data.savedArticleKeys
 import to.wim.content.data.needsDescription
 import to.wim.content.data.topicNames
 import to.wim.content.data.up
@@ -768,6 +769,8 @@ fun RssReaderNavigation(
             contentKey = { it.second },
             label = "screen",
         ) { (_, screen) ->
+            // Players in the reader wait until it has moved in (a WebView in a fading screen draws black).
+            val settled = ScreenSettled.of(transition.currentState, transition.targetState)
             screenStates.SaveableStateProvider(Screen.encode(screen)) {
                 when (screen) {
                     Screen.Home -> {
@@ -807,6 +810,7 @@ fun RssReaderNavigation(
                                     markReadOnScroll = current.markReadOnScroll,
                                     listView = current.listView,
                                     articles = articles,
+                                    savedArticles = remember(library) { library.savedArticleKeys() },
                                     selection = shownSelection,
                                     unreadOnly = current.unreadOnly,
                                     unreadCounts = unreadCounts,
@@ -985,84 +989,86 @@ fun RssReaderNavigation(
                         // gets it when it opens (#275).
                         LaunchedEffect(screen.articleKey) { item?.takeIf { it.needsDescription() }?.let { app.appScope.launch { repository.describe(it.key) } } }
                         SystemBarsFollowTheme(current.reader.isDark(appDark))
-                        ReaderTheme(style = current.reader, appearance = current.appearance, appDark = appDark) {
-                            ReaderScreen(
-                                article = article,
-                                feed = fromFeed?.let { library.feed(it.feedUrl) } ?: item?.let { ReadingLists.source(it, library) },
-                                style = current.reader,
-                                // The same with or without a service, which only syncs Saved.
-                                fullText = fullText,
-                                showImages = current.showImages,
-                                snackbarHostState = snackbar,
-                                highlights =
-                                    (item?.url ?: article?.link)?.let { link ->
-                                        ReaderHighlights(
-                                            highlights = item?.highlights.orEmpty(),
-                                            // A feed article that isn't saved yet goes to To read with its first highlight.
-                                            onAdd = { h -> editLibrary { it.addHighlight(link, article?.title, h, System.currentTimeMillis()) } },
-                                            onNote = { id, note -> item?.let { i -> editLibrary { it.setHighlightNote(i.key, id, note) } } },
-                                            onRemove = { id -> item?.let { i -> editLibrary { it.removeHighlight(i.key, id) } } },
-                                            notCopied = item?.let { notCopied[it.key] }.orEmpty(),
-                                        )
-                                    },
-                                actions =
-                                    ReaderActions(
-                                        onBack = ::pop,
-                                        onStyleChange = { style -> app.appScope.launch { app.settings.setReaderStyle(style) } },
-                                        onSave = { article?.let { it.link?.let { link -> readLater(link, it.title, inReader = true) } } },
-                                        onShare = { article?.let(::share) },
-                                        onOpenInBrowser = { article?.let { a -> a.link?.let { ExternalApps.openInTab(context, it, a.title) } } },
-                                        // Sign in, or sign in again once signed in: the copy Content keeps can run out while
-                                        // the sign-in browser is still signed in, so again is mostly just Done, which
-                                        // replaces the stored sign-in.
-                                        onSignIn = article?.link?.takeIf { SiteSignIns.siteOf(it) != null }?.let { link -> { push(Screen.SiteSignIn(link)) } },
-                                        signedIn = signedIn != null,
-                                        onReport =
-                                            article?.link?.let { link ->
-                                                { problem, comment ->
-                                                    val version = runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull().orEmpty()
-                                                    // The text the reader shows, so it can be compared with the page (#251).
-                                                    val text = ArticleReport.textOf((fullText as? FullTextState.Shown)?.html ?: article.html)
-                                                    val report = ArticleReport.report(link, problem, comment, "Android", version, text)
-                                                    if (report.cut) copyToClipboard(text)
-                                                    ExternalApps.openLink(context, report.url)
-                                                }
-                                            },
-                                        onMarkUnread =
-                                            feedArticle?.let { a ->
-                                                {
-                                                    app.appScope.launch { repository.setRead(a.key, false) }
-                                                    pop()
-                                                }
-                                            },
-                                        onOpenLink = { url -> ExternalApps.openInTab(context, url, null) },
-                                        onToggleFullText = { fullTextChoice = !wantFullText },
-                                    ),
-                                item =
-                                    item?.let { i ->
-                                        ReaderItem(
-                                            item = i,
-                                            // Archive (or back to To read) keeps the reader open: a message says so.
-                                            onArchive = { archive(i) },
-                                            onTopics = {
-                                                fileKey = i.key
-                                                fileNote = false
-                                            },
-                                            onNote = {
-                                                fileKey = i.key
-                                                fileNote = true
-                                            },
-                                            onLike = { editLibrary { it.setLiked(i.key, !i.liked) } },
-                                            // Asks first; once removed, the reader closes.
-                                            onRemove = { askRemove(i.key, fromReader = true) },
-                                            onProgress = { progress ->
-                                                if (kotlin.math.abs(progress - i.progress) >= 0.01f) {
-                                                    editLibrary { lib -> lib.changeItem(i.key) { if (it.readingList == null) it else it.copy(progress = progress) } }
-                                                }
-                                            },
-                                        )
-                                    },
-                            )
+                        CompositionLocalProvider(LocalScreenSettled provides settled) {
+                            ReaderTheme(style = current.reader, appearance = current.appearance, appDark = appDark) {
+                                ReaderScreen(
+                                    article = article,
+                                    feed = fromFeed?.let { library.feed(it.feedUrl) } ?: item?.let { ReadingLists.source(it, library) },
+                                    style = current.reader,
+                                    // The same with or without a service, which only syncs Saved.
+                                    fullText = fullText,
+                                    showImages = current.showImages,
+                                    snackbarHostState = snackbar,
+                                    highlights =
+                                        (item?.url ?: article?.link)?.let { link ->
+                                            ReaderHighlights(
+                                                highlights = item?.highlights.orEmpty(),
+                                                // A feed article that isn't saved yet goes to To read with its first highlight.
+                                                onAdd = { h -> editLibrary { it.addHighlight(link, article?.title, h, System.currentTimeMillis()) } },
+                                                onNote = { id, note -> item?.let { i -> editLibrary { it.setHighlightNote(i.key, id, note) } } },
+                                                onRemove = { id -> item?.let { i -> editLibrary { it.removeHighlight(i.key, id) } } },
+                                                notCopied = item?.let { notCopied[it.key] }.orEmpty(),
+                                            )
+                                        },
+                                    actions =
+                                        ReaderActions(
+                                            onBack = ::pop,
+                                            onStyleChange = { style -> app.appScope.launch { app.settings.setReaderStyle(style) } },
+                                            onSave = { article?.let { it.link?.let { link -> readLater(link, it.title, inReader = true) } } },
+                                            onShare = { article?.let(::share) },
+                                            onOpenInBrowser = { article?.let { a -> a.link?.let { ExternalApps.openInTab(context, it, a.title) } } },
+                                            // Sign in, or sign in again once signed in: the copy Content keeps can run out while
+                                            // the sign-in browser is still signed in, so again is mostly just Done, which
+                                            // replaces the stored sign-in.
+                                            onSignIn = article?.link?.takeIf { SiteSignIns.siteOf(it) != null }?.let { link -> { push(Screen.SiteSignIn(link)) } },
+                                            signedIn = signedIn != null,
+                                            onReport =
+                                                article?.link?.let { link ->
+                                                    { problem, comment ->
+                                                        val version = runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull().orEmpty()
+                                                        // The text the reader shows, so it can be compared with the page (#251).
+                                                        val text = ArticleReport.textOf((fullText as? FullTextState.Shown)?.html ?: article.html)
+                                                        val report = ArticleReport.report(link, problem, comment, "Android", version, text)
+                                                        if (report.cut) copyToClipboard(text)
+                                                        ExternalApps.openLink(context, report.url)
+                                                    }
+                                                },
+                                            onMarkUnread =
+                                                feedArticle?.let { a ->
+                                                    {
+                                                        app.appScope.launch { repository.setRead(a.key, false) }
+                                                        pop()
+                                                    }
+                                                },
+                                            onOpenLink = { url -> ExternalApps.openInTab(context, url, null) },
+                                            onToggleFullText = { fullTextChoice = !wantFullText },
+                                        ),
+                                    item =
+                                        item?.let { i ->
+                                            ReaderItem(
+                                                item = i,
+                                                // Archive (or back to To read) keeps the reader open: a message says so.
+                                                onArchive = { archive(i) },
+                                                onTopics = {
+                                                    fileKey = i.key
+                                                    fileNote = false
+                                                },
+                                                onNote = {
+                                                    fileKey = i.key
+                                                    fileNote = true
+                                                },
+                                                onLike = { editLibrary { it.setLiked(i.key, !i.liked) } },
+                                                // Asks first; once removed, the reader closes.
+                                                onRemove = { askRemove(i.key, fromReader = true) },
+                                                onProgress = { progress ->
+                                                    if (kotlin.math.abs(progress - i.progress) >= 0.01f) {
+                                                        editLibrary { lib -> lib.changeItem(i.key) { if (it.readingList == null) it else it.copy(progress = progress) } }
+                                                    }
+                                                },
+                                            )
+                                        },
+                                )
+                            }
                         }
                     }
 

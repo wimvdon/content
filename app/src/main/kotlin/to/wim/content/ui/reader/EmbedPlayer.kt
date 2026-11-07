@@ -32,12 +32,13 @@ import kotlinx.coroutines.delay
 import to.wim.content.feed.ArticleBlock
 import to.wim.content.feed.Embeds
 import to.wim.content.feed.PlayerLoad
+import to.wim.content.ui.LocalScreenSettled
 
 /**
  * An embedded player, shown as soon as the article is: the service's own player (or the site's
  * video) in a small web view, the size the service asks for. Its full screen button shows the
  * player over everything. Audio players of a fixed height draw their own card on a see-through
- * view. The player loads once the view has its size, so it picks the right layout. A link the player opens (the service's logo, "watch on …") goes to
+ * view. The player loads once the screen has moved in ([LocalScreenSettled]) and the view has its size, so it picks the right layout. A link the player opens (the service's logo, "watch on …") goes to
  * [onOpenLink], never into the small view.
  */
 @SuppressLint("SetJavaScriptEnabled")
@@ -76,6 +77,12 @@ fun EmbedPlayer(
                 // Vertical videos (TikTok) stay narrow enough to fit the screen's height.
                 Modifier.widthIn(max = if (size.aspect < 1f) 360.dp else 10_000.dp).fillMaxWidth().aspectRatio(size.aspect)
             }
+        // While the screen still slides and fades in (or out), only the player's box: a WebView inside
+        // the fading screen draws black, so an article with players flashed black as it opened.
+        if (!LocalScreenSettled.current) {
+            Box(if (seeThrough) sized else sized.background(Color.Black))
+            return@Box
+        }
         AndroidView(
             factory = { context ->
                 WebView(context).also { view = it }.apply {

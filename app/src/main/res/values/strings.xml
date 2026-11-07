@@ -40,6 +40,7 @@
     <string name="problem_too_large">This feed is too large.</string>
     <string name="problem_not_a_feed">This address no longer has a feed.</string>
     <string name="article_unread">Unread</string>
+    <string name="article_saved">Saved</string>
     <string name="home_no_feeds_title">No feeds yet</string>
     <string name="home_no_feeds_body">Add a website or feed you like, or import your feeds from another reader.</string>
     <string name="home_caught_up_title">All caught up</string>

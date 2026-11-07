@@ -5,7 +5,7 @@
  */
 
 import { snippet } from "./html";
-import type { Article, Library } from "./library";
+import { articleKey, type Article, type Library } from "./library";
 
 export type ReadingState = "toread" | "archived";
 
@@ -144,6 +144,13 @@ export function itemForLink(lib: Library, url: string | null | undefined): Item 
 }
 
 export const itemForArticle = (lib: Library, a: Article) => itemForLink(lib, a.link);
+
+/** The keys of the feed articles that are in Saved (To read or Archive), for the Saved mark in Feeds. As on Android. */
+export function savedArticleKeys(lib: Library): Set<string> {
+  const saved = new Set(lib.items.filter((i) => i.readingList !== null).map((i) => i.key));
+  if (saved.size === 0) return new Set();
+  return new Set(lib.articles.filter((a) => saved.has(keyOfLink(a.link) ?? "")).map(articleKey));
+}
 
 /** The feed article with this link, while the library still has it. */
 export function feedArticleFor(lib: Library, url: string | null | undefined): Article | undefined {

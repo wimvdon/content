@@ -39,6 +39,7 @@
     <string name="problem_too_large">Ce flux est trop volumineux.</string>
     <string name="problem_not_a_feed">Cette adresse ne contient plus de flux.</string>
     <string name="article_unread">Non lu</string>
+    <string name="article_saved">Enregistré</string>
     <string name="home_no_feeds_title">Aucun flux pour l\'instant</string>
     <string name="home_no_feeds_body">Ajoutez un site ou un flux que vous aimez, ou importez vos flux depuis un autre lecteur.</string>
     <string name="home_caught_up_title">Vous êtes à jour</string>
