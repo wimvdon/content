@@ -1,5 +1,6 @@
 package to.wim.content.ui.home
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -32,5 +33,29 @@ class ListEndTest {
         assertFalse(ListEnd.inboxHasUnread(listOf(shared(read = true))))
         assertFalse(ListEnd.inboxHasUnread(listOf(shared(read = null))))
         assertFalse(ListEnd.inboxHasUnread(emptyList()))
+    }
+
+    @Test
+    fun theFabHasItsWordsWhileTheHeaderShows() {
+        assertTrue(ListEnd.fabExpanded(headerCollapsedFraction = 0f))
+        assertTrue(ListEnd.fabExpanded(headerCollapsedFraction = 0.3f))
+        assertFalse(ListEnd.fabExpanded(headerCollapsedFraction = 0.5f))
+        assertFalse(ListEnd.fabExpanded(headerCollapsedFraction = 1f))
+    }
+
+    @Test
+    fun allCaughtUpEndsTheListOnlyWithMarkAsReadOnScroll() {
+        assertTrue(ListEnd.showsCaughtUpEnd(markReadOnScroll = true, articles = 3))
+        assertFalse(ListEnd.showsCaughtUpEnd(markReadOnScroll = false, articles = 3))
+        // No articles: the page's own All caught up shows instead.
+        assertFalse(ListEnd.showsCaughtUpEnd(markReadOnScroll = true, articles = 0))
+    }
+
+    @Test
+    fun allCaughtUpFillsTheListSoTheLastArticlesScrollPastTheTop() {
+        assertEquals(1800, ListEnd.caughtUpHeight(viewportHeight = 2000, beforePadding = 0, afterPadding = 200, minimum = 500))
+        assertEquals(1700, ListEnd.caughtUpHeight(viewportHeight = 2000, beforePadding = 100, afterPadding = 200, minimum = 500))
+        // Before the list is measured (or a tiny window): never smaller than the minimum.
+        assertEquals(500, ListEnd.caughtUpHeight(viewportHeight = 0, beforePadding = 0, afterPadding = 200, minimum = 500))
     }
 }

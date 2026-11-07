@@ -307,17 +307,18 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   go, and every tag comes back. The web does the same (its row has the feeds without a tag too). Feeds' row only shows when a chip would narrow the list: not with a single
   chip (it would show what the list already shows), unless something is chosen or that chip is a tag
   with two or more feeds in the view (it leads to them). The chips sit right under the switch (their
-  touch area is the gap). So every place is one or two taps from the list. **+** is the FAB, the screen's main action, the
-  same in Feeds, Saved and the Inbox (it was in the search bar before, owner's choice): the Add sheet, two
+  touch area is the gap). So every place is one or two taps from the list. **+** is an icon button in the search bar,
+  before Settings, the same in Feeds, Saved and the Inbox (back there since 2026-11-07, owner's choice): the Add sheet, two
   `surfaceContainerHigh` rows with their icon on a `secondaryContainer` circle, **Subscribe to feed**
-  and **Save article**, each with a line saying what it does. **Mark all as read** floats beside +
-  in Feeds and the Inbox (2026-11-07, chosen from Material-only mockups): Material 3's floating
-  toolbar (a `surfaceContainer` pill, 64 dp tall, with its shadow) holding one text button, ✓✓ and
-  "Mark all as read" in `onSurfaceVariant` (owner's wish: with its words), the FAB 8 dp beside it,
-  the pair centred. While nothing in the section shown is unread (in the Inbox: nothing shared with you)
-  the toolbar goes (at once, no animation of its own) and + glides to its corner (and back); it only marks that section. The web
-  app keeps it as an outlined button under the last article (no floating toolbars there), in Unread
-  and All too.
+  and **Save article**, each with a line saying what it does. **Mark all as read** is the FAB
+  in Feeds and the Inbox (2026-11-07, owner's choice from mockups): Material 3's extended FAB in its
+  corner (`primaryContainer`, ✓✓ and "Mark all as read"), which shrinks to ✓✓ while the header has
+  slid away (scrolling down) and grows back with it; with nothing unread in the section shown (in the
+  Inbox: nothing shared with you) it goes; it only marks that section. With Mark as read on scroll on,
+  Feeds' list ends in **All caught up** on the cookie (as on the empty page), as tall as the list's
+  window, so scrolling on takes the last articles past the top and marks them: no tap needed. The web
+  app keeps Mark all as read as an outlined button under the last article (no FABs there), in Unread
+  and All too, and has no All caught up end (a web page can't scroll past its end).
 - An article in Saved shows a tonal **Saved** label (Saved's list icon and the word, in
   `secondaryContainer`, the same kind of label as Search's Feed / Saved) at the end of its card's
   top line in Feeds.

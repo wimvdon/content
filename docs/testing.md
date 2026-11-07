@@ -79,7 +79,7 @@ when the run fails.
 | `FeedArrangementTest` | Manage page order: rows per folder, dragging feeds between folders and out of them, forbidden moves, reordering folders |
 | `SectionOrderTest` | Manage feeds' list in sections: headings and rows flattened, a row passing headings, nothing above the first heading, a drop moving a feed into another tag (or reordering its own) |
 | `SettingsTest` | Text size limits, reader and theme darkness (and Auto dark), Save/Share targets (storage and the old Save setting), defaults |
-| `ListEndTest` | Mark all as read (the floating toolbar): in Feeds' Unread and All while something in the section is unread; in the Inbox while something shared is unread |
+| `ListEndTest` | Mark all as read (the FAB): in Feeds' Unread and All while something in the section is unread; in the Inbox while something shared is unread; with its words while the header shows; All caught up at the end only with Mark as read on scroll, as tall as the list's window |
 | `CookieTest` | Content's cookie (nine bumps, its dips) and the pill that pull to refresh's indicator turns from |
 
 ## Strategy
@@ -187,11 +187,15 @@ and then (always before a release):
 - [ ] **What stays in the Unread list (#157):** open an article and go back, open one from Search,
       long press one › Mark as read: each stays, dimmed. Go to Saved and back, or tap the same feed again: they
       are still there. Pick another feed, switch Unread/All, or pull to refresh: they are gone.
-      Mark all as read (✓✓ and its words in a bar) floats beside + in the middle at the bottom, in
-      Unread and in All. With nothing unread in the section it goes and + glides
-      smoothly to its corner (and back when something is unread). Tap it: Unread empties ("All caught up"); Undo brings them back
-      unread. Pulling past the end of the list does nothing special.
-      The Inbox: the same bar while something shared with you is unread.
+      Mark all as read (✓✓ and its words) is the round button at the bottom right, in Unread and in
+      All; scroll down and it shrinks to ✓✓, scroll up and the words come back. With nothing unread in
+      the section it goes. + is in the search bar, before Settings, in Feeds, Saved and the Inbox.
+      Tap Mark all as read: Unread empties ("All caught up"); Undo brings them back unread.
+      The Inbox: the same button while something shared with you is unread.
+- [ ] **Keep scrolling to the end:** turn on Settings › Article list › Mark as read on scroll, then
+      scroll down through Unread. After the last article comes All caught up on the cookie; keep
+      scrolling until it fills the screen: every article above is dimmed (read) and the Mark all as
+      read button has gone. With the setting off the list just ends after the last article.
       Web app: the button is under the last article, in Unread, All and the Inbox.
 - [ ] Saved rows (also archived ones and Saved hits in Search) are never dimmed and have no dot.
       Opening a saved article saved from a feed marks that feed article read, in both apps.
