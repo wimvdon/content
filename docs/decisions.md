@@ -2,6 +2,15 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-07: The toolbar's button takes the cookie's edge; hidden with nothing to mark
+
+Owner's feedback on the plain pill (entry below): pulled, the button should be the cookie in the
+button's shape and size. It now takes the cookie's edge: round bumps all along its pill outline
+(`Cookie.scallopedPill`, about 22 dp apart, 3 dp deep, coming in over the first part of the pull),
+the `primary` line running round them; far enough it fills, and its bumps move slowly round as the
+cookie turns. With nothing to mark, the button is hidden (it slides away) instead of greyed out,
+and + is alone in its corner.
+
 ## 2026-11-07: The toolbar stays put, its button keeps its shape; Share apart in the reader
 
 Owner's feedback on the release with the floating toolbar (entry below). The button no longer becomes

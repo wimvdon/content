@@ -1,13 +1,16 @@
 package to.wim.content.ui.home
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Canvas
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ButtonDefaults
@@ -292,10 +295,11 @@ fun MarkAllReadButton(
 
 /**
  * The floating toolbar of Feeds and the Inbox (2026-11-07, the owner's choice): Mark all as read, then
- * + beside it, at the bottom end. It stays while there is nothing to mark (the button is then off),
- * so it doesn't come and go. Pulling past the end of the list works on its button, which keeps its
- * own shape and size (owner's wish): a primary line runs round it as you pull, and far enough it
- * fills with the primary colour, with a small pop; let go to mark all as read.
+ * + beside it, at the bottom end. With nothing to mark the button slides away and only + stays, in its
+ * corner. Pulling past the end of the list works on the button, which keeps its own shape and size
+ * (owner's wish) and takes the cookie's edge as you pull: round bumps along its outline
+ * ([Cookie.scallopedPill]), a primary line running round them; far enough it fills with the primary
+ * colour with a small pop and its bumps move slowly round, as the cookie turns; let go to mark all as read.
  */
 @Composable
 fun MarkAllReadToolbar(
@@ -309,42 +313,68 @@ fun MarkAllReadToolbar(
     val fill by animateColorAsState(if (armed) colors.primary else colors.primary.copy(alpha = 0f), spring(stiffness = Spring.StiffnessMedium), label = "fill")
     val content by animateColorAsState(if (armed) colors.onPrimary else colors.primary, label = "content")
     val pop by animateFloatAsState(if (armed) 1f else 0f, spring(dampingRatio = 0.35f, stiffness = Spring.StiffnessMediumLow), label = "pop")
+    // The cookie's edge comes in over the first part of the pull.
+    val edge by animateFloatAsState(if (state.pull > 0f) (state.progress / 0.4f).coerceIn(0f, 1f) else 0f, label = "edge")
+    // Its bumps move slowly round while it waits to be let go.
+    var turn by remember { mutableDoubleStateOf(0.0) }
+    LaunchedEffect(armed) {
+        while (armed) withFrameNanos { turn += 0.0015 }
+    }
     val label = stringResource(R.string.action_mark_all_read)
     val release = stringResource(R.string.action_mark_all_read_release)
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        Surface(
-            shape = CircleShape,
-            color = colors.surfaceContainer,
-            tonalElevation = 3.dp,
-            shadowElevation = 3.dp,
+        AnimatedVisibility(
+            visible = enabled,
+            enter = fadeIn() + expandHorizontally(expandFrom = Alignment.End),
+            exit = fadeOut() + shrinkHorizontally(shrinkTowards = Alignment.End),
         ) {
-            TextButton(
-                onClick = onMarkAllRead,
-                enabled = enabled,
-                colors = ButtonDefaults.textButtonColors(contentColor = content),
-                modifier =
-                    Modifier
-                        .padding(8.dp)
-                        .graphicsLayer {
-                            // Pops a little past its size when it fills, then settles.
-                            val scale = 1f + 0.06f * pop * (1f - pop) * 4f
-                            scaleX = scale
-                            scaleY = scale
-                        }.drawBehind {
-                            val pill = Path().apply { addRoundRect(RoundRect(0f, 0f, size.width, size.height, CornerRadius(size.height / 2))) }
-                            drawPath(pill, fill)
-                            if (!armed && state.pull > 0f) {
-                                val measure = PathMeasure().apply { setPath(pill, false) }
-                                val run = Path()
-                                measure.getSegment(0f, measure.length * state.progress, run, true)
-                                drawPath(run, colors.primary, style = Stroke(2.5.dp.toPx(), cap = StrokeCap.Round))
-                            }
-                        }.semantics { contentDescription = if (armed) release else label },
+            Surface(
+                shape = CircleShape,
+                color = colors.surfaceContainer,
+                tonalElevation = 3.dp,
+                shadowElevation = 3.dp,
             ) {
-                Icon(painterResource(R.drawable.ic_done_all), contentDescription = null, modifier = Modifier.size(18.dp))
-                Text(label, modifier = Modifier.padding(start = 8.dp))
+                TextButton(
+                    onClick = onMarkAllRead,
+                    colors = ButtonDefaults.textButtonColors(contentColor = content),
+                    modifier =
+                        Modifier
+                            .padding(8.dp)
+                            .graphicsLayer {
+                                // Pops a little past its size when it fills, then settles.
+                                val scale = 1f + 0.06f * pop * (1f - pop) * 4f
+                                scaleX = scale
+                                scaleY = scale
+                            }.drawBehind {
+                                if (edge <= 0f && !armed) return@drawBehind
+                                val points =
+                                    Cookie.scallopedPill(
+                                        size.width,
+                                        size.height,
+                                        bump = COOKIE_BUMP_DP.dp.toPx(),
+                                        depth = COOKIE_DEPTH_DP.dp.toPx() * edge,
+                                        phase = turn,
+                                    )
+                                val outline = cookiePath(points, size.width / 2, size.height / 2)
+                                drawPath(outline, fill)
+                                if (!armed) {
+                                    drawPath(outline, colors.outlineVariant.copy(alpha = edge), style = Stroke(1.dp.toPx()))
+                                    val measure = PathMeasure().apply { setPath(outline, false) }
+                                    val run = Path()
+                                    measure.getSegment(0f, measure.length * state.progress, run, true)
+                                    drawPath(run, colors.primary, style = Stroke(2.5.dp.toPx(), cap = StrokeCap.Round))
+                                }
+                            }.semantics { contentDescription = if (armed) release else label },
+                ) {
+                    Icon(painterResource(R.drawable.ic_done_all), contentDescription = null, modifier = Modifier.size(18.dp))
+                    Text(label, modifier = Modifier.padding(start = 8.dp))
+                }
             }
         }
         add()
     }
 }
+
+/** The cookie's bumps on the toolbar's button: about this far apart, the edge going in by this much between them. */
+private const val COOKIE_BUMP_DP = 22f
+private const val COOKIE_DEPTH_DP = 3f

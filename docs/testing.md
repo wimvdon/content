@@ -80,6 +80,7 @@ when the run fails.
 | `SectionOrderTest` | Manage feeds' list in sections: headings and rows flattened, a row passing headings, nothing above the first heading, a drop moving a feed into another tag (or reordering its own) |
 | `SettingsTest` | Text size limits, reader and theme darkness (and Auto dark), Save/Share targets (storage and the old Save setting), defaults |
 | `ListEndTest` | Mark all as read (the floating toolbar): in Feeds' Unread and All while something in the section is unread; in the Inbox while something shared is unread |
+| `CookieTest` | Content's cookie (nine bumps, its dips), the pill and the pull's morph; the toolbar button's pill with the cookie's edge (`scallopedPill`: the plain pill at depth 0, never outside it, bumps about evenly apart, moving along as it turns) |
 
 ## Strategy
 
@@ -186,11 +187,11 @@ and then (always before a release):
 - [ ] **What stays in the Unread list (#157):** open an article and go back, open one from Search,
       long press one › Mark as read: each stays, dimmed. Go to Saved and back, or tap the same feed again: they
       are still there. Pick another feed, switch Unread/All, or pull to refresh: they are gone.
-      Mark all as read floats beside + at the bottom, in Unread and in All; it stays when nothing in
-      the section is unread (the button is then off), and + never moves. Tap it: Unread empties ("All
-      caught up"); Undo brings them back unread. Pull up past the end of the list: a blue line runs
-      round the button, which keeps its shape; far enough it fills blue; let go: all read. Move back
-      down first: nothing marked.
+      Mark all as read floats beside + at the bottom, in Unread and in All; with nothing unread in
+      the section it slides away and + stays alone in its corner. Tap it: Unread empties ("All
+      caught up"); Undo brings them back unread. Pull up past the end of the list: the button keeps
+      its size and takes the cookie's bumpy edge, a blue line running round it; far enough it fills
+      blue; let go: all read. Move back down first: nothing marked.
       The Inbox: the same bar while something shared with you is unread, the pull too.
       Web app: the button is under the last article, in Unread, All and the Inbox.
 - [ ] Saved rows (also archived ones and Saved hits in Search) are never dimmed and have no dot.

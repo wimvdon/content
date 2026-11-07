@@ -315,12 +315,12 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   `surfaceContainerHigh` rows with their icon on a `secondaryContainer` circle, **Subscribe to feed**
   and **Save article**, each with a line saying what it does. **Mark all as read** (✓✓ and the
   words) floats beside + in Feeds and the Inbox (2026-11-07): a floating toolbar (a `surfaceContainer` pill with
-  its shadow) holding it as a text button, with + next to it, + staying in its corner. It is always
-  there in Feeds (once there are feeds) and the Inbox, so it doesn't come and go; the button is off
-  while nothing in the section shown is unread (in the Inbox: nothing shared with you), and only
-  marks that section. Pulling past the end of the list works on it, the button keeping its own shape
-  and size (owner's wish, no cookie there): a `primary` line runs round it as you pull, and far
-  enough it fills with `primary` (its words `onPrimary`) with a small pop; let go. The web app keeps it as an outlined button under the last
+  its shadow) holding it as a text button, with + next to it, + staying in its corner. While nothing
+  in the section shown is unread (in the Inbox: nothing shared with you) the button slides away and
+  + stays alone in its corner; it only marks that section. Pulling past the end of the list works on
+  it, the button keeping its own shape and size (owner's wish): it takes the cookie's edge, round
+  bumps along its pill outline, a `primary` line runs round them as you pull, and far enough it fills
+  with `primary` (its words `onPrimary`) with a small pop, its bumps moving slowly round; let go. The web app keeps it as an outlined button under the last
   article (no floating toolbars there), in Unread and All too.
 - An article in Saved shows a tonal **Saved** label (Saved's list icon and the word, in
   `secondaryContainer`, the same kind of label as Search's Feed / Saved) at the end of its card's

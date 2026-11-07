@@ -84,6 +84,67 @@ object Cookie {
         }
     }
 
+    /**
+     * A pill [width] by [height] around (0, 0) with the cookie's edge (2026-11-07, owner's wish: Mark
+     * all as read in the toolbar keeps its button's shape and size): round bumps all along its outline,
+     * about [bump] apart, the edge going in by up to [depth] between them. [phase] (0 to 1) moves the
+     * bumps along the outline, as the cookie turns. Points are evenly spaced along the outline, from
+     * the middle of the top edge, clockwise; depth 0 is the plain pill.
+     */
+    fun scallopedPill(
+        width: Float,
+        height: Float,
+        bump: Float,
+        depth: Float,
+        phase: Double = 0.0,
+        count: Int = POINTS * 2,
+    ): List<Point> {
+        val r = height / 2.0
+        val half = max(0.0, width - height.toDouble()) / 2
+        val arc = PI * r
+        val perimeter = 4 * half + 2 * arc
+        val bumps = bumpsOn(width, height, bump)
+        return List(count) { i ->
+            // Where along the outline (from the middle of the top edge, clockwise), and which way is out.
+            val d = i * perimeter / count
+            val edge =
+                when {
+                    d < half -> Edge(d, -r, 0.0, -1.0)
+                    d < half + arc -> Edge.round(half, r, -PI / 2 + (d - half) / r)
+                    d < 3 * half + arc -> Edge(half - (d - half - arc), r, 0.0, 1.0)
+                    d < 3 * half + 2 * arc -> Edge.round(-half, r, PI / 2 + (d - 3 * half - arc) / r)
+                    else -> Edge(-half + (d - 3 * half - 2 * arc), -r, 0.0, -1.0)
+                }
+            // In by 0 at a bump's top, by [depth] between two, as the cookie's edge does.
+            val inward = depth * (1 - cos(2 * PI * bumps * (i.toDouble() / count + phase))) / 2
+            Point((edge.x - edge.nx * inward).toFloat(), (edge.y - edge.ny * inward).toFloat())
+        }
+    }
+
+    /** A point on a pill's outline and the way out from it. */
+    private class Edge(
+        val x: Double,
+        val y: Double,
+        val nx: Double,
+        val ny: Double,
+    ) {
+        companion object {
+            /** On the round end centred at ([cx], 0), [r] round, at [angle]. */
+            fun round(
+                cx: Double,
+                r: Double,
+                angle: Double,
+            ) = Edge(cx + cos(angle) * r, sin(angle) * r, cos(angle), sin(angle))
+        }
+    }
+
+    /** How many bumps [scallopedPill] puts round a pill [width] by [height]. */
+    fun bumpsOn(
+        width: Float,
+        height: Float,
+        bump: Float,
+    ): Int = max(3, kotlin.math.round((2 * max(0.0, width - height.toDouble()) + PI * height) / bump).toInt())
+
     fun mix(
         a: List<Point>,
         b: List<Point>,

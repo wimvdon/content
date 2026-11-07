@@ -180,7 +180,8 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
 - Articles are grouped under **Today**, **Yesterday** and then the date; the date stays at the
   top while you scroll through that day.
 - **Mark all as read** floats at the bottom of Feeds, next to **+** (in the web app: a button under the
-  last article), in Unread and All, and marks what the section shows; with nothing unread it is off.
+  last article), in Unread and All, and marks what the section shows; with nothing unread it goes and
+  only **+** stays.
 - **What stays in the Unread list.** An article you read (opened, also from Search,
   marked with its button or scrolled past) stays in the list, dimmed, so nothing disappears under
   your finger. The list starts afresh only when
@@ -203,8 +204,8 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
 - **Back** goes up a level: from one feed to its tag, from a tag to All, from Saved or the Inbox to Feeds;
   back on All closes the app.
 - The **✓✓ Mark all as read** button, beside + at the bottom (web app: under the last article): tap it,
-  or keep pulling past the end of the list: on the phone a blue line runs round the button, and it
-  fills with colour when you've pulled far enough; let go. Changed your mind? Move your finger back down a
+  or keep pulling past the end of the list: on the phone the button takes the cookie's bumpy edge, a
+  blue line runs round it, and it fills with colour when you've pulled far enough; let go. Changed your mind? Move your finger back down a
   little, or flick it down as you let go: the cookie empties, a light tick says so, and nothing is
   marked. On the web, click it. It marks everything in the section you are in as
   read: all feeds on All, the tag's feeds in a tag, or the one feed you opened, also the
