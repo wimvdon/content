@@ -34,6 +34,21 @@ class LibraryItemsTest {
     ): Library = library.addToReadingList(url, null, now).first
 
     @Test
+    fun `Feeds marks a feed article once it is in Saved, also archived, not after removing it`() {
+        val article = withArticle.articles.single().key
+        assertTrue(withArticle.savedArticleKeys().isEmpty())
+        // Saved under another way of writing its link.
+        val library = saved()
+        assertEquals(setOf(article), library.savedArticleKeys())
+        val key = library.items.single().key
+        assertEquals(setOf(article), library.setReadingState(key, ReadingState.Archived).savedArticleKeys())
+        assertTrue(library.setReadingState(key, null).savedArticleKeys().isEmpty())
+        // Only liked, not in Saved: no mark.
+        val likedOnly = library.setReadingState(key, null).setLiked(key, true)
+        assertTrue(likedOnly.savedArticleKeys().isEmpty())
+    }
+
+    @Test
     fun `a link with tracking parameters is the same item, other parameters still count (#253)`() {
         val flipboard = "http://www.vulture.com/article/can-nirosta-steel-survive.html?utm_source=flipboard&utm_medium=s1&utm_campaign=nymag"
         assertEquals("vulture.com/article/can-nirosta-steel-survive.html", ItemKeys.of(flipboard))

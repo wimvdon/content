@@ -12,11 +12,12 @@ import {
   keyOfLink,
   readingList,
   removeBookmark,
+  savedArticleKeys,
   renameTag,
   setReadingState,
   setTags,
 } from "../src/lib/items";
-import { addFeed, emptyLibrary, mergeFeed, newFeed, removeFeed, setRead, type Library } from "../src/lib/library";
+import { addFeed, articleKey, emptyLibrary, mergeFeed, newFeed, removeFeed, setRead, type Library } from "../src/lib/library";
 import { allOf, changesBetween, isEmpty, libraryOf } from "../src/lib/libraryStore";
 
 const FEED = "https://a.example.com/feed";
@@ -168,5 +169,18 @@ describe("the library in IndexedDB", () => {
   it("reads an older library without items", () => {
     expect(libraryOf({ feeds: [newFeed(FEED, "A")], folders: [], articles: [] }).items).toEqual([]);
     expect(libraryOf(undefined)).toEqual(emptyLibrary());
+  });
+});
+
+describe("the Saved mark in Feeds", () => {
+  it("marks a feed article once it is in Saved, also archived, not after removing it (as on Android)", () => {
+    const article = articleKey(withArticle.articles[0]);
+    expect(savedArticleKeys(withArticle).size).toBe(0);
+    // Saved under another way of writing its link.
+    const lib = saved();
+    expect([...savedArticleKeys(lib)]).toEqual([article]);
+    const key = lib.items[0].key;
+    expect([...savedArticleKeys(setReadingState(lib, key, "archived"))]).toEqual([article]);
+    expect(savedArticleKeys(setReadingState(lib, key, null)).size).toBe(0);
   });
 });

@@ -77,6 +77,7 @@ import to.wim.content.data.changeItem
 import to.wim.content.data.putItem
 import to.wim.content.data.item
 import to.wim.content.data.itemFor
+import to.wim.content.data.savedArticleKeys
 import to.wim.content.data.needsDescription
 import to.wim.content.data.topicNames
 import to.wim.content.data.up
@@ -809,6 +810,7 @@ fun RssReaderNavigation(
                                     markReadOnScroll = current.markReadOnScroll,
                                     listView = current.listView,
                                     articles = articles,
+                                    savedArticles = remember(library) { library.savedArticleKeys() },
                                     selection = shownSelection,
                                     unreadOnly = current.unreadOnly,
                                     unreadCounts = unreadCounts,

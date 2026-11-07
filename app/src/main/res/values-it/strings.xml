@@ -39,6 +39,7 @@
     <string name="problem_too_large">Questo feed è troppo grande.</string>
     <string name="problem_not_a_feed">Questo indirizzo non ha più un feed.</string>
     <string name="article_unread">Non letto</string>
+    <string name="article_saved">Salvato</string>
     <string name="home_no_feeds_title">Ancora nessun feed</string>
     <string name="home_no_feeds_body">Aggiungi un sito o un feed che ti piace, oppure importa i tuoi feed da un altro lettore.</string>
     <string name="home_caught_up_title">Sei in pari</string>

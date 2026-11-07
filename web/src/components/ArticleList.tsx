@@ -9,7 +9,7 @@ import { articleKey, articlesInTab, chipTag, feedTabOf, sortTime, unreadKeys, ty
 import { chipTags, itemArticle, noteOf, savedItems, showsLiked, showsNotes, sourceOf, type NoteContent, type SavedFilter } from "@/lib/saved";
 import { sharedByLabel } from "@/lib/sharing";
 import { inboxItems } from "@/lib/inbox";
-import type { Item, SharedBy } from "@/lib/items";
+import { savedArticleKeys, type Item, type SharedBy } from "@/lib/items";
 import { Avatar } from "./ShareWithUser";
 import { useShare } from "./useShare";
 import { scrolledPast } from "@/lib/scrollRead";
@@ -69,6 +69,7 @@ function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport,
   const tab = feedTabOf(settings.unreadOnly);
   const articles = useMemo(() => articlesInTab(library, selection, tab, readThisVisit), [library, selection, tab, readThisVisit]);
   const feeds = useMemo(() => new Map(library.feeds.map((f) => [f.url, f])), [library.feeds]);
+  const savedKeys = useMemo(() => savedArticleKeys(library), [library]);
   const unread = unreadKeys(library, selection).size;
   // One chip row, as on Android: the topics with something in the state shown, or the topic chosen
   // and its feeds.
@@ -214,6 +215,7 @@ function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport,
                         feed={showFeedName ? feeds.get(a.feedUrl) : undefined}
                         open={openKey === articleKey(a)}
                         onOpen={() => onOpen(a)}
+                        saved={savedKeys.has(articleKey(a))}
                         onToggleRead={() => app.toggleRead(a)}
                         onFeedClick={() => app.select({ kind: "feed", feedUrl: a.feedUrl })}
                       />
@@ -779,6 +781,7 @@ export function Row({
   onToggleRead,
   onFeedClick,
   source,
+  saved,
 }: {
   article: Article;
   feed: Feed | undefined;
@@ -791,8 +794,10 @@ export function Row({
   onFeedClick?: () => void;
   /** Shown where the feed's name goes: who shared it, in the inbox (#246). */
   source?: React.ReactNode;
+  /** In Saved: a small Saved mark on its top line (Feeds). */
+  saved?: boolean;
 }) {
-  const row = <RowButton article={article} feed={feed} open={open} onOpen={onOpen} noReadState={noReadState} label={label} onFeedClick={onFeedClick} source={source} />;
+  const row = <RowButton article={article} feed={feed} open={open} onOpen={onOpen} noReadState={noReadState} label={label} onFeedClick={onFeedClick} source={source} saved={saved} />;
   if (!onToggleRead && !article.link) return row;
   const toggle = article.read ? t("markUnread") : t("markRead");
   const hoverButton =
@@ -826,6 +831,7 @@ function RowButton({
   label,
   onFeedClick,
   source,
+  saved,
 }: {
   article: Article;
   feed: Feed | undefined;
@@ -835,6 +841,7 @@ function RowButton({
   label?: string;
   onFeedClick?: () => void;
   source?: React.ReactNode;
+  saved?: boolean;
 }) {
   const { settings } = useApp();
   const view = settings.listView;
@@ -856,7 +863,7 @@ function RowButton({
     >
       {view === "large" && image ? <img src={image} alt="" loading="lazy" referrerPolicy="no-referrer" className="aspect-video w-full bg-muted object-cover" onError={hide} /> : null}
       <div className={cn("min-w-0 flex-1", view === "large" && "px-3 pb-3", view === "large" && !image && "pt-3")}>
-        {feed || label || source ? (
+        {feed || label || source || saved ? (
           <div className="mb-1 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
             {source ? (
               <span className="flex min-w-0 items-center gap-1.5">{source}</span>
@@ -887,6 +894,7 @@ function RowButton({
                 <span className="truncate">{feed.title}</span>
               </>
             ) : null}
+            {saved ? <BookOpen className="size-3.5 shrink-0" role="img" aria-label={t("savedMark")} /> : null}
             {label ? <span className="ml-auto shrink-0 rounded-md bg-accent px-1.5 py-0.5 text-[0.7rem] text-accent-foreground">{label}</span> : null}
           </div>
         ) : null}

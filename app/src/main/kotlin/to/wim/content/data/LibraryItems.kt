@@ -14,6 +14,13 @@ fun Library.itemForLink(url: String?): Item? = ItemKeys.of(url)?.let(::item)
 /** The item a feed article has once it is saved, tagged or annotated; null while it is only in its feed. */
 fun Library.itemFor(article: Article): Item? = itemForLink(article.link)
 
+/** The keys of the feed articles that are in Saved (To read or Archive), for the Saved mark in Feeds. */
+fun Library.savedArticleKeys(): Set<String> {
+    val saved = items.filter { it.readingList != null }.mapTo(HashSet()) { it.key }
+    if (saved.isEmpty()) return emptySet()
+    return articles.filter { ItemKeys.of(it.link) in saved }.mapTo(HashSet()) { it.key }
+}
+
 /** The feed article with this link, while the library still has it. */
 fun Library.feedArticleFor(url: String?): Article? {
     val key = ItemKeys.of(url) ?: return null

@@ -2,6 +2,13 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-07: Feeds marks the articles that are in Saved
+
+Owner's choice: an article in Feeds that is in Saved (To read or Archive) shows a small Saved mark,
+the Saved destination's own icon (a list on Android, the open book on the web) in the muted text
+colour on its top line. Only Liked, tagged or noted without being in Saved: no mark, as Saved
+doesn't list those either. Phone and web; the rule (`savedArticleKeys`) is the same on both.
+
 ## 2026-11-07: Players on Android wait until the reader has moved in
 
 Owner's report: an article with players (Stereogum's "The 5 Best Songs Of The Week") flashed black
