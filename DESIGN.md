@@ -315,7 +315,7 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   toolbar (a `surfaceContainer` pill, 64 dp tall, with its shadow) holding one text button, ✓✓ and
   "Mark all as read" in `onSurfaceVariant` (owner's wish: with its words), the FAB 8 dp beside it,
   the pair centred. While nothing in the section shown is unread (in the Inbox: nothing shared with you)
-  the toolbar slides away and + moves to its corner, animated; it only marks that section. The web
+  the toolbar goes (at once, no animation of its own) and + glides to its corner (and back); it only marks that section. The web
   app keeps it as an outlined button under the last article (no floating toolbars there), in Unread
   and All too.
 - An article in Saved shows a tonal **Saved** label (Saved's list icon and the word, in

@@ -5,7 +5,8 @@ Newest first. Add an entry for every notable choice: what was decided, why, and 
 ## 2026-11-07: Mark all as read is in a centred floating toolbar; no pull past the end
 
 Update (owner, after trying it): the button has its words again, ✓✓ and "Mark all as read", as a
-text button in the toolbar; the rest below stands.
+text button in the toolbar; and only + moves smoothly between the middle and its corner, the toolbar
+itself coming and going at once, without an animation of its own. The rest below stands.
 
 Owner's choice from Material-only mockups, after the bumpy pill (below) didn't work: Mark all as read
 is Material 3's floating toolbar with one icon button (✓✓, 48 dp in a 64 dp round bar, its name in a
