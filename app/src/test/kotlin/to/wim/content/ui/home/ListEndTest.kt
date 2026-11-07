@@ -44,11 +44,24 @@ class ListEndTest {
     }
 
     @Test
-    fun allCaughtUpEndsTheListOnlyWithMarkAsReadOnScroll() {
-        assertTrue(ListEnd.showsCaughtUpEnd(markReadOnScroll = true, articles = 3))
-        assertFalse(ListEnd.showsCaughtUpEnd(markReadOnScroll = false, articles = 3))
+    fun allCaughtUpEndsTheUnreadListOnlyWithMarkAsReadOnScroll() {
+        assertTrue(ListEnd.showsCaughtUpEnd(markReadOnScroll = true, unreadOnly = true, articles = 3))
+        assertFalse(ListEnd.showsCaughtUpEnd(markReadOnScroll = false, unreadOnly = true, articles = 3))
+        // All keeps read articles: it never becomes the All caught up page.
+        assertFalse(ListEnd.showsCaughtUpEnd(markReadOnScroll = true, unreadOnly = false, articles = 3))
         // No articles: the page's own All caught up shows instead.
-        assertFalse(ListEnd.showsCaughtUpEnd(markReadOnScroll = true, articles = 0))
+        assertFalse(ListEnd.showsCaughtUpEnd(markReadOnScroll = true, unreadOnly = true, articles = 0))
+    }
+
+    @Test
+    fun scrolledIntoAllCaughtUpWhenItIsTheFirstItemOnScreen() {
+        // 12 items: day headers and articles, then All caught up as the last.
+        assertTrue(ListEnd.reachedCaughtUp(caughtUpEnd = true, firstVisibleIndex = 11, totalItems = 12))
+        // The last articles are still (partly) on screen.
+        assertFalse(ListEnd.reachedCaughtUp(caughtUpEnd = true, firstVisibleIndex = 9, totalItems = 12))
+        // No All caught up at the end (setting off, or All): the last article is just the last item.
+        assertFalse(ListEnd.reachedCaughtUp(caughtUpEnd = false, firstVisibleIndex = 11, totalItems = 12))
+        assertFalse(ListEnd.reachedCaughtUp(caughtUpEnd = true, firstVisibleIndex = 0, totalItems = 0))
     }
 
     @Test

@@ -315,8 +315,10 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   corner (`primaryContainer`, ✓✓ and "Mark all as read"), which shrinks to ✓✓ while the header has
   slid away (scrolling down) and grows back with it; with nothing unread in the section shown (in the
   Inbox: nothing shared with you) it goes; it only marks that section. With Mark as read on scroll on,
-  Feeds' list ends in **All caught up** on the cookie (as on the empty page), as tall as the list's
-  window, so scrolling on takes the last articles past the top and marks them: no tap needed. The web
+  Feeds' Unread list ends in **All caught up** on the cookie (as on the empty page), as tall as the
+  list's window, so scrolling on takes the last articles past the top and marks them; once it fills
+  the screen the list becomes the All caught up page itself (header back, Refresh), as after Mark all
+  as read (owner's wish): no tap needed. The web
   app keeps Mark all as read as an outlined button under the last article (no FABs there), in Unread
   and All too, and has no All caught up end (a web page can't scroll past its end).
 - An article in Saved shows a tonal **Saved** label (Saved's list icon and the word, in

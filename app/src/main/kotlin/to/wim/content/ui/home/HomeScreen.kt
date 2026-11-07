@@ -172,6 +172,11 @@ class HomeActions(
     val onMarkAllRead: () -> Unit,
     /** Articles that scrolled off the top, with Mark as read on scroll on. */
     val onScrolledPast: (Set<String>) -> Unit,
+    /**
+     * Scrolled all the way into All caught up at the end of Unread (Mark as read on scroll): done
+     * with the section, so the articles read this visit leave the list and the All caught up page shows.
+     */
+    val onScrolledToCaughtUp: () -> Unit = {},
     val onAddFeed: () -> Unit,
     val onImportOpml: () -> Unit,
     /** Emails a sign-in link from the welcome screen; gives back whether it was sent (#166). */
@@ -456,15 +461,23 @@ private fun ArticleList(
         val articles by rememberUpdatedState(state.articles)
         val positions by rememberUpdatedState(articlesBefore)
         val onScrolledPast by rememberUpdatedState(actions.onScrolledPast)
+        val onScrolledToCaughtUp by rememberUpdatedState(actions.onScrolledToCaughtUp)
+        val caughtUpEnd by rememberUpdatedState(ListEnd.showsCaughtUpEnd(state.markReadOnScroll, state.unreadOnly, state.articles.size))
         LaunchedEffect(listState) {
             // Only articles that were on screen count (#157): new ones arriving above aren't marked unseen.
             val seen = HashSet<String>()
-            snapshotFlow { listState.firstVisibleItemIndex to listState.layoutInfo.visibleItemsInfo.mapNotNull { it.key as? String } }
+            var done = false
+            snapshotFlow { Triple(listState.firstVisibleItemIndex, listState.layoutInfo.totalItemsCount, listState.layoutInfo.visibleItemsInfo.mapNotNull { it.key as? String }) }
                 .distinctUntilChanged()
-                .collect { (first, visible) ->
+                .collect { (first, total, visible) ->
                     seen += visible
                     val keys = ScrollRead.scrolledPast(articles, positions.getOrElse(first) { articles.size }, seen)
                     if (keys.isNotEmpty()) onScrolledPast(keys)
+                    // Everything has gone past the top: the list becomes the All caught up page.
+                    if (!done && ListEnd.reachedCaughtUp(caughtUpEnd, first, total)) {
+                        done = true
+                        onScrolledToCaughtUp()
+                    }
                 }
         }
     }
@@ -505,9 +518,10 @@ private fun ArticleList(
                 }
             }
         }
-        // Mark as read on scroll: All caught up after the last article, as tall as the list's
-        // window, so you can just keep scrolling and the last articles go past the top too.
-        if (ListEnd.showsCaughtUpEnd(state.markReadOnScroll, state.articles.size)) {
+        // Mark as read on scroll, in Unread: All caught up after the last article, as tall as the
+        // list's window, so you can just keep scrolling and the last articles go past the top too;
+        // scrolled all the way, the list turns into the All caught up page.
+        if (ListEnd.showsCaughtUpEnd(state.markReadOnScroll, state.unreadOnly, state.articles.size)) {
             item(key = CAUGHT_UP_END) {
                 val info = listState.layoutInfo
                 val minimum = with(LocalDensity.current) { CAUGHT_UP_MIN_HEIGHT.roundToPx() }
