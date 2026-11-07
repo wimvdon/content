@@ -186,10 +186,11 @@ and then (always before a release):
 - [ ] **What stays in the Unread list (#157):** open an article and go back, open one from Search,
       long press one › Mark as read: each stays, dimmed. Go to Saved and back, or tap the same feed again: they
       are still there. Pick another feed, switch Unread/All, or pull to refresh: they are gone.
-      Mark all as read floats beside + at the bottom, in Unread and in All (gone when nothing in the
-      section is unread). Tap it: Unread empties ("All caught up"); Undo brings them back unread.
-      Pull up past the end of the list: the bar fades, its button becomes the cookie, "Let go to mark
-      all as read" shows once far enough; let go: all read. Move back down first: nothing marked.
+      Mark all as read floats beside + at the bottom, in Unread and in All; it stays when nothing in
+      the section is unread (the button is then off), and + never moves. Tap it: Unread empties ("All
+      caught up"); Undo brings them back unread. Pull up past the end of the list: a blue line runs
+      round the button, which keeps its shape; far enough it fills blue; let go: all read. Move back
+      down first: nothing marked.
       The Inbox: the same bar while something shared with you is unread, the pull too.
       Web app: the button is under the last article, in Unread, All and the Inbox.
 - [ ] Saved rows (also archived ones and Saved hits in Search) are never dimmed and have no dot.
@@ -382,7 +383,7 @@ in CI. Use the signed release build, not a debug APK (see `instapaper.md`).
       Web app: select text with the mouse, pick Highlight or Note in the bar above it; click a
       marker to edit; a highlight made on the phone shows on the web after sync, and the other way.
 - [ ] In a saved article the floating toolbar has no coloured buttons: **Archive** (box and word),
-      then the icons **Like** (heart), **Tags** (label) and **Share**. Tap **Archive**: the article
+      then the icons **Like** (heart) and **Tags** (label); **Share** in its own round button beside it. Tap **Archive**: the article
       stays open, "Archived" shows with **Undo**, and Archive becomes an icon only (a box with an
       arrow: To read); tap it: back to To read. **Like**: the heart fills, and the article is under
       Liked in Saved. **Tags**: the Tags sheet. Under the title and details: **+ Note** (no note yet)

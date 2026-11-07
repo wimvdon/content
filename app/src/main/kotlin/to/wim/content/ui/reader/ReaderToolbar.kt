@@ -5,6 +5,9 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.height
@@ -77,12 +80,14 @@ internal val ReaderToolbarMargin = 16.dp
  * (Material 3 1.4 has no public FloatingToolbar). No button has a fill of its own (2026-11-02): all
  * are in the toolbar's neutral colour (`onSurfaceVariant`, as Material 3's toolbars have it), and the
  * next step stands out by its words: Save, or Archive, is an icon with text; the rest are icons.
- * Share is the last icon in the pill.
+ * Share sits apart (2026-11-07, owner's wish): [separate], in a round button of the same colour beside
+ * the pill, as Material 3 pairs a floating toolbar with a button of its own.
  */
 @Composable
 internal fun ReaderToolbar(
     visible: Boolean,
     modifier: Modifier = Modifier,
+    separate: (@Composable () -> Unit)? = null,
     content: @Composable RowScope.() -> Unit,
 ) {
     AnimatedVisibility(
@@ -91,18 +96,32 @@ internal fun ReaderToolbar(
         enter = slideInVertically { it * 2 } + fadeIn(),
         exit = slideOutVertically { it * 2 } + fadeOut(),
     ) {
-        Surface(
-            shape = CircleShape,
-            color = MaterialTheme.colorScheme.surfaceContainer,
-            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            tonalElevation = 3.dp,
-            shadowElevation = 3.dp,
-        ) {
-            Row(
-                modifier = Modifier.height(ReaderToolbarHeight).padding(horizontal = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                content = content,
-            )
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Surface(
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.surfaceContainer,
+                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                tonalElevation = 3.dp,
+                shadowElevation = 3.dp,
+            ) {
+                Row(
+                    modifier = Modifier.height(ReaderToolbarHeight).padding(horizontal = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    content = content,
+                )
+            }
+            if (separate != null) {
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    tonalElevation = 3.dp,
+                    shadowElevation = 3.dp,
+                    modifier = Modifier.size(ReaderToolbarHeight),
+                ) {
+                    Box(contentAlignment = Alignment.Center) { separate() }
+                }
+            }
         }
     }
 }

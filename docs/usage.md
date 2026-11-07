@@ -180,7 +180,7 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
 - Articles are grouped under **Today**, **Yesterday** and then the date; the date stays at the
   top while you scroll through that day.
 - **Mark all as read** floats at the bottom of Feeds, next to **+** (in the web app: a button under the
-  last article), in Unread and All while something is unread, and marks what the section shows.
+  last article), in Unread and All, and marks what the section shows; with nothing unread it is off.
 - **What stays in the Unread list.** An article you read (opened, also from Search,
   marked with its button or scrolled past) stays in the list, dimmed, so nothing disappears under
   your finger. The list starts afresh only when
@@ -203,9 +203,8 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
 - **Back** goes up a level: from one feed to its tag, from a tag to All, from Saved or the Inbox to Feeds;
   back on All closes the app.
 - The **✓✓ Mark all as read** button, beside + at the bottom (web app: under the last article): tap it,
-  or keep pulling past the end of the list: on the phone the button shrinks to a circle and turns into
-  Content's cookie, the floating bar around it fading, and it fills with colour when you've pulled far
-  enough ("Let go to mark all as read"); let go. Changed your mind? Move your finger back down a
+  or keep pulling past the end of the list: on the phone a blue line runs round the button, and it
+  fills with colour when you've pulled far enough; let go. Changed your mind? Move your finger back down a
   little, or flick it down as you let go: the cookie empties, a light tick says so, and nothing is
   marked. On the web, click it. It marks everything in the section you are in as
   read: all feeds on All, the tag's feeds in a tag, or the one feed you opened, also the
@@ -247,8 +246,8 @@ website (in the web app, in a new tab) (the same as ⋮ › **Open in browser**)
 | ⋮ | In this order: **Mark as unread** (back to the list, where it waits unread; the web app keeps the article open and offers **Mark as read** too), **Show full article** / **Show feed text** (a feed article: the whole article from the website, or the feed's own text; a saved article always shows the whole article), **Open in browser**, **Sign in to this site** (#180: for a site you pay for, such as standaard.be; sign in on its page and tap **Done**, and from then on its articles load in full; once signed in it reads **Sign in to this site again**, for when the site's sign-in has run out and its articles stop loading: its page usually still knows you, so tap **Done** (sign in first if it asks), and the new sign-in replaces the old one; Content uses that small browser's own sign-in, so it stays valid as long as the site keeps you signed in there; a full article that doesn't load while you're signed in to its site also offers **Sign in again**; Settings › Article view › Sites you're signed in to lists them, with **Remove**), **Report a problem with this article** (#181: pick what is wrong, add a comment if you like, and **Send** opens a pre-filled report on GitHub in your browser, with the article's link and the text Content shows, #251, so it can be compared with the website; a text too long for the address is cut short there and put whole on the clipboard to paste; submit it there). **Remove from Saved** (a saved article: instead of Mark as unread and the text switch). Open in browser, and links in an article, open in a tab of your browser on top of Reader, with a **Save** button in its toolbar: it opens the save sheet over the page (see Saving from other apps); save or close it to keep reading. |
 
 The **floating toolbar** (a rounded bar at the bottom in the middle, over the text) is the article
-in your library, with **Share** at its end (Content's share sheet, or straight to the app you
-chose). It slides out of the way while you read down, and comes back when you scroll up a little,
+in your library, with **Share** in its own round button beside it (Content's share sheet, or
+straight to the app you chose). It slides out of the way while you read down, and comes back when you scroll up a little,
 at the top and at the end of the article. (In the web app these buttons sit in the reader's top
 bar, before Aa and ⋮, and stay there; on a narrow window Save and Archive show only their icon.)
 Before it is saved it has **Save** on the left: it

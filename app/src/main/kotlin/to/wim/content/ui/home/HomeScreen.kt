@@ -46,7 +46,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -210,6 +209,9 @@ fun HomeScreen(
     // of the list works on it (2026-11-07).
     val markAll: () -> Unit = { if (inbox != null) inbox.onMarkAllRead() else actions.onMarkAllRead() }
     val pullToMark = rememberPullToMarkState(markAll)
+    // The toolbar stays in Feeds (once there are feeds) and the Inbox, so it doesn't come and go; its
+    // button is off while there is nothing to mark.
+    val toolbar = inbox != null || (inFeeds && state.feeds.isNotEmpty())
     val markAllRead =
         when {
             inbox != null -> ListEnd.inboxHasUnread(inbox.items)
@@ -353,9 +355,9 @@ fun HomeScreen(
                             Icon(painterResource(R.drawable.ic_add), contentDescription = stringResource(R.string.add_title))
                         }
                     }
-                    if (markAllRead) MarkAllReadToolbar(pullToMark, markAll, add) else add()
+                    // + stays in its corner everywhere; the toolbar sits beside it.
+                    if (toolbar) MarkAllReadToolbar(pullToMark, enabled = markAllRead, onMarkAllRead = markAll, add = add) else add()
                 },
-                floatingActionButtonPosition = if (markAllRead) FabPosition.Center else FabPosition.End,
             ) { innerPadding ->
                 Box(
                     Modifier
