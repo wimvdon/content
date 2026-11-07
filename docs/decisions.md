@@ -2,6 +2,20 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-07: + in the search bar, Mark all as read is the FAB; All caught up ends the list
+
+Owner's choice from mockups (Android): **+** is back in the search bar, before Settings, in Feeds,
+Saved and the Inbox, so the screen has one FAB: **Mark all as read**, Material 3's extended FAB in
+its corner (✓✓ and its words), shrinking to ✓✓ while scrolling down and gone with nothing to mark.
+The centred floating toolbar and + gliding beside it (`MarkAllReadToolbar`) are gone. With **Mark as
+read on scroll** on, the list ends in All caught up on the cookie, as tall as the list's window, so
+you can keep scrolling and the last articles go past the top and are marked, instead of having to
+tap Mark all as read at the end (`ListEnd.caughtUpHeight`).
+
+Platform exception: the web app keeps its button under the last article and gets no All caught up
+end; a web page doesn't scroll past its end, and the owner rejected an overscroll effect on the web
+before. Its + stays where it is.
+
 ## 2026-11-07: Mark all as read is in a centred floating toolbar; no pull past the end
 
 Update (owner, after trying it): the button has its words again, ✓✓ and "Mark all as read", as a

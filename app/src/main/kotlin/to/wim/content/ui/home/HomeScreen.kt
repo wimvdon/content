@@ -37,6 +37,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -46,8 +47,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.FabPosition
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -108,6 +107,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import to.wim.content.feed.Html
 import to.wim.content.ui.theme.AppShapes
 import to.wim.content.ui.theme.EmptyState
+import to.wim.content.ui.theme.LocalEmptyStateBadge
 import to.wim.content.ui.theme.Motion
 import to.wim.content.ui.theme.SkeletonLine
 import to.wim.content.ui.theme.readableWidth
@@ -206,7 +206,7 @@ fun HomeScreen(
     val inbox = state.inbox?.takeIf { state.section == HomeSection.Inbox }
     val inFeeds = reading == null && inbox == null
     val unreadHere = state.unreadCounts[state.selection] ?: 0
-    // Mark all as read floats beside + in Feeds (Unread and All) and the Inbox while something is unread (2026-11-07).
+    // Mark all as read is the FAB in Feeds (Unread and All) and the Inbox while something is unread (2026-11-07).
     val markAll: () -> Unit = { if (inbox != null) inbox.onMarkAllRead() else actions.onMarkAllRead() }
     val markAllRead =
         when {
@@ -253,6 +253,7 @@ fun HomeScreen(
                     CollapsingHeader(scrollBehavior) {
                         HomeSearchBar(
                             onSearch = actions.onOpenSearch,
+                            onAdd = actions.onAdd,
                             onSettings = actions.onOpenSettings,
                             accountEmail = state.accountEmail,
                             showImages = state.showImages,
@@ -344,17 +345,14 @@ fun HomeScreen(
                 },
                 bottomBar = { if (!wide) MainNavigationBar(tab, onTab, state.inbox != null, state.inboxUnread) },
                 floatingActionButton = {
-                    // + is the screen's main action, the same in Feeds, Saved and the Inbox: it asks
-                    // Subscribe to feed or Save article. In Feeds and the Inbox, Mark all as read floats beside it (2026-11-07).
-                    val add: @Composable () -> Unit = {
-                        FloatingActionButton(onClick = actions.onAdd) {
-                            Icon(painterResource(R.drawable.ic_add), contentDescription = stringResource(R.string.add_title))
-                        }
-                    }
-                    // The pair in the middle while there is something to mark; else + moves to its corner.
-                    MarkAllReadToolbar(shown = markAllRead, onMarkAllRead = markAll, add = add)
+                    // Mark all as read is the FAB in Feeds and the Inbox (2026-11-07; + is in the search
+                    // bar): with its words while the header shows, just ✓✓ while scrolling down.
+                    MarkAllReadFab(
+                        shown = markAllRead,
+                        expanded = ListEnd.fabExpanded(scrollBehavior.state.collapsedFraction),
+                        onMarkAllRead = markAll,
+                    )
                 },
-                floatingActionButtonPosition = FabPosition.Center,
             ) { innerPadding ->
                 Box(
                     Modifier
@@ -476,7 +474,7 @@ private fun ArticleList(
             Modifier
                 .fillMaxSize()
                 .readableWidth(),
-        // Room at the end for the floating + button.
+        // Room at the end for the Mark all as read FAB.
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 88.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -507,6 +505,42 @@ private fun ArticleList(
                 }
             }
         }
+        // Mark as read on scroll: All caught up after the last article, as tall as the list's
+        // window, so you can just keep scrolling and the last articles go past the top too.
+        if (ListEnd.showsCaughtUpEnd(state.markReadOnScroll, state.articles.size)) {
+            item(key = CAUGHT_UP_END) {
+                val info = listState.layoutInfo
+                val minimum = with(LocalDensity.current) { CAUGHT_UP_MIN_HEIGHT.roundToPx() }
+                val height = ListEnd.caughtUpHeight(info.viewportSize.height, info.beforeContentPadding, info.afterContentPadding, minimum)
+                CaughtUpEnd(Modifier.height(with(LocalDensity.current) { height.toDp() }))
+            }
+        }
+    }
+}
+
+private const val CAUGHT_UP_END = "end:caught-up"
+
+private val CAUGHT_UP_MIN_HEIGHT = 240.dp
+
+/** The end of the list with Mark as read on scroll on: All caught up on Content's cookie, as on an empty page. */
+@Composable
+private fun CaughtUpEnd(modifier: Modifier) {
+    val badge = LocalEmptyStateBadge.current
+    Column(
+        modifier.fillMaxWidth().padding(horizontal = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
+    ) {
+        Box(Modifier.padding(bottom = 8.dp).size(72.dp), contentAlignment = Alignment.Center) {
+            Box(Modifier.matchParentSize().then(badge.motion()).background(MaterialTheme.colorScheme.secondaryContainer, badge.shape))
+            Icon(painterResource(R.drawable.ic_done_all), contentDescription = null, Modifier.size(36.dp), tint = MaterialTheme.colorScheme.onSecondaryContainer)
+        }
+        Text(
+            stringResource(R.string.home_caught_up_title),
+            style = MaterialTheme.typography.titleLarge,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.semantics { heading() },
+        )
     }
 }
 

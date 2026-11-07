@@ -43,7 +43,7 @@ class InboxHome(
  * shared with you, newest first, like a feed's articles with who sent it in place of the feed.
  * Unread ones are bold with a dot; opening one reads it. A long press marks it read or unread, saves,
  * shares or removes it from the inbox (no swipes: #305). While something is unread, Mark all as read
- * floats beside + (the screen's [MarkAllReadToolbar], 2026-11-07), as in Feeds.
+ * is the screen's FAB ([MarkAllReadFab], 2026-11-07), as in Feeds.
  */
 @Composable
 fun InboxContent(

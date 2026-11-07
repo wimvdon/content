@@ -44,12 +44,14 @@ import to.wim.content.sync.Gravatar
 
 /**
  * The title bar as a large search bar (#189): the magnifier, "Search articles" (which opens Search),
- * and at the end Settings: the account's picture when it has one (Gravatar, with Show images on), else a cogwheel. There is no ☰ menu:
+ * then + (Subscribe to feed or Save article, the same in Feeds, Saved and the Inbox; back in the bar
+ * since 2026-11-07, owner's choice, so Mark all as read can be the FAB), and at the end Settings: the account's picture when it has one (Gravatar, with Show images on), else a cogwheel. There is no ☰ menu:
  * every place is a chip or in the navigation bar.
  */
 @Composable
 fun HomeSearchBar(
     onSearch: () -> Unit,
+    onAdd: () -> Unit,
     onSettings: () -> Unit,
     /** The Content account's address, for its picture; null when signed out. */
     accountEmail: String? = null,
@@ -81,6 +83,9 @@ fun HomeSearchBar(
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f).padding(horizontal = 4.dp),
             )
+            IconButton(onClick = onAdd) {
+                Icon(painterResource(R.drawable.ic_add), contentDescription = stringResource(R.string.add_title))
+            }
             IconButton(onClick = onSettings) {
                 val cog: @Composable () -> Unit = {
                     Icon(painterResource(R.drawable.ic_settings), contentDescription = stringResource(R.string.menu_settings))
