@@ -2,6 +2,16 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-07: Players on Android wait until the reader has moved in
+
+Owner's report: an article with players (Stereogum's "The 5 Best Songs Of The Week") flashed black
+before it showed. The reader slides and fades in between screens, and a WebView inside a fading
+screen draws black on Android. The players' web views are now made only once the screen has fully
+moved in (`LocalScreenSettled`, from the screen transition in `Navigation.kt`), and removed as it
+moves out; until then each shows only its box. Android-only: the web app's iframes have no such
+fault, so nothing changes there. Not chosen: dropping the screen's fade (the Material motion
+stays).
+
 ## 2026-11-05: Refresh is Material's standard one; the cookie only says "+3"
 
 Owner's choice after trying 6.11.20: pull to refresh is Material's standard indicator throughout

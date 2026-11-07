@@ -33,6 +33,7 @@ when the run fails.
 | `FeedDiscoveryTest` | Address normalising (https, feed://), feed links in a page, common paths |
 | `FeedFinderTest` | Address → feed with a fake web: direct feed, linked feed, common path, no feed, errors |
 | `LatestOnlyTest` | Messages don't queue: a new one cancels the one showing, and of several waiting only the last shows; moving to another screen closes one (one shown on the new screen stays), and so does a tap elsewhere; the web's `test/messages.test.ts` checks the same for its views |
+| `ScreenSettledTest` | Embedded players wait while a screen moves in or out, and load once it has fully moved in (a WebView in a fading screen draws black) |
 | `ArticleExtractorTest` | The plain parts around the article extractor: handing the page to the WebView as JavaScript strings, reading its result (also no article, errors and unexpected values), charsets, when a feed text counts as a summary (short, or a teaser that links to its own article). Finding the article is the web app's code, tested by `web/test/articleExtractor.test.ts` with the sample pages in `testdata/articles/` for both apps |
 | `SharedTextTest` | One text per saved article: the first device's is stored and every device shows it, two at once (the one stored first wins), offline the device's own, nothing stored for articles that aren't saved (the web app's `sharedText.test.ts` checks the same) |
 | `TextLayoutTest` | Article text as reader blocks: a block per paragraph (also from divs and double line breaks), headings, bulleted, numbered and nested lists, quotes, code |
@@ -252,6 +253,9 @@ and then (always before a release):
       player): open it: the players are there at once, no card to tap first, and nothing plays by
       itself. Each shows whole (Spotify with its cover, SoundCloud with its play button, Bandcamp
       with its artwork and controls) and plays when you tap play. Web app: the same, with a click.
+- [ ] **No black flash with players** (Android; an article with several players, such as
+      Stereogum's "The 5 Best Songs Of The Week"): open it: the screen slides in normally, without
+      going black for a moment; the players appear as the screen settles. Back out: no black flash.
 - [ ] **Settings sync between phone and web:** on the phone, turn on Always open the website and
       add a hidden word; sync. In the web app (same account, after a sync): both are the same there,
       and clicking a feed article opens its website in a new tab. Change the theme or the list view
