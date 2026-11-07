@@ -233,12 +233,9 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   app (`ui/CookieShape.kt`). Android only: the web app keeps its own design language. Empty pages show their icon on it instead of the
   shared kit's circle (the kit's `LocalEmptyStateBadge`, set in `Theme.kt`; the other apps keep the
   circle). As a page appears its cookie springs in and turns a few degrees into place, then stays
-  still; the icon on it doesn't move. Mark all as read turns into it when pulled past the end of the list: the label fades, a
-  primary line runs round the outline, the pill shrinks to a circle that becomes the cookie, which
-  fills with `primary`, pops and turns; letting go marks all as read.
-- One look per kind of pull (2026-11-05): **actions that change your articles** (Mark all as read)
-  turn into the cookie and fill with `primary`. **Pull to refresh** is Material's standard
-  indicator; only when new items came in does its circle, once done, smoothly become the cookie
+  still; the icon on it doesn't move.
+- **Pull to refresh** is Material's standard indicator (there is no pull past the end of a list any
+  more, 2026-11-07); only when new items came in does its circle, once done, smoothly become the cookie
   in its light tone (`primaryContainer`, never the `primary` fill of actions) with "+3" for a
   moment. Loading the full article keeps Material's thin progress bar.
   Going somewhere (a next item) would never use the cookie.
@@ -313,15 +310,14 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   touch area is the gap). So every place is one or two taps from the list. **+** is the FAB, the screen's main action, the
   same in Feeds, Saved and the Inbox (it was in the search bar before, owner's choice): the Add sheet, two
   `surfaceContainerHigh` rows with their icon on a `secondaryContainer` circle, **Subscribe to feed**
-  and **Save article**, each with a line saying what it does. **Mark all as read** (✓✓ and the
-  words) floats beside + in Feeds and the Inbox (2026-11-07): a floating toolbar (a `surfaceContainer` pill with
-  its shadow) holding it as a text button, with + next to it, + staying in its corner. While nothing
-  in the section shown is unread (in the Inbox: nothing shared with you) the button slides away and
-  + stays alone in its corner; it only marks that section. Pulling past the end of the list works on
-  it, the button keeping its own shape and size (owner's wish): it takes the cookie's edge, round
-  bumps along its pill outline, a `primary` line runs round them as you pull, and far enough it fills
-  with `primary` (its words `onPrimary`) with a small pop, its bumps moving slowly round; let go. The web app keeps it as an outlined button under the last
-  article (no floating toolbars there), in Unread and All too.
+  and **Save article**, each with a line saying what it does. **Mark all as read** floats beside +
+  in Feeds and the Inbox (2026-11-07, chosen from Material-only mockups): Material 3's floating
+  toolbar (a `surfaceContainer` circle, 64 dp, with its shadow) holding one icon button, ✓✓ in
+  `onSurfaceVariant` with its name in a plain tooltip on a long press, the FAB 8 dp beside it, the
+  pair centred. While nothing in the section shown is unread (in the Inbox: nothing shared with you)
+  the toolbar slides away and + moves to its corner, animated; it only marks that section. The web
+  app keeps it as an outlined button under the last article (no floating toolbars there), in Unread
+  and All too.
 - An article in Saved shows a tonal **Saved** label (Saved's list icon and the word, in
   `secondaryContainer`, the same kind of label as Search's Feed / Saved) at the end of its card's
   top line in Feeds.

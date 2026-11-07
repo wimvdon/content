@@ -2,6 +2,16 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-07: Mark all as read is an icon in a centred floating toolbar; no pull past the end
+
+Owner's choice from Material-only mockups, after the bumpy pill (below) didn't work: Mark all as read
+is Material 3's floating toolbar with one icon button (✓✓, 48 dp in a 64 dp round bar, its name in a
+plain tooltip), the FAB beside it, the pair centred above the navigation bar. With nothing to mark the
+toolbar slides away and + moves to its corner, animated (the FAB slot spans the width and the pair
+slides along it). The pull past the end of the list is gone (owner's wish), with what only it used:
+the cookie morph, the bumpy pill, their tests (`PullToMarkTest`, those parts of `CookieTest`) and the
+"Let go to mark all as read" string. The reader's Share is a FAB beside its toolbar (since #380).
+
 ## 2026-11-07: The toolbar's button takes the cookie's edge; hidden with nothing to mark
 
 Owner's feedback on the plain pill (entry below): pulled, the button should be the cookie in the

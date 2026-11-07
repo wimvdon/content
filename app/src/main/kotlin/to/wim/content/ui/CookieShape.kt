@@ -19,13 +19,12 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.pow
 import kotlin.math.sin
 
 /**
  * Content's shape (2026-11-03, the owner's choice): Material 3 Expressive's nine-sided cookie,
- * drawn here (Material 3 1.4 has no Expressive shapes). Empty pages show their icon on it, and
- * Mark all as read turns into it when pulled far enough ([morph]). Android only: the web app keeps
+ * drawn here (Material 3 1.4 has no Expressive shapes). Empty pages show their icon on it, and pull
+ * to refresh's indicator becomes it when new articles came in. Android only: the web app keeps
  * its own design language. Plain Kotlin, tested on the JVM.
  */
 object Cookie {
@@ -84,110 +83,11 @@ object Cookie {
         }
     }
 
-    /**
-     * A pill [width] by [height] around (0, 0) with the cookie's edge (2026-11-07, owner's wish: Mark
-     * all as read in the toolbar keeps its button's shape and size): round bumps all along its outline,
-     * about [bump] apart, the edge going in by up to [depth] between them. [phase] (0 to 1) moves the
-     * bumps along the outline, as the cookie turns. Points are evenly spaced along the outline, from
-     * the middle of the top edge, clockwise; depth 0 is the plain pill.
-     */
-    fun scallopedPill(
-        width: Float,
-        height: Float,
-        bump: Float,
-        depth: Float,
-        phase: Double = 0.0,
-        count: Int = POINTS * 2,
-    ): List<Point> {
-        val r = height / 2.0
-        val half = max(0.0, width - height.toDouble()) / 2
-        val arc = PI * r
-        val perimeter = 4 * half + 2 * arc
-        val bumps = bumpsOn(width, height, bump)
-        return List(count) { i ->
-            // Where along the outline (from the middle of the top edge, clockwise), and which way is out.
-            val d = i * perimeter / count
-            val edge =
-                when {
-                    d < half -> Edge(d, -r, 0.0, -1.0)
-                    d < half + arc -> Edge.round(half, r, -PI / 2 + (d - half) / r)
-                    d < 3 * half + arc -> Edge(half - (d - half - arc), r, 0.0, 1.0)
-                    d < 3 * half + 2 * arc -> Edge.round(-half, r, PI / 2 + (d - 3 * half - arc) / r)
-                    else -> Edge(-half + (d - 3 * half - 2 * arc), -r, 0.0, -1.0)
-                }
-            // In by 0 at a bump's top, by [depth] between two, as the cookie's edge does.
-            val inward = depth * (1 - cos(2 * PI * bumps * (i.toDouble() / count + phase))) / 2
-            Point((edge.x - edge.nx * inward).toFloat(), (edge.y - edge.ny * inward).toFloat())
-        }
-    }
-
-    /** A point on a pill's outline and the way out from it. */
-    private class Edge(
-        val x: Double,
-        val y: Double,
-        val nx: Double,
-        val ny: Double,
-    ) {
-        companion object {
-            /** On the round end centred at ([cx], 0), [r] round, at [angle]. */
-            fun round(
-                cx: Double,
-                r: Double,
-                angle: Double,
-            ) = Edge(cx + cos(angle) * r, sin(angle) * r, cos(angle), sin(angle))
-        }
-    }
-
-    /** How many bumps [scallopedPill] puts round a pill [width] by [height]. */
-    fun bumpsOn(
-        width: Float,
-        height: Float,
-        bump: Float,
-    ): Int = max(3, kotlin.math.round((2 * max(0.0, width - height.toDouble()) + PI * height) / bump).toInt())
-
     fun mix(
         a: List<Point>,
         b: List<Point>,
         k: Float,
     ): List<Point> = a.zip(b) { p, q -> Point(p.x + (q.x - p.x) * k, p.y + (q.y - p.y) * k) }
-
-    /** Where Mark all as read is at pull [progress] (0 to 1): how much of its label, shrinking and cookie show. */
-    data class Morph(
-        /** The label and its icon, fading first. */
-        val label: Float,
-        /** Pill to circle. */
-        val shrink: Float,
-        /** Circle to cookie. */
-        val form: Float,
-        /** The tick inside the cookie. */
-        val check: Float,
-    )
-
-    fun morph(progress: Float): Morph {
-        val k = progress.coerceIn(0f, 1f)
-        return Morph(
-            label = (1 - k / 0.28f).coerceIn(0f, 1f),
-            shrink = ease((k - 0.18f) / 0.47f),
-            form = ease((k - 0.55f) / 0.45f),
-            check = ((k - 0.6f) / 0.3f).coerceIn(0f, 1f),
-        )
-    }
-
-    /** The outline at [m]: a pill [pillWidth] by [pillHeight], shrinking to a [circle] that becomes a [cookie]. */
-    fun outline(
-        m: Morph,
-        pillWidth: Float,
-        pillHeight: Float,
-        circle: Float,
-        cookie: Float,
-        turn: Double = 0.0,
-    ): List<Point> {
-        val w = pillWidth + (circle - pillWidth) * m.shrink
-        val h = pillHeight + (circle - pillHeight) * m.shrink
-        return mix(pill(w, h), points(circle + (cookie - circle) * m.form, turn), m.form)
-    }
-
-    private fun ease(x: Float): Float = 1 - (1 - x.coerceIn(0f, 1f)).toDouble().pow(3).toFloat()
 }
 
 /** A smooth closed path through [points] (Catmull-Rom curves), moved to ([cx], [cy]). */

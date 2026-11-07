@@ -11,7 +11,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -44,16 +43,13 @@ class InboxHome(
  * shared with you, newest first, like a feed's articles with who sent it in place of the feed.
  * Unread ones are bold with a dot; opening one reads it. A long press marks it read or unread, saves,
  * shares or removes it from the inbox (no swipes: #305). While something is unread, Mark all as read
- * floats beside + (the screen's [MarkAllReadToolbar], 2026-11-07): tap it, or pull past the end of the
- * list ([pullToMark]), as in Feeds.
+ * floats beside + (the screen's [MarkAllReadToolbar], 2026-11-07), as in Feeds.
  */
 @Composable
 fun InboxContent(
     inbox: InboxHome,
     listView: ListView,
     showImages: Boolean,
-    /** Pulling past the end marks all as read, on the floating toolbar's button; null while nothing is unread. */
-    pullToMark: PullToMarkState?,
 ) {
     if (inbox.items.isEmpty()) {
         EmptyState(
@@ -72,7 +68,6 @@ fun InboxContent(
         modifier =
             Modifier
                 .fillMaxSize()
-                .then(if (pullToMark != null) Modifier.nestedScroll(pullToMark.connection) else Modifier)
                 .readableWidth(),
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 88.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
