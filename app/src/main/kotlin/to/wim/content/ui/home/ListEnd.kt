@@ -11,6 +11,23 @@ import to.wim.content.data.Item
  * Plain Kotlin, tested on the JVM.
  */
 object ListEnd {
+    /** How long the All caught up page takes to fade in (and the header to slide back) once scrolled into. */
+    const val CAUGHT_UP_FADE_MS = 700
+
+    /**
+     * How visible All caught up at the end is, from where its top is ([top], px from the list's top)
+     * and the stretch it fades in over: nothing while it is further down than [fadeDistance] (under
+     * the last articles, also with one unread article left), then in slowly, fully there at the top.
+     */
+    fun caughtUpAlpha(
+        top: Int,
+        fadeDistance: Float,
+    ): Float {
+        if (fadeDistance <= 0f) return 1f
+        val progress = (1f - top / fadeDistance).coerceIn(0f, 1f)
+        return progress * progress
+    }
+
     fun showsMarkAllRead(unreadHere: Int): Boolean = unreadHere > 0
 
     fun inboxHasUnread(items: List<Item>): Boolean = items.any { it.sharedBy?.read == false }

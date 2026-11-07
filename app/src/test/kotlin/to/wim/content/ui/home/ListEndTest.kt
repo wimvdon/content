@@ -54,6 +54,17 @@ class ListEndTest {
     }
 
     @Test
+    fun allCaughtUpFadesInOnlyOverTheLastStretch() {
+        // Far down the screen, under the last article(s): not shown.
+        assertEquals(0f, ListEnd.caughtUpAlpha(top = 900, fadeDistance = 600f), 0f)
+        assertEquals(0f, ListEnd.caughtUpAlpha(top = 600, fadeDistance = 600f), 0f)
+        // Coming up: in slowly (eased), fully there at the top.
+        assertEquals(0.25f, ListEnd.caughtUpAlpha(top = 300, fadeDistance = 600f), 0.001f)
+        assertEquals(1f, ListEnd.caughtUpAlpha(top = 0, fadeDistance = 600f), 0f)
+        assertEquals(1f, ListEnd.caughtUpAlpha(top = 50, fadeDistance = 0f), 0f)
+    }
+
+    @Test
     fun scrolledIntoAllCaughtUpWhenItIsTheFirstItemOnScreen() {
         // 12 items: day headers and articles, then All caught up as the last.
         assertTrue(ListEnd.reachedCaughtUp(caughtUpEnd = true, firstVisibleIndex = 11, totalItems = 12))

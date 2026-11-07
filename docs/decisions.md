@@ -2,6 +2,14 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-07: All caught up fades in over the last stretch; the header slides back with the page
+
+Owner's feedback on v6.11.31: All caught up showed too early (already under the one unread article
+left) and the page appeared at once, the header snapping back. Now the block at the end fades in
+only over the last 240 dp before it reaches the top (`ListEnd.caughtUpAlpha`, eased), and when the
+list turns into the All caught up page it fades in over 700 ms while the header slides back in over
+the same time, instead of the standard short fade and an instant header.
+
 ## 2026-11-07: Scrolling into All caught up turns the list into the All caught up page
 
 Owner's feedback on v6.11.30: keeping on scrolling should end on the All caught up page itself, not
