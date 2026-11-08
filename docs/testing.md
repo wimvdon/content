@@ -79,7 +79,7 @@ when the run fails.
 | `FeedArrangementTest` | Manage page order: rows per folder, dragging feeds between folders and out of them, forbidden moves, reordering folders |
 | `SectionOrderTest` | Manage feeds' list in sections: headings and rows flattened, a row passing headings, nothing above the first heading, a drop moving a feed into another tag (or reordering its own) |
 | `SettingsTest` | Text size limits, reader and theme darkness (and Auto dark), Save/Share targets (storage and the old Save setting), defaults |
-| `ListEndTest` | Mark all as read (the FAB): in Feeds' Unread and All while something in the section is unread; in the Inbox while something shared is unread; with its words while the header shows; All caught up at the end only in Unread with Mark as read on scroll, as tall as the list's window, when it has been scrolled all the way into, and how it fades in over the last stretch |
+| `ListEndTest` | Mark all as read (the FAB): in Feeds' Unread and All while something in the section is unread; in the Inbox while something shared is unread; with its words while the header shows; All caught up at the end only in Unread with Mark as read on scroll, as tall as the list's window, when it has been scrolled all the way into, how far the line round its cookie has run over the last stretch, and how the tick, title and outline come in |
 | `CookieTest` | Content's cookie (nine bumps, its dips) and the pill that pull to refresh's indicator turns from |
 
 ## Strategy
@@ -194,8 +194,9 @@ and then (always before a release):
       The Inbox: the same button while something shared with you is unread.
 - [ ] **Keep scrolling to the end:** turn on Settings › Article list › Mark as read on scroll, then
       scroll down through Unread. After the last article comes All caught up on the cookie; keep
-      scrolling until it fills the screen: All caught up only fades in over the last bit (not under
-      an unread article), then the screen slowly becomes the All caught up page, the search bar and
+      scrolling until it fills the screen: over the last bit a blue line runs round the cookie's
+      outline as far as you scroll (back when you scroll up; nothing under an unread article); at the
+      top the cookie fills grey-blue and pops, then the screen slowly becomes the All caught up page, the search bar and
       the switch sliding back in as it fades in, with Refresh, and the Mark all as read button gone. All (not Unread) and the
       setting off: the list just ends after the last article.
       Web app: the button is under the last article, in Unread, All and the Inbox.

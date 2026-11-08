@@ -14,19 +14,24 @@ object ListEnd {
     /** How long the All caught up page takes to fade in (and the header to slide back) once scrolled into. */
     const val CAUGHT_UP_FADE_MS = 700
 
+    /** How long the cookie at the end takes to fill and pop before the All caught up page takes over. */
+    const val CAUGHT_UP_POP_MS = 450
+
     /**
-     * How visible All caught up at the end is, from where its top is ([top], px from the list's top)
-     * and the stretch it fades in over: nothing while it is further down than [fadeDistance] (under
-     * the last articles, also with one unread article left), then in slowly, fully there at the top.
+     * How far into the last stretch All caught up at the end is, from where its top is ([top], px
+     * from the list's top): 0 while it is further down than [fadeDistance] (under the last articles,
+     * also with one unread article left), 1 at the top. How far the line round its cookie has run.
      */
-    fun caughtUpAlpha(
+    fun caughtUpProgress(
         top: Int,
         fadeDistance: Float,
-    ): Float {
-        if (fadeDistance <= 0f) return 1f
-        val progress = (1f - top / fadeDistance).coerceIn(0f, 1f)
-        return progress * progress
-    }
+    ): Float = if (fadeDistance <= 0f) 1f else (1f - top / fadeDistance).coerceIn(0f, 1f)
+
+    /** How visible the ✓✓ and the title are at [progress]: in slowly (eased), fully there at the top. */
+    fun caughtUpAlpha(progress: Float): Float = progress * progress
+
+    /** The cookie's empty outline, under the line: there as soon as the line starts, not before. */
+    fun caughtUpTrackAlpha(progress: Float): Float = (progress * 4f).coerceIn(0f, 1f)
 
     fun showsMarkAllRead(unreadHere: Int): Boolean = unreadHere > 0
 

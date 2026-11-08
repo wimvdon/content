@@ -2,6 +2,19 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-08: The line round the cookie comes back at the end of the list; bigger empty-page cookies
+
+Owner's choice from mockups: the outline effect of the old pull past the end (a `primary` line
+running round the cookie, then it fills and pops) comes back, driven by scrolling into All caught up
+at the end of Unread (Mark as read on scroll): over the last 240 dp the line runs as far round as
+you've scrolled (`ListEnd.caughtUpProgress`, drawn with a `PathMeasure` segment of the cookie's
+outline); at the top the cookie fills in the page's grey-blue (`secondaryContainer`, owner's choice
+over `primary`, so nothing jumps when the page takes over), pops and turns, and 450 ms later the
+All caught up page fades in. Empty pages' cookies are bigger (112 dp, owner's wish), the same size
+as the one at the end. That takes a `size` on the shared kit's `EmptyStateBadge` (default 72 dp, so
+other apps don't change); copy that kit change to the android-app template, as the kit is meant to
+be the same everywhere. Android only, as the end itself.
+
 ## 2026-11-07: All caught up fades in over the last stretch; the header slides back with the page
 
 Owner's feedback on v6.11.31: All caught up showed too early (already under the one unread article

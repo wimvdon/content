@@ -216,8 +216,9 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   articles arriving above are never marked unseen. They stay in the unread list (see above), so
   you can scroll back to them. On the phone the Unread list then ends in **All caught up**, with room
   under it, so you can just keep scrolling: the last articles go past the top too and are marked
-  read. All caught up only fades in over the last bit of scrolling (it isn't there under an unread
-  article), and once it fills the screen the list slowly turns into the All caught up page: the
+  read. Over the last bit of scrolling, a line runs round All caught up's cookie as far as you've
+  scrolled (it isn't there under an unread article); at the top the cookie fills and pops, and then
+  the list slowly turns into the All caught up page: the
   search bar and switch slide back in as it fades in, with **Refresh**, as after Mark all as read,
   with no need to tap it. (Not in the web app: a page there can't scroll past
   its end.)
