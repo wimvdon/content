@@ -1,9 +1,13 @@
 package to.wim.content.feed
 
-/** A downloaded document. [url] is the address after redirects. */
+/**
+ * A downloaded document. [url] is the address after redirects; [signedIn]: it was downloaded with
+ * the site's sign-in (#180), so it can hold text only subscribers see.
+ */
 class Fetched(
     val url: String,
     val bytes: ByteArray,
+    val signedIn: Boolean = false,
 )
 
 /** Why a download failed. */

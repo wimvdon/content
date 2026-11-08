@@ -2,6 +2,22 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-08: A shared article from a site you're signed in to loads with the sign-in
+
+- **The cause** (owner's report: an article from a signed-in site, shared to Content from another
+  app, showed only the site's preview): sharing can start the app just for the share screen. The
+  sites signed in to are then read from their file at the first download, and until that is done the
+  list is empty. The download right after saving (the title and summary) and the full text loaded
+  soon after went without the sign-in, and the preview was kept in the article cache, so it showed
+  from then on.
+- **The fix**: downloads wait until the sites signed in to are read (`SiteSignInStore.loaded`)
+  before choosing whether to send a sign-in. The article cache keeps a text loaded with a sign-in
+  apart from one loaded without (`FullArticles`, `Fetched.signedIn`): for a site signed in to, only
+  the first counts, so previews kept earlier, including ones from before this fix, are downloaded
+  again with the sign-in.
+- Android only: the web app has no sign-ins to sites (it opens the article with the browser's own
+  sign-in), so there is nothing to wait for there.
+
 ## 2026-11-08: The line round the cookie comes back at the end of the list; bigger empty-page cookies
 
 Owner's choice from mockups: the outline effect of the old pull past the end (a `primary` line

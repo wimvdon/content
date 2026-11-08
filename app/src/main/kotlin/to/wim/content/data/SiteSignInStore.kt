@@ -13,6 +13,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import java.io.IOException
@@ -34,6 +35,17 @@ class SiteSignInStore(
             .catch { error -> if (error is IOException) emit(emptyPreferences()) else throw error }
             .map { SiteSignIns.decode(it[SIGN_INS]) }
             .stateIn(scope, SharingStarted.Eagerly, emptyList())
+
+    /**
+     * The sites signed in to, once they are read from the file. [signIns] starts empty until then,
+     * so a download right after the app starts (from the share menu) would go without the sign-in
+     * and keep the site's preview as the article.
+     */
+    suspend fun loaded(): List<SiteSignIn> =
+        dataStore.data
+            .catch { error -> if (error is IOException) emit(emptyPreferences()) else throw error }
+            .map { SiteSignIns.decode(it[SIGN_INS]) }
+            .first()
 
     /** Keeps [signIn], replacing the site's earlier one. */
     suspend fun save(signIn: SiteSignIn) =

@@ -56,6 +56,47 @@ class FullArticlesTest {
         assertFalse(old.exists())
     }
 
+    /** A site with a paywall: its preview without the sign-in, the whole article with it. */
+    private fun paywalled(
+        dir: File,
+        signedIn: () -> Boolean,
+    ) = FullArticles(
+        dir,
+        fetch = { url ->
+            downloads++
+            val text = if (signedIn()) "Whole article" else "Preview"
+            Fetched(url, "<article>$text</article>".toByteArray(), signedIn = signedIn())
+        },
+        extract = { html, _ -> html.substringAfter("<article>", "").substringBefore("</article>").ifEmpty { null } },
+        signedIn = { signedIn() },
+    )
+
+    @Test
+    fun `a preview kept before the sign-ins were known is not shown once signed in`() {
+        val dir = folder.newFolder("articles")
+        var signedIn = false
+        // Shared from another app, downloaded before the sign-ins were read: the site's preview.
+        assertEquals(FullArticle.Loaded("Preview"), runBlocking { paywalled(dir) { signedIn }.load(link) })
+        signedIn = true
+        assertEquals(FullArticle.Loaded("Whole article"), runBlocking { paywalled(dir) { signedIn }.load(link) })
+        assertEquals(2, downloads)
+        // The whole article is kept from then on.
+        assertEquals(FullArticle.Loaded("Whole article"), runBlocking { paywalled(dir) { signedIn }.load(link) })
+        assertEquals(2, downloads)
+    }
+
+    @Test
+    fun `forgetting an article forgets it with and without the sign-in`() {
+        val dir = folder.newFolder("articles")
+        var signedIn = false
+        runBlocking { paywalled(dir) { signedIn }.load(link) }
+        signedIn = true
+        runBlocking { paywalled(dir) { signedIn }.load(link) }
+        assertEquals(2, dir.listFiles()?.size)
+        runBlocking { paywalled(dir) { signedIn }.forget(link) }
+        assertTrue(dir.listFiles().isNullOrEmpty())
+    }
+
     @Test
     fun `a page without an article fails and is not kept`() {
         val dir = folder.newFolder("articles")
