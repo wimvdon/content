@@ -24,6 +24,18 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.animate
+import to.wim.content.ui.cookiePath
+import to.wim.content.ui.Cookie
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.PathMeasure
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.background
@@ -479,6 +491,8 @@ private fun ArticleList(
                 }
             }
         }
+    // Scrolled all the way into All caught up at the end: its cookie fills and pops.
+    var caughtUp by remember(listState) { mutableStateOf(false) }
     if (state.markReadOnScroll) {
         val articles by rememberUpdatedState(state.articles)
         val positions by rememberUpdatedState(articlesBefore)
@@ -488,7 +502,6 @@ private fun ArticleList(
         LaunchedEffect(listState) {
             // Only articles that were on screen count (#157): new ones arriving above aren't marked unseen.
             val seen = HashSet<String>()
-            var done = false
             snapshotFlow { Triple(listState.firstVisibleItemIndex, listState.layoutInfo.totalItemsCount, listState.layoutInfo.visibleItemsInfo.mapNotNull { it.key as? String }) }
                 .distinctUntilChanged()
                 .collect { (first, total, visible) ->
@@ -496,8 +509,10 @@ private fun ArticleList(
                     val keys = ScrollRead.scrolledPast(articles, positions.getOrElse(first) { articles.size }, seen)
                     if (keys.isNotEmpty()) onScrolledPast(keys)
                     // Everything has gone past the top: the list becomes the All caught up page.
-                    if (!done && ListEnd.reachedCaughtUp(caughtUpEnd, first, total)) {
-                        done = true
+                    if (!caughtUp && ListEnd.reachedCaughtUp(caughtUpEnd, first, total)) {
+                        // The cookie fills and pops first, then the page takes over.
+                        caughtUp = true
+                        delay(ListEnd.CAUGHT_UP_POP_MS.toLong())
                         onScrolledToCaughtUp()
                     }
                 }
@@ -550,14 +565,14 @@ private fun ArticleList(
                 val height = ListEnd.caughtUpHeight(info.viewportSize.height, info.beforeContentPadding, info.afterContentPadding, minimum)
                 val fadeDistance = with(LocalDensity.current) { CAUGHT_UP_FADE_DISTANCE.toPx() }
                 CaughtUpEnd(
-                    Modifier
-                        .height(with(LocalDensity.current) { height.toDp() })
-                        // Not there under the last articles: it fades in over the last stretch of
-                        // scrolling, as it nears the top (read while drawing, so scrolling doesn't recompose).
-                        .graphicsLayer {
-                            val top = listState.layoutInfo.visibleItemsInfo.lastOrNull { it.key == CAUGHT_UP_END }?.offset
-                            alpha = if (top == null) 0f else ListEnd.caughtUpAlpha(top, fadeDistance)
-                        },
+                    Modifier.height(with(LocalDensity.current) { height.toDp() }),
+                    // How far into the last stretch it is: nothing under the last articles, all the
+                    // way at the top (read while drawing, so scrolling doesn't recompose).
+                    progress = {
+                        val top = listState.layoutInfo.visibleItemsInfo.lastOrNull { it.key == CAUGHT_UP_END }?.offset
+                        if (top == null) 0f else ListEnd.caughtUpProgress(top, fadeDistance)
+                    },
+                    filled = caughtUp,
                 )
             }
         }
@@ -571,24 +586,93 @@ private val CAUGHT_UP_MIN_HEIGHT = 240.dp
 /** How far from the top All caught up starts to show: the last stretch of scrolling. */
 private val CAUGHT_UP_FADE_DISTANCE = 240.dp
 
-/** The end of the list with Mark as read on scroll on: All caught up on Content's cookie, as on an empty page. */
+/**
+ * The end of the list with Mark as read on scroll on: All caught up on Content's cookie, the size of
+ * the empty page's. Over the last stretch a `primary` line runs round its outline as far as you have
+ * scrolled ([progress], read while drawing), the ✓✓ and the title coming in with it, as the old pull
+ * past the end did (owner's wish, 2026-11-08). Once [filled] (scrolled all the way), the cookie fills
+ * in the page's grey-blue (`secondaryContainer`), pops with a bouncy spring and turns a few degrees,
+ * and the ✓✓ springs in; then the page takes over.
+ */
 @Composable
-private fun CaughtUpEnd(modifier: Modifier) {
+private fun CaughtUpEnd(
+    modifier: Modifier,
+    progress: () -> Float,
+    filled: Boolean,
+) {
     val badge = LocalEmptyStateBadge.current
+    val fill = remember { Animatable(0f) }
+    val pop = remember { Animatable(1f) }
+    val turn = remember { Animatable(0f) }
+    val tick = remember { Animatable(1f) }
+    LaunchedEffect(filled) {
+        if (!filled) return@LaunchedEffect
+        val bouncy = spring<Float>(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow)
+        launch { fill.animateTo(1f, tween(ListEnd.CAUGHT_UP_POP_MS / 2)) }
+        launch { pop.snapTo(0.88f); pop.animateTo(1f, bouncy) }
+        launch { turn.animateTo(8f, bouncy) }
+        launch { tick.snapTo(0.5f); tick.animateTo(1f, bouncy) }
+    }
+    val fillColor = MaterialTheme.colorScheme.secondaryContainer
+    val track = MaterialTheme.colorScheme.outlineVariant
+    val line = MaterialTheme.colorScheme.primary
+    val tickColor = MaterialTheme.colorScheme.onSecondaryContainer
+    val stroke = with(LocalDensity.current) { 3.dp.toPx() }
     Column(
         modifier.fillMaxWidth().padding(horizontal = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
     ) {
-        Box(Modifier.padding(bottom = 8.dp).size(72.dp), contentAlignment = Alignment.Center) {
-            Box(Modifier.matchParentSize().then(badge.motion()).background(MaterialTheme.colorScheme.secondaryContainer, badge.shape))
-            Icon(painterResource(R.drawable.ic_done_all), contentDescription = null, Modifier.size(36.dp), tint = MaterialTheme.colorScheme.onSecondaryContainer)
+        Box(
+            Modifier
+                .padding(bottom = 8.dp)
+                .size(badge.size)
+                .graphicsLayer {
+                    scaleX = pop.value
+                    scaleY = pop.value
+                    rotationZ = turn.value
+                }.drawWithCache {
+                    val outline = cookiePath(Cookie.points(size.minDimension), size.width / 2, size.height / 2)
+                    // The line runs inside the edge, from the top, clockwise.
+                    val inner = cookiePath(Cookie.points(size.minDimension - stroke), size.width / 2, size.height / 2)
+                    val measure = PathMeasure().apply { setPath(inner, false) }
+                    val length = measure.length
+                    val segment = Path()
+                    onDrawBehind {
+                        val p = progress()
+                        val k = fill.value
+                        if (k > 0f) drawPath(outline, fillColor, alpha = k)
+                        drawPath(inner, track, alpha = ListEnd.caughtUpTrackAlpha(p) * (1f - k), style = Stroke(stroke))
+                        segment.reset()
+                        if (measure.getSegment(0f, length * p, segment, true)) {
+                            drawPath(segment, line, alpha = 1f - k, style = Stroke(stroke, cap = StrokeCap.Round))
+                        }
+                    }
+                },
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                painterResource(R.drawable.ic_done_all),
+                contentDescription = null,
+                Modifier
+                    .size(badge.size / 2)
+                    .graphicsLayer {
+                        alpha = if (filled) 1f else ListEnd.caughtUpAlpha(progress())
+                        scaleX = tick.value
+                        scaleY = tick.value
+                        rotationZ = -turn.value
+                    },
+                tint = tickColor,
+            )
         }
         Text(
             stringResource(R.string.home_caught_up_title),
             style = MaterialTheme.typography.titleLarge,
             textAlign = TextAlign.Center,
-            modifier = Modifier.semantics { heading() },
+            modifier =
+                Modifier
+                    .semantics { heading() }
+                    .graphicsLayer { alpha = if (filled) 1f else ListEnd.caughtUpAlpha(progress()) },
         )
     }
 }

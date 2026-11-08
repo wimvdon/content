@@ -29,16 +29,19 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
  * What sits behind an empty page's icon: a still circle unless the app's theme picks its own
- * (Theme.kt): a [shape], and a [motion] for it (the icon stays still). Content picks its cookie,
- * which springs in and turns a little as the page appears (2026-11-03).
+ * (Theme.kt): a [shape], and a [motion] for it (the icon stays still), and its [size] (the icon is
+ * half of it). Content picks its cookie, which springs in and turns a little as the page appears
+ * (2026-11-03), at 112 dp (2026-11-08).
  */
 class EmptyStateBadge(
     val shape: Shape = CircleShape,
     val motion: @Composable () -> Modifier = { Modifier },
+    val size: Dp = 72.dp,
 )
 
 val LocalEmptyStateBadge = staticCompositionLocalOf { EmptyStateBadge() }
@@ -77,7 +80,7 @@ fun EmptyState(
                 Box(
                     Modifier
                         .padding(bottom = 8.dp)
-                        .size(72.dp),
+                        .size(badge.size),
                     contentAlignment = Alignment.Center,
                 ) {
                     Box(
@@ -86,7 +89,7 @@ fun EmptyState(
                             .then(badge.motion())
                             .background(MaterialTheme.colorScheme.secondaryContainer, badge.shape),
                     )
-                    Icon(icon, contentDescription = null, Modifier.size(36.dp), tint = MaterialTheme.colorScheme.onSecondaryContainer)
+                    Icon(icon, contentDescription = null, Modifier.size(badge.size / 2), tint = MaterialTheme.colorScheme.onSecondaryContainer)
                 }
                 Text(
                     title,

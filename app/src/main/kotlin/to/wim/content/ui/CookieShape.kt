@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.dp
 import to.wim.content.ui.theme.EmptyStateBadge
 import kotlin.math.PI
 import kotlin.math.cos
@@ -128,9 +129,10 @@ object CookieShape : Shape {
 
 /**
  * The cookie behind an empty page's icon (the kit's EmptyState): as the page appears it springs in
- * from a little smaller and turns a few degrees into place, then stays still.
+ * from a little smaller and turns a few degrees into place, then stays still. 112 dp, bigger than the
+ * kit's 72 (owner's wish, 2026-11-08), the size of the cookie at the end of the list.
  */
-val CookieBadge = EmptyStateBadge(CookieShape) { Modifier.springTurnIn() }
+val CookieBadge = EmptyStateBadge(CookieShape, motion = { Modifier.springTurnIn() }, size = 112.dp)
 
 @Composable
 private fun Modifier.springTurnIn(): Modifier {

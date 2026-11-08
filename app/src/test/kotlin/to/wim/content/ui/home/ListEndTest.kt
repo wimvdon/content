@@ -54,14 +54,24 @@ class ListEndTest {
     }
 
     @Test
-    fun allCaughtUpFadesInOnlyOverTheLastStretch() {
-        // Far down the screen, under the last article(s): not shown.
-        assertEquals(0f, ListEnd.caughtUpAlpha(top = 900, fadeDistance = 600f), 0f)
-        assertEquals(0f, ListEnd.caughtUpAlpha(top = 600, fadeDistance = 600f), 0f)
-        // Coming up: in slowly (eased), fully there at the top.
-        assertEquals(0.25f, ListEnd.caughtUpAlpha(top = 300, fadeDistance = 600f), 0.001f)
-        assertEquals(1f, ListEnd.caughtUpAlpha(top = 0, fadeDistance = 600f), 0f)
-        assertEquals(1f, ListEnd.caughtUpAlpha(top = 50, fadeDistance = 0f), 0f)
+    fun theLineRunsRoundTheCookieOnlyOverTheLastStretch() {
+        // Far down the screen, under the last article(s): no line yet.
+        assertEquals(0f, ListEnd.caughtUpProgress(top = 900, fadeDistance = 600f), 0f)
+        assertEquals(0f, ListEnd.caughtUpProgress(top = 600, fadeDistance = 600f), 0f)
+        // Coming up: as far round as scrolled, all the way at the top.
+        assertEquals(0.5f, ListEnd.caughtUpProgress(top = 300, fadeDistance = 600f), 0.001f)
+        assertEquals(1f, ListEnd.caughtUpProgress(top = 0, fadeDistance = 600f), 0f)
+        assertEquals(1f, ListEnd.caughtUpProgress(top = 50, fadeDistance = 0f), 0f)
+    }
+
+    @Test
+    fun theTickAndTitleComeInSlowlyAndTheOutlineWithTheLine() {
+        assertEquals(0f, ListEnd.caughtUpAlpha(0f), 0f)
+        assertEquals(0.25f, ListEnd.caughtUpAlpha(0.5f), 0.001f)
+        assertEquals(1f, ListEnd.caughtUpAlpha(1f), 0f)
+        assertEquals(0f, ListEnd.caughtUpTrackAlpha(0f), 0f)
+        assertEquals(0.4f, ListEnd.caughtUpTrackAlpha(0.1f), 0.001f)
+        assertEquals(1f, ListEnd.caughtUpTrackAlpha(0.5f), 0f)
     }
 
     @Test

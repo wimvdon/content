@@ -232,7 +232,8 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
 - Shape: Material 3 Expressive's nine-sided **cookie** (owner's choice, 2026-11-03), drawn by the
   app (`ui/CookieShape.kt`). Android only: the web app keeps its own design language. Empty pages show their icon on it instead of the
   shared kit's circle (the kit's `LocalEmptyStateBadge`, set in `Theme.kt`; the other apps keep the
-  circle). As a page appears its cookie springs in and turns a few degrees into place, then stays
+  circle), and bigger: 112 dp with a 56 dp icon, not the kit's 72 (owner's wish, 2026-11-08; the
+  badge's `size`). As a page appears its cookie springs in and turns a few degrees into place, then stays
   still; the icon on it doesn't move.
 - **Pull to refresh** is Material's standard indicator (there is no pull past the end of a list any
   more, 2026-11-07); only when new items came in does its circle, once done, smoothly become the cookie
@@ -316,11 +317,15 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   slid away (scrolling down) and grows back with it; with nothing unread in the section shown (in the
   Inbox: nothing shared with you) it goes; it only marks that section. With Mark as read on scroll on,
   Feeds' Unread list ends in **All caught up** on the cookie (as on the empty page), as tall as the
-  list's window, so scrolling on takes the last articles past the top and marks them. It fades in
-  only over the last 240 dp of scrolling (eased), never showing under an unread article; once it
-  fills the screen the list becomes the All caught up page itself, fading in slowly (700 ms) while
-  the header slides back in over the same time, with Refresh, as after Mark all as read (owner's
-  wish): no tap needed. The web
+  list's window, so scrolling on takes the last articles past the top and marks them. Over the last
+  240 dp of scrolling its cookie (the page's size) shows as an `outlineVariant` outline with a
+  3 dp `primary` line running round it from the top, clockwise, as far as you've scrolled (the old
+  pull's line, owner's wish, 2026-11-08); the ✓✓ and the title come in with it (eased), and nothing
+  shows under an unread article. At the top the line closes, the cookie fills in `secondaryContainer`
+  (the page's grey-blue, owner's choice over `primary`), pops with a bouncy spring, turns 8°, and the
+  ✓✓ springs in; 450 ms later the list becomes the All caught up page itself, fading in slowly
+  (700 ms) while the header slides back in over the same time, with Refresh, as after Mark all as
+  read: no tap needed. The web
   app keeps Mark all as read as an outlined button under the last article (no FABs there), in Unread
   and All too, and has no All caught up end (a web page can't scroll past its end).
 - An article in Saved shows a tonal **Saved** label (Saved's list icon and the word, in
