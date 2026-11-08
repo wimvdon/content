@@ -67,14 +67,28 @@ class ListEndTest {
     @Test
     fun withAShortListNothingShowsBeforeScrolling() {
         // One unread article: All caught up starts 400 px from the top, closer than the stretch.
-        val rest = ListEnd.caughtUpRestTop(null, 400)
+        val rest = ListEnd.caughtUpRestTop(top = 400, firstVisibleIndex = 0, firstVisibleOffset = 0, previous = null)
+        assertEquals(400, rest)
         assertEquals(0f, ListEnd.caughtUpProgress(top = 400, fadeDistance = 600f, restTop = rest), 0f)
-        // Scrolling brings it up; where it rested stays the furthest down it was.
-        assertEquals(400, ListEnd.caughtUpRestTop(rest, 200))
+        // Scrolled 200 px: where it rests stays the same, and the line is half way.
+        assertEquals(400, ListEnd.caughtUpRestTop(top = 200, firstVisibleIndex = 0, firstVisibleOffset = 200, previous = 400))
         assertEquals(0.5f, ListEnd.caughtUpProgress(top = 200, fadeDistance = 600f, restTop = 400), 0.001f)
         assertEquals(1f, ListEnd.caughtUpProgress(top = 0, fadeDistance = 600f, restTop = 400), 0f)
+        // Past the first row, the last one worked out stays; never one known: the usual stretch.
+        assertEquals(400, ListEnd.caughtUpRestTop(top = 100, firstVisibleIndex = 1, firstVisibleOffset = 20, previous = 400))
+        assertEquals(null, ListEnd.caughtUpRestTop(top = 100, firstVisibleIndex = 1, firstVisibleOffset = 20, previous = null))
+        assertEquals(0.5f, ListEnd.caughtUpProgress(top = 300, fadeDistance = 600f, restTop = null), 0.001f)
         // A long list: it rests far down, so the stretch is the usual one.
         assertEquals(0.5f, ListEnd.caughtUpProgress(top = 300, fadeDistance = 600f, restTop = 1800), 0.001f)
+    }
+
+    @Test
+    fun anArticleLeavingTheListDoesNotStartTheLine() {
+        // Two articles, one read, then a refresh: one is left and the end moves up to 400 px.
+        // Seen further down a moment before (900 px) or not: at the top of the list, nothing shows.
+        val before = ListEnd.caughtUpRestTop(top = 900, firstVisibleIndex = 0, firstVisibleOffset = 0, previous = null)
+        val after = ListEnd.caughtUpRestTop(top = 400, firstVisibleIndex = 0, firstVisibleOffset = 0, previous = before)
+        assertEquals(0f, ListEnd.caughtUpProgress(top = 400, fadeDistance = 600f, restTop = after), 0f)
     }
 
     @Test
