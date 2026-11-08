@@ -564,13 +564,20 @@ private fun ArticleList(
                 val minimum = with(LocalDensity.current) { CAUGHT_UP_MIN_HEIGHT.roundToPx() }
                 val height = ListEnd.caughtUpHeight(info.viewportSize.height, info.beforeContentPadding, info.afterContentPadding, minimum)
                 val fadeDistance = with(LocalDensity.current) { CAUGHT_UP_FADE_DISTANCE.toPx() }
+                // Where it is before scrolling, for a short list (read and kept while drawing, no recomposition).
+                val restTop = remember(state.articles.size) { IntArray(1) { -1 } }
                 CaughtUpEnd(
                     Modifier.height(with(LocalDensity.current) { height.toDp() }),
                     // How far into the last stretch it is: nothing under the last articles, all the
                     // way at the top (read while drawing, so scrolling doesn't recompose).
                     progress = {
                         val top = listState.layoutInfo.visibleItemsInfo.lastOrNull { it.key == CAUGHT_UP_END }?.offset
-                        if (top == null) 0f else ListEnd.caughtUpProgress(top, fadeDistance)
+                        if (top == null) {
+                            0f
+                        } else {
+                            restTop[0] = ListEnd.caughtUpRestTop(restTop[0].takeIf { it >= 0 }, top)
+                            ListEnd.caughtUpProgress(top, fadeDistance, restTop[0])
+                        }
                     },
                     filled = caughtUp,
                 )

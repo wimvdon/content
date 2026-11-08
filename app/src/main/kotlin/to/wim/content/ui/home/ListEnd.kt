@@ -19,13 +19,28 @@ object ListEnd {
 
     /**
      * How far into the last stretch All caught up at the end is, from where its top is ([top], px
-     * from the list's top): 0 while it is further down than [fadeDistance] (under the last articles,
-     * also with one unread article left), 1 at the top. How far the line round its cookie has run.
+     * from the list's top): 0 while it is further down than [fadeDistance] (under the last articles),
+     * 1 at the top. How far the line round its cookie has run. With only a few articles it starts
+     * closer to the top than that ([restTop], where it is before scrolling): then the stretch is the
+     * scroll there is, so nothing shows before you scroll (2026-11-08).
      */
     fun caughtUpProgress(
         top: Int,
         fadeDistance: Float,
-    ): Float = if (fadeDistance <= 0f) 1f else (1f - top / fadeDistance).coerceIn(0f, 1f)
+        restTop: Int = Int.MAX_VALUE,
+    ): Float {
+        val distance = minOf(fadeDistance, restTop.toFloat())
+        return if (distance <= 0f) 1f else (1f - top / distance).coerceIn(0f, 1f)
+    }
+
+    /**
+     * Where All caught up is before scrolling: the furthest down it has been seen ([previous], null
+     * at first), as scrolling only brings it up. Long lists show it far down, so only short ones change.
+     */
+    fun caughtUpRestTop(
+        previous: Int?,
+        top: Int,
+    ): Int = maxOf(previous ?: top, top)
 
     /** How visible the ✓✓ and the title are at [progress]: in slowly (eased), fully there at the top. */
     fun caughtUpAlpha(progress: Float): Float = progress * progress

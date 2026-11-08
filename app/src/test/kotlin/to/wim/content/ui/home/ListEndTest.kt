@@ -65,6 +65,19 @@ class ListEndTest {
     }
 
     @Test
+    fun withAShortListNothingShowsBeforeScrolling() {
+        // One unread article: All caught up starts 400 px from the top, closer than the stretch.
+        val rest = ListEnd.caughtUpRestTop(null, 400)
+        assertEquals(0f, ListEnd.caughtUpProgress(top = 400, fadeDistance = 600f, restTop = rest), 0f)
+        // Scrolling brings it up; where it rested stays the furthest down it was.
+        assertEquals(400, ListEnd.caughtUpRestTop(rest, 200))
+        assertEquals(0.5f, ListEnd.caughtUpProgress(top = 200, fadeDistance = 600f, restTop = 400), 0.001f)
+        assertEquals(1f, ListEnd.caughtUpProgress(top = 0, fadeDistance = 600f, restTop = 400), 0f)
+        // A long list: it rests far down, so the stretch is the usual one.
+        assertEquals(0.5f, ListEnd.caughtUpProgress(top = 300, fadeDistance = 600f, restTop = 1800), 0.001f)
+    }
+
+    @Test
     fun theTickAndTitleComeInSlowlyAndTheOutlineWithTheLine() {
         assertEquals(0f, ListEnd.caughtUpAlpha(0f), 0f)
         assertEquals(0.25f, ListEnd.caughtUpAlpha(0.5f), 0.001f)
