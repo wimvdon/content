@@ -18,8 +18,12 @@ import java.net.URL
  */
 class FeedFetcher(
     private val userAgent: String,
-    /** The sign-in cookies for an address, or null (feed/SiteSignIns.kt). */
-    private val cookieFor: (String) -> String? = { null },
+    /**
+     * The sign-in cookies for an address, or null (feed/SiteSignIns.kt). It may wait until the
+     * sites signed in to are read, so a download right after the app starts (from the share menu)
+     * still goes with the sign-in.
+     */
+    private val cookieFor: suspend (String) -> String? = { null },
     /** A signed-in site's Set-Cookie headers, for an address its sign-in was sent to. */
     private val onCookies: (String, List<String>) -> Unit = { _, _ -> },
 ) {
@@ -56,7 +60,7 @@ class FeedFetcher(
 
                         code !in 200..299 -> throw FetchException(FetchError.ServerError)
 
-                        else -> return@withContext Fetched(current, readLimited(connection))
+                        else -> return@withContext Fetched(current, readLimited(connection), signedIn)
                     }
                 } catch (e: IOException) {
                     throw FetchException(FetchError.Offline, e)

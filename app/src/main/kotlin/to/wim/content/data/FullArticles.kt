@@ -63,24 +63,30 @@ const val FULL_TEXT_THRESHOLD = 1500
  * Loads the complete text of articles whose feed only has a summary: downloads the article's
  * web page and keeps only the article ([extract], see [ArticleExtractor]). Results are kept in the
  * app's cache folder, which Android may clear and which is not backed up; they are downloaded
- * again when needed.
+ * again when needed. A text loaded with a site's sign-in (#180) is kept apart from one loaded
+ * without: for a site signed in to, only the first counts, so a preview kept before signing in (or
+ * downloaded before the sign-ins were read) is never shown as the article.
  */
 class FullArticles(
     private val cacheDir: File,
     private val fetch: suspend (String) -> Fetched,
     /** The article of a page's HTML (downloaded from the given address), or null when there is none. */
     private val extract: suspend (html: String, pageUrl: String) -> String?,
+    /** Whether this device is signed in to the site of an address (feed/SiteSignIns.kt). */
+    private val signedIn: suspend (String) -> Boolean = { false },
 ) {
     suspend fun load(link: String): FullArticle {
-        val file = File(cacheDir, name(link))
-        readCached(file)?.let { return FullArticle.Loaded(it) }
+        readCached(File(cacheDir, name(link, signedIn(link))))?.let { return FullArticle.Loaded(it) }
+        var withSignIn = false
         val html =
             try {
                 val page = fetch(link)
+                withSignIn = page.signedIn
                 extract(withContext(Dispatchers.Default) { ArticleExtractor.decode(page.bytes) }, page.url)
             } catch (_: FetchException) {
                 null
             } ?: return FullArticle.Failed
+        val file = File(cacheDir, name(link, withSignIn))
         withContext(Dispatchers.IO) {
             try {
                 cacheDir.mkdirs()
@@ -95,7 +101,7 @@ class FullArticles(
 
     /** Forgets the stored text of [link], so the next [load] downloads it again (after signing in, #180). */
     suspend fun forget(link: String) {
-        withContext(Dispatchers.IO) { File(cacheDir, name(link)).delete() }
+        withContext(Dispatchers.IO) { listOf(false, true).forEach { File(cacheDir, name(link, it)).delete() } }
     }
 
     private suspend fun readCached(file: File): String? =
@@ -114,15 +120,19 @@ class FullArticles(
         current.sortedByDescending { it.lastModified() }.drop(MAX_FILES).forEach { it.delete() }
     }
 
-    private fun name(link: String): String =
+    private fun name(
+        link: String,
+        withSignIn: Boolean,
+    ): String =
         PREFIX +
             MessageDigest
                 .getInstance("SHA-256")
                 .digest(link.toByteArray())
-                .joinToString("") { "%02x".format(it) } + ".html"
+                .joinToString("") { "%02x".format(it) } + (if (withSignIn) SIGNED_IN else "") + ".html"
 
     private companion object {
         const val MAX_FILES = 300
+        const val SIGNED_IN = "-signed-in"
 
         /**
          * Starts the names of cached articles. Raise the number when [ArticleExtractor] finds

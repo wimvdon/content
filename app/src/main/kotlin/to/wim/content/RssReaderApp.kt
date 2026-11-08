@@ -63,7 +63,8 @@ class RssReaderApp :
         FeedFetcher(
             userAgent = "RSSReader/$version (Android)",
             // The sign-in browser's own cookies, live: one store, renewed as in a browser (2026-11-03).
-            cookieFor = { url -> SiteSignIns.cookieFor(url, siteSignIns.signIns.value, SiteCookieJar::cookie) },
+            // Waits for the sites signed in to, so the first download after a share has them too.
+            cookieFor = { url -> SiteSignIns.cookieFor(url, siteSignIns.loaded(), SiteCookieJar::cookie) },
             onCookies = SiteCookieJar::keep,
         )
     }
@@ -123,7 +124,12 @@ class RssReaderApp :
     }
 
     val fullArticles: FullArticles by lazy {
-        FullArticles(File(cacheDir, "articles"), fetch = fetcher::fetch, extract = WebArticleExtractor(this)::extract)
+        FullArticles(
+            File(cacheDir, "articles"),
+            fetch = fetcher::fetch,
+            extract = WebArticleExtractor(this)::extract,
+            signedIn = { url -> SiteSignIns.forUrl(url, siteSignIns.loaded()) != null },
+        )
     }
 
     /** Folder icons (Material Symbols), read from the assets the first time they are needed. */
