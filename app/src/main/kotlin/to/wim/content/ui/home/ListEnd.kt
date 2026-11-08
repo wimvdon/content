@@ -27,20 +27,25 @@ object ListEnd {
     fun caughtUpProgress(
         top: Int,
         fadeDistance: Float,
-        restTop: Int = Int.MAX_VALUE,
+        restTop: Int? = null,
     ): Float {
-        val distance = minOf(fadeDistance, restTop.toFloat())
+        val distance = if (restTop == null) fadeDistance else minOf(fadeDistance, restTop.toFloat())
         return if (distance <= 0f) 1f else (1f - top / distance).coerceIn(0f, 1f)
     }
 
     /**
-     * Where All caught up is before scrolling: the furthest down it has been seen ([previous], null
-     * at first), as scrolling only brings it up. Long lists show it far down, so only short ones change.
+     * Where All caught up is before scrolling: where it is now ([top]) plus how far the list has
+     * been scrolled, worked out afresh while the list's first row is on screen ([firstVisibleIndex]
+     * 0, scrolled [firstVisibleOffset] px into it). Further down, the first row is gone and how far
+     * isn't known: the last one worked out ([previous]) stays, or null. Never a history of where it
+     * has been, as an article leaving the list (read, then a refresh) moves it (2026-11-08).
      */
     fun caughtUpRestTop(
-        previous: Int?,
         top: Int,
-    ): Int = maxOf(previous ?: top, top)
+        firstVisibleIndex: Int,
+        firstVisibleOffset: Int,
+        previous: Int?,
+    ): Int? = if (firstVisibleIndex == 0) top + firstVisibleOffset else previous
 
     /** How visible the ✓✓ and the title are at [progress]: in slowly (eased), fully there at the top. */
     fun caughtUpAlpha(progress: Float): Float = progress * progress

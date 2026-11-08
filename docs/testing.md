@@ -79,7 +79,7 @@ when the run fails.
 | `FeedArrangementTest` | Manage page order: rows per folder, dragging feeds between folders and out of them, forbidden moves, reordering folders |
 | `SectionOrderTest` | Manage feeds' list in sections: headings and rows flattened, a row passing headings, nothing above the first heading, a drop moving a feed into another tag (or reordering its own) |
 | `SettingsTest` | Text size limits, reader and theme darkness (and Auto dark), Save/Share targets (storage and the old Save setting), defaults |
-| `ListEndTest` | Mark all as read (the FAB): in Feeds' Unread and All while something in the section is unread; in the Inbox while something shared is unread; with its words while the header shows; All caught up at the end only in Unread with Mark as read on scroll, as tall as the list's window, when it has been scrolled all the way into, how far the line round its cookie has run over the last stretch (with a short list, nothing before scrolling), and how the tick, title and outline come in |
+| `ListEndTest` | Mark all as read (the FAB): in Feeds' Unread and All while something in the section is unread; in the Inbox while something shared is unread; with its words while the header shows; All caught up at the end only in Unread with Mark as read on scroll, as tall as the list's window, when it has been scrolled all the way into, how far the line round its cookie has run over the last stretch (with a short list, nothing before scrolling, also after an article leaves the list), and how the tick, title and outline come in |
 | `CookieTest` | Content's cookie (nine bumps, its dips) and the pill that pull to refresh's indicator turns from |
 
 ## Strategy

@@ -8,8 +8,12 @@ Owner's report: with one unread article, the line round the cookie at the end of
 run part of the way, and the title showed faintly, before scrolling. The line follows the last 240 dp
 before the top, and with a short list All caught up starts closer to the top than that. Now the
 stretch is never longer than the scroll there is: it is measured from where All caught up rests
-before scrolling (`ListEnd.caughtUpRestTop`, the furthest down it has been seen for this list), so
-nothing shows until you scroll. Long lists don't change. Android only, as the end itself.
+before scrolling (`ListEnd.caughtUpRestTop`), so nothing shows until you scroll. Long lists don't
+change. Android only, as the end itself. Follow-up the same day (owner: two articles, one read, then
+a refresh, and the line showed again): where it rests was the furthest down it had been seen, and an
+article leaving the list moved it up after it had been seen lower. It is now worked out afresh on
+every frame from where it is and how far the list has been scrolled (while the list's first row is
+on screen), with no history.
 
 ## 2026-11-08: A shared article from a site you're signed in to loads with the sign-in
 
