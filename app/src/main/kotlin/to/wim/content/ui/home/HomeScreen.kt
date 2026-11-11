@@ -508,6 +508,16 @@ private fun ArticleList(
                 }
             }
         }
+    // New articles arriving above the ones on screen (a refresh on coming back, another device)
+    // bring the list back to the top, so they aren't hidden above it and marked read unseen (#394).
+    val articleKeys = remember(state.articles) { state.articles.map { it.key } }
+    val shownKeys = remember(listState) { arrayOfNulls<List<String>>(1) }
+    LaunchedEffect(articleKeys) {
+        val before = shownKeys[0]
+        shownKeys[0] = articleKeys
+        val visible = listState.layoutInfo.visibleItemsInfo.mapNotNull { it.key as? String }
+        if (before != null && ScrollRead.arrivedAbove(before, articleKeys, visible)) listState.scrollToItem(0)
+    }
     // Scrolled all the way into All caught up at the end: its cookie fills and pops.
     var caughtUp by remember(listState) { mutableStateOf(false) }
     if (state.markReadOnScroll) {

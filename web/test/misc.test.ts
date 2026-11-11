@@ -11,7 +11,7 @@ import { heightFromMessage, playAll, playEmbed } from "../src/lib/embedPlayer";
 import { needsFullText, touch, wantsFullText } from "../src/lib/fullArticle";
 import { articleKey, type Article } from "../src/lib/library";
 import { defaultReaderStyle, MAX_TEXT_SIZE, MIN_TEXT_SIZE, pageBackground, readerStyleOf, withTextSize } from "../src/lib/readerStyle";
-import { scrolledPast } from "../src/lib/scrollRead";
+import { arrivedAbove, scrolledPast } from "../src/lib/scrollRead";
 import { pageClass } from "../src/components/readerPage";
 
 describe("discovery", () => {
@@ -501,6 +501,16 @@ describe("mark as read on scroll", () => {
     const article = (id: string) => ({ feedUrl: "f", id, title: id, link: null, html: "", imageUrl: null, author: null, publishedAt: null, fetchedAt: 0, read: false }) as unknown as Article;
     const list = [article("new"), article("1"), article("2")];
     expect([...scrolledPast(list, 2, new Set([articleKey(list[1]), articleKey(list[2])]))]).toEqual([articleKey(list[1])]);
+  });
+
+  it("goes back to the top when new articles arrive above the ones on screen (#394)", () => {
+    const before = ["a", "b", "c", "d"];
+    expect(arrivedAbove(before, ["new", "a", "b", "c", "d"], ["c", "d"])).toBe(true);
+    expect(arrivedAbove(before, ["a", "new", "b", "c", "d"], ["c", "d"])).toBe(true);
+    expect(arrivedAbove(before, ["a", "b", "c", "d", "new"], ["b", "c"])).toBe(false);
+    expect(arrivedAbove(before, ["a", "c", "d"], ["c", "d"])).toBe(false);
+    expect(arrivedAbove(before, ["a", "new", "b"], ["a", "new", "b"])).toBe(false);
+    expect(arrivedAbove([], ["new", "a"], ["a"])).toBe(false);
   });
 });
 

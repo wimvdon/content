@@ -5,7 +5,7 @@ import { app, useApp } from "@/lib/app";
 import { useListedLibrary } from "./useListed";
 import { snippet } from "@/lib/html";
 import { dayLabel, plural, t } from "@/lib/i18n";
-import { articleKey, articlesInTab, chipTag, feedTabOf, showsUnreadDot, sortTime, unreadByFeed, unreadKeys, type Article, type Feed } from "@/lib/library";
+import { articleKey, articlesInTab, chipTag, feedTabOf, sameSelection, showsUnreadDot, sortTime, unreadByFeed, unreadKeys, type Article, type Feed } from "@/lib/library";
 import { chipTags, isPlainFilter, itemArticle, noteOf, savedItems, showsLiked, showsNewsletters, showsNotes, sourceOf, withoutChips, type NoteContent } from "@/lib/saved";
 import { hasUnreadNewsletter } from "@/lib/newsletters";
 import { NewDot } from "./NewDot";
@@ -14,7 +14,7 @@ import { inboxItems } from "@/lib/inbox";
 import { savedArticleKeys, type Item, type SharedBy } from "@/lib/items";
 import { Avatar } from "./ShareWithUser";
 import { useShare } from "./useShare";
-import { scrolledPast } from "@/lib/scrollRead";
+import { arrivedAbove, scrolledPast } from "@/lib/scrollRead";
 import { FeedIcon } from "./FeedIcon";
 import { EmailLinkForm } from "./Dialogs";
 import { feedChipRow, topicIcons } from "@/lib/topics";
@@ -103,7 +103,30 @@ function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport,
   useEffect(() => {
     if (settings.markReadOnScroll && listRef.current) noteSeen(listRef.current);
   }, [articles, settings.markReadOnScroll]);
+  // New articles arriving above the ones on screen (a refresh on coming back, another device)
+  // bring the list back to the top, so they aren't hidden above it and marked read unseen (#394).
+  // `onScreen` is what was on screen before they came in (the browser keeps the list in place).
+  const shownKeys = useRef<{ selection: typeof selection; keys: string[] } | null>(null);
+  const onScreen = useRef<string[]>([]);
+  const noteOnScreen = (list: HTMLElement) => {
+    const box = list.getBoundingClientRect();
+    onScreen.current = rowsOf(list)
+      .filter((row) => {
+        const r = row.getBoundingClientRect();
+        return r.bottom > box.top && r.top < box.bottom;
+      })
+      .map((row) => row.dataset.key!);
+  };
+  useEffect(() => {
+    const list = listRef.current;
+    const keys = articles.map(articleKey);
+    const before = shownKeys.current && sameSelection(shownKeys.current.selection, selection) ? shownKeys.current.keys : null;
+    shownKeys.current = { selection, keys };
+    if (list && before && arrivedAbove(before, keys, onScreen.current)) list.scrollTo({ top: 0 });
+    if (list) noteOnScreen(list);
+  }, [articles, selection]);
   const onScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    noteOnScreen(e.currentTarget);
     if (!settings.markReadOnScroll || frame.current) return;
     const list = e.currentTarget;
     frame.current = requestAnimationFrame(() => {
