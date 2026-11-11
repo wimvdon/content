@@ -2,6 +2,21 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-11: + › Subscribe to newsletter: as a feed, or straight into To read
+
+The third choice in **+**, between Subscribe to feed and Save article, as the owner asked. A page of
+the + sheet (the web: of its dialog, #323), with two ways, each a page of numbered steps:
+- **As a feed, with Kill the Newsletter**: a button opens its site in the browser, **Add its feed**
+  opens Add feed, where the feed address is pasted (Add feed already finds and checks a feed; a
+  field of its own here would repeat it). A line says that Kill the Newsletter, run by someone
+  else, receives the newsletters, not Content. Its feeds read fine in both apps (checked with a real
+  one: an Atom feed with each email's whole text and a link to its copy there).
+- **Straight into To read, with the Save to Instapaper address**: Instapaper's API doesn't give that
+  address (`/api/2/me` has only the id, username and premium), so a button opens Instapaper's Email
+  page, which shows it to a signed-in user. Not connected yet: **Sign in with Instapaper** first.
+  Connected: the newsletters' dot switch is here too, the same setting as in Settings.
+- Content contacts neither site: the links open in the browser, so `PRIVACY.md` is unchanged.
+
 ## 2026-11-11: Newsletters from Instapaper: unread, a chip and an optional dot
 
 Some people receive newsletters in Instapaper (sent or forwarded to their Instapaper address), and

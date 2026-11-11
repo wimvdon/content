@@ -358,4 +358,21 @@
     <string name="saved_open_unread">Saved, new newsletters</string>
     <string name="setting_newsletter_dot_title">Dot for new newsletters</string>
     <string name="setting_newsletter_dot_summary">A dot on Saved, To read and Newsletters while a newsletter from Instapaper is unread</string>
+    <string name="add_choice_newsletter">Subscribe to newsletter</string>
+    <string name="add_choice_newsletter_body">Read newsletters in Content, as a feed or in Saved</string>
+    <string name="newsletter_as_feed">As a feed</string>
+    <string name="newsletter_as_feed_body">With Kill the Newsletter: a newsletter becomes one of your feeds</string>
+    <string name="newsletter_to_read">Straight into To read</string>
+    <string name="newsletter_to_read_body">With your Instapaper email address: newsletters arrive in Saved</string>
+    <string name="newsletter_feed_step_1">On Kill the Newsletter, create an inbox with a name. You get an email address and a feed address.</string>
+    <string name="newsletter_feed_step_2">Subscribe to the newsletter with that email address.</string>
+    <string name="newsletter_feed_step_3">With Add its feed, paste the feed address.</string>
+    <string name="newsletter_feed_note">Kill the Newsletter is a free service run by someone else: it receives the newsletters, not Content.</string>
+    <string name="newsletter_open_kill_the_newsletter">Open Kill the Newsletter</string>
+    <string name="newsletter_add_feed">Add its feed</string>
+    <string name="newsletter_instapaper_step_1">Find your Save to Instapaper email address on Instapaper\'s Email page (signed in to Instapaper).</string>
+    <string name="newsletter_instapaper_step_2">Subscribe to the newsletter with that address, or forward emails to it.</string>
+    <string name="newsletter_instapaper_step_3">New newsletters arrive in Saved, in To read, unread, and under Newsletters.</string>
+    <string name="newsletter_instapaper_connect_first">First connect Instapaper, so its emails come into Saved.</string>
+    <string name="newsletter_find_address">Find my Instapaper address</string>
 </resources>

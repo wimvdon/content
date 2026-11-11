@@ -124,6 +124,7 @@ import to.wim.content.instapaper.InstapaperState
 import to.wim.content.rssReaderApp
 import to.wim.content.ui.home.AddFeedSheet
 import to.wim.content.ui.home.AddChoiceSheet
+import to.wim.content.ui.home.NewsletterChoices
 import to.wim.content.ui.feeds.ManageFeedsActions
 import to.wim.content.ui.feeds.ManageFeedsSheet
 import to.wim.content.ui.feeds.ManageTopicsSheet
@@ -1390,6 +1391,14 @@ fun RssReaderNavigation(
                 openSave(null, null)
             },
             onDismiss = { addChoiceOpen = false },
+            newsletters =
+                NewsletterChoices(
+                    instapaperConnected = instapaperState is InstapaperState.SignedIn,
+                    newsletterDot = current.newsletterDot,
+                    onNewsletterDotChange = { enabled -> app.appScope.launch { app.settings.setNewsletterDot(enabled) } },
+                    onConnectInstapaper = { uiScope.launch { ExternalApps.openLink(context, app.instapaper.begin()) } },
+                    onOpenSite = { url -> ExternalApps.openLink(context, url) },
+                ),
         )
     }
 

@@ -29,10 +29,21 @@ import to.wim.content.ui.reader.ContentSheet
 import to.wim.content.ui.reader.SheetActions
 import to.wim.content.ui.reader.SheetHeader
 import to.wim.content.ui.theme.AppShapes
+import to.wim.content.data.NewsletterSubscribe
+import to.wim.content.ui.settings.NewsletterDotSetting
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 
 /**
  * The search bar's +, the same in Feeds, Saved and the Inbox: first what to add. Subscribe to feed
- * opens the Add feed sheet, Save article the Save sheet; both then ask for the address.
+ * opens the Add feed sheet, Save article the Save sheet; both then ask for the address. Subscribe to
+ * newsletter is a page of this sheet with two ways ([NewsletterSubscribe]), each a page of steps.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,7 +51,10 @@ fun AddChoiceSheet(
     onSubscribe: () -> Unit,
     onSaveArticle: () -> Unit,
     onDismiss: () -> Unit,
+    /** For Subscribe to newsletter: Instapaper connected, its dot setting, and the links. */
+    newsletters: NewsletterChoices = NewsletterChoices(),
 ) {
+    var newsletterOpen by rememberSaveable { mutableStateOf(false) }
     ContentSheet(onDismiss = onDismiss) {
         Column(
             Modifier.padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
@@ -56,12 +70,134 @@ fun AddChoiceSheet(
                 onClick = { close(onSubscribe) },
             )
             AddChoice(
+                icon = painterResource(R.drawable.ic_mail),
+                title = stringResource(R.string.add_choice_newsletter),
+                body = stringResource(R.string.add_choice_newsletter_body),
+                onClick = { newsletterOpen = true },
+            )
+            AddChoice(
                 icon = painterResource(R.drawable.ic_bookmark_add),
                 title = stringResource(R.string.add_choice_article),
                 body = stringResource(R.string.add_choice_article_body),
                 onClick = { close(onSaveArticle) },
             )
             SheetActions(onCancel = onDismiss)
+        }
+        // A page of this sheet (#323): its back arrow comes back to the three choices.
+        if (newsletterOpen) NewsletterPage(newsletters, onAddFeed = onSubscribe, onBack = { newsletterOpen = false })
+    }
+}
+
+/** What Subscribe to newsletter needs from the app. */
+data class NewsletterChoices(
+    val instapaperConnected: Boolean = false,
+    val newsletterDot: Boolean = false,
+    val onNewsletterDotChange: (Boolean) -> Unit = {},
+    val onConnectInstapaper: () -> Unit = {},
+    /** Opens a site in the browser (Kill the Newsletter, Instapaper's Email page). */
+    val onOpenSite: (String) -> Unit = {},
+)
+
+/** Subscribe to newsletter: as a feed (Kill the Newsletter) or straight into To read (Instapaper). */
+@Composable
+private fun NewsletterPage(
+    choices: NewsletterChoices,
+    onAddFeed: () -> Unit,
+    onBack: () -> Unit,
+) {
+    var way by rememberSaveable { mutableStateOf<NewsletterSubscribe.Way?>(null) }
+    ContentSheet(onDismiss = onBack) {
+        Column(
+            Modifier.padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            SheetHeader(stringResource(R.string.add_choice_newsletter), onCancel = onBack)
+            AddChoice(
+                icon = painterResource(R.drawable.ic_rss_feed),
+                title = stringResource(R.string.newsletter_as_feed),
+                body = stringResource(R.string.newsletter_as_feed_body),
+                onClick = { way = NewsletterSubscribe.Way.Feed },
+            )
+            AddChoice(
+                icon = painterResource(R.drawable.ic_reading_list),
+                title = stringResource(R.string.newsletter_to_read),
+                body = stringResource(R.string.newsletter_to_read_body),
+                onClick = { way = NewsletterSubscribe.Way.Instapaper },
+            )
+        }
+        when (way) {
+            NewsletterSubscribe.Way.Feed -> FeedWayPage(choices, onAddFeed, onBack = { way = null })
+            NewsletterSubscribe.Way.Instapaper -> InstapaperWayPage(choices, onBack = { way = null })
+            null -> Unit
+        }
+    }
+}
+
+/** As a feed: make an inbox on Kill the Newsletter, subscribe with its address, add its feed. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun FeedWayPage(
+    choices: NewsletterChoices,
+    onAddFeed: () -> Unit,
+    onBack: () -> Unit,
+) {
+    ContentSheet(onDismiss = onBack) {
+        Column(
+            Modifier.padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            SheetHeader(stringResource(R.string.newsletter_as_feed), onCancel = onBack)
+            Steps(listOf(R.string.newsletter_feed_step_1, R.string.newsletter_feed_step_2, R.string.newsletter_feed_step_3))
+            Text(stringResource(R.string.newsletter_feed_note), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(onClick = { choices.onOpenSite(NewsletterSubscribe.site(NewsletterSubscribe.Way.Feed)) }) {
+                    Text(stringResource(R.string.newsletter_open_kill_the_newsletter))
+                }
+                Button(onClick = onAddFeed) { Text(stringResource(R.string.newsletter_add_feed)) }
+            }
+        }
+    }
+}
+
+/** Straight into To read: the Save to Instapaper address (connect first), and the newsletters' dot. */
+@Composable
+private fun InstapaperWayPage(
+    choices: NewsletterChoices,
+    onBack: () -> Unit,
+) {
+    ContentSheet(onDismiss = onBack) {
+        Column(
+            Modifier.padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            SheetHeader(stringResource(R.string.newsletter_to_read), onCancel = onBack)
+            Steps(listOf(R.string.newsletter_instapaper_step_1, R.string.newsletter_instapaper_step_2, R.string.newsletter_instapaper_step_3))
+            when (NewsletterSubscribe.instapaperStep(choices.instapaperConnected)) {
+                NewsletterSubscribe.InstapaperStep.Connect -> {
+                    Text(stringResource(R.string.newsletter_instapaper_connect_first), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Button(onClick = choices.onConnectInstapaper) { Text(stringResource(R.string.instapaper_sign_in)) }
+                }
+                NewsletterSubscribe.InstapaperStep.FindAddress -> {
+                    Button(onClick = { choices.onOpenSite(NewsletterSubscribe.site(NewsletterSubscribe.Way.Instapaper)) }) {
+                        Text(stringResource(R.string.newsletter_find_address))
+                    }
+                    // The same switch as in Settings › Integrations › Instapaper.
+                    NewsletterDotSetting(choices.newsletterDot, choices.onNewsletterDotChange)
+                }
+            }
+        }
+    }
+}
+
+/** Numbered steps, one per line. */
+@Composable
+private fun Steps(steps: List<Int>) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        steps.forEachIndexed { i, step ->
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text("${i + 1}.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(step), style = MaterialTheme.typography.bodyMedium)
+            }
         }
     }
 }

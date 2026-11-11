@@ -368,4 +368,21 @@
     <string name="saved_open_unread">Salvati, nuove newsletter</string>
     <string name="setting_newsletter_dot_title">Pallino per le nuove newsletter</string>
     <string name="setting_newsletter_dot_summary">Un pallino su Salvati, Da leggere e Newsletter finché c’è una newsletter di Instapaper non letta</string>
+    <string name="add_choice_newsletter">Iscriviti a una newsletter</string>
+    <string name="add_choice_newsletter_body">Leggi le newsletter in Content, come feed o in Salvati</string>
+    <string name="newsletter_as_feed">Come feed</string>
+    <string name="newsletter_as_feed_body">Con Kill the Newsletter: una newsletter diventa uno dei tuoi feed</string>
+    <string name="newsletter_to_read">Direttamente in Da leggere</string>
+    <string name="newsletter_to_read_body">Con il tuo indirizzo email di Instapaper: le newsletter arrivano in Salvati</string>
+    <string name="newsletter_feed_step_1">Su Kill the Newsletter, crea una casella con un nome. Ottieni un indirizzo email e un indirizzo del feed.</string>
+    <string name="newsletter_feed_step_2">Iscriviti alla newsletter con quell’indirizzo email.</string>
+    <string name="newsletter_feed_step_3">Con Aggiungi il suo feed, incolla l’indirizzo del feed.</string>
+    <string name="newsletter_feed_note">Kill the Newsletter è un servizio gratuito gestito da qualcun altro: riceve lui le newsletter, non Content.</string>
+    <string name="newsletter_open_kill_the_newsletter">Apri Kill the Newsletter</string>
+    <string name="newsletter_add_feed">Aggiungi il suo feed</string>
+    <string name="newsletter_instapaper_step_1">Trova il tuo indirizzo email Save to Instapaper nella pagina Email di Instapaper (con l’accesso a Instapaper).</string>
+    <string name="newsletter_instapaper_step_2">Iscriviti alla newsletter con quell’indirizzo, o inoltra lì le email.</string>
+    <string name="newsletter_instapaper_step_3">Le nuove newsletter arrivano non lette in Salvati, in Da leggere, e sotto Newsletter.</string>
+    <string name="newsletter_instapaper_connect_first">Prima collega Instapaper, così le sue email arrivano in Salvati.</string>
+    <string name="newsletter_find_address">Trova il mio indirizzo Instapaper</string>
 </resources>

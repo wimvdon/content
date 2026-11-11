@@ -356,4 +356,21 @@
     <string name="saved_open_unread">Gespeichert, neue Newsletter</string>
     <string name="setting_newsletter_dot_title">Punkt bei neuen Newslettern</string>
     <string name="setting_newsletter_dot_summary">Ein Punkt bei Gespeichert, Zu lesen und Newsletter, solange ein Newsletter aus Instapaper ungelesen ist</string>
+    <string name="add_choice_newsletter">Newsletter abonnieren</string>
+    <string name="add_choice_newsletter_body">Newsletter in Content lesen, als Feed oder unter Gespeichert</string>
+    <string name="newsletter_as_feed">Als Feed</string>
+    <string name="newsletter_as_feed_body">Mit Kill the Newsletter: Ein Newsletter wird einer deiner Feeds</string>
+    <string name="newsletter_to_read">Direkt in Zu lesen</string>
+    <string name="newsletter_to_read_body">Mit deiner Instapaper-E-Mail-Adresse: Newsletter kommen unter Gespeichert an</string>
+    <string name="newsletter_feed_step_1">Erstelle bei Kill the Newsletter ein Postfach mit einem Namen. Du bekommst eine E-Mail-Adresse und eine Feed-Adresse.</string>
+    <string name="newsletter_feed_step_2">Abonniere den Newsletter mit dieser E-Mail-Adresse.</string>
+    <string name="newsletter_feed_step_3">Füge mit Feed hinzufügen die Feed-Adresse ein.</string>
+    <string name="newsletter_feed_note">Kill the Newsletter ist ein kostenloser Dienst von jemand anderem: Er empfängt die Newsletter, nicht Content.</string>
+    <string name="newsletter_open_kill_the_newsletter">Kill the Newsletter öffnen</string>
+    <string name="newsletter_add_feed">Feed hinzufügen</string>
+    <string name="newsletter_instapaper_step_1">Finde deine Save-to-Instapaper-E-Mail-Adresse auf der Seite Email von Instapaper (bei Instapaper angemeldet).</string>
+    <string name="newsletter_instapaper_step_2">Abonniere den Newsletter mit dieser Adresse oder leite E-Mails dorthin weiter.</string>
+    <string name="newsletter_instapaper_step_3">Neue Newsletter kommen ungelesen unter Gespeichert an, in Zu lesen und unter Newsletter.</string>
+    <string name="newsletter_instapaper_connect_first">Verbinde zuerst Instapaper, damit seine E-Mails unter Gespeichert ankommen.</string>
+    <string name="newsletter_find_address">Meine Instapaper-Adresse finden</string>
 </resources>
