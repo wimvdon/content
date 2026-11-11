@@ -41,7 +41,6 @@ import coil3.compose.SubcomposeAsyncImage
 import to.wim.content.R
 import to.wim.content.data.Feed
 import to.wim.content.sync.Gravatar
-import androidx.compose.material3.Badge
 
 /**
  * The title bar as a large search bar (#189): the magnifier, "Search articles" (which opens Search),
@@ -136,7 +135,7 @@ fun ViewSwitch(
                 if (index in dots) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
-                        Badge()
+                        NewBadge()
                     }
                 } else {
                     Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis)

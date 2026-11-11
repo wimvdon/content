@@ -279,7 +279,7 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   book stays on To read only.
 - Navigation (#113): a navigation bar at the bottom (a navigation rail on windows 600dp and wider)
   switches between the destinations, Feeds (feed symbol), Saved (a list) and, signed in, the Inbox
-  (a bell, with Material's small badge while something in it is unread; it was a bell in the search
+  (a bell, with Material's small badge in primary while something in it is unread; it was a bell in the search
   bar before). Search is
   an action in the top bar of both destinations (a magnifier) that opens one search page for
   everything: the field in its top bar, filter chips above the results (**Feeds** and **Saved**,
@@ -296,7 +296,7 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   **segmented switch** under the search bar (the same as To read / Archive in the save sheet, full
   width with 16dp sides; on the web's wide window in the sidebar) says which view (Feeds: **Unread**
   and **All**; Saved: **To read** and **All**); one row of chips under it says which group: the tags in Feeds, Liked (heart),
-  Newsletters (an envelope, with Material's small badge while one is unread and the dot setting is on) and the tags in Saved, in the tags' order, each only when it has something in the tab shown (the
+  Newsletters (an envelope, with the same small badge in primary while one is unread and the dot setting is on) and the tags in Saved, in the tags' order, each only when it has something in the tab shown (the
   chosen one stays). Group chips have no check mark and chosen ones keep their weight, so a chip
   never changes width and the row never moves (#208). There is no X (Material 3's filter chips: an X is an input chip's "remove"; the web dropped
   its X too, 2026-11-01; one group at a time: tapping

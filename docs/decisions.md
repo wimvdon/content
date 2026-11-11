@@ -2,6 +2,15 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-11: The "something new" badge is primary, not red
+
+Owner's question: the dot on the Inbox and on Saved, To read and the Newsletters chip was Material's
+default badge, in the error colour (red). It says something new waits, not that something is wrong,
+so it is now primary (`NewBadge`), like the unread dot on a row. The web app's dots already were.
+Not added: a dot on Feeds. With a few active feeds something is nearly always unread, so it would
+hardly ever go away; Feeds already shows its counts and Unread. Rejected for now, unless it turns out
+to be missed (then "new since you last looked", as a setting).
+
 ## 2026-11-11: + › Subscribe to newsletter: as a feed, or straight into To read
 
 The third choice in **+**, between Subscribe to feed and Save article, as the owner asked. A page of
