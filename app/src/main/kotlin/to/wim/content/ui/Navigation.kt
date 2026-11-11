@@ -1,5 +1,7 @@
 package to.wim.content.ui
 
+import to.wim.content.ui.settings.SettingsPage
+import to.wim.content.data.NewsletterAddresses
 import android.content.ClipData
 import android.content.ClipboardManager
 import androidx.core.content.pm.ShortcutManagerCompat
@@ -1372,7 +1374,13 @@ fun RssReaderNavigation(
                         addDialogOpen = true
                     },
                     onEditFeed = { feed, title, topicId -> editFeed(feed, title, topicId) },
-                    onRemoveFeed = { feed -> app.appScope.launch { repository.removeFeed(feed.url) } },
+                    onRemoveFeed = { feed ->
+                        app.appScope.launch {
+                            repository.removeFeed(feed.url)
+                            // A newsletter address's feed: the address goes with it.
+                            NewsletterAddresses.codeOfFeed(feed.url)?.let { app.sync.deleteNewsletter(it) }
+                        }
+                    },
                     onReorderFeeds = { topicId, urls -> app.appScope.launch { repository.reorderFeedsIn(topicId, urls) } },
                     onMoveFeed = { feed, topicId, urls -> app.appScope.launch { repository.moveFeedInto(feed.url, topicId, urls) } },
                 ),
@@ -1404,6 +1412,21 @@ fun RssReaderNavigation(
                     onNewsletterUnreadChange = ::setNewsletterUnread,
                     onConnectInstapaper = { uiScope.launch { ExternalApps.openLink(context, app.instapaper.begin()) } },
                     onOpenSite = { url -> ExternalApps.openLink(context, url) },
+                    signedIn = accountState is AccountState.SignedIn,
+                    onSignIn = {
+                        addChoiceOpen = false
+                        push(Screen.SettingsPage(SettingsPage.Account))
+                    },
+                    topics = library.folders.map { it.title },
+                    loadAddresses = { app.sync.newsletters() },
+                    createAddress = { tag ->
+                        // Made by the account's feed loader; its feed goes under the topic with that name (made if new).
+                        app.sync.createNewsletter(tag)?.also { made ->
+                            val topicId = repository.addFolder(made.tag, "newspaper")
+                            repository.addFeed(made.feedUrl, topicId)
+                        }
+                    },
+                    onCopy = ::copyToClipboard,
                 ),
         )
     }

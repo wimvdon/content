@@ -1,5 +1,15 @@
 package to.wim.content.ui.home
 
+import kotlinx.coroutines.launch
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.remember
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.FilterChip
+import to.wim.content.data.NewsletterAddress
 import to.wim.content.ui.reader.rememberSheetClose
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -34,7 +44,6 @@ import to.wim.content.ui.settings.NewsletterUnreadSetting
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -84,7 +93,7 @@ fun AddChoiceSheet(
             SheetActions(onCancel = onDismiss)
         }
         // A page of this sheet (#323): its back arrow comes back to the three choices.
-        if (newsletterOpen) NewsletterPage(newsletters, onAddFeed = onSubscribe, onBack = { newsletterOpen = false })
+        if (newsletterOpen) NewsletterPage(newsletters, onBack = { newsletterOpen = false })
     }
 }
 
@@ -94,15 +103,25 @@ data class NewsletterChoices(
     val newsletterUnread: Boolean = false,
     val onNewsletterUnreadChange: (Boolean) -> Unit = {},
     val onConnectInstapaper: () -> Unit = {},
-    /** Opens a site in the browser (Kill the Newsletter, Instapaper's Email page). */
+    /** Opens a site in the browser (Instapaper's Email page). */
     val onOpenSite: (String) -> Unit = {},
+    /** Signed in to a Content account: own addresses can be made. */
+    val signedIn: Boolean = false,
+    /** Settings › Account, to sign in. */
+    val onSignIn: () -> Unit = {},
+    /** The topics' names, offered as the new address's tag. */
+    val topics: List<String> = emptyList(),
+    /** This account's addresses, or null when they can't be read (offline). */
+    val loadAddresses: suspend () -> List<NewsletterAddress>? = { emptyList() },
+    /** Makes an address for the tag and adds its feed under that topic; null when it didn't work. */
+    val createAddress: suspend (String) -> NewsletterAddress? = { null },
+    val onCopy: (String) -> Unit = {},
 )
 
-/** Subscribe to newsletter: as a feed (Kill the Newsletter) or straight into To read (Instapaper). */
+/** Subscribe to newsletter: your own address (Content's), or straight into To read (Instapaper). */
 @Composable
 private fun NewsletterPage(
     choices: NewsletterChoices,
-    onAddFeed: () -> Unit,
     onBack: () -> Unit,
 ) {
     var way by rememberSaveable { mutableStateOf<NewsletterSubscribe.Way?>(null) }
@@ -113,10 +132,10 @@ private fun NewsletterPage(
         ) {
             SheetHeader(stringResource(R.string.add_choice_newsletter), onCancel = onBack)
             AddChoice(
-                icon = painterResource(R.drawable.ic_rss_feed),
-                title = stringResource(R.string.newsletter_as_feed),
-                body = stringResource(R.string.newsletter_as_feed_body),
-                onClick = { way = NewsletterSubscribe.Way.Feed },
+                icon = painterResource(R.drawable.ic_mail),
+                title = stringResource(R.string.newsletter_own),
+                body = stringResource(R.string.newsletter_own_body),
+                onClick = { way = NewsletterSubscribe.Way.Own },
             )
             AddChoice(
                 icon = painterResource(R.drawable.ic_reading_list),
@@ -126,34 +145,103 @@ private fun NewsletterPage(
             )
         }
         when (way) {
-            NewsletterSubscribe.Way.Feed -> FeedWayPage(choices, onAddFeed, onBack = { way = null })
+            NewsletterSubscribe.Way.Own -> OwnAddressPage(choices, onBack = { way = null })
             NewsletterSubscribe.Way.Instapaper -> InstapaperWayPage(choices, onBack = { way = null })
             null -> Unit
         }
     }
 }
 
-/** As a feed: make an inbox on Kill the Newsletter, subscribe with its address, add its feed. */
+/**
+ * Your own address: the account's addresses (each with Copy), and a new one for a tag, whose feed is
+ * added under that topic. Without a Content account, Sign in first.
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun FeedWayPage(
+private fun OwnAddressPage(
     choices: NewsletterChoices,
-    onAddFeed: () -> Unit,
     onBack: () -> Unit,
 ) {
+    var addresses by remember { mutableStateOf<List<NewsletterAddress>?>(emptyList()) }
+    var tag by rememberSaveable { mutableStateOf("") }
+    var busy by remember { mutableStateOf(false) }
+    var failed by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    LaunchedEffect(choices.signedIn) { if (choices.signedIn) addresses = choices.loadAddresses() }
     ContentSheet(onDismiss = onBack) {
         Column(
-            Modifier.padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
+            Modifier.padding(start = 24.dp, end = 24.dp, bottom = 24.dp).verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            SheetHeader(stringResource(R.string.newsletter_as_feed), onCancel = onBack)
-            Steps(listOf(R.string.newsletter_feed_step_1, R.string.newsletter_feed_step_2, R.string.newsletter_feed_step_3))
-            Text(stringResource(R.string.newsletter_feed_note), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = { choices.onOpenSite(NewsletterSubscribe.site(NewsletterSubscribe.Way.Feed)) }) {
-                    Text(stringResource(R.string.newsletter_open_kill_the_newsletter))
+            SheetHeader(stringResource(R.string.newsletter_own), onCancel = onBack)
+            Text(stringResource(R.string.newsletter_own_explained), style = MaterialTheme.typography.bodyMedium)
+            when (NewsletterSubscribe.ownStep(choices.signedIn)) {
+                NewsletterSubscribe.OwnStep.SignIn -> {
+                    Text(stringResource(R.string.newsletter_own_sign_in_first), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Button(onClick = choices.onSignIn) { Text(stringResource(R.string.newsletter_own_sign_in)) }
                 }
-                Button(onClick = onAddFeed) { Text(stringResource(R.string.newsletter_add_feed)) }
+                NewsletterSubscribe.OwnStep.Addresses -> {
+                    val list = addresses
+                    if (list == null) {
+                        Text(stringResource(R.string.newsletter_own_offline), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+                    } else {
+                        list.forEach { a -> AddressRow(a, choices.onCopy) }
+                    }
+                    Text(stringResource(R.string.newsletter_own_new), style = MaterialTheme.typography.titleSmall)
+                    if (choices.topics.isNotEmpty()) {
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            choices.topics.forEach { t ->
+                                FilterChip(selected = tag.trim().equals(t, ignoreCase = true), onClick = { tag = t }, label = { Text(t) })
+                            }
+                        }
+                    }
+                    OutlinedTextField(
+                        value = tag,
+                        onValueChange = {
+                            tag = it
+                            failed = false
+                        },
+                        label = { Text(stringResource(R.string.newsletter_own_tag)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    if (failed) Text(stringResource(R.string.newsletter_own_failed), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                    Button(
+                        enabled = NewsletterSubscribe.canCreate(tag, busy),
+                        onClick = {
+                            busy = true
+                            scope.launch {
+                                val made = choices.createAddress(tag.trim())
+                                busy = false
+                                if (made == null) {
+                                    failed = true
+                                } else {
+                                    tag = ""
+                                    addresses = (addresses.orEmpty().filter { it.code != made.code }) + made
+                                }
+                            }
+                        },
+                    ) { Text(stringResource(R.string.newsletter_own_create)) }
+                }
+            }
+        }
+    }
+}
+
+/** One address: its tag, the address itself, and Copy. */
+@Composable
+private fun AddressRow(
+    address: NewsletterAddress,
+    onCopy: (String) -> Unit,
+) {
+    Surface(shape = AppShapes.Item, color = MaterialTheme.colorScheme.surfaceContainerHigh, modifier = Modifier.fillMaxWidth()) {
+        Row(Modifier.padding(start = 16.dp, top = 8.dp, bottom = 8.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(address.tag, style = MaterialTheme.typography.labelLarge)
+                Text(address.address, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            IconButton(onClick = { onCopy(address.address) }) {
+                Icon(painterResource(R.drawable.ic_copy), contentDescription = stringResource(R.string.newsletter_own_copy))
             }
         }
     }
@@ -178,7 +266,7 @@ private fun InstapaperWayPage(
                     Button(onClick = choices.onConnectInstapaper) { Text(stringResource(R.string.instapaper_sign_in)) }
                 }
                 NewsletterSubscribe.InstapaperStep.FindAddress -> {
-                    Button(onClick = { choices.onOpenSite(NewsletterSubscribe.site(NewsletterSubscribe.Way.Instapaper)) }) {
+                    Button(onClick = { choices.onOpenSite(NewsletterSubscribe.INSTAPAPER_EMAIL) }) {
                         Text(stringResource(R.string.newsletter_find_address))
                     }
                     // The same switch as in Settings › Integrations › Instapaper.

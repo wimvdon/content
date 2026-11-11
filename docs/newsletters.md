@@ -6,6 +6,14 @@ idea, built into Content's feed loader (`worker/src/newsletters.ts`). Signed in 
 `news+k7q2m9abcdef@in.wim.to`; the app subscribes to its feed under that tag, so new issues show in
 Feeds like any article: unread, Mark all as read, the chips' dots, the reader and Search all work.
 
+## In the apps
+
++ › Subscribe to newsletter › **Your own address** (`ui/home/AddChoiceSheet.kt`, the web's
+`Dialogs.tsx`): the account's addresses with Copy, and a new one for a tag. Making one calls the feed
+loader, adds the topic if it is new and subscribes to the feed under it (`NewsletterAddresses`, the
+web's `newsletterAddresses.ts`). Removing a feed whose address is a newsletter feed removes the
+address too (`DELETE /account/newsletters`). Without a Content account, the page offers Sign in.
+
 ## How it works
 
 - **Receiving:** Cloudflare Email Routing sends `NEWSLETTER_ADDRESS` (`worker/wrangler.toml`,

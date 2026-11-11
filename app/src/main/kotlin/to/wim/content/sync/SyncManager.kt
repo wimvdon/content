@@ -1,5 +1,6 @@
 package to.wim.content.sync
 
+import to.wim.content.data.NewsletterAddress
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.DataStoreFactory
@@ -313,6 +314,17 @@ class SyncManager(
     suspend fun setPush(token: String?): Boolean = accountKey()?.let { key -> runCatching { AccountClient(http, key).setPush(token) }.isSuccess } ?: false
 
     /** Whether [email] has a Content account, or null when it couldn't be asked. */
+    /** This account's newsletter addresses; null when signed out or offline. */
+    suspend fun newsletters(): List<NewsletterAddress>? = accountKey()?.let { key -> runCatching { AccountClient(http, key).newsletters() }.getOrNull() }
+
+    /** A new newsletter address for [tag]; null when signed out or it didn't work. */
+    suspend fun createNewsletter(tag: String): NewsletterAddress? = accountKey()?.let { key -> runCatching { AccountClient(http, key).createNewsletter(tag) }.getOrNull() }
+
+    /** Removes newsletter address [code] (its feed was removed); nothing happens when signed out or offline. */
+    suspend fun deleteNewsletter(code: String) {
+        accountKey()?.let { key -> runCatching { AccountClient(http, key).deleteNewsletter(code) } }
+    }
+
     suspend fun hasAccount(email: String): Boolean? = accountKey()?.let { key -> runCatching { AccountClient(http, key).hasAccount(email) }.getOrNull() }
 
     /** Shares with a Content user (#167): [ShareResult] says how it went. */
