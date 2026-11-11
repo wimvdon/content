@@ -367,7 +367,7 @@
     <string name="newsletters_unread">Nuove newsletter</string>
     <string name="saved_open_unread">Salvati, nuove newsletter</string>
     <string name="setting_newsletter_dot_title">Pallino per le nuove newsletter</string>
-    <string name="setting_newsletter_dot_summary">Un pallino su Salvati, Da leggere e Newsletter finché c’è una newsletter di Instapaper non letta</string>
+    <string name="setting_newsletter_dot_summary">Un pallino su Salvati e Newsletter finché c’è una newsletter di Instapaper non letta</string>
     <string name="add_choice_newsletter">Iscriviti a una newsletter</string>
     <string name="add_choice_newsletter_body">Leggi le newsletter in Content, come feed o in Salvati</string>
     <string name="newsletter_as_feed">Come feed</string>

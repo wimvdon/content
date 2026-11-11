@@ -311,6 +311,13 @@ export function unreadKeys(lib: Library, selection: Selection): Set<string> {
 /** Feeds' two tabs, as on Android: the articles still unread, and all of them. */
 export type FeedTab = "unread" | "all";
 
+/**
+ * Whether a chip in Feeds (a topic or a feed) shows the unread dot: only in All, where the chips
+ * with nothing unread show too; in Unread every chip has something unread, so it would say nothing.
+ * Never on Feed in the navigation. As on Android (FeedChips.showsUnreadDot).
+ */
+export const showsUnreadDot = (tab: FeedTab, unread: number): boolean => tab === "all" && unread > 0;
+
 /** The tab stored as `settings.unreadOnly` (true: Unread). */
 export const feedTabOf = (unreadOnly: boolean): FeedTab => (unreadOnly ? "unread" : "all");
 

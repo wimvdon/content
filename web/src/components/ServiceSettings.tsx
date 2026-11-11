@@ -57,7 +57,7 @@ export function InstapaperSettings() {
 
 /**
  * The newsletters' dot (newsletters.ts): here and on + › Subscribe to newsletter's Instapaper page.
- * Unread newsletters are bold with a dot either way; this adds the dot on Saved, To read and the
+ * Unread newsletters are bold with a dot either way; this adds the dot on Saved and the
  * Newsletters chip.
  */
 export function NewsletterDotSwitch({ checked }: { checked: boolean }) {

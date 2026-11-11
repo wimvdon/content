@@ -44,7 +44,7 @@ fun InstapaperSettings(
     onSignOut: () -> Unit,
     /** The answer to "Import from Instapaper?", while it waits for one (#251). */
     onChooseImport: (everything: Boolean) -> Unit = {},
-    /** The newsletters' dot (Newsletters): on Saved, To read and the Newsletters chip while one waits unread. */
+    /** The newsletters' dot (Newsletters): on Saved and the Newsletters chip while one waits unread. */
     newsletterDot: Boolean = false,
     onNewsletterDotChange: (Boolean) -> Unit = {},
 ) {
@@ -87,7 +87,7 @@ fun InstapaperSettings(
 /**
  * The newsletters' dot: a switch in Settings › Integrations › Instapaper and on + › Subscribe to
  * newsletter's Instapaper page. Unread newsletters are bold with a dot either way; this adds the dot
- * on Saved, To read and the Newsletters chip.
+ * on Saved and the Newsletters chip.
  */
 @Composable
 fun NewsletterDotSetting(

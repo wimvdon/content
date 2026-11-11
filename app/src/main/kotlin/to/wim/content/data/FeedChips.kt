@@ -44,6 +44,16 @@ data class FeedChips(
         get() = chosenTopic != null || chosenFeed != null || rowTopics.size + rowLoose.size > 1 || soleTopicFeeds > 1
 
     companion object {
+        /**
+         * Whether a chip (a topic or a feed) shows the unread dot: only in All, where the chips with
+         * nothing unread show too; in Unread every chip has something unread, so it would say
+         * nothing. Never on Feed in the navigation bar. The web app's `showsUnreadDot` is the same.
+         */
+        fun showsUnreadDot(
+            unreadOnly: Boolean,
+            unread: Int,
+        ): Boolean = !unreadOnly && unread > 0
+
         fun of(
             feeds: List<Feed>,
             folders: List<Folder>,

@@ -118,4 +118,12 @@ class FeedChipsTest {
         assertEquals(listOf(bbc, npr), chosen.topicFeeds)
         assertEquals(listOf(blog, gone), FeedChips.of(feeds, folders, topics, FeedSelection.Single(blog.url), shown).loose)
     }
+
+    @Test
+    fun `the unread dot shows only in All, on a chip with something unread`() {
+        assertTrue(FeedChips.showsUnreadDot(unreadOnly = false, unread = 3))
+        assertFalse(FeedChips.showsUnreadDot(unreadOnly = false, unread = 0))
+        // In Unread every chip shown has something unread: a dot would say nothing.
+        assertFalse(FeedChips.showsUnreadDot(unreadOnly = true, unread = 3))
+    }
 }

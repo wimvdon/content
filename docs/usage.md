@@ -173,7 +173,9 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   picked in Feeds, the same row shows that tag and its feeds instead (the web too). Switching keeps the tag you picked. A
   tag (or Liked) with nothing in the view shown has no chip: in Unread, only tags with unread
   articles; in All, every tag with articles. Feeds' feed chips do the same: a feed with nothing
-  unread has no chip in Unread. The one you picked stays.
+  unread has no chip in Unread. The one you picked stays. In **All**, a tag or feed chip with something unread
+  has a small dot at its end, so you see where something new is without switching to Unread (not on
+  Feed in the bar at the bottom).
 - **There is no ☰ menu in the Android app.** Feeds, Saved and the Inbox are the bar at the
   bottom; everything inside them is the switch or a chip. **+** in the search bar (before Settings) adds, the same in
   every place: it asks **Subscribe to feed** (the Add feed sheet) or **Save article** (the save
@@ -466,8 +468,8 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   bottom right, as in Feeds and the Inbox (in the web app it ends the list), with **Undo**. What
   you read on one device is read on the others. Emails imported when you connected Instapaper come in read.
 - **A dot for new newsletters** (off by default): **Settings › Integrations › Instapaper › Dot for new
-  newsletters** puts a dot on **Saved** in the bar at the bottom (on the web, in the sidebar too), on
-  **To read** and on the **Newsletters** chip while a newsletter is unread. It is the same on your
+  newsletters** puts a dot on **Saved** in the bar at the bottom (on the web, in the sidebar too) and
+  on the **Newsletters** chip while a newsletter is unread. It is the same on your
   phones and in the web app.
 - **To read looks like your feeds**: the same rows, in the view you chose for the
   feed list (Small, Medium, Large), with how many articles and about how long they take at the top.

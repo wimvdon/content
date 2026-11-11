@@ -367,7 +367,7 @@
     <string name="newsletters_unread">Nouvelles newsletters</string>
     <string name="saved_open_unread">Enregistrés, nouvelles newsletters</string>
     <string name="setting_newsletter_dot_title">Pastille pour les nouvelles newsletters</string>
-    <string name="setting_newsletter_dot_summary">Une pastille sur Enregistrés, À lire et Newsletters tant qu’une newsletter d’Instapaper n’est pas lue</string>
+    <string name="setting_newsletter_dot_summary">Une pastille sur Enregistrés et Newsletters tant qu’une newsletter d’Instapaper n’est pas lue</string>
     <string name="add_choice_newsletter">S’abonner à une newsletter</string>
     <string name="add_choice_newsletter_body">Lire les newsletters dans Content, comme flux ou dans Enregistrés</string>
     <string name="newsletter_as_feed">Comme flux</string>

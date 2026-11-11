@@ -2,6 +2,16 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-11: A dot on Feeds' chips in All; no dot on To read
+
+The owner's answer to "a dot on Feeds?": not in the navigation, but on the chips. In Feeds' **All**
+view, a topic or feed chip with something unread has the small dot at its end (`FeedChips.showsUnreadDot`,
+the web's `showsUnreadDot`), so you see where something new is without switching to Unread. Not in
+Unread: every chip there has something unread, so it would say nothing. Never on Feed in the
+navigation bar: something is nearly always unread, so it would never go away.
+In Saved, the newsletters' dot leaves **To read**: it stays on Saved in the navigation and on the
+**Newsletters** chip, which is where the newsletters are.
+
 ## 2026-11-11: The "something new" badge is primary, not red
 
 Owner's question: the dot on the Inbox and on Saved, To read and the Newsletters chip was Material's
