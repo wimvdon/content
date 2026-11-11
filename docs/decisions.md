@@ -2,6 +2,15 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-11: Your own newsletter address replaces Kill the Newsletter in +
+
+With newsletter addresses in the feed loader, + › Subscribe to newsletter offers **Your own
+address** instead of the steps for Kill the Newsletter: pick a tag, Create address, and the feed is
+added under that tag at once, with the address to copy. Kill the Newsletter still works as an
+ordinary feed, but sending people to someone else's service is no longer needed. Removing the feed
+removes the address, so no address keeps taking mail nobody reads. The tag is typed or picked from
+the topics; a new one becomes a topic (the "newspaper" icon).
+
 ## 2026-11-11: Newsletter addresses in the feed loader, as feeds
 
 The owner asked to build Kill the Newsletter's idea into Content. Its code can't run here (a Node

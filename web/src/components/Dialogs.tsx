@@ -1,4 +1,4 @@
-import { Smartphone, ArrowLeft, BookmarkPlus, BookOpenText, ChevronDown, ChevronRight, ExternalLink, LayoutList, Mail, Palette, Plus, Puzzle, Rss, Tag as TagIcon, Trash2, UserRound } from "lucide-react";
+import { Smartphone, ArrowLeft, BookmarkPlus, BookOpenText, ChevronDown, ChevronRight, Copy, ExternalLink, LayoutList, Mail, Palette, Plus, Puzzle, Rss, Tag as TagIcon, Trash2, UserRound } from "lucide-react";
 import { ConfirmRemove, RemoveButton } from "./ConfirmRemove";
 import { HiddenWordsRow } from "./HiddenWords";
 import { insertedBefore } from "@/lib/topics";
@@ -19,7 +19,8 @@ import { Input, Label } from "./ui/input";
 import { Segmented } from "./ui/segmented";
 import { ReaderStyleControls } from "./ReaderStyleControls";
 import { InstapaperSettings, NewsletterUnreadSwitch } from "./ServiceSettings";
-import { instapaperStep, newsletterSite, type NewsletterWay } from "@/lib/newsletterSubscribe";
+import { canCreate, INSTAPAPER_EMAIL, instapaperStep, ownStep, type NewsletterWay } from "@/lib/newsletterSubscribe";
+import type { NewsletterAddress } from "@/lib/newsletterAddresses";
 import { SwitchRow } from "./ui/switch";
 import { pushSupported } from "@/lib/notifications";
 
@@ -266,7 +267,7 @@ function choice(Icon: typeof Rss, title: string, body: string, onClick: () => vo
  * Subscribe to newsletter is a page of this dialog with two ways (newsletterSubscribe.ts), each a
  * page of steps.
  */
-export function AddChoiceDialog({ open, onOpenChange, onFeed, onArticle }: Props & { onFeed: () => void; onArticle: () => void }) {
+export function AddChoiceDialog({ open, onOpenChange, onFeed, onArticle, onSignIn }: Props & { onFeed: () => void; onArticle: () => void; onSignIn: () => void }) {
   const [newsletter, setNewsletter] = useState(false);
   // However it closes, it opens again at the three choices.
   const leave = (then: () => void) => () => {
@@ -289,13 +290,13 @@ export function AddChoiceDialog({ open, onOpenChange, onFeed, onArticle }: Props
         {choice(Mail, t("addChoiceNewsletter"), t("addChoiceNewsletterBody"), () => setNewsletter(true))}
         {choice(BookmarkPlus, t("addChoiceArticle"), t("addChoiceArticleBody"), leave(onArticle))}
       </div>
-      <NewsletterDialog open={newsletter} onOpenChange={setNewsletter} onFeed={leave(onFeed)} />
+      <NewsletterDialog open={newsletter} onOpenChange={setNewsletter} onSignIn={leave(onSignIn)} />
     </Dialog>
   );
 }
 
-/** Subscribe to newsletter: as a feed (Kill the Newsletter) or straight into To read (Instapaper). */
-function NewsletterDialog({ open, onOpenChange, onFeed }: { open: boolean; onOpenChange: (open: boolean) => void; onFeed: () => void }) {
+/** Subscribe to newsletter: your own address (Content's) or straight into To read (Instapaper). */
+function NewsletterDialog({ open, onOpenChange, onSignIn }: { open: boolean; onOpenChange: (open: boolean) => void; onSignIn: () => void }) {
   const { instapaper, settings } = useApp();
   const [way, setWay] = useState<NewsletterWay | null>(null);
   const steps = (keys: Key[]) => (
@@ -304,14 +305,6 @@ function NewsletterDialog({ open, onOpenChange, onFeed }: { open: boolean; onOpe
         <li key={k}>{t(k)}</li>
       ))}
     </ol>
-  );
-  const site = (w: NewsletterWay, label: string, variant: "default" | "outline") => (
-    <Button asChild variant={variant}>
-      <a href={newsletterSite(w)} target="_blank" rel="noopener noreferrer">
-        <ExternalLink />
-        {label}
-      </a>
-    </Button>
   );
   return (
     <Dialog
@@ -326,25 +319,18 @@ function NewsletterDialog({ open, onOpenChange, onFeed }: { open: boolean; onOpe
       backLabel={t("back")}
     >
       <div className="space-y-3">
-        {choice(Rss, t("newsletterAsFeed"), t("newsletterAsFeedBody"), () => setWay("feed"))}
+        {choice(Mail, t("newsletterOwn"), t("newsletterOwnBody"), () => setWay("own"))}
         {choice(BookOpenText, t("newsletterToRead"), t("newsletterToReadBody"), () => setWay("instapaper"))}
       </div>
-      <Dialog open={way === "feed"} onOpenChange={(o) => !o && setWay(null)} title={t("newsletterAsFeed")} closeLabel={t("close")} backLabel={t("back")}>
-        <div className="space-y-3">
-          {steps(["newsletterFeedStep1", "newsletterFeedStep2", "newsletterFeedStep3"])}
-          <p className="text-xs text-muted-foreground">{t("newsletterFeedNote")}</p>
-          <div className="flex flex-wrap gap-2">
-            {site("feed", t("newsletterOpenKillTheNewsletter"), "outline")}
-            <Button
-              onClick={() => {
-                setWay(null);
-                onFeed();
-              }}
-            >
-              {t("newsletterAddFeed")}
-            </Button>
-          </div>
-        </div>
+      <Dialog open={way === "own"} onOpenChange={(o) => !o && setWay(null)} title={t("newsletterOwn")} closeLabel={t("close")} backLabel={t("back")}>
+        {way === "own" ? (
+          <OwnAddresses
+            onSignIn={() => {
+              setWay(null);
+              onSignIn();
+            }}
+          />
+        ) : null}
       </Dialog>
       <Dialog open={way === "instapaper"} onOpenChange={(o) => !o && setWay(null)} title={t("newsletterToRead")} closeLabel={t("close")} backLabel={t("back")}>
         <div className="space-y-3">
@@ -356,7 +342,14 @@ function NewsletterDialog({ open, onOpenChange, onFeed }: { open: boolean; onOpe
             </>
           ) : (
             <>
-              <div>{site("instapaper", t("newsletterFindAddress"), "default")}</div>
+              <div>
+                <Button asChild>
+                  <a href={INSTAPAPER_EMAIL} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink />
+                    {t("newsletterFindAddress")}
+                  </a>
+                </Button>
+              </div>
               {/* The same switch as in Settings › Integrations › Instapaper. */}
               <NewsletterUnreadSwitch checked={settings.newsletterUnread} />
             </>
@@ -364,6 +357,95 @@ function NewsletterDialog({ open, onOpenChange, onFeed }: { open: boolean; onOpe
         </div>
       </Dialog>
     </Dialog>
+  );
+}
+
+/**
+ * Your own address (newsletterAddresses.ts): the account's addresses, each with Copy, and a new one
+ * for a tag, whose feed is added under that topic. Without a Content account, Sign in first.
+ */
+function OwnAddresses({ onSignIn }: { onSignIn: () => void }) {
+  const { account, library } = useApp();
+  const [addresses, setAddresses] = useState<NewsletterAddress[] | null>([]);
+  const [tag, setTag] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const signedIn = ownStep(!!account) === "addresses";
+  useEffect(() => {
+    if (!signedIn) return;
+    let live = true;
+    void app.newsletterAddresses().then((list) => live && setAddresses(list));
+    return () => {
+      live = false;
+    };
+  }, [signedIn]);
+  const create = async () => {
+    setBusy(true);
+    const made = await app.createNewsletterAddress(tag.trim());
+    setBusy(false);
+    if (!made) {
+      setFailed(true);
+      return;
+    }
+    setTag("");
+    setAddresses((list) => [...(list ?? []).filter((a) => a.code !== made.code), made]);
+  };
+  return (
+    <div className="space-y-3">
+      <p className="text-sm">{t("newsletterOwnExplained")}</p>
+      {!signedIn ? (
+        <>
+          <p className="text-sm text-muted-foreground">{t("newsletterOwnSignInFirst")}</p>
+          <Button onClick={onSignIn}>{t("newsletterOwnSignIn")}</Button>
+        </>
+      ) : (
+        <>
+          {addresses === null ? <p className="text-sm text-destructive">{t("newsletterOwnOffline")}</p> : null}
+          {(addresses ?? []).map((a) => (
+            <div key={a.code} className="flex items-center gap-2 rounded-lg border p-3">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium">{a.tag}</p>
+                <p className="truncate text-sm text-muted-foreground">{a.address}</p>
+              </div>
+              <Button variant="ghost" size="icon" aria-label={t("newsletterOwnCopy")} title={t("newsletterOwnCopy")} onClick={() => void navigator.clipboard?.writeText(a.address).catch(() => undefined)}>
+                <Copy />
+              </Button>
+            </div>
+          ))}
+          <h3 className="text-sm font-semibold">{t("newsletterOwnNew")}</h3>
+          {library.folders.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {library.folders.map((f) => {
+                const on = f.title.trim().toLowerCase() === tag.trim().toLowerCase();
+                return (
+                  <button key={f.id} type="button" aria-pressed={on} onClick={() => setTag(f.title)} className={cn(chip, on ? chipOn : "hover:bg-muted")}>
+                    {f.title}
+                  </button>
+                );
+              })}
+            </div>
+          ) : null}
+          <div className="space-y-1.5">
+            <Label htmlFor="newsletter-tag">{t("newsletterOwnTag")}</Label>
+            <Input
+              id="newsletter-tag"
+              value={tag}
+              onChange={(e) => {
+                setTag(e.target.value);
+                setFailed(false);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && canCreate(tag, busy)) void create();
+              }}
+            />
+          </div>
+          {failed ? <p className="text-sm text-destructive">{t("newsletterOwnFailed")}</p> : null}
+          <Button disabled={!canCreate(tag, busy)} onClick={() => void create()}>
+            {t("newsletterOwnCreate")}
+          </Button>
+        </>
+      )}
+    </div>
   );
 }
 

@@ -5,6 +5,7 @@
  * gives this browser its key (instapaper.ts).
  */
 
+import { addressOf, addressesOf, type NewsletterAddress } from "./newsletterAddresses";
 import { PROXY_URL } from "./config";
 import type { SharedBy } from "./items";
 import { inboxOf, type InboxMessage, type SharedArticle } from "./sharing";
@@ -108,6 +109,24 @@ export class AccountClient {
     const body = { to: to.trim(), from: { email: from.email, name: from.name }, items };
     const response = await this.call("/account/share", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }, [404]);
     return response.status !== 404;
+  }
+
+  /** This account's newsletter addresses (docs/newsletters.md). */
+  async newsletters(): Promise<NewsletterAddress[]> {
+    return addressesOf(await (await this.call("/account/newsletters", {})).json().catch(() => null));
+  }
+
+  /** A new newsletter address for `tag`. */
+  async createNewsletter(tag: string): Promise<NewsletterAddress> {
+    const response = await this.call("/account/newsletters", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ tag: tag.trim() }) });
+    const made = addressOf(await response.json().catch(() => null));
+    if (!made) throw new SyncError("server");
+    return made;
+  }
+
+  /** Removes newsletter address `code`: it stops taking mail and its emails are deleted. Gone already is fine. */
+  async deleteNewsletter(code: string): Promise<void> {
+    await this.call(`/account/newsletters?code=${encodeURIComponent(code)}`, { method: "DELETE" }, [404]);
   }
 
   /** What other Content users shared with this account and no device has taken in yet. */

@@ -33,13 +33,16 @@ sit on a light tile, so dark logos stay visible in dark mode.
 
 ### Newsletters
 
-**+** › **Subscribe to newsletter** offers two ways, each with its steps:
+**+** › **Subscribe to newsletter** offers two ways, each with its own page:
 
-- **As a feed:** with [Kill the Newsletter](https://kill-the-newsletter.com/), a free service run by
-  someone else. Create an inbox there; you get an email address and a feed address. Subscribe to the
-  newsletter with that email address, then tap **Add its feed** and paste the feed address. Each
-  issue then arrives as an article in that feed. Kill the Newsletter receives the newsletters, not
-  Content; **Open Kill the Newsletter** opens it in your browser.
+- **Your own address** (with a Content account): pick a tag (one of yours, or type a new one) and
+  tap **Create address**. Content makes an email address for it, such as
+  `news+k7q2m9abcdef@in.wim.to`, and adds its feed under that tag. Subscribe to newsletters with
+  that address (**Copy** next to it); each issue then arrives as an article in that feed, like any
+  feed's: unread, Mark all as read, the dot on the tag's chip. The page lists your addresses, each
+  with **Copy**. Removing the feed in Manage feeds removes the address too: mail to it is then
+  refused. Content keeps the newsletters in your account, see PRIVACY.md. Without an account, the
+  page offers **Sign in**.
 - **Straight into To read:** with your own Save to Instapaper email address. **Find my Instapaper
   address** opens Instapaper's Email page in your browser, which shows it once you're signed in to
   Instapaper. Subscribe with that address, or forward emails to it: new ones arrive in Saved, under

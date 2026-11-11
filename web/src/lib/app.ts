@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { codeOfFeed, type NewsletterAddress } from "./newsletterAddresses";
 import { instapaperBookmarkId } from "./instapaperLinks";
 import { forgetRecipient, rememberRecipient } from "./recipients";
 import { notificationsOn, refreshServiceWorker, turnOff as turnOffNotifications, turnOn as turnOnNotifications, type TurnOnResult } from "./notifications";
@@ -429,7 +430,36 @@ class AppStore {
     return "added";
   }
 
-  removeFeed = (url: string) => this.updateLibrary((lib) => L.removeFeed(lib, url));
+  removeFeed = (url: string) => {
+    this.updateLibrary((lib) => L.removeFeed(lib, url));
+    // A newsletter address's feed: the address goes with it.
+    const code = codeOfFeed(url);
+    const account = this.state.account;
+    if (code && account) void new AccountClient(account.key).deleteNewsletter(code).catch(() => undefined);
+  };
+  /** This account's newsletter addresses; null when signed out or they can't be read. */
+  newsletterAddresses = async (): Promise<NewsletterAddress[] | null> => {
+    const account = this.state.account;
+    if (!account) return null;
+    try {
+      return await new AccountClient(account.key).newsletters();
+    } catch {
+      return null;
+    }
+  };
+  /** A new newsletter address for `tag`, its feed added under the topic with that name (made if new); null when it didn't work. */
+  createNewsletterAddress = async (tag: string): Promise<NewsletterAddress | null> => {
+    const account = this.state.account;
+    if (!account) return null;
+    try {
+      const made = await new AccountClient(account.key).createNewsletter(tag);
+      const topicId = this.addFolder(made.tag, "newspaper");
+      await this.addFeed(made.feedUrl, topicId);
+      return made;
+    } catch {
+      return null;
+    }
+  };
   renameFeed = (url: string, title: string) => this.updateLibrary((lib) => L.renameFeed(lib, url, title));
   moveFeed = (url: string, folderId: string | null) => this.updateLibrary((lib) => L.moveFeed(lib, url, folderId));
   /** A new topic, or the one that already has this name (a name is never there twice). */

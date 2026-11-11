@@ -1,14 +1,39 @@
 import { describe, expect, it } from "vitest";
-import { instapaperStep, newsletterSite } from "../src/lib/newsletterSubscribe";
+import { addressesOf, addressOf, codeOfFeed, topicFor } from "../src/lib/newsletterAddresses";
+import { canCreate, INSTAPAPER_EMAIL, instapaperStep, ownStep } from "../src/lib/newsletterSubscribe";
 
 describe("Subscribe to newsletter (newsletterSubscribe.ts), as on Android", () => {
-  it("each way links to its own site, over https", () => {
-    expect(newsletterSite("feed")).toBe("https://kill-the-newsletter.com/");
-    expect(newsletterSite("instapaper")).toBe("https://www.instapaper.com/docs/save/email");
-  });
-
   it("Instapaper asks to connect first, then shows where the address is", () => {
     expect(instapaperStep(false)).toBe("connect");
     expect(instapaperStep(true)).toBe("findAddress");
+    expect(INSTAPAPER_EMAIL.startsWith("https://")).toBe(true);
+  });
+
+  it("an own address needs a Content account, and a tag", () => {
+    expect(ownStep(false)).toBe("signIn");
+    expect(ownStep(true)).toBe("addresses");
+    expect(canCreate(" Tech ", false)).toBe(true);
+    expect(canCreate("  ", false)).toBe(false);
+    expect(canCreate("Tech", true)).toBe(false);
+    expect(canCreate("x".repeat(101), false)).toBe(false);
+  });
+
+  it("recognises a newsletter address's feed, and reads the feed loader's answer", () => {
+    const feed = "https://content-worker.wim.to/newsletters/k7q2m9abcdef/0123456789abcdef0123456789abcdef";
+    expect(codeOfFeed(feed)).toBe("k7q2m9abcdef");
+    expect(codeOfFeed("https://example.com/feed.xml")).toBeNull();
+    const answer = { addresses: [{ code: "k7q2m9abcdef", tag: "Tech", address: "news+k7q2m9abcdef@in.wim.to", feedUrl: feed }, { code: "x" }] };
+    expect(addressesOf(answer)).toEqual([{ code: "k7q2m9abcdef", tag: "Tech", address: "news+k7q2m9abcdef@in.wim.to", feedUrl: feed }]);
+    // A feed address that doesn't belong to the code is refused.
+    expect(addressOf({ code: "aaaaaaaaaaaa", address: "a", feedUrl: feed })).toBeNull();
+  });
+
+  it("puts a new address's feed under the topic with its name", () => {
+    const topics = [
+      { id: "1", title: "Tech", icon: "label" },
+      { id: "2", title: "News", icon: "label" },
+    ];
+    expect(topicFor(topics as never, " tech ")?.id).toBe("1");
+    expect(topicFor(topics as never, "Food")).toBeUndefined();
   });
 });
