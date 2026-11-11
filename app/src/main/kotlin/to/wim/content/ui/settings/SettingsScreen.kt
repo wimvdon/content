@@ -117,7 +117,7 @@ class SettingsActions(
     val onExportOpml: () -> Unit = {},
     val onFullArticlesChange: (Boolean) -> Unit,
     val onAlwaysOpenWebsiteChange: (Boolean) -> Unit,
-    val onNewsletterDotChange: (Boolean) -> Unit = {},
+    val onNewsletterUnreadChange: (Boolean) -> Unit = {},
     val onShowImagesChange: (Boolean) -> Unit,
     val onMarkReadOnScrollChange: (Boolean) -> Unit,
     /** Hide articles with words (#277): the words as typed. */
@@ -297,8 +297,8 @@ fun SettingsPageScreen(
                                 actions.onInstapaperSync,
                                 actions.onInstapaperSignOut,
                                 actions.onInstapaperImport,
-                                newsletterDot = state.settings.newsletterDot,
-                                onNewsletterDotChange = actions.onNewsletterDotChange,
+                                newsletterUnread = state.settings.newsletterUnread,
+                                onNewsletterUnreadChange = actions.onNewsletterUnreadChange,
                             )
                         }
                     }

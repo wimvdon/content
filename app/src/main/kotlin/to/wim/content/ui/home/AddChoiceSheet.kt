@@ -30,7 +30,7 @@ import to.wim.content.ui.reader.SheetActions
 import to.wim.content.ui.reader.SheetHeader
 import to.wim.content.ui.theme.AppShapes
 import to.wim.content.data.NewsletterSubscribe
-import to.wim.content.ui.settings.NewsletterDotSetting
+import to.wim.content.ui.settings.NewsletterUnreadSetting
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material3.Button
@@ -51,7 +51,7 @@ fun AddChoiceSheet(
     onSubscribe: () -> Unit,
     onSaveArticle: () -> Unit,
     onDismiss: () -> Unit,
-    /** For Subscribe to newsletter: Instapaper connected, its dot setting, and the links. */
+    /** For Subscribe to newsletter: Instapaper connected, Mark incoming newsletters as unread, and the links. */
     newsletters: NewsletterChoices = NewsletterChoices(),
 ) {
     var newsletterOpen by rememberSaveable { mutableStateOf(false) }
@@ -91,8 +91,8 @@ fun AddChoiceSheet(
 /** What Subscribe to newsletter needs from the app. */
 data class NewsletterChoices(
     val instapaperConnected: Boolean = false,
-    val newsletterDot: Boolean = false,
-    val onNewsletterDotChange: (Boolean) -> Unit = {},
+    val newsletterUnread: Boolean = false,
+    val onNewsletterUnreadChange: (Boolean) -> Unit = {},
     val onConnectInstapaper: () -> Unit = {},
     /** Opens a site in the browser (Kill the Newsletter, Instapaper's Email page). */
     val onOpenSite: (String) -> Unit = {},
@@ -159,7 +159,7 @@ private fun FeedWayPage(
     }
 }
 
-/** Straight into To read: the Save to Instapaper address (connect first), and the newsletters' dot. */
+/** Straight into To read: the Save to Instapaper address (connect first), and Mark incoming newsletters as unread. */
 @Composable
 private fun InstapaperWayPage(
     choices: NewsletterChoices,
@@ -182,7 +182,7 @@ private fun InstapaperWayPage(
                         Text(stringResource(R.string.newsletter_find_address))
                     }
                     // The same switch as in Settings › Integrations › Instapaper.
-                    NewsletterDotSetting(choices.newsletterDot, choices.onNewsletterDotChange)
+                    NewsletterUnreadSetting(choices.newsletterUnread, choices.onNewsletterUnreadChange)
                 }
             }
         }

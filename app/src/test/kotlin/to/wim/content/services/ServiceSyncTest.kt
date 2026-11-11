@@ -117,6 +117,7 @@ class ServiceSyncTest {
     /** Connecting imports everything once (the user's choice, #251); then each sync keeps everything in step. */
     private fun sync(
         editedAt: Map<String, Long> = emptyMap(),
+        markNewslettersUnread: Boolean = false,
     ): ServiceProblem? =
         runBlocking {
             if (state.cursor == null && state.rows.isEmpty()) {
@@ -124,7 +125,7 @@ class ServiceSyncTest {
                 state = imported.state
                 if (imported.problem != null) return@runBlocking imported.problem
             }
-            val result = ServiceSync.run(service, state, editedAt = editedAt) { change -> change(library).also { library = it } }
+            val result = ServiceSync.run(service, state, editedAt = editedAt, markNewslettersUnread = markNewslettersUnread) { change -> change(library).also { library = it } }
             state = result.state
             result.problem
         }
@@ -190,31 +191,40 @@ class ServiceSyncTest {
     }
 
     @Test
-    fun `an email that arrives after connecting waits unread, one from the import doesn't`() {
+    fun `with the setting on, an email that arrives after connecting waits unread, one from the import doesn't`() {
         service.put(remote("1", "https://www.instapaper.com/read/1"))
-        assertNull(sync())
+        assertNull(sync(markNewslettersUnread = true))
         // Imported when connecting: read.
         assertFalse(library.item("instapaper.com/read/1")!!.unread)
         // Arrived since: a newsletter, unread; an article with an address, or one archived there, isn't.
         service.put(remote("2", "https://www.instapaper.com/read/2"))
         service.put(remote("3", "https://a.example/3"))
         service.put(remote("4", "https://www.instapaper.com/read/4", archived = true))
-        assertNull(sync())
+        assertNull(sync(markNewslettersUnread = true))
         assertTrue(library.item("instapaper.com/read/2")!!.unread)
         assertFalse(library.item("a.example/3")!!.unread)
         assertFalse(library.item("instapaper.com/read/4")!!.unread)
         // A change there later doesn't make it unread again once read.
         library = Newsletters.markRead(library, "instapaper.com/read/2")
         service.put(service.entries["2"]!!.copy(liked = true))
-        assertNull(sync())
+        assertNull(sync(markNewslettersUnread = true))
         assertFalse(library.item("instapaper.com/read/2")!!.unread)
         // Archived there: read.
         service.put(remote("5", "https://www.instapaper.com/read/5"))
-        assertNull(sync())
+        assertNull(sync(markNewslettersUnread = true))
         assertTrue(library.item("instapaper.com/read/5")!!.unread)
         service.put(service.entries["5"]!!.copy(archived = true))
-        assertNull(sync())
+        assertNull(sync(markNewslettersUnread = true))
         assertFalse(library.item("instapaper.com/read/5")!!.unread)
+    }
+
+    @Test
+    fun `with the setting off, an email that arrives comes in read`() {
+        service.put(remote("1", "https://a.example/1"))
+        assertNull(sync())
+        service.put(remote("2", "https://www.instapaper.com/read/2"))
+        assertNull(sync())
+        assertFalse(library.item("instapaper.com/read/2")!!.unread)
     }
 
     @Test

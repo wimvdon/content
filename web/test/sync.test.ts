@@ -152,7 +152,7 @@ describe("synced settings", () => {
   });
 
   it("how it looks goes under web., what it does under articles., and comes back the same", () => {
-    const mine = { ...settings, markReadOnScroll: true, alwaysOpenWebsite: true, newsletterDot: true, hiddenWords: "crypto, apple watch", readerStyle: { ...settings.readerStyle, spacing: "relaxed" as const, background: "sepia" as const, autoDark: true } };
+    const mine = { ...settings, markReadOnScroll: true, alwaysOpenWebsite: true, newsletterUnread: true, hiddenWords: "crypto, apple watch", readerStyle: { ...settings.readerStyle, spacing: "relaxed" as const, background: "sepia" as const, autoDark: true } };
     const values = SS.syncedSettings(mine);
     expect(values).toEqual({
       "web.theme": "dark",
@@ -165,7 +165,7 @@ describe("synced settings", () => {
       "web.showImages": "false",
       "articles.markReadOnScroll": "true",
       "articles.alwaysOpenWebsite": "true",
-      "articles.newsletterDot": "true",
+      "articles.newsletterUnread": "true",
       "web.listView": "large",
       "articles.hiddenWords": "crypto, apple watch",
       "sharing.recipients": "[]",

@@ -270,7 +270,7 @@ function SavedArticles({
   onMessage: ListProps["onMessage"];
   onAdd: () => void;
 }) {
-  const { library, savedFilter: filter, loaded, settings } = useApp();
+  const { library, savedFilter: filter, loaded } = useApp();
   const [share, shareDialog] = useShare((text) => onMessage(text));
   // Right-click or press and hold on a saved item (#221, #263, #305), cards and rows alike: Archive
   // (or Back to read) first, as on Android. An unread newsletter has Mark as read before it (no way back).
@@ -294,7 +294,7 @@ function SavedArticles({
   // The topics with something in the state shown, and the one chosen (it stays when the state changes).
   const tags = useMemo(() => chipTags(library, filter), [library, filter]);
   const plain = isPlainFilter(filter);
-  const newsletterDot = settings.newsletterDot && hasUnreadNewsletter(library);
+  const newsletterUnread = hasUnreadNewsletter(library);
   const header = useCollapsingHeader();
   return (
     <section className="flex h-full min-w-0 flex-col" aria-label={t("saved")}>
@@ -334,7 +334,7 @@ function SavedArticles({
                 >
                   <Mail className="size-4" aria-hidden="true" />
                   {t("newsletters")}
-                  {newsletterDot ? <NewDot label={t("newslettersUnread")} /> : null}
+                  {newsletterUnread ? <NewDot label={t("newslettersUnread")} /> : null}
                 </button>
               ) : null}
             </>

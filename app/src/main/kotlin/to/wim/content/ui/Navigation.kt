@@ -652,6 +652,12 @@ fun RssReaderNavigation(
         }
     }
 
+    /** Mark incoming newsletters as unread; turned off, the ones waiting unread are read (no unread state without it). */
+    fun setNewsletterUnread(enabled: Boolean) {
+        app.appScope.launch { app.settings.setNewsletterUnread(enabled) }
+        if (!enabled) editLibrary { lib -> Newsletters.markAllRead(lib, Newsletters.unread(lib).map { it.key }) }
+    }
+
     fun openItem(item: Item) = push(Screen.Reader(ReadingLists.readerKey(item)))
 
     /** A feed article: in the reader, or on its website with Always open the website (marked read then too). */
@@ -722,7 +728,7 @@ fun RssReaderNavigation(
             onExportOpml = exportOpml,
             onFullArticlesChange = { enabled -> app.appScope.launch { app.settings.setFullArticles(enabled) } },
             onAlwaysOpenWebsiteChange = { enabled -> app.appScope.launch { app.settings.setAlwaysOpenWebsite(enabled) } },
-            onNewsletterDotChange = { enabled -> app.appScope.launch { app.settings.setNewsletterDot(enabled) } },
+            onNewsletterUnreadChange = ::setNewsletterUnread,
             onShowImagesChange = { enabled -> app.appScope.launch { app.settings.setShowImages(enabled) } },
             onMarkReadOnScrollChange = { enabled -> app.appScope.launch { app.settings.setMarkReadOnScroll(enabled) } },
             onHiddenWordsChange = { text -> app.appScope.launch { app.settings.setHiddenWords(text) } },
@@ -804,8 +810,8 @@ fun RssReaderNavigation(
                             }
                         val unreadCounts = remember(listed) { listed.unreadCounts() }
                         val savedItems = remember(library, shownFilter) { Saved.items(library, shownFilter) }
-                        // The newsletters' dot: with the setting on, while one waits unread.
-                        val newsletterDot = current.newsletterDot && remember(library) { Newsletters.hasUnread(library) }
+                        // The newsletters' dot: while one waits unread (only with Mark incoming newsletters as unread on).
+                        val newsletterDot = remember(library) { Newsletters.hasUnread(library) }
                         // What others shared arrives with a sync (#167): take it in when the Inbox shows, not only at the next one.
                         LaunchedEffect(section) { if (section == HomeSection.Inbox) app.appScope.launch { app.sync.syncIfDue() } }
                         val minutes by produceState(emptyMap<String, Int>(), library.items, library.articles, textWords) {
@@ -1394,8 +1400,8 @@ fun RssReaderNavigation(
             newsletters =
                 NewsletterChoices(
                     instapaperConnected = instapaperState is InstapaperState.SignedIn,
-                    newsletterDot = current.newsletterDot,
-                    onNewsletterDotChange = { enabled -> app.appScope.launch { app.settings.setNewsletterDot(enabled) } },
+                    newsletterUnread = current.newsletterUnread,
+                    onNewsletterUnreadChange = ::setNewsletterUnread,
                     onConnectInstapaper = { uiScope.launch { ExternalApps.openLink(context, app.instapaper.begin()) } },
                     onOpenSite = { url -> ExternalApps.openLink(context, url) },
                 ),

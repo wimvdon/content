@@ -86,13 +86,13 @@ function setup() {
   const box = { lib: emptyLibrary() as Library, state: emptyServiceSyncState as ServiceSyncState };
   const service = new FakeService();
   const update = (change: (lib: Library) => Library) => (box.lib = change(box.lib));
-  const sync = async (editedAt: Record<string, number> = {}) => {
+  const sync = async (editedAt: Record<string, number> = {}, markNewslettersUnread = false) => {
     if (box.state.cursor === null && Object.keys(box.state.rows).length === 0) {
       const imported = await importService(service, box.state, true, update, 5_000);
       box.state = imported.state;
       if (imported.problem) return imported.problem;
     }
-    const result = await syncService(service, box.state, update, 5_000, editedAt);
+    const result = await syncService(service, box.state, update, 5_000, editedAt, new Set(), async () => null, markNewslettersUnread);
     box.state = result.state;
     return result.problem;
   };
@@ -286,30 +286,39 @@ function bookmark(id: number, url: string | null, patch: Partial<Bookmark> = {})
 }
 
 describe("newsletters from Instapaper", () => {
-  it("one that arrives after connecting waits unread, one from the import doesn't", async () => {
+  it("with the setting off, one that arrives comes in read", async () => {
+    const { box, service, sync } = setup();
+    service.put(remote("1", "https://a.example/1"));
+    expect(await sync()).toBeNull();
+    service.put(remote("2", "https://www.instapaper.com/read/2"));
+    expect(await sync()).toBeNull();
+    expect(itemOf(box.lib, "instapaper.com/read/2")?.unread ?? false).toBe(false);
+  });
+
+  it("with the setting on, one that arrives after connecting waits unread, one from the import doesn't", async () => {
     const { box, service, sync } = setup();
     service.put(remote("1", "https://www.instapaper.com/read/1"));
-    expect(await sync()).toBeNull();
+    expect(await sync({}, true)).toBeNull();
     expect(itemOf(box.lib, "instapaper.com/read/1")?.unread ?? false).toBe(false);
     // Arrived since: a newsletter, unread; an article with an address, or one archived there, isn't.
     service.put(remote("2", "https://www.instapaper.com/read/2"));
     service.put(remote("3", "https://a.example/3"));
     service.put(remote("4", "https://www.instapaper.com/read/4", { archived: true }));
-    expect(await sync()).toBeNull();
+    expect(await sync({}, true)).toBeNull();
     expect(itemOf(box.lib, "instapaper.com/read/2")?.unread).toBe(true);
     expect(itemOf(box.lib, "a.example/3")?.unread ?? false).toBe(false);
     expect(itemOf(box.lib, "instapaper.com/read/4")?.unread ?? false).toBe(false);
     // A change there later doesn't make it unread again once read.
     box.lib = markNewsletterRead(box.lib, "instapaper.com/read/2");
     service.put({ ...service.entries.get("2")!, liked: true });
-    expect(await sync()).toBeNull();
+    expect(await sync({}, true)).toBeNull();
     expect(itemOf(box.lib, "instapaper.com/read/2")?.unread).toBe(false);
     // Archived there: read.
     service.put(remote("5", "https://www.instapaper.com/read/5"));
-    await sync();
+    await sync({}, true);
     expect(itemOf(box.lib, "instapaper.com/read/5")?.unread).toBe(true);
     service.put({ ...service.entries.get("5")!, archived: true });
-    await sync();
+    await sync({}, true);
     expect(itemOf(box.lib, "instapaper.com/read/5")?.unread).toBe(false);
   });
 });

@@ -67,6 +67,8 @@ class ServiceManager(
     /** The text Content shows for a saved item, sent with it to a service that takes it (#247). */
     private val textOf: suspend (Item) -> String? = { null },
     private val clock: () -> Long = System::currentTimeMillis,
+    /** Mark incoming newsletters as unread (the setting, Newsletters). */
+    private val markNewslettersUnread: () -> Boolean = { false },
 ) {
     private val _statuses = MutableStateFlow<Map<String, ServiceStatus>>(emptyMap())
 
@@ -180,7 +182,7 @@ class ServiceManager(
                     if (other != id) library.serviceState(other).rows.filterValues { it.linked }.keys.forEach { elsewhere += it }
                 }
                 var result =
-                    ServiceSync.run(service, state, full = full, editedAt = HashMap(editedAt), elsewhere = elsewhere, textOf = textOf, now = clock()) { change ->
+                    ServiceSync.run(service, state, full = full, editedAt = HashMap(editedAt), elsewhere = elsewhere, textOf = textOf, now = clock(), markNewslettersUnread = markNewslettersUnread()) { change ->
                         library.edit(change)
                     }
                 if (result.problem == null && service is HighlightService) result = copyHighlights(service, result)

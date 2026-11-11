@@ -354,8 +354,8 @@
     <string name="newsletters_title">Newsletter</string>
     <string name="newsletters_unread">Neue Newsletter</string>
     <string name="saved_open_unread">Gespeichert, neue Newsletter</string>
-    <string name="setting_newsletter_dot_title">Punkt bei neuen Newslettern</string>
-    <string name="setting_newsletter_dot_summary">Ein Punkt bei Gespeichert und Newsletter, solange ein Newsletter aus Instapaper ungelesen ist</string>
+    <string name="setting_newsletter_unread_title">Eingehende Newsletter als ungelesen markieren</string>
+    <string name="setting_newsletter_unread_summary">Neue E-Mails aus Instapaper bleiben fett, bis du sie liest</string>
     <string name="add_choice_newsletter">Newsletter abonnieren</string>
     <string name="add_choice_newsletter_body">Newsletter in Content lesen, als Feed oder unter Gespeichert</string>
     <string name="newsletter_as_feed">Als Feed</string>

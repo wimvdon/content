@@ -4,7 +4,7 @@ import { emptyLibrary, type Library } from "../src/lib/library";
 import { hasUnreadNewsletter, isNewsletter, markNewsletterRead, markNewslettersRead, undoMarkNewslettersRead, unreadNewsletterKeys } from "../src/lib/newsletters";
 import { defaultSavedFilter, isPlainFilter, noteOf, removeSaved, savedItems, showsNewsletters, withoutChips } from "../src/lib/saved";
 import { itemData, itemOfRow as rowItemOf, mergeItems } from "../src/lib/syncRows";
-import { applySynced, NEWSLETTER_DOT, syncedSettings } from "../src/lib/syncSettings";
+import { applySynced, NEWSLETTER_UNREAD, syncedSettings } from "../src/lib/syncSettings";
 import { defaultSettings } from "../src/lib/app";
 
 const KEY = "instapaper.com/read/42";
@@ -89,11 +89,14 @@ describe("newsletters (newsletters.ts), as on Android", () => {
     expect(back.sharedBy).toEqual(item.sharedBy);
   });
 
-  it("the dot setting syncs under articles.", () => {
-    const values = syncedSettings({ ...defaultSettings, newsletterDot: true });
-    expect(values[NEWSLETTER_DOT]).toBe("true");
-    expect(NEWSLETTER_DOT).toBe("articles.newsletterDot");
-    expect(applySynced(defaultSettings, values).newsletterDot).toBe(true);
-    expect(applySynced({ ...defaultSettings, newsletterDot: true }, {}).newsletterDot).toBe(true);
+  it("the setting syncs under articles., and 6.12.0's name still counts", () => {
+    const values = syncedSettings({ ...defaultSettings, newsletterUnread: true });
+    expect(values[NEWSLETTER_UNREAD]).toBe("true");
+    expect(NEWSLETTER_UNREAD).toBe("articles.newsletterUnread");
+    expect(applySynced(defaultSettings, values).newsletterUnread).toBe(true);
+    expect(applySynced({ ...defaultSettings, newsletterUnread: true }, {}).newsletterUnread).toBe(true);
+    expect(applySynced(defaultSettings, { "articles.newsletterDot": "true" }).newsletterUnread).toBe(true);
+    // Written only under the new name.
+    expect("articles.newsletterDot" in syncedSettings(defaultSettings, { "articles.newsletterDot": "true" })).toBe(false);
   });
 });

@@ -50,18 +50,18 @@ export function InstapaperSettings() {
       <Button variant="ghost" onClick={() => void app.disconnectInstapaper()}>
         {t("instapaperSignOut")}
       </Button>
-      <NewsletterDotSwitch checked={settings.newsletterDot} />
+      <NewsletterUnreadSwitch checked={settings.newsletterUnread} />
     </section>
   );
 }
 
 /**
- * The newsletters' dot (newsletters.ts): here and on + › Subscribe to newsletter's Instapaper page.
- * Unread newsletters are bold with a dot either way; this adds the dot on Saved and the
- * Newsletters chip.
+ * Mark incoming newsletters as unread (newsletters.ts): here and on + › Subscribe to newsletter's
+ * Instapaper page. On, a newsletter that comes in is bold with a dot until read, and a dot on Saved
+ * and the Newsletters chip says one waits; off, they come in read (turning it off reads them).
  */
-export function NewsletterDotSwitch({ checked }: { checked: boolean }) {
-  return <SwitchRow title={t("newsletterDot")} summary={t("newsletterDotSummary")} checked={checked} onChange={(v) => app.updateSettings({ newsletterDot: v })} />;
+export function NewsletterUnreadSwitch({ checked }: { checked: boolean }) {
+  return <SwitchRow title={t("newsletterUnread")} summary={t("newsletterUnreadSummary")} checked={checked} onChange={(v) => app.setNewsletterUnread(v)} />;
 }
 
 /** Asked once, right after connecting Instapaper (#251): bring in everything it has now, or not. */

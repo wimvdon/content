@@ -42,9 +42,9 @@ sit on a light tile, so dark logos stay visible in dark mode.
   Content; **Open Kill the Newsletter** opens it in your browser.
 - **Straight into To read:** with your own Save to Instapaper email address. **Find my Instapaper
   address** opens Instapaper's Email page in your browser, which shows it once you're signed in to
-  Instapaper. Subscribe with that address, or forward emails to it: new ones arrive in Saved, unread,
-  and under the **Newsletters** chip (see Saved). Not connected to Instapaper yet: the page offers
-  **Sign in with Instapaper** first. Connected, it also has the switch **Dot for new newsletters**,
+  Instapaper. Subscribe with that address, or forward emails to it: new ones arrive in Saved, under
+  the **Newsletters** chip (see Saved). Not connected to Instapaper yet: the page offers **Sign in
+  with Instapaper** first. Connected, it also has the switch **Mark incoming newsletters as unread**,
   the same as in Settings › Integrations › Instapaper.
 
 ## Moving from another reader
@@ -461,16 +461,16 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   **All** (everything saved, archived articles too; it replaced the Archive). Under it **the chips**: **Liked** (set apart by its heart),
   **Newsletters** (with an envelope: the emails that came in through Instapaper, see below; only while there are any)
   and your tags, in your order, one at a time.
-- **New newsletters are unread.** An email that reaches Saved through Instapaper after you connected it
-  (a newsletter sent or forwarded to your Instapaper address) is bold with a dot until you open it. Press and hold it (web: right-click) ›
+- **New newsletters can be unread:** with **Settings › Integrations › Instapaper › Mark incoming
+  newsletters as unread** on (off by default; the same on your phones and in the web app), an email
+  that reaches Saved through Instapaper after you connected it (a newsletter sent or forwarded to
+  your Instapaper address) is bold with a dot until you open it, and a dot on **Saved** in the bar
+  at the bottom (on the web, in the sidebar too) and on the **Newsletters** chip says one waits.
+  Off, newsletters come in like any saved article; turning it off reads the ones still unread. Press and hold one (web: right-click) ›
   **Mark as read** to read it without opening it; archiving or removing it reads it too. There is no
   way to make it unread again. While one is unread, **Mark all as read** is the round button at the
   bottom right, as in Feeds and the Inbox (in the web app it ends the list), with **Undo**. What
   you read on one device is read on the others. Emails imported when you connected Instapaper come in read.
-- **A dot for new newsletters** (off by default): **Settings › Integrations › Instapaper › Dot for new
-  newsletters** puts a dot on **Saved** in the bar at the bottom (on the web, in the sidebar too) and
-  on the **Newsletters** chip while a newsletter is unread. It is the same on your
-  phones and in the web app.
 - **To read looks like your feeds**: the same rows, in the view you chose for the
   feed list (Small, Medium, Large), with how many articles and about how long they take at the top.
   **The Archive looks like a page of notes**: cards in two columns, each with its picture, the title,

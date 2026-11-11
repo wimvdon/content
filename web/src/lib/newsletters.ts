@@ -1,10 +1,11 @@
 /**
  * Newsletters: the emails that reach Saved through Instapaper (Instapaper's "private content",
  * whose address is Instapaper's own page, instapaperLinks.ts). One that comes in after Instapaper is
- * connected waits unread (bold, with a dot) until it is opened, marked as read, archived or removed;
+ * connected waits unread (bold, with a dot) until it is opened, marked as read, archived or removed,
+ * when Mark incoming newsletters as unread is on (off: they come in read, and turning it off reads them);
  * the first import brings them in read. Nothing makes one unread again, except Undo right after Mark
- * all as read. Saved's Newsletters chip shows them; with the setting on, a dot on Saved and the
- * chip says one waits. The same rules as the Android app's Newsletters.kt.
+ * all as read. Saved's Newsletters chip shows them; a dot on Saved and the chip says one
+ * waits. The same rules as the Android app's Newsletters.kt.
  */
 
 import { instapaperBookmarkId } from "./instapaperLinks";
