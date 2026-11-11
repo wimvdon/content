@@ -130,6 +130,8 @@ export async function syncService(
    * connecting doesn't load every article at once. Like ServiceSync.kt.
    */
   textOf: (item: Item) => Promise<string | null> = async () => null,
+  /** Mark incoming newsletters as unread (the setting, newsletters.ts): off, they come in read. */
+  markNewslettersUnread = false,
 ): Promise<ServiceSyncResult> {
   const rows: Record<string, RemoteEntry> = { ...state.rows };
   let cursor = state.cursor;
@@ -139,7 +141,7 @@ export async function syncService(
     const changes = await service.changes(cursor);
     // A first look without rows here (another device imported): what isn't in Reader yet stays there.
     const adopt = cursor !== null;
-    update((lib) => takeIn(lib, rows, changes, progress, now, adopt, editedAt, elsewhere));
+    update((lib) => takeIn(lib, rows, changes, progress, now, adopt, editedAt, elsewhere, markNewslettersUnread));
     cursor = changes.cursor;
   } catch (e) {
     return { state: { cursor, rows }, problem: problemOf(e) };
@@ -230,6 +232,8 @@ export function takeIn(
   adopt = true,
   editedAt: Record<string, number> = {},
   elsewhere: Set<string> = new Set(),
+  /** Mark incoming newsletters as unread (the setting, newsletters.ts). */
+  markNewslettersUnread = false,
 ): Library {
   let result = lib;
   const byRemoteId = new Map(Object.entries(rows).map(([key, e]) => [e.remoteId, key]));
@@ -262,8 +266,8 @@ export function takeIn(
       }
     } else if (adopt) {
       result = put(result, key, item, remote, remote, now);
-      // An email that just arrived there (a newsletter) waits unread (newsletters.ts).
-      if (!item && isNewsletter(remote.url) && !remote.archived) result = changeItem(result, key, (i) => ({ ...i, unread: true }));
+      // An email that just arrived there (a newsletter) waits unread, with the setting on (newsletters.ts).
+      if (markNewslettersUnread && !item && isNewsletter(remote.url) && !remote.archived) result = changeItem(result, key, (i) => ({ ...i, unread: true }));
       link = true;
     }
     rows[key] = { ...remote, linked: link };

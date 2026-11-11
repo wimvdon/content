@@ -69,6 +69,8 @@ object ServiceSync {
          */
         textOf: suspend (Item) -> String? = { null },
         now: Long = System.currentTimeMillis(),
+        /** Mark incoming newsletters as unread (the setting, Newsletters): off, they come in read. */
+        markNewslettersUnread: Boolean = false,
         update: suspend ((Library) -> Library) -> Library,
     ): ServiceSyncResult {
         val rows = HashMap(state.rows)
@@ -83,7 +85,7 @@ object ServiceSync {
             // A first look without an import record here (another device imported): what isn't in
             // Reader yet stays there, as it would after that import.
             val adopt = cursor != null
-            update { library -> takeIn(library, rows, changes, progress, adopt, editedAt, elsewhere) }
+            update { library -> takeIn(library, rows, changes, progress, adopt, editedAt, elsewhere, markNewslettersUnread) }
             cursor = changes.cursor
         } catch (e: ServiceException) {
             return result(e.problem)
@@ -293,6 +295,8 @@ object ServiceSync {
         adopt: Boolean = true,
         editedAt: Map<String, Long> = emptyMap(),
         elsewhere: Set<String> = emptySet(),
+        /** Mark incoming newsletters as unread (the setting, Newsletters). */
+        markNewslettersUnread: Boolean = false,
     ): Library {
         var result = library
         val byRemoteId = rows.entries.associate { (key, entry) -> entry.remoteId to key }
@@ -333,8 +337,8 @@ object ServiceSync {
                 else -> {
                     if (adopt) {
                         result = put(result, key, item, remote, remote)
-                        // An email that just arrived there (a newsletter) waits unread (Newsletters).
-                        if (item == null && Newsletters.isNewsletter(remote.url) && !remote.archived) result = result.changeItem(key) { it.copy(unread = true) }
+                        // An email that just arrived there (a newsletter) waits unread, with the setting on (Newsletters).
+                        if (markNewslettersUnread && item == null && Newsletters.isNewsletter(remote.url) && !remote.archived) result = result.changeItem(key) { it.copy(unread = true) }
                         link = true
                     }
                 }

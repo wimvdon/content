@@ -35,8 +35,8 @@ export function Sidebar({ onSettings }: { onSettings: () => void }) {
   const total = library.feeds.reduce((n, f) => n + (counts.get(f.url) ?? 0), 0);
   const inSaved = !inboxOpen && selection.kind === "saved";
   const inFeeds = !inboxOpen && !inSaved;
-  // The newsletters' dot (with the setting on): on Saved and its Newsletters row while one waits unread.
-  const newsletterDot = settings.newsletterDot && hasUnreadNewsletter(library);
+  // The newsletters' dot: on Saved and its Newsletters row while one waits unread (Mark incoming newsletters as unread on).
+  const newsletterUnread = hasUnreadNewsletter(library);
 
   return (
     <nav className="flex h-full flex-col" aria-label={t("navigation")}>
@@ -48,7 +48,7 @@ export function Sidebar({ onSettings }: { onSettings: () => void }) {
 
       <div className="space-y-0.5 px-2">
         <Row selected={inFeeds} onClick={() => app.showSection(false)} icon={<Rss />} label={t("feedTab")} count={total} strong />
-        <Row selected={inSaved} onClick={() => app.showSection(true)} icon={<BookOpen />} label={t("saved")} count={toReadCount(library)} strong dot={newsletterDot} />
+        <Row selected={inSaved} onClick={() => app.showSection(true)} icon={<BookOpen />} label={t("saved")} count={toReadCount(library)} strong dot={newsletterUnread} />
         {account ? <Row selected={inboxOpen} onClick={() => app.showInbox(true)} icon={<Bell />} label={t("inboxTitle")} count={inboxUnread(library)} strong /> : null}
       </div>
 
@@ -134,7 +134,7 @@ export function Sidebar({ onSettings }: { onSettings: () => void }) {
             onClick={() => app.showSaved({ ...withoutChips(filter), newslettersOnly: !filter.newslettersOnly })}
             icon={<Mail />}
             label={t("newsletters")}
-            dot={newsletterDot}
+            dot={newsletterUnread}
           />
         ) : null}
         {tags.map((tag) => {
@@ -171,7 +171,7 @@ function Row({
   count?: number;
   /** The places (Feeds, Saved, Inbox): a little larger than the filters under them. */
   strong?: boolean;
-  /** The newsletters' dot (Saved and its Newsletters row, with the setting on). */
+  /** The newsletters' dot (Saved and its Newsletters row, while one waits unread). */
   dot?: boolean;
 }) {
   return (

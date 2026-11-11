@@ -18,7 +18,7 @@ import { Dialog } from "./ui/dialog";
 import { Input, Label } from "./ui/input";
 import { Segmented } from "./ui/segmented";
 import { ReaderStyleControls } from "./ReaderStyleControls";
-import { InstapaperSettings, NewsletterDotSwitch } from "./ServiceSettings";
+import { InstapaperSettings, NewsletterUnreadSwitch } from "./ServiceSettings";
 import { instapaperStep, newsletterSite, type NewsletterWay } from "@/lib/newsletterSubscribe";
 import { SwitchRow } from "./ui/switch";
 import { pushSupported } from "@/lib/notifications";
@@ -358,7 +358,7 @@ function NewsletterDialog({ open, onOpenChange, onFeed }: { open: boolean; onOpe
             <>
               <div>{site("instapaper", t("newsletterFindAddress"), "default")}</div>
               {/* The same switch as in Settings › Integrations › Instapaper. */}
-              <NewsletterDotSwitch checked={settings.newsletterDot} />
+              <NewsletterUnreadSwitch checked={settings.newsletterUnread} />
             </>
           )}
         </div>

@@ -11,6 +11,7 @@ import to.wim.content.data.ThemeMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SyncSettingsTest {
@@ -23,7 +24,7 @@ class SyncSettingsTest {
             showImages = false,
             markReadOnScroll = true,
             alwaysOpenWebsite = true,
-            newsletterDot = true,
+            newsletterUnread = true,
             hiddenWords = "crypto, apple watch",
             listView = ListView.Large,
         )
@@ -44,7 +45,7 @@ class SyncSettingsTest {
                 "android.showImages" to "false",
                 "articles.markReadOnScroll" to "true",
                 "articles.alwaysOpenWebsite" to "true",
-                "articles.newsletterDot" to "true",
+                "articles.newsletterUnread" to "true",
                 "android.listView" to "Large",
                 "articles.hiddenWords" to "crypto, apple watch",
                 SyncSettings.RECIPIENTS to "[]",
@@ -175,5 +176,13 @@ class SyncSettingsTest {
         val saved = SyncSettings.of(applied, before)
         before.keys.forEach { assertFalse(it in saved) }
         assertEquals("crypto", saved[SyncSettings.HIDDEN_WORDS])
+    }
+
+    @Test
+    fun `Mark incoming newsletters as unread is read from its name in 6_12_0 until shared under the new one`() {
+        assertTrue(SyncSettings.applyTo(Settings(), mapOf(SyncSettings.NEWSLETTER_DOT_BEFORE to "true")).newsletterUnread)
+        assertFalse(SyncSettings.applyTo(Settings(), mapOf(SyncSettings.NEWSLETTER_DOT_BEFORE to "true", SyncSettings.NEWSLETTER_UNREAD to "false")).newsletterUnread)
+        // Written only under the new name.
+        assertFalse(SyncSettings.NEWSLETTER_DOT_BEFORE in SyncSettings.of(Settings(), mapOf(SyncSettings.NEWSLETTER_DOT_BEFORE to "true")))
     }
 }

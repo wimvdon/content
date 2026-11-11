@@ -295,8 +295,8 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
 - Three levels, the same in Feeds and Saved: the navigation bar says where (Feeds or Saved); a
   **segmented switch** under the search bar (the same as To read / Archive in the save sheet, full
   width with 16dp sides; on the web's wide window in the sidebar) says which view (Feeds: **Unread**
-  and **All**; Saved: **To read** and **All**); one row of chips under it says which group: the tags in Feeds, Liked (heart),
-  Newsletters (an envelope, with the same small badge in primary while one is unread and the dot setting is on) and the tags in Saved, in the tags' order, each only when it has something in the tab shown (the
+  and **All**; Saved: **To read** and **All**); one row of chips under it says which group: the tags in Feeds (in All, with the small badge in primary at the end of a chip with something unread), Liked (heart),
+  Newsletters (an envelope, with the same small badge in primary while one is unread) and the tags in Saved, in the tags' order, each only when it has something in the tab shown (the
   chosen one stays). Group chips have no check mark and chosen ones keep their weight, so a chip
   never changes width and the row never moves (#208). There is no X (Material 3's filter chips: an X is an input chip's "remove"; the web dropped
   its X too, 2026-11-01; one group at a time: tapping

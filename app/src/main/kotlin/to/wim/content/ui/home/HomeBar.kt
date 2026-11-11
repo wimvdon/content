@@ -116,8 +116,6 @@ fun ViewSwitch(
     labels: List<String>,
     selected: Int,
     onSelect: (Int) -> Unit,
-    /** The views with Material's small badge (Saved's To read while a newsletter waits, with the setting on). */
-    dots: Set<Int> = emptySet(),
 ) {
     SingleChoiceSegmentedButtonRow(
         Modifier
@@ -131,16 +129,7 @@ fun ViewSwitch(
                 selected = index == selected,
                 onClick = { if (index != selected) onSelect(index) },
                 shape = SegmentedButtonDefaults.itemShape(index = index, count = labels.size),
-            ) {
-                if (index in dots) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
-                        NewBadge()
-                    }
-                } else {
-                    Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                }
-            }
+            ) { Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis) }
         }
     }
 }
@@ -166,6 +155,8 @@ fun TagChips(
     iconOf: (String) -> String? = { null },
     /** Room above the row: none right under the view switch, whose touch area already makes the gap. */
     top: Dp = 8.dp,
+    /** The topics with the unread dot (Feeds' All view: something unread in them). */
+    dotted: (String) -> Boolean = { false },
 ) {
     if (state == null && tags.isEmpty() && liked == null && loose == null) return
     Row(
@@ -188,6 +179,7 @@ fun TagChips(
                 selected = on,
                 onClick = { onSelect(if (on) null else tag) },
                 label = { Text(tag) },
+                trailingIcon = if (dotted(tag)) ({ UnreadChipDot() }) else null,
                 leadingIcon =
                     iconOf(tag)?.let { icon ->
                         { Icon(rememberFolderIconPainter(icon), contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) }
@@ -206,6 +198,8 @@ fun TagChips(
 fun FeedChip(
     feed: Feed,
     chosen: Boolean,
+    /** The unread dot (Feeds' All view: something unread in it, FeedChips.showsUnreadDot). */
+    dot: Boolean = false,
     onClick: () -> Unit,
 ) {
     FilterChip(
@@ -213,5 +207,13 @@ fun FeedChip(
         onClick = onClick,
         label = { Text(feed.title, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = 200.dp)) },
         leadingIcon = { FeedIcon(feed, FeedIconSize.Small) },
+        trailingIcon = if (dot) ({ UnreadChipDot() }) else null,
     )
+}
+
+/** The small dot at the end of a chip with something unread in it, read out as "Unread". */
+@Composable
+fun UnreadChipDot() {
+    val label = stringResource(R.string.article_unread)
+    NewBadge(Modifier.semantics { contentDescription = label })
 }

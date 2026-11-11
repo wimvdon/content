@@ -92,6 +92,7 @@ class RssReaderApp :
             http,
             importOf = { id -> settings.settings.value?.imports?.get(id) },
             recordImport = { id, record -> settings.setImport(id, record) },
+            markNewslettersUnread = { settings.settings.value?.newsletterUnread == true },
             // The one text every device shows for a saved article (data/SharedText.kt), so Instapaper shows it too (#247).
             textOf = { item ->
                 SharedText.resolve(

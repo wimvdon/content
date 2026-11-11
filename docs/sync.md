@@ -84,7 +84,7 @@ The account's document (it was `rss-reader-sync.json` in Google Drive before), U
   | `web.listView` | `small`, `medium`, `large` | web |
   | `articles.fullArticles`, `articles.markReadOnScroll`, `articles.alwaysOpenWebsite` | `true`, `false` | both |
   | `articles.hiddenWords` | Hide articles with words (#277): the words as typed, separated by commas or new lines; `""` for none | both |
-  | `articles.newsletterDot` | The newsletters' dot on Saved, To read and the Newsletters chip: `true`, `false` (missing: off) | both |
+  | `articles.newsletterUnread` | Mark incoming newsletters as unread: `true`, `false` (missing: off; 6.12.0 wrote `articles.newsletterDot`, read while this is missing and dropped on saving) | both |
   | `services.instapaper.token` | the Instapaper sign-in, shared by every device of the account (`SharedInstapaper.kt`, `web/src/lib/sharedInstapaper.ts`, see `instapaper.md`): `{"token", "username", "userId"}`; `""` once disconnected | both |
   | `sharing.recipients` | the people shared with (#235): a JSON list of email addresses in lower case, most recent first, at most 12 | both |
   | `services.instapaper.imported` | the answer to the import question when Instapaper was connected (#251): `{"at": ms, "count": n, "everything": true}` (`false`: not imported); one without `everything` (from before #251) counts as everything; an app without one keeps the file's | both |

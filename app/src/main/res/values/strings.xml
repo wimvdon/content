@@ -356,8 +356,8 @@
     <string name="newsletters_title">Newsletters</string>
     <string name="newsletters_unread">New newsletters</string>
     <string name="saved_open_unread">Saved, new newsletters</string>
-    <string name="setting_newsletter_dot_title">Dot for new newsletters</string>
-    <string name="setting_newsletter_dot_summary">A dot on Saved, To read and Newsletters while a newsletter from Instapaper is unread</string>
+    <string name="setting_newsletter_unread_title">Mark incoming newsletters as unread</string>
+    <string name="setting_newsletter_unread_summary">New emails from Instapaper stay bold until you read them</string>
     <string name="add_choice_newsletter">Subscribe to newsletter</string>
     <string name="add_choice_newsletter_body">Read newsletters in Content, as a feed or in Saved</string>
     <string name="newsletter_as_feed">As a feed</string>

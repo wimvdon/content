@@ -71,13 +71,15 @@ Sync now. Never in the background.
   left out: a cursor without the `p:` prefix (from before) reads the whole account once, so the ones
   skipped come in.
 - **Newsletters** (`data/Newsletters.kt`, `web/src/lib/newsletters.ts`): those articles without an
-  address are Saved's newsletters. One that comes in as new in a regular sync (`ServiceSync.takeIn`,
-  "new there", not the import) and isn't archived there gets `unread` on its item. Opening it (the
+  address are Saved's newsletters. With Mark incoming newsletters as unread on
+  (`articles.newsletterUnread`), one that comes in as new in a regular sync (`ServiceSync.takeIn`,
+  "new there", not the import) and isn't archived there gets `unread` on its item; off, none does,
+  and turning it off clears the ones waiting. Opening it (the
   reader on Android, `AppStore.open` on the web), Mark as read, archiving or removing it clears it;
   `putItem` clears it on anything not to read, so archiving there clears it too. Nothing sets it
   again, except Undo right after Mark all as read. It syncs with the item (`docs/sync.md`), read
-  wins. The Newsletters chip filters Saved to them (`SavedFilter.newslettersOnly`), and with
-  `articles.newsletterDot` on, a dot shows on Saved, To read and the chip while one is unread.
+  wins. The Newsletters chip filters Saved to them (`SavedFilter.newslettersOnly`), and a dot
+  shows on Saved and the chip while one is unread.
 - **Signing out** forgets what was synced with Instapaper; the reading list stays.
 
 

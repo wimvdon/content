@@ -63,8 +63,8 @@ export interface Settings {
   alwaysOpenWebsite: boolean;
   /** Hide feed articles whose title has one of these words (#277), as typed (articleFilter.ts). */
   hiddenWords: string;
-  /** A dot on Saved, To read and the Newsletters chip while a newsletter waits unread (newsletters.ts); synced, off by default. */
-  newsletterDot: boolean;
+  /** Mark incoming newsletters as unread (newsletters.ts), with a dot on Saved and the Newsletters chip while one is; synced, off by default. */
+  newsletterUnread: boolean;
   /** What was imported from each service when it was connected (#145), by id. */
   imports: Record<string, ServiceImport>;
   /** The people shared with (#235), most recent first; synced (recipients.ts). */
@@ -126,7 +126,7 @@ export const defaultSettings: Settings = {
   listView: "medium",
   alwaysOpenWebsite: false,
   hiddenWords: "",
-  newsletterDot: false,
+  newsletterUnread: false,
   imports: {},
   recipients: [],
 };
@@ -192,7 +192,9 @@ class AppStore {
       load<AccountSession>("account").catch(() => undefined),
     ]);
     const account = stored?.key ? { key: stored.key, email: stored.email ?? null } : null;
-    const merged = { ...defaultSettings, ...settings, readerStyle: readerStyleOf(settings?.readerStyle), imports: settings?.imports ?? {}, recipients: Array.isArray(settings?.recipients) ? settings.recipients : [] };
+    const merged = { ...defaultSettings, ...settings, readerStyle: readerStyleOf(settings?.readerStyle), imports: settings?.imports ?? {}, recipients: Array.isArray(settings?.recipients) ? settings.recipients : [],
+      // Named for its dot in 6.12.0: read once from there.
+      newsletterUnread: settings?.newsletterUnread ?? (settings as { newsletterDot?: boolean } | undefined)?.newsletterDot === true };
     this.set({
       loaded: true,
       library: library ?? L.emptyLibrary(),
@@ -868,6 +870,11 @@ class AppStore {
     return keys;
   };
   markInboxUnread = (keys: string[]) => this.updateLibrary((lib) => markInboxUnread(lib, keys));
+  /** Mark incoming newsletters as unread; turned off, the ones waiting unread are read (no unread state without it). */
+  setNewsletterUnread = (on: boolean) => {
+    this.updateSettings({ newsletterUnread: on });
+    if (!on) this.markNewslettersRead(this.state.library.items);
+  };
   /** An unread newsletter read (opened, or Mark as read); there is no Mark as unread. */
   markNewsletterRead = (key: string) => {
     if (itemOf(this.state.library, key)?.unread) this.updateLibrary((lib) => markNewsletterRead(lib, key));
@@ -958,6 +965,7 @@ class AppStore {
             () => this.articleText(item.url),
             (own) => this.storeText(item.key, own),
           ),
+        this.state.settings.newsletterUnread,
       )
         .then(async (result) => {
           // Highlights always sync too (#164, #251): there is nothing to choose.

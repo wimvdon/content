@@ -2,6 +2,26 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-11: Mark incoming newsletters as unread, instead of a dot setting
+
+The owner's correction: the setting is about the unread state, not the dot. **Mark incoming
+newsletters as unread** (`articles.newsletterUnread`, off by default) decides whether a newsletter that
+comes in from Instapaper is unread at all; off, it comes in like any saved article, with nothing bold
+and no dot. The dots on Saved and the Newsletters chip follow the unread ones, with no setting of
+their own. Turning it off reads the ones waiting, so nothing stays unread without it. The setting
+6.12.0 wrote (`articles.newsletterDot`, on Android also the stored `newsletter_dot`, on the web the
+stored `newsletterDot`) is read while the new one is missing, so it stays on for whoever turned it on.
+
+## 2026-11-11: A dot on Feeds' chips in All; no dot on To read
+
+The owner's answer to "a dot on Feeds?": not in the navigation, but on the chips. In Feeds' **All**
+view, a topic or feed chip with something unread has the small dot at its end (`FeedChips.showsUnreadDot`,
+the web's `showsUnreadDot`), so you see where something new is without switching to Unread. Not in
+Unread: every chip there has something unread, so it would say nothing. Never on Feed in the
+navigation bar: something is nearly always unread, so it would never go away.
+In Saved, the newsletters' dot leaves **To read**: it stays on Saved in the navigation and on the
+**Newsletters** chip, which is where the newsletters are.
+
 ## 2026-11-11: The "something new" badge is primary, not red
 
 Owner's question: the dot on the Inbox and on Saved, To read and the Newsletters chip was Material's

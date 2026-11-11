@@ -5,7 +5,7 @@ import { app, useApp } from "@/lib/app";
 import { useListedLibrary } from "./useListed";
 import { snippet } from "@/lib/html";
 import { dayLabel, plural, t } from "@/lib/i18n";
-import { articleKey, articlesInTab, chipTag, feedTabOf, sortTime, unreadKeys, type Article, type Feed } from "@/lib/library";
+import { articleKey, articlesInTab, chipTag, feedTabOf, showsUnreadDot, sortTime, unreadByFeed, unreadKeys, type Article, type Feed } from "@/lib/library";
 import { chipTags, isPlainFilter, itemArticle, noteOf, savedItems, showsLiked, showsNewsletters, showsNotes, sourceOf, withoutChips, type NoteContent } from "@/lib/saved";
 import { hasUnreadNewsletter } from "@/lib/newsletters";
 import { NewDot } from "./NewDot";
@@ -76,6 +76,8 @@ function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport,
   // One chip row, as on Android: the topics with something in the state shown, or the topic chosen
   // and its feeds.
   const row = useMemo(() => feedChipRow(library, tab, selection), [library, tab, selection]);
+  const unreadPerFeed = useMemo(() => unreadByFeed(library), [library]);
+  const feedDot = (f: Feed) => showsUnreadDot(tab, unreadPerFeed.get(f.url) ?? 0);
   const title =
     selection.kind === "folder"
       ? (library.folders.find((f) => f.id === selection.folderId)?.title ?? "")
@@ -135,12 +137,14 @@ function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport,
               selected={row.chosenTopic ?? chipTag(library, selection)}
               // Tapping the chosen topic (or its feed's) lets go: the topics come back.
               onSelect={(tag) => app.select(tag === null ? { kind: "all" } : { kind: "tag", tag })}
+              // In All, a dot on the chips with something unread (in Unread they all have).
+              dotted={(tag) => showsUnreadDot(tab, unreadKeys(library, { kind: "tag", tag }).size)}
               // After the topics and a divider, as on Android: the chosen topic's feeds (one tapped
               // shows it alone, tapped again the topic), or else the feeds without a topic.
               after={
                 row.chosenTopic !== null
-                  ? feedChipList(row.feeds, row.chosenFeed, (f, on) => app.select(on ? { kind: "tag", tag: row.chosenTopic! } : { kind: "feed", feedUrl: f.url }))
-                  : feedChipList(row.loose, row.chosenFeed, (f, on) => app.select(on ? { kind: "all" } : { kind: "feed", feedUrl: f.url }))
+                  ? feedChipList(row.feeds, row.chosenFeed, (f, on) => app.select(on ? { kind: "tag", tag: row.chosenTopic! } : { kind: "feed", feedUrl: f.url }), feedDot)
+                  : feedChipList(row.loose, row.chosenFeed, (f, on) => app.select(on ? { kind: "all" } : { kind: "feed", feedUrl: f.url }), feedDot)
               }
             />
           ) : null}
@@ -266,7 +270,7 @@ function SavedArticles({
   onMessage: ListProps["onMessage"];
   onAdd: () => void;
 }) {
-  const { library, savedFilter: filter, loaded, settings } = useApp();
+  const { library, savedFilter: filter, loaded } = useApp();
   const [share, shareDialog] = useShare((text) => onMessage(text));
   // Right-click or press and hold on a saved item (#221, #263, #305), cards and rows alike: Archive
   // (or Back to read) first, as on Android. An unread newsletter has Mark as read before it (no way back).
@@ -290,7 +294,7 @@ function SavedArticles({
   // The topics with something in the state shown, and the one chosen (it stays when the state changes).
   const tags = useMemo(() => chipTags(library, filter), [library, filter]);
   const plain = isPlainFilter(filter);
-  const newsletterDot = settings.newsletterDot && hasUnreadNewsletter(library);
+  const newsletterUnread = hasUnreadNewsletter(library);
   const header = useCollapsingHeader();
   return (
     <section className="flex h-full min-w-0 flex-col" aria-label={t("saved")}>
@@ -330,7 +334,7 @@ function SavedArticles({
                 >
                   <Mail className="size-4" aria-hidden="true" />
                   {t("newsletters")}
-                  {newsletterDot ? <NewDot label={t("newslettersUnread")} /> : null}
+                  {newsletterUnread ? <NewDot label={t("newslettersUnread")} /> : null}
                 </button>
               ) : null}
             </>
@@ -609,7 +613,7 @@ function CollapsingHeader({ hidden, onShow, children }: { hidden: boolean; onSho
 }
 
 /** Feeds as chips with their icon (a topic's, or those without one); none: nothing. */
-function feedChipList(list: Feed[], chosen: string | null, onClick: (feed: Feed, on: boolean) => void): React.ReactNode {
+function feedChipList(list: Feed[], chosen: string | null, onClick: (feed: Feed, on: boolean) => void, dotted: (feed: Feed) => boolean = () => false): React.ReactNode {
   if (list.length === 0) return null;
   return list.map((f) => {
     const on = f.url === chosen;
@@ -617,6 +621,7 @@ function feedChipList(list: Feed[], chosen: string | null, onClick: (feed: Feed,
       <FilterChip key={f.url} selected={on} onClick={() => onClick(f, on)}>
         <FeedIcon feed={f} className="size-4" />
         <span className="max-w-48 truncate">{f.title}</span>
+        {dotted(f) ? <NewDot label={t("unread")} /> : null}
       </FilterChip>
     );
   });
@@ -676,9 +681,12 @@ function TagChips({
   tags,
   selected,
   onSelect,
+  dotted = () => false,
 }: {
   /** The topics' icons by name (lower case), the same in Feeds and Saved (#314). */
   icons: Map<string, string>;
+  /** The topics with the unread dot (Feeds' All view: something unread in them). */
+  dotted?: (tag: string) => boolean;
   /** Chips before the groups, set apart by a divider. */
   state?: React.ReactNode;
   /** Saved's Liked chip (#206), the first group. */
@@ -711,6 +719,7 @@ function TagChips({
           <FilterChip key={tag} selected={on} onClick={() => onSelect(on ? null : tag)}>
             {icons.has(tag.trim().toLowerCase()) ? <FolderIcon name={icons.get(tag.trim().toLowerCase())!} className="size-4" /> : null}
             {tag}
+            {dotted(tag) ? <NewDot label={t("unread")} /> : null}
           </FilterChip>
         );
       })}

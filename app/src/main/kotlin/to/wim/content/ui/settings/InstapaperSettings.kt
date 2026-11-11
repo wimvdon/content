@@ -44,9 +44,9 @@ fun InstapaperSettings(
     onSignOut: () -> Unit,
     /** The answer to "Import from Instapaper?", while it waits for one (#251). */
     onChooseImport: (everything: Boolean) -> Unit = {},
-    /** The newsletters' dot (Newsletters): on Saved, To read and the Newsletters chip while one waits unread. */
-    newsletterDot: Boolean = false,
-    onNewsletterDotChange: (Boolean) -> Unit = {},
+    /** Mark incoming newsletters as unread (Newsletters). */
+    newsletterUnread: Boolean = false,
+    onNewsletterUnreadChange: (Boolean) -> Unit = {},
 ) {
     val signedIn = state.instapaper as? InstapaperState.SignedIn
     val status = state.status
@@ -80,23 +80,23 @@ fun InstapaperSettings(
             }
         }
     }
-    // Connected: whether a newsletter that comes in shows a dot (Newsletters).
-    if (signedIn != null) NewsletterDotSetting(newsletterDot, onNewsletterDotChange)
+    // Connected: whether a newsletter that comes in is unread (Newsletters).
+    if (signedIn != null) NewsletterUnreadSetting(newsletterUnread, onNewsletterUnreadChange)
 }
 
 /**
- * The newsletters' dot: a switch in Settings › Integrations › Instapaper and on + › Subscribe to
- * newsletter's Instapaper page. Unread newsletters are bold with a dot either way; this adds the dot
- * on Saved, To read and the Newsletters chip.
+ * Mark incoming newsletters as unread: a switch in Settings › Integrations › Instapaper and on +
+ * › Subscribe to newsletter's Instapaper page. On, a newsletter that comes in is bold with a dot until
+ * read, and a dot on Saved and the Newsletters chip says one waits; off, they come in read.
  */
 @Composable
-fun NewsletterDotSetting(
+fun NewsletterUnreadSetting(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
 ) {
     SwitchSetting(
-        title = stringResource(R.string.setting_newsletter_dot_title),
-        summary = stringResource(R.string.setting_newsletter_dot_summary),
+        title = stringResource(R.string.setting_newsletter_unread_title),
+        summary = stringResource(R.string.setting_newsletter_unread_summary),
         checked = checked,
         onCheckedChange = onCheckedChange,
     )

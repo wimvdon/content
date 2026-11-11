@@ -9,12 +9,12 @@ import { cn } from "./ui/cn";
 /**
  * Feeds | Saved | Inbox at the bottom (#189, #246), a plain tab bar in the web's own look: each goes
  * back to the list last shown there; the Inbox only while signed in, with a dot while something
- * shared with you is unread, Saved with one while a newsletter waits unread (with the setting on).
+ * shared with you is unread, Saved with one while a newsletter waits unread.
  * Search opens from the search bar at the top. Not in wide windows: the sidebar has the same places
  * at its top.
  */
 export function NavigationBar({ searching, onNavigate }: { searching: boolean; onNavigate: () => void }) {
-  const { selection, inboxOpen, account, library, settings } = useApp();
+  const { selection, inboxOpen, account, library } = useApp();
   const inSaved = selection.kind === "saved";
   const item = (selected: boolean, go: () => void, Icon: typeof Rss, label: string, dot = false, dotLabel?: string) => (
     <button
@@ -37,8 +37,8 @@ export function NavigationBar({ searching, onNavigate }: { searching: boolean; o
   return (
     <nav className="flex border-t bg-background lg:hidden" aria-label={t("navigation")}>
       {item(!searching && !inboxOpen && !inSaved, () => app.showSection(false), Rss, t("feedTab"))}
-      {/* A dot on Saved while a newsletter waits unread, with the setting on. */}
-      {item(!searching && !inboxOpen && inSaved, () => app.showSection(true), BookOpen, t("saved"), settings.newsletterDot && hasUnreadNewsletter(library), t("newslettersUnread"))}
+      {/* A dot on Saved while a newsletter waits unread. */}
+      {item(!searching && !inboxOpen && inSaved, () => app.showSection(true), BookOpen, t("saved"), hasUnreadNewsletter(library), t("newslettersUnread"))}
       {account ? item(!searching && inboxOpen, () => app.showInbox(true), Bell, t("inboxTitle"), inboxUnread(library) > 0) : null}
     </nav>
   );
