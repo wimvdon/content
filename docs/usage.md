@@ -35,14 +35,15 @@ sit on a light tile, so dark logos stay visible in dark mode.
 
 **+** › **Subscribe to newsletter** offers two ways, each with its own page:
 
-- **Your own address** (with a Content account): pick a tag (one of yours, or type a new one) and
-  tap **Create address**. Content makes an email address for it, such as
-  `news+k7q2m9abcdef@in.wim.to`, and adds its feed under that tag. Subscribe to newsletters with
-  that address (**Copy** next to it); each issue then arrives as an article in that feed, like any
-  feed's: unread, Mark all as read, the dot on the tag's chip. The page lists your addresses, each
-  with **Copy**. Removing the feed in Manage feeds removes the address too: mail to it is then
-  refused. Content keeps the newsletters in your account, see PRIVACY.md. Without an account, the
-  page offers **Sign in**.
+- **Your own address** (with a Content account), like Subscribe to feed: give its feed a **name**,
+  pick a **tag** (or No tag, or Edit tags) and tap **Create address**. Content makes an email address
+  for it, such as `content+k7q2m9abcdef@in.wim.to`, adds its feed, and shows the address with
+  **Copy**. Subscribe to newsletters with that address; each issue then arrives as an article in that
+  feed, like any feed's: unread, Mark all as read, the dot on the tag's chip. Such a feed has an
+  envelope as its icon; in **Manage feeds** it says **Email address** under its name (on the web, the
+  envelope), and editing it shows the address with **Copy**, with the same name and tag options as
+  any feed. Removing the feed removes the address too: mail to it is then refused. Content keeps the
+  newsletters in your account, see PRIVACY.md. Without an account, the page offers **Sign in**.
 - **Straight into To read:** with your own Save to Instapaper email address. **Find my Instapaper
   address** opens Instapaper's Email page in your browser, which shows it once you're signed in to
   Instapaper. Subscribe with that address, or forward emails to it: new ones arrive in Saved, under

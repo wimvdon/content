@@ -1,5 +1,9 @@
 package to.wim.content.ui.home
 
+import to.wim.content.R
+import androidx.compose.ui.res.painterResource
+import androidx.compose.material3.Icon
+import to.wim.content.data.NewsletterAddresses
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -40,7 +44,12 @@ fun FeedIcon(
         modifier
             .size(size)
             .clip(shape)
-    if (feed?.iconUrl != null && !failed) {
+    // A newsletter address (NewsletterAddresses): an envelope, so it reads as an email address everywhere.
+    if (NewsletterAddresses.codeOfFeed(feed?.url) != null) {
+        Box(boxModifier.background(MaterialTheme.colorScheme.tertiaryContainer), contentAlignment = Alignment.Center) {
+            Icon(painterResource(R.drawable.ic_mail), contentDescription = null, tint = MaterialTheme.colorScheme.onTertiaryContainer, modifier = Modifier.size(size * 0.7f))
+        }
+    } else if (feed?.iconUrl != null && !failed) {
         // Site icons are made for light browser tabs: a light tile keeps dark logos visible in
         // dark mode too, and gives every icon the same shape.
         Box(

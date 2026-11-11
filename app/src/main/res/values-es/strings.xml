@@ -379,13 +379,13 @@
     <string name="newsletter_find_address">Buscar mi dirección de Instapaper</string>
     <string name="newsletter_own">Tu propia dirección</string>
     <string name="newsletter_own_body">Content crea una dirección de correo para una etiqueta: los boletines llegan como uno de tus feeds</string>
-    <string name="newsletter_own_explained">Suscríbete a un boletín con la dirección de una etiqueta. Cada número llega como artículo en el feed de esa etiqueta.</string>
+    <string name="newsletter_own_explained">Ponle un nombre al feed y elige una etiqueta. Content crea una dirección de correo para él: cada boletín enviado allí llega como artículo en ese feed.</string>
     <string name="newsletter_own_sign_in_first">Tus propias direcciones necesitan una cuenta de Content, que guarda los boletines.</string>
     <string name="newsletter_own_sign_in">Iniciar sesión</string>
-    <string name="newsletter_own_offline">No se pudieron cargar tus direcciones. Comprueba tu conexión.</string>
-    <string name="newsletter_own_new">Nueva dirección</string>
-    <string name="newsletter_own_tag">Etiqueta</string>
+    <string name="newsletter_own_offline">No se pudo cargar la dirección. Comprueba tu conexión.</string>
     <string name="newsletter_own_failed">No se pudo crear la dirección. Inténtalo de nuevo.</string>
     <string name="newsletter_own_create">Crear dirección</string>
     <string name="newsletter_own_copy">Copiar dirección</string>
+    <string name="newsletter_feed_label">Dirección de correo</string>
+    <string name="newsletter_own_made">Tu dirección está lista y su feed está en Feed. Suscríbete a boletines con ella.</string>
 </resources>

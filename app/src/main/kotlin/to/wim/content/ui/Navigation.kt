@@ -1374,6 +1374,8 @@ fun RssReaderNavigation(
                         addDialogOpen = true
                     },
                     onEditFeed = { feed, title, topicId -> editFeed(feed, title, topicId) },
+                    newsletterAddress = { code -> app.sync.newsletters()?.firstOrNull { it.code == code }?.address },
+                    onCopy = ::copyToClipboard,
                     onRemoveFeed = { feed ->
                         app.appScope.launch {
                             repository.removeFeed(feed.url)
@@ -1417,14 +1419,11 @@ fun RssReaderNavigation(
                         addChoiceOpen = false
                         push(Screen.SettingsPage(SettingsPage.Account))
                     },
-                    topics = library.folders.map { it.title },
-                    loadAddresses = { app.sync.newsletters() },
-                    createAddress = { tag ->
-                        // Made by the account's feed loader; its feed goes under the topic with that name (made if new).
-                        app.sync.createNewsletter(tag)?.also { made ->
-                            val topicId = repository.addFolder(made.tag, "newspaper")
-                            repository.addFeed(made.feedUrl, topicId)
-                        }
+                    topics = library.folders,
+                    topicActions = topicActions,
+                    createAddress = { name, topicId ->
+                        // Made by the account's feed loader (its feed is titled by the name), then subscribed under the topic.
+                        app.sync.createNewsletter(name)?.also { made -> repository.addFeed(made.feedUrl, topicId) }
                     },
                     onCopy = ::copyToClipboard,
                 ),

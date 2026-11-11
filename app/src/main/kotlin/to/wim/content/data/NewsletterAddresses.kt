@@ -9,7 +9,7 @@ package to.wim.content.data
 data class NewsletterAddress(
     val code: String,
     val tag: String,
-    /** The email address to subscribe with, e.g. news+k7q2m9abcdef@in.wim.to. */
+    /** The email address to subscribe with, e.g. content+k7q2m9abcdef@in.wim.to. */
     val address: String,
     val feedUrl: String,
 )

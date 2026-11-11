@@ -1,4 +1,4 @@
-import { Smartphone, ArrowLeft, BookmarkPlus, BookOpenText, ChevronDown, ChevronRight, Copy, ExternalLink, LayoutList, Mail, Palette, Plus, Puzzle, Rss, Tag as TagIcon, Trash2, UserRound } from "lucide-react";
+import { Smartphone, ArrowLeft, BookmarkPlus, BookOpenText, ChevronDown, ChevronRight, Copy, LayoutList, Mail, Palette, Plus, Puzzle, Rss, Tag as TagIcon, Trash2, UserRound } from "lucide-react";
 import { ConfirmRemove, RemoveButton } from "./ConfirmRemove";
 import { HiddenWordsRow } from "./HiddenWords";
 import { insertedBefore } from "@/lib/topics";
@@ -18,9 +18,9 @@ import { Dialog } from "./ui/dialog";
 import { Input, Label } from "./ui/input";
 import { Segmented } from "./ui/segmented";
 import { ReaderStyleControls } from "./ReaderStyleControls";
-import { InstapaperSettings, NewsletterUnreadSwitch } from "./ServiceSettings";
-import { canCreate, INSTAPAPER_EMAIL, instapaperStep, ownStep, type NewsletterWay } from "@/lib/newsletterSubscribe";
-import type { NewsletterAddress } from "@/lib/newsletterAddresses";
+import { InstapaperSettings } from "./ServiceSettings";
+import { canCreate, ownStep } from "@/lib/newsletterSubscribe";
+import { codeOfFeed, type NewsletterAddress } from "@/lib/newsletterAddresses";
 import { SwitchRow } from "./ui/switch";
 import { pushSupported } from "@/lib/notifications";
 
@@ -195,6 +195,17 @@ function EditFeedDialog({ feed, onClose }: { feed: Feed; onClose: () => void }) 
   const [topicId, setTopicId] = useState<string | null>(feed.folderId);
   const chosen = topicId && library.folders.some((f) => f.id === topicId) ? topicId : null;
   const [confirming, setConfirming] = useState(false);
+  // A newsletter address's feed: its email address, read from the account, shown with Copy.
+  const code = codeOfFeed(feed.url);
+  const [email, setEmail] = useState<string | null | undefined>(undefined);
+  useEffect(() => {
+    if (!code) return;
+    let live = true;
+    void app.newsletterAddresses().then((list) => live && setEmail(list?.find((a) => a.code === code)?.address ?? null));
+    return () => {
+      live = false;
+    };
+  }, [code]);
   const save = () => {
     if (title.trim() !== feed.title) app.renameFeed(feed.url, title);
     if (chosen !== feed.folderId) app.moveFeed(feed.url, chosen);
@@ -205,7 +216,7 @@ function EditFeedDialog({ feed, onClose }: { feed: Feed; onClose: () => void }) 
       open
       onOpenChange={(o) => !o && onClose()}
       title={t("editFeed")}
-      description={feed.url}
+      description={code ? undefined : feed.url}
       closeLabel={t("close")}
       cancel={t("cancel")}
       // Remove as a trash can at the top right, away from Cancel and Save; it asks first.
@@ -219,6 +230,12 @@ function EditFeedDialog({ feed, onClose }: { feed: Feed; onClose: () => void }) 
           <p className="text-xs text-muted-foreground">{t("nameHint")}</p>
         </div>
         {problems.has(feed.url) ? <p className="text-sm text-destructive">{t("feedFailing")}</p> : null}
+        {code ? (
+          <section className="space-y-2">
+            <h3 className="text-sm font-semibold">{t("newsletterFeedLabel")}</h3>
+            {email ? <AddressRow address={email} /> : email === null ? <p className="text-sm text-muted-foreground">{t("newsletterOwnOffline")}</p> : null}
+          </section>
+        ) : null}
         <section className="space-y-2">
           <h3 className="text-sm font-semibold">{t("topic")}</h3>
           <TopicChips
@@ -295,156 +312,105 @@ export function AddChoiceDialog({ open, onOpenChange, onFeed, onArticle, onSignI
   );
 }
 
-/** Subscribe to newsletter: your own address (Content's) or straight into To read (Instapaper). */
+/** Subscribe to newsletter: your own address (Content's feed loader). */
 function NewsletterDialog({ open, onOpenChange, onSignIn }: { open: boolean; onOpenChange: (open: boolean) => void; onSignIn: () => void }) {
-  const { instapaper, settings } = useApp();
-  const [way, setWay] = useState<NewsletterWay | null>(null);
-  const steps = (keys: Key[]) => (
-    <ol className="list-decimal space-y-2 pl-5 text-sm">
-      {keys.map((k) => (
-        <li key={k}>{t(k)}</li>
-      ))}
-    </ol>
-  );
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(o) => {
-        // Back at the two ways next time.
-        if (!o) setWay(null);
-        onOpenChange(o);
-      }}
-      title={t("addChoiceNewsletter")}
-      closeLabel={t("close")}
-      backLabel={t("back")}
-    >
-      <div className="space-y-3">
-        {choice(Mail, t("newsletterOwn"), t("newsletterOwnBody"), () => setWay("own"))}
-        {choice(BookOpenText, t("newsletterToRead"), t("newsletterToReadBody"), () => setWay("instapaper"))}
-      </div>
-      <Dialog open={way === "own"} onOpenChange={(o) => !o && setWay(null)} title={t("newsletterOwn")} closeLabel={t("close")} backLabel={t("back")}>
-        {way === "own" ? (
-          <OwnAddresses
-            onSignIn={() => {
-              setWay(null);
-              onSignIn();
-            }}
-          />
-        ) : null}
-      </Dialog>
-      <Dialog open={way === "instapaper"} onOpenChange={(o) => !o && setWay(null)} title={t("newsletterToRead")} closeLabel={t("close")} backLabel={t("back")}>
-        <div className="space-y-3">
-          {steps(["newsletterInstapaperStep1", "newsletterInstapaperStep2", "newsletterInstapaperStep3"])}
-          {instapaperStep(!!instapaper) === "connect" ? (
-            <>
-              <p className="text-sm text-muted-foreground">{t("newsletterInstapaperConnectFirst")}</p>
-              <Button onClick={() => app.connectInstapaper()}>{t("instapaperSignIn")}</Button>
-            </>
-          ) : (
-            <>
-              <div>
-                <Button asChild>
-                  <a href={INSTAPAPER_EMAIL} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink />
-                    {t("newsletterFindAddress")}
-                  </a>
-                </Button>
-              </div>
-              {/* The same switch as in Settings › Integrations › Instapaper. */}
-              <NewsletterUnreadSwitch checked={settings.newsletterUnread} />
-            </>
-          )}
-        </div>
-      </Dialog>
+    <Dialog open={open} onOpenChange={onOpenChange} title={t("newsletterOwn")} closeLabel={t("close")} backLabel={t("back")}>
+      {open ? <OwnAddresses onSignIn={onSignIn} onDone={() => onOpenChange(false)} /> : null}
     </Dialog>
   );
 }
 
 /**
- * Your own address (newsletterAddresses.ts): the account's addresses, each with Copy, and a new one
- * for a tag, whose feed is added under that topic. Without a Content account, Sign in first.
+ * Your own address (newsletterAddresses.ts), like Add feed: a name for its feed and a topic (No
+ * topic, every topic), then Create address; once made, the address with Copy. Without a Content
+ * account, Sign in first. The addresses are in Manage feeds afterwards, each feed with its address.
  */
-function OwnAddresses({ onSignIn }: { onSignIn: () => void }) {
+function OwnAddresses({ onSignIn, onDone }: { onSignIn: () => void; onDone: () => void }) {
   const { account, library } = useApp();
-  const [addresses, setAddresses] = useState<NewsletterAddress[] | null>([]);
-  const [tag, setTag] = useState("");
+  const [name, setName] = useState("");
+  const [topicId, setTopicId] = useState<string | null>(null);
+  const chosen = topicId && library.folders.some((f) => f.id === topicId) ? topicId : null;
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
-  const signedIn = ownStep(!!account) === "addresses";
-  useEffect(() => {
-    if (!signedIn) return;
-    let live = true;
-    void app.newsletterAddresses().then((list) => live && setAddresses(list));
-    return () => {
-      live = false;
-    };
-  }, [signedIn]);
+  const [made, setMade] = useState<NewsletterAddress | null>(null);
   const create = async () => {
     setBusy(true);
-    const made = await app.createNewsletterAddress(tag.trim());
+    const result = await app.createNewsletterAddress(name.trim(), chosen);
     setBusy(false);
-    if (!made) {
-      setFailed(true);
-      return;
-    }
-    setTag("");
-    setAddresses((list) => [...(list ?? []).filter((a) => a.code !== made.code), made]);
+    if (result) setMade(result);
+    else setFailed(true);
   };
+  if (ownStep(!!account) === "signIn") {
+    return (
+      <div className="space-y-3">
+        <p className="text-sm">{t("newsletterOwnExplained")}</p>
+        <p className="text-sm text-muted-foreground">{t("newsletterOwnSignInFirst")}</p>
+        <Button onClick={onSignIn}>{t("newsletterOwnSignIn")}</Button>
+      </div>
+    );
+  }
+  if (made) {
+    return (
+      <div className="space-y-3">
+        <p className="text-sm">{t("newsletterOwnMade")}</p>
+        <AddressRow address={made.address} />
+        <div className="flex justify-end">
+          <Button onClick={onDone}>{t("done")}</Button>
+        </div>
+      </div>
+    );
+  }
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <p className="text-sm">{t("newsletterOwnExplained")}</p>
-      {!signedIn ? (
-        <>
-          <p className="text-sm text-muted-foreground">{t("newsletterOwnSignInFirst")}</p>
-          <Button onClick={onSignIn}>{t("newsletterOwnSignIn")}</Button>
-        </>
-      ) : (
-        <>
-          {addresses === null ? <p className="text-sm text-destructive">{t("newsletterOwnOffline")}</p> : null}
-          {(addresses ?? []).map((a) => (
-            <div key={a.code} className="flex items-center gap-2 rounded-lg border p-3">
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium">{a.tag}</p>
-                <p className="truncate text-sm text-muted-foreground">{a.address}</p>
-              </div>
-              <Button variant="ghost" size="icon" aria-label={t("newsletterOwnCopy")} title={t("newsletterOwnCopy")} onClick={() => void navigator.clipboard?.writeText(a.address).catch(() => undefined)}>
-                <Copy />
-              </Button>
-            </div>
-          ))}
-          <h3 className="text-sm font-semibold">{t("newsletterOwnNew")}</h3>
-          {library.folders.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {library.folders.map((f) => {
-                const on = f.title.trim().toLowerCase() === tag.trim().toLowerCase();
-                return (
-                  <button key={f.id} type="button" aria-pressed={on} onClick={() => setTag(f.title)} className={cn(chip, on ? chipOn : "hover:bg-muted")}>
-                    {f.title}
-                  </button>
-                );
-              })}
-            </div>
-          ) : null}
-          <div className="space-y-1.5">
-            <Label htmlFor="newsletter-tag">{t("newsletterOwnTag")}</Label>
-            <Input
-              id="newsletter-tag"
-              value={tag}
-              onChange={(e) => {
-                setTag(e.target.value);
-                setFailed(false);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && canCreate(tag, busy)) void create();
-              }}
-            />
-          </div>
-          {failed ? <p className="text-sm text-destructive">{t("newsletterOwnFailed")}</p> : null}
-          <Button disabled={!canCreate(tag, busy)} onClick={() => void create()}>
-            {t("newsletterOwnCreate")}
-          </Button>
-        </>
-      )}
+      <div className="space-y-1.5">
+        <Label htmlFor="newsletter-name">{t("name")}</Label>
+        <Input
+          id="newsletter-name"
+          autoFocus
+          value={name}
+          disabled={busy}
+          onChange={(e) => {
+            setName(e.target.value.slice(0, 100));
+            setFailed(false);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && canCreate(name, busy)) void create();
+          }}
+        />
+        {failed ? <p className="text-sm text-destructive">{t("newsletterOwnFailed")}</p> : null}
+      </div>
+      <section className="space-y-2">
+        <h3 className="text-sm font-semibold">{t("topic")}</h3>
+        <TopicChips
+          topics={library.folders}
+          selected={(topic) => chosen === topic.id}
+          onToggle={(topic) => setTopicId(chosen === topic.id ? null : topic.id)}
+          leading={
+            <button type="button" aria-pressed={chosen === null} onClick={() => setTopicId(null)} className={cn(chip, chosen === null ? chipOn : "hover:bg-muted")}>
+              {t("noFolder")}
+            </button>
+          }
+        />
+      </section>
+      <div className="flex justify-end">
+        <Button disabled={!canCreate(name, busy)} onClick={() => void create()}>
+          {t("newsletterOwnCreate")}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+/** A newsletter address with Copy. */
+function AddressRow({ address }: { address: string }) {
+  return (
+    <div className="flex items-center gap-2 rounded-lg border p-3">
+      <p className="min-w-0 flex-1 truncate text-sm">{address}</p>
+      <Button variant="ghost" size="icon" aria-label={t("newsletterOwnCopy")} title={t("newsletterOwnCopy")} onClick={() => void navigator.clipboard?.writeText(address).catch(() => undefined)}>
+        <Copy />
+      </Button>
     </div>
   );
 }

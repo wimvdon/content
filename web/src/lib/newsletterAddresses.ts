@@ -10,7 +10,7 @@ import type { Folder } from "./library";
 export interface NewsletterAddress {
   code: string;
   tag: string;
-  /** The email address to subscribe with, e.g. news+k7q2m9abcdef@in.wim.to. */
+  /** The email address to subscribe with, e.g. content+k7q2m9abcdef@in.wim.to. */
   address: string;
   feedUrl: string;
 }

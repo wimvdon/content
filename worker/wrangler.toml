@@ -33,7 +33,7 @@ VAPID_PUBLIC_KEY = "BNxDkb73QhMVGb40MyiJtum9jpTaOHqeEmpxRWuVRvHiF-0dKAJarvVQxJoM
 # Newsletter addresses (src/newsletters.ts, docs/newsletters.md): Cloudflare Email Routing sends this
 # address to the Worker (a rule "Send to a Worker", with subaddressing on), and each newsletter
 # address is it with +<code>. Set up in the dashboard once; see docs/newsletters.md.
-NEWSLETTER_ADDRESS = "news@in.wim.to"
+NEWSLETTER_ADDRESS = "content@in.wim.to"
 
 # 120 requests per minute per IP address (a full refresh of 100 feeds fits).
 [[ratelimits]]

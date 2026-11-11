@@ -3,7 +3,7 @@
  * Kill the Newsletter's idea on Cloudflare (docs/newsletters.md).
  *
  * Mail for the domain reaches this Worker through Cloudflare Email Routing: one rule sends
- * NEWSLETTER_ADDRESS (e.g. news@in.wim.to) here, and with subaddressing on, news+<code>@… arrives
+ * NEWSLETTER_ADDRESS (e.g. content@in.wim.to) here, and with subaddressing on, content+<code>@… arrives
  * too, with its code. A dedicated domain with a catch-all works as well (<code>@…). Each code is an
  * inbox: a Durable Object of the Account class named "newsletter:<code>" (no class of its own, so no
  * migration), holding its owner (the account), its tag and its newest emails, encrypted like the

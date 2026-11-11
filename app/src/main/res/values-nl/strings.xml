@@ -367,13 +367,13 @@
     <string name="newsletter_find_address">Mijn Instapaper-adres zoeken</string>
     <string name="newsletter_own">Je eigen adres</string>
     <string name="newsletter_own_body">Content maakt een e-mailadres voor een tag: nieuwsbrieven komen binnen als een van je feeds</string>
-    <string name="newsletter_own_explained">Abonneer je op een nieuwsbrief met het adres van een tag. Elk nummer komt binnen als artikel in de feed van die tag.</string>
+    <string name="newsletter_own_explained">Geef de feed een naam en kies een tag. Content maakt er een e-mailadres voor: elke nieuwsbrief die daarheen gaat, komt binnen als artikel in die feed.</string>
     <string name="newsletter_own_sign_in_first">Je eigen adressen hebben een Content-account nodig, dat de nieuwsbrieven bewaart.</string>
     <string name="newsletter_own_sign_in">Aanmelden</string>
-    <string name="newsletter_own_offline">Je adressen konden niet geladen worden. Controleer je verbinding.</string>
-    <string name="newsletter_own_new">Nieuw adres</string>
-    <string name="newsletter_own_tag">Tag</string>
+    <string name="newsletter_own_offline">Het adres kon niet geladen worden. Controleer je verbinding.</string>
     <string name="newsletter_own_failed">Het adres kon niet gemaakt worden. Probeer opnieuw.</string>
     <string name="newsletter_own_create">Adres maken</string>
     <string name="newsletter_own_copy">Adres kopiëren</string>
+    <string name="newsletter_feed_label">E-mailadres</string>
+    <string name="newsletter_own_made">Je adres is klaar, en de feed staat bij Feed. Abonneer je ermee op nieuwsbrieven.</string>
 </resources>

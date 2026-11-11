@@ -369,13 +369,13 @@
     <string name="newsletter_find_address">Find my Instapaper address</string>
     <string name="newsletter_own">Your own address</string>
     <string name="newsletter_own_body">Content makes an email address for a tag: newsletters arrive as one of your feeds</string>
-    <string name="newsletter_own_explained">Subscribe to a newsletter with a tag’s address. Each issue arrives as an article in that tag’s feed.</string>
+    <string name="newsletter_own_explained">Give the feed a name and pick a tag. Content makes an email address for it: each newsletter sent there arrives as an article in that feed.</string>
     <string name="newsletter_own_sign_in_first">Your own addresses need a Content account, which keeps the newsletters.</string>
     <string name="newsletter_own_sign_in">Sign in</string>
-    <string name="newsletter_own_offline">Your addresses couldn’t be loaded. Check your connection.</string>
-    <string name="newsletter_own_new">New address</string>
-    <string name="newsletter_own_tag">Tag</string>
+    <string name="newsletter_own_offline">The address couldn’t be loaded. Check your connection.</string>
     <string name="newsletter_own_failed">The address couldn’t be made. Try again.</string>
     <string name="newsletter_own_create">Create address</string>
     <string name="newsletter_own_copy">Copy address</string>
+    <string name="newsletter_feed_label">Email address</string>
+    <string name="newsletter_own_made">Your address is ready, and its feed is in Feed. Subscribe to newsletters with it.</string>
 </resources>
