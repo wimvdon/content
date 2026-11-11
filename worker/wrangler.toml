@@ -30,6 +30,11 @@ WEB_APP_ORIGIN = "https://content.wim.to"
 # key pair. The private half is NOT here: set it as a Worker secret named VAPID_PRIVATE_KEY.
 VAPID_PUBLIC_KEY = "BNxDkb73QhMVGb40MyiJtum9jpTaOHqeEmpxRWuVRvHiF-0dKAJarvVQxJoM6AUVeopOE4rOKo859OK-wcTK8Sk"
 
+# Newsletter addresses (src/newsletters.ts, docs/newsletters.md): Cloudflare Email Routing sends this
+# address to the Worker (a rule "Send to a Worker", with subaddressing on), and each newsletter
+# address is it with +<code>. Set up in the dashboard once; see docs/newsletters.md.
+NEWSLETTER_ADDRESS = "news@in.wim.to"
+
 # 120 requests per minute per IP address (a full refresh of 100 feeds fits).
 [[ratelimits]]
 name = "LIMITER"

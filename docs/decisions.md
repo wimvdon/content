@@ -2,6 +2,26 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-11: Newsletter addresses in the feed loader, as feeds
+
+The owner asked to build Kill the Newsletter's idea into Content. Its code can't run here (a Node
+server with its own mail server and database), so the idea is rebuilt on what the feed loader
+already has (`docs/newsletters.md`):
+- **Cloudflare Email Routing to the Worker**, one rule for `news@in.wim.to` with subaddressing, so
+  every address is `news+<code>@in.wim.to`. A catch-all would need no rule per address, but
+  Cloudflare has none for a subdomain, and on `wim.to` itself Email Routing would take over the
+  owner's own email. A random code per address, not `wim+tech@`: a guessable address gets spam.
+- **Each address is a feed**, delivered at a secret address and subscribed to under its tag. Feeds
+  already do everything newsletters need (unread, Mark all as read, the chips' dots, the reader,
+  search, both apps), so the apps barely need new reading code. Rejected: putting them in Saved (they
+  would need Instapaper's kind of unread state again) or in the Inbox (people's shares).
+- **Stored in the account**, in a Durable Object per address of the existing `Account` class (no
+  migration), encrypted, at most 100 per address and 90 days, attachments dropped. `PRIVACY.md` says
+  so; the owner agreed to Content keeping newsletters.
+- **`postal-mime`** (4.1.4, no dependencies of its own) reads the emails; asked for and approved.
+- **The free plan's 10 ms of CPU**: receiving does as little as it can. The paid plan is the way out
+  if large newsletters fail.
+
 ## 2026-11-11: Mark incoming newsletters as unread, instead of a dot setting
 
 The owner's correction: the setting is about the unread state, not the dot. **Mark incoming

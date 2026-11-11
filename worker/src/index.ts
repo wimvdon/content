@@ -13,6 +13,7 @@ import { handleAccount } from "./account";
 import { handleEmail } from "./email";
 import { handleShare } from "./share";
 import { handleInstapaper } from "./instapaper";
+import { handleNewsletterFeed, receiveEmail, type IncomingEmail } from "./newsletters";
 
 export { Account } from "./account";
 
@@ -38,6 +39,11 @@ export interface Env {
   VAPID_PRIVATE_KEY?: string;
   /** Notifications on Android (#235, push.ts): the Firebase service account's JSON key, a secret. */
   FCM_SERVICE_ACCOUNT?: string;
+  /**
+   * Newsletter addresses (newsletters.ts): the address Email Routing sends here, e.g.
+   * "news@in.example"; each address is it with "+<code>". Unset: none can be made.
+   */
+  NEWSLETTER_ADDRESS?: string;
   /** Optional Cloudflare rate limiting binding (see wrangler.toml). */
   LIMITER?: { limit(options: { key: string }): Promise<{ success: boolean }> };
 }
@@ -65,6 +71,8 @@ type Fetcher = (input: string, init?: RequestInit) => Promise<Response>;
 
 export default {
   fetch: (request: Request, env: Env) => handle(request, env, (input, init) => fetch(input, init)),
+  // Newsletters sent to an address (Cloudflare Email Routing, newsletters.ts).
+  email: (message: IncomingEmail, env: Env) => receiveEmail(message, env),
 };
 
 export async function handle(request: Request, env: Env, fetcher: Fetcher): Promise<Response> {
@@ -73,6 +81,8 @@ export async function handle(request: Request, env: Env, fetcher: Fetcher): Prom
   if (requestUrl.pathname.startsWith("/account/email/")) return handleEmail(request, env, requestUrl, fetcher);
   if (requestUrl.pathname.startsWith("/account/share") || requestUrl.pathname.startsWith("/account/inbox") || requestUrl.pathname === "/account/profile" || requestUrl.pathname.startsWith("/account/push")) return handleShare(request, env, requestUrl, fetcher);
   if (requestUrl.pathname === "/account" || requestUrl.pathname.startsWith("/account/")) return handleAccount(request, env, requestUrl);
+  // A newsletter address's feed (newsletters.ts): read by the Android app directly, like any feed.
+  if (requestUrl.pathname.startsWith("/newsletters/")) return request.method === "GET" ? handleNewsletterFeed(requestUrl, env) : plain(405, "Only GET");
   const origin = request.headers.get("Origin");
   const allowed = (env.ALLOWED_ORIGINS ?? "")
     .split(",")
@@ -91,6 +101,16 @@ export async function handle(request: Request, env: Env, fetcher: Fetcher): Prom
 
   const target = checkTarget(new URL(request.url).searchParams.get("url"));
   if (!target) return plain(400, "Give an https address as ?url=", cors);
+  // The web app loading a newsletter address's feed: this Worker's own, answered here (a Worker
+  // can't fetch its own address).
+  const own = new URL(target);
+  if (own.host === requestUrl.host && own.pathname.startsWith("/newsletters/")) {
+    const answer = await handleNewsletterFeed(own, env);
+    const out = new Headers(answer.headers);
+    for (const [k, v] of Object.entries(cors)) out.set(k, v);
+    out.set("X-Final-Url", target);
+    return new Response(answer.body, { status: answer.status, headers: out });
+  }
   // An article page is asked for as a browser asks for it, in the reader's own languages.
   const page = requestUrl.searchParams.get("kind") === "page";
   const language = request.headers.get("Accept-Language")?.slice(0, 200);
