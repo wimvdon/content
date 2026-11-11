@@ -1,4 +1,4 @@
-import { Smartphone, ArrowLeft, BookmarkPlus, BookOpenText, ChevronDown, ChevronRight, Copy, ExternalLink, LayoutList, Mail, Palette, Plus, Puzzle, Rss, Tag as TagIcon, Trash2, UserRound } from "lucide-react";
+import { Smartphone, ArrowLeft, BookmarkPlus, BookOpenText, ChevronDown, ChevronRight, Copy, LayoutList, Mail, Palette, Plus, Puzzle, Rss, Tag as TagIcon, Trash2, UserRound } from "lucide-react";
 import { ConfirmRemove, RemoveButton } from "./ConfirmRemove";
 import { HiddenWordsRow } from "./HiddenWords";
 import { insertedBefore } from "@/lib/topics";
@@ -18,8 +18,8 @@ import { Dialog } from "./ui/dialog";
 import { Input, Label } from "./ui/input";
 import { Segmented } from "./ui/segmented";
 import { ReaderStyleControls } from "./ReaderStyleControls";
-import { InstapaperSettings, NewsletterUnreadSwitch } from "./ServiceSettings";
-import { canCreate, INSTAPAPER_EMAIL, instapaperStep, ownStep, type NewsletterWay } from "@/lib/newsletterSubscribe";
+import { InstapaperSettings } from "./ServiceSettings";
+import { canCreate, ownStep } from "@/lib/newsletterSubscribe";
 import { codeOfFeed, type NewsletterAddress } from "@/lib/newsletterAddresses";
 import { SwitchRow } from "./ui/switch";
 import { pushSupported } from "@/lib/notifications";
@@ -312,71 +312,11 @@ export function AddChoiceDialog({ open, onOpenChange, onFeed, onArticle, onSignI
   );
 }
 
-/** Subscribe to newsletter: your own address (Content's) or straight into To read (Instapaper). */
+/** Subscribe to newsletter: your own address (Content's feed loader). */
 function NewsletterDialog({ open, onOpenChange, onSignIn }: { open: boolean; onOpenChange: (open: boolean) => void; onSignIn: () => void }) {
-  const { instapaper, settings } = useApp();
-  const [way, setWay] = useState<NewsletterWay | null>(null);
-  const steps = (keys: Key[]) => (
-    <ol className="list-decimal space-y-2 pl-5 text-sm">
-      {keys.map((k) => (
-        <li key={k}>{t(k)}</li>
-      ))}
-    </ol>
-  );
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(o) => {
-        // Back at the two ways next time.
-        if (!o) setWay(null);
-        onOpenChange(o);
-      }}
-      title={t("addChoiceNewsletter")}
-      closeLabel={t("close")}
-      backLabel={t("back")}
-    >
-      <div className="space-y-3">
-        {choice(Mail, t("newsletterOwn"), t("newsletterOwnBody"), () => setWay("own"))}
-        {choice(BookOpenText, t("newsletterToRead"), t("newsletterToReadBody"), () => setWay("instapaper"))}
-      </div>
-      <Dialog open={way === "own"} onOpenChange={(o) => !o && setWay(null)} title={t("newsletterOwn")} closeLabel={t("close")} backLabel={t("back")}>
-        {way === "own" ? (
-          <OwnAddresses
-            onSignIn={() => {
-              setWay(null);
-              onSignIn();
-            }}
-            onDone={() => {
-              setWay(null);
-              onOpenChange(false);
-            }}
-          />
-        ) : null}
-      </Dialog>
-      <Dialog open={way === "instapaper"} onOpenChange={(o) => !o && setWay(null)} title={t("newsletterToRead")} closeLabel={t("close")} backLabel={t("back")}>
-        <div className="space-y-3">
-          {steps(["newsletterInstapaperStep1", "newsletterInstapaperStep2", "newsletterInstapaperStep3"])}
-          {instapaperStep(!!instapaper) === "connect" ? (
-            <>
-              <p className="text-sm text-muted-foreground">{t("newsletterInstapaperConnectFirst")}</p>
-              <Button onClick={() => app.connectInstapaper()}>{t("instapaperSignIn")}</Button>
-            </>
-          ) : (
-            <>
-              <div>
-                <Button asChild>
-                  <a href={INSTAPAPER_EMAIL} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink />
-                    {t("newsletterFindAddress")}
-                  </a>
-                </Button>
-              </div>
-              {/* The same switch as in Settings › Integrations › Instapaper. */}
-              <NewsletterUnreadSwitch checked={settings.newsletterUnread} />
-            </>
-          )}
-        </div>
-      </Dialog>
+    <Dialog open={open} onOpenChange={onOpenChange} title={t("newsletterOwn")} closeLabel={t("close")} backLabel={t("back")}>
+      {open ? <OwnAddresses onSignIn={onSignIn} onDone={() => onOpenChange(false)} /> : null}
     </Dialog>
   );
 }

@@ -101,7 +101,7 @@ fun AddChoiceSheet(
             SheetActions(onCancel = onDismiss)
         }
         // A page of this sheet (#323): its back arrow comes back to the three choices.
-        if (newsletterOpen) NewsletterPage(newsletters, onBack = { newsletterOpen = false })
+        if (newsletterOpen) OwnAddressPage(newsletters, onBack = { newsletterOpen = false })
     }
 }
 
@@ -125,39 +125,6 @@ data class NewsletterChoices(
     val onCopy: (String) -> Unit = {},
 )
 
-/** Subscribe to newsletter: your own address (Content's), or straight into To read (Instapaper). */
-@Composable
-private fun NewsletterPage(
-    choices: NewsletterChoices,
-    onBack: () -> Unit,
-) {
-    var way by rememberSaveable { mutableStateOf<NewsletterSubscribe.Way?>(null) }
-    ContentSheet(onDismiss = onBack) {
-        Column(
-            Modifier.padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            SheetHeader(stringResource(R.string.add_choice_newsletter), onCancel = onBack)
-            AddChoice(
-                icon = painterResource(R.drawable.ic_mail),
-                title = stringResource(R.string.newsletter_own),
-                body = stringResource(R.string.newsletter_own_body),
-                onClick = { way = NewsletterSubscribe.Way.Own },
-            )
-            AddChoice(
-                icon = painterResource(R.drawable.ic_reading_list),
-                title = stringResource(R.string.newsletter_to_read),
-                body = stringResource(R.string.newsletter_to_read_body),
-                onClick = { way = NewsletterSubscribe.Way.Instapaper },
-            )
-        }
-        when (way) {
-            NewsletterSubscribe.Way.Own -> OwnAddressPage(choices, onBack = { way = null })
-            NewsletterSubscribe.Way.Instapaper -> InstapaperWayPage(choices, onBack = { way = null })
-            null -> Unit
-        }
-    }
-}
 
 /**
  * Your own address, like Add feed: a name for its feed and a topic (No topic, every topic, Edit
@@ -276,48 +243,7 @@ private fun AddressRow(
     }
 }
 
-/** Straight into To read: the Save to Instapaper address (connect first), and Mark incoming newsletters as unread. */
-@Composable
-private fun InstapaperWayPage(
-    choices: NewsletterChoices,
-    onBack: () -> Unit,
-) {
-    ContentSheet(onDismiss = onBack) {
-        Column(
-            Modifier.padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            SheetHeader(stringResource(R.string.newsletter_to_read), onCancel = onBack)
-            Steps(listOf(R.string.newsletter_instapaper_step_1, R.string.newsletter_instapaper_step_2, R.string.newsletter_instapaper_step_3))
-            when (NewsletterSubscribe.instapaperStep(choices.instapaperConnected)) {
-                NewsletterSubscribe.InstapaperStep.Connect -> {
-                    Text(stringResource(R.string.newsletter_instapaper_connect_first), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Button(onClick = choices.onConnectInstapaper) { Text(stringResource(R.string.instapaper_sign_in)) }
-                }
-                NewsletterSubscribe.InstapaperStep.FindAddress -> {
-                    Button(onClick = { choices.onOpenSite(NewsletterSubscribe.INSTAPAPER_EMAIL) }) {
-                        Text(stringResource(R.string.newsletter_find_address))
-                    }
-                    // The same switch as in Settings › Integrations › Instapaper.
-                    NewsletterUnreadSetting(choices.newsletterUnread, choices.onNewsletterUnreadChange)
-                }
-            }
-        }
-    }
-}
 
-/** Numbered steps, one per line. */
-@Composable
-private fun Steps(steps: List<Int>) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        steps.forEachIndexed { i, step ->
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("${i + 1}.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text(stringResource(step), style = MaterialTheme.typography.bodyMedium)
-            }
-        }
-    }
-}
 
 /** One choice: its icon in a circle (as a topic's in Manage topics), what it does, and a line on it. */
 @Composable
