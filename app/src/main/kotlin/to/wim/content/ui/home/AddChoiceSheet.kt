@@ -1,5 +1,7 @@
 package to.wim.content.ui.home
 
+import to.wim.content.data.NewsletterAddresses
+import to.wim.content.data.Feed
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.LocalContentColor
@@ -119,6 +121,10 @@ data class NewsletterChoices(
     val onSignIn: () -> Unit = {},
     /** The topics, to pick the new address's feed's one (as in Add feed), and Edit topics. */
     val topics: List<Folder> = emptyList(),
+    /** The feeds, for the existing addresses' names and topics. */
+    val feeds: List<Feed> = emptyList(),
+    /** This account's addresses, or null when they can't be read (offline). */
+    val loadAddresses: suspend () -> List<NewsletterAddress>? = { emptyList() },
     val topicActions: TopicEditActions? = null,
     /** Makes an address with this name and adds its feed under the topic; null when it didn't work. */
     val createAddress: suspend (name: String, topicId: String?) -> NewsletterAddress? = { _, _ -> null },
@@ -153,15 +159,32 @@ private fun OwnAddressPage(
     var failed by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val chosen = chosenTopic(topicId, choices.topics)
+    // The account's addresses first, if there are any (null: still loading); New address opens the form.
+    var existing by remember { mutableStateOf<List<NewsletterAddress>?>(null) }
+    var creating by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(choices.signedIn) { existing = if (choices.signedIn) choices.loadAddresses().orEmpty() else emptyList() }
+    val groups = remember(existing, choices.feeds, choices.topics) { NewsletterAddresses.grouped(existing.orEmpty(), choices.feeds, choices.topics) }
     ContentSheet(onDismiss = onBack) {
         Column(
             Modifier.padding(start = 24.dp, end = 24.dp, bottom = 24.dp).verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             SheetHeader(stringResource(R.string.newsletter_own), onCancel = onBack, enabled = !busy)
-            Text(stringResource(R.string.newsletter_own_explained), style = MaterialTheme.typography.bodyMedium)
             val address = made
+            val overview = choices.signedIn && address == null && !creating && groups.isNotEmpty()
+            if (!overview) Text(stringResource(R.string.newsletter_own_explained), style = MaterialTheme.typography.bodyMedium)
             when {
+                choices.signedIn && existing == null -> CircularProgressIndicator(Modifier.align(Alignment.CenterHorizontally))
+                overview -> {
+                    // Your addresses, by topic (as in Feeds), each with Copy; then New address.
+                    groups.forEach { group ->
+                        SheetSection(group.topic?.title ?: stringResource(R.string.folder_none))
+                        group.addresses.forEach { AddressRow(it.address, choices.onCopy, it.name) }
+                    }
+                    SheetActions(onCancel = onBack, cancel = false) {
+                        Button(onClick = { creating = true }) { Text(stringResource(R.string.newsletter_own_new)) }
+                    }
+                }
                 NewsletterSubscribe.ownStep(choices.signedIn) == NewsletterSubscribe.OwnStep.SignIn -> {
                     Text(stringResource(R.string.newsletter_own_sign_in_first), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Button(onClick = choices.onSignIn) { Text(stringResource(R.string.newsletter_own_sign_in)) }
@@ -229,11 +252,12 @@ private fun OwnAddressPage(
 private fun AddressRow(
     address: NewsletterAddress,
     onCopy: (String) -> Unit,
+    name: String = address.tag,
 ) {
     Surface(shape = AppShapes.Item, color = MaterialTheme.colorScheme.surfaceContainerHigh, modifier = Modifier.fillMaxWidth()) {
         Row(Modifier.padding(start = 16.dp, top = 8.dp, bottom = 8.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text(address.tag, style = MaterialTheme.typography.labelLarge)
+                Text(name, style = MaterialTheme.typography.labelLarge)
                 Text(address.address, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             IconButton(onClick = { onCopy(address.address) }) {

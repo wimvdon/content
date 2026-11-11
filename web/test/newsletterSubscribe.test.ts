@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addressesOf, addressOf, codeOfFeed, topicFor } from "../src/lib/newsletterAddresses";
+import { addressesOf, addressOf, codeOfFeed, groupedAddresses, topicFor } from "../src/lib/newsletterAddresses";
 import { canCreate, INSTAPAPER_EMAIL, instapaperStep, ownStep } from "../src/lib/newsletterSubscribe";
 
 describe("Subscribe to newsletter (newsletterSubscribe.ts), as on Android", () => {
@@ -35,5 +35,24 @@ describe("Subscribe to newsletter (newsletterSubscribe.ts), as on Android", () =
     ];
     expect(topicFor(topics as never, " tech ")?.id).toBe("1");
     expect(topicFor(topics as never, "Food")).toBeUndefined();
+  });
+
+  it("groups the addresses by their feed's topic, in the topics' order, No topic last", () => {
+    const address = (code: string) => ({ code, tag: `Made as ${code}`, address: `content+${code}@in.wim.to`, feedUrl: `https://w.example/newsletters/${code}/0123456789abcdef0123456789abcdef` });
+    const topics = [
+      { id: "1", title: "Tech", icon: "label" },
+      { id: "2", title: "News", icon: "label" },
+    ];
+    const [a, b, c, d] = ["aaaaaaaaaaaa", "bbbbbbbbbbbb", "cccccccccccc", "dddddddddddd"].map(address);
+    const feeds = [
+      { url: a.feedUrl, title: "Weekly", folderId: "2" },
+      { url: b.feedUrl, title: "Daily", folderId: "1" },
+      { url: c.feedUrl, title: "Loose", folderId: null },
+    ];
+    const groups = groupedAddresses([a, b, c, d], feeds as never, topics as never);
+    expect(groups.map((g) => g.topic?.id ?? null)).toEqual(["1", "2", null]);
+    expect(groups[0].addresses.map((x) => x.name)).toEqual(["Daily"]);
+    expect(groups[2].addresses.map((x) => x.name)).toEqual(["Loose", "Made as dddddddddddd"]);
+    expect(groupedAddresses([], feeds as never, topics as never)).toEqual([]);
   });
 });

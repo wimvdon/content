@@ -376,4 +376,5 @@
     <string name="newsletter_own_copy">Adresse kopieren</string>
     <string name="newsletter_feed_label">E-Mail-Adresse</string>
     <string name="newsletter_own_made">Deine Adresse ist fertig, und ihr Feed ist unter Feed. Abonniere Newsletter damit.</string>
+    <string name="newsletter_own_new">Neue Adresse</string>
 </resources>

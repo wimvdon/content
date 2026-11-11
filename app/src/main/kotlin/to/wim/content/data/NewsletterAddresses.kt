@@ -37,4 +37,33 @@ object NewsletterAddresses {
         folders: List<Folder>,
         tag: String,
     ): Folder? = folders.firstOrNull { it.title.trim().equals(tag.trim(), ignoreCase = true) }
+
+    /**
+     * The addresses as + › Subscribe to newsletter lists them, grouped by their feed's topic in the
+     * topics' order, No topic last; each with its feed's name. An address whose feed isn't here
+     * (removed on this device, not yet synced) keeps the name it was made with, under No topic.
+     */
+    fun grouped(
+        addresses: List<NewsletterAddress>,
+        feeds: List<Feed>,
+        topics: List<Folder>,
+    ): List<NewsletterGroup> {
+        val byUrl = feeds.associateBy { it.url }
+        val rows = addresses.map { a -> val feed = byUrl[a.feedUrl]; Triple(a, feed?.title?.ifBlank { null } ?: a.tag, feed?.folderId?.takeIf { id -> topics.any { it.id == id } }) }
+        val groups = topics.mapNotNull { topic -> rows.filter { it.third == topic.id }.takeIf { it.isNotEmpty() }?.let { NewsletterGroup(topic, it.map { r -> NamedAddress(r.second, r.first) }) } }
+        val loose = rows.filter { it.third == null }
+        return groups + listOfNotNull(loose.takeIf { it.isNotEmpty() }?.let { NewsletterGroup(null, it.map { r -> NamedAddress(r.second, r.first) }) })
+    }
 }
+
+/** A newsletter address with its feed's name. */
+data class NamedAddress(
+    val name: String,
+    val address: NewsletterAddress,
+)
+
+/** The addresses of one topic (null: No topic). */
+data class NewsletterGroup(
+    val topic: Folder?,
+    val addresses: List<NamedAddress>,
+)

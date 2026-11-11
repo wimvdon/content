@@ -5,7 +5,7 @@
  * The same as the Android app's NewsletterAddresses.kt.
  */
 
-import type { Folder } from "./library";
+import type { Feed, Folder } from "./library";
 
 export interface NewsletterAddress {
   code: string;
@@ -39,3 +39,29 @@ export function addressesOf(value: unknown): NewsletterAddress[] {
 
 /** The topic a new address's feed goes under: the one with that name, if any (case ignored). */
 export const topicFor = (folders: Folder[], tag: string): Folder | undefined => folders.find((f) => f.title.trim().toLowerCase() === tag.trim().toLowerCase());
+
+/** The addresses of one topic (null: No topic), each with its feed's name. */
+export interface NewsletterGroup {
+  topic: Folder | null;
+  addresses: { name: string; address: NewsletterAddress }[];
+}
+
+/**
+ * The addresses as + › Subscribe to newsletter lists them, grouped by their feed's topic in the
+ * topics' order, No topic last; each with its feed's name. An address whose feed isn't here keeps the
+ * name it was made with, under No topic. As on Android (NewsletterAddresses.grouped).
+ */
+export function groupedAddresses(addresses: NewsletterAddress[], feeds: Feed[], topics: Folder[]): NewsletterGroup[] {
+  const byUrl = new Map(feeds.map((f) => [f.url, f]));
+  const rows = addresses.map((a) => {
+    const feed = byUrl.get(a.feedUrl);
+    const topicId = feed?.folderId && topics.some((t) => t.id === feed.folderId) ? feed.folderId : null;
+    return { name: feed?.title.trim() || a.tag, address: a, topicId };
+  });
+  const groups: NewsletterGroup[] = topics.flatMap((topic) => {
+    const own = rows.filter((r) => r.topicId === topic.id);
+    return own.length ? [{ topic, addresses: own.map(({ name, address }) => ({ name, address })) }] : [];
+  });
+  const loose = rows.filter((r) => r.topicId === null);
+  return loose.length ? [...groups, { topic: null, addresses: loose.map(({ name, address }) => ({ name, address })) }] : groups;
+}

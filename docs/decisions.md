@@ -2,6 +2,15 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-11: + › Subscribe to newsletter lists your addresses first, without Instapaper
+
+The owner's choice: + › Subscribe to newsletter goes straight to Content's own addresses (the
+Instapaper way, with its Save to Instapaper address, is no longer offered there; Instapaper's own
+emails still come into Saved as before). It first lists the account's addresses, grouped by their
+feed's topic in the topics' order and No topic last, each with its feed's name and Copy, then New
+address; with none yet, it opens the form at once (`NewsletterAddresses.grouped`, the web's
+`groupedAddresses`). The tag stays optional: No topic is the default, so an email feed can sit at the top level.
+
 ## 2026-11-11: Newsletter addresses: name and tag as in Add feed, shown in Manage feeds, content+
 
 Owner's review after trying them:

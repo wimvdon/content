@@ -20,7 +20,7 @@ import { Segmented } from "./ui/segmented";
 import { ReaderStyleControls } from "./ReaderStyleControls";
 import { InstapaperSettings } from "./ServiceSettings";
 import { canCreate, ownStep } from "@/lib/newsletterSubscribe";
-import { codeOfFeed, type NewsletterAddress } from "@/lib/newsletterAddresses";
+import { codeOfFeed, groupedAddresses, type NewsletterAddress } from "@/lib/newsletterAddresses";
 import { SwitchRow } from "./ui/switch";
 import { pushSupported } from "@/lib/notifications";
 
@@ -334,6 +334,18 @@ function OwnAddresses({ onSignIn, onDone }: { onSignIn: () => void; onDone: () =
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
   const [made, setMade] = useState<NewsletterAddress | null>(null);
+  // The account's addresses first, if there are any (undefined: still loading); New address opens the form.
+  const [existing, setExisting] = useState<NewsletterAddress[] | undefined>(undefined);
+  const [creating, setCreating] = useState(false);
+  const signedIn = ownStep(!!account) === "addresses";
+  useEffect(() => {
+    if (!signedIn) return;
+    let live = true;
+    void app.newsletterAddresses().then((list) => live && setExisting(list ?? []));
+    return () => {
+      live = false;
+    };
+  }, [signedIn]);
   const create = async () => {
     setBusy(true);
     const result = await app.createNewsletterAddress(name.trim(), chosen);
@@ -341,7 +353,30 @@ function OwnAddresses({ onSignIn, onDone }: { onSignIn: () => void; onDone: () =
     if (result) setMade(result);
     else setFailed(true);
   };
-  if (ownStep(!!account) === "signIn") {
+  if (signedIn && existing === undefined) return <p className="text-sm">{t("newsletterOwnExplained")}</p>;
+  const groups = groupedAddresses(existing ?? [], library.feeds, library.folders);
+  if (signedIn && !made && !creating && groups.length > 0) {
+    return (
+      <div className="space-y-4">
+        {/* Your addresses, by topic (as in Feeds), each with Copy; then New address. */}
+        {groups.map((g) => (
+          <section key={g.topic?.id ?? ""} className="space-y-2">
+            <h3 className="text-sm font-semibold">{g.topic?.title ?? t("noFolder")}</h3>
+            {g.addresses.map(({ name, address }) => (
+              <AddressRow key={address.code} address={address.address} name={name} />
+            ))}
+          </section>
+        ))}
+        <div className="flex justify-end">
+          <Button onClick={() => setCreating(true)}>
+            <Plus />
+            {t("newsletterOwnNew")}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+  if (!signedIn) {
     return (
       <div className="space-y-3">
         <p className="text-sm">{t("newsletterOwnExplained")}</p>
@@ -404,10 +439,13 @@ function OwnAddresses({ onSignIn, onDone }: { onSignIn: () => void; onDone: () =
 }
 
 /** A newsletter address with Copy. */
-function AddressRow({ address }: { address: string }) {
+function AddressRow({ address, name }: { address: string; name?: string }) {
   return (
     <div className="flex items-center gap-2 rounded-lg border p-3">
-      <p className="min-w-0 flex-1 truncate text-sm">{address}</p>
+      <div className="min-w-0 flex-1">
+        {name ? <p className="truncate text-sm font-medium">{name}</p> : null}
+        <p className="truncate text-sm text-muted-foreground">{address}</p>
+      </div>
       <Button variant="ghost" size="icon" aria-label={t("newsletterOwnCopy")} title={t("newsletterOwnCopy")} onClick={() => void navigator.clipboard?.writeText(address).catch(() => undefined)}>
         <Copy />
       </Button>

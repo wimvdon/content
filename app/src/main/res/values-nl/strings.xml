@@ -376,4 +376,5 @@
     <string name="newsletter_own_copy">Adres kopiëren</string>
     <string name="newsletter_feed_label">E-mailadres</string>
     <string name="newsletter_own_made">Je adres is klaar, en de feed staat bij Feed. Abonneer je ermee op nieuwsbrieven.</string>
+    <string name="newsletter_own_new">Nieuw adres</string>
 </resources>
