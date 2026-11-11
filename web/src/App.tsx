@@ -253,6 +253,8 @@ export default function App() {
           setDialog(null);
           app.addLink();
         }}
+        // Your own newsletter address needs a Content account: Settings, where you sign in.
+        onSignIn={() => setDialog("settings")}
       />
       <AddFeedDialog
         key={dialog === "add" ? "open" : "closed"}

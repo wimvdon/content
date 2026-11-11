@@ -1,5 +1,7 @@
 package to.wim.content.sync
 
+import to.wim.content.data.NewsletterAddresses
+import to.wim.content.data.NewsletterAddress
 import to.wim.content.data.InboxMessage
 import to.wim.content.data.LibraryRows
 import to.wim.content.data.SharedArticle
@@ -158,6 +160,21 @@ class AccountClient(
     suspend fun inboxDone(ids: List<String>) {
         val body = Json.write(mapOf("ids" to ids)).toRequestBody(JSON_TYPE)
         call(request("/account/inbox/done").post(body).build()) { _, _ -> }
+    }
+
+    /** This account's newsletter addresses (docs/newsletters.md). */
+    suspend fun newsletters(): List<NewsletterAddress> = call(request("/account/newsletters").get().build()) { _, text -> NewsletterAddresses.listOf(runCatching { Json.parse(text) }.getOrNull()) }
+
+    /** A new newsletter address for [tag]. */
+    suspend fun createNewsletter(tag: String): NewsletterAddress {
+        val body = Json.write(mapOf("tag" to tag.trim())).toRequestBody(JSON_TYPE)
+        return call(request("/account/newsletters").post(body).build()) { _, text -> NewsletterAddresses.of(runCatching { Json.parse(text) }.getOrNull()) }
+            ?: throw SyncException(SyncProblem.ServerError)
+    }
+
+    /** Removes the newsletter address [code]: it stops taking mail and its emails are deleted. Gone already is fine. */
+    suspend fun deleteNewsletter(code: String) {
+        call(request("/account/newsletters?code=$code").delete().build(), alsoOk = 404) { _, _ -> }
     }
 
     /** Forgets this device's key on the server. */
