@@ -1,4 +1,4 @@
-import { Smartphone, ArrowLeft, BookmarkPlus, BookOpenText, ChevronDown, ChevronRight, LayoutList, Palette, Plus, Puzzle, Rss, Tag as TagIcon, Trash2, UserRound } from "lucide-react";
+import { Smartphone, ArrowLeft, BookmarkPlus, BookOpenText, ChevronDown, ChevronRight, ExternalLink, LayoutList, Mail, Palette, Plus, Puzzle, Rss, Tag as TagIcon, Trash2, UserRound } from "lucide-react";
 import { ConfirmRemove, RemoveButton } from "./ConfirmRemove";
 import { HiddenWordsRow } from "./HiddenWords";
 import { insertedBefore } from "@/lib/topics";
@@ -18,7 +18,8 @@ import { Dialog } from "./ui/dialog";
 import { Input, Label } from "./ui/input";
 import { Segmented } from "./ui/segmented";
 import { ReaderStyleControls } from "./ReaderStyleControls";
-import { InstapaperSettings } from "./ServiceSettings";
+import { InstapaperSettings, NewsletterDotSwitch } from "./ServiceSettings";
+import { instapaperStep, newsletterSite, type NewsletterWay } from "@/lib/newsletterSubscribe";
 import { SwitchRow } from "./ui/switch";
 import { pushSupported } from "@/lib/notifications";
 
@@ -246,12 +247,9 @@ function EditFeedDialog({ feed, onClose }: { feed: Feed; onClose: () => void }) 
   );
 }
 
-/**
- * The search bar's +, the same in Feeds, Saved and the Inbox, as on Android: first what to add.
- * Subscribe to feed opens Add feed, Save article the save sheet; both then ask for the address.
- */
-export function AddChoiceDialog({ open, onOpenChange, onFeed, onArticle }: Props & { onFeed: () => void; onArticle: () => void }) {
-  const choice = (Icon: typeof Rss, title: string, body: string, onClick: () => void) => (
+/** One choice in a dialog: its icon, what it does, and a line on it. */
+function choice(Icon: typeof Rss, title: string, body: string, onClick: () => void) {
+  return (
     <button type="button" onClick={onClick} className="flex w-full cursor-pointer items-center gap-4 rounded-lg border bg-card p-4 text-left shadow-xs transition-colors hover:bg-accent">
       <Icon className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
       <span className="min-w-0">
@@ -260,12 +258,111 @@ export function AddChoiceDialog({ open, onOpenChange, onFeed, onArticle }: Props
       </span>
     </button>
   );
+}
+
+/**
+ * The search bar's +, the same in Feeds, Saved and the Inbox, as on Android: first what to add.
+ * Subscribe to feed opens Add feed, Save article the save sheet; both then ask for the address.
+ * Subscribe to newsletter is a page of this dialog with two ways (newsletterSubscribe.ts), each a
+ * page of steps.
+ */
+export function AddChoiceDialog({ open, onOpenChange, onFeed, onArticle }: Props & { onFeed: () => void; onArticle: () => void }) {
+  const [newsletter, setNewsletter] = useState(false);
+  // However it closes, it opens again at the three choices.
+  const leave = (then: () => void) => () => {
+    setNewsletter(false);
+    then();
+  };
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} title={t("addTitle")} closeLabel={t("close")} cancel={t("cancel")}>
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        if (!o) setNewsletter(false);
+        onOpenChange(o);
+      }}
+      title={t("addTitle")}
+      closeLabel={t("close")}
+      cancel={t("cancel")}
+    >
       <div className="space-y-3">
-        {choice(Rss, t("addChoiceFeed"), t("addChoiceFeedBody"), onFeed)}
-        {choice(BookmarkPlus, t("addChoiceArticle"), t("addChoiceArticleBody"), onArticle)}
+        {choice(Rss, t("addChoiceFeed"), t("addChoiceFeedBody"), leave(onFeed))}
+        {choice(Mail, t("addChoiceNewsletter"), t("addChoiceNewsletterBody"), () => setNewsletter(true))}
+        {choice(BookmarkPlus, t("addChoiceArticle"), t("addChoiceArticleBody"), leave(onArticle))}
       </div>
+      <NewsletterDialog open={newsletter} onOpenChange={setNewsletter} onFeed={leave(onFeed)} />
+    </Dialog>
+  );
+}
+
+/** Subscribe to newsletter: as a feed (Kill the Newsletter) or straight into To read (Instapaper). */
+function NewsletterDialog({ open, onOpenChange, onFeed }: { open: boolean; onOpenChange: (open: boolean) => void; onFeed: () => void }) {
+  const { instapaper, settings } = useApp();
+  const [way, setWay] = useState<NewsletterWay | null>(null);
+  const steps = (keys: Key[]) => (
+    <ol className="list-decimal space-y-2 pl-5 text-sm">
+      {keys.map((k) => (
+        <li key={k}>{t(k)}</li>
+      ))}
+    </ol>
+  );
+  const site = (w: NewsletterWay, label: string, variant: "default" | "outline") => (
+    <Button asChild variant={variant}>
+      <a href={newsletterSite(w)} target="_blank" rel="noopener noreferrer">
+        <ExternalLink />
+        {label}
+      </a>
+    </Button>
+  );
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        // Back at the two ways next time.
+        if (!o) setWay(null);
+        onOpenChange(o);
+      }}
+      title={t("addChoiceNewsletter")}
+      closeLabel={t("close")}
+      backLabel={t("back")}
+    >
+      <div className="space-y-3">
+        {choice(Rss, t("newsletterAsFeed"), t("newsletterAsFeedBody"), () => setWay("feed"))}
+        {choice(BookOpenText, t("newsletterToRead"), t("newsletterToReadBody"), () => setWay("instapaper"))}
+      </div>
+      <Dialog open={way === "feed"} onOpenChange={(o) => !o && setWay(null)} title={t("newsletterAsFeed")} closeLabel={t("close")} backLabel={t("back")}>
+        <div className="space-y-3">
+          {steps(["newsletterFeedStep1", "newsletterFeedStep2", "newsletterFeedStep3"])}
+          <p className="text-xs text-muted-foreground">{t("newsletterFeedNote")}</p>
+          <div className="flex flex-wrap gap-2">
+            {site("feed", t("newsletterOpenKillTheNewsletter"), "outline")}
+            <Button
+              onClick={() => {
+                setWay(null);
+                onFeed();
+              }}
+            >
+              {t("newsletterAddFeed")}
+            </Button>
+          </div>
+        </div>
+      </Dialog>
+      <Dialog open={way === "instapaper"} onOpenChange={(o) => !o && setWay(null)} title={t("newsletterToRead")} closeLabel={t("close")} backLabel={t("back")}>
+        <div className="space-y-3">
+          {steps(["newsletterInstapaperStep1", "newsletterInstapaperStep2", "newsletterInstapaperStep3"])}
+          {instapaperStep(!!instapaper) === "connect" ? (
+            <>
+              <p className="text-sm text-muted-foreground">{t("newsletterInstapaperConnectFirst")}</p>
+              <Button onClick={() => app.connectInstapaper()}>{t("instapaperSignIn")}</Button>
+            </>
+          ) : (
+            <>
+              <div>{site("instapaper", t("newsletterFindAddress"), "default")}</div>
+              {/* The same switch as in Settings › Integrations › Instapaper. */}
+              <NewsletterDotSwitch checked={settings.newsletterDot} />
+            </>
+          )}
+        </div>
+      </Dialog>
     </Dialog>
   );
 }

@@ -12,7 +12,7 @@ Signed in without feeds yet, the screen says **No feeds yet**, with Add feed and
 
 Tap **+** in the search bar at the top (in Feeds, Saved or the Inbox: it is the same everywhere; on the web, **+** at the top of the list) and pick
 **Subscribe to feed**. (Also: **Add feed** on the empty screen, or in **Manage feeds** in Settings.)
-The other choice, **Save article**, saves one article by its address (see Saved). The **Add feed**
+The other choices: **Subscribe to newsletter** (see Newsletters below) and **Save article**, which saves one article by its address (see Saved). The **Add feed**
 sheet opens: type an address, pick its **Tag** (**No tag**, or one of yours; it starts on the
 tag you are looking at), and tap **Add**. **Edit tags** after the tag chips shows Manage tags
 in the same sheet; its back arrow (or Back) brings you back to Add feed as you left it (see Tags). As the address, any of these work:
@@ -29,6 +29,23 @@ After adding, the list switches to the new feed. The app also looks up the websi
 (favicon) and shows it next to the feed's name in the list, its chip, Settings and the reader.
 Until it is found, or when a site has none, the first letter of the feed's name is shown. Icons
 sit on a light tile, so dark logos stay visible in dark mode.
+
+
+### Newsletters
+
+**+** › **Subscribe to newsletter** offers two ways, each with its steps:
+
+- **As a feed:** with [Kill the Newsletter](https://kill-the-newsletter.com/), a free service run by
+  someone else. Create an inbox there; you get an email address and a feed address. Subscribe to the
+  newsletter with that email address, then tap **Add its feed** and paste the feed address. Each
+  issue then arrives as an article in that feed. Kill the Newsletter receives the newsletters, not
+  Content; **Open Kill the Newsletter** opens it in your browser.
+- **Straight into To read:** with your own Save to Instapaper email address. **Find my Instapaper
+  address** opens Instapaper's Email page in your browser, which shows it once you're signed in to
+  Instapaper. Subscribe with that address, or forward emails to it: new ones arrive in Saved, unread,
+  and under the **Newsletters** chip (see Saved). Not connected to Instapaper yet: the page offers
+  **Sign in with Instapaper** first. Connected, it also has the switch **Dot for new newsletters**,
+  the same as in Settings › Integrations › Instapaper.
 
 ## Moving from another reader
 

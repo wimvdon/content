@@ -356,4 +356,21 @@
     <string name="saved_open_unread">Bewaard, nieuwe nieuwsbrieven</string>
     <string name="setting_newsletter_dot_title">Stip bij nieuwe nieuwsbrieven</string>
     <string name="setting_newsletter_dot_summary">Een stip bij Bewaard, Te lezen en Nieuwsbrieven zolang er een nieuwsbrief uit Instapaper ongelezen is</string>
+    <string name="add_choice_newsletter">Abonneren op nieuwsbrief</string>
+    <string name="add_choice_newsletter_body">Lees nieuwsbrieven in Content, als feed of in Bewaard</string>
+    <string name="newsletter_as_feed">Als feed</string>
+    <string name="newsletter_as_feed_body">Met Kill the Newsletter: een nieuwsbrief wordt een van je feeds</string>
+    <string name="newsletter_to_read">Rechtstreeks in Te lezen</string>
+    <string name="newsletter_to_read_body">Met je e-mailadres van Instapaper: nieuwsbrieven komen in Bewaard</string>
+    <string name="newsletter_feed_step_1">Maak op Kill the Newsletter een inbox met een naam. Je krijgt een e-mailadres en een feedadres.</string>
+    <string name="newsletter_feed_step_2">Abonneer je op de nieuwsbrief met dat e-mailadres.</string>
+    <string name="newsletter_feed_step_3">Plak het feedadres via Feed toevoegen.</string>
+    <string name="newsletter_feed_note">Kill the Newsletter is een gratis dienst van iemand anders: die ontvangt de nieuwsbrieven, niet Content.</string>
+    <string name="newsletter_open_kill_the_newsletter">Kill the Newsletter openen</string>
+    <string name="newsletter_add_feed">Feed toevoegen</string>
+    <string name="newsletter_instapaper_step_1">Zoek je Save to Instapaper-e-mailadres op de pagina Email van Instapaper (aangemeld bij Instapaper).</string>
+    <string name="newsletter_instapaper_step_2">Abonneer je op de nieuwsbrief met dat adres, of stuur e-mails ernaar door.</string>
+    <string name="newsletter_instapaper_step_3">Nieuwe nieuwsbrieven komen ongelezen in Bewaard, bij Te lezen, en onder Nieuwsbrieven.</string>
+    <string name="newsletter_instapaper_connect_first">Verbind eerst Instapaper, zodat de e-mails in Bewaard komen.</string>
+    <string name="newsletter_find_address">Mijn Instapaper-adres zoeken</string>
 </resources>
