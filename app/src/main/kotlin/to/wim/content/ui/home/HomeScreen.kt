@@ -126,7 +126,6 @@ import to.wim.content.ui.theme.LocalEmptyStateBadge
 import to.wim.content.ui.theme.Motion
 import to.wim.content.ui.theme.SkeletonLine
 import to.wim.content.ui.theme.readableWidth
-import androidx.compose.material3.Badge
 import to.wim.content.data.SavedTab
 
 /** What the article list shows. */
@@ -1151,6 +1150,6 @@ private fun NewslettersChip(
         onClick = { onChoose(!on) },
         label = { Text(stringResource(R.string.newsletters_title)) },
         leadingIcon = { Icon(painterResource(R.drawable.ic_mail), contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) },
-        trailingIcon = if (reading.dot) ({ Badge(Modifier.semantics { contentDescription = waiting }) }) else null,
+        trailingIcon = if (reading.dot) ({ NewBadge(Modifier.semantics { contentDescription = waiting }) }) else null,
     )
 }

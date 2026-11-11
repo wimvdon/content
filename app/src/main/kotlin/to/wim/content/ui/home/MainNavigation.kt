@@ -5,6 +5,7 @@ import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationRail
@@ -49,9 +50,18 @@ private fun TabIcon(
     inboxUnread: Int,
     savedDot: Boolean,
 ) {
-    BadgedBox(badge = { if (tab == MainTab.Inbox && inboxUnread > 0 || tab == MainTab.Saved && savedDot) Badge() }) {
+    BadgedBox(badge = { if (tab == MainTab.Inbox && inboxUnread > 0 || tab == MainTab.Saved && savedDot) NewBadge() }) {
         Icon(painterResource(tab.icon), contentDescription = null)
     }
+}
+
+/**
+ * Material's small badge for "something new waits" (the Inbox, a newsletter): in primary, like the
+ * unread dot on a row, not Material's default error colour, which says something is wrong.
+ */
+@Composable
+fun NewBadge(modifier: Modifier = Modifier) {
+    Badge(modifier, containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary)
 }
 
 /** From this width the destinations sit in a navigation rail instead of a bar (Material's medium window). */
