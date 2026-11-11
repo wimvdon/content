@@ -251,8 +251,9 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   tags** in the Add feed, Edit feed and Save/Organise sheets, over them) shows them as a
   reorderable list (2026-11-01, instead of chips: rows don't reflow under the finger): each row the
   tag's icon, its name and the grip at the end (`ReorderableColumn`); **New tag** after them, with **Done** at the bottom right as its
-  changes are kept at once. **Manage feeds** (a sheet from Settings' other large button) shows the
-  feeds the same way: rows (site icon, name, grip at the end) under a heading per tag (Title Small,
+  changes are kept at once. **Manage feeds** (a sheet from Settings' RSS feeds or Newsletter feeds
+  button, with only that kind of feed: `FeedKinds`; a drag keeps the other kind's feeds in their
+  places) shows the feeds the same way: rows (site icon, name, grip at the end) under a heading per tag (Title Small,
   `primary`, with the tag's icon; then No tag; an empty tag says "Drag a feed here"); a row
   dragged under another heading moves into that tag (`ReorderableSections`, `SectionOrder`); a failing
   feed's name in the error colour; then Add feed; tapping a feed opens the Edit feed sheet (name,
@@ -262,14 +263,21 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   tag chip). In Manage tags drag a row by its grip to reorder; tap it for the tag sheet
   (name, icon, a trash can at the top right; a name already taken joins the two). Remove tag asks
   in a dialog over the sheet. The web: still chips with a grip (← → on a focused chip) in dialogs, for now.
-- Settings (the owner's choice, 2026-11-01, instead of the shared "one scrolling list"): two large
-  buttons at the top, **Manage feeds** and **Manage tags** (side by side on `surfaceContainerHigh`,
-  the icon on a `secondaryContainer` circle, the name and how many), then a list of pages, each a
-  `SettingItem` with a Material Symbol, its title, what it holds and a chevron: Account (sign in with
-  an emailed link; signed in, who, the last sync or what went wrong, Sync now, Sign out and Delete
-  synced data in the error colour, which asks first), Integrations (Move to or from another reader,
-  Instapaper), Theme, Article list, Article view (with Text and Sites you're signed in to); then the
-  footer. The web: the same in one dialog, a page replacing the list with ← Settings above it. Every page is a `SettingsScaffold` with the
+- Terms (owner's choice, 2026-11-11): **Feed** (the destination) holds two kinds of feed, an **RSS
+  feed** (a website's) and a **Newsletter feed** (an email address of your own, docs/newsletters.md);
+  **Saved** holds saved articles. The + sheet, Settings and Manage feeds use these words.
+- Settings (the owner's choice, 2026-11-01, instead of the shared "one scrolling list"; restructured
+  2026-11-11): large buttons at the top on `surfaceContainerHigh`, the icon on a `secondaryContainer`
+  circle, the name and how many: **RSS feeds** and **Newsletter feeds** side by side (Manage feeds
+  with that kind; the newsletter one's button is New address, a page of the sheet), then **Manage
+  tags** across the whole width under them (the icon before the text). Then a list of pages, one per
+  part of the app, each a `SettingItem` with a Material Symbol, its title, what it holds and a
+  chevron: Account (sign in with an emailed link; signed in, who, the last sync or what went wrong,
+  Sync now, Sign out and Delete synced data in the error colour, which asks first), Feed (what only
+  Feed's articles do: Mark as read on scroll, Hide articles with words, then Move to or from another
+  reader), Saved (Instapaper), Article view (with Text and Sites you're signed in to), Appearance
+  (Theme, Dynamic color, then the list view, which every list uses: Feed, Saved, the Inbox, Search);
+  then the footer. The web: the same in one dialog, a page replacing the list with ← Settings above it. Every page is a `SettingsScaffold` with the
   page's name in the large top app bar and its sections inside.
 - Folder icons come from the whole Material Symbols set (outlined, rounded), picked with a search
   field and a grid in the folder sheet. The app's other icons (the reading list's To read (an open
@@ -309,9 +317,11 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   chip (it would show what the list already shows), unless something is chosen or that chip is a tag
   with two or more feeds in the view (it leads to them). The chips sit right under the switch (their
   touch area is the gap). So every place is one or two taps from the list. **+** is an icon button in the search bar,
-  before Settings, the same in Feeds, Saved and the Inbox (back there since 2026-11-07, owner's choice): the Add sheet, two
-  `surfaceContainerHigh` rows with their icon on a `secondaryContainer` circle, **Subscribe to feed**
-  and **Save article**, each with a line saying what it does. **Mark all as read** is the FAB
+  before Settings, the same in Feeds, Saved and the Inbox (back there since 2026-11-07, owner's choice): the Add sheet: under a
+  heading **Add feed** (Title Small, `primary`, with Feed's icon) the rows **RSS feed** and
+  **Newsletter feed**, under a heading **Save article** (with Saved's icon) the row **Save article**
+  (2026-11-11, owner's choice); each row `surfaceContainerHigh` with its icon on a
+  `secondaryContainer` circle and a line saying what it does. **Mark all as read** is the FAB
   in Feeds and the Inbox (2026-11-07, owner's choice from mockups): Material 3's extended FAB in its
   corner (`primaryContainer`, ✓✓ and "Mark all as read"), which shrinks to ✓✓ while the header has
   slid away (scrolling down) and grows back with it; with nothing unread in the section shown (in the
@@ -444,7 +454,7 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   Yesterday, date) in `primary` Title Small; Mark all as read is a button at the end of the list. The web
   app's sidebar and favicon use the app's logo (the launcher icon's C on its own: no circle or
   white tile).
-- Settings starts with Manage feeds and Manage tags, then the Account page; Integrations holds OPML and Instapaper. The first screen,
+- Settings starts with RSS feeds, Newsletter feeds and Manage tags, then the Account page; Feed holds OPML, Saved Instapaper. The first screen,
   signed out, is a welcome with the email sign-in first. See docs/architecture.md, "Navigation and
   settings: where everything lives".
 

@@ -2,6 +2,26 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-11: RSS feeds and newsletter feeds by name; Settings by part of the app
+
+The owner's wish, to be precise about terms: **Feed** (the destination) holds two kinds of feed,
+**RSS feeds** and **newsletter feeds**; **Saved** holds saved articles. Both apps:
+- **+** has two headings with their destination's icon: **Add feed** (RSS feed, Newsletter feed)
+  and **Save article** (Save article). "Subscribe to feed" and "Subscribe to newsletter" are gone.
+- **Settings** has two large buttons side by side, **RSS feeds** and **Newsletter feeds**, each
+  Manage feeds with only that kind (`FeedKinds`, the web's `feedKinds.ts`; a drag puts that kind's
+  feeds back in its own places in the tag, so the other kind's feeds don't move), and **Manage
+  tags** as a wide button under them. Newsletter feeds' button is New address instead of Add feed.
+  The "Email address" line under a newsletter feed's name in Manage feeds went: the list says it.
+- **Settings' pages, one per part of the app**: Account, **Feed** (Mark as read on scroll, Hide
+  articles with words, Move to or from another reader), **Saved** (Instapaper), Article view,
+  **Appearance** (Theme, Dynamic color, the list view). Integrations and Article list are gone: the
+  owner noticed Article list's options were Feed's, which holds for Mark as read on scroll and
+  the hidden words. The list view (Small, Medium, Large) is used by every list (Saved's To read and
+  All, the Inbox, Search too), so it moved to Appearance rather than to Feed.
+- Rejected: a separate Manage feeds button with a switch for the kind (one more tap for both), and
+  splitting the list view per destination (a new setting nobody asked for).
+
 ## 2026-11-11: + › Subscribe to newsletter lists your addresses first, without Instapaper
 
 The owner's choice: + › Subscribe to newsletter goes straight to Content's own addresses (the

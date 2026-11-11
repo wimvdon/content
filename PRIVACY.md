@@ -74,7 +74,7 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   Instapaper again; disconnecting on any device removes it. It never holds the text of articles you
   only read in a feed or your Instapaper password. Your settings are kept per app: the web app's
   and the Android app's, each the same on every device of that kind; the Android app's include the
-  words you hide feed articles with (Settings › Article list), if you typed any. While the app
+  words you hide feed articles with (Settings › Feed), if you typed any. While the app
   is on screen it also keeps a connection open to the feed loader that only says when the document
   changed. The document and each record are stored encrypted (AES-256-GCM, with a key for your
   account derived from a secret that only the feed loader has) in Cloudflare's storage (Durable
@@ -84,7 +84,7 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   your IP address, under Cloudflare's privacy policy. **Sign out** (Settings › Account) forgets this
   device's key; **Delete synced data** deletes the document, the records, the stored article texts and every device's key from the server
   at once (your devices keep their own copy of the library).
-- **Instapaper (off unless you sign in).** Settings › Integrations › Instapaper › Sign in opens Instapaper's own
+- **Instapaper (off unless you sign in).** Settings › Saved › Instapaper › Sign in opens Instapaper's own
   page in your browser, where you approve Reader; Reader never sees your Instapaper password.
   Instapaper then sends back a one-time code, which the app gives to the owner's feed loader (a
   Cloudflare Worker, built from `worker/`). The loader adds Reader's client secret, swaps the code
@@ -136,7 +136,7 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   deleted from the server. Nothing is shared unless you share it, and nobody can send something in
   your name: the feed loader checks the address is yours.
 - **Newsletter addresses (off unless you make one).** Signed in to a Content account, + ›
-  Subscribe to newsletter › Create address gives you an email address for a tag (content+<a random
+  Newsletter feed › Create address gives you an email address for a tag (content+<a random
   code>@in.wim.to). Newsletters sent to it are received by the owner's feed loader (a Cloudflare
   Worker, through Cloudflare Email Routing) and kept in your account, encrypted like everything in
   it: the sender's name, the subject and the email's HTML, without attachments. At most the newest

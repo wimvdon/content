@@ -174,7 +174,6 @@
         <item quantity="other">%d neuere Artikel würden ausgeblendet:</item>
     </plurals>
     <string name="action_mark_read">Als gelesen markieren</string>
-    <string name="section_list">Artikelliste</string>
     <string name="setting_list_view">Ansicht</string>
     <string name="list_view_small">Klein</string>
     <string name="list_view_medium">Mittel</string>
@@ -329,22 +328,18 @@
     <string name="topic_in_feeds">Feeds · %1$s</string>
     <string name="topic_in_saved">Gespeichert · %1$s</string>
     <string name="add_title">Hinzufügen</string>
-    <string name="add_choice_feed">Feed abonnieren</string>
+    <string name="add_choice_feed">RSS-Feed</string>
     <string name="add_choice_feed_body">Abonniere einen RSS-Feed, indem du die Adresse der Publikation eingibst</string>
     <string name="add_choice_article">Artikel speichern</string>
     <string name="add_choice_article_body">Speichere und ordne einen Artikel, indem du seine Adresse eingibst</string>
     <string name="settings_account_signed_out">Nicht angemeldet</string>
-    <string name="settings_feeds_title">Feeds verwalten</string>
-    <string name="settings_list_summary">Ansicht, beim Scrollen als gelesen markieren, ausgeblendete Wörter</string>
     <string name="section_article_view">Artikelansicht</string>
     <string name="settings_article_view_summary">Text, ganze Artikel, Websites, für die du bezahlst</string>
     <string name="manage_feeds_hint">Tippe auf einen Feed, um ihn umzubenennen, seinen Tag zu ändern oder ihn zu entfernen. Ziehe einen an seinem Griff, um die Reihenfolge zu ändern oder ihn zu einem anderen Tag zu verschieben.</string>
     <string name="manage_feeds_drop_here">Feed hierher ziehen</string>
-    <string name="manage_feeds_none">Noch keine Feeds.</string>
+    <string name="manage_feeds_none">Noch keine RSS-Feeds.</string>
     <string name="manage_topics_hint">Tags gruppieren deine Feeds und gespeicherten Artikel. Tippe auf einen Tag, um ihn umzubenennen, sein Symbol zu ändern oder ihn zu entfernen; ziehe einen an seinem Griff, um die Reihenfolge zu ändern. Gibst du ihm den Namen eines anderen Tags, werden beide zusammengeführt.</string>
     <string name="topics_edit">Tags bearbeiten</string>
-    <string name="section_integrations">Integrationen</string>
-    <string name="settings_integrations_summary">Instapaper, OPML-Import und -Export</string>
     <plurals name="topics_count">
         <item quantity="one">%d Tag</item>
         <item quantity="other">%d Tags</item>
@@ -356,8 +351,8 @@
     <string name="saved_open_unread">Gespeichert, neue Newsletter</string>
     <string name="setting_newsletter_unread_title">Eingehende Newsletter als ungelesen markieren</string>
     <string name="setting_newsletter_unread_summary">Neue E-Mails aus Instapaper bleiben fett, bis du sie liest</string>
-    <string name="add_choice_newsletter">Newsletter abonnieren</string>
-    <string name="add_choice_newsletter_body">Newsletter in Content lesen, als Feed oder unter Gespeichert</string>
+    <string name="add_choice_newsletter">Newsletter-Feed</string>
+    <string name="add_choice_newsletter_body">Hol dir eine E-Mail-Adresse für Newsletter: Sie kommen als Feed an</string>
     <string name="newsletter_to_read">Direkt in Zu lesen</string>
     <string name="newsletter_to_read_body">Mit deiner Instapaper-E-Mail-Adresse: Newsletter kommen unter Gespeichert an</string>
     <string name="newsletter_instapaper_step_1">Finde deine Save-to-Instapaper-E-Mail-Adresse auf der Seite Email von Instapaper (bei Instapaper angemeldet).</string>
@@ -365,7 +360,6 @@
     <string name="newsletter_instapaper_step_3">Neue Newsletter kommen ungelesen unter Gespeichert an, in Zu lesen und unter Newsletter.</string>
     <string name="newsletter_instapaper_connect_first">Verbinde zuerst Instapaper, damit seine E-Mails unter Gespeichert ankommen.</string>
     <string name="newsletter_find_address">Meine Instapaper-Adresse finden</string>
-    <string name="newsletter_own">Deine eigene Adresse</string>
     <string name="newsletter_own_body">Content erstellt eine E-Mail-Adresse für einen Tag: Newsletter kommen als einer deiner Feeds an</string>
     <string name="newsletter_own_explained">Gib dem Feed einen Namen und wähle einen Tag. Content erstellt eine E-Mail-Adresse dafür: Jeder Newsletter, der dorthin geht, kommt als Artikel in diesem Feed an.</string>
     <string name="newsletter_own_sign_in_first">Eigene Adressen brauchen ein Content-Konto, das die Newsletter aufbewahrt.</string>
@@ -377,4 +371,10 @@
     <string name="newsletter_feed_label">E-Mail-Adresse</string>
     <string name="newsletter_own_made">Deine Adresse ist fertig, und ihr Feed ist unter Feed. Abonniere Newsletter damit.</string>
     <string name="newsletter_own_new">Neue Adresse</string>
+    <string name="manage_newsletters_none">Noch keine Newsletter-Feeds.</string>
+    <string name="settings_rss_feeds">RSS-Feeds</string>
+    <string name="settings_newsletter_feeds">Newsletter-Feeds</string>
+    <string name="settings_feed_summary">Beim Scrollen als gelesen markieren, ausgeblendete Wörter, OPML</string>
+    <string name="settings_saved_summary">Instapaper</string>
+    <string name="settings_appearance_summary">%1$s · %2$s</string>
 </resources>

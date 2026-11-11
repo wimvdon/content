@@ -177,7 +177,6 @@
         <item quantity="other">%d articoli recenti verrebbero nascosti:</item>
     </plurals>
     <string name="action_mark_read">Segna come letto</string>
-    <string name="section_list">Elenco articoli</string>
     <string name="setting_list_view">Vista</string>
     <string name="list_view_small">Piccola</string>
     <string name="list_view_medium">Media</string>
@@ -340,22 +339,18 @@
     <string name="topic_in_feeds">Feed · %1$s</string>
     <string name="topic_in_saved">Salvati · %1$s</string>
     <string name="add_title">Aggiungi</string>
-    <string name="add_choice_feed">Iscriviti a un feed</string>
+    <string name="add_choice_feed">Feed RSS</string>
     <string name="add_choice_feed_body">Iscriviti a un feed RSS inserendo l’indirizzo della pubblicazione</string>
     <string name="add_choice_article">Salva articolo</string>
     <string name="add_choice_article_body">Salva e organizza un articolo inserendo il suo indirizzo</string>
     <string name="settings_account_signed_out">Accesso non effettuato</string>
-    <string name="settings_feeds_title">Gestisci feed</string>
-    <string name="settings_list_summary">Vista, segna come letto scorrendo, parole nascoste</string>
     <string name="section_article_view">Vista articolo</string>
     <string name="settings_article_view_summary">Testo, articoli completi, siti a pagamento</string>
     <string name="manage_feeds_hint">Tocca un feed per rinominarlo, cambiarne il tag o rimuoverlo. Trascinane uno dalla maniglia per cambiare l’ordine o spostarlo in un altro tag.</string>
     <string name="manage_feeds_drop_here">Trascina qui un feed</string>
-    <string name="manage_feeds_none">Ancora nessun feed.</string>
+    <string name="manage_feeds_none">Ancora nessun feed RSS.</string>
     <string name="manage_topics_hint">I tag raggruppano i tuoi feed e gli articoli salvati. Tocca un tag per rinominarlo, cambiarne l’icona o rimuoverlo; trascinane uno dalla maniglia per cambiare l’ordine. Dargli il nome di un altro tag unisce i due.</string>
     <string name="topics_edit">Modifica tag</string>
-    <string name="section_integrations">Integrazioni</string>
-    <string name="settings_integrations_summary">Instapaper, importazione ed esportazione OPML</string>
     <plurals name="topics_count">
         <item quantity="one">%d tag</item>
         <item quantity="many">%d tag</item>
@@ -368,8 +363,8 @@
     <string name="saved_open_unread">Salvati, nuove newsletter</string>
     <string name="setting_newsletter_unread_title">Segna le newsletter in arrivo come non lette</string>
     <string name="setting_newsletter_unread_summary">Le nuove email da Instapaper restano in grassetto finché non le leggi</string>
-    <string name="add_choice_newsletter">Iscriviti a una newsletter</string>
-    <string name="add_choice_newsletter_body">Leggi le newsletter in Content, come feed o in Salvati</string>
+    <string name="add_choice_newsletter">Feed di newsletter</string>
+    <string name="add_choice_newsletter_body">Ottieni un indirizzo email per le newsletter: arrivano come feed</string>
     <string name="newsletter_to_read">Direttamente in Da leggere</string>
     <string name="newsletter_to_read_body">Con il tuo indirizzo email di Instapaper: le newsletter arrivano in Salvati</string>
     <string name="newsletter_instapaper_step_1">Trova il tuo indirizzo email Save to Instapaper nella pagina Email di Instapaper (con l’accesso a Instapaper).</string>
@@ -377,7 +372,6 @@
     <string name="newsletter_instapaper_step_3">Le nuove newsletter arrivano non lette in Salvati, in Da leggere, e sotto Newsletter.</string>
     <string name="newsletter_instapaper_connect_first">Prima collega Instapaper, così le sue email arrivano in Salvati.</string>
     <string name="newsletter_find_address">Trova il mio indirizzo Instapaper</string>
-    <string name="newsletter_own">Il tuo indirizzo</string>
     <string name="newsletter_own_body">Content crea un indirizzo email per un tag: le newsletter arrivano come uno dei tuoi feed</string>
     <string name="newsletter_own_explained">Dai un nome al feed e scegli un tag. Content crea un indirizzo email per esso: ogni newsletter inviata lì arriva come articolo in quel feed.</string>
     <string name="newsletter_own_sign_in_first">I tuoi indirizzi richiedono un account Content, che conserva le newsletter.</string>
@@ -389,4 +383,10 @@
     <string name="newsletter_feed_label">Indirizzo email</string>
     <string name="newsletter_own_made">Il tuo indirizzo è pronto e il suo feed è in Feed. Iscriviti alle newsletter con esso.</string>
     <string name="newsletter_own_new">Nuovo indirizzo</string>
+    <string name="manage_newsletters_none">Ancora nessun feed di newsletter.</string>
+    <string name="settings_rss_feeds">Feed RSS</string>
+    <string name="settings_newsletter_feeds">Feed di newsletter</string>
+    <string name="settings_feed_summary">Segna come letto scorrendo, parole nascoste, OPML</string>
+    <string name="settings_saved_summary">Instapaper</string>
+    <string name="settings_appearance_summary">%1$s · %2$s</string>
 </resources>

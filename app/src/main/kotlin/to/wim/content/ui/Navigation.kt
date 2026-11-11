@@ -127,6 +127,8 @@ import to.wim.content.rssReaderApp
 import to.wim.content.ui.home.AddFeedSheet
 import to.wim.content.ui.home.AddChoiceSheet
 import to.wim.content.ui.home.NewsletterChoices
+import to.wim.content.ui.home.NewsletterFeedPage
+import to.wim.content.data.FeedKind
 import to.wim.content.ui.feeds.ManageFeedsActions
 import to.wim.content.ui.feeds.ManageFeedsSheet
 import to.wim.content.ui.feeds.ManageTopicsSheet
@@ -161,7 +163,7 @@ sealed interface Screen {
 
     data object Settings : Screen
 
-    /** One of Settings' pages: Account, Integrations, Theme, Article list, Article view. */
+    /** One of Settings' pages: Account, Feed, Saved, Article view, Appearance. */
     data class SettingsPage(val page: to.wim.content.ui.settings.SettingsPage) : Screen
 
     /** Search through every feed's articles and Saved. */
@@ -396,10 +398,12 @@ fun RssReaderNavigation(
 
     // Add feed dialog, shared by the list, the drawer and Settings.
     var addDialogOpen by rememberSaveable { mutableStateOf(false) }
-    // The search bar's +: Subscribe to feed or Save article, asked first.
+    // The search bar's +: RSS feed, Newsletter feed or Save article, asked first.
     var addChoiceOpen by rememberSaveable { mutableStateOf(false) }
-    // The Manage feeds and Manage topics sheets (Settings' two buttons).
-    var manageFeedsOpen by rememberSaveable { mutableStateOf(false) }
+    // The Manage feeds sheet for RSS feeds or newsletter feeds, and Manage tags (Settings' buttons).
+    var manageFeedsKind by rememberSaveable { mutableStateOf<FeedKind?>(null) }
+    // New address, a page of Manage feeds for newsletter feeds.
+    var newAddressOpen by rememberSaveable { mutableStateOf(false) }
     var manageTopicsOpen by rememberSaveable { mutableStateOf(false) }
     // Add feed from a topic page: the topic to add into ("" for No topic), and stay on that page.
     var addIntoTopic by rememberSaveable { mutableStateOf<String?>(null) }
@@ -718,7 +722,7 @@ fun RssReaderNavigation(
         SettingsActions(
             onBack = ::pop,
             onOpenPage = { push(Screen.SettingsPage(it)) },
-            onManageFeeds = { manageFeedsOpen = true },
+            onManageFeeds = { manageFeedsKind = it },
             onManageTopics = { manageTopicsOpen = true },
             onReaderStyleChange = { style -> app.appScope.launch { app.settings.setReaderStyle(style) } },
             onInstapaperSignIn = { uiScope.launch { ExternalApps.openLink(context, app.instapaper.begin()) } },
@@ -1361,17 +1365,43 @@ fun RssReaderNavigation(
             )
         }
     }
-    if (manageFeedsOpen) {
+    // What Newsletter feed needs, from + and from Manage feeds; Sign in closes where it came from.
+    fun newsletterChoices(onSignIn: () -> Unit) =
+        NewsletterChoices(
+            instapaperConnected = instapaperState is InstapaperState.SignedIn,
+            newsletterUnread = current.newsletterUnread,
+            onNewsletterUnreadChange = ::setNewsletterUnread,
+            onConnectInstapaper = { uiScope.launch { ExternalApps.openLink(context, app.instapaper.begin()) } },
+            onOpenSite = { url -> ExternalApps.openLink(context, url) },
+            signedIn = accountState is AccountState.SignedIn,
+            onSignIn = onSignIn,
+            topics = library.folders,
+            feeds = library.feeds,
+            loadAddresses = { app.sync.newsletters() },
+            topicActions = topicActions,
+            createAddress = { name, topicId ->
+                // Made by the account's feed loader (its feed is titled by the name), then subscribed under the topic.
+                app.sync.createNewsletter(name)?.also { made -> repository.addFeed(made.feedUrl, topicId) }
+            },
+            onCopy = ::copyToClipboard,
+        )
+
+    manageFeedsKind?.let { kind ->
         ManageFeedsSheet(
+            kind = kind,
             feeds = library.feeds,
             topics = library.folders,
             problems = problems,
             actions =
                 ManageFeedsActions(
                     onAddFeed = {
-                        // Without a topic, as a page of Manage feeds; back there afterwards.
-                        addIntoTopic = ""
-                        addDialogOpen = true
+                        if (kind == FeedKind.Newsletter) {
+                            newAddressOpen = true
+                        } else {
+                            // Without a topic, as a page of Manage feeds; back there afterwards.
+                            addIntoTopic = ""
+                            addDialogOpen = true
+                        }
                     },
                     onEditFeed = { feed, title, topicId -> editFeed(feed, title, topicId) },
                     newsletterAddress = { code -> app.sync.newsletters()?.firstOrNull { it.code == code }?.address },
@@ -1387,8 +1417,23 @@ fun RssReaderNavigation(
                     onMoveFeed = { feed, topicId, urls -> app.appScope.launch { repository.moveFeedInto(feed.url, topicId, urls) } },
                 ),
             topicActions = topicActions,
-            onDismiss = { manageFeedsOpen = false },
-            addFeed = addFeedSheet,
+            onDismiss = {
+                manageFeedsKind = null
+                newAddressOpen = false
+            },
+            addFeed = {
+                if (kind == FeedKind.Rss) {
+                    addFeedSheet()
+                } else if (newAddressOpen) {
+                    val choices =
+                        newsletterChoices {
+                            manageFeedsKind = null
+                            newAddressOpen = false
+                            push(Screen.SettingsPage(SettingsPage.Account))
+                        }
+                    NewsletterFeedPage(choices, onBack = { newAddressOpen = false }, startCreating = true)
+                }
+            },
         )
     }
     if (manageTopicsOpen) {
@@ -1407,32 +1452,15 @@ fun RssReaderNavigation(
                 openSave(null, null)
             },
             onDismiss = { addChoiceOpen = false },
-            newsletters =
-                NewsletterChoices(
-                    instapaperConnected = instapaperState is InstapaperState.SignedIn,
-                    newsletterUnread = current.newsletterUnread,
-                    onNewsletterUnreadChange = ::setNewsletterUnread,
-                    onConnectInstapaper = { uiScope.launch { ExternalApps.openLink(context, app.instapaper.begin()) } },
-                    onOpenSite = { url -> ExternalApps.openLink(context, url) },
-                    signedIn = accountState is AccountState.SignedIn,
-                    onSignIn = {
-                        addChoiceOpen = false
-                        push(Screen.SettingsPage(SettingsPage.Account))
-                    },
-                    topics = library.folders,
-                    feeds = library.feeds,
-                    loadAddresses = { app.sync.newsletters() },
-                    topicActions = topicActions,
-                    createAddress = { name, topicId ->
-                        // Made by the account's feed loader (its feed is titled by the name), then subscribed under the topic.
-                        app.sync.createNewsletter(name)?.also { made -> repository.addFeed(made.feedUrl, topicId) }
-                    },
-                    onCopy = ::copyToClipboard,
-                ),
+            newsletters = newsletterChoices {
+                addChoiceOpen = false
+                push(Screen.SettingsPage(SettingsPage.Account))
+            },
         )
     }
 
-    if (!manageFeedsOpen) addFeedSheet()
+    // Manage feeds for RSS feeds has Add feed as its page.
+    if (manageFeedsKind != FeedKind.Rss) addFeedSheet()
 }
 
 /**

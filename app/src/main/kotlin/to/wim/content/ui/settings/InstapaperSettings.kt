@@ -85,7 +85,7 @@ fun InstapaperSettings(
 }
 
 /**
- * Mark incoming newsletters as unread: a switch in Settings › Integrations › Instapaper and on +
+ * Mark incoming newsletters as unread: a switch in Settings › Saved › Instapaper and on +
  * › Subscribe to newsletter's Instapaper page. On, a newsletter that comes in is bold with a dot until
  * read, and a dot on Saved and the Newsletters chip says one waits; off, they come in read.
  */

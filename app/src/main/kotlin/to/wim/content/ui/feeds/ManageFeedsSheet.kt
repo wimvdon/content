@@ -1,6 +1,8 @@
 package to.wim.content.ui.feeds
 
 import to.wim.content.data.NewsletterAddresses
+import to.wim.content.data.FeedKind
+import to.wim.content.data.FeedKinds
 import to.wim.content.ui.reader.rememberSheetClose
 import androidx.compose.foundation.layout.Arrangement
 import to.wim.content.ui.theme.DragHandle
@@ -52,7 +54,7 @@ import to.wim.content.ui.reader.SheetHeader
 
 /** What the Manage feeds sheet can do with the feeds; each change is stored at once. */
 class ManageFeedsActions(
-    /** Add feed: it lands without a topic, as a page of this sheet ([ManageFeedsSheet]'s `addFeed`). */
+    /** Add feed (or, for newsletter feeds, New address): a page of this sheet ([ManageFeedsSheet]'s `addFeed`). */
     val onAddFeed: () -> Unit,
     val onEditFeed: (feed: Feed, title: String, topicId: String?) -> Unit,
     val onRemoveFeed: (Feed) -> Unit,
@@ -65,16 +67,19 @@ class ManageFeedsActions(
 )
 
 /**
- * Manage feeds as a sheet (from Settings, and wherever else it is linked): the feeds as chips,
- * grouped by topic (in the topics' order, then No topic), like the chips in Feeds and the sheets.
+ * Manage feeds as a sheet, for one [kind] of feed (Settings' RSS feeds and Newsletter feeds, 2026-11-11):
+ * that kind's feeds as rows, grouped by topic (in the topics' order, then No topic), like the chips in Feeds and the sheets.
  * Every topic shows, an empty one too. Drag a chip by its handle to reorder it within its topic or
  * to move it into another topic (or No topic); tap it (the pen before the grip says so) for the Edit feed sheet (name,
  * topic, Remove) as a page of this sheet, with a back arrow. A feed that fails to download has its name in the error colour. Add feed at the
- * bottom left. Changes are stored at once: **Done** at the bottom right.
+ * bottom left (New address for newsletter feeds). Changes are stored at once: **Done** at the
+ * bottom right. A drag only reorders the kind shown; the other kind's feeds keep their places.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ManageFeedsSheet(
+    kind: FeedKind,
+    /** Every feed: the sheet shows [kind]'s, and keeps the others' places when one is dragged. */
     feeds: List<Feed>,
     topics: List<Folder>,
     problems: Map<String, FeedProblem>,
@@ -85,13 +90,23 @@ fun ManageFeedsSheet(
     addFeed: @Composable () -> Unit = {},
 ) {
     var editing by rememberSaveable { mutableStateOf<String?>(null) }
+    val shown = remember(feeds, kind) { FeedKinds.only(feeds, kind) }
+    // A topic's feeds (null: No topic, with those of a topic that is gone).
+    fun inTopic(
+        list: List<Feed>,
+        topicId: String?,
+    ) = list.filter { feed -> if (topicId == null) feed.folderId == null || topics.none { it.id == feed.folderId } else feed.folderId == topicId }
     val groups =
-        remember(feeds, topics) {
-            val inTopics = topics.map { topic -> topic to feeds.filter { it.folderId == topic.id } }
-            val loose = feeds.filter { feed -> feed.folderId == null || topics.none { it.id == feed.folderId } }
+        remember(shown, topics) {
             // Every topic, so a feed can be dragged into an empty one; none at all without feeds.
-            if (feeds.isEmpty()) emptyList() else inTopics + (null to loose)
+            if (shown.isEmpty()) emptyList() else topics.map { topic -> topic to inTopic(shown, topic.id) } + (null to inTopic(shown, null))
         }
+    // The topic's whole order, the other kind's feeds in their places.
+    fun fullOrder(
+        topicId: String?,
+        urls: List<String>,
+        moved: String? = null,
+    ) = FeedKinds.withOrder(inTopic(feeds, topicId).map { it.url }.filter { it != moved }, urls)
     ContentSheet(onDismiss = onDismiss) {
         Column(
             Modifier
@@ -99,9 +114,16 @@ fun ManageFeedsSheet(
                 .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            SheetHeader(stringResource(R.string.settings_feeds_title), onCancel = onDismiss)
+            val newsletters = kind == FeedKind.Newsletter
+            SheetHeader(stringResource(if (newsletters) R.string.settings_newsletter_feeds else R.string.settings_rss_feeds), onCancel = onDismiss)
             Text(
-                stringResource(if (feeds.isEmpty()) R.string.manage_feeds_none else R.string.manage_feeds_hint),
+                stringResource(
+                    when {
+                        shown.isNotEmpty() -> R.string.manage_feeds_hint
+                        newsletters -> R.string.manage_newsletters_none
+                        else -> R.string.manage_feeds_none
+                    },
+                ),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -112,8 +134,14 @@ fun ManageFeedsSheet(
             ReorderableSections(
                 sections = groups.map { (topic, inGroup) -> (topic?.id ?: NO_TOPIC) to inGroup },
                 key = { it.url },
-                onReorder = { groupId, urls -> actions.onReorderFeeds(groupId.takeUnless { it == NO_TOPIC }, urls) },
-                onMove = { feed, groupId, urls -> actions.onMoveFeed(feed, groupId.takeUnless { it == NO_TOPIC }, urls) },
+                onReorder = { groupId, urls ->
+                    val topicId = groupId.takeUnless { it == NO_TOPIC }
+                    actions.onReorderFeeds(topicId, fullOrder(topicId, urls))
+                },
+                onMove = { feed, groupId, urls ->
+                    val topicId = groupId.takeUnless { it == NO_TOPIC }
+                    actions.onMoveFeed(feed, topicId, fullOrder(topicId, urls, moved = feed.url))
+                },
                 heading = { groupId ->
                     val topic = topics.firstOrNull { it.id == groupId }
                     val empty = groups.firstOrNull { (t, _) -> (t?.id ?: NO_TOPIC) == groupId }?.second.isNullOrEmpty()
@@ -144,19 +172,14 @@ fun ManageFeedsSheet(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     FeedIcon(feed, FeedIconSize.Medium)
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            feed.title,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = if (problems.containsKey(feed.url)) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        // A newsletter address: it receives email rather than reading a website's feed.
-                        if (NewsletterAddresses.codeOfFeed(feed.url) != null) {
-                            Text(stringResource(R.string.newsletter_feed_label), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                    }
+                    Text(
+                        feed.title,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = if (problems.containsKey(feed.url)) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
                     // A pen before the grip (2026-11-02): tapping the row edits it, as the web's chips show.
                     Icon(painterResource(R.drawable.ic_edit), contentDescription = null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     DragHandle(handleModifier)
@@ -169,7 +192,7 @@ fun ManageFeedsSheet(
                 leading = {
                     FilledTonalButton(onClick = actions.onAddFeed, contentPadding = ButtonDefaults.ButtonWithIconContentPadding) {
                         Icon(painterResource(R.drawable.ic_add), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
-                        Text(stringResource(R.string.feeds_add), modifier = Modifier.padding(start = 8.dp))
+                        Text(stringResource(if (newsletters) R.string.newsletter_own_new else R.string.feeds_add), modifier = Modifier.padding(start = 8.dp))
                     }
                 },
             ) {

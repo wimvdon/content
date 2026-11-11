@@ -174,7 +174,6 @@
         <item quantity="other">%d recente artikels zouden verborgen worden:</item>
     </plurals>
     <string name="action_mark_read">Als gelezen markeren</string>
-    <string name="section_list">Artikellijst</string>
     <string name="setting_list_view">Weergave</string>
     <string name="list_view_small">Klein</string>
     <string name="list_view_medium">Middel</string>
@@ -329,22 +328,18 @@
     <string name="topic_in_feeds">Feeds · %1$s</string>
     <string name="topic_in_saved">Bewaard · %1$s</string>
     <string name="add_title">Toevoegen</string>
-    <string name="add_choice_feed">Abonneren op feed</string>
+    <string name="add_choice_feed">RSS-feed</string>
     <string name="add_choice_feed_body">Abonneer je op een RSS-feed door het adres van de publicatie in te vullen</string>
     <string name="add_choice_article">Artikel bewaren</string>
     <string name="add_choice_article_body">Bewaar en orden een artikel door zijn adres in te vullen</string>
     <string name="settings_account_signed_out">Niet aangemeld</string>
-    <string name="settings_feeds_title">Feeds beheren</string>
-    <string name="settings_list_summary">Weergave, gelezen bij scrollen, verborgen woorden</string>
     <string name="section_article_view">Artikelweergave</string>
     <string name="settings_article_view_summary">Tekst, volledige artikels, sites waarvoor je betaalt</string>
     <string name="manage_feeds_hint">Tik op een feed om hem te hernoemen, een andere tag te geven of te verwijderen. Sleep er een aan zijn greep om de volgorde te wijzigen of hem naar een andere tag te verplaatsen.</string>
     <string name="manage_feeds_drop_here">Sleep hier een feed naartoe</string>
-    <string name="manage_feeds_none">Nog geen feeds.</string>
+    <string name="manage_feeds_none">Nog geen RSS-feeds.</string>
     <string name="manage_topics_hint">Tags groeperen je feeds en bewaarde artikels. Tik op een tag om hem te hernoemen, een ander icoon te geven of te verwijderen; sleep er een aan zijn greep om de volgorde te wijzigen. Geef je hem de naam van een andere tag, dan worden ze samengevoegd.</string>
     <string name="topics_edit">Tags bewerken</string>
-    <string name="section_integrations">Integraties</string>
-    <string name="settings_integrations_summary">Instapaper, OPML importeren en exporteren</string>
     <plurals name="topics_count">
         <item quantity="one">%d tag</item>
         <item quantity="other">%d tags</item>
@@ -356,8 +351,8 @@
     <string name="saved_open_unread">Bewaard, nieuwe nieuwsbrieven</string>
     <string name="setting_newsletter_unread_title">Binnenkomende nieuwsbrieven als ongelezen markeren</string>
     <string name="setting_newsletter_unread_summary">Nieuwe e-mails uit Instapaper blijven vet tot je ze leest</string>
-    <string name="add_choice_newsletter">Abonneren op nieuwsbrief</string>
-    <string name="add_choice_newsletter_body">Lees nieuwsbrieven in Content, als feed of in Bewaard</string>
+    <string name="add_choice_newsletter">Nieuwsbrieffeed</string>
+    <string name="add_choice_newsletter_body">Krijg een e-mailadres voor nieuwsbrieven: ze komen binnen als feed</string>
     <string name="newsletter_to_read">Rechtstreeks in Te lezen</string>
     <string name="newsletter_to_read_body">Met je e-mailadres van Instapaper: nieuwsbrieven komen in Bewaard</string>
     <string name="newsletter_instapaper_step_1">Zoek je Save to Instapaper-e-mailadres op de pagina Email van Instapaper (aangemeld bij Instapaper).</string>
@@ -365,7 +360,6 @@
     <string name="newsletter_instapaper_step_3">Nieuwe nieuwsbrieven komen ongelezen in Bewaard, bij Te lezen, en onder Nieuwsbrieven.</string>
     <string name="newsletter_instapaper_connect_first">Verbind eerst Instapaper, zodat de e-mails in Bewaard komen.</string>
     <string name="newsletter_find_address">Mijn Instapaper-adres zoeken</string>
-    <string name="newsletter_own">Je eigen adres</string>
     <string name="newsletter_own_body">Content maakt een e-mailadres voor een tag: nieuwsbrieven komen binnen als een van je feeds</string>
     <string name="newsletter_own_explained">Geef de feed een naam en kies een tag. Content maakt er een e-mailadres voor: elke nieuwsbrief die daarheen gaat, komt binnen als artikel in die feed.</string>
     <string name="newsletter_own_sign_in_first">Je eigen adressen hebben een Content-account nodig, dat de nieuwsbrieven bewaart.</string>
@@ -377,4 +371,10 @@
     <string name="newsletter_feed_label">E-mailadres</string>
     <string name="newsletter_own_made">Je adres is klaar, en de feed staat bij Feed. Abonneer je ermee op nieuwsbrieven.</string>
     <string name="newsletter_own_new">Nieuw adres</string>
+    <string name="manage_newsletters_none">Nog geen nieuwsbrieffeeds.</string>
+    <string name="settings_rss_feeds">RSS-feeds</string>
+    <string name="settings_newsletter_feeds">Nieuwsbrieffeeds</string>
+    <string name="settings_feed_summary">Gelezen bij scrollen, verborgen woorden, OPML</string>
+    <string name="settings_saved_summary">Instapaper</string>
+    <string name="settings_appearance_summary">%1$s · %2$s</string>
 </resources>

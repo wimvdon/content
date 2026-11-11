@@ -44,6 +44,8 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import to.wim.content.R
 import to.wim.content.ui.reader.ContentSheet
 import to.wim.content.ui.reader.SheetActions
@@ -60,9 +62,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 
 /**
- * The search bar's +, the same in Feeds, Saved and the Inbox: first what to add. Subscribe to feed
- * opens the Add feed sheet, Save article the Save sheet; both then ask for the address. Subscribe to
- * newsletter is a page of this sheet with two ways ([NewsletterSubscribe]), each a page of steps.
+ * The search bar's +, the same in Feed, Saved and the Inbox: first what to add, under two headings
+ * with their destination's icon (2026-11-11). **Add feed**: RSS feed opens the Add feed sheet,
+ * Newsletter feed a page of this sheet that makes an email address whose newsletters arrive as a
+ * feed ([NewsletterSubscribe]). **Save article**: Save article opens the Save sheet. Both sheets
+ * then ask for the address.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -70,7 +74,7 @@ fun AddChoiceSheet(
     onSubscribe: () -> Unit,
     onSaveArticle: () -> Unit,
     onDismiss: () -> Unit,
-    /** For Subscribe to newsletter: Instapaper connected, Mark incoming newsletters as unread, and the links. */
+    /** For Newsletter feed: the account, the topics and the addresses. */
     newsletters: NewsletterChoices = NewsletterChoices(),
 ) {
     var newsletterOpen by rememberSaveable { mutableStateOf(false) }
@@ -82,6 +86,7 @@ fun AddChoiceSheet(
             SheetHeader(stringResource(R.string.add_title), onCancel = onDismiss)
             // A choice slides this sheet away before the next one comes up.
             val close = rememberSheetClose()
+            AddHeading(painterResource(R.drawable.ic_rss_feed), stringResource(R.string.feeds_add))
             AddChoice(
                 icon = painterResource(R.drawable.ic_rss_feed),
                 title = stringResource(R.string.add_choice_feed),
@@ -94,6 +99,7 @@ fun AddChoiceSheet(
                 body = stringResource(R.string.add_choice_newsletter_body),
                 onClick = { newsletterOpen = true },
             )
+            AddHeading(painterResource(R.drawable.ic_list), stringResource(R.string.add_choice_article))
             AddChoice(
                 icon = painterResource(R.drawable.ic_bookmark_add),
                 title = stringResource(R.string.add_choice_article),
@@ -102,12 +108,24 @@ fun AddChoiceSheet(
             )
             SheetActions(onCancel = onDismiss)
         }
-        // A page of this sheet (#323): its back arrow comes back to the three choices.
-        if (newsletterOpen) OwnAddressPage(newsletters, onBack = { newsletterOpen = false })
+        // A page of this sheet (#323): its back arrow comes back to the choices.
+        if (newsletterOpen) NewsletterFeedPage(newsletters, onBack = { newsletterOpen = false })
     }
 }
 
-/** What Subscribe to newsletter needs from the app. */
+/** A heading in the Add sheet: its destination's icon and name, as a tag's heading in Manage feeds. */
+@Composable
+private fun AddHeading(
+    icon: Painter,
+    title: String,
+) {
+    Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.primary)
+        Text(title, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary, modifier = Modifier.semantics { heading() })
+    }
+}
+
+/** What Newsletter feed needs from the app. */
 data class NewsletterChoices(
     val instapaperConnected: Boolean = false,
     val newsletterUnread: Boolean = false,
@@ -133,15 +151,17 @@ data class NewsletterChoices(
 
 
 /**
- * Your own address, like Add feed: a name for its feed and a topic (No topic, every topic, Edit
- * topics), then Create address; once made, the address with Copy. Without a Content account, Sign in
- * first. The addresses are in Manage feeds afterwards, each feed with its address.
+ * Newsletter feed, like Add feed: first the account's addresses by topic, each with Copy, then New
+ * address; that is a name for its feed and a topic (No topic, every topic, Edit topics), then Create
+ * address; once made, the address with Copy. Without a Content account, Sign in first. Settings'
+ * Newsletter feeds opens it at New address ([startCreating]).
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun OwnAddressPage(
+fun NewsletterFeedPage(
     choices: NewsletterChoices,
     onBack: () -> Unit,
+    startCreating: Boolean = false,
 ) {
     var name by rememberSaveable { mutableStateOf("") }
     var topicId by rememberSaveable { mutableStateOf<String?>(null) }
@@ -161,7 +181,7 @@ private fun OwnAddressPage(
     val chosen = chosenTopic(topicId, choices.topics)
     // The account's addresses first, if there are any (null: still loading); New address opens the form.
     var existing by remember { mutableStateOf<List<NewsletterAddress>?>(null) }
-    var creating by rememberSaveable { mutableStateOf(false) }
+    var creating by rememberSaveable { mutableStateOf(startCreating) }
     LaunchedEffect(choices.signedIn) { existing = if (choices.signedIn) choices.loadAddresses().orEmpty() else emptyList() }
     val groups = remember(existing, choices.feeds, choices.topics) { NewsletterAddresses.grouped(existing.orEmpty(), choices.feeds, choices.topics) }
     ContentSheet(onDismiss = onBack) {
@@ -169,7 +189,7 @@ private fun OwnAddressPage(
             Modifier.padding(start = 24.dp, end = 24.dp, bottom = 24.dp).verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            SheetHeader(stringResource(R.string.newsletter_own), onCancel = onBack, enabled = !busy)
+            SheetHeader(stringResource(R.string.add_choice_newsletter), onCancel = onBack, enabled = !busy)
             val address = made
             val overview = choices.signedIn && address == null && !creating && groups.isNotEmpty()
             if (!overview) Text(stringResource(R.string.newsletter_own_explained), style = MaterialTheme.typography.bodyMedium)

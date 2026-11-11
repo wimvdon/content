@@ -2,18 +2,19 @@
 
 An email address per tag that turns the newsletters sent to it into a feed: Kill the Newsletter's
 idea, built into Content's feed loader (`worker/src/newsletters.ts`). Signed in to a Content account,
-+ › Subscribe to newsletter › Create address picks a tag and gives an address such as
++ › Newsletter feed › Create address picks a tag and gives an address such as
 `content+k7q2m9abcdef@in.wim.to`; the app subscribes to its feed under that tag, so new issues show in
 Feeds like any article: unread, Mark all as read, the chips' dots, the reader and Search all work.
 
 ## In the apps
 
-+ › Subscribe to newsletter › **Your own address** (`ui/home/AddChoiceSheet.kt`, the web's
-`Dialogs.tsx`), like Add feed: a name for the feed (sent as the address's `tag`, which titles its
++ › Add feed › **Newsletter feed** (`ui/home/AddChoiceSheet.kt`, `NewsletterFeedPage`; the web's
+`Dialogs.tsx`), and Settings › Newsletter feeds › New address, like Add feed: a name for the feed (sent as the address's `tag`, which titles its
 feed) and a topic, then Create address, which calls the feed loader and subscribes to the feed under
 that topic, and shows the address with Copy. A newsletter address's feed (`NewsletterAddresses`, the
 web's `newsletterAddresses.ts`, recognised by its `/newsletters/<code>/<token>` address) has an
-envelope as its icon, "Email address" in Manage feeds, and its email address with Copy in Edit feed
+envelope as its icon, is listed in Settings › Newsletter feeds (`FeedKinds`, the web's
+`feedKinds.ts`) rather than RSS feeds, and has its email address with Copy in Edit feed
 (read from `GET /account/newsletters`). Removing it removes the address (`DELETE
 /account/newsletters`). Without a Content account, the page offers Sign in.
 

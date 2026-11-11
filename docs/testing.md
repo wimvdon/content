@@ -72,7 +72,8 @@ when the run fails.
 | `FeedChipsTest` | Feeds' chip rows without ☰: the tags then the feeds without a tag, a chosen tag's feeds, one row (only the chosen tag, then its feeds, no loose ones), no row with a single chip unless something is chosen or it is a tag with two or more feeds, a feed keeping its tag lit (or lit itself in the first row when it has none), the chosen tag staying a chip, a tagged feed counting as in its tag |
 | `ReadingListsTest` | Reading times and minutes left, an item shown like its feed article (or with its description), its source (feed or website with favicon) |
 | `ServiceSyncTest` | An article the service has twice, with and without tracking parameters, becomes one here and there, rows from before move to the new key (#253); Saved and a fake service (#145): connecting imports the whole account, or nothing when the user says so (#251: what is there stays until it changes, Saved still goes there), folders in and out (filing, archiving leaves the folder), adding, archiving, liking and tagging sent once, what came in not sent back, removing sent (a bookmark stays), changes on both sides to other fields both kept, the same field: the later change wins (Reader's without a time from the service), deleted at the service leaves Saved unless changed here or another service keeps it in step, removed here but changed there stays, a link the service has joins it, a failure keeps everything and the rest goes next time, progress, notes; a save reaches every service whose scope covers its folder, a scope losing a folder archives its articles there (never deletes) and gaining it brings them back, an import lands each article in its place and leaves the rest there until it changes, another device's import, folder origins kept, entries stored and read back (rows from before #145 in step), a new article sent with Content's text to a service that takes it only when saved in the last week, and added without it when there is none (#247); the web app's `test/serviceSync.test.ts` covers the same rules |
-| `NewsletterSubscribeTest` | + › Subscribe to newsletter: the Instapaper way asks to connect first and links over https; your own address needs a Content account and a tag of up to 100 characters; a newsletter address's feed is recognised and read from the feed loader's answer (one whose feed doesn't match its code refused); a new address's feed goes under the topic with its name. The web app's `newsletterSubscribe.test.ts` the same |
+| `FeedKindsTest` | RSS feeds and newsletter feeds: a newsletter address's feed is a newsletter feed, any other an RSS feed; reordering one kind in Manage feeds keeps the other kind's feeds in their places in the tag, and a feed dragged in from another tag keeps its place among its kind. The web app's `feedKinds.test.ts` the same |
+| `NewsletterSubscribeTest` | + › Newsletter feed: the Instapaper way asks to connect first and links over https; your own address needs a Content account and a tag of up to 100 characters; a newsletter address's feed is recognised and read from the feed loader's answer (one whose feed doesn't match its code refused); a new address's feed goes under the topic with its name. The web app's `newsletterSubscribe.test.ts` the same |
 | `NewslettersTest` | Newsletters (emails from Instapaper): recognised by Instapaper's page as their address; Mark as read reads one and nothing else, archiving or removing reads it and back to read it stays read; Mark all as read takes the unread ones in the list shown and Undo brings back those still to read; the Newsletters chip filters to them and shows only while there are any (or it is chosen); the card says unread; `unread` in the sync row, missing in an older app's row means read, read wins in a merge; the local database keeps it. `ServiceSyncTest`: with Mark incoming newsletters as unread off an email comes in read; on, an email that arrives after connecting is unread, one from the import, an article with an address and one archived there aren't, a later change there doesn't make it unread, archiving there reads it. `SyncSettingsTest`: `articles.newsletterUnread`, read from 6.12.0's `articles.newsletterDot` while missing. The web app's `test/newsletters.test.ts` and `serviceSync.test.ts` cover the same rules, and that the stored library keeps `unread` and `sharedBy` |
 | `InstapaperReadingListTest` | Instapaper as the reading list's service, with recorded answers: `since` page by page with deletions and folders, filing into a folder made there when missing, the first sync asks for everything, adding with tags and archive, adding with Content's text and with the link alone when Instapaper refuses the text (#247), only changes sent (taking the folder's tag off moves it home), problems mapped; a forwarded email (no address) comes in with Instapaper's page as its address, a cursor from before reads everything once, odd addresses stay out. `InstapaperLinksTest` (and the web's `instapaperLinks.test.ts`): that address and back; `InstapaperTextTest`: an email's text through the feed loader, none when credits are used up; `ServiceSyncTest`: such an email is never saved to Instapaper as a link. The Worker's `instapaper.test.ts` checks `/instapaper/text` (the key and token sent, Android without `Origin`, limits passed on) |
 | `PageInfoTest` | A page's title, description and picture (Open Graph first, https pictures only) for links saved without a title |
@@ -133,7 +134,7 @@ and then (always before a release):
       "Saved to To read" with **Open**, which opens the article. The Unread chip in its own row under the folder tabs (not in the top bar) switches unread only (filled, check) / all.
       Scroll down: the title, the folder tabs and the Unread chip slide away together; scroll up a
       little: they come back; pulling down at the very top refreshes, and the spinner stays in place
-      until the refresh is done (no jump back up and down again), also on the reading list. Settings › Article list › View: Small,
+      until the refresh is done (no jump back up and down again), also on the reading list. Settings › Appearance › View: Small,
       Medium and Large each look right, with and without pictures.
 - [ ] **Website icons:** after a refresh, feeds show their site's icon in the list, their chips,
       manage page and reader, on a light tile; in dark mode dark logos are still visible; a feed
@@ -164,8 +165,9 @@ and then (always before a release):
       feed, Unread shows no chip row at all; pick All and it comes back. With unread articles in one
       tag but two of its feeds, that tag's chip shows, and tapping it shows the two feeds.
       Web app (narrow window): the same. The round **+**
-      button at the bottom right (Feeds, Saved and the Inbox alike; no + in the search bar) opens Add: Subscribe to feed opens Add feed, Save
-      article the save sheet asking for the address. In a
+      button at the bottom right (Feeds, Saved and the Inbox alike; no + in the search bar) opens Add: under the heading Add feed, RSS feed opens
+      Add feed and Newsletter feed its page; under Save article, Save article opens the save sheet
+      asking for the address. In a
       tag, a feed, Saved or the Inbox, Back goes up a level; on All, Back closes the app.
 - [ ] **Archive from the reader:** a saved article in To read has an Archive button next to its
       list at the bottom; tapping it closes the article, shows Archived with Undo, and Undo puts it
@@ -194,7 +196,7 @@ and then (always before a release):
       the section it goes. + is in the search bar, before Settings, in Feeds, Saved and the Inbox.
       Tap Mark all as read: Unread empties ("All caught up"); Undo brings them back unread.
       The Inbox: the same button while something shared with you is unread.
-- [ ] **Keep scrolling to the end:** turn on Settings › Article list › Mark as read on scroll, then
+- [ ] **Keep scrolling to the end:** turn on Settings › Feed › Mark as read on scroll, then
       scroll down through Unread. After the last article comes All caught up on the cookie; keep
       scrolling until it fills the screen: over the last bit a blue line runs round the cookie's
       outline as far as you scroll (back when you scroll up; nothing under an unread article); at the
@@ -226,21 +228,25 @@ and then (always before a release):
       the chip rows. Tap a chip: rename it (to another tag's name: they join), change its icon, or
       Remove (the trash can at the top right; it asks in a popup). Web app: the same, dragging with the mouse or ← → on a chip.
 - [ ] **Manage feeds** and **Manage tags:** every row has a pen before its grip; tapping the row opens its edit page.
-- [ ] **Settings** starts with two large buttons, Manage feeds and Manage tags (how many under
-      each), then Account, Integrations, Theme, Article list and Article view; each page opens and back
-      returns to the list. **Manage feeds** (a sheet): the feeds as rows under a heading per tag (a
+- [ ] **Settings** starts with two large buttons side by side, RSS feeds and Newsletter feeds (how
+      many under each), then Manage tags across the width, then Account, Feed, Saved, Article view and
+      Appearance; each page opens and back returns to the list. **RSS feeds** (the Manage feeds sheet,
+      only RSS feeds; **Newsletter feeds** the same with only newsletter feeds, and New address instead
+      of Add feed): the feeds as rows under a heading per tag (a
       failing one in red), each with a grip at the end; drag one by its grip up or down within its
       tag, and past another heading into that tag (or No tag, or an empty tag, "Drag a feed
       here"): the rows move smoothly one place at a time, the dragged one lifted with a shadow; it
       stays there after closing and reopening the sheet, and the sheet doesn't scroll while dragging; tap one: the Edit feed sheet (rename, another tag,
       the trash can at the top right asks Remove feed? in a popup), shown in the same sheet with a back arrow; Add feed the same. **Manage tags** (a sheet): the tags as
       rows with a grip at the end; drag to reorder, tap to rename, change the icon or remove; New tag.
-      **Integrations**: OPML import and export, then Instapaper. Web: the same in the Settings dialog.
+      Dragging one kind leaves the other kind's feeds where they were in the tag. **Feed**: Mark as
+      read on scroll, Hide articles with words, then OPML import and export. **Saved**: Instapaper.
+      **Appearance**: Theme, Dynamic color and View. Web: the same in the Settings dialog.
 - [ ] **Edit tags:** in Add feed, Edit feed and Save/Organise, Edit tags after the chips opens
       Manage tags in the same sheet, with a back arrow; rename a tag there, tap the arrow (or
       Back): back in the sheet, with what you typed, and the chip renamed. Never two sheets on top
-      of each other. Web: the same in one dialog (Escape goes back a page); Settings › Manage feeds
-      and Manage tags are pages of the Settings dialog.
+      of each other. Web: the same in one dialog (Escape goes back a page); Settings › RSS feeds,
+      Newsletter feeds and Manage tags are pages of the Settings dialog.
 - [ ] **Header:** the tabs are secondary tabs (a thin line under the chosen one). Scroll the list
       down: the search bar, tabs and chips slide away; scroll up a little: they come back. Web: the
       same.
@@ -278,16 +284,16 @@ and then (always before a release):
       add a hidden word; sync. In the web app (same account, after a sync): both are the same there,
       and clicking a feed article opens its website in a new tab. Change the theme or the list view
       on one: the other keeps its own.
-- [ ] **Hide articles with words** (Settings › Article list): type a word that is in a few recent
+- [ ] **Hide articles with words** (Settings › Feed): type a word that is in a few recent
       titles (and add it). Under the field: "3 recent articles would be hidden:" and their titles with the feed,
       newest first, changing as you type; a word in no title: "No recent articles would be
       hidden." Cancel: nothing changes. Save: those articles are gone from the lists, the counts
-      and the chips (Search still finds them). Web app: the same, in Settings › Article list.
+      and the chips (Search still finds them). Web app: the same, in Settings › Feed.
 - [ ] **Search:** chips: Feeds, Saved, then the tags. Tap **Feeds**: only feed articles, and a
       second row of chips with every feed (icon and name); tap some: only those feeds, tap again to
       let go; tap Feeds again: both kinds and no second row. A tag narrows feeds and Saved; with a
       tag picked the second row has only its feeds.
-- [ ] **Dark mode** and **Settings › Theme**: switch Theme and Dynamic color. Text stays
+- [ ] **Dark mode** and **Settings › Appearance**: switch Theme and Dynamic color. Text stays
       readable, status bar icons stay visible (also on sepia and dark reader pages).
 - [ ] **Rotation**: the screen keeps its state.
 - [ ] **Language**: Settings › System › Languages › App languages › Reader › each language.
