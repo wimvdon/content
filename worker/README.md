@@ -68,3 +68,11 @@ derived from the `ACCOUNT_KEY` secret, and tells the open devices when it change
 Durable Objects come with the deploy (`wrangler.toml`); add the secret once: Cloudflare dashboard ›
 this Worker › Settings › Variables and Secrets › Add › type **Secret** › `ACCOUNT_KEY` (a random
 text of at least 32 characters; never change or lose it), or `npx wrangler secret put ACCOUNT_KEY`.
+
+## Newsletter addresses
+
+`src/newsletters.ts` gives each Content account email addresses that turn newsletters into feeds
+(`docs/newsletters.md`). The code deploys with the Worker; the mail needs a one-time step in the
+Cloudflare dashboard: Email Routing for the subdomain in `NEWSLETTER_ADDRESS` (`in.wim.to`, never the
+main domain, whose own email would stop), Subaddressing on, and a rule sending `news@in.wim.to` to
+this Worker. The steps are in `docs/newsletters.md`.

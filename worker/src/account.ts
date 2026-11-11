@@ -15,6 +15,7 @@
  *                            already there wins and comes back (200), so every device shows the same
  *  - GET    /account/live    a WebSocket that says {"version": n, "items": m} whenever the document
  *                            or the items change
+ *  - GET, POST, DELETE /account/newsletters  newsletter addresses (newsletters.ts)
  *  - POST   /account/signout forgets this device's key
  *  - DELETE /account         deletes the document and every device key
  *
@@ -35,6 +36,7 @@
 import type { PushTarget } from "./push";
 import { emailClaim } from "./email";
 import type { Env } from "./index";
+import { addressesAnswer, deleteAddresses, inboxAnswer, isInboxRoute } from "./newsletters";
 
 /** The most item rows one save may send, and one read returns (more come on the next page). */
 export const MAX_ROWS = 500;
@@ -90,13 +92,15 @@ export async function handleAccount(request: Request, env: Env, url: URL): Promi
   if (ifNoneMatch) headers.set("If-None-Match", ifNoneMatch);
   if (route === "live") headers.set("Upgrade", "websocket");
   let body: string | undefined;
-  if (route === "write" || route === "writeItems" || route === "writeText") {
+  // Newsletter addresses (newsletters.ts) are made with this Worker's address in their feed's.
+  if (route.startsWith("nl")) headers.set("X-Origin", url.origin);
+  if (route === "write" || route === "writeItems" || route === "writeText" || route === "nlCreate") {
     body = await request.text();
     const limit = route === "write" ? MAX_DOCUMENT_BYTES + 1024 : route === "writeText" ? MAX_TEXT_BODY : MAX_ITEMS_BODY;
     if (body.length > limit) return plain(413, "Too large", cors);
   }
   const stub = env.ACCOUNTS.get(env.ACCOUNTS.idFromName(accountId));
-  const search = route === "items" || route === "readText" ? url.search : "";
+  const search = route === "items" || route === "readText" || route === "nlDelete" ? url.search : "";
   const answer = await stub.fetch(`https://account/${route}${search}`, { method: request.method, headers, body });
   if (answer.webSocket) return answer;
   const out = new Headers(answer.headers);
@@ -104,9 +108,9 @@ export async function handleAccount(request: Request, env: Env, url: URL): Promi
   return new Response(answer.body, { status: answer.status, headers: out });
 }
 
-const KNOWN_PATHS = ["/account", "/account/sync", "/account/items", "/account/texts", "/account/live", "/account/signout"];
+const KNOWN_PATHS = ["/account", "/account/sync", "/account/items", "/account/texts", "/account/live", "/account/signout", "/account/newsletters"];
 
-type Route = "read" | "write" | "items" | "writeItems" | "readText" | "writeText" | "live" | "signout" | "delete";
+type Route = "read" | "write" | "items" | "writeItems" | "readText" | "writeText" | "live" | "signout" | "delete" | "nlList" | "nlCreate" | "nlDelete";
 
 function routeOf(method: string, path: string): Route | null {
   if (path === "/account/sync") return method === "GET" ? "read" : method === "PUT" ? "write" : null;
@@ -114,6 +118,7 @@ function routeOf(method: string, path: string): Route | null {
   if (path === "/account/texts") return method === "GET" ? "readText" : method === "POST" ? "writeText" : null;
   if (path === "/account/live") return method === "GET" ? "live" : null;
   if (path === "/account/signout") return method === "POST" ? "signout" : null;
+  if (path === "/account/newsletters") return method === "GET" ? "nlList" : method === "POST" ? "nlCreate" : method === "DELETE" ? "nlDelete" : null;
   if (path === "/account") return method === "DELETE" ? "delete" : null;
   return null;
 }
@@ -698,6 +703,12 @@ export class Account {
   ) {}
 
   async fetch(request: Request): Promise<Response> {
+    // A newsletter address's inbox (newsletters.ts): an object of its own, "newsletter:<code>".
+    const inboxRoute = new URL(request.url).pathname.slice(1);
+    if (isInboxRoute(inboxRoute)) {
+      if (!this.env.ACCOUNT_KEY) return plain(503, "Accounts aren't set up on this server");
+      return inboxAnswer(this.state.storage, this.env.ACCOUNT_KEY, inboxRoute, request);
+    }
     const accountId = request.headers.get("X-Account") ?? "";
     if (!/^[0-9a-f]{32}$/.test(accountId) || !this.env.ACCOUNT_KEY) return plain(503, "Accounts aren't set up on this server");
     this.data ??= new AccountData(this.state.storage, this.env.ACCOUNT_KEY, accountId);
@@ -735,6 +746,13 @@ export class Account {
       const account = await this.state.storage.get<string>("account");
       return account ? new Response(JSON.stringify({ account }), { headers: { "Content-Type": "application/json" } }) : plain(404, "No account");
     }
+    // This account's newsletter addresses (newsletters.ts).
+    if (route === "nlList" || route === "nlCreate" || route === "nlDelete") {
+      if (!(await this.data.knows(request.headers.get("X-Secret") ?? ""))) return plain(401, "Sign in again");
+      return addressesAnswer(this.state.storage, this.env, accountId, route, request);
+    }
+    // Deleting the account deletes its newsletter addresses too.
+    if (route === "delete" && (await this.data.knows(request.headers.get("X-Secret") ?? ""))) await deleteAddresses(this.state.storage, this.env);
     if (route === "knows") return (await this.data.knows(request.headers.get("X-Secret") ?? "")) ? new Response(null, { status: 204 }) : plain(401, "Sign in again");
 
     if (route === "live") {

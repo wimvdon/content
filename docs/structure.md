@@ -110,6 +110,7 @@ Saved and Instapaper (#107, #109, #119): `data/Saved.kt` (tabs, filters, folders
 `web/src/components/SavedActions.tsx`, `worker/src/instapaper.ts`
 (token swap and the web app's calls). See `docs/instapaper.md`.
 
+Newsletter addresses: `worker/src/newsletters.ts` (email in, feed out, `docs/newsletters.md`).
 Reader account (sync): `worker/src/account.ts` (accounts, encrypted document, live connection),
 `app/src/main/kotlin/to/wim/content/sync/`, `web/src/lib/account.ts` and
 `web/src/lib/sync.ts`. See `docs/account.md` and `docs/sync.md`.
