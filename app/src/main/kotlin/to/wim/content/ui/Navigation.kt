@@ -147,6 +147,7 @@ import kotlinx.coroutines.Job
 import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import to.wim.content.data.Newsletters
 
 /** Screens of the app. A tiny back stack; no navigation library needed. */
 sealed interface Screen {
@@ -720,6 +721,7 @@ fun RssReaderNavigation(
             onExportOpml = exportOpml,
             onFullArticlesChange = { enabled -> app.appScope.launch { app.settings.setFullArticles(enabled) } },
             onAlwaysOpenWebsiteChange = { enabled -> app.appScope.launch { app.settings.setAlwaysOpenWebsite(enabled) } },
+            onNewsletterDotChange = { enabled -> app.appScope.launch { app.settings.setNewsletterDot(enabled) } },
             onShowImagesChange = { enabled -> app.appScope.launch { app.settings.setShowImages(enabled) } },
             onMarkReadOnScrollChange = { enabled -> app.appScope.launch { app.settings.setMarkReadOnScroll(enabled) } },
             onHiddenWordsChange = { text -> app.appScope.launch { app.settings.setHiddenWords(text) } },
@@ -801,6 +803,8 @@ fun RssReaderNavigation(
                             }
                         val unreadCounts = remember(listed) { listed.unreadCounts() }
                         val savedItems = remember(library, shownFilter) { Saved.items(library, shownFilter) }
+                        // The newsletters' dot: with the setting on, while one waits unread.
+                        val newsletterDot = current.newsletterDot && remember(library) { Newsletters.hasUnread(library) }
                         // What others shared arrives with a sync (#167): take it in when the Inbox shows, not only at the next one.
                         LaunchedEffect(section) { if (section == HomeSection.Inbox) app.appScope.launch { app.sync.syncIfDue() } }
                         val minutes by produceState(emptyMap<String, Int>(), library.items, library.articles, textWords) {
@@ -830,6 +834,18 @@ fun RssReaderNavigation(
                                             folders = remember(library) { Saved.folders(library) },
                                             tags = remember(library, shownFilter) { Saved.chipTags(library, shownFilter) },
                                             showsLiked = remember(library, shownFilter) { Saved.showsLiked(library, shownFilter) },
+                                            showsNewsletters = remember(library, shownFilter) { Saved.showsNewsletters(library, shownFilter) },
+                                            dot = newsletterDot,
+                                            onMarkRead = { item -> editLibrary { Newsletters.markRead(it, item.key) } },
+                                            onMarkAllRead = {
+                                                val keys = Newsletters.unreadKeys(savedItems)
+                                                if (keys.isNotEmpty()) {
+                                                    editLibrary { Newsletters.markAllRead(it, keys) }
+                                                    showMessage(resources.getQuantityString(R.plurals.marked_read, keys.size, keys.size), resources.getString(R.string.action_undo)) {
+                                                        editLibrary { Newsletters.undoMarkAllRead(it, keys) }
+                                                    }
+                                                }
+                                            },
                                             minutes = minutes,
                                             library = library,
                                             titleFont = current.reader.font.fontFamily(),
@@ -838,6 +854,7 @@ fun RssReaderNavigation(
                                     toReadCount = remember(library) { library.items.count { Saved.isIn(it, SavedTab.ToRead) } },
                                     signedIn = accountState is AccountState.SignedIn,
                                     inboxUnread = remember(library) { Inbox.unread(library) },
+                                    savedDot = newsletterDot,
                                     inbox =
                                         if (accountState !is AccountState.SignedIn) {
                                             null
@@ -959,6 +976,9 @@ fun RssReaderNavigation(
                         val feedArticle = if (itemKey == null) library.article(screen.articleKey) else null
                         val item = itemKey?.let { library.item(it) } ?: feedArticle?.let { library.itemFor(it) }
                         val fromFeed = feedArticle ?: item?.let { ReadingLists.feedArticle(it, library) }
+                        // Opening an unread newsletter reads it, however it was opened (Saved, Search, a link).
+                        val unreadKey = item?.key?.takeIf { item.unread }
+                        LaunchedEffect(unreadKey) { if (unreadKey != null) editLibrary { Newsletters.markRead(it, unreadKey) } }
                         // Always Reader's own text: the feed's, else the full article it extracts (#134).
                         val article = feedArticle ?: fromFeed ?: item?.let { ReadingLists.article(it, library) }
                         // The full article loads by itself when the setting is on and the feed only has a
@@ -1402,7 +1422,7 @@ private val SavedFilterSaver =
                     is SavedTab.Folder -> "folder:" + t.name
                 }
             // The third slot was the type (dropped); it stays empty so older saved states still read.
-            listOf(tab, f.likedOnly.toString(), "", f.tags.joinToString("\u0001")).joinToString("\u0000")
+            listOf(tab, f.likedOnly.toString(), "", f.tags.joinToString("\u0001"), f.newslettersOnly.toString()).joinToString("\u0000")
         },
         restore = {
             val parts = it.split('\u0000')
@@ -1417,6 +1437,7 @@ private val SavedFilterSaver =
                     },
                 likedOnly = parts.getOrNull(1) == "true",
                 tags = parts.getOrNull(3)?.split('\u0001')?.filter { t -> t.isNotEmpty() }?.toSet().orEmpty(),
+                newslettersOnly = parts.getOrNull(4) == "true",
             )
         },
     )

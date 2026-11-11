@@ -439,8 +439,19 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   card › **Archive**. In an archived article that button says **To read**: tap it to put the article
   back.
 - **The switch** under the search bar (in the web app's sidebar on a wide window): **To read** or
-  **All** (everything saved, archived articles too; it replaced the Archive). Under it **the chips**: **Liked** (set apart by its heart)
+  **All** (everything saved, archived articles too; it replaced the Archive). Under it **the chips**: **Liked** (set apart by its heart),
+  **Newsletters** (with an envelope: the emails that came in through Instapaper, see below; only while there are any)
   and your tags, in your order, one at a time.
+- **New newsletters are unread.** An email that reaches Saved through Instapaper after you connected it
+  (a newsletter sent or forwarded to your Instapaper address) is bold with a dot until you open it. Press and hold it (web: right-click) ›
+  **Mark as read** to read it without opening it; archiving or removing it reads it too. There is no
+  way to make it unread again. While one is unread, **Mark all as read** is the round button at the
+  bottom right, as in Feeds and the Inbox (in the web app it ends the list), with **Undo**. What
+  you read on one device is read on the others. Emails imported when you connected Instapaper come in read.
+- **A dot for new newsletters** (off by default): **Settings › Integrations › Instapaper › Dot for new
+  newsletters** puts a dot on **Saved** in the bar at the bottom (on the web, in the sidebar too), on
+  **To read** and on the **Newsletters** chip while a newsletter is unread. It is the same on your
+  phones and in the web app.
 - **To read looks like your feeds**: the same rows, in the view you chose for the
   feed list (Small, Medium, Large), with how many articles and about how long they take at the top.
   **The Archive looks like a page of notes**: cards in two columns, each with its picture, the title,
@@ -482,7 +493,7 @@ between devices). There are no options (#251):
   after a change, and when you pull down on Saved). Articles in Instapaper's folders arrive in To read.
 - Instapaper's home list is **To read** and its archive is the **Archive**.
 - **Forwarded emails** (and PDFs you uploaded to Instapaper) come into Saved too, titled by their
-  subject. Open one to read it in Content: its text comes from Instapaper the first time (the
+  subject. New ones are unread, and the **Newsletters** chip shows them all (see Saved). Open one to read it in Content: its text comes from Instapaper the first time (the
   first open takes a moment), and highlights work as in any article. If Instapaper can't give the text
   right then, you see its opening lines and **Open in browser** shows it in Instapaper. Emails you
   forwarded before this update come in at the next sync.

@@ -1,13 +1,15 @@
-import { Bell, BookOpen, Heart, Rss, Settings as SettingsIcon } from "lucide-react";
+import { Bell, BookOpen, Heart, Mail, Rss, Settings as SettingsIcon } from "lucide-react";
 import { app, useApp } from "@/lib/app";
 import { useListedLibrary } from "./useListed";
 import { t } from "@/lib/i18n";
 import { choosesFolder, feedTabOf, unreadByFeed } from "@/lib/library";
 import { inboxUnread } from "@/lib/inbox";
-import { chipTags, showsLiked, toReadCount } from "@/lib/saved";
+import { hasUnreadNewsletter } from "@/lib/newsletters";
+import { chipTags, isPlainFilter, showsLiked, showsNewsletters, toReadCount, withoutChips } from "@/lib/saved";
 import { sidebarFeeds, topicIcons } from "@/lib/topics";
 import { FeedIcon } from "./FeedIcon";
 import { FolderIcon } from "./FolderIcon";
+import { NewDot } from "./NewDot";
 import { cn } from "./ui/cn";
 import { FeedViewSwitch, SavedViewSwitch } from "./ViewSwitch";
 
@@ -33,6 +35,8 @@ export function Sidebar({ onSettings }: { onSettings: () => void }) {
   const total = library.feeds.reduce((n, f) => n + (counts.get(f.url) ?? 0), 0);
   const inSaved = !inboxOpen && selection.kind === "saved";
   const inFeeds = !inboxOpen && !inSaved;
+  // The newsletters' dot (with the setting on): on Saved and its Newsletters row while one waits unread.
+  const newsletterDot = settings.newsletterDot && hasUnreadNewsletter(library);
 
   return (
     <nav className="flex h-full flex-col" aria-label={t("navigation")}>
@@ -44,7 +48,7 @@ export function Sidebar({ onSettings }: { onSettings: () => void }) {
 
       <div className="space-y-0.5 px-2">
         <Row selected={inFeeds} onClick={() => app.showSection(false)} icon={<Rss />} label={t("feedTab")} count={total} strong />
-        <Row selected={inSaved} onClick={() => app.showSection(true)} icon={<BookOpen />} label={t("saved")} count={toReadCount(library)} strong />
+        <Row selected={inSaved} onClick={() => app.showSection(true)} icon={<BookOpen />} label={t("saved")} count={toReadCount(library)} strong dot={newsletterDot} />
         {account ? <Row selected={inboxOpen} onClick={() => app.showInbox(true)} icon={<Bell />} label={t("inboxTitle")} count={inboxUnread(library)} strong /> : null}
       </div>
 
@@ -117,12 +121,21 @@ export function Sidebar({ onSettings }: { onSettings: () => void }) {
     const filter = savedFilter;
     const tags = chipTags(library, filter);
     const icons = topicIcons(library);
-    const plain = !filter.likedOnly && filter.tags.length === 0;
+    const plain = isPlainFilter(filter);
     return (
       <div className="space-y-0.5" role="group" aria-label={t("filter")}>
-        <Row selected={plain} onClick={() => app.showSaved({ ...filter, likedOnly: false, tags: [] })} icon={<BookOpen />} label={t("allArticles")} />
+        <Row selected={plain} onClick={() => app.showSaved(withoutChips(filter))} icon={<BookOpen />} label={t("allArticles")} />
         {showsLiked(library, filter) ? (
-          <Row selected={filter.likedOnly} onClick={() => app.showSaved({ ...filter, likedOnly: !filter.likedOnly, tags: [] })} icon={<Heart />} label={t("liked")} />
+          <Row selected={filter.likedOnly} onClick={() => app.showSaved({ ...withoutChips(filter), likedOnly: !filter.likedOnly })} icon={<Heart />} label={t("liked")} />
+        ) : null}
+        {showsNewsletters(library, filter) ? (
+          <Row
+            selected={filter.newslettersOnly === true}
+            onClick={() => app.showSaved({ ...withoutChips(filter), newslettersOnly: !filter.newslettersOnly })}
+            icon={<Mail />}
+            label={t("newsletters")}
+            dot={newsletterDot}
+          />
         ) : null}
         {tags.map((tag) => {
           const on = filter.tags[0]?.toLowerCase() === tag.toLowerCase();
@@ -131,7 +144,7 @@ export function Sidebar({ onSettings }: { onSettings: () => void }) {
             <Row
               key={tag}
               selected={on}
-              onClick={() => app.showSaved({ ...filter, likedOnly: false, tags: on ? [] : [tag] })}
+              onClick={() => app.showSaved({ ...withoutChips(filter), tags: on ? [] : [tag] })}
               icon={icon ? <FolderIcon name={icon} /> : <FolderIcon name="label" />}
               label={tag}
             />
@@ -149,6 +162,7 @@ function Row({
   label,
   count,
   strong,
+  dot,
 }: {
   selected?: boolean;
   onClick: () => void;
@@ -157,6 +171,8 @@ function Row({
   count?: number;
   /** The places (Feeds, Saved, Inbox): a little larger than the filters under them. */
   strong?: boolean;
+  /** The newsletters' dot (Saved and its Newsletters row, with the setting on). */
+  dot?: boolean;
 }) {
   return (
     <button
@@ -171,6 +187,7 @@ function Row({
     >
       <span className="shrink-0 text-muted-foreground [&>*]:size-4">{icon}</span>
       <span className="min-w-0 flex-1 truncate">{label}</span>
+      {dot ? <NewDot label={t("newslettersUnread")} /> : null}
       {count !== undefined && count > 0 ? <span className="text-xs text-muted-foreground tabular-nums">{count}</span> : null}
     </button>
   );

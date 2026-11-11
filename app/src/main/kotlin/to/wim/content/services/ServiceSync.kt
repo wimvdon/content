@@ -4,6 +4,7 @@ import to.wim.content.data.InstapaperLinks
 import to.wim.content.data.Item
 import to.wim.content.data.ItemKeys
 import to.wim.content.data.Library
+import to.wim.content.data.Newsletters
 import to.wim.content.data.ReadingListEntry
 import to.wim.content.data.ReadingState
 import to.wim.content.data.Saved
@@ -332,6 +333,8 @@ object ServiceSync {
                 else -> {
                     if (adopt) {
                         result = put(result, key, item, remote, remote)
+                        // An email that just arrived there (a newsletter) waits unread (Newsletters).
+                        if (item == null && Newsletters.isNewsletter(remote.url) && !remote.archived) result = result.changeItem(key) { it.copy(unread = true) }
                         link = true
                     }
                 }

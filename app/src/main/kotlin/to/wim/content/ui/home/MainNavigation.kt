@@ -38,14 +38,18 @@ enum class MainTab(
 /** What the navigation bar and rail show: the Inbox only with an account, which it comes through. */
 private fun barTabs(signedIn: Boolean): List<MainTab> = listOfNotNull(MainTab.Feeds, MainTab.Saved, MainTab.Inbox.takeIf { signedIn })
 
-/** A destination's icon, with Material's small badge on the Inbox while something in it is unread. */
+/**
+ * A destination's icon, with Material's small badge on the Inbox while something in it is unread,
+ * and on Saved while a newsletter waits unread (with the setting on).
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TabIcon(
     tab: MainTab,
     inboxUnread: Int,
+    savedDot: Boolean,
 ) {
-    BadgedBox(badge = { if (tab == MainTab.Inbox && inboxUnread > 0) Badge() }) {
+    BadgedBox(badge = { if (tab == MainTab.Inbox && inboxUnread > 0 || tab == MainTab.Saved && savedDot) Badge() }) {
         Icon(painterResource(tab.icon), contentDescription = null)
     }
 }
@@ -64,15 +68,16 @@ fun MainNavigationBar(
     onSelect: (MainTab) -> Unit,
     signedIn: Boolean = false,
     inboxUnread: Int = 0,
+    savedDot: Boolean = false,
 ) {
     NavigationBar {
         barTabs(signedIn).forEach { tab ->
             NavigationBarItem(
                 selected = selected == tab,
                 onClick = { if (selected != tab) onSelect(tab) },
-                icon = { TabIcon(tab, inboxUnread) },
+                icon = { TabIcon(tab, inboxUnread, savedDot) },
                 label = { Text(stringResource(tab.label)) },
-                modifier = Modifier.tabDescription(tab, inboxUnread),
+                modifier = Modifier.tabDescription(tab, inboxUnread, savedDot),
             )
         }
     }
@@ -85,27 +90,33 @@ fun MainNavigationRail(
     onSelect: (MainTab) -> Unit,
     signedIn: Boolean = false,
     inboxUnread: Int = 0,
+    savedDot: Boolean = false,
 ) {
     NavigationRail(Modifier.padding(top = 8.dp)) {
         barTabs(signedIn).forEach { tab ->
             NavigationRailItem(
                 selected = selected == tab,
                 onClick = { if (selected != tab) onSelect(tab) },
-                icon = { TabIcon(tab, inboxUnread) },
+                icon = { TabIcon(tab, inboxUnread, savedDot) },
                 label = { Text(stringResource(tab.label)) },
-                modifier = Modifier.tabDescription(tab, inboxUnread),
+                modifier = Modifier.tabDescription(tab, inboxUnread, savedDot),
             )
         }
     }
 }
 
-/** The Inbox read out as "Inbox, something new" while its badge shows. */
+/** The Inbox read out as "Inbox, something new" while its badge shows; Saved as "Saved, a newsletter waits". */
 @Composable
 private fun Modifier.tabDescription(
     tab: MainTab,
     inboxUnread: Int,
+    savedDot: Boolean,
 ): Modifier {
-    if (tab != MainTab.Inbox || inboxUnread == 0) return this
-    val spoken = stringResource(R.string.inbox_open_unread)
+    val spoken =
+        when {
+            tab == MainTab.Inbox && inboxUnread > 0 -> stringResource(R.string.inbox_open_unread)
+            tab == MainTab.Saved && savedDot -> stringResource(R.string.saved_open_unread)
+            else -> return this
+        }
     return semantics(mergeDescendants = true) { contentDescription = spoken }
 }

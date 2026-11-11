@@ -293,6 +293,10 @@ const en = {
   highlightNotInInstapaper: "Not in Instapaper yet. Tried again tomorrow.",
   highlightsNone: "Select text and tap Highlight to mark it.",
   highlightsTitle: "Highlights",
+  newsletters: "Newsletters",
+  newslettersUnread: "New newsletters",
+  newsletterDot: "Dot for new newsletters",
+  newsletterDotSummary: "A dot on Saved, To read and Newsletters while a newsletter from Instapaper is unread",
 };
 
 export type Key = keyof typeof en;
@@ -534,6 +538,10 @@ const nl: Pack = {
     highlightNotInInstapaper: "Nog niet in Instapaper. Morgen opnieuw geprobeerd.",
     highlightsNone: "Selecteer tekst en tik op Markeren.",
     highlightsTitle: "Markeringen",
+    newsletters: "Nieuwsbrieven",
+    newslettersUnread: "Nieuwe nieuwsbrieven",
+    newsletterDot: "Stip bij nieuwe nieuwsbrieven",
+    newsletterDotSummary: "Een stip bij Bewaard, Te lezen en Nieuwsbrieven zolang er een nieuwsbrief uit Instapaper ongelezen is",
   },
   plurals: {
     topicsCount: ["{n} tag", "{n} tags"],
@@ -770,6 +778,10 @@ const fr: Pack = {
     highlightNotInInstapaper: "Pas encore dans Instapaper. Nouvel essai demain.",
     highlightsNone: "Sélectionnez du texte et touchez Surligner.",
     highlightsTitle: "Surlignages",
+    newsletters: "Newsletters",
+    newslettersUnread: "Nouvelles newsletters",
+    newsletterDot: "Pastille pour les nouvelles newsletters",
+    newsletterDotSummary: "Une pastille sur Enregistrés, À lire et Newsletters tant qu’une newsletter d’Instapaper n’est pas lue",
   },
   plurals: {
     topicsCount: ["{n} tag", "{n} tags"],
@@ -1006,6 +1018,10 @@ const de: Pack = {
     highlightNotInInstapaper: "Noch nicht in Instapaper. Morgen neuer Versuch.",
     highlightsNone: "Wähle Text aus und tippe auf Markieren.",
     highlightsTitle: "Markierungen",
+    newsletters: "Newsletter",
+    newslettersUnread: "Neue Newsletter",
+    newsletterDot: "Punkt bei neuen Newslettern",
+    newsletterDotSummary: "Ein Punkt bei Gespeichert, Zu lesen und Newsletter, solange ein Newsletter aus Instapaper ungelesen ist",
   },
   plurals: {
     topicsCount: ["{n} Tag", "{n} Tags"],
@@ -1242,6 +1258,10 @@ const es: Pack = {
     highlightNotInInstapaper: "Aún no está en Instapaper. Se reintenta mañana.",
     highlightsNone: "Selecciona texto y toca Resaltar.",
     highlightsTitle: "Resaltados",
+    newsletters: "Boletines",
+    newslettersUnread: "Boletines nuevos",
+    newsletterDot: "Punto para boletines nuevos",
+    newsletterDotSummary: "Un punto en Guardados, Por leer y Boletines mientras haya un boletín de Instapaper sin leer",
   },
   plurals: {
     topicsCount: ["{n} etiqueta", "{n} etiquetas"],
@@ -1478,6 +1498,10 @@ const it: Pack = {
     highlightNotInInstapaper: "Non ancora in Instapaper. Si riprova domani.",
     highlightsNone: "Seleziona del testo e tocca Evidenzia.",
     highlightsTitle: "Evidenziazioni",
+    newsletters: "Newsletter",
+    newslettersUnread: "Nuove newsletter",
+    newsletterDot: "Pallino per le nuove newsletter",
+    newsletterDotSummary: "Un pallino su Salvati, Da leggere e Newsletter finché c’è una newsletter di Instapaper non letta",
   },
   plurals: {
     topicsCount: ["{n} tag", "{n} tag"],

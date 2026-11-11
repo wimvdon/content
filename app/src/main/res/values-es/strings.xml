@@ -363,4 +363,9 @@
     </plurals>
     <string name="account_web_title">Content en la web</string>
     <string name="account_web_summary">Lee también en tu ordenador, en content.wim.to, con la misma cuenta</string>
+    <string name="newsletters_title">Boletines</string>
+    <string name="newsletters_unread">Boletines nuevos</string>
+    <string name="saved_open_unread">Guardados, boletines nuevos</string>
+    <string name="setting_newsletter_dot_title">Punto para boletines nuevos</string>
+    <string name="setting_newsletter_dot_summary">Un punto en Guardados, Por leer y Boletines mientras haya un boletín de Instapaper sin leer</string>
 </resources>

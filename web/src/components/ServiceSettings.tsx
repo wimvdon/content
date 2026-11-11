@@ -3,6 +3,7 @@ import { app, useApp } from "@/lib/app";
 import { t } from "@/lib/i18n";
 import { Button } from "./ui/button";
 import { Dialog } from "./ui/dialog";
+import { SwitchRow } from "./ui/switch";
 
 const NAME = "Instapaper";
 
@@ -11,7 +12,7 @@ const NAME = "Instapaper";
  * doing. Everything in Saved syncs both ways, highlights included: there is nothing to choose.
  */
 export function InstapaperSettings() {
-  const { instapaper, instapaperBusy, instapaperImportChoice } = useApp();
+  const { instapaper, instapaperBusy, instapaperImportChoice, settings } = useApp();
   // Instapaper is a connected service, separate from the Content account (#166).
   if (!instapaper) {
     return (
@@ -49,8 +50,18 @@ export function InstapaperSettings() {
       <Button variant="ghost" onClick={() => void app.disconnectInstapaper()}>
         {t("instapaperSignOut")}
       </Button>
+      <NewsletterDotSwitch checked={settings.newsletterDot} />
     </section>
   );
+}
+
+/**
+ * The newsletters' dot (newsletters.ts): here and on + › Subscribe to newsletter's Instapaper page.
+ * Unread newsletters are bold with a dot either way; this adds the dot on Saved, To read and the
+ * Newsletters chip.
+ */
+export function NewsletterDotSwitch({ checked }: { checked: boolean }) {
+  return <SwitchRow title={t("newsletterDot")} summary={t("newsletterDotSummary")} checked={checked} onChange={(v) => app.updateSettings({ newsletterDot: v })} />;
 }
 
 /** Asked once, right after connecting Instapaper (#251): bring in everything it has now, or not. */

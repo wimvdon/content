@@ -21,8 +21,8 @@ import to.wim.content.data.ThemeMode
  * Show images, the list view).
  *
  * What the app does is shared by both apps (the owner's choice, 2026-11-02), under "articles.":
- * Load full articles, Mark as read on scroll, Always open the website and Hide articles with these
- * words. Until a file has those, each is read from this app's own name of before ("android.…"),
+ * Load full articles, Mark as read on scroll, Always open the website, Hide articles with these
+ * words and the newsletters' dot ([NEWSLETTER_DOT]). Until a file has those, each is read from this app's own name of before ("android.…"),
  * which is then dropped.
  *
  * Also shared: what was imported from each connected service (#145:
@@ -53,6 +53,7 @@ object SyncSettings {
     const val MARK_READ_ON_SCROLL = SHARED + "markReadOnScroll"
     const val ALWAYS_OPEN_WEBSITE = SHARED + "alwaysOpenWebsite"
     const val HIDDEN_WORDS = SHARED + "hiddenWords"
+    const val NEWSLETTER_DOT = SHARED + "newsletterDot"
 
     /** This app's own names for them before they were shared; read while the shared one is missing, never written. */
     const val OWN_FULL_ARTICLES = PREFIX + "fullArticles"
@@ -80,6 +81,7 @@ object SyncSettings {
         setOf(
             THEME, DYNAMIC_COLOR, READER_FONT, READER_TEXT_SIZE, READER_SPACING, READER_BACKGROUND, READER_AUTO_DARK,
             FULL_ARTICLES, SHOW_IMAGES, MARK_READ_ON_SCROLL, ALWAYS_OPEN_WEBSITE, LIST_VIEW, HIDDEN_WORDS, RECIPIENTS,
+            NEWSLETTER_DOT,
         )
 
     /** Names earlier versions wrote; dropped from the file when this device saves it. */
@@ -110,6 +112,7 @@ object SyncSettings {
                 SHOW_IMAGES to settings.showImages.toString(),
                 MARK_READ_ON_SCROLL to settings.markReadOnScroll.toString(),
                 ALWAYS_OPEN_WEBSITE to settings.alwaysOpenWebsite.toString(),
+                NEWSLETTER_DOT to settings.newsletterDot.toString(),
                 LIST_VIEW to settings.listView.name,
                 HIDDEN_WORDS to settings.hiddenWords,
                 RECIPIENTS to Recipients.encode(settings.recipients),
@@ -156,6 +159,7 @@ object SyncSettings {
             showImages = bool(SHOW_IMAGES, settings.showImages),
             markReadOnScroll = bool(MARK_READ_ON_SCROLL, bool(OWN_MARK_READ_ON_SCROLL, bool(LEGACY_MARK_READ_ON_SCROLL, settings.markReadOnScroll))),
             alwaysOpenWebsite = bool(ALWAYS_OPEN_WEBSITE, bool(OWN_ALWAYS_OPEN_WEBSITE, settings.alwaysOpenWebsite)),
+            newsletterDot = bool(NEWSLETTER_DOT, settings.newsletterDot),
             listView = enum(LIST_VIEW, ListView.entries, settings.listView),
             hiddenWords = values[HIDDEN_WORDS] ?: values[OWN_HIDDEN_WORDS] ?: settings.hiddenWords,
             imports = settings.imports + imports,

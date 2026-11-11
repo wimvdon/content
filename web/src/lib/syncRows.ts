@@ -72,6 +72,7 @@ export function itemData(i: Item): RowData {
     // In thousandths, so both apps write the same number.
     progress: Math.round(i.progress * 1000),
     sharedBy: i.sharedBy ? { email: i.sharedBy.email, name: i.sharedBy.name, at: i.sharedBy.at ?? 0, waits: i.sharedBy.waits === true, read: i.sharedBy.read === true } : null,
+    unread: i.unread === true,
   };
 }
 
@@ -129,6 +130,7 @@ export function itemOfRow(key: string, data: RowData, local: Item | undefined): 
     }),
     progress: Math.min(1, Math.max(0, (Number(data.progress) || 0) / 1000)),
     sharedBy: sharedByOf(data.sharedBy),
+    unread: data.unread === true,
   };
 }
 
@@ -227,6 +229,8 @@ export function mergeItems(b: Item | null, l: Item, r: Item): Item {
     progress: pick("progress"),
     // Who shared it: once known it stays; the latest share, read and in the inbox follow the side that changed it.
     sharedBy: l.sharedBy && r.sharedBy ? pick("sharedBy") : (l.sharedBy ?? r.sharedBy ?? null),
+    // Read on either device is read: nothing makes a newsletter unread again.
+    unread: l.unread === true && r.unread === true,
   };
 }
 

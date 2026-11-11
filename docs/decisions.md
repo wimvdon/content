@@ -2,6 +2,33 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-11: Newsletters from Instapaper: unread, a chip and an optional dot
+
+Some people receive newsletters in Instapaper (sent or forwarded to their Instapaper address), and
+they got lost among the articles in Saved. Asked for by the owner, after weighing other places:
+- **They stay in Saved**, where Instapaper puts them, with a **Newsletters** chip next to Liked (only
+  while there are any). Rejected: the Inbox (it is for what people send you, with their name and
+  picture, and only exists with a Content account) and Feeds (each newsletter would then be in two
+  places, and reading it there wouldn't archive it in Instapaper).
+- **Unread only for emails** that come in after connecting (the articles without a web address,
+  `InstapaperLinks`): an article you saved yourself was never "new". The import brings them in read,
+  so connecting doesn't flood Saved. Opening one, Mark as read, archiving or removing it reads it;
+  there is no Mark as unread (owner's choice), only Undo right after Mark all as read.
+- **The unread mark syncs** as a field of the item row (`unread`), and read wins when both devices
+  changed it: once read anywhere, it is read everywhere. One rule keeps it simple: only an article
+  to read can be unread (`putItem`), so archiving anywhere, Instapaper included, reads it.
+- **Mark all as read** shows wherever unread articles are (in Saved now too), as the round button on
+  Android and the button ending the list on the web. Mark as read on scroll stays for Feeds only.
+- **The dot is optional** (`articles.newsletterDot`, off by default, synced): the first Instapaper
+  setting since #251 removed them all. Off keeps today's calm Saved; on, a dot on Saved (the bar,
+  the rail, the web's sidebar), To read and the Newsletters chip. In Settings › Integrations ›
+  Instapaper, and later on the newsletter page of + as well.
+- **The web app kept neither `sharedBy` nor `unread` when it read its stored library back** (after
+  a reload): an inbox share left the inbox until the next sync brought it back. Both are kept now.
+- Rejected: integrating Kill the Newsletter (it needs a mail server, which a Cloudflare Worker can't
+  be, and Content would then receive people's email); it works as an ordinary feed, which + will
+  explain.
+
 ## 2026-11-08: With a short list, All caught up at the end waits for scrolling
 
 Owner's report: with one unread article, the line round the cookie at the end of Unread had already

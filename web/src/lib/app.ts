@@ -22,6 +22,7 @@ import { progressChanged } from "./readingProgress";
 import { addTopic, mergeTopic, removeTopic, renameTopic, reorderTopics, tagWithFeedTopic, topicNamed, topicsForTags } from "./topics";
 import { addHighlight, changeItem, itemOf, joinDuplicateItems, putItem, removeHighlight, renameTag, setHighlightNote, setLiked, type Highlight, type Item } from "./items";
 import { inboxUnreadKeys, markInboxAllRead, markInboxRead, markInboxUnread, removeFromInbox } from "./inbox";
+import { markNewsletterRead, markNewslettersRead, undoMarkNewslettersRead, unreadNewsletterKeys } from "./newsletters";
 import { applyChoice, saveNew, undoSave, type SaveChoice } from "./saveChoice";
 import * as Saved from "./saved";
 import { emptyServiceSyncState, importService, rekeyed, syncService, type ServiceSyncState } from "./serviceSync";
@@ -62,6 +63,8 @@ export interface Settings {
   alwaysOpenWebsite: boolean;
   /** Hide feed articles whose title has one of these words (#277), as typed (articleFilter.ts). */
   hiddenWords: string;
+  /** A dot on Saved, To read and the Newsletters chip while a newsletter waits unread (newsletters.ts); synced, off by default. */
+  newsletterDot: boolean;
   /** What was imported from each service when it was connected (#145), by id. */
   imports: Record<string, ServiceImport>;
   /** The people shared with (#235), most recent first; synced (recipients.ts). */
@@ -123,6 +126,7 @@ export const defaultSettings: Settings = {
   listView: "medium",
   alwaysOpenWebsite: false,
   hiddenWords: "",
+  newsletterDot: false,
   imports: {},
   recipients: [],
 };
@@ -463,6 +467,8 @@ class AppStore {
       const item = this.state.library.items.find((i) => i.key === itemKey);
       const fromFeed = item && Saved.feedArticleOf(item, this.state.library);
       if (fromFeed && !fromFeed.read) this.setRead(new Set([L.articleKey(fromFeed)]), true);
+      // Opening an unread newsletter reads it, however it was opened.
+      if (item?.unread) this.markNewsletterRead(item.key);
       return;
     }
     const key = L.articleKey(article);
@@ -862,6 +868,18 @@ class AppStore {
     return keys;
   };
   markInboxUnread = (keys: string[]) => this.updateLibrary((lib) => markInboxUnread(lib, keys));
+  /** An unread newsletter read (opened, or Mark as read); there is no Mark as unread. */
+  markNewsletterRead = (key: string) => {
+    if (itemOf(this.state.library, key)?.unread) this.updateLibrary((lib) => markNewsletterRead(lib, key));
+  };
+  /** The unread newsletters among `items` (the list shown) read; their keys, for Undo. */
+  markNewslettersRead = (items: Item[]): string[] => {
+    const keys = unreadNewsletterKeys(items);
+    if (keys.length > 0) this.updateLibrary((lib) => markNewslettersRead(lib, keys));
+    return keys;
+  };
+  /** Undo for markNewslettersRead. */
+  undoMarkNewslettersRead = (keys: string[]) => this.updateLibrary((lib) => undoMarkNewslettersRead(lib, keys));
   /** Out of the inbox; the item as it was, for Undo. */
   removeFromInbox = (key: string): Item | undefined => {
     const before = itemOf(this.state.library, key);

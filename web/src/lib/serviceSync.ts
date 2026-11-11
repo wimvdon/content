@@ -9,8 +9,9 @@
  */
 
 import { instapaperBookmarkId } from "./instapaperLinks";
-import { cleanKey, cleanTags, itemOf, keyOfLink, looseKeyOfLink, newItem, putItem, type Item } from "./items";
+import { changeItem, cleanKey, cleanTags, itemOf, keyOfLink, looseKeyOfLink, newItem, putItem, type Item } from "./items";
 import type { Library } from "./library";
+import { isNewsletter } from "./newsletters";
 import { mergeTags } from "./syncRows";
 
 /** An article at the service, as far as Saved syncs it. */
@@ -261,6 +262,8 @@ export function takeIn(
       }
     } else if (adopt) {
       result = put(result, key, item, remote, remote, now);
+      // An email that just arrived there (a newsletter) waits unread (newsletters.ts).
+      if (!item && isNewsletter(remote.url) && !remote.archived) result = changeItem(result, key, (i) => ({ ...i, unread: true }));
       link = true;
     }
     rows[key] = { ...remote, linked: link };

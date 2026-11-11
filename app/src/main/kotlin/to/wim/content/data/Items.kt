@@ -75,6 +75,12 @@ data class Item(
     val progress: Float = 0f,
     /** Who shared it with you (#167), or null. */
     val sharedBy: SharedBy? = null,
+    /**
+     * Not opened yet: only an email (a newsletter) that came in from Instapaper after connecting
+     * ([Newsletters]). Opening it, Mark as read, archiving or removing it makes it read; nothing
+     * makes it unread again.
+     */
+    val unread: Boolean = false,
 ) {
     /** The site's name without "www.", or empty. */
     val host: String get() = ItemKeys.hostOf(url)

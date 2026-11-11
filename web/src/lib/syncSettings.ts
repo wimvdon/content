@@ -37,6 +37,8 @@ export const FULL_ARTICLES = `${SHARED}fullArticles`;
 export const MARK_READ_ON_SCROLL = `${SHARED}markReadOnScroll`;
 export const ALWAYS_OPEN_WEBSITE = `${SHARED}alwaysOpenWebsite`;
 export const HIDDEN_WORDS = `${SHARED}hiddenWords`;
+/** The newsletters' dot (newsletters.ts). */
+export const NEWSLETTER_DOT = `${SHARED}newsletterDot`;
 
 /** The web's own names for them before they were shared: read while the shared one is missing, never written. */
 export const OWN_FULL_ARTICLES = `${PREFIX}fullArticles`;
@@ -58,7 +60,7 @@ export const INSTAPAPER_TOKEN = "services.instapaper.token";
 export const SERVICES = ["instapaper"];
 export const importName = (service: string) => `services.${service}.imported`;
 
-const KNOWN = new Set([THEME, READER_FONT, READER_TEXT_SIZE, READER_SPACING, READER_BACKGROUND, READER_AUTO_DARK, FULL_ARTICLES, SHOW_IMAGES, MARK_READ_ON_SCROLL, ALWAYS_OPEN_WEBSITE, LIST_VIEW, HIDDEN_WORDS, RECIPIENTS]);
+const KNOWN = new Set([THEME, READER_FONT, READER_TEXT_SIZE, READER_SPACING, READER_BACKGROUND, READER_AUTO_DARK, FULL_ARTICLES, SHOW_IMAGES, MARK_READ_ON_SCROLL, ALWAYS_OPEN_WEBSITE, LIST_VIEW, HIDDEN_WORDS, RECIPIENTS, NEWSLETTER_DOT]);
 
 /** Names earlier versions wrote; dropped from the file when this browser saves it. */
 const dropped = (name: string) =>
@@ -89,6 +91,7 @@ export function syncedSettings(settings: Settings, base: Record<string, string> 
     [SHOW_IMAGES]: String(settings.showImages),
     [MARK_READ_ON_SCROLL]: String(settings.markReadOnScroll),
     [ALWAYS_OPEN_WEBSITE]: String(settings.alwaysOpenWebsite),
+    [NEWSLETTER_DOT]: String(settings.newsletterDot),
     [LIST_VIEW]: settings.listView,
     [HIDDEN_WORDS]: settings.hiddenWords,
     [RECIPIENTS]: encodeRecipients(settings.recipients),
@@ -127,6 +130,7 @@ export function applySynced(settings: Settings, values: Record<string, string>):
     showImages: bool(SHOW_IMAGES, settings.showImages),
     markReadOnScroll: bool(MARK_READ_ON_SCROLL, bool(OWN_MARK_READ_ON_SCROLL, bool(LEGACY_MARK_READ_ON_SCROLL, settings.markReadOnScroll))),
     alwaysOpenWebsite: bool(ALWAYS_OPEN_WEBSITE, settings.alwaysOpenWebsite),
+    newsletterDot: bool(NEWSLETTER_DOT, settings.newsletterDot),
     listView: pick(LIST_VIEW, LIST_VIEWS, settings.listView),
     hiddenWords: typeof values[HIDDEN_WORDS] === "string" ? values[HIDDEN_WORDS] : typeof values[OWN_HIDDEN_WORDS] === "string" ? values[OWN_HIDDEN_WORDS] : settings.hiddenWords,
     imports,

@@ -63,6 +63,12 @@ export interface Item {
   progress: number;
   /** Who shared it with you (#167); absent or null when nobody did. */
   sharedBy?: SharedBy | null;
+  /**
+   * Not opened yet: only an email (a newsletter) that came in from Instapaper after connecting
+   * (newsletters.ts). Opening it, Mark as read, archiving or removing it makes it read; nothing makes
+   * it unread again. Absent: read.
+   */
+  unread?: boolean;
 }
 
 /**
@@ -187,8 +193,12 @@ export function newItem(lib: Library, url: string, title: string | null | undefi
   };
 }
 
-/** Adds or replaces an item; an item with nothing of the user's left on it is dropped. */
-export function putItem(lib: Library, item: Item): Library {
+/**
+ * Adds or replaces an item; an item with nothing of the user's left on it is dropped. Only an item
+ * still to read can be unread (newsletters.ts): archived or out of Saved, it is read.
+ */
+export function putItem(lib: Library, given: Item): Library {
+  const item = given.unread && given.readingList?.state !== "toread" ? { ...given, unread: false } : given;
   const index = lib.items.findIndex((i) => i.key === item.key);
   if (!isKept(item)) return index < 0 ? lib : { ...lib, items: lib.items.filter((_, i) => i !== index) };
   if (index < 0) return { ...lib, items: [...lib.items, item] };
@@ -364,6 +374,9 @@ export function itemsOf(value: unknown): Item[] {
       note: typeof v.note === "string" ? v.note : "",
       highlights: Array.isArray(v.highlights) ? v.highlights.filter((h) => typeof h?.id === "string" && typeof h.quote === "string" && h.quote !== "") : [],
       progress: Math.min(1, Math.max(0, Number(v.progress) || 0)),
+      // Kept on reload: without them a share left the inbox, and a newsletter its unread mark.
+      ...(v.sharedBy && typeof v.sharedBy.email === "string" ? { sharedBy: v.sharedBy } : {}),
+      ...(v.unread === true ? { unread: true } : {}),
     });
   }
   return out;

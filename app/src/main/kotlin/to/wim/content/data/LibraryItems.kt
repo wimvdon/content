@@ -54,8 +54,13 @@ fun Library.newItem(
     )
 }
 
-/** Adds or replaces an item; an item with nothing of the user's left on it is dropped. */
+/**
+ * Adds or replaces an item; an item with nothing of the user's left on it is dropped. Only an item
+ * still to read can be unread (Newsletters): archived or out of Saved, it is read.
+ */
 fun Library.putItem(item: Item): Library {
+    @Suppress("NAME_SHADOWING")
+    val item = if (item.unread && !item.toRead) item.copy(unread = false) else item
     val index = items.indexOfFirst { it.key == item.key }
     return when {
         !item.kept -> if (index < 0) this else copy(items = items.filterIndexed { i, _ -> i != index })

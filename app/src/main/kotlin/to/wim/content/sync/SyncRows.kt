@@ -49,6 +49,7 @@ object SyncRows {
             // In thousandths, so both apps write the same number.
             "progress" to Math.round(i.progress * 1000).toLong(),
             "sharedBy" to i.sharedBy?.let(LibraryRows::sharedByMap),
+            "unread" to i.unread,
         )
 
     /**
@@ -92,6 +93,7 @@ object SyncRows {
             highlights = (data["highlights"] as? List<*>).orEmpty().mapNotNull(LibraryRows::highlightOf).distinctBy { it.id },
             progress = (((data["progress"] as? Number)?.toDouble() ?: 0.0) / 1000).toFloat().coerceIn(0f, 1f),
             sharedBy = LibraryRows.sharedByOf(data["sharedBy"]),
+            unread = data["unread"] == true,
         )
     }
 
@@ -208,6 +210,8 @@ object SyncRows {
             progress = pick(b?.progress, l.progress, r.progress),
             // Who shared it: once known it stays; the latest share, read and in the inbox follow the side that changed it.
             sharedBy = if (l.sharedBy == null || r.sharedBy == null) l.sharedBy ?: r.sharedBy else pick(b?.sharedBy, l.sharedBy, r.sharedBy),
+            // Read on either device is read: nothing makes a newsletter unread again.
+            unread = l.unread && r.unread,
         )
     }
 

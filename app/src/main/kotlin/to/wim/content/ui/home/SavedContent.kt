@@ -58,6 +58,10 @@ import to.wim.content.data.SavedFilter
 import to.wim.content.data.SavedTab
 import to.wim.content.ui.theme.EmptyState
 import coil3.compose.AsyncImage
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.semantics.clearAndSetSemantics
 
 /** Saved as the home screen shows it (#107, #119). */
 data class SavedHome(
@@ -69,6 +73,14 @@ data class SavedHome(
     val tags: List<String>,
     /** Whether the Liked chip shows: something liked in the state shown, or Liked chosen. */
     val showsLiked: Boolean = true,
+    /** Whether the Newsletters chip shows, after Liked: a newsletter in the state shown, or Newsletters chosen. */
+    val showsNewsletters: Boolean = false,
+    /** The newsletters' dot (setting on and one waits unread): on To read and the Newsletters chip. */
+    val dot: Boolean = false,
+    /** Long-press › Mark as read, for an unread newsletter (there is no Mark as unread). */
+    val onMarkRead: (Item) -> Unit = {},
+    /** Mark all as read (the FAB) for the unread newsletters in the list shown, with Undo. */
+    val onMarkAllRead: () -> Unit = {},
     /** About how many minutes each item takes to read, by item key, when its text is known. */
     val minutes: Map<String, Int>,
     /** So items show where they came from, like feed articles. */
@@ -98,7 +110,7 @@ internal fun SavedContent(
     onClearFilters: () -> Unit = {},
 ) {
     if (home.items.isEmpty()) {
-        val plain = !home.filter.likedOnly && home.filter.tags.isEmpty()
+        val plain = home.filter.plain
         val toRead = home.filter.tab == SavedTab.ToRead && plain
         EmptyState(
             painterResource(
@@ -156,6 +168,7 @@ private fun NotesGrid(
     val unarchiveLabel = stringResource(R.string.action_unarchive)
     val topicsLabel = stringResource(R.string.tags_title)
     val shareLabel = stringResource(R.string.action_share)
+    val readLabel = stringResource(R.string.action_mark_read)
     val gridState = rememberSaveable(home.filter, saver = LazyStaggeredGridState.Saver) { LazyStaggeredGridState() }
     LazyVerticalStaggeredGrid(
         state = gridState,
@@ -179,7 +192,9 @@ private fun NotesGrid(
                 // Long-press (#221, #305): Archive (or Back to read), Topics and Share. The note, Like and
                 // Remove are in the reader (its toolbar, its ⋮). No swipes anywhere.
                 menu =
-                    listOf(
+                    listOfNotNull(
+                        // An unread newsletter: Mark as read first; read, there is no way back.
+                        RowMenuAction(R.drawable.ic_mark_read, readLabel) { home.onMarkRead(item) }.takeIf { item.unread },
                         if (item.archived) {
                             RowMenuAction(R.drawable.ic_unarchive, unarchiveLabel) { onArchive(item) }
                         } else {
@@ -238,12 +253,25 @@ internal fun NoteCard(
             }
             Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (label != null) Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
-                Text(
-                    note.title,
-                    style = MaterialTheme.typography.titleMedium.copy(fontFamily = titleFont, fontWeight = FontWeight.Medium),
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                // An unread newsletter: bold, with a dot, as unread articles in Feeds and the Inbox.
+                Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (note.unread) {
+                        val unreadLabel = stringResource(R.string.article_unread)
+                        Box(
+                            Modifier
+                                .padding(top = 8.dp)
+                                .size(8.dp)
+                                .background(MaterialTheme.colorScheme.primary, CircleShape)
+                                .clearAndSetSemantics { contentDescription = unreadLabel },
+                        )
+                    }
+                    Text(
+                        note.title,
+                        style = MaterialTheme.typography.titleMedium.copy(fontFamily = titleFont, fontWeight = if (note.unread) FontWeight.Bold else FontWeight.Medium),
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
                 // The text, kept short: the first highlight, quoted, or the site's description.
                 when (val body = note.body) {
                     is CardBody.Quote ->
