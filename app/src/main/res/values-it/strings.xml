@@ -379,13 +379,13 @@
     <string name="newsletter_find_address">Trova il mio indirizzo Instapaper</string>
     <string name="newsletter_own">Il tuo indirizzo</string>
     <string name="newsletter_own_body">Content crea un indirizzo email per un tag: le newsletter arrivano come uno dei tuoi feed</string>
-    <string name="newsletter_own_explained">Iscriviti a una newsletter con l’indirizzo di un tag. Ogni numero arriva come articolo nel feed di quel tag.</string>
+    <string name="newsletter_own_explained">Dai un nome al feed e scegli un tag. Content crea un indirizzo email per esso: ogni newsletter inviata lì arriva come articolo in quel feed.</string>
     <string name="newsletter_own_sign_in_first">I tuoi indirizzi richiedono un account Content, che conserva le newsletter.</string>
     <string name="newsletter_own_sign_in">Accedi</string>
-    <string name="newsletter_own_offline">Non è stato possibile caricare i tuoi indirizzi. Controlla la connessione.</string>
-    <string name="newsletter_own_new">Nuovo indirizzo</string>
-    <string name="newsletter_own_tag">Tag</string>
+    <string name="newsletter_own_offline">Non è stato possibile caricare l’indirizzo. Controlla la connessione.</string>
     <string name="newsletter_own_failed">Non è stato possibile creare l’indirizzo. Riprova.</string>
     <string name="newsletter_own_create">Crea indirizzo</string>
     <string name="newsletter_own_copy">Copia indirizzo</string>
+    <string name="newsletter_feed_label">Indirizzo email</string>
+    <string name="newsletter_own_made">Il tuo indirizzo è pronto e il suo feed è in Feed. Iscriviti alle newsletter con esso.</string>
 </resources>

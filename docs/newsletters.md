@@ -3,22 +3,25 @@
 An email address per tag that turns the newsletters sent to it into a feed: Kill the Newsletter's
 idea, built into Content's feed loader (`worker/src/newsletters.ts`). Signed in to a Content account,
 + › Subscribe to newsletter › Create address picks a tag and gives an address such as
-`news+k7q2m9abcdef@in.wim.to`; the app subscribes to its feed under that tag, so new issues show in
+`content+k7q2m9abcdef@in.wim.to`; the app subscribes to its feed under that tag, so new issues show in
 Feeds like any article: unread, Mark all as read, the chips' dots, the reader and Search all work.
 
 ## In the apps
 
 + › Subscribe to newsletter › **Your own address** (`ui/home/AddChoiceSheet.kt`, the web's
-`Dialogs.tsx`): the account's addresses with Copy, and a new one for a tag. Making one calls the feed
-loader, adds the topic if it is new and subscribes to the feed under it (`NewsletterAddresses`, the
-web's `newsletterAddresses.ts`). Removing a feed whose address is a newsletter feed removes the
-address too (`DELETE /account/newsletters`). Without a Content account, the page offers Sign in.
+`Dialogs.tsx`), like Add feed: a name for the feed (sent as the address's `tag`, which titles its
+feed) and a topic, then Create address, which calls the feed loader and subscribes to the feed under
+that topic, and shows the address with Copy. A newsletter address's feed (`NewsletterAddresses`, the
+web's `newsletterAddresses.ts`, recognised by its `/newsletters/<code>/<token>` address) has an
+envelope as its icon, "Email address" in Manage feeds, and its email address with Copy in Edit feed
+(read from `GET /account/newsletters`). Removing it removes the address (`DELETE
+/account/newsletters`). Without a Content account, the page offers Sign in.
 
 ## How it works
 
 - **Receiving:** Cloudflare Email Routing sends `NEWSLETTER_ADDRESS` (`worker/wrangler.toml`,
-  `news@in.wim.to`) to the Worker, whose `email` handler (`receiveEmail`) takes the code after the
-  `+` (Email Routing's subaddressing delivers `news+<code>@…` by the rule for `news@…`). On a domain
+  `content@in.wim.to`) to the Worker, whose `email` handler (`receiveEmail`) takes the code after the
+  `+` (Email Routing's subaddressing delivers `content+<code>@…` by the rule for `content@…`). On a domain
   of its own with a catch-all, `<code>@…` works too.
 - **Storing:** each code is an inbox, a Durable Object of the `Account` class named
   `newsletter:<code>` (no class of its own, so no migration). It knows its owner and tag and keeps
@@ -46,7 +49,7 @@ subdomain isn't possible, hence one rule with subaddressing.
    it change the MX records of `wim.to` itself: that is where the owner's own email arrives. Check
    under DNS › Records that they are unchanged.
 2. **Email Routing › Settings:** turn on **Subaddressing**.
-3. **Routing rules › Create address:** `news` @ `in.wim.to`, action **Send to a Worker**, destination
+3. **Routing rules › Create address:** `content` @ `in.wim.to`, action **Send to a Worker**, destination
    **content-worker** (once this Worker, with its `email` handler, is deployed).
 4. Test: make an address in the app, send it an email, and refresh the feed.
 

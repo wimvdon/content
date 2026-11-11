@@ -1,4 +1,6 @@
+import { Mail } from "lucide-react";
 import { useState } from "react";
+import { codeOfFeed } from "@/lib/newsletterAddresses";
 import type { Feed } from "@/lib/library";
 import { cn } from "./ui/cn";
 
@@ -6,6 +8,14 @@ import { cn } from "./ui/cn";
 export function FeedIcon({ feed, className = "size-5" }: { feed: Feed | undefined; className?: string }) {
   const [failed, setFailed] = useState(false);
   const letter = (feed?.title.trim()[0] ?? "?").toUpperCase();
+  // A newsletter address (newsletterAddresses.ts): an envelope, so it reads as an email address everywhere.
+  if (codeOfFeed(feed?.url)) {
+    return (
+      <span className={cn("inline-flex shrink-0 items-center justify-center rounded-md bg-accent text-accent-foreground", className)} aria-hidden="true">
+        <Mail className="size-[70%]" />
+      </span>
+    );
+  }
   if (feed?.iconUrl && !failed) {
     return (
       // The picture fills 80% of the tile; a percentage padding would be a share of the whole row.

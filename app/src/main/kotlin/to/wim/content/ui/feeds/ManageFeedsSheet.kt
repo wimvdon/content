@@ -1,5 +1,6 @@
 package to.wim.content.ui.feeds
 
+import to.wim.content.data.NewsletterAddresses
 import to.wim.content.ui.reader.rememberSheetClose
 import androidx.compose.foundation.layout.Arrangement
 import to.wim.content.ui.theme.DragHandle
@@ -58,6 +59,9 @@ class ManageFeedsActions(
     val onReorderFeeds: (topicId: String?, urls: List<String>) -> Unit,
     /** A feed dragged into another topic (null: none), with that topic's feeds in their new order. */
     val onMoveFeed: (feed: Feed, topicId: String?, urls: List<String>) -> Unit = { _, _, _ -> },
+    /** The email address of a newsletter address's feed, by its code (NewsletterAddresses); null when it can't be read. */
+    val newsletterAddress: suspend (code: String) -> String? = { null },
+    val onCopy: (String) -> Unit = {},
 )
 
 /**
@@ -140,14 +144,19 @@ fun ManageFeedsSheet(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     FeedIcon(feed, FeedIconSize.Medium)
-                    Text(
-                        feed.title,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = if (problems.containsKey(feed.url)) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f),
-                    )
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            feed.title,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = if (problems.containsKey(feed.url)) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        // A newsletter address: it receives email rather than reading a website's feed.
+                        if (NewsletterAddresses.codeOfFeed(feed.url) != null) {
+                            Text(stringResource(R.string.newsletter_feed_label), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
                     // A pen before the grip (2026-11-02): tapping the row edits it, as the web's chips show.
                     Icon(painterResource(R.drawable.ic_edit), contentDescription = null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     DragHandle(handleModifier)
@@ -186,6 +195,8 @@ fun ManageFeedsSheet(
             },
             onDismiss = { editing = null },
             topicActions = topicActions,
+            emailAddress = NewsletterAddresses.codeOfFeed(feed.url)?.let { code -> { actions.newsletterAddress(code) } },
+            onCopy = actions.onCopy,
         )
     }
 }

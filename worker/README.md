@@ -74,5 +74,5 @@ text of at least 32 characters; never change or lose it), or `npx wrangler secre
 `src/newsletters.ts` gives each Content account email addresses that turn newsletters into feeds
 (`docs/newsletters.md`). The code deploys with the Worker; the mail needs a one-time step in the
 Cloudflare dashboard: Email Routing for the subdomain in `NEWSLETTER_ADDRESS` (`in.wim.to`, never the
-main domain, whose own email would stop), Subaddressing on, and a rule sending `news@in.wim.to` to
+main domain, whose own email would stop), Subaddressing on, and a rule sending `content@in.wim.to` to
 this Worker. The steps are in `docs/newsletters.md`.

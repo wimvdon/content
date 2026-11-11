@@ -447,13 +447,12 @@ class AppStore {
       return null;
     }
   };
-  /** A new newsletter address for `tag`, its feed added under the topic with that name (made if new); null when it didn't work. */
-  createNewsletterAddress = async (tag: string): Promise<NewsletterAddress | null> => {
+  /** A new newsletter address named `name` (its feed's title), its feed added under topic `topicId`; null when it didn't work. */
+  createNewsletterAddress = async (name: string, topicId: string | null): Promise<NewsletterAddress | null> => {
     const account = this.state.account;
     if (!account) return null;
     try {
-      const made = await new AccountClient(account.key).createNewsletter(tag);
-      const topicId = this.addFolder(made.tag, "newspaper");
+      const made = await new AccountClient(account.key).createNewsletter(name);
       await this.addFeed(made.feedUrl, topicId);
       return made;
     } catch {

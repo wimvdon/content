@@ -367,13 +367,13 @@
     <string name="newsletter_find_address">Meine Instapaper-Adresse finden</string>
     <string name="newsletter_own">Deine eigene Adresse</string>
     <string name="newsletter_own_body">Content erstellt eine E-Mail-Adresse für einen Tag: Newsletter kommen als einer deiner Feeds an</string>
-    <string name="newsletter_own_explained">Abonniere einen Newsletter mit der Adresse eines Tags. Jede Ausgabe kommt als Artikel im Feed dieses Tags an.</string>
+    <string name="newsletter_own_explained">Gib dem Feed einen Namen und wähle einen Tag. Content erstellt eine E-Mail-Adresse dafür: Jeder Newsletter, der dorthin geht, kommt als Artikel in diesem Feed an.</string>
     <string name="newsletter_own_sign_in_first">Eigene Adressen brauchen ein Content-Konto, das die Newsletter aufbewahrt.</string>
     <string name="newsletter_own_sign_in">Anmelden</string>
-    <string name="newsletter_own_offline">Deine Adressen konnten nicht geladen werden. Prüfe deine Verbindung.</string>
-    <string name="newsletter_own_new">Neue Adresse</string>
-    <string name="newsletter_own_tag">Tag</string>
+    <string name="newsletter_own_offline">Die Adresse konnte nicht geladen werden. Prüfe deine Verbindung.</string>
     <string name="newsletter_own_failed">Die Adresse konnte nicht erstellt werden. Versuche es erneut.</string>
     <string name="newsletter_own_create">Adresse erstellen</string>
     <string name="newsletter_own_copy">Adresse kopieren</string>
+    <string name="newsletter_feed_label">E-Mail-Adresse</string>
+    <string name="newsletter_own_made">Deine Adresse ist fertig, und ihr Feed ist unter Feed. Abonniere Newsletter damit.</string>
 </resources>

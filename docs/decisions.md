@@ -2,6 +2,19 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-11: Newsletter addresses: name and tag as in Add feed, shown in Manage feeds, content+
+
+Owner's review after trying them:
+- **Making an address works like Add feed**: a name for its feed and a topic (No topic, every topic,
+  Edit topics), then Create address, and the address with Copy. The address list on that page is
+  gone: the addresses live in Manage feeds.
+- **A newsletter address's feed shows what it is**: an envelope as its icon everywhere, "Email
+  address" under its name in Manage feeds, and in its Edit feed sheet the email address with Copy
+  instead of the feed's address. Otherwise it is a feed like any other.
+- **`content+<code>@in.wim.to`** instead of `news+`: the part before the `+` is only the Email
+  Routing rule's address (`NEWSLETTER_ADDRESS`); the code is what counts, so addresses made as
+  `news+` keep working as long as that rule stays.
+
 ## 2026-11-11: Your own newsletter address replaces Kill the Newsletter in +
 
 With newsletter addresses in the feed loader, + › Subscribe to newsletter offers **Your own

@@ -379,13 +379,13 @@
     <string name="newsletter_find_address">Trouver mon adresse Instapaper</string>
     <string name="newsletter_own">Votre propre adresse</string>
     <string name="newsletter_own_body">Content crée une adresse e-mail pour un tag : les newsletters arrivent comme l’un de vos flux</string>
-    <string name="newsletter_own_explained">Abonnez-vous à une newsletter avec l’adresse d’un tag. Chaque numéro arrive comme article dans le flux de ce tag.</string>
+    <string name="newsletter_own_explained">Donnez un nom au flux et choisissez un tag. Content crée une adresse e-mail pour lui : chaque newsletter envoyée là arrive comme article dans ce flux.</string>
     <string name="newsletter_own_sign_in_first">Vos propres adresses nécessitent un compte Content, qui garde les newsletters.</string>
     <string name="newsletter_own_sign_in">Se connecter</string>
-    <string name="newsletter_own_offline">Vos adresses n’ont pas pu être chargées. Vérifiez votre connexion.</string>
-    <string name="newsletter_own_new">Nouvelle adresse</string>
-    <string name="newsletter_own_tag">Tag</string>
+    <string name="newsletter_own_offline">L’adresse n’a pas pu être chargée. Vérifiez votre connexion.</string>
     <string name="newsletter_own_failed">L’adresse n’a pas pu être créée. Réessayez.</string>
     <string name="newsletter_own_create">Créer l’adresse</string>
     <string name="newsletter_own_copy">Copier l’adresse</string>
+    <string name="newsletter_feed_label">Adresse e-mail</string>
+    <string name="newsletter_own_made">Votre adresse est prête, et son flux est dans Flux. Abonnez-vous aux newsletters avec elle.</string>
 </resources>
