@@ -206,6 +206,9 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   The web app has the same chips.
 - Articles are grouped under **Today**, **Yesterday** and then the date; the date stays at the
   top while you scroll through that day.
+- **New articles always show up.** When new articles come in above the ones you are looking at
+  (when you come back to the app after a while, or from your other devices), the list goes back
+  to the top, so you see them before you tap Mark all as read (#394).
 - **Mark all as read** is the round button at the bottom right of Feeds (in the web app: a button under the
   last article), in Unread and All, and marks what the section shows: ✓✓ with its words; while you
   scroll down it shrinks to just ✓✓, and scrolling up brings the words back. With nothing unread it goes.

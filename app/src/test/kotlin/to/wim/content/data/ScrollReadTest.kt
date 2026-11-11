@@ -36,4 +36,24 @@ class ScrollReadTest {
         val seen = setOf(articles[2].key, articles[3].key)
         assertEquals(setOf(articles[2].key), ScrollRead.scrolledPast(articles, firstVisibleArticle = 3, seen = seen))
     }
+
+    @Test
+    fun `new articles above the ones on screen bring the list back to the top`() {
+        val before = listOf("a", "b", "c", "d")
+        // Scrolled down to c: "new" came in above it, out of sight.
+        assertEquals(true, ScrollRead.arrivedAbove(before, listOf("new", "a", "b", "c", "d"), visible = listOf("day:today", "c", "d")))
+        // In between, under the same day.
+        assertEquals(true, ScrollRead.arrivedAbove(before, listOf("a", "new", "b", "c", "d"), visible = listOf("c", "d")))
+    }
+
+    @Test
+    fun `new articles below the screen, removed ones or a first list stay put`() {
+        val before = listOf("a", "b", "c", "d")
+        assertEquals(false, ScrollRead.arrivedAbove(before, listOf("a", "b", "c", "d", "new"), visible = listOf("b", "c")))
+        assertEquals(false, ScrollRead.arrivedAbove(before, listOf("a", "c", "d"), visible = listOf("c", "d")))
+        // At the top already: the first article on screen is the first one.
+        assertEquals(false, ScrollRead.arrivedAbove(before, listOf("a", "new", "b"), visible = listOf("a", "new", "b")))
+        assertEquals(false, ScrollRead.arrivedAbove(emptyList(), listOf("new", "a"), visible = listOf("a")))
+        assertEquals(false, ScrollRead.arrivedAbove(before, listOf("new", "a"), visible = listOf("day:today")))
+    }
 }

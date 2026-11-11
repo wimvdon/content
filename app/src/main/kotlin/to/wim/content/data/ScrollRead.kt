@@ -17,4 +17,23 @@ object ScrollRead {
             .take(firstVisibleArticle.coerceAtLeast(0))
             .filter { !it.read && it.key in seen }
             .mapTo(LinkedHashSet()) { it.key }
+
+    /**
+     * Whether articles arrived above the ones on screen (#394): a refresh on coming back to the
+     * app, or another device. The list keeps its place, so they would be out of sight above it,
+     * and Mark all as read would mark them without them ever being seen; the list goes back to
+     * the top instead. [before] and [after] are the list's article keys, [visible] the keys on
+     * screen from the top (day headers and the like are skipped). Nothing before a first list.
+     */
+    fun arrivedAbove(
+        before: List<String>,
+        after: List<String>,
+        visible: List<String>,
+    ): Boolean {
+        if (before.isEmpty()) return false
+        val known = before.toHashSet()
+        val anchor = visible.firstOrNull { it in known } ?: return false
+        val at = after.indexOf(anchor)
+        return at > 0 && after.subList(0, at).any { it !in known }
+    }
 }
