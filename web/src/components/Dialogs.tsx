@@ -1,4 +1,4 @@
-import { Smartphone, ArrowLeft, BookmarkPlus, BookOpenText, ChevronDown, ChevronRight, Copy, LayoutList, Mail, Palette, Plus, Puzzle, Rss, Tag as TagIcon, Trash2, UserRound } from "lucide-react";
+import { Smartphone, ArrowLeft, BookmarkPlus, BookOpenText, ChevronDown, ChevronRight, Copy, BookOpen, Mail, Palette, Plus, Rss, Tag as TagIcon, Trash2, UserRound } from "lucide-react";
 import { ConfirmRemove, RemoveButton } from "./ConfirmRemove";
 import { HiddenWordsRow } from "./HiddenWords";
 import { insertedBefore } from "@/lib/topics";
@@ -21,6 +21,7 @@ import { ReaderStyleControls } from "./ReaderStyleControls";
 import { InstapaperSettings } from "./ServiceSettings";
 import { canCreate, ownStep } from "@/lib/newsletterSubscribe";
 import { codeOfFeed, groupedAddresses, type NewsletterAddress } from "@/lib/newsletterAddresses";
+import { feedsOfKind, withKindOrder, type FeedKind } from "@/lib/feedKinds";
 import { SwitchRow } from "./ui/switch";
 import { pushSupported } from "@/lib/notifications";
 
@@ -120,23 +121,35 @@ function exportOpml() {
  * to edit it (name, topic, Remove). A feed that fails to download has its name in red. Add feed at
  * the end (over this dialog). Every change is stored at once, so it has **Done**.
  */
-/** A feed dragged from another topic into `topicId`, before the feed `before` (null: at the end). */
-function dropInto(topicId: string | null, feeds: Feed[], url: string, before: string | null) {
-  app.moveFeedInto(url, topicId, insertedBefore(feeds.map((f) => f.url), url, before));
+/** A topic's feeds (null: No topic, with those of a topic that is gone). */
+function inTopic(feeds: Feed[], folders: Folder[], topicId: string | null): Feed[] {
+  return feeds.filter((f) => (topicId === null ? f.folderId === null || !folders.some((x) => x.id === f.folderId) : f.folderId === topicId));
 }
 
-export function ManageFeedsDialog({ open, onOpenChange, onAddFeed, children }: Props & { onAddFeed: () => void; children?: ReactNode }) {
+export function ManageFeedsDialog({ open, onOpenChange, kind, onAddFeed, children }: Props & { kind: FeedKind; onAddFeed: () => void; children?: ReactNode }) {
   const { library, problems } = useApp();
   const [editing, setEditing] = useState<Feed | null>(null);
+  const shown = useMemo(() => feedsOfKind(library.feeds, kind), [library, kind]);
   const groups = useMemo(() => {
-    const inTopics = library.folders.map((topic) => [topic, library.feeds.filter((f) => f.folderId === topic.id)] as const);
-    const loose = library.feeds.filter((f) => f.folderId === null || !library.folders.some((x) => x.id === f.folderId));
     // Every topic, so a feed can be dragged into an empty one; none at all without feeds.
-    return library.feeds.length === 0 ? [] : [...inTopics, [null, loose] as const];
-  }, [library]);
+    if (shown.length === 0) return [];
+    return [...library.folders.map((topic) => [topic, inTopic(shown, library.folders, topic.id)] as const), [null, inTopic(shown, library.folders, null)] as const];
+  }, [library, shown]);
+  // The topic's whole order, the other kind's feeds in their places.
+  const fullOrder = (topicId: string | null, urls: string[], moved?: string) =>
+    withKindOrder(
+      inTopic(library.feeds, library.folders, topicId)
+        .map((f) => f.url)
+        .filter((u) => u !== moved),
+      urls,
+    );
+  // A feed dragged from another topic into `topicId`, before the feed `before` (null: at the end).
+  const dropInto = (topicId: string | null, feeds: Feed[], url: string, before: string | null) =>
+    app.moveFeedInto(url, topicId, fullOrder(topicId, insertedBefore(feeds.map((f) => f.url), url, before), url));
+  const newsletters = kind === "newsletter";
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} title={t("manageFeedsTitle")} closeLabel={t("close")} done={t("done")}>
-      <p className="pb-3 text-sm text-muted-foreground">{t(library.feeds.length === 0 ? "manageFeedsNone" : "manageFeedsHint")}</p>
+    <Dialog open={open} onOpenChange={onOpenChange} title={t(newsletters ? "newsletterFeeds" : "rssFeeds")} closeLabel={t("close")} done={t("done")}>
+      <p className="pb-3 text-sm text-muted-foreground">{t(shown.length > 0 ? "manageFeedsHint" : newsletters ? "manageNewslettersNone" : "manageFeedsNone")}</p>
       <div className="space-y-4">
         {groups.map(([topic, feeds]) => (
           <section
@@ -163,7 +176,7 @@ export function ManageFeedsDialog({ open, onOpenChange, onAddFeed, children }: P
                   id={(f) => f.url}
                   label={(f) => f.title}
                   icon={(f) => <FeedIcon feed={f} className="size-4" />}
-                  onReorder={(urls) => app.reorderFeedsIn(topic?.id ?? null, urls)}
+                  onReorder={(urls) => app.reorderFeedsIn(topic?.id ?? null, fullOrder(topic?.id ?? null, urls))}
                   onDropFrom={(url, before) => dropInto(topic?.id ?? null, feeds as Feed[], url, before)}
                   onEdit={setEditing}
                   editLabel={t("editFeed")}
@@ -175,11 +188,11 @@ export function ManageFeedsDialog({ open, onOpenChange, onAddFeed, children }: P
         ))}
         <Button variant="secondary" onClick={onAddFeed}>
           <Plus />
-          {t("addFeed")}
+          {t(newsletters ? "newsletterOwnNew" : "addFeed")}
         </Button>
       </div>
       {editing ? <EditFeedDialog key={editing.url} feed={editing} onClose={() => setEditing(null)} /> : null}
-      {/* Add feed, as a page of this dialog. */}
+      {/* Add feed (New address for newsletter feeds), as a page of this dialog. */}
       {children}
     </Dialog>
   );
@@ -265,6 +278,16 @@ function EditFeedDialog({ feed, onClose }: { feed: Feed; onClose: () => void }) 
   );
 }
 
+/** A heading in the Add dialog: its destination's icon and name. */
+function heading(Icon: typeof Rss, title: string) {
+  return (
+    <h3 className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
+      <Icon className="size-4" aria-hidden="true" />
+      {title}
+    </h3>
+  );
+}
+
 /** One choice in a dialog: its icon, what it does, and a line on it. */
 function choice(Icon: typeof Rss, title: string, body: string, onClick: () => void) {
   return (
@@ -279,10 +302,11 @@ function choice(Icon: typeof Rss, title: string, body: string, onClick: () => vo
 }
 
 /**
- * The search bar's +, the same in Feeds, Saved and the Inbox, as on Android: first what to add.
- * Subscribe to feed opens Add feed, Save article the save sheet; both then ask for the address.
- * Subscribe to newsletter is a page of this dialog with two ways (newsletterSubscribe.ts), each a
- * page of steps.
+ * The search bar's +, the same in Feed, Saved and the Inbox, as on Android: first what to add,
+ * under two headings with their destination's icon (2026-11-11). Add feed: RSS feed opens Add feed,
+ * Newsletter feed a page of this dialog that makes an email address whose newsletters arrive as a
+ * feed (newsletterAddresses.ts). Save article: Save article opens the save sheet. Both then ask
+ * for the address.
  */
 export function AddChoiceDialog({ open, onOpenChange, onFeed, onArticle, onSignIn }: Props & { onFeed: () => void; onArticle: () => void; onSignIn: () => void }) {
   const [newsletter, setNewsletter] = useState(false);
@@ -302,31 +326,51 @@ export function AddChoiceDialog({ open, onOpenChange, onFeed, onArticle, onSignI
       closeLabel={t("close")}
       cancel={t("cancel")}
     >
-      <div className="space-y-3">
-        {choice(Rss, t("addChoiceFeed"), t("addChoiceFeedBody"), leave(onFeed))}
-        {choice(Mail, t("addChoiceNewsletter"), t("addChoiceNewsletterBody"), () => setNewsletter(true))}
-        {choice(BookmarkPlus, t("addChoiceArticle"), t("addChoiceArticleBody"), leave(onArticle))}
+      <div className="space-y-5">
+        <section className="space-y-2">
+          {heading(Rss, t("addFeed"))}
+          {choice(Rss, t("addChoiceFeed"), t("addChoiceFeedBody"), leave(onFeed))}
+          {choice(Mail, t("addChoiceNewsletter"), t("addChoiceNewsletterBody"), () => setNewsletter(true))}
+        </section>
+        <section className="space-y-2">
+          {heading(BookOpen, t("addChoiceArticle"))}
+          {choice(BookmarkPlus, t("addChoiceArticle"), t("addChoiceArticleBody"), leave(onArticle))}
+        </section>
       </div>
       <NewsletterDialog open={newsletter} onOpenChange={setNewsletter} onSignIn={leave(onSignIn)} />
     </Dialog>
   );
 }
 
-/** Subscribe to newsletter: your own address (Content's feed loader). */
-function NewsletterDialog({ open, onOpenChange, onSignIn }: { open: boolean; onOpenChange: (open: boolean) => void; onSignIn: () => void }) {
+/**
+ * Newsletter feed: an address of your own (Content's feed loader). From Settings' Newsletter feeds
+ * it opens at New address (`startCreating`), as a page of Manage feeds.
+ */
+export function NewsletterDialog({
+  open,
+  onOpenChange,
+  onSignIn,
+  startCreating = false,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSignIn: () => void;
+  startCreating?: boolean;
+}) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} title={t("newsletterOwn")} closeLabel={t("close")} backLabel={t("back")}>
-      {open ? <OwnAddresses onSignIn={onSignIn} onDone={() => onOpenChange(false)} /> : null}
+    <Dialog open={open} onOpenChange={onOpenChange} title={t("addChoiceNewsletter")} closeLabel={t("close")} backLabel={t("back")}>
+      {open ? <OwnAddresses onSignIn={onSignIn} onDone={() => onOpenChange(false)} startCreating={startCreating} /> : null}
     </Dialog>
   );
 }
 
 /**
- * Your own address (newsletterAddresses.ts), like Add feed: a name for its feed and a topic (No
- * topic, every topic), then Create address; once made, the address with Copy. Without a Content
- * account, Sign in first. The addresses are in Manage feeds afterwards, each feed with its address.
+ * Your own address (newsletterAddresses.ts), like Add feed: first the account's addresses by topic,
+ * then New address: a name for its feed and a topic (No topic, every topic), then Create address;
+ * once made, the address with Copy. Without a Content account, Sign in first. The addresses' feeds
+ * are in Settings' Newsletter feeds afterwards, each with its address.
  */
-function OwnAddresses({ onSignIn, onDone }: { onSignIn: () => void; onDone: () => void }) {
+function OwnAddresses({ onSignIn, onDone, startCreating }: { onSignIn: () => void; onDone: () => void; startCreating: boolean }) {
   const { account, library } = useApp();
   const [name, setName] = useState("");
   const [topicId, setTopicId] = useState<string | null>(null);
@@ -336,7 +380,7 @@ function OwnAddresses({ onSignIn, onDone }: { onSignIn: () => void; onDone: () =
   const [made, setMade] = useState<NewsletterAddress | null>(null);
   // The account's addresses first, if there are any (undefined: still loading); New address opens the form.
   const [existing, setExisting] = useState<NewsletterAddress[] | undefined>(undefined);
-  const [creating, setCreating] = useState(false);
+  const [creating, setCreating] = useState(startCreating);
   const signedIn = ownStep(!!account) === "addresses";
   useEffect(() => {
     if (!signedIn) return;
@@ -539,13 +583,15 @@ export function FolderDialog({
   );
 }
 
-type SettingsPage = "account" | "integrations" | "theme" | "list" | "reader";
+/** Settings' pages, one per part of the app (2026-11-11): Feed, Saved, the article, and how everything looks. */
+type SettingsPage = "account" | "feed" | "saved" | "reader" | "appearance";
 
 /**
- * Settings, as on Android: two large buttons at the top for Manage feeds and Manage topics (dialogs
- * of their own, so they open from other places too), then one row per page (Account, Integrations,
- * Theme, Article list, Article view), each with its icon, what it holds and a chevron. A page opens
- * in the same dialog, with ← Settings to go back.
+ * Settings, as on Android (2026-11-11): two large buttons side by side for the two kinds of feed,
+ * RSS feeds and Newsletter feeds (Manage feeds with that kind), and a wide one under them for
+ * Manage tags (dialogs of their own, so they open from other places too); then one row per page
+ * (Account, Feed, Saved, Article view, Appearance), each with its icon, what it holds and a chevron.
+ * A page opens in the same dialog, with ← Settings to go back.
  */
 export function SettingsDialog({
   open,
@@ -554,21 +600,32 @@ export function SettingsDialog({
   onManageFeeds,
   onManageTopics,
   children,
-}: Props & { onImport: () => void; onManageFeeds: () => void; onManageTopics: () => void; children?: ReactNode }) {
+}: Props & { onImport: () => void; onManageFeeds: (kind: FeedKind) => void; onManageTopics: () => void; children?: ReactNode }) {
   const { settings, library, account } = useApp();
   // App opens it with a new key each time, so it starts on the main page.
   const [page, setPage] = useState<SettingsPage | null>(null);
   const titles: Record<SettingsPage, string> = {
     account: t("account"),
-    integrations: t("integrations"),
-    theme: t("theme"),
-    list: t("articleList"),
+    feed: t("feedTab"),
+    saved: t("saved"),
     reader: t("articleView"),
+    appearance: t("appearance"),
   };
   const themeNames: Record<Theme, string> = { system: t("themeSystem"), light: t("themeLight"), dark: t("themeDark") };
-  const big = (Icon: typeof Rss, title: string, detail: string, onClick: () => void) => (
-    <button type="button" onClick={onClick} className="flex cursor-pointer flex-col items-start gap-3 rounded-lg border bg-card p-4 text-left shadow-xs transition-colors hover:bg-accent">
-      <Icon className="size-5 text-muted-foreground" aria-hidden="true" />
+  const viewNames: Record<ListView, string> = { small: t("listSmall"), medium: t("listMedium"), large: t("listLarge") };
+  const rssCount = feedsOfKind(library.feeds, "rss").length;
+  const newsletterCount = library.feeds.length - rssCount;
+  // Side by side: the icon above the text; wide (Manage tags, under them): the icon before it.
+  const big = (Icon: typeof Rss, title: string, detail: string, onClick: () => void, wide = false) => (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "flex cursor-pointer gap-3 rounded-lg border bg-card p-4 text-left shadow-xs transition-colors hover:bg-accent",
+        wide ? "col-span-2 items-center gap-4" : "flex-col items-start",
+      )}
+    >
+      <Icon className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
       <span>
         <span className="block font-medium">{title}</span>
         <span className="block text-sm text-muted-foreground">{detail}</span>
@@ -590,15 +647,16 @@ export function SettingsDialog({
       {page === null ? (
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
-            {big(Rss, t("manageFeedsTitle"), plural("feedsCount", library.feeds.length), onManageFeeds)}
-            {big(TagIcon, t("manageTitle"), plural("topicsCount", library.folders.length), onManageTopics)}
+            {big(Rss, t("rssFeeds"), plural("feedsCount", rssCount), () => onManageFeeds("rss"))}
+            {big(Mail, t("newsletterFeeds"), plural("feedsCount", newsletterCount), () => onManageFeeds("newsletter"))}
+            {big(TagIcon, t("manageTitle"), plural("topicsCount", library.folders.length), onManageTopics, true)}
           </div>
           <nav aria-label={t("settings")}>
             {row("account", UserRound, account?.email ?? t("accountSignedOut"))}
-            {row("integrations", Puzzle, t("integrationsSummary"))}
-            {row("theme", Palette, themeNames[settings.theme])}
-            {row("list", LayoutList, t("listSummary"))}
+            {row("feed", Rss, t("feedSettingsSummary"))}
+            {row("saved", BookOpen, t("savedSettingsSummary"))}
             {row("reader", BookOpenText, t("articleViewSummary"))}
+            {row("appearance", Palette, t("appearanceSummary").replace("{theme}", themeNames[settings.theme]).replace("{view}", viewNames[settings.listView]))}
           </nav>
           <p className="text-xs text-muted-foreground">
             Content ·{" "}
@@ -614,8 +672,13 @@ export function SettingsDialog({
             {t("settings")}
           </Button>
           {page === "account" ? <AccountSection /> : null}
-          {page === "integrations" ? (
+          {page === "feed" ? (
             <>
+              {/* What only Feed's articles do (the list view is Appearance's: every list has it). */}
+              <section className="space-y-2">
+                <SwitchRow title={t("markReadOnScroll")} checked={settings.markReadOnScroll} onChange={(v) => app.updateSettings({ markReadOnScroll: v })} />
+                <HiddenWordsRow />
+              </section>
               {/* Moving to or from another reader: the feeds in and out. */}
               <section className="space-y-2">
                 <h3 className="text-sm font-semibold">{t("opmlTitle")}</h3>
@@ -633,24 +696,23 @@ export function SettingsDialog({
                 <ImportGuide title={t("importInoreaderTitle")} steps={[t("importInoreaderStep1"), t("importInoreaderStep2"), t("importWebStep")]} />
                 <ImportGuide title={t("importSubstackTitle")} steps={[t("substackWebStep1"), t("substackWebStep2")]} />
               </section>
-              {/* The service Saved is also kept in. */}
-              <InstapaperSettings />
             </>
           ) : null}
-          {page === "theme" ? (
-            <Segmented<Theme>
-              label={t("theme")}
-              value={settings.theme}
-              onChange={(theme) => app.updateSettings({ theme })}
-              options={[
-                { value: "system", label: t("themeSystem") },
-                { value: "light", label: t("themeLight") },
-                { value: "dark", label: t("themeDark") },
-              ]}
-            />
-          ) : null}
-          {page === "list" ? (
-            <section className="space-y-2">
+          {/* The service Saved is also kept in. */}
+          {page === "saved" ? <InstapaperSettings /> : null}
+          {page === "appearance" ? (
+            <section className="space-y-4">
+              <Segmented<Theme>
+                label={t("theme")}
+                value={settings.theme}
+                onChange={(theme) => app.updateSettings({ theme })}
+                options={[
+                  { value: "system", label: t("themeSystem") },
+                  { value: "light", label: t("themeLight") },
+                  { value: "dark", label: t("themeDark") },
+                ]}
+              />
+              {/* The articles' rows, which Feed, Saved, the Inbox and Search all use. */}
               <div className="flex flex-wrap items-center justify-between gap-2 py-1">
                 <span className="text-sm">{t("listView")}</span>
                 <Segmented<ListView>
@@ -664,8 +726,6 @@ export function SettingsDialog({
                   ]}
                 />
               </div>
-              <SwitchRow title={t("markReadOnScroll")} checked={settings.markReadOnScroll} onChange={(v) => app.updateSettings({ markReadOnScroll: v })} />
-              <HiddenWordsRow />
             </section>
           ) : null}
           {page === "reader" ? (

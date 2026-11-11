@@ -10,9 +10,13 @@ Signed in without feeds yet, the screen says **No feeds yet**, with Add feed and
 
 ## Adding feeds
 
-Tap **+** in the search bar at the top (in Feeds, Saved or the Inbox: it is the same everywhere; on the web, **+** at the top of the list) and pick
-**Subscribe to feed**. (Also: **Add feed** on the empty screen, or in **Manage feeds** in Settings.)
-The other choices: **Subscribe to newsletter** (see Newsletters below) and **Save article**, which saves one article by its address (see Saved). The **Add feed**
+Content has two kinds of feed, both read in **Feed**: an **RSS feed** (a website's) and a
+**newsletter feed** (an email address of your own whose newsletters arrive as articles). Tap **+** in
+the search bar at the top (in Feed, Saved or the Inbox: it is the same everywhere; on the web, **+**
+at the top of the list). Under **Add feed** pick **RSS feed**. (Also: **Add feed** on the empty
+screen, or in Settings › **RSS feeds**.) The other choices: **Newsletter feed**, also under Add feed
+(see Newsletters below), and, under **Save article**, **Save article**, which saves one article by
+its address (see Saved). The **Add feed**
 sheet opens: type an address, pick its **Tag** (**No tag**, or one of yours; it starts on the
 tag you are looking at), and tap **Add**. **Edit tags** after the tag chips shows Manage tags
 in the same sheet; its back arrow (or Back) brings you back to Add feed as you left it (see Tags). As the address, any of these work:
@@ -33,19 +37,17 @@ sit on a light tile, so dark logos stay visible in dark mode.
 
 ### Newsletters
 
-**+** › **Subscribe to newsletter** offers two ways, each with its own page:
-
-**+** › **Subscribe to newsletter** first lists your addresses, grouped by tag (the feed's topic, No
+**+** › **Newsletter feed** first lists your addresses, grouped by tag (the feed's topic, No
 tag last), each with its feed's name and **Copy**, and **New address**; with none yet, it opens New
 address at once.
 
-- **Your own address** (with a Content account), like Subscribe to feed: give its feed a **name**,
+- **Your own address** (with a Content account), like Add feed: give its feed a **name**,
   pick a **tag** (or No tag, or Edit tags) and tap **Create address**. Content makes an email address
   for it, such as `content+k7q2m9abcdef@in.wim.to`, adds its feed, and shows the address with
   **Copy**. Subscribe to newsletters with that address; each issue then arrives as an article in that
   feed, like any feed's: unread, Mark all as read, the dot on the tag's chip. Such a feed has an
-  envelope as its icon; in **Manage feeds** it says **Email address** under its name (on the web, the
-  envelope), and editing it shows the address with **Copy**, with the same name and tag options as
+  envelope as its icon; it is listed in Settings › **Newsletter feeds** (where **New address** makes
+  another), and editing it shows the address with **Copy**, with the same name and tag options as
   any feed. Removing the feed removes the address too: mail to it is then refused. Content keeps the
   newsletters in your account, see PRIVACY.md. Without an account, the page offers **Sign in**.
 - **Straight into To read:** with your own Save to Instapaper email address. **Find my Instapaper
@@ -53,12 +55,12 @@ address at once.
   Instapaper. Subscribe with that address, or forward emails to it: new ones arrive in Saved, under
   the **Newsletters** chip (see Saved). Not connected to Instapaper yet: the page offers **Sign in
   with Instapaper** first. Connected, it also has the switch **Mark incoming newsletters as unread**,
-  the same as in Settings › Integrations › Instapaper.
+  the same as in Settings › Saved › Instapaper.
 
 ## Moving from another reader
 
 Export your feeds as an **OPML** file in your old reader, then tap **Import OPML** (on
-the empty start screen or in Settings › Integrations › Move to or from another reader) and pick the file. All feeds are added (feeds
+the empty start screen or in Settings › Feed › Move to or from another reader) and pick the file. All feeds are added (feeds
 you already follow are skipped), each folder of your old reader as a tag, and the app downloads
 their articles. **Export OPML** does the reverse, with your tags as its folders. Read and starred states don't
 come along.
@@ -89,15 +91,15 @@ saved articles stay, without it); giving it another tag's name merges the two. *
 makes one: a name and an icon from the whole Material Symbols set (type in English, such as
 *news*, *car* or *food*). Changes are kept at once: **Done** closes it.
 
-**Managing feeds: Manage feeds** (the other large button at the top of Settings). A sheet with your feeds as a list, each with its site icon,
+**Managing feeds: RSS feeds** and **Newsletter feeds** (the two large buttons at the top of Settings). Each opens a sheet with that kind of feed as a list, each with its site icon,
 a pen and a grip (⋮⋮) at the end, under a heading per tag (in your order, then **No tag**; every
 tag, an empty one too, with "Drag a feed here"); a feed that can't be downloaded has its name in
 red. Drag a row by its grip up or down to reorder the feeds of a tag, or past another tag's
-heading to move it there. Tap one for the **Edit feed** sheet: its
+heading to move it there (the other kind of feed keeps its places). Tap one for the **Edit feed** sheet: its
 name (empty brings back the feed's own), its address, why it fails if it does, its tag as chips,
-**Remove** (it asks first, in the sheet) and **Save**. **Add feed** at the end adds one without a
-tag, in the same sheet; afterwards you are back in Manage feeds. A sheet opened from within a sheet
-always opens in it like this, with a back arrow at the top left, never as a second sheet on top. OPML import and export are in Settings › **Integrations**.
+**Remove** (it asks first, in the sheet) and **Save**. **Add feed** at the end (for newsletter
+feeds: **New address**) adds one, in the same sheet; afterwards you are back in the list. A sheet opened from within a sheet
+always opens in it like this, with a back arrow at the top left, never as a second sheet on top. OPML import and export are in Settings › **Feed**.
 
 **Feeds:** the chips under the search bar list the tags that have feeds, in your order, then
 the feeds without a tag, each as a chip with its site icon. Pick a tag and the row shows only
@@ -135,7 +137,7 @@ for the first time combines its feeds with the account's and takes the settings 
 Open the link in that email on the same phone (it opens Content) or in the same browser. A link
 works once, for 30 minutes. No password. Your Gravatar picture shows next to your address, and your Gravatar name above it (#234; also the name people see on what you share with them), if you
 have one. **Add an email address** adds a second address to the same library. Instapaper is only a
-connected service (#215), not a way to sign in (Settings › Integrations › Instapaper): connecting or
+connected service (#215), not a way to sign in (Settings › Saved › Instapaper): connecting or
 disconnecting it doesn't sign you in or out.
 
 The Account section also points to the other app: on the phone, **Content on the web** opens
@@ -186,8 +188,8 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   Feed in the bar at the bottom).
 - **There is no ☰ menu in the Android app.** Feeds, Saved and the Inbox are the bar at the
   bottom; everything inside them is the switch or a chip. **+** in the search bar (before Settings) adds, the same in
-  every place: it asks **Subscribe to feed** (the Add feed sheet) or **Save article** (the save
-  sheet, which asks for the address).
+  every place: under **Add feed** it asks **RSS feed** (the Add feed sheet) or **Newsletter feed**, and
+  under **Save article** **Save article** (the save sheet, which asks for the address).
   **Settings** is the button at the end of the search bar: your Gravatar picture while signed in, else a cogwheel. On the web, a wide window
   shows the sidebar at the left all the time (☰ in a narrow one), with the same places.
 - **Search** (tap the search bar; on the web also the **/** key) searches everything: the articles of all your feeds that are on the device (titles,
@@ -238,10 +240,10 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   read: all feeds on All, the tag's feeds in a tag, or the one feed you opened, also the
   ones you haven't scrolled to. You're done with it, so the Unread list empties (All caught up).
   A message says how many; **Undo** brings them back.
-- **Settings › Article list › View** chooses how big articles are in the list: **Small** (title
+- **Settings › Appearance › View** chooses how big articles are in every list (Feed, Saved, the Inbox, Search): **Small** (title
   only), **Medium** (title, start of the text and a small picture) or **Large** (a card with a
   wide picture).
-- **Mark as read on scroll** (in **Settings › Article list**, off by default): articles are
+- **Mark as read on scroll** (in **Settings › Feed**, off by default): articles are
   marked as read once you scroll them off the top of the list, only ones that were on screen: new
   articles arriving above are never marked unseen. They stay in the unread list (see above), so
   you can scroll back to them. On the phone the Unread list then ends in **All caught up**, with room
@@ -252,7 +254,7 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   search bar and switch slide back in as it fades in, with **Refresh**, as after Mark all as read,
   with no need to tap it. (Not in the web app: a page there can't scroll past
   its end.)
-- **Hide articles with words** (in **Settings › Article list**, on the phone and the web): add
+- **Hide articles with words** (in **Settings › Feed**, on the phone and the web): add
   a word or a group of words at a time: type it and tap **+** (or press Enter). Each one shows as a
   chip; its **X** takes it out again, and **Save** keeps the chips (and anything still in the
   field). An article is left out of the article lists, the
@@ -420,20 +422,22 @@ a web link says "No link to save".
 
 ## Settings
 
-At the top of Settings, two large buttons: **Manage feeds** and **Manage tags** (see Tags); they
+At the top of Settings, two large buttons side by side, **RSS feeds** and **Newsletter feeds** (how
+many of each; see Managing feeds), and under them **Manage tags** across the width (see Tags); they
 open as sheets, so the sheets that edit tags can open Manage tags too. Under them a short list
-of pages, each with its icon and what it holds; tap one to open it, and the back arrow returns to
+of pages, one per part of the app, each with its icon and what it holds; tap one to open it, and the back arrow returns to
 the list. The app's version is at the bottom. The web app's Settings is the same, in one dialog.
 
 - **Account:** your Content account: sign in with an emailed link to sync; signed in, your
   address, **Sync now**, **Sign out**, **Delete synced data**, **Add an email address** and
   **Notify me when something is shared with me** (see Sync between devices).
-- **Integrations:** **Move to or from another reader** (**Import OPML** / **Export OPML**, with the
-  steps for Feedly, Inoreader and Substack; see Moving from another reader), then **Instapaper**, the
-  service Saved is also kept in (see Instapaper account).
-- **Theme:** System, Light or Dark, and Dynamic color (wallpaper colours instead of the app's blue).
-- **Article list:** View (Small, Medium, Large), **Mark as read on scroll** and **Hide articles with words**.
+- **Feed:** what only Feed's articles do: **Mark as read on scroll** and **Hide articles with
+  words**; then **Move to or from another reader** (**Import OPML** / **Export OPML**, with the steps
+  for Feedly, Inoreader and Substack; see Moving from another reader).
+- **Saved:** **Instapaper**, the service Saved is also kept in (see Instapaper account).
 - **Article view:** **Always open the website** (off by default: tapping a feed article opens its website in the browser tab over Content, with its Save button, and marks it read; on the web in a new tab; saved articles still open in the reader, which keeps your place, highlights and notes; this, Load full articles, Mark as read on scroll and Hide articles with words are the same on your phones and in the web app, while how things look is set per app), **Load full articles**, **Show images**, then **Text**: the same text settings as **Aa**, with a preview in the page colour you chose; then **Sites you're signed in to** (Android): the sites you pay for and signed in to from an article (see The reader), each with **Remove**.
+- **Appearance:** Theme (System, Light or Dark) and Dynamic color (wallpaper colours instead of the
+  app's blue), then **View** (Small, Medium, Large), how big articles are in every list.
 
 ## Backup and moving to a new phone
 
@@ -472,7 +476,7 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   **All** (everything saved, archived articles too; it replaced the Archive). Under it **the chips**: **Liked** (set apart by its heart),
   **Newsletters** (with an envelope: the emails that came in through Instapaper, see below; only while there are any)
   and your tags, in your order, one at a time.
-- **New newsletters can be unread:** with **Settings › Integrations › Instapaper › Mark incoming
+- **New newsletters can be unread:** with **Settings › Saved › Instapaper › Mark incoming
   newsletters as unread** on (off by default; the same on your phones and in the web app), an email
   that reaches Saved through Instapaper after you connected it (a newsletter sent or forwarded to
   your Instapaper address) is bold with a dot until you open it, and a dot on **Saved** in the bar
@@ -504,12 +508,12 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   tags** (Like, your tags). Archiving goes back to the list with **Undo**. Keys: **j**/**k** next
   and previous, **m** read or unread, **o** open on the website, **r** refresh, **/** search, and
   **Esc** closes a menu, then the article.
-- **Settings › Integrations › Instapaper**: the service Saved is also kept in. Everything in Saved syncs. Feeds are
+- **Settings › Saved › Instapaper**: the service Saved is also kept in. Everything in Saved syncs. Feeds are
   Content's own.
 
 ## Instapaper account
 
-Settings › Integrations › Instapaper › **Sign in with Instapaper** opens Instapaper's own page in
+Settings › Saved › Instapaper › **Sign in with Instapaper** opens Instapaper's own page in
 your browser. Approve it there and you come back connected; the app never sees your Instapaper
 password. Instapaper only keeps Saved in step: it is not how you sign in to Content (#215, see Sync
 between devices). There are no options (#251):

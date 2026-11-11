@@ -52,6 +52,8 @@ import androidx.compose.material3.OutlinedButton
 import to.wim.content.ui.feeds.ImportGuides
 import to.wim.content.ui.home.rememberFolderIconPainter
 import to.wim.content.data.Feed
+import to.wim.content.data.FeedKind
+import to.wim.content.data.FeedKinds
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
@@ -96,15 +98,18 @@ data class SettingsState(
     val hasFeeds: Boolean = false,
     /** Instapaper (#215): a connected service, next to the Content account. Null while unknown. */
     val instapaper: InstapaperSettingsState? = null,
-    /** The feeds and topics, for how many the Manage feeds and Manage topics buttons say. */
+    /** The feeds and topics, for how many the RSS feeds, Newsletter feeds and Manage tags buttons say. */
     val feeds: List<Feed> = emptyList(),
     val topics: List<Folder> = emptyList(),
     /** The feed articles on the device: Hide articles with words previews what it would hide. */
     val articles: List<Article> = emptyList(),
 )
 
-/** Settings' pages: the main page lists them, each opens its own (Settings › Account and so on). */
-enum class SettingsPage { Account, Integrations, Theme, List, Reader }
+/**
+ * Settings' pages: the main page lists them, each opens its own (Settings › Account and so on). One
+ * per part of the app (2026-11-11): Feed, Saved, the article, and how everything looks.
+ */
+enum class SettingsPage { Account, Feed, Saved, Reader, Appearance }
 
 class SettingsActions(
     val onBack: () -> Unit,
@@ -136,16 +141,17 @@ class SettingsActions(
     val onRemoveSiteSignIn: (String) -> Unit = {},
     /** Opens one of Settings' pages. */
     val onOpenPage: (SettingsPage) -> Unit = {},
-    /** The two buttons at the top: the Manage feeds and Manage topics sheets. */
-    val onManageFeeds: () -> Unit = {},
+    /** The buttons at the top: Manage feeds for RSS feeds or newsletter feeds, and Manage tags. */
+    val onManageFeeds: (FeedKind) -> Unit = {},
     val onManageTopics: () -> Unit = {},
 )
 
 /**
- * Settings: two large buttons at the top for what is managed most, Manage feeds and Manage topics
- * (sheets, so they open from other places too), then one row per page, each with its icon, what it
- * holds and a chevron (Account, Integrations, Theme, Article list, Article view), then the app's
- * version. Every page is a [SettingsPageScreen] with the same large top app bar.
+ * Settings (2026-11-11): what is managed most at the top, two large buttons side by side for the
+ * two kinds of feed, RSS feeds and Newsletter feeds (Manage feeds with that kind), and a wide one
+ * under them for Manage tags (sheets, so they open from other places too); then one row per page,
+ * each with its icon, what it holds and a chevron (Account, Feed, Saved, Article view, Appearance),
+ * then the app's version. Every page is a [SettingsPageScreen] with the same large top app bar.
  */
 @Composable
 fun SettingsScreen(
@@ -160,22 +166,32 @@ fun SettingsScreen(
         snackbarHost = { MessageHost(snackbarHostState) },
     ) {
         item(key = "manage") {
-            Row(
+            val rss = remember(state.feeds) { FeedKinds.only(state.feeds, FeedKind.Rss).size }
+            val newsletters = state.feeds.size - rss
+            Column(
                 Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                ManageButton(R.string.settings_feeds_title, pluralStringResource(R.plurals.feeds_count, state.feeds.size, state.feeds.size), "rss-feed", actions.onManageFeeds, Modifier.weight(1f))
-                ManageButton(R.string.manage_title, pluralStringResource(R.plurals.topics_count, state.topics.size, state.topics.size), "label", actions.onManageTopics, Modifier.weight(1f))
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    ManageButton(R.string.settings_rss_feeds, pluralStringResource(R.plurals.feeds_count, rss, rss), "rss-feed", { actions.onManageFeeds(FeedKind.Rss) }, Modifier.weight(1f))
+                    ManageButton(R.string.settings_newsletter_feeds, pluralStringResource(R.plurals.feeds_count, newsletters, newsletters), "mail", { actions.onManageFeeds(FeedKind.Newsletter) }, Modifier.weight(1f))
+                }
+                ManageButton(R.string.manage_title, pluralStringResource(R.plurals.topics_count, state.topics.size, state.topics.size), "label", actions.onManageTopics, wide = true)
             }
         }
         item(key = "pages") {
             Column {
                 val email = (state.account as? AccountState.SignedIn)?.session?.email
                 PageRow(SettingsPage.Account, email ?: stringResource(R.string.settings_account_signed_out), "account-circle", actions)
-                PageRow(SettingsPage.Integrations, stringResource(R.string.settings_integrations_summary), "extension", actions)
-                PageRow(SettingsPage.Theme, stringResource(state.settings.appearance.themeMode.labelRes()), "palette", actions)
-                PageRow(SettingsPage.List, stringResource(R.string.settings_list_summary), "view-agenda", actions)
+                PageRow(SettingsPage.Feed, stringResource(R.string.settings_feed_summary), "rss-feed", actions)
+                PageRow(SettingsPage.Saved, stringResource(R.string.settings_saved_summary), "list", actions)
                 PageRow(SettingsPage.Reader, stringResource(R.string.settings_article_view_summary), "chrome-reader-mode", actions)
+                PageRow(
+                    SettingsPage.Appearance,
+                    stringResource(R.string.settings_appearance_summary, stringResource(state.settings.appearance.themeMode.labelRes()), stringResource(state.settings.listView.labelRes())),
+                    "palette",
+                    actions,
+                )
             }
         }
         item(key = "footer") {
@@ -189,16 +205,17 @@ fun SettingsScreen(
 fun SettingsPage.titleRes(): Int =
     when (this) {
         SettingsPage.Account -> R.string.section_account
-        SettingsPage.Integrations -> R.string.section_integrations
-        SettingsPage.Theme -> R.string.setting_theme_title
-        SettingsPage.List -> R.string.section_list
+        SettingsPage.Feed -> R.string.home_tab_feed
+        SettingsPage.Saved -> R.string.saved_title
         SettingsPage.Reader -> R.string.section_article_view
+        SettingsPage.Appearance -> R.string.section_appearance
     }
 
 /**
- * One of the two large buttons at the top of Settings: its icon on a circle, its name and how many
- * it holds, on `surfaceContainerHigh`, like the Add sheet's choices. The title always takes two
- * lines' room, so the two buttons have the same height.
+ * One of the large buttons at the top of Settings: its icon on a circle, its name and how many it
+ * holds, on `surfaceContainerHigh`, like the Add sheet's choices. Side by side (RSS feeds, Newsletter
+ * feeds) the title always takes two lines' room, so the two have the same height; [wide] (Manage
+ * tags, the whole width under them) puts the icon before the text, as the Add sheet's choices.
  */
 @Composable
 private fun ManageButton(
@@ -207,17 +224,31 @@ private fun ManageButton(
     icon: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    wide: Boolean = false,
 ) {
-    Surface(onClick = onClick, shape = AppShapes.Item, color = MaterialTheme.colorScheme.surfaceContainerHigh, modifier = modifier) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Surface(onClick = onClick, shape = AppShapes.Item, color = MaterialTheme.colorScheme.surfaceContainerHigh, modifier = if (wide) modifier.fillMaxWidth() else modifier) {
+        val badge = @Composable {
             Box(Modifier.size(40.dp).background(MaterialTheme.colorScheme.secondaryContainer, CircleShape), contentAlignment = Alignment.Center) {
                 Icon(rememberFolderIconPainter(icon), contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer)
             }
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                // Room for two lines of title in both, so the two buttons are always the same height,
-                // whatever the language.
-                Text(stringResource(title), style = MaterialTheme.typography.titleMedium, minLines = 2, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                Text(detail, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        if (wide) {
+            Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                badge()
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(stringResource(title), style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(detail, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        } else {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                badge()
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    // Room for two lines of title in both, so the two buttons are always the same height,
+                    // whatever the language.
+                    Text(stringResource(title), style = MaterialTheme.typography.titleMedium, minLines = 2, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    Text(detail, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
         }
     }
@@ -271,7 +302,8 @@ fun SettingsPageScreen(
                         onDeleteData = actions.onDeleteAccountData,
                     )
                 }
-            SettingsPage.Integrations -> {
+            SettingsPage.Feed -> {
+                item(key = "list") { FeedRows(state, actions) }
                 // Moving to or from another reader: the feeds in and out.
                 item(key = "opml") {
                     SettingsSection(title = stringResource(R.string.feeds_opml_title)) {
@@ -287,6 +319,8 @@ fun SettingsPageScreen(
                         }
                     }
                 }
+            }
+            SettingsPage.Saved -> {
                 // The service Saved is also kept in.
                 state.instapaper?.let { instapaper ->
                     item(key = "instapaper") {
@@ -304,8 +338,7 @@ fun SettingsPageScreen(
                     }
                 }
             }
-            SettingsPage.Theme -> item(key = "appearance") { AppearanceRows(state.settings, actions) }
-            SettingsPage.List -> item(key = "list") { ListRows(state, actions) }
+            SettingsPage.Appearance -> item(key = "appearance") { AppearanceRows(state.settings, actions) }
             SettingsPage.Reader -> {
                 item(key = "reader") { ReaderRows(state.settings, actions) }
                 // Sites you pay for belong to reading: they decide which articles load in full (#180).
@@ -338,27 +371,14 @@ private fun SiteSignInsSection(
     }
 }
 
-/** Settings › Article list: how the list looks and behaves. */
+/** Settings › Feed: what only Feed's articles do (the list view is Appearance's: every list has it). */
 @Composable
-private fun ListRows(
+private fun FeedRows(
     state: SettingsState,
     actions: SettingsActions,
 ) {
     val settings = state.settings
     Column {
-        SettingsBlock {
-        Text(stringResource(R.string.setting_list_view), style = MaterialTheme.typography.bodyLarge)
-        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-            ListView.entries.forEachIndexed { index, view ->
-                SegmentedButton(
-                    selected = settings.listView == view,
-                    onClick = { actions.onListViewChange(view) },
-                    shape = SegmentedButtonDefaults.itemShape(index, ListView.entries.size),
-                    icon = { Icon(painterResource(view.iconRes()), contentDescription = null, modifier = Modifier.size(SegmentedButtonDefaults.IconSize)) },
-                ) { Text(stringResource(view.labelRes())) }
-            }
-        }
-        }
         SwitchSetting(
             title = stringResource(R.string.setting_mark_read_on_scroll_title),
             summary = null,
@@ -549,7 +569,10 @@ private fun ReaderRows(
     }
 }
 
-/** Settings › Theme: System, Light or Dark, and Dynamic color. */
+/**
+ * Settings › Appearance: System, Light or Dark, and Dynamic color; then the articles' rows (Small,
+ * Medium or Large), which Feed, Saved, the Inbox and Search all use.
+ */
 @Composable
 private fun AppearanceRows(
     settings: Settings,
@@ -568,6 +591,19 @@ private fun AppearanceRows(
             // minSdk 31: dynamic color is always available.
             dynamicColorSupported = true,
         )
+        SettingsBlock {
+            Text(stringResource(R.string.setting_list_view), style = MaterialTheme.typography.bodyLarge)
+            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                ListView.entries.forEachIndexed { index, view ->
+                    SegmentedButton(
+                        selected = settings.listView == view,
+                        onClick = { actions.onListViewChange(view) },
+                        shape = SegmentedButtonDefaults.itemShape(index, ListView.entries.size),
+                        icon = { Icon(painterResource(view.iconRes()), contentDescription = null, modifier = Modifier.size(SegmentedButtonDefaults.IconSize)) },
+                    ) { Text(stringResource(view.labelRes())) }
+                }
+            }
+        }
     }
 }
 

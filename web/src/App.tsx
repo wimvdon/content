@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArticleList } from "./components/ArticleList";
 import { ArticleView } from "./components/ArticleView";
 import { NavigationBar } from "./components/NavigationBar";
-import { AddChoiceDialog, AddFeedDialog, ManageFeedsDialog, SettingsDialog } from "./components/Dialogs";
+import { AddChoiceDialog, AddFeedDialog, ManageFeedsDialog, NewsletterDialog, SettingsDialog } from "./components/Dialogs";
+import type { FeedKind } from "./lib/feedKinds";
 import { ManageTopicsDialog } from "./components/TopicChips";
 import { InstapaperImportDialog } from "./components/ServiceSettings";
 import { SaveSheet } from "./components/SaveSheet";
@@ -33,10 +34,12 @@ export default function App() {
   // Search takes the list's place until it is closed; the article opened from it stays open.
   const [searching, setSearching] = useState(false);
   const [dialog, setDialog] = useState<"add" | "addChoice" | "settings" | null>(null);
-  // Manage feeds and Manage topics, Settings' two buttons (pages of Settings when opened from there).
-  const [manageFeeds, setManageFeeds] = useState(false);
+  // Manage feeds for RSS feeds or newsletter feeds, and Manage tags: Settings' buttons (pages of
+  // Settings when opened from there).
+  const [manageFeedsKind, setManageFeedsKind] = useState<FeedKind | null>(null);
+  const manageFeeds = manageFeedsKind !== null;
   const [manageTopics, setManageTopics] = useState(false);
-  // Add feed from Manage feeds: a page of it, without a topic.
+  // Add feed (or New address, for newsletter feeds) from Manage feeds: a page of it, without a topic.
   const [addFromManage, setAddFromManage] = useState(false);
   const [message, setMessage] = useState<Message | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -198,13 +201,30 @@ export default function App() {
     <>
       <ManageFeedsDialog
         open={manageFeeds}
+        kind={manageFeedsKind ?? "rss"}
         onOpenChange={(o) => {
-          setManageFeeds(o);
-          if (!o) setAddFromManage(false);
+          if (!o) {
+            setManageFeedsKind(null);
+            setAddFromManage(false);
+          }
         }}
         onAddFeed={() => setAddFromManage(true)}
       >
-        {addFromManage ? <AddFeedDialog open onOpenChange={(o) => setAddFromManage(o)} folderId={null} /> : null}
+        {addFromManage && manageFeedsKind === "newsletter" ? (
+          <NewsletterDialog
+            open
+            startCreating
+            onOpenChange={(o) => setAddFromManage(o)}
+            // Without a Content account: Settings › Account, where you sign in.
+            onSignIn={() => {
+              setAddFromManage(false);
+              setManageFeedsKind(null);
+              setDialog("settings");
+            }}
+          />
+        ) : addFromManage ? (
+          <AddFeedDialog open onOpenChange={(o) => setAddFromManage(o)} folderId={null} />
+        ) : null}
       </ManageFeedsDialog>
       <ManageTopicsDialog open={manageTopics} onOpenChange={setManageTopics} />
     </>
@@ -269,13 +289,13 @@ export default function App() {
         onOpenChange={(o) => {
           setDialog(o ? "settings" : null);
           if (!o) {
-            setManageFeeds(false);
+            setManageFeedsKind(null);
             setManageTopics(false);
             setAddFromManage(false);
           }
         }}
         onImport={() => fileInput.current?.click()}
-        onManageFeeds={() => setManageFeeds(true)}
+        onManageFeeds={setManageFeedsKind}
         onManageTopics={() => setManageTopics(true)}
       >
         {dialog === "settings" ? manageDialogs : null}

@@ -46,8 +46,9 @@ rss-reader/
         │   │   │   ├── Items.kt, LibraryItems.kt  One item per link: Saved's place, folder, tags (plain Kotlin)
         │   │   │   ├── Saved.kt              Saved's tabs, filters, folders, filing (plain Kotlin)
         │   │   │   ├── Newsletters.kt        Emails from Instapaper: unread, Mark (all) as read (plain Kotlin)
-        │   │   │   ├── NewsletterSubscribe.kt + › Subscribe to newsletter: its two ways (plain Kotlin)
+        │   │   │   ├── NewsletterSubscribe.kt + › Newsletter feed: its two ways (plain Kotlin)
         │   │   │   ├── NewsletterAddresses.kt Your own newsletter addresses and their feeds (plain Kotlin)
+        │   │   │   ├── FeedKinds.kt           RSS feeds and newsletter feeds, for Settings and Manage feeds (plain Kotlin)
         │   │   │   ├── Topics.kt             Topics: feed folders and saved articles' tags in step (plain Kotlin)
         │   │   │   ├── LibraryRows.kt         Library ⇄ database rows, what a change writes
         │   │   │   ├── db/                    Room: tables, queries, the database
@@ -89,7 +90,7 @@ rss-reader/
         │   │       ├── home/                  Article list, search bar, tabs, chip rows, Add and Add feed sheets, messages, inbox
         │   │       ├── reader/                Reader screen, text settings, reader colours, Organise sheet, Content's share sheet, SheetPages.kt (ContentSheet: every sheet; one opened from within a sheet is a page of it)
         │   │       ├── feeds/                 Topic chips, the Manage feeds and Manage topics sheets, the topic and Edit feed sheets
-        │   │       ├── settings/              Settings and its pages (Account, Integrations, Theme, …), Instapaper
+        │   │       ├── settings/              Settings and its pages (Account, Feed, Saved, Article view, Appearance), Instapaper
         │   │       └── theme/                 Theme.kt (palette) + shared design kit (incl. EmptyState)
         │   ├── assets/                  material_symbols.txt (folder icons) and its licence
         │   └── res/
@@ -107,7 +108,7 @@ Saved and Instapaper (#107, #109, #119): `data/Saved.kt` (tabs, filters, folders
 `data/ReadingLists.kt` (reading times, items as articles), `services/` (`ReadingListService`, `ServiceSync`, `ServiceManager`),
 `instapaper/` (client, sign-in, account, `InstapaperReadingList`, `InstapaperText`: a forwarded email's text through the feed loader), `data/InstapaperLinks.kt` (the address an Instapaper article without one gets), `ui/home/SavedContent.kt`, `ui/reader/ItemSheets.kt`, `ui/reader/SavedBar.kt` (the reader's folder button, which opens Organise, #251), `ui/reader/HighlightSheets.kt` (a highlight and the list, #102),
 `ui/settings/InstapaperSettings.kt` (Instapaper in Settings, and the import question), `data/ServiceImport.kt` (the answer to it). The web app: `web/src/lib/instapaper.ts`,
-`web/src/lib/saved.ts` (Saved: tabs, filters, folders, cards, like Android's `Saved.kt`), `web/src/lib/newsletters.ts` (emails from Instapaper, unread until opened, like Android's `Newsletters.kt`), `web/src/lib/newsletterSubscribe.ts` (+ › Subscribe to newsletter, like `NewsletterSubscribe.kt`), `web/src/lib/newsletterAddresses.ts` (your own newsletter addresses, like `NewsletterAddresses.kt`), `web/src/lib/serviceSync.ts` and `instapaperSync.ts` (Instapaper in the background), `web/src/lib/articleExtractor.ts` (reader view with Defuddle, which the Android app runs too, bundled from `web/src/android/`; sample pages in `testdata/articles/`),
+`web/src/lib/saved.ts` (Saved: tabs, filters, folders, cards, like Android's `Saved.kt`), `web/src/lib/newsletters.ts` (emails from Instapaper, unread until opened, like Android's `Newsletters.kt`), `web/src/lib/newsletterSubscribe.ts` (+ › Newsletter feed, like `NewsletterSubscribe.kt`), `web/src/lib/newsletterAddresses.ts` (your own newsletter addresses, like `NewsletterAddresses.kt`), `web/src/lib/feedKinds.ts` (RSS feeds and newsletter feeds, like `FeedKinds.kt`), `web/src/lib/serviceSync.ts` and `instapaperSync.ts` (Instapaper in the background), `web/src/lib/articleExtractor.ts` (reader view with Defuddle, which the Android app runs too, bundled from `web/src/android/`; sample pages in `testdata/articles/`),
 `web/src/components/SavedActions.tsx`, `worker/src/instapaper.ts`
 (token swap and the web app's calls). See `docs/instapaper.md`.
 

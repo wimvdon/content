@@ -176,7 +176,6 @@
         <item quantity="other">%d recent articles would be hidden:</item>
     </plurals>
     <string name="action_mark_read">Mark as read</string>
-    <string name="section_list">Article list</string>
     <string name="setting_list_view">View</string>
     <string name="list_view_small">Small</string>
     <string name="list_view_medium">Medium</string>
@@ -331,22 +330,18 @@
     <string name="topic_in_feeds">Feeds · %1$s</string>
     <string name="topic_in_saved">Saved · %1$s</string>
     <string name="add_title">Add</string>
-    <string name="add_choice_feed">Subscribe to feed</string>
+    <string name="add_choice_feed">RSS feed</string>
     <string name="add_choice_feed_body">Subscribe to an RSS feed by entering the URL of the publication</string>
     <string name="add_choice_article">Save article</string>
     <string name="add_choice_article_body">Save and organise an article by entering its URL</string>
     <string name="settings_account_signed_out">Not signed in</string>
-    <string name="settings_feeds_title">Manage feeds</string>
-    <string name="settings_list_summary">View, mark as read on scroll, hidden words</string>
     <string name="section_article_view">Article view</string>
     <string name="settings_article_view_summary">Text, full articles, sites you pay for</string>
     <string name="manage_feeds_hint">Tap a feed to rename it, change its tag or remove it. Drag one by its handle to reorder it or move it to another tag.</string>
     <string name="manage_feeds_drop_here">Drag a feed here</string>
-    <string name="manage_feeds_none">No feeds yet.</string>
+    <string name="manage_feeds_none">No RSS feeds yet.</string>
     <string name="manage_topics_hint">Tags group your feeds and saved articles. Tap a tag to rename it, change its icon or remove it; drag one by its handle to reorder it. Giving it another tag’s name merges the two.</string>
     <string name="topics_edit">Edit tags</string>
-    <string name="section_integrations">Integrations</string>
-    <string name="settings_integrations_summary">Instapaper, OPML import and export</string>
     <plurals name="topics_count">
         <item quantity="one">%d tag</item>
         <item quantity="other">%d tags</item>
@@ -358,8 +353,8 @@
     <string name="saved_open_unread">Saved, new newsletters</string>
     <string name="setting_newsletter_unread_title">Mark incoming newsletters as unread</string>
     <string name="setting_newsletter_unread_summary">New emails from Instapaper stay bold until you read them</string>
-    <string name="add_choice_newsletter">Subscribe to newsletter</string>
-    <string name="add_choice_newsletter_body">Read newsletters in Content, as a feed or in Saved</string>
+    <string name="add_choice_newsletter">Newsletter feed</string>
+    <string name="add_choice_newsletter_body">Get an email address for newsletters: they arrive as a feed</string>
     <string name="newsletter_to_read">Straight into To read</string>
     <string name="newsletter_to_read_body">With your Instapaper email address: newsletters arrive in Saved</string>
     <string name="newsletter_instapaper_step_1">Find your Save to Instapaper email address on Instapaper\'s Email page (signed in to Instapaper).</string>
@@ -367,7 +362,6 @@
     <string name="newsletter_instapaper_step_3">New newsletters arrive in Saved, in To read, unread, and under Newsletters.</string>
     <string name="newsletter_instapaper_connect_first">First connect Instapaper, so its emails come into Saved.</string>
     <string name="newsletter_find_address">Find my Instapaper address</string>
-    <string name="newsletter_own">Your own address</string>
     <string name="newsletter_own_body">Content makes an email address for a tag: newsletters arrive as one of your feeds</string>
     <string name="newsletter_own_explained">Give the feed a name and pick a tag. Content makes an email address for it: each newsletter sent there arrives as an article in that feed.</string>
     <string name="newsletter_own_sign_in_first">Your own addresses need a Content account, which keeps the newsletters.</string>
@@ -379,4 +373,10 @@
     <string name="newsletter_feed_label">Email address</string>
     <string name="newsletter_own_made">Your address is ready, and its feed is in Feed. Subscribe to newsletters with it.</string>
     <string name="newsletter_own_new">New address</string>
+    <string name="manage_newsletters_none">No newsletter feeds yet.</string>
+    <string name="settings_rss_feeds">RSS feeds</string>
+    <string name="settings_newsletter_feeds">Newsletter feeds</string>
+    <string name="settings_feed_summary">Mark as read on scroll, hidden words, OPML</string>
+    <string name="settings_saved_summary">Instapaper</string>
+    <string name="settings_appearance_summary">%1$s · %2$s</string>
 </resources>
