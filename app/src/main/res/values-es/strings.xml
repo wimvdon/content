@@ -388,4 +388,5 @@
     <string name="newsletter_own_copy">Copiar dirección</string>
     <string name="newsletter_feed_label">Dirección de correo</string>
     <string name="newsletter_own_made">Tu dirección está lista y su feed está en Feed. Suscríbete a boletines con ella.</string>
+    <string name="newsletter_own_new">Nueva dirección</string>
 </resources>

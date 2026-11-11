@@ -35,6 +35,10 @@ sit on a light tile, so dark logos stay visible in dark mode.
 
 **+** › **Subscribe to newsletter** offers two ways, each with its own page:
 
+**+** › **Subscribe to newsletter** first lists your addresses, grouped by tag (the feed's topic, No
+tag last), each with its feed's name and **Copy**, and **New address**; with none yet, it opens New
+address at once.
+
 - **Your own address** (with a Content account), like Subscribe to feed: give its feed a **name**,
   pick a **tag** (or No tag, or Edit tags) and tap **Create address**. Content makes an email address
   for it, such as `content+k7q2m9abcdef@in.wim.to`, adds its feed, and shows the address with

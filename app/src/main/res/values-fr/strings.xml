@@ -388,4 +388,5 @@
     <string name="newsletter_own_copy">Copier l’adresse</string>
     <string name="newsletter_feed_label">Adresse e-mail</string>
     <string name="newsletter_own_made">Votre adresse est prête, et son flux est dans Flux. Abonnez-vous aux newsletters avec elle.</string>
+    <string name="newsletter_own_new">Nouvelle adresse</string>
 </resources>

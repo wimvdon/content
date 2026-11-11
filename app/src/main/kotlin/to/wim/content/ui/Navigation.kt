@@ -1420,6 +1420,8 @@ fun RssReaderNavigation(
                         push(Screen.SettingsPage(SettingsPage.Account))
                     },
                     topics = library.folders,
+                    feeds = library.feeds,
+                    loadAddresses = { app.sync.newsletters() },
                     topicActions = topicActions,
                     createAddress = { name, topicId ->
                         // Made by the account's feed loader (its feed is titled by the name), then subscribed under the topic.

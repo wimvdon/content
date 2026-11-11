@@ -378,4 +378,5 @@
     <string name="newsletter_own_copy">Copy address</string>
     <string name="newsletter_feed_label">Email address</string>
     <string name="newsletter_own_made">Your address is ready, and its feed is in Feed. Subscribe to newsletters with it.</string>
+    <string name="newsletter_own_new">New address</string>
 </resources>

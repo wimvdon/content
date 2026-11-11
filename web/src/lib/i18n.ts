@@ -317,6 +317,7 @@ const en = {
   newsletterFindAddress: "Find my Instapaper address",
   newsletterFeedLabel: "Email address",
   newsletterOwnMade: "Your address is ready, and its feed is in Feed. Subscribe to newsletters with it.",
+  newsletterOwnNew: "New address",
 };
 
 export type Key = keyof typeof en;
@@ -582,6 +583,7 @@ const nl: Pack = {
     newsletterOwnCopy: "Adres kopiëren",
     newsletterFeedLabel: "E-mailadres",
     newsletterOwnMade: "Je adres is klaar, en de feed staat bij Feed. Abonneer je ermee op nieuwsbrieven.",
+    newsletterOwnNew: "Nieuw adres",
   },
   plurals: {
     topicsCount: ["{n} tag", "{n} tags"],
@@ -842,6 +844,7 @@ const fr: Pack = {
     newsletterOwnCopy: "Copier l’adresse",
     newsletterFeedLabel: "Adresse e-mail",
     newsletterOwnMade: "Votre adresse est prête, et son flux est dans Flux. Abonnez-vous aux newsletters avec elle.",
+    newsletterOwnNew: "Nouvelle adresse",
   },
   plurals: {
     topicsCount: ["{n} tag", "{n} tags"],
@@ -1102,6 +1105,7 @@ const de: Pack = {
     newsletterOwnCopy: "Adresse kopieren",
     newsletterFeedLabel: "E-Mail-Adresse",
     newsletterOwnMade: "Deine Adresse ist fertig, und ihr Feed ist unter Feed. Abonniere Newsletter damit.",
+    newsletterOwnNew: "Neue Adresse",
   },
   plurals: {
     topicsCount: ["{n} Tag", "{n} Tags"],
@@ -1362,6 +1366,7 @@ const es: Pack = {
     newsletterOwnCopy: "Copiar dirección",
     newsletterFeedLabel: "Dirección de correo",
     newsletterOwnMade: "Tu dirección está lista y su feed está en Feed. Suscríbete a boletines con ella.",
+    newsletterOwnNew: "Nueva dirección",
   },
   plurals: {
     topicsCount: ["{n} etiqueta", "{n} etiquetas"],
@@ -1622,6 +1627,7 @@ const it: Pack = {
     newsletterOwnCopy: "Copia indirizzo",
     newsletterFeedLabel: "Indirizzo email",
     newsletterOwnMade: "Il tuo indirizzo è pronto e il suo feed è in Feed. Iscriviti alle newsletter con esso.",
+    newsletterOwnNew: "Nuovo indirizzo",
   },
   plurals: {
     topicsCount: ["{n} tag", "{n} tag"],

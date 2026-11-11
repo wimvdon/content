@@ -42,4 +42,21 @@ class NewsletterSubscribeTest {
         assertEquals("1", NewsletterAddresses.topicFor(topics, " tech ")?.id)
         assertNull(NewsletterAddresses.topicFor(topics, "Food"))
     }
+
+    @Test
+    fun `the addresses are grouped by their feed's topic, in the topics' order, No topic last`() {
+        fun address(code: String) = NewsletterAddress(code, "Made as $code", "content+$code@in.wim.to", "https://w.example/newsletters/$code/0123456789abcdef0123456789abcdef")
+        val topics = listOf(Folder("1", "Tech"), Folder("2", "News"))
+        val a = address("aaaaaaaaaaaa")
+        val b = address("bbbbbbbbbbbb")
+        val c = address("cccccccccccc")
+        val d = address("dddddddddddd")
+        val feeds = listOf(Feed(a.feedUrl, "Weekly", folderId = "2"), Feed(b.feedUrl, "Daily", folderId = "1"), Feed(c.feedUrl, "Loose"))
+        val groups = NewsletterAddresses.grouped(listOf(a, b, c, d), feeds, topics)
+        assertEquals(listOf("1", "2", null), groups.map { it.topic?.id })
+        assertEquals(listOf("Daily"), groups[0].addresses.map { it.name })
+        // No topic: one without a topic, and one whose feed isn't here (its name as made).
+        assertEquals(listOf("Loose", "Made as dddddddddddd"), groups[2].addresses.map { it.name })
+        assertTrue(NewsletterAddresses.grouped(emptyList(), feeds, topics).isEmpty())
+    }
 }
