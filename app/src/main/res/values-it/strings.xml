@@ -363,4 +363,9 @@
     </plurals>
     <string name="account_web_title">Content sul web</string>
     <string name="account_web_summary">Leggi anche sul computer, su content.wim.to, con lo stesso account</string>
+    <string name="newsletters_title">Newsletter</string>
+    <string name="newsletters_unread">Nuove newsletter</string>
+    <string name="saved_open_unread">Salvati, nuove newsletter</string>
+    <string name="setting_newsletter_dot_title">Pallino per le nuove newsletter</string>
+    <string name="setting_newsletter_dot_summary">Un pallino su Salvati, Da leggere e Newsletter finché c’è una newsletter di Instapaper non letta</string>
 </resources>

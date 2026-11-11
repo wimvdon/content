@@ -23,6 +23,7 @@ import to.wim.content.instapaper.InstapaperState
 import to.wim.content.services.ServiceProblem
 import to.wim.content.services.ServiceStatus
 import to.wim.content.ui.theme.SettingsBlock
+import to.wim.content.ui.theme.SwitchSetting
 
 /** What the Instapaper part of Manage › Saved shows (#109, #251). */
 data class InstapaperSettingsState(
@@ -43,6 +44,9 @@ fun InstapaperSettings(
     onSignOut: () -> Unit,
     /** The answer to "Import from Instapaper?", while it waits for one (#251). */
     onChooseImport: (everything: Boolean) -> Unit = {},
+    /** The newsletters' dot (Newsletters): on Saved, To read and the Newsletters chip while one waits unread. */
+    newsletterDot: Boolean = false,
+    onNewsletterDotChange: (Boolean) -> Unit = {},
 ) {
     val signedIn = state.instapaper as? InstapaperState.SignedIn
     val status = state.status
@@ -76,6 +80,26 @@ fun InstapaperSettings(
             }
         }
     }
+    // Connected: whether a newsletter that comes in shows a dot (Newsletters).
+    if (signedIn != null) NewsletterDotSetting(newsletterDot, onNewsletterDotChange)
+}
+
+/**
+ * The newsletters' dot: a switch in Settings › Integrations › Instapaper and on + › Subscribe to
+ * newsletter's Instapaper page. Unread newsletters are bold with a dot either way; this adds the dot
+ * on Saved, To read and the Newsletters chip.
+ */
+@Composable
+fun NewsletterDotSetting(
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    SwitchSetting(
+        title = stringResource(R.string.setting_newsletter_dot_title),
+        summary = stringResource(R.string.setting_newsletter_dot_summary),
+        checked = checked,
+        onCheckedChange = onCheckedChange,
+    )
 }
 
 /**

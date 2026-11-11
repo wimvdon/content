@@ -8,18 +8,30 @@
 import { escapeHtml, snippet } from "./html";
 import { addToReadingList, changeItem, cleanTags, feedArticleFor, inInbox, putItem, recentTags, setReadingState, type Item } from "./items";
 import { keyOf, type Article, type Feed, type Library } from "./library";
+import { isNewsletter } from "./newsletters";
 import { inTopicOrder } from "./topics";
 
 export type SavedTab = { kind: "toread" } | { kind: "all" } | { kind: "folder"; name: string } | { kind: "archive" };
 
-/** What Saved shows: a tab, and within it only liked ones or only some tags (all of them). */
+/**
+ * What Saved shows: a tab, and within it only liked ones, only newsletters (newsletters.ts) or only
+ * some tags (all of them). The chips pick one at a time.
+ */
 export interface SavedFilter {
   tab: SavedTab;
   likedOnly: boolean;
   tags: string[];
+  /** Only newsletters (the Newsletters chip); absent: no. */
+  newslettersOnly?: boolean;
 }
 
-export const defaultSavedFilter: SavedFilter = { tab: { kind: "toread" }, likedOnly: false, tags: [] };
+export const defaultSavedFilter: SavedFilter = { tab: { kind: "toread" }, likedOnly: false, tags: [], newslettersOnly: false };
+
+/** Nothing but the tab: no chip chosen. */
+export const isPlainFilter = (f: SavedFilter) => !f.likedOnly && !f.newslettersOnly && f.tags.length === 0;
+
+/** The filter with no chip chosen (the tab stays). */
+export const withoutChips = (f: SavedFilter): SavedFilter => ({ ...f, likedOnly: false, newslettersOnly: false, tags: [] });
 
 const same = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
 
@@ -53,6 +65,7 @@ export function savedItems(lib: Library, filter: SavedFilter): Item[] {
       (i) =>
         isIn(i, filter.tab) &&
         (!filter.likedOnly || i.liked) &&
+        (!filter.newslettersOnly || isNewsletter(i.url)) &&
         filter.tags.every((t) => i.tags.some((x) => same(x, t))),
     )
     .sort((a, b) => savedAt(b) - savedAt(a));
@@ -218,6 +231,8 @@ export interface NoteContent {
   liked: boolean;
   /** Your note, shown small under the text. */
   note: string;
+  /** A newsletter not opened yet: bold, with a dot (newsletters.ts). */
+  unread?: boolean;
 }
 
 /** A saved item as a note card. */
@@ -230,6 +245,7 @@ export const noteOf = (i: Item): NoteContent => ({
   highlights: i.highlights.length,
   liked: i.liked,
   note: i.note.trim(),
+  unread: i.unread === true,
 });
 
 /** A feed article as a note card (Search's notes view): the start of its text under the title. */
@@ -312,3 +328,6 @@ export function chipTags(lib: Library, filter: SavedFilter): string[] {
 
 /** Whether Saved shows the Liked chip: something liked in the state shown, or Liked chosen. */
 export const showsLiked = (lib: Library, filter: SavedFilter) => filter.likedOnly || lib.items.some((i) => i.liked && isIn(i, filter.tab));
+
+/** Whether Saved shows the Newsletters chip, after Liked: a newsletter in the state shown, or Newsletters chosen. */
+export const showsNewsletters = (lib: Library, filter: SavedFilter) => filter.newslettersOnly === true || lib.items.some((i) => isNewsletter(i.url) && isIn(i, filter.tab));

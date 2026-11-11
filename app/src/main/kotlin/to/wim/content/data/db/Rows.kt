@@ -72,6 +72,8 @@ data class ItemRow(
     val progress: Float,
     /** Who shared it (#167), as {"email", "name"}, or null. */
     @ColumnInfo(defaultValue = "NULL") val sharedBy: String? = null,
+    /** An email from Instapaper not opened yet (Newsletters). */
+    @ColumnInfo(defaultValue = "0") val unread: Boolean = false,
 )
 
 /**

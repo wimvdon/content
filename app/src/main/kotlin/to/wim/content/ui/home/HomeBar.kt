@@ -41,6 +41,7 @@ import coil3.compose.SubcomposeAsyncImage
 import to.wim.content.R
 import to.wim.content.data.Feed
 import to.wim.content.sync.Gravatar
+import androidx.compose.material3.Badge
 
 /**
  * The title bar as a large search bar (#189): the magnifier, "Search articles" (which opens Search),
@@ -116,6 +117,8 @@ fun ViewSwitch(
     labels: List<String>,
     selected: Int,
     onSelect: (Int) -> Unit,
+    /** The views with Material's small badge (Saved's To read while a newsletter waits, with the setting on). */
+    dots: Set<Int> = emptySet(),
 ) {
     SingleChoiceSegmentedButtonRow(
         Modifier
@@ -129,7 +132,16 @@ fun ViewSwitch(
                 selected = index == selected,
                 onClick = { if (index != selected) onSelect(index) },
                 shape = SegmentedButtonDefaults.itemShape(index = index, count = labels.size),
-            ) { Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+            ) {
+                if (index in dots) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                        Badge()
+                    }
+                } else {
+                    Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+            }
         }
     }
 }

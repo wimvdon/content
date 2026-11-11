@@ -126,6 +126,8 @@ import to.wim.content.ui.theme.LocalEmptyStateBadge
 import to.wim.content.ui.theme.Motion
 import to.wim.content.ui.theme.SkeletonLine
 import to.wim.content.ui.theme.readableWidth
+import androidx.compose.material3.Badge
+import to.wim.content.data.SavedTab
 
 /** What the article list shows. */
 data class HomeState(
@@ -160,6 +162,8 @@ data class HomeState(
     val feedChipsShown: Set<String>? = null,
     /** How many articles shared with you are unread, for the Inbox's badge. */
     val inboxUnread: Int = 0,
+    /** The newsletters' dot on Saved in the bar (setting on and a newsletter waits unread). */
+    val savedDot: Boolean = false,
     /** The Inbox, for its destination; null while signed out. */
     val inbox: InboxHome? = null,
     /** The keys of the articles that are in Saved: Feeds marks them. */
@@ -227,10 +231,18 @@ fun HomeScreen(
     val inFeeds = reading == null && inbox == null
     val unreadHere = state.unreadCounts[state.selection] ?: 0
     // Mark all as read is the FAB in Feeds (Unread and All) and the Inbox while something is unread (2026-11-07).
-    val markAll: () -> Unit = { if (inbox != null) inbox.onMarkAllRead() else actions.onMarkAllRead() }
+    val markAll: () -> Unit = {
+        when {
+            inbox != null -> inbox.onMarkAllRead()
+            reading != null -> reading.onMarkAllRead()
+            else -> actions.onMarkAllRead()
+        }
+    }
     val markAllRead =
         when {
             inbox != null -> ListEnd.inboxHasUnread(inbox.items)
+            // Saved: while an unread newsletter is in the list shown.
+            reading != null -> reading.items.any { it.unread }
             inFeeds -> state.articles.isNotEmpty() && ListEnd.showsMarkAllRead(unreadHere)
             else -> false
         }
@@ -276,7 +288,7 @@ fun HomeScreen(
         }
         // On wide windows Feed and Saved move to a navigation rail at the side.
         Row(Modifier.fillMaxSize()) {
-            if (wide) MainNavigationRail(tab, onTab, state.inbox != null, state.inboxUnread)
+            if (wide) MainNavigationRail(tab, onTab, state.inbox != null, state.inboxUnread, state.savedDot)
             Scaffold(
                 modifier = Modifier.weight(1f).nestedScroll(scrollBehavior.nestedScrollConnection),
                 snackbarHost = { MessageHost(snackbarHostState) },
@@ -293,37 +305,43 @@ fun HomeScreen(
                             ViewSwitch(
                                 labels = listOf(stringResource(R.string.reading_list_to_read), stringResource(R.string.filter_all)),
                                 selected = Saved.states.indexOf(reading.filter.tab).coerceAtLeast(0),
+                                // The newsletters' dot: unread ones are always to read.
+                                dots = if (reading.dot) setOf(Saved.states.indexOf(SavedTab.ToRead)) else emptySet(),
                                 // A topic stays chosen when the view changes.
                                 onSelect = { i -> Saved.states.getOrNull(i)?.let { actions.onSavedFilter(reading.filter.copy(tab = it)) } },
                             )
                             // No chips (no tags, nothing liked): keep their room, so the count doesn't touch the switch (#333).
-                            if (!Saved.showsChips(reading.tags, reading.showsLiked)) Spacer(Modifier.height(8.dp))
+                            if (!Saved.showsChips(reading.tags, reading.showsLiked, reading.showsNewsletters)) Spacer(Modifier.height(8.dp))
                             TagChips(
                                 tags = reading.tags,
                                 top = 0.dp,
                                 iconOf = { name -> state.folders.firstOrNull { it.title.equals(name, ignoreCase = true) }?.icon },
                                 selected = reading.filter.tags.firstOrNull(),
-                                onSelect = { t -> actions.onSavedFilter(reading.filter.copy(likedOnly = false, tags = setOfNotNull(t))) },
+                                onSelect = { t -> actions.onSavedFilter(reading.filter.copy(likedOnly = false, newslettersOnly = false, tags = setOfNotNull(t))) },
                                 // Liked is a group like a tag (#206): one at a time, before the tags; only when
-                                // something liked is in the tab shown (or Liked is chosen).
+                                // something liked is in the tab shown (or Liked is chosen). Newsletters follows it,
+                                // the same way: only when a newsletter is in the tab shown.
                                 liked =
-                                    if (!reading.showsLiked) {
+                                    if (!reading.showsLiked && !reading.showsNewsletters) {
                                         null
                                     } else {
                                         {
-                                            val on = reading.filter.likedOnly
-                                            FilterChip(
-                                                selected = on,
-                                                onClick = { actions.onSavedFilter(reading.filter.copy(likedOnly = !on, tags = emptySet())) },
-                                                label = { Text(stringResource(R.string.reading_list_liked)) },
-                                                leadingIcon = {
-                                                    Icon(
-                                                        painterResource(if (on) R.drawable.ic_favorite_filled else R.drawable.ic_favorite),
-                                                        contentDescription = null,
-                                                        modifier = Modifier.size(FilterChipDefaults.IconSize),
-                                                    )
-                                                },
-                                            )
+                                            if (reading.showsLiked) {
+                                                val on = reading.filter.likedOnly
+                                                FilterChip(
+                                                    selected = on,
+                                                    onClick = { actions.onSavedFilter(reading.filter.copy(likedOnly = !on, newslettersOnly = false, tags = emptySet())) },
+                                                    label = { Text(stringResource(R.string.reading_list_liked)) },
+                                                    leadingIcon = {
+                                                        Icon(
+                                                            painterResource(if (on) R.drawable.ic_favorite_filled else R.drawable.ic_favorite),
+                                                            contentDescription = null,
+                                                            modifier = Modifier.size(FilterChipDefaults.IconSize),
+                                                        )
+                                                    },
+                                                )
+                                            }
+                                            if (reading.showsNewsletters) NewslettersChip(reading) { on -> actions.onSavedFilter(reading.filter.copy(likedOnly = false, newslettersOnly = on, tags = emptySet())) }
                                         }
                                     },
                             )
@@ -374,7 +392,7 @@ fun HomeScreen(
                         }
                     }
                 },
-                bottomBar = { if (!wide) MainNavigationBar(tab, onTab, state.inbox != null, state.inboxUnread) },
+                bottomBar = { if (!wide) MainNavigationBar(tab, onTab, state.inbox != null, state.inboxUnread, state.savedDot) },
                 floatingActionButton = {
                     // Mark all as read is the FAB in Feeds and the Inbox (2026-11-07; + is in the search
                     // bar): with its words while the header shows, just ✓✓ while scrolling down.
@@ -413,7 +431,7 @@ fun HomeScreen(
                             onArchive = actions.onArchiveItem,
                             onFile = actions.onFileItem,
                             onShare = actions.onShareItem,
-                            onClearFilters = { actions.onSavedFilter(reading.filter.copy(likedOnly = false, tags = emptySet())) },
+                            onClearFilters = { actions.onSavedFilter(reading.filter.copy(likedOnly = false, newslettersOnly = false, tags = emptySet())) },
                         )
                     }
                 } else {
@@ -1118,4 +1136,21 @@ private fun NothingToShow(
     ) {
         OutlinedButton(onClick = onRefresh, enabled = !refreshing) { Text(stringResource(R.string.action_refresh)) }
     }
+}
+
+/** Saved's Newsletters chip, after Liked: the emails from Instapaper; with the setting on, a dot while one waits unread. */
+@Composable
+private fun NewslettersChip(
+    reading: SavedHome,
+    onChoose: (Boolean) -> Unit,
+) {
+    val on = reading.filter.newslettersOnly
+    val waiting = stringResource(R.string.newsletters_unread)
+    FilterChip(
+        selected = on,
+        onClick = { onChoose(!on) },
+        label = { Text(stringResource(R.string.newsletters_title)) },
+        leadingIcon = { Icon(painterResource(R.drawable.ic_mail), contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) },
+        trailingIcon = if (reading.dot) ({ Badge(Modifier.semantics { contentDescription = waiting }) }) else null,
+    )
 }

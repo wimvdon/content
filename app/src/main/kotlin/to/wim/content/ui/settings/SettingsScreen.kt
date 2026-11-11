@@ -117,6 +117,7 @@ class SettingsActions(
     val onExportOpml: () -> Unit = {},
     val onFullArticlesChange: (Boolean) -> Unit,
     val onAlwaysOpenWebsiteChange: (Boolean) -> Unit,
+    val onNewsletterDotChange: (Boolean) -> Unit = {},
     val onShowImagesChange: (Boolean) -> Unit,
     val onMarkReadOnScrollChange: (Boolean) -> Unit,
     /** Hide articles with words (#277): the words as typed. */
@@ -290,7 +291,15 @@ fun SettingsPageScreen(
                 state.instapaper?.let { instapaper ->
                     item(key = "instapaper") {
                         SettingsSection(title = stringResource(R.string.section_instapaper)) {
-                            InstapaperSettings(instapaper, actions.onInstapaperSignIn, actions.onInstapaperSync, actions.onInstapaperSignOut, actions.onInstapaperImport)
+                            InstapaperSettings(
+                                instapaper,
+                                actions.onInstapaperSignIn,
+                                actions.onInstapaperSync,
+                                actions.onInstapaperSignOut,
+                                actions.onInstapaperImport,
+                                newsletterDot = state.settings.newsletterDot,
+                                onNewsletterDotChange = actions.onNewsletterDotChange,
+                            )
                         }
                     }
                 }

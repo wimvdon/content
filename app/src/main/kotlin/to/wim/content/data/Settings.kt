@@ -130,6 +130,8 @@ data class Settings(
     val markReadOnScroll: Boolean = false,
     /** Open feed articles on their website instead of in the reader; on this phone only, off by default. */
     val alwaysOpenWebsite: Boolean = false,
+    /** A dot on Saved, To read and the Newsletters chip while a newsletter waits unread ([Newsletters]); synced, off by default. */
+    val newsletterDot: Boolean = false,
     /** Hide feed articles whose title has one of these words (#277), as typed: see [ArticleFilter]. */
     val hiddenWords: String = "",
     val listView: ListView = ListView.Medium,

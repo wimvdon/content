@@ -2,6 +2,7 @@ package to.wim.content.services
 
 import to.wim.content.data.Item
 import to.wim.content.data.Library
+import to.wim.content.data.Newsletters
 import to.wim.content.data.ReadingListEntry
 import to.wim.content.data.ReadingState
 import to.wim.content.data.Saved
@@ -186,6 +187,34 @@ class ServiceSyncTest {
         assertEquals("Desc", two.description)
         // Nothing to send back.
         assertEquals(listOf("changes", "changes"), service.calls)
+    }
+
+    @Test
+    fun `an email that arrives after connecting waits unread, one from the import doesn't`() {
+        service.put(remote("1", "https://www.instapaper.com/read/1"))
+        assertNull(sync())
+        // Imported when connecting: read.
+        assertFalse(library.item("instapaper.com/read/1")!!.unread)
+        // Arrived since: a newsletter, unread; an article with an address, or one archived there, isn't.
+        service.put(remote("2", "https://www.instapaper.com/read/2"))
+        service.put(remote("3", "https://a.example/3"))
+        service.put(remote("4", "https://www.instapaper.com/read/4", archived = true))
+        assertNull(sync())
+        assertTrue(library.item("instapaper.com/read/2")!!.unread)
+        assertFalse(library.item("a.example/3")!!.unread)
+        assertFalse(library.item("instapaper.com/read/4")!!.unread)
+        // A change there later doesn't make it unread again once read.
+        library = Newsletters.markRead(library, "instapaper.com/read/2")
+        service.put(service.entries["2"]!!.copy(liked = true))
+        assertNull(sync())
+        assertFalse(library.item("instapaper.com/read/2")!!.unread)
+        // Archived there: read.
+        service.put(remote("5", "https://www.instapaper.com/read/5"))
+        assertNull(sync())
+        assertTrue(library.item("instapaper.com/read/5")!!.unread)
+        service.put(service.entries["5"]!!.copy(archived = true))
+        assertNull(sync())
+        assertFalse(library.item("instapaper.com/read/5")!!.unread)
     }
 
     @Test

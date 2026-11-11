@@ -23,6 +23,7 @@ class SyncSettingsTest {
             showImages = false,
             markReadOnScroll = true,
             alwaysOpenWebsite = true,
+            newsletterDot = true,
             hiddenWords = "crypto, apple watch",
             listView = ListView.Large,
         )
@@ -43,6 +44,7 @@ class SyncSettingsTest {
                 "android.showImages" to "false",
                 "articles.markReadOnScroll" to "true",
                 "articles.alwaysOpenWebsite" to "true",
+                "articles.newsletterDot" to "true",
                 "android.listView" to "Large",
                 "articles.hiddenWords" to "crypto, apple watch",
                 SyncSettings.RECIPIENTS to "[]",

@@ -48,6 +48,7 @@ object LibraryRows {
             highlights = Json.write(i.highlights.map(::highlightMap)),
             progress = i.progress,
             sharedBy = i.sharedBy?.let { Json.write(sharedByMap(it)) },
+            unread = i.unread,
         )
 
     fun library(tables: LibraryTables): Library {
@@ -99,6 +100,7 @@ object LibraryRows {
             highlights = (runCatching { Json.parse(row.highlights) }.getOrNull() as? List<*>).orEmpty().mapNotNull(::highlightOf),
             progress = row.progress.coerceIn(0f, 1f),
             sharedBy = row.sharedBy?.let { runCatching { Json.parse(it) }.getOrNull() }.let(::sharedByOf),
+            unread = row.unread,
         )
 
     fun sharedByMap(s: SharedBy): Map<String, Any?> = linkedMapOf("email" to s.email, "name" to s.name, "at" to s.at, "waits" to s.inInbox, "read" to s.read)

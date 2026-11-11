@@ -1,4 +1,4 @@
-import { Plus, Archive, ArchiveRestore, Bell, BookOpen, CheckCheck, Circle, CircleCheck, ExternalLink, Folder as FolderGlyph, Heart, Highlighter, Link2, Newspaper, Quote, RefreshCw, Rss, Search, Settings as SettingsIcon, Share2, StickyNote, Tag as TagIcon, Trash2, type LucideIcon } from "lucide-react";
+import { Plus, Archive, ArchiveRestore, Bell, BookOpen, CheckCheck, Circle, CircleCheck, ExternalLink, Folder as FolderGlyph, Heart, Highlighter, Link2, Mail, Newspaper, Quote, RefreshCw, Rss, Search, Settings as SettingsIcon, Share2, StickyNote, Tag as TagIcon, Trash2, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { headerHidden } from "@/lib/header";
 import { app, useApp } from "@/lib/app";
@@ -6,7 +6,9 @@ import { useListedLibrary } from "./useListed";
 import { snippet } from "@/lib/html";
 import { dayLabel, plural, t } from "@/lib/i18n";
 import { articleKey, articlesInTab, chipTag, feedTabOf, sortTime, unreadKeys, type Article, type Feed } from "@/lib/library";
-import { chipTags, itemArticle, noteOf, savedItems, showsLiked, showsNotes, sourceOf, type NoteContent, type SavedFilter } from "@/lib/saved";
+import { chipTags, isPlainFilter, itemArticle, noteOf, savedItems, showsLiked, showsNewsletters, showsNotes, sourceOf, withoutChips, type NoteContent } from "@/lib/saved";
+import { hasUnreadNewsletter } from "@/lib/newsletters";
+import { NewDot } from "./NewDot";
 import { sharedByLabel } from "@/lib/sharing";
 import { inboxItems } from "@/lib/inbox";
 import { savedArticleKeys, type Item, type SharedBy } from "@/lib/items";
@@ -264,11 +266,12 @@ function SavedArticles({
   onMessage: ListProps["onMessage"];
   onAdd: () => void;
 }) {
-  const { library, savedFilter: filter, loaded } = useApp();
+  const { library, savedFilter: filter, loaded, settings } = useApp();
   const [share, shareDialog] = useShare((text) => onMessage(text));
   // Right-click or press and hold on a saved item (#221, #263, #305), cards and rows alike: Archive
-  // (or Back to read) first, as on Android.
+  // (or Back to read) first, as on Android. An unread newsletter has Mark as read before it (no way back).
   const menuOf = (item: Item) => [
+    ...(item.unread ? [{ icon: <CircleCheck />, label: t("markRead"), onClick: () => app.markNewsletterRead(item.key) }] : []),
     item.readingList?.state === "archived"
       ? { icon: <ArchiveRestore />, label: t("backToRead"), onClick: () => app.archiveItem(item.key, false) }
       : {
@@ -286,8 +289,8 @@ function SavedArticles({
   const items = useMemo(() => savedItems(library, filter), [library, filter]);
   // The topics with something in the state shown, and the one chosen (it stays when the state changes).
   const tags = useMemo(() => chipTags(library, filter), [library, filter]);
-  const set = (change: Partial<SavedFilter>) => app.showSaved({ ...filter, ...change });
-  const plain = !filter.likedOnly && filter.tags.length === 0;
+  const plain = isPlainFilter(filter);
+  const newsletterDot = settings.newsletterDot && hasUnreadNewsletter(library);
   const header = useCollapsingHeader();
   return (
     <section className="flex h-full min-w-0 flex-col" aria-label={t("saved")}>
@@ -297,26 +300,45 @@ function SavedArticles({
       <SavedViewSwitch className="mx-4 mt-1 mb-0 lg:hidden" />
       <TagChips
         icons={topicIcons(library)}
-        // Liked is a group like a tag (#206): one at a time, before the tags.
+        // Liked is a group like a tag (#206): one at a time, before the tags; Newsletters after it.
         liked={
-          showsLiked(library, filter) ? (
-          <button
-            type="button"
-            aria-pressed={filter.likedOnly}
-            onClick={() => set({ likedOnly: !filter.likedOnly, tags: [] })}
-            className={cn(
-              "inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border px-3 text-sm",
-              filter.likedOnly ? "border-transparent bg-accent text-accent-foreground" : "hover:bg-muted",
-            )}
-          >
-            <Heart className={cn("size-4", filter.likedOnly && "fill-current")} aria-hidden="true" />
-            {t("liked")}
-          </button>
+          showsLiked(library, filter) || showsNewsletters(library, filter) ? (
+            <>
+              {showsLiked(library, filter) ? (
+                <button
+                  type="button"
+                  aria-pressed={filter.likedOnly}
+                  onClick={() => app.showSaved({ ...withoutChips(filter), likedOnly: !filter.likedOnly })}
+                  className={cn(
+                    "inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border px-3 text-sm",
+                    filter.likedOnly ? "border-transparent bg-accent text-accent-foreground" : "hover:bg-muted",
+                  )}
+                >
+                  <Heart className={cn("size-4", filter.likedOnly && "fill-current")} aria-hidden="true" />
+                  {t("liked")}
+                </button>
+              ) : null}
+              {showsNewsletters(library, filter) ? (
+                <button
+                  type="button"
+                  aria-pressed={filter.newslettersOnly === true}
+                  onClick={() => app.showSaved({ ...withoutChips(filter), newslettersOnly: !filter.newslettersOnly })}
+                  className={cn(
+                    "inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border px-3 text-sm",
+                    filter.newslettersOnly ? "border-transparent bg-accent text-accent-foreground" : "hover:bg-muted",
+                  )}
+                >
+                  <Mail className="size-4" aria-hidden="true" />
+                  {t("newsletters")}
+                  {newsletterDot ? <NewDot label={t("newslettersUnread")} /> : null}
+                </button>
+              ) : null}
+            </>
           ) : null
         }
         tags={tags}
         selected={filter.tags[0] ?? null}
-        onSelect={(tag) => set({ tags: tag === null ? [] : [tag], likedOnly: false })}
+        onSelect={(tag) => app.showSaved({ ...withoutChips(filter), tags: tag === null ? [] : [tag] })}
       />
       </CollapsingHeader>
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-6" role="feed" onScroll={header.onScroll}>
@@ -330,7 +352,7 @@ function SavedArticles({
           >
             {/* Filtered to nothing: one click back to the whole tab; an empty To read offers Add link. */}
             {!plain ? (
-              <Button variant="outline" onClick={() => set({ likedOnly: false, tags: [] })}>{t("showAll")}</Button>
+              <Button variant="outline" onClick={() => app.showSaved(withoutChips(filter))}>{t("showAll")}</Button>
             ) : filter.tab.kind === "toread" ? (
               <Button variant="secondary" onClick={app.addLink}>
                 <Link2 />
@@ -362,7 +384,14 @@ function SavedArticles({
                   return (
                     <li key={item.key}>
                       <WithRowMenu items={menuOf(item)}>
-                        <Row article={article} feed={sourceOf(item, library)} open={openKey === articleKey(article)} onOpen={() => onOpen(article)} noReadState />
+                        {/* Only an unread newsletter shows a read state: bold, with a dot. */}
+                        <Row
+                          article={item.unread ? { ...article, read: false } : article}
+                          feed={sourceOf(item, library)}
+                          open={openKey === articleKey(article)}
+                          onOpen={() => onOpen(article)}
+                          noReadState={!item.unread}
+                        />
                       </WithRowMenu>
                     </li>
                   );
@@ -371,6 +400,21 @@ function SavedArticles({
             )}
           </>
         )}
+        {/* Mark all as read under the last item while an unread newsletter is in the list, as in Feeds and the Inbox. */}
+        {items.some((i) => i.unread) ? (
+          <div className="flex justify-center pt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                const keys = app.markNewslettersRead(items);
+                if (keys.length > 0) onMessage(plural("markedRead", keys.length), { label: t("undo"), run: () => app.undoMarkNewslettersRead(keys) });
+              }}
+            >
+              <CheckCheck />
+              {t("markAllRead")}
+            </Button>
+          </div>
+        ) : null}
       </div>
       {shareDialog}
     </section>
@@ -721,7 +765,11 @@ function NoteCardButton({ note, feed, open, onOpen, label }: { note: NoteContent
       {image ? <img src={image} alt="" loading="lazy" referrerPolicy="no-referrer" className="h-24 w-full bg-muted object-cover" onError={(e) => (e.currentTarget.style.display = "none")} /> : null}
       <div className="flex flex-col gap-2 px-4 py-3">
         {label ? <span className="text-xs font-medium text-muted-foreground">{label}</span> : null}
-        <h3 className="line-clamp-3 font-serif leading-snug font-medium">{note.title}</h3>
+        {/* An unread newsletter: bold, with a dot, as unread articles in Feeds and the Inbox. */}
+        <h3 className={cn("line-clamp-3 font-serif leading-snug", note.unread ? "font-bold" : "font-medium")}>
+          {note.unread ? <span role="img" className="mr-2 mb-0.5 inline-block size-2 rounded-full bg-unread align-middle" aria-label={t("unread")} /> : null}
+          {note.title}
+        </h3>
         {/* The text, kept short: the first highlight, quoted, or the site's description. */}
         {body?.kind === "quote" ? (
           <p className="flex gap-2 text-sm">

@@ -61,6 +61,8 @@ class SettingsStore(
 
     suspend fun setAlwaysOpenWebsite(enabled: Boolean) = edit { it[ALWAYS_OPEN_WEBSITE] = enabled }
 
+    suspend fun setNewsletterDot(enabled: Boolean) = edit { it[NEWSLETTER_DOT] = enabled }
+
     suspend fun setHiddenWords(text: String) = edit { it[HIDDEN_WORDS] = text }
 
     suspend fun setListView(view: ListView) = edit { it[LIST_VIEW] = view.name }
@@ -103,6 +105,7 @@ class SettingsStore(
                 prefs[SHOW_IMAGES] = s.showImages
                 prefs[MARK_READ_ON_SCROLL] = s.markReadOnScroll
                 prefs[ALWAYS_OPEN_WEBSITE] = s.alwaysOpenWebsite
+                prefs[NEWSLETTER_DOT] = s.newsletterDot
                 prefs[HIDDEN_WORDS] = s.hiddenWords
                 prefs[LIST_VIEW] = s.listView.name
                 prefs[IMPORTS] = ServiceSettings.writeImports(s.imports)
@@ -139,6 +142,7 @@ class SettingsStore(
             showImages = p[SHOW_IMAGES] ?: defaults.showImages,
             markReadOnScroll = p[MARK_READ_ON_SCROLL] ?: defaults.markReadOnScroll,
             alwaysOpenWebsite = p[ALWAYS_OPEN_WEBSITE] ?: defaults.alwaysOpenWebsite,
+            newsletterDot = p[NEWSLETTER_DOT] ?: defaults.newsletterDot,
             hiddenWords = p[HIDDEN_WORDS] ?: defaults.hiddenWords,
             listView = enumOr(p[LIST_VIEW], defaults.listView),
             imports = ServiceSettings.readImports(p[IMPORTS]),
@@ -167,6 +171,7 @@ class SettingsStore(
         val SHOW_IMAGES = booleanPreferencesKey("show_images")
         val MARK_READ_ON_SCROLL = booleanPreferencesKey("mark_read_on_scroll")
         val ALWAYS_OPEN_WEBSITE = booleanPreferencesKey("always_open_website")
+        val NEWSLETTER_DOT = booleanPreferencesKey("newsletter_dot")
         val HIDDEN_WORDS = stringPreferencesKey("hidden_words")
         val LIST_VIEW = stringPreferencesKey("list_view")
         val IMPORTS = stringPreferencesKey("service_imports")

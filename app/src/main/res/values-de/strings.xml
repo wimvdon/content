@@ -351,4 +351,9 @@
     </plurals>
     <string name="account_web_title">Content im Web</string>
     <string name="account_web_summary">Lies auch am Computer, auf content.wim.to, mit demselben Konto angemeldet</string>
+    <string name="newsletters_title">Newsletter</string>
+    <string name="newsletters_unread">Neue Newsletter</string>
+    <string name="saved_open_unread">Gespeichert, neue Newsletter</string>
+    <string name="setting_newsletter_dot_title">Punkt bei neuen Newslettern</string>
+    <string name="setting_newsletter_dot_summary">Ein Punkt bei Gespeichert, Zu lesen und Newsletter, solange ein Newsletter aus Instapaper ungelesen ist</string>
 </resources>

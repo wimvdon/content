@@ -15,12 +15,19 @@ sealed interface SavedTab {
     data object Archive : SavedTab
 }
 
-/** What Saved shows: a tab, and within it only liked ones or only some tags (all of them). */
+/**
+ * What Saved shows: a tab, and within it only liked ones, only newsletters ([Newsletters]) or only
+ * some tags (all of them). The chips pick one at a time.
+ */
 data class SavedFilter(
     val tab: SavedTab = SavedTab.ToRead,
     val likedOnly: Boolean = false,
     val tags: Set<String> = emptySet(),
-)
+    val newslettersOnly: Boolean = false,
+) {
+    /** Nothing but the tab: no chip chosen. */
+    val plain: Boolean get() = !likedOnly && !newslettersOnly && tags.isEmpty()
+}
 
 /**
  * Saved (#119): one list for everything saved, the same whichever service it is kept in. An item is
@@ -49,6 +56,8 @@ data class NoteContent(
     val highlights: Int = 0,
     val liked: Boolean = false,
     val note: String = "",
+    /** A newsletter not opened yet: bold, with a dot (Newsletters). */
+    val unread: Boolean = false,
 )
 
 object Saved {
@@ -60,7 +69,7 @@ object Saved {
     fun showsNotes(tab: SavedTab): Boolean = true
 
     /** A saved item as a note card. */
-    fun note(item: Item): NoteContent = NoteContent(item.title, item.imageUrl, cardBody(item), item.host, item.tags, item.highlights.size, item.liked, item.note.trim())
+    fun note(item: Item): NoteContent = NoteContent(item.title, item.imageUrl, cardBody(item), item.host, item.tags, item.highlights.size, item.liked, item.note.trim(), item.unread)
 
     /** A feed article as a note card (Search's notes view): the start of its text under the title. */
     fun note(article: Article): NoteContent =
@@ -96,6 +105,7 @@ object Saved {
             .filter { item ->
                 isIn(item, filter.tab) &&
                     (!filter.likedOnly || item.liked) &&
+                    (!filter.newslettersOnly || Newsletters.isNewsletter(item)) &&
                     filter.tags.all { t -> item.tags.any { it.equals(t, ignoreCase = true) } }
             }.sortedByDescending { it.readingList?.addedAt ?: it.createdAt }
 
@@ -149,6 +159,12 @@ object Saved {
         filter: SavedFilter,
     ): Boolean = filter.likedOnly || library.items.any { it.liked && isIn(it, filter.tab) }
 
+    /** Whether Saved shows the Newsletters chip, after Liked: a newsletter in the state shown, or Newsletters chosen. */
+    fun showsNewsletters(
+        library: Library,
+        filter: SavedFilter,
+    ): Boolean = filter.newslettersOnly || library.items.any { Newsletters.isNewsletter(it) && isIn(it, filter.tab) }
+
     /**
      * Whether Saved shows its chip row (Liked and the tags) under To read / All. Without it the
      * header keeps the row's room, so the count doesn't touch the switch (#333).
@@ -156,7 +172,8 @@ object Saved {
     fun showsChips(
         tags: List<String>,
         showsLiked: Boolean,
-    ): Boolean = showsLiked || tags.isNotEmpty()
+        showsNewsletters: Boolean = false,
+    ): Boolean = showsLiked || showsNewsletters || tags.isNotEmpty()
 
     /**
      * Saved's tabs: To read, and All (everything saved, archived articles too; it replaced the

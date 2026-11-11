@@ -3,6 +3,7 @@ import { InstapaperError, type Bookmark, type ChangesPage, type Folder, type Tag
 import { InstapaperSync } from "../src/lib/instapaperSync";
 import { addToReadingList, changeItem, itemOf, joinDuplicateItems, looseKeyOfLink, setLiked, setReadingState, setTags, type Item } from "../src/lib/items";
 import { emptyLibrary, type Library } from "../src/lib/library";
+import { markNewsletterRead } from "../src/lib/newsletters";
 import { emptyServiceSyncState, importService, rekeyed, ServiceSyncError, syncService, type RemoteChanges, type RemoteEntry, type SavedSyncService, type ServiceSyncState } from "../src/lib/serviceSync";
 
 /** A service in memory: what it has, a cursor per change, and calls that can fail. */
@@ -283,6 +284,35 @@ class FakeApi {
 function bookmark(id: number, url: string | null, patch: Partial<Bookmark> = {}): Bookmark {
   return { id, url, title: `T${id}`, description: "D", image: "https://img/x.jpg", liked: false, archived: false, time: 1_755_000_000, folder_id: null, tags: [], ...patch };
 }
+
+describe("newsletters from Instapaper", () => {
+  it("one that arrives after connecting waits unread, one from the import doesn't", async () => {
+    const { box, service, sync } = setup();
+    service.put(remote("1", "https://www.instapaper.com/read/1"));
+    expect(await sync()).toBeNull();
+    expect(itemOf(box.lib, "instapaper.com/read/1")?.unread ?? false).toBe(false);
+    // Arrived since: a newsletter, unread; an article with an address, or one archived there, isn't.
+    service.put(remote("2", "https://www.instapaper.com/read/2"));
+    service.put(remote("3", "https://a.example/3"));
+    service.put(remote("4", "https://www.instapaper.com/read/4", { archived: true }));
+    expect(await sync()).toBeNull();
+    expect(itemOf(box.lib, "instapaper.com/read/2")?.unread).toBe(true);
+    expect(itemOf(box.lib, "a.example/3")?.unread ?? false).toBe(false);
+    expect(itemOf(box.lib, "instapaper.com/read/4")?.unread ?? false).toBe(false);
+    // A change there later doesn't make it unread again once read.
+    box.lib = markNewsletterRead(box.lib, "instapaper.com/read/2");
+    service.put({ ...service.entries.get("2")!, liked: true });
+    expect(await sync()).toBeNull();
+    expect(itemOf(box.lib, "instapaper.com/read/2")?.unread).toBe(false);
+    // Archived there: read.
+    service.put(remote("5", "https://www.instapaper.com/read/5"));
+    await sync();
+    expect(itemOf(box.lib, "instapaper.com/read/5")?.unread).toBe(true);
+    service.put({ ...service.entries.get("5")!, archived: true });
+    await sync();
+    expect(itemOf(box.lib, "instapaper.com/read/5")?.unread).toBe(false);
+  });
+});
 
 describe("an email that only Instapaper has", () => {
   it("is never saved there again as a link", async () => {
