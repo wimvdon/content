@@ -1,9 +1,7 @@
 import { app, useApp } from "@/lib/app";
 import { t } from "@/lib/i18n";
 import { feedTabOf } from "@/lib/library";
-import { hasUnreadNewsletter } from "@/lib/newsletters";
 import { sameTab, savedStates } from "@/lib/saved";
-import { NewDot } from "./NewDot";
 import { cn } from "./ui/cn";
 
 /**
@@ -11,20 +9,7 @@ import { cn } from "./ui/cn";
  * narrowed. Drawn as shadcn/ui's tabs list (the chosen one raised), the web's own look. Above the
  * list on a phone-sized window, in the sidebar on a wide one.
  */
-export function ViewSwitch({
-  labels,
-  selected,
-  onSelect,
-  className,
-  dots = [],
-}: {
-  labels: string[];
-  selected: number;
-  onSelect: (index: number) => void;
-  className?: string;
-  /** The views with a dot (Saved's To read while a newsletter waits, with the setting on). */
-  dots?: number[];
-}) {
+export function ViewSwitch({ labels, selected, onSelect, className }: { labels: string[]; selected: number; onSelect: (index: number) => void; className?: string }) {
   return (
     <div role="radiogroup" aria-label={t("view")} className={cn("flex h-9 items-center rounded-lg bg-muted p-[3px] text-muted-foreground", className)}>
       {labels.map((label, i) => {
@@ -42,7 +27,6 @@ export function ViewSwitch({
             )}
           >
             <span className="truncate">{label}</span>
-            {dots.includes(i) ? <NewDot className="ml-1.5 shrink-0" label={t("newslettersUnread")} /> : null}
           </button>
         );
       })}
@@ -59,9 +43,7 @@ export function FeedViewSwitch({ className }: { className?: string }) {
 
 /** Saved's switch: To read or All; a topic or Liked stays chosen. */
 export function SavedViewSwitch({ className }: { className?: string }) {
-  const { savedFilter: filter, settings, library } = useApp();
+  const { savedFilter: filter } = useApp();
   const selected = Math.max(0, savedStates.findIndex((s) => sameTab(s, filter.tab)));
-  // The newsletters' dot: unread ones are always to read.
-  const dots = settings.newsletterDot && hasUnreadNewsletter(library) ? [savedStates.findIndex((s) => s.kind === "toread")] : [];
-  return <ViewSwitch labels={[t("toRead"), t("all")]} selected={selected} onSelect={(i) => app.showSaved({ ...filter, tab: savedStates[i] })} className={className} dots={dots} />;
+  return <ViewSwitch labels={[t("toRead"), t("all")]} selected={selected} onSelect={(i) => app.showSaved({ ...filter, tab: savedStates[i] })} className={className} />;
 }

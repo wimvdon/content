@@ -367,7 +367,7 @@
     <string name="newsletters_unread">Boletines nuevos</string>
     <string name="saved_open_unread">Guardados, boletines nuevos</string>
     <string name="setting_newsletter_dot_title">Punto para boletines nuevos</string>
-    <string name="setting_newsletter_dot_summary">Un punto en Guardados, Por leer y Boletines mientras haya un boletín de Instapaper sin leer</string>
+    <string name="setting_newsletter_dot_summary">Un punto en Guardados y Boletines mientras haya un boletín de Instapaper sin leer</string>
     <string name="add_choice_newsletter">Suscribirse a un boletín</string>
     <string name="add_choice_newsletter_body">Lee boletines en Content, como feed o en Guardados</string>
     <string name="newsletter_as_feed">Como feed</string>

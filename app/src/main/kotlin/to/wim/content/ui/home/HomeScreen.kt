@@ -126,7 +126,6 @@ import to.wim.content.ui.theme.LocalEmptyStateBadge
 import to.wim.content.ui.theme.Motion
 import to.wim.content.ui.theme.SkeletonLine
 import to.wim.content.ui.theme.readableWidth
-import to.wim.content.data.SavedTab
 
 /** What the article list shows. */
 data class HomeState(
@@ -304,8 +303,6 @@ fun HomeScreen(
                             ViewSwitch(
                                 labels = listOf(stringResource(R.string.reading_list_to_read), stringResource(R.string.filter_all)),
                                 selected = Saved.states.indexOf(reading.filter.tab).coerceAtLeast(0),
-                                // The newsletters' dot: unread ones are always to read.
-                                dots = if (reading.dot) setOf(Saved.states.indexOf(SavedTab.ToRead)) else emptySet(),
                                 // A topic stays chosen when the view changes.
                                 onSelect = { i -> Saved.states.getOrNull(i)?.let { actions.onSavedFilter(reading.filter.copy(tab = it)) } },
                             )
@@ -350,6 +347,7 @@ fun HomeScreen(
                                 selected = if (state.unreadOnly) 0 else 1,
                                 onSelect = { i -> actions.onUnreadOnlyChange(i == 0) },
                             )
+                            val feedDot: (Feed) -> Boolean = { feed -> FeedChips.showsUnreadDot(state.unreadOnly, state.unreadCounts[FeedSelection.Single(feed.url)] ?: 0) }
                             val chips =
                                 remember(state.feeds, state.folders, feedTags, state.selection, state.feedChipsShown) {
                                     FeedChips.of(state.feeds, state.folders, feedTags, state.selection, state.feedChipsShown)
@@ -363,6 +361,8 @@ fun HomeScreen(
                                 selected = chips.chosenTopic,
                                 // A topic, or nothing: tapping the chosen topic (or its feed's) again lets go.
                                 onSelect = { t -> actions.onSelect(if (t == null) FeedSelection.All else FeedSelection.Tagged(t)) },
+                                // In All, a dot on the chips with something unread (in Unread they all have).
+                                dotted = { t -> FeedChips.showsUnreadDot(state.unreadOnly, state.unreadCounts[FeedSelection.Tagged(t)] ?: 0) },
                                 // After the topics and a divider, in the same row: the feeds without a topic
                                 // (#251 had them in ☰), or, while a topic is chosen, that topic's feeds.
                                 loose =
@@ -372,7 +372,7 @@ fun HomeScreen(
                                                 val topic = chips.chosenTopic
                                                 chips.topicFeeds.forEach { feed ->
                                                     val on = feed.url == chips.chosenFeed
-                                                    FeedChip(feed, on) { actions.onSelect(if (on) FeedSelection.Tagged(topic) else FeedSelection.Single(feed.url)) }
+                                                    FeedChip(feed, on, feedDot(feed)) { actions.onSelect(if (on) FeedSelection.Tagged(topic) else FeedSelection.Single(feed.url)) }
                                                 }
                                             }
                                         }
@@ -380,7 +380,7 @@ fun HomeScreen(
                                             {
                                                 chips.rowLoose.forEach { feed ->
                                                     val on = feed.url == chips.chosenFeed
-                                                    FeedChip(feed, on) { actions.onSelect(if (on) FeedSelection.All else FeedSelection.Single(feed.url)) }
+                                                    FeedChip(feed, on, feedDot(feed)) { actions.onSelect(if (on) FeedSelection.All else FeedSelection.Single(feed.url)) }
                                                 }
                                             }
                                         }

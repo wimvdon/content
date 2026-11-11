@@ -355,7 +355,7 @@
     <string name="newsletters_unread">Nieuwe nieuwsbrieven</string>
     <string name="saved_open_unread">Bewaard, nieuwe nieuwsbrieven</string>
     <string name="setting_newsletter_dot_title">Stip bij nieuwe nieuwsbrieven</string>
-    <string name="setting_newsletter_dot_summary">Een stip bij Bewaard, Te lezen en Nieuwsbrieven zolang er een nieuwsbrief uit Instapaper ongelezen is</string>
+    <string name="setting_newsletter_dot_summary">Een stip bij Bewaard en Nieuwsbrieven zolang er een nieuwsbrief uit Instapaper ongelezen is</string>
     <string name="add_choice_newsletter">Abonneren op nieuwsbrief</string>
     <string name="add_choice_newsletter_body">Lees nieuwsbrieven in Content, als feed of in Bewaard</string>
     <string name="newsletter_as_feed">Als feed</string>

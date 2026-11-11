@@ -63,7 +63,7 @@ export interface Settings {
   alwaysOpenWebsite: boolean;
   /** Hide feed articles whose title has one of these words (#277), as typed (articleFilter.ts). */
   hiddenWords: string;
-  /** A dot on Saved, To read and the Newsletters chip while a newsletter waits unread (newsletters.ts); synced, off by default. */
+  /** A dot on Saved and the Newsletters chip while a newsletter waits unread (newsletters.ts); synced, off by default. */
   newsletterDot: boolean;
   /** What was imported from each service when it was connected (#145), by id. */
   imports: Record<string, ServiceImport>;

@@ -77,7 +77,7 @@ Sync now. Never in the background.
   `putItem` clears it on anything not to read, so archiving there clears it too. Nothing sets it
   again, except Undo right after Mark all as read. It syncs with the item (`docs/sync.md`), read
   wins. The Newsletters chip filters Saved to them (`SavedFilter.newslettersOnly`), and with
-  `articles.newsletterDot` on, a dot shows on Saved, To read and the chip while one is unread.
+  `articles.newsletterDot` on, a dot shows on Saved and the chip while one is unread.
 - **Signing out** forgets what was synced with Instapaper; the reading list stays.
 
 

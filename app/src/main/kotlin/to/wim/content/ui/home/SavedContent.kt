@@ -75,7 +75,7 @@ data class SavedHome(
     val showsLiked: Boolean = true,
     /** Whether the Newsletters chip shows, after Liked: a newsletter in the state shown, or Newsletters chosen. */
     val showsNewsletters: Boolean = false,
-    /** The newsletters' dot (setting on and one waits unread): on To read and the Newsletters chip. */
+    /** The newsletters' dot (setting on and one waits unread): on the Newsletters chip. */
     val dot: Boolean = false,
     /** Long-press › Mark as read, for an unread newsletter (there is no Mark as unread). */
     val onMarkRead: (Item) -> Unit = {},

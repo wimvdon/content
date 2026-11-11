@@ -3,8 +3,8 @@
  * whose address is Instapaper's own page, instapaperLinks.ts). One that comes in after Instapaper is
  * connected waits unread (bold, with a dot) until it is opened, marked as read, archived or removed;
  * the first import brings them in read. Nothing makes one unread again, except Undo right after Mark
- * all as read. Saved's Newsletters chip shows them; with the setting on, a dot on Saved, To read and
- * the chip says one waits. The same rules as the Android app's Newsletters.kt.
+ * all as read. Saved's Newsletters chip shows them; with the setting on, a dot on Saved and the
+ * chip says one waits. The same rules as the Android app's Newsletters.kt.
  */
 
 import { instapaperBookmarkId } from "./instapaperLinks";
@@ -13,7 +13,7 @@ import type { Library } from "./library";
 
 export const isNewsletter = (url: string | null | undefined): boolean => instapaperBookmarkId(url) !== null;
 
-/** Whether a newsletter waits unread: the dot on Saved, To read and the chip (with the setting on). */
+/** Whether a newsletter waits unread: the dot on Saved and the chip (with the setting on). */
 export const hasUnreadNewsletter = (lib: Library): boolean => lib.items.some((i) => i.unread === true);
 
 /** The library with item `key` read; the same when it wasn't unread. */
