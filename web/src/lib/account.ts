@@ -5,7 +5,7 @@
  * gives this browser its key (instapaper.ts).
  */
 
-import { addressOf, addressesOf, type NewsletterAddress } from "./newsletterAddresses";
+import { addressOf, addressesOf, tagHash, type NewsletterAddress } from "./newsletterAddresses";
 import { PROXY_URL } from "./config";
 import type { SharedBy } from "./items";
 import { inboxOf, type InboxMessage, type SharedArticle } from "./sharing";
@@ -116,9 +116,9 @@ export class AccountClient {
     return addressesOf(await (await this.call("/account/newsletters", {})).json().catch(() => null));
   }
 
-  /** A new newsletter address for `tag`. */
-  async createNewsletter(tag: string): Promise<NewsletterAddress> {
-    const response = await this.call("/account/newsletters", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ tag: tag.trim() }) });
+  /** The newsletter address of tag `tagId` (null: No tag): made the first time, else the one it has. Only a hash of the id is sent. */
+  async createNewsletter(tagId: string | null): Promise<NewsletterAddress> {
+    const response = await this.call("/account/newsletters", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ tagHash: await tagHash(tagId) }) });
     const made = addressOf(await response.json().catch(() => null));
     if (!made) throw new SyncError("server");
     return made;

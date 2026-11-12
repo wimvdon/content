@@ -1,12 +1,14 @@
 /**
- * Newsletter addresses: an email address per tag that turns the newsletters sent to it into a feed,
- * Kill the Newsletter's idea on Cloudflare (docs/newsletters.md).
+ * Newsletter addresses: an email address per tag (and one without a tag) that turns the newsletters
+ * sent to it into a feed, Kill the Newsletter's idea on Cloudflare (docs/newsletters.md). The apps ask
+ * for each tag's address themselves (2026-11-12): one per tag id, never two, so asking again gives the
+ * same one. A tag is known here only by a hash of its id (SHA-256, hex), so its name never comes here.
  *
  * Mail for the domain reaches this Worker through Cloudflare Email Routing: one rule sends
  * NEWSLETTER_ADDRESS (e.g. content@in.wim.to) here, and with subaddressing on, content+<code>@… arrives
  * too, with its code. A dedicated domain with a catch-all works as well (<code>@…). Each code is an
  * inbox: a Durable Object of the Account class named "newsletter:<code>" (no class of its own, so no
- * migration), holding its owner (the account), its tag and its newest emails, encrypted like the
+ * migration), holding its owner (the account) and its newest emails, encrypted like the
  * account's rows. Its feed is an Atom feed at /newsletters/<code>/<token>, the token derived from the
  * code with ACCOUNT_KEY, so knowing the address isn't enough to read it. The apps subscribe to that
  * feed like any other.
@@ -15,8 +17,9 @@
  * the email and stores its HTML; attachments are dropped. At most KEEP emails per address, none older
  * than KEEP_DAYS. Nothing is logged.
  *
- *  - GET    /account/newsletters              this account's addresses: [{code, tag, address, feedUrl, createdAt}]
- *  - POST   /account/newsletters {"tag"}      a new address for that tag (at most MAX_ADDRESSES)
+ *  - GET    /account/newsletters              this account's addresses: [{code, tagHash, address, feedUrl, createdAt}]
+ *  - POST   /account/newsletters {"tagHash"}  the address of that tag (null: without a tag), made the first
+ *                                             time (201), else the one it has (200); at most MAX_ADDRESSES
  *  - DELETE /account/newsletters?code=<code>  the address stops taking mail; its emails are deleted
  *  - GET    /newsletters/<code>/<token>       the feed (no sign-in: the token is the key)
  *  - GET    /newsletters/<code>/<token>/<id>  one email as a page (the entries' link)
@@ -35,10 +38,10 @@ export const KEEP = 100;
 export const KEEP_DAYS = 90;
 /** Entries in the feed, newest first. */
 export const FEED_ENTRIES = 50;
-/** Addresses per account. */
-export const MAX_ADDRESSES = 50;
-/** The longest tag an address can have. */
-export const MAX_TAG_CHARS = 100;
+/** Addresses per account: one per tag, and one without a tag. */
+export const MAX_ADDRESSES = 200;
+/** A tag as the apps send it: the SHA-256 of its id, in hex. */
+const TAG_HASH_PATTERN = /^[0-9a-f]{64}$/;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const CODE_ALPHABET = "abcdefghijkmnpqrstuvwxyz23456789";
@@ -53,12 +56,15 @@ export interface NewsletterEmail {
   html: string;
 }
 
-/** An address as its account lists it. */
+/** An address as its account lists it: the tag it belongs to (null: the one without a tag). */
 export interface NewsletterAddress {
   code: string;
-  tag: string;
+  tagHash: string | null;
   createdAt: number;
 }
+
+/** An address made before 2026-11-12, by name instead of per tag: no longer listed, removed on the next POST. */
+const isLegacy = (a: NewsletterAddress) => (a.tagHash as string | null | undefined) === undefined;
 
 // ---------------------------------------------------------------------------------------------
 // Codes, addresses and feed links.
@@ -94,11 +100,10 @@ export async function feedToken(masterKey: string, code: string): Promise<string
 
 export const feedUrlOf = (origin: string, code: string, token: string) => `${origin}/newsletters/${code}/${token}`;
 
-/** The tag as sent: trimmed, on one line, not too long. */
-export function cleanTag(value: unknown): string | null {
-  if (typeof value !== "string") return null;
-  const tag = value.replace(/\s+/g, " ").trim();
-  return tag.length > 0 && tag.length <= MAX_TAG_CHARS ? tag : null;
+/** The tag as sent: null (without a tag), a tag's hash, or undefined when it is neither. */
+export function cleanTagHash(value: unknown): string | null | undefined {
+  if (value === null) return null;
+  return typeof value === "string" && TAG_HASH_PATTERN.test(value) ? value : undefined;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -124,20 +129,15 @@ export class NewsletterInbox {
     return this.key;
   }
 
-  /** Makes this the inbox of [owner] with [tag]; false when the code is already taken. */
-  async create(owner: string, tag: string): Promise<boolean> {
+  /** Makes this the inbox of [owner]; false when the code is already taken. */
+  async create(owner: string): Promise<boolean> {
     if (await this.storage.get<string>("owner")) return false;
     await this.storage.put("owner", owner);
-    await this.storage.put("tag", tag);
     return true;
   }
 
   owner(): Promise<string | undefined> {
     return this.storage.get<string>("owner");
-  }
-
-  async tag(): Promise<string> {
-    return (await this.storage.get<string>("tag")) ?? "";
   }
 
   /** Keeps an email that arrived ([raw], as sent); false when this address doesn't exist. */
@@ -222,8 +222,8 @@ export function escapeXml(text: string): string {
   return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
-/** The address's emails as an Atom feed, titled by its tag; each entry links to its page. */
-export function atomFeed(code: string, tag: string, feedUrl: string, emails: NewsletterEmail[], now: number): string {
+/** The address's emails as an Atom feed, titled Newsletters (the apps show it as that, in their language); each entry links to its page. */
+export function atomFeed(code: string, feedUrl: string, emails: NewsletterEmail[], now: number): string {
   const iso = (ms: number) => new Date(ms).toISOString();
   const entries = emails
     .map(
@@ -233,7 +233,7 @@ export function atomFeed(code: string, tag: string, feedUrl: string, emails: New
     <link rel="alternate" type="text/html" href="${escapeXml(`${feedUrl}/${e.id}`)}"/>
     <published>${iso(e.at)}</published>
     <updated>${iso(e.at)}</updated>
-    <author><name>${escapeXml(e.from || tag)}</name></author>
+    <author><name>${escapeXml(e.from || "Newsletter")}</name></author>
     <content type="html">${escapeXml(e.html)}</content>
   </entry>`,
     )
@@ -241,7 +241,7 @@ export function atomFeed(code: string, tag: string, feedUrl: string, emails: New
   return `<?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>urn:content:newsletter:${code}</id>
-  <title>${escapeXml(tag || "Newsletters")}</title>
+  <title>Newsletters</title>
   <link rel="self" href="${escapeXml(feedUrl)}"/>
   <updated>${iso(emails[0]?.at ?? now)}</updated>
 ${entries}
@@ -276,10 +276,9 @@ export async function inboxAnswer(storage: Storage, masterKey: string, route: st
   const inbox = new NewsletterInbox(storage, masterKey, code);
   switch (route) {
     case "nlInit": {
-      const body = (await request.json()) as { owner?: unknown; tag?: unknown };
-      const tag = cleanTag(body.tag);
-      if (typeof body.owner !== "string" || !tag) return plain(400, "Send owner and tag");
-      return (await inbox.create(body.owner, tag)) ? new Response(null, { status: 201 }) : plain(409, "Taken");
+      const body = (await request.json()) as { owner?: unknown };
+      if (typeof body.owner !== "string") return plain(400, "Send owner");
+      return (await inbox.create(body.owner)) ? new Response(null, { status: 201 }) : plain(409, "Taken");
     }
     case "nlReceive": {
       const raw = await request.arrayBuffer();
@@ -289,7 +288,7 @@ export async function inboxAnswer(storage: Storage, masterKey: string, route: st
     case "nlFeed": {
       if (!(await inbox.owner())) return plain(404, "Unknown address");
       const feedUrl = request.headers.get("X-Feed-Url") ?? "";
-      return new Response(atomFeed(code, await inbox.tag(), feedUrl, await inbox.emails(), Date.now()), {
+      return new Response(atomFeed(code, feedUrl, await inbox.emails(), Date.now()), {
         headers: { "Content-Type": "application/atom+xml; charset=utf-8", "Cache-Control": "private, max-age=60" },
       });
     }
@@ -308,10 +307,13 @@ export async function inboxAnswer(storage: Storage, masterKey: string, route: st
 export const isInboxRoute = (route: string) => route.startsWith("nl") && ["nlInit", "nlReceive", "nlFeed", "nlEntry", "nlWipe"].includes(route);
 
 const inboxStub = (env: Env, code: string) => env.ACCOUNTS!.get(env.ACCOUNTS!.idFromName(`newsletter:${code}`));
+const wipe = (env: Env, code: string) => inboxStub(env, code).fetch("https://newsletter/nlWipe", { method: "POST", headers: { "X-Code": code } });
 
 /** The account's routes for its addresses (signed in, inside the account's Durable Object). */
 export async function addressesAnswer(storage: Storage, env: Env, accountId: string, route: string, request: Request): Promise<Response> {
-  const list = (await storage.get<NewsletterAddress[]>("newsletters")) ?? [];
+  const stored = async () => (await storage.get<NewsletterAddress[]>("newsletters")) ?? [];
+  const all = await stored();
+  const list = all.filter((a) => !isLegacy(a));
   const origin = request.headers.get("X-Origin") ?? "";
   const shown = async (a: NewsletterAddress) => ({
     ...a,
@@ -324,15 +326,26 @@ export async function addressesAnswer(storage: Storage, env: Env, accountId: str
       return json({ addresses: await Promise.all(list.map(shown)) });
     case "nlCreate": {
       if (!addressOf(env.NEWSLETTER_ADDRESS, "x".repeat(12))) return plain(503, "Newsletter addresses aren't set up on this server");
-      const tag = cleanTag(((await request.json().catch(() => ({}))) as { tag?: unknown }).tag);
-      if (!tag) return plain(400, 'Send {"tag": <its tag>}');
+      const tagHash = cleanTagHash(((await request.json().catch(() => ({}))) as { tagHash?: unknown }).tagHash);
+      if (tagHash === undefined) return plain(400, 'Send {"tagHash": <the SHA-256 of its tag\'s id, or null>}');
+      const has = list.find((a) => a.tagHash === tagHash);
+      if (has) return json(await shown(has));
+      // Addresses made by name, before one per tag: gone with their emails.
+      for (const old of all.filter(isLegacy)) await wipe(env, old.code);
       if (list.length >= MAX_ADDRESSES) return plain(409, "Too many addresses");
       for (let attempt = 0; attempt < 3; attempt++) {
         const code = newCode();
-        const made = await inboxStub(env, code).fetch("https://newsletter/nlInit", { method: "POST", headers: { "X-Code": code }, body: JSON.stringify({ owner: accountId, tag }) });
+        const made = await inboxStub(env, code).fetch("https://newsletter/nlInit", { method: "POST", headers: { "X-Code": code }, body: JSON.stringify({ owner: accountId }) });
         if (made.status !== 201) continue;
-        const address: NewsletterAddress = { code, tag, createdAt: Date.now() };
-        await storage.put("newsletters", [...list, address]);
+        // Two devices asking at once: the other request may have made the tag's address meanwhile.
+        const now = (await stored()).filter((a) => !isLegacy(a));
+        const theirs = now.find((a) => a.tagHash === tagHash);
+        if (theirs) {
+          await wipe(env, code);
+          return json(await shown(theirs));
+        }
+        const address: NewsletterAddress = { code, tagHash, createdAt: Date.now() };
+        await storage.put("newsletters", [...now, address]);
         return json(await shown(address), 201);
       }
       return plain(503, "Try again");
@@ -340,8 +353,8 @@ export async function addressesAnswer(storage: Storage, env: Env, accountId: str
     case "nlDelete": {
       const code = new URL(request.url).searchParams.get("code") ?? "";
       if (!list.some((a) => a.code === code)) return plain(404, "Not found");
-      await inboxStub(env, code).fetch("https://newsletter/nlWipe", { method: "POST", headers: { "X-Code": code } });
-      await storage.put("newsletters", list.filter((a) => a.code !== code));
+      await wipe(env, code);
+      await storage.put("newsletters", (await stored()).filter((a) => a.code !== code));
       return new Response(null, { status: 204 });
     }
     default:
@@ -351,9 +364,7 @@ export async function addressesAnswer(storage: Storage, env: Env, accountId: str
 
 /** Deletes every address of the account (the account is being deleted). */
 export async function deleteAddresses(storage: Storage, env: Env): Promise<void> {
-  for (const a of (await storage.get<NewsletterAddress[]>("newsletters")) ?? []) {
-    await inboxStub(env, a.code).fetch("https://newsletter/nlWipe", { method: "POST", headers: { "X-Code": a.code } });
-  }
+  for (const a of (await storage.get<NewsletterAddress[]>("newsletters")) ?? []) await wipe(env, a.code);
 }
 
 // ---------------------------------------------------------------------------------------------

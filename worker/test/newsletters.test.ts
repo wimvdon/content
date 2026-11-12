@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { Account, accountIdOf, addDeviceKey, type Storage } from "../src/account";
 import { handle, type Env } from "../src/index";
-import { KEEP, KEEP_DAYS, MAX_HTML_CHARS, NewsletterInbox, addressOf, atomFeed, cleanTag, codeOf, emailOf, feedToken, newCode, receiveEmail, type IncomingEmail } from "../src/newsletters";
+import { KEEP, KEEP_DAYS, MAX_HTML_CHARS, NewsletterInbox, addressOf, atomFeed, cleanTagHash, codeOf, emailOf, feedToken, newCode, receiveEmail, type IncomingEmail } from "../src/newsletters";
 
 const APP = "https://app.example";
 const MASTER = "a-test-master-key-of-at-least-32-characters";
 const DAY = 24 * 60 * 60 * 1000;
+
+/** A tag as the apps send it: the SHA-256 of its id. */
+const TECH = "a".repeat(64);
 
 class MemoryStorage implements Storage {
   readonly map = new Map<string, unknown>();
@@ -109,11 +112,15 @@ describe("codes and addresses", () => {
     expect(addressOf("not an address", "k7q2m9abcdef")).toBeNull();
   });
 
-  it("cleans a tag, and refuses an empty or very long one", () => {
-    expect(cleanTag("  Tech \n news ")).toBe("Tech news");
-    expect(cleanTag("")).toBeNull();
-    expect(cleanTag("x".repeat(101))).toBeNull();
-    expect(cleanTag(3)).toBeNull();
+  it("takes a tag's hash, or null for no tag, and refuses anything else", () => {
+    expect(cleanTagHash(TECH)).toBe(TECH);
+    expect(cleanTagHash("0f8fad5b-d9cb-469f-a165-70867728950e")).toBeUndefined();
+    expect(cleanTagHash(null)).toBeNull();
+    expect(cleanTagHash(undefined)).toBeUndefined();
+    expect(cleanTagHash("")).toBeUndefined();
+    expect(cleanTagHash("Tech news")).toBeUndefined();
+    expect(cleanTagHash(TECH.toUpperCase())).toBeUndefined();
+    expect(cleanTagHash(3)).toBeUndefined();
   });
 
   it("derives a feed token per code that doesn't give the code away", async () => {
@@ -149,17 +156,16 @@ describe("an inbox", () => {
     const storage = new MemoryStorage();
     const inbox = new NewsletterInbox(storage, MASTER, "k7q2m9abcdef");
     expect(await inbox.receive(new TextEncoder().encode(rawEmail()))).toBe(false);
-    expect(await inbox.create("owner", "Tech")).toBe(true);
-    expect(await inbox.create("someone", "Other")).toBe(false);
+    expect(await inbox.create("owner")).toBe(true);
+    expect(await inbox.create("someone")).toBe(false);
     expect(await inbox.owner()).toBe("owner");
-    expect(await inbox.tag()).toBe("Tech");
   });
 
   it("keeps the emails encrypted, newest first, at most KEEP and none older than KEEP_DAYS", async () => {
     let now = 1_000 * DAY;
     const storage = new MemoryStorage();
     const inbox = new NewsletterInbox(storage, MASTER, "k7q2m9abcdef", () => now);
-    await inbox.create("owner", "Tech");
+    await inbox.create("owner");
     await inbox.receive(new TextEncoder().encode(rawEmail({ subject: "Old" })));
     now += (KEEP_DAYS + 1) * DAY;
     for (let i = 0; i < KEEP + 2; i++) {
@@ -175,9 +181,9 @@ describe("an inbox", () => {
     expect(JSON.stringify([...storage.map.values()].map((v) => (v as { data?: Uint8Array }).data && [...(v as { data: Uint8Array }).data]))).not.toContain("Issue");
   });
 
-  it("writes an Atom feed titled by its tag, with each email's page as its link", () => {
-    const feed = atomFeed("k7q2m9abcdef", "Tech & more", "https://w.example/newsletters/k7q2m9abcdef/t", [{ id: "0123456789abcdef", at: 0, from: "The Weekly", subject: "Issue <1>", html: "<p>Hi</p>" }], 0);
-    expect(feed).toContain("<title>Tech &amp; more</title>");
+  it("writes an Atom feed titled Newsletters, with each email's page as its link", () => {
+    const feed = atomFeed("k7q2m9abcdef", "https://w.example/newsletters/k7q2m9abcdef/t", [{ id: "0123456789abcdef", at: 0, from: "The Weekly", subject: "Issue <1>", html: "<p>Hi</p>" }], 0);
+    expect(feed).toContain("<title>Newsletters</title>");
     expect(feed).toContain("<title>Issue &lt;1&gt;</title>");
     expect(feed).toContain('href="https://w.example/newsletters/k7q2m9abcdef/t/0123456789abcdef"');
     expect(feed).toContain("<content type=\"html\">&lt;p&gt;Hi&lt;/p&gt;</content>");
@@ -189,10 +195,10 @@ describe("newsletter addresses, from sign-in to feed", () => {
   it("makes an address for a tag, takes mail for it and serves it as a feed", async () => {
     const { env } = accounts();
     const key = await signIn(env);
-    const made = await call(env, "POST", "/account/newsletters", key, { tag: "Tech" });
+    const made = await call(env, "POST", "/account/newsletters", key, { tagHash: TECH });
     expect(made.status).toBe(201);
-    const address = (await made.json()) as { code: string; tag: string; address: string; feedUrl: string };
-    expect(address.tag).toBe("Tech");
+    const address = (await made.json()) as { code: string; tagHash: string | null; address: string; feedUrl: string };
+    expect(address.tagHash).toBe(TECH);
     expect(address.address).toBe(`news+${address.code}@in.example.org`);
     expect(address.feedUrl).toMatch(new RegExp(`^https://worker.example/newsletters/${address.code}/[0-9a-f]{32}$`));
 
@@ -207,7 +213,7 @@ describe("newsletter addresses, from sign-in to feed", () => {
     expect(feed.status).toBe(200);
     expect(feed.headers.get("Content-Type")).toContain("application/atom+xml");
     const xml = await feed.text();
-    expect(xml).toContain("<title>Tech</title>");
+    expect(xml).toContain("<title>Newsletters</title>");
     expect(xml).toContain("<title>Issue 12</title>");
 
     // The entry's link: the email as a sandboxed page.
@@ -227,7 +233,7 @@ describe("newsletter addresses, from sign-in to feed", () => {
   it("refuses a wrong feed token, an unknown address and a too large email", async () => {
     const { env } = accounts();
     const key = await signIn(env);
-    const address = (await (await call(env, "POST", "/account/newsletters", key, { tag: "Tech" })).json()) as { code: string; address: string; feedUrl: string };
+    const address = (await (await call(env, "POST", "/account/newsletters", key, { tagHash: TECH })).json()) as { code: string; address: string; feedUrl: string };
     const wrong = address.feedUrl.replace(/[0-9a-f]{32}$/, "0".repeat(32));
     expect((await handle(new Request(wrong), env, async () => new Response("", { status: 500 }))).status).toBe(404);
 
@@ -243,21 +249,22 @@ describe("newsletter addresses, from sign-in to feed", () => {
     expect(big.rejected).toBe("Message too large");
   });
 
-  it("needs a sign-in, and a tag, and NEWSLETTER_ADDRESS on the server", async () => {
+  it("needs a sign-in, and a tag id, and NEWSLETTER_ADDRESS on the server", async () => {
     const { env } = accounts();
-    expect((await call(env, "POST", "/account/newsletters", null, { tag: "Tech" })).status).toBe(401);
+    expect((await call(env, "POST", "/account/newsletters", null, { tagHash: TECH })).status).toBe(401);
     const key = await signIn(env);
-    expect((await call(env, "POST", "/account/newsletters", key, { tag: " " })).status).toBe(400);
+    expect((await call(env, "POST", "/account/newsletters", key, { tagHash: "Tech news" })).status).toBe(400);
+    expect((await call(env, "POST", "/account/newsletters", key, {})).status).toBe(400);
     const off = accounts("");
     const offKey = await signIn(off.env);
-    expect((await call(off.env, "POST", "/account/newsletters", offKey, { tag: "Tech" })).status).toBe(503);
+    expect((await call(off.env, "POST", "/account/newsletters", offKey, { tagHash: TECH })).status).toBe(503);
   });
 
   it("removing an address stops its mail and deletes its emails; another account can't remove it", async () => {
     const { env, objects } = accounts();
     const key = await signIn(env);
     const other = await signIn(env, 7);
-    const address = (await (await call(env, "POST", "/account/newsletters", key, { tag: "Tech" })).json()) as { code: string; address: string };
+    const address = (await (await call(env, "POST", "/account/newsletters", key, { tagHash: TECH })).json()) as { code: string; address: string };
     await receiveEmail(message(address.address, rawEmail()), env);
     expect((await call(env, "DELETE", `/account/newsletters?code=${address.code}`, other)).status).toBe(404);
     expect((await call(env, "DELETE", `/account/newsletters?code=${address.code}`, key)).status).toBe(204);
@@ -268,10 +275,57 @@ describe("newsletter addresses, from sign-in to feed", () => {
     expect(((await (await call(env, "GET", "/account/newsletters", key)).json()) as { addresses: unknown[] }).addresses).toEqual([]);
   });
 
+  it("gives each tag one address, and one without a tag: asking again gives the same", async () => {
+    const { env } = accounts();
+    const key = await signIn(env);
+    const first = await call(env, "POST", "/account/newsletters", key, { tagHash: TECH });
+    const again = await call(env, "POST", "/account/newsletters", key, { tagHash: TECH });
+    expect(first.status).toBe(201);
+    expect(again.status).toBe(200);
+    const a = (await first.json()) as { code: string };
+    expect(((await again.json()) as { code: string }).code).toBe(a.code);
+    const general = await call(env, "POST", "/account/newsletters", key, { tagHash: null });
+    expect(general.status).toBe(201);
+    const g = (await general.json()) as { code: string; tagHash: string | null };
+    expect(g.tagHash).toBeNull();
+    expect(g.code).not.toBe(a.code);
+    expect((await call(env, "POST", "/account/newsletters", key, { tagHash: null })).status).toBe(200);
+    const list = (await (await call(env, "GET", "/account/newsletters", key)).json()) as { addresses: { code: string; tagHash: string | null }[] };
+    expect(list.addresses.map((x) => [x.tagHash, x.code])).toEqual([
+      [TECH, a.code],
+      [null, g.code],
+    ]);
+  });
+
+  it("two devices asking at once still get one address for the tag", async () => {
+    const { env } = accounts();
+    const key = await signIn(env);
+    const [x, y] = await Promise.all([call(env, "POST", "/account/newsletters", key, { tagHash: TECH }), call(env, "POST", "/account/newsletters", key, { tagHash: TECH })]);
+    const codes = [((await x.json()) as { code: string }).code, ((await y.json()) as { code: string }).code];
+    expect(codes[0]).toBe(codes[1]);
+    const list = (await (await call(env, "GET", "/account/newsletters", key)).json()) as { addresses: unknown[] };
+    expect(list.addresses.length).toBe(1);
+  });
+
+  it("forgets addresses made by name before one per tag", async () => {
+    const { env, objects } = accounts();
+    const key = await signIn(env);
+    const made = (await (await call(env, "POST", "/account/newsletters", key, { tagHash: TECH })).json()) as { code: string; address: string };
+    await receiveEmail(message(made.address, rawEmail()), env);
+    // Made the old way: a tag's name instead of its id.
+    for (const object of objects.values()) {
+      const list = (await object.storage.get<{ code: string; tagHash?: string | null; tag?: string; createdAt: number }[]>("newsletters")) ?? null;
+      if (list) await object.storage.put("newsletters", list.map(({ code, createdAt }) => ({ code, tag: "Tech", createdAt })));
+    }
+    expect(((await (await call(env, "GET", "/account/newsletters", key)).json()) as { addresses: unknown[] }).addresses).toEqual([]);
+    expect((await call(env, "POST", "/account/newsletters", key, { tagHash: TECH })).status).toBe(201);
+    expect(objects.get(`newsletter:${made.code}`)!.storage.map.size).toBe(0);
+  });
+
   it("deleting the account deletes its addresses", async () => {
     const { env, objects } = accounts();
     const key = await signIn(env);
-    const address = (await (await call(env, "POST", "/account/newsletters", key, { tag: "Tech" })).json()) as { code: string; address: string };
+    const address = (await (await call(env, "POST", "/account/newsletters", key, { tagHash: TECH })).json()) as { code: string; address: string };
     await receiveEmail(message(address.address, rawEmail()), env);
     expect((await call(env, "DELETE", "/account", key)).status).toBe(204);
     expect(objects.get(`newsletter:${address.code}`)!.storage.map.size).toBe(0);

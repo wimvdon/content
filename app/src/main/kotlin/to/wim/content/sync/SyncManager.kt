@@ -1,6 +1,8 @@
 package to.wim.content.sync
 
 import to.wim.content.data.NewsletterAddress
+import to.wim.content.data.NewsletterAddresses
+import to.wim.content.R
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.DataStoreFactory
@@ -65,7 +67,7 @@ sealed interface SyncStatus {
  * change, on refresh, and on request. Never in the background.
  */
 class SyncManager(
-    context: Context,
+    private val context: Context,
     private val scope: CoroutineScope,
     private val library: LibraryRepository,
     private val settings: SettingsStore,
@@ -97,6 +99,13 @@ class SyncManager(
 
     @Volatile
     private var syncedItemsVersion: Long? = null
+
+    /** The tags (by id) whose newsletter addresses were last put in step, and when that last failed. */
+    @Volatile
+    private var newsletterTags: List<String>? = null
+
+    @Volatile
+    private var newsletterFailed: Pair<List<String>, Long>? = null
 
     @Volatile
     private var live: LiveUpdates? = null
@@ -237,6 +246,8 @@ class SyncManager(
             library.forgetItemSync()
             syncedVersion = null
             syncedItemsVersion = null
+            newsletterTags = null
+            newsletterFailed = null
             settings.clearLastSyncedAt()
             _status.value = SyncStatus.Idle
         }
@@ -292,6 +303,48 @@ class SyncManager(
             runCatching { target.inboxDone(inbox.map { it.id }) }
             received?.takeIf { it.count > 0 }?.let { _received.tryEmit(it) }
         }
+        keepNewsletters(target)
+    }
+
+    /**
+     * Every tag, and No tag, has a newsletter address (NewsletterAddresses): after a sync whose tags
+     * differ from the last time, asks the feed loader for the missing ones, removes those whose tag
+     * has long been gone, and puts the library's Newsletters feeds in step. A failure (offline, or no
+     * addresses on the server) is tried again after a while.
+     */
+    private suspend fun keepNewsletters(
+        target: AccountClient,
+        /** Now, whatever happened before: the Newsletter feeds page is open. */
+        force: Boolean = false,
+    ): List<NewsletterAddress>? {
+        val folders = library.library.filterNotNull().first().folders
+        val tags = folders.map { it.id }
+        if (!force) {
+            if (tags == newsletterTags) return null
+            newsletterFailed?.let { (failedTags, at) -> if (failedTags == tags && clock() - at < NEWSLETTER_RETRY_MS) return null }
+        }
+        return try {
+            var list = target.newsletters()
+            val orphans = NewsletterAddresses.orphans(folders, list, clock())
+            orphans.forEach { target.deleteNewsletter(it.code) }
+            val missing = NewsletterAddresses.missing(folders, list)
+            missing.forEach { target.createNewsletter(it) }
+            if (orphans.isNotEmpty() || missing.isNotEmpty()) list = target.newsletters()
+            val title = context.getString(R.string.newsletters_title)
+            var added = false
+            library.edit { lib -> NewsletterAddresses.reconcile(lib, list, title).also { next -> added = next.feeds.any { lib.feed(it.url) == null } } }
+            newsletterTags = tags
+            newsletterFailed = null
+            if (added) scope.launch { library.refreshAll() }
+            list
+        } catch (e: SyncException) {
+            newsletterFailed = tags to clock()
+            null
+        } catch (e: IOException) {
+            // Storage on this device failed.
+            newsletterFailed = tags to clock()
+            null
+        }
     }
 
     private val _received = MutableSharedFlow<Received>(extraBufferCapacity = 4)
@@ -314,13 +367,10 @@ class SyncManager(
     suspend fun setPush(token: String?): Boolean = accountKey()?.let { key -> runCatching { AccountClient(http, key).setPush(token) }.isSuccess } ?: false
 
     /** Whether [email] has a Content account, or null when it couldn't be asked. */
-    /** This account's newsletter addresses; null when signed out or offline. */
-    suspend fun newsletters(): List<NewsletterAddress>? = accountKey()?.let { key -> runCatching { AccountClient(http, key).newsletters() }.getOrNull() }
+    /** This account's newsletter addresses, every tag's made first (and their feeds in step); null when signed out or offline. */
+    suspend fun newsletters(): List<NewsletterAddress>? = accountKey()?.let { key -> keepNewsletters(AccountClient(http, key), force = true) }
 
-    /** A new newsletter address for [tag]; null when signed out or it didn't work. */
-    suspend fun createNewsletter(tag: String): NewsletterAddress? = accountKey()?.let { key -> runCatching { AccountClient(http, key).createNewsletter(tag) }.getOrNull() }
-
-    /** Removes newsletter address [code] (its feed was removed); nothing happens when signed out or offline. */
+    /** Removes newsletter address [code] (its tag was removed); nothing happens when signed out or offline. */
     suspend fun deleteNewsletter(code: String) {
         accountKey()?.let { key -> runCatching { AccountClient(http, key).deleteNewsletter(code) } }
     }
@@ -349,6 +399,9 @@ class SyncManager(
     }
 
     internal companion object {
+        /** How long after a failure the newsletter addresses are tried again (unless the tags change). */
+        const val NEWSLETTER_RETRY_MS = 10 * 60 * 1000L
+
         /** The stored base: the version, a line break, the document. Anything else (an older file) is no base. */
         fun baseText(base: SyncBase): String = "${base.version}\n${base.text}"
 

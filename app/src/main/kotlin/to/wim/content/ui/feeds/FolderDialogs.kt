@@ -195,13 +195,8 @@ internal fun FeedSheet(
     onRemove: () -> Unit,
     onDismiss: () -> Unit,
     topicActions: TopicEditActions? = null,
-    /** A newsletter address's feed: reads its email address, shown with Copy instead of the feed's address. */
-    emailAddress: (suspend () -> String?)? = null,
-    onCopy: (String) -> Unit = {},
 ) {
     var title by rememberSaveable { mutableStateOf(feed.title) }
-    var email by remember { mutableStateOf<String?>(null) }
-    LaunchedEffect(feed.url) { email = emailAddress?.invoke() }
     var topicId by rememberSaveable { mutableStateOf(feed.folderId?.takeIf { id -> topics.any { it.id == id } }) }
     var removing by rememberSaveable { mutableStateOf(false) }
     // A topic made in the sheet: chosen once it exists.
@@ -234,31 +229,13 @@ internal fun FeedSheet(
                     modifier = Modifier.weight(1f),
                 )
             }
-            if (emailAddress != null) {
-                // A newsletter address: its email address to subscribe with, and Copy.
-                SheetSection(stringResource(R.string.newsletter_feed_label))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        email ?: stringResource(R.string.newsletter_own_offline),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = if (email != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.weight(1f),
-                    )
-                    email?.let { address ->
-                        IconButton(onClick = { onCopy(address) }) {
-                            Icon(painterResource(R.drawable.ic_copy), contentDescription = stringResource(R.string.newsletter_own_copy))
-                        }
-                    }
-                }
-            } else {
-                Text(
-                    feed.url,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
+            Text(
+                feed.url,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
             if (problem != null) {
                 Text(problem, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
             }

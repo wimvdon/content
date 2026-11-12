@@ -135,9 +135,9 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   encrypted like everything in an account, until one of their devices takes it in, and is then
   deleted from the server. Nothing is shared unless you share it, and nobody can send something in
   your name: the feed loader checks the address is yours.
-- **Newsletter addresses (off unless you make one).** Signed in to a Content account, + ›
-  Newsletter feed › Create address gives you an email address for a tag (content+<a random
-  code>@in.wim.to). Newsletters sent to it are received by the owner's feed loader (a Cloudflare
+- **Newsletter addresses (only with a Content account).** Signed in to a Content account, every
+  tag gets an email address, and so does No tag (content+<a random code>@in.wim.to). The feed loader
+  knows a tag only by a hash of its id, never by its name. Newsletters sent to it are received by the owner's feed loader (a Cloudflare
   Worker, through Cloudflare Email Routing) and kept in your account, encrypted like everything in
   it: the sender's name, the subject and the email's HTML, without attachments. At most the newest
   100 per address, and none older than 90 days. They reach your devices as a feed, at an address

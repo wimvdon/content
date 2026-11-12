@@ -165,9 +165,9 @@ class AccountClient(
     /** This account's newsletter addresses (docs/newsletters.md). */
     suspend fun newsletters(): List<NewsletterAddress> = call(request("/account/newsletters").get().build()) { _, text -> NewsletterAddresses.listOf(runCatching { Json.parse(text) }.getOrNull()) }
 
-    /** A new newsletter address for [tag]. */
-    suspend fun createNewsletter(tag: String): NewsletterAddress {
-        val body = Json.write(mapOf("tag" to tag.trim())).toRequestBody(JSON_TYPE)
+    /** The newsletter address of tag [tagId] (null: No tag): made the first time, else the one it has. Only a hash of the id is sent. */
+    suspend fun createNewsletter(tagId: String?): NewsletterAddress {
+        val body = Json.write(mapOf("tagHash" to NewsletterAddresses.tagHash(tagId))).toRequestBody(JSON_TYPE)
         return call(request("/account/newsletters").post(body).build()) { _, text -> NewsletterAddresses.of(runCatching { Json.parse(text) }.getOrNull()) }
             ?: throw SyncException(SyncProblem.ServerError)
     }

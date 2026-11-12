@@ -1,24 +1,19 @@
 package to.wim.content.ui.home
 
 import to.wim.content.data.NewsletterAddresses
-import to.wim.content.data.Feed
-import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.LocalContentColor
+import to.wim.content.ui.feeds.FolderSheet
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.CircularProgressIndicator
 import to.wim.content.ui.reader.SheetSection
-import to.wim.content.ui.feeds.TopicChipRow
 import to.wim.content.ui.feeds.TopicEditActions
-import to.wim.content.data.chosenTopic
 import to.wim.content.data.Folder
-import kotlinx.coroutines.launch
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.remember
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
 import to.wim.content.data.NewsletterAddress
 import to.wim.content.ui.reader.rememberSheetClose
 import androidx.compose.foundation.background
@@ -51,10 +46,6 @@ import to.wim.content.ui.reader.ContentSheet
 import to.wim.content.ui.reader.SheetActions
 import to.wim.content.ui.reader.SheetHeader
 import to.wim.content.ui.theme.AppShapes
-import to.wim.content.data.NewsletterSubscribe
-import to.wim.content.ui.settings.NewsletterUnreadSetting
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material3.Button
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -64,8 +55,7 @@ import androidx.compose.runtime.setValue
 /**
  * The search bar's +, the same in Feed, Saved and the Inbox: first what to add, under two headings
  * with their destination's icon (2026-11-11). **Add feed**: RSS feed opens the Add feed sheet,
- * Newsletter feed a page of this sheet that makes an email address whose newsletters arrive as a
- * feed ([NewsletterSubscribe]). **Save article**: Save article opens the Save sheet. Both sheets
+ * Newsletter feed a page of this sheet with every tag's email address ([NewsletterFeedPage]). **Save article**: Save article opens the Save sheet. Both sheets
  * then ask for the address.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -74,7 +64,7 @@ fun AddChoiceSheet(
     onSubscribe: () -> Unit,
     onSaveArticle: () -> Unit,
     onDismiss: () -> Unit,
-    /** For Newsletter feed: the account, the topics and the addresses. */
+    /** For Newsletter feed: the account, the tags and their addresses. */
     newsletters: NewsletterChoices = NewsletterChoices(),
 ) {
     var newsletterOpen by rememberSaveable { mutableStateOf(false) }
@@ -127,167 +117,116 @@ private fun AddHeading(
 
 /** What Newsletter feed needs from the app. */
 data class NewsletterChoices(
-    val instapaperConnected: Boolean = false,
-    val newsletterUnread: Boolean = false,
-    val onNewsletterUnreadChange: (Boolean) -> Unit = {},
-    val onConnectInstapaper: () -> Unit = {},
-    /** Opens a site in the browser (Instapaper's Email page). */
-    val onOpenSite: (String) -> Unit = {},
-    /** Signed in to a Content account: own addresses can be made. */
+    /** Signed in to a Content account: every tag has an address. */
     val signedIn: Boolean = false,
     /** Settings › Account, to sign in. */
     val onSignIn: () -> Unit = {},
-    /** The topics, to pick the new address's feed's one (as in Add feed), and Edit topics. */
+    /** The tags, each with its address. */
     val topics: List<Folder> = emptyList(),
-    /** The feeds, for the existing addresses' names and topics. */
-    val feeds: List<Feed> = emptyList(),
-    /** This account's addresses, or null when they can't be read (offline). */
+    /** This account's addresses, every tag's made first; null when they can't be read (offline). */
     val loadAddresses: suspend () -> List<NewsletterAddress>? = { emptyList() },
+    /** New tag: it gets its address too. */
     val topicActions: TopicEditActions? = null,
-    /** Makes an address with this name and adds its feed under the topic; null when it didn't work. */
-    val createAddress: suspend (name: String, topicId: String?) -> NewsletterAddress? = { _, _ -> null },
     val onCopy: (String) -> Unit = {},
 )
 
-
 /**
- * Newsletter feed, like Add feed: first the account's addresses by topic, each with Copy, then New
- * address; that is a name for its feed and a topic (No topic, every topic, Edit topics), then Create
- * address; once made, the address with Copy. Without a Content account, Sign in first. Settings'
- * Newsletter feeds opens it at New address ([startCreating]).
+ * Newsletter feeds, from + › Newsletter feed and from Settings (2026-11-12): every tag has an email
+ * address, and so does No tag ([NewsletterAddresses]); newsletters sent to one arrive in that tag's
+ * Newsletters feed. Each tag in its order, then No tag, with its address and Copy; New tag makes
+ * another tag, with its own address. Without a Content account, Sign in first. Nothing to make,
+ * name or remove: an address comes and goes with its tag.
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun NewsletterFeedPage(
     choices: NewsletterChoices,
     onBack: () -> Unit,
-    startCreating: Boolean = false,
+    title: String = stringResource(R.string.add_choice_newsletter),
 ) {
-    var name by rememberSaveable { mutableStateOf("") }
-    var topicId by rememberSaveable { mutableStateOf<String?>(null) }
-    var made by remember { mutableStateOf<NewsletterAddress?>(null) }
-    // A topic made in the page: chosen once it exists.
-    var newTopic by rememberSaveable { mutableStateOf<String?>(null) }
-    LaunchedEffect(choices.topics, newTopic) {
-        val title = newTopic ?: return@LaunchedEffect
-        choices.topics.firstOrNull { it.title.equals(title, ignoreCase = true) }?.let {
-            topicId = it.id
-            newTopic = null
-        }
+    // Not loaded yet; then the addresses, or null when they couldn't be read.
+    var loaded by remember { mutableStateOf(false) }
+    var addresses by remember { mutableStateOf<List<NewsletterAddress>?>(null) }
+    var creating by rememberSaveable { mutableStateOf(false) }
+    // A new tag gets its address as soon as it is there.
+    val tagIds = choices.topics.map { it.id }
+    LaunchedEffect(choices.signedIn, tagIds) {
+        if (!choices.signedIn) return@LaunchedEffect
+        addresses = choices.loadAddresses()
+        loaded = true
     }
-    var busy by remember { mutableStateOf(false) }
-    var failed by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
-    val chosen = chosenTopic(topicId, choices.topics)
-    // The account's addresses first, if there are any (null: still loading); New address opens the form.
-    var existing by remember { mutableStateOf<List<NewsletterAddress>?>(null) }
-    var creating by rememberSaveable { mutableStateOf(startCreating) }
-    LaunchedEffect(choices.signedIn) { existing = if (choices.signedIn) choices.loadAddresses().orEmpty() else emptyList() }
-    val groups = remember(existing, choices.feeds, choices.topics) { NewsletterAddresses.grouped(existing.orEmpty(), choices.feeds, choices.topics) }
+    val rows = remember(choices.topics, addresses) { NewsletterAddresses.rows(choices.topics, addresses.orEmpty()) }
     ContentSheet(onDismiss = onBack) {
         Column(
             Modifier.padding(start = 24.dp, end = 24.dp, bottom = 24.dp).verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            SheetHeader(stringResource(R.string.add_choice_newsletter), onCancel = onBack, enabled = !busy)
-            val address = made
-            val overview = choices.signedIn && address == null && !creating && groups.isNotEmpty()
-            if (!overview) Text(stringResource(R.string.newsletter_own_explained), style = MaterialTheme.typography.bodyMedium)
+            SheetHeader(title, onCancel = onBack)
+            Text(stringResource(R.string.newsletter_own_explained), style = MaterialTheme.typography.bodyMedium)
             when {
-                choices.signedIn && existing == null -> CircularProgressIndicator(Modifier.align(Alignment.CenterHorizontally))
-                overview -> {
-                    // Your addresses, by topic (as in Feeds), each with Copy; then New address.
-                    groups.forEach { group ->
-                        SheetSection(group.topic?.title ?: stringResource(R.string.folder_none))
-                        group.addresses.forEach { AddressRow(it.address, choices.onCopy, it.name) }
-                    }
-                    SheetActions(onCancel = onBack, cancel = false) {
-                        Button(onClick = { creating = true }) { Text(stringResource(R.string.newsletter_own_new)) }
-                    }
-                }
-                NewsletterSubscribe.ownStep(choices.signedIn) == NewsletterSubscribe.OwnStep.SignIn -> {
+                !choices.signedIn -> {
                     Text(stringResource(R.string.newsletter_own_sign_in_first), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Button(onClick = choices.onSignIn) { Text(stringResource(R.string.newsletter_own_sign_in)) }
                 }
-                address != null -> {
-                    // Made: the address to subscribe with; its feed is already in Feeds.
-                    Text(stringResource(R.string.newsletter_own_made), style = MaterialTheme.typography.bodyMedium)
-                    AddressRow(address, choices.onCopy)
-                    SheetActions(onCancel = onBack, cancel = false) {
-                        Button(onClick = onBack) { Text(stringResource(R.string.action_done)) }
-                    }
-                }
+                !loaded -> CircularProgressIndicator(Modifier.align(Alignment.CenterHorizontally))
+                addresses == null -> Text(stringResource(R.string.newsletter_own_offline), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 else -> {
-                    OutlinedTextField(
-                        value = name,
-                        onValueChange = {
-                            name = it.take(100)
-                            failed = false
-                        },
-                        label = { Text(stringResource(R.string.feed_name)) },
-                        singleLine = true,
-                        enabled = !busy,
-                        isError = failed,
-                        supportingText = if (failed) ({ Text(stringResource(R.string.newsletter_own_failed)) }) else null,
-                        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    SheetSection(stringResource(R.string.feed_folder))
-                    TopicChipRow(
-                        topics = choices.topics,
-                        selected = { chosen == it.id },
-                        onToggle = { topicId = if (chosen == it.id) null else it.id },
-                        actions = choices.topicActions,
-                        onCreated = { newTopic = it },
-                        enabled = !busy,
-                        leading = { TopicChip(stringResource(R.string.folder_none), icon = null, selected = chosen == null, enabled = !busy) { topicId = null } },
-                    )
-                    SheetActions(onCancel = onBack, enabled = !busy) {
-                        Button(
-                            enabled = NewsletterSubscribe.canCreate(name, busy),
-                            onClick = {
-                                busy = true
-                                scope.launch {
-                                    val result = choices.createAddress(name.trim(), chosen)
-                                    busy = false
-                                    if (result == null) failed = true else made = result
-                                }
-                            },
-                        ) {
-                            if (busy) {
-                                CircularProgressIndicator(strokeWidth = 2.dp, color = LocalContentColor.current, modifier = Modifier.size(18.dp))
-                            } else {
-                                Text(stringResource(R.string.newsletter_own_create))
-                            }
+                    rows.forEach { row ->
+                        SheetSection(row.topic?.title ?: stringResource(R.string.folder_none))
+                        val address = row.address
+                        if (address != null) {
+                            AddressRow(address, choices.onCopy)
+                        } else {
+                            Text(stringResource(R.string.newsletter_own_pending), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }
             }
+            // New tag at the left (it gets its own address), Done at the right.
+            SheetActions(
+                onCancel = onBack,
+                cancel = false,
+                leading = {
+                    if (choices.signedIn && choices.topicActions != null) {
+                        FilledTonalButton(onClick = { creating = true }, contentPadding = ButtonDefaults.ButtonWithIconContentPadding) {
+                            Icon(painterResource(R.drawable.ic_add), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                            Text(stringResource(R.string.folder_new), modifier = Modifier.padding(start = 8.dp))
+                        }
+                    }
+                },
+            ) {
+                val close = rememberSheetClose()
+                TextButton(onClick = { close(onBack) }) { Text(stringResource(R.string.action_done)) }
+            }
         }
+    }
+    val actions = choices.topicActions
+    if (creating && actions != null) {
+        FolderSheet(
+            folder = null,
+            onSave = { name, icon ->
+                creating = false
+                actions.onNew(name, icon)
+            },
+            onDismiss = { creating = false },
+        )
     }
 }
 
-/** One address: its name, the address itself, and Copy. */
+/** One address and Copy. */
 @Composable
 private fun AddressRow(
     address: NewsletterAddress,
     onCopy: (String) -> Unit,
-    name: String = address.tag,
 ) {
     Surface(shape = AppShapes.Item, color = MaterialTheme.colorScheme.surfaceContainerHigh, modifier = Modifier.fillMaxWidth()) {
-        Row(Modifier.padding(start = 16.dp, top = 8.dp, bottom = 8.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) {
-                Text(name, style = MaterialTheme.typography.labelLarge)
-                Text(address.address, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+        Row(Modifier.padding(start = 16.dp, top = 4.dp, bottom = 4.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(address.address, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
             IconButton(onClick = { onCopy(address.address) }) {
                 Icon(painterResource(R.drawable.ic_copy), contentDescription = stringResource(R.string.newsletter_own_copy))
             }
         }
     }
 }
-
-
 
 /** One choice: its icon in a circle (as a topic's in Manage topics), what it does, and a line on it. */
 @Composable
