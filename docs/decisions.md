@@ -25,6 +25,14 @@ address and feed, and its confirmation says so.
 - **Also removed:** the leftovers of + › Newsletter feed › Straight into To read (Instapaper), already
   gone from the screen: `NewsletterSubscribe` and its texts. Its tests went with it; the Instapaper
   newsletters in Saved are unchanged.
+## 2026-11-12: No text switch or site sign-in for newsletter feed articles
+
+The owner's wish. A newsletter feed's article (one that came in at a newsletter address) is the
+whole email, and its link has no site to pay for, so the reader's ⋮ leaves out **Show full article /
+Show feed text** and **Sign in to this site** (`ReaderMenu`, the web's `readerMenu.ts`, with
+`newsletter`). Its text also never loads the website's article by itself, even when it is short. The
+web app has no site sign-in, so there only the text switch goes. Both apps tell by the article's feed
+(also for a saved one), with `FeedKinds` / `feedKinds.ts`.
 
 ## 2026-11-11: RSS feeds and newsletter feeds by name; Settings by part of the app
 

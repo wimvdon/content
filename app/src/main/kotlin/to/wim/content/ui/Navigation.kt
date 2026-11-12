@@ -1003,7 +1003,9 @@ fun RssReaderNavigation(
                         // summary; the reader's menu switches between the two (null: follow the setting).
                         var fullTextChoice by rememberSaveable(screen.articleKey) { mutableStateOf<Boolean?>(null) }
                         val isSummary = remember(article?.html, article?.link) { article != null && needsFullText(article.html, article.link) }
-                        val wantFullText = article?.link != null && wantsFullText(fullTextChoice, current.fullArticles, fromFeed != null, isSummary, saved = item?.readingList != null)
+                        // A newsletter feed's article is the whole newsletter: never the website's text.
+                        val newsletter = NewsletterAddresses.codeOfFeed(fromFeed?.feedUrl ?: item?.let { ReadingLists.source(it, library) }?.url) != null
+                        val wantFullText = article?.link != null && !newsletter && wantsFullText(fullTextChoice, current.fullArticles, fromFeed != null, isSummary, saved = item?.readingList != null)
                         var fullText by remember(screen.articleKey) { mutableStateOf<FullTextState>(FullTextState.Off) }
                         // Signed in to the article's site (#180): its text loads again, with the sign-in.
                         val signedIn = article?.link?.let { SiteSignIns.forUrl(it, siteSignIns) }

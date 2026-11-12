@@ -79,6 +79,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import to.wim.content.data.Place
 import to.wim.content.data.Article
 import to.wim.content.data.Feed
+import to.wim.content.data.FeedKind
+import to.wim.content.data.FeedKinds
 import to.wim.content.ui.home.FeedIcon
 import to.wim.content.ui.home.FeedIconSize
 import to.wim.content.data.ReaderStyle
@@ -213,6 +215,7 @@ fun ReaderScreen(
                             canSignIn = actions.onSignIn != null,
                             canReport = actions.onReport != null,
                             signedIn = actions.signedIn,
+                            newsletter = feed?.let { FeedKinds.of(it) } == FeedKind.Newsletter,
                         )
                     DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
                         entries.forEach { entry ->
