@@ -42,7 +42,8 @@ object ReaderToolbarVisibility {
  * text or the full article. Once saved (also right after Save in the reader, 2026-11-02) it is a saved
  * article's menu: no Mark as unread or text switch, and Remove from Saved at the end. Both: Open in
  * browser, Sign in to this site (Sign in again once signed in, for when the site's sign-in ran out),
-Report a problem. Plain Kotlin, tested on the JVM.
+Report a problem. A newsletter feed's article (2026-11-12) is the whole email already and has no
+ * site to pay for: no text switch and no Sign in. Plain Kotlin, tested on the JVM.
  */
 object ReaderMenu {
     enum class Entry { MarkUnread, ToggleText, OpenInBrowser, SignIn, SignInAgain, Report, Remove }
@@ -57,12 +58,14 @@ object ReaderMenu {
         canReport: Boolean,
         /** Already signed in to the article's site: Sign in again replaces that sign-in. */
         signedIn: Boolean = false,
+        /** An article of a newsletter feed (a newsletter address's): its text is the whole newsletter. */
+        newsletter: Boolean = false,
     ): List<Entry> =
         buildList {
             if (feedArticle && !saved) add(Entry.MarkUnread)
-            if (hasLink && !saved) add(Entry.ToggleText)
+            if (hasLink && !saved && !newsletter) add(Entry.ToggleText)
             if (hasLink) add(Entry.OpenInBrowser)
-            if (canSignIn) add(if (signedIn) Entry.SignInAgain else Entry.SignIn)
+            if (canSignIn && !newsletter) add(if (signedIn) Entry.SignInAgain else Entry.SignIn)
             if (canReport) add(Entry.Report)
             if (saved) add(Entry.Remove)
         }
