@@ -25,6 +25,7 @@ import { Button } from "./ui/button";
 import { cn } from "./ui/cn";
 import { Dialog } from "./ui/dialog";
 import { useEscape } from "./ui/useEscape";
+import { kindOf } from "@/lib/feedKinds";
 
 /** The full article for one address: loaded, or failed and why (no answer yet means it is loading). */
 type Full = { link: string; html: string | null; blocked?: boolean };
@@ -52,7 +53,9 @@ export function ArticleView({
   const feed = fromSaved ? (saved ? sourceOf(saved, library) : site ? siteOf(site) : undefined) : library.feeds.find((f) => f.url === article.feedUrl);
   const current = library.articles.find((a) => articleKey(a) === articleKey(article)) ?? article;
   const link = article.link;
-  const canLoad = !!link;
+  // A newsletter feed's article is the whole newsletter: never the website's text.
+  const newsletter = !!feed && kindOf(feed) === "newsletter";
+  const canLoad = !!link && !newsletter;
   const [useFull, setUseFull] = useState(() => canLoad && wantsFullText(settings.fullArticles, !fromSaved, needsFullText(article.html, link), !!saved));
   const [full, setFull] = useState<Full | null>(() => {
     const known = link ? cachedNow(link) : null;
@@ -185,7 +188,7 @@ export function ArticleView({
               <div className="fixed inset-0 z-20" onClick={() => setMenuOpen(false)} aria-hidden="true" />
               <div role="menu" className="absolute right-0 z-30 mt-1 w-60 rounded-md border bg-card p-1 shadow-md">
                 {/* What it offers follows readerMenu: a saved article's menu as soon as it is saved. */}
-                {readerMenu({ feedArticle: !fromSaved, saved: !!saved, hasLink: !!article.link, canLoad }).map((entry) => {
+                {readerMenu({ feedArticle: !fromSaved, saved: !!saved, hasLink: !!article.link, canLoad, newsletter }).map((entry) => {
                   const close = () => setMenuOpen(false);
                   switch (entry) {
                     case "markRead":

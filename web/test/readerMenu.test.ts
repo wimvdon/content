@@ -15,4 +15,8 @@ describe("readerMenu", () => {
   it("leaves out what needs a link", () => {
     expect(readerMenu({ feedArticle: true, saved: false, hasLink: false, canLoad: false })).toEqual(["markRead"]);
   });
+
+  it("gives a newsletter feed's article no text switch", () => {
+    expect(readerMenu({ feedArticle: true, saved: false, hasLink: true, canLoad: true, newsletter: true })).toEqual(["markRead", "openWebsite", "report"]);
+  });
 });
