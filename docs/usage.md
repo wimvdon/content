@@ -37,25 +37,18 @@ sit on a light tile, so dark logos stay visible in dark mode.
 
 ### Newsletters
 
-**+** › **Newsletter feed** first lists your addresses, grouped by tag (the feed's topic, No
-tag last), each with its feed's name and **Copy**, and **New address**; with none yet, it opens New
-address at once.
-
-- **Your own address** (with a Content account), like Add feed: give its feed a **name**,
-  pick a **tag** (or No tag, or Edit tags) and tap **Create address**. Content makes an email address
-  for it, such as `content+k7q2m9abcdef@in.wim.to`, adds its feed, and shows the address with
-  **Copy**. Subscribe to newsletters with that address; each issue then arrives as an article in that
-  feed, like any feed's: unread, Mark all as read, the dot on the tag's chip. Such a feed has an
-  envelope as its icon; it is listed in Settings › **Newsletter feeds** (where **New address** makes
-  another), and editing it shows the address with **Copy**, with the same name and tag options as
-  any feed. Removing the feed removes the address too: mail to it is then refused. Content keeps the
-  newsletters in your account, see PRIVACY.md. Without an account, the page offers **Sign in**.
-- **Straight into To read:** with your own Save to Instapaper email address. **Find my Instapaper
-  address** opens Instapaper's Email page in your browser, which shows it once you're signed in to
-  Instapaper. Subscribe with that address, or forward emails to it: new ones arrive in Saved, under
-  the **Newsletters** chip (see Saved). Not connected to Instapaper yet: the page offers **Sign in
-  with Instapaper** first. Connected, it also has the switch **Mark incoming newsletters as unread**,
-  the same as in Settings › Saved › Instapaper.
+With a Content account, **every tag has its own email address, and so does No tag**, such as
+`content+k7q2m9abcdef@in.wim.to`. Newsletters sent to one arrive as articles in that tag's
+**Newsletters** feed, like any feed's: unread, Mark all as read, the dot on the tag's chip. Such a feed
+has an envelope as its icon. **+** › **Newsletter feed** and Settings › **Newsletter feeds** show the
+same page: every tag in your order, then No tag, each with its address and **Copy**. Subscribe to a
+newsletter with the address of the tag it belongs under, or forward emails to it. For another
+address, tap **New tag**: the new tag gets its own address straight away. An address can't be made,
+renamed, moved or removed by hand, and its Newsletters feed doesn't appear in RSS feeds' Manage
+feeds: both come and go with their tag. Removing a tag removes its address (mail to it is then
+refused) and its Newsletters feed; its confirmation says so. Content keeps the newsletters in your
+account, see PRIVACY.md. Without an account, the page offers **Sign in**. (Newsletters through your
+Save to Instapaper address still arrive in Saved, under the **Newsletters** chip; see Saved.)
 
 ## Moving from another reader
 
@@ -91,14 +84,13 @@ saved articles stay, without it); giving it another tag's name merges the two. *
 makes one: a name and an icon from the whole Material Symbols set (type in English, such as
 *news*, *car* or *food*). Changes are kept at once: **Done** closes it.
 
-**Managing feeds: RSS feeds** and **Newsletter feeds** (the two large buttons at the top of Settings). Each opens a sheet with that kind of feed as a list, each with its site icon,
+**Managing feeds: RSS feeds** (the first large button at the top of Settings; **Newsletter feeds** beside it shows every tag's email address, see Newsletters). It opens a sheet with your RSS feeds as a list, each with its site icon,
 a pen and a grip (⋮⋮) at the end, under a heading per tag (in your order, then **No tag**; every
 tag, an empty one too, with "Drag a feed here"); a feed that can't be downloaded has its name in
 red. Drag a row by its grip up or down to reorder the feeds of a tag, or past another tag's
-heading to move it there (the other kind of feed keeps its places). Tap one for the **Edit feed** sheet: its
+heading to move it there (the newsletter feeds keep their places). Tap one for the **Edit feed** sheet: its
 name (empty brings back the feed's own), its address, why it fails if it does, its tag as chips,
-**Remove** (it asks first, in the sheet) and **Save**. **Add feed** at the end (for newsletter
-feeds: **New address**) adds one, in the same sheet; afterwards you are back in the list. A sheet opened from within a sheet
+**Remove** (it asks first, in the sheet) and **Save**. **Add feed** at the end adds one, in the same sheet; afterwards you are back in the list. A sheet opened from within a sheet
 always opens in it like this, with a back arrow at the top left, never as a second sheet on top. OPML import and export are in Settings › **Feed**.
 
 **Feeds:** the chips under the search bar list the tags that have feeds, in your order, then

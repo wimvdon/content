@@ -163,12 +163,14 @@ data class Library(
     ): Library =
         if (title.isBlank()) this else copy(folders = folders.map { if (it.id == id) it.copy(title = title.trim(), icon = icon) else it })
 
-    /** Removes a folder; its feeds stay, without a folder. */
-    fun removeFolder(id: String): Library =
-        copy(
-            folders = folders.filterNot { it.id == id },
-            feeds = feeds.map { if (it.folderId == id) it.copy(folderId = null) else it },
+    /** Removes a folder; its feeds stay, without a folder, except its newsletter feed, which goes with it ([NewsletterAddresses]). */
+    fun removeFolder(id: String): Library {
+        val gone = feeds.filter { it.folderId == id && NewsletterAddresses.isNewsletterFeed(it.url) }.fold(this) { lib, feed -> lib.removeFeed(feed.url) }
+        return gone.copy(
+            folders = gone.folders.filterNot { it.id == id },
+            feeds = gone.feeds.map { if (it.folderId == id) it.copy(folderId = null) else it },
         )
+    }
 
     /**
      * Gives a feed the user's own name. A blank name goes back to the feed's own title, which

@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
-import { codeOfFeed, type NewsletterAddress } from "./newsletterAddresses";
+import { t } from "./i18n";
+import { codeOfFeed, missingTags, orphans, reconcile, tagHashes, type NewsletterAddress } from "./newsletterAddresses";
 import { instapaperBookmarkId } from "./instapaperLinks";
 import { forgetRecipient, rememberRecipient } from "./recipients";
 import { notificationsOn, refreshServiceWorker, turnOff as turnOffNotifications, turnOn as turnOnNotifications, type TurnOnResult } from "./notifications";
@@ -133,6 +134,8 @@ export const defaultSettings: Settings = {
 };
 
 const PARALLEL = 4;
+/** How long after a failure the newsletter addresses are tried again (unless the tags change). */
+const NEWSLETTER_RETRY_MS = 10 * 60 * 1000;
 
 class AppStore {
   private state: State = {
@@ -430,35 +433,50 @@ class AppStore {
     return "added";
   }
 
-  removeFeed = (url: string) => {
-    this.updateLibrary((lib) => L.removeFeed(lib, url));
-    // A newsletter address's feed: the address goes with it.
-    const code = codeOfFeed(url);
-    const account = this.state.account;
-    if (code && account) void new AccountClient(account.key).deleteNewsletter(code).catch(() => undefined);
-  };
-  /** This account's newsletter addresses; null when signed out or they can't be read. */
+  removeFeed = (url: string) => this.updateLibrary((lib) => L.removeFeed(lib, url));
+  /** This account's newsletter addresses, every tag's made first (and their feeds in step); null when signed out or offline. */
   newsletterAddresses = async (): Promise<NewsletterAddress[] | null> => {
-    const account = this.state.account;
-    if (!account) return null;
+    const key = this.accountKey();
+    return key ? this.keepNewsletters(new AccountClient(key), true) : null;
+  };
+  /** The tags (by id) whose newsletter addresses were last put in step (with the account's key), and when that last failed. */
+  private newsletterTags: string | null = null;
+  private newsletterFailed: { tags: string; at: number } | null = null;
+  /**
+   * Every tag, and No tag, has a newsletter address (newsletterAddresses.ts), as on Android: after a
+   * sync whose tags differ from the last time, asks the feed loader for the missing ones, removes
+   * those whose tag has long been gone, and puts the library's Newsletters feeds in step. A failure
+   * (offline, or no addresses on the server) is tried again after a while; `force`: now (the
+   * Newsletter feeds page is open).
+   */
+  private async keepNewsletters(client: AccountClient, force = false): Promise<NewsletterAddress[] | null> {
+    const folders = this.state.library.folders;
+    const tags = `${this.accountKey()}\u0000${folders.map((f) => f.id).join("\u0000")}`;
+    if (!force) {
+      if (tags === this.newsletterTags) return null;
+      if (this.newsletterFailed?.tags === tags && Date.now() - this.newsletterFailed.at < NEWSLETTER_RETRY_MS) return null;
+    }
     try {
-      return await new AccountClient(account.key).newsletters();
+      const hashes = await tagHashes(folders);
+      let list = await client.newsletters();
+      const gone = orphans(hashes, list, Date.now());
+      for (const a of gone) await client.deleteNewsletter(a.code);
+      const missing = missingTags(folders, hashes, list);
+      for (const id of missing) await client.createNewsletter(id);
+      if (gone.length > 0 || missing.length > 0) list = await client.newsletters();
+      const before = this.state.library;
+      // The tags as they are now (one may have come meanwhile): their hashes too.
+      const now = await tagHashes(this.state.library.folders);
+      this.updateLibrary((lib) => reconcile(lib, now, list, t("newsletters")));
+      this.newsletterTags = tags;
+      this.newsletterFailed = null;
+      if (this.state.library.feeds.some((f) => !before.feeds.some((b) => b.url === f.url))) void this.refresh(false);
+      return list;
     } catch {
+      this.newsletterFailed = { tags, at: Date.now() };
       return null;
     }
-  };
-  /** A new newsletter address named `name` (its feed's title), its feed added under topic `topicId`; null when it didn't work. */
-  createNewsletterAddress = async (name: string, topicId: string | null): Promise<NewsletterAddress | null> => {
-    const account = this.state.account;
-    if (!account) return null;
-    try {
-      const made = await new AccountClient(account.key).createNewsletter(name);
-      await this.addFeed(made.feedUrl, topicId);
-      return made;
-    } catch {
-      return null;
-    }
-  };
+  }
   renameFeed = (url: string, title: string) => this.updateLibrary((lib) => L.renameFeed(lib, url, title));
   moveFeed = (url: string, folderId: string | null) => this.updateLibrary((lib) => L.moveFeed(lib, url, folderId));
   /** A new topic, or the one that already has this name (a name is never there twice). */
@@ -469,8 +487,13 @@ class AppStore {
   };
   /** Renames a topic on its feeds and saved articles; another topic's name joins the two. */
   updateFolder = (id: string, title: string, icon: string) => this.updateLibrary((lib) => renameTopic(lib, id, title, icon));
-  /** Its feeds and saved articles stay, without the topic. */
-  removeFolder = (id: string) => this.updateLibrary((lib) => removeTopic(lib, id));
+  /** Its feeds and saved articles stay, without the topic; its newsletter feed goes with it, and so does its address. */
+  removeFolder = (id: string) => {
+    const codes = this.state.library.feeds.filter((f) => f.folderId === id).flatMap((f) => codeOfFeed(f.url) ?? []);
+    this.updateLibrary((lib) => removeTopic(lib, id));
+    const key = this.accountKey();
+    if (key) for (const code of codes) void new AccountClient(key).deleteNewsletter(code).catch(() => undefined);
+  };
   /** The topics in a new order, by id (#314: dragging their chips). */
   reorderTopics = (ids: string[]) => this.updateLibrary((lib) => reorderTopics(lib, ids));
   /** Merges one topic into another: its feeds and saved articles go to `intoId`. */
@@ -1149,6 +1172,7 @@ class AppStore {
       await writeItemSyncState(items, nextItems);
       this.syncedItemsVersion = nextItems.version;
       await this.takeInShared(new AccountClient(key));
+      await this.keepNewsletters(new AccountClient(key));
       this.updateSettings({ lastSyncedAt: Date.now() }, false);
       this.set({ syncStatus: { kind: "idle" } });
       if (newFeeds) void this.refresh(false);

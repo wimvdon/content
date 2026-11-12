@@ -2,6 +2,30 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-12: Every tag has a newsletter address
+
+The owner's wish. Making newsletter addresses by hand (a name, a tag, Create address) is gone: with
+a Content account, every tag has an email address, and so does No tag, with a feed called
+Newsletters under it. For another address you make another tag. The feed can't be renamed, moved or
+removed (it isn't in RSS feeds' Manage feeds), and Settings › Newsletter feeds and + › Newsletter
+feed show the same page: each tag's address with Copy, and New tag. Removing a tag removes its
+address and feed, and its confirmation says so.
+
+- **The apps ask, the feed loader keeps one per tag:** `POST /account/newsletters {"tagHash"}` gives
+  the tag's address, made the first time, so asking again (or two devices at once) never makes a
+  second. The apps ask after a sync whose tags changed and when the page opens, then put the
+  library's newsletter feeds in step with the account's list (`NewsletterAddresses.reconcile`).
+- **Only a hash of the tag's id goes to the server**, never the name (an id such as
+  `topic:<name>` holds it). The feeds are titled Newsletters by the app, not by the tag, so the
+  server needs no name at all: less than before, see PRIVACY.md.
+- **An address whose tag is gone is removed after a day**, not at once: a tag made on another
+  device may not have reached this one yet, and removing its address would lose newsletters.
+- **Rejected:** keeping manual addresses next to the automatic ones (two ways to do the same thing);
+  migrating the old addresses (only the owner used them; they are removed with their emails).
+- **Also removed:** the leftovers of + › Newsletter feed › Straight into To read (Instapaper), already
+  gone from the screen: `NewsletterSubscribe` and its texts. Its tests went with it; the Instapaper
+  newsletters in Saved are unchanged.
+
 ## 2026-11-11: RSS feeds and newsletter feeds by name; Settings by part of the app
 
 The owner's wish, to be precise about terms: **Feed** (the destination) holds two kinds of feed,

@@ -5,7 +5,8 @@
  * sync file keeps folders and tags as they were; these rules keep the two in step.
  */
 import { changeItem, cleanTags, feedArticleFor, renameTag, type Item } from "./items";
-import { chipTag, choosesFolder, feedFoldersToTags, feedTags, inFeedTab, removeFolder, type Feed, type FeedTab, type Folder, type Library, type Selection } from "./library";
+import { isNewsletterFeed } from "./newsletterAddresses";
+import { chipTag, choosesFolder, feedFoldersToTags, feedTags, inFeedTab, removeFeed, removeFolder, type Feed, type FeedTab, type Folder, type Library, type Selection } from "./library";
 
 const key = (name: string) => name.trim().toLowerCase();
 
@@ -107,11 +108,15 @@ export function renameTopic(lib: Library, id: string, title: string, icon: strin
   return feedFoldersToTags(renameTag(joined, topic.title, other.title));
 }
 
-/** Removes a topic: its feeds stay, without a topic, and its saved articles stay, without it. */
+/**
+ * Removes a topic: its feeds stay, without a topic, except its newsletter feed, which goes with it
+ * (newsletterAddresses.ts); its saved articles stay, without it.
+ */
 export function removeTopic(lib: Library, id: string): Library {
   const topic = lib.folders.find((f) => f.id === id);
   if (!topic) return lib;
-  const out = removeFolder(lib, id);
+  const withoutNewsletters = lib.feeds.filter((f) => f.folderId === id && isNewsletterFeed(f.url)).reduce((l, f) => removeFeed(l, f.url), lib);
+  const out = removeFolder(withoutNewsletters, id);
   const has = (i: Item) => i.tags.some((t) => key(t) === key(topic.title));
   return feedFoldersToTags({ ...out, items: out.items.map((i) => (has(i) ? { ...i, tags: i.tags.filter((t) => key(t) !== key(topic.title)) } : i)) });
 }

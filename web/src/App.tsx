@@ -200,8 +200,7 @@ export default function App() {
   const manageDialogs = (
     <>
       <ManageFeedsDialog
-        open={manageFeeds}
-        kind={manageFeedsKind ?? "rss"}
+        open={manageFeedsKind === "rss"}
         onOpenChange={(o) => {
           if (!o) {
             setManageFeedsKind(null);
@@ -210,22 +209,19 @@ export default function App() {
         }}
         onAddFeed={() => setAddFromManage(true)}
       >
-        {addFromManage && manageFeedsKind === "newsletter" ? (
-          <NewsletterDialog
-            open
-            startCreating
-            onOpenChange={(o) => setAddFromManage(o)}
-            // Without a Content account: Settings › Account, where you sign in.
-            onSignIn={() => {
-              setAddFromManage(false);
-              setManageFeedsKind(null);
-              setDialog("settings");
-            }}
-          />
-        ) : addFromManage ? (
-          <AddFeedDialog open onOpenChange={(o) => setAddFromManage(o)} folderId={null} />
-        ) : null}
+        {addFromManage ? <AddFeedDialog open onOpenChange={(o) => setAddFromManage(o)} folderId={null} /> : null}
       </ManageFeedsDialog>
+      {/* Newsletter feeds: every tag's address, as in + › Newsletter feed. */}
+      <NewsletterDialog
+        open={manageFeedsKind === "newsletter"}
+        title={t("newsletterFeeds")}
+        onOpenChange={(o) => !o && setManageFeedsKind(null)}
+        // Without a Content account: Settings › Account, where you sign in.
+        onSignIn={() => {
+          setManageFeedsKind(null);
+          setDialog("settings");
+        }}
+      />
       <ManageTopicsDialog open={manageTopics} onOpenChange={setManageTopics} />
     </>
   );
