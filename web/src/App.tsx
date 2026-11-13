@@ -273,14 +273,14 @@ export default function App() {
         onSignIn={() => setDialog("settings")}
       />
       <AddFeedDialog
-        key={dialog === "add" ? "open" : "closed"}
+        key={dialog === "add" ? "add-open" : "add-closed"}
         open={dialog === "add"}
         onOpenChange={(o) => setDialog(o ? "add" : null)}
         folderId={selection.kind === "folder" ? selection.folderId : null}
       />
       {dialog === "settings" ? null : manageDialogs}
       <SettingsDialog
-        key={dialog === "settings" ? "settings" : "closed"}
+        key={dialog === "settings" ? "settings-open" : "settings-closed"}
         open={dialog === "settings"}
         onOpenChange={(o) => {
           setDialog(o ? "settings" : null);

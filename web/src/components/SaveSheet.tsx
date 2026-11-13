@@ -181,14 +181,15 @@ function Topics({ choice, setChoice, withLike }: ChoiceProps & { withLike: boole
 /** The note, a few lines to start with. */
 function NoteField({ choice, setChoice, autoFocus }: ChoiceProps & { autoFocus?: boolean }) {
   return (
-    <textarea
-      autoFocus={autoFocus}
-      value={choice.note}
-      onChange={(e) => setChoice((c) => ({ ...c, note: e.target.value }))}
-      aria-label={t("note")}
-      placeholder={t("note")}
-      rows={4}
-      className="w-full resize-y rounded-lg border bg-transparent px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-    />
+    <label className="block space-y-1 text-sm">
+      <span className="font-medium">{t("note")}</span>
+      <textarea
+        autoFocus={autoFocus}
+        value={choice.note}
+        onChange={(e) => setChoice((c) => ({ ...c, note: e.target.value }))}
+        rows={4}
+        className="w-full resize-y rounded-lg border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      />
+    </label>
   );
 }
