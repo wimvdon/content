@@ -66,7 +66,6 @@ export interface NewsletterAddress {
 /** An address made before 2026-11-12, by name instead of per tag: no longer listed, removed on the next POST. */
 const isLegacy = (a: NewsletterAddress) => (a.tagHash as string | null | undefined) === undefined;
 
-// ---------------------------------------------------------------------------------------------
 // Codes, addresses and feed links.
 
 /** A new random code: 12 letters and digits, without the ones easy to mix up (l, o, 0, 1). */
@@ -106,7 +105,6 @@ export function cleanTagHash(value: unknown): string | null | undefined {
   return typeof value === "string" && TAG_HASH_PATTERN.test(value) ? value : undefined;
 }
 
-// ---------------------------------------------------------------------------------------------
 // One address's inbox, without anything Cloudflare-specific (tested on its own).
 
 interface SealedEmail {
@@ -266,7 +264,6 @@ export function emailPage(email: NewsletterEmail): Response {
   });
 }
 
-// ---------------------------------------------------------------------------------------------
 // The Durable Object's side: the inbox's routes (Account.fetch passes them here) and the account's list.
 
 /** Answers an inbox's routes, inside its Durable Object ("newsletter:<code>"). */
@@ -367,7 +364,6 @@ export async function deleteAddresses(storage: Storage, env: Env): Promise<void>
   for (const a of (await storage.get<NewsletterAddress[]>("newsletters")) ?? []) await wipe(env, a.code);
 }
 
-// ---------------------------------------------------------------------------------------------
 // The Worker's side: email in, feeds out.
 
 /** What the Worker needs of an incoming email (Cloudflare's ForwardableEmailMessage). */

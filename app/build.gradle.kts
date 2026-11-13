@@ -7,22 +7,18 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
-// ---------------------------------------------------------------------------
-// App identity: the ONE place to change the package / application ID. Once the app is
+// App identity: the only place to change the package / application ID. Once the app is
 // released it must never change again (phones would treat it as a different app). It changed
 // twice at the owner's request, from be.wimvandonck.reader to be.wimvandonck.content and then to
 // to.wim.content (see docs/decisions.md): each time Content became a new app next to the old one.
-// ---------------------------------------------------------------------------
 val appId = "to.wim.content"
 
-// ---------------------------------------------------------------------------
 // Versioning
 //  - Release builds: the release workflow passes -PappVersionName=X.Y.Z and
 //    -PappVersionCode=N (N = major*10000 + minor*100 + patch).
 //  - Every other build: version comes from `git describe --tags --long`, e.g.
 //    1.2.0-3-gabc1234, so a dev build never looks like a release.
 //    Falls back to 0.0.0-dev when there are no tags or no git.
-// ---------------------------------------------------------------------------
 val releaseVersionName: String? = providers.gradleProperty("appVersionName").orNull
 val releaseVersionCode: String? = providers.gradleProperty("appVersionCode").orNull
 
@@ -60,21 +56,17 @@ val appVersion: AppVersion = if (releaseVersionName != null || releaseVersionCod
     AppVersion(gitDescribeVersion(), 1)
 }
 
-// ---------------------------------------------------------------------------
 // Release signing: only when keystore.properties exists. The release workflow
 // writes it at build time and deletes it afterwards. Never commit it.
-// ---------------------------------------------------------------------------
 val keystorePropertiesFile = rootProject.file("keystore.properties")
 val keystoreProperties = Properties().apply {
     if (keystorePropertiesFile.exists()) keystorePropertiesFile.inputStream().use { load(it) }
 }
 
-// ---------------------------------------------------------------------------
 // Notifications (#235): the app's Firebase settings, read from app/google-services.json when it is
 // there. CI and the release workflow write that file from the GOOGLE_SERVICES_JSON secret; it is
 // never committed (it holds an API key). Without it the build has empty settings and the app offers
 // no notifications. No google-services plugin: the app starts Firebase with these itself.
-// ---------------------------------------------------------------------------
 fun firebaseSettings(packageName: String): Map<String, String> {
     val file = file("google-services.json")
     if (!file.exists()) return emptyMap()

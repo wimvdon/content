@@ -61,7 +61,6 @@ export const MAX_DEVICES = 50;
 const KEY_PATTERN = /^([0-9a-f]{32})\.([A-Za-z0-9_-]{43})$/;
 const FORMAT = "rss-reader-sync";
 
-// ---------------------------------------------------------------------------------------------
 // The Worker side: checks the request and passes it to the account's Durable Object.
 
 export async function handleAccount(request: Request, env: Env, url: URL): Promise<Response> {
@@ -140,7 +139,6 @@ export async function accountIdOf(masterKey: string, provider: string, userId: n
   return hex(new Uint8Array(mac)).slice(0, 32);
 }
 
-// ---------------------------------------------------------------------------------------------
 // The Durable Object: one per account. Its storage holds the device keys and the document.
 
 /** The part of Durable Object storage used here, so tests can give a Map. */
@@ -798,7 +796,6 @@ export class Account {
   }
 }
 
-// ---------------------------------------------------------------------------------------------
 
 /** HKDF-SHA-256 of the master key (any text of at least 32 characters) for one purpose. */
 export async function derive(masterKey: string, purpose: string, bytes: number): Promise<ArrayBuffer> {

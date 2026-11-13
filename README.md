@@ -2,16 +2,16 @@
 
 Feeds and saved articles in one app, on Android and the web. Formerly called Reader. Its app ID changed from `be.wimvandonck.reader` to `be.wimvandonck.content` (2026-10-23) and then to `to.wim.content` (2026-10-31): each time the new app installs next to the old one, which you then uninstall.
 
-## 📚 Documentation
+## Documentation
 | | |
 |---|---|
-| [⚙️ Architecture](docs/architecture.md) | System design, components and flow |
-| [📁 Structure](docs/structure.md) | Project organization and responsibilities |
-| [🚀 Installation](docs/installation.md) | Building, signing key, releases, GitHub settings |
-| [🧠 Technical decisions](docs/decisions.md) | Trade-offs and design justifications |
-| [📖 Usage guide](docs/usage.md) | Feeds, reading, text settings, Instapaper, settings |
-| [🔖 Instapaper](docs/instapaper.md) | Sign in, save, the saved list, and the one-time setup |
-| [🧪 Testing](docs/testing.md) | How to run tests and what they cover |
+| [Architecture](docs/architecture.md) | System design, components and flow |
+| [Structure](docs/structure.md) | Project organization and responsibilities |
+| [Installation](docs/installation.md) | Building, signing key, releases, GitHub settings |
+| [Technical decisions](docs/decisions.md) | Trade-offs and design justifications |
+| [Usage guide](docs/usage.md) | Feeds, reading, text settings, Instapaper, settings |
+| [Instapaper](docs/instapaper.md) | Sign in, save, the saved list, and the one-time setup |
+| [Testing](docs/testing.md) | How to run tests and what they cover |
 
 ---
 
