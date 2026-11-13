@@ -194,12 +194,14 @@ function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport,
               <EmailLinkForm id="welcome-email" />
             </div>
             <p className="pt-4 text-sm text-muted-foreground">{t("welcomeWithoutAccount")}</p>
-            <Button variant="outline" onClick={onAddFeed}>
-              {t("addFeed")}
-            </Button>
-            <Button variant="ghost" onClick={onImport}>
-              {t("welcomeImport")}
-            </Button>
+            <div className="flex flex-wrap justify-center gap-2">
+              <Button variant="outline" onClick={onAddFeed}>
+                {t("addFeed")}
+              </Button>
+              <Button variant="outline" onClick={onImport}>
+                {t("welcomeImport")}
+              </Button>
+            </div>
           </Empty>
         ) : library.feeds.length === 0 ? (
           <Empty icon={Rss} title={t("noFeedsTitle")} text={t("noFeedsText")}>

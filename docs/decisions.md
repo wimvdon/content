@@ -2,6 +2,24 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-13: Touch-sized targets, visible field edges and the extension's own colours on the web
+
+An antislop accessibility pass over the web app and the browser extension.
+
+- **On touch screens every control is at least 44 px** (`@media (pointer: coarse)` in
+  `index.css`). With a mouse the controls keep shadcn's 36 px (`h-9`), which this file's "Other
+  platforms" asks for; a thumb needs more.
+- **Form fields have their own border colour, `--input`**, at least 3:1 against the card and the
+  page in light, dark and sepia (WCAG 1.4.11). The shared `--border` (about 1.3:1) stays for
+  dividers, where it is decoration.
+- **The default border colour moved into `@layer base`.** Unlayered, it beat every `border-*`
+  colour utility, so the chips' selected edge, the error edge and others never showed.
+- **Disabled buttons show a not-allowed cursor** instead of no cursor at all.
+- **The extension's popup uses the web app's colours and corners**, not Material's purple and
+  pill button, and its button says Save (the title already says Save to Content).
+- **Rejected:** making the controls 44 px everywhere (it changes the desktop look the owner chose
+  for no gain with a mouse).
+
 ## 2026-11-12: Every tag has a newsletter address
 
 The owner's wish. Making newsletter addresses by hand (a name, a tag, Create address) is gone: with

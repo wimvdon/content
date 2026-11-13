@@ -5,13 +5,13 @@
 const WEB_APP = "https://content.wim.to";
 
 // In the browser's language, from _locales (#257).
-const text = { save: chrome.i18n.getMessage("saveToContent"), none: chrome.i18n.getMessage("cannotSave") };
+const text = { save: chrome.i18n.getMessage("saveToContent"), button: chrome.i18n.getMessage("save"), none: chrome.i18n.getMessage("cannotSave") };
 document.documentElement.lang = chrome.i18n.getUILanguage();
 document.title = text.save;
 
 document.getElementById("title").textContent = text.save;
 const button = document.getElementById("save");
-button.textContent = text.save;
+button.textContent = text.button;
 
 /**
  * The page you're on. Some browsers (Arc, Vivaldi, Opera and others) open the popup as a window of

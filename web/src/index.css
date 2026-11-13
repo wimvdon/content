@@ -11,6 +11,8 @@
   --muted: oklch(0.96 0.006 240);
   --muted-foreground: oklch(0.5 0.02 250);
   --border: oklch(0.91 0.008 240);
+  /* Form field edges: at least 3:1 against card and background (WCAG 1.4.11). */
+  --input: oklch(0.64 0.015 250);
   /* L 0.52: 5.3:1 on white, so small primary text passes WCAG AA. */
   --primary: oklch(0.52 0.17 245);
   --primary-foreground: oklch(0.99 0 0);
@@ -30,6 +32,7 @@
   --muted: oklch(0.24 0.012 250);
   --muted-foreground: oklch(0.7 0.015 250);
   --border: oklch(0.3 0.012 250);
+  --input: oklch(0.53 0.015 250);
   --primary: oklch(0.72 0.14 240);
   --primary-foreground: oklch(0.18 0.03 250);
   --accent: oklch(0.27 0.012 250);
@@ -52,6 +55,8 @@
   --muted: #ede2c9;
   --muted-foreground: #6f5c45;
   --border: #e0d2b4;
+  --input: #9a8565;
+  --destructive: #b42318;
   --primary: #8a4b12;
   --accent: #ede2c9;
   --accent-foreground: #3d2f1e;
@@ -67,6 +72,7 @@
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
+  --color-input: var(--input);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-accent: var(--accent);
@@ -96,8 +102,21 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-* {
-  border-color: var(--border);
+/* In the base layer, so border-* colour utilities (border-primary, border-input, …) win over it. */
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+}
+
+/* Touch screens get 44 px targets: same controls, a taller box (antislop R-03). */
+@media (pointer: coarse) {
+  :where(button, a[href], [role="button"], [role="tab"], summary, select, input:not([type="checkbox"], [type="radio"])) {
+    min-height: 44px;
+  }
+  :where(button, [role="button"]):has(> svg:only-child) {
+    min-width: 44px;
+  }
 }
 
 :focus-visible {

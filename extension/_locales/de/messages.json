@@ -16,5 +16,9 @@
   "cannotSave": {
     "message": "Diese Seite kann nicht gespeichert werden.",
     "description": "In the popup, on a page that isn't http(s)"
+  },
+  "save": {
+    "message": "Speichern",
+    "description": "The popup's button (its title already says Save to Content)"
   }
 }

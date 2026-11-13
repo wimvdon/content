@@ -407,7 +407,7 @@ function ReportDialog({ link, html, onClose }: { link: string; html: string; onC
             maxLength={MAX_REPORT_COMMENT}
             onChange={(e) => setComment(e.target.value)}
             rows={3}
-            className="w-full rounded-lg border bg-card px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+            className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
           />
         </label>
         <p className="text-xs text-muted-foreground">{t("reportHint")}</p>

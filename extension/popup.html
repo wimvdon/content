@@ -4,16 +4,19 @@
     <meta charset="utf-8" />
     <title>Save to Content</title>
     <style>
-      body { font: 14px system-ui, sans-serif; margin: 0; padding: 14px; width: 260px; color: #1c1b1f; }
-      h1 { font-size: 15px; margin: 0 0 6px; }
-      p { margin: 0 0 12px; color: #49454f; overflow-wrap: anywhere; }
-      button { width: 100%; padding: 9px 12px; border: 0; border-radius: 20px; background: #6750a4; color: #fff; font: inherit; cursor: pointer; }
-      button:disabled { background: #cac4d0; cursor: not-allowed; }
+      /* The web app's tokens (web/src/index.css): shadcn's neutral look with the brand blue, not Material. */
+      :root { --bg: #ffffff; --fg: #0f171f; --muted: #5b646f; --primary: #006dc2; --primary-fg: #fcfcfc; --ring: #006dc2; }
       @media (prefers-color-scheme: dark) {
-        body { background: #1c1b1f; color: #e6e1e5; }
-        p { color: #cac4d0; }
-        button { background: #d0bcff; color: #381e72; }
+        :root { --bg: #14191e; --fg: #e8ecee; --muted: #989fa8; --primary: #3faff3; --primary-fg: #07121e; --ring: #3faff3; }
       }
+      body { font: 14px system-ui, sans-serif; margin: 0; padding: 14px; width: 260px; background: var(--bg); color: var(--fg); }
+      h1 { font-size: 15px; margin: 0 0 6px; }
+      p { margin: 0 0 12px; color: var(--muted); overflow-wrap: anywhere; }
+      button { width: 100%; min-height: 36px; padding: 8px 12px; border: 0; border-radius: 8px; background: var(--primary); color: var(--primary-fg); font: inherit; font-weight: 500; cursor: pointer; }
+      button:hover:not(:disabled) { filter: brightness(0.92); }
+      button:active:not(:disabled) { filter: brightness(0.84); }
+      button:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+      button:disabled { opacity: 0.5; cursor: not-allowed; }
     </style>
   </head>
   <body>

@@ -186,15 +186,16 @@ export function HighlightDialog({
       <div className="space-y-3">
         <Quote text={highlight.quote} lines={8} />
         <Status anchor={anchor} />
-        <textarea
-          autoFocus
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          aria-label={t("note")}
-          placeholder={t("note")}
-          rows={3}
-          className="w-full resize-y rounded-lg border bg-transparent px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        />
+        <label className="block space-y-1 text-sm">
+          <span className="font-medium">{t("note")}</span>
+          <textarea
+            autoFocus
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            rows={3}
+            className="w-full resize-y rounded-lg border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          />
+        </label>
       </div>
     </Dialog>
   );
