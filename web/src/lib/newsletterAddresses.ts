@@ -8,7 +8,7 @@
  * NewsletterAddresses.kt.
  */
 
-import { feedFoldersToTags, moveFeed, removeFeed, type Feed, type Folder, type Library } from "./library";
+import { feedFoldersToTags, moveFeed, removeFeed, type Article, type Feed, type Folder, type Library } from "./library";
 
 export interface NewsletterAddress {
   code: string;
@@ -113,4 +113,35 @@ export interface NewsletterRow {
 /** Newsletter feeds in Settings and in +: every tag in its order, then No tag, each with its address (null: not made yet, or offline). */
 export function newsletterRows(folders: Folder[], hashes: Map<string, string>, addresses: NewsletterAddress[]): NewsletterRow[] {
   return [...folders, null].map((topic) => ({ topic, address: forTag(addresses, hashes, topic?.id ?? null) ?? null }));
+}
+
+/** How the Newsletter feed page stores a pick of No tag (a tag's id is never empty). */
+export const NO_TAG = "";
+
+/**
+ * The tag the Newsletter feed page shows (null: No tag): the one picked (an id, or NO_TAG), while
+ * it is still a tag; nothing picked yet, or a tag that is gone: the first tag, else No tag.
+ */
+export function chosenTag(folders: Folder[], picked: string | null): string | null {
+  if (picked === NO_TAG) return null;
+  if (picked !== null && folders.some((f) => f.id === picked)) return picked;
+  return folders[0]?.id ?? null;
+}
+
+/** What a tag's Newsletters feed has received: how many newsletters are in the library, and when the newest came (null: none yet). */
+export interface NewsletterActivity {
+  count: number;
+  newestAt: number | null;
+}
+
+export function newsletterActivity(articles: Article[], feedUrl: string): NewsletterActivity {
+  let count = 0;
+  let newestAt: number | null = null;
+  for (const a of articles) {
+    if (a.feedUrl !== feedUrl) continue;
+    count++;
+    const at = a.publishedAt ?? a.fetchedAt;
+    if (newestAt === null || at > newestAt) newestAt = at;
+  }
+  return { count, newestAt };
 }

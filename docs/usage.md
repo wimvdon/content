@@ -41,9 +41,11 @@ With a Content account, **every tag has its own email address, and so does No ta
 `content+k7q2m9abcdef@in.wim.to`. Newsletters sent to one arrive as articles in that tag's
 **Newsletters** feed, like any feed's: unread, Mark all as read, the dot on the tag's chip. Such a feed
 has an envelope as its icon. **+** › **Newsletter feed** and Settings › **Newsletter feeds** show the
-same page: every tag in your order, then No tag, each with its address and **Copy**. Subscribe to a
-newsletter with the address of the tag it belongs under, or forward emails to it. For another
-address, tap **New tag**: the new tag gets its own address straight away. An address can't be made,
+same page: pick a tag with the chips (No tag first), and the page shows that tag's address with
+**Copy address** and **Share**, and how many newsletters its feed has received and when the newest
+came. Subscribe to a newsletter with the address of the tag it belongs under, or forward emails to
+it. For another address, tap **Edit tags** and make a new tag: it gets its own address straight
+away and is chosen. An address can't be made,
 renamed, moved or removed by hand, and its Newsletters feed doesn't appear in RSS feeds' Manage
 feeds: both come and go with their tag. Removing a tag removes its address (mail to it is then
 refused) and its Newsletters feed; its confirmation says so. Content keeps the newsletters in your

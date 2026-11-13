@@ -364,13 +364,21 @@
     <string name="setting_newsletter_unread_title">Segna le newsletter in arrivo come non lette</string>
     <string name="setting_newsletter_unread_summary">Le nuove email da Instapaper restano in grassetto finché non le leggi</string>
     <string name="add_choice_newsletter">Feed di newsletter</string>
-    <string name="add_choice_newsletter_body">Ogni tag ha un indirizzo email per le newsletter: arrivano come feed</string>
-    <string name="newsletter_own_explained">Ogni tag ha il suo indirizzo email, e anche Senza tag. Le newsletter inviate a un indirizzo arrivano nel feed Newsletter di quel tag. Per un altro indirizzo, crea un nuovo tag.</string>
-    <string name="newsletter_own_sign_in_first">Questi indirizzi richiedono un account Content, che conserva le newsletter.</string>
+    <string name="add_choice_newsletter_body">Iscriviti con un indirizzo email per tag</string>
+    <string name="newsletter_own_explained">Iscriviti con questo indirizzo.</string>
+    <string name="newsletter_own_sign_in_first">Accedi per avere un indirizzo per tag.</string>
     <string name="newsletter_own_sign_in">Accedi</string>
     <string name="newsletter_own_offline">Non è stato possibile caricare l’indirizzo. Controlla la connessione.</string>
     <string name="newsletter_own_pending">Questo indirizzo non è ancora pronto. Riprova tra un momento.</string>
     <string name="newsletter_own_copy">Copia indirizzo</string>
+    <string name="newsletter_address_for">Indirizzo per %1$s</string>
+    <string name="newsletter_none_yet">Ancora nessuna newsletter</string>
+    <string name="newsletter_copied">Copiato</string>
+    <plurals name="newsletter_count">
+        <item quantity="one">%1$d newsletter</item>
+        <item quantity="many">%1$d newsletter</item>
+        <item quantity="other">%1$d newsletter</item>
+    </plurals>
     <string name="settings_rss_feeds">Feed RSS</string>
     <string name="settings_newsletter_feeds">Feed di newsletter</string>
     <string name="settings_feed_summary">Segna come letto scorrendo, parole nascoste, OPML</string>
