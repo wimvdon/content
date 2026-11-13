@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { removeTopic } from "../src/lib/topics";
-import type { Feed, Folder, Library } from "../src/lib/library";
+import type { Article, Feed, Folder, Library } from "../src/lib/library";
 import {
+  chosenTag,
+  newsletterActivity,
+  NO_TAG,
   addressesOf,
   addressOf,
   codeOfFeed,
@@ -96,5 +99,24 @@ describe("newsletter addresses (newsletterAddresses.ts), as on Android", () => {
     const rows = newsletterRows([tech, news], await tagHashes([tech, news]), [a]);
     expect(rows.map((r) => r.topic?.id ?? null)).toEqual(["1", "topic:news", null]);
     expect(rows.map((r) => r.address?.code ?? null)).toEqual([null, "aaaaaaaaaaaa", null]);
+  });
+});
+
+describe("the Newsletter feed page", () => {
+  it("shows the tag picked while it is a tag, else the first tag, else No tag", () => {
+    const tags = [tech, news];
+    expect(chosenTag(tags, null)).toBe("1");
+    expect(chosenTag(tags, "topic:news")).toBe("topic:news");
+    expect(chosenTag(tags, NO_TAG)).toBeNull();
+    expect(chosenTag(tags, "gone")).toBe("1");
+    expect(chosenTag([], null)).toBeNull();
+  });
+
+  it("counts a newsletter feed's articles and finds the newest", () => {
+    const url = "https://feeds.example/newsletters/aaaaaaaaaaaa/0123456789abcdef0123456789abcdef";
+    const article = (feedUrl: string, id: string, publishedAt: number | null, fetchedAt: number): Article => ({ feedUrl, id, title: id, link: null, author: null, html: "", publishedAt, fetchedAt, read: false, imageUrl: null });
+    const articles = [article(url, "a", 100, 500), article(url, "b", null, 300), article("https://other.example/feed", "c", 900, 900)];
+    expect(newsletterActivity(articles, url)).toEqual({ count: 2, newestAt: 300 });
+    expect(newsletterActivity(articles, "https://none.example/feed")).toEqual({ count: 0, newestAt: null });
   });
 });

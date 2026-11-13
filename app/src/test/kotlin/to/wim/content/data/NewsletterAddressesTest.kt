@@ -124,4 +124,35 @@ class NewsletterAddressesTest {
         assertEquals(listOf("1", "topic:news", null), rows.map { it.topic?.id })
         assertEquals(listOf(null, "aaaaaaaaaaaa", null), rows.map { it.address?.code })
     }
+
+    @Test
+    fun chosenTagIsThePickWhileItIsATagElseTheFirstTag() {
+        val tags = listOf(tech, news)
+        assertEquals("1", NewsletterAddresses.chosenTag(tags, null))
+        assertEquals("topic:news", NewsletterAddresses.chosenTag(tags, "topic:news"))
+        assertNull(NewsletterAddresses.chosenTag(tags, NewsletterAddresses.NO_TAG))
+        // A tag removed meanwhile: back to the first.
+        assertEquals("1", NewsletterAddresses.chosenTag(tags, "gone"))
+        // No tags at all: No tag.
+        assertNull(NewsletterAddresses.chosenTag(emptyList(), null))
+    }
+
+    @Test
+    fun activityCountsTheFeedsArticlesAndFindsTheNewest() {
+        fun article(
+            feed: String,
+            id: String,
+            published: Long?,
+            fetched: Long,
+        ) = Article(feedUrl = feed, id = id, title = id, link = null, author = null, html = "", publishedAt = published, fetchedAt = fetched)
+        val url = "https://feeds.example/newsletters/aaaaaaaaaaaa/0123456789abcdef0123456789abcdef"
+        val articles =
+            listOf(
+                article(url, "a", published = 100, fetched = 500),
+                article(url, "b", published = null, fetched = 300),
+                article("https://other.example/feed", "c", published = 900, fetched = 900),
+            )
+        assertEquals(NewsletterActivity(2, 300), NewsletterAddresses.activity(articles, url))
+        assertEquals(NewsletterActivity(0, null), NewsletterAddresses.activity(articles, "https://none.example/feed"))
+    }
 }

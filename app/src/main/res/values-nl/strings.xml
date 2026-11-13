@@ -352,13 +352,20 @@
     <string name="setting_newsletter_unread_title">Binnenkomende nieuwsbrieven als ongelezen markeren</string>
     <string name="setting_newsletter_unread_summary">Nieuwe e-mails uit Instapaper blijven vet tot je ze leest</string>
     <string name="add_choice_newsletter">Nieuwsbrieffeed</string>
-    <string name="add_choice_newsletter_body">Elke tag heeft een e-mailadres voor nieuwsbrieven: ze komen binnen als feed</string>
-    <string name="newsletter_own_explained">Elke tag heeft een eigen e-mailadres, en Geen tag ook. Nieuwsbrieven die naar een adres gaan, komen binnen in de feed Nieuwsbrieven van die tag. Wil je nog een adres, maak dan een nieuwe tag.</string>
-    <string name="newsletter_own_sign_in_first">Deze adressen hebben een Content-account nodig, dat de nieuwsbrieven bewaart.</string>
+    <string name="add_choice_newsletter_body">Abonneer je met een e-mailadres per tag</string>
+    <string name="newsletter_own_explained">Abonneer je met dit adres.</string>
+    <string name="newsletter_own_sign_in_first">Meld je aan voor een adres per tag.</string>
     <string name="newsletter_own_sign_in">Aanmelden</string>
     <string name="newsletter_own_offline">Het adres kon niet geladen worden. Controleer je verbinding.</string>
     <string name="newsletter_own_pending">Dit adres is nog niet klaar. Probeer het zo meteen opnieuw.</string>
     <string name="newsletter_own_copy">Adres kopiëren</string>
+    <string name="newsletter_address_for">Adres voor %1$s</string>
+    <string name="newsletter_none_yet">Nog geen nieuwsbrieven</string>
+    <string name="newsletter_copied">Gekopieerd</string>
+    <plurals name="newsletter_count">
+        <item quantity="one">%1$d nieuwsbrief</item>
+        <item quantity="other">%1$d nieuwsbrieven</item>
+    </plurals>
     <string name="settings_rss_feeds">RSS-feeds</string>
     <string name="settings_newsletter_feeds">Nieuwsbrieffeeds</string>
     <string name="settings_feed_summary">Gelezen bij scrollen, verborgen woorden, OPML</string>

@@ -102,6 +102,32 @@ object NewsletterAddresses {
         return if (result == library) library else result.feedFoldersToTags()
     }
 
+    /** How the page stores a pick of No tag (a tag's id is never empty). */
+    const val NO_TAG = ""
+
+    /**
+     * The tag the Newsletter feed page shows (null: No tag): the one [picked] (an id, or [NO_TAG]),
+     * while it is still a tag; nothing picked yet, or a tag that is gone: the first tag, else No tag.
+     */
+    fun chosenTag(
+        folders: List<Folder>,
+        picked: String?,
+    ): String? =
+        when {
+            picked == NO_TAG -> null
+            picked != null && folders.any { it.id == picked } -> picked
+            else -> folders.firstOrNull()?.id
+        }
+
+    /** What a newsletter feed has received: how many newsletters are in the library, and when the newest came (null: none yet). */
+    fun activity(
+        articles: List<Article>,
+        feedUrl: String,
+    ): NewsletterActivity {
+        val received = articles.filter { it.feedUrl == feedUrl }
+        return NewsletterActivity(received.size, received.maxOfOrNull { it.sortTime })
+    }
+
     /** Newsletter feeds in Settings and in +: every tag in its order, then No tag, each with its address (null: not made yet, or offline). */
     fun rows(
         folders: List<Folder>,
@@ -113,4 +139,11 @@ object NewsletterAddresses {
 data class NewsletterRow(
     val topic: Folder?,
     val address: NewsletterAddress?,
+)
+
+/** What a tag's Newsletters feed has received so far ([NewsletterAddresses.activity]). */
+data class NewsletterActivity(
+    val count: Int,
+    /** When the newest one came (milliseconds); null when none has yet. */
+    val newestAt: Long?,
 )

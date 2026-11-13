@@ -354,13 +354,20 @@
     <string name="setting_newsletter_unread_title">Mark incoming newsletters as unread</string>
     <string name="setting_newsletter_unread_summary">New emails from Instapaper stay bold until you read them</string>
     <string name="add_choice_newsletter">Newsletter feed</string>
-    <string name="add_choice_newsletter_body">Every tag has an email address for newsletters: they arrive as a feed</string>
-    <string name="newsletter_own_explained">Every tag has its own email address, and so does No tag. Newsletters sent to one arrive in that tag\'s Newsletters feed. For another address, make a new tag.</string>
-    <string name="newsletter_own_sign_in_first">These addresses need a Content account, which keeps the newsletters.</string>
+    <string name="add_choice_newsletter_body">Subscribe with an email address per tag</string>
+    <string name="newsletter_own_explained">Subscribe with this address.</string>
+    <string name="newsletter_own_sign_in_first">Sign in to get an address per tag.</string>
     <string name="newsletter_own_sign_in">Sign in</string>
     <string name="newsletter_own_offline">The address couldn’t be loaded. Check your connection.</string>
     <string name="newsletter_own_pending">This address isn\'t ready yet. Try again in a moment.</string>
     <string name="newsletter_own_copy">Copy address</string>
+    <string name="newsletter_address_for">Address for %1$s</string>
+    <string name="newsletter_none_yet">No newsletters yet</string>
+    <string name="newsletter_copied">Copied</string>
+    <plurals name="newsletter_count">
+        <item quantity="one">%1$d newsletter</item>
+        <item quantity="other">%1$d newsletters</item>
+    </plurals>
     <string name="settings_rss_feeds">RSS feeds</string>
     <string name="settings_newsletter_feeds">Newsletter feeds</string>
     <string name="settings_feed_summary">Mark as read on scroll, hidden words, OPML</string>

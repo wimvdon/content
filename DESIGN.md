@@ -269,7 +269,7 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
 - Settings (the owner's choice, 2026-11-01, instead of the shared "one scrolling list"; restructured
   2026-11-11): large buttons at the top on `surfaceContainerHigh`, the icon on a `secondaryContainer`
   circle, the name and how many: **RSS feeds** and **Newsletter feeds** side by side (Manage feeds
-  for RSS feeds; Newsletter feeds the page with every tag's address, as in +, with New tag), then **Manage
+  for RSS feeds; Newsletter feeds the same page as + › Newsletter feed: the tag chips, then the chosen tag's address large on `surfaceContainerHigh` with a filled Copy address and an outlined Share, and what its feed has received), then **Manage
   tags** across the whole width under them (the icon before the text). Then a list of pages, one per
   part of the app, each a `SettingItem` with a Material Symbol, its title, what it holds and a
   chevron: Account (sign in with an emailed link; signed in, who, the last sync or what went wrong,
