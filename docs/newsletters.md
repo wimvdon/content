@@ -20,9 +20,12 @@ any article: unread, Mark all as read, the chips' dots, the reader and Search al
   address, or of a tag that is gone, is removed, and one under another tag goes back.
 - **Nothing by hand:** + › Add feed › **Newsletter feed** and Settings › **Newsletter feeds** show
   the same page (`ui/home/AddChoiceSheet.kt`, `NewsletterFeedPage`; the web's `NewsletterDialog` in
-  `Dialogs.tsx`): every tag in its order, then No tag, with its address and Copy, and **New tag**.
-  Newsletter feeds don't appear in RSS feeds' Manage feeds, so they can't be renamed, moved or
-  removed. Without a Content account, the page offers Sign in.
+  `Dialogs.tsx`): the tag chips (No tag first, **Edit tags** after them) pick a tag
+  (`NewsletterAddresses.chosenTag`, the web's `chosenTag`: the first tag until you pick one), and the
+  page shows its address with **Copy address** and **Share** (on the web only where the browser can
+  share), and what its feed has received (`NewsletterAddresses.activity`, the web's
+  `newsletterActivity`). Newsletter feeds don't appear in RSS feeds' Manage feeds, so they can't be
+  renamed, moved or removed. Without a Content account, the page offers Sign in.
 - **Removing a tag** removes its Newsletters feed (`Library.removeFolder`, the web's `removeTopic`)
   and its address (`DELETE /account/newsletters`). An address whose tag is gone otherwise (merged
   into another tag, or removed while offline) is removed a day after it was made

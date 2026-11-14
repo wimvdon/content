@@ -2,6 +2,24 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-13: Newsletter feed: pick a tag, copy one address
+
+The owner's choice from mockups. + › Newsletter feed (and Settings › Newsletter feeds, the same
+page) no longer lists every tag's address at once: the tag chips (No tag first, Edit tags after
+them, as in Add feed) pick a tag, and the page shows that tag's one address, large, with **Copy
+address** (it turns into Copied with a check) and **Share**, and a line on what its Newsletters
+feed has received ("3 newsletters · Yesterday", or "No newsletters yet"). The instructions are one
+short line ("Subscribe with this address."). New tag is gone from the page: Edit tags makes one,
+and it is chosen straight away.
+
+- **Why:** the addresses all look alike, so a list made you match a random code to its tag; the
+  task is "subscribe this newsletter into that tag".
+- **The web:** the same, with shadcn's chips and buttons. Share shows only where the browser can
+  share (`navigator.share`): a desktop browser without it has Copy only.
+- **Rejected:** a list of every tag with a copy button per row (kept as an overview idea, not
+  built); No tag last (the Add feed sheet has it first, and the chips should work the same way
+  everywhere).
+
 ## 2026-11-13: Touch-sized targets, visible field edges and the extension's own colours on the web
 
 An antislop accessibility pass over the web app and the browser extension.

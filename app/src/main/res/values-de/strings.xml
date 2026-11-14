@@ -351,13 +351,20 @@
     <string name="setting_newsletter_unread_title">Eingehende Newsletter als ungelesen markieren</string>
     <string name="setting_newsletter_unread_summary">Neue E-Mails aus Instapaper bleiben fett, bis du sie liest</string>
     <string name="add_choice_newsletter">Newsletter-Feed</string>
-    <string name="add_choice_newsletter_body">Jeder Tag hat eine E-Mail-Adresse für Newsletter: Sie kommen als Feed an</string>
-    <string name="newsletter_own_explained">Newsletter an die Adresse eines Tags kommen im Feed Newsletter dieses Tags an. Für eine weitere Adresse erstellst du einen neuen Tag.</string>
-    <string name="newsletter_own_sign_in_first">Diese Adressen brauchen ein Content-Konto, das die Newsletter aufbewahrt.</string>
+    <string name="add_choice_newsletter_body">Abonniere mit einer E-Mail-Adresse pro Tag</string>
+    <string name="newsletter_own_explained">Abonniere mit dieser Adresse.</string>
+    <string name="newsletter_own_sign_in_first">Melde dich an, um eine Adresse pro Tag zu bekommen.</string>
     <string name="newsletter_own_sign_in">Anmelden</string>
     <string name="newsletter_own_offline">Die Adresse konnte nicht geladen werden. Prüfe deine Verbindung.</string>
     <string name="newsletter_own_pending">Diese Adresse ist noch nicht fertig. Versuch es gleich noch einmal.</string>
     <string name="newsletter_own_copy">Adresse kopieren</string>
+    <string name="newsletter_address_for">Adresse für %1$s</string>
+    <string name="newsletter_none_yet">Noch keine Newsletter</string>
+    <string name="newsletter_copied">Kopiert</string>
+    <plurals name="newsletter_count">
+        <item quantity="one">%1$d Newsletter</item>
+        <item quantity="other">%1$d Newsletter</item>
+    </plurals>
     <string name="settings_rss_feeds">RSS-Feeds</string>
     <string name="settings_newsletter_feeds">Newsletter-Feeds</string>
     <string name="settings_feed_summary">Beim Scrollen als gelesen markieren, ausgeblendete Wörter, OPML</string>

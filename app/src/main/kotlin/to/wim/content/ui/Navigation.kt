@@ -1380,7 +1380,9 @@ fun RssReaderNavigation(
             topics = library.folders,
             loadAddresses = { app.sync.newsletters() },
             topicActions = topicActions,
+            activity = { feedUrl -> NewsletterAddresses.activity(library.articles, feedUrl) },
             onCopy = ::copyToClipboard,
+            onShare = { address -> ExternalApps.shareText(context, address, resources.getString(R.string.action_share)) },
         )
 
     when (manageFeedsKind) {

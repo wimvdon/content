@@ -363,13 +363,21 @@
     <string name="setting_newsletter_unread_title">Marquer les newsletters reçues comme non lues</string>
     <string name="setting_newsletter_unread_summary">Les nouveaux e-mails d’Instapaper restent en gras jusqu’à ce que vous les lisiez</string>
     <string name="add_choice_newsletter">Flux de newsletter</string>
-    <string name="add_choice_newsletter_body">Chaque tag a une adresse e-mail pour les newsletters : elles arrivent comme un flux</string>
-    <string name="newsletter_own_explained">Les newsletters envoyées à l’adresse d’un tag arrivent dans son flux Newsletters. Pour une autre adresse, créez un nouveau tag.</string>
-    <string name="newsletter_own_sign_in_first">Ces adresses nécessitent un compte Content, qui garde les newsletters.</string>
+    <string name="add_choice_newsletter_body">Abonnez-vous avec une adresse e-mail par tag</string>
+    <string name="newsletter_own_explained">Abonnez-vous avec cette adresse.</string>
+    <string name="newsletter_own_sign_in_first">Connectez-vous pour obtenir une adresse par tag.</string>
     <string name="newsletter_own_sign_in">Se connecter</string>
     <string name="newsletter_own_offline">L’adresse n’a pas pu être chargée. Vérifiez votre connexion.</string>
     <string name="newsletter_own_pending">Cette adresse n’est pas encore prête. Réessayez dans un instant.</string>
     <string name="newsletter_own_copy">Copier l’adresse</string>
+    <string name="newsletter_address_for">Adresse pour %1$s</string>
+    <string name="newsletter_none_yet">Pas encore de newsletters</string>
+    <string name="newsletter_copied">Copiée</string>
+    <plurals name="newsletter_count">
+        <item quantity="one">%1$d newsletter</item>
+        <item quantity="many">%1$d newsletters</item>
+        <item quantity="other">%1$d newsletters</item>
+    </plurals>
     <string name="settings_rss_feeds">Flux RSS</string>
     <string name="settings_newsletter_feeds">Flux de newsletters</string>
     <string name="settings_feed_summary">Marquer comme lu en défilant, mots masqués, OPML</string>

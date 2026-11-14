@@ -363,13 +363,21 @@
     <string name="setting_newsletter_unread_title">Marcar los boletines entrantes como no leídos</string>
     <string name="setting_newsletter_unread_summary">Los correos nuevos de Instapaper siguen en negrita hasta que los leas</string>
     <string name="add_choice_newsletter">Feed de boletín</string>
-    <string name="add_choice_newsletter_body">Cada etiqueta tiene una dirección de correo para boletines: llegan como un feed</string>
-    <string name="newsletter_own_explained">Los boletines enviados a la dirección de una etiqueta llegan a su feed Boletines. Para otra dirección, crea una etiqueta nueva.</string>
-    <string name="newsletter_own_sign_in_first">Estas direcciones necesitan una cuenta de Content, que guarda los boletines.</string>
+    <string name="add_choice_newsletter_body">Suscríbete con una dirección de correo por etiqueta</string>
+    <string name="newsletter_own_explained">Suscríbete con esta dirección.</string>
+    <string name="newsletter_own_sign_in_first">Inicia sesión para tener una dirección por etiqueta.</string>
     <string name="newsletter_own_sign_in">Iniciar sesión</string>
     <string name="newsletter_own_offline">No se pudo cargar la dirección. Comprueba tu conexión.</string>
     <string name="newsletter_own_pending">Esta dirección aún no está lista. Inténtalo de nuevo en un momento.</string>
     <string name="newsletter_own_copy">Copiar dirección</string>
+    <string name="newsletter_address_for">Dirección para %1$s</string>
+    <string name="newsletter_none_yet">Aún no hay boletines</string>
+    <string name="newsletter_copied">Copiada</string>
+    <plurals name="newsletter_count">
+        <item quantity="one">%1$d boletín</item>
+        <item quantity="many">%1$d boletines</item>
+        <item quantity="other">%1$d boletines</item>
+    </plurals>
     <string name="settings_rss_feeds">Feeds RSS</string>
     <string name="settings_newsletter_feeds">Feeds de boletines</string>
     <string name="settings_feed_summary">Marcar como leído al desplazarse, palabras ocultas, OPML</string>

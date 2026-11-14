@@ -1,11 +1,18 @@
 package to.wim.content.ui.home
 
 import to.wim.content.data.NewsletterAddresses
-import to.wim.content.ui.feeds.FolderSheet
+import to.wim.content.data.NewsletterActivity
+import to.wim.content.ui.feeds.TopicChipRow
+import android.text.format.DateUtils
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.CircularProgressIndicator
 import to.wim.content.ui.reader.SheetSection
 import to.wim.content.ui.feeds.TopicEditActions
 import to.wim.content.data.Folder
@@ -13,7 +20,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.material3.IconButton
 import to.wim.content.data.NewsletterAddress
 import to.wim.content.ui.reader.rememberSheetClose
 import androidx.compose.foundation.background
@@ -125,17 +131,21 @@ data class NewsletterChoices(
     val topics: List<Folder> = emptyList(),
     /** This account's addresses, every tag's made first; null when they can't be read (offline). */
     val loadAddresses: suspend () -> List<NewsletterAddress>? = { emptyList() },
-    /** New tag: it gets its address too. */
+    /** Edit tags (Manage tags as a page of this sheet): a new tag gets its address too. */
     val topicActions: TopicEditActions? = null,
+    /** What a newsletter feed (by its address) has received so far. */
+    val activity: (feedUrl: String) -> NewsletterActivity = { NewsletterActivity(0, null) },
     val onCopy: (String) -> Unit = {},
+    /** Android's share sheet with the address. */
+    val onShare: (String) -> Unit = {},
 )
 
 /**
- * Newsletter feeds, from + › Newsletter feed and from Settings (2026-11-12): every tag has an email
- * address, and so does No tag ([NewsletterAddresses]); newsletters sent to one arrive in that tag's
- * Newsletters feed. Each tag in its order, then No tag, with its address and Copy; New tag makes
- * another tag, with its own address. Without a Content account, Sign in first. Nothing to make,
- * name or remove: an address comes and goes with its tag.
+ * Newsletter feed, from + and from Settings › Newsletter feeds (2026-11-13, owner's choice from
+ * mockups): pick a tag with the tag chips (No tag first, as in Add feed; Edit tags after them), and
+ * the page shows that tag's one address, large, with Copy address and Share, and what its
+ * Newsletters feed has received so far. Every tag has an address, and so does No tag
+ * ([NewsletterAddresses]); nothing to make, name or remove. Without a Content account: Sign in.
  */
 @Composable
 fun NewsletterFeedPage(
@@ -146,85 +156,147 @@ fun NewsletterFeedPage(
     // Not loaded yet; then the addresses, or null when they couldn't be read.
     var loaded by remember { mutableStateOf(false) }
     var addresses by remember { mutableStateOf<List<NewsletterAddress>?>(null) }
-    var creating by rememberSaveable { mutableStateOf(false) }
-    // A new tag gets its address as soon as it is there.
+    // The tag picked (its id, or NO_TAG); null: none yet, so the first tag.
+    var picked by rememberSaveable { mutableStateOf<String?>(null) }
+    // A tag made with Edit tags: chosen once it exists.
+    var made by rememberSaveable { mutableStateOf<String?>(null) }
+    var copied by remember { mutableStateOf<String?>(null) }
     val tagIds = choices.topics.map { it.id }
     LaunchedEffect(choices.signedIn, tagIds) {
         if (!choices.signedIn) return@LaunchedEffect
         addresses = choices.loadAddresses()
         loaded = true
     }
-    val rows = remember(choices.topics, addresses) { NewsletterAddresses.rows(choices.topics, addresses.orEmpty()) }
+    LaunchedEffect(choices.topics, made) {
+        val name = made ?: return@LaunchedEffect
+        choices.topics.firstOrNull { it.title.equals(name, ignoreCase = true) }?.let {
+            picked = it.id
+            made = null
+        }
+    }
+    val chosen = NewsletterAddresses.chosenTag(choices.topics, picked)
     ContentSheet(onDismiss = onBack) {
         Column(
             Modifier.padding(start = 24.dp, end = 24.dp, bottom = 24.dp).verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             SheetHeader(title, onCancel = onBack)
-            Text(stringResource(R.string.newsletter_own_explained), style = MaterialTheme.typography.bodyMedium)
-            when {
-                !choices.signedIn -> {
-                    Text(stringResource(R.string.newsletter_own_sign_in_first), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Button(onClick = choices.onSignIn) { Text(stringResource(R.string.newsletter_own_sign_in)) }
-                }
-                !loaded -> CircularProgressIndicator(Modifier.align(Alignment.CenterHorizontally))
-                addresses == null -> Text(stringResource(R.string.newsletter_own_offline), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                else -> {
-                    rows.forEach { row ->
-                        SheetSection(row.topic?.title ?: stringResource(R.string.folder_none))
-                        val address = row.address
-                        if (address != null) {
-                            AddressRow(address, choices.onCopy)
-                        } else {
-                            Text(stringResource(R.string.newsletter_own_pending), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                    }
-                }
+            if (!choices.signedIn) {
+                SignInFirst(choices.onSignIn)
+                SheetActions(onCancel = onBack)
+                return@Column
             }
-            // New tag at the left (it gets its own address), Done at the right.
-            SheetActions(
-                onCancel = onBack,
-                cancel = false,
-                leading = {
-                    if (choices.signedIn && choices.topicActions != null) {
-                        FilledTonalButton(onClick = { creating = true }, contentPadding = ButtonDefaults.ButtonWithIconContentPadding) {
-                            Icon(painterResource(R.drawable.ic_add), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
-                            Text(stringResource(R.string.folder_new), modifier = Modifier.padding(start = 8.dp))
-                        }
-                    }
+            Text(stringResource(R.string.newsletter_own_explained), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                SheetSection(stringResource(R.string.feed_folder))
+                TopicChipRow(
+                    topics = choices.topics,
+                    selected = { it.id == chosen },
+                    // One tag at a time: tapping the chosen one keeps it.
+                    onToggle = { picked = it.id },
+                    actions = choices.topicActions,
+                    onCreated = { made = it },
+                    leading = {
+                        TopicChip(stringResource(R.string.folder_none), icon = null, selected = chosen == null, enabled = true) { picked = NewsletterAddresses.NO_TAG }
+                    },
+                )
+            }
+            val tagName = choices.topics.firstOrNull { it.id == chosen }?.title ?: stringResource(R.string.folder_none)
+            AddressCard(
+                tagName = tagName,
+                address = if (loaded) addresses?.let { NewsletterAddresses.forTag(it, chosen) } else null,
+                state =
+                    when {
+                        !loaded -> AddressState.Loading
+                        addresses == null -> AddressState.Offline
+                        else -> AddressState.Ready
+                    },
+                copied = copied,
+                activity = choices.activity,
+                onCopy = {
+                    choices.onCopy(it)
+                    copied = it
                 },
-            ) {
+                onShare = choices.onShare,
+            )
+            SheetActions(onCancel = onBack, cancel = false) {
                 val close = rememberSheetClose()
                 TextButton(onClick = { close(onBack) }) { Text(stringResource(R.string.action_done)) }
             }
         }
     }
-    val actions = choices.topicActions
-    if (creating && actions != null) {
-        FolderSheet(
-            folder = null,
-            onSave = { name, icon ->
-                creating = false
-                actions.onNew(name, icon)
-            },
-            onDismiss = { creating = false },
-        )
+}
+
+private enum class AddressState { Loading, Offline, Ready }
+
+/** The chosen tag's address, large, with Copy address (Copied, with a check, once tapped) and Share, then what it has received. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun AddressCard(
+    tagName: String,
+    address: NewsletterAddress?,
+    state: AddressState,
+    copied: String?,
+    activity: (String) -> NewsletterActivity,
+    onCopy: (String) -> Unit,
+    onShare: (String) -> Unit,
+) {
+    Surface(shape = AppShapes.Item, color = MaterialTheme.colorScheme.surfaceContainerHigh, modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(stringResource(R.string.newsletter_address_for, tagName), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                when {
+                    state == AddressState.Loading -> LinearProgressIndicator(Modifier.fillMaxWidth().padding(vertical = 12.dp))
+                    state == AddressState.Offline -> Text(stringResource(R.string.newsletter_own_offline), style = MaterialTheme.typography.bodyMedium)
+                    address == null -> Text(stringResource(R.string.newsletter_own_pending), style = MaterialTheme.typography.bodyMedium)
+                    else -> SelectionContainer { Text(address.address, style = MaterialTheme.typography.titleMedium) }
+                }
+            }
+            if (address != null && state == AddressState.Ready) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    val isCopied = copied == address.address
+                    Button(onClick = { onCopy(address.address) }, contentPadding = ButtonDefaults.ButtonWithIconContentPadding) {
+                        Icon(painterResource(if (isCopied) R.drawable.ic_check else R.drawable.ic_copy), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                        Text(stringResource(if (isCopied) R.string.newsletter_copied else R.string.newsletter_own_copy), modifier = Modifier.padding(start = 8.dp))
+                    }
+                    OutlinedButton(onClick = { onShare(address.address) }, contentPadding = ButtonDefaults.ButtonWithIconContentPadding) {
+                        Icon(painterResource(R.drawable.ic_share), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                        Text(stringResource(R.string.action_share), modifier = Modifier.padding(start = 8.dp))
+                    }
+                }
+                val received = activity(address.feedUrl)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Icon(painterResource(R.drawable.ic_mail), contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(receivedText(received), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
     }
 }
 
-/** One address and Copy. */
+/** "No newsletters yet", or "3 newsletters · Yesterday". */
 @Composable
-private fun AddressRow(
-    address: NewsletterAddress,
-    onCopy: (String) -> Unit,
-) {
-    Surface(shape = AppShapes.Item, color = MaterialTheme.colorScheme.surfaceContainerHigh, modifier = Modifier.fillMaxWidth()) {
-        Row(Modifier.padding(start = 16.dp, top = 4.dp, bottom = 4.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(address.address, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
-            IconButton(onClick = { onCopy(address.address) }) {
-                Icon(painterResource(R.drawable.ic_copy), contentDescription = stringResource(R.string.newsletter_own_copy))
-            }
+private fun receivedText(received: NewsletterActivity): String {
+    val newest = received.newestAt ?: return stringResource(R.string.newsletter_none_yet)
+    val count = pluralStringResource(R.plurals.newsletter_count, received.count, received.count)
+    val day = DateUtils.getRelativeTimeSpanString(newest, System.currentTimeMillis(), DateUtils.DAY_IN_MILLIS).toString()
+    return "$count · $day"
+}
+
+/** Not signed in: the addresses need a Content account. */
+@Composable
+private fun SignInFirst(onSignIn: () -> Unit) {
+    Column(
+        Modifier.fillMaxWidth().padding(top = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Box(Modifier.size(64.dp).background(MaterialTheme.colorScheme.secondaryContainer, CircleShape), contentAlignment = Alignment.Center) {
+            Icon(painterResource(R.drawable.ic_mail), contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer)
         }
+        Text(stringResource(R.string.newsletters_title), style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
+        Text(stringResource(R.string.newsletter_own_sign_in_first), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+        Button(onClick = onSignIn) { Text(stringResource(R.string.newsletter_own_sign_in)) }
     }
 }
 

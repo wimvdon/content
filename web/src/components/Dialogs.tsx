@@ -1,4 +1,4 @@
-import { Smartphone, ArrowLeft, BookmarkPlus, BookOpenText, ChevronDown, ChevronRight, Copy, BookOpen, Mail, Palette, Plus, Rss, Tag as TagIcon, Trash2, UserRound } from "lucide-react";
+import { Smartphone, ArrowLeft, BookmarkPlus, BookOpenText, Check, ChevronDown, ChevronRight, Copy, Share2, BookOpen, Mail, Palette, Plus, Rss, Tag as TagIcon, Trash2, UserRound } from "lucide-react";
 import { ConfirmRemove, RemoveButton } from "./ConfirmRemove";
 import { HiddenWordsRow } from "./HiddenWords";
 import { insertedBefore } from "@/lib/topics";
@@ -19,7 +19,7 @@ import { Input, Label } from "./ui/input";
 import { Segmented } from "./ui/segmented";
 import { ReaderStyleControls } from "./ReaderStyleControls";
 import { InstapaperSettings } from "./ServiceSettings";
-import { newsletterRows, tagHashes, type NewsletterAddress } from "@/lib/newsletterAddresses";
+import { chosenTag, forTag, newsletterActivity, NO_TAG, tagHashes, type NewsletterAddress } from "@/lib/newsletterAddresses";
 import { feedsOfKind, withKindOrder, type FeedKind } from "@/lib/feedKinds";
 import { SwitchRow } from "./ui/switch";
 import { pushSupported } from "@/lib/notifications";
@@ -338,12 +338,18 @@ export function NewsletterDialog({ open, onOpenChange, onSignIn, title = t("addC
   );
 }
 
+/**
+ * Newsletter feed (2026-11-13, as on Android): pick a tag with the tag chips (No tag first, Edit
+ * tags after them), and the dialog shows that tag's one address, large, with Copy address and Share
+ * (where the browser can share), and what its Newsletters feed has received so far.
+ */
 function TagAddresses({ onSignIn }: { onSignIn: () => void }) {
   const { account, library } = useApp();
   // Not loaded yet (undefined); then the addresses, or null when they couldn't be read.
   const [addresses, setAddresses] = useState<NewsletterAddress[] | null | undefined>(undefined);
   const [hashes, setHashes] = useState<Map<string, string>>(new Map());
-  const [creating, setCreating] = useState(false);
+  // The tag picked (its id, or NO_TAG); null: none yet, so the first tag.
+  const [picked, setPicked] = useState<string | null>(null);
   const signedIn = !!account;
   // A new tag gets its address as soon as it is there.
   const tagIds = library.folders.map((f) => f.id).join("\u0000");
@@ -359,50 +365,93 @@ function TagAddresses({ onSignIn }: { onSignIn: () => void }) {
       live = false;
     };
   }, [signedIn, tagIds]);
-  const rows = newsletterRows(library.folders, hashes, addresses ?? []);
+  if (!signedIn) {
+    return (
+      <div className="flex flex-col items-center gap-3 py-4 text-center">
+        <Mail className="size-8 text-muted-foreground" aria-hidden />
+        <h3 className="font-medium">{t("newsletters")}</h3>
+        <p className="text-sm text-muted-foreground">{t("newsletterOwnSignInFirst")}</p>
+        <Button onClick={onSignIn}>{t("newsletterOwnSignIn")}</Button>
+      </div>
+    );
+  }
+  const chosen = chosenTag(library.folders, picked);
+  const tagName = library.folders.find((f) => f.id === chosen)?.title ?? t("noFolder");
+  const address = addresses ? forTag(addresses, hashes, chosen) : undefined;
   return (
-    <div className="space-y-4">
-      <p className="text-sm">{t("newsletterOwnExplained")}</p>
-      {!signedIn ? (
-        <div className="space-y-3">
-          <p className="text-sm text-muted-foreground">{t("newsletterOwnSignInFirst")}</p>
-          <Button onClick={onSignIn}>{t("newsletterOwnSignIn")}</Button>
-        </div>
-      ) : addresses === undefined ? null : addresses === null ? (
-        <p className="text-sm text-muted-foreground">{t("newsletterOwnOffline")}</p>
-      ) : (
-        <>
-          {rows.map(({ topic, address }) => (
-            <section key={topic?.id ?? ""} className="space-y-2">
-              <h3 className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
-                {topic ? <FolderIcon name={topic.icon} className="size-4" /> : null}
-                {topic?.title ?? t("noFolder")}
-              </h3>
-              {address ? <AddressRow address={address.address} /> : <p className="text-sm text-muted-foreground">{t("newsletterOwnPending")}</p>}
-            </section>
-          ))}
-          <Button variant="secondary" onClick={() => setCreating(true)}>
-            <Plus />
-            {t("newFolder")}
-          </Button>
-        </>
-      )}
-      {creating ? <FolderDialog folder="new" onClose={() => setCreating(false)} /> : null}
+    <div className="space-y-5">
+      <p className="text-sm text-muted-foreground">{t("newsletterOwnExplained")}</p>
+      <section className="space-y-2">
+        <h3 className="text-sm font-semibold">{t("topic")}</h3>
+        <TopicChips
+          topics={library.folders}
+          selected={(topic) => chosen === topic.id}
+          onToggle={(topic) => setPicked(topic.id)}
+          onCreated={(id) => setPicked(id)}
+          leading={
+            <button type="button" aria-pressed={chosen === null} onClick={() => setPicked(NO_TAG)} className={cn(chip, chosen === null ? chipOn : "hover:bg-muted")}>
+              {t("noFolder")}
+            </button>
+          }
+        />
+      </section>
+      <section className="space-y-3 rounded-lg border p-4" aria-live="polite">
+        <p className="text-xs text-muted-foreground">{t("newsletterAddressFor").replace("{name}", tagName)}</p>
+        {addresses === undefined ? (
+          <p className="text-sm text-muted-foreground">…</p>
+        ) : addresses === null ? (
+          <p className="text-sm">{t("newsletterOwnOffline")}</p>
+        ) : !address ? (
+          <p className="text-sm">{t("newsletterOwnPending")}</p>
+        ) : (
+          <AddressActions key={address.address} address={address} />
+        )}
+      </section>
     </div>
   );
 }
 
-/** A newsletter address with Copy. */
-function AddressRow({ address }: { address: string }) {
+/** One address, large, with Copy address (Copied, with a check, once clicked) and Share, then what it has received. */
+function AddressActions({ address }: { address: NewsletterAddress }) {
+  const { library } = useApp();
+  const [copied, setCopied] = useState(false);
+  const canShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
+  const received = newsletterActivity(library.articles, address.feedUrl);
+  const status =
+    received.newestAt === null
+      ? t("newsletterNoneYet")
+      : `${plural("newsletterCount", received.count)} · ${capitalize(formatRelative(received.newestAt))}`;
   return (
-    <div className="flex items-center gap-2 rounded-lg border p-3">
-      <p className="min-w-0 flex-1 truncate text-sm">{address}</p>
-      <Button variant="ghost" size="icon" aria-label={t("newsletterOwnCopy")} title={t("newsletterOwnCopy")} onClick={() => void navigator.clipboard?.writeText(address).catch(() => undefined)}>
-        <Copy />
-      </Button>
-    </div>
+    <>
+      <p className="break-all text-lg font-medium select-all">{address.address}</p>
+      <div className="flex flex-wrap gap-2">
+        <Button
+          onClick={() =>
+            void navigator.clipboard
+              ?.writeText(address.address)
+              .then(() => setCopied(true))
+              .catch(() => undefined)
+          }
+        >
+          {copied ? <Check /> : <Copy />}
+          {copied ? t("newsletterCopied") : t("newsletterOwnCopy")}
+        </Button>
+        {canShare ? (
+          <Button variant="outline" onClick={() => void navigator.share({ text: address.address }).catch(() => undefined)}>
+            <Share2 />
+            {t("share")}
+          </Button>
+        ) : null}
+      </div>
+      <p className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Mail className="size-4" aria-hidden />
+        {status}
+      </p>
+    </>
   );
 }
+
+const capitalize = (text: string): string => text.charAt(0).toLocaleUpperCase() + text.slice(1);
 
 export function FolderDialog({
   folder,
