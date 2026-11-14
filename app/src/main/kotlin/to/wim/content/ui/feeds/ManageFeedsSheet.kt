@@ -110,11 +110,14 @@ fun ManageFeedsSheet(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             SheetHeader(stringResource(R.string.settings_rss_feeds), onCancel = onDismiss)
-            Text(
-                stringResource(if (shown.isNotEmpty()) R.string.manage_feeds_hint else R.string.manage_feeds_none),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            // Rows, handles and the tag headings show how to edit and move feeds; only an empty list needs words.
+            if (shown.isEmpty()) {
+                Text(
+                    stringResource(R.string.manage_feeds_none),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             val folderNone = stringResource(R.string.folder_none)
             val dropHere = stringResource(R.string.manage_feeds_drop_here)
             // Rows under each tag's heading, as the design kit's reordering lists (DESIGN.md,

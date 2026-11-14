@@ -119,7 +119,7 @@
     <string name="report_pictures">Pictures are wrong</string>
     <string name="report_other">Something else</string>
     <string name="report_comment">Comment (optional)</string>
-    <string name="report_hint">Send opens a pre-filled report on GitHub in your browser, with the article\'s link and the text Content shows. Submit it there.</string>
+    <string name="report_hint">Send opens a report on GitHub with the article’s link and the text Content shows. Submit it there.</string>
     <string name="report_send">Send</string>
     <string name="reader_article_gone">This article is no longer available.</string>
     <string name="reader_show_full">Show full article</string>
@@ -128,7 +128,7 @@
     <string name="reader_full_failed">Couldn’t load the full article. Showing the feed’s text.</string>
     <string name="reader_full_failed_signed_in">Couldn’t load the full article. Showing the feed’s text. If the site’s sign-in ran out, sign in again.</string>
     <string name="reader_always_website_title">Always open the website</string>
-    <string name="reader_always_website_summary">Feed articles open on their website instead of in the reader. Saved articles still open in the reader.</string>
+    <string name="reader_always_website_summary">Saved articles still open in the reader.</string>
     <string name="reader_full_articles_title">Load full articles</string>
     <string name="reader_full_articles_summary">When a feed only has a summary, get the whole article from the website</string>
     <string name="reader_show_images_title">Show images</string>
@@ -137,7 +137,7 @@
     <string name="embed_video">Play video</string>
     <string name="embed_other">Open embedded content</string>
     <string name="share_target_missing_short">%1$s isn\'t installed</string>
-    <string name="feeds_opml_hint">Move your feeds from or to another reader, such as Feedly or Inoreader.</string>
+    <string name="feeds_opml_hint">For example Feedly or Inoreader.</string>
     <string name="import_feedly_title">From Feedly</string>
     <string name="import_feedly_step1">Sign in on feedly.com and go to feedly.com/i/opml. A file with your feeds downloads.</string>
     <string name="import_step_import">Tap Import OPML above and pick the file.</string>
@@ -168,7 +168,7 @@
     <string name="setting_hidden_words_title">Hide articles with words</string>
     <string name="setting_hidden_words_none">None</string>
     <string name="setting_hidden_words_label">Words</string>
-    <string name="setting_hidden_words_hint">Add a word or a group of words. An article is hidden when every word of a group is in its title or its feed’s name: “WIRED coupon code” hides WIRED’s coupon code articles. Case doesn’t matter.</string>
+    <string name="setting_hidden_words_hint">An article is hidden when every word of a group is in its title or its feed’s name: “WIRED coupon code” hides WIRED’s coupon code articles.</string>
     <string name="setting_hidden_words_remove">Remove %1$s</string>
     <string name="setting_hidden_words_preview_none">No recent articles would be hidden.</string>
     <plurals name="setting_hidden_words_preview">
@@ -237,7 +237,7 @@
     <string name="instapaper_problem_rate_limited">Instapaper is busy. Try again in a minute.</string>
     <string name="instapaper_problem_invalid">Instapaper couldn’t do that.</string>
     <string name="section_account">Account</string>
-    <string name="account_summary">Sign in with your email address to keep your feeds, read and saved articles, and settings the same on all your devices.</string>
+    <string name="account_summary">Keeps your feeds, read and saved articles and settings the same on all your devices.</string>
     <string name="sync_failed_signed_out">This device was signed out of your account. Sign in again.</string>
     <string name="account_delete_data">Delete synced data</string>
     <string name="account_delete_confirm">Delete your feeds, read articles and settings from Content’s server? They stay on this device, and you are signed out everywhere.</string>
@@ -331,16 +331,15 @@
     <string name="topic_in_saved">Saved · %1$s</string>
     <string name="add_title">Add</string>
     <string name="add_choice_feed">RSS feed</string>
-    <string name="add_choice_feed_body">Subscribe to an RSS feed by entering the URL of the publication</string>
+    <string name="add_choice_feed_body">Follow a website or feed</string>
     <string name="add_choice_article">Save article</string>
-    <string name="add_choice_article_body">Save and organise an article by entering its URL</string>
+    <string name="add_choice_article_body">Keep an article to read later</string>
     <string name="settings_account_signed_out">Not signed in</string>
     <string name="section_article_view">Article view</string>
     <string name="settings_article_view_summary">Text, full articles, sites you pay for</string>
-    <string name="manage_feeds_hint">Tap a feed to rename it, change its tag or remove it. Drag one by its handle to reorder it or move it to another tag.</string>
     <string name="manage_feeds_drop_here">Drag a feed here</string>
     <string name="manage_feeds_none">No RSS feeds yet.</string>
-    <string name="manage_topics_hint">Tags group your feeds and saved articles. Tap a tag to rename it, change its icon or remove it; drag one by its handle to reorder it. Giving it another tag’s name merges the two.</string>
+    <string name="manage_topics_hint">Tags group your feeds and saved articles. Giving a tag another tag’s name merges the two.</string>
     <string name="topics_edit">Edit tags</string>
     <plurals name="topics_count">
         <item quantity="one">%d tag</item>

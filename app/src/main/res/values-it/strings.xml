@@ -119,7 +119,7 @@
     <string name="report_pictures">Le immagini sono sbagliate</string>
     <string name="report_other">Altro</string>
     <string name="report_comment">Commento (facoltativo)</string>
-    <string name="report_hint">Invia apre una segnalazione precompilata su GitHub nel browser, con il link dell’articolo e il testo mostrato da Content. Inviala lì.</string>
+    <string name="report_hint">Invia apre una segnalazione su GitHub con il link dell’articolo e il testo mostrato da Content. Inviala lì.</string>
     <string name="report_send">Invia</string>
     <string name="reader_article_gone">Questo articolo non è più disponibile.</string>
     <string name="reader_show_full">Mostra l\'articolo completo</string>
@@ -128,7 +128,7 @@
     <string name="reader_full_failed">Impossibile caricare l\'articolo completo. Viene mostrato il testo del feed.</string>
     <string name="reader_full_failed_signed_in">Impossibile caricare l\'articolo completo. Viene mostrato il testo del feed. Se l\'accesso al sito è scaduto, accedi di nuovo.</string>
     <string name="reader_always_website_title">Apri sempre il sito</string>
-    <string name="reader_always_website_summary">Gli articoli dei feed si aprono sul loro sito invece che nel lettore. Quelli salvati si aprono ancora nel lettore.</string>
+    <string name="reader_always_website_summary">Gli articoli salvati si aprono ancora nel lettore.</string>
     <string name="reader_full_articles_title">Carica articoli completi</string>
     <string name="reader_full_articles_summary">Se un feed ha solo un riassunto, scarica l\'articolo intero dal sito</string>
     <string name="reader_show_images_title">Mostra immagini</string>
@@ -137,7 +137,7 @@
     <string name="embed_video">Riproduci video</string>
     <string name="embed_other">Apri contenuto incorporato</string>
     <string name="share_target_missing_short">%1$s non è installato</string>
-    <string name="feeds_opml_hint">Sposta i tuoi feed da o verso un altro lettore, come Feedly o Inoreader.</string>
+    <string name="feeds_opml_hint">Come Feedly o Inoreader.</string>
     <string name="import_feedly_title">Da Feedly</string>
     <string name="import_feedly_step1">Accedi a feedly.com e vai su feedly.com/i/opml. Viene scaricato un file con i tuoi feed.</string>
     <string name="import_step_import">Tocca Importa OPML qui sopra e scegli il file.</string>
@@ -168,7 +168,7 @@
     <string name="setting_hidden_words_title">Nascondi articoli con parole</string>
     <string name="setting_hidden_words_none">Nessuna</string>
     <string name="setting_hidden_words_label">Parole</string>
-    <string name="setting_hidden_words_hint">Aggiungi una parola o un gruppo di parole. Un articolo viene nascosto quando ogni parola di un gruppo è nel titolo o nel nome del feed: «WIRED coupon code» nasconde gli articoli sui codici sconto di WIRED. Maiuscole o no.</string>
+    <string name="setting_hidden_words_hint">Un articolo viene nascosto quando ogni parola di un gruppo è nel titolo o nel nome del feed: «WIRED coupon code» nasconde gli articoli sui codici sconto di WIRED.</string>
     <string name="setting_hidden_words_remove">Rimuovi %1$s</string>
     <string name="setting_hidden_words_preview_none">Nessun articolo recente verrebbe nascosto.</string>
     <plurals name="setting_hidden_words_preview">
@@ -243,7 +243,7 @@
     <string name="instapaper_problem_rate_limited">Instapaper è occupato. Riprova tra un minuto.</string>
     <string name="instapaper_problem_invalid">Instapaper non è riuscito a farlo.</string>
     <string name="section_account">Account</string>
-    <string name="account_summary">Accedi con il tuo indirizzo email per mantenere uguali feed, articoli letti e salvati e impostazioni su tutti i tuoi dispositivi.</string>
+    <string name="account_summary">Mantiene uguali feed, articoli letti e salvati e impostazioni su tutti i tuoi dispositivi.</string>
     <string name="sync_failed_signed_out">Questo dispositivo è stato disconnesso dal tuo account. Accedi di nuovo.</string>
     <string name="account_delete_data">Elimina i dati sincronizzati</string>
     <string name="account_delete_confirm">Eliminare feed, articoli letti e impostazioni dal server di Content? Restano su questo dispositivo e verrai disconnesso ovunque.</string>
@@ -340,16 +340,15 @@
     <string name="topic_in_saved">Salvati · %1$s</string>
     <string name="add_title">Aggiungi</string>
     <string name="add_choice_feed">Feed RSS</string>
-    <string name="add_choice_feed_body">Iscriviti a un feed RSS inserendo l’indirizzo della pubblicazione</string>
+    <string name="add_choice_feed_body">Segui un sito o un feed</string>
     <string name="add_choice_article">Salva articolo</string>
-    <string name="add_choice_article_body">Salva e organizza un articolo inserendo il suo indirizzo</string>
+    <string name="add_choice_article_body">Salva un articolo per leggerlo dopo</string>
     <string name="settings_account_signed_out">Accesso non effettuato</string>
     <string name="section_article_view">Vista articolo</string>
     <string name="settings_article_view_summary">Testo, articoli completi, siti a pagamento</string>
-    <string name="manage_feeds_hint">Tocca un feed per rinominarlo, cambiarne il tag o rimuoverlo. Trascinane uno dalla maniglia per cambiare l’ordine o spostarlo in un altro tag.</string>
     <string name="manage_feeds_drop_here">Trascina qui un feed</string>
     <string name="manage_feeds_none">Ancora nessun feed RSS.</string>
-    <string name="manage_topics_hint">I tag raggruppano i tuoi feed e gli articoli salvati. Tocca un tag per rinominarlo, cambiarne l’icona o rimuoverlo; trascinane uno dalla maniglia per cambiare l’ordine. Dargli il nome di un altro tag unisce i due.</string>
+    <string name="manage_topics_hint">I tag raggruppano i tuoi feed e gli articoli salvati. Dare a un tag il nome di un altro unisce i due.</string>
     <string name="topics_edit">Modifica tag</string>
     <plurals name="topics_count">
         <item quantity="one">%d tag</item>

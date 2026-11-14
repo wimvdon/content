@@ -119,7 +119,7 @@
     <string name="report_pictures">Las imágenes están mal</string>
     <string name="report_other">Otra cosa</string>
     <string name="report_comment">Comentario (opcional)</string>
-    <string name="report_hint">Enviar abre un informe ya rellenado en GitHub en tu navegador, con el enlace del artículo y el texto que muestra Content. Envíalo allí.</string>
+    <string name="report_hint">Enviar abre un informe en GitHub con el enlace del artículo y el texto que muestra Content. Envíalo allí.</string>
     <string name="report_send">Enviar</string>
     <string name="reader_article_gone">Este artículo ya no está disponible.</string>
     <string name="reader_show_full">Mostrar el artículo completo</string>
@@ -128,7 +128,7 @@
     <string name="reader_full_failed">No se pudo cargar el artículo completo. Se muestra el texto del feed.</string>
     <string name="reader_full_failed_signed_in">No se pudo cargar el artículo completo. Se muestra el texto del feed. Si la sesión del sitio ha caducado, vuelve a iniciarla.</string>
     <string name="reader_always_website_title">Abrir siempre el sitio web</string>
-    <string name="reader_always_website_summary">Los artículos de los feeds se abren en su sitio web en lugar de en el lector. Los guardados siguen abriéndose en el lector.</string>
+    <string name="reader_always_website_summary">Los artículos guardados siguen abriéndose en el lector.</string>
     <string name="reader_full_articles_title">Cargar artículos completos</string>
     <string name="reader_full_articles_summary">Si un feed solo tiene un resumen, traer el artículo entero del sitio web</string>
     <string name="reader_show_images_title">Mostrar imágenes</string>
@@ -137,7 +137,7 @@
     <string name="embed_video">Reproducir vídeo</string>
     <string name="embed_other">Abrir contenido insertado</string>
     <string name="share_target_missing_short">%1$s no está instalado</string>
-    <string name="feeds_opml_hint">Pasa tus feeds desde o hacia otro lector, como Feedly o Inoreader.</string>
+    <string name="feeds_opml_hint">Como Feedly o Inoreader.</string>
     <string name="import_feedly_title">Desde Feedly</string>
     <string name="import_feedly_step1">Inicia sesión en feedly.com y ve a feedly.com/i/opml. Se descarga un archivo con tus fuentes.</string>
     <string name="import_step_import">Toca Importar OPML arriba y elige el archivo.</string>
@@ -168,7 +168,7 @@
     <string name="setting_hidden_words_title">Ocultar artículos con palabras</string>
     <string name="setting_hidden_words_none">Ninguna</string>
     <string name="setting_hidden_words_label">Palabras</string>
-    <string name="setting_hidden_words_hint">Añade una palabra o un grupo de palabras. Un artículo se oculta cuando cada palabra de un grupo está en su título o en el nombre de su feed: «WIRED coupon code» oculta los artículos de cupones de WIRED. Da igual mayúsculas o minúsculas.</string>
+    <string name="setting_hidden_words_hint">Un artículo se oculta cuando cada palabra de un grupo está en su título o en el nombre de su feed: «WIRED coupon code» oculta los artículos de cupones de WIRED.</string>
     <string name="setting_hidden_words_remove">Quitar %1$s</string>
     <string name="setting_hidden_words_preview_none">No se ocultaría ningún artículo reciente.</string>
     <plurals name="setting_hidden_words_preview">
@@ -243,7 +243,7 @@
     <string name="instapaper_problem_rate_limited">Instapaper está ocupado. Inténtalo de nuevo en un minuto.</string>
     <string name="instapaper_problem_invalid">Instapaper no pudo hacerlo.</string>
     <string name="section_account">Cuenta</string>
-    <string name="account_summary">Inicia sesión con tu correo para mantener tus fuentes, artículos leídos y guardados y ajustes iguales en todos tus dispositivos.</string>
+    <string name="account_summary">Mantiene tus fuentes, artículos leídos y guardados y ajustes iguales en todos tus dispositivos.</string>
     <string name="sync_failed_signed_out">Se cerró la sesión de este dispositivo en tu cuenta. Vuelve a iniciar sesión.</string>
     <string name="account_delete_data">Eliminar datos sincronizados</string>
     <string name="account_delete_confirm">¿Eliminar tus feeds, artículos leídos y ajustes del servidor de Content? Se quedan en este dispositivo y se cierra tu sesión en todas partes.</string>
@@ -340,16 +340,15 @@
     <string name="topic_in_saved">Guardados · %1$s</string>
     <string name="add_title">Añadir</string>
     <string name="add_choice_feed">Feed RSS</string>
-    <string name="add_choice_feed_body">Suscríbete a un feed RSS escribiendo la dirección de la publicación</string>
+    <string name="add_choice_feed_body">Sigue un sitio web o un feed</string>
     <string name="add_choice_article">Guardar artículo</string>
-    <string name="add_choice_article_body">Guarda y organiza un artículo escribiendo su dirección</string>
+    <string name="add_choice_article_body">Guarda un artículo para leerlo después</string>
     <string name="settings_account_signed_out">Sin iniciar sesión</string>
     <string name="section_article_view">Vista de artículo</string>
     <string name="settings_article_view_summary">Texto, artículos completos, sitios de pago</string>
-    <string name="manage_feeds_hint">Toca un feed para cambiarle el nombre, cambiar su etiqueta o quitarlo. Arrastra uno por su asa para cambiar el orden o moverlo a otra etiqueta.</string>
     <string name="manage_feeds_drop_here">Arrastra un feed aquí</string>
     <string name="manage_feeds_none">Aún no hay feeds RSS.</string>
-    <string name="manage_topics_hint">Las etiquetas agrupan tus feeds y artículos guardados. Toca una etiqueta para cambiarle el nombre o el icono, o quitarla; arrastra una por su asa para cambiar el orden. Si le das el nombre de otra etiqueta, se unen las dos.</string>
+    <string name="manage_topics_hint">Las etiquetas agrupan tus feeds y artículos guardados. Si le das a una el nombre de otra, se unen las dos.</string>
     <string name="topics_edit">Editar etiquetas</string>
     <plurals name="topics_count">
         <item quantity="one">%d etiqueta</item>

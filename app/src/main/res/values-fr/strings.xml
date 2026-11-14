@@ -119,7 +119,7 @@
     <string name="report_pictures">Les images sont fausses</string>
     <string name="report_other">Autre chose</string>
     <string name="report_comment">Commentaire (facultatif)</string>
-    <string name="report_hint">Envoyer ouvre un signalement prérempli sur GitHub dans votre navigateur, avec le lien de l’article et le texte affiché par Content. Envoyez-le là-bas.</string>
+    <string name="report_hint">Envoyer ouvre un signalement sur GitHub avec le lien de l’article et le texte affiché par Content. Envoyez-le là-bas.</string>
     <string name="report_send">Envoyer</string>
     <string name="reader_article_gone">Cet article n\'est plus disponible.</string>
     <string name="reader_show_full">Afficher l\'article complet</string>
@@ -128,7 +128,7 @@
     <string name="reader_full_failed">Impossible de charger l\'article complet. Le texte du flux est affiché.</string>
     <string name="reader_full_failed_signed_in">Impossible de charger l\'article complet. Le texte du flux est affiché. Si la connexion au site a expiré, reconnectez-vous.</string>
     <string name="reader_always_website_title">Toujours ouvrir le site</string>
-    <string name="reader_always_website_summary">Les articles des flux s\'ouvrent sur leur site plutôt que dans le lecteur. Les articles enregistrés s\'ouvrent toujours dans le lecteur.</string>
+    <string name="reader_always_website_summary">Les articles enregistrés s’ouvrent toujours dans le lecteur.</string>
     <string name="reader_full_articles_title">Charger les articles complets</string>
     <string name="reader_full_articles_summary">Quand un flux ne contient qu\'un résumé, récupérer l\'article entier sur le site</string>
     <string name="reader_show_images_title">Afficher les images</string>
@@ -137,7 +137,7 @@
     <string name="embed_video">Lire la vidéo</string>
     <string name="embed_other">Ouvrir le contenu intégré</string>
     <string name="share_target_missing_short">%1$s n\'est pas installé</string>
-    <string name="feeds_opml_hint">Transférez vos flux depuis ou vers un autre lecteur, comme Feedly ou Inoreader.</string>
+    <string name="feeds_opml_hint">Comme Feedly ou Inoreader.</string>
     <string name="import_feedly_title">Depuis Feedly</string>
     <string name="import_feedly_step1">Connectez-vous sur feedly.com et allez sur feedly.com/i/opml. Un fichier avec vos flux est téléchargé.</string>
     <string name="import_step_import">Touchez Importer un OPML ci-dessus et choisissez le fichier.</string>
@@ -168,7 +168,7 @@
     <string name="setting_hidden_words_title">Masquer les articles avec des mots</string>
     <string name="setting_hidden_words_none">Aucun</string>
     <string name="setting_hidden_words_label">Mots</string>
-    <string name="setting_hidden_words_hint">Ajoutez un mot ou un groupe de mots. Un article est masqué quand chaque mot d’un groupe est dans son titre ou le nom de son flux : « WIRED coupon code » masque les articles de codes promo de WIRED. Majuscules ou non.</string>
+    <string name="setting_hidden_words_hint">Un article est masqué quand chaque mot d’un groupe est dans son titre ou le nom de son flux : « WIRED coupon code » masque les articles de codes promo de WIRED.</string>
     <string name="setting_hidden_words_remove">Retirer %1$s</string>
     <string name="setting_hidden_words_preview_none">Aucun article récent ne serait masqué.</string>
     <plurals name="setting_hidden_words_preview">
@@ -243,7 +243,7 @@
     <string name="instapaper_problem_rate_limited">Instapaper est occupé. Réessayez dans une minute.</string>
     <string name="instapaper_problem_invalid">Instapaper n’a pas pu le faire.</string>
     <string name="section_account">Compte</string>
-    <string name="account_summary">Connectez-vous avec votre adresse e-mail pour garder vos flux, articles lus et enregistrés et réglages identiques sur tous vos appareils.</string>
+    <string name="account_summary">Garde vos flux, articles lus et enregistrés et réglages identiques sur tous vos appareils.</string>
     <string name="sync_failed_signed_out">Cet appareil a été déconnecté de votre compte. Reconnectez-vous.</string>
     <string name="account_delete_data">Supprimer les données synchronisées</string>
     <string name="account_delete_confirm">Supprimer vos flux, articles lus et paramètres du serveur de Content ? Ils restent sur cet appareil, et vous êtes déconnecté partout.</string>
@@ -340,16 +340,15 @@
     <string name="topic_in_saved">Enregistrés · %1$s</string>
     <string name="add_title">Ajouter</string>
     <string name="add_choice_feed">Flux RSS</string>
-    <string name="add_choice_feed_body">Abonnez-vous à un flux RSS en saisissant l’adresse de la publication</string>
+    <string name="add_choice_feed_body">Suivez un site ou un flux</string>
     <string name="add_choice_article">Enregistrer un article</string>
-    <string name="add_choice_article_body">Enregistrez et classez un article en saisissant son adresse</string>
+    <string name="add_choice_article_body">Gardez un article pour plus tard</string>
     <string name="settings_account_signed_out">Non connecté</string>
     <string name="section_article_view">Affichage des articles</string>
     <string name="settings_article_view_summary">Texte, articles complets, sites payants</string>
-    <string name="manage_feeds_hint">Touchez un flux pour le renommer, changer son tag ou le supprimer. Faites-en glisser un par sa poignée pour changer l’ordre ou le déplacer vers un autre tag.</string>
     <string name="manage_feeds_drop_here">Faites glisser un flux ici</string>
     <string name="manage_feeds_none">Aucun flux RSS pour l’instant.</string>
-    <string name="manage_topics_hint">Les tags regroupent vos flux et vos articles enregistrés. Touchez un tag pour le renommer, changer son icône ou le supprimer ; faites-en glisser un par sa poignée pour changer l’ordre. Lui donner le nom d’un autre tag fusionne les deux.</string>
+    <string name="manage_topics_hint">Les tags regroupent vos flux et vos articles enregistrés. Donner à un tag le nom d’un autre fusionne les deux.</string>
     <string name="topics_edit">Modifier les tags</string>
     <plurals name="topics_count">
         <item quantity="one">%d tag</item>

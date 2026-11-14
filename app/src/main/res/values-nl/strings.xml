@@ -117,7 +117,7 @@
     <string name="report_pictures">Afbeeldingen kloppen niet</string>
     <string name="report_other">Iets anders</string>
     <string name="report_comment">Opmerking (optioneel)</string>
-    <string name="report_hint">Versturen opent een ingevulde melding op GitHub in je browser, met de link van het artikel en de tekst die Content toont. Verstuur ze daar.</string>
+    <string name="report_hint">Versturen opent een melding op GitHub met de link van het artikel en de tekst die Content toont. Verstuur ze daar.</string>
     <string name="report_send">Versturen</string>
     <string name="reader_article_gone">Dit artikel is niet meer beschikbaar.</string>
     <string name="reader_show_full">Volledig artikel tonen</string>
@@ -126,7 +126,7 @@
     <string name="reader_full_failed">Het volledige artikel kon niet geladen worden. Je ziet de tekst uit de feed.</string>
     <string name="reader_full_failed_signed_in">Het volledige artikel kon niet geladen worden. Je ziet de tekst uit de feed. Is de aanmelding bij de site verlopen, meld je dan opnieuw aan.</string>
     <string name="reader_always_website_title">Altijd de website openen</string>
-    <string name="reader_always_website_summary">Artikels uit je feeds openen op hun website in plaats van in de lezer. Bewaarde artikels openen nog in de lezer.</string>
+    <string name="reader_always_website_summary">Bewaarde artikels openen nog in de lezer.</string>
     <string name="reader_full_articles_title">Volledige artikels laden</string>
     <string name="reader_full_articles_summary">Als een feed alleen een samenvatting heeft, het hele artikel van de website halen</string>
     <string name="reader_show_images_title">Afbeeldingen tonen</string>
@@ -135,7 +135,7 @@
     <string name="embed_video">Video afspelen</string>
     <string name="embed_other">Ingesloten inhoud openen</string>
     <string name="share_target_missing_short">%1$s is niet geïnstalleerd</string>
-    <string name="feeds_opml_hint">Verhuis je feeds van of naar een andere lezer zoals Feedly of Inoreader.</string>
+    <string name="feeds_opml_hint">Zoals Feedly of Inoreader.</string>
     <string name="import_feedly_title">Vanuit Feedly</string>
     <string name="import_feedly_step1">Meld je aan op feedly.com en ga naar feedly.com/i/opml. Er wordt een bestand met je feeds gedownload.</string>
     <string name="import_step_import">Tik hierboven op OPML importeren en kies het bestand.</string>
@@ -166,7 +166,7 @@
     <string name="setting_hidden_words_title">Artikels met woorden verbergen</string>
     <string name="setting_hidden_words_none">Geen</string>
     <string name="setting_hidden_words_label">Woorden</string>
-    <string name="setting_hidden_words_hint">Voeg een woord of een groep woorden toe. Een artikel wordt verborgen als elk woord van een groep in de titel of de naam van de feed staat: „WIRED coupon code” verbergt de couponcode-artikels van WIRED. Hoofdletters tellen niet.</string>
+    <string name="setting_hidden_words_hint">Een artikel wordt verborgen als elk woord van een groep in de titel of de naam van de feed staat: „WIRED coupon code” verbergt de couponcode-artikels van WIRED.</string>
     <string name="setting_hidden_words_remove">%1$s verwijderen</string>
     <string name="setting_hidden_words_preview_none">Er zouden geen recente artikels verborgen worden.</string>
     <plurals name="setting_hidden_words_preview">
@@ -235,7 +235,7 @@
     <string name="instapaper_problem_rate_limited">Instapaper is druk bezig. Probeer het over een minuut opnieuw.</string>
     <string name="instapaper_problem_invalid">Instapaper kon dat niet uitvoeren.</string>
     <string name="section_account">Account</string>
-    <string name="account_summary">Meld je aan met je e-mailadres om je feeds, gelezen en bewaarde artikels en instellingen op al je toestellen gelijk te houden.</string>
+    <string name="account_summary">Houdt je feeds, gelezen en bewaarde artikels en instellingen gelijk op al je toestellen.</string>
     <string name="sync_failed_signed_out">Dit apparaat is uitgelogd uit je account. Log opnieuw in.</string>
     <string name="account_delete_data">Account voor Content verwijderen</string>
     <string name="account_delete_confirm">Je feeds, gelezen artikelen en instellingen van de server van Content verwijderen? Ze blijven op dit apparaat, en je wordt overal uitgelogd.</string>
@@ -329,16 +329,15 @@
     <string name="topic_in_saved">Bewaard · %1$s</string>
     <string name="add_title">Toevoegen</string>
     <string name="add_choice_feed">RSS-feed</string>
-    <string name="add_choice_feed_body">Abonneer je op een RSS-feed door het adres van de publicatie in te vullen</string>
+    <string name="add_choice_feed_body">Volg een website of feed</string>
     <string name="add_choice_article">Artikel bewaren</string>
-    <string name="add_choice_article_body">Bewaar en orden een artikel door zijn adres in te vullen</string>
+    <string name="add_choice_article_body">Bewaar een artikel voor later</string>
     <string name="settings_account_signed_out">Niet aangemeld</string>
     <string name="section_article_view">Artikelweergave</string>
     <string name="settings_article_view_summary">Tekst, volledige artikels, sites waarvoor je betaalt</string>
-    <string name="manage_feeds_hint">Tik op een feed om hem te hernoemen, een andere tag te geven of te verwijderen. Sleep er een aan zijn greep om de volgorde te wijzigen of hem naar een andere tag te verplaatsen.</string>
     <string name="manage_feeds_drop_here">Sleep hier een feed naartoe</string>
     <string name="manage_feeds_none">Nog geen RSS-feeds.</string>
-    <string name="manage_topics_hint">Tags groeperen je feeds en bewaarde artikels. Tik op een tag om hem te hernoemen, een ander icoon te geven of te verwijderen; sleep er een aan zijn greep om de volgorde te wijzigen. Geef je hem de naam van een andere tag, dan worden ze samengevoegd.</string>
+    <string name="manage_topics_hint">Tags groeperen je feeds en bewaarde artikels. Geef je een tag de naam van een andere, dan worden ze samengevoegd.</string>
     <string name="topics_edit">Tags bewerken</string>
     <plurals name="topics_count">
         <item quantity="one">%d tag</item>
