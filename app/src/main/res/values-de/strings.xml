@@ -117,7 +117,7 @@
     <string name="report_pictures">Bilder stimmen nicht</string>
     <string name="report_other">Etwas anderes</string>
     <string name="report_comment">Kommentar (optional)</string>
-    <string name="report_hint">Senden öffnet eine vorausgefüllte Meldung auf GitHub in deinem Browser, mit dem Link des Artikels und dem Text, den Content zeigt. Schicke sie dort ab.</string>
+    <string name="report_hint">Senden öffnet eine Meldung auf GitHub mit dem Link des Artikels und dem Text, den Content zeigt. Schicke sie dort ab.</string>
     <string name="report_send">Senden</string>
     <string name="reader_article_gone">Dieser Artikel ist nicht mehr verfügbar.</string>
     <string name="reader_show_full">Ganzen Artikel anzeigen</string>
@@ -126,7 +126,7 @@
     <string name="reader_full_failed">Der ganze Artikel konnte nicht geladen werden. Du siehst den Text aus dem Feed.</string>
     <string name="reader_full_failed_signed_in">Der ganze Artikel konnte nicht geladen werden. Du siehst den Text aus dem Feed. Ist die Anmeldung bei der Website abgelaufen, melde dich erneut an.</string>
     <string name="reader_always_website_title">Immer die Website öffnen</string>
-    <string name="reader_always_website_summary">Artikel aus deinen Feeds öffnen sich auf ihrer Website statt im Reader. Gespeicherte Artikel öffnen sich weiter im Reader.</string>
+    <string name="reader_always_website_summary">Gespeicherte Artikel öffnen sich weiter im Reader.</string>
     <string name="reader_full_articles_title">Ganze Artikel laden</string>
     <string name="reader_full_articles_summary">Wenn ein Feed nur eine Zusammenfassung hat, den ganzen Artikel von der Website holen</string>
     <string name="reader_show_images_title">Bilder anzeigen</string>
@@ -135,7 +135,7 @@
     <string name="embed_video">Video abspielen</string>
     <string name="embed_other">Eingebetteten Inhalt öffnen</string>
     <string name="share_target_missing_short">%1$s ist nicht installiert</string>
-    <string name="feeds_opml_hint">Zieh deine Feeds von oder zu einem anderen Reader um, etwa Feedly oder Inoreader.</string>
+    <string name="feeds_opml_hint">Etwa Feedly oder Inoreader.</string>
     <string name="import_feedly_title">Von Feedly</string>
     <string name="import_feedly_step1">Melde dich auf feedly.com an und öffne feedly.com/i/opml. Eine Datei mit deinen Feeds wird heruntergeladen.</string>
     <string name="import_step_import">Tippe oben auf OPML importieren und wähle die Datei.</string>
@@ -166,7 +166,7 @@
     <string name="setting_hidden_words_title">Artikel mit Wörtern ausblenden</string>
     <string name="setting_hidden_words_none">Keine</string>
     <string name="setting_hidden_words_label">Wörter</string>
-    <string name="setting_hidden_words_hint">Füge ein Wort oder eine Wortgruppe hinzu. Ein Artikel wird ausgeblendet, wenn jedes Wort einer Gruppe im Titel oder im Namen des Feeds steht: „WIRED coupon code“ blendet die Gutscheincode-Artikel von WIRED aus. Groß- und Kleinschreibung zählt nicht.</string>
+    <string name="setting_hidden_words_hint">Ein Artikel wird ausgeblendet, wenn jedes Wort einer Gruppe im Titel oder im Namen des Feeds steht: „WIRED coupon code“ blendet die Gutscheincode-Artikel von WIRED aus.</string>
     <string name="setting_hidden_words_remove">%1$s entfernen</string>
     <string name="setting_hidden_words_preview_none">Keine neueren Artikel würden ausgeblendet.</string>
     <plurals name="setting_hidden_words_preview">
@@ -235,7 +235,7 @@
     <string name="instapaper_problem_rate_limited">Instapaper ist ausgelastet. Versuche es in einer Minute erneut.</string>
     <string name="instapaper_problem_invalid">Instapaper konnte das nicht ausführen.</string>
     <string name="section_account">Konto</string>
-    <string name="account_summary">Melde dich mit deiner E-Mail-Adresse an, damit Feeds, gelesene und gespeicherte Artikel und Einstellungen auf allen Geräten gleich bleiben.</string>
+    <string name="account_summary">Hält Feeds, gelesene und gespeicherte Artikel und Einstellungen auf allen Geräten gleich.</string>
     <string name="sync_failed_signed_out">Dieses Gerät wurde von deinem Konto abgemeldet. Melde dich erneut an.</string>
     <string name="account_delete_data">Synchronisierte Daten löschen</string>
     <string name="account_delete_confirm">Deine Feeds, gelesenen Artikel und Einstellungen vom Server von Content löschen? Sie bleiben auf diesem Gerät, und du wirst überall abgemeldet.</string>
@@ -329,16 +329,15 @@
     <string name="topic_in_saved">Gespeichert · %1$s</string>
     <string name="add_title">Hinzufügen</string>
     <string name="add_choice_feed">RSS-Feed</string>
-    <string name="add_choice_feed_body">Abonniere einen RSS-Feed, indem du die Adresse der Publikation eingibst</string>
+    <string name="add_choice_feed_body">Folge einer Website oder einem Feed</string>
     <string name="add_choice_article">Artikel speichern</string>
-    <string name="add_choice_article_body">Speichere und ordne einen Artikel, indem du seine Adresse eingibst</string>
+    <string name="add_choice_article_body">Speichere einen Artikel für später</string>
     <string name="settings_account_signed_out">Nicht angemeldet</string>
     <string name="section_article_view">Artikelansicht</string>
     <string name="settings_article_view_summary">Text, ganze Artikel, Websites, für die du bezahlst</string>
-    <string name="manage_feeds_hint">Tippe auf einen Feed, um ihn umzubenennen, seinen Tag zu ändern oder ihn zu entfernen. Ziehe einen an seinem Griff, um die Reihenfolge zu ändern oder ihn zu einem anderen Tag zu verschieben.</string>
     <string name="manage_feeds_drop_here">Feed hierher ziehen</string>
     <string name="manage_feeds_none">Noch keine RSS-Feeds.</string>
-    <string name="manage_topics_hint">Tags gruppieren deine Feeds und gespeicherten Artikel. Tippe auf einen Tag, um ihn umzubenennen, sein Symbol zu ändern oder ihn zu entfernen; ziehe einen an seinem Griff, um die Reihenfolge zu ändern. Gibst du ihm den Namen eines anderen Tags, werden beide zusammengeführt.</string>
+    <string name="manage_topics_hint">Tags gruppieren deine Feeds und gespeicherten Artikel. Gibst du einem Tag den Namen eines anderen, werden beide zusammengeführt.</string>
     <string name="topics_edit">Tags bearbeiten</string>
     <plurals name="topics_count">
         <item quantity="one">%d Tag</item>
@@ -353,7 +352,7 @@
     <string name="setting_newsletter_unread_summary">Neue E-Mails aus Instapaper bleiben fett, bis du sie liest</string>
     <string name="add_choice_newsletter">Newsletter-Feed</string>
     <string name="add_choice_newsletter_body">Jeder Tag hat eine E-Mail-Adresse für Newsletter: Sie kommen als Feed an</string>
-    <string name="newsletter_own_explained">Jeder Tag hat eine eigene E-Mail-Adresse, und Ohne Tag auch. Newsletter, die an eine Adresse gehen, kommen im Feed Newsletter dieses Tags an. Für eine weitere Adresse erstellst du einen neuen Tag.</string>
+    <string name="newsletter_own_explained">Newsletter an die Adresse eines Tags kommen im Feed Newsletter dieses Tags an. Für eine weitere Adresse erstellst du einen neuen Tag.</string>
     <string name="newsletter_own_sign_in_first">Diese Adressen brauchen ein Content-Konto, das die Newsletter aufbewahrt.</string>
     <string name="newsletter_own_sign_in">Anmelden</string>
     <string name="newsletter_own_offline">Die Adresse konnte nicht geladen werden. Prüfe deine Verbindung.</string>
