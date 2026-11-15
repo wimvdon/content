@@ -33,8 +33,12 @@ any article: unread, Mark all as read, the chips' dots, the reader and Search al
   the title. The feed loader takes the website from the sender's address, without a mail
   subdomain (`senderSite`: news@email.example.com → https://example.com, hi@x.example.co.uk →
   https://example.co.uk), and puts it in the entry as Atom's `<author><uri>`; the apps keep it as
-  the article's `authorUrl`. Emails from before 2026-11-15 have no website: they show the sender's
-  name with the envelope.
+  the article's `authorUrl`. Emails kept before 2026-11-15 had no website; the feed loader looks
+  for it once per email (`guessSite`): the address when the sender's name was one, or else the
+  website the email links to most (at least twice), leaving out mailing services, social networks
+  and link shorteners. It keeps what it found (`siteGuessed`, found or not), at most 10 emails per
+  feed load (`BACKFILL_PER_LOAD`) to stay within a request's CPU time, so the apps get the website
+  at their next refreshes. An email where none is found shows the sender's name with the envelope.
 - **Each sender a source of its own** (2026-11-15, `NewsletterSenders`, the web's
   `newsletterSenders.ts`): a sender is its website (`keyOf`, the web's `senderKey.ts`: bozar.be, so
   newsletter@bozar.be and events@bozar.be are one), on a platform many newsletters send from

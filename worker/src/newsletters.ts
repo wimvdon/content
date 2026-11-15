@@ -54,9 +54,14 @@ export interface NewsletterEmail {
   from: string;
   /** The sender's website, from their address's domain ("https://example.com"); missing in emails kept before 2026-11-15. */
   site?: string;
+  /** True once an email kept before 2026-11-15 has had its website looked for ([guessSite]), found or not. */
+  siteGuessed?: boolean;
   subject: string;
   html: string;
 }
+
+/** Emails kept before 2026-11-15 given their sender's website per feed load, so a load stays within its CPU time. */
+export const BACKFILL_PER_LOAD = 10;
 
 /** An address as its account lists it: the tag it belongs to (null: the one without a tag). */
 export interface NewsletterAddress {
@@ -154,9 +159,18 @@ export class NewsletterInbox {
   async emails(limit = FEED_ENTRIES): Promise<NewsletterEmail[]> {
     const keys = [...(await this.storage.list<SealedEmail>({ prefix: "m:" })).entries()].sort(([a], [b]) => (a < b ? 1 : -1)).slice(0, limit);
     const out: NewsletterEmail[] = [];
-    for (const [, sealed] of keys) {
-      const email = await this.open(sealed);
-      if (email) out.push(email);
+    let backfilled = 0;
+    for (const [key, sealed] of keys) {
+      let email = await this.open(sealed);
+      if (!email) continue;
+      // Kept before senders had websites: look for it once, and keep what was found.
+      if (!email.site && !email.siteGuessed && backfilled < BACKFILL_PER_LOAD) {
+        backfilled++;
+        const site = guessSite(email);
+        email = { ...email, ...(site ? { site } : {}), siteGuessed: true };
+        await this.storage.put(key, await this.seal(email));
+      }
+      out.push(email);
     }
     return out;
   }
@@ -225,6 +239,49 @@ export function senderSite(address: string | null | undefined): string | null {
   const tld = labels[labels.length - 1];
   const keep = labels.length >= 3 && tld.length === 2 && PUBLIC_SECOND_LEVEL.has(labels[labels.length - 2]) ? 3 : 2;
   return `https://${labels.slice(-keep).join(".")}`;
+}
+
+/**
+ * Websites whose links say nothing about who sent an email: mailing and tracking services, social
+ * networks, app stores, link shorteners and file hosts. Their subdomains count too.
+ */
+const NOT_A_SENDER = [
+  "list-manage.com", "mailchimp.com", "mcusercontent.com", "mcsv.net", "campaign-archive.com", "sendgrid.net", "sendgrid.com",
+  "mailjet.com", "sendinblue.com", "brevo.com", "mailerlite.com", "mlsend.com", "hubspot.com", "hubspotemail.net", "hs-sites.com",
+  "hubspotlinks.com", "hs-analytics.net", "klaviyo.com", "klclick.com", "klclick1.com", "createsend.com", "cmail19.com", "cmail20.com",
+  "exacttarget.com", "rs6.net", "constantcontact.com", "mandrillapp.com", "mailgun.org", "amazonaws.com", "cloudfront.net",
+  "googleusercontent.com", "google.com", "goo.gl", "bit.ly", "lnkd.in", "t.co", "facebook.com", "fb.com", "instagram.com",
+  "twitter.com", "x.com", "linkedin.com", "youtube.com", "youtu.be", "tiktok.com", "pinterest.com", "threads.net", "bsky.app",
+  "whatsapp.com", "apple.com", "w3.org", "schema.org", "gravatar.com", "wp.com", "imgur.com", "giphy.com",
+];
+
+const isNotASender = (host: string) => NOT_A_SENDER.some((d) => host === d || host.endsWith(`.${d}`));
+
+/**
+ * The website of an email kept before 2026-11-15, when only the sender's name was kept: the domain
+ * of [NewsletterEmail.from] when it is an address (a sender without a name), or else the website
+ * the email links to most (at least twice), leaving out mailing services and social networks.
+ * Null when neither says.
+ */
+export function guessSite(email: Pick<NewsletterEmail, "from" | "html">): string | null {
+  const fromAddress = senderSite(email.from.match(/[^\s<>"]+@[^\s<>"]+/)?.[0]);
+  if (fromAddress) return fromAddress;
+  const counts = new Map<string, number>();
+  for (const match of email.html.matchAll(/href\s*=\s*["']?https?:\/\/([a-z0-9.-]+)/gi)) {
+    const host = match[1].toLowerCase().replace(/\.$/, "");
+    if (isNotASender(host)) continue;
+    const site = senderSite(`x@${host}`);
+    if (site) counts.set(site, (counts.get(site) ?? 0) + 1);
+  }
+  let best: string | null = null;
+  let most = 1;
+  for (const [site, count] of counts) {
+    if (count > most) {
+      best = site;
+      most = count;
+    }
+  }
+  return best;
 }
 
 function textAsHtml(text: string): string {
