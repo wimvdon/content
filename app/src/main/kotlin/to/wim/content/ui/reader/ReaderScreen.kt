@@ -484,7 +484,7 @@ private fun ArticleBody(
                 // A newsletter shows who sent it, with their website's icon.
                 val shown = NewsletterAddresses.sender(feed, article) ?: feed
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FeedIcon(shown, FeedIconSize.Medium)
+                    FeedIcon(shown, FeedIconSize.Medium, envelopeBadge = NewsletterAddresses.hasEnvelopeBadge(feed, shown))
                     Text(shown.title, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
                 }
             }

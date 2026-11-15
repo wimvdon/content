@@ -5,6 +5,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.material3.Icon
 import to.wim.content.data.NewsletterAddresses
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -37,7 +40,28 @@ fun FeedIcon(
     feed: Feed?,
     size: Dp,
     modifier: Modifier = Modifier,
+    envelopeBadge: Boolean = false,
 ) {
+    if (envelopeBadge) {
+        // A newsletter shown with its sender's icon (NewsletterAddresses.hasEnvelopeBadge): a small
+        // envelope on the corner, so it still reads as a newsletter.
+        Box(modifier.size(size)) {
+            FeedIcon(feed, size)
+            val badge = (size * 0.6f).coerceAtLeast(10.dp)
+            Box(
+                Modifier
+                    .align(Alignment.BottomEnd)
+                    .offset(x = badge / 4, y = badge / 4)
+                    .size(badge)
+                    .background(MaterialTheme.colorScheme.tertiaryContainer, CircleShape)
+                    .border(1.dp, MaterialTheme.colorScheme.surface, CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(painterResource(R.drawable.ic_mail), contentDescription = null, tint = MaterialTheme.colorScheme.onTertiaryContainer, modifier = Modifier.size(badge * 0.7f))
+            }
+        }
+        return
+    }
     val shape = RoundedCornerShape(size / 4)
     var failed by remember(feed?.iconUrl) { mutableStateOf(false) }
     val boxModifier =

@@ -26,7 +26,7 @@ import { cn } from "./ui/cn";
 import { Dialog } from "./ui/dialog";
 import { useEscape } from "./ui/useEscape";
 import { kindOf } from "@/lib/feedKinds";
-import { senderOf } from "@/lib/newsletterAddresses";
+import { hasEnvelopeBadge, senderOf } from "@/lib/newsletterAddresses";
 
 /** The full article for one address: loaded, or failed and why (no answer yet means it is loading). */
 type Full = { link: string; html: string | null; blocked?: boolean };
@@ -231,7 +231,7 @@ export function ArticleView({
         <div className="mx-auto max-w-2xl px-5 pt-8 pb-16">
           <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
             {/* A newsletter shows who sent it, with their website's icon. */}
-            <FeedIcon feed={sender ?? feed} className="size-5" />
+            <FeedIcon feed={sender ?? feed} className="size-5" envelopeBadge={hasEnvelopeBadge(feed, sender)} />
             <span className="truncate font-medium text-foreground">{(sender ?? feed)?.title}</span>
             <span aria-hidden="true">·</span>
             <time dateTime={new Date(sortTime(article)).toISOString()}>{formatDateTime(sortTime(article))}</time>

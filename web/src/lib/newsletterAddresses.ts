@@ -43,6 +43,14 @@ const SITE = /^https:\/\/([a-z0-9-]+(?:\.[a-z0-9-]+)+)\/?$/i;
  * 2026-11-15) it keeps the envelope. Null for any other feed, or when the sender is unknown. The
  * same as the Android app's NewsletterAddresses.sender.
  */
+/**
+ * Whether `shown`, what stands in for `feed`, gets a small envelope on its icon: a newsletter shown
+ * with its sender's website icon, so it still reads as a newsletter. Not when the icon is the
+ * envelope already, and never for RSS feeds, which are most of the list. As on Android.
+ */
+export const hasEnvelopeBadge = (feed: Feed | undefined, shown: Feed | null | undefined): boolean =>
+  isNewsletterFeed(feed?.url) && !!shown && !isNewsletterFeed(shown.url);
+
 export function senderOf(feed: Feed | undefined, article: Article): Feed | null {
   if (!feed || !isNewsletterFeed(feed.url)) return null;
   const name = article.author?.trim();

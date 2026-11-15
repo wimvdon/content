@@ -28,7 +28,8 @@ any article: unread, Mark all as read, the chips' dots, the reader and Search al
   renamed, moved or removed. Without a Content account, the page offers Sign in.
 - **The sender, not "Newsletters":** each newsletter shows who sent it in the feed's place, in the
   list and above the reader's title (`NewsletterAddresses.sender`, the web's `senderOf`), with the
-  `/favicon.ico` of the sender's website; the reader then leaves the sender out of the line under
+  `/favicon.ico` of the sender's website and a small envelope on its corner
+  (`hasEnvelopeBadge`), so it still reads as a newsletter; the reader then leaves the sender out of the line under
   the title. The feed loader takes the website from the sender's address, without a mail
   subdomain (`senderSite`: news@email.example.com → https://example.com, hi@x.example.co.uk →
   https://example.co.uk), and puts it in the entry as Atom's `<author><uri>`; the apps keep it as
