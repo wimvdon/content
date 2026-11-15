@@ -66,17 +66,14 @@ class TopicsTest {
     }
 
     @Test
-    fun `renaming a topic to another one's name joins the two`() {
-        val joined = library.topicsForTags().renameTopic("topic:recipes", "news", "restaurant")
-        // News stays, with its icon; Recipes' articles get News instead.
-        assertEquals(listOf("f1", "f2"), joined.folders.map { it.id })
-        assertEquals("newspaper", joined.folder("f2")!!.icon)
-        assertEquals(listOf("tech", "News"), joined.item("x.example/1")!!.tags)
-        assertEquals(listOf("News"), joined.item("x.example/3")!!.tags)
-        // A topic with feeds joining another: its feeds move along.
-        val feedsMoved = library.topicsForTags().renameTopic("f1", "News", "computer")
-        assertEquals("f2", feedsMoved.feed("https://a/feed")!!.folderId)
-        assertEquals(listOf("News"), feedsMoved.feed("https://a/feed")!!.tags)
+    fun `a tag can't take another tag's name, so tags are never merged`() {
+        val settled = library.topicsForTags()
+        assertSame(settled, settled.renameTopic("topic:recipes", " news ", "restaurant"))
+        assertSame(settled, settled.renameTopic("f1", "News", "computer"))
+        assertTrue(settled.folders.nameTaken("f1", " news "))
+        assertFalse(settled.folders.nameTaken("f2", "News"))
+        assertTrue(settled.folders.nameTaken(null, "TECH"))
+        assertFalse(settled.folders.nameTaken(null, "Sports"))
     }
 
     @Test
@@ -146,18 +143,6 @@ class TopicsTest {
         assertNull(loose.feed("https://b/feed")!!.folderId)
         assertEquals(listOf("https://c/feed", "https://b/feed"), loose.feeds.filter { it.folderId == null }.map { it.url })
     }
-
-    @Test
-    fun `merging keeps the topic picked, with the other's feeds and saved articles`() {
-        val merged = library.topicsForTags().mergeTopic("f1", "f2")
-        assertEquals(listOf("f2", "topic:recipes"), merged.folders.map { it.id })
-        assertEquals("f2", merged.feed("https://a/feed")!!.folderId)
-        assertEquals(listOf("News", "Recipes"), merged.item("x.example/1")!!.tags)
-        val settled = library.topicsForTags()
-        assertSame(settled, settled.mergeTopic("f1", "f1"))
-        assertSame(settled, settled.mergeTopic("gone", "f1"))
-    }
-
 
     @Test
     fun `Feeds' chips leave out topics with nothing in the tab shown, except the one chosen`() {

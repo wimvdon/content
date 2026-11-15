@@ -73,23 +73,18 @@ Newsletter feed.
 Senders are grouped by their website, so newsletter@bozar.be and events@bozar.be are one "Bozar";
 on platforms many newsletters share (Substack, Beehiiv, Gmail and the like) each newsletter name is
 a sender of its own. Under the address, the Newsletter feed page lists the tag's senders: tap one to
-give it another name, **Mute** it (its newsletters are hidden from Feed but still received), **Combine with** another
-sender (it then shows as that one), or **Separate** a sender combined into it. These choices are
-synced to your other devices. A sender's page also opens from where the sender is: press and hold
-its chip (on the web, right-click it), press and hold one of its newsletters › **About <sender>**, or
-tap the sender above a newsletter's title. Press and hold a newsletter › **Mute <sender>** mutes it
-straight away. At the top of a sender's page a line says when the newest newsletter came, how often
-they come (about daily, weekly, every two weeks or monthly, or now and then; left out until there
-are three) and how many are unread, with **Open newest** to read the newest one. Under **Tag** you
-can show a sender under another tag, for one that signed up with the wrong tag's address: pick the
-tag (No tag is first), and its newsletters then show in that tag's Newsletters feed instead; pick
-its own tag again to put them back. Muting, combining and moving show a message with **Undo**.
+give it another name (synced to your other devices) or to **Unsubscribe**. A sender's page also
+opens from where the sender is: press and hold its chip (on the web, right-click it), press and hold
+one of its newsletters › **About <sender>**, or tap the sender above a newsletter's title. At the
+top of a sender's page a line says when the newest newsletter came, how often they come (about
+daily, weekly, every two weeks or monthly, or now and then; left out until there are three) and how
+many are unread, with **Open newest** to read the newest one.
 
 **Unsubscribe.** A sender's page has an **Unsubscribe** button, and so does the reader's ⋮ menu for
 a newsletter. Content's feed loader takes the sender's newest newsletter and does what it offers:
 where the sender allows unsubscribing in one step (most large mailing services do), the feed loader
-asks for it and a message says **Unsubscribed from <sender>**, with **Mute** to take its newsletters
-out of Feed too (the ones already here stay until then). Otherwise the sender's unsubscribe page
+asks for it and a message says **Unsubscribed from <sender>** (the ones already here stay).
+Otherwise the sender's unsubscribe page
 opens in your browser, or a new email to the sender's unsubscribe address opens in your email app;
 send it to finish. When the newsletter has none of these, the message says so: open its newest
 newsletter and look for the link at its bottom. Nothing happens until you tap it. (Newsletters through your
@@ -125,7 +120,8 @@ web app.
 sheet; on the web the same). A sheet with your tags as a list, in your order, each with its icon
 and a grip (⋮⋮) at the end. Drag a row by its grip to reorder: this order is the one everything uses
 (the chips and the sheets). Tap a row to rename it, change its icon or remove it (its feeds and
-saved articles stay, without it); giving it another tag's name merges the two. **New tag**
+saved articles stay, without it). Two tags can't have the same name: the sheet says so and Save
+waits for another name. **New tag**
 makes one: a name and an icon from the whole Material Symbols set (type in English, such as
 *news*, *car* or *food*). Changes are kept at once: **Done** closes it.
 
@@ -159,8 +155,8 @@ closes the keyboard first; the sheet stays until you do it again.
 save sheet). In the save and Organise sheets you turn tags on or off, every tag in your order,
 and **Edit tags** shows Manage tags in the same sheet, with a back arrow. **Editing tags:** in Manage tags every tag is a row with a pen and a grip at the end (on the web a chip
 with a grip and a pen): drag it to reorder your tags (on the web also ← → on a focused chip), tap one
-to rename it, change its icon or remove it (the sheet asks first); renaming it to another tag's
-name joins the two. **Done** ends it. A tag you renamed or removed is renamed or removed in the
+to rename it, change its icon or remove it (the sheet asks first); another tag's name isn't
+accepted. **Done** ends it. A tag you renamed or removed is renamed or removed in the
 sheet too. Every chip row shows the tags with their icons, in Feeds and Saved alike. A tag that comes in from Instapaper (where it is a tag) or another device is added
 at the end of your tags.
 
@@ -538,7 +534,7 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   is in **⋮**; it asks first and takes the note, tags and highlights with it (Archive keeps it
   searchable instead).
 - **Manage tags** (Settings, or Edit tags in a sheet): your tags as a list: drag by the grip to reorder,
-  tap to rename, change the icon or remove one (a name already taken merges the two).
+  tap to rename, change the icon or remove one (a name already taken isn't accepted).
 - **In the web app** Saved is the same: the same tabs, chips and cards, and **+** › **Save article**
   in the search bar. In an article the top bar is the reading (the full
   article, Aa, ⋮) and the bar under it the library, with Share at its right end: **Save** before it is saved (it opens the same sheet), then

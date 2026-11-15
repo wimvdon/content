@@ -56,14 +56,10 @@ class NewsletterSendersTest {
     }
 
     @Test
-    fun `an article's sender is the one it belongs to, with what is combined into it`() {
+    fun `an article's sender is the one it belongs to`() {
         val articles = listOf(bozarNews, bozarEvents, platformer, old)
         assertEquals("bozar.be", NewsletterSenders().senderOf(articles, bozarNews)?.key)
         assertEquals(2, NewsletterSenders().senderOf(articles, bozarNews)?.count)
-        val merged = NewsletterSenders().merged("name:de standaard", "bozar.be", "Bozar")
-        val sender = merged.senderOf(articles, old)!!
-        assertEquals("bozar.be", sender.key)
-        assertEquals(3, sender.count)
         assertNull(NewsletterSenders().senderOf(articles, issue("x", null, null)))
     }
 
@@ -79,56 +75,21 @@ class NewsletterSendersTest {
     }
 
     @Test
-    fun `merging puts one sender in another, which keeps its name and icon, and separating takes it out`() {
-        val merged = NewsletterSenders().merged("bozar-mail.be", "bozar.be", "Bozar")
-        assertEquals("bozar.be", merged.groupOf("bozar-mail.be"))
-        assertEquals("Bozar", merged.rule("bozar.be")?.name)
-        val shown = merged.shown(feed, bozarSite)!!
-        assertEquals("Bozar", shown.title)
-        assertEquals("https://bozar.be/favicon.ico", shown.iconUrl)
-        val group = merged.list(listOf(bozarNews, bozarSite), feedUrl).single()
-        assertEquals(listOf("bozar.be", "bozar-mail.be"), group.members.map { it.key })
-        assertEquals(2, group.count)
-        assertEquals(FeedSelection.Sender(feedUrl, "bozar.be", setOf("bozar.be", "bozar-mail.be")), FeedSelection.Sender.of(group))
-        val split = merged.split("bozar-mail.be")
-        assertEquals("bozar-mail.be", split.groupOf("bozar-mail.be"))
-        assertEquals(2, split.list(listOf(bozarNews, bozarSite), feedUrl).size)
-    }
-
-    @Test
-    fun `merging a group moves its members too, and never makes a loop`() {
-        val senders =
-            NewsletterSenders()
-                .merged("substack.com/stratechery", "substack.com/platformer", "Platformer")
-                .merged("substack.com/platformer", "bozar.be", "Bozar")
-        assertEquals("bozar.be", senders.groupOf("substack.com/stratechery"))
-        assertEquals("bozar.be", senders.groupOf("substack.com/platformer"))
-        assertSame(senders, senders.merged("bozar.be", "substack.com/stratechery", "x"))
-        // A loop from elsewhere (two devices at once) stops where it started.
-        val loop = NewsletterSenders(listOf(SenderRule("a", into = "b"), SenderRule("b", into = "a")))
-        assertEquals("a", loop.groupOf("a"))
-    }
-
-    @Test
-    fun `a muted sender's newsletters leave the lists, and no other`() {
-        val senders = NewsletterSenders().merged("bozar-mail.be", "bozar.be", "Bozar").muted("bozar.be", true)
-        assertTrue(senders.isMuted(bozarSite))
-        assertFalse(senders.isMuted(platformer))
-        val library = Library(feeds = listOf(feed, rss), articles = listOf(bozarNews, bozarSite, platformer, issue("9", "Bozar", "https://bozar.be", feedUrl = rss.url)))
-        assertEquals(listOf("3", "9"), library.withoutMuted(senders).articles.map { it.id })
-        assertSame(library, library.withoutMuted(NewsletterSenders()))
-        assertTrue(senders.list(library.articles, feedUrl).first { it.key == "bozar.be" }.muted)
-        assertEquals(NewsletterSenders().merged("bozar-mail.be", "bozar.be", "Bozar"), senders.muted("bozar.be", false))
-    }
-
-    @Test
-    fun `the choices are stored as text and read back, skipping what can't be read`() {
-        val senders = NewsletterSenders().renamed("bozar.be", "Bozar").merged("substack.com/platformer", "bozar.be", "x").muted("name:de standaard", true)
+    fun `the names are stored as text and read back, skipping what can't be read`() {
+        val senders = NewsletterSenders().renamed("bozar.be", "Bozar").renamed("substack.com/platformer", "Platformer")
         val text = senders.encode()
-        assertEquals("bozar.be\tBozar\t\t0\nsubstack.com/platformer\t\tbozar.be\t0\nname:de standaard\t\t\t1", text)
+        assertEquals("bozar.be\tBozar\t\t0\nsubstack.com/platformer\tPlatformer\t\t0", text)
         assertEquals(senders, NewsletterSenders.decode(text))
         assertEquals(NewsletterSenders(), NewsletterSenders.decode(null))
         assertEquals(NewsletterSenders(listOf(SenderRule("a", "A"))), NewsletterSenders.decode("a\tA\t\t0\nbroken\n\t\t\t1\nnothing\t\t\t0"))
+    }
+
+    @Test
+    fun `combined, muted and moved senders stored by an earlier version no longer apply, their names stay`() {
+        val senders = NewsletterSenders.decode("bozar-mail.be\t\tbozar.be\t0\nbozar.be\tBozar\t\t1\tt:1\nsubstack.com/platformer\t\t\t1")
+        assertEquals(NewsletterSenders(listOf(SenderRule("bozar.be", "Bozar"))), senders)
+        assertEquals(2, senders.list(listOf(bozarNews, bozarSite), feedUrl).size)
+        assertEquals("bozar.be\tBozar\t\t0", senders.encode())
     }
 
     @Test
@@ -197,99 +158,4 @@ class NewsletterSendersTest {
     private val feedNoTagUrl = "https://w.example/newsletters/yyyyyyyyyyyy/00112233445566778899aabbccddeeff"
     private val feedNoTag = Feed(url = feedNoTagUrl, title = "Newsletters", folderId = null)
     private val twoTags = Library(feeds = listOf(feed, feed2, feedNoTag, rss), folders = listOf(Folder("1", "News"), Folder("2", "Work")))
-
-    @Test
-    fun `the tag is stored as a fifth field that an old app ignores, and a line without it reads as before`() {
-        val senders = NewsletterSenders().renamed("bozar.be", "Bozar").movedTo("bozar.be", "2", "1").movedTo("substack.com/platformer", NewsletterAddresses.NO_TAG, "1")
-        val text = senders.encode()
-        assertEquals("bozar.be\tBozar\t\t0\tt:2", text.lines()[0])
-        assertEquals("substack.com/platformer\t\t\t0\t-", text.lines()[1])
-        assertEquals(senders, NewsletterSenders.decode(text))
-        assertEquals("2", NewsletterSenders.decode(text).rule("bozar.be")?.tag)
-        assertEquals(NewsletterAddresses.NO_TAG, NewsletterSenders.decode(text).rule("substack.com/platformer")?.tag)
-        // A line from before the tag.
-        assertNull(NewsletterSenders.decode("bozar.be\tBozar\t\t0").rule("bozar.be")?.tag)
-        // What an old app reads from a line with the tag: its first four fields, as before.
-        assertEquals(listOf("bozar.be", "Bozar", "", "0"), text.lines()[0].split('\t').take(4))
-        // A tag alone is a choice worth keeping; an unreadable tag is dropped, the rest read.
-        assertEquals(NewsletterSenders(listOf(SenderRule("a", tag = "x"))), NewsletterSenders.decode("a\t\t\t0\tt:x"))
-        assertEquals(NewsletterSenders(listOf(SenderRule("a", "A"))), NewsletterSenders.decode("a\tA\t\t0\tgarbage"))
-        assertEquals(NewsletterSenders(), NewsletterSenders.decode("a\t\t\t0\tt:"))
-    }
-
-    @Test
-    fun `picking the tag it is sent to clears the move, and merging a sender drops its own move`() {
-        val moved = NewsletterSenders().movedTo("bozar.be", "2", "1")
-        assertEquals("2", moved.rule("bozar.be")?.tag)
-        assertEquals(NewsletterSenders(), moved.movedTo("bozar.be", "1", "1"))
-        val merged = moved.merged("bozar.be", "substack.com/platformer", "Platformer")
-        assertNull(merged.rule("bozar.be")?.tag)
-    }
-
-    @Test
-    fun `a moved sender's newsletters are listed under the target tag's feed, and no other`() {
-        val library = twoTags.copy(articles = listOf(bozarNews, bozarEvents, platformer))
-        val senders = NewsletterSenders().movedTo("bozar.be", "2", "1")
-        val view = library.withMovedSenders(senders)
-        assertEquals(listOf(feed2Url, feed2Url, feedUrl), view.articles.map { it.feedUrl })
-        assertEquals(listOf("2", "1"), view.articlesFor(FeedSelection.Single(feed2Url), unreadOnly = false).map { it.id })
-        assertEquals(listOf("3"), view.articlesFor(FeedSelection.Single(feedUrl), unreadOnly = false).map { it.id })
-        assertEquals(2, view.unreadCount(FeedSelection.InFolder("2")))
-        assertEquals(1, view.unreadCount(FeedSelection.InFolder("1")))
-        // The senders of each feed follow.
-        assertEquals(listOf("Bozar Events"), senders.list(view.articles, feed2Url).map { it.name })
-        assertEquals(listOf("Platformer"), senders.list(view.articles, feedUrl).map { it.name })
-        assertEquals(feed2Url, senders.senderOf(view.articles, view.articles.first())?.feedUrl)
-        // The same library when nothing is moved; and the stored library is never changed.
-        assertSame(library, library.withMovedSenders(NewsletterSenders()))
-        assertEquals(feedUrl, library.articles.first().feedUrl)
-    }
-
-    @Test
-    fun `a sender moved to No tag, to a tag without a feed or to the tag it is in`() {
-        val library = twoTags.copy(articles = listOf(bozarNews))
-        assertEquals(feedNoTagUrl, library.withMovedSenders(NewsletterSenders().movedTo("bozar.be", NewsletterAddresses.NO_TAG, "1")).articles.single().feedUrl)
-        assertEquals(feedUrl, library.withMovedSenders(NewsletterSenders().movedTo("bozar.be", "gone", "1")).articles.single().feedUrl)
-        assertEquals(feedUrl, library.withMovedSenders(NewsletterSenders(listOf(SenderRule("bozar.be", tag = "1")))).articles.single().feedUrl)
-        // An RSS feed's article of the same author is never moved.
-        val rssArticle = issue("9", "Bozar", "https://bozar.be", feedUrl = rss.url)
-        assertEquals(rss.url, twoTags.copy(articles = listOf(rssArticle)).withMovedSenders(NewsletterSenders().movedTo("bozar.be", "2", "1")).articles.single().feedUrl)
-    }
-
-    @Test
-    fun `a combined sender's newsletters all follow the move of the sender they are combined into`() {
-        val library = twoTags.copy(articles = listOf(bozarNews, bozarSite, platformer))
-        val senders = NewsletterSenders().merged("bozar-mail.be", "bozar.be", "Bozar").movedTo("bozar.be", "2", "1")
-        assertEquals(listOf(feed2Url, feed2Url, feedUrl), library.withMovedSenders(senders).articles.map { it.feedUrl })
-    }
-
-    @Test
-    fun `read state keeps working for moved newsletters, because their key stays the same`() {
-        val library = twoTags.copy(articles = listOf(bozarNews, bozarEvents, platformer))
-        val senders = NewsletterSenders().movedTo("bozar.be", "2", "1")
-        val view = library.withMovedSenders(senders)
-        assertEquals(library.articles.map { it.key }, view.articles.map { it.key })
-        assertEquals(bozarNews.key, view.article(bozarNews.key)?.key)
-        // Marking what the list shows as read marks the stored articles, not copies.
-        val keys = view.unreadKeys(FeedSelection.Single(feed2Url))
-        assertEquals(setOf(bozarNews.key, bozarEvents.key), keys)
-        val stored = library.setRead(keys, true)
-        assertEquals(1, stored.unreadCount(FeedSelection.All))
-        assertEquals(0, stored.withMovedSenders(senders).unreadCount(FeedSelection.Single(feed2Url)))
-        assertEquals(feedUrl, stored.articles.first().feedUrl)
-        // A mark kept from before the move still applies after it.
-        val readBefore = library.setRead(setOf(bozarNews.key), true).withMovedSenders(senders)
-        assertEquals(1, readBefore.unreadCount(FeedSelection.Single(feed2Url)))
-        // Muted senders still leave the moved lists.
-        assertEquals(listOf("3"), view.withoutMuted(senders.muted("bozar.be", true)).articles.map { it.id })
-    }
-
-    @Test
-    fun `the tag a sender is sent to is read from the stored library, whatever it is shown under`() {
-        val library = twoTags.copy(articles = listOf(bozarNews, platformer, issue("7", "X", null, feedUrl = feedNoTagUrl)))
-        val senders = NewsletterSenders().movedTo("bozar.be", "2", "1")
-        assertEquals("1", NewsletterSenders.originalTag(library, senders, "bozar.be"))
-        assertEquals(NewsletterAddresses.NO_TAG, NewsletterSenders.originalTag(library, senders, "name:x"))
-        assertNull(NewsletterSenders.originalTag(library, senders, "nobody.be"))
-    }
 }

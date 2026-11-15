@@ -1,9 +1,9 @@
-import { EyeOff, Plus, Archive, ArchiveRestore, Bell, BookOpen, CheckCheck, Circle, CircleCheck, ExternalLink, Folder as FolderGlyph, Heart, Highlighter, Link2, Mail, Newspaper, Quote, RefreshCw, Rss, Search, Settings as SettingsIcon, Share2, StickyNote, Tag as TagIcon, Trash2, type LucideIcon } from "lucide-react";
+import { Plus, Archive, ArchiveRestore, Bell, BookOpen, CheckCheck, Circle, CircleCheck, ExternalLink, Folder as FolderGlyph, Heart, Highlighter, Link2, Mail, Newspaper, Quote, RefreshCw, Rss, Search, Settings as SettingsIcon, Share2, StickyNote, Tag as TagIcon, Trash2, type LucideIcon } from "lucide-react";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { headerHidden } from "@/lib/header";
 import { app, useApp } from "@/lib/app";
 import { useListedLibrary, useSenderRules } from "./useListed";
-import { mutedSender, senderChips, senderFeed, senderOfArticle, senderSelection, shownSender, type SenderRule } from "@/lib/newsletterSenders";
+import { senderChips, senderFeed, senderOfArticle, senderSelection, shownSender, type SenderRule } from "@/lib/newsletterSenders";
 import { snippet } from "@/lib/html";
 import { dayLabel, plural, t } from "@/lib/i18n";
 import { articleKey, articlesInTab, chipTag, feedTabOf, feedTitles, sameSelection, showsUnreadDot, sortTime, unreadByFeed, unreadKeys, type Article, type Feed, type Selection } from "@/lib/library";
@@ -66,23 +66,13 @@ export function ArticleList(props: ListProps) {
   );
 }
 
-/** A newsletter row's menu entries about its sender, as on Android: its page, and Mute (with Undo); none for other articles. */
+/** A newsletter row's menu entry about its sender, as on Android: its page; none for other articles. */
 function senderMenu(rules: SenderRule[], feed: Feed | undefined, article: Article) {
   if (!isNewsletterFeed(article.feedUrl)) return [];
   const name = shownSender(rules, feed, article)?.title;
   if (!name) return [];
-  const senderNow = () => senderOfArticle(rules, app.movedLibrary().articles, article);
-  return [
-    { icon: <Mail />, label: t("newsletterSenderAbout").replace("{name}", name), onClick: () => app.openSenderPage(senderNow()) },
-    {
-      icon: <EyeOff />,
-      label: t("newsletterSenderMuteNamed").replace("{name}", name),
-      onClick: () => {
-        const sender = senderNow();
-        if (sender) app.editSendersUndoable(t("newsletterSenderMutedMessage").replace("{name}", name), (r) => mutedSender(r, sender.key, true));
-      },
-    },
-  ];
+  const senderNow = () => senderOfArticle(rules, app.libraryNow().articles, article);
+  return [{ icon: <Mail />, label: t("newsletterSenderAbout").replace("{name}", name), onClick: () => app.openSenderPage(senderNow()) }];
 }
 
 function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport, onUndo, onSearch, onMessage, onSaved, onShowNewsletterAddress }: ListProps) {

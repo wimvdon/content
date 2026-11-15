@@ -276,11 +276,7 @@ fun NewsletterFeedPage(
         senders.firstOrNull { it.key == openSender }?.let { sender ->
             SenderPage(
                 sender = sender,
-                others = senders.filter { it.key != sender.key },
-                feed = null,
                 givenName = rules.rule(sender.key)?.name,
-                topics = choices.topics,
-                currentTag = chosen ?: NewsletterAddresses.NO_TAG,
                 actions = choices.senderActions,
                 onBack = { openSender = null },
             )

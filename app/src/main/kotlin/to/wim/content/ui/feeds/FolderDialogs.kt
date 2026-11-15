@@ -85,6 +85,8 @@ internal fun FolderSheet(
     onDismiss: () -> Unit,
     /** Remove (the header's trash can) when editing an existing topic; called once confirmed. */
     onRemove: (() -> Unit)? = null,
+    /** Whether a title is another tag's name: not saved, as tags are never merged (2026-11-15). */
+    nameTaken: (String) -> Boolean = { false },
 ) {
     var removing by rememberSaveable { mutableStateOf(false) }
     val catalog = LocalContext.current.rssReaderApp.iconCatalog
@@ -113,6 +115,8 @@ internal fun FolderSheet(
                     value = title,
                     onValueChange = { title = it.take(MAX_TITLE_LENGTH) },
                     label = { Text(stringResource(R.string.folder_title)) },
+                    isError = nameTaken(title),
+                    supportingText = if (nameTaken(title)) ({ Text(stringResource(R.string.topic_name_taken)) }) else null,
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                     modifier = Modifier.weight(1f),
@@ -161,7 +165,7 @@ internal fun FolderSheet(
             // Cancel at the bottom left, Save at the right; Remove is the header's trash can.
             val close = rememberSheetClose()
             SheetActions(onCancel = onDismiss) {
-                Button(onClick = { close { onSave(title.trim(), icon) } }, enabled = title.isNotBlank()) {
+                Button(onClick = { close { onSave(title.trim(), icon) } }, enabled = title.isNotBlank() && !nameTaken(title)) {
                     Text(stringResource(R.string.action_save))
                 }
             }

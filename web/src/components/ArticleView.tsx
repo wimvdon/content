@@ -250,13 +250,13 @@ export function ArticleView({
           <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
             {/* A newsletter shows who sent it, with their website's icon. */}
             {sender && newsletter ? (
-              // A newsletter's sender opens its page (rename, mute, combine), as on Android.
+              // A newsletter's sender opens its page (rename, unsubscribe), as on Android.
               <button
                 type="button"
                 className="flex min-w-0 cursor-pointer items-center gap-2 rounded-sm hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                 aria-label={t("newsletterSenderAbout").replace("{name}", sender.title)}
                 onClick={() => {
-                  const own = senderOfArticle(rules, app.movedLibrary().articles, article);
+                  const own = senderOfArticle(rules, app.libraryNow().articles, article);
                   if (own) app.openSenderPage(own);
                 }}
               >

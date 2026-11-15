@@ -129,7 +129,7 @@ class FeedChipsTest {
 
     private val letters = Feed("https://w.example/newsletters/k7q2m9abcdef/0123456789abcdef0123456789abcdef", "Newsletters", folderId = "f1", tags = listOf("News"))
 
-    private fun sender(key: String) = NewsletterSender(letters.url, key, key, listOf(SenderMember(key, key)), 1, 1, false, 0)
+    private fun sender(key: String) = NewsletterSender(letters.url, key, key, listOf(SenderMember(key, key)), 1, 1, 0)
 
     @Test
     fun `a newsletter feed's senders are chips of their own after it, wherever its chip is`() {

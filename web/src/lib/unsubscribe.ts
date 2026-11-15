@@ -6,7 +6,7 @@
  */
 
 import { isNewsletterFeed } from "./newsletterAddresses";
-import { groupOf, type NewsletterSender, type SenderRule } from "./newsletterSenders";
+import type { NewsletterSender } from "./newsletterSenders";
 import { senderKeyOf } from "./senderKey";
 import { sortTime, type Article } from "./library";
 
@@ -32,20 +32,17 @@ export function canUnsubscribe(article: Article | null | undefined): boolean {
   return !!article && unsubscribeRoute(article.feedUrl) !== null && emailIdOf(article.id) !== null;
 }
 
-/** The email to unsubscribe with: the newest of `sender` (with the senders combined into it); null when none is a newsletter email. */
-export function newestEmailOf(articles: Article[], sender: NewsletterSender, rules: SenderRule[]): Article | null {
+/** The email to unsubscribe with: the newest of `sender`; null when none is a newsletter email. */
+export function newestEmailOf(articles: Article[], sender: NewsletterSender): Article | null {
   let newest: Article | null = null;
   for (const a of articles) {
     if (a.feedUrl !== sender.feedUrl || !canUnsubscribe(a)) continue;
     const key = senderKeyOf(a);
-    if (key === null || groupOf(rules, key) !== sender.key) continue;
+    if (key !== sender.key) continue;
     if (!newest || sortTime(a) > sortTime(newest)) newest = a;
   }
   return newest;
 }
-
-/** The feed whose route unsubscribes with an email: the one it is stored under, also for a sender shown under another tag. */
-export const feedOfEmail = (email: Article): string => email.storedFeedUrl ?? email.feedUrl;
 
 /** The feed loader's answer (parsed JSON), or null when it isn't one. Only https pages and mailto: links are opened. */
 export function answerOf(value: unknown): UnsubscribeAnswer | null {

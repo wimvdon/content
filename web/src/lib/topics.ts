@@ -88,25 +88,24 @@ export function addTopic(lib: Library, id: string, title: string, icon: string =
 
 
 /**
- * Renames a topic and sets its icon, on its feeds and on every saved article that has it. Renaming
- * it to another topic's name joins the two: the other one stays (with its icon) and gets this one's
- * feeds and articles.
+ * Whether `title` is the name of a tag other than `id` (null: a new tag), case and spaces around it
+ * ignored. Tags aren't merged by giving one another's name (2026-11-15), so the tag dialog says the
+ * name is taken instead of saving it. As Android's nameTaken.
+ */
+export function topicNameTaken(folders: Folder[], id: string | null, title: string): boolean {
+  return folders.some((f) => f.id !== id && key(f.title) === key(title));
+}
+
+/**
+ * Renames a topic and sets its icon, on its feeds and on every saved article that has it. The name
+ * of another topic changes nothing (topicNameTaken): tags are never merged.
  */
 export function renameTopic(lib: Library, id: string, title: string, icon: string): Library {
   const topic = lib.folders.find((f) => f.id === id);
   const clean = title.trim();
-  if (!topic || !clean) return lib;
-  const other = lib.folders.find((f) => f.id !== id && key(f.title) === key(clean));
-  if (!other) {
-    const updated = { ...lib, folders: lib.folders.map((f) => (f.id === id ? { ...f, title: clean, icon } : f)) };
-    return feedFoldersToTags(renameTag(updated, topic.title, clean));
-  }
-  const joined = {
-    ...lib,
-    folders: lib.folders.filter((f) => f.id !== id),
-    feeds: lib.feeds.map((f) => (f.folderId === id ? { ...f, folderId: other.id } : f)),
-  };
-  return feedFoldersToTags(renameTag(joined, topic.title, other.title));
+  if (!topic || !clean || topicNameTaken(lib.folders, id, clean)) return lib;
+  const updated = { ...lib, folders: lib.folders.map((f) => (f.id === id ? { ...f, title: clean, icon } : f)) };
+  return feedFoldersToTags(renameTag(updated, topic.title, clean));
 }
 
 /**
@@ -164,14 +163,6 @@ export function tagWithFeedTopic(lib: Library, itemKey: string): Library {
   if (!item || !topic?.title.trim() || item.tags.some((t) => key(t) === key(topic.title))) return lib;
   return changeItem(lib, itemKey, (i) => ({ ...i, tags: cleanTags([...i.tags, topic.title.trim()]) }));
 }
-
-/** Merges topic `fromId` into `intoId`: the other one stays, with its name and icon, and gets this one's feeds and saved articles. */
-export function mergeTopic(lib: Library, fromId: string, intoId: string): Library {
-  const into = lib.folders.find((f) => f.id === intoId);
-  if (!into || fromId === intoId || !lib.folders.some((f) => f.id === fromId)) return lib;
-  return renameTopic(lib, fromId, into.title, into.icon);
-}
-
 
 /**
  * Feeds' topic chips: the topics with articles in the tab shown (unread ones in Unread, read ones
