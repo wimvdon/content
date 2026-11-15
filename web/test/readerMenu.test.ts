@@ -17,6 +17,6 @@ describe("readerMenu", () => {
   });
 
   it("gives a newsletter feed's article no text switch", () => {
-    expect(readerMenu({ feedArticle: true, saved: false, hasLink: true, canLoad: true, newsletter: true })).toEqual(["markRead", "openWebsite", "report"]);
+    expect(readerMenu({ feedArticle: true, saved: false, hasLink: true, canLoad: true, newsletter: true })).toEqual(["markRead", "openWebsite"]);
   });
 });

@@ -43,7 +43,8 @@ object ReaderToolbarVisibility {
  * article's menu: no Mark as unread or text switch, and Remove from Saved at the end. Both: Open in
  * browser, Sign in to this site (Sign in again once signed in, for when the site's sign-in ran out),
 Report a problem. A newsletter feed's article (2026-11-12) is the whole email already and has no
- * site to pay for: no text switch and no Sign in. Plain Kotlin, tested on the JVM.
+ * site to pay for: no text switch and no Sign in; and no Report a problem (2026-11-15), whose public
+ * report would hold the private email and its link. Plain Kotlin, tested on the JVM.
  */
 object ReaderMenu {
     enum class Entry { MarkUnread, ToggleText, OpenInBrowser, SignIn, SignInAgain, Report, Remove }
@@ -66,7 +67,7 @@ object ReaderMenu {
             if (hasLink && !saved && !newsletter) add(Entry.ToggleText)
             if (hasLink) add(Entry.OpenInBrowser)
             if (canSignIn && !newsletter) add(if (signedIn) Entry.SignInAgain else Entry.SignIn)
-            if (canReport) add(Entry.Report)
+            if (canReport && !newsletter) add(Entry.Report)
             if (saved) add(Entry.Remove)
         }
 }

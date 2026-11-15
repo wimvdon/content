@@ -33,6 +33,14 @@ object NewsletterAddresses {
 
     fun isNewsletterFeed(url: String?): Boolean = codeOfFeed(url) != null
 
+    private val EMAIL = Regex("""^https://[^/]+/newsletters/[a-z0-9]{12}/(e/[0-9a-f]{16}/[0-9a-f]{32}|[0-9a-f]{32}/[0-9a-f]{16})/?$""")
+
+    /**
+     * Whether [url] is one newsletter email's page (its own link, or the feed's link with its id
+     * from before 2026-11-15): such a link is private, so Report a problem never sends it.
+     */
+    fun isNewsletterEmail(url: String?): Boolean = url?.trim()?.let { EMAIL.matches(it) } == true
+
     private val SITE = Regex("""^https://([a-z0-9-]+(\.[a-z0-9-]+)+)/?$""", RegexOption.IGNORE_CASE)
 
     /**

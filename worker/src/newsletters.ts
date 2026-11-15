@@ -22,7 +22,8 @@
  *                                             time (201), else the one it has (200); at most MAX_ADDRESSES
  *  - DELETE /account/newsletters?code=<code>  the address stops taking mail; its emails are deleted
  *  - GET    /newsletters/<code>/<token>       the feed (no sign-in: the token is the key)
- *  - GET    /newsletters/<code>/<token>/<id>  one email as a page (the entries' link)
+ *  - GET    /newsletters/<code>/e/<id>/<etok> one email as a page (the entries' link; it opens only that email)
+ *  - GET    /newsletters/<code>/<token>/<id>  one email as a page (the entries' link before 2026-11-15)
  */
 
 import PostalMime from "postal-mime";
@@ -105,6 +106,20 @@ export async function feedToken(masterKey: string, code: string): Promise<string
 }
 
 export const feedUrlOf = (origin: string, code: string, token: string) => `${origin}/newsletters/${code}/${token}`;
+
+/**
+ * One email's own secret part: its link opens that email only, never the feed. Before 2026-11-15
+ * an email's link was the feed's address with the email's id, so sharing one newsletter (Share,
+ * Save to Instapaper, Report a problem) handed out every newsletter of its tag.
+ */
+export async function emailToken(masterKey: string, code: string, id: string): Promise<string> {
+  const key = await crypto.subtle.importKey("raw", await derive(masterKey, "newsletter-email", 32), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const mac = new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(`${code}/${id}`)));
+  return [...mac.slice(0, 16)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/** One email's page: /newsletters/<code>/e/<id>/<emailToken>. */
+export const emailUrlOf = (origin: string, code: string, id: string, token: string) => `${origin}/newsletters/${code}/e/${id}/${token}`;
 
 /** The tag as sent: null (without a tag), a tag's hash, or undefined when it is neither. */
 export function cleanTagHash(value: unknown): string | null | undefined {
@@ -298,14 +313,14 @@ export function escapeXml(text: string): string {
 }
 
 /** The address's emails as an Atom feed, titled Newsletters (the apps show it as that, in their language); each entry links to its page. */
-export function atomFeed(code: string, feedUrl: string, emails: NewsletterEmail[], now: number): string {
+export function atomFeed(code: string, feedUrl: string, emails: NewsletterEmail[], now: number, links: ReadonlyMap<string, string> = new Map()): string {
   const iso = (ms: number) => new Date(ms).toISOString();
   const entries = emails
     .map(
       (e) => `  <entry>
     <id>urn:content:newsletter:${code}:${e.id}</id>
     <title>${escapeXml(e.subject || e.from || "Newsletter")}</title>
-    <link rel="alternate" type="text/html" href="${escapeXml(`${feedUrl}/${e.id}`)}"/>
+    <link rel="alternate" type="text/html" href="${escapeXml(links.get(e.id) ?? `${feedUrl}/${e.id}`)}"/>
     <published>${iso(e.at)}</published>
     <updated>${iso(e.at)}</updated>
     <author><name>${escapeXml(e.from || "Newsletter")}</name>${e.site ? `<uri>${escapeXml(e.site)}</uri>` : ""}</author>
@@ -362,7 +377,11 @@ export async function inboxAnswer(storage: Storage, masterKey: string, route: st
     case "nlFeed": {
       if (!(await inbox.owner())) return plain(404, "Unknown address");
       const feedUrl = request.headers.get("X-Feed-Url") ?? "";
-      return new Response(atomFeed(code, feedUrl, await inbox.emails(), Date.now()), {
+      const emails = await inbox.emails();
+      // Each entry links to its own page, which doesn't open the feed (emailToken).
+      const origin = feedUrl.match(/^https?:\/\/[^/]+/)?.[0] ?? "";
+      const links = new Map(await Promise.all(emails.map(async (e) => [e.id, emailUrlOf(origin, code, e.id, await emailToken(masterKey, code, e.id))] as const)));
+      return new Response(atomFeed(code, feedUrl, emails, Date.now(), links), {
         headers: { "Content-Type": "application/atom+xml; charset=utf-8", "Cache-Control": "private, max-age=60" },
       });
     }
@@ -463,8 +482,15 @@ export async function receiveEmail(message: IncomingEmail, env: Env): Promise<vo
   else if (!answer.ok) throw new Error("Couldn't keep the email");
 }
 
-/** GET /newsletters/<code>/<token>[/<id>]: the feed, or one email's page. */
+/** GET /newsletters/<code>/<token>[/<id>]: the feed, or one email's page; /newsletters/<code>/e/<id>/<emailToken>: one email's page only. */
 export async function handleNewsletterFeed(url: URL, env: Env): Promise<Response> {
+  const single = /^\/newsletters\/([a-z0-9]{12})\/e\/([0-9a-f]{16})\/([0-9a-f]{32})$/.exec(url.pathname);
+  if (single) {
+    if (!env.ACCOUNTS || !env.ACCOUNT_KEY) return plain(404, "Not found");
+    const [, code, id, token] = single;
+    if (token !== (await emailToken(env.ACCOUNT_KEY, code, id))) return plain(404, "Not found");
+    return inboxStub(env, code).fetch("https://newsletter/nlEntry", { headers: { "X-Code": code, "X-Entry": id } });
+  }
   const match = /^\/newsletters\/([a-z0-9]{12})\/([0-9a-f]{32})(?:\/([0-9a-f]{16}))?$/.exec(url.pathname);
   if (!match || !env.ACCOUNTS || !env.ACCOUNT_KEY) return plain(404, "Not found");
   const [, code, token, id] = match;

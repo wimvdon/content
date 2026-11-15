@@ -9,6 +9,7 @@ import {
   addressOf,
   codeOfFeed,
   forTag,
+  isNewsletterEmail,
   isNewsletterFeed,
   missingTags,
   newsletterRows,
@@ -33,6 +34,15 @@ async function address(code: string, tagId: string | null, createdAt = 0): Promi
 }
 
 describe("newsletter addresses (newsletterAddresses.ts), as on Android", () => {
+  it("recognises a newsletter email's page, by its own link and by the old one", () => {
+    const id = "0123456789abcdef";
+    expect(isNewsletterEmail(`https://w.example/newsletters/k7q2m9abcdef/e/${id}/${"b".repeat(32)}`)).toBe(true);
+    expect(isNewsletterEmail(`${feedOf("k7q2m9abcdef")}/${id}`)).toBe(true);
+    expect(isNewsletterEmail(feedOf("k7q2m9abcdef"))).toBe(false);
+    expect(isNewsletterEmail("https://example.com/article")).toBe(false);
+    expect(isNewsletterEmail(null)).toBe(false);
+  });
+
   it("recognises a newsletter address's feed, and reads the feed loader's answer", () => {
     const url = feedOf("k7q2m9abcdef");
     expect(codeOfFeed(url)).toBe("k7q2m9abcdef");

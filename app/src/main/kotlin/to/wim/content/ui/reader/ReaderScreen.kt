@@ -217,7 +217,7 @@ fun ReaderScreen(
                             canSignIn = actions.onSignIn != null,
                             canReport = actions.onReport != null,
                             signedIn = actions.signedIn,
-                            newsletter = feed?.let { FeedKinds.of(it) } == FeedKind.Newsletter,
+                            newsletter = feed?.let { FeedKinds.of(it) } == FeedKind.Newsletter || NewsletterAddresses.isNewsletterEmail(article?.link),
                         )
                     DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
                         entries.forEach { entry ->
