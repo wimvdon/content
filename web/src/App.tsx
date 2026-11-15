@@ -143,6 +143,17 @@ export default function App() {
     }
   }, [open]);
 
+  // Open newest on a newsletter sender's page: out of the dialogs, into the reader.
+  useEffect(
+    () =>
+      app.onOpenRequest((article) => {
+        setManageFeedsKind(null);
+        setDialog(null);
+        openClicked(article);
+      }),
+    [openClicked],
+  );
+
   /** Opens a saved article in Saved, as the message after saving offers. */
   const openSaved = (key: string) => {
     const item = app.get().library.items.find((i) => i.key === key);

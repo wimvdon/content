@@ -44,6 +44,9 @@ export function newestEmailOf(articles: Article[], sender: NewsletterSender, rul
   return newest;
 }
 
+/** The feed whose route unsubscribes with an email: the one it is stored under, also for a sender shown under another tag. */
+export const feedOfEmail = (email: Article): string => email.storedFeedUrl ?? email.feedUrl;
+
 /** The feed loader's answer (parsed JSON), or null when it isn't one. Only https pages and mailto: links are opened. */
 export function answerOf(value: unknown): UnsubscribeAnswer | null {
   if (!value || typeof value !== "object") return null;

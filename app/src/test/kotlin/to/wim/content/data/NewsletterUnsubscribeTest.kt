@@ -65,6 +65,18 @@ class NewsletterUnsubscribeTest {
     }
 
     @Test
+    fun `a sender shown under another tag unsubscribes through the feed its email is stored under`() {
+        val otherFeed = "https://w.example/newsletters/zzzzzzzzzzzz/fedcba9876543210fedcba9876543210"
+        val stored = issue(entry("000000000000000a"), "Bozar", "https://bozar.be", 10)
+        val shown = stored.copy(feedUrl = otherFeed, storedFeedUrl = feedUrl)
+        val senders = NewsletterSenders()
+        val bozar = senders.list(listOf(shown), otherFeed).single()
+        assertEquals(shown, NewsletterUnsubscribe.newestOf(listOf(shown), bozar, senders))
+        assertEquals(feedUrl, NewsletterUnsubscribe.feedOf(shown))
+        assertEquals(feedUrl, NewsletterUnsubscribe.feedOf(stored))
+    }
+
+    @Test
     fun `the feed loader's answer says what to do`() {
         assertEquals(Answer.Done, NewsletterUnsubscribe.answerOf(mapOf("done" to true)))
         assertEquals(Answer.Open("https://example.com/unsub?u=1"), NewsletterUnsubscribe.answerOf(mapOf("open" to "https://example.com/unsub?u=1")))

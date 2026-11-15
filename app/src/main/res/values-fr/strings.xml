@@ -397,6 +397,20 @@
     <string name="newsletter_sender_mute_named">Masquer %1$s</string>
     <string name="newsletter_sender_muted_message">%1$s masqué</string>
     <string name="newsletter_sender_combined_message">%1$s apparaît maintenant comme %2$s</string>
+    <string name="newsletter_sender_newest">Dernier envoi %1$s</string>
+    <string name="newsletter_sender_open_newest">Ouvrir le plus récent</string>
+    <string name="newsletter_sender_all_read">Tout lu</string>
+    <plurals name="newsletter_sender_unread">
+        <item quantity="one">%1$d non lu</item>
+        <item quantity="other">%1$d non lus</item>
+    </plurals>
+    <string name="newsletter_cadence_daily">Environ chaque jour</string>
+    <string name="newsletter_cadence_weekly">Environ chaque semaine</string>
+    <string name="newsletter_cadence_two_weeks">Environ toutes les deux semaines</string>
+    <string name="newsletter_cadence_monthly">Environ chaque mois</string>
+    <string name="newsletter_cadence_now_and_then">De temps en temps</string>
+    <string name="newsletter_sender_tag_hint">Abonné avec l\'adresse du mauvais tag ? Affichez ses newsletters sous un autre tag.</string>
+    <string name="newsletter_sender_moved_message">%1$s s\'affiche maintenant sous %2$s</string>
     <string name="newsletter_unsubscribe">Se désabonner</string>
     <string name="newsletter_unsubscribe_hint">Content demande à l\'expéditeur d\'arrêter, ou ouvre pour cela sa page ou son e-mail.</string>
     <string name="newsletter_unsubscribe_done">Désabonné de %1$s</string>
