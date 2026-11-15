@@ -17,9 +17,9 @@ package to.wim.content.data
  * [chosenTopic] is the topic chip shown chosen: the topic picked, or the topic of the feed picked.
  * [chosenFeed] is the feed picked, if any. Plain Kotlin, unit tested.
  *
- * A newsletter feed picked (or one of its senders) narrows the row once more (2026-11-15): its
- * topic, that feed alone, then its [senders] (NewsletterSenders), when it has more than one. Tapping
- * a sender shows it alone, tapping it again the whole feed; tapping the feed goes back to the topic.
+ * A newsletter feed's senders are chips of their own, like feeds (2026-11-15): right after its
+ * Newsletters chip, wherever that chip is, when it has more than one sender ([sendersOf]). Tapping a
+ * sender shows it alone; tapping it again goes back, as for a feed, to its topic or to everything.
  */
 data class FeedChips(
     val topics: List<String>,
@@ -29,11 +29,17 @@ data class FeedChips(
     val chosenFeed: String?,
     /** With a single topic chip and nothing chosen: how many of its feeds have something in the tab shown. */
     val soleTopicFeeds: Int = 0,
-    /** The senders of the newsletter feed picked, after it; empty for any other. */
+    /** The senders shown as chips, each after its newsletter feed's chip ([sendersOf]). */
     val senders: List<NewsletterSender> = emptyList(),
     /** The sender picked, by its key. */
     val chosenSender: String? = null,
 ) {
+    /** The sender chips after newsletter feed [feedUrl]'s chip. */
+    fun sendersOf(feedUrl: String): List<NewsletterSender> = senders.filter { it.feedUrl == feedUrl }
+
+    /** Whether feed [feedUrl]'s own chip is chosen: the feed picked, not one of its senders. */
+    fun feedChosen(feedUrl: String): Boolean = feedUrl == chosenFeed && chosenSender == null
+
     /** The topic chips the row shows: all [topics], or only the chosen one (in its own spelling). */
     val rowTopics: List<String>
         get() = chosenTopic?.let { chosen -> listOf(topics.firstOrNull { it.equals(chosen, ignoreCase = true) } ?: chosen) } ?: topics
@@ -69,7 +75,7 @@ data class FeedChips(
             selection: FeedSelection,
             /** The feeds (by address) with something in the tab shown; null: every feed. */
             shown: Set<String>? = null,
-            /** The senders of the feed picked (NewsletterSenders.list), with something in the tab shown. */
+            /** The newsletter feeds' senders (NewsletterSenders.chips), with something in the tab shown. */
             senders: List<NewsletterSender> = emptyList(),
         ): FeedChips {
             val chosenSender = selection as? FeedSelection.Sender
@@ -93,14 +99,16 @@ data class FeedChips(
                 } else {
                     0
                 }
-            // A newsletter feed picked: that feed alone, then its senders (the one picked stays).
+            // Each newsletter feed in the row: its senders after it, when it has more than one (the one picked stays).
+            val rowFeeds = (topicFeeds + loose).map { it.url }.toSet()
             val rowSenders =
-                senders.filter { it.feedUrl == chosenFeed }.takeIf { list -> list.size > 1 || (chosenSender != null && list.any { it.key == chosenSender.key }) }
-            if (single != null && NewsletterAddresses.isNewsletterFeed(single.url) && rowSenders != null) {
-                val narrowed = { list: List<Feed> -> list.filter { it.url == chosenFeed } }
-                return FeedChips(shownTopics, chosenTopic, narrowed(topicFeeds), narrowed(loose), chosenFeed, soleTopicFeeds, rowSenders, chosenSender?.key)
-            }
-            return FeedChips(shownTopics, chosenTopic, topicFeeds, loose, chosenFeed, soleTopicFeeds)
+                senders
+                    .filter { it.feedUrl in rowFeeds }
+                    .groupBy { it.feedUrl }
+                    .values
+                    .filter { list -> list.size > 1 || (chosenSender != null && list.any { it.feedUrl == chosenSender.feedUrl && it.key == chosenSender.key }) }
+                    .flatten()
+            return FeedChips(shownTopics, chosenTopic, topicFeeds, loose, chosenFeed, soleTopicFeeds, rowSenders, chosenSender?.key)
         }
 
         /** A feed without a topic: none set, or one that no longer exists. */

@@ -204,7 +204,7 @@ export interface FeedChipRow {
    * with two or more feeds stays, as it leads to them; always with something chosen, so it can be let go.
    */
   shown: boolean;
-  /** The senders of the newsletter feed picked, after it (newsletterSenders.ts); empty for any other. */
+  /** The senders shown as chips, each after its newsletter feed's chip (sendersOf), as on Android. */
   senders: NewsletterSender[];
   /** The sender picked, by its key. */
   chosenSender: string | null;
@@ -219,13 +219,26 @@ export interface FeedChipRow {
  */
 export function feedChipRow(lib: Library, tab: FeedTab, selection: Selection, senders: NewsletterSender[] = []): FeedChipRow {
   const row = topicRow(lib, tab, selection);
-  // A newsletter feed picked (or one of its senders): that feed alone, then its senders, as on Android.
+  // Each newsletter feed in the row: its senders after it, chips of their own like feeds, when it has
+  // more than one (the one picked stays), as on Android.
   const chosenSender = selection.kind === "sender" ? selection.key : null;
-  const own = senders.filter((s) => s.feedUrl === row.chosenFeed);
-  if (row.chosenFeed === null || !isNewsletterFeed(row.chosenFeed) || !(own.length > 1 || own.some((s) => s.key === chosenSender))) return row;
-  const alone = (list: Feed[]) => list.filter((f) => f.url === row.chosenFeed);
-  return { ...row, feeds: alone(row.feeds), loose: alone(row.loose), senders: own, chosenSender };
+  const inRow = new Set([...row.feeds, ...row.loose].map((f) => f.url));
+  return { ...row, senders: listedSenders(senders.filter((s) => inRow.has(s.feedUrl)), selection), chosenSender };
 }
+
+/**
+ * The senders that get a chip (or a row in the sidebar) of their own: those of a newsletter feed
+ * with more than one, as one alone says nothing its feed doesn't; the one picked stays.
+ */
+export function listedSenders(senders: NewsletterSender[], selection: Selection): NewsletterSender[] {
+  const byFeed = new Map<string, NewsletterSender[]>();
+  for (const s of senders) byFeed.set(s.feedUrl, [...(byFeed.get(s.feedUrl) ?? []), s]);
+  const picked = (list: NewsletterSender[]) => selection.kind === "sender" && list.some((s) => s.feedUrl === selection.feedUrl && s.key === selection.key);
+  return [...byFeed.values()].filter((list) => list.length > 1 || picked(list)).flat();
+}
+
+/** The sender chips after newsletter feed `feedUrl`'s chip. */
+export const sendersOf = (row: FeedChipRow, feedUrl: string): NewsletterSender[] => row.senders.filter((s) => s.feedUrl === feedUrl);
 
 function topicRow(lib: Library, tab: FeedTab, selection: Selection): FeedChipRow {
   const chosenFeed = selection.kind === "feed" || selection.kind === "sender" ? selection.feedUrl : null;

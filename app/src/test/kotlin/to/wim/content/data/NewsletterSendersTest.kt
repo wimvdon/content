@@ -152,8 +152,10 @@ class NewsletterSendersTest {
             listOf("Bozar", "Platformer", "Stratechery"),
             senders.chips(library, FeedSelection.Sender(feedUrl, "substack.com/stratechery"), unreadOnly = true).map { it.name },
         )
-        assertEquals(emptyList<NewsletterSender>(), senders.chips(library, FeedSelection.Single(rss.url), unreadOnly = false))
-        assertEquals(emptyList<NewsletterSender>(), senders.chips(library, FeedSelection.All, unreadOnly = false))
+        // Whatever is chosen: every newsletter feed's senders are chips, like feeds; an RSS feed has none.
+        assertEquals(listOf("Bozar", "Platformer", "Stratechery"), senders.chips(library, FeedSelection.Single(rss.url), unreadOnly = false).map { it.name })
+        assertEquals(listOf("Bozar", "Platformer"), senders.chips(library, FeedSelection.All, unreadOnly = true).map { it.name })
+        assertEquals(emptyList<NewsletterSender>(), senders.chips(library.copy(feeds = listOf(rss)), FeedSelection.All, unreadOnly = false))
     }
 
     // Facts: when they come, and how often.

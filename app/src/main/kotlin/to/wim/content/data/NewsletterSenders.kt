@@ -160,23 +160,19 @@ class NewsletterSenders(
     }
 
     /**
-     * Feeds' sender chips: while a newsletter feed (or one of its senders) is picked, its senders
-     * with something in the tab shown ([unreadOnly]: something unread); the one picked stays.
+     * Feeds' sender chips: every newsletter feed's senders, with something in the tab shown
+     * ([unreadOnly]: something unread); the one picked ([selection]) stays.
      */
     fun chips(
         library: Library,
         selection: FeedSelection,
         unreadOnly: Boolean,
     ): List<NewsletterSender> {
-        val feedUrl =
-            when (selection) {
-                is FeedSelection.Single -> selection.feedUrl
-                is FeedSelection.Sender -> selection.feedUrl
-                else -> return emptyList()
-            }
-        if (!NewsletterAddresses.isNewsletterFeed(feedUrl)) return emptyList()
-        val picked = (selection as? FeedSelection.Sender)?.key
-        return list(library.articles, feedUrl).filter { !unreadOnly || it.unread > 0 || it.key == picked }
+        val picked = selection as? FeedSelection.Sender
+        return library.feeds
+            .filter { NewsletterAddresses.isNewsletterFeed(it.url) }
+            .flatMap { feed -> list(library.articles, feed.url) }
+            .filter { !unreadOnly || it.unread > 0 || (it.feedUrl == picked?.feedUrl && it.key == picked.key) }
     }
 
     /** The sender in [senders] that [selection] shows, if it shows one. */

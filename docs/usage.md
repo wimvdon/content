@@ -65,8 +65,10 @@ and every one you saved (or liked, tagged, noted or highlighted), even past the 
 keeps and after the feed loader no longer has the email.
 
 **Senders.** A Newsletters feed mixes many newsletters, so each sender is a source of its own.
-Filtering on the Newsletters feed with its chip keeps each newsletter's sender visible, and its
-senders follow it as chips: tap one to see only that sender, tap it again for the whole feed.
+Each sender is a chip of its own, like a feed, right after its Newsletters chip (on the web, also a
+row under the Newsletters feed in the side menu): tap one to see only that sender, tap it again to go
+back, as for a feed. A Newsletters feed with a single sender shows no extra chip. Filtering on the
+Newsletters feed keeps each newsletter's sender visible.
 Senders are grouped by their website, so newsletter@bozar.be and events@bozar.be are one "Bozar";
 on platforms many newsletters share (Substack, Beehiiv, Gmail and the like) each newsletter name is
 a sender of its own. Under the address, the Newsletter feed page lists the tag's senders: tap one to

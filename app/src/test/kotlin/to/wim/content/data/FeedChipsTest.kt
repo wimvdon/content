@@ -132,20 +132,28 @@ class FeedChipsTest {
     private fun sender(key: String) = NewsletterSender(letters.url, key, key, listOf(SenderMember(key, key)), 1, 1, false, 0)
 
     @Test
-    fun `a newsletter feed chosen shows its topic, itself and its senders, and a sender chosen keeps them`() {
+    fun `a newsletter feed's senders are chips of their own after it, wherever its chip is`() {
         val all = feeds + letters
         val senders = listOf(sender("bozar.be"), sender("substack.com/platformer"))
-        val chips = FeedChips.of(all, folders, topics, FeedSelection.Single(letters.url), senders = senders)
-        assertEquals("News", chips.chosenTopic)
-        assertEquals(listOf(letters), chips.topicFeeds)
-        assertEquals(senders, chips.senders)
-        assertNull(chips.chosenSender)
+        // Nothing chosen: like its feed, a tagged feed's senders wait under its topic; a feed without a tag shows them at once.
+        assertTrue(FeedChips.of(all, folders, topics, FeedSelection.All, senders = senders).senders.isEmpty())
+        val untagged = letters.copy(folderId = null, tags = emptyList())
+        val looseSenders = senders.map { it.copy(feedUrl = untagged.url) }
+        assertEquals(looseSenders, FeedChips.of(feeds + untagged, folders, topics, FeedSelection.All, senders = looseSenders).sendersOf(untagged.url))
+        // Its topic chosen: the topic's feeds, then after Newsletters its senders.
+        val topic = FeedChips.of(all, folders, topics, FeedSelection.Tagged("News"), senders = senders)
+        assertEquals(listOf(bbc, npr, letters), topic.topicFeeds)
+        assertEquals(senders, topic.sendersOf(letters.url))
+        assertTrue(topic.sendersOf(bbc.url).isEmpty())
+        // A sender chosen: the row stays the same, with that sender chosen and not its feed.
         val picked = FeedChips.of(all, folders, topics, FeedSelection.Sender(letters.url, "bozar.be"), senders = senders)
-        assertEquals(letters.url, picked.chosenFeed)
+        assertEquals("News", picked.chosenTopic)
+        assertEquals(listOf(bbc, npr, letters), picked.topicFeeds)
         assertEquals("bozar.be", picked.chosenSender)
-        assertEquals(listOf(letters), picked.topicFeeds)
-        // A single sender says nothing a chip of its own would add; another feed has no senders.
-        assertEquals(listOf(bbc, npr, letters), FeedChips.of(all, folders, topics, FeedSelection.Single(letters.url), senders = senders.take(1)).topicFeeds)
-        assertTrue(FeedChips.of(all, folders, topics, FeedSelection.Single(bbc.url), senders = senders).senders.isEmpty())
+        assertFalse(picked.feedChosen(letters.url))
+        assertTrue(FeedChips.of(all, folders, topics, FeedSelection.Single(letters.url), senders = senders).feedChosen(letters.url))
+        // A single sender says nothing a chip of its own would add, unless it is the one chosen.
+        assertTrue(FeedChips.of(all, folders, topics, FeedSelection.Tagged("News"), senders = senders.take(1)).senders.isEmpty())
+        assertEquals(senders.take(1), FeedChips.of(all, folders, topics, FeedSelection.Sender(letters.url, "bozar.be"), senders = senders.take(1)).senders)
     }
 }
