@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArticleList } from "./components/ArticleList";
 import { ArticleView } from "./components/ArticleView";
 import { NavigationBar } from "./components/NavigationBar";
-import { AddChoiceDialog, AddFeedDialog, ManageFeedsDialog, NewsletterDialog, SettingsDialog } from "./components/Dialogs";
+import { AddChoiceDialog, AddFeedDialog, ManageFeedsDialog, NewsletterDialog, SenderPageDialog, SettingsDialog } from "./components/Dialogs";
 import type { FeedKind } from "./lib/feedKinds";
 import { ManageTopicsDialog } from "./components/TopicChips";
 import { InstapaperImportDialog } from "./components/ServiceSettings";
@@ -42,6 +42,8 @@ export default function App() {
   // Add feed (or New address, for newsletter feeds) from Manage feeds: a page of it, without a topic.
   const [addFromManage, setAddFromManage] = useState(false);
   const [message, setMessage] = useState<Message | null>(null);
+  // The app's own messages with Undo (a sender muted or combined) show here too.
+  useEffect(() => app.onMessage((text, action) => setMessage({ text, action })), []);
   const fileInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -212,6 +214,7 @@ export default function App() {
         {addFromManage ? <AddFeedDialog open onOpenChange={(o) => setAddFromManage(o)} folderId={null} /> : null}
       </ManageFeedsDialog>
       {/* Newsletter feeds: every tag's address, as in + › Newsletter feed. */}
+      <SenderPageDialog />
       <NewsletterDialog
         open={manageFeedsKind === "newsletter"}
         title={t("newsletterFeeds")}

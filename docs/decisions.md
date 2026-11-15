@@ -2,6 +2,15 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-15: A sender's page opens where the sender is, with Undo
+
+From the newsletter review: a sender's page (rename, mute, combine) could only be reached through
++ › Newsletter feed. It now opens from a sender chip's long press, a newsletter's long press
+(About <sender>, next to Mute <sender>) and the sender line in the reader, in both apps (the web:
+right-click or press and hold, as its other row menus). Mute and Combine with, which used to happen
+on one tap without a way back, now show a message with Undo instead of asking first: both are easy
+to reverse, and a question before every combine would slow down the common case.
+
 ## 2026-11-15: A newsletter's link opens that email only
 
 Found in the newsletter review: each newsletter linked to its feed's address plus the email's id, so

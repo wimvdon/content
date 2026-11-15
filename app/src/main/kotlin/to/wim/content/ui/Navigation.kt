@@ -109,10 +109,12 @@ import to.wim.content.data.ArticleOpening
 import to.wim.content.data.ArticleFilter
 import to.wim.content.data.ArticleSearch
 import to.wim.content.data.withoutHidden
+import to.wim.content.data.NewsletterSender
 import to.wim.content.data.NewsletterSenders
 import to.wim.content.data.withoutMuted
 import to.wim.content.ui.home.LocalNewsletterSenders
 import to.wim.content.ui.home.SenderActions
+import to.wim.content.ui.home.SenderPage
 import to.wim.content.data.SearchFilters
 import to.wim.content.data.SearchResults
 import to.wim.content.ui.home.MainTab
@@ -332,6 +334,47 @@ fun RssReaderNavigation(
             val stored = NewsletterSenders.decode(app.settings.settings.filterNotNull().first().newsletterSenders)
             app.settings.setNewsletterSenders(change(stored).encode())
         }
+    }
+
+    /** A change to the senders' choices with a message offering Undo, which puts back the choices as they were. */
+    fun editSendersUndoable(
+        message: String,
+        change: (NewsletterSenders) -> NewsletterSenders,
+    ) {
+        app.appScope.launch {
+            val before = app.settings.settings.filterNotNull().first().newsletterSenders
+            app.settings.setNewsletterSenders(change(NewsletterSenders.decode(before)).encode())
+            showMessage(message, resources.getString(R.string.action_undo)) {
+                app.appScope.launch { app.settings.setNewsletterSenders(before) }
+            }
+        }
+    }
+
+    // What a sender's page changes, wherever it opens. Mute and Combine with say so, with Undo.
+    val senderActions =
+        SenderActions(
+            onRename = { key, name -> editSenders { it.renamed(key, name) } },
+            onMute = { key, muted ->
+                if (muted) {
+                    val name = senders.rule(key)?.name ?: library.feeds.firstNotNullOfOrNull { f -> senders.list(library.articles, f.url).firstOrNull { it.key == key }?.name } ?: ""
+                    editSendersUndoable(resources.getString(R.string.newsletter_sender_muted_message, name)) { it.muted(key, true) }
+                } else {
+                    editSenders { it.muted(key, false) }
+                }
+            },
+            onMerge = { from, into, intoName ->
+                val fromName = library.feeds.firstNotNullOfOrNull { f -> senders.list(library.articles, f.url).firstOrNull { it.key == from }?.name } ?: ""
+                editSendersUndoable(resources.getString(R.string.newsletter_sender_combined_message, fromName, intoName)) { it.merged(from, into, intoName) }
+            },
+            onSplit = { key -> editSenders { it.split(key) } },
+        )
+    // The sender page open over the lists or the reader: its feed and its key.
+    var senderPageFeed by rememberSaveable { mutableStateOf<String?>(null) }
+    var senderPageKey by rememberSaveable { mutableStateOf<String?>(null) }
+
+    fun openSenderPage(sender: NewsletterSender?) {
+        senderPageFeed = sender?.feedUrl
+        senderPageKey = sender?.key
     }
 
     fun editLibrary(change: (Library) -> Library) {
@@ -1003,6 +1046,9 @@ fun RssReaderNavigation(
                                         fileNote = false
                                     },
                                     onShareArticle = ::share,
+                                    onOpenSenderOf = { article -> openSenderPage(senders.senderOf(library.articles, article)) },
+                                    onMuteSenderOf = { article -> senders.senderOf(library.articles, article)?.let { senderActions.onMute(it.key, true) } },
+                                    onOpenSender = ::openSenderPage,
                                     onShareItem = { item -> share(ReadingLists.article(item, library)) },
                                     onOpenSearch = { push(Screen.Search) },
                                 ),
@@ -1117,6 +1163,7 @@ fun RssReaderNavigation(
                                                 },
                                             onOpenLink = { url -> ExternalApps.openInTab(context, url, null) },
                                             onToggleFullText = { fullTextChoice = !wantFullText },
+                                            onOpenSender = article?.let { a -> senders.senderOf(library.articles, a) }?.let { s -> { openSenderPage(s) } },
                                         ),
                                     item =
                                         item?.let { i ->
@@ -1403,13 +1450,7 @@ fun RssReaderNavigation(
             topicActions = topicActions,
             activity = { feedUrl -> NewsletterAddresses.activity(library.articles, feedUrl) },
             senders = { feedUrl -> senders.list(library.articles, feedUrl) },
-            senderActions =
-                SenderActions(
-                    onRename = { key, name -> editSenders { it.renamed(key, name) } },
-                    onMute = { key, muted -> editSenders { it.muted(key, muted) } },
-                    onMerge = { from, into, intoName -> editSenders { it.merged(from, into, intoName) } },
-                    onSplit = { key -> editSenders { it.split(key) } },
-                ),
+            senderActions = senderActions,
             onCopy = ::copyToClipboard,
             onShare = { address -> ExternalApps.shareText(context, address, resources.getString(R.string.action_share)) },
         )
@@ -1447,6 +1488,20 @@ fun RssReaderNavigation(
                 title = resources.getString(R.string.settings_newsletter_feeds),
             )
         null -> Unit
+    }
+    // A sender's page, from a sender chip's long press, a newsletter's long press or the reader's sender line.
+    senderPageFeed?.let { feedUrl ->
+        val list = senders.list(library.articles, feedUrl)
+        list.firstOrNull { it.key == senderPageKey }?.let { sender ->
+            SenderPage(
+                sender = sender,
+                others = list.filter { it.key != sender.key },
+                feed = library.feeds.firstOrNull { it.url == feedUrl },
+                givenName = senders.rule(sender.key)?.name,
+                actions = senderActions,
+                onBack = { openSenderPage(null) },
+            )
+        }
     }
     if (manageTopicsOpen) {
         ManageTopicsSheet(topics = library.folders, actions = topicActions, onDismiss = { manageTopicsOpen = false })

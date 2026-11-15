@@ -115,6 +115,18 @@ export function senderList(rules: SenderRule[], articles: Article[], feedUrl: st
     .sort((a, b) => (a.name.toLowerCase() < b.name.toLowerCase() ? -1 : a.name.toLowerCase() > b.name.toLowerCase() ? 1 : 0));
 }
 
+/**
+ * The sender `article` belongs to, with the senders combined into it, as senderList gives it; null for an
+ * article that isn't a newsletter with a sender. What the list's long press, a sender chip's and the
+ * reader's sender line open. As Android's NewsletterSenders.senderOf.
+ */
+export function senderOfArticle(rules: SenderRule[], articles: Article[], article: Article): NewsletterSender | null {
+  const own = senderKeyOf(article);
+  if (own === null) return null;
+  const group = groupOf(rules, own);
+  return senderList(rules, articles, article.feedUrl).find((s) => s.key === group) ?? null;
+}
+
 /** Feeds' sender chips: while a newsletter feed (or one of its senders) is picked, its senders with something in the tab shown; the one picked stays. */
 export function senderChips(rules: SenderRule[], lib: Library, selection: Selection, unreadOnly: boolean): NewsletterSender[] {
   const feedUrl = selection.kind === "feed" || selection.kind === "sender" ? selection.feedUrl : null;

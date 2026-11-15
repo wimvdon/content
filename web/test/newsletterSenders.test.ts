@@ -13,6 +13,7 @@ import {
   senderChips,
   senderFeed,
   senderList,
+  senderOfArticle,
   senderSelection,
   shownSender,
   splitSender,
@@ -56,6 +57,17 @@ describe("newsletter senders, as on Android", () => {
     expect(list[3].unread).toBe(0);
     expect(senderFeed(list[0], feed)).toMatchObject({ url: "https://bozar.be", title: "Bozar Events", iconUrl: "https://bozar.be/favicon.ico" });
     expect(senderFeed(list[1], feed)).toEqual({ ...feed, title: "De Standaard" });
+  });
+
+  it("an article's sender is the one it belongs to, with what is combined into it", () => {
+    const articles = [bozarNews, bozarEvents, platformer, old];
+    expect(senderOfArticle([], articles, bozarNews)?.key).toBe("bozar.be");
+    expect(senderOfArticle([], articles, bozarNews)?.count).toBe(2);
+    const merged = mergedSender([], "name:de standaard", "bozar.be", "Bozar");
+    const sender = senderOfArticle(merged, articles, old)!;
+    expect(sender.key).toBe("bozar.be");
+    expect(sender.count).toBe(3);
+    expect(senderOfArticle([], articles, issue("x", null, null))).toBeNull();
   });
 
   it("renaming shows the new name everywhere, and an empty name brings back the sender's own", () => {

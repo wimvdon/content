@@ -63,6 +63,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import to.wim.content.R
@@ -128,6 +129,8 @@ class ReaderActions(
     val signedIn: Boolean = false,
     /** Reports a badly cleaned-up article (#181): a pre-filled GitHub issue in the browser. Null without a link. */
     val onReport: ((ArticleReport.Problem, String) -> Unit)? = null,
+    /** A newsletter: its sender's page, opened by tapping the sender above the title. Null for other articles. */
+    val onOpenSender: (() -> Unit)? = null,
 )
 
 /**
@@ -282,6 +285,7 @@ fun ReaderScreen(
                 onOpenLink = actions.onOpenLink,
                 onOpenInBrowser = actions.onOpenInBrowser,
                 onSignInAgain = actions.onSignIn?.takeIf { actions.signedIn },
+                onOpenSender = actions.onOpenSender,
                 scrollState = scrollState,
                 highlights = highlights,
                 highlightsOpen = highlightsOpen,
@@ -393,6 +397,8 @@ private fun ArticleBody(
     /** Signed in to the site: a full article that didn't load offers to sign in again (its sign-in may have run out). */
     onSignInAgain: (() -> Unit)?,
     scrollState: ScrollState,
+    /** A newsletter: tapping its sender opens the sender's page. */
+    onOpenSender: (() -> Unit)? = null,
     highlights: ReaderHighlights?,
     highlightsOpen: Boolean,
     onHighlightsOpenChange: (Boolean) -> Unit,
@@ -484,7 +490,17 @@ private fun ArticleBody(
             if (feed != null) {
                 // A newsletter shows who sent it, with their website's icon.
                 val shown = LocalNewsletterSenders.current.shown(feed, article) ?: feed
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                val senderLabel = stringResource(R.string.newsletter_sender_about, shown.title)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier =
+                        if (onOpenSender != null && shown !== feed) {
+                            Modifier.heightIn(min = 48.dp).clickable(onClickLabel = senderLabel, role = Role.Button, onClick = onOpenSender)
+                        } else {
+                            Modifier
+                        },
+                ) {
                     FeedIcon(shown, FeedIconSize.Medium, envelopeBadge = NewsletterAddresses.hasEnvelopeBadge(feed, shown))
                     Text(shown.title, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
                 }

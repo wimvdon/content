@@ -27,7 +27,7 @@ import { Dialog } from "./ui/dialog";
 import { useEscape } from "./ui/useEscape";
 import { kindOf } from "@/lib/feedKinds";
 import { hasEnvelopeBadge, isNewsletterEmail } from "@/lib/newsletterAddresses";
-import { shownSender } from "@/lib/newsletterSenders";
+import { senderOfArticle, shownSender } from "@/lib/newsletterSenders";
 import { useSenderRules } from "./useListed";
 
 /** The full article for one address: loaded, or failed and why (no answer yet means it is loading). */
@@ -234,8 +234,26 @@ export function ArticleView({
         <div className="mx-auto max-w-2xl px-5 pt-8 pb-16">
           <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
             {/* A newsletter shows who sent it, with their website's icon. */}
-            <FeedIcon feed={sender ?? feed} className="size-5" envelopeBadge={hasEnvelopeBadge(feed, sender)} />
-            <span className="truncate font-medium text-foreground">{(sender ?? feed)?.title}</span>
+            {sender && newsletter ? (
+              // A newsletter's sender opens its page (rename, mute, combine), as on Android.
+              <button
+                type="button"
+                className="flex min-w-0 cursor-pointer items-center gap-2 rounded-sm hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                aria-label={t("newsletterSenderAbout").replace("{name}", sender.title)}
+                onClick={() => {
+                  const own = senderOfArticle(rules, app.get().library.articles, article);
+                  if (own) app.openSenderPage(own);
+                }}
+              >
+                <FeedIcon feed={sender} className="size-5" envelopeBadge={hasEnvelopeBadge(feed, sender)} />
+                <span className="truncate font-medium text-foreground">{sender.title}</span>
+              </button>
+            ) : (
+              <>
+                <FeedIcon feed={sender ?? feed} className="size-5" envelopeBadge={hasEnvelopeBadge(feed, sender)} />
+                <span className="truncate font-medium text-foreground">{(sender ?? feed)?.title}</span>
+              </>
+            )}
             <span aria-hidden="true">·</span>
             <time dateTime={new Date(sortTime(article)).toISOString()}>{formatDateTime(sortTime(article))}</time>
           </div>

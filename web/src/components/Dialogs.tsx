@@ -448,6 +448,16 @@ function SenderSection({ feedUrl }: { feedUrl: string }) {
   );
 }
 
+/** The sender page opened from a sender chip's menu, a newsletter's menu or the reader's sender line (app.openSenderPage), as on Android. */
+export function SenderPageDialog() {
+  const { senderPage, settings, library } = useApp();
+  const rules = useMemo(() => decodeSenders(settings.newsletterSenders), [settings.newsletterSenders]);
+  const senders = useMemo(() => (senderPage ? senderList(rules, library.articles, senderPage.feedUrl) : []), [rules, library.articles, senderPage]);
+  const sender = senders.find((s) => s.key === senderPage?.key);
+  if (!sender) return null;
+  return <SenderDialog key={sender.key} sender={sender} others={senders.filter((s) => s.key !== sender.key)} givenName={ruleOf(rules, sender.key)?.name ?? null} onClose={() => app.openSenderPage(null)} />;
+}
+
 /** One sender's page, a page of the Newsletter feed dialog: its name, Mute, Combine with, and the senders combined into it, each with Separate. */
 function SenderDialog({ sender, others, givenName, onClose }: { sender: NewsletterSender; others: NewsletterSender[]; givenName: string | null; onClose: () => void }) {
   const [name, setName] = useState(givenName ?? "");
@@ -471,7 +481,11 @@ function SenderDialog({ sender, others, givenName, onClose }: { sender: Newslett
           title={t("newsletterSenderMute")}
           summary={t("newsletterSenderMuteSummary")}
           checked={sender.muted}
-          onChange={(muted) => app.editSenders((rules) => mutedSender(rules, sender.key, muted))}
+          onChange={(muted) =>
+            muted
+              ? app.editSendersUndoable(t("newsletterSenderMutedMessage").replace("{name}", sender.name), (rules) => mutedSender(rules, sender.key, true))
+              : app.editSenders((rules) => mutedSender(rules, sender.key, false))
+          }
         />
         {others.length > 0 ? (
           <section className="space-y-2">
@@ -487,7 +501,9 @@ function SenderDialog({ sender, others, givenName, onClose }: { sender: Newslett
                     className={cn(chip, "hover:bg-muted")}
                     onClick={() => {
                       save();
-                      app.editSenders((rules) => mergedSender(rules, sender.key, other.key, other.name));
+                      app.editSendersUndoable(t("newsletterSenderCombinedMessage").replace("{name}", sender.name).replace("{into}", other.name), (rules) =>
+                        mergedSender(rules, sender.key, other.key, other.name),
+                      );
                       onClose();
                     }}
                   >

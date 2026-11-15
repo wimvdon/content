@@ -373,6 +373,10 @@
     <string name="newsletter_sender_combined">Combined into this sender</string>
     <string name="newsletter_sender_separate">Separate</string>
     <string name="newsletter_sender_separate_one">Separate %1$s</string>
+    <string name="newsletter_sender_about">About %1$s</string>
+    <string name="newsletter_sender_mute_named">Mute %1$s</string>
+    <string name="newsletter_sender_muted_message">%1$s muted</string>
+    <string name="newsletter_sender_combined_message">%1$s now shows as %2$s</string>
     <string name="newsletter_none_yet">No newsletters yet</string>
     <string name="newsletter_copied">Copied</string>
     <plurals name="newsletter_count">

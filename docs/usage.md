@@ -61,7 +61,10 @@ on platforms many newsletters share (Substack, Beehiiv, Gmail and the like) each
 a sender of its own. Under the address, the Newsletter feed page lists the tag's senders: tap one to
 give it another name, **Mute** it (its newsletters stay out of Feed), **Combine with** another
 sender (it then shows as that one), or **Separate** a sender combined into it. These choices are
-synced to your other devices. (Newsletters through your
+synced to your other devices. A sender's page also opens from where the sender is: press and hold
+its chip (on the web, right-click it), press and hold one of its newsletters › **About <sender>**, or
+tap the sender above a newsletter's title. Press and hold a newsletter › **Mute <sender>** mutes it
+straight away. Muting and combining show a message with **Undo**. (Newsletters through your
 Save to Instapaper address still arrive in Saved, under the **From Instapaper** chip; see Saved.)
 
 ## Moving from another reader

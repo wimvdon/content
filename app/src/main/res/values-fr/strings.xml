@@ -383,6 +383,10 @@
     <string name="newsletter_sender_combined">Combinés dans cet expéditeur</string>
     <string name="newsletter_sender_separate">Séparer</string>
     <string name="newsletter_sender_separate_one">Séparer %1$s</string>
+    <string name="newsletter_sender_about">À propos de %1$s</string>
+    <string name="newsletter_sender_mute_named">Masquer %1$s</string>
+    <string name="newsletter_sender_muted_message">%1$s masqué</string>
+    <string name="newsletter_sender_combined_message">%1$s apparaît maintenant comme %2$s</string>
     <string name="newsletter_none_yet">Pas encore de newsletters</string>
     <string name="newsletter_copied">Copiée</string>
     <plurals name="newsletter_count">

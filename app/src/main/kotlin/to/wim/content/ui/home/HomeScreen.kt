@@ -185,6 +185,12 @@ class HomeActions(
     val onReadLater: (Article) -> Unit = {},
     /** Long-press › Share (#221): a feed article, or a saved item. */
     val onShareArticle: (Article) -> Unit = {},
+    /** A newsletter's long press › About its sender: the sender's page. */
+    val onOpenSenderOf: (Article) -> Unit = {},
+    /** A newsletter's long press › Mute its sender (a message offers Undo). */
+    val onMuteSenderOf: (Article) -> Unit = {},
+    /** A sender chip's long press: the sender's page. */
+    val onOpenSender: (NewsletterSender) -> Unit = {},
     val onShareItem: (Item) -> Unit = {},
     /** Puts an item shared with you in To read or the Archive (#167). */
     /** Shows the Inbox (#246): what other Content users shared with you. */
@@ -361,7 +367,15 @@ fun HomeScreen(
                                 val newsletterFeed = state.feeds.firstOrNull { it.url == chips.chosenFeed }
                                 chips.senders.forEach { sender ->
                                     val on = sender.key == chips.chosenSender
-                                    FeedChip(sender.shownAs(newsletterFeed), on, FeedChips.showsUnreadDot(state.unreadOnly, sender.unread), envelopeBadge = true) {
+                                    FeedChip(
+                                        sender.shownAs(newsletterFeed),
+                                        on,
+                                        FeedChips.showsUnreadDot(state.unreadOnly, sender.unread),
+                                        envelopeBadge = true,
+                                        // Press and hold: the sender's page (rename, mute, combine).
+                                        onLongClick = { actions.onOpenSender(sender) },
+                                        longClickLabel = stringResource(R.string.newsletter_sender_about, sender.name),
+                                    ) {
                                         actions.onSelect(if (on) FeedSelection.Single(sender.feedUrl) else FeedSelection.Sender.of(sender))
                                     }
                                 }
@@ -503,6 +517,23 @@ private enum class HomeContent { NoFeeds, Loading, NoArticles, Empty, Articles }
 
 private const val SKELETON_ROWS = 6
 
+/** A newsletter row's long-press entries about its sender: its page, and Mute; none for other articles. */
+@Composable
+private fun senderMenu(
+    article: Article,
+    feed: Feed?,
+    actions: HomeActions,
+): List<RowMenuAction> {
+    if (!NewsletterAddresses.isNewsletterFeed(article.feedUrl)) return emptyList()
+    val senders = LocalNewsletterSenders.current
+    if (senders.groupOf(article) == null) return emptyList()
+    val name = senders.shown(feed, article)?.title ?: return emptyList()
+    return listOf(
+        RowMenuAction(R.drawable.ic_mail, stringResource(R.string.newsletter_sender_about, name)) { actions.onOpenSenderOf(article) },
+        RowMenuAction(R.drawable.ic_visibility_off, stringResource(R.string.newsletter_sender_mute_named, name)) { actions.onMuteSenderOf(article) },
+    )
+}
+
 @Composable
 private fun ArticleList(
     state: HomeState,
@@ -590,7 +621,7 @@ private fun ArticleList(
                         saved = article.key in state.savedArticles,
                         onClick = { actions.onOpenArticle(article) },
                         onFeedClick = { actions.onSelect(FeedSelection.Single(article.feedUrl)) },
-                        // Long-press (#221): read or unread, Save, Share.
+                        // Long-press (#221): read or unread, Save, Share; a newsletter also its sender's page and Mute.
                         menu =
                             listOfNotNull(
                                 RowMenuAction(
@@ -599,7 +630,7 @@ private fun ArticleList(
                                 ) { actions.onToggleRead(article) },
                                 article.link?.let { RowMenuAction(R.drawable.ic_reading_list, stringResource(R.string.action_save)) { actions.onReadLater(article) } },
                                 article.link?.let { RowMenuAction(R.drawable.ic_share, stringResource(R.string.action_share)) { actions.onShareArticle(article) } },
-                            ),
+                            ) + senderMenu(article, feedsByUrl[article.feedUrl], actions),
                     )
                 }
             }
