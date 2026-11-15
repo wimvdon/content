@@ -223,6 +223,8 @@ class HomeActions(
     /** Long-press › Remove from Saved (#263), with Undo. */
     /** Opens the search through every feed's articles and Saved. */
     val onOpenSearch: () -> Unit = {},
+    /** An empty newsletter feed's Show address: the Newsletters page on that feed's tag. */
+    val onShowNewsletterAddress: (feedUrl: String) -> Unit = {},
 )
 
 /** The article list: Feeds, Saved or the Inbox, with their chips; no ☰ menu (every place is a chip). */
@@ -358,6 +360,11 @@ fun HomeScreen(
                                 onSelect = { i -> actions.onUnreadOnlyChange(i == 0) },
                             )
                             val feedDot: (Feed) -> Boolean = { feed -> FeedChips.showsUnreadDot(state.unreadOnly, state.unreadCounts[FeedSelection.Single(feed.url)] ?: 0) }
+                            // Press and hold a Newsletters feed's chip: its tag's address, on the Newsletters page.
+                            val showAddressLabel = stringResource(R.string.newsletter_show_address)
+                            val newsletterAddressOf: (Feed) -> (() -> Unit)? = { feed ->
+                                if (NewsletterAddresses.isNewsletterFeed(feed.url)) ({ actions.onShowNewsletterAddress(feed.url) }) else null
+                            }
                             val chips =
                                 remember(state.feeds, state.folders, feedTags, state.selection, state.feedChipsShown, state.senderChips) {
                                     FeedChips.of(state.feeds, state.folders, feedTags, state.selection, state.feedChipsShown, state.senderChips)
@@ -400,7 +407,13 @@ fun HomeScreen(
                                                 val topic = chips.chosenTopic
                                                 chips.topicFeeds.forEach { feed ->
                                                     val on = feed.url == chips.chosenFeed
-                                                    FeedChip(feed, on, feedDot(feed)) { actions.onSelect(if (on) FeedSelection.Tagged(topic) else FeedSelection.Single(feed.url)) }
+                                                    FeedChip(
+                                                        feed,
+                                                        on,
+                                                        feedDot(feed),
+                                                        onLongClick = newsletterAddressOf(feed),
+                                                        longClickLabel = showAddressLabel.takeIf { NewsletterAddresses.isNewsletterFeed(feed.url) },
+                                                    ) { actions.onSelect(if (on) FeedSelection.Tagged(topic) else FeedSelection.Single(feed.url)) }
                                                 }
                                                 senderChips()
                                             }
@@ -409,7 +422,13 @@ fun HomeScreen(
                                             {
                                                 chips.rowLoose.forEach { feed ->
                                                     val on = feed.url == chips.chosenFeed
-                                                    FeedChip(feed, on, feedDot(feed)) { actions.onSelect(if (on) FeedSelection.All else FeedSelection.Single(feed.url)) }
+                                                    FeedChip(
+                                                        feed,
+                                                        on,
+                                                        feedDot(feed),
+                                                        onLongClick = newsletterAddressOf(feed),
+                                                        longClickLabel = showAddressLabel.takeIf { NewsletterAddresses.isNewsletterFeed(feed.url) },
+                                                    ) { actions.onSelect(if (on) FeedSelection.All else FeedSelection.Single(feed.url)) }
                                                 }
                                                 senderChips()
                                             }
@@ -501,7 +520,15 @@ fun HomeScreen(
                                 }
                             HomeContent.Loading -> ArticleSkeletons()
                             HomeContent.NoArticles -> NothingToShow(unread = null, state.refreshing, actions.onRefresh)
-                            HomeContent.Empty -> NothingToShow(unread = state.unreadOnly.takeIf { it }, state.refreshing, actions.onRefresh)
+                            HomeContent.Empty -> {
+                                val newsletterFeed =
+                                    (state.selection as? FeedSelection.Single)?.feedUrl?.takeIf { NewsletterAddresses.isNewsletterFeed(it) }
+                                if (newsletterFeed != null && !state.unreadOnly) {
+                                    NoNewsletters { actions.onShowNewsletterAddress(newsletterFeed) }
+                                } else {
+                                    NothingToShow(unread = state.unreadOnly.takeIf { it }, state.refreshing, actions.onRefresh)
+                                }
+                            }
                             HomeContent.Articles -> ArticleList(state, actions)
                         }
                     }
@@ -1199,6 +1226,18 @@ private fun NothingToShow(
         ),
     ) {
         OutlinedButton(onClick = onRefresh, enabled = !refreshing) { Text(stringResource(R.string.action_refresh)) }
+    }
+}
+
+/** A newsletter feed with nothing in it yet: what to do, and Show address for its tag. */
+@Composable
+private fun NoNewsletters(onShowAddress: () -> Unit) {
+    EmptyState(
+        painterResource(R.drawable.ic_mail),
+        stringResource(R.string.newsletter_none_yet),
+        body = stringResource(R.string.newsletter_empty_body),
+    ) {
+        OutlinedButton(onClick = onShowAddress) { Text(stringResource(R.string.newsletter_show_address)) }
     }
 }
 

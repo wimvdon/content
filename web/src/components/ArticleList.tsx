@@ -44,6 +44,8 @@ type ListProps = {
   onMessage: (text: string, action?: { label: string; run: () => void }) => void;
   /** Saved from a row's menu in one tap: the message says where it went, with Open. */
   onSaved: (key: string) => void;
+  /** An empty newsletter feed's Show address: the Newsletters page on that feed's tag. */
+  onShowNewsletterAddress?: (feedUrl: string) => void;
 };
 
 /** A row menu's Save: one tap, no sheet (2026-11-02), as on Android; the message then has Open. */
@@ -83,7 +85,7 @@ function senderMenu(rules: SenderRule[], feed: Feed | undefined, article: Articl
   ];
 }
 
-function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport, onUndo, onSearch, onMessage, onSaved }: ListProps) {
+function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport, onUndo, onSearch, onMessage, onSaved, onShowNewsletterAddress }: ListProps) {
   const { selection, settings, readThisVisit, refreshing, loaded, problems, account } = useApp();
   // The list, its counts and chips without the articles the hidden words leave out (#277).
   const library = useListedLibrary();
@@ -171,6 +173,7 @@ function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport,
   // (2026-11-07; Android has it in a floating toolbar, which the web's design doesn't use). Clicked
   // only: pulling past the end is Android's touch gesture, which makes no sense with a mouse (2026-11-05).
   const markAllShown = library.feeds.length > 0 && unread > 0 && days.length > 0;
+  const showAddress = onShowNewsletterAddress ? (f: Feed) => onShowNewsletterAddress(f.url) : undefined;
   return (
     <section className="relative flex h-full min-w-0 flex-col" aria-label={title}>
       <CollapsingHeader hidden={header.hidden} onShow={header.show}>
@@ -193,8 +196,8 @@ function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport,
               // shows it alone, tapped again the topic), or else the feeds without a topic.
               after={afterChips(
                 row.chosenTopic !== null
-                  ? feedChipList(row.feeds, row.chosenFeed, (f, on) => app.select(on ? { kind: "tag", tag: row.chosenTopic! } : { kind: "feed", feedUrl: f.url }), feedDot)
-                  : feedChipList(row.loose, row.chosenFeed, (f, on) => app.select(on ? { kind: "all" } : { kind: "feed", feedUrl: f.url }), feedDot),
+                  ? feedChipList(row.feeds, row.chosenFeed, (f, on) => app.select(on ? { kind: "tag", tag: row.chosenTopic! } : { kind: "feed", feedUrl: f.url }), feedDot, showAddress)
+                  : feedChipList(row.loose, row.chosenFeed, (f, on) => app.select(on ? { kind: "all" } : { kind: "feed", feedUrl: f.url }), feedDot, showAddress),
                 // A newsletter feed's senders: one tapped shows it alone, tapped again the whole feed.
                 row.senders.map((sender) => {
                   const on = sender.key === row.chosenSender;
@@ -250,6 +253,13 @@ function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport,
             <Button onClick={onAddFeed}>{t("addFeed")}</Button>
             <Button variant="outline" onClick={onImport}>
               {t("importOpml")}
+            </Button>
+          </Empty>
+        ) : articles.length === 0 && selection.kind === "feed" && isNewsletterFeed(selection.feedUrl) && tab !== "unread" ? (
+          // A newsletter feed with nothing in it yet (as on Android): what to do, and Show address for its tag.
+          <Empty icon={Mail} title={t("newsletterNoneYet")} text={t("newsletterEmptyBody")}>
+            <Button variant="outline" onClick={() => onShowNewsletterAddress?.(selection.feedUrl)}>
+              {t("newsletterShowAddress")}
             </Button>
           </Empty>
         ) : articles.length === 0 ? (
@@ -692,16 +702,30 @@ function afterChips(feeds: React.ReactNode, senders: React.ReactNode[]): React.R
   );
 }
 
-function feedChipList(list: Feed[], chosen: string | null, onClick: (feed: Feed, on: boolean) => void, dotted: (feed: Feed) => boolean = () => false): React.ReactNode {
+function feedChipList(
+  list: Feed[],
+  chosen: string | null,
+  onClick: (feed: Feed, on: boolean) => void,
+  dotted: (feed: Feed) => boolean = () => false,
+  onShowAddress?: (feed: Feed) => void,
+): React.ReactNode {
   if (list.length === 0) return null;
   return list.map((f) => {
     const on = f.url === chosen;
-    return (
+    const chip = (
       <FilterChip key={f.url} selected={on} onClick={() => onClick(f, on)}>
         <FeedIcon feed={f} className="size-4" />
         <span className="max-w-48 truncate">{f.title}</span>
         {dotted(f) ? <NewDot label={t("unread")} /> : null}
       </FilterChip>
+    );
+    // A Newsletters feed: right-click or press and hold for its address, as Android's long press.
+    return onShowAddress && isNewsletterFeed(f.url) ? (
+      <WithRowMenu key={f.url} items={[{ icon: <Mail />, label: t("newsletterShowAddress"), onClick: () => onShowAddress(f) }]}>
+        {chip}
+      </WithRowMenu>
+    ) : (
+      chip
     );
   });
 }

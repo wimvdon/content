@@ -159,6 +159,12 @@ object NewsletterAddresses {
             else -> folders.firstOrNull()?.id
         }
 
+    /** The pick that opens the Newsletters page on feed [feedUrl]'s tag: its tag's id, or [NO_TAG]. */
+    fun pickFor(
+        feeds: List<Feed>,
+        feedUrl: String,
+    ): String = feeds.firstOrNull { it.url == feedUrl }?.folderId ?: NO_TAG
+
     /** What a newsletter feed has received: how many newsletters are in the library, and when the newest came (null: none yet). */
     fun activity(
         articles: List<Article>,

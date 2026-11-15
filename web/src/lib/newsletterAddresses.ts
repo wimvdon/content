@@ -162,6 +162,11 @@ export function chosenTag(folders: Folder[], picked: string | null): string | nu
   return folders[0]?.id ?? null;
 }
 
+/** The pick that opens the Newsletters page on a feed's tag: its tag's id, or NO_TAG. */
+export function pickFor(feeds: Feed[], feedUrl: string): string {
+  return feeds.find((f) => f.url === feedUrl)?.folderId ?? NO_TAG;
+}
+
 /** What a tag's Newsletters feed has received: how many newsletters are in the library, and when the newest came (null: none yet). */
 export interface NewsletterActivity {
   count: number;
