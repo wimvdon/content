@@ -45,4 +45,20 @@ class ReaderMenuTest {
             ReaderMenu.entries(feedArticle = true, saved = true, hasLink = true, canSignIn = true, canReport = true, signedIn = true, newsletter = true),
         )
     }
+
+    @Test
+    fun `a newsletter feed's email offers Unsubscribe after Show original email, other articles never`() {
+        assertEquals(
+            listOf(Entry.MarkUnread, Entry.OriginalEmail, Entry.Unsubscribe),
+            ReaderMenu.entries(feedArticle = true, saved = false, hasLink = true, canSignIn = true, canReport = true, newsletter = true, canUnsubscribe = true),
+        )
+        assertEquals(
+            listOf(Entry.OriginalEmail, Entry.Unsubscribe, Entry.Remove),
+            ReaderMenu.entries(feedArticle = true, saved = true, hasLink = true, canSignIn = false, canReport = false, newsletter = true, canUnsubscribe = true),
+        )
+        assertEquals(
+            listOf(Entry.MarkUnread, Entry.ToggleText, Entry.OpenInBrowser, Entry.SignIn, Entry.Report),
+            ReaderMenu.entries(feedArticle = true, saved = false, hasLink = true, canSignIn = true, canReport = true, canUnsubscribe = true),
+        )
+    }
 }

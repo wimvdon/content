@@ -1,4 +1,4 @@
-import { ALargeSmall, ArrowLeft, Circle, CircleCheck, EllipsisVertical, ExternalLink, FileText, Flag, Plus, Quote, Trash2 } from "lucide-react";
+import { ALargeSmall, ArrowLeft, Circle, CircleCheck, EllipsisVertical, ExternalLink, FileText, Flag, MailMinus, Plus, Quote, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { positionOf, scrollFor } from "@/lib/readingProgress";
 import { app, useApp } from "@/lib/app";
@@ -28,6 +28,7 @@ import { useEscape } from "./ui/useEscape";
 import { kindOf } from "@/lib/feedKinds";
 import { hasEnvelopeBadge, isNewsletterEmail } from "@/lib/newsletterAddresses";
 import { senderOfArticle, shownSender } from "@/lib/newsletterSenders";
+import { canUnsubscribe } from "@/lib/unsubscribe";
 import { useSenderRules } from "./useListed";
 
 /** The full article for one address: loaded, or failed and why (no answer yet means it is loading). */
@@ -194,7 +195,7 @@ export function ArticleView({
               <div className="fixed inset-0 z-20" onClick={() => setMenuOpen(false)} aria-hidden="true" />
               <div role="menu" className="absolute right-0 z-30 mt-1 w-60 rounded-md border bg-card p-1 shadow-md">
                 {/* What it offers follows readerMenu: a saved article's menu as soon as it is saved. */}
-                {readerMenu({ feedArticle: !fromSaved, saved: !!saved, hasLink: !!article.link, canLoad, newsletter: newsletter || isNewsletterEmail(article.link) }).map((entry) => {
+                {readerMenu({ feedArticle: !fromSaved, saved: !!saved, hasLink: !!article.link, canLoad, newsletter: newsletter || isNewsletterEmail(article.link), canUnsubscribe: canUnsubscribe(current) && !!sender }).map((entry) => {
                   const close = () => setMenuOpen(false);
                   switch (entry) {
                     case "markRead":
@@ -216,6 +217,19 @@ export function ArticleView({
                           <ExternalLink />
                           {entry === "originalEmail" ? t("showOriginalEmail") : t("openWebsite")}
                         </a>
+                      );
+                    case "unsubscribe":
+                      return (
+                        <MenuItem
+                          key={entry}
+                          icon={<MailMinus />}
+                          label={t("newsletterUnsubscribe")}
+                          onClick={() => {
+                            const own = senderOfArticle(rules, app.get().library.articles, current);
+                            if (own) void app.unsubscribeSender(own);
+                          }}
+                          close={close}
+                        />
                       );
                     case "report":
                       return <MenuItem key={entry} icon={<Flag />} label={t("reportMenu")} onClick={() => setReportOpen(true)} close={close} />;

@@ -1,6 +1,6 @@
 # Privacy policy
 
-_Last updated: 2026-11-15 (a newsletter's link opens only that newsletter)_
+_Last updated: 2026-11-15 (unsubscribing from a newsletter)_
 
 Reader has no analytics, advertising or crash reporting. It works without an account. If you sign
 in (with your email address, or with Instapaper), Reader keeps your feed list,
@@ -152,6 +152,17 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   (its `/favicon.ico`, loaded from that website, as for a saved article from a website you don't
   follow); that website sees your IP address, like any visit. Removing the address, or deleting your account, deletes it and its
   emails at once. Nothing is sent from these addresses.
+- **Unsubscribing from a newsletter (2026-11-15, only when you tap Unsubscribe).** The feed loader
+  keeps the unsubscribe address a newsletter names in its List-Unsubscribe header, with the email.
+  When you tap **Unsubscribe** on a sender's page or in the reader, the app sends the feed loader
+  the id of that sender's newest newsletter (no sign-in: the feed's address is the key). If the
+  sender offers one-step unsubscribing, the feed loader sends that one request to the sender's
+  https unsubscribe address, from the feed loader, not from your device: the sender sees
+  Cloudflare's address, and learns that this address unsubscribed, nothing more. It goes only to a
+  public https address, follows no redirects and is never repeated on its own. This is a network
+  destination beyond your feeds and websites, approved by the owner. Otherwise the app opens the
+  sender's unsubscribe page in your browser, or starts an email to its unsubscribe address in your
+  email app, which you send yourself; the sender then sees you as with any visit or email.
 - **Notifications (#235, off unless you turn them on).** In the web app, Settings › Account › Notify
   me when something is shared with me asks your browser's permission and gives the owner's feed
   loader this browser's push address (made by your browser's push service: Google's for Chrome and

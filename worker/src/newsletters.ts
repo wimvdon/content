@@ -24,10 +24,12 @@
  *  - GET    /newsletters/<code>/<token>       the feed (no sign-in: the token is the key)
  *  - GET    /newsletters/<code>/e/<id>/<etok> one email as a page (the entries' link; it opens only that email)
  *  - GET    /newsletters/<code>/<token>/<id>  one email as a page (the entries' link before 2026-11-15)
+ *  - POST   /newsletters/<code>/<token>/unsubscribe {"id"}  unsubscribes from that email's sender, or says
+ *                                             how: {done} | {open: url} | {mailto} | {none} (2026-11-15)
  */
 
 import PostalMime from "postal-mime";
-import { derive, plain, type Storage } from "./account";
+import { allowedOrigins, corsHeaders, derive, plain, type Storage } from "./account";
 import type { Env } from "./index";
 
 /** Emails larger than this (as sent, with attachments) are refused. */
@@ -59,6 +61,19 @@ export interface NewsletterEmail {
   siteGuessed?: boolean;
   subject: string;
   html: string;
+  /** How to unsubscribe, from its List-Unsubscribe headers ([unsubscribeOf]); missing in emails kept before 2026-11-15 or without them. */
+  unsubscribe?: Unsubscribe;
+}
+
+/**
+ * An email's List-Unsubscribe (RFC 2369) and List-Unsubscribe-Post (RFC 8058): its first https
+ * address and its first mailto: link; [oneClick] when a POST to that https address unsubscribes
+ * without a page in between.
+ */
+export interface Unsubscribe {
+  https?: string;
+  mailto?: string;
+  oneClick: boolean;
 }
 
 /** Emails kept before 2026-11-15 given their sender's website per feed load, so a load stays within its CPU time. */
@@ -236,8 +251,121 @@ export async function emailOf(raw: ArrayBuffer | Uint8Array, now: number): Promi
   const site = senderSite(parsed.from?.address);
   const html = parsed.html?.trim() ? parsed.html : textAsHtml(parsed.text ?? "");
   const id = [...crypto.getRandomValues(new Uint8Array(8))].map((b) => b.toString(16).padStart(2, "0")).join("");
-  return { id, at: now, from, ...(site ? { site } : {}), subject: parsed.subject?.trim() ?? "", html: html.length > MAX_HTML_CHARS ? html.slice(0, MAX_HTML_CHARS) : html };
+  const header = (name: string) => parsed.headers?.find((h) => h.key === name)?.value;
+  const unsubscribe = unsubscribeOf(header("list-unsubscribe"), header("list-unsubscribe-post"));
+  return {
+    id,
+    at: now,
+    from,
+    ...(site ? { site } : {}),
+    subject: parsed.subject?.trim() ?? "",
+    html: html.length > MAX_HTML_CHARS ? html.slice(0, MAX_HTML_CHARS) : html,
+    ...(unsubscribe ? { unsubscribe } : {}),
+  };
 }
+
+/** The longest unsubscribe address kept; longer ones are left out. */
+const MAX_UNSUBSCRIBE_CHARS = 2048;
+
+/**
+ * How an email says to unsubscribe, from its List-Unsubscribe header (`<https://…>, <mailto:…>`)
+ * and List-Unsubscribe-Post (`List-Unsubscribe=One-Click`): the first https address, the first
+ * mailto: link, and whether one-click works (it needs the https address). Null when neither is there.
+ */
+export function unsubscribeOf(list: string | null | undefined, post: string | null | undefined): Unsubscribe | null {
+  let https: string | undefined;
+  let mailto: string | undefined;
+  for (const match of (list ?? "").matchAll(/<([^>]*)>/g)) {
+    const value = match[1].replace(/\s+/g, "");
+    if (!value || value.length > MAX_UNSUBSCRIBE_CHARS) continue;
+    if (!https && /^https:\/\//i.test(value)) https = value;
+    else if (!mailto && /^mailto:[^@\s]+@[^@\s]+/i.test(value)) mailto = value;
+  }
+  if (!https && !mailto) return null;
+  const oneClick = !!https && /(^|[\s;,])List-Unsubscribe\s*=\s*One-Click(\s|;|,|$)/i.test(post ?? "");
+  return { ...(https ? { https } : {}), ...(mailto ? { mailto } : {}), oneClick };
+}
+
+/**
+ * Words for "unsubscribe" in a link's text or address: English, Dutch, French, German, Spanish
+ * and Italian, as newsletters write them.
+ */
+const UNSUBSCRIBE_WORDS =
+  /unsubscri|uitschrijv|schrijf (je |u )?uit|afmeld|meld (je |u )?af|d[ée]sabonn|d[ée]sinscri|d[ée]sincri|abbestell|abmeld|darse de baja|date de baja|dar de baja|baja de (la )?suscripci|cancelar (la |tu |su )?suscripci|annulla(re)? (l'|la )?iscrizione|disiscri|cancella(re)? (l'|la )?iscrizione/i;
+
+const decodeEntities = (text: string) =>
+  text
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&eacute;/gi, "é")
+    .replace(/&#(\d+);/g, (_, n: string) => String.fromCodePoint(Number(n)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, n: string) => String.fromCodePoint(parseInt(n, 16)));
+
+/**
+ * An unsubscribe link in an email's HTML, for emails without List-Unsubscribe: the first link
+ * whose text or address says unsubscribe in one of [UNSUBSCRIBE_WORDS]' languages, as an https
+ * address on a public host ([isPublicHttps]). Null when there is none.
+ */
+export function unsubscribeLinkOf(html: string, isPublicHttps: (url: string) => string | null): string | null {
+  for (const match of html.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a\s*>/gi)) {
+    const href = /\bhref\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i.exec(match[1]);
+    const address = decodeEntities((href?.[1] ?? href?.[2] ?? href?.[3] ?? "").trim());
+    if (!address) continue;
+    const text = decodeEntities(match[2].replace(/<[^>]*>/g, " ")).replace(/\s+/g, " ");
+    let readable = address;
+    try {
+      readable = decodeURIComponent(address);
+    } catch {
+      // Not encoded after all: as it is.
+    }
+    if (!UNSUBSCRIBE_WORDS.test(text) && !UNSUBSCRIBE_WORDS.test(readable)) continue;
+    const checked = isPublicHttps(address);
+    if (checked) return checked;
+  }
+  return null;
+}
+
+/** What the unsubscribe route answers the apps ([unsubscribeAnswer]). */
+export type UnsubscribeAnswer = { done: true } | { open: string } | { mailto: string } | { none: true };
+
+/** How long the one-click POST to a sender may take. */
+export const UNSUBSCRIBE_TIMEOUT_MS = 10_000;
+
+type Fetcher = (input: string, init?: RequestInit) => Promise<Response>;
+
+/**
+ * Unsubscribes from [email], or says how: with one-click, a POST of `List-Unsubscribe=One-Click`
+ * to the sender's https address (on a public host only, no redirects followed, within
+ * UNSUBSCRIBE_TIMEOUT_MS) and {done} when it answers 2xx; else that address to open, else the
+ * mailto: link, else an unsubscribe link in the HTML, else {none}. The one POST is all this
+ * contacts, and only when the user taps Unsubscribe.
+ */
+export async function unsubscribeAnswer(email: Pick<NewsletterEmail, "html" | "unsubscribe">, fetcher: Fetcher, isPublicHttps: (url: string) => string | null): Promise<UnsubscribeAnswer> {
+  const how = email.unsubscribe;
+  const https = how?.https ? isPublicHttps(how.https) : null;
+  if (https && how?.oneClick) {
+    try {
+      const answer = await fetcher(https, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded", "User-Agent": USER_AGENT_UNSUBSCRIBE },
+        body: "List-Unsubscribe=One-Click",
+        redirect: "manual",
+        signal: AbortSignal.timeout(UNSUBSCRIBE_TIMEOUT_MS),
+      });
+      await answer.body?.cancel().catch(() => {});
+      if (answer.status >= 200 && answer.status < 300) return { done: true };
+    } catch {
+      // Unreachable or too slow: the address can still be opened.
+    }
+  }
+  if (https) return { open: https };
+  if (how?.mailto && /^mailto:[^@\s]+@[^@\s]+/i.test(how.mailto)) return { mailto: how.mailto };
+  const link = unsubscribeLinkOf(email.html, isPublicHttps);
+  return link ? { open: link } : { none: true };
+}
+
+/** How the feed loader names itself to a sender's unsubscribe address. */
+const USER_AGENT_UNSUBSCRIBE = "Mozilla/5.0 (compatible; Content/unsubscribe; +https://github.com/wimvdon/content)";
 
 /** Second-level labels under a country's domain that are still public, as in example.co.uk. */
 const PUBLIC_SECOND_LEVEL = new Set(["co", "com", "net", "org", "gov", "edu", "ac", "ne", "or", "go"]);
@@ -389,6 +517,12 @@ export async function inboxAnswer(storage: Storage, masterKey: string, route: st
       const email = (await inbox.owner()) ? await inbox.email(request.headers.get("X-Entry") ?? "") : null;
       return email ? emailPage(email) : plain(404, "Not found");
     }
+    case "nlUnsubscribe": {
+      // What the Worker needs to unsubscribe (handleNewsletterUnsubscribe): the email's headers' choice and its HTML.
+      const email = (await inbox.owner()) ? await inbox.email(request.headers.get("X-Entry") ?? "") : null;
+      if (!email) return plain(404, "Not found");
+      return new Response(JSON.stringify({ html: email.html, ...(email.unsubscribe ? { unsubscribe: email.unsubscribe } : {}) }), { headers: { "Content-Type": "application/json" } });
+    }
     case "nlWipe":
       await inbox.deleteAll();
       return new Response(null, { status: 204 });
@@ -397,7 +531,7 @@ export async function inboxAnswer(storage: Storage, masterKey: string, route: st
   }
 }
 
-export const isInboxRoute = (route: string) => route.startsWith("nl") && ["nlInit", "nlReceive", "nlFeed", "nlEntry", "nlWipe"].includes(route);
+export const isInboxRoute = (route: string) => route.startsWith("nl") && ["nlInit", "nlReceive", "nlFeed", "nlEntry", "nlUnsubscribe", "nlWipe"].includes(route);
 
 const inboxStub = (env: Env, code: string) => env.ACCOUNTS!.get(env.ACCOUNTS!.idFromName(`newsletter:${code}`));
 const wipe = (env: Env, code: string) => inboxStub(env, code).fetch("https://newsletter/nlWipe", { method: "POST", headers: { "X-Code": code } });
@@ -497,4 +631,42 @@ export async function handleNewsletterFeed(url: URL, env: Env): Promise<Response
   if (token !== (await feedToken(env.ACCOUNT_KEY, code))) return plain(404, "Not found");
   const feedUrl = feedUrlOf(url.origin, code, token);
   return inboxStub(env, code).fetch(`https://newsletter/${id ? "nlEntry" : "nlFeed"}`, { headers: { "X-Code": code, "X-Feed-Url": feedUrl, "X-Entry": id ?? "" } });
+}
+
+/**
+ * POST /newsletters/<code>/<token>/unsubscribe {"id": "<email id>"}: unsubscribes from that email's
+ * sender, or says how ([unsubscribeAnswer]). The feed's token is the key, as for the feed. The web
+ * app calls it directly (CORS, only from ALLOWED_ORIGINS); the Android app sends no Origin.
+ * [isPublicHttps] is the feed loader's own check (index.ts's checkTarget).
+ */
+export async function handleNewsletterUnsubscribe(request: Request, url: URL, env: Env, fetcher: Fetcher, isPublicHttps: (url: string) => string | null): Promise<Response> {
+  const origin = request.headers.get("Origin");
+  if (origin && !allowedOrigins(env).includes(origin)) return plain(403, "Not allowed");
+  const cors = origin ? corsHeaders(origin) : {};
+  const answer = (status: number, text: string) => plain(status, text, cors);
+  if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
+  if (request.method !== "POST") return answer(405, "Only POST");
+  const match = /^\/newsletters\/([a-z0-9]{12})\/([0-9a-f]{32})\/unsubscribe$/.exec(url.pathname);
+  if (!match || !env.ACCOUNTS || !env.ACCOUNT_KEY) return answer(404, "Not found");
+  const [, code, token] = match;
+  if (token !== (await feedToken(env.ACCOUNT_KEY, code))) return answer(404, "Not found");
+  if (env.LIMITER) {
+    const { success } = await env.LIMITER.limit({ key: request.headers.get("CF-Connecting-IP") ?? "unknown" });
+    if (!success) return answer(429, "Too many requests");
+  }
+  const body = await request.text();
+  if (body.length > 1024) return answer(413, "Too large");
+  let id: unknown;
+  try {
+    id = (JSON.parse(body) as { id?: unknown }).id;
+  } catch {
+    id = undefined;
+  }
+  if (typeof id !== "string" || !/^[0-9a-f]{16}$/.test(id)) return answer(400, 'Send {"id": "<the email\'s id>"}');
+  const found = await inboxStub(env, code).fetch("https://newsletter/nlUnsubscribe", { headers: { "X-Code": code, "X-Entry": id } });
+  if (found.status === 404) return answer(404, "Not found");
+  if (!found.ok) return answer(502, "Try again");
+  const email = (await found.json()) as Pick<NewsletterEmail, "html" | "unsubscribe">;
+  const result = await unsubscribeAnswer(email, fetcher, isPublicHttps);
+  return new Response(JSON.stringify(result), { headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "no-store" } });
 }

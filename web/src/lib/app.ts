@@ -42,7 +42,8 @@ import { defaultReaderStyle, readerStyleOf, type ReaderStyle } from "./readerSty
 import { load, remove, save } from "./storage";
 import * as S from "./sync";
 import { hiddenWords, withoutHidden } from "./articleFilter";
-import { decodeSenders, encodeSenders, withoutMuted, type SenderRule } from "./newsletterSenders";
+import { decodeSenders, encodeSenders, mutedSender, withoutMuted, type NewsletterSender, type SenderRule } from "./newsletterSenders";
+import { emailIdOf, newestEmailOf, unsubscribe } from "./unsubscribe";
 import * as SS from "./syncSettings";
 
 /** Everything the web app shows, kept in one place; components subscribe with useApp(). */
@@ -371,6 +372,42 @@ class AppStore {
     const before = this.state.settings.newsletterSenders;
     this.editSenders(change);
     this.messageHandler?.(text, { label: t("undo"), run: () => this.updateSettings({ newsletterSenders: before }) });
+  }
+
+  /**
+   * Unsubscribe from a newsletter sender (2026-11-15): the feed loader unsubscribes with its newest
+   * email, or says what to open. As on Android. A page opened after the answer may be blocked as a
+   * pop-up, so then the message offers Open, a fresh click.
+   */
+  async unsubscribeSender(sender: NewsletterSender) {
+    const say = (text: string, action?: { label: string; run: () => void }) => this.messageHandler?.(text, action);
+    const rules = decodeSenders(this.state.settings.newsletterSenders);
+    const id = emailIdOf(newestEmailOf(this.state.library.articles, sender, rules)?.id);
+    const none = t("newsletterUnsubscribeNone").replace("{name}", sender.name);
+    if (!id) return say(none);
+    const answer = await unsubscribe(sender.feedUrl, id);
+    if (!answer) return say(t("newsletterUnsubscribeFailed"));
+    switch (answer.kind) {
+      case "done":
+        return say(t("newsletterUnsubscribeDone").replace("{name}", sender.name), {
+          label: t("newsletterSenderMute"),
+          run: () => this.editSendersUndoable(t("newsletterSenderMutedMessage").replace("{name}", sender.name), (r) => mutedSender(r, sender.key, true)),
+        });
+      case "open": {
+        // Opened without its opener (noopener). Blocked as a pop-up (the answer took a while): Open, a fresh click, opens it.
+        const opened = window.open(answer.url, "_blank");
+        if (opened) {
+          opened.opener = null;
+          return;
+        }
+        return say(t("newsletterUnsubscribeOpen").replace("{name}", sender.name), { label: t("open"), run: () => void window.open(answer.url, "_blank", "noopener,noreferrer") });
+      }
+      case "mailto":
+        window.location.href = answer.uri;
+        return;
+      case "none":
+        return say(none);
+    }
   }
 
   private messageHandler: ((text: string, action?: { label: string; run: () => void }) => void) | null = null;

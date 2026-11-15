@@ -2,6 +2,23 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-15: Unsubscribe from a newsletter, done by the feed loader
+
+A sender's page and the reader's ⋮ for a newsletter get **Unsubscribe**, in both apps. The owner
+chose to unsubscribe from the feed loader rather than from the phone: only the feed loader has the
+email's headers, and a one-click unsubscribe (RFC 8058) then needs no page or email at all, and
+doesn't show the sender the user's IP address. The feed loader keeps `List-Unsubscribe` and
+`List-Unsubscribe-Post` from now on; for older emails it looks for an unsubscribe link in the HTML,
+in the apps' six languages. This is a new network destination, approved by the owner (PRIVACY.md):
+one POST, only when the user taps it, only to a public https host (`checkTarget`), with no
+redirects followed and a 10-second limit, so it can't be pointed at the feed loader's own network.
+Rejected: following redirects (a one-click address that redirects is opened in the browser
+instead), sending the `mailto:` email from the feed loader (it would need a sending address and
+mail the sender in the owner's name; the user's email app sends it instead), and proxying the POST
+through `/?url=` (that proxy only fetches GETs; the route answers with CORS itself, like
+`/account/`). On the web a page opened after the answer can be blocked as a pop-up, so then a
+message offers **Open**, a fresh click: a browser limit, not a difference in behaviour.
+
 ## 2026-11-15: A sender's page opens where the sender is, with Undo
 
 From the newsletter review: a sender's page (rename, mute, combine) could only be reached through

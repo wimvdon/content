@@ -2,6 +2,7 @@ package to.wim.content.sync
 
 import to.wim.content.data.NewsletterAddress
 import to.wim.content.data.NewsletterAddresses
+import to.wim.content.data.NewsletterUnsubscribe
 import to.wim.content.R
 import android.content.Context
 import androidx.datastore.core.DataStore
@@ -371,6 +372,12 @@ class SyncManager(
     suspend fun newsletters(): List<NewsletterAddress>? = accountKey()?.let { key -> keepNewsletters(AccountClient(http, key), force = true) }
 
     /** Removes newsletter address [code] (its tag was removed); nothing happens when signed out or offline. */
+    /** Asks the feed loader to unsubscribe from newsletter email [emailId] of feed [feedUrl]; null when it couldn't be asked (offline, or a bad answer). */
+    suspend fun unsubscribeNewsletter(
+        feedUrl: String,
+        emailId: String,
+    ): NewsletterUnsubscribe.Answer? = runCatching { NewsletterUnsubscriber(http).unsubscribe(feedUrl, emailId) }.getOrNull()
+
     suspend fun deleteNewsletter(code: String) {
         accountKey()?.let { key -> runCatching { AccountClient(http, key).deleteNewsletter(code) } }
     }
