@@ -45,10 +45,11 @@ object ReaderToolbarVisibility {
 Report a problem. A newsletter feed's article (2026-11-12) is the whole email already and has no
  * site to pay for: no text switch and no Sign in, and its link reads Show original email; and no
  * Report a problem (2026-11-15), whose public report would hold the private email and its link.
+ * A newsletter offers Unsubscribe instead (2026-11-15), after Show original email.
  * Plain Kotlin, tested on the JVM.
  */
 object ReaderMenu {
-    enum class Entry { MarkUnread, ToggleText, OpenInBrowser, OriginalEmail, SignIn, SignInAgain, Report, Remove }
+    enum class Entry { MarkUnread, ToggleText, OpenInBrowser, OriginalEmail, Unsubscribe, SignIn, SignInAgain, Report, Remove }
 
     fun entries(
         /** It is (also) an article of one of your feeds, which has a read state. */
@@ -62,12 +63,15 @@ object ReaderMenu {
         signedIn: Boolean = false,
         /** An article of a newsletter feed (a newsletter address's): its text is the whole newsletter. */
         newsletter: Boolean = false,
+        /** A newsletter feed's email, whose sender the feed loader can unsubscribe from (NewsletterUnsubscribe). */
+        canUnsubscribe: Boolean = false,
     ): List<Entry> =
         buildList {
             if (feedArticle && !saved) add(Entry.MarkUnread)
             if (hasLink && !saved && !newsletter) add(Entry.ToggleText)
             // A newsletter's link is the email itself as a page: Show original email.
             if (hasLink) add(if (newsletter) Entry.OriginalEmail else Entry.OpenInBrowser)
+            if (newsletter && canUnsubscribe) add(Entry.Unsubscribe)
             if (canSignIn && !newsletter) add(if (signedIn) Entry.SignInAgain else Entry.SignIn)
             if (canReport && !newsletter) add(Entry.Report)
             if (saved) add(Entry.Remove)

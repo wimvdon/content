@@ -19,4 +19,10 @@ describe("readerMenu", () => {
   it("gives a newsletter feed's article no text switch", () => {
     expect(readerMenu({ feedArticle: true, saved: false, hasLink: true, canLoad: true, newsletter: true })).toEqual(["markRead", "originalEmail"]);
   });
+
+  it("offers a newsletter feed's email Unsubscribe after Show original email, other articles never", () => {
+    expect(readerMenu({ feedArticle: true, saved: false, hasLink: true, canLoad: true, newsletter: true, canUnsubscribe: true })).toEqual(["markRead", "originalEmail", "unsubscribe"]);
+    expect(readerMenu({ feedArticle: true, saved: true, hasLink: true, canLoad: true, newsletter: true, canUnsubscribe: true })).toEqual(["originalEmail", "unsubscribe", "remove"]);
+    expect(readerMenu({ feedArticle: true, saved: false, hasLink: true, canLoad: true, canUnsubscribe: true })).toEqual(["markRead", "toggleText", "openWebsite", "report"]);
+  });
 });

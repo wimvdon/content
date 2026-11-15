@@ -132,6 +132,8 @@ class ReaderActions(
     val onReport: ((ArticleReport.Problem, String) -> Unit)? = null,
     /** A newsletter: its sender's page, opened by tapping the sender above the title. Null for other articles. */
     val onOpenSender: (() -> Unit)? = null,
+    /** A newsletter feed's email: Unsubscribe from its sender, in ⋮ (NewsletterUnsubscribe). Null for other articles. */
+    val onUnsubscribe: (() -> Unit)? = null,
 )
 
 /**
@@ -222,6 +224,7 @@ fun ReaderScreen(
                             canReport = actions.onReport != null,
                             signedIn = actions.signedIn,
                             newsletter = feed?.let { FeedKinds.of(it) } == FeedKind.Newsletter || NewsletterAddresses.isNewsletterEmail(article?.link),
+                            canUnsubscribe = actions.onUnsubscribe != null,
                         )
                     DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
                         entries.forEach { entry ->
@@ -234,6 +237,7 @@ fun ReaderScreen(
                                     }
                                     ReaderMenu.Entry.OpenInBrowser -> R.string.action_open_in_browser to R.drawable.ic_open_in_new
                                     ReaderMenu.Entry.OriginalEmail -> R.string.action_show_original_email to R.drawable.ic_open_in_new
+                                    ReaderMenu.Entry.Unsubscribe -> R.string.newsletter_unsubscribe to R.drawable.ic_unsubscribe
                                     ReaderMenu.Entry.SignIn -> R.string.site_sign_in_menu to R.drawable.ic_login
                                     ReaderMenu.Entry.SignInAgain -> R.string.site_sign_in_again_menu to R.drawable.ic_login
                                     ReaderMenu.Entry.Report -> R.string.report_menu to R.drawable.ic_flag
@@ -248,6 +252,7 @@ fun ReaderScreen(
                                         ReaderMenu.Entry.MarkUnread -> actions.onMarkUnread?.invoke()
                                         ReaderMenu.Entry.ToggleText -> actions.onToggleFullText()
                                         ReaderMenu.Entry.OpenInBrowser, ReaderMenu.Entry.OriginalEmail -> actions.onOpenInBrowser()
+                                        ReaderMenu.Entry.Unsubscribe -> actions.onUnsubscribe?.invoke()
                                         ReaderMenu.Entry.SignIn, ReaderMenu.Entry.SignInAgain -> actions.onSignIn?.invoke()
                                         ReaderMenu.Entry.Report -> reportOpen = true
                                         ReaderMenu.Entry.Remove -> item?.onRemove?.invoke()

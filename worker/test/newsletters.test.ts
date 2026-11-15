@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Account, accountIdOf, addDeviceKey, type Storage } from "../src/account";
-import { handle, type Env } from "../src/index";
-import { BACKFILL_PER_LOAD, KEEP, KEEP_DAYS, MAX_HTML_CHARS, NewsletterInbox, addressOf, atomFeed, emailToken, emailUrlOf, cleanTagHash, codeOf, emailOf, feedToken, guessSite, newCode, receiveEmail, senderSite, type IncomingEmail } from "../src/newsletters";
+import { checkTarget, handle, type Env } from "../src/index";
+import { BACKFILL_PER_LOAD, KEEP, KEEP_DAYS, MAX_HTML_CHARS, NewsletterInbox, addressOf, atomFeed, emailToken, emailUrlOf, cleanTagHash, codeOf, emailOf, feedToken, guessSite, newCode, receiveEmail, senderSite, unsubscribeAnswer, unsubscribeLinkOf, unsubscribeOf, type IncomingEmail } from "../src/newsletters";
 
 const APP = "https://app.example";
 const MASTER = "a-test-master-key-of-at-least-32-characters";
@@ -282,6 +282,67 @@ describe("the website of an email kept before senders had one", () => {
   });
 });
 
+describe("unsubscribing", () => {
+  it("reads List-Unsubscribe: the first https address, the first mailto, one-click only with https", () => {
+    expect(unsubscribeOf("<mailto:a@x.example?subject=stop>, <https://x.example/u?id=1>, <https://y.example/u>", "List-Unsubscribe=One-Click")).toEqual({
+      https: "https://x.example/u?id=1",
+      mailto: "mailto:a@x.example?subject=stop",
+      oneClick: true,
+    });
+    expect(unsubscribeOf("<https://x.example/u\r\n ?id=1>", undefined)).toEqual({ https: "https://x.example/u?id=1", oneClick: false });
+    expect(unsubscribeOf("<mailto:a@x.example>", "List-Unsubscribe=One-Click")).toEqual({ mailto: "mailto:a@x.example", oneClick: false });
+    expect(unsubscribeOf("<http://x.example/u>, <ftp://x.example>", "List-Unsubscribe=One-Click")).toBeNull();
+    expect(unsubscribeOf("https://x.example/u", undefined)).toBeNull();
+    expect(unsubscribeOf(undefined, undefined)).toBeNull();
+    expect(unsubscribeOf("<https://x.example/u>", "Something=Else")).toEqual({ https: "https://x.example/u", oneClick: false });
+  });
+
+  it("keeps the headers with the email", async () => {
+    const raw = `From: News <news@x.example>\r\nSubject: Hi\r\nList-Unsubscribe: <https://x.example/u>\r\nList-Unsubscribe-Post: List-Unsubscribe=One-Click\r\nContent-Type: text/html\r\n\r\n<p>Hi</p>\r\n`;
+    expect((await emailOf(new TextEncoder().encode(raw), 1)).unsubscribe).toEqual({ https: "https://x.example/u", oneClick: true });
+    expect((await emailOf(new TextEncoder().encode(rawEmail()), 1)).unsubscribe).toBeUndefined();
+  });
+
+  it("finds an unsubscribe link in the HTML, in six languages, on public https hosts only", () => {
+    const link = (html: string) => unsubscribeLinkOf(html, checkTarget);
+    expect(link('<a href="https://x.example/read">Read</a> <a href="https://x.example/u?a=1&amp;b=2">Unsubscribe</a>')).toBe("https://x.example/u?a=1&b=2");
+    expect(link('<a href="https://x.example/p/stop">Click <b>here</b> to unsubscribe</a>')).toBe("https://x.example/p/stop");
+    expect(link("<a href='https://x.example/unsubscribe?u=9'>here</a>")).toBe("https://x.example/unsubscribe?u=9");
+    for (const words of ["Uitschrijven", "Afmelden", "Se désabonner", "se d&eacute;sinscrire", "Abbestellen", "Hier abmelden", "Darse de baja", "Cancelar suscripción", "Annulla iscrizione", "Disiscriviti"]) {
+      expect(link(`<a href="https://x.example/l/42">${words}</a>`), words).toBe("https://x.example/l/42");
+    }
+    expect(link('<a href="http://x.example/unsubscribe">Unsubscribe</a>')).toBeNull();
+    expect(link('<a href="https://192.168.1.1/unsubscribe">Unsubscribe</a>')).toBeNull();
+    expect(link('<a href="https://localhost/unsubscribe">Unsubscribe</a>')).toBeNull();
+    expect(link('<a href="javascript:alert(1)">Unsubscribe</a>')).toBeNull();
+    expect(link('<a href="https://x.example/read">Read more</a>')).toBeNull();
+  });
+
+  it("chooses: one-click done, else open, else mailto, else the HTML's link, else none", async () => {
+    const sent: string[] = [];
+    const ok = async (url: string) => {
+      sent.push(url);
+      return new Response("", { status: 202 });
+    };
+    const failing = async () => {
+      throw new Error("timeout");
+    };
+    const html = '<a href="https://x.example/stop">Unsubscribe</a>';
+    expect(await unsubscribeAnswer({ html, unsubscribe: { https: "https://x.example/one", oneClick: true } }, ok, checkTarget)).toEqual({ done: true });
+    expect(sent).toEqual(["https://x.example/one"]);
+    expect(await unsubscribeAnswer({ html, unsubscribe: { https: "https://x.example/one", oneClick: true } }, failing, checkTarget)).toEqual({ open: "https://x.example/one" });
+    expect(await unsubscribeAnswer({ html, unsubscribe: { https: "https://x.example/one", oneClick: false } }, ok, checkTarget)).toEqual({ open: "https://x.example/one" });
+    expect(sent).toHaveLength(1);
+    expect(await unsubscribeAnswer({ html, unsubscribe: { mailto: "mailto:a@x.example", oneClick: false } }, ok, checkTarget)).toEqual({ mailto: "mailto:a@x.example" });
+    expect(await unsubscribeAnswer({ html }, ok, checkTarget)).toEqual({ open: "https://x.example/stop" });
+    expect(await unsubscribeAnswer({ html: "<p>Hi</p>" }, ok, checkTarget)).toEqual({ none: true });
+    // A private or numeric host is neither contacted nor opened.
+    expect(await unsubscribeAnswer({ html: "", unsubscribe: { https: "https://127.0.0.1/u", oneClick: true } }, ok, checkTarget)).toEqual({ none: true });
+    expect(await unsubscribeAnswer({ html: "", unsubscribe: { https: "https://intranet.internal/u", oneClick: true } }, ok, checkTarget)).toEqual({ none: true });
+    expect(sent).toHaveLength(1);
+  });
+});
+
 describe("newsletter addresses, from sign-in to feed", () => {
   it("makes an address for a tag, takes mail for it and serves it as a feed", async () => {
     const { env } = accounts();
@@ -419,6 +480,78 @@ describe("newsletter addresses, from sign-in to feed", () => {
     expect(((await (await call(env, "GET", "/account/newsletters", key)).json()) as { addresses: unknown[] }).addresses).toEqual([]);
     expect((await call(env, "POST", "/account/newsletters", key, { tagHash: TECH })).status).toBe(201);
     expect(objects.get(`newsletter:${made.code}`)!.storage.map.size).toBe(0);
+  });
+
+  it("unsubscribes with one click through the feed's address, and says what to open otherwise", async () => {
+    const { env } = accounts();
+    const key = await signIn(env);
+    const address = (await (await call(env, "POST", "/account/newsletters", key, { tagHash: TECH })).json()) as { code: string; address: string; feedUrl: string };
+    let issue = 0;
+    const withHeaders = (list: string, post = "", html = "<p>Hi</p>") =>
+      `From: "The Weekly" <hello@weekly.example>\r\nTo: ${address.address}\r\nSubject: Issue ${++issue}\r\nList-Unsubscribe: ${list}\r\n${post ? `List-Unsubscribe-Post: ${post}\r\n` : ""}MIME-Version: 1.0\r\nContent-Type: text/html; charset=utf-8\r\n\r\n${html}\r\n`;
+    const idOfNewest = async () => {
+      const xml = await (await handle(new Request(address.feedUrl), env, async () => new Response("", { status: 500 }))).text();
+      // Emails arriving in the same millisecond: the one of this subject.
+      return new RegExp(`<id>urn:content:newsletter:[a-z0-9]{12}:([0-9a-f]{16})</id>\\s*<title>Issue ${issue}</title>`).exec(xml)![1];
+    };
+    const calls: { url: string; init?: RequestInit }[] = [];
+    let status = 200;
+    const fetcher = async (url: string, init?: RequestInit) => {
+      calls.push({ url, init });
+      return new Response("", { status });
+    };
+    const unsubscribe = (id: string, headers: Record<string, string> = {}, url = `${address.feedUrl}/unsubscribe`) =>
+      handle(new Request(url, { method: "POST", headers, body: JSON.stringify({ id }) }), env, fetcher);
+
+    await receiveEmail(message(address.address, withHeaders("<mailto:leave@weekly.example>, <https://weekly.example/u/1>", "List-Unsubscribe=One-Click")), env);
+    const id = await idOfNewest();
+    const done = await unsubscribe(id);
+    expect(done.status).toBe(200);
+    expect(await done.json()).toEqual({ done: true });
+    expect(calls).toHaveLength(1);
+    expect(calls[0].url).toBe("https://weekly.example/u/1");
+    expect(calls[0].init?.method).toBe("POST");
+    expect(calls[0].init?.body).toBe("List-Unsubscribe=One-Click");
+    expect(calls[0].init?.redirect).toBe("manual");
+    expect((calls[0].init?.headers as Record<string, string>)["Content-Type"]).toBe("application/x-www-form-urlencoded");
+
+    // The sender refuses (or redirects): the address is opened instead.
+    status = 302;
+    expect(await (await unsubscribe(id)).json()).toEqual({ open: "https://weekly.example/u/1" });
+    status = 500;
+    expect(await (await unsubscribe(id)).json()).toEqual({ open: "https://weekly.example/u/1" });
+
+    // Without one-click: opened, nothing sent; only a mailto: written; neither: the HTML's link.
+    calls.length = 0;
+    await receiveEmail(message(address.address, withHeaders("<https://weekly.example/u/2>")), env);
+    expect(await (await unsubscribe(await idOfNewest())).json()).toEqual({ open: "https://weekly.example/u/2" });
+    await receiveEmail(message(address.address, withHeaders("<mailto:leave@weekly.example?subject=unsubscribe>")), env);
+    expect(await (await unsubscribe(await idOfNewest())).json()).toEqual({ mailto: "mailto:leave@weekly.example?subject=unsubscribe" });
+    await receiveEmail(message(address.address, rawEmail({ subject: `Issue ${++issue}`, html: '<p>Bye? <a href="https://weekly.example/afmelden?u=3">Uitschrijven</a></p>' })), env);
+    expect(await (await unsubscribe(await idOfNewest())).json()).toEqual({ open: "https://weekly.example/afmelden?u=3" });
+    await receiveEmail(message(address.address, rawEmail({ subject: `Issue ${++issue}` })), env);
+    expect(await (await unsubscribe(await idOfNewest())).json()).toEqual({ none: true });
+    expect(calls).toEqual([]);
+
+    // A private host is never contacted, nor opened.
+    await receiveEmail(message(address.address, withHeaders("<https://10.0.0.1/u>", "List-Unsubscribe=One-Click")), env);
+    expect(await (await unsubscribe(await idOfNewest())).json()).toEqual({ none: true });
+    expect(calls).toEqual([]);
+
+    // The web app calls it directly: CORS for its own address only.
+    const preflight = await handle(new Request(`${address.feedUrl}/unsubscribe`, { method: "OPTIONS", headers: { Origin: APP } }), env, fetcher);
+    expect(preflight.status).toBe(204);
+    expect(preflight.headers.get("Access-Control-Allow-Origin")).toBe(APP);
+    expect(preflight.headers.get("Access-Control-Allow-Methods")).toContain("POST");
+    const fromApp = await unsubscribe(id, { Origin: APP, "Content-Type": "application/json" });
+    expect(fromApp.headers.get("Access-Control-Allow-Origin")).toBe(APP);
+    expect((await unsubscribe(id, { Origin: "https://evil.example" })).status).toBe(403);
+
+    // A wrong token, an unknown email, a bad id or a GET: nothing.
+    expect((await unsubscribe(id, {}, `${address.feedUrl.replace(/[0-9a-f]{32}$/, "0".repeat(32))}/unsubscribe`)).status).toBe(404);
+    expect((await unsubscribe("0".repeat(16))).status).toBe(404);
+    expect((await unsubscribe("nope")).status).toBe(400);
+    expect((await handle(new Request(`${address.feedUrl}/unsubscribe`), env, fetcher)).status).toBe(405);
   });
 
   it("deleting the account deletes its addresses", async () => {

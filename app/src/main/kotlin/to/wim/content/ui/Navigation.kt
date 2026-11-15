@@ -111,6 +111,7 @@ import to.wim.content.data.ArticleSearch
 import to.wim.content.data.withoutHidden
 import to.wim.content.data.NewsletterSender
 import to.wim.content.data.NewsletterSenders
+import to.wim.content.data.NewsletterUnsubscribe
 import to.wim.content.data.withMovedSenders
 import to.wim.content.data.withoutMuted
 import to.wim.content.ui.home.LocalNewsletterSenders
@@ -353,6 +354,31 @@ fun RssReaderNavigation(
         }
     }
 
+    // Unsubscribe (2026-11-15): the feed loader unsubscribes with the sender's newest email, or says what to open.
+    fun unsubscribe(sender: NewsletterSender) {
+        // As the lists show it (a sender moved to another tag included); the email's own feed asks.
+        val email = NewsletterUnsubscribe.newestOf(moved.articles, sender, senders)
+        val id = NewsletterUnsubscribe.emailIdOf(email?.id)
+        if (id == null) {
+            showMessage(resources.getString(R.string.newsletter_unsubscribe_none, sender.name))
+            return
+        }
+        uiScope.launch {
+            when (val answer = app.sync.unsubscribeNewsletter(email?.let(NewsletterUnsubscribe::feedOf) ?: sender.feedUrl, id)) {
+                NewsletterUnsubscribe.Answer.Done ->
+                    showMessage(resources.getString(R.string.newsletter_unsubscribe_done, sender.name), resources.getString(R.string.newsletter_sender_mute)) {
+                        editSendersUndoable(resources.getString(R.string.newsletter_sender_muted_message, sender.name)) { it.muted(sender.key, true) }
+                    }
+                is NewsletterUnsubscribe.Answer.Open ->
+                    if (!ExternalApps.openInTab(context, answer.url, null)) showMessage(resources.getString(R.string.newsletter_unsubscribe_failed))
+                is NewsletterUnsubscribe.Answer.Mailto ->
+                    if (!ExternalApps.openLink(context, answer.uri)) showMessage(resources.getString(R.string.newsletter_unsubscribe_failed))
+                NewsletterUnsubscribe.Answer.None -> showMessage(resources.getString(R.string.newsletter_unsubscribe_none, sender.name))
+                null -> showMessage(resources.getString(R.string.newsletter_unsubscribe_failed))
+            }
+        }
+    }
+
     // What a sender's page changes, wherever it opens. Mute and Combine with say so, with Undo.
     val senderActions =
         SenderActions(
@@ -376,6 +402,7 @@ fun RssReaderNavigation(
                 val tagName = library.folder(tag)?.title ?: resources.getString(R.string.folder_none)
                 editSendersUndoable(resources.getString(R.string.newsletter_sender_moved_message, name, tagName)) { it.movedTo(key, tag, original) }
             },
+            onUnsubscribe = ::unsubscribe,
         )
     // The sender page open over the lists or the reader: its feed and its key.
     var senderPageFeed by rememberSaveable { mutableStateOf<String?>(null) }
@@ -1179,6 +1206,11 @@ fun RssReaderNavigation(
                                             onOpenLink = { url -> ExternalApps.openInTab(context, url, null) },
                                             onToggleFullText = { fullTextChoice = !wantFullText },
                                             onOpenSender = article?.let { a -> senders.senderOf(moved.articles, a) }?.let { s -> { openSenderPage(s) } },
+                                            onUnsubscribe =
+                                                article
+                                                    ?.takeIf { NewsletterUnsubscribe.canUnsubscribe(it) }
+                                                    ?.let { a -> senders.senderOf(moved.articles, a) }
+                                                    ?.let { s -> { unsubscribe(s) } },
                                         ),
                                     item =
                                         item?.let { i ->

@@ -86,6 +86,18 @@ any article: unread, Mark all as read, the chips' dots, the reader and Search al
   ⋮ menu reads **Show original email** instead of Open in browser, and opens the email's own page
   (below) in the in-app browser (a new tab on the web). Pictures that are tracking pixels of mail
   platforms are never loaded, in any article (see PRIVACY.md).
+- **Unsubscribe** (2026-11-15, `NewsletterUnsubscribe`, the web's `unsubscribe.ts`): an
+  **Unsubscribe** button on a sender's page, and in the reader's ⋮ for a newsletter feed's email
+  (`ReaderMenu`, the web's `readerMenu`, after Show original email). The feed loader unsubscribes, not the
+  device (the owner's choice): the app takes the sender's newest email (`newestOf`, the web's
+  `newestEmailOf`; the id from the entry's `urn:content:newsletter:<code>:<id>`) and POSTs its id
+  to `<feed URL>/unsubscribe` (Android in `sync/AccountClient.kt`'s `NewsletterUnsubscriber`). The
+  answer decides: `{done}` shows "Unsubscribed from <sender>" with **Mute** (which mutes it with
+  Undo, so the issues already here leave the list); `{open}` opens that https page in the browser
+  (Android a custom tab; the web a new tab without its opener, and when the browser blocks it as a
+  pop-up because the answer took a while, a message with **Open**); `{mailto}` opens a new email;
+  `{none}` says the sender offers none here and to open its newest email; a failure says it
+  couldn't. Only https pages and `mailto:` links are opened (`answerOf`).
 - **Removing a tag** removes its Newsletters feed (`Library.removeFolder`, the web's `removeTopic`)
   and its address (`DELETE /account/newsletters`). An address whose tag is gone otherwise (merged
   into another tag, or removed while offline) is removed a day after it was made
@@ -117,6 +129,23 @@ any article: unread, Mark all as read, the chips' dots, the reader and Search al
   the feed. Each entry links to `…/<id>`, the email as a page in a sandbox (no scripts or forms), for
   Show original email (the reader's Open in browser) and Save. The Android app fetches the feed directly; the web app's feed loader
   answers its own address itself.
+- **Unsubscribing:** receiving keeps an email's `List-Unsubscribe` and `List-Unsubscribe-Post`
+  (`unsubscribeOf`: the first https address and the first `mailto:` of its `<…>` list; `oneClick`
+  for `List-Unsubscribe=One-Click` with an https address) as `unsubscribe`, encrypted with the rest.
+  `POST /newsletters/<code>/<token>/unsubscribe` with `{"id": "<16 hex>"}`, checked with the feed's
+  token (no sign-in), asks the inbox for that email (`nlUnsubscribe`: its `unsubscribe` and HTML)
+  and answers (`unsubscribeAnswer`): with one-click, the Worker POSTs `List-Unsubscribe=One-Click`
+  (`application/x-www-form-urlencoded`) to the https address, only when `checkTarget` accepts it
+  (https, a public host name, no numbers or `localhost`/`.local`/`.internal`), without following
+  redirects and within 10 seconds, and answers `{"done": true}` on a 2xx; else `{"open": <the https
+  address>}`; else `{"mailto": …}`; else the first link in the HTML whose text or address says
+  unsubscribe (`unsubscribeLinkOf`, in English, Dutch, French, German, Spanish and Italian:
+  unsubscribe, uitschrijven, afmelden, désabonner, se désinscrire, abbestellen, abmelden, darse de
+  baja, cancelar suscripción, annulla iscrizione, disiscriviti) as `{"open"}` when `checkTarget`
+  accepts it; else `{"none": true}`. Emails kept before 2026-11-15 have no `unsubscribe`, so only
+  the HTML is looked at. The web app calls the route directly, with CORS for `ALLOWED_ORIGINS` (a
+  preflight, since it sends JSON); the Android app sends no Origin. The rate limiter applies when
+  configured.
 - **The account:** `GET /account/newsletters` lists the addresses (`{code, tagHash, address,
   feedUrl, createdAt}`), `POST` with `{"tagHash"}` (null: No tag) gives that tag's address, made the
   first time (201) or the one it has (200), at most 200; `DELETE ?code=` removes one and its emails;

@@ -586,6 +586,13 @@ function SenderDialog({
               : app.editSenders((rules) => mutedSender(rules, sender.key, false))
           }
         />
+        <div className="space-y-1.5">
+          <Button variant="outline" onClick={() => void app.unsubscribeSender(sender)}>
+            {t("newsletterUnsubscribe")}
+          </Button>
+          <p className="text-xs text-muted-foreground">{t("newsletterUnsubscribeHint")}</p>
+        </div>
+
         <section className="space-y-2">
           <h3 className="text-sm font-semibold">{t("topic")}</h3>
           <p className="text-sm text-muted-foreground">{t("newsletterSenderTagHint")}</p>

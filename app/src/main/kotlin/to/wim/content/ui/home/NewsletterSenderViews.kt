@@ -13,6 +13,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -60,6 +61,8 @@ data class SenderActions(
     val onMoveToTag: (key: String, tag: String, name: String) -> Unit = { _, _, _ -> },
     /** Opens the article with this key in the reader, out of the sender's page. */
     val onOpenNewest: (articleKey: String) -> Unit = {},
+    /** Unsubscribes from the sender, at the feed loader (NewsletterUnsubscribe). */
+    val onUnsubscribe: (NewsletterSender) -> Unit = {},
 )
 
 /** Senders, on the Newsletter feed page: each sender of the tag's feed, tap for its page. */
@@ -108,8 +111,8 @@ private fun senderFacts(sender: NewsletterSender): String {
 
 /**
  * One sender's page, a page of the Newsletter feed sheet: facts on it with Open newest, its name
- * (empty: the sender's own), Mute, the Tag its newsletters show under, Combine with another
- * sender, and the senders combined into it, each with Separate.
+ * (empty: the sender's own), Mute, Unsubscribe (NewsletterUnsubscribe), the Tag its newsletters show
+ * under, Combine with another sender, and the senders combined into it, each with Separate.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -166,6 +169,12 @@ internal fun SenderPage(
                 checked = sender.muted,
                 onCheckedChange = { actions.onMute(sender.key, it) },
             )
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(onClick = { actions.onUnsubscribe(sender) }) {
+                    Text(stringResource(R.string.newsletter_unsubscribe))
+                }
+                Text(stringResource(R.string.newsletter_unsubscribe_hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 SheetSection(stringResource(R.string.feed_folder))
                 Text(stringResource(R.string.newsletter_sender_tag_hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
