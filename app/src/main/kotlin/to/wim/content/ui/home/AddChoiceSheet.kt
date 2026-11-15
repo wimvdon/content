@@ -155,13 +155,15 @@ data class NewsletterChoices(
 fun NewsletterFeedPage(
     choices: NewsletterChoices,
     onBack: () -> Unit,
-    title: String = stringResource(R.string.add_choice_newsletter),
+    title: String = stringResource(R.string.newsletters_title),
+    /** The tag to show first (an id, or [NewsletterAddresses.NO_TAG]); null: the first tag. */
+    initialTag: String? = null,
 ) {
     // Not loaded yet; then the addresses, or null when they couldn't be read.
     var loaded by remember { mutableStateOf(false) }
     var addresses by remember { mutableStateOf<List<NewsletterAddress>?>(null) }
     // The tag picked (its id, or NO_TAG); null: none yet, so the first tag.
-    var picked by rememberSaveable { mutableStateOf<String?>(null) }
+    var picked by rememberSaveable { mutableStateOf(initialTag) }
     // A tag made with Edit tags: chosen once it exists.
     var made by rememberSaveable { mutableStateOf<String?>(null) }
     var copied by remember { mutableStateOf<String?>(null) }
@@ -192,7 +194,6 @@ fun NewsletterFeedPage(
                 SheetActions(onCancel = onBack)
                 return@Column
             }
-            Text(stringResource(R.string.newsletter_own_explained), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 SheetSection(stringResource(R.string.feed_folder))
                 TopicChipRow(
@@ -228,6 +229,7 @@ fun NewsletterFeedPage(
             val feedUrl = if (loaded) addresses?.let { NewsletterAddresses.forTag(it, chosen) }?.feedUrl else null
             val senders = feedUrl?.let(choices.senders).orEmpty()
             if (senders.isNotEmpty()) SenderList(senders, feed = null) { openSender = it.key }
+            SetupHelp()
             SheetActions(onCancel = onBack, cancel = false) {
                 val close = rememberSheetClose()
                 TextButton(onClick = { close(onBack) }) { Text(stringResource(R.string.action_done)) }
@@ -268,6 +270,7 @@ private fun AddressCard(
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(stringResource(R.string.newsletter_address_for, tagName), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.newsletter_address_explained, tagName), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 when {
                     state == AddressState.Loading -> LinearProgressIndicator(Modifier.fillMaxWidth().padding(vertical = 12.dp))
                     state == AddressState.Offline -> Text(stringResource(R.string.newsletter_own_offline), style = MaterialTheme.typography.bodyMedium)
@@ -292,6 +295,27 @@ private fun AddressCard(
                     Icon(painterResource(R.drawable.ic_mail), contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(receivedText(received), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
+            }
+        }
+    }
+}
+
+/**
+ * How to use an address, in three short parts as other readers explain it: signing up for a new
+ * newsletter, moving one you already get, and forwarding from your own mailbox.
+ */
+@Composable
+private fun SetupHelp() {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        SheetSection(stringResource(R.string.newsletter_help_title))
+        listOf(
+            R.string.newsletter_help_new_title to R.string.newsletter_help_new_body,
+            R.string.newsletter_help_move_title to R.string.newsletter_help_move_body,
+            R.string.newsletter_help_forward_title to R.string.newsletter_help_forward_body,
+        ).forEach { (title, body) ->
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(stringResource(title), style = MaterialTheme.typography.titleSmall)
+                Text(stringResource(body), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }

@@ -136,6 +136,14 @@ class NewsletterAddressesTest {
     }
 
     @Test
+    fun pickForIsTheFeedsTagElseNoTag() {
+        val feeds = listOf(Feed(url = "https://in.example/newsletters/aaaaaaaaaaaa/t", title = "Newsletters", folderId = "topic:news"), Feed(url = "https://in.example/newsletters/bbbbbbbbbbbb/t", title = "Newsletters"))
+        assertEquals("topic:news", NewsletterAddresses.pickFor(feeds, feeds[0].url))
+        assertEquals(NewsletterAddresses.NO_TAG, NewsletterAddresses.pickFor(feeds, feeds[1].url))
+        assertEquals(NewsletterAddresses.NO_TAG, NewsletterAddresses.pickFor(feeds, "https://gone.example/feed"))
+    }
+
+    @Test
     fun chosenTagIsThePickWhileItIsATagElseTheFirstTag() {
         val tags = listOf(tech, news)
         assertEquals("1", NewsletterAddresses.chosenTag(tags, null))

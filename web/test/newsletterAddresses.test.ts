@@ -3,6 +3,7 @@ import { removeTopic } from "../src/lib/topics";
 import type { Article, Feed, Folder, Library } from "../src/lib/library";
 import {
   chosenTag,
+  pickFor,
   newsletterActivity,
   NO_TAG,
   addressesOf,
@@ -115,6 +116,16 @@ describe("newsletter addresses (newsletterAddresses.ts), as on Android", () => {
 });
 
 describe("the Newsletter feed page", () => {
+  it("opens the Newsletters page on a feed's tag, else No tag", () => {
+    const feeds = [
+      { url: "https://in.example/newsletters/aaaaaaaaaaaa/t", title: "Newsletters", folderId: "topic:news" },
+      { url: "https://in.example/newsletters/bbbbbbbbbbbb/t", title: "Newsletters", folderId: null },
+    ] as Feed[];
+    expect(pickFor(feeds, feeds[0].url)).toBe("topic:news");
+    expect(pickFor(feeds, feeds[1].url)).toBe(NO_TAG);
+    expect(pickFor(feeds, "https://gone.example/feed")).toBe(NO_TAG);
+  });
+
   it("shows the tag picked while it is a tag, else the first tag, else No tag", () => {
     const tags = [tech, news];
     expect(chosenTag(tags, null)).toBe("1");

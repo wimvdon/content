@@ -331,10 +331,10 @@ export function AddChoiceDialog({ open, onOpenChange, onFeed, onArticle, onSignI
  * tag makes another tag, with its own address. Without a Content account, Sign in first. Nothing to
  * make, name or remove: an address comes and goes with its tag.
  */
-export function NewsletterDialog({ open, onOpenChange, onSignIn, title = t("addChoiceNewsletter") }: { open: boolean; onOpenChange: (open: boolean) => void; onSignIn: () => void; title?: string }) {
+export function NewsletterDialog({ open, onOpenChange, onSignIn, initialTag = null }: { open: boolean; onOpenChange: (open: boolean) => void; onSignIn: () => void; initialTag?: string | null }) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} title={title} closeLabel={t("close")} backLabel={t("back")} done={t("done")}>
-      {open ? <TagAddresses onSignIn={onSignIn} /> : null}
+    <Dialog open={open} onOpenChange={onOpenChange} title={t("newsletters")} closeLabel={t("close")} backLabel={t("back")} done={t("done")}>
+      {open ? <TagAddresses onSignIn={onSignIn} initialTag={initialTag} /> : null}
     </Dialog>
   );
 }
@@ -344,13 +344,13 @@ export function NewsletterDialog({ open, onOpenChange, onSignIn, title = t("addC
  * tags after them), and the dialog shows that tag's one address, large, with Copy address and Share
  * (where the browser can share), and what its Newsletters feed has received so far.
  */
-function TagAddresses({ onSignIn }: { onSignIn: () => void }) {
+function TagAddresses({ onSignIn, initialTag }: { onSignIn: () => void; initialTag: string | null }) {
   const { account, library } = useApp();
   // Not loaded yet (undefined); then the addresses, or null when they couldn't be read.
   const [addresses, setAddresses] = useState<NewsletterAddress[] | null | undefined>(undefined);
   const [hashes, setHashes] = useState<Map<string, string>>(new Map());
   // The tag picked (its id, or NO_TAG); null: none yet, so the first tag.
-  const [picked, setPicked] = useState<string | null>(null);
+  const [picked, setPicked] = useState<string | null>(initialTag);
   const signedIn = !!account;
   // A new tag gets its address as soon as it is there.
   const tagIds = library.folders.map((f) => f.id).join("\u0000");
@@ -381,7 +381,6 @@ function TagAddresses({ onSignIn }: { onSignIn: () => void }) {
   const address = addresses ? forTag(addresses, hashes, chosen) : undefined;
   return (
     <div className="space-y-5">
-      <p className="text-sm text-muted-foreground">{t("newsletterOwnExplained")}</p>
       <section className="space-y-2">
         <h3 className="text-sm font-semibold">{t("topic")}</h3>
         <TopicChips
@@ -398,6 +397,7 @@ function TagAddresses({ onSignIn }: { onSignIn: () => void }) {
       </section>
       <section className="space-y-3 rounded-lg border p-4" aria-live="polite">
         <p className="text-xs text-muted-foreground">{t("newsletterAddressFor").replace("{name}", tagName)}</p>
+        <p className="text-sm text-muted-foreground">{t("newsletterAddressExplained").replace("{name}", tagName)}</p>
         {addresses === undefined ? (
           <p className="text-sm text-muted-foreground">…</p>
         ) : addresses === null ? (
@@ -409,7 +409,28 @@ function TagAddresses({ onSignIn }: { onSignIn: () => void }) {
         )}
       </section>
       {address ? <SenderSection feedUrl={address.feedUrl} /> : null}
+      <SetupHelp />
     </div>
+  );
+}
+
+/** How to use an address (as on Android): signing up for a new newsletter, moving one you already get, forwarding from your own mailbox. */
+function SetupHelp() {
+  const parts = [
+    ["newsletterHelpNewTitle", "newsletterHelpNewBody"],
+    ["newsletterHelpMoveTitle", "newsletterHelpMoveBody"],
+    ["newsletterHelpForwardTitle", "newsletterHelpForwardBody"],
+  ] as const;
+  return (
+    <section className="space-y-3">
+      <h3 className="text-sm font-semibold">{t("newsletterHelpTitle")}</h3>
+      {parts.map(([title, body]) => (
+        <div key={title} className="space-y-0.5">
+          <p className="text-sm font-medium">{t(title)}</p>
+          <p className="text-sm text-muted-foreground">{t(body)}</p>
+        </div>
+      ))}
+    </section>
   );
 }
 

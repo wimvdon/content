@@ -12,6 +12,7 @@ import { Sidebar } from "./components/Sidebar";
 import { Button } from "./components/ui/button";
 import { sharedByLabel } from "@/lib/sharing";
 import { app, useApp } from "./lib/app";
+import { pickFor } from "./lib/newsletterAddresses";
 import { plural, t } from "./lib/i18n";
 import { articleKey, articlesFor, type Article } from "./lib/library";
 import { useListedLibrary } from "./components/useListed";
@@ -37,6 +38,8 @@ export default function App() {
   // Manage feeds for RSS feeds or newsletter feeds, and Manage tags: Settings' buttons (pages of
   // Settings when opened from there).
   const [manageFeedsKind, setManageFeedsKind] = useState<FeedKind | null>(null);
+  // The tag the Newsletters page opens on (from an empty Newsletters feed); null: the first.
+  const [newslettersTag, setNewslettersTag] = useState<string | null>(null);
   const manageFeeds = manageFeedsKind !== null;
   const [manageTopics, setManageTopics] = useState(false);
   // Add feed (or New address, for newsletter feeds) from Manage feeds: a page of it, without a topic.
@@ -217,8 +220,12 @@ export default function App() {
       <SenderPageDialog />
       <NewsletterDialog
         open={manageFeedsKind === "newsletter"}
-        title={t("newsletterFeeds")}
-        onOpenChange={(o) => !o && setManageFeedsKind(null)}
+        initialTag={newslettersTag}
+        onOpenChange={(o) => {
+          if (o) return;
+          setManageFeedsKind(null);
+          setNewslettersTag(null);
+        }}
         // Without a Content account: Settings › Account, where you sign in.
         onSignIn={() => {
           setManageFeedsKind(null);
@@ -249,6 +256,10 @@ export default function App() {
               onImport={() => fileInput.current?.click()}
               onUndo={undoMarkAll}
               onSearch={() => setSearching(true)}
+              onShowNewsletterAddress={(url) => {
+                setNewslettersTag(pickFor(app.get().library.feeds, url));
+                setManageFeedsKind("newsletter");
+              }}
               onMessage={(text, action) => setMessage({ text, action })}
               onSaved={(key) => setMessage({ text: t("savedTo").replace("{place}", t("toRead")), action: { label: t("open"), run: () => openSaved(key) } })}
             />
