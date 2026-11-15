@@ -1,7 +1,7 @@
 # Installation
 
 For developers who build the app, and for the one-time setup of releases. To just install the
-app, download the APK from [Releases](https://github.com/wimvdon/rss-reader/releases).
+app, download the APK from [Releases](https://github.com/wimvdon/content/releases).
 
 ## Prerequisites
 
@@ -18,7 +18,7 @@ Gradle is downloaded by the wrapper. There is no server, account or API key to s
 ## Build and run
 
 ```bash
-git clone https://github.com/wimvdon/rss-reader.git
+git clone https://github.com/wimvdon/content.git
 cd rss-reader
 ./gradlew testDebugUnitTest lintDebug                 # what every change must pass (CI builds the APKs)
 ./gradlew installDebug                                 # install on a connected phone/emulator
@@ -165,8 +165,8 @@ Apply these once per repository (**Settings**):
 
 The same settings with the [GitHub CLI](https://cli.github.com/):
 ```sh
-gh repo edit wimvdon/rss-reader --enable-squash-merge --delete-branch-on-merge
-gh api -X PUT repos/wimvdon/rss-reader/branches/main/protection --input - <<'JSON'
+gh repo edit wimvdon/content --enable-squash-merge --delete-branch-on-merge
+gh api -X PUT repos/wimvdon/content/branches/main/protection --input - <<'JSON'
 {
   "required_status_checks": { "strict": true, "contexts": ["Test, lint and build"] },
   "enforce_admins": false,
