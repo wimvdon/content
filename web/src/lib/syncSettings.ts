@@ -40,6 +40,8 @@ export const HIDDEN_WORDS = `${SHARED}hiddenWords`;
 /** Mark incoming newsletters as unread (newsletters.ts); 6.12.0 called it NEWSLETTER_DOT_BEFORE, read while this is missing. */
 export const NEWSLETTER_UNREAD = `${SHARED}newsletterUnread`;
 export const NEWSLETTER_DOT_BEFORE = `${SHARED}newsletterDot`;
+/** The newsletter senders' names, merges and mutes (newsletterSenders.ts). */
+export const NEWSLETTER_SENDERS = `${SHARED}newsletterSenders`;
 
 /** The web's own names for them before they were shared: read while the shared one is missing, never written. */
 export const OWN_FULL_ARTICLES = `${PREFIX}fullArticles`;
@@ -61,7 +63,7 @@ export const INSTAPAPER_TOKEN = "services.instapaper.token";
 export const SERVICES = ["instapaper"];
 export const importName = (service: string) => `services.${service}.imported`;
 
-const KNOWN = new Set([THEME, READER_FONT, READER_TEXT_SIZE, READER_SPACING, READER_BACKGROUND, READER_AUTO_DARK, FULL_ARTICLES, SHOW_IMAGES, MARK_READ_ON_SCROLL, ALWAYS_OPEN_WEBSITE, LIST_VIEW, HIDDEN_WORDS, RECIPIENTS, NEWSLETTER_UNREAD]);
+const KNOWN = new Set([THEME, READER_FONT, READER_TEXT_SIZE, READER_SPACING, READER_BACKGROUND, READER_AUTO_DARK, FULL_ARTICLES, SHOW_IMAGES, MARK_READ_ON_SCROLL, ALWAYS_OPEN_WEBSITE, LIST_VIEW, HIDDEN_WORDS, RECIPIENTS, NEWSLETTER_UNREAD, NEWSLETTER_SENDERS]);
 
 /** Names earlier versions wrote; dropped from the file when this browser saves it. */
 const dropped = (name: string) =>
@@ -95,6 +97,7 @@ export function syncedSettings(settings: Settings, base: Record<string, string> 
     [NEWSLETTER_UNREAD]: String(settings.newsletterUnread),
     [LIST_VIEW]: settings.listView,
     [HIDDEN_WORDS]: settings.hiddenWords,
+    [NEWSLETTER_SENDERS]: settings.newsletterSenders,
     [RECIPIENTS]: encodeRecipients(settings.recipients),
   });
   for (const id of SERVICES) {
@@ -134,6 +137,7 @@ export function applySynced(settings: Settings, values: Record<string, string>):
     newsletterUnread: bool(NEWSLETTER_UNREAD, bool(NEWSLETTER_DOT_BEFORE, settings.newsletterUnread)),
     listView: pick(LIST_VIEW, LIST_VIEWS, settings.listView),
     hiddenWords: typeof values[HIDDEN_WORDS] === "string" ? values[HIDDEN_WORDS] : typeof values[OWN_HIDDEN_WORDS] === "string" ? values[OWN_HIDDEN_WORDS] : settings.hiddenWords,
+    newsletterSenders: typeof values[NEWSLETTER_SENDERS] === "string" ? values[NEWSLETTER_SENDERS] : settings.newsletterSenders,
     imports,
     recipients: decodeRecipients(values[RECIPIENTS]) ?? settings.recipients,
   };

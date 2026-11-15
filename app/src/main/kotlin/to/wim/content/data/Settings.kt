@@ -134,6 +134,8 @@ data class Settings(
     val newsletterUnread: Boolean = false,
     /** Hide feed articles whose title has one of these words (#277), as typed: see [ArticleFilter]. */
     val hiddenWords: String = "",
+    /** Newsletter senders' names, merges and mutes ([NewsletterSenders.encode]); synced. */
+    val newsletterSenders: String = "",
     val listView: ListView = ListView.Medium,
     /** What was imported from each service when it was connected (#145), by service id. */
     val imports: Map<String, ServiceImport> = emptyMap(),

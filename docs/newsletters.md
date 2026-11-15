@@ -35,6 +35,20 @@ any article: unread, Mark all as read, the chips' dots, the reader and Search al
   https://example.co.uk), and puts it in the entry as Atom's `<author><uri>`; the apps keep it as
   the article's `authorUrl`. Emails from before 2026-11-15 have no website: they show the sender's
   name with the envelope.
+- **Each sender a source of its own** (2026-11-15, `NewsletterSenders`, the web's
+  `newsletterSenders.ts`): a sender is its website (`keyOf`, the web's `senderKey.ts`: bozar.be, so
+  newsletter@bozar.be and events@bozar.be are one), on a platform many newsletters send from
+  (`SHARED_SITES`: substack.com, beehiiv.com, gmail.com, …) its website and its name
+  (`substack.com/platformer`), and for emails without a website its name (`name:de standaard`).
+  Filtering on a Newsletters feed keeps the sender on every row; the feed's senders then follow it
+  as chips (`FeedChips.senders`, the web's `feedChipRow`), each a selection of its own
+  (`FeedSelection.Sender`, the web's `{kind: "sender"}`) with the senders combined into it. The
+  Newsletter feed page lists the tag's senders under the address, each with a page: a name of its
+  own, Mute (its newsletters are left out of the lists, counts and chips, `withoutMuted`, as hidden
+  words do), Combine with (merged into another sender, which keeps its name and icon; what was
+  combined into it moves along) and Separate. The choices are one synced setting,
+  `articles.newsletterSenders` (`docs/sync.md`). The feed loader is unchanged: the full address
+  never leaves it.
 - **Removing a tag** removes its Newsletters feed (`Library.removeFolder`, the web's `removeTopic`)
   and its address (`DELETE /account/newsletters`). An address whose tag is gone otherwise (merged
   into another tag, or removed while offline) is removed a day after it was made

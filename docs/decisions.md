@@ -2,6 +2,28 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-15: Each newsletter sender is a source of its own
+
+The owner's request: filtering on a newsletter feed hid each newsletter's sender, while that feed
+mixes many. Now it keeps them, and each sender is a source inside the feed, with its own chip, in
+both apps.
+
+- **Grouped by website, not by address:** the feed loader only hands over the sender's website
+  (the previous entry), so newsletter@bozar.be and events@bozar.be are one sender, which is what
+  the owner wanted. On platforms many unrelated newsletters send from (Substack, Beehiiv, Gmail,
+  …, a fixed list) the website says nothing, so there the sender's name counts too. Sending the
+  full address to the apps was rejected: it would change what leaves the feed loader, and older
+  emails don't have it.
+- **The user's choices** (the owner asked for them): rename, combine with another sender, separate
+  again, and mute. Combining stores which sender one points to, so a new issue of either lands in
+  the same source; the sender combined into keeps the name it showed. Mute hides, like hidden
+  words, rather than marking read, so turning it off brings the newsletters back.
+- **Where:** the senders and their pages are on the Newsletter feed page (+ › Newsletter feed and
+  Settings › Newsletter feeds), under the tag's address, since newsletter feeds aren't in Manage
+  feeds. Their chips follow the Newsletters chip in Feed, one more level as a topic's feeds follow
+  the topic.
+- **Synced** as one setting, `articles.newsletterSenders`, one line per sender, the same in both apps.
+
 ## 2026-11-15: Newsletters show their sender and the sender's website icon
 
 The owner's request. A newsletter feed's articles showed "Newsletters" and an envelope above every

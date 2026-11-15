@@ -65,6 +65,8 @@ class SettingsStore(
 
     suspend fun setHiddenWords(text: String) = edit { it[HIDDEN_WORDS] = text }
 
+    suspend fun setNewsletterSenders(text: String) = edit { it[NEWSLETTER_SENDERS] = text }
+
     suspend fun setListView(view: ListView) = edit { it[LIST_VIEW] = view.name }
 
     suspend fun setNotifyShared(enabled: Boolean) = edit { it[NOTIFY_SHARED] = enabled }
@@ -107,6 +109,7 @@ class SettingsStore(
                 prefs[ALWAYS_OPEN_WEBSITE] = s.alwaysOpenWebsite
                 prefs[NEWSLETTER_UNREAD] = s.newsletterUnread
                 prefs[HIDDEN_WORDS] = s.hiddenWords
+                prefs[NEWSLETTER_SENDERS] = s.newsletterSenders
                 prefs[LIST_VIEW] = s.listView.name
                 prefs[IMPORTS] = ServiceSettings.writeImports(s.imports)
                 prefs[RECIPIENTS] = Recipients.encode(s.recipients)
@@ -145,6 +148,7 @@ class SettingsStore(
             // Named for its dot in 6.12.0: read once from there.
             newsletterUnread = p[NEWSLETTER_UNREAD] ?: p[NEWSLETTER_DOT_BEFORE] ?: defaults.newsletterUnread,
             hiddenWords = p[HIDDEN_WORDS] ?: defaults.hiddenWords,
+            newsletterSenders = p[NEWSLETTER_SENDERS] ?: defaults.newsletterSenders,
             listView = enumOr(p[LIST_VIEW], defaults.listView),
             imports = ServiceSettings.readImports(p[IMPORTS]),
             recipients = Recipients.decode(p[RECIPIENTS]).orEmpty(),
@@ -175,6 +179,7 @@ class SettingsStore(
         val NEWSLETTER_UNREAD = booleanPreferencesKey("newsletter_unread")
         val NEWSLETTER_DOT_BEFORE = booleanPreferencesKey("newsletter_dot")
         val HIDDEN_WORDS = stringPreferencesKey("hidden_words")
+        val NEWSLETTER_SENDERS = stringPreferencesKey("newsletter_senders")
         val LIST_VIEW = stringPreferencesKey("list_view")
         val IMPORTS = stringPreferencesKey("service_imports")
         val RECIPIENTS = stringPreferencesKey("share_recipients")

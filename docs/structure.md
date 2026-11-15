@@ -47,6 +47,7 @@ rss-reader/
         │   │   │   ├── Saved.kt              Saved's tabs, filters, folders, filing (plain Kotlin)
         │   │   │   ├── Newsletters.kt        Emails from Instapaper: unread, Mark (all) as read (plain Kotlin)
         │   │   │   ├── NewsletterAddresses.kt Every tag's newsletter address and its feed (plain Kotlin)
+        │   │   │   ├── NewsletterSenders.kt Each newsletter sender a source of its own: grouping, names, combining, mute (plain Kotlin)
         │   │   │   ├── FeedKinds.kt           RSS feeds and newsletter feeds, for Settings and Manage feeds (plain Kotlin)
         │   │   │   ├── Topics.kt             Topics: feed folders and saved articles' tags in step (plain Kotlin)
         │   │   │   ├── LibraryRows.kt         Library ⇄ database rows, what a change writes

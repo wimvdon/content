@@ -140,6 +140,7 @@ fun feedTopics(
 fun FeedSelection.up(feeds: List<Feed>): FeedSelection? =
     when (this) {
         FeedSelection.All -> null
+        is FeedSelection.Sender -> FeedSelection.Single(feedUrl)
         is FeedSelection.Single -> feeds.firstOrNull { it.url == feedUrl }?.folderId?.let { FeedSelection.InFolder(it) } ?: FeedSelection.All
         else -> FeedSelection.All
     }

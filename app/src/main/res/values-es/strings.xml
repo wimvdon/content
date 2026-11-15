@@ -371,6 +371,17 @@
     <string name="newsletter_own_pending">Esta dirección aún no está lista. Inténtalo de nuevo en un momento.</string>
     <string name="newsletter_own_copy">Copiar dirección</string>
     <string name="newsletter_address_for">Dirección para %1$s</string>
+    <string name="newsletter_senders">Remitentes</string>
+    <string name="newsletter_senders_explained">Cada remitente es una fuente propia en Feed, con su propio chip. Tócalo para cambiarle el nombre, combinarlo con otro o silenciarlo.</string>
+    <string name="newsletter_sender_muted_count">Silenciado · %1$s</string>
+    <string name="newsletter_sender_name_hint">Déjalo vacío para usar el nombre del remitente</string>
+    <string name="newsletter_sender_mute">Silenciar</string>
+    <string name="newsletter_sender_mute_summary">Sus boletines no aparecen en Feed</string>
+    <string name="newsletter_sender_combine">Combinar con</string>
+    <string name="newsletter_sender_combine_hint">Sus boletines aparecerán entonces como el remitente que elijas.</string>
+    <string name="newsletter_sender_combined">Combinados en este remitente</string>
+    <string name="newsletter_sender_separate">Separar</string>
+    <string name="newsletter_sender_separate_one">Separar %1$s</string>
     <string name="newsletter_none_yet">Aún no hay boletines</string>
     <string name="newsletter_copied">Copiada</string>
     <plurals name="newsletter_count">

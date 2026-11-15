@@ -19,7 +19,8 @@ import { Input, Label } from "./ui/input";
 import { Segmented } from "./ui/segmented";
 import { ReaderStyleControls } from "./ReaderStyleControls";
 import { InstapaperSettings } from "./ServiceSettings";
-import { chosenTag, forTag, newsletterActivity, NO_TAG, tagHashes, type NewsletterAddress } from "@/lib/newsletterAddresses";
+import { chosenTag, forTag, isNewsletterFeed, newsletterActivity, NO_TAG, tagHashes, type NewsletterAddress } from "@/lib/newsletterAddresses";
+import { decodeSenders, mergedSender, mutedSender, renamedSender, ruleOf, senderFeed, senderList, splitSender, type NewsletterSender } from "@/lib/newsletterSenders";
 import { feedsOfKind, withKindOrder, type FeedKind } from "@/lib/feedKinds";
 import { SwitchRow } from "./ui/switch";
 import { pushSupported } from "@/lib/notifications";
@@ -407,7 +408,119 @@ function TagAddresses({ onSignIn }: { onSignIn: () => void }) {
           <AddressActions key={address.address} address={address} />
         )}
       </section>
+      {address ? <SenderSection feedUrl={address.feedUrl} /> : null}
     </div>
+  );
+}
+
+/** Senders, under the address (as on Android): each sender of the tag's feed, click for its page. */
+function SenderSection({ feedUrl }: { feedUrl: string }) {
+  const { library, settings } = useApp();
+  const rules = useMemo(() => decodeSenders(settings.newsletterSenders), [settings.newsletterSenders]);
+  const senders = useMemo(() => senderList(rules, library.articles, feedUrl), [rules, library.articles, feedUrl]);
+  const [open, setOpen] = useState<string | null>(null);
+  if (senders.length === 0) return null;
+  const sender = senders.find((s) => s.key === open);
+  return (
+    <section className="space-y-2">
+      <h3 className="text-sm font-semibold">{t("newsletterSenders")}</h3>
+      <p className="text-sm text-muted-foreground">{t("newsletterSendersExplained")}</p>
+      <ul className="divide-y rounded-lg border">
+        {senders.map((s) => {
+          const shown = senderFeed(s, undefined);
+          const count = plural("newsletterCount", s.count);
+          return (
+            <li key={s.key}>
+              <button type="button" onClick={() => setOpen(s.key)} className="flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left hover:bg-muted">
+                <FeedIcon feed={shown} className="size-5" envelopeBadge={!isNewsletterFeed(shown.url)} />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-medium">{s.name}</span>
+                  <span className="block text-xs text-muted-foreground">{s.muted ? t("newsletterSenderMutedCount").replace("{count}", count) : count}</span>
+                </span>
+                <ChevronRight className="size-4 text-muted-foreground" aria-hidden />
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+      {sender ? <SenderDialog key={sender.key} sender={sender} others={senders.filter((s) => s.key !== sender.key)} givenName={ruleOf(rules, sender.key)?.name ?? null} onClose={() => setOpen(null)} /> : null}
+    </section>
+  );
+}
+
+/** One sender's page, a page of the Newsletter feed dialog: its name, Mute, Combine with, and the senders combined into it, each with Separate. */
+function SenderDialog({ sender, others, givenName, onClose }: { sender: NewsletterSender; others: NewsletterSender[]; givenName: string | null; onClose: () => void }) {
+  const [name, setName] = useState(givenName ?? "");
+  const save = () => {
+    if (name.trim() !== (givenName ?? "")) app.editSenders((rules) => renamedSender(rules, sender.key, name));
+  };
+  const close = (open: boolean) => {
+    if (open) return;
+    save();
+    onClose();
+  };
+  return (
+    <Dialog open onOpenChange={close} title={sender.name} closeLabel={t("close")} backLabel={t("back")} done={t("done")}>
+      <div className="space-y-5">
+        <div className="space-y-1.5">
+          <Label htmlFor="sender-name">{t("name")}</Label>
+          <Input id="sender-name" value={name} placeholder={sender.members[0].name} onChange={(e) => setName(e.target.value)} onBlur={save} />
+          <p className="text-xs text-muted-foreground">{t("newsletterSenderNameHint")}</p>
+        </div>
+        <SwitchRow
+          title={t("newsletterSenderMute")}
+          summary={t("newsletterSenderMuteSummary")}
+          checked={sender.muted}
+          onChange={(muted) => app.editSenders((rules) => mutedSender(rules, sender.key, muted))}
+        />
+        {others.length > 0 ? (
+          <section className="space-y-2">
+            <h3 className="text-sm font-semibold">{t("newsletterSenderCombine")}</h3>
+            <p className="text-sm text-muted-foreground">{t("newsletterSenderCombineHint")}</p>
+            <div className="flex flex-wrap gap-2">
+              {others.map((other) => {
+                const shown = senderFeed(other, undefined);
+                return (
+                  <button
+                    key={other.key}
+                    type="button"
+                    className={cn(chip, "hover:bg-muted")}
+                    onClick={() => {
+                      save();
+                      app.editSenders((rules) => mergedSender(rules, sender.key, other.key, other.name));
+                      onClose();
+                    }}
+                  >
+                    <FeedIcon feed={shown} className="size-4" envelopeBadge={!isNewsletterFeed(shown.url)} />
+                    <span className="max-w-48 truncate">{other.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        ) : null}
+        {sender.members.length > 1 ? (
+          <section className="space-y-2">
+            <h3 className="text-sm font-semibold">{t("newsletterSenderCombined")}</h3>
+            <ul className="divide-y rounded-lg border">
+              {sender.members.slice(1).map((member) => (
+                <li key={member.key} className="flex items-center gap-3 px-3 py-2">
+                  <span className="min-w-0 flex-1 truncate text-sm">{member.name}</span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    aria-label={t("newsletterSenderSeparateOne").replace("{name}", member.name)}
+                    onClick={() => app.editSenders((rules) => splitSender(rules, member.key))}
+                  >
+                    {t("newsletterSenderSeparate")}
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+      </div>
+    </Dialog>
   );
 }
 

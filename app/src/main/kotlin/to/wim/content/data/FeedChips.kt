@@ -16,6 +16,10 @@ package to.wim.content.data
  *
  * [chosenTopic] is the topic chip shown chosen: the topic picked, or the topic of the feed picked.
  * [chosenFeed] is the feed picked, if any. Plain Kotlin, unit tested.
+ *
+ * A newsletter feed picked (or one of its senders) narrows the row once more (2026-11-15): its
+ * topic, that feed alone, then its [senders] (NewsletterSenders), when it has more than one. Tapping
+ * a sender shows it alone, tapping it again the whole feed; tapping the feed goes back to the topic.
  */
 data class FeedChips(
     val topics: List<String>,
@@ -25,6 +29,10 @@ data class FeedChips(
     val chosenFeed: String?,
     /** With a single topic chip and nothing chosen: how many of its feeds have something in the tab shown. */
     val soleTopicFeeds: Int = 0,
+    /** The senders of the newsletter feed picked, after it; empty for any other. */
+    val senders: List<NewsletterSender> = emptyList(),
+    /** The sender picked, by its key. */
+    val chosenSender: String? = null,
 ) {
     /** The topic chips the row shows: all [topics], or only the chosen one (in its own spelling). */
     val rowTopics: List<String>
@@ -61,8 +69,11 @@ data class FeedChips(
             selection: FeedSelection,
             /** The feeds (by address) with something in the tab shown; null: every feed. */
             shown: Set<String>? = null,
+            /** The senders of the feed picked (NewsletterSenders.list), with something in the tab shown. */
+            senders: List<NewsletterSender> = emptyList(),
         ): FeedChips {
-            val chosenFeed = (selection as? FeedSelection.Single)?.feedUrl
+            val chosenSender = selection as? FeedSelection.Sender
+            val chosenFeed = (selection as? FeedSelection.Single)?.feedUrl ?: chosenSender?.feedUrl
             val single = chosenFeed?.let { url -> feeds.firstOrNull { it.url == url } }
             val chosenTopic =
                 selection.chipTag(folders)
@@ -82,6 +93,13 @@ data class FeedChips(
                 } else {
                     0
                 }
+            // A newsletter feed picked: that feed alone, then its senders (the one picked stays).
+            val rowSenders =
+                senders.filter { it.feedUrl == chosenFeed }.takeIf { list -> list.size > 1 || (chosenSender != null && list.any { it.key == chosenSender.key }) }
+            if (single != null && NewsletterAddresses.isNewsletterFeed(single.url) && rowSenders != null) {
+                val narrowed = { list: List<Feed> -> list.filter { it.url == chosenFeed } }
+                return FeedChips(shownTopics, chosenTopic, narrowed(topicFeeds), narrowed(loose), chosenFeed, soleTopicFeeds, rowSenders, chosenSender?.key)
+            }
             return FeedChips(shownTopics, chosenTopic, topicFeeds, loose, chosenFeed, soleTopicFeeds)
         }
 

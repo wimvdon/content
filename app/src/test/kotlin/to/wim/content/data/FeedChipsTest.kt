@@ -126,4 +126,26 @@ class FeedChipsTest {
         // In Unread every chip shown has something unread: a dot would say nothing.
         assertFalse(FeedChips.showsUnreadDot(unreadOnly = true, unread = 3))
     }
+
+    private val letters = Feed("https://w.example/newsletters/k7q2m9abcdef/0123456789abcdef0123456789abcdef", "Newsletters", folderId = "f1", tags = listOf("News"))
+
+    private fun sender(key: String) = NewsletterSender(letters.url, key, key, listOf(SenderMember(key, key)), 1, 1, false, 0)
+
+    @Test
+    fun `a newsletter feed chosen shows its topic, itself and its senders, and a sender chosen keeps them`() {
+        val all = feeds + letters
+        val senders = listOf(sender("bozar.be"), sender("substack.com/platformer"))
+        val chips = FeedChips.of(all, folders, topics, FeedSelection.Single(letters.url), senders = senders)
+        assertEquals("News", chips.chosenTopic)
+        assertEquals(listOf(letters), chips.topicFeeds)
+        assertEquals(senders, chips.senders)
+        assertNull(chips.chosenSender)
+        val picked = FeedChips.of(all, folders, topics, FeedSelection.Sender(letters.url, "bozar.be"), senders = senders)
+        assertEquals(letters.url, picked.chosenFeed)
+        assertEquals("bozar.be", picked.chosenSender)
+        assertEquals(listOf(letters), picked.topicFeeds)
+        // A single sender says nothing a chip of its own would add; another feed has no senders.
+        assertEquals(listOf(bbc, npr, letters), FeedChips.of(all, folders, topics, FeedSelection.Single(letters.url), senders = senders.take(1)).topicFeeds)
+        assertTrue(FeedChips.of(all, folders, topics, FeedSelection.Single(bbc.url), senders = senders).senders.isEmpty())
+    }
 }

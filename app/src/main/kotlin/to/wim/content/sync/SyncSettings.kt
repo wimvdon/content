@@ -22,7 +22,7 @@ import to.wim.content.data.ThemeMode
  *
  * What the app does is shared by both apps (the owner's choice, 2026-11-02), under "articles.":
  * Load full articles, Mark as read on scroll, Always open the website, Hide articles with these
- * words and Mark incoming newsletters as unread ([NEWSLETTER_UNREAD]; 6.12.0 called it
+ * words, the newsletter senders' names, merges and mutes ([NEWSLETTER_SENDERS]) and Mark incoming newsletters as unread ([NEWSLETTER_UNREAD]; 6.12.0 called it
  * [NEWSLETTER_DOT_BEFORE], read while the new name is missing). Until a file has those, each is read from this app's own name of before ("android.…"),
  * which is then dropped.
  *
@@ -55,6 +55,7 @@ object SyncSettings {
     const val ALWAYS_OPEN_WEBSITE = SHARED + "alwaysOpenWebsite"
     const val HIDDEN_WORDS = SHARED + "hiddenWords"
     const val NEWSLETTER_UNREAD = SHARED + "newsletterUnread"
+    const val NEWSLETTER_SENDERS = SHARED + "newsletterSenders"
     const val NEWSLETTER_DOT_BEFORE = SHARED + "newsletterDot"
 
     /** This app's own names for them before they were shared; read while the shared one is missing, never written. */
@@ -83,7 +84,7 @@ object SyncSettings {
         setOf(
             THEME, DYNAMIC_COLOR, READER_FONT, READER_TEXT_SIZE, READER_SPACING, READER_BACKGROUND, READER_AUTO_DARK,
             FULL_ARTICLES, SHOW_IMAGES, MARK_READ_ON_SCROLL, ALWAYS_OPEN_WEBSITE, LIST_VIEW, HIDDEN_WORDS, RECIPIENTS,
-            NEWSLETTER_UNREAD,
+            NEWSLETTER_UNREAD, NEWSLETTER_SENDERS,
         )
 
     /** Names earlier versions wrote; dropped from the file when this device saves it. */
@@ -117,6 +118,7 @@ object SyncSettings {
                 NEWSLETTER_UNREAD to settings.newsletterUnread.toString(),
                 LIST_VIEW to settings.listView.name,
                 HIDDEN_WORDS to settings.hiddenWords,
+                NEWSLETTER_SENDERS to settings.newsletterSenders,
                 RECIPIENTS to Recipients.encode(settings.recipients),
             ) +
                 // An import this device doesn't know of stays as the file has it.
@@ -164,6 +166,7 @@ object SyncSettings {
             newsletterUnread = bool(NEWSLETTER_UNREAD, bool(NEWSLETTER_DOT_BEFORE, settings.newsletterUnread)),
             listView = enum(LIST_VIEW, ListView.entries, settings.listView),
             hiddenWords = values[HIDDEN_WORDS] ?: values[OWN_HIDDEN_WORDS] ?: settings.hiddenWords,
+            newsletterSenders = values[NEWSLETTER_SENDERS] ?: settings.newsletterSenders,
             imports = settings.imports + imports,
             recipients = Recipients.decode(values[RECIPIENTS]) ?: settings.recipients,
         )

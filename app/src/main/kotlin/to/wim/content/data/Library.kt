@@ -83,6 +83,20 @@ sealed interface FeedSelection {
 
     /** The feeds with one tag (#187): the Feed tab's chips. */
     data class Tagged(val tag: String) : FeedSelection
+
+    /**
+     * One sender in newsletter feed [feedUrl] (NewsletterSenders): [key], with the senders merged
+     * into it, [members] (every [NewsletterSenders.keyOf] it shows).
+     */
+    data class Sender(
+        val feedUrl: String,
+        val key: String,
+        val members: Set<String> = setOf(key),
+    ) : FeedSelection {
+        companion object {
+            fun of(sender: NewsletterSender) = Sender(sender.feedUrl, sender.key, sender.memberKeys)
+        }
+    }
 }
 
 /**
@@ -399,6 +413,7 @@ data class Library(
             FeedSelection.All -> selection
             is FeedSelection.InFolder -> if (folder(selection.folderId) != null) selection else FeedSelection.All
             is FeedSelection.Single -> if (feed(selection.feedUrl) != null) selection else FeedSelection.All
+            is FeedSelection.Sender -> if (feed(selection.feedUrl) != null) selection else FeedSelection.All
             is FeedSelection.Tagged -> if (feedTags().any { it.equals(selection.tag, ignoreCase = true) }) selection else FeedSelection.All
         }
 
@@ -428,6 +443,7 @@ data class Library(
             FeedSelection.All -> feed(article.feedUrl) != null
             is FeedSelection.InFolder -> feed(article.feedUrl)?.folderId == folderId
             is FeedSelection.Single -> article.feedUrl == feedUrl
+            is FeedSelection.Sender -> article.feedUrl == feedUrl && NewsletterSenders.keyOf(article) in members
             is FeedSelection.Tagged -> feed(article.feedUrl)?.tags.orEmpty().any { it.equals(tag, ignoreCase = true) }
         }
 

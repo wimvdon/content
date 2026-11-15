@@ -359,6 +359,17 @@
     <string name="newsletter_own_pending">Dit adres is nog niet klaar. Probeer het zo meteen opnieuw.</string>
     <string name="newsletter_own_copy">Adres kopiëren</string>
     <string name="newsletter_address_for">Adres voor %1$s</string>
+    <string name="newsletter_senders">Afzenders</string>
+    <string name="newsletter_senders_explained">Elke afzender is een eigen bron in Feed, met een eigen chip. Tik erop om hem een andere naam te geven, met een andere samen te voegen of te dempen.</string>
+    <string name="newsletter_sender_muted_count">Gedempt · %1$s</string>
+    <string name="newsletter_sender_name_hint">Laat leeg om de eigen naam van de afzender te gebruiken</string>
+    <string name="newsletter_sender_mute">Dempen</string>
+    <string name="newsletter_sender_mute_summary">Zijn nieuwsbrieven blijven uit Feed</string>
+    <string name="newsletter_sender_combine">Samenvoegen met</string>
+    <string name="newsletter_sender_combine_hint">Zijn nieuwsbrieven verschijnen dan onder de afzender die je kiest.</string>
+    <string name="newsletter_sender_combined">Samengevoegd in deze afzender</string>
+    <string name="newsletter_sender_separate">Loskoppelen</string>
+    <string name="newsletter_sender_separate_one">%1$s loskoppelen</string>
     <string name="newsletter_none_yet">Nog geen nieuwsbrieven</string>
     <string name="newsletter_copied">Gekopieerd</string>
     <plurals name="newsletter_count">

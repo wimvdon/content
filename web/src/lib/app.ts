@@ -42,6 +42,7 @@ import { defaultReaderStyle, readerStyleOf, type ReaderStyle } from "./readerSty
 import { load, remove, save } from "./storage";
 import * as S from "./sync";
 import { hiddenWords, withoutHidden } from "./articleFilter";
+import { decodeSenders, encodeSenders, withoutMuted, type SenderRule } from "./newsletterSenders";
 import * as SS from "./syncSettings";
 
 /** Everything the web app shows, kept in one place; components subscribe with useApp(). */
@@ -65,6 +66,8 @@ export interface Settings {
   alwaysOpenWebsite: boolean;
   /** Hide feed articles whose title has one of these words (#277), as typed (articleFilter.ts). */
   hiddenWords: string;
+  /** Newsletter senders' names, merges and mutes (newsletterSenders.ts encodeSenders); synced. */
+  newsletterSenders: string;
   /** Mark incoming newsletters as unread (newsletters.ts), with a dot on Saved and the Newsletters chip while one is; synced, off by default. */
   newsletterUnread: boolean;
   /** What was imported from each service when it was connected (#145), by id. */
@@ -128,6 +131,7 @@ export const defaultSettings: Settings = {
   listView: "medium",
   alwaysOpenWebsite: false,
   hiddenWords: "",
+  newsletterSenders: "",
   newsletterUnread: false,
   imports: {},
   recipients: [],
@@ -349,13 +353,23 @@ class AppStore {
     else this.select(L.selectionExists(this.state.library, this.lastFeeds));
   }
 
+  /** The library the feed lists show: without the articles the hidden words and muted newsletter senders leave out. */
+  private listed(): L.Library {
+    return withoutMuted(withoutHidden(this.state.library, hiddenWords(this.state.settings.hiddenWords)), decodeSenders(this.state.settings.newsletterSenders));
+  }
+
+  /** A change to the newsletter senders' choices (newsletterSenders.ts), synced. */
+  editSenders(change: (rules: SenderRule[]) => SenderRule[]) {
+    this.updateSettings({ newsletterSenders: encodeSenders(change(decodeSenders(this.state.settings.newsletterSenders))) });
+  }
+
   setUnreadOnly(unreadOnly: boolean) {
     if (unreadOnly === this.state.settings.unreadOnly) return;
     this.updateSettings({ unreadOnly });
     this.set({ readThisVisit: new Set() });
     // To Unread: a chip with nothing unread there lets go (hidden words count), as on Android.
     if (unreadOnly) {
-      const listed = withoutHidden(this.state.library, hiddenWords(this.state.settings.hiddenWords));
+      const listed = this.listed();
       const next = L.selectionForUnread(listed, this.state.selection);
       if (next !== this.state.selection) this.select(next);
     }
@@ -549,7 +563,7 @@ class AppStore {
   /** Done with the section: everything unread in it is read, and nothing read stays in the Unread list (#157). */
   markAllRead(): Set<string> {
     // What the list shows: not the articles the hidden words leave out.
-    const keys = L.unreadKeys(withoutHidden(this.state.library, hiddenWords(this.state.settings.hiddenWords)), this.state.selection);
+    const keys = L.unreadKeys(this.listed(), this.state.selection);
     this.set({ readThisVisit: new Set() });
     this.setRead(keys, true);
     return keys;

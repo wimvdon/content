@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
 import to.wim.content.R
 import to.wim.content.data.Feed
+import to.wim.content.data.NewsletterAddresses
 import to.wim.content.sync.Gravatar
 
 /**
@@ -200,13 +201,15 @@ fun FeedChip(
     chosen: Boolean,
     /** The unread dot (Feeds' All view: something unread in it, FeedChips.showsUnreadDot). */
     dot: Boolean = false,
+    /** A newsletter sender's chip: the envelope on its icon. */
+    envelopeBadge: Boolean = false,
     onClick: () -> Unit,
 ) {
     FilterChip(
         selected = chosen,
         onClick = onClick,
         label = { Text(feed.title, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = 200.dp)) },
-        leadingIcon = { FeedIcon(feed, FeedIconSize.Small) },
+        leadingIcon = { FeedIcon(feed, FeedIconSize.Small, envelopeBadge = envelopeBadge && !NewsletterAddresses.isNewsletterFeed(feed.url)) },
         trailingIcon = if (dot) ({ UnreadChipDot() }) else null,
     )
 }

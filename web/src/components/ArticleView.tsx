@@ -26,7 +26,9 @@ import { cn } from "./ui/cn";
 import { Dialog } from "./ui/dialog";
 import { useEscape } from "./ui/useEscape";
 import { kindOf } from "@/lib/feedKinds";
-import { hasEnvelopeBadge, senderOf } from "@/lib/newsletterAddresses";
+import { hasEnvelopeBadge } from "@/lib/newsletterAddresses";
+import { shownSender } from "@/lib/newsletterSenders";
+import { useSenderRules } from "./useListed";
 
 /** The full article for one address: loaded, or failed and why (no answer yet means it is loading). */
 type Full = { link: string; html: string | null; blocked?: boolean };
@@ -45,6 +47,7 @@ export function ArticleView({
   onMessage: (text: string, action?: { label: string; run: () => void }) => void;
 }) {
   const { library, settings, instapaperNotCopied } = useApp();
+  const rules = useSenderRules();
   // A saved article (also a feed article that was saved): the feed it came from (or its website)
   // above it, and Saved's actions instead of read state and Save.
   const fromSaved = isItemArticle(article);
@@ -53,7 +56,7 @@ export function ArticleView({
   const site = hostOf(article.link);
   const feed = fromSaved ? (saved ? sourceOf(saved, library) : site ? siteOf(site) : undefined) : library.feeds.find((f) => f.url === article.feedUrl);
   // A newsletter shows who sent it, with their website's icon, in the feed's place.
-  const sender = senderOf(feed, article);
+  const sender = shownSender(rules, feed, article);
   const current = library.articles.find((a) => articleKey(a) === articleKey(article)) ?? article;
   const link = article.link;
   // A newsletter feed's article is the whole newsletter: never the website's text.

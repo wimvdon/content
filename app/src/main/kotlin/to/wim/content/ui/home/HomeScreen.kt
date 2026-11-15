@@ -117,6 +117,7 @@ import to.wim.content.data.Saved
 import to.wim.content.data.SavedFilter
 import to.wim.content.data.FeedChips
 import to.wim.content.data.FeedSelection
+import to.wim.content.data.NewsletterSender
 import to.wim.content.data.ScrollRead
 import to.wim.content.data.feedTagsInOrder
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -159,6 +160,8 @@ data class HomeState(
     val topicChips: List<String>? = null,
     /** Feeds' feed chips: the feeds (by address) with articles in the tab shown; null: every feed. */
     val feedChipsShown: Set<String>? = null,
+    /** While a newsletter feed (or one of its senders) is picked: its senders, as chips after it (NewsletterSenders.chips). */
+    val senderChips: List<NewsletterSender> = emptyList(),
     /** How many articles shared with you are unread, for the Inbox's badge. */
     val inboxUnread: Int = 0,
     /** The newsletters' dot on Saved in the bar (setting on and a newsletter waits unread). */
@@ -350,9 +353,19 @@ fun HomeScreen(
                             )
                             val feedDot: (Feed) -> Boolean = { feed -> FeedChips.showsUnreadDot(state.unreadOnly, state.unreadCounts[FeedSelection.Single(feed.url)] ?: 0) }
                             val chips =
-                                remember(state.feeds, state.folders, feedTags, state.selection, state.feedChipsShown) {
-                                    FeedChips.of(state.feeds, state.folders, feedTags, state.selection, state.feedChipsShown)
+                                remember(state.feeds, state.folders, feedTags, state.selection, state.feedChipsShown, state.senderChips) {
+                                    FeedChips.of(state.feeds, state.folders, feedTags, state.selection, state.feedChipsShown, state.senderChips)
                                 }
+                            // A newsletter feed's senders, after it: tapping one shows it alone, tapping it again the whole feed.
+                            val senderChips: @Composable () -> Unit = {
+                                val newsletterFeed = state.feeds.firstOrNull { it.url == chips.chosenFeed }
+                                chips.senders.forEach { sender ->
+                                    val on = sender.key == chips.chosenSender
+                                    FeedChip(sender.shownAs(newsletterFeed), on, FeedChips.showsUnreadDot(state.unreadOnly, sender.unread), envelopeBadge = true) {
+                                        actions.onSelect(if (on) FeedSelection.Single(sender.feedUrl) else FeedSelection.Sender.of(sender))
+                                    }
+                                }
+                            }
                             // Only with more than one chip: a single one filters nothing.
                             if (chips.rowShown) {
                             TagChips(
@@ -375,6 +388,7 @@ fun HomeScreen(
                                                     val on = feed.url == chips.chosenFeed
                                                     FeedChip(feed, on, feedDot(feed)) { actions.onSelect(if (on) FeedSelection.Tagged(topic) else FeedSelection.Single(feed.url)) }
                                                 }
+                                                senderChips()
                                             }
                                         }
                                         chips.rowLoose.isNotEmpty() -> {
@@ -383,6 +397,7 @@ fun HomeScreen(
                                                     val on = feed.url == chips.chosenFeed
                                                     FeedChip(feed, on, feedDot(feed)) { actions.onSelect(if (on) FeedSelection.All else FeedSelection.Single(feed.url)) }
                                                 }
+                                                senderChips()
                                             }
                                         }
                                         else -> null
@@ -495,7 +510,13 @@ private fun ArticleList(
 ) {
     // A different feed starts at the top.
     val listState = rememberSaveable(state.selection, saver = LazyListState.Saver) { LazyListState() }
-    val showFeedName = state.selection !is FeedSelection.Single
+    // One feed shows no feed name, except a newsletter feed, which mixes many senders.
+    val showFeedName =
+        when (val selection = state.selection) {
+            is FeedSelection.Single -> NewsletterAddresses.isNewsletterFeed(selection.feedUrl)
+            is FeedSelection.Sender -> false
+            else -> true
+        }
     val feedsByUrl = remember(state.feeds) { state.feeds.associateBy { it.url } }
     val days = remember(state.articles) { ArticleDays.group(state.articles, ZoneId.systemDefault()) }
     // Where each list item is: a date header, or how many articles come before it.
@@ -926,7 +947,7 @@ private fun MetaLine(
                         .then(if (onFeedClick != null) Modifier.clip(CircleShape).clickable(role = Role.Button, onClick = onFeedClick) else Modifier),
             ) {
                 // A newsletter shows who sent it, with their website's icon.
-                val shown = NewsletterAddresses.sender(feed, article) ?: feed
+                val shown = LocalNewsletterSenders.current.shown(feed, article) ?: feed
                 FeedIcon(shown, FeedIconSize.Small, envelopeBadge = NewsletterAddresses.hasEnvelopeBadge(feed, shown))
                 Text(
                     text = shown.title,
