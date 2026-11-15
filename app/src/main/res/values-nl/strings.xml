@@ -346,7 +346,8 @@
     <string name="account_web_title">Content op het web</string>
     <string name="account_web_summary">Lees ook op je computer, op content.wim.to, aangemeld met hetzelfde account</string>
     <string name="newsletters_title">Nieuwsbrieven</string>
-    <string name="newsletters_unread">Nieuwe nieuwsbrieven</string>
+    <string name="newsletters_unread">Nieuwe e-mails van Instapaper</string>
+    <string name="saved_chip_instapaper">Van Instapaper</string>
     <string name="saved_open_unread">Bewaard, nieuwe nieuwsbrieven</string>
     <string name="setting_newsletter_unread_title">Binnenkomende nieuwsbrieven als ongelezen markeren</string>
     <string name="setting_newsletter_unread_summary">Nieuwe e-mails uit Instapaper blijven vet tot je ze leest</string>

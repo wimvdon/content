@@ -378,7 +378,7 @@ function SavedArticles({
                   )}
                 >
                   <Mail className="size-4" aria-hidden="true" />
-                  {t("newsletters")}
+                  {t("savedChipInstapaper")}
                   {newsletterUnread ? <NewDot label={t("newslettersUnread")} /> : null}
                 </button>
               ) : null}

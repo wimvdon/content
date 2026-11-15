@@ -346,7 +346,8 @@
     <string name="account_web_title">Content im Web</string>
     <string name="account_web_summary">Lies auch am Computer, auf content.wim.to, mit demselben Konto angemeldet</string>
     <string name="newsletters_title">Newsletter</string>
-    <string name="newsletters_unread">Neue Newsletter</string>
+    <string name="newsletters_unread">Neue E-Mails von Instapaper</string>
+    <string name="saved_chip_instapaper">Von Instapaper</string>
     <string name="saved_open_unread">Gespeichert, neue Newsletter</string>
     <string name="setting_newsletter_unread_title">Eingehende Newsletter als ungelesen markieren</string>
     <string name="setting_newsletter_unread_summary">Neue E-Mails aus Instapaper bleiben fett, bis du sie liest</string>
