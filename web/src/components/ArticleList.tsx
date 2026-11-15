@@ -8,7 +8,7 @@ import { dayLabel, plural, t } from "@/lib/i18n";
 import { articleKey, articlesInTab, chipTag, feedTabOf, sameSelection, showsUnreadDot, sortTime, unreadByFeed, unreadKeys, type Article, type Feed } from "@/lib/library";
 import { chipTags, isPlainFilter, itemArticle, noteOf, savedItems, showsLiked, showsNewsletters, showsNotes, sourceOf, withoutChips, type NoteContent } from "@/lib/saved";
 import { hasUnreadNewsletter } from "@/lib/newsletters";
-import { senderOf } from "@/lib/newsletterAddresses";
+import { hasEnvelopeBadge, senderOf } from "@/lib/newsletterAddresses";
 import { NewDot } from "./NewDot";
 import { sharedByLabel } from "@/lib/sharing";
 import { inboxItems } from "@/lib/inbox";
@@ -971,12 +971,12 @@ function RowButton({
                 }}
                 className="flex min-w-0 items-center gap-1.5 rounded-sm hover:underline"
               >
-                <FeedIcon feed={shown} className="size-4" />
+                <FeedIcon feed={shown} className="size-4" envelopeBadge={hasEnvelopeBadge(feed, shown)} />
                 <span className="truncate">{shown?.title}</span>
               </span>
             ) : feed ? (
               <>
-                <FeedIcon feed={shown} className="size-4" />
+                <FeedIcon feed={shown} className="size-4" envelopeBadge={hasEnvelopeBadge(feed, shown)} />
                 <span className="truncate">{shown?.title}</span>
               </>
             ) : null}

@@ -16,6 +16,7 @@ import {
   orphans,
   reconcile,
   senderOf,
+  hasEnvelopeBadge,
   tagHash,
   tagHashes,
   type NewsletterAddress,
@@ -160,5 +161,18 @@ describe("a newsletter's sender", () => {
     expect(senderOf(undefined, article("The Weekly", "https://weekly.example"))).toBeNull();
     const blog: Feed = { ...newsletters, url: "https://blog.example/feed.xml", title: "Blog" };
     expect(senderOf(blog, article("Bo", "https://bo.example", blog.url))).toBeNull();
+  });
+});
+
+describe("the envelope badge", () => {
+  const newsletters: Feed = { url: "https://w.example/newsletters/k7q2m9abcdef/0123456789abcdef0123456789abcdef", title: "Newsletters", siteUrl: null, folderId: null, iconUrl: null, renamed: false };
+  it("marks a newsletter shown with its sender's icon, and nothing else", () => {
+    const sender: Feed = { ...newsletters, url: "https://weekly.example", title: "The Weekly", iconUrl: "https://weekly.example/favicon.ico" };
+    expect(hasEnvelopeBadge(newsletters, sender)).toBe(true);
+    expect(hasEnvelopeBadge(newsletters, { ...newsletters, title: "The Weekly" })).toBe(false);
+    expect(hasEnvelopeBadge(newsletters, null)).toBe(false);
+    const blog: Feed = { ...newsletters, url: "https://blog.example/feed.xml", title: "Blog" };
+    expect(hasEnvelopeBadge(blog, blog)).toBe(false);
+    expect(hasEnvelopeBadge(undefined, undefined)).toBe(false);
   });
 });

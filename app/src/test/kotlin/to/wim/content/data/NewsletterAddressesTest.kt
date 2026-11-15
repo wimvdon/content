@@ -178,4 +178,18 @@ class NewsletterAddressesTest {
         val blog = Feed(url = "https://blog.example/feed.xml", title = "Blog")
         assertNull(NewsletterAddresses.sender(blog, Article(blog.url, "1", "Post", null, "Bo", "", null, 0, authorUrl = "https://bo.example")))
     }
+
+    @Test
+    fun `a newsletter with its sender's icon gets an envelope badge, nothing else does`() {
+        val newsletters = Feed(url = feedOf("k7q2m9abcdef"), title = "Newsletters")
+        val sender = Feed(url = "https://weekly.example", title = "The Weekly", iconUrl = "https://weekly.example/favicon.ico")
+        assertTrue(NewsletterAddresses.hasEnvelopeBadge(newsletters, sender))
+        // The envelope is the icon already.
+        assertFalse(NewsletterAddresses.hasEnvelopeBadge(newsletters, newsletters.copy(title = "The Weekly")))
+        assertFalse(NewsletterAddresses.hasEnvelopeBadge(newsletters, newsletters))
+        // RSS feeds: no badge.
+        val blog = Feed(url = "https://blog.example/feed.xml", title = "Blog")
+        assertFalse(NewsletterAddresses.hasEnvelopeBadge(blog, blog))
+        assertFalse(NewsletterAddresses.hasEnvelopeBadge(null, null))
+    }
 }

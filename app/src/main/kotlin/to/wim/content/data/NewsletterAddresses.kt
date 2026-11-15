@@ -41,6 +41,16 @@ object NewsletterAddresses {
      * takes from their address (worker `senderSite`). Without a website (emails from before
      * 2026-11-15) it keeps the envelope. Null for any other feed, or when the sender is unknown.
      */
+    /**
+     * Whether [shown], what stands in for [feed], gets a small envelope on its icon: a newsletter
+     * shown with its sender's website icon, so it still reads as a newsletter. Not when the icon is
+     * the envelope already, and never for RSS feeds, which are most of the list.
+     */
+    fun hasEnvelopeBadge(
+        feed: Feed?,
+        shown: Feed?,
+    ): Boolean = isNewsletterFeed(feed?.url) && shown != null && !isNewsletterFeed(shown.url)
+
     fun sender(
         feed: Feed?,
         article: Article,

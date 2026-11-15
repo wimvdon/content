@@ -5,8 +5,20 @@ import type { Feed } from "@/lib/library";
 import { cn } from "./ui/cn";
 
 /** The website's icon on a light tile (like the Android app), or the feed's first letter. */
-export function FeedIcon({ feed, className = "size-5" }: { feed: Feed | undefined; className?: string }) {
+export function FeedIcon({ feed, className = "size-5", envelopeBadge = false }: { feed: Feed | undefined; className?: string; envelopeBadge?: boolean }) {
   const [failed, setFailed] = useState(false);
+  // A newsletter shown with its sender's icon (hasEnvelopeBadge): a small envelope on the corner,
+  // so it still reads as a newsletter.
+  if (envelopeBadge) {
+    return (
+      <span className={cn("relative inline-flex shrink-0", className)}>
+        <FeedIcon feed={feed} className="size-full" />
+        <span className="absolute -right-1 -bottom-1 inline-flex size-[60%] min-h-2.5 min-w-2.5 items-center justify-center rounded-sm bg-secondary text-secondary-foreground ring-1 ring-background" aria-hidden="true">
+          <Mail className="size-[75%]" />
+        </span>
+      </span>
+    );
+  }
   const letter = (feed?.title.trim()[0] ?? "?").toUpperCase();
   // A newsletter address (newsletterAddresses.ts): an envelope, so it reads as an email address everywhere.
   if (codeOfFeed(feed?.url)) {

@@ -927,7 +927,7 @@ private fun MetaLine(
             ) {
                 // A newsletter shows who sent it, with their website's icon.
                 val shown = NewsletterAddresses.sender(feed, article) ?: feed
-                FeedIcon(shown, FeedIconSize.Small)
+                FeedIcon(shown, FeedIconSize.Small, envelopeBadge = NewsletterAddresses.hasEnvelopeBadge(feed, shown))
                 Text(
                     text = shown.title,
                     style = MaterialTheme.typography.labelMedium,

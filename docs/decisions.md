@@ -17,6 +17,9 @@ reader, on Android and the web.
 - **The icon** is the site's `/favicon.ico`, as for a saved article from a website you don't follow;
   no home page is loaded to look for a better one, since every newsletter would need its own.
   A newsletter sent through a platform (substack.com, for one) shows the platform's icon.
+- **An envelope badge** on the sender's icon (the owner's request) keeps a newsletter recognisable
+  in a mixed list. RSS feeds get no badge of their own: they are most of the list, so a mark on
+  every row would say nothing; only the exception is marked.
 - **Rejected:** a Google or DuckDuckGo favicon service (a third party would see every sender);
   showing the sender next to "Newsletters" (the feed's name says nothing in a feed of only
   newsletters).
