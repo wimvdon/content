@@ -157,6 +157,9 @@ data class Library(
 ) {
     fun feed(url: String): Feed? = feeds.firstOrNull { it.url == url }
 
+    /** The names of the feeds at `urls` (a refresh's failures), in the library's order, for the message that names them. */
+    fun feedTitles(urls: Collection<String>): List<String> = feeds.filter { it.url in urls }.map { it.title }
+
     /**
      * A feed's tag mirrors its folder (#186): feeds are grouped in folders, as in OPML, and the Feed
      * tab's chips filter on that tag. A feed in a folder has the folder's name as its only tag, a

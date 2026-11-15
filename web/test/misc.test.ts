@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { feedLinks, findFeed, normalizeUrl, substackPublication } from "../src/lib/discovery";
 import { searchIcons, parseIcons } from "../src/lib/icons";
-import { emptyLibrary, articlesFor, articlesInTab, feedTabOf, reorderFeedsIn, moveFeedInto, setRead, removeFolder, addFolder, addFeed, newFeed, moveFeed, renameFeed, mergeFeed, reorder, unreadKeys, selectionForUnread, removeFeed, sameSelection, MAX_ARTICLES_PER_FEED, READ_MARKS_KEPT_MS, moveWithinFolder, chipTag, choosesFolder, feedTags } from "../src/lib/library";
+import { emptyLibrary, articlesFor, articlesInTab, feedTabOf, reorderFeedsIn, moveFeedInto, setRead, removeFolder, addFolder, addFeed, newFeed, moveFeed, renameFeed, mergeFeed, reorder, unreadKeys, selectionForUnread, removeFeed, sameSelection, MAX_ARTICLES_PER_FEED, READ_MARKS_KEPT_MS, moveWithinFolder, chipTag, choosesFolder, feedTags, feedTitles } from "../src/lib/library";
 import { importOpml, parseOpml, writeOpml } from "../src/lib/opml";
 import { FetchError } from "../src/lib/proxy";
 import { sanitizeArticle } from "../src/lib/sanitize";
@@ -50,6 +50,12 @@ describe("discovery", () => {
 });
 
 describe("library", () => {
+  it("names the feeds a refresh couldn't reach, in the library's order", () => {
+    const lib = addFeed(addFeed(emptyLibrary(), newFeed("https://a/feed", "A")), newFeed("https://b/feed", "B"));
+    expect(feedTitles(lib, ["https://b/feed", "https://a/feed", "https://gone"])).toEqual(["A", "B"]);
+    expect(feedTitles(lib, [])).toEqual([]);
+  });
+
   it("handles folders, renames, read state and the Unread filter", () => {
     let lib = addFolder(emptyLibrary(), { id: "f", title: " News ", icon: "folder" });
     lib = addFeed(lib, newFeed("a", "A"));

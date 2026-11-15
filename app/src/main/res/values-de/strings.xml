@@ -203,8 +203,8 @@
         <item quantity="other">%d Feeds hinzugefügt</item>
     </plurals>
     <plurals name="refresh_failed">
-        <item quantity="one">%d Feed konnte nicht aktualisiert werden</item>
-        <item quantity="other">%d Feeds konnten nicht aktualisiert werden</item>
+        <item quantity="one">%1$d Feed konnte nicht aktualisiert werden: %2$s</item>
+        <item quantity="other">%1$d Feeds konnten nicht aktualisiert werden: %2$s</item>
     </plurals>
     <plurals name="home_subtitle_unread">
         <item quantity="one">%d ungelesen</item>

@@ -40,6 +40,12 @@ data class FeedChips(
     /** Whether feed [feedUrl]'s own chip is chosen: the feed picked, not one of its senders. */
     fun feedChosen(feedUrl: String): Boolean = feedUrl == chosenFeed && chosenSender == null
 
+    /**
+     * Whether feed `feedUrl` gets a chip of its own: not a newsletter feed with senders, which shows
+     * its senders instead (the Newsletters chip would only repeat them), unless it is the one chosen.
+     */
+    fun showsFeedChip(feedUrl: String): Boolean = sendersOf(feedUrl).isEmpty() || feedChosen(feedUrl)
+
     /** The topic chips the row shows: all [topics], or only the chosen one (in its own spelling). */
     val rowTopics: List<String>
         get() = chosenTopic?.let { chosen -> listOf(topics.firstOrNull { it.equals(chosen, ignoreCase = true) } ?: chosen) } ?: topics

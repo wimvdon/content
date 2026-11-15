@@ -6,7 +6,7 @@ import { useListedLibrary, useSenderRules } from "./useListed";
 import { mutedSender, senderChips, senderFeed, senderOfArticle, senderSelection, shownSender, type SenderRule } from "@/lib/newsletterSenders";
 import { snippet } from "@/lib/html";
 import { dayLabel, plural, t } from "@/lib/i18n";
-import { articleKey, articlesInTab, chipTag, feedTabOf, sameSelection, showsUnreadDot, sortTime, unreadByFeed, unreadKeys, type Article, type Feed, type Selection } from "@/lib/library";
+import { articleKey, articlesInTab, chipTag, feedTabOf, feedTitles, sameSelection, showsUnreadDot, sortTime, unreadByFeed, unreadKeys, type Article, type Feed, type Selection } from "@/lib/library";
 import { chipTags, isPlainFilter, itemArticle, noteOf, savedItems, showsLiked, showsNewsletters, showsNotes, sourceOf, withoutChips, type NoteContent } from "@/lib/saved";
 import { hasUnreadNewsletter } from "@/lib/newsletters";
 import { hasEnvelopeBadge, isNewsletterFeed } from "@/lib/newsletterAddresses";
@@ -19,7 +19,7 @@ import { useShare } from "./useShare";
 import { arrivedAbove, scrolledPast } from "@/lib/scrollRead";
 import { FeedIcon } from "./FeedIcon";
 import { EmailLinkForm } from "./Dialogs";
-import { feedChipRow, sendersOf, topicIcons } from "@/lib/topics";
+import { feedChipRow, sendersOf, showsFeedChip, topicIcons } from "@/lib/topics";
 import { FolderIcon } from "./FolderIcon";
 import { Button } from "./ui/button";
 import { cn } from "./ui/cn";
@@ -217,12 +217,13 @@ function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport,
                 row.chosenTopic !== null
                   ? feedChipList(row.feeds, chosenFeedOnly, (f, on) => app.select(on ? { kind: "tag", tag: row.chosenTopic! } : { kind: "feed", feedUrl: f.url }), feedDot, showAddress, (f) =>
                       senderChipsAfter(f, { kind: "tag", tag: row.chosenTopic! }),
+                      (f) => showsFeedChip(row, f.url),
                     )
-                  : feedChipList(row.loose, chosenFeedOnly, (f, on) => app.select(on ? { kind: "all" } : { kind: "feed", feedUrl: f.url }), feedDot, showAddress, (f) => senderChipsAfter(f, { kind: "all" }))
+                  : feedChipList(row.loose, chosenFeedOnly, (f, on) => app.select(on ? { kind: "all" } : { kind: "feed", feedUrl: f.url }), feedDot, showAddress, (f) => senderChipsAfter(f, { kind: "all" }), (f) => showsFeedChip(row, f.url))
               }
             />
           ) : null}
-          {problems.size > 0 ? <p className="px-4 pb-1 text-xs text-destructive">{plural("feedsFailed", problems.size)}</p> : null}
+          {problems.size > 0 ? <p className="px-4 pb-1 text-xs text-destructive">{plural("feedsFailed", problems.size).replace("{names}", feedTitles(library, problems.keys()).join(", "))}</p> : null}
         </>
       ) : null}
       </CollapsingHeader>
@@ -705,9 +706,11 @@ function feedChipList(
   onShowAddress?: (feed: Feed) => void,
   /** What follows a feed's chip: a newsletter feed's senders. */
   trailing: (feed: Feed) => React.ReactNode = () => null,
+  /** Whether a feed gets its own chip: a newsletter feed with senders shows only those. */
+  shows: (feed: Feed) => boolean = () => true,
 ): React.ReactNode {
   if (list.length === 0) return null;
-  return list.flatMap((f) => [feedChip(f), <Fragment key={`${f.url} after`}>{trailing(f)}</Fragment>]);
+  return list.flatMap((f) => [shows(f) ? feedChip(f) : null, <Fragment key={`${f.url} after`}>{trailing(f)}</Fragment>]);
   function feedChip(f: Feed): React.ReactNode {
     const on = f.url === chosen;
     const chip = (

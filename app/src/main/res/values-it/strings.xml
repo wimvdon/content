@@ -208,9 +208,9 @@
         <item quantity="other">%d feed aggiunti</item>
     </plurals>
     <plurals name="refresh_failed">
-        <item quantity="one">Impossibile aggiornare %d feed</item>
-        <item quantity="many">Impossibile aggiornare %d feed</item>
-        <item quantity="other">Impossibile aggiornare %d feed</item>
+        <item quantity="one">Impossibile aggiornare %1$d feed: %2$s</item>
+        <item quantity="many">Impossibile aggiornare %1$d feed: %2$s</item>
+        <item quantity="other">Impossibile aggiornare %1$d feed: %2$s</item>
     </plurals>
     <plurals name="home_subtitle_unread">
         <item quantity="one">%d non letto</item>

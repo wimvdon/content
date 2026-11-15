@@ -154,6 +154,12 @@ class FeedChipsTest {
         assertTrue(FeedChips.of(all, folders, topics, FeedSelection.Single(letters.url), senders = senders).feedChosen(letters.url))
         // A feed's only sender gets a chip of its own too.
         assertEquals(senders.take(1), FeedChips.of(all, folders, topics, FeedSelection.Tagged("News"), senders = senders.take(1)).senders)
+        // A newsletter feed with senders shows them instead of its own chip, unless it is the one chosen.
+        assertFalse(topic.showsFeedChip(letters.url))
+        assertTrue(topic.showsFeedChip(bbc.url))
+        assertTrue(FeedChips.of(all, folders, topics, FeedSelection.Tagged("News")).showsFeedChip(letters.url))
+        assertTrue(FeedChips.of(all, folders, topics, FeedSelection.Single(letters.url), senders = senders).showsFeedChip(letters.url))
+        assertFalse(picked.showsFeedChip(letters.url))
         assertEquals(senders.take(1), FeedChips.of(all, folders, topics, FeedSelection.Sender(letters.url, "bozar.be"), senders = senders.take(1)).senders)
     }
 }

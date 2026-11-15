@@ -26,7 +26,7 @@ import {
   type SenderRule,
 } from "../src/lib/newsletterSenders";
 import { NO_TAG } from "../src/lib/newsletterAddresses";
-import { feedChipRow, sendersOf } from "../src/lib/topics";
+import { feedChipRow, sendersOf, showsFeedChip } from "../src/lib/topics";
 
 const feedUrl = "https://w.example/newsletters/k7q2m9abcdef/0123456789abcdef0123456789abcdef";
 const feed: Feed = { url: feedUrl, title: "Newsletters", siteUrl: null, folderId: "1", iconUrl: null, renamed: true, tags: ["News"] };
@@ -167,6 +167,13 @@ describe("newsletter senders, as on Android", () => {
     expect(picked.feeds).toHaveLength(2);
     // A feed's only sender gets a chip of its own too.
     expect(feedChipRow(library, "all", { kind: "tag", tag: "News" }, senders.slice(0, 1)).senders).toEqual(senders.slice(0, 1));
+    // A newsletter feed with senders shows them instead of its own chip, unless it is the one chosen.
+    const tagged = feedChipRow(library, "all", { kind: "tag", tag: "News" }, senders);
+    expect(showsFeedChip(tagged, feedUrl)).toBe(false);
+    expect(showsFeedChip(tagged, rss.url)).toBe(true);
+    expect(showsFeedChip(feedChipRow(library, "all", { kind: "tag", tag: "News" }), feedUrl)).toBe(true);
+    expect(showsFeedChip(one, feedUrl)).toBe(true);
+    expect(showsFeedChip(picked, feedUrl)).toBe(false);
     expect(feedChipRow(library, "all", senderSelection(senders[0]), senders.slice(0, 1)).senders).toEqual(senders.slice(0, 1));
   });
 });

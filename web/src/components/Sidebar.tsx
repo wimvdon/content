@@ -77,12 +77,13 @@ export function Sidebar({ onSettings }: { onSettings: () => void }) {
   /** Feeds' filters: All feeds, the topics with something in the view shown (a topic's feeds while you are in it), then the feeds without a topic, as on Android. */
   function feedFilters() {
     const { topics, loose } = sidebarFeeds(library, feedTabOf(settings.unreadOnly), selection);
-    // Under a newsletter feed, its senders, each a row of its own like a feed (as Android's chips).
+    // In a newsletter feed's place, its senders, each a row of its own like a feed (as Android's
+    // chips); the feed's own row only while it has none, or is the one chosen.
+    const sendersIn = (feedUrl: string) => senders.filter((s) => s.feedUrl === feedUrl);
     const senderRows = (feedUrl: string) =>
-      senders
-        .filter((s) => s.feedUrl === feedUrl)
+      sendersIn(feedUrl)
         .map((sender) => (
-          <div key={`${sender.feedUrl} ${sender.key}`} className="pl-6">
+          <div key={`${sender.feedUrl} ${sender.key}`}>
             <Row
               selected={selection.kind === "sender" && selection.feedUrl === sender.feedUrl && selection.key === sender.key}
               onClick={() => app.select(senderSelection(sender))}
@@ -93,7 +94,8 @@ export function Sidebar({ onSettings }: { onSettings: () => void }) {
           </div>
         ));
     const feedRow = (feed: (typeof library.feeds)[number]) => (
-      <div key={feed.url}>
+      <div key={feed.url} className="space-y-0.5">
+        {sendersIn(feed.url).length === 0 || (selection.kind === "feed" && selection.feedUrl === feed.url) ? (
         <Row
           selected={selection.kind === "feed" && selection.feedUrl === feed.url}
           onClick={() => app.select({ kind: "feed", feedUrl: feed.url })}
@@ -101,6 +103,7 @@ export function Sidebar({ onSettings }: { onSettings: () => void }) {
           label={feed.title}
           count={counts.get(feed.url) ?? 0}
         />
+        ) : null}
         {senderRows(feed.url)}
       </div>
     );

@@ -115,6 +115,12 @@ export function feedFoldersToTags(lib: Library): Library {
   };
 }
 
+/** The names of the feeds at `urls` (a refresh's failures), in the library's order, for the message that names them. */
+export function feedTitles(lib: Library, urls: Iterable<string>): string[] {
+  const wanted = new Set(urls);
+  return lib.feeds.filter((f) => wanted.has(f.url)).map((f) => f.title);
+}
+
 export function newFeed(url: string, title: string): Feed {
   return { url, title: title || url, siteUrl: null, folderId: null, iconUrl: null, renamed: false };
 }

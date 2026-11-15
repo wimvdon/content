@@ -373,13 +373,16 @@ fun HomeScreen(
                             // tapping one shows it alone, tapping it again goes [back] (its topic, or everything).
                             val feedChip: @Composable (Feed, FeedSelection) -> Unit = { feed, back ->
                                 val on = chips.feedChosen(feed.url)
-                                FeedChip(
-                                    feed,
-                                    on,
-                                    feedDot(feed),
-                                    onLongClick = newsletterAddressOf(feed),
-                                    longClickLabel = showAddressLabel.takeIf { NewsletterAddresses.isNewsletterFeed(feed.url) },
-                                ) { actions.onSelect(if (on) back else FeedSelection.Single(feed.url)) }
+                                // A newsletter feed with senders: only its senders, each a chip of its own.
+                                if (chips.showsFeedChip(feed.url)) {
+                                    FeedChip(
+                                        feed,
+                                        on,
+                                        feedDot(feed),
+                                        onLongClick = newsletterAddressOf(feed),
+                                        longClickLabel = showAddressLabel.takeIf { NewsletterAddresses.isNewsletterFeed(feed.url) },
+                                    ) { actions.onSelect(if (on) back else FeedSelection.Single(feed.url)) }
+                                }
                                 chips.sendersOf(feed.url).forEach { sender ->
                                     val chosen = sender.key == chips.chosenSender && feed.url == chips.chosenFeed
                                     FeedChip(

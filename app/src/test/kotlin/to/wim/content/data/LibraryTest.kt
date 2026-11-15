@@ -30,6 +30,13 @@ class LibraryTest {
             .merge(b, parsed(item("1", 200)), now = 1_000)
 
     @Test
+    fun `the feeds a refresh couldn't reach are named in the library's order`() {
+        val library = Library().addFeed(Feed(a, "A")).addFeed(Feed(b, "B"))
+        assertEquals(listOf("A", "B"), library.feedTitles(setOf(b, a, "https://gone")))
+        assertTrue(library.feedTitles(emptySet()).isEmpty())
+    }
+
+    @Test
     fun `adding a feed twice keeps one`() {
         assertEquals(1, Library().addFeed(Feed(a, "A")).addFeed(Feed(a, "Again")).feeds.size)
     }
