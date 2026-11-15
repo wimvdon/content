@@ -202,6 +202,8 @@ object ArticleBlocks {
         val width = attrs["width"]?.toIntOrNull()
         val height = attrs["height"]?.toIntOrNull()
         if ((width != null && width <= 2) || (height != null && height <= 2)) return null
+        // A picture of 0 or 1 pixel by its style is a pixel too (mail platforms' open tracking).
+        if (EmailCleanup.isPixelStyle(attrs["style"])) return null
         val candidate =
             largestFromSrcset(attrs["srcset"] ?: attrs["data-srcset"])
                 ?: attrs["data-src"]
@@ -272,7 +274,27 @@ object ArticleBlocks {
     }
 
     /** Parts of addresses that belong to tracking pixels and share buttons, not pictures. */
-    private val TRACKERS = listOf("feeds.feedburner.com/~r/", "/~ff/", "stats.wordpress.com", "pixel.wp.com", "/pixel.", "doubleclick.net")
+    private val TRACKERS =
+        listOf(
+            "feeds.feedburner.com/~r/",
+            "/~ff/",
+            "stats.wordpress.com",
+            "pixel.wp.com",
+            "/pixel.",
+            "doubleclick.net",
+            // Mail platforms' open tracking (2026-11-15): addresses that only count that an email was opened.
+            "list-manage.com/track",
+            "/track/open",
+            "mandrillapp.com/track",
+            "sendgrid.net/wf/open",
+            "eotrx.substackcdn.com",
+            "beehiiv.com/ss/o/",
+            "open.convertkit-mail",
+            "pstmrk.it/open",
+            "customeriomail.com/e/o/",
+            "hubspotemail.net/e2t/o/",
+            "/o.gif",
+        )
 
     private fun sameText(
         block: ArticleBlock.Text,

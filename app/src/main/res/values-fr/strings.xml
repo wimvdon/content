@@ -19,6 +19,7 @@
     <string name="action_mark_all_read">Tout marquer comme lu</string>
     <string name="action_mark_unread">Marquer comme non lu</string>
     <string name="action_open_in_browser">Ouvrir dans le navigateur</string>
+    <string name="action_show_original_email">Afficher l’e-mail d’origine</string>
     <string name="action_share">Partager</string>
     <string name="feeds_title">Flux</string>
     <string name="home_tab_feed">Flux</string>

@@ -12,6 +12,24 @@ articles kept before carry them; the feed's links change at the next refresh. Re
 longer offered for a newsletter in either app, since its report is a public GitHub issue with the
 article's link and text.
 
+## 2026-11-15: Newsletters without the email chrome; mail platforms' tracking pixels blocked
+
+Newsletters showed the email's own clutter: "View in browser" lines, the hidden preview text
+(which showed up as a line of text) and spacer pictures. For articles of a Newsletters feed only,
+`EmailCleanup` (Android) and `emailCleanup.ts` (web) take those out before the reader makes its
+blocks, with identical rules and tests on both sides: a view-in-browser link near the top, elements
+hidden by their inline style and spacer pictures. It is deliberately conservative (weak signs of
+hiding only count for short plain text; an element that is never closed stays), because dropping real
+text is worse than leaving a spacer. Rejected: a general HTML "readability" pass (it would drop
+real content of unusual emails) and applying this to ordinary RSS articles (their markup is not
+email markup). Since the link of such an article is the email page itself, **Open in browser** is
+renamed **Show original email** for newsletters (no extra entry): it is how to see everything the
+clean-up left out. Pictures of mail platforms' open tracking (Mailchimp, Mandrill, SendGrid, Substack,
+beehiiv, ConvertKit, Postmark, Customer.io, HubSpot, `/track/open`, `/o.gif`) and pictures whose
+style makes them 0 or 1 pixel are no longer loaded, in any article: fewer requests to those
+platforms, nothing lost. Only patterns that are tracking-only were added; Substack's `substack.com/o/`
+and Mailgun's `email.mg.` were left out as not certain enough.
+
 ## 2026-11-15: Older newsletters get their sender's website too
 
 The owner asked for the senders to apply to newsletters that came in before. Those were kept

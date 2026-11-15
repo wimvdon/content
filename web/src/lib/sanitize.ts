@@ -1,5 +1,6 @@
 import DOMPurify from "dompurify";
 import { EMBED_SERVICES, embedFor, postQuotesToFrames, statedHeight, videoEmbed, type Embed } from "./embeds";
+import { cleanEmail, isPixelStyle } from "./emailCleanup";
 import { t, type Key } from "./i18n";
 import { candidateSize, parseSrcset, type SrcsetCandidate } from "./srcset";
 
@@ -8,9 +9,12 @@ import { candidateSize, parseSrcset, type SrcsetCandidate } from "./srcset";
  * embeds become a card (clicking one with a player loads it in its place, see `playEmbed`; the
  * others open in a new tab); links open
  * in a new tab without telling the site where they came from; pictures load lazily and only over
- * https. With `showImages` off (Settings), pictures and embed previews are left out.
+ * https. With `showImages` off (Settings), pictures and embed previews are left out. A newsletter
+ * (`newsletter`, 2026-11-15) first loses the email's own chrome (`cleanEmail`).
  */
-export function sanitizeArticle(html: string, baseUrl: string, showImages = true): string {
+export function sanitizeArticle(html: string, baseUrl: string, showImages = true, newsletter = false): string {
+  // Styles are removed below, so a picture that is 0 or 1 pixel by its style (a tracking pixel) goes first.
+  html = withoutStylePixels(newsletter ? cleanEmail(html) : html);
   // An iframe's fallback content never shows, and with markup in it DOMPurify drops the whole
   // iframe (and so its card).
   // Posts written for a service's script (Bluesky, Mastodon, Threads, Reddit) become their iframes.
@@ -55,7 +59,34 @@ export function sanitizeArticle(html: string, baseUrl: string, showImages = true
 export const SMALL_IMAGE = 48;
 
 /** Parts of addresses that belong to tracking pixels and share buttons, not pictures (as on Android). */
-const TRACKERS = ["feeds.feedburner.com/~r/", "/~ff/", "stats.wordpress.com", "pixel.wp.com", "/pixel.", "doubleclick.net"];
+const TRACKERS = [
+  "feeds.feedburner.com/~r/",
+  "/~ff/",
+  "stats.wordpress.com",
+  "pixel.wp.com",
+  "/pixel.",
+  "doubleclick.net",
+  // Mail platforms' open tracking (2026-11-15): addresses that only count that an email was opened.
+  "list-manage.com/track",
+  "/track/open",
+  "mandrillapp.com/track",
+  "sendgrid.net/wf/open",
+  "eotrx.substackcdn.com",
+  "beehiiv.com/ss/o/",
+  "open.convertkit-mail",
+  "pstmrk.it/open",
+  "customeriomail.com/e/o/",
+  "hubspotemail.net/e2t/o/",
+  "/o.gif",
+];
+
+/** Pictures whose inline style makes them 0 or 1 pixel wide or high are tracking pixels (as on Android). */
+function withoutStylePixels(html: string): string {
+  return html.replace(/<img\b[^>]*>/gi, (tag) => {
+    const style = /\bstyle\s*=\s*(?:"([^"]*)"|'([^']*)')/i.exec(tag);
+    return style && isPixelStyle(style[1] ?? style[2] ?? "") ? "" : tag;
+  });
+}
 
 /**
  * A picture fit to show, or removed: the largest version a lazy-loading page offers (like the
