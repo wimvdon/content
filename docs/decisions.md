@@ -2,6 +2,17 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-15: Older newsletters get their sender's website too
+
+The owner asked for the senders to apply to newsletters that came in before. Those were kept
+with the sender's name only, so the feed loader now looks for the website of each once, when the
+feed is loaded: the address if the name was one, else the website the email links to most,
+leaving out mailing services and social networks. What it finds is stored, and only 10 emails are
+done per load, to stay within the free plan's CPU time per request. Looking it up at every load
+was rejected for that same CPU time; a separate one-off script was rejected because the inboxes
+are encrypted Durable Objects that only the worker can open. A guess can be wrong (a newsletter
+that mostly links to a partner); the user can then combine or rename the sender in the apps.
+
 ## 2026-11-15: Each newsletter sender is a source of its own
 
 The owner's request: filtering on a newsletter feed hid each newsletter's sender, while that feed

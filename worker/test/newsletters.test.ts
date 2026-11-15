@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Account, accountIdOf, addDeviceKey, type Storage } from "../src/account";
 import { handle, type Env } from "../src/index";
-import { KEEP, KEEP_DAYS, MAX_HTML_CHARS, NewsletterInbox, addressOf, atomFeed, cleanTagHash, codeOf, emailOf, feedToken, newCode, receiveEmail, senderSite, type IncomingEmail } from "../src/newsletters";
+import { BACKFILL_PER_LOAD, KEEP, KEEP_DAYS, MAX_HTML_CHARS, NewsletterInbox, addressOf, atomFeed, cleanTagHash, codeOf, emailOf, feedToken, guessSite, newCode, receiveEmail, senderSite, type IncomingEmail } from "../src/newsletters";
 
 const APP = "https://app.example";
 const MASTER = "a-test-master-key-of-at-least-32-characters";
@@ -203,6 +203,68 @@ describe("an inbox", () => {
   it("names the sender's website in the feed, when known", () => {
     const feed = atomFeed("k7q2m9abcdef", "https://w.example/f", [{ id: "0123456789abcdef", at: 0, from: "The Weekly", site: "https://weekly.example", subject: "S", html: "" }], 0);
     expect(feed).toContain("<author><name>The Weekly</name><uri>https://weekly.example</uri></author>");
+  });
+});
+
+describe("the website of an email kept before senders had one", () => {
+  it("takes the sender's address when the name was one", () => {
+    expect(guessSite({ from: "events@mail.bozar.be", html: "" })).toBe("https://bozar.be");
+    expect(guessSite({ from: "Bozar <events@bozar.be>", html: "" })).toBe("https://bozar.be");
+  });
+
+  it("else takes the website the email links to most, leaving out mailing services and social networks", () => {
+    const html = `
+      <a href="https://www.bozar.be/en/calendar">Calendar</a>
+      <a href='https://tickets.bozar.be/buy'>Tickets</a>
+      <a href="https://partner.example/x">Partner</a>
+      <a href="https://bozar.us1.list-manage.com/track/click?u=1">Tracked</a>
+      <a href="https://bozar.us1.list-manage.com/track/click?u=2">Tracked</a>
+      <a href="https://bozar.us1.list-manage.com/unsubscribe">Unsubscribe</a>
+      <a href="https://www.facebook.com/bozar">Facebook</a>
+      <a href="https://www.instagram.com/bozar">Instagram</a>
+      <a href="https://www.instagram.com/bozar2">Instagram</a>`;
+    expect(guessSite({ from: "Bozar", html })).toBe("https://bozar.be");
+  });
+
+  it("finds none from a single link, or from links to mailing services only", () => {
+    expect(guessSite({ from: "Bozar", html: '<a href="https://bozar.be">Site</a>' })).toBeNull();
+    expect(guessSite({ from: "Bozar", html: '<a href="https://x.list-manage.com/a">a</a><a href="https://x.list-manage.com/b">b</a>' })).toBeNull();
+    expect(guessSite({ from: "", html: "" })).toBeNull();
+  });
+
+  it("is looked for once per email, a few per feed load, and kept", async () => {
+    let now = 1_000 * DAY;
+    const storage = new MemoryStorage();
+    const inbox = new NewsletterInbox(storage, MASTER, "k7q2m9abcdef", () => now);
+    await inbox.create("owner");
+    const html = '<p><a href="https://www.bozar.be/a">a</a> <a href="https://www.bozar.be/b">b</a></p>';
+    const count = BACKFILL_PER_LOAD + 2;
+    for (let i = 0; i < count; i++) {
+      now += 1000;
+      // A sender with a name but no address: as every email was kept before 2026-11-15.
+      await inbox.receive(new TextEncoder().encode(rawEmail({ subject: `Issue ${i}`, from: "Bozar", html })));
+    }
+    const first = await inbox.emails();
+    expect(first.filter((e) => e.site === "https://bozar.be").length).toBe(BACKFILL_PER_LOAD);
+    expect(first.slice(BACKFILL_PER_LOAD).every((e) => !e.site && !e.siteGuessed)).toBe(true);
+    const second = await inbox.emails();
+    expect(second.every((e) => e.site === "https://bozar.be" && e.siteGuessed)).toBe(true);
+    // Kept: the feed names the website, and an email's page reads the same.
+    expect(atomFeed("k7q2m9abcdef", "https://w.example/f", second, now)).toContain("<uri>https://bozar.be</uri>");
+    expect(await inbox.email(second[0].id)).toEqual(second[0]);
+  });
+
+  it("is not looked for again when none was found", async () => {
+    const storage = new MemoryStorage();
+    const inbox = new NewsletterInbox(storage, MASTER, "k7q2m9abcdef");
+    await inbox.create("owner");
+    await inbox.receive(new TextEncoder().encode(rawEmail({ from: "Someone", html: "<p>No links</p>" })));
+    const [email] = await inbox.emails();
+    expect(email.site).toBeUndefined();
+    expect(email.siteGuessed).toBe(true);
+    const stored = [...storage.map.entries()].find(([k]) => k.startsWith("m:"))![1];
+    await inbox.emails();
+    expect([...storage.map.entries()].find(([k]) => k.startsWith("m:"))![1]).toEqual(stored);
   });
 });
 
