@@ -173,6 +173,17 @@ class AccountClient(
             ?: throw SyncException(SyncProblem.ServerError)
     }
 
+    /**
+     * Get a new address (2026-11-15): newsletter address [code] (its tag's) gets a new email address;
+     * the one it had still takes mail for 14 days. Same code, same feed, so the library stays as it is.
+     */
+    suspend fun renewNewsletter(code: String): NewsletterAddress {
+        val body = Json.write(mapOf("code" to code)).toRequestBody(JSON_TYPE)
+        return call(request("/account/newsletters/new").post(body).build()) { _, text -> NewsletterAddresses.of(runCatching { Json.parse(text) }.getOrNull()) }
+            ?.takeIf { it.code == code }
+            ?: throw SyncException(SyncProblem.ServerError)
+    }
+
     /** Removes the newsletter address [code]: it stops taking mail and its emails are deleted. Gone already is fine. */
     suspend fun deleteNewsletter(code: String) {
         call(request("/account/newsletters?code=$code").delete().build(), alsoOk = 404) { _, _ -> }

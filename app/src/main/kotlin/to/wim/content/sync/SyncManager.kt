@@ -378,6 +378,9 @@ class SyncManager(
         emailId: String,
     ): NewsletterUnsubscribe.Answer? = runCatching { NewsletterUnsubscriber(http).unsubscribe(feedUrl, emailId) }.getOrNull()
 
+    /** Get a new address for newsletter address [code] (its old one takes mail for 14 more days); null when signed out or it failed. */
+    suspend fun renewNewsletter(code: String): NewsletterAddress? = accountKey()?.let { key -> runCatching { AccountClient(http, key).renewNewsletter(code) }.getOrNull() }
+
     suspend fun deleteNewsletter(code: String) {
         accountKey()?.let { key -> runCatching { AccountClient(http, key).deleteNewsletter(code) } }
     }

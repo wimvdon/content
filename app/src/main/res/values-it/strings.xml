@@ -416,6 +416,12 @@
     <string name="newsletter_unsubscribe_done">Iscrizione a %1$s annullata</string>
     <string name="newsletter_unsubscribe_none">%1$s non offre qui l\'annullamento dell\'iscrizione. Apri la sua email più recente per trovare il link.</string>
     <string name="newsletter_unsubscribe_failed">Impossibile annullare l\'iscrizione. Riprova più tardi.</string>
+    <string name="newsletter_new_address">Ottieni un nuovo indirizzo</string>
+    <string name="newsletter_new_address_title">Ottenere un nuovo indirizzo?</string>
+    <string name="newsletter_new_address_body">Il tuo indirizzo attuale continua a funzionare per 14 giorni, così puoi aggiornare le iscrizioni. Dopo, le email inviate a questo indirizzo vengono rifiutate.</string>
+    <string name="newsletter_new_address_confirm">Nuovo indirizzo</string>
+    <string name="newsletter_old_address_until">Il tuo vecchio indirizzo funziona fino al %1$s.</string>
+    <string name="newsletter_new_address_failed">Impossibile ottenere un nuovo indirizzo. Riprova più tardi.</string>
     <string name="newsletter_none_yet">Ancora nessuna newsletter</string>
     <string name="newsletter_copied">Copiato</string>
     <plurals name="newsletter_count">

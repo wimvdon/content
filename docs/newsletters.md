@@ -98,6 +98,22 @@ any article: unread, Mark all as read, the chips' dots, the reader and Search al
   pop-up because the answer took a while, a message with **Open**); `{mailto}` opens a new email;
   `{none}` says the sender offers none here and to open its newest email; a failure says it
   couldn't. Only https pages and `mailto:` links are opened (`answerOf`).
+- **Get a new address** (2026-11-15, for an address that leaks to spam): a quiet text button under
+  the address on the Newsletter feed page (Android `AddressCard`, the web's `AddressActions`) asks
+  first (Android an AlertDialog, the web a popup dialog: "Your current address keeps working for 14
+  days, …") and then POSTs the address's code to `/account/newsletters/new` (Android
+  `AccountClient.renewNewsletter`, the web's `renewNewsletter`). The answer is the same address
+  (same `code`, same `feedUrl`) with its new `address` and `oldUntil`; the page puts it in its list
+  (`NewsletterAddresses.withRenewed`, the web's `withRenewed`), and the library needs no change:
+  the Newsletters feed, its newsletters and their read state stay. While the old address still
+  takes mail, the page says "Your old address works until <date>."
+  (`NewsletterAddresses.oldAddressUntil`, the web's `oldAddressUntil`). A failure says so.
+- **Unread and saved newsletters stay** (2026-11-15): the apps keep the 200 newest articles of a
+  feed (`MAX_ARTICLES_PER_FEED`), also those the feed no longer lists. In a Newsletters feed they
+  also keep every unread newsletter and every one the user kept (Saved, liked, tagged, a note or a
+  highlight; `Library.keptBeyondCap`, the web's `keptBeyondCap`): once the feed loader has let the
+  email go (100 per address, 90 days), the app's copy is the only one. RSS feeds keep only the 200
+  newest: their articles are web pages, and a busy feed would grow without end.
 - **Removing a tag** removes its Newsletters feed (`Library.removeFolder`, the web's `removeTopic`)
   and its address (`DELETE /account/newsletters`). An address whose tag is gone otherwise (merged
   into another tag, or removed while offline) is removed a day after it was made
@@ -148,8 +164,21 @@ any article: unread, Mark all as read, the chips' dots, the reader and Search al
   configured.
 - **The account:** `GET /account/newsletters` lists the addresses (`{code, tagHash, address,
   feedUrl, createdAt}`), `POST` with `{"tagHash"}` (null: No tag) gives that tag's address, made the
-  first time (201) or the one it has (200), at most 200; `DELETE ?code=` removes one and its emails;
-  deleting the account deletes them all.
+  first time (201) or the one it has (200), at most 200; `DELETE ?code=` removes one and its emails
+  (and every code it had); deleting the account deletes them all.
+- **A new address** (2026-11-15): `POST /account/newsletters/new` with `{"code"}` (signed in, an
+  address of this account; else 404). An address's `code` names its inbox and its feed and never
+  changes; the account's list also keeps, per address, `receiving` (the code mail goes to now) and
+  `old` (`[{code, until}]`). The route makes a new code, a Durable Object `newsletter:<new>` that
+  holds only its owner and `forward` (the inbox's code), stores it as `receiving` with the code mail
+  went to so far in `old` until now + 14 days (`OLD_ADDRESS_DAYS`), and tells that code's object
+  `until` (`nlRetire`). Receiving: a forwarding code answers `{forward}`, and the Worker hands the
+  email to that inbox (`X-Forwarded`, so it is kept even when the inbox's own first code has
+  stopped); a code past its `until` refuses mail ("Unknown address"), and a forwarding one then
+  forgets itself. The inbox keeps its emails and feed whatever its own code does. Codes that have
+  stopped are wiped at the next new address. At most 5 old addresses can still take mail at once
+  (`MAX_OLD_ADDRESSES`, 429 after that). The list shows `address` from `receiving` and `oldUntil`
+  (the latest `until` still ahead), never the old codes.
 - **CPU:** the Workers Free plan gives 10 ms of CPU per request. Receiving only parses the email
   (`postal-mime`) and stores it, inside the inbox's Durable Object. A very large newsletter could
   still go over; the Workers Paid plan lifts the limit.

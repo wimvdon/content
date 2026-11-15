@@ -16,6 +16,7 @@
  *  - GET    /account/live    a WebSocket that says {"version": n, "items": m} whenever the document
  *                            or the items change
  *  - GET, POST, DELETE /account/newsletters  newsletter addresses (newsletters.ts)
+ *  - POST /account/newsletters/new           a tag's new newsletter address (newsletters.ts)
  *  - POST   /account/signout forgets this device's key
  *  - DELETE /account         deletes the document and every device key
  *
@@ -93,7 +94,7 @@ export async function handleAccount(request: Request, env: Env, url: URL): Promi
   let body: string | undefined;
   // Newsletter addresses (newsletters.ts) are made with this Worker's address in their feed's.
   if (route.startsWith("nl")) headers.set("X-Origin", url.origin);
-  if (route === "write" || route === "writeItems" || route === "writeText" || route === "nlCreate") {
+  if (route === "write" || route === "writeItems" || route === "writeText" || route === "nlCreate" || route === "nlRenew") {
     body = await request.text();
     const limit = route === "write" ? MAX_DOCUMENT_BYTES + 1024 : route === "writeText" ? MAX_TEXT_BODY : MAX_ITEMS_BODY;
     if (body.length > limit) return plain(413, "Too large", cors);
@@ -107,9 +108,9 @@ export async function handleAccount(request: Request, env: Env, url: URL): Promi
   return new Response(answer.body, { status: answer.status, headers: out });
 }
 
-const KNOWN_PATHS = ["/account", "/account/sync", "/account/items", "/account/texts", "/account/live", "/account/signout", "/account/newsletters"];
+const KNOWN_PATHS = ["/account", "/account/sync", "/account/items", "/account/texts", "/account/live", "/account/signout", "/account/newsletters", "/account/newsletters/new"];
 
-type Route = "read" | "write" | "items" | "writeItems" | "readText" | "writeText" | "live" | "signout" | "delete" | "nlList" | "nlCreate" | "nlDelete";
+type Route = "read" | "write" | "items" | "writeItems" | "readText" | "writeText" | "live" | "signout" | "delete" | "nlList" | "nlCreate" | "nlRenew" | "nlDelete";
 
 function routeOf(method: string, path: string): Route | null {
   if (path === "/account/sync") return method === "GET" ? "read" : method === "PUT" ? "write" : null;
@@ -117,6 +118,7 @@ function routeOf(method: string, path: string): Route | null {
   if (path === "/account/texts") return method === "GET" ? "readText" : method === "POST" ? "writeText" : null;
   if (path === "/account/live") return method === "GET" ? "live" : null;
   if (path === "/account/signout") return method === "POST" ? "signout" : null;
+  if (path === "/account/newsletters/new") return method === "POST" ? "nlRenew" : null;
   if (path === "/account/newsletters") return method === "GET" ? "nlList" : method === "POST" ? "nlCreate" : method === "DELETE" ? "nlDelete" : null;
   if (path === "/account") return method === "DELETE" ? "delete" : null;
   return null;
@@ -745,7 +747,7 @@ export class Account {
       return account ? new Response(JSON.stringify({ account }), { headers: { "Content-Type": "application/json" } }) : plain(404, "No account");
     }
     // This account's newsletter addresses (newsletters.ts).
-    if (route === "nlList" || route === "nlCreate" || route === "nlDelete") {
+    if (route === "nlList" || route === "nlCreate" || route === "nlRenew" || route === "nlDelete") {
       if (!(await this.data.knows(request.headers.get("X-Secret") ?? ""))) return plain(401, "Sign in again");
       return addressesAnswer(this.state.storage, this.env, accountId, route, request);
     }

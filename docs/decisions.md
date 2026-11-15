@@ -2,6 +2,24 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-15: Get a new newsletter address; unread and saved newsletters stay
+
+An address that leaks to spam can be replaced, in both apps: **Get a new address** under it, after a
+confirmation. The feed loader keeps the tag's inbox and feed (its `code` and feed URL never change)
+and only changes the code mail arrives at: the new code is a small Durable Object that forwards to
+the inbox, and the old one keeps taking mail for 14 days, then refuses it. So the apps need no feed
+swap, and read state, senders' choices and Saved stay as they are. Rejected: a new inbox with its
+emails moved (a copy of encrypted emails, a new feed URL in every library, and the article keys,
+which hold the code, would change, losing read marks); deriving codes from a per-tag generation
+number (an old code couldn't be told apart from a guessed one without storing it anyway). At most 5
+old addresses take mail at once, so the route can't make objects without end.
+
+The apps keep the 200 newest articles per feed. In a Newsletters feed they now also keep every
+unread newsletter and every one the user kept (Saved, liked, tagged, a note, a highlight): the feed
+loader keeps only 100 emails per address for 90 days, so the app's copy can be the only one left.
+RSS feeds keep the plain cap: their articles are web pages, and a busy feed would grow without end.
+The feed loader's own cap is unchanged: the apps keep what leaves its feed.
+
 ## 2026-11-15: Unsubscribe from a newsletter, done by the feed loader
 
 A sender's page and the reader's ⋮ for a newsletter get **Unsubscribe**, in both apps. The owner

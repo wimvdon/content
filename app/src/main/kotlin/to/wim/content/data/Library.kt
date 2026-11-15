@@ -278,9 +278,24 @@ data class Library(
     }
 
     /**
+     * Which articles of feed [feedUrl] stay past [MAX_ARTICLES_PER_FEED] (2026-11-15): in a
+     * newsletter feed, the unread ones and the ones the user kept (Saved, liked, tagged, a note or a
+     * highlight). A newsletter has no copy elsewhere once its email has left the feed loader (KEEP,
+     * KEEP_DAYS), so dropping it would lose it. Other feeds keep their newest [MAX_ARTICLES_PER_FEED]
+     * only: their articles are web pages, and a busy feed would otherwise grow without end.
+     */
+    fun keptBeyondCap(feedUrl: String): (Article) -> Boolean {
+        if (!NewsletterAddresses.isNewsletterFeed(feedUrl)) return { false }
+        val keptIds = items.filter { it.feedUrl == feedUrl && it.articleId != null && it.kept }.mapTo(HashSet()) { it.articleId }
+        val keptLinks = items.filter { it.kept }.mapTo(HashSet()) { it.key }
+        return { !it.read || it.id in keptIds || ItemKeys.of(it.link) in keptLinks }
+    }
+
+    /**
      * Applies a freshly downloaded copy of a feed: new articles are added as unread, known ones
      * get the new title and text but keep their read state. Articles that left the feed are
-     * kept, up to [MAX_ARTICLES_PER_FEED] per feed (the newest ones). New articles in
+     * kept, up to [MAX_ARTICLES_PER_FEED] per feed (the newest ones; in a newsletter feed also the
+     * unread and saved ones, [keptBeyondCap]). New articles in
      * [readElsewhere] (read on another device) arrive as read, and read ones that no longer fit
      * keep their mark there (#157): leaving this device doesn't make them unread elsewhere. Marks
      * older than [READ_MARKS_KEPT_MS] go, and articles that old the feed lists are read (#317).
@@ -314,10 +329,11 @@ data class Library(
                 )
             }
         val kept = existing.values.filter { it.id !in seen }
+        val keeps = keptBeyondCap(feedUrl)
         val feedArticles =
             (incoming + kept)
                 .sortedByDescending { it.sortTime }
-                .take(MAX_ARTICLES_PER_FEED)
+                .filterIndexed { i, article -> i < MAX_ARTICLES_PER_FEED || keeps(article) }
         val updatedFeed =
             feed.copy(
                 title = if (feed.renamed) feed.title else parsed.title.ifBlank { feed.title },

@@ -55,6 +55,15 @@ feeds: both come and go with their tag. Removing a tag removes its address (mail
 refused) and its Newsletters feed; its confirmation says so. Content keeps the newsletters in your
 account, see PRIVACY.md. Without an account, the page offers **Sign in**.
 
+**Get a new address.** When an address gets spam, tap **Get a new address** under it and confirm.
+The tag gets a new address at once; its Newsletters feed and the newsletters in it stay as they are.
+The old address keeps working for 14 days, so you can change it at the newsletters you want to keep
+(the page says until when); after that, mail to it is refused.
+
+Unread and saved newsletters stay: a Newsletters feed keeps every newsletter you haven't read yet
+and every one you saved (or liked, tagged, noted or highlighted), even past the 200 newest a feed
+keeps and after the feed loader no longer has the email.
+
 **Senders.** A Newsletters feed mixes many newsletters, so each sender is a source of its own.
 Filtering on the Newsletters feed with its chip keeps each newsletter's sender visible, and its
 senders follow it as chips: tap one to see only that sender, tap it again for the whole feed.

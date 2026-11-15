@@ -20,6 +20,24 @@ class NewsletterAddressesTest {
     private val news = Folder("topic:news", "News")
 
     @Test
+    fun `after Get a new address, the new address takes the old one's place and the old one shows until it stops`() {
+        val feed = feedOf("aaaaaaaaaaaa")
+        val answer = mapOf("code" to "aaaaaaaaaaaa", "tagHash" to null, "address" to "content+cccccccccccc@in.wim.to", "feedUrl" to feed, "createdAt" to 5.0, "oldUntil" to 1000.0)
+        val renewed = NewsletterAddresses.of(answer)!!
+        assertEquals(1000L, renewed.oldUntil)
+        assertNull(NewsletterAddresses.of(answer - "oldUntil")!!.oldUntil)
+        val first = address("aaaaaaaaaaaa", "1")
+        val other = address("bbbbbbbbbbbb", null)
+        val list = NewsletterAddresses.withRenewed(listOf(first, other), renewed)
+        assertEquals(listOf(renewed, other), list)
+        // Same code and feed: the library's Newsletters feed stays as it is.
+        assertEquals(first.feedUrl, list[0].feedUrl)
+        assertEquals(1000L, NewsletterAddresses.oldAddressUntil(renewed, 999))
+        assertNull(NewsletterAddresses.oldAddressUntil(renewed, 1000))
+        assertNull(NewsletterAddresses.oldAddressUntil(first, 0))
+    }
+
+    @Test
     fun `a newsletter email's page is recognised, by its own link and by the old one`() {
         val id = "0123456789abcdef"
         assertTrue(NewsletterAddresses.isNewsletterEmail("https://w.example/newsletters/k7q2m9abcdef/e/$id/${"b".repeat(32)}"))

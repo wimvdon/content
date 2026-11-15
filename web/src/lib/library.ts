@@ -1,6 +1,7 @@
 import { senderKeyOf } from "./senderKey";
 import type { ParsedFeed } from "./feedParser";
-import type { Item } from "./items";
+import { isKept, keyOfLink, type Item } from "./items";
+import { isNewsletterFeed } from "./newsletterAddresses";
 
 /**
  * The user's feeds, folders and articles, and the items on the reading list or in Bookmarks
@@ -226,9 +227,23 @@ export function removeFolder(lib: Library, id: string): Library {
 }
 
 /**
+ * Which articles of feed `feedUrl` stay past MAX_ARTICLES_PER_FEED (2026-11-15): in a newsletter
+ * feed, the unread ones and the ones the user kept (Saved, liked, tagged, a note or a highlight). A
+ * newsletter has no copy elsewhere once its email has left the feed loader (KEEP, KEEP_DAYS), so
+ * dropping it would lose it. Other feeds keep their newest MAX_ARTICLES_PER_FEED only: their
+ * articles are web pages, and a busy feed would otherwise grow without end. As on Android.
+ */
+export function keptBeyondCap(lib: Library, feedUrl: string): (a: Article) => boolean {
+  if (!isNewsletterFeed(feedUrl)) return () => false;
+  const keptIds = new Set(lib.items.filter((i) => i.feedUrl === feedUrl && i.articleId !== null && isKept(i)).map((i) => i.articleId));
+  const keptLinks = new Set(lib.items.filter(isKept).map((i) => i.key));
+  return (a) => !a.read || keptIds.has(a.id) || keptLinks.has(keyOfLink(a.link) ?? "");
+}
+
+/**
  * Applies a fresh download of a feed: new articles arrive unread (or read when another device read
  * them, readElsewhere), known ones keep their read state; at most MAX_ARTICLES_PER_FEED newest are
- * kept. Read ones that no longer fit keep their mark in readElsewhere (#157): leaving this browser
+ * kept, and in a newsletter feed also the unread and saved ones (keptBeyondCap). Read ones that no longer fit keep their mark in readElsewhere (#157): leaving this browser
  * doesn't make them unread elsewhere. Marks older than READ_MARKS_KEPT_MS go, and articles that old
  * the feed lists are read (#317).
  */
@@ -260,7 +275,8 @@ export function mergeFeed(lib: Library, feedUrl: string, parsed: ParsedFeed, now
     });
   }
   const kept = [...existing.values()].filter((a) => !seen.has(a.id));
-  const feedArticles = [...incoming, ...kept].sort((a, b) => sortTime(b) - sortTime(a)).slice(0, MAX_ARTICLES_PER_FEED);
+  const keeps = keptBeyondCap(lib, feedUrl);
+  const feedArticles = [...incoming, ...kept].sort((a, b) => sortTime(b) - sortTime(a)).filter((a, i) => i < MAX_ARTICLES_PER_FEED || keeps(a));
   const updated: Feed = {
     ...feed,
     title: feed.renamed ? feed.title : parsed.title.trim() || feed.title,

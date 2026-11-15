@@ -342,6 +342,12 @@ const en = {
   newsletterUnsubscribeDone: "Unsubscribed from {name}",
   newsletterUnsubscribeNone: "{name} doesn't offer unsubscribe here. Open its newest email to find the link.",
   newsletterUnsubscribeFailed: "Couldn't unsubscribe. Try again later.",
+  newsletterNewAddress: "Get a new address",
+  newsletterNewAddressTitle: "Get a new address?",
+  newsletterNewAddressBody: "Your current address keeps working for 14 days, so you can update your subscriptions. After that, mail to it is refused.",
+  newsletterNewAddressConfirm: "Get new address",
+  newsletterOldAddressUntil: "Your old address works until {date}.",
+  newsletterNewAddressFailed: "Couldn't get a new address. Try again later.",
   newsletterUnsubscribeOpen: "Unsubscribe from {name} on its own page",
   newsletterCopied: "Copied",
   newsletters: "Newsletters",
@@ -648,6 +654,12 @@ const nl: Pack = {
     newsletterUnsubscribeDone: "Uitgeschreven bij {name}",
     newsletterUnsubscribeNone: "{name} biedt hier geen uitschrijving aan. Open de nieuwste e-mail om de link te vinden.",
     newsletterUnsubscribeFailed: "Uitschrijven lukte niet. Probeer het later opnieuw.",
+    newsletterNewAddress: "Nieuw adres aanvragen",
+    newsletterNewAddressTitle: "Nieuw adres aanvragen?",
+    newsletterNewAddressBody: "Je huidige adres blijft 14 dagen werken, zodat je je abonnementen kunt aanpassen. Daarna wordt e-mail naar dat adres geweigerd.",
+    newsletterNewAddressConfirm: "Nieuw adres",
+    newsletterOldAddressUntil: "Je oude adres werkt tot {date}.",
+    newsletterNewAddressFailed: "Kon geen nieuw adres krijgen. Probeer het later opnieuw.",
     newsletterUnsubscribeOpen: "Schrijf je uit bij {name} op de eigen pagina",
     newsletterCopied: "Gekopieerd",
   },
@@ -942,6 +954,12 @@ const fr: Pack = {
     newsletterUnsubscribeDone: "Désabonné de {name}",
     newsletterUnsubscribeNone: "{name} ne propose pas de désabonnement ici. Ouvrez son dernier e-mail pour trouver le lien.",
     newsletterUnsubscribeFailed: "Désabonnement impossible. Réessayez plus tard.",
+    newsletterNewAddress: "Obtenir une nouvelle adresse",
+    newsletterNewAddressTitle: "Obtenir une nouvelle adresse ?",
+    newsletterNewAddressBody: "Votre adresse actuelle reste active pendant 14 jours, le temps de mettre à jour vos abonnements. Ensuite, les e-mails qui lui sont envoyés sont refusés.",
+    newsletterNewAddressConfirm: "Nouvelle adresse",
+    newsletterOldAddressUntil: "Votre ancienne adresse fonctionne jusqu'au {date}.",
+    newsletterNewAddressFailed: "Impossible d'obtenir une nouvelle adresse. Réessayez plus tard.",
     newsletterUnsubscribeOpen: "Désabonnez-vous de {name} sur sa propre page",
     newsletterCopied: "Copiée",
   },
@@ -1236,6 +1254,12 @@ const de: Pack = {
     newsletterUnsubscribeDone: "{name} abbestellt",
     newsletterUnsubscribeNone: "{name} bietet hier kein Abbestellen an. Öffne die neueste E-Mail, um den Link zu finden.",
     newsletterUnsubscribeFailed: "Abbestellen hat nicht geklappt. Versuche es später noch einmal.",
+    newsletterNewAddress: "Neue Adresse anfordern",
+    newsletterNewAddressTitle: "Neue Adresse anfordern?",
+    newsletterNewAddressBody: "Deine aktuelle Adresse funktioniert noch 14 Tage, damit du deine Abos ändern kannst. Danach werden E-Mails an sie abgelehnt.",
+    newsletterNewAddressConfirm: "Neue Adresse",
+    newsletterOldAddressUntil: "Deine alte Adresse funktioniert bis {date}.",
+    newsletterNewAddressFailed: "Keine neue Adresse erhalten. Versuche es später erneut.",
     newsletterUnsubscribeOpen: "{name} auf der eigenen Seite abbestellen",
     newsletterCopied: "Kopiert",
   },
@@ -1530,6 +1554,12 @@ const es: Pack = {
     newsletterUnsubscribeDone: "Te has dado de baja de {name}",
     newsletterUnsubscribeNone: "{name} no ofrece darse de baja aquí. Abre su correo más reciente para encontrar el enlace.",
     newsletterUnsubscribeFailed: "No se pudo dar de baja. Inténtalo más tarde.",
+    newsletterNewAddress: "Obtener una dirección nueva",
+    newsletterNewAddressTitle: "¿Obtener una dirección nueva?",
+    newsletterNewAddressBody: "Tu dirección actual sigue funcionando 14 días, para que puedas actualizar tus suscripciones. Después, el correo enviado a ella se rechaza.",
+    newsletterNewAddressConfirm: "Nueva dirección",
+    newsletterOldAddressUntil: "Tu dirección anterior funciona hasta el {date}.",
+    newsletterNewAddressFailed: "No se pudo obtener una dirección nueva. Inténtalo más tarde.",
     newsletterUnsubscribeOpen: "Date de baja de {name} en su propia página",
     newsletterCopied: "Copiada",
   },
@@ -1824,6 +1854,12 @@ const it: Pack = {
     newsletterUnsubscribeDone: "Iscrizione a {name} annullata",
     newsletterUnsubscribeNone: "{name} non offre qui l'annullamento dell'iscrizione. Apri la sua email più recente per trovare il link.",
     newsletterUnsubscribeFailed: "Impossibile annullare l'iscrizione. Riprova più tardi.",
+    newsletterNewAddress: "Ottieni un nuovo indirizzo",
+    newsletterNewAddressTitle: "Ottenere un nuovo indirizzo?",
+    newsletterNewAddressBody: "Il tuo indirizzo attuale continua a funzionare per 14 giorni, così puoi aggiornare le iscrizioni. Dopo, le email inviate a questo indirizzo vengono rifiutate.",
+    newsletterNewAddressConfirm: "Nuovo indirizzo",
+    newsletterOldAddressUntil: "Il tuo vecchio indirizzo funziona fino al {date}.",
+    newsletterNewAddressFailed: "Impossibile ottenere un nuovo indirizzo. Riprova più tardi.",
     newsletterUnsubscribeOpen: "Annulla l'iscrizione a {name} sulla sua pagina",
     newsletterCopied: "Copiato",
   },
@@ -1878,6 +1914,11 @@ export function dayLabel(day: string): string {
   if (diff === 0) return t("today");
   if (diff === 1) return t("yesterday");
   return date.toLocaleDateString(language, { weekday: "long", day: "numeric", month: "long", year: date.getFullYear() === today.getFullYear() ? undefined : "numeric" });
+}
+
+/** A day, in full: "29 November 2026". */
+export function formatDate(ms: number): string {
+  return new Date(ms).toLocaleDateString(language, { day: "numeric", month: "long", year: "numeric" });
 }
 
 export function formatDateTime(ms: number): string {

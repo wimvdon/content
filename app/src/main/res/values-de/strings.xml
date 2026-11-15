@@ -404,6 +404,12 @@
     <string name="newsletter_unsubscribe_done">%1$s abbestellt</string>
     <string name="newsletter_unsubscribe_none">%1$s bietet hier kein Abbestellen an. Öffne die neueste E-Mail, um den Link zu finden.</string>
     <string name="newsletter_unsubscribe_failed">Abbestellen hat nicht geklappt. Versuche es später noch einmal.</string>
+    <string name="newsletter_new_address">Neue Adresse anfordern</string>
+    <string name="newsletter_new_address_title">Neue Adresse anfordern?</string>
+    <string name="newsletter_new_address_body">Deine aktuelle Adresse funktioniert noch 14 Tage, damit du deine Abos ändern kannst. Danach werden E-Mails an sie abgelehnt.</string>
+    <string name="newsletter_new_address_confirm">Neue Adresse</string>
+    <string name="newsletter_old_address_until">Deine alte Adresse funktioniert bis %1$s.</string>
+    <string name="newsletter_new_address_failed">Keine neue Adresse erhalten. Versuche es später erneut.</string>
     <string name="newsletter_none_yet">Noch keine Newsletter</string>
     <string name="newsletter_copied">Kopiert</string>
     <plurals name="newsletter_count">

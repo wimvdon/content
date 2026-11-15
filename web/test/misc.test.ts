@@ -10,6 +10,7 @@ import { embedFor, embedOf, postQuotesToFrames, statedHeight, videoEmbed, VERTIC
 import { heightFromMessage, playAll, playEmbed } from "../src/lib/embedPlayer";
 import { needsFullText, touch, wantsFullText } from "../src/lib/fullArticle";
 import { articleKey, type Article } from "../src/lib/library";
+import { addToReadingList, keyOfLink, setReadingState } from "../src/lib/items";
 import { defaultReaderStyle, MAX_TEXT_SIZE, MIN_TEXT_SIZE, pageBackground, readerStyleOf, withTextSize } from "../src/lib/readerStyle";
 import { arrivedAbove, scrolledPast } from "../src/lib/scrollRead";
 import { pageClass } from "../src/components/readerPage";
@@ -104,6 +105,29 @@ describe("read marks that leave this browser (#157)", () => {
     lib = mergeFeed(lib, "a", { title: "A", siteUrl: null, items: items(...many) }, 2000);
     expect(lib.articles.some((x) => x.id === "old")).toBe(false);
     expect(lib.readElsewhere).toEqual({ "a old": 1 });
+  });
+  it("keeps a newsletter feed's unread and saved newsletters past the cap, but not read ones or other feeds' (2026-11-15)", () => {
+    const newsletters = "https://w.example/newsletters/aaaaaaaaaaaa/0123456789abcdef0123456789abcdef";
+    const page = (id: string) => `https://w.example/newsletters/aaaaaaaaaaaa/e/${id.padEnd(16, "0")}/${"b".repeat(32)}`;
+    const many = Array.from({ length: MAX_ARTICLES_PER_FEED }, (_, i) => [`n${i}`, 100 + i] as [string, number]);
+    for (const [url, newsletter] of [[newsletters, true], ["a", false]] as const) {
+      let lib = addFeed(emptyLibrary(), newFeed(url, "Newsletters"));
+      const old = items(["unread", 1], ["saved", 2], ["read", 3]).map((x) => ({ ...x, link: page(x.id === "saved" ? "5a" : x.id === "read" ? "3e" : "1a") }));
+      lib = mergeFeed(lib, url, { title: "N", siteUrl: null, items: old }, 1000);
+      lib = setRead(lib, new Set([`${url} saved`, `${url} read`]), true);
+      lib = addToReadingList(lib, page("5a"), "Saved one", 1000)[0];
+      // The feed loader no longer lists them, and many newer ones came.
+      lib = mergeFeed(lib, url, { title: "N", siteUrl: null, items: items(...many) }, 2000);
+      const ids = lib.articles.map((x) => x.id);
+      expect(ids.includes("unread")).toBe(newsletter);
+      expect(ids.includes("saved")).toBe(newsletter);
+      expect(ids.includes("read")).toBe(false);
+      expect(ids.filter((id) => id.startsWith("n")).length).toBe(MAX_ARTICLES_PER_FEED);
+      // Once read and taken out of Saved, the next refresh lets it go.
+      lib = setReadingState(setRead(lib, new Set([`${url} unread`]), true), keyOfLink(page("5a"))!, null);
+      lib = mergeFeed(lib, url, { title: "N", siteUrl: null, items: items(...many) }, 3000);
+      expect(lib.articles.length).toBe(MAX_ARTICLES_PER_FEED);
+    }
   });
   it("drops marks older than the sync keeps", () => {
     const day = 24 * 60 * 60 * 1000;
