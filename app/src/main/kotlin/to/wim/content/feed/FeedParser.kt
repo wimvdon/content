@@ -31,6 +31,8 @@ data class ParsedItem(
     val publishedAt: Long?,
     /** The article's picture, shown as list thumbnail and reader hero image. */
     val imageUrl: String? = null,
+    /** The author's website (Atom's author uri): a newsletter's sender, whose icon the apps show. */
+    val authorUrl: String? = null,
 )
 
 /** The document is not an RSS or Atom feed (for example a web page). */
@@ -190,6 +192,7 @@ object FeedParser {
                     html = html,
                     publishedAt = date,
                     imageUrl = itemImage(entry, html, link ?: entryBase),
+                    authorUrl = entry.child("author", atomNamespaces)?.childText("uri", atomNamespaces),
                 )
             }
         return ParsedFeed(

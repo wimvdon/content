@@ -47,11 +47,13 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const CODE_ALPHABET = "abcdefghijkmnpqrstuvwxyz23456789";
 const CODE_PATTERN = /^[a-z0-9]{12}$/;
 
-/** One email as kept: its id, when it arrived, who sent it, its subject and its HTML. */
+/** One email as kept: its id, when it arrived, who sent it (and their website), its subject and its HTML. */
 export interface NewsletterEmail {
   id: string;
   at: number;
   from: string;
+  /** The sender's website, from their address's domain ("https://example.com"); missing in emails kept before 2026-11-15. */
+  site?: string;
   subject: string;
   html: string;
 }
@@ -202,9 +204,27 @@ export class NewsletterInbox {
 export async function emailOf(raw: ArrayBuffer | Uint8Array, now: number): Promise<NewsletterEmail> {
   const parsed = await PostalMime.parse(raw, { attachmentEncoding: "base64" });
   const from = parsed.from?.name?.trim() || parsed.from?.address?.trim() || "";
+  const site = senderSite(parsed.from?.address);
   const html = parsed.html?.trim() ? parsed.html : textAsHtml(parsed.text ?? "");
   const id = [...crypto.getRandomValues(new Uint8Array(8))].map((b) => b.toString(16).padStart(2, "0")).join("");
-  return { id, at: now, from, subject: parsed.subject?.trim() ?? "", html: html.length > MAX_HTML_CHARS ? html.slice(0, MAX_HTML_CHARS) : html };
+  return { id, at: now, from, ...(site ? { site } : {}), subject: parsed.subject?.trim() ?? "", html: html.length > MAX_HTML_CHARS ? html.slice(0, MAX_HTML_CHARS) : html };
+}
+
+/** Second-level labels under a country's domain that are still public, as in example.co.uk. */
+const PUBLIC_SECOND_LEVEL = new Set(["co", "com", "net", "org", "gov", "edu", "ac", "ne", "or", "go"]);
+
+/**
+ * The website an email comes from: its sender's domain without the mail subdomain
+ * (news@email.example.com → https://example.com; hi@example.co.uk → https://example.co.uk), so the
+ * apps can show that site's icon. Null when the address has no usable domain.
+ */
+export function senderSite(address: string | null | undefined): string | null {
+  const domain = address?.trim().toLowerCase().split("@").pop() ?? "";
+  if (!address?.includes("@") || !/^[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(domain)) return null;
+  const labels = domain.split(".");
+  const tld = labels[labels.length - 1];
+  const keep = labels.length >= 3 && tld.length === 2 && PUBLIC_SECOND_LEVEL.has(labels[labels.length - 2]) ? 3 : 2;
+  return `https://${labels.slice(-keep).join(".")}`;
 }
 
 function textAsHtml(text: string): string {
@@ -231,7 +251,7 @@ export function atomFeed(code: string, feedUrl: string, emails: NewsletterEmail[
     <link rel="alternate" type="text/html" href="${escapeXml(`${feedUrl}/${e.id}`)}"/>
     <published>${iso(e.at)}</published>
     <updated>${iso(e.at)}</updated>
-    <author><name>${escapeXml(e.from || "Newsletter")}</name></author>
+    <author><name>${escapeXml(e.from || "Newsletter")}</name>${e.site ? `<uri>${escapeXml(e.site)}</uri>` : ""}</author>
     <content type="html">${escapeXml(e.html)}</content>
   </entry>`,
     )

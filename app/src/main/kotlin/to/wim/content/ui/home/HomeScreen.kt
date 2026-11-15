@@ -110,6 +110,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.foundation.layout.widthIn
 import to.wim.content.data.Article
 import to.wim.content.data.Feed
+import to.wim.content.data.NewsletterAddresses
 import to.wim.content.data.Folder
 import to.wim.content.data.Item
 import to.wim.content.data.Saved
@@ -924,9 +925,11 @@ private fun MetaLine(
                         .weight(1f, fill = false)
                         .then(if (onFeedClick != null) Modifier.clip(CircleShape).clickable(role = Role.Button, onClick = onFeedClick) else Modifier),
             ) {
-                FeedIcon(feed, FeedIconSize.Small)
+                // A newsletter shows who sent it, with their website's icon.
+                val shown = NewsletterAddresses.sender(feed, article) ?: feed
+                FeedIcon(shown, FeedIconSize.Small)
                 Text(
-                    text = feed.title,
+                    text = shown.title,
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary,
                     maxLines = 1,

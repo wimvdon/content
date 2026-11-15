@@ -33,6 +33,28 @@ object NewsletterAddresses {
 
     fun isNewsletterFeed(url: String?): Boolean = codeOfFeed(url) != null
 
+    private val SITE = Regex("""^https://([a-z0-9-]+(\.[a-z0-9-]+)+)/?$""", RegexOption.IGNORE_CASE)
+
+    /**
+     * Who sent [article] of newsletter feed [feed], shown in its place (in the list and the reader):
+     * the sender's name, and the icon (`/favicon.ico`) of the sender's website, which the feed loader
+     * takes from their address (worker `senderSite`). Without a website (emails from before
+     * 2026-11-15) it keeps the envelope. Null for any other feed, or when the sender is unknown.
+     */
+    fun sender(
+        feed: Feed?,
+        article: Article,
+    ): Feed? {
+        if (feed == null || !isNewsletterFeed(feed.url)) return null
+        val name = article.author?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+        val host = article.authorUrl?.trim()?.let { SITE.matchEntire(it) }?.groupValues?.get(1)?.lowercase()
+        return if (host == null) {
+            feed.copy(title = name)
+        } else {
+            Feed(url = "https://$host", title = name, iconUrl = "https://$host/favicon.ico", folderId = feed.folderId)
+        }
+    }
+
     /** How the feed loader knows a tag: the SHA-256 of its id, in hex (a tag's id can hold its name). Null: No tag. */
     fun tagHash(tagId: String?): String? =
         tagId?.let { id -> MessageDigest.getInstance("SHA-256").digest(id.toByteArray()).joinToString("") { "%02x".format(it) } }

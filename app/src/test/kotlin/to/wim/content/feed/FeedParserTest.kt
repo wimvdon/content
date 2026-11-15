@@ -119,6 +119,28 @@ class FeedParserTest {
         assertEquals("Bo", entry.author)
         assertEquals("<p>Hi <a href=\"x\">there</a></p>", entry.html)
         assertEquals(1_704_164_645_000L, entry.publishedAt)
+        assertNull(entry.authorUrl)
+    }
+
+    @Test
+    fun `reads an Atom entry's author website`() {
+        val feed =
+            parse(
+                """
+                <feed xmlns="http://www.w3.org/2005/Atom">
+                  <title>Newsletters</title>
+                  <entry>
+                    <id>urn:x:1</id>
+                    <title>Issue 1</title>
+                    <author><name>The Weekly</name><uri>https://weekly.example</uri></author>
+                    <content type="html">&lt;p&gt;Hi&lt;/p&gt;</content>
+                  </entry>
+                </feed>
+                """.trimIndent(),
+            )
+        val entry = feed.items.single()
+        assertEquals("The Weekly", entry.author)
+        assertEquals("https://weekly.example", entry.authorUrl)
     }
 
     @Test

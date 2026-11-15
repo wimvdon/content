@@ -35,6 +35,8 @@ export interface Article {
   fetchedAt: number;
   read: boolean;
   imageUrl: string | null;
+  /** The author's website, if the feed names it: a newsletter's sender (newsletterAddresses.ts, senderOf). */
+  authorUrl?: string | null;
 }
 
 export interface Library {
@@ -246,6 +248,7 @@ export function mergeFeed(lib: Library, feedUrl: string, parsed: ParsedFeed, now
       // one that already came back is read at the next refresh.
       read: (old?.read ?? keyOf(feedUrl, item.id) in lib.readElsewhere) || (published !== null && published < now - READ_MARKS_KEPT_MS),
       imageUrl: item.imageUrl ?? old?.imageUrl ?? null,
+      authorUrl: item.authorUrl ?? null,
     });
   }
   const kept = [...existing.values()].filter((a) => !seen.has(a.id));

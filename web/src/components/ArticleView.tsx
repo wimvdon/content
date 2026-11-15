@@ -26,6 +26,7 @@ import { cn } from "./ui/cn";
 import { Dialog } from "./ui/dialog";
 import { useEscape } from "./ui/useEscape";
 import { kindOf } from "@/lib/feedKinds";
+import { senderOf } from "@/lib/newsletterAddresses";
 
 /** The full article for one address: loaded, or failed and why (no answer yet means it is loading). */
 type Full = { link: string; html: string | null; blocked?: boolean };
@@ -51,6 +52,8 @@ export function ArticleView({
   const saved = found?.readingList ? found : null;
   const site = hostOf(article.link);
   const feed = fromSaved ? (saved ? sourceOf(saved, library) : site ? siteOf(site) : undefined) : library.feeds.find((f) => f.url === article.feedUrl);
+  // A newsletter shows who sent it, with their website's icon, in the feed's place.
+  const sender = senderOf(feed, article);
   const current = library.articles.find((a) => articleKey(a) === articleKey(article)) ?? article;
   const link = article.link;
   // A newsletter feed's article is the whole newsletter: never the website's text.
@@ -227,8 +230,9 @@ export function ArticleView({
       <div ref={page} className={cn("min-h-0 flex-1 overflow-y-auto bg-background text-foreground", pageClass(style, appDark))}>
         <div className="mx-auto max-w-2xl px-5 pt-8 pb-16">
           <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
-            <FeedIcon feed={feed} className="size-5" />
-            <span className="truncate font-medium text-foreground">{feed?.title}</span>
+            {/* A newsletter shows who sent it, with their website's icon. */}
+            <FeedIcon feed={sender ?? feed} className="size-5" />
+            <span className="truncate font-medium text-foreground">{(sender ?? feed)?.title}</span>
             <span aria-hidden="true">·</span>
             <time dateTime={new Date(sortTime(article)).toISOString()}>{formatDateTime(sortTime(article))}</time>
           </div>
@@ -242,7 +246,7 @@ export function ArticleView({
               article.title
             )}
           </h1>
-          {article.author ? <p className="mt-2 text-sm text-muted-foreground">{article.author}</p> : null}
+          {article.author && !sender ? <p className="mt-2 text-sm text-muted-foreground">{article.author}</p> : null}
           {/* A saved article: + Note (without a note) and its highlights, as on Android; the note
               below, clicked to edit. Its tags are the toolbar's Tags button. */}
           {saved ? (
