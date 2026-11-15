@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Account, accountIdOf, addDeviceKey, type Storage } from "../src/account";
 import { handle, type Env } from "../src/index";
-import { KEEP, KEEP_DAYS, MAX_HTML_CHARS, NewsletterInbox, addressOf, atomFeed, cleanTagHash, codeOf, emailOf, feedToken, newCode, receiveEmail, type IncomingEmail } from "../src/newsletters";
+import { KEEP, KEEP_DAYS, MAX_HTML_CHARS, NewsletterInbox, addressOf, atomFeed, cleanTagHash, codeOf, emailOf, feedToken, newCode, receiveEmail, senderSite, type IncomingEmail } from "../src/newsletters";
 
 const APP = "https://app.example";
 const MASTER = "a-test-master-key-of-at-least-32-characters";
@@ -134,7 +134,7 @@ describe("codes and addresses", () => {
 describe("reading an email", () => {
   it("keeps the sender's name, the subject and the HTML, without attachments", async () => {
     const email = await emailOf(new TextEncoder().encode(rawEmail({ attachment: true })), 5);
-    expect(email).toMatchObject({ at: 5, from: "The Weekly", subject: "Issue 12" });
+    expect(email).toMatchObject({ at: 5, from: "The Weekly", site: "https://weekly.example", subject: "Issue 12" });
     expect(email.html).toContain("<b>reader</b>");
     expect(JSON.stringify(email)).not.toContain("JVBERi0");
     expect(email.id).toMatch(/^[0-9a-f]{16}$/);
@@ -143,6 +143,16 @@ describe("reading an email", () => {
   it("turns a text-only email into paragraphs, escaped", async () => {
     const email = await emailOf(new TextEncoder().encode(rawEmail({ html: "", text: "One <two>\r\nline\r\n\r\nThree" })), 5);
     expect(email.html).toBe("<p>One &lt;two&gt;<br>line</p>\n<p>Three</p>");
+  });
+
+  it("finds the sender's website from their address, without the mail subdomain", () => {
+    expect(senderSite("hello@weekly.example")).toBe("https://weekly.example");
+    expect(senderSite("News@Email.NYTimes.com")).toBe("https://nytimes.com");
+    expect(senderSite("hi@mail.example.co.uk")).toBe("https://example.co.uk");
+    expect(senderSite("hi@example.be")).toBe("https://example.be");
+    expect(senderSite("hi@localhost")).toBeNull();
+    expect(senderSite("no address")).toBeNull();
+    expect(senderSite(undefined)).toBeNull();
   });
 
   it("cuts very long HTML", async () => {
@@ -187,7 +197,12 @@ describe("an inbox", () => {
     expect(feed).toContain("<title>Issue &lt;1&gt;</title>");
     expect(feed).toContain('href="https://w.example/newsletters/k7q2m9abcdef/t/0123456789abcdef"');
     expect(feed).toContain("<content type=\"html\">&lt;p&gt;Hi&lt;/p&gt;</content>");
-    expect(feed).toContain("<name>The Weekly</name>");
+    expect(feed).toContain("<name>The Weekly</name></author>");
+  });
+
+  it("names the sender's website in the feed, when known", () => {
+    const feed = atomFeed("k7q2m9abcdef", "https://w.example/f", [{ id: "0123456789abcdef", at: 0, from: "The Weekly", site: "https://weekly.example", subject: "S", html: "" }], 0);
+    expect(feed).toContain("<author><name>The Weekly</name><uri>https://weekly.example</uri></author>");
   });
 });
 

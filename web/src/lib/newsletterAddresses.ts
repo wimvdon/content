@@ -34,6 +34,24 @@ export function codeOfFeed(url: string | null | undefined): string | null {
 
 export const isNewsletterFeed = (url: string | null | undefined): boolean => codeOfFeed(url) !== null;
 
+const SITE = /^https:\/\/([a-z0-9-]+(?:\.[a-z0-9-]+)+)\/?$/i;
+
+/**
+ * Who sent `article` of newsletter feed `feed`, shown in its place (in the list and the reader):
+ * the sender's name, and the icon (`/favicon.ico`) of the sender's website, which the feed loader
+ * takes from their address (worker `senderSite`). Without a website (emails from before
+ * 2026-11-15) it keeps the envelope. Null for any other feed, or when the sender is unknown. The
+ * same as the Android app's NewsletterAddresses.sender.
+ */
+export function senderOf(feed: Feed | undefined, article: Article): Feed | null {
+  if (!feed || !isNewsletterFeed(feed.url)) return null;
+  const name = article.author?.trim();
+  if (!name) return null;
+  const host = SITE.exec(article.authorUrl?.trim() ?? "")?.[1]?.toLowerCase();
+  if (!host) return { ...feed, title: name };
+  return { url: `https://${host}`, title: name, siteUrl: null, folderId: feed.folderId, iconUrl: `https://${host}/favicon.ico`, renamed: false };
+}
+
 /** How the feed loader knows a tag: the SHA-256 of its id, in hex (a tag's id can hold its name). Null: No tag. */
 export async function tagHash(tagId: string | null): Promise<string | null> {
   if (tagId === null) return null;

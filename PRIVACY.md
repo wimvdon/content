@@ -1,6 +1,6 @@
 # Privacy policy
 
-_Last updated: 2026-11-02 (more embedded services)_
+_Last updated: 2026-11-15 (newsletter senders' icons)_
 
 Reader has no analytics, advertising or crash reporting. It works without an account. If you sign
 in (with your email address, or with Instapaper), Reader keeps your feed list,
@@ -139,12 +139,15 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   tag gets an email address, and so does No tag (content+<a random code>@in.wim.to). The feed loader
   knows a tag only by a hash of its id, never by its name. Newsletters sent to it are received by the owner's feed loader (a Cloudflare
   Worker, through Cloudflare Email Routing) and kept in your account, encrypted like everything in
-  it: the sender's name, the subject and the email's HTML, without attachments. At most the newest
+  it: the sender's name, the sender's website (the domain of their address, such as example.com,
+  not the address itself), the subject and the email's HTML, without attachments. At most the newest
   100 per address, and none older than 90 days. They reach your devices as a feed, at an address
   only your account knows. Anyone who knows the email address can send to it, as with any address;
   only you can read what arrives. Pictures in a newsletter load from where the sender put them,
   like pictures in any feed, and senders often use them to see that an email was opened (Show
-  images off prevents that). Removing the address, or deleting your account, deletes it and its
+  images off prevents that). Each newsletter shows its sender with the icon of the sender's website
+  (its `/favicon.ico`, loaded from that website, as for a saved article from a website you don't
+  follow); that website sees your IP address, like any visit. Removing the address, or deleting your account, deletes it and its
   emails at once. Nothing is sent from these addresses.
 - **Notifications (#235, off unless you turn them on).** In the web app, Settings › Account › Notify
   me when something is shared with me asks your browser's permission and gives the owner's feed

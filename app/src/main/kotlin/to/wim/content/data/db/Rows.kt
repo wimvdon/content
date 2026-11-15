@@ -42,6 +42,8 @@ data class ArticleRow(
     val fetchedAt: Long,
     val read: Boolean,
     val imageUrl: String?,
+    /** The author's website (a newsletter's sender). */
+    @ColumnInfo(defaultValue = "NULL") val authorUrl: String? = null,
 )
 
 /** An item: its memberships as columns (null when not a member), tags and highlights as JSON. */

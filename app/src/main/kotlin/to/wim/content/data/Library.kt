@@ -42,6 +42,8 @@ data class Article(
     val read: Boolean = false,
     /** The article's picture, if the feed has one. */
     val imageUrl: String? = null,
+    /** The author's website, if the feed names it: a newsletter's sender (NewsletterAddresses.sender). */
+    val authorUrl: String? = null,
 ) {
     val key: String get() = keyOf(feedUrl, id)
 
@@ -289,6 +291,7 @@ data class Library(
                     fetchedAt = old?.fetchedAt ?: now,
                     read = (old?.read ?: (Article.keyOf(feedUrl, item.id) in readElsewhere)) || tooOld(published, now),
                     imageUrl = item.imageUrl ?: old?.imageUrl,
+                    authorUrl = item.authorUrl,
                 )
             }
         val kept = existing.values.filter { it.id !in seen }

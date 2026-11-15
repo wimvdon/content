@@ -40,7 +40,9 @@ sit on a light tile, so dark logos stay visible in dark mode.
 With a Content account, **every tag has its own email address, and so does No tag**, such as
 `content+k7q2m9abcdef@in.wim.to`. Newsletters sent to one arrive as articles in that tag's
 **Newsletters** feed, like any feed's: unread, Mark all as read, the dot on the tag's chip. Such a feed
-has an envelope as its icon. **+** › **Newsletter feed** and Settings › **Newsletter feeds** show the
+has an envelope as its icon. Each newsletter in the list and in the reader shows who sent it instead,
+with the icon of the sender's website (the envelope while that icon is unknown, as for newsletters
+that arrived before 2026-11-15, or the first letter of the sender when the website has none). **+** › **Newsletter feed** and Settings › **Newsletter feeds** show the
 same page: pick a tag with the chips (No tag first), and the page shows that tag's address with
 **Copy address** and **Share**, and how many newsletters its feed has received and when the newest
 came. Subscribe to a newsletter with the address of the tag it belongs under, or forward emails to

@@ -67,6 +67,24 @@ describe("parseFeed", () => {
     expect(entry.author).toBe("Bob");
     expect(entry.html).toBe("<p>Hi <b>there</b></p>");
     expect(entry.publishedAt).toBe(Date.UTC(2024, 0, 2, 2, 4, 5));
+    expect(entry.authorUrl).toBeNull();
+  });
+
+  it("reads an Atom entry's author website", () => {
+    const feed = parseFeed(
+      `<feed xmlns="http://www.w3.org/2005/Atom">
+        <title>Newsletters</title>
+        <entry>
+          <id>urn:x:1</id>
+          <title>Issue 1</title>
+          <author><name>The Weekly</name><uri>https://weekly.example</uri></author>
+          <content type="html">&lt;p&gt;Hi&lt;/p&gt;</content>
+        </entry>
+      </feed>`,
+      "https://w.example/newsletters/k7q2m9abcdef/t",
+    );
+    expect(feed.items[0].author).toBe("The Weekly");
+    expect(feed.items[0].authorUrl).toBe("https://weekly.example");
   });
 
   it("reads RSS 1.0 and feeds with HTML entities", () => {

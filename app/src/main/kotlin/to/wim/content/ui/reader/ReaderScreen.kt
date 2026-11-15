@@ -79,6 +79,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import to.wim.content.data.Place
 import to.wim.content.data.Article
 import to.wim.content.data.Feed
+import to.wim.content.data.NewsletterAddresses
 import to.wim.content.data.FeedKind
 import to.wim.content.data.FeedKinds
 import to.wim.content.ui.home.FeedIcon
@@ -460,7 +461,8 @@ private fun ArticleBody(
         article.publishedAt?.let {
             DateUtils.formatDateTime(context, it, DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_YEAR or DateUtils.FORMAT_SHOW_TIME)
         }
-    val meta = listOfNotNull(article.author, date).joinToString(" · ")
+    // A newsletter's sender is already shown above the title, in the feed's place.
+    val meta = listOfNotNull(article.author.takeIf { NewsletterAddresses.sender(feed, article) == null }, date).joinToString(" · ")
 
     Column(
         modifier =
@@ -479,9 +481,11 @@ private fun ArticleBody(
         ) {
             if (hero != null) HeroImage(hero)
             if (feed != null) {
+                // A newsletter shows who sent it, with their website's icon.
+                val shown = NewsletterAddresses.sender(feed, article) ?: feed
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FeedIcon(feed, FeedIconSize.Medium)
-                    Text(feed.title, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                    FeedIcon(shown, FeedIconSize.Medium)
+                    Text(shown.title, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
                 }
             }
             // Tapping the title opens the article on its website, like ⋮ › Open in browser.

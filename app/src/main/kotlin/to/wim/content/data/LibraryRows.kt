@@ -19,7 +19,7 @@ object LibraryRows {
         feed: Feed,
     ) = FeedRow(feed.url, position, feed.title, feed.siteUrl, feed.folderId, feed.iconUrl, feed.renamed, Json.write(feed.tags))
 
-    fun article(a: Article) = ArticleRow(a.key, a.feedUrl, a.id, a.title, a.link, a.author, a.html, a.publishedAt, a.fetchedAt, a.read, a.imageUrl)
+    fun article(a: Article) = ArticleRow(a.key, a.feedUrl, a.id, a.title, a.link, a.author, a.html, a.publishedAt, a.fetchedAt, a.read, a.imageUrl, a.authorUrl)
 
     fun item(i: Item) =
         ItemRow(
@@ -64,7 +64,7 @@ object LibraryRows {
         val feedUrls = feeds.mapTo(HashSet()) { it.url }
         val articles =
             tables.articles.filter { it.feedUrl in feedUrls }.map {
-                Article(it.feedUrl, it.articleId, it.title, it.link, it.author, it.html, it.publishedAt, it.fetchedAt, it.read, it.imageUrl)
+                Article(it.feedUrl, it.articleId, it.title, it.link, it.author, it.html, it.publishedAt, it.fetchedAt, it.read, it.imageUrl, it.authorUrl)
             }
         return Library(
             feeds = feeds,

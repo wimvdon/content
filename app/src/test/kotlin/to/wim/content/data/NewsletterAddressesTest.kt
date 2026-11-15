@@ -155,4 +155,27 @@ class NewsletterAddressesTest {
         assertEquals(NewsletterActivity(2, 300), NewsletterAddresses.activity(articles, url))
         assertEquals(NewsletterActivity(0, null), NewsletterAddresses.activity(articles, "https://none.example/feed"))
     }
+
+    @Test
+    fun `a newsletter shows its sender and the icon of the sender's website`() {
+        val newsletters = Feed(url = feedOf("k7q2m9abcdef"), title = "Newsletters", folderId = "1")
+        fun article(
+            author: String?,
+            authorUrl: String?,
+        ) = Article(newsletters.url, "1", "Issue", null, author, "", null, 0, authorUrl = authorUrl)
+
+        assertEquals(
+            Feed(url = "https://weekly.example", title = "The Weekly", iconUrl = "https://weekly.example/favicon.ico", folderId = "1"),
+            NewsletterAddresses.sender(newsletters, article("The Weekly", "https://Weekly.example/")),
+        )
+        // Without the sender's website (older emails): the name, with the envelope of the feed.
+        assertEquals(newsletters.copy(title = "The Weekly"), NewsletterAddresses.sender(newsletters, article("The Weekly", null)))
+        assertEquals(newsletters.copy(title = "The Weekly"), NewsletterAddresses.sender(newsletters, article("The Weekly", "http://weekly.example")))
+        assertEquals(newsletters.copy(title = "The Weekly"), NewsletterAddresses.sender(newsletters, article("The Weekly", "https://weekly.example/path")))
+        // No sender, or not a newsletter feed: the feed as it is.
+        assertNull(NewsletterAddresses.sender(newsletters, article(" ", "https://weekly.example")))
+        assertNull(NewsletterAddresses.sender(null, article("The Weekly", "https://weekly.example")))
+        val blog = Feed(url = "https://blog.example/feed.xml", title = "Blog")
+        assertNull(NewsletterAddresses.sender(blog, Article(blog.url, "1", "Post", null, "Bo", "", null, 0, authorUrl = "https://bo.example")))
+    }
 }

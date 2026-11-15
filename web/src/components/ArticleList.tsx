@@ -8,6 +8,7 @@ import { dayLabel, plural, t } from "@/lib/i18n";
 import { articleKey, articlesInTab, chipTag, feedTabOf, sameSelection, showsUnreadDot, sortTime, unreadByFeed, unreadKeys, type Article, type Feed } from "@/lib/library";
 import { chipTags, isPlainFilter, itemArticle, noteOf, savedItems, showsLiked, showsNewsletters, showsNotes, sourceOf, withoutChips, type NoteContent } from "@/lib/saved";
 import { hasUnreadNewsletter } from "@/lib/newsletters";
+import { senderOf } from "@/lib/newsletterAddresses";
 import { NewDot } from "./NewDot";
 import { sharedByLabel } from "@/lib/sharing";
 import { inboxItems } from "@/lib/inbox";
@@ -932,6 +933,8 @@ function RowButton({
   const text = useMemo(() => snippet(article.html, 160), [article.html]);
   const image = settings.showImages && view !== "small" ? article.imageUrl : null;
   const hide = (e: React.SyntheticEvent<HTMLImageElement>) => (e.currentTarget.style.display = "none");
+  // A newsletter shows who sent it, with their website's icon.
+  const shown = senderOf(feed, article) ?? feed;
   return (
     <button
       type="button"
@@ -955,7 +958,7 @@ function RowButton({
               <span
                 role="button"
                 tabIndex={0}
-                title={feed.title}
+                title={shown?.title}
                 onClick={(e) => {
                   e.stopPropagation();
                   onFeedClick();
@@ -968,13 +971,13 @@ function RowButton({
                 }}
                 className="flex min-w-0 items-center gap-1.5 rounded-sm hover:underline"
               >
-                <FeedIcon feed={feed} className="size-4" />
-                <span className="truncate">{feed.title}</span>
+                <FeedIcon feed={shown} className="size-4" />
+                <span className="truncate">{shown?.title}</span>
               </span>
             ) : feed ? (
               <>
-                <FeedIcon feed={feed} className="size-4" />
-                <span className="truncate">{feed.title}</span>
+                <FeedIcon feed={shown} className="size-4" />
+                <span className="truncate">{shown?.title}</span>
               </>
             ) : null}
             {/* In Saved (Feeds): a small label, the same kind as Search's Feed / Saved one, as on Android. */}

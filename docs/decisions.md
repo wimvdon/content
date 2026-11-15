@@ -2,6 +2,25 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-15: Newsletters show their sender and the sender's website icon
+
+The owner's request. A newsletter feed's articles showed "Newsletters" and an envelope above every
+title; now each shows its sender's name and the icon of the sender's website, in the list and the
+reader, on Android and the web.
+
+- **Where the website comes from:** the feed loader keeps the domain of the sender's address
+  (never the address), without its mail subdomain by a simple rule (the last two labels, three
+  under a country's co/com/org/… such as co.uk) instead of the full Public Suffix List, which would
+  be a new dependency. It goes in the Atom entry as `<author><uri>`, so the feed stays a plain feed;
+  the apps keep it as a new article field, `authorUrl` (Android: Room version 9, an automatic
+  migration).
+- **The icon** is the site's `/favicon.ico`, as for a saved article from a website you don't follow;
+  no home page is loaded to look for a better one, since every newsletter would need its own.
+  A newsletter sent through a platform (substack.com, for one) shows the platform's icon.
+- **Rejected:** a Google or DuckDuckGo favicon service (a third party would see every sender);
+  showing the sender next to "Newsletters" (the feed's name says nothing in a feed of only
+  newsletters).
+
 ## 2026-11-13: Newsletter feed: pick a tag, copy one address
 
 The owner's choice from mockups. + › Newsletter feed (and Settings › Newsletter feeds, the same

@@ -26,6 +26,14 @@ any article: unread, Mark all as read, the chips' dots, the reader and Search al
   share), and what its feed has received (`NewsletterAddresses.activity`, the web's
   `newsletterActivity`). Newsletter feeds don't appear in RSS feeds' Manage feeds, so they can't be
   renamed, moved or removed. Without a Content account, the page offers Sign in.
+- **The sender, not "Newsletters":** each newsletter shows who sent it in the feed's place, in the
+  list and above the reader's title (`NewsletterAddresses.sender`, the web's `senderOf`), with the
+  `/favicon.ico` of the sender's website; the reader then leaves the sender out of the line under
+  the title. The feed loader takes the website from the sender's address, without a mail
+  subdomain (`senderSite`: news@email.example.com → https://example.com, hi@x.example.co.uk →
+  https://example.co.uk), and puts it in the entry as Atom's `<author><uri>`; the apps keep it as
+  the article's `authorUrl`. Emails from before 2026-11-15 have no website: they show the sender's
+  name with the envelope.
 - **Removing a tag** removes its Newsletters feed (`Library.removeFolder`, the web's `removeTopic`)
   and its address (`DELETE /account/newsletters`). An address whose tag is gone otherwise (merged
   into another tag, or removed while offline) is removed a day after it was made
@@ -42,7 +50,8 @@ any article: unread, Mark all as read, the chips' dots, the reader and Search al
 - **Storing:** each code is an inbox, a Durable Object of the `Account` class named
   `newsletter:<code>` (no class of its own, so no migration). It knows its owner and keeps
   the newest 100 emails, none older than 90 days, encrypted with a key derived from `ACCOUNT_KEY`:
-  the sender's name, the subject and the HTML (cut at 512 KB; attachments dropped). Emails over 4 MB
+  the sender's name, their website (`site`, from the address's domain), the subject and the HTML
+  (cut at 512 KB; attachments dropped). Emails over 4 MB
   are refused.
 - **The feed:** `GET /newsletters/<code>/<token>`, an Atom feed of the newest 50, titled Newsletters.
   The token is derived from the code with `ACCOUNT_KEY`, so the email address alone doesn't open

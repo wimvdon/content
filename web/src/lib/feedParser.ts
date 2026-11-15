@@ -11,6 +11,8 @@ export interface ParsedItem {
   html: string;
   publishedAt: number | null;
   imageUrl: string | null;
+  /** The author's website (Atom's author uri): a newsletter's sender, whose icon the apps show. */
+  authorUrl?: string | null;
 }
 
 export interface ParsedFeed {
@@ -121,6 +123,7 @@ function parseAtom(feed: Element, baseUrl: string): ParsedFeed {
       html,
       publishedAt: date,
       imageUrl: itemImage(entry, html, link ?? entryBase),
+      authorUrl: childText(child(entry, "author", ATOM_NSS), "uri", ATOM_NSS),
     };
   });
   const titleEl = child(feed, "title", ATOM_NSS);

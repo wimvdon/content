@@ -15,6 +15,7 @@ import {
   ORPHAN_GRACE_MS,
   orphans,
   reconcile,
+  senderOf,
   tagHash,
   tagHashes,
   type NewsletterAddress,
@@ -118,5 +119,46 @@ describe("the Newsletter feed page", () => {
     const articles = [article(url, "a", 100, 500), article(url, "b", null, 300), article("https://other.example/feed", "c", 900, 900)];
     expect(newsletterActivity(articles, url)).toEqual({ count: 2, newestAt: 300 });
     expect(newsletterActivity(articles, "https://none.example/feed")).toEqual({ count: 0, newestAt: null });
+  });
+});
+
+describe("a newsletter's sender", () => {
+  const newsletters: Feed = { url: "https://w.example/newsletters/k7q2m9abcdef/0123456789abcdef0123456789abcdef", title: "Newsletters", siteUrl: null, folderId: "1", iconUrl: null, renamed: false };
+  const article = (author: string | null, authorUrl: string | null, feedUrl = newsletters.url): Article => ({
+    feedUrl,
+    id: "1",
+    title: "Issue",
+    link: null,
+    author,
+    html: "",
+    publishedAt: null,
+    fetchedAt: 0,
+    read: false,
+    imageUrl: null,
+    authorUrl,
+  });
+
+  it("shows the sender's name and their website's icon", () => {
+    expect(senderOf(newsletters, article("The Weekly", "https://Weekly.example/"))).toEqual({
+      url: "https://weekly.example",
+      title: "The Weekly",
+      siteUrl: null,
+      folderId: "1",
+      iconUrl: "https://weekly.example/favicon.ico",
+      renamed: false,
+    });
+  });
+
+  it("keeps the envelope without the sender's website (older emails)", () => {
+    expect(senderOf(newsletters, article("The Weekly", null))).toEqual({ ...newsletters, title: "The Weekly" });
+    expect(senderOf(newsletters, article("The Weekly", "http://weekly.example"))).toEqual({ ...newsletters, title: "The Weekly" });
+    expect(senderOf(newsletters, article("The Weekly", "https://weekly.example/path"))).toEqual({ ...newsletters, title: "The Weekly" });
+  });
+
+  it("leaves the feed as it is without a sender, or for any other feed", () => {
+    expect(senderOf(newsletters, article(" ", "https://weekly.example"))).toBeNull();
+    expect(senderOf(undefined, article("The Weekly", "https://weekly.example"))).toBeNull();
+    const blog: Feed = { ...newsletters, url: "https://blog.example/feed.xml", title: "Blog" };
+    expect(senderOf(blog, article("Bo", "https://bo.example", blog.url))).toBeNull();
   });
 });
