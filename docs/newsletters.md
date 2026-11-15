@@ -74,8 +74,12 @@ any article: unread, Mark all as read, the chips' dots, the reader and Search al
   are refused.
 - **The feed:** `GET /newsletters/<code>/<token>`, an Atom feed of the newest 50, titled Newsletters.
   The token is derived from the code with `ACCOUNT_KEY`, so the email address alone doesn't open
-  the feed. Each entry links to `…/<id>`, the email as a page in a sandbox (no scripts or forms), for
-  Open in browser and Save. The Android app fetches the feed directly; the web app's feed loader
+  the feed. Each entry links to `/newsletters/<code>/e/<id>/<emailToken>`, the email as a page in a
+  sandbox (no scripts or forms), for Open in browser, Share and Save. Its token (`emailToken`) is
+  derived from the code and the email's id, so the link opens that one email and never the feed
+  (2026-11-15; before, the link was the feed's address with `/<id>`, which still opens the email for
+  articles kept from then). Report a problem isn't offered for a newsletter
+  (`NewsletterAddresses.isNewsletterEmail`, the web's `isNewsletterEmail`): its report is public. The Android app fetches the feed directly; the web app's feed loader
   answers its own address itself.
 - **The account:** `GET /account/newsletters` lists the addresses (`{code, tagHash, address,
   feedUrl, createdAt}`), `POST` with `{"tagHash"}` (null: No tag) gives that tag's address, made the

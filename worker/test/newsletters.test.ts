@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Account, accountIdOf, addDeviceKey, type Storage } from "../src/account";
 import { handle, type Env } from "../src/index";
-import { BACKFILL_PER_LOAD, KEEP, KEEP_DAYS, MAX_HTML_CHARS, NewsletterInbox, addressOf, atomFeed, cleanTagHash, codeOf, emailOf, feedToken, guessSite, newCode, receiveEmail, senderSite, type IncomingEmail } from "../src/newsletters";
+import { BACKFILL_PER_LOAD, KEEP, KEEP_DAYS, MAX_HTML_CHARS, NewsletterInbox, addressOf, atomFeed, emailToken, emailUrlOf, cleanTagHash, codeOf, emailOf, feedToken, guessSite, newCode, receiveEmail, senderSite, type IncomingEmail } from "../src/newsletters";
 
 const APP = "https://app.example";
 const MASTER = "a-test-master-key-of-at-least-32-characters";
@@ -129,6 +129,16 @@ describe("codes and addresses", () => {
     expect(await feedToken(MASTER, "k7q2m9abcdef")).toBe(token);
     expect(await feedToken(MASTER, "k7q2m9abcdeg")).not.toBe(token);
   });
+
+  it("gives each email a token of its own, which isn't the feed's", async () => {
+    const token = await emailToken(MASTER, "k7q2m9abcdef", "0123456789abcdef");
+    expect(token).toMatch(/^[0-9a-f]{32}$/);
+    expect(await emailToken(MASTER, "k7q2m9abcdef", "0123456789abcdef")).toBe(token);
+    expect(await emailToken(MASTER, "k7q2m9abcdef", "0123456789abcdee")).not.toBe(token);
+    expect(await emailToken(MASTER, "k7q2m9abcdeg", "0123456789abcdef")).not.toBe(token);
+    expect(token).not.toBe(await feedToken(MASTER, "k7q2m9abcdef"));
+    expect(emailUrlOf("https://w.example", "k7q2m9abcdef", "0123456789abcdef", token)).toBe(`https://w.example/newsletters/k7q2m9abcdef/e/0123456789abcdef/${token}`);
+  });
 });
 
 describe("reading an email", () => {
@@ -196,6 +206,10 @@ describe("an inbox", () => {
     expect(feed).toContain("<title>Newsletters</title>");
     expect(feed).toContain("<title>Issue &lt;1&gt;</title>");
     expect(feed).toContain('href="https://w.example/newsletters/k7q2m9abcdef/t/0123456789abcdef"');
+    // With the emails' own links, those are used: they don't hold the feed's token.
+    const linked = atomFeed("k7q2m9abcdef", "https://w.example/newsletters/k7q2m9abcdef/t", [{ id: "0123456789abcdef", at: 0, from: "The Weekly", subject: "S", html: "" }], 0, new Map([["0123456789abcdef", "https://w.example/newsletters/k7q2m9abcdef/e/0123456789abcdef/x"]]));
+    expect(linked).toContain('href="https://w.example/newsletters/k7q2m9abcdef/e/0123456789abcdef/x"');
+    expect(linked).not.toContain('/t/0123456789abcdef');
     expect(feed).toContain("<content type=\"html\">&lt;p&gt;Hi&lt;/p&gt;</content>");
     expect(feed).toContain("<name>The Weekly</name></author>");
   });
@@ -299,6 +313,14 @@ describe("newsletter addresses, from sign-in to feed", () => {
     expect(page.status).toBe(200);
     expect(page.headers.get("Content-Security-Policy")).toContain("sandbox");
     expect(await page.text()).toContain("<b>reader</b>");
+    // It opens that email only: it doesn't hold the feed's token, and a changed token opens nothing.
+    expect(link).toMatch(new RegExp(`^https://worker.example/newsletters/${address.code}/e/[0-9a-f]{16}/[0-9a-f]{32}$`));
+    expect(link).not.toContain(address.feedUrl.split("/").pop()!);
+    const forged = link.replace(/[0-9a-f]{32}$/, "0".repeat(32));
+    expect((await handle(new Request(forged), env, async () => new Response("", { status: 500 }))).status).toBe(404);
+    // A link from before keeps working for articles already kept.
+    const old = `${address.feedUrl}/${link.split("/")[6]}`;
+    expect((await handle(new Request(old), env, async () => new Response("", { status: 500 }))).status).toBe(200);
 
     // The web app loads it through the feed loader, which answers its own address itself.
     const proxied = await handle(new Request(`https://worker.example/?url=${encodeURIComponent(address.feedUrl)}`, { headers: { Origin: APP } }), env, async () => new Response("unused", { status: 500 }));

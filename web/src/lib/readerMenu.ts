@@ -3,7 +3,8 @@
  * saved: Mark as read or unread, the feed's text or the full article. Once saved (also right after
  * Save in the reader) it is a saved article's menu: neither of those, and Remove from Saved at the
  * end. Both: Open website and Report a problem, with a link. A newsletter feed's article
- * (2026-11-12) is the whole email already: no text switch.
+ * (2026-11-12) is the whole email already: no text switch; and no Report a problem (2026-11-15),
+ * whose public report would hold the private email and its link.
  */
 export type ReaderMenuEntry = "markRead" | "toggleText" | "openWebsite" | "report" | "remove";
 
@@ -24,7 +25,8 @@ export function readerMenu({
   const entries: ReaderMenuEntry[] = [];
   if (feedArticle && !saved) entries.push("markRead");
   if (canLoad && !saved && !newsletter) entries.push("toggleText");
-  if (hasLink) entries.push("openWebsite", "report");
+  if (hasLink) entries.push("openWebsite");
+  if (hasLink && !newsletter) entries.push("report");
   if (saved) entries.push("remove");
   return entries;
 }

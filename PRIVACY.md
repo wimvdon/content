@@ -1,6 +1,6 @@
 # Privacy policy
 
-_Last updated: 2026-11-15 (newsletter senders' icons)_
+_Last updated: 2026-11-15 (a newsletter's link opens only that newsletter)_
 
 Reader has no analytics, advertising or crash reporting. It works without an account. If you sign
 in (with your email address, or with Instapaper), Reader keeps your feed list,
@@ -142,7 +142,8 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   it: the sender's name, the sender's website (the domain of their address, such as example.com,
   not the address itself), the subject and the email's HTML, without attachments. At most the newest
   100 per address, and none older than 90 days. They reach your devices as a feed, at an address
-  only your account knows. Anyone who knows the email address can send to it, as with any address;
+  only your account knows. Each newsletter's own link (for Open in browser, Share or Save) opens
+  only that newsletter, never the others. Anyone who knows the email address can send to it, as with any address;
   only you can read what arrives. Pictures in a newsletter load from where the sender put them,
   like pictures in any feed, and senders often use them to see that an email was opened (Show
   images off prevents that). Each newsletter shows its sender with the icon of the sender's website

@@ -2,6 +2,16 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-15: A newsletter's link opens that email only
+
+Found in the newsletter review: each newsletter linked to its feed's address plus the email's id, so
+sharing, saving or reporting one newsletter handed out the feed, and with it every newsletter of that
+tag. Now each email has its own token, derived from the code and its id with `ACCOUNT_KEY`, and its
+link (`/newsletters/<code>/e/<id>/<token>`) opens that email only. Old links keep working, as
+articles kept before carry them; the feed's links change at the next refresh. Report a problem is no
+longer offered for a newsletter in either app, since its report is a public GitHub issue with the
+article's link and text.
+
 ## 2026-11-15: Older newsletters get their sender's website too
 
 The owner asked for the senders to apply to newsletters that came in before. Those were kept

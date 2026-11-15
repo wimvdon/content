@@ -34,6 +34,14 @@ export function codeOfFeed(url: string | null | undefined): string | null {
 
 export const isNewsletterFeed = (url: string | null | undefined): boolean => codeOfFeed(url) !== null;
 
+const EMAIL = /^https:\/\/[^/]+\/newsletters\/[a-z0-9]{12}\/(?:e\/[0-9a-f]{16}\/[0-9a-f]{32}|[0-9a-f]{32}\/[0-9a-f]{16})\/?$/;
+
+/**
+ * Whether `url` is one newsletter email's page (its own link, or the feed's link with its id from
+ * before 2026-11-15): such a link is private, so Report a problem never sends it. As Android's isNewsletterEmail.
+ */
+export const isNewsletterEmail = (url: string | null | undefined): boolean => !!url && EMAIL.test(url.trim());
+
 const SITE = /^https:\/\/([a-z0-9-]+(?:\.[a-z0-9-]+)+)\/?$/i;
 
 /**

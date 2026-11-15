@@ -26,7 +26,7 @@ import { cn } from "./ui/cn";
 import { Dialog } from "./ui/dialog";
 import { useEscape } from "./ui/useEscape";
 import { kindOf } from "@/lib/feedKinds";
-import { hasEnvelopeBadge } from "@/lib/newsletterAddresses";
+import { hasEnvelopeBadge, isNewsletterEmail } from "@/lib/newsletterAddresses";
 import { shownSender } from "@/lib/newsletterSenders";
 import { useSenderRules } from "./useListed";
 
@@ -194,7 +194,7 @@ export function ArticleView({
               <div className="fixed inset-0 z-20" onClick={() => setMenuOpen(false)} aria-hidden="true" />
               <div role="menu" className="absolute right-0 z-30 mt-1 w-60 rounded-md border bg-card p-1 shadow-md">
                 {/* What it offers follows readerMenu: a saved article's menu as soon as it is saved. */}
-                {readerMenu({ feedArticle: !fromSaved, saved: !!saved, hasLink: !!article.link, canLoad, newsletter }).map((entry) => {
+                {readerMenu({ feedArticle: !fromSaved, saved: !!saved, hasLink: !!article.link, canLoad, newsletter: newsletter || isNewsletterEmail(article.link) }).map((entry) => {
                   const close = () => setMenuOpen(false);
                   switch (entry) {
                     case "markRead":

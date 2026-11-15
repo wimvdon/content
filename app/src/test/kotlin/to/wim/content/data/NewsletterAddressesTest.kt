@@ -20,6 +20,16 @@ class NewsletterAddressesTest {
     private val news = Folder("topic:news", "News")
 
     @Test
+    fun `a newsletter email's page is recognised, by its own link and by the old one`() {
+        val id = "0123456789abcdef"
+        assertTrue(NewsletterAddresses.isNewsletterEmail("https://w.example/newsletters/k7q2m9abcdef/e/$id/${"b".repeat(32)}"))
+        assertTrue(NewsletterAddresses.isNewsletterEmail(feedOf("k7q2m9abcdef") + "/" + id))
+        assertFalse(NewsletterAddresses.isNewsletterEmail(feedOf("k7q2m9abcdef")))
+        assertFalse(NewsletterAddresses.isNewsletterEmail("https://example.com/article"))
+        assertFalse(NewsletterAddresses.isNewsletterEmail(null))
+    }
+
+    @Test
     fun `a newsletter address's feed is recognised, and read from the feed loader's answer`() {
         val feed = feedOf("k7q2m9abcdef")
         assertEquals("k7q2m9abcdef", NewsletterAddresses.codeOfFeed(feed))
