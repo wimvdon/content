@@ -88,6 +88,7 @@ import to.wim.content.ui.home.FeedIconSize
 import to.wim.content.data.ReaderStyle
 import to.wim.content.feed.ArticleBlock
 import to.wim.content.feed.ArticleBlocks
+import to.wim.content.feed.EmailCleanup
 import androidx.compose.runtime.snapshotFlow
 import to.wim.content.data.ReadingPosition
 import kotlinx.coroutines.FlowPreview
@@ -229,6 +230,7 @@ fun ReaderScreen(
                                         (if (showingFull) R.string.reader_show_feed_text else R.string.reader_show_full) to R.drawable.ic_article
                                     }
                                     ReaderMenu.Entry.OpenInBrowser -> R.string.action_open_in_browser to R.drawable.ic_open_in_new
+                                    ReaderMenu.Entry.OriginalEmail -> R.string.action_show_original_email to R.drawable.ic_open_in_new
                                     ReaderMenu.Entry.SignIn -> R.string.site_sign_in_menu to R.drawable.ic_login
                                     ReaderMenu.Entry.SignInAgain -> R.string.site_sign_in_again_menu to R.drawable.ic_login
                                     ReaderMenu.Entry.Report -> R.string.report_menu to R.drawable.ic_flag
@@ -242,7 +244,7 @@ fun ReaderScreen(
                                     when (entry) {
                                         ReaderMenu.Entry.MarkUnread -> actions.onMarkUnread?.invoke()
                                         ReaderMenu.Entry.ToggleText -> actions.onToggleFullText()
-                                        ReaderMenu.Entry.OpenInBrowser -> actions.onOpenInBrowser()
+                                        ReaderMenu.Entry.OpenInBrowser, ReaderMenu.Entry.OriginalEmail -> actions.onOpenInBrowser()
                                         ReaderMenu.Entry.SignIn, ReaderMenu.Entry.SignInAgain -> actions.onSignIn?.invoke()
                                         ReaderMenu.Entry.Report -> reportOpen = true
                                         ReaderMenu.Entry.Remove -> item?.onRemove?.invoke()
@@ -289,6 +291,7 @@ fun ReaderScreen(
                 // Room under the text, so its end can scroll clear of the toolbar.
                 bottomSpace = if (hasToolbar) ReaderToolbarHeight + ReaderToolbarMargin else 0.dp,
                 item = item,
+                newsletter = feed?.let { FeedKinds.of(it) } == FeedKind.Newsletter,
                 modifier = Modifier.padding(innerPadding),
             )
             if (hasToolbar) {
@@ -399,6 +402,8 @@ private fun ArticleBody(
     bottomSpace: Dp = 0.dp,
     /** A saved article: its tags, note and highlights under the title ([SavedHeader]). */
     item: ReaderItem? = null,
+    /** An article of a newsletter feed: the email's own chrome (View in browser, preheader) is left out. */
+    newsletter: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     val linkColor = MaterialTheme.colorScheme.primary
@@ -407,9 +412,9 @@ private fun ArticleBody(
     val baseUrl = article.link ?: article.feedUrl
     val hero = article.imageUrl?.takeIf { showImages }
     val blocks =
-        remember(html, baseUrl, hero, showImages) {
+        remember(html, baseUrl, hero, showImages, newsletter) {
             ArticleBlocks
-                .split(html, baseUrl)
+                .split(if (newsletter) EmailCleanup.clean(html) else html, baseUrl)
                 // The hero already shows this picture; without pictures, keep only text and embeds.
                 .filterNot { it is ArticleBlock.Image && (!showImages || ArticleBlocks.isSameImage(it.url, hero)) }
         }

@@ -19,6 +19,7 @@
     <string name="action_mark_all_read">Marcar todo como leído</string>
     <string name="action_mark_unread">Marcar como no leído</string>
     <string name="action_open_in_browser">Abrir en el navegador</string>
+    <string name="action_show_original_email">Mostrar el correo original</string>
     <string name="action_share">Compartir</string>
     <string name="feeds_title">Feeds</string>
     <string name="home_tab_feed">Feed</string>

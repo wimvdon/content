@@ -97,7 +97,7 @@ export function ArticleView({
   const base = article.link ?? siteUrl ?? article.feedUrl;
   const feedHtml = article.html;
   const showImages = settings.showImages;
-  const html = useSanitized(fullHtml ?? feedHtml, base, showImages);
+  const html = useSanitized(fullHtml ?? feedHtml, base, showImages, newsletter);
   const showHero = settings.showImages && article.imageUrl && !html.includes(article.imageUrl);
 
   // Share (#246): Send with Content and the people shared with before, then Other apps.
@@ -202,6 +202,7 @@ export function ArticleView({
                     case "toggleText":
                       return <MenuItem key={entry} icon={<FileText />} label={useFull ? t("showFeedText") : t("showFull")} onClick={() => setUseFull(!useFull)} close={close} />;
                     case "openWebsite":
+                    case "originalEmail":
                       return (
                         <a
                           key={entry}
@@ -213,7 +214,7 @@ export function ArticleView({
                           className="flex w-full items-center gap-3 px-3 py-2 text-sm hover:bg-muted [&_svg]:size-4 [&_svg]:text-muted-foreground"
                         >
                           <ExternalLink />
-                          {t("openWebsite")}
+                          {entry === "originalEmail" ? t("showOriginalEmail") : t("openWebsite")}
                         </a>
                       );
                     case "report":
@@ -361,8 +362,8 @@ function MenuItem({ icon, label, onClick, close }: { icon: React.ReactNode; labe
 }
 
 /** The article's HTML made safe to show, worked out again only when it changes. */
-function useSanitized(html: string, base: string, showImages: boolean): string {
-  return useMemo(() => sanitizeArticle(html, base, showImages), [html, base, showImages]);
+function useSanitized(html: string, base: string, showImages: boolean, newsletter: boolean): string {
+  return useMemo(() => sanitizeArticle(html, base, showImages, newsletter), [html, base, showImages, newsletter]);
 }
 
 const REPORT_LABELS: Record<ReportProblem, Key> = { textMissing: "reportTextMissing", junkLeft: "reportJunk", picturesWrong: "reportPictures", other: "reportOther" };

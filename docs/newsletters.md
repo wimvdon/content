@@ -53,6 +53,19 @@ any article: unread, Mark all as read, the chips' dots, the reader and Search al
   combined into it moves along) and Separate. The choices are one synced setting,
   `articles.newsletterSenders` (`docs/sync.md`). The feed loader is unchanged: the full address
   never leaves it.
+- **A cleaner email** (2026-11-15, `EmailCleanup`, the web's `emailCleanup.ts`): before a newsletter
+  (an article of a Newsletters feed, never an ordinary RSS article) becomes the reader's blocks, the
+  email's own chrome is left out: a "View in browser" / "View online" / "Read online" / "Bekijk in je
+  browser" / "Online bekijken" style link near the top (at most 400 characters of text before it, the
+  link's whole text at most 80 characters, with "Having trouble viewing this email?" right before it;
+  English, Dutch, French, German, Spanish and Italian), hidden preheader text (`display:none` always;
+  `max-height:0`, `opacity:0`, `font-size:0` and `mso-hide:all` only on plain text of at most 500
+  characters, so a wrapper around pictures or links stays) and spacer pictures (a name like
+  `spacer.gif` or `blank.gif`, or 0 or 1 pixel in the picture's style). Conservative: an element whose
+  end can't be found stays, and so does everything else. The original is one tap away: the reader's
+  ⋮ menu reads **Show original email** instead of Open in browser, and opens the email's own page
+  (below) in the in-app browser (a new tab on the web). Pictures that are tracking pixels of mail
+  platforms are never loaded, in any article (see PRIVACY.md).
 - **Removing a tag** removes its Newsletters feed (`Library.removeFolder`, the web's `removeTopic`)
   and its address (`DELETE /account/newsletters`). An address whose tag is gone otherwise (merged
   into another tag, or removed while offline) is removed a day after it was made
@@ -80,6 +93,9 @@ any article: unread, Mark all as read, the chips' dots, the reader and Search al
   (2026-11-15; before, the link was the feed's address with `/<id>`, which still opens the email for
   articles kept from then). Report a problem isn't offered for a newsletter
   (`NewsletterAddresses.isNewsletterEmail`, the web's `isNewsletterEmail`): its report is public. The Android app fetches the feed directly; the web app's feed loader
+
+  the feed. Each entry links to `…/<id>`, the email as a page in a sandbox (no scripts or forms), for
+  Show original email (the reader's Open in browser) and Save. The Android app fetches the feed directly; the web app's feed loader
   answers its own address itself.
 - **The account:** `GET /account/newsletters` lists the addresses (`{code, tagHash, address,
   feedUrl, createdAt}`), `POST` with `{"tagHash"}` (null: No tag) gives that tag's address, made the

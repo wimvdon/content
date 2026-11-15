@@ -136,6 +136,29 @@ class ArticleBlocksTest {
     }
 
     @Test
+    fun `skips the open tracking pixels of mail platforms and pictures of 0 or 1 pixel by their style`() {
+        val pixels =
+            listOf(
+                "https://x.us1.list-manage.com/track/open.php?u=1&id=2",
+                "https://a.example/track/open?id=1",
+                "https://mandrillapp.com/track/open.php?u=1",
+                "https://u1.ct.sendgrid.net/wf/open?upn=abc",
+                "https://eotrx.substackcdn.com/open?token=abc",
+                "https://link.mail.beehiiv.com/ss/o/abc/def.gif",
+                "https://open.convertkit-mail2.com/abc",
+                "https://pstmrk.it/open/abc",
+                "https://e.customeriomail.com/e/o/abc",
+                "https://x.hubspotemail.net/e2t/o/abc",
+                "https://a.example/o.gif?id=1",
+            )
+        val html =
+            pixels.joinToString("") { """<img src="$it">""" } +
+                """<img src="https://a.example/p.gif" style="width:1px;height:1px">""" +
+                """<img src="https://a.example/ok.jpg" style="width:100%">"""
+        assertEquals(listOf("https://a.example/ok.jpg"), ArticleBlocks.split(html, base).map { (it as ArticleBlock.Image).url })
+    }
+
+    @Test
     fun `Substack's pictures keep the commas in their addresses`() {
         // Substack (and other image servers) put commas in the address: they are no separators.
         val srcset = "https://substackcdn.com/image/fetch/\$s_!aB1c!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fpic.png 424w, https://substackcdn.com/image/fetch/\$s_!aB1c!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fpic.png 1456w,https://substackcdn.com/image/fetch/\$s_!aB1c!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fpic.png 848w"

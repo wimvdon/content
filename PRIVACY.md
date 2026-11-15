@@ -21,7 +21,9 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
 - **Pictures.** Article pictures, list thumbnails and video previews are downloaded from where
   the feed or article says they are: usually the website itself or its image server (CDN), and
   for YouTube videos i.ytimg.com and for Dailymotion videos dailymotion.com. Those servers see your
-  IP address, like any visit. Turn this off in Settings › Article view › Show images.
+  IP address, like any visit. Turn this off in Settings › Article view › Show images. Tracking
+  pixels, including the open-tracking pixels of mail platforms in newsletters (Mailchimp, SendGrid,
+  Substack, beehiiv and the like), and pictures of 0 or 1 pixel are never loaded.
 - **Embedded players, as soon as you open the article.** An article's embedded video or audio
   (YouTube, Vimeo, Spotify, SoundCloud, Dailymotion, Apple Music, Apple Podcasts, Bandcamp, TikTok),
   and its embedded posts, maps, code and GIFs (Bluesky, Mastodon servers, Threads, Reddit, Twitch,
