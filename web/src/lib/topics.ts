@@ -219,22 +219,11 @@ export interface FeedChipRow {
  */
 export function feedChipRow(lib: Library, tab: FeedTab, selection: Selection, senders: NewsletterSender[] = []): FeedChipRow {
   const row = topicRow(lib, tab, selection);
-  // Each newsletter feed in the row: its senders after it, chips of their own like feeds, when it has
-  // more than one (the one picked stays), as on Android.
+  // Each newsletter feed in the row: its senders after it, chips of their own like feeds, every one,
+  // also when it is the only one, as on Android.
   const chosenSender = selection.kind === "sender" ? selection.key : null;
   const inRow = new Set([...row.feeds, ...row.loose].map((f) => f.url));
-  return { ...row, senders: listedSenders(senders.filter((s) => inRow.has(s.feedUrl)), selection), chosenSender };
-}
-
-/**
- * The senders that get a chip (or a row in the sidebar) of their own: those of a newsletter feed
- * with more than one, as one alone says nothing its feed doesn't; the one picked stays.
- */
-export function listedSenders(senders: NewsletterSender[], selection: Selection): NewsletterSender[] {
-  const byFeed = new Map<string, NewsletterSender[]>();
-  for (const s of senders) byFeed.set(s.feedUrl, [...(byFeed.get(s.feedUrl) ?? []), s]);
-  const picked = (list: NewsletterSender[]) => selection.kind === "sender" && list.some((s) => s.feedUrl === selection.feedUrl && s.key === selection.key);
-  return [...byFeed.values()].filter((list) => list.length > 1 || picked(list)).flat();
+  return { ...row, senders: senders.filter((s) => inRow.has(s.feedUrl)), chosenSender };
 }
 
 /** The sender chips after newsletter feed `feedUrl`'s chip. */
