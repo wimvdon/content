@@ -98,6 +98,8 @@ export interface State {
   received: Received | null;
   /** The inbox is shown in place of the list (#246). */
   inboxOpen: boolean;
+  /** A newsletter sender's page, open over the list or the reader: its feed and its key. */
+  senderPage: { feedUrl: string; key: string } | null;
   /** The result of opening an emailed sign-in link, shown once. */
   accountNotice: "signedIn" | "emailAdded" | EmailLinkProblem | null;
   /** Saved's tab, Liked, tags and type (saved.ts), while Saved is shown. */
@@ -157,6 +159,7 @@ class AppStore {
     accountNotice: null,
     received: null,
     inboxOpen: false,
+    senderPage: null,
     savedFilter: Saved.defaultSavedFilter,
     sheet: null,
     instapaperBusy: false,
@@ -361,6 +364,28 @@ class AppStore {
   /** A change to the newsletter senders' choices (newsletterSenders.ts), synced. */
   editSenders(change: (rules: SenderRule[]) => SenderRule[]) {
     this.updateSettings({ newsletterSenders: encodeSenders(change(decodeSenders(this.state.settings.newsletterSenders))) });
+  }
+
+  /** A change to the senders' choices with a message offering Undo, which puts back the choices as they were (Mute, Combine with). */
+  editSendersUndoable(text: string, change: (rules: SenderRule[]) => SenderRule[]) {
+    const before = this.state.settings.newsletterSenders;
+    this.editSenders(change);
+    this.messageHandler?.(text, { label: t("undo"), run: () => this.updateSettings({ newsletterSenders: before }) });
+  }
+
+  private messageHandler: ((text: string, action?: { label: string; run: () => void }) => void) | null = null;
+
+  /** Where the app's own messages (with Undo) show: the page's message area. */
+  onMessage(handler: (text: string, action?: { label: string; run: () => void }) => void) {
+    this.messageHandler = handler;
+    return () => {
+      if (this.messageHandler === handler) this.messageHandler = null;
+    };
+  }
+
+  /** Opens a newsletter sender's page (null closes it): from a sender chip, a newsletter's menu or the reader's sender line. */
+  openSenderPage(sender: { feedUrl: string; key: string } | null) {
+    this.set({ senderPage: sender ? { feedUrl: sender.feedUrl, key: sender.key } : null });
   }
 
   setUnreadOnly(unreadOnly: boolean) {

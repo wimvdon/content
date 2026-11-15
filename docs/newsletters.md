@@ -50,7 +50,11 @@ any article: unread, Mark all as read, the chips' dots, the reader and Search al
   Newsletter feed page lists the tag's senders under the address, each with a page: a name of its
   own, Mute (its newsletters are left out of the lists, counts and chips, `withoutMuted`, as hidden
   words do), Combine with (merged into another sender, which keeps its name and icon; what was
-  combined into it moves along) and Separate. The choices are one synced setting,
+  combined into it moves along) and Separate. The page also opens where the sender is (2026-11-15):
+  a sender chip's long press (the web: right-click or press and hold), a newsletter's long press ›
+  About <sender> (beside **Mute <sender>**), and the sender line above a newsletter's title in the
+  reader (`NewsletterSenders.senderOf`, the web's `senderOfArticle`). Mute and Combine with show a
+  message with Undo, which puts back the choices as they were. The choices are one synced setting,
   `articles.newsletterSenders` (`docs/sync.md`). The feed loader is unchanged: the full address
   never leaves it.
 - **A cleaner email** (2026-11-15, `EmailCleanup`, the web's `emailCleanup.ts`): before a newsletter

@@ -1,6 +1,16 @@
 package to.wim.content.ui.home
 
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.customActions
+import kotlinx.coroutines.withTimeoutOrNull
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -203,11 +213,27 @@ fun FeedChip(
     dot: Boolean = false,
     /** A newsletter sender's chip: the envelope on its icon. */
     envelopeBadge: Boolean = false,
+    /** Press and hold (a sender chip: its page), also offered to screen readers as [longClickLabel]. */
+    onLongClick: (() -> Unit)? = null,
+    longClickLabel: String? = null,
     onClick: () -> Unit,
 ) {
+    val haptics = LocalHapticFeedback.current
     FilterChip(
         selected = chosen,
         onClick = onClick,
+        modifier =
+            if (onLongClick == null) {
+                Modifier
+            } else {
+                Modifier
+                    .longPress {
+                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onLongClick()
+                    }.semantics {
+                        customActions = listOf(CustomAccessibilityAction(longClickLabel.orEmpty()) { onLongClick().let { true } })
+                    }
+            },
         label = { Text(feed.title, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = 200.dp)) },
         leadingIcon = { FeedIcon(feed, FeedIconSize.Small, envelopeBadge = envelopeBadge && !NewsletterAddresses.isNewsletterFeed(feed.url)) },
         trailingIcon = if (dot) ({ UnreadChipDot() }) else null,
@@ -220,3 +246,23 @@ fun UnreadChipDot() {
     val label = stringResource(R.string.article_unread)
     NewBadge(Modifier.semantics { contentDescription = label })
 }
+
+/**
+ * Press and hold on a control that has its own tap (a chip): seen before the control does, and the
+ * release after it is used up, so the tap doesn't also run.
+ */
+private fun Modifier.longPress(onLongPress: () -> Unit): Modifier =
+    pointerInput(onLongPress) {
+        awaitEachGesture {
+            awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+            val up = withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) { waitForUpOrCancellation(PointerEventPass.Initial) }
+            if (up == null) {
+                onLongPress()
+                // Use up the rest of the press, so the chip's own tap doesn't follow.
+                do {
+                    val event = awaitPointerEvent(PointerEventPass.Initial)
+                    event.changes.forEach { it.consume() }
+                } while (event.changes.any { it.pressed })
+            }
+        }
+    }

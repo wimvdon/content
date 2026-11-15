@@ -56,6 +56,18 @@ class NewsletterSendersTest {
     }
 
     @Test
+    fun `an article's sender is the one it belongs to, with what is combined into it`() {
+        val articles = listOf(bozarNews, bozarEvents, platformer, old)
+        assertEquals("bozar.be", NewsletterSenders().senderOf(articles, bozarNews)?.key)
+        assertEquals(2, NewsletterSenders().senderOf(articles, bozarNews)?.count)
+        val merged = NewsletterSenders().merged("name:de standaard", "bozar.be", "Bozar")
+        val sender = merged.senderOf(articles, old)!!
+        assertEquals("bozar.be", sender.key)
+        assertEquals(3, sender.count)
+        assertNull(NewsletterSenders().senderOf(articles, issue("x", null, null)))
+    }
+
+    @Test
     fun `renaming shows the new name everywhere, and an empty name brings back the sender's own`() {
         val senders = NewsletterSenders().renamed("bozar.be", "  Bozar  Brussels ")
         assertEquals("Bozar Brussels", senders.rule("bozar.be")?.name)

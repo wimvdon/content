@@ -372,6 +372,10 @@
     <string name="newsletter_sender_combined">Samengevoegd in deze afzender</string>
     <string name="newsletter_sender_separate">Loskoppelen</string>
     <string name="newsletter_sender_separate_one">%1$s loskoppelen</string>
+    <string name="newsletter_sender_about">Over %1$s</string>
+    <string name="newsletter_sender_mute_named">%1$s dempen</string>
+    <string name="newsletter_sender_muted_message">%1$s gedempt</string>
+    <string name="newsletter_sender_combined_message">%1$s staat nu bij %2$s</string>
     <string name="newsletter_none_yet">Nog geen nieuwsbrieven</string>
     <string name="newsletter_copied">Gekopieerd</string>
     <plurals name="newsletter_count">

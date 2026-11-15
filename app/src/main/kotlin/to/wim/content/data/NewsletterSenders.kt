@@ -128,6 +128,19 @@ class NewsletterSenders(
     }
 
     /**
+     * The sender [article] belongs to, with the senders combined into it, as [list] gives it; null
+     * for an article that isn't a newsletter with a sender. What the list's long press, a sender
+     * chip's long press and the reader's sender line open.
+     */
+    fun senderOf(
+        articles: List<Article>,
+        article: Article,
+    ): NewsletterSender? {
+        val group = groupOf(article) ?: return null
+        return list(articles, article.feedUrl).firstOrNull { it.key == group }
+    }
+
+    /**
      * Feeds' sender chips: while a newsletter feed (or one of its senders) is picked, its senders
      * with something in the tab shown ([unreadOnly]: something unread); the one picked stays.
      */
