@@ -13,6 +13,11 @@ again goes back to its topic or everything, as for a feed. The Newsletters chip 
 tag's newsletters at once and its long press (Show address). Later the same day: a feed's only
 sender gets its chip and side-menu row too. Hiding it (it would say nothing its feed doesn't) left
 Bozar, the only sender so far, without a row of its own, which looked like the feature was missing.
+Then the owner found the Newsletters chip and side-menu row no longer needed: a newsletter feed with
+senders now shows only its senders, in its place. Its own chip stays while it has none (so Show
+address is still a press away on an empty one) and while it is the one chosen. The address is
+always in Settings, Newsletter feed. At the same time, the message after a refresh names the feeds
+that couldn't be refreshed, not just how many, as the owner had no way to tell which they were.
 
 ## 2026-11-15: Get a new newsletter address; unread and saved newsletters stay
 

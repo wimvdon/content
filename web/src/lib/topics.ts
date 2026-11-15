@@ -229,6 +229,13 @@ export function feedChipRow(lib: Library, tab: FeedTab, selection: Selection, se
 /** The sender chips after newsletter feed `feedUrl`'s chip. */
 export const sendersOf = (row: FeedChipRow, feedUrl: string): NewsletterSender[] => row.senders.filter((s) => s.feedUrl === feedUrl);
 
+/**
+ * Whether feed `feedUrl` gets a chip of its own: not a newsletter feed with senders, which shows its
+ * senders instead (its own chip would only repeat them), unless it is the one chosen, as on Android.
+ */
+export const showsFeedChip = (row: FeedChipRow, feedUrl: string): boolean =>
+  sendersOf(row, feedUrl).length === 0 || (row.chosenFeed === feedUrl && row.chosenSender === null);
+
 function topicRow(lib: Library, tab: FeedTab, selection: Selection): FeedChipRow {
   const chosenFeed = selection.kind === "feed" || selection.kind === "sender" ? selection.feedUrl : null;
   const single = chosenFeed === null ? undefined : lib.feeds.find((f) => f.url === chosenFeed);

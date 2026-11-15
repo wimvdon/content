@@ -65,10 +65,11 @@ and every one you saved (or liked, tagged, noted or highlighted), even past the 
 keeps and after the feed loader no longer has the email.
 
 **Senders.** A Newsletters feed mixes many newsletters, so each sender is a source of its own.
-Each sender is a chip of its own, like a feed, right after its Newsletters chip (on the web, also a
-row under the Newsletters feed in the side menu): tap one to see only that sender, tap it again to go
-back, as for a feed. This holds for a feed's only sender too. Filtering on the
-Newsletters feed keeps each newsletter's sender visible.
+Each sender is a chip of its own, like a feed, in its Newsletters feed's place (on the web, also a
+row in the side menu): tap one to see only that sender, tap it again to go back, as for a feed. This
+holds for a feed's only sender too. The Newsletters chip itself only shows while that tag has no
+newsletters yet, where press and hold shows its address; the address is always under Settings,
+Newsletter feed.
 Senders are grouped by their website, so newsletter@bozar.be and events@bozar.be are one "Bozar";
 on platforms many newsletters share (Substack, Beehiiv, Gmail and the like) each newsletter name is
 a sender of its own. Under the address, the Newsletter feed page lists the tag's senders: tap one to
@@ -208,6 +209,7 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   the bottom. The chip row is left out there. A phone-sized window has the bar at the bottom and the
   switch and the chips above the list (the chips scroll sideways with a finger, a mouse wheel, or by
   dragging them with the mouse), and Settings in the search bar.
+- After a refresh, feeds that couldn't be refreshed are named in a message (and marked in Settings, RSS feeds).
 - **Refresh** (web) is the round arrow in the search bar, in every place (or press **r**). **Mark all as read** is a button under the last article, in Unread and All
   (on the phone it is the round button at the bottom right).
 - Under the search bar, **a switch** says **what you see**: in Feeds **Unread** or **All** (every

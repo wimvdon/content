@@ -208,9 +208,9 @@
         <item quantity="other">%d flux ajoutés</item>
     </plurals>
     <plurals name="refresh_failed">
-        <item quantity="one">%d flux n\'a pas pu être actualisé</item>
-        <item quantity="many">%d flux n\'ont pas pu être actualisés</item>
-        <item quantity="other">%d flux n\'ont pas pu être actualisés</item>
+        <item quantity="one">%1$d flux n\'a pas pu être actualisé : %2$s</item>
+        <item quantity="many">%1$d flux n\'ont pas pu être actualisés : %2$s</item>
+        <item quantity="other">%1$d flux n\'ont pas pu être actualisés : %2$s</item>
     </plurals>
     <plurals name="home_subtitle_unread">
         <item quantity="one">%d non lu</item>
