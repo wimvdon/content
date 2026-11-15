@@ -111,6 +111,7 @@ import to.wim.content.data.ArticleSearch
 import to.wim.content.data.withoutHidden
 import to.wim.content.data.NewsletterSender
 import to.wim.content.data.NewsletterSenders
+import to.wim.content.data.withMovedSenders
 import to.wim.content.data.withoutMuted
 import to.wim.content.ui.home.LocalNewsletterSenders
 import to.wim.content.ui.home.SenderActions
@@ -248,6 +249,8 @@ fun RssReaderNavigation(
     val library = libraryOrNull ?: Library()
     // Newsletter senders' names, merges and mutes.
     val senders = remember(current.newsletterSenders) { NewsletterSenders.decode(current.newsletterSenders) }
+    // The library with the senders moved to another tag listed under it (never stored): the lists and the senders' pages.
+    val moved = remember(library, senders) { library.withMovedSenders(senders) }
     val snackbar = remember { SnackbarHostState() }
     val uiScope = rememberCoroutineScope()
     // One message at a time: a new one replaces the one showing, so they never queue up; a tap
@@ -356,17 +359,23 @@ fun RssReaderNavigation(
             onRename = { key, name -> editSenders { it.renamed(key, name) } },
             onMute = { key, muted ->
                 if (muted) {
-                    val name = senders.rule(key)?.name ?: library.feeds.firstNotNullOfOrNull { f -> senders.list(library.articles, f.url).firstOrNull { it.key == key }?.name } ?: ""
+                    val name = senders.rule(key)?.name ?: library.feeds.firstNotNullOfOrNull { f -> senders.list(moved.articles, f.url).firstOrNull { it.key == key }?.name } ?: ""
                     editSendersUndoable(resources.getString(R.string.newsletter_sender_muted_message, name)) { it.muted(key, true) }
                 } else {
                     editSenders { it.muted(key, false) }
                 }
             },
             onMerge = { from, into, intoName ->
-                val fromName = library.feeds.firstNotNullOfOrNull { f -> senders.list(library.articles, f.url).firstOrNull { it.key == from }?.name } ?: ""
+                val fromName = library.feeds.firstNotNullOfOrNull { f -> senders.list(moved.articles, f.url).firstOrNull { it.key == from }?.name } ?: ""
                 editSendersUndoable(resources.getString(R.string.newsletter_sender_combined_message, fromName, intoName)) { it.merged(from, into, intoName) }
             },
             onSplit = { key -> editSenders { it.split(key) } },
+            onMoveToTag = { key, tag, name ->
+                // Back to the tag it is sent to clears the move.
+                val original = NewsletterSenders.originalTag(library, senders, key)
+                val tagName = library.folder(tag)?.title ?: resources.getString(R.string.folder_none)
+                editSendersUndoable(resources.getString(R.string.newsletter_sender_moved_message, name, tagName)) { it.movedTo(key, tag, original) }
+            },
         )
     // The sender page open over the lists or the reader: its feed and its key.
     var senderPageFeed by rememberSaveable { mutableStateOf<String?>(null) }
@@ -874,7 +883,7 @@ fun RssReaderNavigation(
                         }
                         // Without the articles hidden by their words (#277): the lists, counts and chips.
                         // And without the muted newsletter senders' newsletters.
-                        val listed = remember(library, current.hiddenWords, senders) { library.withoutHidden(ArticleFilter.parse(current.hiddenWords)).withoutMuted(senders) }
+                        val listed = remember(library, current.hiddenWords, senders) { library.withoutHidden(ArticleFilter.parse(current.hiddenWords)).withMovedSenders(senders).withoutMuted(senders) }
                         val articles =
                             remember(listed, shownSelection, readThisVisit, current.unreadOnly) {
                                 listed.articlesFor(shownSelection, FeedTab.of(current.unreadOnly), keep = readThisVisit)
@@ -1006,7 +1015,7 @@ fun RssReaderNavigation(
                                         // Done with the section: nothing read stays in the Unread list (#157).
                                         readThisVisit = emptySet()
                                         app.appScope.launch {
-                                            val keys = repository.markAllRead(shownSelection)
+                                            val keys = repository.markAllRead(shownSelection, senders)
                                             if (keys.isEmpty()) return@launch
                                             showMessage(resources.getQuantityString(R.plurals.marked_read, keys.size, keys.size), resources.getString(R.string.action_undo)) {
                                                 app.appScope.launch { repository.setRead(keys, false) }
@@ -1046,8 +1055,8 @@ fun RssReaderNavigation(
                                         fileNote = false
                                     },
                                     onShareArticle = ::share,
-                                    onOpenSenderOf = { article -> openSenderPage(senders.senderOf(library.articles, article)) },
-                                    onMuteSenderOf = { article -> senders.senderOf(library.articles, article)?.let { senderActions.onMute(it.key, true) } },
+                                    onOpenSenderOf = { article -> openSenderPage(senders.senderOf(moved.articles, article)) },
+                                    onMuteSenderOf = { article -> senders.senderOf(moved.articles, article)?.let { senderActions.onMute(it.key, true) } },
                                     onOpenSender = ::openSenderPage,
                                     onShareItem = { item -> share(ReadingLists.article(item, library)) },
                                     onOpenSearch = { push(Screen.Search) },
@@ -1163,7 +1172,7 @@ fun RssReaderNavigation(
                                                 },
                                             onOpenLink = { url -> ExternalApps.openInTab(context, url, null) },
                                             onToggleFullText = { fullTextChoice = !wantFullText },
-                                            onOpenSender = article?.let { a -> senders.senderOf(library.articles, a) }?.let { s -> { openSenderPage(s) } },
+                                            onOpenSender = article?.let { a -> senders.senderOf(moved.articles, a) }?.let { s -> { openSenderPage(s) } },
                                         ),
                                     item =
                                         item?.let { i ->
@@ -1440,6 +1449,20 @@ fun RssReaderNavigation(
             )
         }
     }
+    // The same, with Open newest, which needs the screens below: out of the sender's page, and of the Newsletter feed page it may be a page of, into the reader.
+    val senderPageActions =
+        senderActions.copy(
+            onOpenNewest = { articleKey ->
+                // Out of the sender's page, and of the Newsletter feed page it may be a page of, into the reader.
+                openSenderPage(null)
+                manageFeedsKind = null
+                addChoiceOpen = false
+                moved.article(articleKey)?.let {
+                    readThisVisit = readThisVisit + it.key
+                    openArticle(it)
+                }
+            },
+        )
     // What Newsletter feed needs, from + and from Settings; Sign in closes where it came from.
     fun newsletterChoices(onSignIn: () -> Unit) =
         NewsletterChoices(
@@ -1449,8 +1472,8 @@ fun RssReaderNavigation(
             loadAddresses = { app.sync.newsletters() },
             topicActions = topicActions,
             activity = { feedUrl -> NewsletterAddresses.activity(library.articles, feedUrl) },
-            senders = { feedUrl -> senders.list(library.articles, feedUrl) },
-            senderActions = senderActions,
+            senders = { feedUrl -> senders.list(moved.articles, feedUrl) },
+            senderActions = senderPageActions,
             onCopy = ::copyToClipboard,
             onShare = { address -> ExternalApps.shareText(context, address, resources.getString(R.string.action_share)) },
         )
@@ -1491,14 +1514,16 @@ fun RssReaderNavigation(
     }
     // A sender's page, from a sender chip's long press, a newsletter's long press or the reader's sender line.
     senderPageFeed?.let { feedUrl ->
-        val list = senders.list(library.articles, feedUrl)
+        val list = senders.list(moved.articles, feedUrl)
         list.firstOrNull { it.key == senderPageKey }?.let { sender ->
             SenderPage(
                 sender = sender,
                 others = list.filter { it.key != sender.key },
                 feed = library.feeds.firstOrNull { it.url == feedUrl },
                 givenName = senders.rule(sender.key)?.name,
-                actions = senderActions,
+                topics = library.folders,
+                currentTag = library.feeds.firstOrNull { it.url == feedUrl }?.folderId ?: NewsletterAddresses.NO_TAG,
+                actions = senderPageActions,
                 onBack = { openSenderPage(null) },
             )
         }

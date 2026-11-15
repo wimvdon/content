@@ -432,12 +432,18 @@ class LibraryRepository(
         edit { FeedArrangement.apply(it, rows) }
     }
 
-    /** Marks the selection as read and returns what was unread, for Undo. */
-    suspend fun markAllRead(selection: FeedSelection): Set<String> {
+    /**
+     * Marks the selection as read and returns what was unread, for Undo. [senders]: the selection
+     * is read as the lists show it, with newsletter senders under the tag they were moved to.
+     */
+    suspend fun markAllRead(
+        selection: FeedSelection,
+        senders: NewsletterSenders = NewsletterSenders(),
+    ): Set<String> {
         var keys: Set<String> = emptySet()
         edit { library ->
-            keys = library.unreadKeys(selection)
-            library.markAllRead(selection)
+            keys = library.withMovedSenders(senders).unreadKeys(selection)
+            library.setRead(keys, true)
         }
         return keys
     }

@@ -376,6 +376,20 @@
     <string name="newsletter_sender_mute_named">%1$s dempen</string>
     <string name="newsletter_sender_muted_message">%1$s gedempt</string>
     <string name="newsletter_sender_combined_message">%1$s staat nu bij %2$s</string>
+    <string name="newsletter_sender_newest">Nieuwste %1$s</string>
+    <string name="newsletter_sender_open_newest">Nieuwste openen</string>
+    <string name="newsletter_sender_all_read">Alles gelezen</string>
+    <plurals name="newsletter_sender_unread">
+        <item quantity="one">%1$d ongelezen</item>
+        <item quantity="other">%1$d ongelezen</item>
+    </plurals>
+    <string name="newsletter_cadence_daily">Ongeveer dagelijks</string>
+    <string name="newsletter_cadence_weekly">Ongeveer wekelijks</string>
+    <string name="newsletter_cadence_two_weeks">Ongeveer om de twee weken</string>
+    <string name="newsletter_cadence_monthly">Ongeveer maandelijks</string>
+    <string name="newsletter_cadence_now_and_then">Af en toe</string>
+    <string name="newsletter_sender_tag_hint">Aangemeld met het adres van de verkeerde tag? Toon zijn nieuwsbrieven onder een andere tag.</string>
+    <string name="newsletter_sender_moved_message">%1$s staat nu onder %2$s</string>
     <string name="newsletter_none_yet">Nog geen nieuwsbrieven</string>
     <string name="newsletter_copied">Gekopieerd</string>
     <plurals name="newsletter_count">

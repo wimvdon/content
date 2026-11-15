@@ -42,7 +42,7 @@ import { defaultReaderStyle, readerStyleOf, type ReaderStyle } from "./readerSty
 import { load, remove, save } from "./storage";
 import * as S from "./sync";
 import { hiddenWords, withoutHidden } from "./articleFilter";
-import { decodeSenders, encodeSenders, withoutMuted, type SenderRule } from "./newsletterSenders";
+import { decodeSenders, encodeSenders, withMovedSenders, withoutMuted, type SenderRule } from "./newsletterSenders";
 import * as SS from "./syncSettings";
 
 /** Everything the web app shows, kept in one place; components subscribe with useApp(). */
@@ -358,7 +358,29 @@ class AppStore {
 
   /** The library the feed lists show: without the articles the hidden words and muted newsletter senders leave out. */
   private listed(): L.Library {
-    return withoutMuted(withoutHidden(this.state.library, hiddenWords(this.state.settings.hiddenWords)), decodeSenders(this.state.settings.newsletterSenders));
+    const rules = decodeSenders(this.state.settings.newsletterSenders);
+    return withoutMuted(withMovedSenders(withoutHidden(this.state.library, hiddenWords(this.state.settings.hiddenWords)), rules), rules);
+  }
+
+  /** The library with the newsletter senders moved to another tag listed under it, muted ones kept: what the senders' pages list. */
+  movedLibrary(): L.Library {
+    return withMovedSenders(this.state.library, decodeSenders(this.state.settings.newsletterSenders));
+  }
+
+  private openHandler: ((article: L.Article) => void) | null = null;
+
+  /** Where an article asked for by a sender's page (Open newest) opens: App.tsx's reader. */
+  onOpenRequest(handler: (article: L.Article) => void) {
+    this.openHandler = handler;
+    return () => {
+      if (this.openHandler === handler) this.openHandler = null;
+    };
+  }
+
+  /** Opens the article with this key (as the lists show it) in the reader, out of the dialogs. */
+  requestOpen(key: string) {
+    const article = this.movedLibrary().articles.find((a) => L.articleKey(a) === key);
+    if (article) this.openHandler?.(article);
   }
 
   /** A change to the newsletter senders' choices (newsletterSenders.ts), synced. */

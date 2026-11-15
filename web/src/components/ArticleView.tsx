@@ -242,7 +242,7 @@ export function ArticleView({
                 className="flex min-w-0 cursor-pointer items-center gap-2 rounded-sm hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                 aria-label={t("newsletterSenderAbout").replace("{name}", sender.title)}
                 onClick={() => {
-                  const own = senderOfArticle(rules, app.get().library.articles, article);
+                  const own = senderOfArticle(rules, app.movedLibrary().articles, article);
                   if (own) app.openSenderPage(own);
                 }}
               >

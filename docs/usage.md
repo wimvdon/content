@@ -64,7 +64,12 @@ sender (it then shows as that one), or **Separate** a sender combined into it. T
 synced to your other devices. A sender's page also opens from where the sender is: press and hold
 its chip (on the web, right-click it), press and hold one of its newsletters › **About <sender>**, or
 tap the sender above a newsletter's title. Press and hold a newsletter › **Mute <sender>** mutes it
-straight away. Muting and combining show a message with **Undo**. (Newsletters through your
+straight away. At the top of a sender's page a line says when the newest newsletter came, how often
+they come (about daily, weekly, every two weeks or monthly, or now and then; left out until there
+are three) and how many are unread, with **Open newest** to read the newest one. Under **Tag** you
+can show a sender under another tag, for one that signed up with the wrong tag's address: pick the
+tag (No tag is first), and its newsletters then show in that tag's Newsletters feed instead; pick
+its own tag again to put them back. Muting, combining and moving show a message with **Undo**. (Newsletters through your
 Save to Instapaper address still arrive in Saved, under the **From Instapaper** chip; see Saved.)
 
 ## Moving from another reader

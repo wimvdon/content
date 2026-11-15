@@ -2,6 +2,31 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-15: A sender's page shows facts, and a sender can be shown under another tag
+
+A newsletter subscribed with the wrong tag's address could only be fixed by resubscribing. The
+sender's page now has a **Tag** section (both apps): picking another tag shows the sender's
+newsletters in that tag's Newsletters feed; picking its own tag clears it. The page also starts with
+a line (newest came, how often, how many unread) and **Open newest**.
+
+- **Where it is stored:** an optional fifth tab-separated field on the sender's line in
+  `articles.newsletterSenders` (`-` for No tag, `t:<id>` for a tag). Old apps read the first four
+  fields and ignore the rest, so nothing breaks; they just list the sender under its original tag
+  until updated. Rejected: a second setting (two things to keep in step) and a changed line layout.
+- **How it works:** a function, `withMovedSenders(library, rules)` (next to `withoutMuted`), gives
+  the lists a library in which a moved sender's articles carry the target tag's Newsletters feed URL.
+  Because an article's key is its feed URL plus its id, the copy also keeps the feed it is really
+  stored under (`Article.storedFeedUrl`, the web's `storedFeedUrl`) and the key is computed from
+  that one, so the key does not change: read marks, sync, opening and Mark all as read keep working
+  on the stored articles, and the unread counts are right. Rejected: filtering by tag inside every
+  selection rule (`includes`, counts, chips, the web's `listed()`), which would have spread the rule
+  over many places. The lists, chips, counts and the senders' pages use the moved library; storing
+  it would be wrong, so it is only ever built for display. Mark all as read reads the selection from
+  it too (`LibraryRepository.markAllRead(selection, senders)`).
+- **A rule per sender, not per address:** a sender that writes to two tags' addresses moves as one.
+- **Cadence:** the median gap between the newest 10 issues, so one skipped week does not change
+  "about weekly"; thresholds 2, 10, 21 and 45 days; nothing is said under 3 issues.
+
 ## 2026-11-15: A sender's page opens where the sender is, with Undo
 
 From the newsletter review: a sender's page (rename, mute, combine) could only be reached through

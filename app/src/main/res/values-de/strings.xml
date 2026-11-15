@@ -376,6 +376,20 @@
     <string name="newsletter_sender_mute_named">%1$s stummschalten</string>
     <string name="newsletter_sender_muted_message">%1$s stummgeschaltet</string>
     <string name="newsletter_sender_combined_message">%1$s erscheint jetzt als %2$s</string>
+    <string name="newsletter_sender_newest">Neueste %1$s</string>
+    <string name="newsletter_sender_open_newest">Neueste öffnen</string>
+    <string name="newsletter_sender_all_read">Alles gelesen</string>
+    <plurals name="newsletter_sender_unread">
+        <item quantity="one">%1$d ungelesen</item>
+        <item quantity="other">%1$d ungelesen</item>
+    </plurals>
+    <string name="newsletter_cadence_daily">Etwa täglich</string>
+    <string name="newsletter_cadence_weekly">Etwa wöchentlich</string>
+    <string name="newsletter_cadence_two_weeks">Etwa alle zwei Wochen</string>
+    <string name="newsletter_cadence_monthly">Etwa monatlich</string>
+    <string name="newsletter_cadence_now_and_then">Gelegentlich</string>
+    <string name="newsletter_sender_tag_hint">Mit der Adresse des falschen Tags abonniert? Zeige die Newsletter unter einem anderen Tag.</string>
+    <string name="newsletter_sender_moved_message">%1$s erscheint jetzt unter %2$s</string>
     <string name="newsletter_none_yet">Noch keine Newsletter</string>
     <string name="newsletter_copied">Kopiert</string>
     <plurals name="newsletter_count">

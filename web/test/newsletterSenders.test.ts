@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { articlesFor, unreadKeys, selectionExists, type Article, type Feed, type Library } from "../src/lib/library";
+import { articleKey, articlesFor, setRead, unreadKeys, selectionExists, type Article, type Feed, type Library } from "../src/lib/library";
 import { senderKeyOf, siteOfSender } from "../src/lib/senderKey";
 import {
   decodeSenders,
@@ -7,9 +7,12 @@ import {
   groupOf,
   isMuted,
   mergedSender,
+  movedSender,
   mutedSender,
+  originalTag,
   renamedSender,
   ruleOf,
+  senderCadence,
   senderChips,
   senderFeed,
   senderList,
@@ -17,10 +20,12 @@ import {
   senderSelection,
   shownSender,
   splitSender,
+  withMovedSenders,
   withoutMuted,
   type NewsletterSender,
   type SenderRule,
 } from "../src/lib/newsletterSenders";
+import { NO_TAG } from "../src/lib/newsletterAddresses";
 import { feedChipRow } from "../src/lib/topics";
 
 const feedUrl = "https://w.example/newsletters/k7q2m9abcdef/0123456789abcdef0123456789abcdef";
@@ -99,8 +104,8 @@ describe("newsletter senders, as on Android", () => {
     expect(groupOf(rules, "substack.com/platformer")).toBe("bozar.be");
     expect(mergedSender(rules, "bozar.be", "substack.com/stratechery", "x")).toBe(rules);
     const loop: SenderRule[] = [
-      { key: "a", name: null, into: "b", muted: false },
-      { key: "b", name: null, into: "a", muted: false },
+      { key: "a", name: null, into: "b", muted: false, tag: null },
+      { key: "b", name: null, into: "a", muted: false, tag: null },
     ];
     expect(groupOf(loop, "a")).toBe("a");
   });
@@ -121,7 +126,7 @@ describe("newsletter senders, as on Android", () => {
     expect(text).toBe("bozar.be\tBozar\t\t0\nsubstack.com/platformer\t\tbozar.be\t0\nname:de standaard\t\t\t1");
     expect(decodeSenders(text)).toEqual(rules);
     expect(decodeSenders(undefined)).toEqual([]);
-    expect(decodeSenders("a\tA\t\t0\nbroken\n\t\t\t1\nnothing\t\t\t0")).toEqual([{ key: "a", name: "A", into: null, muted: false }]);
+    expect(decodeSenders("a\tA\t\t0\nbroken\n\t\t\t1\nnothing\t\t\t0")).toEqual([{ key: "a", name: "A", into: null, muted: false, tag: null }]);
   });
 
   it("a sender chosen shows only its newsletters", () => {
@@ -155,5 +160,138 @@ describe("newsletter senders, as on Android", () => {
     // A single sender adds nothing; another feed has none.
     expect(feedChipRow(library, "all", { kind: "feed", feedUrl }, senders.slice(0, 1)).feeds).toHaveLength(2);
     expect(feedChipRow(library, "all", { kind: "feed", feedUrl: rss.url }, senders).senders).toEqual([]);
+  });
+});
+
+const DAY = 24 * 60 * 60 * 1000;
+
+describe("a sender's facts, as on Android", () => {
+  it("cadence is the median gap between the newest ten issues, and unknown under three issues", () => {
+    expect(senderCadence([])).toBeNull();
+    expect(senderCadence([0, DAY])).toBeNull();
+    expect(senderCadence([0, DAY, 2 * DAY])).toBe("daily");
+    // A weekdays-only newsletter is daily: the weekend gap is not the median.
+    expect(senderCadence([0, DAY, 2 * DAY, 3 * DAY, 6 * DAY, 7 * DAY])).toBe("daily");
+    expect(senderCadence([0, 7 * DAY, 14 * DAY])).toBe("weekly");
+    // Twice a week is still about weekly; any order is fine.
+    expect(senderCadence([7 * DAY, 0, 3 * DAY, 10 * DAY])).toBe("weekly");
+    expect(senderCadence([0, 14 * DAY, 28 * DAY])).toBe("twoWeeks");
+    expect(senderCadence([0, 30 * DAY, 61 * DAY])).toBe("monthly");
+    expect(senderCadence([0, 90 * DAY, 200 * DAY])).toBe("nowAndThen");
+    // The thresholds: 2, 10, 21 and 45 days belong to the faster one.
+    expect(senderCadence([0, 2 * DAY, 4 * DAY])).toBe("daily");
+    expect(senderCadence([0, 10 * DAY, 20 * DAY])).toBe("weekly");
+    expect(senderCadence([0, 21 * DAY, 42 * DAY])).toBe("twoWeeks");
+    expect(senderCadence([0, 45 * DAY, 90 * DAY])).toBe("monthly");
+    // Only the newest ten count: old weekly issues don't weigh on a sender now daily.
+    const recent = Array.from({ length: 10 }, (_, i) => 1000 * DAY + i * DAY);
+    expect(senderCadence([...recent, ...Array.from({ length: 5 }, (_, i) => i * 7 * DAY)])).toBe("daily");
+  });
+
+  it("a sender knows when its issues came and which is the newest", () => {
+    const sender = senderList([], [bozarNews, bozarEvents, platformer], feedUrl).find((s) => s.key === "bozar.be")!;
+    expect(sender.times).toEqual([20, 10]);
+    expect(sender.newestKey).toBe(articleKey(bozarEvents));
+  });
+});
+
+const feed2Url = "https://w.example/newsletters/zzzzzzzzzzzz/fedcba9876543210fedcba9876543210";
+const feed2: Feed = { ...feed, url: feed2Url, folderId: "2", tags: ["Work"] };
+const feedNoTagUrl = "https://w.example/newsletters/yyyyyyyyyyyy/00112233445566778899aabbccddeeff";
+const feedNoTag: Feed = { ...feed, url: feedNoTagUrl, folderId: null, tags: [] };
+const twoTags = (articles: Article[]): Library => ({
+  ...lib([feed, feed2, feedNoTag, rss], articles),
+  folders: [
+    { id: "1", title: "News", icon: "folder" },
+    { id: "2", title: "Work", icon: "folder" },
+  ],
+});
+const unreadIn = (library: Library, selection: Parameters<typeof unreadKeys>[1]) => unreadKeys(library, selection).size;
+
+describe("moving a sender to another tag, as on Android", () => {
+  it("the tag is stored as a fifth field that an old app ignores, and a line without it reads as before", () => {
+    const rules = movedSender(movedSender(renamedSender([], "bozar.be", "Bozar"), "bozar.be", "2", "1"), "substack.com/platformer", NO_TAG, "1");
+    const text = encodeSenders(rules);
+    const lines = text.split("\n");
+    expect(lines[0]).toBe("bozar.be\tBozar\t\t0\tt:2");
+    expect(lines[1]).toBe("substack.com/platformer\t\t\t0\t-");
+    expect(decodeSenders(text)).toEqual(rules);
+    expect(decodeSenders(text)[0].tag).toBe("2");
+    expect(decodeSenders(text)[1].tag).toBe(NO_TAG);
+    // A line from before the tag.
+    expect(decodeSenders("bozar.be\tBozar\t\t0")[0].tag).toBeNull();
+    // What an old app reads from a line with the tag: its first four fields, as before.
+    expect(lines[0].split("\t").slice(0, 4)).toEqual(["bozar.be", "Bozar", "", "0"]);
+    // A tag alone is a choice worth keeping; an unreadable tag is dropped, the rest read.
+    expect(decodeSenders("a\t\t\t0\tt:x")).toEqual([{ key: "a", name: null, into: null, muted: false, tag: "x" }]);
+    expect(decodeSenders("a\tA\t\t0\tgarbage")).toEqual([{ key: "a", name: "A", into: null, muted: false, tag: null }]);
+    expect(decodeSenders("a\t\t\t0\tt:")).toEqual([]);
+  });
+
+  it("picking the tag it is sent to clears the move, and merging a sender drops its own move", () => {
+    const moved = movedSender([], "bozar.be", "2", "1");
+    expect(ruleOf(moved, "bozar.be")?.tag).toBe("2");
+    expect(movedSender(moved, "bozar.be", "1", "1")).toEqual([]);
+    expect(ruleOf(mergedSender(moved, "bozar.be", "substack.com/platformer", "Platformer"), "bozar.be")?.tag).toBeNull();
+  });
+
+  it("a moved sender's newsletters are listed under the target tag's feed, and no other", () => {
+    const library = twoTags([bozarNews, bozarEvents, platformer]);
+    const rules = movedSender([], "bozar.be", "2", "1");
+    const view = withMovedSenders(library, rules);
+    expect(view.articles.map((a) => a.feedUrl)).toEqual([feed2Url, feed2Url, feedUrl]);
+    expect(articlesFor(view, { kind: "feed", feedUrl: feed2Url }, false).map((a) => a.id)).toEqual(["2", "1"]);
+    expect(articlesFor(view, { kind: "feed", feedUrl }, false).map((a) => a.id)).toEqual(["3"]);
+    expect(unreadIn(view, { kind: "folder", folderId: "2" })).toBe(2);
+    expect(unreadIn(view, { kind: "folder", folderId: "1" })).toBe(1);
+    // The senders of each feed follow.
+    expect(senderList(rules, view.articles, feed2Url).map((s) => s.name)).toEqual(["Bozar Events"]);
+    expect(senderList(rules, view.articles, feedUrl).map((s) => s.name)).toEqual(["Platformer"]);
+    expect(senderOfArticle(rules, view.articles, bozarNews)?.feedUrl).toBe(feed2Url);
+    // The same library when nothing is moved; and the stored library is never changed.
+    expect(withMovedSenders(library, [])).toBe(library);
+    expect(library.articles[0].feedUrl).toBe(feedUrl);
+  });
+
+  it("a sender moved to No tag, to a tag without a feed or to the tag it is in", () => {
+    const library = twoTags([bozarNews]);
+    expect(withMovedSenders(library, movedSender([], "bozar.be", NO_TAG, "1")).articles[0].feedUrl).toBe(feedNoTagUrl);
+    expect(withMovedSenders(library, movedSender([], "bozar.be", "gone", "1")).articles[0].feedUrl).toBe(feedUrl);
+    expect(withMovedSenders(library, [{ key: "bozar.be", name: null, into: null, muted: false, tag: "1" }]).articles[0].feedUrl).toBe(feedUrl);
+    // An RSS feed's article of the same author is never moved.
+    const rssArticle = issue("9", "Bozar", "https://bozar.be", 0, false, rss.url);
+    expect(withMovedSenders(twoTags([rssArticle]), movedSender([], "bozar.be", "2", "1")).articles[0].feedUrl).toBe(rss.url);
+  });
+
+  it("a combined sender's newsletters all follow the move of the sender they are combined into", () => {
+    const library = twoTags([bozarNews, bozarSite, platformer]);
+    const rules = movedSender(mergedSender([], "bozar-mail.be", "bozar.be", "Bozar"), "bozar.be", "2", "1");
+    expect(withMovedSenders(library, rules).articles.map((a) => a.feedUrl)).toEqual([feed2Url, feed2Url, feedUrl]);
+  });
+
+  it("read state keeps working for moved newsletters, because their key stays the same", () => {
+    const library = twoTags([bozarNews, bozarEvents, platformer]);
+    const rules = movedSender([], "bozar.be", "2", "1");
+    const view = withMovedSenders(library, rules);
+    expect(view.articles.map(articleKey)).toEqual(library.articles.map(articleKey));
+    // Marking what the list shows as read marks the stored articles, not copies.
+    const keys = unreadKeys(view, { kind: "feed", feedUrl: feed2Url });
+    expect(keys).toEqual(new Set([articleKey(bozarNews), articleKey(bozarEvents)]));
+    const stored = setRead(library, keys, true);
+    expect(unreadIn(stored, { kind: "all" })).toBe(1);
+    expect(unreadIn(withMovedSenders(stored, rules), { kind: "feed", feedUrl: feed2Url })).toBe(0);
+    expect(stored.articles[0].feedUrl).toBe(feedUrl);
+    // A mark kept from before the move still applies after it.
+    expect(unreadIn(withMovedSenders(setRead(library, new Set([articleKey(bozarNews)]), true), rules), { kind: "feed", feedUrl: feed2Url })).toBe(1);
+    // Muted senders still leave the moved lists.
+    expect(withoutMuted(view, mutedSender(rules, "bozar.be", true)).articles.map((a) => a.id)).toEqual(["3"]);
+  });
+
+  it("the tag a sender is sent to is read from the stored library, whatever it is shown under", () => {
+    const library = twoTags([bozarNews, platformer, issue("7", "X", null, 0, false, feedNoTagUrl)]);
+    const rules = movedSender([], "bozar.be", "2", "1");
+    expect(originalTag(library, rules, "bozar.be")).toBe("1");
+    expect(originalTag(library, rules, "name:x")).toBe(NO_TAG);
+    expect(originalTag(library, rules, "nobody.be")).toBeNull();
   });
 });
