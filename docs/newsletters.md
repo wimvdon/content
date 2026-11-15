@@ -48,8 +48,10 @@ any article: unread, Mark all as read, the chips' dots, the reader and Search al
   newsletter@bozar.be and events@bozar.be are one), on a platform many newsletters send from
   (`SHARED_SITES`: substack.com, beehiiv.com, gmail.com, …) its website and its name
   (`substack.com/platformer`), and for emails without a website its name (`name:de standaard`).
-  Filtering on a Newsletters feed keeps the sender on every row; the feed's senders then follow it
-  as chips (`FeedChips.senders`, the web's `feedChipRow`), each a selection of its own
+  Filtering on a Newsletters feed keeps the sender on every row. Each newsletter feed's senders are
+  chips of their own right after its chip, wherever that chip is (`FeedChips.sendersOf`, the web's
+  `feedChipRow` and `sendersOf`; on the web also rows under the feed in the sidebar, `listedSenders`),
+  when it has more than one, each a selection of its own
   (`FeedSelection.Sender`, the web's `{kind: "sender"}`) with the senders combined into it. The
   Newsletter feed page lists the tag's senders under the address, each with a page: a name of its
   own, Mute (its newsletters are left out of the lists, counts and chips, `withoutMuted`, as hidden

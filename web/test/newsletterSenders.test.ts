@@ -26,7 +26,7 @@ import {
   type SenderRule,
 } from "../src/lib/newsletterSenders";
 import { NO_TAG } from "../src/lib/newsletterAddresses";
-import { feedChipRow } from "../src/lib/topics";
+import { feedChipRow, sendersOf } from "../src/lib/topics";
 
 const feedUrl = "https://w.example/newsletters/k7q2m9abcdef/0123456789abcdef0123456789abcdef";
 const feed: Feed = { url: feedUrl, title: "Newsletters", siteUrl: null, folderId: "1", iconUrl: null, renamed: true, tags: ["News"] };
@@ -143,23 +143,31 @@ describe("newsletter senders, as on Android", () => {
     expect(senderChips([], library, { kind: "feed", feedUrl }, false).map((s) => s.name)).toEqual(["Bozar", "Platformer", "Stratechery"]);
     expect(senderChips([], library, { kind: "feed", feedUrl }, true).map((s) => s.name)).toEqual(["Bozar", "Platformer"]);
     expect(senderChips([], library, { kind: "sender", feedUrl, key: "substack.com/stratechery", members: [] }, true)).toHaveLength(3);
-    expect(senderChips([], library, { kind: "feed", feedUrl: rss.url }, false)).toEqual([]);
-    expect(senderChips([], library, { kind: "all" }, false)).toEqual([]);
+    // Whatever is chosen: every newsletter feed's senders are chips, like feeds; an RSS feed has none.
+    expect(senderChips([], library, { kind: "feed", feedUrl: rss.url }, false)).toHaveLength(3);
+    expect(senderChips([], library, { kind: "all" }, true).map((s) => s.name)).toEqual(["Bozar", "Platformer"]);
+    expect(senderChips([], lib([rss], [bozarNews]), { kind: "all" }, false)).toEqual([]);
   });
 
-  it("the chip row: a newsletter feed chosen shows its topic, itself and its senders", () => {
+  it("the chip row: a newsletter feed's senders are chips of their own after it, wherever its chip is", () => {
     const library = lib([feed, rss], [bozarNews, platformer, issue("7", "x", null, 0, false, rss.url)]);
     const senders: NewsletterSender[] = senderList([], library.articles, feedUrl);
-    const row = feedChipRow(library, "all", { kind: "feed", feedUrl }, senders);
-    expect(row.chosenTopic).toBe("News");
-    expect(row.feeds.map((f) => f.url)).toEqual([feedUrl]);
-    expect(row.senders).toEqual(senders);
+    // Its topic chosen: the topic's feeds, its senders after Newsletters.
+    const row = feedChipRow(library, "all", { kind: "tag", tag: "News" }, senders);
+    expect(row.feeds.map((f) => f.url)).toEqual([feedUrl, rss.url]);
+    expect(sendersOf(row, feedUrl)).toEqual(senders);
+    expect(sendersOf(row, rss.url)).toEqual([]);
+    // The feed chosen: the row stays the same, its senders too.
+    const one = feedChipRow(library, "all", { kind: "feed", feedUrl }, senders);
+    expect(one.feeds.map((f) => f.url)).toEqual([feedUrl, rss.url]);
+    expect(one.senders).toEqual(senders);
     const picked = feedChipRow(library, "all", senderSelection(senders[0]), senders);
     expect(picked.chosenFeed).toBe(feedUrl);
     expect(picked.chosenSender).toBe("bozar.be");
-    // A single sender adds nothing; another feed has none.
-    expect(feedChipRow(library, "all", { kind: "feed", feedUrl }, senders.slice(0, 1)).feeds).toHaveLength(2);
-    expect(feedChipRow(library, "all", { kind: "feed", feedUrl: rss.url }, senders).senders).toEqual([]);
+    expect(picked.feeds).toHaveLength(2);
+    // A single sender adds nothing, unless it is the one chosen.
+    expect(feedChipRow(library, "all", { kind: "tag", tag: "News" }, senders.slice(0, 1)).senders).toEqual([]);
+    expect(feedChipRow(library, "all", senderSelection(senders[0]), senders.slice(0, 1)).senders).toEqual(senders.slice(0, 1));
   });
 });
 

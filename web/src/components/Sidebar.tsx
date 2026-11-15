@@ -6,7 +6,9 @@ import { choosesFolder, feedTabOf, unreadByFeed } from "@/lib/library";
 import { inboxUnread } from "@/lib/inbox";
 import { hasUnreadNewsletter } from "@/lib/newsletters";
 import { chipTags, isPlainFilter, showsLiked, showsNewsletters, toReadCount, withoutChips } from "@/lib/saved";
-import { sidebarFeeds, topicIcons } from "@/lib/topics";
+import { listedSenders, sidebarFeeds, topicIcons } from "@/lib/topics";
+import { decodeSenders, senderChips, senderFeed, senderSelection } from "@/lib/newsletterSenders";
+import { useMemo } from "react";
 import { FeedIcon } from "./FeedIcon";
 import { FolderIcon } from "./FolderIcon";
 import { NewDot } from "./NewDot";
@@ -37,6 +39,11 @@ export function Sidebar({ onSettings }: { onSettings: () => void }) {
   const inFeeds = !inboxOpen && !inSaved;
   // The newsletters' dot: on Saved and its Newsletters row while one waits unread (Mark incoming newsletters as unread on).
   const newsletterUnread = hasUnreadNewsletter(library);
+  // Every newsletter feed's senders with something in the view shown (newsletterSenders.ts).
+  const senders = useMemo(
+    () => senderChips(decodeSenders(settings.newsletterSenders), library, selection, settings.unreadOnly),
+    [settings.newsletterSenders, library, selection, settings.unreadOnly],
+  );
 
   return (
     <nav className="flex h-full flex-col" aria-label={t("navigation")}>
@@ -70,12 +77,39 @@ export function Sidebar({ onSettings }: { onSettings: () => void }) {
   /** Feeds' filters: All feeds, the topics with something in the view shown (a topic's feeds while you are in it), then the feeds without a topic, as on Android. */
   function feedFilters() {
     const { topics, loose } = sidebarFeeds(library, feedTabOf(settings.unreadOnly), selection);
+    // Under a newsletter feed, its senders, each a row of its own like a feed (as Android's chips).
+    const senderRows = (feedUrl: string) =>
+      listedSenders(senders, selection)
+        .filter((s) => s.feedUrl === feedUrl)
+        .map((sender) => (
+          <div key={`${sender.feedUrl} ${sender.key}`} className="pl-6">
+            <Row
+              selected={selection.kind === "sender" && selection.feedUrl === sender.feedUrl && selection.key === sender.key}
+              onClick={() => app.select(senderSelection(sender))}
+              icon={<FeedIcon feed={senderFeed(sender, library.feeds.find((f) => f.url === feedUrl))} />}
+              label={sender.name}
+              count={sender.unread}
+            />
+          </div>
+        ));
+    const feedRow = (feed: (typeof library.feeds)[number]) => (
+      <div key={feed.url}>
+        <Row
+          selected={selection.kind === "feed" && selection.feedUrl === feed.url}
+          onClick={() => app.select({ kind: "feed", feedUrl: feed.url })}
+          icon={<FeedIcon feed={feed} />}
+          label={feed.title}
+          count={counts.get(feed.url) ?? 0}
+        />
+        {senderRows(feed.url)}
+      </div>
+    );
     return (
       <div className="space-y-0.5" role="group" aria-label={t("filter")}>
         <Row selected={selection.kind === "all"} onClick={() => app.select({ kind: "all" })} icon={<Rss />} label={t("allFeeds")} count={total} />
         {topics.map(({ folder, feeds }) => {
             const count = library.feeds.filter((f) => f.folderId === folder.id).reduce((n, f) => n + (counts.get(f.url) ?? 0), 0);
-            const open = choosesFolder(selection, folder) || (selection.kind === "feed" && feeds.some((f) => f.url === selection.feedUrl));
+            const open = choosesFolder(selection, folder) || ((selection.kind === "feed" || selection.kind === "sender") && feeds.some((f) => f.url === selection.feedUrl));
             return (
               <div key={folder.id}>
                 <Row
@@ -87,31 +121,13 @@ export function Sidebar({ onSettings }: { onSettings: () => void }) {
                 />
                 {open ? (
                   <div className="space-y-0.5 pl-6">
-                    {feeds.map((feed) => (
-                      <Row
-                        key={feed.url}
-                        selected={selection.kind === "feed" && selection.feedUrl === feed.url}
-                        onClick={() => app.select({ kind: "feed", feedUrl: feed.url })}
-                        icon={<FeedIcon feed={feed} />}
-                        label={feed.title}
-                        count={counts.get(feed.url) ?? 0}
-                      />
-                    ))}
+                    {feeds.map(feedRow)}
                   </div>
                 ) : null}
               </div>
             );
           })}
-        {loose.map((feed) => (
-          <Row
-            key={feed.url}
-            selected={selection.kind === "feed" && selection.feedUrl === feed.url}
-            onClick={() => app.select({ kind: "feed", feedUrl: feed.url })}
-            icon={<FeedIcon feed={feed} />}
-            label={feed.title}
-            count={counts.get(feed.url) ?? 0}
-          />
-        ))}
+        {loose.map(feedRow)}
       </div>
     );
   }

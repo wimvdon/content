@@ -369,21 +369,29 @@ fun HomeScreen(
                                 remember(state.feeds, state.folders, feedTags, state.selection, state.feedChipsShown, state.senderChips) {
                                     FeedChips.of(state.feeds, state.folders, feedTags, state.selection, state.feedChipsShown, state.senderChips)
                                 }
-                            // A newsletter feed's senders, after it: tapping one shows it alone, tapping it again the whole feed.
-                            val senderChips: @Composable () -> Unit = {
-                                val newsletterFeed = state.feeds.firstOrNull { it.url == chips.chosenFeed }
-                                chips.senders.forEach { sender ->
-                                    val on = sender.key == chips.chosenSender
+                            // A feed's chip, and after a newsletter feed's its senders, each a chip of its own like a feed:
+                            // tapping one shows it alone, tapping it again goes [back] (its topic, or everything).
+                            val feedChip: @Composable (Feed, FeedSelection) -> Unit = { feed, back ->
+                                val on = chips.feedChosen(feed.url)
+                                FeedChip(
+                                    feed,
+                                    on,
+                                    feedDot(feed),
+                                    onLongClick = newsletterAddressOf(feed),
+                                    longClickLabel = showAddressLabel.takeIf { NewsletterAddresses.isNewsletterFeed(feed.url) },
+                                ) { actions.onSelect(if (on) back else FeedSelection.Single(feed.url)) }
+                                chips.sendersOf(feed.url).forEach { sender ->
+                                    val chosen = sender.key == chips.chosenSender && feed.url == chips.chosenFeed
                                     FeedChip(
-                                        sender.shownAs(newsletterFeed),
-                                        on,
+                                        sender.shownAs(feed),
+                                        chosen,
                                         FeedChips.showsUnreadDot(state.unreadOnly, sender.unread),
                                         envelopeBadge = true,
                                         // Press and hold: the sender's page (rename, mute, combine).
                                         onLongClick = { actions.onOpenSender(sender) },
                                         longClickLabel = stringResource(R.string.newsletter_sender_about, sender.name),
                                     ) {
-                                        actions.onSelect(if (on) FeedSelection.Single(sender.feedUrl) else FeedSelection.Sender.of(sender))
+                                        actions.onSelect(if (chosen) back else FeedSelection.Sender.of(sender))
                                     }
                                 }
                             }
@@ -405,32 +413,12 @@ fun HomeScreen(
                                         chips.chosenTopic != null && chips.topicFeeds.isNotEmpty() -> {
                                             {
                                                 val topic = chips.chosenTopic
-                                                chips.topicFeeds.forEach { feed ->
-                                                    val on = feed.url == chips.chosenFeed
-                                                    FeedChip(
-                                                        feed,
-                                                        on,
-                                                        feedDot(feed),
-                                                        onLongClick = newsletterAddressOf(feed),
-                                                        longClickLabel = showAddressLabel.takeIf { NewsletterAddresses.isNewsletterFeed(feed.url) },
-                                                    ) { actions.onSelect(if (on) FeedSelection.Tagged(topic) else FeedSelection.Single(feed.url)) }
-                                                }
-                                                senderChips()
+                                                chips.topicFeeds.forEach { feed -> feedChip(feed, FeedSelection.Tagged(topic)) }
                                             }
                                         }
                                         chips.rowLoose.isNotEmpty() -> {
                                             {
-                                                chips.rowLoose.forEach { feed ->
-                                                    val on = feed.url == chips.chosenFeed
-                                                    FeedChip(
-                                                        feed,
-                                                        on,
-                                                        feedDot(feed),
-                                                        onLongClick = newsletterAddressOf(feed),
-                                                        longClickLabel = showAddressLabel.takeIf { NewsletterAddresses.isNewsletterFeed(feed.url) },
-                                                    ) { actions.onSelect(if (on) FeedSelection.All else FeedSelection.Single(feed.url)) }
-                                                }
-                                                senderChips()
+                                                chips.rowLoose.forEach { feed -> feedChip(feed, FeedSelection.All) }
                                             }
                                         }
                                         else -> null

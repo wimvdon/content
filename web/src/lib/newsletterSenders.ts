@@ -144,12 +144,13 @@ export function senderOfArticle(rules: SenderRule[], articles: Article[], articl
   return senderList(rules, articles, feedUrl).find((s) => s.key === group) ?? null;
 }
 
-/** Feeds' sender chips: while a newsletter feed (or one of its senders) is picked, its senders with something in the tab shown; the one picked stays. */
+/** Feeds' sender chips: every newsletter feed's senders with something in the tab shown; the one picked stays. */
 export function senderChips(rules: SenderRule[], lib: Library, selection: Selection, unreadOnly: boolean): NewsletterSender[] {
-  const feedUrl = selection.kind === "feed" || selection.kind === "sender" ? selection.feedUrl : null;
-  if (feedUrl === null || !isNewsletterFeed(feedUrl)) return [];
-  const picked = selection.kind === "sender" ? selection.key : null;
-  return senderList(rules, lib.articles, feedUrl).filter((s) => !unreadOnly || s.unread > 0 || s.key === picked);
+  const picked = selection.kind === "sender" ? selection : null;
+  return lib.feeds
+    .filter((f) => isNewsletterFeed(f.url))
+    .flatMap((f) => senderList(rules, lib.articles, f.url))
+    .filter((s) => !unreadOnly || s.unread > 0 || (s.feedUrl === picked?.feedUrl && s.key === picked.key));
 }
 
 /** The selection that shows `sender` alone. */

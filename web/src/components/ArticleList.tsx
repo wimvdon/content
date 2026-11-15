@@ -1,12 +1,12 @@
 import { EyeOff, Plus, Archive, ArchiveRestore, Bell, BookOpen, CheckCheck, Circle, CircleCheck, ExternalLink, Folder as FolderGlyph, Heart, Highlighter, Link2, Mail, Newspaper, Quote, RefreshCw, Rss, Search, Settings as SettingsIcon, Share2, StickyNote, Tag as TagIcon, Trash2, type LucideIcon } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { headerHidden } from "@/lib/header";
 import { app, useApp } from "@/lib/app";
 import { useListedLibrary, useSenderRules } from "./useListed";
 import { mutedSender, senderChips, senderFeed, senderOfArticle, senderSelection, shownSender, type SenderRule } from "@/lib/newsletterSenders";
 import { snippet } from "@/lib/html";
 import { dayLabel, plural, t } from "@/lib/i18n";
-import { articleKey, articlesInTab, chipTag, feedTabOf, sameSelection, showsUnreadDot, sortTime, unreadByFeed, unreadKeys, type Article, type Feed } from "@/lib/library";
+import { articleKey, articlesInTab, chipTag, feedTabOf, sameSelection, showsUnreadDot, sortTime, unreadByFeed, unreadKeys, type Article, type Feed, type Selection } from "@/lib/library";
 import { chipTags, isPlainFilter, itemArticle, noteOf, savedItems, showsLiked, showsNewsletters, showsNotes, sourceOf, withoutChips, type NoteContent } from "@/lib/saved";
 import { hasUnreadNewsletter } from "@/lib/newsletters";
 import { hasEnvelopeBadge, isNewsletterFeed } from "@/lib/newsletterAddresses";
@@ -19,7 +19,7 @@ import { useShare } from "./useShare";
 import { arrivedAbove, scrolledPast } from "@/lib/scrollRead";
 import { FeedIcon } from "./FeedIcon";
 import { EmailLinkForm } from "./Dialogs";
-import { feedChipRow, topicIcons } from "@/lib/topics";
+import { feedChipRow, sendersOf, topicIcons } from "@/lib/topics";
 import { FolderIcon } from "./FolderIcon";
 import { Button } from "./ui/button";
 import { cn } from "./ui/cn";
@@ -174,6 +174,25 @@ function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport,
   // only: pulling past the end is Android's touch gesture, which makes no sense with a mouse (2026-11-05).
   const markAllShown = library.feeds.length > 0 && unread > 0 && days.length > 0;
   const showAddress = onShowNewsletterAddress ? (f: Feed) => onShowNewsletterAddress(f.url) : undefined;
+  // The Newsletters chip is chosen only for the feed itself, not while one of its senders is.
+  const chosenFeedOnly = selection.kind === "feed" ? selection.feedUrl : null;
+  // After a newsletter feed's chip, its senders, each a chip of its own like a feed (as on Android):
+  // one tapped shows it alone, tapped again goes back (its topic, or everything).
+  const senderChipsAfter = (feed: Feed, back: Selection) =>
+    sendersOf(row, feed.url).map((sender) => {
+      const on = selection.kind === "sender" && selection.feedUrl === sender.feedUrl && sender.key === row.chosenSender;
+      const shown = senderFeed(sender, feed);
+      return (
+        // Right-click or press and hold: the sender's page, as Android's long press.
+        <WithRowMenu key={`${sender.feedUrl} ${sender.key}`} items={[{ icon: <Mail />, label: t("newsletterSenderAbout").replace("{name}", sender.name), onClick: () => app.openSenderPage(sender) }]}>
+          <FilterChip selected={on} onClick={() => app.select(on ? back : senderSelection(sender))}>
+            <FeedIcon feed={shown} className="size-4" envelopeBadge={!isNewsletterFeed(shown.url)} />
+            <span className="max-w-48 truncate">{sender.name}</span>
+            {showsUnreadDot(tab, sender.unread) ? <NewDot label={t("unread")} /> : null}
+          </FilterChip>
+        </WithRowMenu>
+      );
+    });
   return (
     <section className="relative flex h-full min-w-0 flex-col" aria-label={title}>
       <CollapsingHeader hidden={header.hidden} onShow={header.show}>
@@ -194,26 +213,13 @@ function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport,
               dotted={(tag) => showsUnreadDot(tab, unreadKeys(library, { kind: "tag", tag }).size)}
               // After the topics and a divider, as on Android: the chosen topic's feeds (one tapped
               // shows it alone, tapped again the topic), or else the feeds without a topic.
-              after={afterChips(
+              after={
                 row.chosenTopic !== null
-                  ? feedChipList(row.feeds, row.chosenFeed, (f, on) => app.select(on ? { kind: "tag", tag: row.chosenTopic! } : { kind: "feed", feedUrl: f.url }), feedDot, showAddress)
-                  : feedChipList(row.loose, row.chosenFeed, (f, on) => app.select(on ? { kind: "all" } : { kind: "feed", feedUrl: f.url }), feedDot, showAddress),
-                // A newsletter feed's senders: one tapped shows it alone, tapped again the whole feed.
-                row.senders.map((sender) => {
-                  const on = sender.key === row.chosenSender;
-                  const shown = senderFeed(sender, feeds.get(sender.feedUrl));
-                  return (
-                    // Right-click or press and hold: the sender's page, as Android's long press.
-                    <WithRowMenu key={sender.key} items={[{ icon: <Mail />, label: t("newsletterSenderAbout").replace("{name}", sender.name), onClick: () => app.openSenderPage(sender) }]}>
-                      <FilterChip selected={on} onClick={() => app.select(on ? { kind: "feed", feedUrl: sender.feedUrl } : senderSelection(sender))}>
-                        <FeedIcon feed={shown} className="size-4" envelopeBadge={!isNewsletterFeed(shown.url)} />
-                        <span className="max-w-48 truncate">{sender.name}</span>
-                        {showsUnreadDot(tab, sender.unread) ? <NewDot label={t("unread")} /> : null}
-                      </FilterChip>
-                    </WithRowMenu>
-                  );
-                }),
-              )}
+                  ? feedChipList(row.feeds, chosenFeedOnly, (f, on) => app.select(on ? { kind: "tag", tag: row.chosenTopic! } : { kind: "feed", feedUrl: f.url }), feedDot, showAddress, (f) =>
+                      senderChipsAfter(f, { kind: "tag", tag: row.chosenTopic! }),
+                    )
+                  : feedChipList(row.loose, chosenFeedOnly, (f, on) => app.select(on ? { kind: "all" } : { kind: "feed", feedUrl: f.url }), feedDot, showAddress, (f) => senderChipsAfter(f, { kind: "all" }))
+              }
             />
           ) : null}
           {problems.size > 0 ? <p className="px-4 pb-1 text-xs text-destructive">{plural("feedsFailed", problems.size)}</p> : null}
@@ -690,27 +696,19 @@ function CollapsingHeader({ hidden, onShow, children }: { hidden: boolean; onSho
   );
 }
 
-/** Feeds as chips with their icon (a topic's, or those without one); none: nothing. */
-/** The feed chips, then the senders' chips; null when there are neither, so no divider shows. */
-function afterChips(feeds: React.ReactNode, senders: React.ReactNode[]): React.ReactNode {
-  if (!feeds && senders.length === 0) return null;
-  return (
-    <>
-      {feeds}
-      {senders}
-    </>
-  );
-}
-
+/** Feeds as chips with their icon (a topic's, or those without one), each newsletter feed followed by its senders; none: nothing. */
 function feedChipList(
   list: Feed[],
   chosen: string | null,
   onClick: (feed: Feed, on: boolean) => void,
   dotted: (feed: Feed) => boolean = () => false,
   onShowAddress?: (feed: Feed) => void,
+  /** What follows a feed's chip: a newsletter feed's senders. */
+  trailing: (feed: Feed) => React.ReactNode = () => null,
 ): React.ReactNode {
   if (list.length === 0) return null;
-  return list.map((f) => {
+  return list.flatMap((f) => [feedChip(f), <Fragment key={`${f.url} after`}>{trailing(f)}</Fragment>]);
+  function feedChip(f: Feed): React.ReactNode {
     const on = f.url === chosen;
     const chip = (
       <FilterChip key={f.url} selected={on} onClick={() => onClick(f, on)}>
@@ -727,7 +725,7 @@ function feedChipList(
     ) : (
       chip
     );
-  });
+  }
 }
 
 /**

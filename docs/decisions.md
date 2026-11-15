@@ -2,6 +2,17 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-15: Newsletter senders are chips of their own, like feeds
+
+The owner asked why each sender didn't show up as its own chip. Until now a Newsletters feed's
+senders only appeared after picking its Newsletters chip, which then narrowed the row to that one
+feed, and the web's side menu, which replaces the chips on a wide window, didn't list senders at
+all. Now each sender is a chip right after its Newsletters chip wherever that chip shows, and on the
+web a row under the Newsletters feed in the side menu. Tapping one shows it alone, and tapping it
+again goes back to its topic or everything, as for a feed. The Newsletters chip stays, for all of a
+tag's newsletters at once and its long press (Show address). A feed with a single sender gets no
+extra chip, as it would say nothing its feed doesn't.
+
 ## 2026-11-15: Get a new newsletter address; unread and saved newsletters stay
 
 An address that leaks to spam can be replaced, in both apps: **Get a new address** under it, after a
