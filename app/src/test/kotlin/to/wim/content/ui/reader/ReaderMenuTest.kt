@@ -35,13 +35,13 @@ class ReaderMenuTest {
     }
 
     @Test
-    fun `a newsletter feed's article has no text switch and no sign-in`() {
+    fun `a newsletter feed's article has no text switch, no sign-in and no report`() {
         assertEquals(
             listOf(Entry.MarkUnread, Entry.OpenInBrowser),
             ReaderMenu.entries(feedArticle = true, saved = false, hasLink = true, canSignIn = true, canReport = true, newsletter = true),
         )
         assertEquals(
-            listOf(Entry.OpenInBrowser, Entry.Report, Entry.Remove),
+            listOf(Entry.OpenInBrowser, Entry.Remove),
             ReaderMenu.entries(feedArticle = true, saved = true, hasLink = true, canSignIn = true, canReport = true, signedIn = true, newsletter = true),
         )
     }
