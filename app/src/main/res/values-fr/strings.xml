@@ -402,6 +402,12 @@
     <string name="newsletter_unsubscribe_done">Désabonné de %1$s</string>
     <string name="newsletter_unsubscribe_none">%1$s ne propose pas de désabonnement ici. Ouvrez son dernier e-mail pour trouver le lien.</string>
     <string name="newsletter_unsubscribe_failed">Désabonnement impossible. Réessayez plus tard.</string>
+    <string name="newsletter_new_address">Obtenir une nouvelle adresse</string>
+    <string name="newsletter_new_address_title">Obtenir une nouvelle adresse ?</string>
+    <string name="newsletter_new_address_body">Votre adresse actuelle reste active pendant 14 jours, le temps de mettre à jour vos abonnements. Ensuite, les e-mails qui lui sont envoyés sont refusés.</string>
+    <string name="newsletter_new_address_confirm">Nouvelle adresse</string>
+    <string name="newsletter_old_address_until">Votre ancienne adresse fonctionne jusqu\'au %1$s.</string>
+    <string name="newsletter_new_address_failed">Impossible d\'obtenir une nouvelle adresse. Réessayez plus tard.</string>
     <string name="newsletter_none_yet">Pas encore de newsletters</string>
     <string name="newsletter_copied">Copiée</string>
     <plurals name="newsletter_count">

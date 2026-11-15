@@ -72,6 +72,32 @@ class LibraryTest {
     }
 
     @Test
+    fun `a newsletter feed keeps its unread and saved newsletters past the cap, not read ones or other feeds'`() {
+        val newsletters = "https://w.example/newsletters/aaaaaaaaaaaa/0123456789abcdef0123456789abcdef"
+        fun page(id: String) = "https://w.example/newsletters/aaaaaaaaaaaa/e/${id.padEnd(16, '0')}/${"b".repeat(32)}"
+        val many = (1..Library.MAX_ARTICLES_PER_FEED).map { item("n$it", 100L + it) }.toTypedArray()
+        for ((url, newsletter) in listOf(newsletters to true, a to false)) {
+            val old =
+                listOf("unread" to "1a", "saved" to "5a", "read" to "3e").mapIndexed { i, (id, page) ->
+                    ParsedItem(id = id, title = id, link = page(page), author = null, html = "<p>$id</p>", publishedAt = i + 1L)
+                }
+            var library = Library().addFeed(Feed(url, "Newsletters")).merge(url, ParsedFeed("N", null, old), now = 1_000)
+            library = library.setRead(setOf(Article.keyOf(url, "saved"), Article.keyOf(url, "read")), true)
+            library = library.addToReadingList(page("5a"), "Saved one", now = 1_000).first
+            // The feed loader no longer lists them, and many newer ones came.
+            library = library.merge(url, parsed(*many), now = 2_000)
+            assertEquals(newsletter, library.article(Article.keyOf(url, "unread")) != null)
+            assertEquals(newsletter, library.article(Article.keyOf(url, "saved")) != null)
+            assertNull(library.article(Article.keyOf(url, "read")))
+            assertEquals(Library.MAX_ARTICLES_PER_FEED, library.articles.count { it.id.startsWith("n") })
+            // Once read and taken out of Saved, the next refresh lets it go.
+            library = library.setRead(setOf(Article.keyOf(url, "unread")), true).setReadingState(ItemKeys.of(page("5a"))!!, null)
+            library = library.merge(url, parsed(*many), now = 3_000)
+            assertEquals(Library.MAX_ARTICLES_PER_FEED, library.articles.size)
+        }
+    }
+
+    @Test
     fun `merge keeps only the newest articles of a feed`() {
         val many = (1..Library.MAX_ARTICLES_PER_FEED + 10).map { item("$it", it.toLong()) }
         val merged = Library().addFeed(Feed(a, "A")).merge(a, parsed(*many.toTypedArray()), now = 1_000)

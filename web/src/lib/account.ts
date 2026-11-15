@@ -124,6 +124,17 @@ export class AccountClient {
     return made;
   }
 
+  /**
+   * Get a new address (2026-11-15): newsletter address `code` (its tag's) gets a new email address; the
+   * one it had still takes mail for 14 days. Same code, same feed, so nothing in the library changes.
+   */
+  async renewNewsletter(code: string): Promise<NewsletterAddress> {
+    const response = await this.call("/account/newsletters/new", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code }) });
+    const renewed = addressOf(await response.json().catch(() => null));
+    if (!renewed || renewed.code !== code) throw new SyncError("server");
+    return renewed;
+  }
+
   /** Removes newsletter address `code`: it stops taking mail and its emails are deleted. Gone already is fine. */
   async deleteNewsletter(code: string): Promise<void> {
     await this.call(`/account/newsletters?code=${encodeURIComponent(code)}`, { method: "DELETE" }, [404]);

@@ -14,6 +14,10 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.AlertDialog
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.launch
 import to.wim.content.ui.reader.SheetSection
 import to.wim.content.ui.feeds.TopicEditActions
 import to.wim.content.data.Folder
@@ -132,6 +136,8 @@ data class NewsletterChoices(
     val topics: List<Folder> = emptyList(),
     /** This account's addresses, every tag's made first; null when they can't be read (offline). */
     val loadAddresses: suspend () -> List<NewsletterAddress>? = { emptyList() },
+    /** Get a new address for the address with this code (its old one takes mail for 14 more days); null when it failed. */
+    val renewAddress: suspend (code: String) -> NewsletterAddress? = { null },
     /** Edit tags (Manage tags as a page of this sheet): a new tag gets its address too. */
     val topicActions: TopicEditActions? = null,
     /** What a newsletter feed (by its address) has received so far. */
@@ -167,6 +173,11 @@ fun NewsletterFeedPage(
     // A tag made with Edit tags: chosen once it exists.
     var made by rememberSaveable { mutableStateOf<String?>(null) }
     var copied by remember { mutableStateOf<String?>(null) }
+    // Get a new address: asked first, then on its way; and whether the last try failed.
+    var confirmRenew by remember { mutableStateOf<NewsletterAddress?>(null) }
+    var renewing by remember { mutableStateOf(false) }
+    var renewFailed by remember { mutableStateOf<String?>(null) }
+    val scope = rememberCoroutineScope()
     // The sender whose page is open, by its key.
     var openSender by rememberSaveable { mutableStateOf<String?>(null) }
     val tagIds = choices.topics.map { it.id }
@@ -225,6 +236,9 @@ fun NewsletterFeedPage(
                     copied = it
                 },
                 onShare = choices.onShare,
+                renewing = renewing,
+                renewFailed = renewFailed,
+                onRenew = { confirmRenew = it },
             )
             val feedUrl = if (loaded) addresses?.let { NewsletterAddresses.forTag(it, chosen) }?.feedUrl else null
             val senders = feedUrl?.let(choices.senders).orEmpty()
@@ -234,6 +248,26 @@ fun NewsletterFeedPage(
                 val close = rememberSheetClose()
                 TextButton(onClick = { close(onBack) }) { Text(stringResource(R.string.action_done)) }
             }
+        }
+        confirmRenew?.let { address ->
+            AlertDialog(
+                onDismissRequest = { confirmRenew = null },
+                title = { Text(stringResource(R.string.newsletter_new_address_title)) },
+                text = { Text(stringResource(R.string.newsletter_new_address_body)) },
+                confirmButton = {
+                    TextButton(onClick = {
+                        confirmRenew = null
+                        renewing = true
+                        renewFailed = null
+                        scope.launch {
+                            val renewed = choices.renewAddress(address.code)
+                            renewing = false
+                            if (renewed == null) renewFailed = address.code else addresses = addresses?.let { NewsletterAddresses.withRenewed(it, renewed) }
+                        }
+                    }) { Text(stringResource(R.string.newsletter_new_address_confirm)) }
+                },
+                dismissButton = { TextButton(onClick = { confirmRenew = null }) { Text(stringResource(R.string.action_cancel)) } },
+            )
         }
         // A sender's page, a page of this sheet.
         val rules = LocalNewsletterSenders.current
@@ -265,6 +299,10 @@ private fun AddressCard(
     activity: (String) -> NewsletterActivity,
     onCopy: (String) -> Unit,
     onShare: (String) -> Unit,
+    renewing: Boolean,
+    /** The code of the address whose Get a new address last failed. */
+    renewFailed: String?,
+    onRenew: (NewsletterAddress) -> Unit,
 ) {
     Surface(shape = AppShapes.Item, color = MaterialTheme.colorScheme.surfaceContainerHigh, modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -294,6 +332,16 @@ private fun AddressCard(
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Icon(painterResource(R.drawable.ic_mail), contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(receivedText(received), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                // Get a new address (2026-11-15), quietly: for an address that gets spam.
+                val now = remember(address) { System.currentTimeMillis() }
+                NewsletterAddresses.oldAddressUntil(address, now)?.let { until ->
+                    val day = DateUtils.formatDateTime(LocalContext.current, until, DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_YEAR)
+                    Text(stringResource(R.string.newsletter_old_address_until, day), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                if (renewFailed == address.code) Text(stringResource(R.string.newsletter_new_address_failed), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+                TextButton(onClick = { onRenew(address) }, enabled = !renewing) {
+                    Text(stringResource(R.string.newsletter_new_address))
                 }
             }
         }

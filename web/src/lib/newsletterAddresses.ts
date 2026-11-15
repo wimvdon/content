@@ -19,6 +19,8 @@ export interface NewsletterAddress {
   feedUrl: string;
   /** When the feed loader made it (milliseconds); 0 when unknown. */
   createdAt: number;
+  /** After Get a new address (2026-11-15): until when the address it had still takes mail (milliseconds); null when none does. */
+  oldUntil: number | null;
 }
 
 /** How long an address whose tag isn't here is kept: that tag may have been made on another device and not have reached this one. */
@@ -85,7 +87,27 @@ export function addressOf(value: unknown): NewsletterAddress | null {
   if (typeof value !== "object" || value === null) return null;
   const v = value as Record<string, unknown>;
   if (typeof v.code !== "string" || typeof v.address !== "string" || typeof v.feedUrl !== "string" || codeOfFeed(v.feedUrl) !== v.code) return null;
-  return { code: v.code, tagHash: typeof v.tagHash === "string" ? v.tagHash : null, address: v.address, feedUrl: v.feedUrl, createdAt: typeof v.createdAt === "number" ? v.createdAt : 0 };
+  return {
+    code: v.code,
+    tagHash: typeof v.tagHash === "string" ? v.tagHash : null,
+    address: v.address,
+    feedUrl: v.feedUrl,
+    createdAt: typeof v.createdAt === "number" ? v.createdAt : 0,
+    oldUntil: typeof v.oldUntil === "number" ? v.oldUntil : null,
+  };
+}
+
+/**
+ * Until when `address`'s old address still takes mail, shown under it ("Your old address works
+ * until …"); null when it never had a new one or the old one has stopped. As Android's oldAddressUntil.
+ */
+export function oldAddressUntil(address: NewsletterAddress, now: number): number | null {
+  return address.oldUntil !== null && address.oldUntil > now ? address.oldUntil : null;
+}
+
+/** The list with `renewed` (Get a new address's answer) in place of the address it replaces: same code, same feed. */
+export function withRenewed(addresses: NewsletterAddress[], renewed: NewsletterAddress): NewsletterAddress[] {
+  return addresses.map((a) => (a.code === renewed.code ? renewed : a));
 }
 
 /** The list `GET /account/newsletters` answers. */

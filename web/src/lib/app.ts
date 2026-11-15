@@ -515,6 +515,17 @@ class AppStore {
     const key = this.accountKey();
     return key ? this.keepNewsletters(new AccountClient(key), true) : null;
   };
+  /**
+   * Get a new address (2026-11-15), as on Android: newsletter address `code` gets a new email address,
+   * the old one taking mail for 14 more days; null (and a message) when it couldn't. Same feed, so
+   * the library stays as it is.
+   */
+  renewNewsletterAddress = async (code: string): Promise<NewsletterAddress | null> => {
+    const key = this.accountKey();
+    const renewed = key ? await new AccountClient(key).renewNewsletter(code).catch(() => null) : null;
+    if (!renewed) this.messageHandler?.(t("newsletterNewAddressFailed"));
+    return renewed;
+  };
   /** The tags (by id) whose newsletter addresses were last put in step (with the account's key), and when that last failed. */
   private newsletterTags: string | null = null;
   private newsletterFailed: { tags: string; at: number } | null = null;

@@ -1,4 +1,4 @@
-import { Smartphone, ArrowLeft, BookmarkPlus, BookOpenText, Check, ChevronDown, ChevronRight, Copy, Share2, BookOpen, Mail, Palette, Plus, Rss, Tag as TagIcon, Trash2, UserRound } from "lucide-react";
+import { Smartphone, ArrowLeft, BookmarkPlus, BookOpenText, Check, ChevronDown, ChevronRight, Copy, Share2, BookOpen, Mail, Palette, Plus, RefreshCw, Rss, Tag as TagIcon, Trash2, UserRound } from "lucide-react";
 import { ConfirmRemove, RemoveButton } from "./ConfirmRemove";
 import { HiddenWordsRow } from "./HiddenWords";
 import { insertedBefore } from "@/lib/topics";
@@ -6,7 +6,7 @@ import { CHIP_TYPE, EditChips, TopicChips, chip, chipOn } from "./TopicChips";
 import { useEffect, useMemo, useState } from "react";
 import { gravatarUrl } from "@/lib/account";
 import { app, useApp, type ListView, type Theme } from "@/lib/app";
-import { formatRelative, plural, t, type Key } from "@/lib/i18n";
+import { formatDate, formatRelative, plural, t, type Key } from "@/lib/i18n";
 import { searchIcons } from "@/lib/icons";
 import type { Feed, Folder } from "@/lib/library";
 import { FeedIcon } from "./FeedIcon";
@@ -19,7 +19,7 @@ import { Input, Label } from "./ui/input";
 import { Segmented } from "./ui/segmented";
 import { ReaderStyleControls } from "./ReaderStyleControls";
 import { InstapaperSettings } from "./ServiceSettings";
-import { chosenTag, forTag, isNewsletterFeed, newsletterActivity, NO_TAG, tagHashes, type NewsletterAddress } from "@/lib/newsletterAddresses";
+import { chosenTag, forTag, isNewsletterFeed, newsletterActivity, NO_TAG, oldAddressUntil, tagHashes, withRenewed, type NewsletterAddress } from "@/lib/newsletterAddresses";
 import { decodeSenders, mergedSender, mutedSender, renamedSender, ruleOf, senderFeed, senderList, splitSender, type NewsletterSender } from "@/lib/newsletterSenders";
 import { feedsOfKind, withKindOrder, type FeedKind } from "@/lib/feedKinds";
 import { SwitchRow } from "./ui/switch";
@@ -405,7 +405,7 @@ function TagAddresses({ onSignIn, initialTag }: { onSignIn: () => void; initialT
         ) : !address ? (
           <p className="text-sm">{t("newsletterOwnPending")}</p>
         ) : (
-          <AddressActions key={address.address} address={address} />
+          <AddressActions key={address.address} address={address} onRenewed={(renewed) => setAddresses((list) => (list ? withRenewed(list, renewed) : list))} />
         )}
       </section>
       {address ? <SenderSection feedUrl={address.feedUrl} /> : null}
@@ -567,10 +567,25 @@ function SenderDialog({ sender, others, givenName, onClose }: { sender: Newslett
   );
 }
 
-/** One address, large, with Copy address (Copied, with a check, once clicked) and Share, then what it has received. */
-function AddressActions({ address }: { address: NewsletterAddress }) {
+/**
+ * One address, large, with Copy address (Copied, with a check, once clicked) and Share, then what it
+ * has received; and, quietly, Get a new address (2026-11-15, as on Android) for an address that
+ * gets spam: asked first, and the old one shows under it while it still takes mail.
+ */
+function AddressActions({ address, onRenewed }: { address: NewsletterAddress; onRenewed: (renewed: NewsletterAddress) => void }) {
   const { library } = useApp();
   const [copied, setCopied] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [renewing, setRenewing] = useState(false);
+  const [now] = useState(() => Date.now());
+  const oldUntil = oldAddressUntil(address, now);
+  const renew = async () => {
+    setConfirming(false);
+    setRenewing(true);
+    const renewed = await app.renewNewsletterAddress(address.code);
+    setRenewing(false);
+    if (renewed) onRenewed(renewed);
+  };
   const canShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
   const received = newsletterActivity(library.articles, address.feedUrl);
   const status =
@@ -603,6 +618,28 @@ function AddressActions({ address }: { address: NewsletterAddress }) {
         <Mail className="size-4" aria-hidden />
         {status}
       </p>
+      {oldUntil !== null ? <p className="text-sm text-muted-foreground">{t("newsletterOldAddressUntil").replace("{date}", formatDate(oldUntil))}</p> : null}
+      <Button variant="ghost" size="sm" className="-ml-3 text-muted-foreground" disabled={renewing} onClick={() => setConfirming(true)}>
+        <RefreshCw />
+        {t("newsletterNewAddress")}
+      </Button>
+      <Dialog
+        popup
+        open={confirming}
+        onOpenChange={(o) => !o && setConfirming(false)}
+        title={t("newsletterNewAddressTitle")}
+        closeLabel={t("close")}
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setConfirming(false)}>
+              {t("cancel")}
+            </Button>
+            <Button onClick={() => void renew()}>{t("newsletterNewAddressConfirm")}</Button>
+          </>
+        }
+      >
+        <p className="text-sm">{t("newsletterNewAddressBody")}</p>
+      </Dialog>
     </>
   );
 }

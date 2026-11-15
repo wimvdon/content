@@ -1,6 +1,6 @@
 # Privacy policy
 
-_Last updated: 2026-11-15 (unsubscribing from a newsletter)_
+_Last updated: 2026-11-15 (a new newsletter address)_
 
 Reader has no analytics, advertising or crash reporting. It works without an account. If you sign
 in (with your email address, or with Instapaper), Reader keeps your feed list,
@@ -151,7 +151,9 @@ server (the owner's Cloudflare Worker), encrypted, so your devices stay the same
   images off prevents that). Each newsletter shows its sender with the icon of the sender's website
   (its `/favicon.ico`, loaded from that website, as for a saved article from a website you don't
   follow); that website sees your IP address, like any visit. Removing the address, or deleting your account, deletes it and its
-  emails at once. Nothing is sent from these addresses.
+  emails at once. Nothing is sent from these addresses. **Get a new address** (2026-11-15) gives a
+  tag a new random code; the feed loader keeps the old code, linked to the same tag's emails, for
+  14 days so mail to it still arrives, and then refuses mail to it and forgets it.
 - **Unsubscribing from a newsletter (2026-11-15, only when you tap Unsubscribe).** The feed loader
   keeps the unsubscribe address a newsletter names in its List-Unsubscribe header, with the email.
   When you tap **Unsubscribe** on a sender's page or in the reader, the app sends the feed loader

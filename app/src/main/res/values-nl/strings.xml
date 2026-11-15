@@ -390,6 +390,12 @@
     <string name="newsletter_unsubscribe_done">Uitgeschreven bij %1$s</string>
     <string name="newsletter_unsubscribe_none">%1$s biedt hier geen uitschrijving aan. Open de nieuwste e-mail om de link te vinden.</string>
     <string name="newsletter_unsubscribe_failed">Uitschrijven lukte niet. Probeer het later opnieuw.</string>
+    <string name="newsletter_new_address">Nieuw adres aanvragen</string>
+    <string name="newsletter_new_address_title">Nieuw adres aanvragen?</string>
+    <string name="newsletter_new_address_body">Je huidige adres blijft 14 dagen werken, zodat je je abonnementen kunt aanpassen. Daarna wordt e-mail naar dat adres geweigerd.</string>
+    <string name="newsletter_new_address_confirm">Nieuw adres</string>
+    <string name="newsletter_old_address_until">Je oude adres werkt tot %1$s.</string>
+    <string name="newsletter_new_address_failed">Kon geen nieuw adres krijgen. Probeer het later opnieuw.</string>
     <string name="newsletter_none_yet">Nog geen nieuwsbrieven</string>
     <string name="newsletter_copied">Gekopieerd</string>
     <plurals name="newsletter_count">

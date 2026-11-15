@@ -16,8 +16,10 @@ import {
   newsletterRows,
   ORPHAN_GRACE_MS,
   orphans,
+  oldAddressUntil,
   reconcile,
   senderOf,
+  withRenewed,
   hasEnvelopeBadge,
   tagHash,
   tagHashes,
@@ -31,7 +33,7 @@ const feed = (url: string, title: string, folderId: string | null = null, rename
 const lib = (feeds: Feed[], folders: Folder[]): Library => ({ feeds, folders, articles: [], items: [], readElsewhere: {} }) as unknown as Library;
 
 async function address(code: string, tagId: string | null, createdAt = 0): Promise<NewsletterAddress> {
-  return { code, tagHash: await tagHash(tagId), address: `content+${code}@in.wim.to`, feedUrl: feedOf(code), createdAt };
+  return { code, tagHash: await tagHash(tagId), address: `content+${code}@in.wim.to`, feedUrl: feedOf(code), createdAt, oldUntil: null };
 }
 
 describe("newsletter addresses (newsletterAddresses.ts), as on Android", () => {
@@ -51,11 +53,25 @@ describe("newsletter addresses (newsletterAddresses.ts), as on Android", () => {
     expect(codeOfFeed("https://example.com/feed.xml")).toBeNull();
     const hash = "a".repeat(64);
     expect(addressesOf({ addresses: [{ code: "k7q2m9abcdef", tagHash: hash, address: "a@b", feedUrl: url, createdAt: 5 }, { code: "x" }] })).toEqual([
-      { code: "k7q2m9abcdef", tagHash: hash, address: "a@b", feedUrl: url, createdAt: 5 },
+      { code: "k7q2m9abcdef", tagHash: hash, address: "a@b", feedUrl: url, createdAt: 5, oldUntil: null },
     ]);
+    expect(addressOf({ code: "k7q2m9abcdef", address: "a", feedUrl: url, oldUntil: 99 })?.oldUntil).toBe(99);
     expect(addressOf({ code: "k7q2m9abcdef", tagHash: null, address: "a", feedUrl: url })?.tagHash).toBeNull();
     // A feed address that doesn't belong to the code is refused.
     expect(addressOf({ code: "aaaaaaaaaaaa", address: "a", feedUrl: url })).toBeNull();
+  });
+
+  it("after Get a new address: the new address takes the old one's place, and the old one shows until it stops", async () => {
+    const first = await address("aaaaaaaaaaaa", "1");
+    const other = await address("bbbbbbbbbbbb", null);
+    const renewed = { ...first, address: "content+cccccccccccc@in.wim.to", oldUntil: 1000 };
+    const list = withRenewed([first, other], renewed);
+    expect(list).toEqual([renewed, other]);
+    // Same code and feed: the library's Newsletters feed stays as it is.
+    expect(list[0].feedUrl).toBe(first.feedUrl);
+    expect(oldAddressUntil(renewed, 999)).toBe(1000);
+    expect(oldAddressUntil(renewed, 1000)).toBeNull();
+    expect(oldAddressUntil(first, 0)).toBeNull();
   });
 
   it("knows a tag only by a hash of its id, the same as Android's", async () => {

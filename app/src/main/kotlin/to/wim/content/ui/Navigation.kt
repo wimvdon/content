@@ -1484,6 +1484,7 @@ fun RssReaderNavigation(
             onSignIn = onSignIn,
             topics = library.folders,
             loadAddresses = { app.sync.newsletters() },
+            renewAddress = { code -> app.sync.renewNewsletter(code) },
             topicActions = topicActions,
             activity = { feedUrl -> NewsletterAddresses.activity(library.articles, feedUrl) },
             senders = { feedUrl -> senders.list(library.articles, feedUrl) },

@@ -20,6 +20,8 @@ data class NewsletterAddress(
     val feedUrl: String,
     /** When the feed loader made it (milliseconds); 0 when unknown. */
     val createdAt: Long = 0,
+    /** After Get a new address (2026-11-15): until when the address it had still takes mail (milliseconds); null when none does. */
+    val oldUntil: Long? = null,
 )
 
 object NewsletterAddresses {
@@ -83,8 +85,30 @@ object NewsletterAddresses {
         val code = map["code"] as? String ?: return null
         val address = map["address"] as? String ?: return null
         val feedUrl = (map["feedUrl"] as? String)?.takeIf { codeOfFeed(it) == code } ?: return null
-        return NewsletterAddress(code, map["tagHash"] as? String, address, feedUrl, (map["createdAt"] as? Number)?.toLong() ?: 0)
+        return NewsletterAddress(
+            code,
+            map["tagHash"] as? String,
+            address,
+            feedUrl,
+            (map["createdAt"] as? Number)?.toLong() ?: 0,
+            (map["oldUntil"] as? Number)?.toLong(),
+        )
     }
+
+    /**
+     * Until when [address]'s old address still takes mail, shown under it ("Your old address works
+     * until …"); null when it never had a new one or the old one has stopped. As the web's oldAddressUntil.
+     */
+    fun oldAddressUntil(
+        address: NewsletterAddress,
+        now: Long,
+    ): Long? = address.oldUntil?.takeIf { it > now }
+
+    /** The list with [renewed] (Get a new address's answer) in place of the address it replaces: same code, same feed. */
+    fun withRenewed(
+        addresses: List<NewsletterAddress>,
+        renewed: NewsletterAddress,
+    ): List<NewsletterAddress> = addresses.map { if (it.code == renewed.code) renewed else it }
 
     /** The list `GET /account/newsletters` answers. */
     fun listOf(value: Any?): List<NewsletterAddress> = ((value as? Map<*, *>)?.get("addresses") as? List<*>).orEmpty().mapNotNull(::of)

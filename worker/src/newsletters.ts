@@ -20,6 +20,8 @@
  *  - GET    /account/newsletters              this account's addresses: [{code, tagHash, address, feedUrl, createdAt}]
  *  - POST   /account/newsletters {"tagHash"}  the address of that tag (null: without a tag), made the first
  *                                             time (201), else the one it has (200); at most MAX_ADDRESSES
+ *  - POST   /account/newsletters/new {"code"} a new address for that tag (2026-11-15): mail to the one it had
+ *                                             still arrives for OLD_ADDRESS_DAYS, then is refused; same feed
  *  - DELETE /account/newsletters?code=<code>  the address stops taking mail; its emails are deleted
  *  - GET    /newsletters/<code>/<token>       the feed (no sign-in: the token is the key)
  *  - GET    /newsletters/<code>/e/<id>/<etok> one email as a page (the entries' link; it opens only that email)
@@ -43,6 +45,10 @@ export const KEEP_DAYS = 90;
 export const FEED_ENTRIES = 50;
 /** Addresses per account: one per tag, and one without a tag. */
 export const MAX_ADDRESSES = 200;
+/** How long an address keeps taking mail after its tag got a new one (POST /account/newsletters/new). */
+export const OLD_ADDRESS_DAYS = 14;
+/** Old addresses still taking mail per tag: getting more new ones waits until one has stopped. */
+export const MAX_OLD_ADDRESSES = 5;
 /** A tag as the apps send it: the SHA-256 of its id, in hex. */
 const TAG_HASH_PATTERN = /^[0-9a-f]{64}$/;
 
@@ -79,11 +85,36 @@ export interface Unsubscribe {
 /** Emails kept before 2026-11-15 given their sender's website per feed load, so a load stays within its CPU time. */
 export const BACKFILL_PER_LOAD = 10;
 
-/** An address as its account lists it: the tag it belongs to (null: the one without a tag). */
+/**
+ * An address as its account lists it: the tag it belongs to (null: the one without a tag). [code]
+ * names its inbox and its feed, which never change; mail arrives at [receiving] (2026-11-15, Get a
+ * new address), or at [code] while it has never had a new one. The codes it had before keep
+ * taking mail into the same inbox until their [OldCode.until] ([OLD_ADDRESS_DAYS]).
+ */
 export interface NewsletterAddress {
   code: string;
   tagHash: string | null;
   createdAt: number;
+  receiving?: string;
+  old?: OldCode[];
+}
+
+/** A code an address had: it takes mail into its address's inbox until [until] (milliseconds), then refuses it. */
+export interface OldCode {
+  code: string;
+  until: number;
+}
+
+/** The code mail arrives at now. */
+export const receivingOf = (a: NewsletterAddress) => a.receiving ?? a.code;
+
+/** Every object an address has: its inbox, and the codes that send mail into it (now or before). */
+const codesOf = (a: NewsletterAddress) => [...new Set([a.code, receivingOf(a), ...(a.old ?? []).map((o) => o.code)])];
+
+/** Until when the address's old codes still take mail (the latest of them), or null when none does any more. */
+export function oldUntil(a: NewsletterAddress, now: number): number | null {
+  const until = Math.max(0, ...(a.old ?? []).map((o) => o.until));
+  return until > now ? until : null;
 }
 
 /** An address made before 2026-11-12, by name instead of per tag: no longer listed, removed on the next POST. */
@@ -175,9 +206,40 @@ export class NewsletterInbox {
     return this.storage.get<string>("owner");
   }
 
-  /** Keeps an email that arrived ([raw], as sent); false when this address doesn't exist. */
-  async receive(raw: ArrayBuffer | Uint8Array): Promise<boolean> {
-    if (!(await this.owner())) return false;
+  /**
+   * Makes this code send its mail to the inbox [inbox] of [owner] (a tag's new address,
+   * 2026-11-15): it keeps no mail itself. False when the code is already taken.
+   */
+  async createForward(owner: string, inbox: string): Promise<boolean> {
+    if (!(await this.create(owner))) return false;
+    await this.storage.put("forward", inbox);
+    return true;
+  }
+
+  /** The inbox this code sends its mail to; undefined when it is an inbox itself. */
+  forward(): Promise<string | undefined> {
+    return this.storage.get<string>("forward");
+  }
+
+  /** This code takes mail until [until] (milliseconds), then refuses it: its tag has a new address. An inbox's emails and feed stay. */
+  retire(until: number): Promise<void> {
+    return this.storage.put("until", until);
+  }
+
+  /** Whether this code no longer takes mail (its tag's new address does). */
+  async stopped(): Promise<boolean> {
+    const until = await this.storage.get<number>("until");
+    return until !== undefined && this.clock() > until;
+  }
+
+  /**
+   * Keeps an email that arrived ([raw], as sent); false when this address doesn't exist, has
+   * stopped taking mail, or only sends its mail on. [forwarded]: it came through a code that sends
+   * its mail here ([forward]), so it is kept also when this inbox's own code has stopped.
+   */
+  async receive(raw: ArrayBuffer | Uint8Array, forwarded = false): Promise<boolean> {
+    if (!(await this.owner()) || (await this.forward())) return false;
+    if (!forwarded && (await this.stopped())) return false;
     const email = await emailOf(raw, this.clock());
     const sealed = await this.seal(email);
     await this.storage.put(`m:${String(email.at).padStart(15, "0")}:${email.id}`, sealed);
@@ -497,10 +559,30 @@ export async function inboxAnswer(storage: Storage, masterKey: string, route: st
       if (typeof body.owner !== "string") return plain(400, "Send owner");
       return (await inbox.create(body.owner)) ? new Response(null, { status: 201 }) : plain(409, "Taken");
     }
+    case "nlForward": {
+      const body = (await request.json()) as { owner?: unknown; inbox?: unknown };
+      if (typeof body.owner !== "string" || typeof body.inbox !== "string" || !CODE_PATTERN.test(body.inbox)) return plain(400, "Send owner and inbox");
+      return (await inbox.createForward(body.owner, body.inbox)) ? new Response(null, { status: 201 }) : plain(409, "Taken");
+    }
+    case "nlRetire": {
+      const body = (await request.json()) as { until?: unknown };
+      if (typeof body.until !== "number") return plain(400, "Send until");
+      if (!(await inbox.owner())) return plain(404, "Unknown address");
+      await inbox.retire(body.until);
+      return new Response(null, { status: 204 });
+    }
     case "nlReceive": {
+      // A tag's new code (or an old one still taking mail): the Worker sends the email on to its inbox.
+      const forward = await inbox.forward();
+      if (forward) {
+        if (!(await inbox.stopped())) return new Response(JSON.stringify({ forward }), { headers: { "Content-Type": "application/json" } });
+        // Stopped for good: nothing of it is needed any more.
+        await inbox.deleteAll();
+        return plain(404, "Unknown address");
+      }
       const raw = await request.arrayBuffer();
       if (raw.byteLength > MAX_EMAIL_BYTES) return plain(413, "Too large");
-      return (await inbox.receive(raw)) ? new Response(null, { status: 204 }) : plain(404, "Unknown address");
+      return (await inbox.receive(raw, request.headers.get("X-Forwarded") === "1")) ? new Response(null, { status: 204 }) : plain(404, "Unknown address");
     }
     case "nlFeed": {
       if (!(await inbox.owner())) return plain(404, "Unknown address");
@@ -531,7 +613,7 @@ export async function inboxAnswer(storage: Storage, masterKey: string, route: st
   }
 }
 
-export const isInboxRoute = (route: string) => route.startsWith("nl") && ["nlInit", "nlReceive", "nlFeed", "nlEntry", "nlUnsubscribe", "nlWipe"].includes(route);
+export const isInboxRoute = (route: string) => route.startsWith("nl") && ["nlInit", "nlForward", "nlRetire", "nlReceive", "nlFeed", "nlEntry", "nlUnsubscribe", "nlWipe"].includes(route);
 
 const inboxStub = (env: Env, code: string) => env.ACCOUNTS!.get(env.ACCOUNTS!.idFromName(`newsletter:${code}`));
 const wipe = (env: Env, code: string) => inboxStub(env, code).fetch("https://newsletter/nlWipe", { method: "POST", headers: { "X-Code": code } });
@@ -542,11 +624,18 @@ export async function addressesAnswer(storage: Storage, env: Env, accountId: str
   const all = await stored();
   const list = all.filter((a) => !isLegacy(a));
   const origin = request.headers.get("X-Origin") ?? "";
-  const shown = async (a: NewsletterAddress) => ({
-    ...a,
-    address: addressOf(env.NEWSLETTER_ADDRESS, a.code),
-    feedUrl: feedUrlOf(origin, a.code, await feedToken(env.ACCOUNT_KEY!, a.code)),
-  });
+  const shown = async (a: NewsletterAddress) => {
+    const until = oldUntil(a, Date.now());
+    return {
+      code: a.code,
+      tagHash: a.tagHash,
+      createdAt: a.createdAt,
+      address: addressOf(env.NEWSLETTER_ADDRESS, receivingOf(a)),
+      feedUrl: feedUrlOf(origin, a.code, await feedToken(env.ACCOUNT_KEY!, a.code)),
+      // The address it had before Get a new address still takes mail until then.
+      ...(until ? { oldUntil: until } : {}),
+    };
+  };
   const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { "Content-Type": "application/json" } });
   switch (route) {
     case "nlList":
@@ -577,10 +666,43 @@ export async function addressesAnswer(storage: Storage, env: Env, accountId: str
       }
       return plain(503, "Try again");
     }
+    case "nlRenew": {
+      // Get a new address (2026-11-15): a new code sends its mail into the same inbox, so the feed and
+      // its emails stay; the code it had takes mail for OLD_ADDRESS_DAYS more, then refuses it.
+      const code = ((await request.json().catch(() => ({}))) as { code?: unknown }).code;
+      const before = typeof code === "string" ? list.find((a) => a.code === code) : undefined;
+      if (!before) return plain(404, "Not found");
+      const now = Date.now();
+      if ((before.old ?? []).filter((o) => o.until > now).length >= MAX_OLD_ADDRESSES) return plain(429, "Too many new addresses; try again later");
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const fresh = newCode();
+        const made = await inboxStub(env, fresh).fetch("https://newsletter/nlForward", { method: "POST", headers: { "X-Code": fresh }, body: JSON.stringify({ owner: accountId, inbox: before.code }) });
+        if (made.status !== 201) continue;
+        // Read again (another device may have changed it meanwhile), and store without waiting on anything else.
+        const latest = await stored();
+        const address = latest.find((a) => a.code === before.code && !isLegacy(a));
+        if (!address) {
+          await wipe(env, fresh);
+          return plain(404, "Not found");
+        }
+        const until = now + OLD_ADDRESS_DAYS * DAY_MS;
+        const previous = receivingOf(address);
+        const working = (address.old ?? []).filter((o) => o.until > now);
+        const stopped = (address.old ?? []).filter((o) => o.until <= now);
+        const renewed: NewsletterAddress = { ...address, receiving: fresh, old: [...working, { code: previous, until }] };
+        await storage.put("newsletters", latest.map((a) => (a === address ? renewed : a)));
+        await inboxStub(env, previous).fetch("https://newsletter/nlRetire", { method: "POST", headers: { "X-Code": previous }, body: JSON.stringify({ until }) });
+        // Codes that stopped taking mail are forgotten, except the inbox itself, which holds the emails.
+        for (const o of stopped) if (o.code !== address.code) await wipe(env, o.code);
+        return json(await shown(renewed));
+      }
+      return plain(503, "Try again");
+    }
     case "nlDelete": {
       const code = new URL(request.url).searchParams.get("code") ?? "";
-      if (!list.some((a) => a.code === code)) return plain(404, "Not found");
-      await wipe(env, code);
+      const gone = list.find((a) => a.code === code);
+      if (!gone) return plain(404, "Not found");
+      for (const c of codesOf(gone)) await wipe(env, c);
       await storage.put("newsletters", (await stored()).filter((a) => a.code !== code));
       return new Response(null, { status: 204 });
     }
@@ -591,7 +713,7 @@ export async function addressesAnswer(storage: Storage, env: Env, accountId: str
 
 /** Deletes every address of the account (the account is being deleted). */
 export async function deleteAddresses(storage: Storage, env: Env): Promise<void> {
-  for (const a of (await storage.get<NewsletterAddress[]>("newsletters")) ?? []) await wipe(env, a.code);
+  for (const a of (await storage.get<NewsletterAddress[]>("newsletters")) ?? []) for (const c of codesOf(a)) await wipe(env, c);
 }
 
 // The Worker's side: email in, feeds out.
@@ -610,7 +732,13 @@ export async function receiveEmail(message: IncomingEmail, env: Env): Promise<vo
   if (!code || !env.ACCOUNTS || !env.ACCOUNT_KEY) return message.setReject("Unknown address");
   if (message.rawSize > MAX_EMAIL_BYTES) return message.setReject("Message too large");
   const raw = await new Response(message.raw).arrayBuffer();
-  const answer = await inboxStub(env, code).fetch("https://newsletter/nlReceive", { method: "POST", headers: { "X-Code": code }, body: raw });
+  let answer = await inboxStub(env, code).fetch("https://newsletter/nlReceive", { method: "POST", headers: { "X-Code": code }, body: raw });
+  // A tag's new address (or an old one still taking mail): kept in that tag's inbox, so it lands in the same feed.
+  if (answer.status === 200) {
+    const forward = ((await answer.json().catch(() => ({}))) as { forward?: unknown }).forward;
+    if (typeof forward !== "string" || !CODE_PATTERN.test(forward)) throw new Error("Couldn't keep the email");
+    answer = await inboxStub(env, forward).fetch("https://newsletter/nlReceive", { method: "POST", headers: { "X-Code": forward, "X-Forwarded": "1" }, body: raw });
+  }
   if (answer.status === 404) message.setReject("Unknown address");
   else if (answer.status === 413) message.setReject("Message too large");
   else if (!answer.ok) throw new Error("Couldn't keep the email");

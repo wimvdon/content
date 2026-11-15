@@ -1,7 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { Account, accountIdOf, addDeviceKey, type Storage } from "../src/account";
 import { checkTarget, handle, type Env } from "../src/index";
-import { BACKFILL_PER_LOAD, KEEP, KEEP_DAYS, MAX_HTML_CHARS, NewsletterInbox, addressOf, atomFeed, emailToken, emailUrlOf, cleanTagHash, codeOf, emailOf, feedToken, guessSite, newCode, receiveEmail, senderSite, unsubscribeAnswer, unsubscribeLinkOf, unsubscribeOf, type IncomingEmail } from "../src/newsletters";
+import { BACKFILL_PER_LOAD, KEEP, KEEP_DAYS, MAX_HTML_CHARS, MAX_OLD_ADDRESSES, OLD_ADDRESS_DAYS, NewsletterInbox, addressOf, atomFeed, emailToken, emailUrlOf, cleanTagHash, codeOf, emailOf, feedToken, guessSite, newCode, receiveEmail, senderSite, unsubscribeAnswer, unsubscribeLinkOf, unsubscribeOf, type IncomingEmail } from "../src/newsletters";
 
 const APP = "https://app.example";
 const MASTER = "a-test-master-key-of-at-least-32-characters";
@@ -554,12 +554,107 @@ describe("newsletter addresses, from sign-in to feed", () => {
     expect((await handle(new Request(`${address.feedUrl}/unsubscribe`), env, fetcher)).status).toBe(405);
   });
 
+  it("gives a tag a new address: the old one keeps delivering into the same feed for 14 days, then is refused", async () => {
+    const { env, objects } = accounts();
+    const key = await signIn(env);
+    let now = Date.UTC(2026, 10, 15);
+    const clock = vi.spyOn(Date, "now").mockImplementation(() => now);
+    try {
+      type Shown = { code: string; address: string; feedUrl: string; oldUntil?: number };
+      const first = (await (await call(env, "POST", "/account/newsletters", key, { tagHash: TECH })).json()) as Shown;
+      await receiveEmail(message(first.address, rawEmail({ subject: "Before" })), env);
+      expect(first.oldUntil).toBeUndefined();
+
+      const renewed = await call(env, "POST", "/account/newsletters/new", key, { code: first.code });
+      expect(renewed.status).toBe(200);
+      const second = (await renewed.json()) as Shown;
+      // Same tag, same feed; only the address mail goes to is new.
+      expect(second.code).toBe(first.code);
+      expect(second.feedUrl).toBe(first.feedUrl);
+      expect(second.address).not.toBe(first.address);
+      expect(second.address).toMatch(/^news\+[a-z0-9]{12}@in\.example\.org$/);
+      expect(second.oldUntil).toBe(now + OLD_ADDRESS_DAYS * DAY);
+      const listed = (await (await call(env, "GET", "/account/newsletters", key)).json()) as { addresses: Shown[] };
+      expect(listed.addresses).toEqual([expect.objectContaining({ code: first.code, address: second.address, oldUntil: second.oldUntil })]);
+      // The old address's codes never leave the feed loader.
+      expect(Object.keys(listed.addresses[0]).sort()).toEqual(["address", "code", "createdAt", "feedUrl", "oldUntil", "tagHash"]);
+
+      // Both addresses deliver into the same feed, with what was there before.
+      now += 13 * DAY;
+      const toOld = message(first.address, rawEmail({ subject: "To the old one" }));
+      await receiveEmail(toOld, env);
+      expect(toOld.rejected).toBeNull();
+      const toNew = message(second.address, rawEmail({ subject: "To the new one" }));
+      await receiveEmail(toNew, env);
+      expect(toNew.rejected).toBeNull();
+      const xml = await (await handle(new Request(first.feedUrl), env, async () => new Response("", { status: 500 }))).text();
+      expect(xml).toContain("Before");
+      expect(xml).toContain("To the old one");
+      expect(xml).toContain("To the new one");
+
+      // After 14 days the old one is refused; the new one still works, and the feed keeps everything.
+      now += 2 * DAY;
+      const late = message(first.address, rawEmail({ subject: "Too late" }));
+      await receiveEmail(late, env);
+      expect(late.rejected).toBe("Unknown address");
+      const still = message(second.address, rawEmail({ subject: "Still here" }));
+      await receiveEmail(still, env);
+      expect(still.rejected).toBeNull();
+      const after = await (await handle(new Request(first.feedUrl), env, async () => new Response("", { status: 500 }))).text();
+      expect(after).toContain("Before");
+      expect(after).toContain("Still here");
+      expect(after).not.toContain("Too late");
+      expect(((await (await call(env, "GET", "/account/newsletters", key)).json()) as { addresses: Shown[] }).addresses[0].oldUntil).toBeUndefined();
+
+      // Another new one: the second address keeps working for 14 days, and later stops too.
+      const third = (await (await call(env, "POST", "/account/newsletters/new", key, { code: first.code })).json()) as Shown;
+      expect(third.address).not.toBe(second.address);
+      const toSecond = message(second.address, rawEmail({ subject: "To the second" }));
+      await receiveEmail(toSecond, env);
+      expect(toSecond.rejected).toBeNull();
+      now += 15 * DAY;
+      const secondLate = message(second.address, rawEmail());
+      await receiveEmail(secondLate, env);
+      expect(secondLate.rejected).toBe("Unknown address");
+      // A code that stopped and sends mail on is forgotten.
+      expect(objects.get(`newsletter:${codeOf(second.address)}`)!.storage.map.size).toBe(0);
+      const toThird = message(third.address, rawEmail({ subject: "To the third" }));
+      await receiveEmail(toThird, env);
+      expect(toThird.rejected).toBeNull();
+      expect(await (await handle(new Request(first.feedUrl), env, async () => new Response("", { status: 500 }))).text()).toContain("To the third");
+
+      // Removing the address removes every code it had.
+      expect((await call(env, "DELETE", `/account/newsletters?code=${first.code}`, key)).status).toBe(204);
+      for (const address of [first, third]) expect(objects.get(`newsletter:${codeOf(address.address)}`)!.storage.map.size).toBe(0);
+      const gone = message(third.address, rawEmail());
+      await receiveEmail(gone, env);
+      expect(gone.rejected).toBe("Unknown address");
+    } finally {
+      clock.mockRestore();
+    }
+  });
+
+  it("a new address needs a sign-in, an address of this account, and isn't given endlessly", async () => {
+    const { env } = accounts();
+    const key = await signIn(env);
+    const other = await signIn(env, 7);
+    const address = (await (await call(env, "POST", "/account/newsletters", key, { tagHash: TECH })).json()) as { code: string };
+    expect((await call(env, "POST", "/account/newsletters/new", null, { code: address.code })).status).toBe(401);
+    expect((await call(env, "POST", "/account/newsletters/new", other, { code: address.code })).status).toBe(404);
+    expect((await call(env, "POST", "/account/newsletters/new", key, {})).status).toBe(404);
+    expect((await call(env, "GET", "/account/newsletters/new", key)).status).toBe(405);
+    for (let i = 0; i < MAX_OLD_ADDRESSES; i++) expect((await call(env, "POST", "/account/newsletters/new", key, { code: address.code })).status).toBe(200);
+    expect((await call(env, "POST", "/account/newsletters/new", key, { code: address.code })).status).toBe(429);
+  });
+
   it("deleting the account deletes its addresses", async () => {
     const { env, objects } = accounts();
     const key = await signIn(env);
     const address = (await (await call(env, "POST", "/account/newsletters", key, { tagHash: TECH })).json()) as { code: string; address: string };
     await receiveEmail(message(address.address, rawEmail()), env);
+    const renewed = (await (await call(env, "POST", "/account/newsletters/new", key, { code: address.code })).json()) as { address: string };
     expect((await call(env, "DELETE", "/account", key)).status).toBe(204);
     expect(objects.get(`newsletter:${address.code}`)!.storage.map.size).toBe(0);
+    expect(objects.get(`newsletter:${codeOf(renewed.address)}`)!.storage.map.size).toBe(0);
   });
 });

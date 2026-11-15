@@ -392,6 +392,12 @@
     <string name="newsletter_unsubscribe_done">Unsubscribed from %1$s</string>
     <string name="newsletter_unsubscribe_none">%1$s doesn\'t offer unsubscribe here. Open its newest email to find the link.</string>
     <string name="newsletter_unsubscribe_failed">Couldn\'t unsubscribe. Try again later.</string>
+    <string name="newsletter_new_address">Get a new address</string>
+    <string name="newsletter_new_address_title">Get a new address?</string>
+    <string name="newsletter_new_address_body">Your current address keeps working for 14 days, so you can update your subscriptions. After that, mail to it is refused.</string>
+    <string name="newsletter_new_address_confirm">Get new address</string>
+    <string name="newsletter_old_address_until">Your old address works until %1$s.</string>
+    <string name="newsletter_new_address_failed">Couldn\'t get a new address. Try again later.</string>
     <string name="newsletter_none_yet">No newsletters yet</string>
     <string name="newsletter_copied">Copied</string>
     <plurals name="newsletter_count">
