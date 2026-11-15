@@ -51,7 +51,17 @@ away and is chosen. An address can't be made,
 renamed, moved or removed by hand, and its Newsletters feed doesn't appear in RSS feeds' Manage
 feeds: both come and go with their tag. Removing a tag removes its address (mail to it is then
 refused) and its Newsletters feed; its confirmation says so. Content keeps the newsletters in your
-account, see PRIVACY.md. Without an account, the page offers **Sign in**. (Newsletters through your
+account, see PRIVACY.md. Without an account, the page offers **Sign in**.
+
+**Senders.** A Newsletters feed mixes many newsletters, so each sender is a source of its own.
+Filtering on the Newsletters feed with its chip keeps each newsletter's sender visible, and its
+senders follow it as chips: tap one to see only that sender, tap it again for the whole feed.
+Senders are grouped by their website, so newsletter@bozar.be and events@bozar.be are one "Bozar";
+on platforms many newsletters share (Substack, Beehiiv, Gmail and the like) each newsletter name is
+a sender of its own. Under the address, the Newsletter feed page lists the tag's senders: tap one to
+give it another name, **Mute** it (its newsletters stay out of Feed), **Combine with** another
+sender (it then shows as that one), or **Separate** a sender combined into it. These choices are
+synced to your other devices. (Newsletters through your
 Save to Instapaper address still arrive in Saved, under the **Newsletters** chip; see Saved.)
 
 ## Moving from another reader

@@ -2,13 +2,14 @@ import { Plus, Archive, ArchiveRestore, Bell, BookOpen, CheckCheck, Circle, Circ
 import { useEffect, useMemo, useRef, useState } from "react";
 import { headerHidden } from "@/lib/header";
 import { app, useApp } from "@/lib/app";
-import { useListedLibrary } from "./useListed";
+import { useListedLibrary, useSenderRules } from "./useListed";
+import { senderChips, senderFeed, senderSelection, shownSender } from "@/lib/newsletterSenders";
 import { snippet } from "@/lib/html";
 import { dayLabel, plural, t } from "@/lib/i18n";
 import { articleKey, articlesInTab, chipTag, feedTabOf, sameSelection, showsUnreadDot, sortTime, unreadByFeed, unreadKeys, type Article, type Feed } from "@/lib/library";
 import { chipTags, isPlainFilter, itemArticle, noteOf, savedItems, showsLiked, showsNewsletters, showsNotes, sourceOf, withoutChips, type NoteContent } from "@/lib/saved";
 import { hasUnreadNewsletter } from "@/lib/newsletters";
-import { hasEnvelopeBadge, senderOf } from "@/lib/newsletterAddresses";
+import { hasEnvelopeBadge, isNewsletterFeed } from "@/lib/newsletterAddresses";
 import { NewDot } from "./NewDot";
 import { sharedByLabel } from "@/lib/sharing";
 import { inboxItems } from "@/lib/inbox";
@@ -76,7 +77,10 @@ function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport,
   const unread = unreadKeys(library, selection).size;
   // One chip row, as on Android: the topics with something in the state shown, or the topic chosen
   // and its feeds.
-  const row = useMemo(() => feedChipRow(library, tab, selection), [library, tab, selection]);
+  const rules = useSenderRules();
+  // A newsletter feed picked: its senders as chips after it, as on Android.
+  const senders = useMemo(() => senderChips(rules, library, selection, settings.unreadOnly), [rules, library, selection, settings.unreadOnly]);
+  const row = useMemo(() => feedChipRow(library, tab, selection, senders), [library, tab, selection, senders]);
   const unreadPerFeed = useMemo(() => unreadByFeed(library), [library]);
   const feedDot = (f: Feed) => showsUnreadDot(tab, unreadPerFeed.get(f.url) ?? 0);
   const title =
@@ -84,9 +88,12 @@ function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport,
       ? (library.folders.find((f) => f.id === selection.folderId)?.title ?? "")
       : selection.kind === "feed"
         ? (feeds.get(selection.feedUrl)?.title ?? "")
-        : t("allArticles");
+        : selection.kind === "sender"
+          ? (row.senders.find((s) => s.key === selection.key)?.name ?? feeds.get(selection.feedUrl)?.title ?? "")
+          : t("allArticles");
   const days = useMemo(() => groupByDay(articles), [articles]);
-  const showFeedName = selection.kind !== "feed";
+  // One feed shows no feed name, except a newsletter feed, which mixes many senders.
+  const showFeedName = selection.kind === "feed" ? isNewsletterFeed(selection.feedUrl) : selection.kind !== "sender";
 
   // Mark as read on scroll: once per frame, the unread articles that scrolled off the top, of
   // those that were on screen (#157), so new ones arriving above are never marked unseen.
@@ -165,11 +172,23 @@ function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport,
               dotted={(tag) => showsUnreadDot(tab, unreadKeys(library, { kind: "tag", tag }).size)}
               // After the topics and a divider, as on Android: the chosen topic's feeds (one tapped
               // shows it alone, tapped again the topic), or else the feeds without a topic.
-              after={
+              after={afterChips(
                 row.chosenTopic !== null
                   ? feedChipList(row.feeds, row.chosenFeed, (f, on) => app.select(on ? { kind: "tag", tag: row.chosenTopic! } : { kind: "feed", feedUrl: f.url }), feedDot)
-                  : feedChipList(row.loose, row.chosenFeed, (f, on) => app.select(on ? { kind: "all" } : { kind: "feed", feedUrl: f.url }), feedDot)
-              }
+                  : feedChipList(row.loose, row.chosenFeed, (f, on) => app.select(on ? { kind: "all" } : { kind: "feed", feedUrl: f.url }), feedDot),
+                // A newsletter feed's senders: one tapped shows it alone, tapped again the whole feed.
+                row.senders.map((sender) => {
+                  const on = sender.key === row.chosenSender;
+                  const shown = senderFeed(sender, feeds.get(sender.feedUrl));
+                  return (
+                    <FilterChip key={sender.key} selected={on} onClick={() => app.select(on ? { kind: "feed", feedUrl: sender.feedUrl } : senderSelection(sender))}>
+                      <FeedIcon feed={shown} className="size-4" envelopeBadge={!isNewsletterFeed(shown.url)} />
+                      <span className="max-w-48 truncate">{sender.name}</span>
+                      {showsUnreadDot(tab, sender.unread) ? <NewDot label={t("unread")} /> : null}
+                    </FilterChip>
+                  );
+                }),
+              )}
             />
           ) : null}
           {problems.size > 0 ? <p className="px-4 pb-1 text-xs text-destructive">{plural("feedsFailed", problems.size)}</p> : null}
@@ -639,6 +658,17 @@ function CollapsingHeader({ hidden, onShow, children }: { hidden: boolean; onSho
 }
 
 /** Feeds as chips with their icon (a topic's, or those without one); none: nothing. */
+/** The feed chips, then the senders' chips; null when there are neither, so no divider shows. */
+function afterChips(feeds: React.ReactNode, senders: React.ReactNode[]): React.ReactNode {
+  if (!feeds && senders.length === 0) return null;
+  return (
+    <>
+      {feeds}
+      {senders}
+    </>
+  );
+}
+
 function feedChipList(list: Feed[], chosen: string | null, onClick: (feed: Feed, on: boolean) => void, dotted: (feed: Feed) => boolean = () => false): React.ReactNode {
   if (list.length === 0) return null;
   return list.map((f) => {
@@ -928,13 +958,14 @@ function RowButton({
   saved?: boolean;
 }) {
   const { settings } = useApp();
+  const rules = useSenderRules();
   const view = settings.listView;
   const unread = !article.read && !noReadState;
   const text = useMemo(() => snippet(article.html, 160), [article.html]);
   const image = settings.showImages && view !== "small" ? article.imageUrl : null;
   const hide = (e: React.SyntheticEvent<HTMLImageElement>) => (e.currentTarget.style.display = "none");
   // A newsletter shows who sent it, with their website's icon.
-  const shown = senderOf(feed, article) ?? feed;
+  const shown = shownSender(rules, feed, article) ?? feed;
   return (
     <button
       type="button"

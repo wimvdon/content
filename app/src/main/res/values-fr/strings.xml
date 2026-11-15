@@ -371,6 +371,17 @@
     <string name="newsletter_own_pending">Cette adresse n’est pas encore prête. Réessayez dans un instant.</string>
     <string name="newsletter_own_copy">Copier l’adresse</string>
     <string name="newsletter_address_for">Adresse pour %1$s</string>
+    <string name="newsletter_senders">Expéditeurs</string>
+    <string name="newsletter_senders_explained">Chaque expéditeur est une source à part dans Flux, avec sa propre puce. Touchez-en un pour le renommer, le combiner avec un autre ou le masquer.</string>
+    <string name="newsletter_sender_muted_count">Masqué · %1$s</string>
+    <string name="newsletter_sender_name_hint">Laissez vide pour utiliser le nom de l\'expéditeur</string>
+    <string name="newsletter_sender_mute">Masquer</string>
+    <string name="newsletter_sender_mute_summary">Ses newsletters restent hors de Flux</string>
+    <string name="newsletter_sender_combine">Combiner avec</string>
+    <string name="newsletter_sender_combine_hint">Ses newsletters apparaissent alors sous l\'expéditeur choisi.</string>
+    <string name="newsletter_sender_combined">Combinés dans cet expéditeur</string>
+    <string name="newsletter_sender_separate">Séparer</string>
+    <string name="newsletter_sender_separate_one">Séparer %1$s</string>
     <string name="newsletter_none_yet">Pas encore de newsletters</string>
     <string name="newsletter_copied">Copiée</string>
     <plurals name="newsletter_count">

@@ -359,6 +359,17 @@
     <string name="newsletter_own_pending">Diese Adresse ist noch nicht fertig. Versuch es gleich noch einmal.</string>
     <string name="newsletter_own_copy">Adresse kopieren</string>
     <string name="newsletter_address_for">Adresse für %1$s</string>
+    <string name="newsletter_senders">Absender</string>
+    <string name="newsletter_senders_explained">Jeder Absender ist eine eigene Quelle in Feed, mit eigenem Chip. Tippe auf einen, um ihn umzubenennen, mit einem anderen zusammenzulegen oder stummzuschalten.</string>
+    <string name="newsletter_sender_muted_count">Stumm · %1$s</string>
+    <string name="newsletter_sender_name_hint">Leer lassen, um den Namen des Absenders zu verwenden</string>
+    <string name="newsletter_sender_mute">Stummschalten</string>
+    <string name="newsletter_sender_mute_summary">Seine Newsletter bleiben aus Feed heraus</string>
+    <string name="newsletter_sender_combine">Zusammenlegen mit</string>
+    <string name="newsletter_sender_combine_hint">Seine Newsletter erscheinen dann unter dem gewählten Absender.</string>
+    <string name="newsletter_sender_combined">In diesen Absender zusammengelegt</string>
+    <string name="newsletter_sender_separate">Trennen</string>
+    <string name="newsletter_sender_separate_one">%1$s trennen</string>
     <string name="newsletter_none_yet">Noch keine Newsletter</string>
     <string name="newsletter_copied">Kopiert</string>
     <plurals name="newsletter_count">

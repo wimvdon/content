@@ -371,6 +371,17 @@
     <string name="newsletter_own_pending">Questo indirizzo non è ancora pronto. Riprova tra un momento.</string>
     <string name="newsletter_own_copy">Copia indirizzo</string>
     <string name="newsletter_address_for">Indirizzo per %1$s</string>
+    <string name="newsletter_senders">Mittenti</string>
+    <string name="newsletter_senders_explained">Ogni mittente è una fonte a sé in Feed, con il suo chip. Toccane uno per rinominarlo, unirlo a un altro o silenziarlo.</string>
+    <string name="newsletter_sender_muted_count">Silenziato · %1$s</string>
+    <string name="newsletter_sender_name_hint">Lascia vuoto per usare il nome del mittente</string>
+    <string name="newsletter_sender_mute">Silenzia</string>
+    <string name="newsletter_sender_mute_summary">Le sue newsletter restano fuori da Feed</string>
+    <string name="newsletter_sender_combine">Unisci a</string>
+    <string name="newsletter_sender_combine_hint">Le sue newsletter appariranno sotto il mittente scelto.</string>
+    <string name="newsletter_sender_combined">Uniti in questo mittente</string>
+    <string name="newsletter_sender_separate">Separa</string>
+    <string name="newsletter_sender_separate_one">Separa %1$s</string>
     <string name="newsletter_none_yet">Ancora nessuna newsletter</string>
     <string name="newsletter_copied">Copiato</string>
     <plurals name="newsletter_count">

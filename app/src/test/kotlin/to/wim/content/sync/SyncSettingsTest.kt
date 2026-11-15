@@ -26,6 +26,7 @@ class SyncSettingsTest {
             alwaysOpenWebsite = true,
             newsletterUnread = true,
             hiddenWords = "crypto, apple watch",
+            newsletterSenders = "bozar.be\tBozar\t\t0",
             listView = ListView.Large,
         )
 
@@ -48,6 +49,7 @@ class SyncSettingsTest {
                 "articles.newsletterUnread" to "true",
                 "android.listView" to "Large",
                 "articles.hiddenWords" to "crypto, apple watch",
+                "articles.newsletterSenders" to "bozar.be\tBozar\t\t0",
                 SyncSettings.RECIPIENTS to "[]",
             ),
             values,

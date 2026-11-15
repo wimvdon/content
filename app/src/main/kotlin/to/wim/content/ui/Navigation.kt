@@ -2,6 +2,8 @@ package to.wim.content.ui
 
 import to.wim.content.ui.settings.SettingsPage
 import to.wim.content.data.NewsletterAddresses
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.filterNotNull
 import android.content.ClipData
 import android.content.ClipboardManager
 import androidx.core.content.pm.ShortcutManagerCompat
@@ -107,6 +109,10 @@ import to.wim.content.data.ArticleOpening
 import to.wim.content.data.ArticleFilter
 import to.wim.content.data.ArticleSearch
 import to.wim.content.data.withoutHidden
+import to.wim.content.data.NewsletterSenders
+import to.wim.content.data.withoutMuted
+import to.wim.content.ui.home.LocalNewsletterSenders
+import to.wim.content.ui.home.SenderActions
 import to.wim.content.data.SearchFilters
 import to.wim.content.data.SearchResults
 import to.wim.content.ui.home.MainTab
@@ -238,6 +244,8 @@ fun RssReaderNavigation(
     val siteSignIns by app.siteSignIns.signIns.collectAsStateWithLifecycle()
     val current = settings ?: Settings()
     val library = libraryOrNull ?: Library()
+    // Newsletter senders' names, merges and mutes.
+    val senders = remember(current.newsletterSenders) { NewsletterSenders.decode(current.newsletterSenders) }
     val snackbar = remember { SnackbarHostState() }
     val uiScope = rememberCoroutineScope()
     // One message at a time: a new one replaces the one showing, so they never queue up; a tap
@@ -317,6 +325,14 @@ fun RssReaderNavigation(
         }
     }
 
+
+    /** A change to the newsletter senders' choices, on the stored ones (not a stale copy). */
+    fun editSenders(change: (NewsletterSenders) -> NewsletterSenders) {
+        app.appScope.launch {
+            val stored = NewsletterSenders.decode(app.settings.settings.filterNotNull().first().newsletterSenders)
+            app.settings.setNewsletterSenders(change(stored).encode())
+        }
+    }
 
     fun editLibrary(change: (Library) -> Library) {
         app.appScope.launch { repository.edit(change) }
@@ -785,7 +801,7 @@ fun RssReaderNavigation(
     // Moving to another screen (or section) closes a message shown on the one before.
     val place = messagePlace()
     LaunchedEffect(place) { messages.movedTo(place) }
-    CompositionLocalProvider(LocalMessageArea provides messageArea) {
+    CompositionLocalProvider(LocalMessageArea provides messageArea, LocalNewsletterSenders provides senders) {
         AnimatedContent(
             targetState = backStack.size to backStack.last(),
             modifier = Modifier.closesMessageOnTap(messageArea) { messages.cancel() },
@@ -814,7 +830,8 @@ fun RssReaderNavigation(
                             }
                         }
                         // Without the articles hidden by their words (#277): the lists, counts and chips.
-                        val listed = remember(library, current.hiddenWords) { library.withoutHidden(ArticleFilter.parse(current.hiddenWords)) }
+                        // And without the muted newsletter senders' newsletters.
+                        val listed = remember(library, current.hiddenWords, senders) { library.withoutHidden(ArticleFilter.parse(current.hiddenWords)).withoutMuted(senders) }
                         val articles =
                             remember(listed, shownSelection, readThisVisit, current.unreadOnly) {
                                 listed.articlesFor(shownSelection, FeedTab.of(current.unreadOnly), keep = readThisVisit)
@@ -906,6 +923,10 @@ fun RssReaderNavigation(
                                         },
                                     topicChips = remember(listed, current.unreadOnly, shownSelection) { listed.feedChips(FeedTab.of(current.unreadOnly), shownSelection.chipTag(library.folders)) },
                                     feedChipsShown = remember(listed, current.unreadOnly) { listed.feedsWithArticles(FeedTab.of(current.unreadOnly)) },
+                                    senderChips =
+                                        remember(listed, current.unreadOnly, shownSelection, senders) {
+                                            senders.chips(listed, shownSelection, current.unreadOnly)
+                                        },
                                     accountEmail = accountEmail,
                                 ),
                             snackbarHostState = snackbar,
@@ -1381,6 +1402,14 @@ fun RssReaderNavigation(
             loadAddresses = { app.sync.newsletters() },
             topicActions = topicActions,
             activity = { feedUrl -> NewsletterAddresses.activity(library.articles, feedUrl) },
+            senders = { feedUrl -> senders.list(library.articles, feedUrl) },
+            senderActions =
+                SenderActions(
+                    onRename = { key, name -> editSenders { it.renamed(key, name) } },
+                    onMute = { key, muted -> editSenders { it.muted(key, muted) } },
+                    onMerge = { from, into, intoName -> editSenders { it.merged(from, into, intoName) } },
+                    onSplit = { key -> editSenders { it.split(key) } },
+                ),
             onCopy = ::copyToClipboard,
             onShare = { address -> ExternalApps.shareText(context, address, resources.getString(R.string.action_share)) },
         )
@@ -1500,6 +1529,7 @@ private val SelectionSaver =
                 is FeedSelection.InFolder -> "folder:" + it.folderId
                 is FeedSelection.Single -> "feed:" + it.feedUrl
                 is FeedSelection.Tagged -> "tag:" + it.tag
+                is FeedSelection.Sender -> "sender:" + (listOf(it.feedUrl, it.key) + it.members).joinToString("\t")
             }
         },
         restore = {
@@ -1507,6 +1537,10 @@ private val SelectionSaver =
                 it.startsWith("folder:") -> FeedSelection.InFolder(it.removePrefix("folder:"))
                 it.startsWith("feed:") -> FeedSelection.Single(it.removePrefix("feed:"))
                 it.startsWith("tag:") -> FeedSelection.Tagged(it.removePrefix("tag:"))
+                it.startsWith("sender:") ->
+                    it.removePrefix("sender:").split('\t').let { parts ->
+                        if (parts.size >= 2) FeedSelection.Sender(parts[0], parts[1], parts.drop(2).toSet().ifEmpty { setOf(parts[1]) }) else FeedSelection.All
+                    }
                 else -> FeedSelection.All
             }
         },

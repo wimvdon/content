@@ -6,6 +6,7 @@
  */
 import { changeItem, cleanTags, feedArticleFor, renameTag, type Item } from "./items";
 import { isNewsletterFeed } from "./newsletterAddresses";
+import type { NewsletterSender } from "./newsletterSenders";
 import { chipTag, choosesFolder, feedFoldersToTags, feedTags, inFeedTab, removeFeed, removeFolder, type Feed, type FeedTab, type Folder, type Library, type Selection } from "./library";
 
 const key = (name: string) => name.trim().toLowerCase();
@@ -203,6 +204,10 @@ export interface FeedChipRow {
    * with two or more feeds stays, as it leads to them; always with something chosen, so it can be let go.
    */
   shown: boolean;
+  /** The senders of the newsletter feed picked, after it (newsletterSenders.ts); empty for any other. */
+  senders: NewsletterSender[];
+  /** The sender picked, by its key. */
+  chosenSender: string | null;
 }
 
 /**
@@ -212,8 +217,18 @@ export interface FeedChipRow {
  * feed picked stays). Tapping a feed shows it alone, tapping it again the whole topic; tapping the
  * topic lets go of it, and the topics come back.
  */
-export function feedChipRow(lib: Library, tab: FeedTab, selection: Selection): FeedChipRow {
-  const chosenFeed = selection.kind === "feed" ? selection.feedUrl : null;
+export function feedChipRow(lib: Library, tab: FeedTab, selection: Selection, senders: NewsletterSender[] = []): FeedChipRow {
+  const row = topicRow(lib, tab, selection);
+  // A newsletter feed picked (or one of its senders): that feed alone, then its senders, as on Android.
+  const chosenSender = selection.kind === "sender" ? selection.key : null;
+  const own = senders.filter((s) => s.feedUrl === row.chosenFeed);
+  if (row.chosenFeed === null || !isNewsletterFeed(row.chosenFeed) || !(own.length > 1 || own.some((s) => s.key === chosenSender))) return row;
+  const alone = (list: Feed[]) => list.filter((f) => f.url === row.chosenFeed);
+  return { ...row, feeds: alone(row.feeds), loose: alone(row.loose), senders: own, chosenSender };
+}
+
+function topicRow(lib: Library, tab: FeedTab, selection: Selection): FeedChipRow {
+  const chosenFeed = selection.kind === "feed" || selection.kind === "sender" ? selection.feedUrl : null;
   const single = chosenFeed === null ? undefined : lib.feeds.find((f) => f.url === chosenFeed);
   const all = feedTags(lib);
   const picked = chipTag(lib, selection);
@@ -226,7 +241,7 @@ export function feedChipRow(lib: Library, tab: FeedTab, selection: Selection): F
     const soleTopicFeeds =
       topics.length === 1 && loose.length === 0 ? lib.feeds.filter((f) => (f.tags ?? []).some((t) => key(t) === key(topics[0])) && hasSome(f)).length : 0;
     const shown = chosenFeed !== null || topics.length + loose.length > 1 || soleTopicFeeds > 1;
-    return { topics, chosenTopic: null, feeds: [], loose, chosenFeed, shown };
+    return { topics, chosenTopic: null, feeds: [], loose, chosenFeed, shown, senders: [], chosenSender: null };
   }
   // The topic's own spelling, as its chip has it elsewhere.
   const name = all.find((t) => key(t) === key(chosen)) ?? chosen;
@@ -235,7 +250,7 @@ export function feedChipRow(lib: Library, tab: FeedTab, selection: Selection): F
       (f.tags ?? []).some((t) => key(t) === key(name)) &&
       (f.url === chosenFeed || lib.articles.some((a) => a.feedUrl === f.url && inFeedTab(a, tab))),
   );
-  return { topics: [name], chosenTopic: name, feeds, loose: [], chosenFeed, shown: true };
+  return { topics: [name], chosenTopic: name, feeds, loose: [], chosenFeed, shown: true, senders: [], chosenSender: null };
 }
 
 /** One topic in the sidebar's Feeds list (see sidebarFeeds). */
@@ -253,7 +268,7 @@ export interface SidebarTopic {
  */
 export function sidebarFeeds(lib: Library, tab: FeedTab, selection: Selection): { topics: SidebarTopic[]; loose: Feed[] } {
   const withArticles = new Set(lib.articles.filter((a) => inFeedTab(a, tab)).map((a) => a.feedUrl));
-  const chosenFeed = selection.kind === "feed" ? selection.feedUrl : null;
+  const chosenFeed = selection.kind === "feed" || selection.kind === "sender" ? selection.feedUrl : null;
   const keeps = (f: Feed) => f.url === chosenFeed || withArticles.has(f.url);
   const topics = lib.folders.flatMap((folder) => {
     const all = lib.feeds.filter((f) => f.folderId === folder.id);

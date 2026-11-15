@@ -1,3 +1,4 @@
+import { senderKeyOf } from "./senderKey";
 import type { ParsedFeed } from "./feedParser";
 import type { Item } from "./items";
 
@@ -58,6 +59,8 @@ export type Selection =
   | { kind: "feed"; feedUrl: string }
   /** The feeds with one tag (#187): the Feed tab's chips. */
   | { kind: "tag"; tag: string }
+  /** One sender in a newsletter feed (newsletterSenders.ts): `key`, with the senders merged into it (`members`, every senderKeyOf it shows). */
+  | { kind: "sender"; feedUrl: string; key: string; members: string[] }
   | { kind: "saved" };
 
 export const MAX_ARTICLES_PER_FEED = 200;
@@ -291,6 +294,10 @@ export function includes(lib: Library, selection: Selection, a: Article): boolea
       return lib.feeds.find((f) => f.url === a.feedUrl)?.folderId === selection.folderId;
     case "feed":
       return a.feedUrl === selection.feedUrl;
+    case "sender": {
+      const key = senderKeyOf(a);
+      return a.feedUrl === selection.feedUrl && key !== null && selection.members.includes(key);
+    }
     case "tag":
       return (lib.feeds.find((f) => f.url === a.feedUrl)?.tags ?? []).some((t) => t.toLowerCase() === selection.tag.toLowerCase());
     case "saved":
@@ -352,13 +359,14 @@ export function unreadByFeed(lib: Library): Map<string, number> {
 export function sameSelection(a: Selection, b: Selection): boolean {
   if (a.kind === "folder" && b.kind === "folder") return a.folderId === b.folderId;
   if (a.kind === "feed" && b.kind === "feed") return a.feedUrl === b.feedUrl;
+  if (a.kind === "sender" && b.kind === "sender") return a.feedUrl === b.feedUrl && a.key === b.key;
   if (a.kind === "tag" && b.kind === "tag") return a.tag.toLowerCase() === b.tag.toLowerCase();
   return a.kind === b.kind;
 }
 
 export function selectionExists(lib: Library, s: Selection): Selection {
   if (s.kind === "folder" && !lib.folders.some((f) => f.id === s.folderId)) return { kind: "all" };
-  if (s.kind === "feed" && !lib.feeds.some((f) => f.url === s.feedUrl)) return { kind: "all" };
+  if ((s.kind === "feed" || s.kind === "sender") && !lib.feeds.some((f) => f.url === s.feedUrl)) return { kind: "all" };
   if (s.kind === "tag" && !feedTags(lib).some((t) => t.toLowerCase() === s.tag.toLowerCase())) return { kind: "all" };
   return s;
 }

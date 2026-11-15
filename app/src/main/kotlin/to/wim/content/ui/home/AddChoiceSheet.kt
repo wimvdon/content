@@ -2,6 +2,7 @@ package to.wim.content.ui.home
 
 import to.wim.content.data.NewsletterAddresses
 import to.wim.content.data.NewsletterActivity
+import to.wim.content.data.NewsletterSender
 import to.wim.content.ui.feeds.TopicChipRow
 import android.text.format.DateUtils
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -138,6 +139,9 @@ data class NewsletterChoices(
     val onCopy: (String) -> Unit = {},
     /** Android's share sheet with the address. */
     val onShare: (String) -> Unit = {},
+    /** The senders of a newsletter feed (by its address), each a source of its own (NewsletterSenders). */
+    val senders: (feedUrl: String) -> List<NewsletterSender> = { emptyList() },
+    val senderActions: SenderActions = SenderActions(),
 )
 
 /**
@@ -161,6 +165,8 @@ fun NewsletterFeedPage(
     // A tag made with Edit tags: chosen once it exists.
     var made by rememberSaveable { mutableStateOf<String?>(null) }
     var copied by remember { mutableStateOf<String?>(null) }
+    // The sender whose page is open, by its key.
+    var openSender by rememberSaveable { mutableStateOf<String?>(null) }
     val tagIds = choices.topics.map { it.id }
     LaunchedEffect(choices.signedIn, tagIds) {
         if (!choices.signedIn) return@LaunchedEffect
@@ -219,10 +225,27 @@ fun NewsletterFeedPage(
                 },
                 onShare = choices.onShare,
             )
+            val feedUrl = if (loaded) addresses?.let { NewsletterAddresses.forTag(it, chosen) }?.feedUrl else null
+            val senders = feedUrl?.let(choices.senders).orEmpty()
+            if (senders.isNotEmpty()) SenderList(senders, feed = null) { openSender = it.key }
             SheetActions(onCancel = onBack, cancel = false) {
                 val close = rememberSheetClose()
                 TextButton(onClick = { close(onBack) }) { Text(stringResource(R.string.action_done)) }
             }
+        }
+        // A sender's page, a page of this sheet.
+        val rules = LocalNewsletterSenders.current
+        val feedUrl = if (loaded) addresses?.let { NewsletterAddresses.forTag(it, chosen) }?.feedUrl else null
+        val senders = feedUrl?.let(choices.senders).orEmpty()
+        senders.firstOrNull { it.key == openSender }?.let { sender ->
+            SenderPage(
+                sender = sender,
+                others = senders.filter { it.key != sender.key },
+                feed = null,
+                givenName = rules.rule(sender.key)?.name,
+                actions = choices.senderActions,
+                onBack = { openSender = null },
+            )
         }
     }
 }

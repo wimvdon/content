@@ -361,6 +361,17 @@
     <string name="newsletter_own_pending">This address isn\'t ready yet. Try again in a moment.</string>
     <string name="newsletter_own_copy">Copy address</string>
     <string name="newsletter_address_for">Address for %1$s</string>
+    <string name="newsletter_senders">Senders</string>
+    <string name="newsletter_senders_explained">Each sender is a source of its own in Feed, with its own chip. Tap one to rename it, combine it with another or mute it.</string>
+    <string name="newsletter_sender_muted_count">Muted · %1$s</string>
+    <string name="newsletter_sender_name_hint">Leave empty to use the sender\'s own name</string>
+    <string name="newsletter_sender_mute">Mute</string>
+    <string name="newsletter_sender_mute_summary">Its newsletters stay out of Feed</string>
+    <string name="newsletter_sender_combine">Combine with</string>
+    <string name="newsletter_sender_combine_hint">Its newsletters then show as the sender you pick.</string>
+    <string name="newsletter_sender_combined">Combined into this sender</string>
+    <string name="newsletter_sender_separate">Separate</string>
+    <string name="newsletter_sender_separate_one">Separate %1$s</string>
     <string name="newsletter_none_yet">No newsletters yet</string>
     <string name="newsletter_copied">Copied</string>
     <plurals name="newsletter_count">
