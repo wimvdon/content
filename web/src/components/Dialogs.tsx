@@ -20,7 +20,8 @@ import { Segmented } from "./ui/segmented";
 import { ReaderStyleControls } from "./ReaderStyleControls";
 import { InstapaperSettings } from "./ServiceSettings";
 import { chosenTag, forTag, isNewsletterFeed, newsletterActivity, NO_TAG, oldAddressUntil, tagHashes, withRenewed, type NewsletterAddress } from "@/lib/newsletterAddresses";
-import { decodeSenders, mergedSender, mutedSender, renamedSender, ruleOf, senderFeed, senderList, splitSender, type NewsletterSender } from "@/lib/newsletterSenders";
+import { decodeSenders, mergedSender, movedSender, mutedSender, originalTag, renamedSender, ruleOf, senderCadence, senderFeed, senderList, splitSender, type NewsletterSender } from "@/lib/newsletterSenders";
+import { useMovedLibrary } from "./useListed";
 import { feedsOfKind, withKindOrder, type FeedKind } from "@/lib/feedKinds";
 import { SwitchRow } from "./ui/switch";
 import { pushSupported } from "@/lib/notifications";
@@ -408,7 +409,7 @@ function TagAddresses({ onSignIn, initialTag }: { onSignIn: () => void; initialT
           <AddressActions key={address.address} address={address} onRenewed={(renewed) => setAddresses((list) => (list ? withRenewed(list, renewed) : list))} />
         )}
       </section>
-      {address ? <SenderSection feedUrl={address.feedUrl} /> : null}
+      {address ? <SenderSection feedUrl={address.feedUrl} currentTag={chosen ?? NO_TAG} /> : null}
       <SetupHelp />
     </div>
   );
@@ -435,10 +436,11 @@ function SetupHelp() {
 }
 
 /** Senders, under the address (as on Android): each sender of the tag's feed, click for its page. */
-function SenderSection({ feedUrl }: { feedUrl: string }) {
+function SenderSection({ feedUrl, currentTag }: { feedUrl: string; currentTag: string }) {
   const { library, settings } = useApp();
+  const moved = useMovedLibrary();
   const rules = useMemo(() => decodeSenders(settings.newsletterSenders), [settings.newsletterSenders]);
-  const senders = useMemo(() => senderList(rules, library.articles, feedUrl), [rules, library.articles, feedUrl]);
+  const senders = useMemo(() => senderList(rules, moved.articles, feedUrl), [rules, moved.articles, feedUrl]);
   const [open, setOpen] = useState<string | null>(null);
   if (senders.length === 0) return null;
   const sender = senders.find((s) => s.key === open);
@@ -464,7 +466,17 @@ function SenderSection({ feedUrl }: { feedUrl: string }) {
           );
         })}
       </ul>
-      {sender ? <SenderDialog key={sender.key} sender={sender} others={senders.filter((s) => s.key !== sender.key)} givenName={ruleOf(rules, sender.key)?.name ?? null} onClose={() => setOpen(null)} /> : null}
+      {sender ? (
+        <SenderDialog
+          key={sender.key}
+          sender={sender}
+          others={senders.filter((s) => s.key !== sender.key)}
+          givenName={ruleOf(rules, sender.key)?.name ?? null}
+          topics={library.folders}
+          currentTag={currentTag}
+          onClose={() => setOpen(null)}
+        />
+      ) : null}
     </section>
   );
 }
@@ -472,16 +484,65 @@ function SenderSection({ feedUrl }: { feedUrl: string }) {
 /** The sender page opened from a sender chip's menu, a newsletter's menu or the reader's sender line (app.openSenderPage), as on Android. */
 export function SenderPageDialog() {
   const { senderPage, settings, library } = useApp();
+  const moved = useMovedLibrary();
   const rules = useMemo(() => decodeSenders(settings.newsletterSenders), [settings.newsletterSenders]);
-  const senders = useMemo(() => (senderPage ? senderList(rules, library.articles, senderPage.feedUrl) : []), [rules, library.articles, senderPage]);
+  const senders = useMemo(() => (senderPage ? senderList(rules, moved.articles, senderPage.feedUrl) : []), [rules, moved.articles, senderPage]);
   const sender = senders.find((s) => s.key === senderPage?.key);
-  if (!sender) return null;
-  return <SenderDialog key={sender.key} sender={sender} others={senders.filter((s) => s.key !== sender.key)} givenName={ruleOf(rules, sender.key)?.name ?? null} onClose={() => app.openSenderPage(null)} />;
+  if (!sender || !senderPage) return null;
+  const currentTag = library.feeds.find((f) => f.url === senderPage.feedUrl)?.folderId ?? NO_TAG;
+  return (
+    <SenderDialog
+      key={sender.key}
+      sender={sender}
+      others={senders.filter((s) => s.key !== sender.key)}
+      givenName={ruleOf(rules, sender.key)?.name ?? null}
+      topics={library.folders}
+      currentTag={currentTag}
+      onClose={() => app.openSenderPage(null)}
+    />
+  );
 }
 
-/** One sender's page, a page of the Newsletter feed dialog: its name, Mute, Combine with, and the senders combined into it, each with Separate. */
-function SenderDialog({ sender, others, givenName, onClose }: { sender: NewsletterSender; others: NewsletterSender[]; givenName: string | null; onClose: () => void }) {
+/** "Newest yesterday · About weekly · 2 unread": when the newest came, how often they come (left out under 3 issues) and how many are unread. */
+function senderFacts(sender: NewsletterSender): string {
+  const cadence = senderCadence(sender.times);
+  const cadenceKeys = { daily: "newsletterCadenceDaily", weekly: "newsletterCadenceWeekly", twoWeeks: "newsletterCadenceTwoWeeks", monthly: "newsletterCadenceMonthly", nowAndThen: "newsletterCadenceNowAndThen" } as const;
+  const cadenceText = cadence === null ? null : t(cadenceKeys[cadence]);
+  const unread = sender.unread === 0 ? t("newsletterSenderAllRead") : plural("unreadCount", sender.unread);
+  return [t("newsletterSenderNewest").replace("{when}", formatRelative(sender.newestAt)), cadenceText, unread].filter((part) => part !== null).join(" · ");
+}
+
+/**
+ * One sender's page, a page of the Newsletter feed dialog: facts on it with Open newest, its name,
+ * Mute, the Tag its newsletters show under, Combine with, and the senders combined into it, each with Separate.
+ */
+function SenderDialog({
+  sender,
+  others,
+  givenName,
+  topics,
+  currentTag,
+  onClose,
+}: {
+  sender: NewsletterSender;
+  others: NewsletterSender[];
+  givenName: string | null;
+  topics: Folder[];
+  /** The tag it shows under now: an id, or NO_TAG. */
+  currentTag: string;
+  onClose: () => void;
+}) {
+  const { library, settings } = useApp();
   const [name, setName] = useState(givenName ?? "");
+  const newestKey = sender.newestKey;
+  // Under another tag it is in another feed's list: the page closes, as after Combine with.
+  const moveTo = (tag: string) => {
+    save();
+    const original = originalTag(library, decodeSenders(settings.newsletterSenders), sender.key);
+    const tagName = topics.find((f) => f.id === tag)?.title ?? t("noFolder");
+    app.editSendersUndoable(t("newsletterSenderMovedMessage").replace("{name}", sender.name).replace("{tag}", tagName), (rules) => movedSender(rules, sender.key, tag, original));
+    onClose();
+  };
   const save = () => {
     if (name.trim() !== (givenName ?? "")) app.editSenders((rules) => renamedSender(rules, sender.key, name));
   };
@@ -493,6 +554,23 @@ function SenderDialog({ sender, others, givenName, onClose }: { sender: Newslett
   return (
     <Dialog open onOpenChange={close} title={sender.name} closeLabel={t("close")} backLabel={t("back")} done={t("done")}>
       <div className="space-y-5">
+        <div className="space-y-1">
+          <p className="text-sm text-muted-foreground">{senderFacts(sender)}</p>
+          {newestKey ? (
+            // shadcn's link button: text with an underline on hover.
+            <button
+              type="button"
+              className="cursor-pointer rounded-sm text-sm font-medium text-primary underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+              onClick={() => {
+                save();
+                app.requestOpen(newestKey);
+                onClose();
+              }}
+            >
+              {t("newsletterSenderOpenNewest")}
+            </button>
+          ) : null}
+        </div>
         <div className="space-y-1.5">
           <Label htmlFor="sender-name">{t("name")}</Label>
           <Input id="sender-name" value={name} placeholder={sender.members[0].name} onChange={(e) => setName(e.target.value)} onBlur={save} />
@@ -514,6 +592,27 @@ function SenderDialog({ sender, others, givenName, onClose }: { sender: Newslett
           </Button>
           <p className="text-xs text-muted-foreground">{t("newsletterUnsubscribeHint")}</p>
         </div>
+
+        <section className="space-y-2">
+          <h3 className="text-sm font-semibold">{t("topic")}</h3>
+          <p className="text-sm text-muted-foreground">{t("newsletterSenderTagHint")}</p>
+          {/* One tag at a time (No tag first, as on the Newsletter feed page); the current one stays chosen. */}
+          <TopicChips
+            topics={topics}
+            selected={(topic) => currentTag === topic.id}
+            onToggle={(topic) => topic.id !== currentTag && moveTo(topic.id)}
+            leading={
+              <button
+                type="button"
+                aria-pressed={currentTag === NO_TAG}
+                onClick={() => currentTag !== NO_TAG && moveTo(NO_TAG)}
+                className={cn(chip, currentTag === NO_TAG ? chipOn : "hover:bg-muted")}
+              >
+                {t("noFolder")}
+              </button>
+            }
+          />
+        </section>
         {others.length > 0 ? (
           <section className="space-y-2">
             <h3 className="text-sm font-semibold">{t("newsletterSenderCombine")}</h3>

@@ -71,7 +71,7 @@ function senderMenu(rules: SenderRule[], feed: Feed | undefined, article: Articl
   if (!isNewsletterFeed(article.feedUrl)) return [];
   const name = shownSender(rules, feed, article)?.title;
   if (!name) return [];
-  const senderNow = () => senderOfArticle(rules, app.get().library.articles, article);
+  const senderNow = () => senderOfArticle(rules, app.movedLibrary().articles, article);
   return [
     { icon: <Mail />, label: t("newsletterSenderAbout").replace("{name}", name), onClick: () => app.openSenderPage(senderNow()) },
     {

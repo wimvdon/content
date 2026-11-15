@@ -51,6 +51,9 @@ object NewsletterUnsubscribe {
             .filter { it.feedUrl == sender.feedUrl && canUnsubscribe(it) && senders.groupOf(it) == sender.key }
             .maxByOrNull { it.sortTime }
 
+    /** The feed whose route unsubscribes with [email]: the one it is stored under, also for a sender shown under another tag. */
+    fun feedOf(email: Article): String = email.storedFeedUrl ?: email.feedUrl
+
     /** The feed loader's answer (parsed JSON), or null when it isn't one. Only https pages and mailto: links are opened. */
     fun answerOf(value: Any?): Answer? {
         val map = value as? Map<*, *> ?: return null

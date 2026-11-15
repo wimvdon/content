@@ -44,8 +44,13 @@ data class Article(
     val imageUrl: String? = null,
     /** The author's website, if the feed names it: a newsletter's sender (NewsletterAddresses.sender). */
     val authorUrl: String? = null,
+    /**
+     * The feed it is stored under, when a list shows it under another feed (a newsletter sender
+     * moved to another tag, [withMovedSenders]); null otherwise. It keeps [key] the same. Never stored.
+     */
+    val storedFeedUrl: String? = null,
 ) {
-    val key: String get() = keyOf(feedUrl, id)
+    val key: String get() = keyOf(storedFeedUrl ?: feedUrl, id)
 
     /** When the article appeared: its publication date, or when it was first fetched. */
     val sortTime: Long get() = publishedAt ?: fetchedAt

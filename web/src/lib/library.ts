@@ -39,6 +39,11 @@ export interface Article {
   imageUrl: string | null;
   /** The author's website, if the feed names it: a newsletter's sender (newsletterAddresses.ts, senderOf). */
   authorUrl?: string | null;
+  /**
+   * The feed it is stored under, when a list shows it under another feed (a newsletter sender moved
+   * to another tag, withMovedSenders); unset otherwise. It keeps articleKey the same. Never stored.
+   */
+  storedFeedUrl?: string;
 }
 
 export interface Library {
@@ -76,7 +81,7 @@ export const DEFAULT_ICON = "folder";
 export const emptyLibrary = (): Library => ({ feeds: [], folders: [], articles: [], items: [], readElsewhere: {} });
 
 export const keyOf = (feedUrl: string, id: string) => `${feedUrl} ${id}`;
-export const articleKey = (a: Article) => keyOf(a.feedUrl, a.id);
+export const articleKey = (a: Article) => keyOf(a.storedFeedUrl ?? a.feedUrl, a.id);
 export const sortTime = (a: Article) => a.publishedAt ?? a.fetchedAt;
 
 /**

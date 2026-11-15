@@ -42,8 +42,8 @@ import { defaultReaderStyle, readerStyleOf, type ReaderStyle } from "./readerSty
 import { load, remove, save } from "./storage";
 import * as S from "./sync";
 import { hiddenWords, withoutHidden } from "./articleFilter";
-import { decodeSenders, encodeSenders, mutedSender, withoutMuted, type NewsletterSender, type SenderRule } from "./newsletterSenders";
-import { emailIdOf, newestEmailOf, unsubscribe } from "./unsubscribe";
+import { decodeSenders, encodeSenders, mutedSender, withMovedSenders, withoutMuted, type NewsletterSender, type SenderRule } from "./newsletterSenders";
+import { emailIdOf, feedOfEmail, newestEmailOf, unsubscribe } from "./unsubscribe";
 import * as SS from "./syncSettings";
 
 /** Everything the web app shows, kept in one place; components subscribe with useApp(). */
@@ -359,7 +359,29 @@ class AppStore {
 
   /** The library the feed lists show: without the articles the hidden words and muted newsletter senders leave out. */
   private listed(): L.Library {
-    return withoutMuted(withoutHidden(this.state.library, hiddenWords(this.state.settings.hiddenWords)), decodeSenders(this.state.settings.newsletterSenders));
+    const rules = decodeSenders(this.state.settings.newsletterSenders);
+    return withoutMuted(withMovedSenders(withoutHidden(this.state.library, hiddenWords(this.state.settings.hiddenWords)), rules), rules);
+  }
+
+  /** The library with the newsletter senders moved to another tag listed under it, muted ones kept: what the senders' pages list. */
+  movedLibrary(): L.Library {
+    return withMovedSenders(this.state.library, decodeSenders(this.state.settings.newsletterSenders));
+  }
+
+  private openHandler: ((article: L.Article) => void) | null = null;
+
+  /** Where an article asked for by a sender's page (Open newest) opens: App.tsx's reader. */
+  onOpenRequest(handler: (article: L.Article) => void) {
+    this.openHandler = handler;
+    return () => {
+      if (this.openHandler === handler) this.openHandler = null;
+    };
+  }
+
+  /** Opens the article with this key (as the lists show it) in the reader, out of the dialogs. */
+  requestOpen(key: string) {
+    const article = this.movedLibrary().articles.find((a) => L.articleKey(a) === key);
+    if (article) this.openHandler?.(article);
   }
 
   /** A change to the newsletter senders' choices (newsletterSenders.ts), synced. */
@@ -382,10 +404,12 @@ class AppStore {
   async unsubscribeSender(sender: NewsletterSender) {
     const say = (text: string, action?: { label: string; run: () => void }) => this.messageHandler?.(text, action);
     const rules = decodeSenders(this.state.settings.newsletterSenders);
-    const id = emailIdOf(newestEmailOf(this.state.library.articles, sender, rules)?.id);
+    // As the lists show it (a sender moved to another tag included); the email's own feed asks.
+    const email = newestEmailOf(this.movedLibrary().articles, sender, rules);
+    const id = emailIdOf(email?.id);
     const none = t("newsletterUnsubscribeNone").replace("{name}", sender.name);
     if (!id) return say(none);
-    const answer = await unsubscribe(sender.feedUrl, id);
+    const answer = await unsubscribe(email ? feedOfEmail(email) : sender.feedUrl, id);
     if (!answer) return say(t("newsletterUnsubscribeFailed"));
     switch (answer.kind) {
       case "done":

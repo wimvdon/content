@@ -155,4 +155,139 @@ class NewsletterSendersTest {
         assertEquals(emptyList<NewsletterSender>(), senders.chips(library, FeedSelection.Single(rss.url), unreadOnly = false))
         assertEquals(emptyList<NewsletterSender>(), senders.chips(library, FeedSelection.All, unreadOnly = false))
     }
+
+    // Facts: when they come, and how often.
+    private val day = 24 * 60 * 60 * 1000L
+
+    @Test
+    fun `cadence is the median gap between the newest ten issues, and unknown under three issues`() {
+        assertNull(NewsletterSenders.cadence(emptyList()))
+        assertNull(NewsletterSenders.cadence(listOf(0, day)))
+        assertEquals(Cadence.Daily, NewsletterSenders.cadence(listOf(0, day, 2 * day)))
+        // A weekdays-only newsletter is daily: the weekend gap is not the median.
+        assertEquals(Cadence.Daily, NewsletterSenders.cadence(listOf(0, day, 2 * day, 3 * day, 6 * day, 7 * day)))
+        assertEquals(Cadence.Weekly, NewsletterSenders.cadence(listOf(0, 7 * day, 14 * day)))
+        // Twice a week is still about weekly; any order is fine.
+        assertEquals(Cadence.Weekly, NewsletterSenders.cadence(listOf(7 * day, 0, 3 * day, 10 * day)))
+        assertEquals(Cadence.EveryTwoWeeks, NewsletterSenders.cadence(listOf(0, 14 * day, 28 * day)))
+        assertEquals(Cadence.Monthly, NewsletterSenders.cadence(listOf(0, 30 * day, 61 * day)))
+        assertEquals(Cadence.NowAndThen, NewsletterSenders.cadence(listOf(0, 90 * day, 200 * day)))
+        // The thresholds: 2, 10, 21 and 45 days belong to the faster one.
+        assertEquals(Cadence.Daily, NewsletterSenders.cadence(listOf(0, 2 * day, 4 * day)))
+        assertEquals(Cadence.Weekly, NewsletterSenders.cadence(listOf(0, 10 * day, 20 * day)))
+        assertEquals(Cadence.EveryTwoWeeks, NewsletterSenders.cadence(listOf(0, 21 * day, 42 * day)))
+        assertEquals(Cadence.Monthly, NewsletterSenders.cadence(listOf(0, 45 * day, 90 * day)))
+        // Only the newest ten count: old weekly issues don't weigh on a sender now daily.
+        val recent = (0L until 10L).map { 1000 * day + it * day }
+        assertEquals(Cadence.Daily, NewsletterSenders.cadence(recent + (0L until 5L).map { it * 7 * day }))
+    }
+
+    @Test
+    fun `a sender knows when its issues came and which is the newest`() {
+        val sender = NewsletterSenders().list(listOf(bozarNews, bozarEvents, platformer), feedUrl).first { it.key == "bozar.be" }
+        assertEquals(listOf(20L, 10L), sender.times)
+        assertEquals(bozarEvents.key, sender.newestKey)
+    }
+
+    // Moving a sender to another tag.
+    private val feed2Url = "https://w.example/newsletters/zzzzzzzzzzzz/fedcba9876543210fedcba9876543210"
+    private val feed2 = Feed(url = feed2Url, title = "Newsletters", folderId = "2")
+    private val feedNoTagUrl = "https://w.example/newsletters/yyyyyyyyyyyy/00112233445566778899aabbccddeeff"
+    private val feedNoTag = Feed(url = feedNoTagUrl, title = "Newsletters", folderId = null)
+    private val twoTags = Library(feeds = listOf(feed, feed2, feedNoTag, rss), folders = listOf(Folder("1", "News"), Folder("2", "Work")))
+
+    @Test
+    fun `the tag is stored as a fifth field that an old app ignores, and a line without it reads as before`() {
+        val senders = NewsletterSenders().renamed("bozar.be", "Bozar").movedTo("bozar.be", "2", "1").movedTo("substack.com/platformer", NewsletterAddresses.NO_TAG, "1")
+        val text = senders.encode()
+        assertEquals("bozar.be\tBozar\t\t0\tt:2", text.lines()[0])
+        assertEquals("substack.com/platformer\t\t\t0\t-", text.lines()[1])
+        assertEquals(senders, NewsletterSenders.decode(text))
+        assertEquals("2", NewsletterSenders.decode(text).rule("bozar.be")?.tag)
+        assertEquals(NewsletterAddresses.NO_TAG, NewsletterSenders.decode(text).rule("substack.com/platformer")?.tag)
+        // A line from before the tag.
+        assertNull(NewsletterSenders.decode("bozar.be\tBozar\t\t0").rule("bozar.be")?.tag)
+        // What an old app reads from a line with the tag: its first four fields, as before.
+        assertEquals(listOf("bozar.be", "Bozar", "", "0"), text.lines()[0].split('\t').take(4))
+        // A tag alone is a choice worth keeping; an unreadable tag is dropped, the rest read.
+        assertEquals(NewsletterSenders(listOf(SenderRule("a", tag = "x"))), NewsletterSenders.decode("a\t\t\t0\tt:x"))
+        assertEquals(NewsletterSenders(listOf(SenderRule("a", "A"))), NewsletterSenders.decode("a\tA\t\t0\tgarbage"))
+        assertEquals(NewsletterSenders(), NewsletterSenders.decode("a\t\t\t0\tt:"))
+    }
+
+    @Test
+    fun `picking the tag it is sent to clears the move, and merging a sender drops its own move`() {
+        val moved = NewsletterSenders().movedTo("bozar.be", "2", "1")
+        assertEquals("2", moved.rule("bozar.be")?.tag)
+        assertEquals(NewsletterSenders(), moved.movedTo("bozar.be", "1", "1"))
+        val merged = moved.merged("bozar.be", "substack.com/platformer", "Platformer")
+        assertNull(merged.rule("bozar.be")?.tag)
+    }
+
+    @Test
+    fun `a moved sender's newsletters are listed under the target tag's feed, and no other`() {
+        val library = twoTags.copy(articles = listOf(bozarNews, bozarEvents, platformer))
+        val senders = NewsletterSenders().movedTo("bozar.be", "2", "1")
+        val view = library.withMovedSenders(senders)
+        assertEquals(listOf(feed2Url, feed2Url, feedUrl), view.articles.map { it.feedUrl })
+        assertEquals(listOf("2", "1"), view.articlesFor(FeedSelection.Single(feed2Url), unreadOnly = false).map { it.id })
+        assertEquals(listOf("3"), view.articlesFor(FeedSelection.Single(feedUrl), unreadOnly = false).map { it.id })
+        assertEquals(2, view.unreadCount(FeedSelection.InFolder("2")))
+        assertEquals(1, view.unreadCount(FeedSelection.InFolder("1")))
+        // The senders of each feed follow.
+        assertEquals(listOf("Bozar Events"), senders.list(view.articles, feed2Url).map { it.name })
+        assertEquals(listOf("Platformer"), senders.list(view.articles, feedUrl).map { it.name })
+        assertEquals(feed2Url, senders.senderOf(view.articles, view.articles.first())?.feedUrl)
+        // The same library when nothing is moved; and the stored library is never changed.
+        assertSame(library, library.withMovedSenders(NewsletterSenders()))
+        assertEquals(feedUrl, library.articles.first().feedUrl)
+    }
+
+    @Test
+    fun `a sender moved to No tag, to a tag without a feed or to the tag it is in`() {
+        val library = twoTags.copy(articles = listOf(bozarNews))
+        assertEquals(feedNoTagUrl, library.withMovedSenders(NewsletterSenders().movedTo("bozar.be", NewsletterAddresses.NO_TAG, "1")).articles.single().feedUrl)
+        assertEquals(feedUrl, library.withMovedSenders(NewsletterSenders().movedTo("bozar.be", "gone", "1")).articles.single().feedUrl)
+        assertEquals(feedUrl, library.withMovedSenders(NewsletterSenders(listOf(SenderRule("bozar.be", tag = "1")))).articles.single().feedUrl)
+        // An RSS feed's article of the same author is never moved.
+        val rssArticle = issue("9", "Bozar", "https://bozar.be", feedUrl = rss.url)
+        assertEquals(rss.url, twoTags.copy(articles = listOf(rssArticle)).withMovedSenders(NewsletterSenders().movedTo("bozar.be", "2", "1")).articles.single().feedUrl)
+    }
+
+    @Test
+    fun `a combined sender's newsletters all follow the move of the sender they are combined into`() {
+        val library = twoTags.copy(articles = listOf(bozarNews, bozarSite, platformer))
+        val senders = NewsletterSenders().merged("bozar-mail.be", "bozar.be", "Bozar").movedTo("bozar.be", "2", "1")
+        assertEquals(listOf(feed2Url, feed2Url, feedUrl), library.withMovedSenders(senders).articles.map { it.feedUrl })
+    }
+
+    @Test
+    fun `read state keeps working for moved newsletters, because their key stays the same`() {
+        val library = twoTags.copy(articles = listOf(bozarNews, bozarEvents, platformer))
+        val senders = NewsletterSenders().movedTo("bozar.be", "2", "1")
+        val view = library.withMovedSenders(senders)
+        assertEquals(library.articles.map { it.key }, view.articles.map { it.key })
+        assertEquals(bozarNews.key, view.article(bozarNews.key)?.key)
+        // Marking what the list shows as read marks the stored articles, not copies.
+        val keys = view.unreadKeys(FeedSelection.Single(feed2Url))
+        assertEquals(setOf(bozarNews.key, bozarEvents.key), keys)
+        val stored = library.setRead(keys, true)
+        assertEquals(1, stored.unreadCount(FeedSelection.All))
+        assertEquals(0, stored.withMovedSenders(senders).unreadCount(FeedSelection.Single(feed2Url)))
+        assertEquals(feedUrl, stored.articles.first().feedUrl)
+        // A mark kept from before the move still applies after it.
+        val readBefore = library.setRead(setOf(bozarNews.key), true).withMovedSenders(senders)
+        assertEquals(1, readBefore.unreadCount(FeedSelection.Single(feed2Url)))
+        // Muted senders still leave the moved lists.
+        assertEquals(listOf("3"), view.withoutMuted(senders.muted("bozar.be", true)).articles.map { it.id })
+    }
+
+    @Test
+    fun `the tag a sender is sent to is read from the stored library, whatever it is shown under`() {
+        val library = twoTags.copy(articles = listOf(bozarNews, platformer, issue("7", "X", null, feedUrl = feedNoTagUrl)))
+        val senders = NewsletterSenders().movedTo("bozar.be", "2", "1")
+        assertEquals("1", NewsletterSenders.originalTag(library, senders, "bozar.be"))
+        assertEquals(NewsletterAddresses.NO_TAG, NewsletterSenders.originalTag(library, senders, "name:x"))
+        assertNull(NewsletterSenders.originalTag(library, senders, "nobody.be"))
+    }
 }
