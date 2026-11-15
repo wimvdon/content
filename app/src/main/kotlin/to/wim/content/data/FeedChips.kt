@@ -99,15 +99,9 @@ data class FeedChips(
                 } else {
                     0
                 }
-            // Each newsletter feed in the row: its senders after it, when it has more than one (the one picked stays).
+            // Each newsletter feed in the row: its senders after it, every one, also when it is the only one.
             val rowFeeds = (topicFeeds + loose).map { it.url }.toSet()
-            val rowSenders =
-                senders
-                    .filter { it.feedUrl in rowFeeds }
-                    .groupBy { it.feedUrl }
-                    .values
-                    .filter { list -> list.size > 1 || (chosenSender != null && list.any { it.feedUrl == chosenSender.feedUrl && it.key == chosenSender.key }) }
-                    .flatten()
+            val rowSenders = senders.filter { it.feedUrl in rowFeeds }
             return FeedChips(shownTopics, chosenTopic, topicFeeds, loose, chosenFeed, soleTopicFeeds, rowSenders, chosenSender?.key)
         }
 

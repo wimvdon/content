@@ -165,8 +165,8 @@ describe("newsletter senders, as on Android", () => {
     expect(picked.chosenFeed).toBe(feedUrl);
     expect(picked.chosenSender).toBe("bozar.be");
     expect(picked.feeds).toHaveLength(2);
-    // A single sender adds nothing, unless it is the one chosen.
-    expect(feedChipRow(library, "all", { kind: "tag", tag: "News" }, senders.slice(0, 1)).senders).toEqual([]);
+    // A feed's only sender gets a chip of its own too.
+    expect(feedChipRow(library, "all", { kind: "tag", tag: "News" }, senders.slice(0, 1)).senders).toEqual(senders.slice(0, 1));
     expect(feedChipRow(library, "all", senderSelection(senders[0]), senders.slice(0, 1)).senders).toEqual(senders.slice(0, 1));
   });
 });

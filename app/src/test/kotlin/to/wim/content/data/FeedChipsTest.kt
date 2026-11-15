@@ -152,8 +152,8 @@ class FeedChipsTest {
         assertEquals("bozar.be", picked.chosenSender)
         assertFalse(picked.feedChosen(letters.url))
         assertTrue(FeedChips.of(all, folders, topics, FeedSelection.Single(letters.url), senders = senders).feedChosen(letters.url))
-        // A single sender says nothing a chip of its own would add, unless it is the one chosen.
-        assertTrue(FeedChips.of(all, folders, topics, FeedSelection.Tagged("News"), senders = senders.take(1)).senders.isEmpty())
+        // A feed's only sender gets a chip of its own too.
+        assertEquals(senders.take(1), FeedChips.of(all, folders, topics, FeedSelection.Tagged("News"), senders = senders.take(1)).senders)
         assertEquals(senders.take(1), FeedChips.of(all, folders, topics, FeedSelection.Sender(letters.url, "bozar.be"), senders = senders.take(1)).senders)
     }
 }

@@ -6,7 +6,7 @@ import { choosesFolder, feedTabOf, unreadByFeed } from "@/lib/library";
 import { inboxUnread } from "@/lib/inbox";
 import { hasUnreadNewsletter } from "@/lib/newsletters";
 import { chipTags, isPlainFilter, showsLiked, showsNewsletters, toReadCount, withoutChips } from "@/lib/saved";
-import { listedSenders, sidebarFeeds, topicIcons } from "@/lib/topics";
+import { sidebarFeeds, topicIcons } from "@/lib/topics";
 import { decodeSenders, senderChips, senderFeed, senderSelection } from "@/lib/newsletterSenders";
 import { useMemo } from "react";
 import { FeedIcon } from "./FeedIcon";
@@ -79,7 +79,7 @@ export function Sidebar({ onSettings }: { onSettings: () => void }) {
     const { topics, loose } = sidebarFeeds(library, feedTabOf(settings.unreadOnly), selection);
     // Under a newsletter feed, its senders, each a row of its own like a feed (as Android's chips).
     const senderRows = (feedUrl: string) =>
-      listedSenders(senders, selection)
+      senders
         .filter((s) => s.feedUrl === feedUrl)
         .map((sender) => (
           <div key={`${sender.feedUrl} ${sender.key}`} className="pl-6">

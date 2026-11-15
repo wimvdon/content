@@ -10,8 +10,9 @@ feed, and the web's side menu, which replaces the chips on a wide window, didn't
 all. Now each sender is a chip right after its Newsletters chip wherever that chip shows, and on the
 web a row under the Newsletters feed in the side menu. Tapping one shows it alone, and tapping it
 again goes back to its topic or everything, as for a feed. The Newsletters chip stays, for all of a
-tag's newsletters at once and its long press (Show address). A feed with a single sender gets no
-extra chip, as it would say nothing its feed doesn't.
+tag's newsletters at once and its long press (Show address). Later the same day: a feed's only
+sender gets its chip and side-menu row too. Hiding it (it would say nothing its feed doesn't) left
+Bozar, the only sender so far, without a row of its own, which looked like the feature was missing.
 
 ## 2026-11-15: Get a new newsletter address; unread and saved newsletters stay
 
