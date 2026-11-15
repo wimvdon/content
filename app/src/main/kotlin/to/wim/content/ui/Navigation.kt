@@ -468,6 +468,8 @@ fun RssReaderNavigation(
     var addChoiceOpen by rememberSaveable { mutableStateOf(false) }
     // The Manage feeds sheet for RSS feeds, Newsletter feeds, and Manage tags (Settings' buttons).
     var manageFeedsKind by rememberSaveable { mutableStateOf<FeedKind?>(null) }
+    // The tag the Newsletters page opens on (from a Newsletters chip or an empty Newsletters feed); null: the first.
+    var newslettersTag by rememberSaveable { mutableStateOf<String?>(null) }
     var manageTopicsOpen by rememberSaveable { mutableStateOf(false) }
     // Add feed from a topic page: the topic to add into ("" for No topic), and stay on that page.
     var addIntoTopic by rememberSaveable { mutableStateOf<String?>(null) }
@@ -1051,6 +1053,10 @@ fun RssReaderNavigation(
                                     onOpenSender = ::openSenderPage,
                                     onShareItem = { item -> share(ReadingLists.article(item, library)) },
                                     onOpenSearch = { push(Screen.Search) },
+                                    onShowNewsletterAddress = { url ->
+                                        newslettersTag = NewsletterAddresses.pickFor(library.feeds, url)
+                                        manageFeedsKind = FeedKind.Newsletter
+                                    },
                                 ),
                         )
                     }
@@ -1484,8 +1490,11 @@ fun RssReaderNavigation(
                     manageFeedsKind = null
                     push(Screen.SettingsPage(SettingsPage.Account))
                 },
-                onBack = { manageFeedsKind = null },
-                title = resources.getString(R.string.settings_newsletter_feeds),
+                onBack = {
+                    manageFeedsKind = null
+                    newslettersTag = null
+                },
+                initialTag = newslettersTag,
             )
         null -> Unit
     }

@@ -43,10 +43,12 @@ With a Content account, **every tag has its own email address, and so does No ta
 has an envelope as its icon. Each newsletter in the list and in the reader shows who sent it instead,
 with the icon of the sender's website and a small envelope on its corner, so it still reads as a newsletter (the envelope while that icon is unknown, as for newsletters
 that arrived before 2026-11-15, or the first letter of the sender when the website has none). **+** › **Newsletter feed** and Settings › **Newsletter feeds** show the
-same page: pick a tag with the chips (No tag first), and the page shows that tag's address with
+same page, **Newsletters**: pick a tag with the chips (No tag first), and the page shows that tag's address with
 **Copy address** and **Share**, and how many newsletters its feed has received and when the newest
-came. Subscribe to a newsletter with the address of the tag it belongs under, or forward emails to
-it. For another address, tap **Edit tags** and make a new tag: it gets its own address straight
+came. Under the address, **How to use it** explains the three ways: enter the address in a new
+newsletter's sign-up form, change your email address on the account page of one you already get, or
+forward a sender's emails to it with a filter in your own mailbox. A Newsletters feed with nothing in
+it yet says so and offers **Show address**, which opens this page on that feed's tag. For another address, tap **Edit tags** and make a new tag: it gets its own address straight
 away and is chosen. An address can't be made,
 renamed, moved or removed by hand, and its Newsletters feed doesn't appear in RSS feeds' Manage
 feeds: both come and go with their tag. Removing a tag removes its address (mail to it is then
@@ -59,7 +61,7 @@ senders follow it as chips: tap one to see only that sender, tap it again for th
 Senders are grouped by their website, so newsletter@bozar.be and events@bozar.be are one "Bozar";
 on platforms many newsletters share (Substack, Beehiiv, Gmail and the like) each newsletter name is
 a sender of its own. Under the address, the Newsletter feed page lists the tag's senders: tap one to
-give it another name, **Mute** it (its newsletters stay out of Feed), **Combine with** another
+give it another name, **Mute** it (its newsletters are hidden from Feed but still received), **Combine with** another
 sender (it then shows as that one), or **Separate** a sender combined into it. These choices are
 synced to your other devices. A sender's page also opens from where the sender is: press and hold
 its chip (on the web, right-click it), press and hold one of its newsletters › **About <sender>**, or

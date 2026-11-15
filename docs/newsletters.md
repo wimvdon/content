@@ -25,7 +25,11 @@ any article: unread, Mark all as read, the chips' dots, the reader and Search al
   page shows its address with **Copy address** and **Share** (on the web only where the browser can
   share), and what its feed has received (`NewsletterAddresses.activity`, the web's
   `newsletterActivity`). Newsletter feeds don't appear in RSS feeds' Manage feeds, so they can't be
-  renamed, moved or removed. Without a Content account, the page offers Sign in.
+  renamed, moved or removed. Without a Content account, the page offers Sign in. The page is titled
+  **Newsletters** from both places; under the address it explains how to sign up, move a newsletter
+  you already get, or forward one (**How to use it**). An empty Newsletters feed (not in Unread)
+  shows **No newsletters yet** with **Show address**, which opens the page on that feed's tag
+  (`HomeActions.onShowNewsletterAddress`, the web's `onShowNewsletterAddress`).
 - **The sender, not "Newsletters":** each newsletter shows who sent it in the feed's place, in the
   list and above the reader's title (`NewsletterAddresses.sender`, the web's `senderOf`), with the
   `/favicon.ico` of the sender's website and a small envelope on its corner
