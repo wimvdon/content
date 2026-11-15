@@ -376,6 +376,11 @@
     <string name="newsletter_sender_mute_named">%1$s stummschalten</string>
     <string name="newsletter_sender_muted_message">%1$s stummgeschaltet</string>
     <string name="newsletter_sender_combined_message">%1$s erscheint jetzt als %2$s</string>
+    <string name="newsletter_unsubscribe">Abbestellen</string>
+    <string name="newsletter_unsubscribe_hint">Content bittet den Absender, keine mehr zu senden, oder öffnet dafür seine Seite oder E-Mail.</string>
+    <string name="newsletter_unsubscribe_done">%1$s abbestellt</string>
+    <string name="newsletter_unsubscribe_none">%1$s bietet hier kein Abbestellen an. Öffne die neueste E-Mail, um den Link zu finden.</string>
+    <string name="newsletter_unsubscribe_failed">Abbestellen hat nicht geklappt. Versuche es später noch einmal.</string>
     <string name="newsletter_none_yet">Noch keine Newsletter</string>
     <string name="newsletter_copied">Kopiert</string>
     <plurals name="newsletter_count">

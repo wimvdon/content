@@ -2,6 +2,7 @@ package to.wim.content.sync
 
 import to.wim.content.data.NewsletterAddresses
 import to.wim.content.data.NewsletterAddress
+import to.wim.content.data.NewsletterUnsubscribe
 import to.wim.content.data.InboxMessage
 import to.wim.content.data.LibraryRows
 import to.wim.content.data.SharedArticle
@@ -383,5 +384,44 @@ class EmailLinks(
             val email = (map["email"] as? String)?.takeIf { it.isNotEmpty() } ?: return null
             return EmailLinkResult((map["key"] as? String)?.takeIf { it.isNotEmpty() }, email)
         }
+    }
+}
+
+/**
+ * Unsubscribing from a newsletter at the feed loader (2026-11-15, docs/newsletters.md): POST
+ * `<feed URL>/unsubscribe` with the email's id. No sign-in: the feed's address holds its token.
+ * The feed loader does the unsubscribing (or finds the link); this phone only opens what it answers.
+ */
+class NewsletterUnsubscriber(
+    private val http: OkHttpClient,
+) {
+    /** What the feed loader did or found for email [emailId] of newsletter feed [feedUrl]; a [SyncException] when it couldn't be asked. */
+    suspend fun unsubscribe(
+        feedUrl: String,
+        emailId: String,
+    ): NewsletterUnsubscribe.Answer {
+        val route = NewsletterUnsubscribe.routeOf(feedUrl) ?: throw SyncException(SyncProblem.ServerError)
+        val body = Json.write(mapOf("id" to emailId)).toRequestBody(JSON_TYPE)
+        val request =
+            Request
+                .Builder()
+                .url(route)
+                .header("Accept", "application/json")
+                .post(body)
+                .build()
+        return withContext(Dispatchers.IO) {
+            val (code, text) =
+                try {
+                    http.newCall(request).execute().use { it.code to it.body.string() }
+                } catch (e: IOException) {
+                    throw SyncException(SyncProblem.Offline, e)
+                }
+            if (code !in 200..299) throw SyncException(AccountClient.problemOf(code))
+            NewsletterUnsubscribe.answerOf(runCatching { Json.parse(text) }.getOrNull()) ?: throw SyncException(SyncProblem.ServerError)
+        }
+    }
+
+    private companion object {
+        val JSON_TYPE = "application/json; charset=utf-8".toMediaType()
     }
 }

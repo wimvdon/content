@@ -13,7 +13,7 @@ import { handleAccount } from "./account";
 import { handleEmail } from "./email";
 import { handleShare } from "./share";
 import { handleInstapaper } from "./instapaper";
-import { handleNewsletterFeed, receiveEmail, type IncomingEmail } from "./newsletters";
+import { handleNewsletterFeed, handleNewsletterUnsubscribe, receiveEmail, type IncomingEmail } from "./newsletters";
 
 export { Account } from "./account";
 
@@ -81,6 +81,8 @@ export async function handle(request: Request, env: Env, fetcher: Fetcher): Prom
   if (requestUrl.pathname.startsWith("/account/email/")) return handleEmail(request, env, requestUrl, fetcher);
   if (requestUrl.pathname.startsWith("/account/share") || requestUrl.pathname.startsWith("/account/inbox") || requestUrl.pathname === "/account/profile" || requestUrl.pathname.startsWith("/account/push")) return handleShare(request, env, requestUrl, fetcher);
   if (requestUrl.pathname === "/account" || requestUrl.pathname.startsWith("/account/")) return handleAccount(request, env, requestUrl);
+  // Unsubscribe from a newsletter (newsletters.ts): both apps POST here directly, the web app with CORS.
+  if (requestUrl.pathname.startsWith("/newsletters/") && requestUrl.pathname.endsWith("/unsubscribe")) return handleNewsletterUnsubscribe(request, requestUrl, env, fetcher, checkTarget);
   // A newsletter address's feed (newsletters.ts): read by the Android app directly, like any feed.
   if (requestUrl.pathname.startsWith("/newsletters/")) return request.method === "GET" ? handleNewsletterFeed(requestUrl, env) : plain(405, "Only GET");
   const origin = request.headers.get("Origin");

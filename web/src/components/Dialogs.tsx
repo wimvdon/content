@@ -487,6 +487,12 @@ function SenderDialog({ sender, others, givenName, onClose }: { sender: Newslett
               : app.editSenders((rules) => mutedSender(rules, sender.key, false))
           }
         />
+        <div className="space-y-1.5">
+          <Button variant="outline" onClick={() => void app.unsubscribeSender(sender)}>
+            {t("newsletterUnsubscribe")}
+          </Button>
+          <p className="text-xs text-muted-foreground">{t("newsletterUnsubscribeHint")}</p>
+        </div>
         {others.length > 0 ? (
           <section className="space-y-2">
             <h3 className="text-sm font-semibold">{t("newsletterSenderCombine")}</h3>

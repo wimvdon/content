@@ -388,6 +388,11 @@
     <string name="newsletter_sender_mute_named">Silenciar %1$s</string>
     <string name="newsletter_sender_muted_message">%1$s silenciado</string>
     <string name="newsletter_sender_combined_message">%1$s ahora aparece como %2$s</string>
+    <string name="newsletter_unsubscribe">Darse de baja</string>
+    <string name="newsletter_unsubscribe_hint">Content pide al remitente que deje de enviarlos, o abre para ello su página o su correo.</string>
+    <string name="newsletter_unsubscribe_done">Te has dado de baja de %1$s</string>
+    <string name="newsletter_unsubscribe_none">%1$s no ofrece darse de baja aquí. Abre su correo más reciente para encontrar el enlace.</string>
+    <string name="newsletter_unsubscribe_failed">No se pudo dar de baja. Inténtalo más tarde.</string>
     <string name="newsletter_none_yet">Aún no hay boletines</string>
     <string name="newsletter_copied">Copiada</string>
     <plurals name="newsletter_count">

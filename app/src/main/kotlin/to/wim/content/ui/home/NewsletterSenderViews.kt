@@ -12,6 +12,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -51,6 +52,8 @@ class SenderActions(
     /** Merges the first into the second, which keeps the name given. */
     val onMerge: (from: String, into: String, intoName: String) -> Unit = { _, _, _ -> },
     val onSplit: (key: String) -> Unit = {},
+    /** Unsubscribes from the sender, at the feed loader (NewsletterUnsubscribe). */
+    val onUnsubscribe: (NewsletterSender) -> Unit = {},
 )
 
 /** Senders, on the Newsletter feed page: each sender of the tag's feed, tap for its page. */
@@ -82,7 +85,7 @@ internal fun SenderList(
 
 /**
  * One sender's page, a page of the Newsletter feed sheet: its name (empty: the sender's own),
- * Mute, Combine with another sender, and the senders combined into it, each with Separate.
+ * Mute, Unsubscribe (NewsletterUnsubscribe), Combine with another sender, and the senders combined into it, each with Separate.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -123,6 +126,12 @@ internal fun SenderPage(
                 checked = sender.muted,
                 onCheckedChange = { actions.onMute(sender.key, it) },
             )
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(onClick = { actions.onUnsubscribe(sender) }) {
+                    Text(stringResource(R.string.newsletter_unsubscribe))
+                }
+                Text(stringResource(R.string.newsletter_unsubscribe_hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             if (others.isNotEmpty()) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     SheetSection(stringResource(R.string.newsletter_sender_combine))
