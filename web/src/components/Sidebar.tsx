@@ -133,7 +133,7 @@ export function Sidebar({ onSettings }: { onSettings: () => void }) {
             selected={filter.newslettersOnly === true}
             onClick={() => app.showSaved({ ...withoutChips(filter), newslettersOnly: !filter.newslettersOnly })}
             icon={<Mail />}
-            label={t("newsletters")}
+            label={t("savedChipInstapaper")}
             dot={newsletterUnread}
           />
         ) : null}

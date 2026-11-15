@@ -348,7 +348,8 @@
     <string name="account_web_title">Content on the web</string>
     <string name="account_web_summary">Read on your computer too, at content.wim.to, signed in with the same account</string>
     <string name="newsletters_title">Newsletters</string>
-    <string name="newsletters_unread">New newsletters</string>
+    <string name="newsletters_unread">New emails from Instapaper</string>
+    <string name="saved_chip_instapaper">From Instapaper</string>
     <string name="saved_open_unread">Saved, new newsletters</string>
     <string name="setting_newsletter_unread_title">Mark incoming newsletters as unread</string>
     <string name="setting_newsletter_unread_summary">New emails from Instapaper stay bold until you read them</string>

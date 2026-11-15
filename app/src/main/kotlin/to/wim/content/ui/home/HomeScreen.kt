@@ -1182,7 +1182,7 @@ private fun NewslettersChip(
     FilterChip(
         selected = on,
         onClick = { onChoose(!on) },
-        label = { Text(stringResource(R.string.newsletters_title)) },
+        label = { Text(stringResource(R.string.saved_chip_instapaper)) },
         leadingIcon = { Icon(painterResource(R.drawable.ic_mail), contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) },
         trailingIcon = if (reading.dot) ({ NewBadge(Modifier.semantics { contentDescription = waiting }) }) else null,
     )

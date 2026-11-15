@@ -62,7 +62,7 @@ a sender of its own. Under the address, the Newsletter feed page lists the tag's
 give it another name, **Mute** it (its newsletters stay out of Feed), **Combine with** another
 sender (it then shows as that one), or **Separate** a sender combined into it. These choices are
 synced to your other devices. (Newsletters through your
-Save to Instapaper address still arrive in Saved, under the **Newsletters** chip; see Saved.)
+Save to Instapaper address still arrive in Saved, under the **From Instapaper** chip; see Saved.)
 
 ## Moving from another reader
 
@@ -480,13 +480,13 @@ Instapaper, it is also kept in your Instapaper account (see Instapaper account).
   back.
 - **The switch** under the search bar (in the web app's sidebar on a wide window): **To read** or
   **All** (everything saved, archived articles too; it replaced the Archive). Under it **the chips**: **Liked** (set apart by its heart),
-  **Newsletters** (with an envelope: the emails that came in through Instapaper, see below; only while there are any)
+  **From Instapaper** (with an envelope: the emails that came in through Instapaper, see below; only while there are any)
   and your tags, in your order, one at a time.
 - **New newsletters can be unread:** with **Settings › Saved › Instapaper › Mark incoming
   newsletters as unread** on (off by default; the same on your phones and in the web app), an email
   that reaches Saved through Instapaper after you connected it (a newsletter sent or forwarded to
   your Instapaper address) is bold with a dot until you open it, and a dot on **Saved** in the bar
-  at the bottom (on the web, in the sidebar too) and on the **Newsletters** chip says one waits.
+  at the bottom (on the web, in the sidebar too) and on the **From Instapaper** chip says one waits.
   Off, newsletters come in like any saved article; turning it off reads the ones still unread. Press and hold one (web: right-click) ›
   **Mark as read** to read it without opening it; archiving or removing it reads it too. There is no
   way to make it unread again. While one is unread, **Mark all as read** is the round button at the
@@ -533,7 +533,7 @@ between devices). There are no options (#251):
   after a change, and when you pull down on Saved). Articles in Instapaper's folders arrive in To read.
 - Instapaper's home list is **To read** and its archive is the **Archive**.
 - **Forwarded emails** (and PDFs you uploaded to Instapaper) come into Saved too, titled by their
-  subject. New ones are unread, and the **Newsletters** chip shows them all (see Saved). Open one to read it in Content: its text comes from Instapaper the first time (the
+  subject. New ones are unread, and the **From Instapaper** chip shows them all (see Saved). Open one to read it in Content: its text comes from Instapaper the first time (the
   first open takes a moment), and highlights work as in any article. If Instapaper can't give the text
   right then, you see its opening lines and **Open in browser** shows it in Instapaper. Emails you
   forwarded before this update come in at the next sync.
