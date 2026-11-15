@@ -46,34 +46,13 @@ class NewsletterUnsubscribeTest {
     }
 
     @Test
-    fun `the newest email of the sender, combined ones included, is the one used`() {
+    fun `the newest email of the sender is the one used`() {
         val older = issue(entry("000000000000000a"), "Bozar", "https://bozar.be", 10)
         val newer = issue(entry("000000000000000b"), "Bozar Events", "https://bozar.be", 30)
-        val combined = issue(entry("000000000000000c"), "Bozar Mail", "https://bozar-mail.be", 20)
         val other = issue(entry("000000000000000d"), "Platformer", "https://platformer.news", 40)
-        val articles = listOf(older, newer, combined, other)
-
-        val plain = NewsletterSenders()
-        val bozar = plain.list(articles, feedUrl).first { it.key == "bozar.be" }
-        assertEquals(newer, NewsletterUnsubscribe.newestOf(articles, bozar, plain))
-
-        val merged = plain.merged("bozar-mail.be", "bozar.be", "Bozar")
-        val mail = issue(entry("000000000000000e"), "Bozar Mail", "https://bozar-mail.be", 50)
-        val all = articles + mail
-        val group = merged.list(all, feedUrl).first { it.key == "bozar.be" }
-        assertEquals(mail, NewsletterUnsubscribe.newestOf(all, group, merged))
-    }
-
-    @Test
-    fun `a sender shown under another tag unsubscribes through the feed its email is stored under`() {
-        val otherFeed = "https://w.example/newsletters/zzzzzzzzzzzz/fedcba9876543210fedcba9876543210"
-        val stored = issue(entry("000000000000000a"), "Bozar", "https://bozar.be", 10)
-        val shown = stored.copy(feedUrl = otherFeed, storedFeedUrl = feedUrl)
-        val senders = NewsletterSenders()
-        val bozar = senders.list(listOf(shown), otherFeed).single()
-        assertEquals(shown, NewsletterUnsubscribe.newestOf(listOf(shown), bozar, senders))
-        assertEquals(feedUrl, NewsletterUnsubscribe.feedOf(shown))
-        assertEquals(feedUrl, NewsletterUnsubscribe.feedOf(stored))
+        val articles = listOf(older, newer, other)
+        val bozar = NewsletterSenders().list(articles, feedUrl).first { it.key == "bozar.be" }
+        assertEquals(newer, NewsletterUnsubscribe.newestOf(articles, bozar))
     }
 
     @Test

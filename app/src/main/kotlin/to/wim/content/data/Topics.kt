@@ -59,9 +59,18 @@ fun Library.addTopic(
 ): Library = if (title.isBlank() || topicNamed(title) != null) this else addFolder(Folder(id, title.trim(), icon))
 
 /**
- * Renames a topic and sets its icon, on its feeds and on every saved article that has it. Renaming
- * it to the name of another topic joins the two: the other one stays (with its icon), and gets
- * this one's feeds and articles.
+ * Whether [title] is the name of a tag other than [id] (null: a new tag), case and spaces around
+ * it ignored. Tags aren't merged by giving one another's name (2026-11-15), so the tag sheet says
+ * the name is taken instead of saving it.
+ */
+fun List<Folder>.nameTaken(
+    id: String?,
+    title: String,
+): Boolean = any { it.id != id && it.title.trim().equals(title.trim(), ignoreCase = true) }
+
+/**
+ * Renames a topic and sets its icon, on its feeds and on every saved article that has it. The
+ * name of another topic changes nothing ([nameTaken]): tags are never merged.
  */
 fun Library.renameTopic(
     id: String,
@@ -71,12 +80,8 @@ fun Library.renameTopic(
     val topic = folder(id) ?: return this
     val clean = title.trim()
     if (clean.isEmpty()) return this
-    val other = folders.firstOrNull { it.id != id && it.title.trim().equals(clean, ignoreCase = true) }
-    if (other == null) return updateFolder(id, clean, icon).renameTag(topic.title, clean).feedFoldersToTags()
-    return copy(
-        folders = folders.filterNot { it.id == id },
-        feeds = feeds.map { if (it.folderId == id) it.copy(folderId = other.id) else it },
-    ).renameTag(topic.title, other.title).feedFoldersToTags()
+    if (folders.nameTaken(id, clean)) return this
+    return updateFolder(id, clean, icon).renameTag(topic.title, clean).feedFoldersToTags()
 }
 
 /** Removes a topic: its feeds stay, without a topic, and its saved articles stay, without it. */
@@ -182,19 +187,6 @@ fun Library.moveFeedInto(
 ): Library {
     val moved = moveFeed(url, topicId)
     return moved.reorderFeedsIn(moved.feed(url)?.folderId, urls)
-}
-
-/**
- * Merges topic [fromId] into [intoId]: the other one stays, with its name and icon, and gets this
- * one's feeds and saved articles (a topic page's Merge with…).
- */
-fun Library.mergeTopic(
-    fromId: String,
-    intoId: String,
-): Library {
-    val into = folder(intoId) ?: return this
-    if (fromId == intoId || folder(fromId) == null) return this
-    return renameTopic(fromId, into.title, into.icon)
 }
 
 

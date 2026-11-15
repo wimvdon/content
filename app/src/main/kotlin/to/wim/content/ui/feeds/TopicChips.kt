@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import to.wim.content.R
 import to.wim.content.ui.reader.ContentSheet
 import to.wim.content.data.Folder
+import to.wim.content.data.nameTaken
 import to.wim.content.ui.home.rememberFolderIconPainter
 
 /**
@@ -154,6 +155,7 @@ fun TopicChipRow(
                 onCreated(title.trim())
             },
             onDismiss = { creating = false },
+            nameTaken = { topics.nameTaken(null, it) },
         )
     }
     val edited = topics.firstOrNull { it.id == editing }
@@ -170,6 +172,7 @@ fun TopicChipRow(
                 editing = null
                 actions.onRemove(edited)
             },
+            nameTaken = { topics.nameTaken(edited.id, it) },
         )
     }
 }

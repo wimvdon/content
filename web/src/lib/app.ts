@@ -21,7 +21,7 @@ import { applyHighlights, notCopied, syncHighlights, type HighlightLink } from "
 import { INSTAPAPER_ID, InstapaperSync } from "./instapaperSync";
 import { localShared, sameUser, sharedAction, type SharedAction } from "./sharedInstapaper";
 import { progressChanged } from "./readingProgress";
-import { addTopic, mergeTopic, removeTopic, renameTopic, reorderTopics, tagWithFeedTopic, topicNamed, topicsForTags } from "./topics";
+import { addTopic, removeTopic, renameTopic, reorderTopics, tagWithFeedTopic, topicNamed, topicsForTags } from "./topics";
 import { addHighlight, changeItem, itemOf, joinDuplicateItems, putItem, removeHighlight, renameTag, setHighlightNote, setLiked, type Highlight, type Item } from "./items";
 import { inboxUnreadKeys, markInboxAllRead, markInboxRead, markInboxUnread, removeFromInbox } from "./inbox";
 import { markNewsletterRead, markNewslettersRead, undoMarkNewslettersRead, unreadNewsletterKeys } from "./newsletters";
@@ -42,8 +42,8 @@ import { defaultReaderStyle, readerStyleOf, type ReaderStyle } from "./readerSty
 import { load, remove, save } from "./storage";
 import * as S from "./sync";
 import { hiddenWords, withoutHidden } from "./articleFilter";
-import { decodeSenders, encodeSenders, mutedSender, withMovedSenders, withoutMuted, type NewsletterSender, type SenderRule } from "./newsletterSenders";
-import { emailIdOf, feedOfEmail, newestEmailOf, unsubscribe } from "./unsubscribe";
+import { decodeSenders, encodeSenders, type NewsletterSender, type SenderRule } from "./newsletterSenders";
+import { emailIdOf, newestEmailOf, unsubscribe } from "./unsubscribe";
 import * as SS from "./syncSettings";
 
 /** Everything the web app shows, kept in one place; components subscribe with useApp(). */
@@ -357,15 +357,14 @@ class AppStore {
     else this.select(L.selectionExists(this.state.library, this.lastFeeds));
   }
 
-  /** The library the feed lists show: without the articles the hidden words and muted newsletter senders leave out. */
-  private listed(): L.Library {
-    const rules = decodeSenders(this.state.settings.newsletterSenders);
-    return withoutMuted(withMovedSenders(withoutHidden(this.state.library, hiddenWords(this.state.settings.hiddenWords)), rules), rules);
+  /** The whole library, as stored: what the senders' pages list. */
+  libraryNow(): L.Library {
+    return this.state.library;
   }
 
-  /** The library with the newsletter senders moved to another tag listed under it, muted ones kept: what the senders' pages list. */
-  movedLibrary(): L.Library {
-    return withMovedSenders(this.state.library, decodeSenders(this.state.settings.newsletterSenders));
+  /** The library the feed lists show: without the articles the hidden words leave out. */
+  private listed(): L.Library {
+    return withoutHidden(this.state.library, hiddenWords(this.state.settings.hiddenWords));
   }
 
   private openHandler: ((article: L.Article) => void) | null = null;
@@ -380,7 +379,7 @@ class AppStore {
 
   /** Opens the article with this key (as the lists show it) in the reader, out of the dialogs. */
   requestOpen(key: string) {
-    const article = this.movedLibrary().articles.find((a) => L.articleKey(a) === key);
+    const article = this.state.library.articles.find((a) => L.articleKey(a) === key);
     if (article) this.openHandler?.(article);
   }
 
@@ -403,20 +402,15 @@ class AppStore {
    */
   async unsubscribeSender(sender: NewsletterSender) {
     const say = (text: string, action?: { label: string; run: () => void }) => this.messageHandler?.(text, action);
-    const rules = decodeSenders(this.state.settings.newsletterSenders);
-    // As the lists show it (a sender moved to another tag included); the email's own feed asks.
-    const email = newestEmailOf(this.movedLibrary().articles, sender, rules);
+    const email = newestEmailOf(this.state.library.articles, sender);
     const id = emailIdOf(email?.id);
     const none = t("newsletterUnsubscribeNone").replace("{name}", sender.name);
     if (!id) return say(none);
-    const answer = await unsubscribe(email ? feedOfEmail(email) : sender.feedUrl, id);
+    const answer = await unsubscribe(email?.feedUrl ?? sender.feedUrl, id);
     if (!answer) return say(t("newsletterUnsubscribeFailed"));
     switch (answer.kind) {
       case "done":
-        return say(t("newsletterUnsubscribeDone").replace("{name}", sender.name), {
-          label: t("newsletterSenderMute"),
-          run: () => this.editSendersUndoable(t("newsletterSenderMutedMessage").replace("{name}", sender.name), (r) => mutedSender(r, sender.key, true)),
-        });
+        return say(t("newsletterUnsubscribeDone").replace("{name}", sender.name));
       case "open": {
         // Opened without its opener (noopener). Blocked as a pop-up (the answer took a while): Open, a fresh click, opens it.
         const opened = window.open(answer.url, "_blank");
@@ -608,7 +602,6 @@ class AppStore {
   /** The topics in a new order, by id (#314: dragging their chips). */
   reorderTopics = (ids: string[]) => this.updateLibrary((lib) => reorderTopics(lib, ids));
   /** Merges one topic into another: its feeds and saved articles go to `intoId`. */
-  mergeTopic = (fromId: string, intoId: string) => this.updateLibrary((lib) => mergeTopic(lib, fromId, intoId));
   /** Up or down within its folder, as Manage feeds lists it. */
   moveFeedBy = (url: string, delta: number) => this.updateLibrary((lib) => L.moveWithinFolder(lib, url, delta));
   /** Manage feeds' drag: one topic's feeds (null: those without one) in a new order. */

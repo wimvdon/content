@@ -50,31 +50,21 @@ any article: unread, Mark all as read, the chips' dots, the reader and Search al
   (`substack.com/platformer`), and for emails without a website its name (`name:de standaard`).
   Filtering on a Newsletters feed keeps the sender on every row. Each newsletter feed's senders are
   chips of their own right after its chip, wherever that chip is (`FeedChips.sendersOf`, the web's
-  `feedChipRow` and `sendersOf`; on the web also rows under the feed in the sidebar, `listedSenders`),
-  when it has more than one, each a selection of its own
-  (`FeedSelection.Sender`, the web's `{kind: "sender"}`) with the senders combined into it. The
-  Newsletter feed page lists the tag's senders under the address, each with a page: a name of its
-  own, Mute (its newsletters are left out of the lists, counts and chips, `withoutMuted`, as hidden
-  words do), Combine with (merged into another sender, which keeps its name and icon; what was
-  combined into it moves along) and Separate. The page also opens where the sender is (2026-11-15):
-  a sender chip's long press (the web: right-click or press and hold), a newsletter's long press ›
-  About <sender> (beside **Mute <sender>**), and the sender line above a newsletter's title in the
-  reader (`NewsletterSenders.senderOf`, the web's `senderOfArticle`). Mute and Combine with show a
-  message with Undo, which puts back the choices as they were. The choices are one synced setting,
-  `articles.newsletterSenders` (`docs/sync.md`).
-  **Facts and Tag** (2026-11-15): the top of a sender's page says when the newest issue came, how
+  `feedChipRow` and `sendersOf`; on the web also rows in the sidebar), in the feed's own place
+  (`showsFeedChip`), each a selection of its own (`FeedSelection.Sender`, the web's
+  `{kind: "sender"}`). The Newsletter feed page lists the tag's senders under the address, each with
+  a page: a name of its own and **Unsubscribe**, nothing else (the owner's choice, 2026-11-15: Mute,
+  Combine with, Separate and Tag were taken out; what an earlier version stored of them is ignored).
+  The page also opens where the sender is: a sender chip's long press (the web: right-click or press
+  and hold), a newsletter's long press › About <sender>, and the sender line above a newsletter's
+  title in the reader (`NewsletterSenders.senderOf`, the web's `senderOfArticle`). The names are one
+  synced setting, `articles.newsletterSenders` (`docs/sync.md`).
+  **Facts** (2026-11-15): the top of a sender's page says when the newest issue came, how
   often they come and how many are unread, with **Open newest** (`NewsletterSender.times`,
   `newestKey`; `NewsletterSenders.cadence`, the web's `senderCadence`: the median gap between the
   newest 10 issues, at most 2 days daily, up to 10 weekly, up to 21 every two weeks, up to 45
-  monthly, longer now and then; none under 3 issues). Under **Tag**, a sender can be shown under
-  another tag (`SenderRule.tag`, the tag's id or `NO_TAG`), for one subscribed with the wrong tag's
-  address: `withMovedSenders` (the web's, next to `withoutMuted`) lists its newsletters under that
-  tag's Newsletters feed, so its chips, counts, Mark all as read and the sender's page follow; a tag
-  without a Newsletters feed leaves them where they were sent. The rule belongs to the sender (and
-  what is combined into it), so it moves its newsletters from every address they arrive at.
-  Picking the tag they were sent to clears the move. The address page's "received" count stays by
-  address. The feed loader is unchanged: the full address
-  never leaves it.
+  monthly, longer now and then; none under 3 issues). The feed loader is unchanged: the full
+  address never leaves it.
 - **A cleaner email** (2026-11-15, `EmailCleanup`, the web's `emailCleanup.ts`): before a newsletter
   (an article of a Newsletters feed, never an ordinary RSS article) becomes the reader's blocks, the
   email's own chrome is left out: a "View in browser" / "View online" / "Read online" / "Bekijk in je
@@ -94,8 +84,7 @@ any article: unread, Mark all as read, the chips' dots, the reader and Search al
   device (the owner's choice): the app takes the sender's newest email (`newestOf`, the web's
   `newestEmailOf`; the id from the entry's `urn:content:newsletter:<code>:<id>`) and POSTs its id
   to `<feed URL>/unsubscribe` (Android in `sync/AccountClient.kt`'s `NewsletterUnsubscriber`). The
-  answer decides: `{done}` shows "Unsubscribed from <sender>" with **Mute** (which mutes it with
-  Undo, so the issues already here leave the list); `{open}` opens that https page in the browser
+  answer decides: `{done}` shows "Unsubscribed from <sender>"; `{open}` opens that https page in the browser
   (Android a custom tab; the web a new tab without its opener, and when the browser blocks it as a
   pop-up because the answer took a while, a message with **Open**); `{mailto}` opens a new email;
   `{none}` says the sender offers none here and to open its newest email; a failure says it

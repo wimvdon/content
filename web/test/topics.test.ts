@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Item } from "../src/lib/items";
 import { chipTags, showsLiked } from "../src/lib/saved";
 import { emptyLibrary, feedFoldersToTags, newFeed, type Library } from "../src/lib/library";
-import { addTopic, feedChipRow, feedChips, inTopicOrder, insertedBefore, mergeTopic, moved, removeTopic, reorderTopics, renameTopic, sidebarFeeds, tagWithFeedTopic, topicCounts, topicIdFor, topicNamed, topicNames, topicsForTags } from "../src/lib/topics";
+import { addTopic, feedChipRow, feedChips, inTopicOrder, insertedBefore, moved, removeTopic, reorderTopics, renameTopic, sidebarFeeds, tagWithFeedTopic, topicCounts, topicIdFor, topicNamed, topicNameTaken, topicNames, topicsForTags } from "../src/lib/topics";
 
 const saved = (key: string, ...tags: string[]): Item => ({
   key,
@@ -72,15 +72,14 @@ describe("topics", () => {
     expect(renameTopic(library, "f1", " ", "memory")).toBe(library);
   });
 
-  it("joins two topics when one is renamed to the other's name", () => {
-    const joined = renameTopic(topicsForTags(library), "topic:recipes", "news", "restaurant");
-    expect(joined.folders.map((f) => f.id)).toEqual(["f1", "f2"]);
-    expect(joined.folders[1].icon).toBe("newspaper");
-    expect(item(joined, "x.example/1").tags).toEqual(["tech", "News"]);
-    expect(item(joined, "x.example/3").tags).toEqual(["News"]);
-    const feedsMoved = renameTopic(topicsForTags(library), "f1", "News", "computer");
-    expect(feed(feedsMoved, "https://a/feed").folderId).toBe("f2");
-    expect(feed(feedsMoved, "https://a/feed").tags).toEqual(["News"]);
+  it("won't give a tag another tag's name, so tags are never merged", () => {
+    const settled = topicsForTags(library);
+    expect(renameTopic(settled, "topic:recipes", " news ", "restaurant")).toBe(settled);
+    expect(renameTopic(settled, "f1", "News", "computer")).toBe(settled);
+    expect(topicNameTaken(settled.folders, "f1", " news ")).toBe(true);
+    expect(topicNameTaken(settled.folders, "f2", "News")).toBe(false);
+    expect(topicNameTaken(settled.folders, null, "TECH")).toBe(true);
+    expect(topicNameTaken(settled.folders, null, "Sports")).toBe(false);
   });
 
   it("keeps a removed topic's feeds and saved articles, without it", () => {
@@ -110,16 +109,6 @@ describe("topics", () => {
     // A link that isn't a feed article gets nothing.
     expect(tagWithFeedTopic(lib, "x.example/2")).toBe(lib);
   });
-
-  it("merges a topic into the one picked, which keeps its name and icon", () => {
-    const merged = mergeTopic(topicsForTags(library), "f1", "f2");
-    expect(merged.folders.map((f) => f.id)).toEqual(["f2", "topic:recipes"]);
-    expect(feed(merged, "https://a/feed").folderId).toBe("f2");
-    expect(item(merged, "x.example/1").tags).toEqual(["News", "Recipes"]);
-    const settled = topicsForTags(library);
-    expect(mergeTopic(settled, "f1", "f1")).toBe(settled);
-  });
-
 
   it("leaves out Feeds' topic chips with nothing in the tab shown, except the one chosen", () => {
     const article = (feedUrl: string, id: string, read: boolean) => ({ feedUrl, id, title: id, link: null, author: null, html: "", publishedAt: null, fetchedAt: 0, read, imageUrl: null });

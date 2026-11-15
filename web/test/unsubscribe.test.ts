@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Article } from "../src/lib/library";
-import { mergedSender, senderList } from "../src/lib/newsletterSenders";
-import { answerOf, canUnsubscribe, emailIdOf, feedOfEmail, newestEmailOf, unsubscribe, unsubscribeRoute } from "../src/lib/unsubscribe";
+import { senderList } from "../src/lib/newsletterSenders";
+import { answerOf, canUnsubscribe, emailIdOf, newestEmailOf, unsubscribe, unsubscribeRoute } from "../src/lib/unsubscribe";
 
 const feedUrl = "https://w.example/newsletters/k7q2m9abcdef/0123456789abcdef0123456789abcdef";
 const entry = (id: string) => `urn:content:newsletter:k7q2m9abcdef:${id}`;
@@ -32,27 +32,13 @@ describe("unsubscribe", () => {
     expect(canUnsubscribe(null)).toBe(false);
   });
 
-  it("uses the sender's newest email, combined senders included", () => {
+  it("uses the sender's newest email", () => {
     const older = issue(entry("000000000000000a"), "Bozar", "https://bozar.be", 10);
     const newer = issue(entry("000000000000000b"), "Bozar Events", "https://bozar.be", 30);
-    const combined = issue(entry("000000000000000c"), "Bozar Mail", "https://bozar-mail.be", 50);
     const other = issue(entry("000000000000000d"), "Platformer", "https://platformer.news", 40);
-    const articles = [older, newer, combined, other];
+    const articles = [older, newer, other];
     const bozar = senderList([], articles, feedUrl).find((s) => s.key === "bozar.be")!;
-    expect(newestEmailOf(articles, bozar, [])).toBe(newer);
-    const rules = mergedSender([], "bozar-mail.be", "bozar.be", "Bozar");
-    const group = senderList(rules, articles, feedUrl).find((s) => s.key === "bozar.be")!;
-    expect(newestEmailOf(articles, group, rules)).toBe(combined);
-  });
-
-  it("unsubscribes a sender shown under another tag through the feed its email is stored under", () => {
-    const otherFeed = "https://w.example/newsletters/zzzzzzzzzzzz/fedcba9876543210fedcba9876543210";
-    const stored = issue(entry("000000000000000a"), "Bozar", "https://bozar.be", 10);
-    const shown = { ...stored, feedUrl: otherFeed, storedFeedUrl: feedUrl };
-    const bozar = senderList([], [shown], otherFeed)[0];
-    expect(newestEmailOf([shown], bozar, [])).toBe(shown);
-    expect(feedOfEmail(shown)).toBe(feedUrl);
-    expect(feedOfEmail(stored)).toBe(feedUrl);
+    expect(newestEmailOf(articles, bozar)).toBe(newer);
   });
 
   it("reads the feed loader's answer, and refuses what would open something else", () => {

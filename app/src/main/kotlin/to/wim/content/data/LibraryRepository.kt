@@ -396,14 +396,6 @@ class LibraryRepository(
         edit { it.reorderFeedsIn(topicId, urls) }
     }
 
-    /** Merges one topic into another: its feeds and saved articles go to [intoId]. */
-    suspend fun mergeTopic(
-        fromId: String,
-        intoId: String,
-    ) {
-        edit { it.mergeTopic(fromId, intoId) }
-    }
-
     suspend fun moveFeed(
         url: String,
         folderId: String?,
@@ -432,17 +424,11 @@ class LibraryRepository(
         edit { FeedArrangement.apply(it, rows) }
     }
 
-    /**
-     * Marks the selection as read and returns what was unread, for Undo. [senders]: the selection
-     * is read as the lists show it, with newsletter senders under the tag they were moved to.
-     */
-    suspend fun markAllRead(
-        selection: FeedSelection,
-        senders: NewsletterSenders = NewsletterSenders(),
-    ): Set<String> {
+    /** Marks the selection as read and returns what was unread, for Undo. */
+    suspend fun markAllRead(selection: FeedSelection): Set<String> {
         var keys: Set<String> = emptySet()
         edit { library ->
-            keys = library.withMovedSenders(senders).unreadKeys(selection)
+            keys = library.unreadKeys(selection)
             library.setRead(keys, true)
         }
         return keys

@@ -112,8 +112,6 @@ import to.wim.content.data.withoutHidden
 import to.wim.content.data.NewsletterSender
 import to.wim.content.data.NewsletterSenders
 import to.wim.content.data.NewsletterUnsubscribe
-import to.wim.content.data.withMovedSenders
-import to.wim.content.data.withoutMuted
 import to.wim.content.ui.home.LocalNewsletterSenders
 import to.wim.content.ui.home.SenderActions
 import to.wim.content.ui.home.SenderPage
@@ -248,10 +246,8 @@ fun RssReaderNavigation(
     val siteSignIns by app.siteSignIns.signIns.collectAsStateWithLifecycle()
     val current = settings ?: Settings()
     val library = libraryOrNull ?: Library()
-    // Newsletter senders' names, merges and mutes.
+    // Newsletter senders' names.
     val senders = remember(current.newsletterSenders) { NewsletterSenders.decode(current.newsletterSenders) }
-    // The library with the senders moved to another tag listed under it (never stored): the lists and the senders' pages.
-    val moved = remember(library, senders) { library.withMovedSenders(senders) }
     val snackbar = remember { SnackbarHostState() }
     val uiScope = rememberCoroutineScope()
     // One message at a time: a new one replaces the one showing, so they never queue up; a tap
@@ -356,19 +352,15 @@ fun RssReaderNavigation(
 
     // Unsubscribe (2026-11-15): the feed loader unsubscribes with the sender's newest email, or says what to open.
     fun unsubscribe(sender: NewsletterSender) {
-        // As the lists show it (a sender moved to another tag included); the email's own feed asks.
-        val email = NewsletterUnsubscribe.newestOf(moved.articles, sender, senders)
+        val email = NewsletterUnsubscribe.newestOf(library.articles, sender)
         val id = NewsletterUnsubscribe.emailIdOf(email?.id)
         if (id == null) {
             showMessage(resources.getString(R.string.newsletter_unsubscribe_none, sender.name))
             return
         }
         uiScope.launch {
-            when (val answer = app.sync.unsubscribeNewsletter(email?.let(NewsletterUnsubscribe::feedOf) ?: sender.feedUrl, id)) {
-                NewsletterUnsubscribe.Answer.Done ->
-                    showMessage(resources.getString(R.string.newsletter_unsubscribe_done, sender.name), resources.getString(R.string.newsletter_sender_mute)) {
-                        editSendersUndoable(resources.getString(R.string.newsletter_sender_muted_message, sender.name)) { it.muted(sender.key, true) }
-                    }
+            when (val answer = app.sync.unsubscribeNewsletter(email?.feedUrl ?: sender.feedUrl, id)) {
+                NewsletterUnsubscribe.Answer.Done -> showMessage(resources.getString(R.string.newsletter_unsubscribe_done, sender.name))
                 is NewsletterUnsubscribe.Answer.Open ->
                     if (!ExternalApps.openInTab(context, answer.url, null)) showMessage(resources.getString(R.string.newsletter_unsubscribe_failed))
                 is NewsletterUnsubscribe.Answer.Mailto ->
@@ -379,29 +371,10 @@ fun RssReaderNavigation(
         }
     }
 
-    // What a sender's page changes, wherever it opens. Mute and Combine with say so, with Undo.
+    // What a sender's page changes, wherever it opens.
     val senderActions =
         SenderActions(
             onRename = { key, name -> editSenders { it.renamed(key, name) } },
-            onMute = { key, muted ->
-                if (muted) {
-                    val name = senders.rule(key)?.name ?: library.feeds.firstNotNullOfOrNull { f -> senders.list(moved.articles, f.url).firstOrNull { it.key == key }?.name } ?: ""
-                    editSendersUndoable(resources.getString(R.string.newsletter_sender_muted_message, name)) { it.muted(key, true) }
-                } else {
-                    editSenders { it.muted(key, false) }
-                }
-            },
-            onMerge = { from, into, intoName ->
-                val fromName = library.feeds.firstNotNullOfOrNull { f -> senders.list(moved.articles, f.url).firstOrNull { it.key == from }?.name } ?: ""
-                editSendersUndoable(resources.getString(R.string.newsletter_sender_combined_message, fromName, intoName)) { it.merged(from, into, intoName) }
-            },
-            onSplit = { key -> editSenders { it.split(key) } },
-            onMoveToTag = { key, tag, name ->
-                // Back to the tag it is sent to clears the move.
-                val original = NewsletterSenders.originalTag(library, senders, key)
-                val tagName = library.folder(tag)?.title ?: resources.getString(R.string.folder_none)
-                editSendersUndoable(resources.getString(R.string.newsletter_sender_moved_message, name, tagName)) { it.movedTo(key, tag, original) }
-            },
             onUnsubscribe = ::unsubscribe,
         )
     // The sender page open over the lists or the reader: its feed and its key.
@@ -916,7 +889,7 @@ fun RssReaderNavigation(
                         }
                         // Without the articles hidden by their words (#277): the lists, counts and chips.
                         // And without the muted newsletter senders' newsletters.
-                        val listed = remember(library, current.hiddenWords, senders) { library.withoutHidden(ArticleFilter.parse(current.hiddenWords)).withMovedSenders(senders).withoutMuted(senders) }
+                        val listed = remember(library, current.hiddenWords) { library.withoutHidden(ArticleFilter.parse(current.hiddenWords)) }
                         val articles =
                             remember(listed, shownSelection, readThisVisit, current.unreadOnly) {
                                 listed.articlesFor(shownSelection, FeedTab.of(current.unreadOnly), keep = readThisVisit)
@@ -1048,7 +1021,7 @@ fun RssReaderNavigation(
                                         // Done with the section: nothing read stays in the Unread list (#157).
                                         readThisVisit = emptySet()
                                         app.appScope.launch {
-                                            val keys = repository.markAllRead(shownSelection, senders)
+                                            val keys = repository.markAllRead(shownSelection)
                                             if (keys.isEmpty()) return@launch
                                             showMessage(resources.getQuantityString(R.plurals.marked_read, keys.size, keys.size), resources.getString(R.string.action_undo)) {
                                                 app.appScope.launch { repository.setRead(keys, false) }
@@ -1088,8 +1061,7 @@ fun RssReaderNavigation(
                                         fileNote = false
                                     },
                                     onShareArticle = ::share,
-                                    onOpenSenderOf = { article -> openSenderPage(senders.senderOf(moved.articles, article)) },
-                                    onMuteSenderOf = { article -> senders.senderOf(moved.articles, article)?.let { senderActions.onMute(it.key, true) } },
+                                    onOpenSenderOf = { article -> openSenderPage(senders.senderOf(library.articles, article)) },
                                     onOpenSender = ::openSenderPage,
                                     onShareItem = { item -> share(ReadingLists.article(item, library)) },
                                     onOpenSearch = { push(Screen.Search) },
@@ -1209,11 +1181,11 @@ fun RssReaderNavigation(
                                                 },
                                             onOpenLink = { url -> ExternalApps.openInTab(context, url, null) },
                                             onToggleFullText = { fullTextChoice = !wantFullText },
-                                            onOpenSender = article?.let { a -> senders.senderOf(moved.articles, a) }?.let { s -> { openSenderPage(s) } },
+                                            onOpenSender = article?.let { a -> senders.senderOf(library.articles, a) }?.let { s -> { openSenderPage(s) } },
                                             onUnsubscribe =
                                                 article
                                                     ?.takeIf { NewsletterUnsubscribe.canUnsubscribe(it) }
-                                                    ?.let { a -> senders.senderOf(moved.articles, a) }
+                                                    ?.let { a -> senders.senderOf(library.articles, a) }
                                                     ?.let { s -> { unsubscribe(s) } },
                                         ),
                                     item =
@@ -1499,7 +1471,7 @@ fun RssReaderNavigation(
                 openSenderPage(null)
                 manageFeedsKind = null
                 addChoiceOpen = false
-                moved.article(articleKey)?.let {
+                library.article(articleKey)?.let {
                     readThisVisit = readThisVisit + it.key
                     openArticle(it)
                 }
@@ -1515,7 +1487,7 @@ fun RssReaderNavigation(
             renewAddress = { code -> app.sync.renewNewsletter(code) },
             topicActions = topicActions,
             activity = { feedUrl -> NewsletterAddresses.activity(library.articles, feedUrl) },
-            senders = { feedUrl -> senders.list(moved.articles, feedUrl) },
+            senders = { feedUrl -> senders.list(library.articles, feedUrl) },
             senderActions = senderPageActions,
             onCopy = ::copyToClipboard,
             onShare = { address -> ExternalApps.shareText(context, address, resources.getString(R.string.action_share)) },
@@ -1560,15 +1532,11 @@ fun RssReaderNavigation(
     }
     // A sender's page, from a sender chip's long press, a newsletter's long press or the reader's sender line.
     senderPageFeed?.let { feedUrl ->
-        val list = senders.list(moved.articles, feedUrl)
+        val list = senders.list(library.articles, feedUrl)
         list.firstOrNull { it.key == senderPageKey }?.let { sender ->
             SenderPage(
                 sender = sender,
-                others = list.filter { it.key != sender.key },
-                feed = library.feeds.firstOrNull { it.url == feedUrl },
                 givenName = senders.rule(sender.key)?.name,
-                topics = library.folders,
-                currentTag = library.feeds.firstOrNull { it.url == feedUrl }?.folderId ?: NewsletterAddresses.NO_TAG,
                 actions = senderPageActions,
                 onBack = { openSenderPage(null) },
             )

@@ -118,6 +118,7 @@ import to.wim.content.data.SavedFilter
 import to.wim.content.data.FeedChips
 import to.wim.content.data.FeedSelection
 import to.wim.content.data.NewsletterSender
+import to.wim.content.data.NewsletterSenders
 import to.wim.content.data.ScrollRead
 import to.wim.content.data.feedTagsInOrder
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -188,7 +189,6 @@ class HomeActions(
     /** A newsletter's long press › About its sender: the sender's page. */
     val onOpenSenderOf: (Article) -> Unit = {},
     /** A newsletter's long press › Mute its sender (a message offers Undo). */
-    val onMuteSenderOf: (Article) -> Unit = {},
     /** A sender chip's long press: the sender's page. */
     val onOpenSender: (NewsletterSender) -> Unit = {},
     val onShareItem: (Item) -> Unit = {},
@@ -544,11 +544,10 @@ private fun senderMenu(
 ): List<RowMenuAction> {
     if (!NewsletterAddresses.isNewsletterFeed(article.feedUrl)) return emptyList()
     val senders = LocalNewsletterSenders.current
-    if (senders.groupOf(article) == null) return emptyList()
+    if (NewsletterSenders.keyOf(article) == null) return emptyList()
     val name = senders.shown(feed, article)?.title ?: return emptyList()
     return listOf(
         RowMenuAction(R.drawable.ic_mail, stringResource(R.string.newsletter_sender_about, name)) { actions.onOpenSenderOf(article) },
-        RowMenuAction(R.drawable.ic_visibility_off, stringResource(R.string.newsletter_sender_mute_named, name)) { actions.onMuteSenderOf(article) },
     )
 }
 

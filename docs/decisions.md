@@ -2,6 +2,17 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-15: A sender only has a name and an unsubscribe link; tags are never merged
+
+The owner asked to keep only Rename and Unsubscribe for a newsletter sender. Mute, Move to another
+tag, Combine and Separate are gone from both apps, and so is merging tags: renaming a tag to a name
+another tag already has is now refused with "Another tag has this name" instead of joining the two.
+Fewer choices means fewer ways to lose newsletters from view, and senders already sort themselves
+by website. The sync field keeps its four columns so older apps still read the names; the combined,
+muted and tag columns stored by an earlier version are ignored and written empty. Rejected: keeping
+the stored choices working while hiding the buttons, which would leave invisible rules nobody can
+undo.
+
 ## 2026-11-15: Newsletter senders are chips of their own, like feeds
 
 The owner asked why each sender didn't show up as its own chip. Until now a Newsletters feed's

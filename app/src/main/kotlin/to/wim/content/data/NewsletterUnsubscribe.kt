@@ -38,21 +38,16 @@ object NewsletterUnsubscribe {
     fun canUnsubscribe(article: Article?): Boolean = article != null && routeOf(article.feedUrl) != null && emailIdOf(article.id) != null
 
     /**
-     * The email to unsubscribe with: the newest of [sender] (with the senders combined into it)
-     * among [articles], whose unsubscribe link is the most likely to still work; null when none is
-     * a newsletter email.
+     * The email to unsubscribe with: the newest of [sender] among [articles], whose unsubscribe link
+     * is the most likely to still work; null when none is a newsletter email.
      */
     fun newestOf(
         articles: List<Article>,
         sender: NewsletterSender,
-        senders: NewsletterSenders,
     ): Article? =
         articles
-            .filter { it.feedUrl == sender.feedUrl && canUnsubscribe(it) && senders.groupOf(it) == sender.key }
+            .filter { it.feedUrl == sender.feedUrl && canUnsubscribe(it) && NewsletterSenders.keyOf(it) == sender.key }
             .maxByOrNull { it.sortTime }
-
-    /** The feed whose route unsubscribes with [email]: the one it is stored under, also for a sender shown under another tag. */
-    fun feedOf(email: Article): String = email.storedFeedUrl ?: email.feedUrl
 
     /** The feed loader's answer (parsed JSON), or null when it isn't one. Only https pages and mailto: links are opened. */
     fun answerOf(value: Any?): Answer? {
