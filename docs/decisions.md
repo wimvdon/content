@@ -2,6 +2,13 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-22: The desktop web app icon has no plate
+
+The owner wants the plate only where the system shows the icon as a tile. `icon-192.png` and
+`icon-512.png` (the manifest's "any" icons, which desktops use for the installed web app's window,
+taskbar and start menu) are now the C alone on a transparent background, like `icon.svg`. The
+maskable icons and `apple-touch-icon.png`, which phones show as home-screen tiles, keep the plate.
+
 ## 2026-11-22: Notifications show the app's own icon
 
 The owner asked for every icon to follow the new design. The notification for a shared article used

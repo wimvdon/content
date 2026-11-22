@@ -18,9 +18,12 @@ unchanged to every app. Only the "This app" section belongs to this repository.
 - A detail inside the shape (a check, a play button) is solid in the plate's colour, not a
   hole and not white, so the icon also reads without its plate.
 - A themed (monochrome) layer: the same shape, with the detail cut out or half transparent.
-- Every other icon of the app follows the same shape: the status bar (notification) icon, Quick
-  Settings tiles, home-screen shortcuts (on the same plate), TV banners, in-app logos, and web
-  favicons, PWA and extension icons.
+- Every other icon of the app follows the same shape. Only icons the system shows as a tile
+  carry the plate: the launcher icon, home-screen shortcuts, TV banners and the icons of an
+  installed web app on a phone (maskable and Apple touch icons). Everywhere else the shape
+  stands on its own, without a plate: in-app logos, the TV home row logo, the status bar
+  (notification) icon, Quick Settings tiles, web favicons, desktop web app icons and extension
+  icons.
 
 | App | Shape | Gradient | Plate |
 | --- | --- | --- | --- |
@@ -241,7 +244,9 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
   `#4FC3F7` → `#0091EA` → `#0D47A1` (sky to navy) on a soft sky-blue plate (`#E6F4FD` → `#CFE6F8`,
   owner's wish 2026-11-22, instead of white). Themed layer: the same C. The status bar icon is the
   themed layer cropped to fill 24dp (`ic_notification`). The web app's favicon and sidebar logo
-  (`web/public/icon.svg`), its PWA icons and the Chrome extension's icons show the same C.
+  (`web/public/icon.svg`), its PWA icons and the Chrome extension's icons show the same C. Only
+  the maskable and Apple touch icons have the plate; the other PWA icons (used on desktops) and
+  the favicon are the C alone.
 - Seed `#0091EA` (azure), tertiary from the icon's sky blue.
 - Shape: Material 3 Expressive's nine-sided **cookie** (owner's choice, 2026-11-03), drawn by the
   app (`ui/CookieShape.kt`). Android only: the web app keeps its own design language. Empty pages show their icon on it instead of the
