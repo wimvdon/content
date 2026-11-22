@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Content: a C built from the feed symbol's parts (a dot and two thick, round-ended arcs), with the
-     sky → azure → navy gradient from top left to bottom right, on the white background. 48dp across, well inside the 66dp safe zone so launchers that crop to a circle or squircle leave room around it. -->
+     sky → azure → navy gradient from top left to bottom right, on the soft sky-blue plate (ic_launcher_background). 48dp across, well inside the 66dp safe zone so launchers that crop to a circle or squircle leave room around it. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
