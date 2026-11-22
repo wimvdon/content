@@ -227,7 +227,8 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
 
 - Icon: the feed symbol on its own (the classic proportions: a dot and two thick, round-ended waves), gradient
   `#4FC3F7` → `#0091EA` → `#0D47A1` (sky to navy) on a soft sky-blue plate (`#E6F4FD` → `#CFE6F8`, owner's wish 2026-11-22, instead of white); chosen by the owner
-  over the shared "shape with a white detail" rule. Themed layer: the same symbol.
+  over the shared "shape with a white detail" rule. Themed layer: the same symbol. The status bar
+  icon is the themed layer cropped to fill 24dp (`ic_notification`).
 - Seed `#0091EA` (azure), tertiary from the icon's sky blue.
 - Shape: Material 3 Expressive's nine-sided **cookie** (owner's choice, 2026-11-03), drawn by the
   app (`ui/CookieShape.kt`). Android only: the web app keeps its own design language. Empty pages show their icon on it instead of the

@@ -2,6 +2,12 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-22: Notifications show the app's own icon
+
+The owner asked for every icon to follow the new design. The notification for a shared article used
+Material's "group" icon in the status bar; it now shows the launcher icon's C (the themed layer,
+cropped to fill 24dp). Android only: the web app has no notifications.
+
 ## 2026-11-22: The app icon sits on a soft sky-blue plate, not white
 
 The owner wanted the app icons out of their white frame, across all of their apps. On Android the
