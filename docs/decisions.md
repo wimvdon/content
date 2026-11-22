@@ -2,6 +2,17 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-22: The app icon sits on a soft sky-blue plate, not white
+
+The owner wanted the app icons out of their white frame, across all of their apps. On Android the
+adaptive icon's background layer has to stay (launchers cut it into a circle, squircle, cookie and so
+on), so it is now a soft plate in the app's own colour: `#E6F4FD` to `#CFE6F8`, top left to bottom
+right (`drawable/ic_launcher_background.xml`). The C and the themed layer are unchanged. The web
+app's installed icons (`icon-192/512.png`, `icon-maskable-192/512.png`, `apple-touch-icon.png`) use
+the same plate; the tab icon (`icon.svg`) and the browser extension stay the C alone, with no plate,
+as tabs and toolbars can be light or dark. Rejected: a transparent background (launchers would show
+the C without a shape), a deep blue plate (heavier than the owner wanted) and redrawing the C.
+
 ## 2026-11-15: A sender only has a name and an unsubscribe link; tags are never merged
 
 The owner asked to keep only Rename and Unsubscribe for a newsletter sender. Mute, Move to another

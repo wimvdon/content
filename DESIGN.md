@@ -226,7 +226,7 @@ app apart from their package (and `R` import) lines. Copy a change to the other 
 ## This app
 
 - Icon: the feed symbol on its own (the classic proportions: a dot and two thick, round-ended waves), gradient
-  `#4FC3F7` → `#0091EA` → `#0D47A1` (sky to navy) on the white background; chosen by the owner
+  `#4FC3F7` → `#0091EA` → `#0D47A1` (sky to navy) on a soft sky-blue plate (`#E6F4FD` → `#CFE6F8`, owner's wish 2026-11-22, instead of white); chosen by the owner
   over the shared "shape with a white detail" rule. Themed layer: the same symbol.
 - Seed `#0091EA` (azure), tertiary from the icon's sky blue.
 - Shape: Material 3 Expressive's nine-sided **cookie** (owner's choice, 2026-11-03), drawn by the
