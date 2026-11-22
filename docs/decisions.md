@@ -2,6 +2,19 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-22: Icons: same padding in every app, white background, white details; colour scheme follows the icon
+
+The owner approved one icon direction for all apps. Content's C is unchanged, but it now sits in a
+group scaled 1.0936 around the middle (launcher foreground and themed layer), so its furthest point
+is 26.3 of the 108 units from the middle, the same padding as every other app. The adaptive-icon
+background is plain white instead of the sky-blue plate. The C has no detail inside, so the "white
+details" rule changes nothing. The web app follows: the maskable icons and `apple-touch-icon.png`
+are the C on white at the same proportion (furthest point 48.7% of the half-width); the "any" icons,
+favicon, sidebar logo and extension icons stay the C alone without a background. The status bar icon
+stays a bare, cropped C. The Material seed (`#0091EA`, also the web `theme-color`) already is the
+gradient's middle stop, so the colour scheme is unchanged. Replaces the "soft sky-blue plate"
+decision below. The shared `## Icons` section of `DESIGN.md` is replaced by the new master text.
+
 ## 2026-11-22: The desktop web app icon has no plate
 
 The owner wants the plate only where the system shows the icon as a tile. `icon-192.png` and
