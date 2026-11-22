@@ -124,7 +124,7 @@ class PushNotifications(
         val builder =
             NotificationCompat
                 .Builder(context, CHANNEL)
-                .setSmallIcon(R.drawable.ic_group)
+                .setSmallIcon(R.drawable.ic_notification)
                 .setContentIntent(open)
                 .setAutoCancel(true)
         if (preview == null) {
