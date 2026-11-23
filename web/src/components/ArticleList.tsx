@@ -1143,7 +1143,7 @@ function RefreshFailures({ library, problems }: { library: Library; problems: Re
   return (
     <>
       {failed.length > 0 ? <p className="px-4 pb-1 text-xs text-destructive">{plural("feedsFailed", failed.length).replace("{names}", failed.join(", "))}</p> : null}
-      {blocked.length > 0 ? <p className="px-4 pb-1 text-xs text-muted-foreground">{plural("feedsBlocked", blocked.length).replace("{names}", blocked.join(", "))}</p> : null}
+      {blocked.length > 0 ? <p className="px-4 pb-1 text-xs text-destructive">{plural("feedsBlocked", blocked.length).replace("{names}", blocked.join(", "))}</p> : null}
     </>
   );
 }

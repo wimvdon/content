@@ -206,8 +206,8 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   switch and the chips above the list (the chips scroll sideways with a finger, a mouse wheel, or by
   dragging them with the mouse), and Settings in the search bar.
 - After a refresh, feeds that couldn't be refreshed are named in a message (and marked in Settings, RSS feeds).
-  In the web app, feeds whose site blocks the feed loader (every Substack feed does) get a grey line
-  of their own that says so and points to the browser extension, which loads them from your own
+  In the web app, feeds whose site blocks the feed loader (every Substack feed does) get a line
+  of their own that says so and asks you to install the browser extension, which loads them from your own
   browser. With the extension installed they are only named if that fails too.
 - **Refresh** (web) is the round arrow in the search bar, in every place (or press **r**). **Mark all as read** is a button under the last article, in Unread and All
   (on the phone it is the round button at the bottom right).
