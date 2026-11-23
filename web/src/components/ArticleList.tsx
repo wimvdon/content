@@ -6,7 +6,7 @@ import { useListedLibrary, useSenderRules } from "./useListed";
 import { senderChips, senderFeed, senderOfArticle, senderSelection, shownSender, type SenderRule } from "@/lib/newsletterSenders";
 import { snippet } from "@/lib/html";
 import { dayLabel, plural, t } from "@/lib/i18n";
-import { articleKey, articlesInTab, chipTag, feedTabOf, feedTitles, sameSelection, showsUnreadDot, sortTime, unreadByFeed, unreadKeys, type Article, type Feed, type Selection } from "@/lib/library";
+import { articleKey, articlesInTab, chipTag, feedTabOf, refreshFailures, sameSelection, showsUnreadDot, sortTime, unreadByFeed, unreadKeys, type Article, type Feed, type Library, type Selection } from "@/lib/library";
 import { chipTags, isPlainFilter, itemArticle, noteOf, savedItems, showsLiked, showsNewsletters, showsNotes, sourceOf, withoutChips, type NoteContent } from "@/lib/saved";
 import { hasUnreadNewsletter } from "@/lib/newsletters";
 import { hasEnvelopeBadge, isNewsletterFeed } from "@/lib/newsletterAddresses";
@@ -27,6 +27,7 @@ import { WithRowMenu } from "./RowMenu";
 import { FeedViewSwitch, SavedViewSwitch } from "./ViewSwitch";
 import { dragMove, dragStart, type Drag } from "@/lib/dragScroll";
 import { FilterChip } from "./ui/chip";
+import { extensionPresent } from "@/lib/extension";
 
 type ListProps = {
   openKey: string | null;
@@ -213,7 +214,7 @@ function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport,
               }
             />
           ) : null}
-          {problems.size > 0 ? <p className="px-4 pb-1 text-xs text-destructive">{plural("feedsFailed", problems.size).replace("{names}", feedTitles(library, problems.keys()).join(", "))}</p> : null}
+          <RefreshFailures library={library} problems={problems} />
         </>
       ) : null}
       </CollapsingHeader>
@@ -1133,4 +1134,16 @@ function groupByDay(articles: Article[]): [string, Article[]][] {
     else groups.set(day, [a]);
   }
   return [...groups];
+}
+
+/** Under the search bar after a refresh: the feeds that failed, those a site blocks on a line of their own with what helps. */
+function RefreshFailures({ library, problems }: { library: Library; problems: ReadonlyMap<string, string> }) {
+  if (problems.size === 0) return null;
+  const { blocked, failed } = refreshFailures(library, problems, extensionPresent());
+  return (
+    <>
+      {failed.length > 0 ? <p className="px-4 pb-1 text-xs text-destructive">{plural("feedsFailed", failed.length).replace("{names}", failed.join(", "))}</p> : null}
+      {blocked.length > 0 ? <p className="px-4 pb-1 text-xs text-muted-foreground">{plural("feedsBlocked", blocked.length).replace("{names}", blocked.join(", "))}</p> : null}
+    </>
+  );
 }
