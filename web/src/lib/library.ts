@@ -116,6 +116,18 @@ export function feedTitles(lib: Library, urls: Iterable<string>): string[] {
   return lib.feeds.filter((f) => wanted.has(f.url)).map((f) => f.title);
 }
 
+/**
+ * A refresh's failures for its message, as names in the library's order: the feeds whose site blocks
+ * the feed loader (Substack blocks it entirely), and the rest. Blocked feeds get their own line that
+ * points to the browser extension; with the extension installed it was already tried, so they count
+ * as failed then.
+ */
+export function refreshFailures(lib: Library, problems: ReadonlyMap<string, string>, extension: boolean): { blocked: string[]; failed: string[] } {
+  const blocked = extension ? [] : [...problems].filter(([, kind]) => kind === "blocked").map(([url]) => url);
+  const failed = [...problems.keys()].filter((url) => !blocked.includes(url));
+  return { blocked: feedTitles(lib, blocked), failed: feedTitles(lib, failed) };
+}
+
 export function newFeed(url: string, title: string): Feed {
   return { url, title: title || url, siteUrl: null, folderId: null, iconUrl: null, renamed: false };
 }

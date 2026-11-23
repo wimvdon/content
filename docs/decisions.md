@@ -2,6 +2,16 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-23: Substack blocks the web app's feed loader; the refresh message says so
+
+All eight feeds the web app couldn't refresh were Substack publications. Substack refuses every
+request from the feed loader (a Cloudflare Worker): even an unknown `*.substack.com/feed` answers
+403, while other feeds load. The loader can't get around that, and Substack's feeds don't allow a
+browser to load them directly. The browser extension (#168) already loads a refused feed from the
+user's own browser, so the web app's refresh message now puts blocked feeds on a line of their own
+that says the site blocks the loader and points to the extension; other failures keep the red line.
+Web only: the Android app loads feeds from the phone itself and has no feed loader to be blocked.
+
 ## 2026-11-22: Icons: same padding in every app, white background, white details; colour scheme follows the icon
 
 The owner approved one icon direction for all apps. Content's C is unchanged, but it now sits in a
