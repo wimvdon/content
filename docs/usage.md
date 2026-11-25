@@ -289,8 +289,10 @@ See [account.md](account.md) and [sync.md](sync.md) for how it works.
   scrolled (it isn't there under an unread article); at the top the cookie fills and pops, and then
   the list slowly turns into the All caught up page: the
   search bar and switch slide back in as it fades in, with **Refresh**, as after Mark all as read,
-  with no need to tap it. (Not in the web app: a page there can't scroll past
-  its end.)
+  with no need to tap it. The web app does the same in its own, plainer look: under the last
+  article (and Mark all as read) comes **All caught up**, a ✓✓ on a small grey square with its
+  title, as tall as the list. It fades in over the last bit of scrolling; at the top the square
+  turns blue, and then the list becomes the All caught up page with **Refresh**.
 - **Hide articles with words** (in **Settings › Feed**, on the phone and the web): add
   a word or a group of words at a time: type it and tap **+** (or press Enter). Each one shows as a
   chip; its **X** takes it out again, and **Save** keeps the chips (and anything still in the

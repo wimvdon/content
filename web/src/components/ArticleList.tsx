@@ -16,7 +16,7 @@ import { inboxItems } from "@/lib/inbox";
 import { savedArticleKeys, type Item, type SharedBy } from "@/lib/items";
 import { Avatar } from "./ShareWithUser";
 import { useShare } from "./useShare";
-import { arrivedAbove, scrolledPast } from "@/lib/scrollRead";
+import { arrivedAbove, CAUGHT_UP_FADE_DISTANCE, CAUGHT_UP_POP_MS, caughtUpAlpha, caughtUpHeight, caughtUpProgress, reachedCaughtUp, scrolledPast, showsCaughtUpEnd } from "@/lib/scrollRead";
 import { FeedIcon } from "./FeedIcon";
 import { EmailLinkForm } from "./Dialogs";
 import { feedChipRow, sendersOf, showsFeedChip, topicIcons } from "@/lib/topics";
@@ -145,6 +145,45 @@ function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport,
     if (list && before && arrivedAbove(before, keys, onScreen.current)) list.scrollTo({ top: 0 });
     if (list) noteOnScreen(list);
   }, [articles, selection]);
+  const header = useCollapsingHeader();
+  // Mark as read on scroll, in Unread: All caught up after the last article, as tall as the list's
+  // window, so you can just keep scrolling and the last articles go past the top too, as on
+  // Android. It comes in over the last stretch; scrolled all the way, its check settles and the list
+  // turns into the All caught up page.
+  const caughtUpEnd = showsCaughtUpEnd(settings.markReadOnScroll, settings.unreadOnly, articles.length);
+  const endRef = useRef<HTMLDivElement>(null);
+  const [listHeight, setListHeight] = useState(0);
+  useEffect(() => {
+    const list = listRef.current;
+    if (!list || !caughtUpEnd) return;
+    const observer = new ResizeObserver(() => setListHeight(list.clientHeight));
+    observer.observe(list);
+    return () => observer.disconnect();
+  }, [caughtUpEnd]);
+  // Which list was scrolled into All caught up: another feed, tag or view starts afresh.
+  const listId = `${JSON.stringify(selection)} ${tab}`;
+  const [caughtUpIn, setCaughtUpIn] = useState<string | null>(null);
+  const reached = useRef(false);
+  const takeOver = useRef(0);
+  useEffect(() => {
+    reached.current = false;
+    window.clearTimeout(takeOver.current);
+  }, [listId, caughtUpEnd]);
+  useEffect(() => () => window.clearTimeout(takeOver.current), []);
+  const followCaughtUp = (list: HTMLElement) => {
+    const end = endRef.current;
+    if (!end) return;
+    const top = end.getBoundingClientRect().top - list.getBoundingClientRect().top;
+    end.style.opacity = String(caughtUpAlpha(caughtUpProgress(top, CAUGHT_UP_FADE_DISTANCE, top + list.scrollTop)));
+    if (reached.current || !reachedCaughtUp(top)) return;
+    reached.current = true;
+    setCaughtUpIn(listId);
+    takeOver.current = window.setTimeout(() => {
+      app.finishScrollRead();
+      setCaughtUpIn(null);
+      header.show();
+    }, CAUGHT_UP_POP_MS);
+  };
   const onScroll = (e: React.UIEvent<HTMLDivElement>) => {
     noteOnScreen(e.currentTarget);
     if (!settings.markReadOnScroll || frame.current) return;
@@ -156,10 +195,10 @@ function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport,
       const rows = rowsOf(list);
       const first = rows.findIndex((row) => row.getBoundingClientRect().bottom > top);
       app.markScrolledPast(scrolledPast(articles, first === -1 ? rows.length : first, seen.current));
+      followCaughtUp(list);
     });
   };
 
-  const header = useCollapsingHeader();
   // Mark all as read under the last article, in Unread and All alike while something is unread
   // (2026-11-07; Android has it in a floating toolbar, which the web's design doesn't use). Clicked
   // only: pulling past the end is Android's touch gesture, which makes no sense with a mouse (2026-11-05).
@@ -311,14 +350,17 @@ function FeedArticles({ openKey, onOpen, onSettings, onAddFeed, onAdd, onImport,
         )}
         {/* Mark all as read under the last article, in Unread and All while something is unread (Android
             has it in its floating toolbar). Outlined: a floating button is for adding, not for clearing everything. */}
-        {markAllShown ? (
-          <div className="flex justify-center pt-4">
+        {/* Above All caught up it keeps its place once the last one is scrolled past (hidden, not
+            gone), so All caught up doesn't jump up under the reader's scrolling. */}
+        {markAllShown || (caughtUpEnd && days.length > 0) ? (
+          <div className={cn("flex justify-center pt-4", !markAllShown && "invisible")}>
             <Button variant="outline" onClick={() => onUndo(app.markAllRead())}>
               <CheckCheck />
               {t("markAllRead")}
             </Button>
           </div>
         ) : null}
+        {caughtUpEnd && days.length > 0 ? <CaughtUpEnd ref={endRef} height={caughtUpHeight(listHeight, LIST_END_PADDING)} done={caughtUpIn === listId} /> : null}
       </div>
       {shareDialog}
     </section>
@@ -1078,6 +1120,32 @@ function RowButton({
         <img src={image} alt="" loading="lazy" referrerPolicy="no-referrer" className="size-18 shrink-0 rounded-lg bg-muted object-cover" onError={hide} />
       ) : null}
     </button>
+  );
+}
+
+/** The list's padding at the end (`pb-6`), which All caught up leaves out of its height. */
+const LIST_END_PADDING = 24;
+
+/**
+ * All caught up at the end of Unread with Mark as read on scroll on: the empty page's muted square
+ * with ✓✓ and its title, as tall as the list's window. It fades in as it nears the top (the list
+ * sets its opacity while scrolling, so scrolling doesn't re-render); once `done` (scrolled all the
+ * way), the square turns to the primary colour and the check settles, then the page takes over.
+ * shadcn/ui's look: no cookie, no line running round it, no bouncy spring (that is Android's).
+ */
+function CaughtUpEnd({ ref, height, done }: { ref: React.Ref<HTMLDivElement>; height: number; done: boolean }) {
+  return (
+    <div ref={ref} className="flex flex-col items-center justify-center gap-3 px-6 text-center" style={{ height, opacity: 0 }}>
+      <div
+        className={cn(
+          "mb-1 flex size-12 items-center justify-center rounded-lg transition-colors duration-200 motion-reduce:transition-none",
+          done ? "bg-primary text-primary-foreground" : "bg-muted text-foreground",
+        )}
+      >
+        <CheckCheck className={cn("size-6", done && "spring-in")} aria-hidden="true" />
+      </div>
+      <h2 className="text-lg font-semibold">{t("caughtUpTitle")}</h2>
+    </div>
   );
 }
 

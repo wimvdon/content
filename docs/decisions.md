@@ -2,6 +2,22 @@
 
 Newest first. Add an entry for every notable choice: what was decided, why, and what was rejected.
 
+## 2026-11-25: The web app's Unread list ends in All caught up too
+
+Owner's wish: with **Mark as read on scroll** on, the web app's Unread list now ends in All caught
+up, like Android's (`ListEnd`), so the last articles can be scrolled off the top and marked read
+instead of needing Mark all as read. This ends the platform exception of 2026-11-07: the list is
+its own scrolling box, so the extra room is ordinary scrolling, not an overscroll effect. The logic
+is in `web/src/lib/scrollRead.ts` (`showsCaughtUpEnd`, `caughtUpProgress`, `reachedCaughtUp`,
+`caughtUpHeight`), with the same fade distance (240 px) and pause before the page (450 ms).
+
+It looks like shadcn/ui, not Material: the empty page's muted square with ✓✓ and the title fade in
+over the last stretch; at the top the square turns `primary` and the ✓✓ settles with the web's short
+`spring-in`, then the list becomes the All caught up page and the header comes back. Rejected for
+the web: the cookie, the line running round it and the bouncy spring (Android's Material 3
+Expressive). Mark all as read stays under the last article; once nothing is unread it keeps its
+place invisibly, so All caught up doesn't jump up while scrolling into it.
+
 ## 2026-11-23: Substack blocks the web app's feed loader; the refresh message says so
 
 All eight feeds the web app couldn't refresh were Substack publications. Substack refuses every
