@@ -12,7 +12,7 @@ import { needsFullText, touch, wantsFullText } from "../src/lib/fullArticle";
 import { articleKey, type Article } from "../src/lib/library";
 import { addToReadingList, keyOfLink, setReadingState } from "../src/lib/items";
 import { defaultReaderStyle, MAX_TEXT_SIZE, MIN_TEXT_SIZE, pageBackground, readerStyleOf, withTextSize } from "../src/lib/readerStyle";
-import { arrivedAbove, scrolledPast } from "../src/lib/scrollRead";
+import { arrivedAbove, CAUGHT_UP_MIN_HEIGHT, caughtUpAlpha, caughtUpHeight, caughtUpProgress, reachedCaughtUp, scrolledPast, showsCaughtUpEnd } from "../src/lib/scrollRead";
 import { pageClass } from "../src/components/readerPage";
 
 describe("discovery", () => {
@@ -550,6 +550,35 @@ describe("mark as read on scroll", () => {
     expect(arrivedAbove(before, ["a", "c", "d"], ["c", "d"])).toBe(false);
     expect(arrivedAbove(before, ["a", "new", "b"], ["a", "new", "b"])).toBe(false);
     expect(arrivedAbove([], ["new", "a"], ["a"])).toBe(false);
+  });
+
+  it("ends Unread in All caught up only with Mark as read on scroll and articles, as on Android", () => {
+    expect(showsCaughtUpEnd(true, true, 3)).toBe(true);
+    expect(showsCaughtUpEnd(false, true, 3)).toBe(false);
+    expect(showsCaughtUpEnd(true, false, 3)).toBe(false);
+    expect(showsCaughtUpEnd(true, true, 0)).toBe(false);
+  });
+
+  it("brings All caught up in over the last stretch, and with a short list only once you scroll", () => {
+    // Far under the last articles: nothing; halfway up the stretch: half; at the top: all.
+    expect(caughtUpProgress(900, 240, 2000)).toBe(0);
+    expect(caughtUpProgress(120, 240, 2000)).toBe(0.5);
+    expect(caughtUpProgress(0, 240, 2000)).toBe(1);
+    expect(caughtUpProgress(-5, 240, 2000)).toBe(1);
+    // A short list: All caught up rests 100 px from the top, so nothing shows before scrolling.
+    expect(caughtUpProgress(100, 240, 100)).toBe(0);
+    expect(caughtUpProgress(50, 240, 100)).toBe(0.5);
+    expect(caughtUpProgress(0, 240, 0)).toBe(1);
+    expect(caughtUpAlpha(0.5)).toBe(0.25);
+    expect(caughtUpAlpha(1)).toBe(1);
+  });
+
+  it("is reached at the top, as tall as the list's window", () => {
+    expect(reachedCaughtUp(0)).toBe(true);
+    expect(reachedCaughtUp(0.6)).toBe(true);
+    expect(reachedCaughtUp(12)).toBe(false);
+    expect(caughtUpHeight(800, 24)).toBe(776);
+    expect(caughtUpHeight(100, 24)).toBe(CAUGHT_UP_MIN_HEIGHT);
   });
 });
 

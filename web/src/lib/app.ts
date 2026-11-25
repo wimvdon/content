@@ -650,6 +650,15 @@ class AppStore {
     this.setRead(keys, true);
   }
 
+  /**
+   * Scrolled through to All caught up at the end of Unread (Mark as read on scroll): done with the
+   * section, like Mark all as read, so nothing read stays in the Unread list and it shows the All
+   * caught up page. Everything scrolled past is already marked read.
+   */
+  finishScrollRead() {
+    this.set({ readThisVisit: new Set() });
+  }
+
   /** Done with the section: everything unread in it is read, and nothing read stays in the Unread list (#157). */
   markAllRead(): Set<string> {
     // What the list shows: not the articles the hidden words leave out.
